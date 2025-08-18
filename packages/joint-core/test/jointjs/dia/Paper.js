@@ -1769,7 +1769,9 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
     QUnit.module('async = TRUE, autoFreeze = TRUE', function(hooks) {
 
-        QUnit.test('autofreeze check', function(assert) {
+        const OnIdle = (paper) => new Promise(resolve => paper.once('render:idle', () => resolve()));
+
+        QUnit.test('autoFreeze check', function(assert) {
             const done = assert.async();
 
             const testPaper = new Paper({
@@ -1777,10 +1779,11 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 model: graph,
                 async: true,
                 autoFreeze: true,
+                viewManagement: true,
                 sorting: Paper.sorting.APPROX
             });
 
-            assert.ok(testPaper.isFrozen());
+            assert.notOk(testPaper.isFrozen());
             assert.ok(testPaper.isAsync());
             assert.equal(cellNodesCount(testPaper), 0);
             let idleCounter = 0;
@@ -1790,7 +1793,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             testPaper.on('render:idle', () => {
                 assert.notOk(testPaper.hasScheduledUpdates(), 'has no updates');
-                assert.ok(testPaper.isFrozen(), 'frozen after updating');
+                assert.notOk(testPaper.isFrozen(), 'is not frozen after updating');
+                assert.ok(testPaper.isIdle(), 'is idle after updating');
                 switch (idleCounter) {
                     case 0: {
                         assert.equal(cellNodesCount(testPaper), 1, 'cell rendered');
@@ -1799,8 +1803,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     }
                     case 1: {
                         const view = testPaper.findViewByModel(rect);
-                        const viewBbox = view.getBBox();
-                        assert.deepEqual({ x: viewBbox.x, y: viewBbox.y }, { x: 201, y: 202 }, 'view was correctly updated');
+                        const viewBBox = view.getBBox();
+                        assert.deepEqual({ x: viewBBox.x, y: viewBBox.y }, { x: 201, y: 202 }, 'view was correctly updated');
                         graph.addCell(circle);
                         break;
                     }
@@ -1823,6 +1827,164 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
             graph.resetCells([rect]);
+        });
+
+        QUnit.test('autoFreeze with frozen paper', async function(assert) {
+
+            const done = assert.async();
+
+            const rect = new joint.shapes.standard.Rectangle();
+            rect.addTo(graph);
+
+            const testPaper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                frozen: true,
+                viewManagement: true,
+                sorting: Paper.sorting.APPROX
+            });
+
+            assert.ok(testPaper.isFrozen(), 'paper is frozen');
+            assert.notOk(testPaper.isIdle(), 'is idle after initialization');
+            assert.equal(cellNodesCount(testPaper), 0, 'no cells rendered');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates');
+
+            const circle = new joint.shapes.standard.Circle();
+            circle.addTo(graph);
+
+            assert.ok(testPaper.isFrozen(), 'paper is still frozen after adding a cell');
+            assert.notOk(testPaper.isIdle(), 'is not idle after adding a cell');
+            assert.equal(cellNodesCount(testPaper), 0, 'cell rendered');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates after adding a cell');
+
+            graph.resetCells([rect, circle]);
+
+            assert.ok(testPaper.isFrozen(), 'paper is still frozen after resetCells()');
+            assert.notOk(testPaper.isIdle(), 'is not idle after resetCells()');
+            assert.equal(cellNodesCount(testPaper), 0, 'no cells rendered after resetCells()');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates after resetCells()');
+
+            // Only an explicit unfreeze() will trigger the rendering of cells.
+            testPaper.unfreeze();
+
+            assert.notOk(testPaper.isFrozen(), 'paper is un-frozen after unfreeze()');
+            assert.notOk(testPaper.isIdle(), 'is not idle after unfreeze()');
+            assert.equal(cellNodesCount(testPaper), 0, 'no cells rendered after unfreeze()');
+
+            await OnIdle(testPaper);
+
+            assert.notOk(testPaper.isFrozen(), 'paper is not frozen after unfreeze() and idle');
+            assert.ok(testPaper.isIdle(), 'is idle after unfreeze() and idle');
+            assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered after unfreeze() and idle');
+            assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after unfreeze() and idle');
+
+            circle.attr('body/fill', 'red');
+
+            assert.notOk(testPaper.isFrozen(), 'paper is not frozen after changing cell attributes');
+            assert.notOk(testPaper.isIdle(), 'is not idle after changing cell attributes');
+            assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered after changing cell attributes');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates after changing cell attributes');
+
+            await OnIdle(testPaper);
+
+            assert.notOk(testPaper.isFrozen(), 'paper is not frozen after changing cell attributes and idle');
+            assert.ok(testPaper.isIdle(), 'is idle after changing cell attributes and idle');
+            assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered after changing cell attributes and idle');
+            assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after changing cell attributes and idle');
+
+            graph.resetCells([rect]);
+
+            assert.notOk(testPaper.isFrozen(), 'paper is frozen after resetCells()');
+            assert.notOk(testPaper.isIdle(), 'is not idle after resetCells()');
+            assert.equal(cellNodesCount(testPaper), 0, 'no cells rendered after resetCells()');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates after resetCells()');
+
+            await OnIdle(testPaper);
+
+            assert.notOk(testPaper.isFrozen(), 'paper is not frozen after resetCells() and idle');
+            assert.ok(testPaper.isIdle(), 'is idle after resetCells() and idle');
+            assert.equal(cellNodesCount(testPaper), 1, '1 cell rendered after resetCells() and idle');
+            assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after resetCells() and idle');
+
+            done();
+
+            testPaper.remove();
+        });
+
+        QUnit.test('idle after all mount && updates', async function(assert) {
+
+            const done = assert.async();
+
+            const testPaper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                sorting: Paper.sorting.APPROX,
+                viewManagement: {
+                    lazyInitialize: true,
+                    disposeHidden: true,
+                },
+                cellVisibility: (cell) => cell.get('visible')
+            });
+
+            const count = 10;
+            const rects = Array.from({ length: count }, () => new joint.shapes.standard.Rectangle());
+            graph.resetCells(rects);
+
+            await OnIdle(testPaper);
+
+            assert.equal(cellNodesCount(testPaper), 0);
+
+            rects.at(-1).set('visible', true);
+
+            testPaper.unfreeze({ mountBatchSize: 1 });
+
+            await OnIdle(testPaper);
+
+            assert.equal(cellNodesCount(testPaper), 1, 'All cells rendered after unfreeze() and idle');
+
+            done();
+        });
+
+        QUnit.test('idle after all unmount && updates', async function(assert) {
+
+            const done = assert.async();
+
+            const testPaper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                sorting: Paper.sorting.APPROX,
+                viewManagement: {
+                    lazyInitialize: true,
+                    disposeHidden: true,
+                },
+                cellVisibility: (cell) => cell.get('visible')
+            });
+
+            const count = 10;
+            const rects = Array.from({ length: count }, () => new joint.shapes.standard.Rectangle({
+                visible: true
+            }));
+            graph.resetCells(rects);
+
+            await OnIdle(testPaper);
+
+            assert.equal(cellNodesCount(testPaper), 10);
+
+            rects.at(-1).set('visible', false);
+
+            testPaper.unfreeze({ unmountBatchSize: 1 });
+
+            await OnIdle(testPaper);
+
+            assert.equal(cellNodesCount(testPaper), 9, 'All cells rendered after unfreeze() and idle');
+
+            done();
         });
     });
 
@@ -2607,6 +2769,131 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
     });
 
+    QUnit.module('prioritizeCellViewMount()', function(hooks) {
+
+        QUnit.test('prioritizes unmounted cell views', function(assert) {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                viewManagement: {
+                    lazyInitialize: true,
+                    disposeHidden: true,
+                },
+                async: true,
+                frozen: true,
+                cellVisibility: () => true,
+            });
+
+            const rects = Array.from({ length: 10 }, (_, i) => new joint.shapes.standard.Rectangle());
+            graph.addCells(rects);
+
+            // Move all schedule updates to the unmounted state
+            paper.updateViews({ cellVisibility: () => false });
+
+            assert.equal(cellNodesCount(paper), 0, 'No views are mounted initially');
+
+            paper.checkViewport({ mountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 1, 'One view is mounted after checkViewport with mountBatchSize 1');
+            assert.ok(paper.isViewMounted(rects[0].id), 'First view is mounted');
+
+            paper.checkViewport({ mountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 2, 'Two views are mounted after second updateViewsBatch');
+            assert.ok(paper.isViewMounted(rects[1].id), 'Second view is mounted');
+
+            paper.prioritizeCellViewMount(rects[9]);
+
+            paper.checkViewport({ mountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 3, 'Three views are mounted after prioritizing unmounted view');
+            assert.ok(paper.isViewMounted(rects[9].id), 'Prioritized view is mounted');
+
+            paper.checkViewport({ mountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 4, 'Four views are mounted after another updateViewsBatch');
+            assert.ok(paper.isViewMounted(rects[2].id), 'Third view is mounted');
+
+            // Check the return values of prioritizeCellViewMount
+            assert.equal(paper.prioritizeCellViewMount(rects[5]), true, 'Prioritization of unmounted view returned true');
+            assert.equal(paper.prioritizeCellViewMount(rects[5].id), true, 'Prioritization of unmounted view by ID returned true');
+            assert.equal(paper.prioritizeCellViewMount(rects[0]), false, 'Prioritization of already mounted view returned false');
+            assert.equal(paper.prioritizeCellViewMount(rects[1].id), false, 'Prioritization of already mounted view returned false');
+            assert.equal(paper.prioritizeCellViewMount(), false, 'Prioritization without parameters returned false');
+            assert.equal(paper.prioritizeCellViewMount('non-existing-id'), false, 'Prioritization of non-existing view returned false');
+
+            paper.remove();
+        });
+
+    });
+
+    QUnit.module('prioritizeCellViewUnmount()', function(hooks) {
+
+        QUnit.test('prioritizes mounted cell views', function(assert) {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                viewManagement: {
+                    lazyInitialize: true,
+                    disposeHidden: true,
+                },
+                async: true,
+                frozen: true,
+                cellVisibility: () => false,
+            });
+
+            const rects = Array.from({ length: 10 }, (_, i) => new joint.shapes.standard.Rectangle());
+            graph.addCells(rects);
+
+            // Move all schedule updates to the mounted state
+            paper.updateViews({ cellVisibility: () => true });
+
+            assert.equal(cellNodesCount(paper), 10, 'All views are mounted initially');
+
+            paper.checkViewport({ unmountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 9, 'One view is unmounted after checkViewport with unmountBatchSize 1');
+            assert.notOk(paper.isViewMounted(rects[0].id), 'First view is not mounted');
+
+            paper.checkViewport({ unmountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 8, 'Two views are unmounted after second updateViewsBatch');
+            assert.notOk(paper.isViewMounted(rects[1].id), 'Second view is not mounted');
+            assert.ok(paper.isViewMounted(rects[9].id), 'Last view is still mounted');
+
+            paper.prioritizeCellViewUnmount(rects[9]);
+            paper.checkViewport({ unmountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 7, 'Three views are unmounted after prioritizing mounted view');
+            assert.notOk(paper.isViewMounted(rects[9].id), 'Prioritized view is not mounted');
+
+            paper.checkViewport({ unmountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 6, 'Four views are unmounted after another updateViewsBatch');
+            assert.notOk(paper.isViewMounted(rects[2].id), 'Third view is not mounted');
+
+            // Check the return values of prioritizeCellViewUnmount
+            assert.equal(paper.prioritizeCellViewUnmount(rects[5]), true, 'Prioritization of mounted view returned true');
+            assert.equal(paper.prioritizeCellViewUnmount(rects[5].id), true, 'Prioritization of mounted view by ID returned true');
+            assert.equal(paper.prioritizeCellViewUnmount(rects[0]), false, 'Prioritization of already unmounted view returned false');
+            assert.equal(paper.prioritizeCellViewUnmount(rects[1].id), false, 'Prioritization of already unmounted view returned false');
+            assert.equal(paper.prioritizeCellViewUnmount(), false, 'Prioritization without parameters returned false');
+            assert.equal(paper.prioritizeCellViewUnmount('non-existing-id'), false, 'Prioritization of non-existing view returned false');
+
+            paper.remove();
+        });
+    });
+
     QUnit.module('viewManagement', function(hooks) {
 
         QUnit.module('lazyInitialize', function() {
@@ -2743,8 +3030,65 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             });
 
+            QUnit.test('do not dispose when removal is scheduled', function(assert) {
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    viewManagement: {
+                        lazyInitialize: true,
+                        disposeHidden: true
+                    },
+                });
 
+                const cellVisibilitySpy = sinon.spy(() => false);
+                const initialCount = getNumberOfViews();
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                paper.freeze();
+                // schedule a view removal
+                rect.remove();
+                // and check the viewport including the removed view
+                paper.checkViewport({ cellVisibility: cellVisibilitySpy });
+                paper.unfreeze();
+
+                assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is disposed and removed from the paper');
+                assert.notOk(cellVisibilitySpy.called, 'cellVisibility callback is called once for removed view');
+
+                paper.remove();
+            });
+
+            QUnit.test('calling disposeHiddenCellViews() explicitly disposes hidden views', function(assert) {
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    viewManagement: {
+                        disposeHidden: false
+                    },
+                });
+
+                const initialCount = getNumberOfViews();
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is initialized');
+
+                paper.disposeHiddenCellViews();
+                assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is still present');
+
+                paper.checkViewport({ cellVisibility: () => false });
+                assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is still present after viewport check');
+
+                paper.disposeHiddenCellViews();
+                assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is disposed when called explicitly');
+
+                paper.remove();
+            });
         });
     });
 });

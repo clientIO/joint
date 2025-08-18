@@ -5,9 +5,9 @@ var Paper = joint.dia.Paper;
 var Graph = joint.dia.Graph;
 var Rectangle = joint.shapes.standard.Rectangle;
 var Link = joint.shapes.standard.Link;
-var g = joint.g;
+var geometry = joint.g;
 
-var graph = new Graph;
+var graph = new Graph({}, { cellNamespace: joint.shapes });
 
 var windowBBox;
 function setWindowBBox() {
@@ -21,15 +21,11 @@ function setWindowBBox() {
 
 window.onscroll = function() {
     setWindowBBox();
-    if (autoFreeze && paper.isFrozen()) {
-        paper.unfreeze();
-    }
+    paper.wakeUp();
 };
 window.onresize = function() {
     setWindowBBox();
-    if (autoFreeze && paper.isFrozen()) {
-        paper.unfreeze();
-    }
+    paper.wakeUp();
 };
 
 var viewportTemplate = new Rectangle({
@@ -53,11 +49,13 @@ function setViewportBBox() {
 
 var paper = new Paper({
     el: document.getElementById('canvas'),
+    cellViewNamespace: joint.shapes,
     width: '100%',
     height: '100%',
     model: graph,
     async: true,
     frozen: true,
+    autoFreeze: true,
     viewManagement: {
         lazyInitialize: true,
         disposeHidden: true,
@@ -73,25 +71,27 @@ var paper = new Paper({
         if (leaveDraggedInViewport && model === draggedModel) return true;
         if (leaveRenderedInViewport && isAlreadyMounted) return true;
         if (viewportRect) {
-            return g.intersection.exists(viewportBBox, model.getBBox());
+            return geometry.intersection.exists(viewportBBox, model.getBBox());
         } else {
             if (model === viewport) return false;
-            return g.intersection.exists(windowBBox, model.getBBox());
+            return geometry.intersection.exists(windowBBox, model.getBBox());
         }
     }
 });
 
-paper.on('render:done', function(stats) {
-    console.table(stats);
+paper.on({
+    'render:done': () => console.log('Render done'),
+    'render:idle': () => console.log('Render idle')
 });
+
 
 // Dragged view is always visible
 var draggedModel = null;
 paper.on({
-    'cell:pointerdown': function(view) {
+    'cell:pointerdown': (view) => {
         draggedModel = view.model;
     },
-    'cell:pointerup': function() {
+    'cell:pointerup': () => {
         draggedModel = null;
     }
 });
@@ -136,6 +136,7 @@ var viewportInput = document.getElementById('viewport');
 var viewportRect = viewportInput.checked;
 viewportInput.addEventListener('click', function(evt) {
     viewportRect = evt.target.checked;
+    paper.wakeUp();
 }, false);
 
 var autoFreezeInput = document.getElementById('autofreeze');
@@ -143,21 +144,21 @@ var autoFreeze = autoFreezeInput.checked;
 autoFreezeInput.addEventListener('click', function(evt) {
     autoFreeze = evt.target.checked;
     paper.options.autoFreeze = autoFreeze;
-    if (!autoFreeze) {
-        paper.unfreeze();
-    }
+    paper.wakeUp();
 }, false);
 
 var leaveRenderedInput = document.getElementById('leave-rendered-in-viewport');
 var leaveRenderedInViewport = leaveRenderedInput.checked;
 leaveRenderedInput.addEventListener('click', function(evt) {
     leaveRenderedInViewport = evt.target.checked;
+    paper.wakeUp();
 }, false);
 
 var leaveDraggedInput = document.getElementById('leave-dragged-in-viewport');
 var leaveDraggedInViewport = leaveDraggedInput.checked;
 leaveDraggedInput.addEventListener('click', function(evt) {
     leaveDraggedInViewport = evt.target.checked;
+    paper.wakeUp();
 }, false);
 
 var countInput = document.getElementById('count');
@@ -173,6 +174,7 @@ var padding = viewportInput.checked ? 100 : 1;
 paddingInput.addEventListener('click', function(evt) {
     padding = evt.target.checked ? 100 : 1;
     setViewportBBox();
+    paper.wakeUp();
 }, false);
 
 var batchSizeInput = document.getElementById('batch-size');
@@ -235,18 +237,21 @@ function restart() {
 
     setViewportBBox();
 
+    paper.unfreeze();
+
     console.timeEnd('perf-reset');
 
     console.time('perf-dump');
 
     paper.unfreeze({
         batchSize: batchSizeInput.value,
-        progress: function(done, current, total) {
+        progress: function(done, current, total, stats) {
             var progress = current / total;
             console.log(Math.round(progress * 100) + '%');
             if (done) {
                 console.timeEnd('perf-dump');
                 console.timeEnd('perf-all');
+                console.table(stats);
                 paper.unfreeze();
                 loader.el.remove();
             } else {
@@ -257,5 +262,7 @@ function restart() {
 }
 
 function rndColor() {
-    return 'hsl(' + g.random(171, 181) + ',' + g.random(58, 72) + '%,' + g.random(45, 55) + '%)';
+    // only shades of blue and green
+    return `rgb(0, ${geometry.random(100, 255)}, ${geometry.random(100, 255)})`;
+
 }
