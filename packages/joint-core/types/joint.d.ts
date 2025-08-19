@@ -1639,7 +1639,7 @@ export namespace dia {
         interface FindClosestMagnetToPointOptions {
             radius?: number;
             findInAreaOptions?: FindInAreaOptions;
-            validation?: (view: CellView, magnet: SVGElement) => boolean;
+            filter?: (view: CellView, magnet: SVGElement) => boolean;
         }
 
         interface ClosestMagnet {
