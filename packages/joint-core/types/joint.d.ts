@@ -1905,6 +1905,8 @@ export namespace dia {
 
         disposeHiddenCellViews(): void;
 
+        isCellViewMounted(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+
         // events
 
         on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(eventName: T, callback: Paper.EventMap[T], context?: any): this;
@@ -1964,6 +1966,8 @@ export namespace dia {
         protected prioritizeCellViewMount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
 
         protected prioritizeCellViewUnmount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+
+        protected isViewMounted(viewOrCid: dia.CellView | string): boolean;
 
         protected isAsync(): boolean;
 

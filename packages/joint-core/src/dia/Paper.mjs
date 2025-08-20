@@ -968,19 +968,21 @@ export const Paper = View.extend({
 
     forcePostponedViewUpdate: function(view, flag) {
         if (!view || !(view instanceof CellView)) return false;
-        var model = view.model;
+        const model = view.model;
         if (model.isElement()) return false;
-        var dumpOptions = { silent: true };
+        const dumpOptions = { silent: true };
         // LinkView is waiting for the target or the source cellView to be rendered
         // This can happen when the cells are not in the viewport.
-        var sourceFlag = 0;
-        var sourceView = this.findViewByModel(model.getSourceCell());
-        if (sourceView && !this.isViewMounted(sourceView)) {
+        let sourceFlag = 0;
+        const sourceCell = model.getSourceCell();
+        if (sourceCell && !this.isCellViewMounted(sourceCell)) {
+            const sourceView = this.findViewByModel(sourceCell);
             sourceFlag = this.dumpView(sourceView, dumpOptions);
         }
-        var targetFlag = 0;
-        var targetView = this.findViewByModel(model.getTargetCell());
-        if (targetView && !this.isViewMounted(targetView)) {
+        let targetFlag = 0;
+        const targetCell = model.getTargetCell();
+        if (targetCell && !this.isCellViewMounted(targetCell)) {
+            const targetView = this.findViewByModel(targetCell);
             targetFlag = this.dumpView(targetView, dumpOptions);
         }
         if (sourceFlag === 0 && targetFlag === 0) {
@@ -1116,17 +1118,20 @@ export const Paper = View.extend({
         return flag;
     },
 
-    isViewMounted: function(viewOrId) {
-        if (!viewOrId) return false;
-        let cid;
-        if (viewOrId[CELL_VIEW_MARKER] || viewOrId[CELL_VIEW_PLACEHOLDER_MARKER]) {
-            // If the view is a CellView, we can use its cid.
-            cid = viewOrId.cid;
-        } else {
-            // `view` is model id
-            cid = this._idToCid[viewOrId];
-        }
+    isCellViewMounted: function(cellOrId) {
+        const cid = cellOrId && this._idToCid[cellOrId.id || cellOrId];
         if (!cid) return false; // The view is not registered.
+        return this.isViewMounted(cid);
+    },
+
+    isViewMounted: function(viewOrCid) {
+        if (!viewOrCid) return false;
+        let cid;
+        if (viewOrCid[CELL_VIEW_MARKER] || viewOrCid[CELL_VIEW_PLACEHOLDER_MARKER]) {
+            cid = viewOrCid.cid;
+        } else {
+            cid = viewOrCid;
+        }
         return this._updates.mountedList.has(cid);
     },
 
@@ -1410,6 +1415,12 @@ export const Paper = View.extend({
         };
     },
 
+
+    /**
+     * @ignore This method returns an array of cellViewLike objects and therefore
+     * is meant for internal/test use only.
+     * The view placeholders are not exposed via public API.
+    */
     getUnmountedViews: function() {
         const updates = this._updates;
         const unmountedViews = new Array(updates.unmountedList.length);
@@ -1423,6 +1434,11 @@ export const Paper = View.extend({
         return unmountedViews;
     },
 
+    /**
+     * @ignore This method returns an array of cellViewLike objects and therefore
+     * is meant for internal/test use only.
+     * The view placeholders are not exposed via public API.
+     */
     getMountedViews: function() {
         const updates = this._updates;
         const mountedViews = new Array(updates.mountedList.length);
