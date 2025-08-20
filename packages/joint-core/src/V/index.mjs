@@ -118,9 +118,8 @@ const V = (function() {
     });
 
     /**
-     * @param {SVGGElement} toElem
      * Calculates the transformation matrix from this element to the target element.
-     * @param {SVGGElement} toElem - The target SVG graphics element.
+     * @param {SVGGElement} target - The target SVG graphics element.
      * @param {Object=} opt - Options object for transformation calculation. If `opt.safe` is true, uses a safe traversal method to compute the matrix.
      * @returns {SVGMatrix}
      */
