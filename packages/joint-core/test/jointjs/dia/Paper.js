@@ -1053,7 +1053,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             paper.requestViewUpdate(view, 0x1, view.UPDATE_PRIORITY);
                             assert.ok(confirmUpdateSpy.calledOnce, 'confirmUpdate should be called');
                             assert.ok(confirmUpdateSpy.lastCall.calledWithExactly(0x1, sinon.match.object));
-                           assert.ok(view.el.parentNode, 'View should be mounted in the DOM');
+                            assert.ok(view.el.parentNode, 'View should be mounted in the DOM');
                             paper.dumpViews({ viewport: () => false });
                             assert.notOk(view.el.parentNode, 'View should be removed from the DOM');
                             assert.ok(confirmUpdateSpy.calledOnce, 'confirmUpdate should be called again');
