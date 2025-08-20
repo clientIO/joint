@@ -3926,7 +3926,8 @@ export namespace anchors {
     }
 
     interface MidSideAnchorArguments extends RotateAnchorArguments, PaddingAnchorArguments {
-
+        mode?: 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto';
+        preferenceThreshold?: dia.Sides;
     }
 
     interface ModelCenterAnchorArguments {
