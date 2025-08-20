@@ -2392,7 +2392,7 @@ export namespace highlighters {
             position?: Positions | dia.PositionName;
             size?: number | dia.Size;
             gap?: number;
-            margin?: number | dia.Sides;
+            margin?: dia.Sides;
         }
     }
 
@@ -4485,7 +4485,7 @@ export namespace elementTools {
 
     namespace Boundary {
         interface Options extends dia.ToolView.Options<dia.ElementView> {
-            padding?: number | dia.Sides;
+            padding?: dia.Sides;
             useModelGeometry?: boolean;
             rotate?: boolean;
         }
@@ -4728,7 +4728,7 @@ export namespace linkTools {
 
     namespace Boundary {
         interface Options extends dia.ToolView.Options<dia.LinkView> {
-            padding?: number | dia.Sides;
+            padding?: dia.Sides;
             useModelGeometry?: boolean;
         }
     }
