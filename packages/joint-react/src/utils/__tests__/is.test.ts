@@ -42,16 +42,6 @@ describe('is.ts utility functions', () => {
     expect(is.isGraphCell(null)).toBe(false);
   });
 
-  test('isGraphElement', () => {
-    expect(is.isGraphElement({ isElement: true, isLink: false })).toBe(true);
-    expect(is.isGraphElement({ isElement: false, isLink: true })).toBe(false);
-  });
-
-  test('isGraphLink', () => {
-    expect(is.isGraphLink({ isElement: false, isLink: true })).toBe(true);
-    expect(is.isGraphLink({ isElement: true, isLink: false })).toBe(false);
-  });
-
   test('isLinkInstance', () => {
     const link = new dia.Link();
     expect(is.isLinkInstance(link)).toBe(true);

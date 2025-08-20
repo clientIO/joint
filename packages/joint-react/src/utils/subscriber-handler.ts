@@ -1,8 +1,8 @@
-import type { dia } from '@joint/core';
+import type { UpdateResult } from '../data/create-store-data';
 
 export interface SubscribeHandler {
-  readonly subscribe: (onStoreChange: (changedIds?: Set<dia.Cell.ID>) => void) => () => void;
-  readonly notifySubscribers: () => void;
+  readonly subscribe: (onStoreChange: (changedIds?: UpdateResult) => void) => () => void;
+  readonly notifySubscribers: (batchName?: string) => void;
 }
 
 /**
@@ -13,27 +13,29 @@ export interface SubscribeHandler {
  * @group utils
  */
 export function subscribeHandler(
-  beforeSubscribe?: () => Set<dia.Cell.ID> | undefined
+  beforeSubscribe?: (batchName?: string) => UpdateResult | undefined
 ): SubscribeHandler {
   let isScheduled = false;
-  const subscribers = new Set<(changedIds?: Set<dia.Cell.ID>) => void>();
+  const subscribers = new Set<(changedIds?: UpdateResult) => void>();
 
   return {
-    subscribe: (onStoreChange: (changedIds?: Set<dia.Cell.ID>) => void) => {
+    subscribe: (onStoreChange: (changedIds?: UpdateResult) => void) => {
       subscribers.add(onStoreChange);
       return () => {
         subscribers.delete(onStoreChange);
       };
     },
-    notifySubscribers: () => {
+    notifySubscribers: (batchName?: string) => {
       if (!isScheduled) {
         isScheduled = true;
-        requestAnimationFrame(() => {
-          const changedIds = beforeSubscribe?.();
-          for (const subscriber of subscribers) {
-            subscriber(changedIds);
-          }
-          isScheduled = false;
+        Promise.resolve().then(() => {
+          requestAnimationFrame(() => {
+            const changedIds = beforeSubscribe?.(batchName);
+            for (const subscriber of subscribers) {
+              subscriber(changedIds);
+            }
+            isScheduled = false;
+          });
         });
       }
     },

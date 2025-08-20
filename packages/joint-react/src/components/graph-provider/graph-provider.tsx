@@ -1,37 +1,68 @@
-import type { dia } from '@joint/core';
+import { type dia } from '@joint/core';
 import type { GraphLink } from '../../types/link-types';
 import {
   GraphAreElementsMeasuredContext,
   GraphStoreContext,
 } from '../../context/graph-store-context';
-import { useEffect, useState, type PropsWithChildren } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  type Dispatch,
+  type PropsWithChildren,
+  type SetStateAction,
+} from 'react';
 import { createStore, type Store } from '../../data/create-store';
 import { useElements } from '../../hooks/use-elements';
 import { useGraph } from '../../hooks';
-import { setLinks } from '../../utils/cell/set-cells';
+import { setElements, setLinks } from '../../utils/cell/cell-utilities';
 import type { GraphElement } from '../../types/element-types';
+import { CONTROLLED_MODE_BATCH_NAME } from '../../utils/graph/update-graph';
 
-interface GraphProviderHandlerProps {
+interface GraphProviderHandlerProps<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Element extends dia.Element | GraphElement = any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Link extends dia.Link | GraphLink = any,
+> {
   /**
-   * Initial links to be added to graph
-   * It's loaded just once, so it cannot be used as React state.
+   * Elements (nodes) to be added to graph.
+   * When `onElementsChange`, it enabled controlled mode.
+   * If there is no `onElementsChange` provided, it will be used just on onload (initial)
    */
-  readonly initialLinks?: Array<dia.Link | GraphLink>;
+  readonly initialElements?: Element[];
+
+  /**
+   * Links (edges) to be added to graph.
+   * When `onLinksChange`, it enabled controlled mode.
+   * If there is no `onLinksChange` provided, it will be used just on onload (initial)
+   */
+  readonly initialLinks?: Link[];
+
+  /**
+   * Callback triggered when elements (nodes) change.
+   * Providing this prop enables controlled mode for elements.
+   * If specified, this function will override the default behavior, allowing you to manage all element changes manually instead of relying on `graph.change`.
+   */
+  readonly onElementsChange?: Dispatch<SetStateAction<Element[]>>;
+
+  /**
+   * Callback triggered when links (edges) change.
+   * Providing this prop enables controlled mode for links.
+   * If specified, this function will override the default behavior, allowing you to manage all link changes manually instead of relying on `graph.change`.
+   */
+  readonly onLinksChange?: Dispatch<SetStateAction<Link[]>>;
 }
 
 /**
  * GraphProviderHandler component is used to handle the graph instance and provide it to the children.
  * It also handles the default elements and links.
  * @param props - {GraphProviderHandler} props
- * @param props.children - Children to render.
- * @param props.initialLinks - Initial links to be added to graph
  * @returns GraphProviderHandler component
  * @private
  */
-export function GraphProviderHandler({
-  children,
-  initialLinks,
-}: PropsWithChildren<GraphProviderHandlerProps>) {
+export function GraphProviderHandler(props: PropsWithChildren<GraphProviderHandlerProps>) {
+  const { initialElements, initialLinks, onElementsChange, onLinksChange, children } = props;
   const areElementsMeasured = useElements((items) => {
     let areMeasured = true;
     for (const [, { width = 0, height = 0 }] of items) {
@@ -42,14 +73,38 @@ export function GraphProviderHandler({
     }
     return areMeasured;
   });
+
   const graph = useGraph();
 
-  useEffect(() => {
-    if (areElementsMeasured) {
-      setLinks({ graph, initialLinks });
-    }
+  const areElementsInControlledMode = !!onElementsChange;
+  const areLinksInControlledMode = !!onLinksChange;
+
+  // Controlled mode for elements
+  useLayoutEffect(() => {
+    if (!areElementsMeasured) return;
+    if (!graph) return;
+    if (!areLinksInControlledMode) return;
+    graph.startBatch(CONTROLLED_MODE_BATCH_NAME);
+    setElements({ graph, elements: initialElements });
+    setLinks({ graph, links: initialLinks });
+    graph.stopBatch(CONTROLLED_MODE_BATCH_NAME);
+  }, [
+    areElementsInControlledMode,
+    areElementsMeasured,
+    areLinksInControlledMode,
+    graph,
+    initialElements,
+    initialLinks,
+  ]);
+
+  useLayoutEffect(() => {
+    // with this all links are connected only when react elements are measured
+    // It fixes issue with a flickering of un-measured react elements.
+    if (areElementsInControlledMode) return;
+    if (!areElementsMeasured) return;
+    setLinks({ graph, links: initialLinks });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [areElementsMeasured, graph]);
+  }, [areElementsMeasured, areElementsInControlledMode, graph]);
 
   return (
     <GraphAreElementsMeasuredContext.Provider value={areElementsMeasured}>
@@ -58,7 +113,13 @@ export function GraphProviderHandler({
   );
 }
 
-export interface GraphProps<Graph extends dia.Graph = dia.Graph> {
+export interface GraphProps<
+  Graph extends dia.Graph = dia.Graph,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Element extends dia.Element | GraphElement = any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Link extends dia.Link | GraphLink = any,
+> extends GraphProviderHandlerProps<Element, Link> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph
@@ -84,16 +145,6 @@ export interface GraphProps<Graph extends dia.Graph = dia.Graph> {
    * @see https://docs.jointjs.com/api/dia/Cell
    */
   readonly cellModel?: typeof dia.Cell;
-  /**
-   * Initial elements to be added to graph
-   * It's loaded just once, so it cannot be used as React state.
-   */
-  readonly initialElements?: Array<dia.Element | GraphElement>;
-  /**
-   * Initial links to be added to graph
-   * It's loaded just once, so it cannot be used as React state.
-   */
-  readonly initialLinks?: Array<dia.Link | GraphLink>;
 
   /**
    * Store is build around graph, it handles react updates and states, it can be created separately and passed to the provider via `createStore` function.
@@ -136,10 +187,11 @@ export interface GraphProps<Graph extends dia.Graph = dia.Graph> {
  * ```
  * @group Components
  */
-
-export function GraphProvider(props: Readonly<GraphProps>) {
-  const { children, initialLinks, store, ...rest } = props;
-
+export function GraphProvider<
+  Element extends dia.Element | GraphElement,
+  Link extends dia.Link | GraphLink,
+>(props: Readonly<GraphProps<dia.Graph, Element, Link>>) {
+  const { children, store, ...rest } = props;
   /**
    * Graph store instance.
    * @returns - The graph store instance.
@@ -160,13 +212,14 @@ export function GraphProvider(props: Readonly<GraphProps>) {
     // On load initialization
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   if (graphStore === null) {
     return null;
   }
 
   return (
     <GraphStoreContext.Provider value={graphStore}>
-      <GraphProviderHandler initialLinks={initialLinks}>{children}</GraphProviderHandler>
+      <GraphProviderHandler {...props}>{children}</GraphProviderHandler>
     </GraphStoreContext.Provider>
   );
 }

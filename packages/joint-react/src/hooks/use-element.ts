@@ -42,8 +42,8 @@ export function useElement<Element extends GraphElement, ReturnedElements = Elem
 
   const subscribeForElement = useCallback(
     (subscribeCallback: () => void) => {
-      return subscribe((changedIds) => {
-        if (changedIds?.has(id)) {
+      return subscribe((update) => {
+        if (update?.diffIds.has(id)) {
           subscribeCallback();
         }
       });

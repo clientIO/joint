@@ -138,8 +138,8 @@ function Component(props: Readonly<PaperProviderProps>) {
 export function PaperProvider(props: Readonly<PaperProviderProps>) {
   const {
     children,
-    initialElements,
-    initialLinks,
+    initialElements: initialElements,
+    initialLinks: initialLinks,
     graph,
     cellNamespace,
     cellModel,

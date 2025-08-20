@@ -5,11 +5,17 @@ import { CellMap } from '../utils/cell/cell-map';
 import type { GraphLink } from '../types/link-types';
 import type { GraphElement } from '../types/element-types';
 import { diffUpdate } from '../utils/diff-update';
+
+export interface UpdateResult {
+  readonly diffIds: Set<dia.Cell.ID>;
+  readonly areElementsChanged: boolean;
+  readonly areLinksChanged: boolean;
+}
 interface StoreData<
   Graph extends dia.Graph = dia.Graph,
   Element extends GraphElement = GraphElement,
 > {
-  readonly updateStore: (graph: Graph) => Set<dia.Cell.ID>;
+  readonly updateStore: (graph: Graph) => UpdateResult;
   readonly destroy: () => void;
   elements: CellMap<Element>;
   links: CellMap<GraphLink>;
@@ -39,7 +45,7 @@ export function createStoreData<
    * @returns A set of cell IDs that were updated.
    * @description
    */
-  function updateStore(graph: Graph): Set<dia.Cell.ID> {
+  function updateStore(graph: Graph): UpdateResult {
     const cells = graph.get('cells');
 
     if (!cells) throw new Error('Graph cells are not initialized');
@@ -64,9 +70,16 @@ export function createStoreData<
       }
     }
 
+    const oldElements = data.elements;
+    const oldLinks = data.links;
+
     data.elements = diffUpdate(data.elements, elementsDiff, (cellId) => cells.has(cellId));
     data.links = diffUpdate(data.links, linkDiff, (cellId) => cells.has(cellId));
-    return diffIds;
+
+    const areElementsChanged = data.elements !== oldElements;
+    const areLinksChanged = data.links !== oldLinks;
+
+    return { diffIds, areElementsChanged, areLinksChanged };
   }
 
   const data: StoreData<Graph, Element> = {

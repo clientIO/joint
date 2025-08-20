@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { useGraph } from './use-graph';
 import { useCallback } from 'react';
-import { processLink } from '../utils/cell/set-cells';
+import { processLink } from '../utils/cell/cell-utilities';
 import type { GraphLink } from '../types/link-types';
 
 /**

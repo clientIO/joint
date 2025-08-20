@@ -5,13 +5,9 @@ import type { GraphElement } from '../../types/element-types';
 import { isCellInstance, isLinkInstance, isUnsized } from '../is';
 import { getTargetOrSource } from './get-link-targe-and-source-ids';
 import { isReactElement } from '../is-react-element';
+import { updateGraph } from '../graph/update-graph';
 
-interface Options {
-  readonly graph: dia.Graph;
-  readonly initialLinks?: Array<dia.Link | GraphLink>;
-  readonly initialElements?: Array<dia.Element | GraphElement>;
-}
-
+export type CellOrJsonCell = dia.Cell | dia.Cell.JSON;
 /**
  * Process a link: convert GraphLink to a standard JointJS link if needed.
  * @param link - The link to process.
@@ -22,7 +18,7 @@ interface Options {
  * @returns
  * A standard JointJS link or a JSON representation of the link.
  */
-export function processLink(link: dia.Link | GraphLink): dia.Link | dia.Cell.JSON {
+export function processLink(link: dia.Link | GraphLink): CellOrJsonCell {
   if (isLinkInstance(link)) {
     const json = link.toJSON();
 
@@ -45,6 +41,11 @@ export function processLink(link: dia.Link | GraphLink): dia.Link | dia.Cell.JSO
   } as dia.Cell.JSON;
 }
 
+export interface SetLinksOptions {
+  readonly graph: dia.Graph;
+  readonly links?: Array<dia.Link | GraphLink>;
+}
+
 /**
  * Set links to the graph.
  * @param options - The options for setting links.
@@ -54,22 +55,23 @@ export function processLink(link: dia.Link | GraphLink): dia.Link | dia.Cell.JSO
  * It processes the links and adds them to the graph.
  * It also converts the source and target of the links to a standard format.
  */
-export function setLinks(options: Options) {
-  const { graph, initialLinks } = options;
-  if (initialLinks === undefined) {
+export function setLinks(options: SetLinksOptions) {
+  const { graph, links } = options;
+  if (links === undefined) {
     return;
   }
 
-  // Process links if provided.
-  graph.addCells(
-    initialLinks.map((item) => {
+  updateGraph({
+    graph,
+    cells: links.map((item) => {
       const link = processLink(item);
       if (link.z === undefined) {
         link.z = 0;
       }
       return link;
-    })
-  );
+    }),
+    isLink: true,
+  });
 }
 
 /**
@@ -87,7 +89,7 @@ export function setLinks(options: Options) {
 export function processElement<T extends dia.Element | GraphElement>(
   element: T,
   unsizedIds?: Set<string>
-): dia.Element | dia.Cell.JSON {
+): CellOrJsonCell {
   const stringId = String(element.id);
   if (isCellInstance(element)) {
     const size = element.size();
@@ -108,6 +110,12 @@ export function processElement<T extends dia.Element | GraphElement>(
     ...element,
   } as dia.Cell.JSON;
 }
+
+export interface SetElementsOptions {
+  readonly graph: dia.Graph;
+  readonly elements?: Array<dia.Element | GraphElement>;
+}
+
 /**
  * Set elements to the graph.
  * @param options - The options for setting elements.
@@ -118,14 +126,16 @@ export function processElement<T extends dia.Element | GraphElement>(
  * It processes the elements and adds them to the graph.
  * It also checks for unsized elements and returns their IDs.
  */
-export function setElements(options: Options) {
-  const { graph, initialElements } = options;
-  if (initialElements === undefined) {
+export function setElements(options: SetElementsOptions) {
+  const { graph, elements } = options;
+  if (elements === undefined) {
     return new Set<string>();
   }
   const unsizedIds = new Set<string>();
-
-  // Process elements if provided.
-  graph.addCells(initialElements.map((item) => processElement(item, unsizedIds)));
+  updateGraph({
+    graph,
+    cells: elements.map((item) => processElement(item, unsizedIds)),
+    isLink: false,
+  });
   return unsizedIds;
 }

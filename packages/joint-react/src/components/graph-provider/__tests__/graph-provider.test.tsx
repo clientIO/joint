@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { GraphStoreContext } from '../../../context/graph-store-context';
 import { GraphProvider } from '../graph-provider';
@@ -262,6 +262,103 @@ describe('graph-provider', () => {
     await waitFor(() => {
       expect(linkCount).toBe(1);
       expect(elementCount).toBe(1);
+    });
+  });
+
+  it('should update graph in controlled mode', async () => {
+    const initialElements = createElements([
+      {
+        width: 100,
+        height: 100,
+        id: 'element1',
+        type: 'ReactElement',
+      },
+    ]);
+    const link = new dia.Link({ id: 'link1', type: 'standard.Link', source: { id: 'element1' } });
+    let linkCount = 0;
+    let elementCount = 0;
+    function TestComponent() {
+      linkCount = useLinks((items) => {
+        return items.size;
+      });
+      elementCount = useElements((items) => {
+        return items.size;
+      });
+      return null;
+    }
+
+    // eslint-disable-next-line unicorn/consistent-function-scoping
+    let setElementsOutside = (_: GraphElement[]) => {};
+    let setLinksOutside = (_: dia.Link[]) => {};
+
+    function Graph() {
+      const [elements, setElements] = useState(initialElements);
+      const [links, setLinks] = useState([link]);
+      setElementsOutside = setElements as unknown as (elements: GraphElement[]) => void;
+      setLinksOutside = setLinks as unknown as (links: dia.Link[]) => void;
+      return (
+        <GraphProvider
+          initialElements={elements}
+          onElementsChange={setElements}
+          initialLinks={links}
+          onLinksChange={setLinks}
+        >
+          <TestComponent />
+        </GraphProvider>
+      );
+    }
+    render(<Graph />);
+
+    await waitFor(() => {
+      expect(linkCount).toBe(1);
+      expect(elementCount).toBe(1);
+    });
+
+    act(() => {
+      setElementsOutside(
+        createElements([
+          {
+            width: 100,
+            height: 100,
+            id: 'element1',
+            type: 'ReactElement',
+          },
+          {
+            width: 10,
+            height: 10,
+            id: 'element2',
+            type: 'ReactElement',
+          },
+        ])
+      );
+    });
+
+    await waitFor(() => {
+      expect(linkCount).toBe(1);
+      expect(elementCount).toBe(2);
+    });
+
+    // add link
+    act(() => {
+      setLinksOutside([
+        new dia.Link({
+          id: 'link2',
+          type: 'standard.Link',
+          source: { id: 'element1' },
+          target: { id: 'element2' },
+        }),
+        new dia.Link({
+          id: 'link3',
+          type: 'standard.Link',
+          source: { id: 'element1' },
+          target: { id: 'element2' },
+        }),
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(linkCount).toBe(2);
+      expect(elementCount).toBe(2);
     });
   });
 });
