@@ -1357,7 +1357,7 @@ export const Paper = View.extend({
                         if (isMounted) {
                             // The view is currently mounted. Hide the view (detach or remove it).
                             this.registerUnmountedView(view);
-                            this._hideCellView(view);
+                            this._hideView(view);
                         } else {
                             // The view is not mounted. We can just update the unmounted list.
                             const unmountedNode = updates.unmountedList.get(cid);
@@ -1492,7 +1492,7 @@ export const Paper = View.extend({
             unmountCount++;
             var flag = this.registerUnmountedView(view);
             if (flag) {
-                this._hideCellView(view);
+                this._hideView(view);
             }
         }
         return unmountCount;
@@ -1510,7 +1510,7 @@ export const Paper = View.extend({
 
         if (mountedList.has(cellView.cid) && !visible) {
             const flag = this.registerUnmountedView(cellView);
-            if (flag) this._hideCellView(cellView);
+            if (flag) this._hideView(cellView);
             updates.mountedList.delete(cellView.cid);
             isUnmounted = true;
         }
@@ -2147,12 +2147,22 @@ export const Paper = View.extend({
         view.onMount(isInitialInsert);
     },
 
+    _hideView: function(viewLike) {
+        if (!viewLike || viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) {
+            // A placeholder view was never mounted
+            return;
+        }
+        if (viewLike[CELL_VIEW_MARKER]) {
+            this._hideCellView(viewLike);
+        } else {
+            // A generic view that is not a cell view.
+            viewLike.unmount();
+        }
+    },
+
     // If `cellVisibility` returns `false`, the view will be hidden using this method.
     _hideCellView: function(cellView) {
         if (this.options.viewManagement.disposeHidden) {
-            // We currently do not dispose views which has a highlighter or tools attached
-            // Note: Possible improvement would be to serialize highlighters/tools and
-            // restore them on view re-mount.
             if (this._disposeCellView(cellView)) return;
         }
         // Detach the view from the paper, but keep it in memory
@@ -2160,8 +2170,12 @@ export const Paper = View.extend({
     },
 
     _disposeCellView: function(cellView) {
-        // Dispose all hidden views.
-        if (HighlighterView.has(cellView) || cellView.hasTools()) return false;
+        if (HighlighterView.has(cellView) || cellView.hasTools()) {
+            // We currently do not dispose views which has a highlighter or tools attached
+            // Note: Possible improvement would be to serialize highlighters/tools and
+            // restore them on view re-mount.
+            return false;
+        }
         const cell = cellView.model;
         // Remove the view from the paper and dispose it
         cellView.remove();
@@ -2183,10 +2197,6 @@ export const Paper = View.extend({
 
     // Detach a view from the paper, but keep it in memory.
     _detachCellView(cellView) {
-        if (cellView[CELL_VIEW_PLACEHOLDER_MARKER]) {
-            // A placeholder view was never mounted
-            return;
-        }
         cellView.unmount();
         cellView.onDetach();
     },
