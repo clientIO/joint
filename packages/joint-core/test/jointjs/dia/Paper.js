@@ -1044,6 +1044,13 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.ok(viewportSpy.calledWithExactly(rectView, false, paper));
                             assert.notOk(rectView.el.parentNode);
                         });
+
+                        QUnit.test('with a generic mvc.View', function(assert) {
+                            const view = new joint.mvc.View();
+                            paper.requestViewUpdate(view, 0x1, view.UPDATE_PRIORITY);
+                            paper.dumpViews({ viewport: () => false });
+                            assert.ok(false);
+                        });
                     });
 
                     QUnit.module('onViewUpdate', function() {
