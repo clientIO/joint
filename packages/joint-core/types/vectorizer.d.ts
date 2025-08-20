@@ -49,6 +49,10 @@ export namespace Vectorizer {
         attrs: { [key: string]: any };
     }
 
+    interface TransformToElementOptions {
+        safe?: boolean;
+    }
+
     // modifiable Matrix. SVGMatrix doesn't allow set on properties or a constructor.
     interface Matrix {
         a: number;
@@ -127,7 +131,7 @@ export class VElement {
     id: string;
     node: SVGElement;
 
-    getTransformToElement(toElem: SVGGElement | VElement): SVGMatrix;
+    getTransformToElement(toElem: SVGGElement | VElement, opt?: Vectorizer.TransformToElementOptions): SVGMatrix;
 
     transform(): SVGMatrix;
     transform(matrix: SVGMatrix | Vectorizer.Matrix, opt?: Vectorizer.TransformOptions): this;
@@ -234,7 +238,7 @@ interface VStatic {
 
     ensureId(node: SVGElement | VElement): string;
 
-    /** 
+    /**
      * @deprecated Use regular spaces and rely on xml:space="preserve" instead.
      */
     sanitizeText(text: string): string;

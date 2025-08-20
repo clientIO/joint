@@ -119,6 +119,7 @@ const V = (function() {
 
     /**
      * @param {SVGGElement} toElem
+     * @param {Object=} opt
      * @returns {SVGMatrix}
      */
     VPrototype.getTransformToElement = function(target, opt) {
@@ -1341,7 +1342,7 @@ const V = (function() {
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
     // when you want to compare the actual DOM text content without having to add the unicode character in
     // the place of all spaces.
-    /** 
+    /**
      * @deprecated Use regular spaces and rely on xml:space="preserve" instead.
      */
     V.sanitizeText = function(text) {
