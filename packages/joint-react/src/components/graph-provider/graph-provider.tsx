@@ -78,15 +78,20 @@ export function GraphProviderHandler(props: PropsWithChildren<GraphProviderHandl
 
   const areElementsInControlledMode = !!onElementsChange;
   const areLinksInControlledMode = !!onLinksChange;
-
+  const isControlledMode = areElementsInControlledMode || areLinksInControlledMode;
   // Controlled mode for elements
   useLayoutEffect(() => {
     if (!areElementsMeasured) return;
     if (!graph) return;
-    if (!areLinksInControlledMode) return;
+    if (!isControlledMode) return;
+
     graph.startBatch(CONTROLLED_MODE_BATCH_NAME);
-    setElements({ graph, elements: initialElements });
-    setLinks({ graph, links: initialLinks });
+    if (areElementsInControlledMode) {
+      setElements({ graph, elements: initialElements });
+    }
+    if (areLinksInControlledMode) {
+      setLinks({ graph, links: initialLinks });
+    }
     graph.stopBatch(CONTROLLED_MODE_BATCH_NAME);
   }, [
     areElementsInControlledMode,
@@ -95,16 +100,17 @@ export function GraphProviderHandler(props: PropsWithChildren<GraphProviderHandl
     graph,
     initialElements,
     initialLinks,
+    isControlledMode,
   ]);
 
   useLayoutEffect(() => {
     // with this all links are connected only when react elements are measured
     // It fixes issue with a flickering of un-measured react elements.
-    if (areElementsInControlledMode) return;
+    if (isControlledMode) return;
     if (!areElementsMeasured) return;
     setLinks({ graph, links: initialLinks });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [areElementsMeasured, areElementsInControlledMode, graph]);
+  }, [areElementsMeasured, isControlledMode]);
 
   return (
     <GraphAreElementsMeasuredContext.Provider value={areElementsMeasured}>
