@@ -1046,10 +1046,20 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         });
 
                         QUnit.test('with a generic mvc.View', function(assert) {
-                            const view = new joint.mvc.View();
+                            const confirmUpdateSpy = sinon.spy(function() { return 0x0; })
+                            const CustomView = joint.mvc.View.extend({ confirmUpdate: confirmUpdateSpy });
+                            const view = new CustomView;
+                            paper.el.appendChild(view.el);
                             paper.requestViewUpdate(view, 0x1, view.UPDATE_PRIORITY);
+                            assert.ok(confirmUpdateSpy.calledOnce, 'confirmUpdate should be called');
+                            assert.ok(confirmUpdateSpy.lastCall.calledWithExactly(0x1, sinon.match.object));
+                           assert.ok(view.el.parentNode, 'View should be mounted in the DOM');
                             paper.dumpViews({ viewport: () => false });
-                            assert.ok(false);
+                            assert.notOk(view.el.parentNode, 'View should be removed from the DOM');
+                            assert.ok(confirmUpdateSpy.calledOnce, 'confirmUpdate should be called again');
+                            paper.dumpViews({ viewport: () => true });
+                            assert.ok(confirmUpdateSpy.calledTwice, 'confirmUpdate should be called again');
+                            assert.ok(confirmUpdateSpy.lastCall.calledWithExactly(paper.FLAG_INSERT, sinon.match.object))
                         });
                     });
 
