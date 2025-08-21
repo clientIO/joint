@@ -144,7 +144,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
   if (!paperContext) {
     throw new Error('Paper must be used within a `PaperProvider` or `Paper` component');
   }
-  const { elementViews: elementViews, paperHTMLElement } = paperContext;
+  const { elementViews, paperHTMLElement, renderPaper } = paperContext;
 
   const graph = useGraph();
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
@@ -304,10 +304,12 @@ function Component<ElementItem extends GraphElement = GraphElement>(
           if (!elementView) {
             return null;
           }
+
           const SVG = elementView.el;
           if (!SVG) {
             return null;
           }
+
           if (!elementView) {
             return null;
           }
@@ -332,6 +334,13 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     </>
   );
 
+  useLayoutEffect(() => {
+    if (!paperHTMLElement.current) {
+      return;
+    }
+    renderPaper(paperHTMLElement.current);
+  }, [paperHTMLElement, renderPaper]);
+
   if (paperContext) {
     // we need this for shared paper context - joint plus
     // TODO: We need to somehow fix this, as its not a good practice to overwrite the context
@@ -339,10 +348,18 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     paperContext.renderElement = renderElement as RenderElement<GraphElement>;
   }
   const hasPaper = !!paperContext?.paper;
-
   return (
     <>
-      <div className={className} ref={paperHTMLElement} style={paperContainerStyle}>
+      <div
+        className={className}
+        ref={paperHTMLElement}
+        // ref={(refObject) => {
+        //   console.log(refObject);
+        //   // paperHTMLElement.current = refObject;
+        //   // renderPaper(refObject as HTMLElement);
+        // }}
+        style={paperContainerStyle}
+      >
         {hasPaper && content}
       </div>
       {hasPaper && children}

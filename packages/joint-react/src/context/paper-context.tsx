@@ -10,6 +10,7 @@ export interface PaperContext {
   readonly elementViews: Record<dia.Cell.ID, dia.ElementView>;
   readonly paperHTMLElement: RefObject<HTMLDivElement | null>;
   renderElement?: RenderElement<GraphElement>;
+  renderPaper: (element: HTMLElement) => void;
 }
 
 export const PaperContext = createContext<PaperContext | null>(null);

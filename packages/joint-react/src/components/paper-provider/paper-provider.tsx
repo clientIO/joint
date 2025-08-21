@@ -1,4 +1,4 @@
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { GraphStoreContext, PaperContext } from '../../context';
 import { dia } from '@joint/core';
 import { useGraph } from '../../hooks';
@@ -24,7 +24,7 @@ export interface PaperOptions extends ReactPaperOptions {
   readonly onRenderElement?: OnPaperRenderElement;
 }
 
-export interface PaperProviderProps extends ReactPaperOptions, GraphProps {
+export interface PaperProviderProps extends Omit<ReactPaperOptions, 'className'>, GraphProps {
   readonly children: React.ReactNode;
 }
 const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
@@ -44,7 +44,6 @@ function Component(props: Readonly<PaperProviderProps>) {
       onRender() {
         // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
         const elementView: dia.ElementView = this;
-
         onRenderElement(elementView);
       },
       // Render port using react, `portData.portElement.node` is used as portal gate for react (createPortal)
@@ -72,41 +71,35 @@ function Component(props: Readonly<PaperProviderProps>) {
       clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
     });
 
+    /**
+     * Render paper ulitily - is called when html element is bind to the react paper component
+     * @param element - The HTML element to render the paper into
+     */
+    function renderPaper(element: HTMLElement) {
+      if (!paper) {
+        throw new Error('Paper is not created');
+      }
+
+      const elementToRender = overwriteDefaultPaperElement
+        ? overwriteDefaultPaperElement(paperCtx)
+        : paper.el;
+
+      if (!elementToRender) {
+        throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
+      }
+
+      element.replaceChildren(elementToRender);
+      paper.unfreeze();
+    }
+
     return {
       paper,
       portsStore,
       elementViews: EMPTY_OBJECT,
       paperHTMLElement,
+      renderPaper,
     };
   });
-
-  useLayoutEffect(() => {
-    if (!paperCtx) {
-      return;
-    }
-
-    const { paper } = paperCtx;
-    if (!paper) {
-      throw new Error('Paper is not created');
-    }
-
-    const elementToRender = overwriteDefaultPaperElement
-      ? overwriteDefaultPaperElement(paperCtx)
-      : paper.el;
-
-    if (!elementToRender) {
-      throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
-    }
-
-    if (!paperHTMLElement.current) {
-      return;
-    }
-
-    paperHTMLElement.current.replaceChildren(elementToRender);
-    paper.unfreeze();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graph, overwriteDefaultPaperElement]);
 
   useEffect(() => {
     paperCtx.paper.options = {
