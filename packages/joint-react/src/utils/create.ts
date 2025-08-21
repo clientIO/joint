@@ -13,6 +13,44 @@ type ElementWithAttributes<T extends string | undefined = undefined> =
       { type?: undefined; attrs?: StandardShapesTypeMapper['ReactElement'] };
 
 /**
+ * Create a single element helper function.
+ * @group Utils
+ * @param item - Element to create.
+ * @returns The created element. (Node)
+ * @example
+ * without custom data
+ * ```ts
+ * const element = createElementItem({
+ *   id: '1',
+ *   type: 'rect',
+ *   x: 10,
+ *   y: 10,
+ *   width: 100,
+ *   height: 100,
+ * });
+ * ```
+ * @example
+ * with custom data
+ * ```ts
+ * const element = createElementItem({
+ *   id: '1',
+ *   type: 'rect',
+ *   x: 10,
+ *   y: 10,
+ *   data: { label: 'Node 1' },
+ *   width: 100,
+ *   height: 100,
+ * });
+ * ```
+ */
+export function createElementItem<
+  Element extends GraphElement,
+  Type extends string | undefined = 'ReactElement',
+>(item: Element & ElementWithAttributes<Type>): Element & RequiredElementProps {
+  return { ...item } as Element & RequiredElementProps;
+}
+
+/**
  * Create elements helper function.
  * @group Utils
  * @param items - Array of elements to create.
@@ -39,12 +77,6 @@ export function createElements<
   Type extends string | undefined = 'ReactElement',
 >(items: Array<Element & ElementWithAttributes<Type>>): Array<Element & RequiredElementProps> {
   return items.map((item) => ({ ...item })) as Array<Element & RequiredElementProps>;
-}
-export function createElementItem<
-  Element extends GraphElement,
-  Type extends string | undefined = 'ReactElement',
->(item: Element & ElementWithAttributes<Type>): Element & RequiredElementProps {
-  return { ...item } as Element & RequiredElementProps;
 }
 
 /**
@@ -80,4 +112,21 @@ export function createLinks<
   Type extends StandardLinkShapesType | string = 'standard.Link',
 >(data: Array<Link & GraphLink<Type>>): Array<Link & GraphLink> {
   return data.map((link) => ({ ...link, isElement: false, isLink: true }));
+}
+
+/**
+ * Create a single link helper function.
+ * @group Utils
+ * @param link - Link to create.
+ * @returns The created link. (Edge)
+ * @example
+ * ```ts
+ * const link = createLinkItem({ id: '1', source: '1', target: '2' });
+ * ```
+ */
+export function createLinkItem<
+  Link extends GraphLink<Type>,
+  Type extends StandardLinkShapesType | string = 'standard.Link',
+>(link: Link & GraphLink<Type>): Link & GraphLink {
+  return { ...link, isElement: false, isLink: true };
 }
