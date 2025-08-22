@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import { useEffect } from 'react';
 import type { GraphElement } from '../../types/element-types';
 import type { PaperProps } from './paper';

@@ -53,6 +53,7 @@ describe('port', () => {
       const port = element.getPort('port-one');
       expect(port).toBeDefined();
       expect(port.id).toBe('port-one');
+      // eslint-disable-next-line sonarjs/deprecation
       expect(port.args).toEqual({
         x: 10,
         y: 11,
@@ -119,6 +120,7 @@ describe('port', () => {
       expect(ports).toHaveLength(1);
       const [port] = ports;
       expect(port.id).toBe('port-one');
+      // eslint-disable-next-line sonarjs/deprecation
       expect(port.args).toEqual({
         x: 0,
         y: 1,

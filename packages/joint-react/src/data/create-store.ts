@@ -188,9 +188,14 @@ function createStoreWithGraph<
   });
   // create store data - caching the elements and links for the react
   const graphData = createStoreData();
+  // listen to dia.graph cell changes and trigger `onCellChange` where there is change occurs in graph
   const unsubscribe = listenToCellChange(graph, onCellChange);
+  // elements events notify all react components using `useSyncExternalStore`
   const elementsEvents = subscribeHandler(forceUpdateStore);
+
+  // Notify subscribers of initial elements
   graphData.updateStore(graph);
+  // add method to handle batch stop, so then we can also notify all react components
   graph.on('batch:stop', onBatchStop);
 
   const measuredNodes = new Set<dia.Cell.ID>();

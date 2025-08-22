@@ -57,8 +57,8 @@ interface GraphProviderHandlerProps<
 /**
  * GraphProviderHandler component is used to handle the graph instance and provide it to the children.
  * It also handles the default elements and links.
- * @param props - {GraphProviderHandler} props
  * @returns GraphProviderHandler component
+ * @param props - {GraphProviderHandler} props
  * @private
  */
 export function GraphProviderHandler(props: PropsWithChildren<GraphProviderHandlerProps>) {

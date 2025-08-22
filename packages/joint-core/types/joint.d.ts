@@ -4223,8 +4223,8 @@ export namespace attributes {
         filter?: string | dia.SVGFilterJSON;
         fill?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
         stroke?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
-        sourceMarker?: dia.SVGMarkerJSON;
-        targetMarker?: dia.SVGMarkerJSON;
+        sourceMarker?: dia.SVGMarkerJSON | null;
+        targetMarker?: dia.SVGMarkerJSON | null;
         vertexMarker?: dia.SVGMarkerJSON;
         props?: SVGAttributeProps;
         text?: string;

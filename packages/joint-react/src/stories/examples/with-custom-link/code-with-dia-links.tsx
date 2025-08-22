@@ -58,7 +58,15 @@ export default function App(props: Readonly<GraphProps>) {
   return (
     <GraphProvider
       {...props}
-      initialLinks={[{ source: '1', target: '2', type: 'LinkModel', id: '1123' }]}
+      initialLinks={[
+        {
+          source: '1',
+          target: '2',
+          type: 'LinkModel',
+          id: '1123',
+          attrs: { line: { stroke: PRIMARY } },
+        },
+      ]}
       initialElements={initialElements}
       cellNamespace={{ LinkModel }}
     >

@@ -1,6 +1,6 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { GraphStoreContext, PaperContext } from '../../context';
-import { dia } from '@joint/core';
+import { dia, shapes } from '@joint/core';
 import { useGraph } from '../../hooks';
 import { createPortsStore } from '../../data/create-ports-store';
 import type { PortElementsCacheEntry } from '../../data/create-ports-data';
@@ -8,9 +8,19 @@ import type { OmitWithoutIndexSignature } from '../../types';
 import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider';
 import { useElementViews, type OnPaperRenderElement } from '../../hooks/use-element-views';
 import { PaperProviderConfigContext } from '../../context/paper-provide-config-context';
+import type { GraphLink } from '../../types/link-types';
 const DEFAULT_CLICK_THRESHOLD = 10;
 
-export type ReactPaperOptions = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen'>;
+type ReactPaperOptionsBase = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen' | 'defaultLink'>;
+export interface ReactPaperOptions extends ReactPaperOptionsBase {
+  /**
+   * Default link for the paper - for example if there is new element added, this will be used as default.
+   */
+  readonly defaultLink?:
+    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | GraphLink)
+    | dia.Link
+    | GraphLink;
+}
 
 // Interface for Paper options, extending JointJS Paper options
 export interface PaperOptions extends ReactPaperOptions {
@@ -31,11 +41,25 @@ const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: Readonly<PaperProviderProps>) {
-  const { children, ...paperOptions } = props;
+  const { children, defaultLink, ...paperOptions } = props;
   const graph = useGraph();
   const { overwriteDefaultPaperElement } = useContext(PaperProviderConfigContext) ?? {};
   const { onRenderElement, elementViews } = useElementViews();
   const paperHTMLElement = useRef<HTMLDivElement | null>(null);
+
+  const defaultLinkJointJS = useCallback(
+    (cellView: dia.CellView, magnet: SVGElement) => {
+      const link = typeof defaultLink === 'function' ? defaultLink(cellView, magnet) : defaultLink;
+      if (!link) {
+        return new shapes.standard.Link();
+      }
+      if (link instanceof dia.Link) {
+        return link;
+      }
+      return new shapes.standard.Link(link as dia.Link.EndJSON);
+    },
+    [defaultLink]
+  );
 
   const [paperCtx] = useState<PaperContext>(function (): PaperContext {
     const portsStore = createPortsStore();
@@ -65,6 +89,7 @@ function Component(props: Readonly<PaperProviderProps>) {
       sorting: dia.Paper.sorting.APPROX,
       preventDefaultBlankAction: false,
       frozen: true,
+      defaultLink: defaultLinkJointJS,
       model: graph,
       elementView,
       ...paperOptions,
@@ -103,10 +128,11 @@ function Component(props: Readonly<PaperProviderProps>) {
 
   useEffect(() => {
     paperCtx.paper.options = {
+      defaultLink: defaultLinkJointJS,
       ...paperCtx.paper.options,
       ...paperOptions,
     };
-  }, [paperCtx.paper, paperOptions]);
+  }, [defaultLinkJointJS, paperCtx.paper, paperOptions]);
 
   const paperContextFull = useMemo((): PaperContext => {
     return {
