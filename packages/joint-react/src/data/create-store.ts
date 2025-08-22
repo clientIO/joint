@@ -175,7 +175,7 @@ function isBatchNameObject(value: unknown): value is { batchName: string } {
  * unsubscribe();
  * ```
  */
-function createStoreWithGraph<
+export function createStoreWithGraph<
   Graph extends dia.Graph,
   Element extends dia.Element | GraphElement,
   Link extends dia.Link | GraphLink,
