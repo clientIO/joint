@@ -5,7 +5,7 @@ import { shapes } from '@joint/core';
 import { createElements, type InferElement } from '../../../utils/create';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
 import {
-  getLinkId,
+  getCellId,
   GraphProvider,
   jsx,
   MeasuredNode,
@@ -98,8 +98,8 @@ function NodeElement({ width, height, id }: Element) {
   const isConnected = useLinks((links) =>
     links
       .map((link) => {
-        const sourceId = getLinkId(link.source);
-        const targetId = getLinkId(link.target);
+        const sourceId = getCellId(link.source);
+        const targetId = getCellId(link.target);
         return sourceId === id || targetId === id;
       })
       .includes(true)

@@ -7,14 +7,13 @@ import type { Meta, StoryObj } from '@storybook/react/*';
 import { GraphProvider } from './graph-provider';
 import { createElements, createLinks, type InferElement, ReactElement } from '@joint/react';
 import { Paper, type RenderElement } from '../paper/paper';
-import { dia } from '@joint/core';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
+import { dia } from '@joint/core';
 
 const API_URL = getAPILink('GraphProvider');
-
 export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
   title: 'Components/GraphProvider',
@@ -204,4 +203,20 @@ const elements = generateRandomElements(20);
   <Paper renderElement={({ width, height }) => <rect rx={10} ry={10} width={width} height={height} fill={"blue"} />} />
 </GraphProvider>
   `,
+});
+
+const initialElements = createElements([
+  { id: 1, width: 100, height: 50, x: 20, y: 200, color: PRIMARY, type: 'ReactElement' },
+  { id: 2, width: 100, height: 50, x: 200, y: 200, color: PRIMARY, type: 'ReactElement' },
+]);
+
+export const WithCustomType = makeStory<Story>({
+  args: {
+    initialLinks,
+    initialElements,
+    children: <PaperChildren />,
+  },
+
+  apiURL: API_URL,
+  description: 'Graph provider with links.',
 });

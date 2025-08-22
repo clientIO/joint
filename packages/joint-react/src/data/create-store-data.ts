@@ -5,8 +5,17 @@ import { CellMap } from '../utils/cell/cell-map';
 import type { GraphLink } from '../types/link-types';
 import type { GraphElement } from '../types/element-types';
 import { diffUpdate } from '../utils/diff-update';
-interface StoreData<Element extends GraphElement = GraphElement> {
-  readonly updateStore: (graph: dia.Graph) => Set<dia.Cell.ID>;
+
+export interface UpdateResult {
+  readonly diffIds: Set<dia.Cell.ID>;
+  readonly areElementsChanged: boolean;
+  readonly areLinksChanged: boolean;
+}
+interface StoreData<
+  Graph extends dia.Graph = dia.Graph,
+  Element extends GraphElement = GraphElement,
+> {
+  readonly updateStore: (graph: Graph) => UpdateResult;
   readonly destroy: () => void;
   elements: CellMap<Element>;
   links: CellMap<GraphLink>;
@@ -26,13 +35,17 @@ interface StoreData<Element extends GraphElement = GraphElement> {
  * storeData.update(graph);
  * ```
  */
-export function createStoreData<Element extends GraphElement = GraphElement>(): StoreData<Element> {
+export function createStoreData<
+  Graph extends dia.Graph = dia.Graph,
+  Element extends GraphElement = GraphElement,
+>(): StoreData<Graph, Element> {
   /**
    * Update the store data with the graph data.
    * @param graph - The graph to update the store data with..
+   * @returns A set of cell IDs that were updated.
    * @description
    */
-  function updateStore(graph: dia.Graph): Set<dia.Cell.ID> {
+  function updateStore(graph: Graph): UpdateResult {
     const cells = graph.get('cells');
 
     if (!cells) throw new Error('Graph cells are not initialized');
@@ -57,12 +70,19 @@ export function createStoreData<Element extends GraphElement = GraphElement>(): 
       }
     }
 
+    const oldElements = data.elements;
+    const oldLinks = data.links;
+
     data.elements = diffUpdate(data.elements, elementsDiff, (cellId) => cells.has(cellId));
     data.links = diffUpdate(data.links, linkDiff, (cellId) => cells.has(cellId));
-    return diffIds;
+
+    const areElementsChanged = data.elements !== oldElements;
+    const areLinksChanged = data.links !== oldLinks;
+
+    return { diffIds, areElementsChanged, areLinksChanged };
   }
 
-  const data: StoreData<Element> = {
+  const data: StoreData<Graph, Element> = {
     updateStore,
     elements: new CellMap(),
     links: new CellMap(),

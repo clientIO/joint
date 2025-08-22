@@ -1,7 +1,8 @@
-import { type dia } from '@joint/core';
+import { mvc, type dia } from '@joint/core';
 import {
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -10,13 +11,12 @@ import {
 } from 'react';
 import type { GraphElement } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
-import { useCreatePaper } from '../../hooks/use-create-paper';
 import { useElements } from '../../hooks/use-elements';
 import { CellIdContext } from '../../context/cell-id.context';
 import { HTMLElementItem, SVGElementItem } from './paper-element-item';
 import { type GraphProps } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
-import type { PaperEvents } from '../../types/event.types';
+import type { PaperEvents, PaperEventType } from '../../types/event.types';
 import { REACT_TYPE } from '../../models/react-element';
 import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
 import { PaperHTMLContainer } from './paper-html-container';
@@ -24,6 +24,7 @@ import { useGraph } from '../../hooks';
 import { PaperProvider, type ReactPaperOptions } from '../paper-provider/paper-provider';
 import { PaperContext } from '../../context';
 import { PaperCheck } from './paper-check';
+import { handleEvent } from '../../utils/handle-paper-events';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -108,16 +109,6 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
   readonly children?: ReactNode;
 
   /**
-   * On load custom element.
-   * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
-   * So it overwrite default paper rendering.
-   * It is used internally for example to render `PaperScroller` from [joint plus](https://www.jointjs.com/jointjs-plus) package.
-   * @param paperCtx - The paper context
-   * @returns
-   */
-  readonly overwriteDefaultPaperElement?: (paperCtx: PaperContext) => HTMLElement | SVGElement;
-
-  /**
    * The threshold for click events in pixels.
    * If the mouse moves more than this distance, it will be considered a drag event.
    * @default 10
@@ -149,16 +140,11 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     ...paperOptions
   } = props;
 
-  const { paperContainerElement, paperCtx } = useCreatePaper({
-    ...paperOptions,
-    scale,
-  });
-
   const paperContext = useContext(PaperContext);
   if (!paperContext) {
     throw new Error('Paper must be used within a `PaperProvider` or `Paper` component');
   }
-  const { recordOfSVGElements } = paperContext;
+  const { elementViews, paperHTMLElement, renderPaper } = paperContext;
 
   const graph = useGraph();
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
@@ -169,10 +155,10 @@ function Component<ElementItem extends GraphElement = GraphElement>(
 
   // Whenever elements change (or we’ve just become measured) compare old ↔ new
   useEffect(() => {
-    if (!paperCtx) return;
+    if (!paperContext) return;
     if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
-    const { paper } = paperCtx;
+    const { paper } = paperContext;
     if (!paper) return;
 
     // Build current list of [width, height]
@@ -202,9 +188,19 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     // store for next time
     previousSizesRef.current = currentSizes;
     onElementsSizeChange({ paper, graph: paper.model });
-  }, [elements, areElementsMeasured, onElementsSizeChange, paperCtx]);
+  }, [elements, areElementsMeasured, onElementsSizeChange, paperContext]);
 
   const hasRenderElement = !!renderElement;
+
+  const defaultStyle = useMemo((): CSSProperties => {
+    if (style) {
+      return style;
+    }
+    return {
+      width: paperOptions.width ?? '100%',
+      height: paperOptions.height ?? '100%',
+    };
+  }, [paperOptions.height, paperOptions.width, style]);
 
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({
@@ -212,24 +208,22 @@ function Component<ElementItem extends GraphElement = GraphElement>(
       pointerEvents: areElementsMeasured ? 'all' : 'none',
       position: 'relative',
       overflow: 'hidden',
-      width: '100%',
-      height: '100%',
-      ...style,
+      ...defaultStyle,
     }),
-    [areElementsMeasured, style]
+    [areElementsMeasured, defaultStyle]
   );
 
   const measured = useRef(false);
 
   useEffect(() => {
-    if (!paperCtx) {
+    if (!paperContext) {
       return;
     }
     if (measured.current) {
       // If we already measured, we can skip this effect
       return;
     }
-    const { paper } = paperCtx;
+    const { paper } = paperContext;
     if (!paper) {
       return;
     }
@@ -252,7 +246,49 @@ function Component<ElementItem extends GraphElement = GraphElement>(
         clearTimeout(timeout);
       };
     }
-  }, [areElementsMeasured, graph, onElementsSizeReady, paperCtx]);
+  }, [areElementsMeasured, graph, onElementsSizeReady, paperContext]);
+
+  useLayoutEffect(() => {
+    if (!paperContext) {
+      return;
+    }
+    const { paper } = paperContext;
+    if (!paper) {
+      return;
+    }
+    /**
+     * Resize the paper container element to match the paper size.
+     * @param jointPaper - The paper instance.
+     */
+    function resizePaperContainer(jointPaper: dia.Paper) {
+      if (paperHTMLElement.current && jointPaper.el) {
+        paperHTMLElement.current.style.width = jointPaper.el.style.width;
+        paperHTMLElement.current.style.height = jointPaper.el.style.height;
+      }
+    }
+    // An object to keep track of the listeners. It's not exposed, so the users
+    const controller = new mvc.Listener();
+    controller.listenTo(paper, 'resize', resizePaperContainer);
+    controller.listenTo(paper, 'all', (type: PaperEventType, ...args: unknown[]) =>
+      handleEvent(type, paperOptions, paper, ...args)
+    );
+    return () => {
+      controller.stopListening();
+    };
+  }, [paperContainerStyle, paperContext, paperHTMLElement, paperOptions]);
+
+  useLayoutEffect(() => {
+    if (!paperContext) {
+      return;
+    }
+    const { paper } = paperContext;
+    if (!paper) {
+      return;
+    }
+    if (scale !== undefined) {
+      paper.scale(scale);
+    }
+  }, [paperContext, scale]);
 
   const content = (
     <>
@@ -264,8 +300,17 @@ function Component<ElementItem extends GraphElement = GraphElement>(
           if (!cell.id) {
             return null;
           }
-          const portalHTMLElement = recordOfSVGElements[cell.id];
-          if (!portalHTMLElement) {
+          const elementView = elementViews[cell.id];
+          if (!elementView) {
+            return null;
+          }
+
+          const SVG = elementView.el;
+          if (!SVG) {
+            return null;
+          }
+
+          if (!elementView) {
             return null;
           }
           if (cell.type !== REACT_TYPE) {
@@ -281,11 +326,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
                   renderElement={renderElement}
                 />
               ) : (
-                <SVGElementItem
-                  {...cell}
-                  portalElement={portalHTMLElement}
-                  renderElement={renderElement}
-                />
+                <SVGElementItem {...cell} portalElement={SVG} renderElement={renderElement} />
               )}
             </CellIdContext.Provider>
           );
@@ -293,15 +334,32 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     </>
   );
 
-  if (paperCtx) {
-    // we need this for shared paper context - joint plus
-    paperCtx.renderElement = renderElement as RenderElement<GraphElement>;
-  }
-  const hasPaper = !!paperCtx?.paper;
+  useLayoutEffect(() => {
+    if (!paperHTMLElement.current) {
+      return;
+    }
+    renderPaper(paperHTMLElement.current);
+  }, [paperHTMLElement, renderPaper]);
 
+  if (paperContext) {
+    // we need this for shared paper context - joint plus
+    // TODO: We need to somehow fix this, as its not a good practice to overwrite the context
+    // And if we want to re-use this renderElement, that mean, everything need to be rendered after this component!
+    paperContext.renderElement = renderElement as RenderElement<GraphElement>;
+  }
+  const hasPaper = !!paperContext?.paper;
   return (
     <>
-      <div className={className} ref={paperContainerElement} style={paperContainerStyle}>
+      <div
+        className={className}
+        ref={paperHTMLElement}
+        // ref={(refObject) => {
+        //   console.log(refObject);
+        //   // paperHTMLElement.current = refObject;
+        //   // renderPaper(refObject as HTMLElement);
+        // }}
+        style={paperContainerStyle}
+      >
         {hasPaper && content}
       </div>
       {hasPaper && children}

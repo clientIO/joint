@@ -28,6 +28,18 @@ export function HookTester<T extends AnyFunction>({
   );
 }
 
+export function HookTesterRaw<T extends AnyFunction>({
+  useHook,
+  hookArgs,
+  render,
+}: Readonly<HookTesterProps<T>>) {
+  const result = useHook(...hookArgs);
+  if (render) {
+    return render(result);
+  }
+  return <ShowJson showCopy={false} data={JSON.stringify(result)} />;
+}
+
 export type TesterHookStory<T extends AnyFunction> = StoryObj<typeof HookTester> & {
   args: HookTesterProps<T>;
 };

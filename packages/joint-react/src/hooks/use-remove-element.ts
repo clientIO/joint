@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
 import { useGraph } from './use-graph';
 import type { dia } from '@joint/core';
+import { CellIdContext } from '../context';
 
 /**
  * A custom hook that removes an node or link from the graph by its ID.
@@ -14,14 +15,19 @@ import type { dia } from '@joint/core';
  */
 export function useRemoveCell() {
   const graph = useGraph();
+  const maybeId = useContext(CellIdContext);
   return useCallback(
     (id: dia.Cell.ID) => {
-      const cell = graph.getCell(id);
+      const idForRemove = id ?? maybeId;
+      if (!idForRemove) {
+        throw new Error('No ID provided for removal');
+      }
+      const cell = graph.getCell(idForRemove);
       if (cell) {
         cell.remove();
       }
     },
-    [graph]
+    [graph, maybeId]
   );
 }
 /**
@@ -36,9 +42,14 @@ export function useRemoveCell() {
  */
 export function useRemoveElement() {
   const graph = useGraph();
+  const maybeId = useContext(CellIdContext);
   return useCallback(
-    (id: dia.Cell.ID) => {
-      const cell = graph.getCell(id);
+    (id?: dia.Cell.ID) => {
+      const idForRemove = id ?? maybeId;
+      if (!idForRemove) {
+        throw new Error('No ID provided for removal');
+      }
+      const cell = graph.getCell(idForRemove);
       if (!cell.isElement()) {
         return;
       }
@@ -46,7 +57,7 @@ export function useRemoveElement() {
         cell.remove();
       }
     },
-    [graph]
+    [graph, maybeId]
   );
 }
 

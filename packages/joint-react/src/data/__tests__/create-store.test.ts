@@ -58,7 +58,7 @@ describe('createStore', () => {
     const store = createStore();
     const unsubscribeSpy = jest.spyOn(store, 'destroy');
 
-    store.destroy();
+    store.destroy(false);
     expect(unsubscribeSpy).toHaveBeenCalled();
     expect(store.graph.getCells().length).toBe(0);
   });
