@@ -145,6 +145,11 @@ function createGraph<
   return newGraph as Graph;
 }
 
+// eslint-disable-next-line jsdoc/require-jsdoc
+function isBatchNameObject(value: unknown): value is { batchName: string } {
+  return typeof value === 'object' && value !== null && 'batchName' in value;
+}
+
 /**
  * Building block of `@joint/react`.
  * It listen to cell changes and updates UI based on the `dia.graph` changes.
@@ -249,7 +254,11 @@ function createStoreWithGraph<
   }
 
   // eslint-disable-next-line jsdoc/require-jsdoc, no-shadow, @typescript-eslint/no-shadow
-  function onBatchStop(options: { batchName: string }) {
+  function onBatchStop(options?: unknown) {
+    if (!isBatchNameObject(options)) {
+      elementsEvents.notifySubscribers();
+      return;
+    }
     const { batchName } = options;
     elementsEvents.notifySubscribers(batchName);
   }
