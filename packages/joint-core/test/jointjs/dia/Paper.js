@@ -2913,6 +2913,372 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
     QUnit.module('viewManagement', function(hooks) {
 
+        QUnit.module('view lifecycle', function() {
+
+            QUnit.test('all FALSE', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                const SpyElementView = joint.dia.ElementView.extend();
+                const onMountSpy = sinon.spy(SpyElementView.prototype, 'onMount');
+                const onDetachSpy = sinon.spy(SpyElementView.prototype, 'onDetach');
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    elementView: SpyElementView,
+                    viewManagement: {
+                        lazyInitialize: false,
+                        initializeUnmounted: false,
+                        disposeHidden: false
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 2);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(false));
+
+                paper.remove();
+            });
+
+            QUnit.test('lazyInitialize', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                const SpyElementView = joint.dia.ElementView.extend();
+                const onMountSpy = sinon.spy(SpyElementView.prototype, 'onMount');
+                const onDetachSpy = sinon.spy(SpyElementView.prototype, 'onDetach');
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    elementView: SpyElementView,
+                    viewManagement: {
+                        lazyInitialize: true,
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 2);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(false));
+
+                paper.remove();
+            });
+
+            QUnit.test('lazyInitialize, initializeUnmounted', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                const SpyElementView = joint.dia.ElementView.extend();
+                const onMountSpy = sinon.spy(SpyElementView.prototype, 'onMount');
+                const onDetachSpy = sinon.spy(SpyElementView.prototype, 'onDetach');
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    elementView: SpyElementView,
+                    viewManagement: {
+                        lazyInitialize: true,
+                        initializeUnmounted: true,
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 0);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 2);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(false));
+
+                paper.remove();
+            });
+
+            QUnit.test('initializeUnmounted', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                const SpyElementView = joint.dia.ElementView.extend();
+                const onMountSpy = sinon.spy(SpyElementView.prototype, 'onMount');
+                const onDetachSpy = sinon.spy(SpyElementView.prototype, 'onDetach');
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    elementView: SpyElementView,
+                    viewManagement: {
+                        initializeUnmounted: true,
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 0);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 2);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(false));
+
+                paper.remove();
+            });
+
+            QUnit.test('lazyInitialize, disposeHidden', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                const SpyElementView = joint.dia.ElementView.extend();
+                const onMountSpy = sinon.spy(SpyElementView.prototype, 'onMount');
+                const onDetachSpy = sinon.spy(SpyElementView.prototype, 'onDetach');
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    elementView: SpyElementView,
+                    viewManagement: {
+                        lazyInitialize: true,
+                        disposeHidden: true
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 2);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.remove();
+            });
+
+            QUnit.test('disposeHidden', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                const SpyElementView = joint.dia.ElementView.extend();
+                const onMountSpy = sinon.spy(SpyElementView.prototype, 'onMount');
+                const onDetachSpy = sinon.spy(SpyElementView.prototype, 'onDetach');
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    elementView: SpyElementView,
+                    viewManagement: {
+                        disposeHidden: true
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 2);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.remove();
+            });
+
+            QUnit.test('lazyInitialize, initializeUnmounted, disposeHidden', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                const SpyElementView = joint.dia.ElementView.extend();
+                const onMountSpy = sinon.spy(SpyElementView.prototype, 'onMount');
+                const onDetachSpy = sinon.spy(SpyElementView.prototype, 'onDetach');
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    elementView: SpyElementView,
+                    viewManagement: {
+                        lazyInitialize: true,
+                        initializeUnmounted: true,
+                        disposeHidden: true
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 0);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 2);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.remove();
+            });
+
+            QUnit.test('initializeUnmounted, disposeHidden', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                const SpyElementView = joint.dia.ElementView.extend();
+                const onMountSpy = sinon.spy(SpyElementView.prototype, 'onMount');
+                const onDetachSpy = sinon.spy(SpyElementView.prototype, 'onDetach');
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    elementView: SpyElementView,
+                    viewManagement: {
+                        initializeUnmounted: true,
+                        disposeHidden: true
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 0);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 2);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.remove();
+            });
+        });
+
         QUnit.module('lazyInitialize', function() {
 
             QUnit.test('views are initialized on demand', function(assert) {
@@ -2940,8 +3306,53 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(getNumberOfViews() - initialCount, 2, 'View for el2 is initialized');
 
                 paper.remove();
-            });
+                        QUnit.test('lazyInitialize, initializeUnmounted', function(assert) {
 
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                const SpyElementView = joint.dia.ElementView.extend();
+                const onMountSpy = sinon.spy(SpyElementView.prototype, 'onMount');
+                const onDetachSpy = sinon.spy(SpyElementView.prototype, 'onDetach');
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    elementView: SpyElementView,
+                    viewManagement: {
+                        lazyInitialize: true,
+                        initializeUnmounted: true,
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 0);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 0);
+                assert.equal(onMountSpy.callCount, 1);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(true));
+
+                paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 1);
+
+                paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
+
+                assert.equal(onDetachSpy.callCount, 1);
+                assert.equal(onMountSpy.callCount, 2);
+                assert.ok(onMountSpy.lastCall.calledWithExactly(false));
+
+                paper.remove();
+            });
+});
         });
 
         QUnit.module('disposeHidden', function() {
@@ -2966,15 +3377,19 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is initialized');
 
                 paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
                 assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is disposed');
 
                 paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
                 assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is still disposed');
 
                 paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is initialized again');
 
                 paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is still initialized');
 
                 paper.remove();
@@ -3000,9 +3415,11 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.ok(Highlighter.has(rect.findView(paper)));
 
                 paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
                 assert.ok(Highlighter.has(rect.findView(paper)));
 
                 paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
                 assert.ok(Highlighter.has(rect.findView(paper)));
 
                 Highlighter.remove(rect.findView(paper), 'test-highlighter');
@@ -3035,9 +3452,11 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.ok(rect.findView(paper).hasTools('test-tool'));
 
                 paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
                 assert.ok(rect.findView(paper).hasTools('test-tool'));
 
                 paper.checkViewport({ cellVisibility: () => true });
+                paper.updateViews({ cellVisibility: () => true });
                 assert.ok(rect.findView(paper).hasTools('test-tool'));
 
                 rect.findView(paper).removeTools();
@@ -3099,6 +3518,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is still present');
 
                 paper.checkViewport({ cellVisibility: () => false });
+                paper.updateViews({ cellVisibility: () => false });
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is still present after viewport check');
 
                 paper.disposeHiddenCellViews();
