@@ -2130,6 +2130,8 @@ export namespace dia {
 
     class CellGroup<C extends mvc.Collection = CellGroup.CellGroupCollection, A extends CellGroup.Attributes = CellGroup.Attributes> extends mvc.Model<A> {
 
+        declare id: string;
+
         constructor(attributes?: DeepPartial<A>);
 
         cells: C;

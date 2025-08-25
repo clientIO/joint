@@ -26,7 +26,7 @@ export class CellLayersController extends Listener {
             const cellLayerIndex = this.cellLayerAttributes.findIndex(attrs => attrs.id === id);
             this.cellLayerAttributes[cellLayerIndex] = cellLayer.attributes;
 
-            this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
+            this.graph.set('cellLayers', Array.from(this.cellLayerAttributes), { controller: this });
         });
 
         this.listenTo(graph, 'add', (_context, cell) => {
@@ -42,7 +42,7 @@ export class CellLayersController extends Listener {
                 return; // do not process changes triggered by this controller
             }
 
-            this.cellLayersAttributes = this.processGraphCellLayersAttribute(cellLayers);
+            this.cellLayerAttributes = this.processGraphCellLayersAttribute(cellLayers);
         });
 
         this.listenTo(graph, 'reset', (_context, { models: cells }) => {
@@ -98,8 +98,8 @@ export class CellLayersController extends Listener {
             }
         });
 
-        this.graph.set('cellLayers', cellLayerAttributes, { controller: this });
-        this.graph.trigger('layers:update', cellLayerAttributes);
+        this.graph.set('cellLayers', Array.from(cellLayerAttributes), { controller: this });
+        this.graph.trigger('layers:update', Array.from(cellLayerAttributes));
         return cellLayerAttributes;
     }
 
@@ -192,8 +192,8 @@ export class CellLayersController extends Listener {
         this.defaultCellLayerId = layerId;
 
         // update the cellLayers attribute
-        this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
-        this.graph.trigger('layers:update', this.cellLayerAttributes);
+        this.graph.set('cellLayers', Array.from(this.cellLayerAttributes), { controller: this });
+        this.graph.trigger('layers:update', Array.from(this.cellLayerAttributes));
     }
 
     addCellLayer(cellLayer, _opt) {
@@ -252,8 +252,8 @@ export class CellLayersController extends Listener {
             this.cellLayerAttributes.splice(insertAt, 0, attributes);
         }
 
-        this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
-        this.graph.trigger('layers:update', this.cellLayerAttributes);
+        this.graph.set('cellLayers', Array.from(cellLayerAttributes), { controller: this });
+        this.graph.trigger('layers:update', Array.from(cellLayerAttributes));
     }
 
     removeCellLayer(layerId, _opt) {
@@ -277,8 +277,8 @@ export class CellLayersController extends Listener {
         if (this.cellLayerAttributes.some(attrs => attrs.id === layerId)) {
             this.cellLayerAttributes = this.cellLayerAttributes.filter(l => l.id !== layerId);
 
-            this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
-            this.graph.trigger('layers:update', this.cellLayerAttributes);
+            this.graph.set('cellLayers', Array.from(cellLayerAttributes), { controller: this });
+            this.graph.trigger('layers:update', Array.from(cellLayerAttributes));
         }
     }
 

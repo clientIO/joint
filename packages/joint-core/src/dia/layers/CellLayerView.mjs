@@ -19,7 +19,7 @@ export const CellLayerView = LayerView.extend({
 
     className: function() {
         const { id } = this.options;
-        return addClassNamePrefix(`${id}-layer`) + ' ' + addClassNamePrefix('viewport');
+        return addClassNamePrefix(`${id}-layer`) + ' ' + addClassNamePrefix('viewport') + ' ' + addClassNamePrefix('joint-cell-layer');
     },
 
     startListening() {
