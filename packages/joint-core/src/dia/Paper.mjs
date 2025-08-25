@@ -430,7 +430,7 @@ export const Paper = View.extend({
             viewsMap: {},
             order: [],
         };
-        // current cell layers model attributes from the Graph
+        // current ordered cell layers model attributes from the Graph
         this._cellLayers = [];
         // cellLayerViews hash
         this._cellLayerViews = {};
@@ -1880,8 +1880,15 @@ export const Paper = View.extend({
             return this.model.getBBox() || new Rect();
         }
 
+        const cellLayerViews = Object.values(this._cellLayerViews);
+        // return an empty rectangle if there are no cell layers
+        // should not happen in practice
+        if (cellLayerViews.length === 0) {
+            return new Rect();
+        }
+
         // combine all content area rectangles from all cell layers
-        const bbox = g.Rect.fromRectUnion(...Object.values(this._cellLayerViews).map(cellLayerView => V(cellLayerView.el).getBBox()));
+        const bbox = g.Rect.fromRectUnion(...cellLayerViews.map(cellLayerView => V(cellLayerView.el).getBBox()));
         return bbox;
     },
 

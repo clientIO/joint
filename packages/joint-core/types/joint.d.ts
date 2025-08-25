@@ -237,9 +237,9 @@ export namespace dia {
 
         getCells(): Cell[];
 
-        getFirstCell(): Cell | undefined;
+        getFirstCell(layerId?: string): Cell | undefined;
 
-        getLastCell(): Cell | undefined;
+        getLastCell(layerId?: string): Cell | undefined;
 
         getConnectedLinks(cell: Cell, opt?: Graph.ConnectionOptions): Link[];
 
@@ -1859,7 +1859,7 @@ export namespace dia {
 
         getLayerViewNode(id: Paper.Layers | string): SVGGElement;
 
-        // @deprecated use getLayerViewNode
+        // @deprecated use getLayerViewNode instead
         getLayerNode(id: Paper.Layers | string): SVGElement;
 
         getLayerView(id: Paper.Layers | string): LayerView;

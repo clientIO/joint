@@ -78,6 +78,32 @@ export class CellLayersController extends Listener {
     processGraphCellLayersAttribute(cellLayers = []) {
         const cellLayerAttributes = cellLayers;
 
+        this._ensureDefaultLayer(cellLayerAttributes);
+
+        cellLayerAttributes.forEach(attributes => {
+            if (this.cellLayerCollection.has(attributes.id)) {
+                this.cellLayerCollection.get(attributes.id).set(attributes);
+            } else {
+                const cellLayer = this.createCellLayer(attributes);
+                this.cellLayerCollection.add(cellLayer);
+            }
+        });
+
+        // remove layers that are no longer in the cellLayers attribute
+        this.cellLayerCollection.each(cellLayer => {
+            if (!cellLayerAttributes.some(attrs => attrs.id === cellLayer.id)) {
+                // move all cells to the default layer
+                cellLayer.setEach('layer', null);
+                this.cellLayerCollection.remove(cellLayer);
+            }
+        });
+
+        this.graph.set('cellLayers', cellLayerAttributes, { controller: this });
+        this.graph.trigger('layers:update', cellLayerAttributes);
+        return cellLayerAttributes;
+    }
+
+    _ensureDefaultLayer(cellLayerAttributes) {
         const defaultLayers = cellLayerAttributes.filter(attrs => attrs.default === true);
         let newDefaultLayerId;
 
@@ -103,28 +129,6 @@ export class CellLayersController extends Listener {
             defaultLayer.unset('default');
         }
         this.defaultCellLayerId = newDefaultLayerId;
-
-        cellLayerAttributes.forEach(attributes => {
-            if (this.cellLayerCollection.has(attributes.id)) {
-                this.cellLayerCollection.get(attributes.id).set(attributes);
-            } else {
-                const cellLayer = this.createCellLayer(attributes);
-                this.cellLayerCollection.add(cellLayer);
-            }
-        });
-
-        // remove layers that are no longer in the cellLayers attribute
-        this.cellLayerCollection.each(cellLayer => {
-            if (!cellLayerAttributes.some(attrs => attrs.id === cellLayer.id)) {
-                // move all cells to the default layer
-                cellLayer.setEach('layer', null);
-                this.cellLayerCollection.remove(cellLayer);
-            }
-        });
-
-        this.graph.set('cellLayers', cellLayerAttributes, { controller: this });
-        this.graph.trigger('layers:update', cellLayerAttributes);
-        return cellLayerAttributes;
     }
 
     createCellLayer(attributes) {
