@@ -1365,9 +1365,8 @@ export const Paper = View.extend({
                             this._hideView(view);
                         } else {
                             // The view is not mounted. We can just update the unmounted list.
-                            const unmountedNode = updates.unmountedList.get(cid);
                             // We ADD the current flag to the flag that was already scheduled.
-                            unmountedNode.value |= currentFlag;
+                            this._updateUnmountedView(cid, currentFlag);
                         }
                         // Delete the current update as it has been processed.
                         delete priorityUpdates[cid];
@@ -1377,7 +1376,8 @@ export const Paper = View.extend({
                     // Mount View
                     if (view[CELL_VIEW_PLACEHOLDER_MARKER]) {
                         view = this._resolveCellViewPlaceholder(view);
-                        currentFlag |= view.getFlag(result(view, 'initFlag'));
+                        // Newly initialized view needs to be initialized
+                        currentFlag |= this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
                     }
 
                     if (!isMounted) {
@@ -1472,11 +1472,7 @@ export const Paper = View.extend({
             // Remove the view from the unmounted list
             const { value: prevFlag } = unmountedList.popHead();
             mountCount++;
-            var flag = this.registerMountedView(view) | prevFlag;
-            if (view[CELL_VIEW_PLACEHOLDER_MARKER]) {
-                view = this._resolveCellViewPlaceholder(view);
-                flag |= view.getFlag(result(view, 'initFlag'));
-            }
+            const flag = this.registerMountedView(view) | prevFlag;
             if (flag) this.scheduleViewUpdate(view, flag, view.UPDATE_PRIORITY, { mounting: true });
         }
         return mountCount;
@@ -2063,19 +2059,38 @@ export const Paper = View.extend({
             }
         }
         if (create) {
+            const { viewManagement } = this.options;
             const cid = uniqueId('view');
             this._idToCid[cell.id] = cid;
-            if (this.options.viewManagement.lazyInitialize) {
+            if (viewManagement.lazyInitialize) {
+                // Register only a placeholder for the view
                 view = this._registerCellViewPlaceholder(cell, cid);
-                flag = this.registerUnmountedView(view) | this.FLAG_INIT;
+                flag = this.registerUnmountedView(view);
             } else {
+                // Create a new view instance
                 view = this.createViewForModel(cell, cid);
                 this._registerCellView(view);
-                flag = this.registerUnmountedView(view) | this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
+                flag = this.registerUnmountedView(view);
+                // The newly created view needs to be initialized
+                flag |= this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
+            }
+            if (viewManagement.initializeUnmounted) {
+                this._updateUnmountedView(cid, flag);
+                return view;
             }
         }
+
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
+
         return view;
+    },
+
+    _updateUnmountedView: function(cid, flag) {
+        const { unmountedList } = this._updates;
+        const unmountedNode = unmountedList.get(cid);
+        if (unmountedNode) {
+            unmountedNode.value |= flag;
+        }
     },
 
     onImageDragStart: function() {
@@ -2242,7 +2257,7 @@ export const Paper = View.extend({
         }
         // If the view is a placeholder, resolve it
         const view = this._resolveCellViewPlaceholder(viewLike);
-        const flag = view.getFlag(result(view, 'initFlag'));
+        const flag = this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, {
             // It's important to run in isolation to avoid triggering the update of
             // connected links
