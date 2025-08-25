@@ -119,7 +119,7 @@ const V = (function() {
 
     /**
      * Calculates the transformation matrix from this element to the target element.
-     * @param {SVGGElement|V} target - The target SVG graphics element.
+     * @param {SVGElement|V} target - The target element.
      * @param {Object} [opt] - Options object for transformation calculation.
      * @param {boolean} [opt.safe] - Use a safe traversal method to compute the matrix.
      * @returns {SVGMatrix}
