@@ -66,6 +66,14 @@ export const Graph = Model.extend({
 
         this.cellLayersController = new CellLayersController({ graph: this });
 
+        // retrigger layer events from the cellLayersCollection with the `layer:` prefix
+        this.cellLayersController.collection.on('all', function(eventName) {
+            if (eventName.startsWith('add') || eventName.startsWith('remove') || eventName.startsWith('change')) {
+                arguments[0] = 'layer:' + eventName;
+                this.trigger.apply(this, arguments);
+            }
+        }, this);
+
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
@@ -488,7 +496,7 @@ export const Graph = Model.extend({
     getFirstCell: function(layerId) {
         let cells;
         if (!layerId) {
-            const orderedLayers = this.cellLayersController.getOrderedCellLayers();
+            const orderedLayers = this.cellLayersController.getRootCellLayers();
             cells = orderedLayers[0].cells;
         } else {
             cells = this.cellLayersController.getCellLayer(layerId).cells;
@@ -500,7 +508,7 @@ export const Graph = Model.extend({
     getLastCell: function(layerId) {
         let cells;
         if (!layerId) {
-            const orderedLayers = this.cellLayersController.getOrderedCellLayers();
+            const orderedLayers = this.cellLayersController.getRootCellLayers();
             cells = orderedLayers[orderedLayers.length - 1].cells;
         } else {
             cells = this.cellLayersController.getCellLayer(layerId).cells;
