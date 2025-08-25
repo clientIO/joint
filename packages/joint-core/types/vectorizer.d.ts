@@ -255,7 +255,7 @@ interface VStatic {
 
     qualifyAttr(name: string): Vectorizer.QualifiedAttribute;
 
-    getCommonAncestor(node1: SVGElement, node2: SVGElement): SVGElement | null;
+    getCommonAncestor(node1: SVGElement | VElement, node2: SVGElement | VElement): SVGElement | null;
 
     transformStringToMatrix(transform: string): SVGMatrix;
 
