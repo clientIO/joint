@@ -131,7 +131,7 @@ export class VElement {
     id: string;
     node: SVGElement;
 
-    getTransformToElement(target: SVGGElement | VElement, opt?: Vectorizer.TransformToElementOptions): SVGMatrix;
+    getTransformToElement(target: SVGElement | VElement, opt?: Vectorizer.TransformToElementOptions): SVGMatrix;
 
     transform(): SVGMatrix;
     transform(matrix: SVGMatrix | Vectorizer.Matrix, opt?: Vectorizer.TransformOptions): this;
