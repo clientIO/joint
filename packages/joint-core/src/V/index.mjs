@@ -122,7 +122,7 @@ const V = (function() {
      * @param {SVGElement|V} target - The target element.
      * @param {Object} [opt] - Options object for transformation calculation.
      * @param {boolean} [opt.safe] - Use a safe traversal method to compute the matrix.
-     * @returns {SVGMatrix}
+     * @returns {DOMMatrix} The transformation matrix from this element to the target element.
      */
     VPrototype.getTransformToElement = function(target, opt) {
         const node = this.node;
