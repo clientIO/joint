@@ -1111,8 +1111,8 @@ export const Paper = View.extend({
         var cid = view.cid;
         var updates = this._updates;
         if (updates.mountedList.has(cid)) return 0;
-        const unmountedNode = updates.unmountedList.get(cid);
-        const flag = unmountedNode ? unmountedNode.value : 0;
+        const unmountedItem = updates.unmountedList.get(cid);
+        const flag = unmountedItem ? unmountedItem.value : 0;
         updates.unmountedList.delete(cid);
         updates.mountedList.pushTail(cid);
         return flag;
@@ -1366,7 +1366,7 @@ export const Paper = View.extend({
                         } else {
                             // The view is not mounted. We can just update the unmounted list.
                             // We ADD the current flag to the flag that was already scheduled.
-                            this._updateUnmountedView(cid, currentFlag);
+                            this._mergeUnmountedViewScheduledUpdates(cid, currentFlag);
                         }
                         // Delete the current update as it has been processed.
                         delete priorityUpdates[cid];
@@ -2075,7 +2075,7 @@ export const Paper = View.extend({
                 flag |= this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
             }
             if (viewManagement.initializeUnmounted) {
-                this._updateUnmountedView(cid, flag);
+                this._mergeUnmountedViewScheduledUpdates(cid, flag);
                 return view;
             }
         }
@@ -2085,11 +2085,12 @@ export const Paper = View.extend({
         return view;
     },
 
-    _updateUnmountedView: function(cid, flag) {
+    // Update the view flags in the `unmountedList` using the bitwise OR operation
+    _mergeUnmountedViewScheduledUpdates: function(cid, flag) {
         const { unmountedList } = this._updates;
-        const unmountedNode = unmountedList.get(cid);
-        if (unmountedNode) {
-            unmountedNode.value |= flag;
+        const unmountedItem = unmountedList.get(cid);
+        if (unmountedItem) {
+            unmountedItem.value |= flag;
         }
     },
 
@@ -2249,21 +2250,30 @@ export const Paper = View.extend({
     // Find a view for a model `cell`. `cell` can also be a string or number representing a model `id`.
     findViewByModel: function(cellOrId) {
 
-        const viewLike = this._getCellViewLike(cellOrId);
-        if (!viewLike) return undefined;
-        if (!viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) {
+        const cellViewLike = this._getCellViewLike(cellOrId);
+        if (!cellViewLike) return undefined;
+        if (cellViewLike[CELL_VIEW_MARKER]) {
             // If the view is not a placeholder, return it directly
-            return viewLike;
+            return cellViewLike;
         }
-        // If the view is a placeholder, resolve it
-        const view = this._resolveCellViewPlaceholder(viewLike);
-        const flag = this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
-        this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, {
-            // It's important to run in isolation to avoid triggering the update of
-            // connected links
-            isolate: true
-        });
-        return view;
+        // We do not expose placeholder views directly. We resolve them before returning.
+        const cellView = this._resolveCellViewPlaceholder(cellViewLike);
+        const flag = this.FLAG_INIT | cellView.getFlag(result(cellView, 'initFlag'));
+        if (this.isViewMounted(cellView)) {
+            // The view was acting as a placeholder and is already present in the `mounted` list,
+            // indicating that its visibility has been checked, but the update hasn't occurred yet.
+            // Placeholders are resolved during the update routine. Since we're handling it
+            // manually here, we must ensure the view is properly initialized on the next update.
+            this.scheduleViewUpdate(cellView, flag, cellView.UPDATE_PRIORITY, {
+                // It's important to run in isolation to avoid triggering the update of
+                // connected links
+                isolate: true
+            });
+        } else {
+            // Update the flags in the `unmounted` list
+            this._mergeUnmountedViewScheduledUpdates(cellView.cid, flag);
+        }
+        return cellView;
     },
 
     // Find all views at given point
