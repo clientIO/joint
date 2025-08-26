@@ -99,13 +99,13 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(this.graph.hasCellLayer('cells'), 'Graph has default layer "cells"');
 
         const rootLayers = this.graph.getRootCellLayers();
-        assert.strictEqual(rootLayers, 3, 'There are 3 root layers in the graph');
-        assert.equal(rootLayers[0].id, 'cells', 'First layer is "cells"');
-        assert.equal(rootLayers[1].id, 'layer1', 'Second layer is "layer1"');
-        assert.equal(rootLayers[2].id, 'layer2', 'Third layer is "layer2"');
+        assert.strictEqual(rootLayers.length, 3, 'There are 3 root layers in the graph');
+        assert.equal(rootLayers[0].id, 'layer1', 'First layer is "layer1"');
+        assert.equal(rootLayers[1].id, 'layer2', 'Second layer is "layer2"');
+        assert.equal(rootLayers[2].id, 'cells', 'Third layer is "cells"');
 
-        const layer1 = rootLayers[1];
-        const layer2 = rootLayers[2];
+        const layer1 = rootLayers[0];
+        const layer2 = rootLayers[1];
 
         assert.ok(layer1.cells.has('rect1'), 'Layer "layer1" has rectangle cell');
         assert.ok(layer2.cells.has('ellipse1'), 'Layer "layer2" has ellipse cell');
