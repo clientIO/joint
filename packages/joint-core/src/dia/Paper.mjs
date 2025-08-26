@@ -1377,7 +1377,7 @@ export const Paper = View.extend({
                     if (view[CELL_VIEW_PLACEHOLDER_MARKER]) {
                         view = this._resolveCellViewPlaceholder(view);
                         // Newly initialized view needs to be initialized
-                        currentFlag |= this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
+                        currentFlag |= this.getCellViewInitFlag(view);
                     }
 
                     if (!isMounted) {
@@ -1415,6 +1415,9 @@ export const Paper = View.extend({
         };
     },
 
+    getCellViewInitFlag: function(cellView) {
+        return this.FLAG_INIT | cellView.getFlag(result(cellView, 'initFlag'));
+    },
 
     /**
      * @ignore This method returns an array of cellViewLike objects and therefore
@@ -2073,7 +2076,7 @@ export const Paper = View.extend({
                 this._registerCellView(view);
                 flag = this.registerUnmountedView(view);
                 // The newly created view needs to be initialized
-                flag |= this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
+                flag |= this.getCellViewInitFlag(view);
             }
             if (viewManagement.initializeUnmounted) {
                 this._mergeUnmountedViewScheduledUpdates(cid, flag);
@@ -2259,7 +2262,7 @@ export const Paper = View.extend({
         }
         // We do not expose placeholder views directly. We resolve them before returning.
         const cellView = this._resolveCellViewPlaceholder(cellViewLike);
-        const flag = this.FLAG_INIT | cellView.getFlag(result(cellView, 'initFlag'));
+        const flag = this.getCellViewInitFlag(cellView);
         if (this.isViewMounted(cellView)) {
             // The view was acting as a placeholder and is already present in the `mounted` list,
             // indicating that its visibility has been checked, but the update hasn't occurred yet.
