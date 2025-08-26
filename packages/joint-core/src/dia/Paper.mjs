@@ -2079,6 +2079,7 @@ export const Paper = View.extend({
                 flag |= this.getCellViewInitFlag(view);
             }
             if (viewManagement.initializeUnmounted) {
+                // Save the initialization flags for later and exit early
                 this._mergeUnmountedViewScheduledUpdates(cid, flag);
                 return view;
             }
