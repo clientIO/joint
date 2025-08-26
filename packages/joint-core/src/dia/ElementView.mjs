@@ -389,7 +389,8 @@ export const ElementView = CellView.extend({
             parent.unembed(element, { ui: true });
             data.initialParentId = parentId;
         } else {
-            data.initialParentId = null;
+            // `data.initialParentId` can be explicitly set to a dummy value to enable validation of unembedding.
+            data.initialParentId = data.initialParentId || null;
         }
     },
 

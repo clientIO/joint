@@ -569,7 +569,7 @@ export namespace dia {
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
 
-        static getAttributeDefinition(attrName: string): Cell.PresentationAttributeDefinition<CellView> | undefined;
+        static getAttributeDefinition(attrName: string): Cell.PresentationAttributeDefinition<CellView> | null;
 
         /**
          * @deprecated
@@ -593,6 +593,11 @@ export namespace dia {
         }
 
         interface Attributes extends GenericAttributes<Cell.Selectors> {
+        }
+
+        interface ConstructorOptions extends Cell.ConstructorOptions {
+            portLayoutNamespace?: { [key: string]: layout.Port.LayoutFunction };
+            portLabelLayoutNamespace?: { [key: string]: layout.PortLabel.LayoutFunction };
         }
 
         type PortPositionCallback = layout.Port.LayoutFunction;
@@ -686,6 +691,8 @@ export namespace dia {
     }
 
     class Element<A extends ObjectHash = Element.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
+
+        constructor(attributes?: DeepPartial<A>, opt?: Element.ConstructorOptions);
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -1661,7 +1668,7 @@ export namespace dia {
         interface FindClosestMagnetToPointOptions {
             radius?: number;
             findInAreaOptions?: FindInAreaOptions;
-            validation?: (view: CellView, magnet: SVGElement) => boolean;
+            filter?: (view: CellView, magnet: SVGElement) => boolean;
         }
 
         interface ClosestMagnet {
@@ -1898,6 +1905,8 @@ export namespace dia {
 
         unfreeze(opt?: Paper.UnfreezeOptions): void;
 
+        wakeUp(): void;
+
         isFrozen(): boolean;
 
         requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
@@ -1933,6 +1942,10 @@ export namespace dia {
         };
 
         hasScheduledUpdates(): boolean;
+
+        disposeHiddenCellViews(): void;
+
+        isCellViewMounted(cellOrId: dia.Cell | dia.Cell.ID): boolean;
 
         // events
 
@@ -1990,7 +2003,15 @@ export namespace dia {
 
         protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: { mountBatchSize?: number }): number;
 
+        protected prioritizeCellViewMount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+
+        protected prioritizeCellViewUnmount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+
+        protected isViewMounted(viewOrCid: dia.CellView | string): boolean;
+
         protected isAsync(): boolean;
+
+        protected isIdle(): boolean;
 
         protected isExactSorting(): boolean;
 
@@ -2475,7 +2496,7 @@ export namespace highlighters {
             position?: Positions | dia.PositionName;
             size?: number | dia.Size;
             gap?: number;
-            margin?: number | dia.Sides;
+            margin?: dia.Sides;
         }
     }
 
@@ -4009,7 +4030,8 @@ export namespace anchors {
     }
 
     interface MidSideAnchorArguments extends RotateAnchorArguments, PaddingAnchorArguments {
-
+        mode?: 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto';
+        preferenceThreshold?: dia.Sides;
     }
 
     interface ModelCenterAnchorArguments {
@@ -4567,7 +4589,7 @@ export namespace elementTools {
 
     namespace Boundary {
         interface Options extends dia.ToolView.Options<dia.ElementView> {
-            padding?: number | dia.Sides;
+            padding?: dia.Sides;
             useModelGeometry?: boolean;
             rotate?: boolean;
         }
@@ -4810,7 +4832,7 @@ export namespace linkTools {
 
     namespace Boundary {
         interface Options extends dia.ToolView.Options<dia.LinkView> {
-            padding?: number | dia.Sides;
+            padding?: dia.Sides;
             useModelGeometry?: boolean;
         }
     }

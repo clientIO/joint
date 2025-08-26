@@ -97,8 +97,8 @@ export const LinkView = CellView.extend({
 
         if (
             paper && (
-                (sourceId && !paper.isViewMounted(sourceId)) ||
-                (targetId && !paper.isViewMounted(targetId))
+                (sourceId && !paper.isCellViewMounted(sourceId)) ||
+                (targetId && !paper.isCellViewMounted(targetId))
             )
         ) {
             // Wait for the source and target views to be rendered
@@ -1842,7 +1842,7 @@ export const LinkView = CellView.extend({
 
         data.closestView = data.closestMagnet = data.magnetProxy = null;
 
-        const validationFn = (view, magnet) => {
+        const isValidCandidate = (view, magnet) => {
             // Do not snap to the current view
             if (view === this) {
                 return false;
@@ -1854,7 +1854,7 @@ export const LinkView = CellView.extend({
             );
         };
 
-        const closest = paper.findClosestMagnetToPoint({ x, y }, { radius, findInAreaOptions, validation: validationFn });
+        const closest = paper.findClosestMagnetToPoint({ x, y }, { radius, findInAreaOptions, filter: isValidCandidate });
         data.closestView = closest ? closest.view : null;
         data.closestMagnet = closest ? closest.magnet : null;
 

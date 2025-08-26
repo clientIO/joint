@@ -1760,7 +1760,7 @@ QUnit.module('paper', function(hooks) {
 
             const { view, magnet } = this.paper.findClosestMagnetToPoint(
                 { x: 25, y: 25 },
-                { radius: 100, validation: (view) => view.model.id === 'r2' }
+                { radius: 100, filter: (view) => view.model.id === 'r2' }
             );
             assert.strictEqual(view, this.paper.findViewByModel(rect2));
             assert.strictEqual(view.el, magnet);

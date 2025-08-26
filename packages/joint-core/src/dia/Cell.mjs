@@ -991,9 +991,10 @@ export const Cell = Model.extend({
 
     getAttributeDefinition: function(attrName) {
 
-        var defNS = this.attributes;
-        var globalDefNS = attributes;
-        return (defNS && defNS[attrName]) || globalDefNS[attrName];
+        const defNS = this.attributes;
+        const globalDefNS = attributes;
+        const definition = (defNS && defNS[attrName]) || globalDefNS[attrName];
+        return definition !== undefined ? definition : null;
     },
 
     define: function(type, defaults, protoProps, staticProps) {

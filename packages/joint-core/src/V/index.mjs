@@ -118,8 +118,11 @@ const V = (function() {
     });
 
     /**
-     * @param {SVGGElement} toElem
-     * @returns {SVGMatrix}
+     * Calculates the transformation matrix from this element to the target element.
+     * @param {SVGElement|V} target - The target element.
+     * @param {Object} [opt] - Options object for transformation calculation.
+     * @param {boolean} [opt.safe] - Use a safe traversal method to compute the matrix.
+     * @returns {DOMMatrix} The transformation matrix from this element to the target element.
      */
     VPrototype.getTransformToElement = function(target, opt) {
         const node = this.node;
@@ -1341,7 +1344,7 @@ const V = (function() {
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
     // when you want to compare the actual DOM text content without having to add the unicode character in
     // the place of all spaces.
-    /** 
+    /**
      * @deprecated Use regular spaces and rely on xml:space="preserve" instead.
      */
     V.sanitizeText = function(text) {
