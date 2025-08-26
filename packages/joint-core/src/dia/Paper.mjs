@@ -1523,13 +1523,14 @@ export const Paper = View.extend({
         if (mountedList.has(cellView.cid) && !visible) {
             const flag = this.registerUnmountedView(cellView);
             if (flag) this._hideView(cellView);
-            updates.mountedList.delete(cellView.cid);
+            mountedList.delete(cellView.cid);
             isUnmounted = true;
         }
 
         if (!isUnmounted && unmountedList.has(cellView.cid) && visible) {
-            updates.unmountedList.delete(cellView.cid);
-            var flag = this.registerMountedView(cellView);
+            const unmountedItem = unmountedList.get(cellView.cid);
+            unmountedList.delete(cellView.cid);
+            const flag = unmountedItem.value | this.registerMountedView(cellView);
             if (flag) this.scheduleViewUpdate(cellView, flag, cellView.UPDATE_PRIORITY, { mounting: true });
             isMounted = true;
         }
