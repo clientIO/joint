@@ -1786,7 +1786,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
     QUnit.module('async = TRUE, autoFreeze = TRUE', function(hooks) {
 
-        const OnIdle = (paper) => new Promise(resolve => paper.once('render:idle', () => resolve()));
+        const OnIdle = (paper) => new Promise(resolve => paper.once('render:idle', (opt) => resolve(opt)));
 
         QUnit.test('autoFreeze check', function(assert) {
             const done = assert.async();
@@ -1927,6 +1927,43 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             done();
 
+            testPaper.remove();
+        });
+
+        QUnit.test('wakeUp() preserves options', async function(assert) {
+
+            const done = assert.async();
+            const testPaper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                frozen: true,
+                viewManagement: true,
+                sorting: Paper.sorting.APPROX
+            });
+
+            const beforeRenderSpy = sinon.spy();
+            const circle = new joint.shapes.standard.Circle();
+            circle.addTo(graph);
+
+            testPaper.unfreeze({
+                beforeRender: beforeRenderSpy,
+                test: true
+            });
+
+            await OnIdle(testPaper);
+            assert.equal(beforeRenderSpy.callCount, 1);
+            testPaper.wakeUp();
+
+            await OnIdle(testPaper);
+            circle.clone().addTo(graph);
+
+            const onIdleOptions = await OnIdle(testPaper);
+            assert.equal(beforeRenderSpy.callCount, 2);
+            assert.ok(onIdleOptions.test, 'test option is preserved');
+
+            done();
             testPaper.remove();
         });
 
