@@ -1858,10 +1858,12 @@ QUnit.module('linkView', function(hooks) {
                 // If we dispose the end view and then reinitialize it,
                 // the linkView should return the new end magnet.
                 paper.checkViewVisibility(rv1a, { cellVisibility: () => false });
+
                 const rv1b = r1.findView(paper);
                 assert.notOk(rv1a.el.isConnected);
                 assert.notEqual(rv1a.el, rv1b.el);
                 paper.checkViewVisibility(rv1b, { cellVisibility: () => true });
+                paper.dumpView(rv1b);
                 assert.equal(linkView.getEndMagnet(end), rv1b.el.querySelector('rect'));
             });
         });
