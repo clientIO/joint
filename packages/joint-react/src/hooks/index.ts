@@ -10,3 +10,4 @@ export * from './use-remove-element';
 export * from './use-create-element';
 export * from './use-create-link';
 export * from './use-are-elements-measured';
+export * from './use-paper-events';
