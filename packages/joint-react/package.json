@@ -1,6 +1,6 @@
 {
   "name": "@joint/react",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -11,6 +11,16 @@
     "README.md",
     "LICENSE",
     "src"
+  ],
+  "license": "MPL-2.0",
+  "homepage": "https://react.jointjs.com/learn/?path=/docs/introduction--docs",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "contributors": [
+    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
+    "Samuel <samuel@client.io> (https://github.com/samuelgja)"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
