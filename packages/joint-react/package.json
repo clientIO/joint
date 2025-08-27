@@ -1,7 +1,21 @@
 {
   "name": "@joint/react",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "type": "module",
+  "description": "React bindings and hooks for JointJS to build interactive diagrams and graphs.",
+  "license": "MPL-2.0",
+  "keywords": [
+    "jointjs",
+    "react",
+    "diagramming",
+    "graph",
+    "flowchart",
+    "uml",
+    "visualization",
+    "editor",
+    "drawing",
+    "stencil"
+  ],
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -11,6 +25,15 @@
     "README.md",
     "LICENSE",
     "src"
+  ],
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "contributors": [
+    "Roman Bruckner <roman@jointjs.com> (https://github.com/kumilingus)",
+    "Samuel <samuel@jointjs.com> (https://github.com/samuelgja)"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
