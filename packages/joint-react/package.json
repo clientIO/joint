@@ -2,6 +2,8 @@
   "name": "@joint/react",
   "version": "1.0.0-alpha.5",
   "type": "module",
+  "description": "@joint/react is a React wrapper for JointJS, designed to make creating and managing interactive diagrams and graphs in React applications simple and intuitive. It provides React components, hooks, and utilities to efficiently manage nodes, links, and user interactions.",
+  "license": "MPL-2.0",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -12,7 +14,6 @@
     "LICENSE",
     "src"
   ],
-  "license": "MPL-2.0",
   "homepage": "https://react.jointjs.com/learn/?path=/docs/introduction--docs",
   "author": {
     "name": "client IO",
