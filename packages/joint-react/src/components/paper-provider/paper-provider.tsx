@@ -1,17 +1,26 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { GraphStoreContext, PaperContext } from '../../context';
-import { dia } from '@joint/core';
+import { dia, shapes } from '@joint/core';
 import { useGraph } from '../../hooks';
 import { createPortsStore } from '../../data/create-ports-store';
 import type { PortElementsCacheEntry } from '../../data/create-ports-data';
 import type { OmitWithoutIndexSignature } from '../../types';
 import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider';
-import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
+import { useElementViews, type OnPaperRenderElement } from '../../hooks/use-element-views';
+import { PaperProviderConfigContext } from '../../context/paper-provide-config-context';
+import type { GraphLink } from '../../types/link-types';
 const DEFAULT_CLICK_THRESHOLD = 10;
 
-export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
-
-export type ReactPaperOptions = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen'>;
+type ReactPaperOptionsBase = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen' | 'defaultLink'>;
+export interface ReactPaperOptions extends ReactPaperOptionsBase {
+  /**
+   * Default link for the paper - for example if there is new element added, this will be used as default.
+   */
+  readonly defaultLink?:
+    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | GraphLink)
+    | dia.Link
+    | GraphLink;
+}
 
 // Interface for Paper options, extending JointJS Paper options
 export interface PaperOptions extends ReactPaperOptions {
@@ -25,17 +34,32 @@ export interface PaperOptions extends ReactPaperOptions {
   readonly onRenderElement?: OnPaperRenderElement;
 }
 
-export interface PaperProviderProps extends ReactPaperOptions, GraphProps {
+export interface PaperProviderProps extends Omit<ReactPaperOptions, 'className'>, GraphProps {
   readonly children: React.ReactNode;
 }
-const EMPTY_OBJECT = {} as const;
+const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: Readonly<PaperProviderProps>) {
-  const { children, ...paperOptions } = props;
+  const { children, defaultLink, ...paperOptions } = props;
   const graph = useGraph();
+  const { overwriteDefaultPaperElement } = useContext(PaperProviderConfigContext) ?? {};
+  const { onRenderElement, elementViews } = useElementViews();
+  const paperHTMLElement = useRef<HTMLDivElement | null>(null);
 
-  const { onRenderElement, recordOfSVGElements } = usePaperElementRenderer();
+  const defaultLinkJointJS = useCallback(
+    (cellView: dia.CellView, magnet: SVGElement) => {
+      const link = typeof defaultLink === 'function' ? defaultLink(cellView, magnet) : defaultLink;
+      if (!link) {
+        return new shapes.standard.Link();
+      }
+      if (link instanceof dia.Link) {
+        return link;
+      }
+      return new shapes.standard.Link(link as dia.Link.EndJSON);
+    },
+    [defaultLink]
+  );
 
   const [paperCtx] = useState<PaperContext>(function (): PaperContext {
     const portsStore = createPortsStore();
@@ -44,7 +68,7 @@ function Component(props: Readonly<PaperProviderProps>) {
       onRender() {
         // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
         const elementView: dia.ElementView = this;
-        onRenderElement(elementView.model, elementView.el as SVGGElement);
+        onRenderElement(elementView);
       },
       // Render port using react, `portData.portElement.node` is used as portal gate for react (createPortal)
       _renderPorts() {
@@ -65,32 +89,57 @@ function Component(props: Readonly<PaperProviderProps>) {
       sorting: dia.Paper.sorting.APPROX,
       preventDefaultBlankAction: false,
       frozen: true,
+      defaultLink: defaultLinkJointJS,
       model: graph,
       elementView,
       ...paperOptions,
       clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
     });
 
+    /**
+     * Render paper ulitily - is called when html element is bind to the react paper component
+     * @param element - The HTML element to render the paper into
+     */
+    function renderPaper(element: HTMLElement) {
+      if (!paper) {
+        throw new Error('Paper is not created');
+      }
+
+      const elementToRender = overwriteDefaultPaperElement
+        ? overwriteDefaultPaperElement(paperCtx)
+        : paper.el;
+
+      if (!elementToRender) {
+        throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
+      }
+
+      element.replaceChildren(elementToRender);
+      paper.unfreeze();
+    }
+
     return {
       paper,
       portsStore,
-      recordOfSVGElements: EMPTY_OBJECT,
+      elementViews: EMPTY_OBJECT,
+      paperHTMLElement,
+      renderPaper,
     };
   });
 
   useEffect(() => {
     paperCtx.paper.options = {
+      defaultLink: defaultLinkJointJS,
       ...paperCtx.paper.options,
       ...paperOptions,
     };
-  }, [paperCtx.paper, paperOptions]);
+  }, [defaultLinkJointJS, paperCtx.paper, paperOptions]);
 
   const paperContextFull = useMemo((): PaperContext => {
     return {
       ...paperCtx,
-      recordOfSVGElements,
+      elementViews,
     };
-  }, [paperCtx, recordOfSVGElements]);
+  }, [paperCtx, elementViews]);
 
   // Remove the check for existing context, always provide PaperContext
   return <PaperContext.Provider value={paperContextFull}>{children}</PaperContext.Provider>;
@@ -108,8 +157,8 @@ function Component(props: Readonly<PaperProviderProps>) {
 export function PaperProvider(props: Readonly<PaperProviderProps>) {
   const {
     children,
-    initialElements,
-    initialLinks,
+    initialElements: initialElements,
+    initialLinks: initialLinks,
     graph,
     cellNamespace,
     cellModel,

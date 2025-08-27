@@ -7,7 +7,7 @@ import { MeasuredNode } from '../../measured-node/measured-node';
 import { runStorybookSnapshot } from '../../../utils/run-storybook-snapshot';
 import * as stories from '../paper.stories';
 import { usePaper } from '../../../hooks';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const initialElements = createElements([
   { id: '1', label: 'Node 1' },
@@ -117,16 +117,6 @@ describe('Paper Component', () => {
     });
   });
 
-  it('overwrites default paper element with overwriteDefaultPaperElement', () => {
-    const customElement = document.createElement('div');
-    customElement.className = 'custom-paper-element';
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element> overwriteDefaultPaperElement={() => customElement} />
-      </GraphProvider>
-    );
-    expect(document.querySelector('.custom-paper-element')).toBeInTheDocument();
-  });
   it('should fire custom event on the paper', async () => {
     const handleCustomEvent = jest.fn();
 
@@ -210,6 +200,35 @@ describe('Paper Component', () => {
       </GraphProvider>
     );
     await waitFor(() => {
+      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('calls onElementsSizeReady when elements are measured - conditional render', async () => {
+    const RenderElement = jest.fn(({ label }) => <div className="node">{label}</div>);
+    function Content() {
+      const [isReady, setIsReady] = useState(false);
+      useEffect(() => {
+        // eslint-disable-next-line @eslint-react/web-api/no-leaked-timeout, sonarjs/no-nested-functions
+        setTimeout(() => {
+          setIsReady(true);
+        }, 100);
+      }, []);
+      return (
+        <GraphProvider initialElements={initialElements}>
+          {isReady && (
+            <Paper<Element>
+              renderElement={RenderElement}
+              onElementsSizeReady={onElementsSizeReadyMock}
+            />
+          )}
+        </GraphProvider>
+      );
+    }
+    const onElementsSizeReadyMock = jest.fn();
+    render(<Content />);
+    await waitFor(() => {
+      expect(RenderElement).toHaveBeenCalledTimes(2); // Called for each element
       expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
     });
   });

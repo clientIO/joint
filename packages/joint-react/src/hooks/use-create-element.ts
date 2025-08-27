@@ -2,7 +2,7 @@ import type { dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import { useGraph } from './use-graph';
 import { useCallback } from 'react';
-import { processElement } from '../utils/cell/set-cells';
+import { processElement } from '../utils/cell/cell-utilities';
 
 type SetElement<T extends dia.Element | GraphElement> = Omit<
   Partial<T> & { id: dia.Cell.ID },

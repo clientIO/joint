@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { Meta, StoryObj } from '@storybook/react';
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useLinks } from './use-links';
@@ -60,4 +59,3 @@ function Component() {
 }`,
   description: 'Get all link IDs.',
 });
-/* eslint-enable react-perf/jsx-no-new-object-as-prop */

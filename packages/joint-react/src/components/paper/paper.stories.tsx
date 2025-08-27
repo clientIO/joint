@@ -229,3 +229,21 @@ export const WithCustomEvent: Story = {
     className: PAPER_CLASSNAME,
   },
 };
+
+export const WithDrawGrid: Story = {
+  args: {
+    renderElement: RenderHTMLElement as never,
+    onElementPointerClick: ({ paper }) => {
+      paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
+    },
+    onCustomEvent: ({ args, eventName }) => {
+      action('onCustomEvent')(
+        `Custom event triggered: ${eventName} with args: ${JSON.stringify(args)}`
+      );
+    },
+
+    className: PAPER_CLASSNAME,
+    drawGrid: { name: 'dot', thickness: 2, color: 'white' },
+    drawGridSize: 10,
+  },
+};

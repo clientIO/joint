@@ -1,22 +1,28 @@
 import { dia, shapes } from '@joint/core';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
-import { setElements } from '../utils/cell/set-cells';
+import { setElements } from '../utils/cell/cell-utilities';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
-import { createStoreData } from './create-store-data';
+import { createStoreData, type UpdateResult } from './create-store-data';
 import type { CellMap } from '../utils/cell/cell-map';
+import type { Dispatch, SetStateAction } from 'react';
+import { CONTROLLED_MODE_BATCH_NAME } from '../utils/graph/update-graph';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
-export interface StoreOptions {
+export interface StoreOptions<
+  Graph extends dia.Graph,
+  Element extends dia.Element | GraphElement,
+  Link extends dia.Link | GraphLink,
+> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph
    * @default new dia.Graph({}, { cellNamespace: shapes })
    */
-  readonly graph?: dia.Graph;
+  readonly graph?: Graph;
   /**
    * Namespace for cell models.
    * @default shapes
@@ -32,24 +38,37 @@ export interface StoreOptions {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly initialElements?: Array<dia.Element | GraphElement>;
+  readonly initialElements?: Element[];
 
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly initialLinks?: Array<dia.Link | GraphLink>;
+  readonly initialLinks?: Link[];
+  /**
+   * Callback triggered when elements (nodes) change.
+   * Providing this prop enables controlled mode for elements.
+   * If specified, this function will override the default behavior, allowing you to manage all element changes manually instead of relying on `graph.change`.
+   */
+  readonly onElementsChange?: Dispatch<SetStateAction<Element[]>>;
+
+  /**
+   * Callback triggered when links (edges) change.
+   * Providing this prop enables controlled mode for links.
+   * If specified, this function will override the default behavior, allowing you to manage all link changes manually instead of relying on `graph.change`.
+   */
+  readonly onLinksChange?: Dispatch<SetStateAction<Link[]>>;
 }
 
-export interface Store {
+export interface Store<Graph extends dia.Graph = dia.Graph> {
   /**
    * The JointJS graph instance.
    */
-  readonly graph: dia.Graph;
+  readonly graph: Graph;
   /**
    * Subscribes to the store changes.
    */
-  readonly subscribe: (onStoreChange: (changedIds?: Set<dia.Cell.ID>) => void) => () => void;
+  readonly subscribe: (onStoreChange: (changedIds?: UpdateResult) => void) => () => void;
 
   /**
    * Get elements
@@ -70,7 +89,7 @@ export interface Store {
   /**
    *  Remove all listeners and cleanup the graph.
    */
-  readonly destroy: () => void;
+  readonly destroy: (isGraphExternal: boolean) => void;
 
   /**
    * Set the measured node element.
@@ -84,6 +103,12 @@ export interface Store {
    * Check if the graph has already measured node for the given element id.
    */
   readonly hasMeasuredNode: (id: dia.Cell.ID) => boolean;
+
+  /**
+   * Force update the graph store.
+   * This will trigger a re-render of all components that are subscribed to the store.
+   */
+  readonly forceUpdateStore: () => UpdateResult;
 }
 
 /**
@@ -98,13 +123,16 @@ export interface Store {
  * console.log(graph);
  * ```
  */
-function createGraph(options: StoreOptions = {}): dia.Graph {
+function createGraph<
+  Graph extends dia.Graph = dia.Graph,
+  Element extends dia.Element | GraphElement = dia.Element | GraphElement,
+  Link extends dia.Link | GraphLink = dia.Link | GraphLink,
+>(options: StoreOptions<Graph, Element, Link> = {}): Graph {
   const { cellModel, cellNamespace = DEFAULT_CELL_NAMESPACE, graph } = options;
   const newGraph =
     graph ??
     new dia.Graph(
       {},
-
       {
         cellNamespace: {
           ...DEFAULT_CELL_NAMESPACE,
@@ -114,8 +142,14 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
         cellModel,
       }
     );
-  return newGraph;
+  return newGraph as Graph;
 }
+
+// eslint-disable-next-line jsdoc/require-jsdoc
+function isBatchNameObject(value: unknown): value is { batchName: string } {
+  return typeof value === 'object' && value !== null && 'batchName' in value;
+}
+
 /**
  * Building block of `@joint/react`.
  * It listen to cell changes and updates UI based on the `dia.graph` changes.
@@ -141,22 +175,32 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * unsubscribe();
  * ```
  */
-export function createStore(options?: StoreOptions): Store {
-  const { initialElements } = options || {};
+export function createStoreWithGraph<
+  Graph extends dia.Graph,
+  Element extends dia.Element | GraphElement,
+  Link extends dia.Link | GraphLink,
+>(options?: StoreOptions<Graph, Element, Link>): Store<Graph> {
+  const { initialElements, graph, onElementsChange, onLinksChange } = options || {};
 
-  const graph = createGraph(options);
+  if (!graph) {
+    // Create a new graph instance or use the provided one
+    throw new Error('Graph instance is required');
+  }
   // set elements to the graph
   setElements({
     graph,
-    initialElements,
+    elements: initialElements,
   });
   // create store data - caching the elements and links for the react
-  const data = createStoreData();
-  const elementsEvents = subscribeHandler(forceUpdate);
-
+  const graphData = createStoreData();
+  // listen to dia.graph cell changes and trigger `onCellChange` where there is change occurs in graph
   const unsubscribe = listenToCellChange(graph, onCellChange);
+  // elements events notify all react components using `useSyncExternalStore`
+  const elementsEvents = subscribeHandler(forceUpdateStore);
 
-  data.updateStore(graph);
+  // Notify subscribers of initial elements
+  graphData.updateStore(graph);
+  // add method to handle batch stop, so then we can also notify all react components
   graph.on('batch:stop', onBatchStop);
 
   const measuredNodes = new Set<dia.Cell.ID>();
@@ -166,17 +210,42 @@ export function createStore(options?: StoreOptions): Store {
    * This function is called when the graph is updated.
    * It checks if there are any unsized links and processes them.
    * @returns changed ids
+   * @param batchName - The name of the batch.
    */
-  function forceUpdate(): Set<dia.Cell.ID> {
-    return data.updateStore(graph);
+  function forceUpdateStore(batchName?: string): UpdateResult {
+    if (!graph) {
+      // Create a new graph instance or use the provided one
+      throw new Error('Graph instance is required');
+    }
+
+    const updateResult = graphData.updateStore(graph);
+    // Skip processing changes in controlled mode since they are already handled.
+    // This prevents circular calls to `onElementsChange`.
+    // For example, if a user manages elements via React state and updates the graph using setElements,
+    // this function will be triggered. However, we avoid re-triggering `onElementsChange` to prevent redundant updates.
+    // We call `onElementsChange` and `onLinksChange` explicitly only when direct change on `dia.Graph` occurs.
+    if (batchName !== CONTROLLED_MODE_BATCH_NAME) {
+      if (onElementsChange && updateResult.areElementsChanged) {
+        const elements = graphData.elements.map((element) => element);
+        onElementsChange(elements as SetStateAction<Element[]>);
+      }
+      if (onLinksChange && updateResult.areLinksChanged) {
+        const links = graphData.links.map((link) => link);
+        onLinksChange(links as SetStateAction<Link[]>);
+      }
+    }
+    return updateResult;
   }
   /**
    * This function is called when a cell changes.
    * It checks if the graph has an active batch and returns if it does.
    * Otherwise, it notifies the subscribers of the elements events.
-   * @param cell - The cell that changed.
    */
   function onCellChange() {
+    if (!graph) {
+      // Create a new graph instance or use the provided one
+      throw new Error('Graph instance is required');
+    }
     if (graph.hasActiveBatch()) {
       return;
     }
@@ -184,38 +253,50 @@ export function createStore(options?: StoreOptions): Store {
     elementsEvents.notifySubscribers();
   }
 
-  /**
-   * This function is called when the batch stops.
-   */
-  function onBatchStop() {
-    elementsEvents.notifySubscribers();
+  // eslint-disable-next-line jsdoc/require-jsdoc, no-shadow, @typescript-eslint/no-shadow
+  function onBatchStop(options?: unknown) {
+    if (!isBatchNameObject(options)) {
+      elementsEvents.notifySubscribers();
+      return;
+    }
+    const { batchName } = options;
+    elementsEvents.notifySubscribers(batchName);
   }
 
   /**
    * Cleanup the store.
+   * @param isGraphExternal - If true, the graph is external and should not be cleared.
    */
-  function destroy() {
+  function destroy(isGraphExternal: boolean) {
+    if (!graph) {
+      // Create a new graph instance or use the provided one
+      throw new Error('Graph instance is required');
+    }
     unsubscribe();
     graph.off('batch:stop', onBatchStop);
-    graph.clear();
-    data.destroy();
+    graphData.destroy();
     measuredNodes.clear();
+    if (isGraphExternal) {
+      return;
+    }
+    graph.clear();
   }
   // Force update the graph to ensure it's in sync with the store.
-  forceUpdate();
+  forceUpdateStore();
 
-  const store: Store = {
+  const store: Store<Graph> = {
+    forceUpdateStore,
     destroy,
     graph,
     subscribe: elementsEvents.subscribe,
     getElements() {
-      return data.elements;
+      return graphData.elements;
     },
     getLinks() {
-      return data.links;
+      return graphData.links;
     },
     getElement<E extends GraphElement>(id: dia.Cell.ID) {
-      const item = data.elements.get(id);
+      const item = graphData.elements.get(id);
 
       if (!item) {
         throw new Error(`Element with id ${id} not found`);
@@ -223,7 +304,7 @@ export function createStore(options?: StoreOptions): Store {
       return item as E;
     },
     getLink(id) {
-      const item = data.links.get(id);
+      const item = graphData.links.get(id);
       if (!item) {
         throw new Error(`Link with id ${id} not found`);
       }
@@ -240,4 +321,41 @@ export function createStore(options?: StoreOptions): Store {
     },
   };
   return store;
+}
+
+/**
+ * Building block of `@joint/react`.
+ * It listen to cell changes and updates UI based on the `dia.graph` changes.
+ * It use `useSyncExternalStore` to avoid memory leaks and state duplicates.
+ *
+ * Under the hood, @joint/react works by listening to changes in the `dia.Graph` via this store. `dia.graph` is the single source of truth.
+ * When you update something—like adding or modifying cells—you do it directly through the `dia.Graph` API, just like in a standard JointJS app.
+ * React components automatically observe and react to changes in the graph, keeping the UI in sync via `useSyncExternalStore` API.
+ * Hooks like `useUpdateElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes.
+ * You can also access the graph yourself using `useGraph()` and call methods like `graph.setCells()` or any other JointJS method as needed and react will update it accordingly.
+ * @group Data
+ * @internal
+ * @param options - Options for creating the graph store.
+ * @returns The graph store instance.
+ * @example
+ * ```ts
+ * const { graph, forceUpdate, subscribe } = createStore();
+ * const unsubscribe = subscribe(() => {
+ *   console.log('Graph changed');
+ * });
+ * graph.addCell(new joint.shapes.standard.Rectangle());
+ * forceUpdate();
+ * unsubscribe();
+ * ```
+ */
+export function createStore<
+  Graph extends dia.Graph,
+  Element extends dia.Element | GraphElement,
+  Link extends dia.Link | GraphLink,
+>(options?: StoreOptions<Graph, Element, Link>): Store<Graph> {
+  const graph = createGraph<Graph, Element, Link>(options);
+  return createStoreWithGraph<Graph, Element, Link>({
+    ...options,
+    graph,
+  });
 }
