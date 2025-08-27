@@ -32,8 +32,8 @@
     "url": "https://client.io"
   },
   "contributors": [
-    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
-    "Samuel <samuel@client.io> (https://github.com/samuelgja)"
+    "Roman Bruckner <roman@jointjs.com> (https://github.com/kumilingus)",
+    "Samuel <samuel@jointjs.com> (https://github.com/samuelgja)"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
