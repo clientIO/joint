@@ -1546,7 +1546,7 @@ export const Paper = View.extend({
         };
     },
 
-    checkCellViewVisibility: function(opt) {
+    checkCellVisibility: function(opt) {
         this.checkViewport(opt);
         if (!this.isAsync) {
             this.updateViews(opt);

@@ -1884,7 +1884,7 @@ export namespace dia {
             cellVisibility?: Paper.CellVisibilityCallback;
         }): void;
 
-        checkCellViewVisibility(opt?: {
+        checkCellVisibility(opt?: {
             batchSize?: number;
             mountBatchSize?: number;
             unmountBatchSize?: number;
