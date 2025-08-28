@@ -1408,6 +1408,7 @@ export namespace dia {
             mountBatchSize?: number;
             unmountBatchSize?: number;
             batchSize?: number;
+            /** @deprecated Use `cellVisibility` */
             viewport?: ViewportCallback;
             cellVisibility?: CellVisibilityCallback;
             progress?: ProgressCallback;
@@ -1489,6 +1490,7 @@ export namespace dia {
             frozen?: boolean;
             autoFreeze?: boolean;
             viewManagement?: ViewManagementOptions;
+            /** @deprecated Use `cellVisibility` */
             viewport?: ViewportCallback | null;
             cellVisibility?: CellVisibilityCallback | null;
             onViewUpdate?: (view: mvc.View<any, any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
@@ -1877,6 +1879,16 @@ export namespace dia {
             batchSize?: number;
             mountBatchSize?: number;
             unmountBatchSize?: number;
+            /** @deprecated Use `cellVisibility` */
+            viewport?: Paper.ViewportCallback;
+            cellVisibility?: Paper.CellVisibilityCallback;
+        }): void;
+
+        checkCellViewVisibility(opt?: {
+            batchSize?: number;
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            /** @deprecated Use `cellVisibility` */
             viewport?: Paper.ViewportCallback;
             cellVisibility?: Paper.CellVisibilityCallback;
         }): void;
@@ -1884,6 +1896,7 @@ export namespace dia {
         checkViewport(opt?: {
             mountBatchSize?: number;
             unmountBatchSize?: number;
+            /** @deprecated Use `cellVisibility` */
             viewport?: Paper.ViewportCallback;
             cellVisibility?: Paper.CellVisibilityCallback;
         }): {
@@ -1893,6 +1906,7 @@ export namespace dia {
 
         updateViews(opt?: {
             batchSize?: number;
+            /** @deprecated Use `cellVisibility` */
             viewport?: Paper.ViewportCallback;
             cellVisibility?: Paper.CellVisibilityCallback;
         }): {
@@ -1916,14 +1930,15 @@ export namespace dia {
         // protected
 
         /**
-        * For the specified view, calls the visibility viewport function specified by the paper.options.viewport function.
+        * For the specified view, calls the cell visibility function specified by the `paper.options.cellVisibility` function.
         * If the function returns true, the view is attached to the DOM; in other case it is detached.
-        * While async papers do this automatically, synchronous papers require an explicit call to this method for this functionality to be applied. To show the view again, use paper.requestView().
-        * If you are using autoFreeze option you should call this function if you are calling paper.requestView() if you want paper.options.viewport function to be applied.
+        * While async papers do this automatically, synchronous papers require an explicit call to this method for this functionality to be applied. To show the view again, use `paper.requestView()`.
+        * If you are using `autoFreeze` option you should call this function if you are calling `paper.requestView()` if you want `paper.options.cellVisibility` function to be applied.
         * @param cellView cellView for which the visibility check is performed
-        * @param opt if opt.viewport is provided, it is used as the callback function instead of paper.options.viewport.
+        * @param opt if opt.cellVisibility is provided, it is used as the callback function instead of paper.options.cellVisibility.
         */
         protected checkViewVisibility(cellView: dia.CellView, opt?: {
+            /** @deprecated Use `cellVisibility` */
             viewport?: Paper.ViewportCallback;
             cellVisibility?: Paper.CellVisibilityCallback;
         }): {
@@ -1947,6 +1962,7 @@ export namespace dia {
             batchSize?: number;
             mountBatchSize?: number;
             unmountBatchSize?: number;
+            /** @deprecated Use `cellVisibility` */
             viewport?: Paper.ViewportCallback;
             cellVisibility?: Paper.CellVisibilityCallback;
             progress?: Paper.ProgressCallback;
@@ -1955,6 +1971,7 @@ export namespace dia {
 
         protected updateViewsBatch(opt?: {
             batchSize?: number;
+            /** @deprecated Use `cellVisibility` */
             viewport?: Paper.ViewportCallback;
             cellVisibility?: Paper.CellVisibilityCallback;
         }): Paper.UpdateStats;

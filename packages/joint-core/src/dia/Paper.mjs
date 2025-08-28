@@ -584,7 +584,9 @@ export const Paper = View.extend({
         // Copy and set defaults for the view management options.
         options.viewManagement = defaults({}, options.viewManagement, {
             // Whether to lazy initialize the cell views.
-            lazyInitialize: false,
+            lazyInitialize: true,
+            // Whether to add initialize cell views in the unmounted queue.
+            initializeUnmounted: false,
             // Whether to dispose the cell views that are not visible.
             disposeHidden: false,
         });
@@ -1542,6 +1544,15 @@ export const Paper = View.extend({
             mounted: isMounted ? 1 : 0,
             unmounted: isUnmounted ? 1 : 0
         };
+    },
+
+    checkCellViewVisibility: function(opt) {
+        this.checkViewport(opt);
+        if (!this.isAsync) {
+            this.updateViews(opt);
+        } else {
+            this.wakeUp();
+        }
     },
 
     checkViewport: function(opt) {
@@ -3790,4 +3801,3 @@ export const Paper = View.extend({
         }]
     }
 });
-
