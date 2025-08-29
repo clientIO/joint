@@ -582,7 +582,7 @@ export const Paper = View.extend({
             options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
         }
         // Copy and set defaults for the view management options.
-        options.viewManagement = defaults({}, options.viewManagement, {
+        options.viewManagement = options.viewManagement && defaults({}, options.viewManagement, {
             // Whether to lazy initialize the cell views.
             lazyInitialize: true,
             // Whether to add initialize cell views in the unmounted queue.
