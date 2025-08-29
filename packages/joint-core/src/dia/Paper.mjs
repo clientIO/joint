@@ -582,9 +582,9 @@ export const Paper = View.extend({
             options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
         }
         // Copy and set defaults for the view management options.
-        options.viewManagement = options.viewManagement && defaults({}, options.viewManagement, {
+        options.viewManagement = defaults({}, options.viewManagement, {
             // Whether to lazy initialize the cell views.
-            lazyInitialize: true,
+            lazyInitialize: !!options.viewManagement, // default `true` if options.viewManagement provided
             // Whether to add initialize cell views in the unmounted queue.
             initializeUnmounted: false,
             // Whether to dispose the cell views that are not visible.
@@ -1546,7 +1546,7 @@ export const Paper = View.extend({
         };
     },
 
-    checkCellVisibility: function(opt) {
+    checkCellVisibility: function(opt = {}) {
         this.checkViewport(opt);
         if (!this.isAsync && opt.async === false) {
             this.updateViews(opt);
