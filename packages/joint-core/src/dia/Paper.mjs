@@ -1548,7 +1548,7 @@ export const Paper = View.extend({
 
     updateCellsVisibility: function(opt = {}) {
         const stats = this.checkViewport(opt);
-        if (!this.isAsync && opt.async === false) {
+        if (!this.isAsync() || (opt.async === false)) {
             this.updateViews(opt);
         }
         return stats;
