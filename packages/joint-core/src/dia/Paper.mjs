@@ -585,7 +585,7 @@ export const Paper = View.extend({
         options.viewManagement = defaults({}, options.viewManagement, {
             // Whether to lazy initialize the cell views.
             lazyInitialize: !!options.viewManagement, // default `true` if options.viewManagement provided
-            // Whether to add initialize cell views in the unmounted queue.
+            // Whether to add initialized cell views into the unmounted queue.
             initializeUnmounted: false,
             // Whether to dispose the cell views that are not visible.
             disposeHidden: false,
