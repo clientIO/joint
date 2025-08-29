@@ -1978,7 +1978,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 autoFreeze: true,
                 sorting: Paper.sorting.APPROX,
                 viewManagement: {
-                    lazyInitialize: true,
                     disposeHidden: true,
                 },
                 cellVisibility: (cell) => cell.get('visible')
@@ -2014,7 +2013,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 autoFreeze: true,
                 sorting: Paper.sorting.APPROX,
                 viewManagement: {
-                    lazyInitialize: true,
                     disposeHidden: true,
                 },
                 cellVisibility: (cell) => cell.get('visible')
@@ -2681,8 +2679,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 el: paperEl,
                 model: graph,
                 viewManagement: {
-                    lazyInitialize: true,
-                    disposeHidden: true
+                    disposeHidden: true,
                 },
                 cellVisibility: cellVisibilityTrueSpy,
             });
@@ -2776,7 +2773,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             paper = new Paper({
                 el: paperEl,
                 model: graph,
-                viewManagement: {},
+                viewManagement: true,
                 cellVisibility: cellVisibilitySpy,
             });
 
@@ -2802,7 +2799,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             paper = new Paper({
                 el: paperEl,
                 model: graph,
-                viewManagement: {},
+                viewManagement: true,
                 cellVisibility: () => true,
             });
 
@@ -2831,7 +2828,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 el: paperEl,
                 model: graph,
                 viewManagement: {
-                    lazyInitialize: true,
                     disposeHidden: true,
                 },
                 async: true,
@@ -2894,7 +2890,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 el: paperEl,
                 model: graph,
                 viewManagement: {
-                    lazyInitialize: true,
                     disposeHidden: true,
                 },
                 async: true,
@@ -3006,9 +3001,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     el: paperEl,
                     model: graph,
                     elementView: SpyElementView,
-                    viewManagement: {
-                        lazyInitialize: true,
-                    },
+                    viewManagement: true,
                 });
 
                 const rect = new joint.shapes.standard.Rectangle();
@@ -3047,7 +3040,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     model: graph,
                     elementView: SpyElementView,
                     viewManagement: {
-                        lazyInitialize: true,
                         initializeUnmounted: true,
                     },
                 });
@@ -3094,6 +3086,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     model: graph,
                     elementView: SpyElementView,
                     viewManagement: {
+                        lazyInitialize: false,
                         initializeUnmounted: true,
                     },
                 });
@@ -3140,8 +3133,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     model: graph,
                     elementView: SpyElementView,
                     viewManagement: {
-                        lazyInitialize: true,
-                        disposeHidden: true
+                        disposeHidden: true,
                     },
                 });
 
@@ -3187,7 +3179,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     model: graph,
                     elementView: SpyElementView,
                     viewManagement: {
-                        disposeHidden: true
+                        lazyInitialize: false,
+                        disposeHidden: true,
                     },
                 });
 
@@ -3233,9 +3226,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     model: graph,
                     elementView: SpyElementView,
                     viewManagement: {
-                        lazyInitialize: true,
                         initializeUnmounted: true,
-                        disposeHidden: true
+                        disposeHidden: true,
                     },
                 });
 
@@ -3281,8 +3273,9 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     model: graph,
                     elementView: SpyElementView,
                     viewManagement: {
+                        lazyInitialize: false,
                         initializeUnmounted: true,
-                        disposeHidden: true
+                        disposeHidden: true,
                     },
                 });
 
@@ -3326,9 +3319,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     el: paperEl,
                     model: graph,
                     cellVisibility: () => false,
-                    viewManagement: {
-                        lazyInitialize: true
-                    },
+                    viewManagement: true
                 });
 
                 const initialCount = getNumberOfViews();
@@ -3343,7 +3334,9 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(getNumberOfViews() - initialCount, 2, 'View for el2 is initialized');
 
                 paper.remove();
-                        QUnit.test('lazyInitialize, initializeUnmounted', function(assert) {
+            });
+
+            QUnit.test('lazyInitialize, initializeUnmounted', function(assert) {
 
                 const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
@@ -3356,7 +3349,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     model: graph,
                     elementView: SpyElementView,
                     viewManagement: {
-                        lazyInitialize: true,
                         initializeUnmounted: true,
                     },
                 });
@@ -3389,7 +3381,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 paper.remove();
             });
-});
         });
 
         QUnit.module('disposeHidden', function() {
@@ -3402,7 +3393,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     el: paperEl,
                     model: graph,
                     viewManagement: {
-                        disposeHidden: true
+                        lazyInitialize: false,
+                        disposeHidden: true,
                     },
                 });
 
@@ -3440,7 +3432,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     el: paperEl,
                     model: graph,
                     viewManagement: {
-                        disposeHidden: true
+                        lazyInitialize: false,
+                        disposeHidden: true,
                     },
                 });
 
@@ -3473,7 +3466,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     el: paperEl,
                     model: graph,
                     viewManagement: {
-                        disposeHidden: true
+                        lazyInitialize: false,
+                        disposeHidden: true,
                     },
                 });
 
@@ -3510,8 +3504,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     el: paperEl,
                     model: graph,
                     viewManagement: {
-                        lazyInitialize: true,
-                        disposeHidden: true
+                        lazyInitialize: false,
+                        disposeHidden: true,
                     },
                 });
 
@@ -3540,7 +3534,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     el: paperEl,
                     model: graph,
                     viewManagement: {
-                        disposeHidden: false
+                        lazyInitialize: false,
+                        disposeHidden: false,
                     },
                 });
 
@@ -3573,7 +3568,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         el: paperEl,
                         model: graph,
                         viewManagement: {
-                            lazyInitialize: true,
                             disposeHidden: true,
                         },
                     });
@@ -3617,7 +3611,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         el: paperEl,
                         model: graph,
                         viewManagement: {
-                            lazyInitialize: true,
                             disposeHidden: true,
                         },
                     });
@@ -3668,7 +3661,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         el: paperEl,
                         model: graph,
                         viewManagement: {
-                            lazyInitialize: true,
                             disposeHidden: true,
                         },
                     });
