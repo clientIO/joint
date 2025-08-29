@@ -1884,15 +1884,19 @@ export namespace dia {
             cellVisibility?: Paper.CellVisibilityCallback;
         }): void;
 
-        checkCellVisibility(opt?: {
+        updateCellsVisibility(opt?: {
             batchSize?: number;
             mountBatchSize?: number;
             unmountBatchSize?: number;
             /** @deprecated Use `cellVisibility` */
             viewport?: Paper.ViewportCallback;
             cellVisibility?: Paper.CellVisibilityCallback;
-        }): void;
+        }): {
+            mounted: number;
+            unmounted: number;
+        };
 
+        /** @deprecated Use `updateCellsVisibility()` */
         checkViewport(opt?: {
             mountBatchSize?: number;
             unmountBatchSize?: number;

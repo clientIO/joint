@@ -1546,11 +1546,12 @@ export const Paper = View.extend({
         };
     },
 
-    checkCellVisibility: function(opt = {}) {
-        this.checkViewport(opt);
+    updateCellsVisibility: function(opt = {}) {
+        const stats = this.checkViewport(opt);
         if (!this.isAsync && opt.async === false) {
             this.updateViews(opt);
         }
+        return stats;
     },
 
     checkViewport: function(opt) {
