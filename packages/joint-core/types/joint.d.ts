@@ -1888,8 +1888,6 @@ export namespace dia {
             batchSize?: number;
             mountBatchSize?: number;
             unmountBatchSize?: number;
-            /** @deprecated Use `cellVisibility` */
-            viewport?: Paper.ViewportCallback;
             cellVisibility?: Paper.CellVisibilityCallback;
         }): {
             mounted: number;
