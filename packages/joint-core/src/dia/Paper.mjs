@@ -1546,12 +1546,19 @@ export const Paper = View.extend({
         };
     },
 
+    updateCellVisibility: function(cell, opt = {}) {
+        const stats = this.checkViewVisibility(this._getCellViewLike(cell), opt);
+        // Note: unmounting is done along with the visibility update
+        if (stats.mounted > 0 && (!this.isAsync() || (opt.async === false))) {
+            this.dumpView(cell, opt);
+        }
+    },
+
     updateCellsVisibility: function(opt = {}) {
-        const stats = this.checkViewport(opt);
+        this.checkViewport(opt);
         if (!this.isAsync() || (opt.async === false)) {
             this.updateViews(opt);
         }
-        return stats;
     },
 
     checkViewport: function(opt) {

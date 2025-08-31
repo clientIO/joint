@@ -1383,6 +1383,21 @@ export namespace dia {
             GRID = 'grid',
         }
 
+        interface RenderStats {
+            priority: number;
+            updated: number;
+        }
+
+        interface UpdateVisibilityStats {
+            mounted: number;
+            unmounted: number;
+        }
+
+        interface RenderBatchStats extends RenderStats, UpdateVisibilityStats {
+            postponed: number;
+            empty: boolean;
+        }
+
         type UpdateStats = {
             priority: number;
             updated: number;
@@ -1399,21 +1414,75 @@ export namespace dia {
         type BeforeRenderCallback = (opt: { [key: string]: any }, paper: Paper) => void;
         type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;
 
-        interface FreezeOptions {
+        interface CellVisibilityOptions {
+            cellVisibility?: CellVisibilityCallback;
+
+            /** @deprecated disable `legacyMode` and use `cellVisibility` instead */
+            viewport?: ViewportCallback;
+        }
+
+        interface MountOptions {
+            mountBatchSize?: number;
+        }
+
+        interface UnmountOptions {
+            unmountBatchSize?: number;
+        }
+
+        interface BatchSizeOptions {
+            batchSize?: number;
+        }
+
+        interface BeforeRenderOptions {
+            beforeRender?: BeforeRenderCallback;
+        }
+
+        interface AfterRenderOptions {
+            afterRender?: AfterRenderCallback;
+        }
+
+        interface RenderCallbackOptions extends BeforeRenderOptions, AfterRenderOptions {
+
+        }
+
+        interface ProgressOptions {
+            progress?: ProgressCallback;
+        }
+
+        interface AsyncOptions {
+            async?: boolean;
+        }
+
+        interface KeyOptions {
             key?: string;
         }
 
-        interface UnfreezeOptions {
-            key?: string;
-            mountBatchSize?: number;
-            unmountBatchSize?: number;
-            batchSize?: number;
-            /** @deprecated Use `cellVisibility` */
-            viewport?: ViewportCallback;
-            cellVisibility?: CellVisibilityCallback;
-            progress?: ProgressCallback;
-            beforeRender?: BeforeRenderCallback;
-            afterRender?: AfterRenderCallback;
+        interface UpdateViewOptions {
+            [key: string]: any;
+        }
+
+        interface UpdateViewsOptions extends RenderCallbackOptions, UpdateViewsBatchOptions {
+
+        }
+
+        interface UpdateViewsBatchOptions extends BatchSizeOptions, CellVisibilityOptions, UpdateViewOptions {
+
+        }
+
+        interface UpdateViewsAsyncOptions extends UpdateViewsBatchOptions, MountOptions, UnmountOptions, ProgressOptions, RenderCallbackOptions {
+
+        }
+
+        interface UpdateCellVisibilityOptions extends CellVisibilityOptions, MountOptions, UnmountOptions {
+
+        }
+
+        interface FreezeOptions extends KeyOptions {
+
+        }
+
+        interface UnfreezeOptions extends KeyOptions, UpdateViewsAsyncOptions, UpdateViewsOptions {
+
         }
 
         interface SnapLinksOptions {
@@ -1875,47 +1944,21 @@ export namespace dia {
 
         requireView<T extends ElementView | LinkView>(model: Cell | Cell.ID, opt?: dia.Cell.Options): T;
 
-        dumpViews(opt?: {
-            batchSize?: number;
-            mountBatchSize?: number;
-            unmountBatchSize?: number;
-            /** @deprecated Use `cellVisibility` */
-            viewport?: Paper.ViewportCallback;
-            cellVisibility?: Paper.CellVisibilityCallback;
-        }): void;
+        dumpViews(opt?: Paper.UpdateCellVisibilityOptions & Paper.UpdateViewsOptions): void;
 
-        updateCellsVisibility(opt?: {
-            batchSize?: number;
-            mountBatchSize?: number;
-            unmountBatchSize?: number;
-            cellVisibility?: Paper.CellVisibilityCallback;
-        }): {
-            mounted: number;
-            unmounted: number;
-        };
+        updateCellVisibility(
+            cell: Cell | Cell.ID,
+            opt?: Paper.UpdateCellVisibilityOptions & Paper.AsyncOptions
+        ): void;
+
+        updateCellsVisibility(
+            opt?: Paper.UpdateCellVisibilityOptions & Paper.AsyncOptions
+        ): void;
 
         /** @deprecated Use `updateCellsVisibility()` */
-        checkViewport(opt?: {
-            mountBatchSize?: number;
-            unmountBatchSize?: number;
-            /** @deprecated Use `cellVisibility` */
-            viewport?: Paper.ViewportCallback;
-            cellVisibility?: Paper.CellVisibilityCallback;
-        }): {
-            mounted: number;
-            unmounted: number;
-        };
+        checkViewport(opt?: Paper.UpdateCellVisibilityOptions): Paper.UpdateVisibilityStats;
 
-        updateViews(opt?: {
-            batchSize?: number;
-            /** @deprecated Use `cellVisibility` */
-            viewport?: Paper.ViewportCallback;
-            cellVisibility?: Paper.CellVisibilityCallback;
-        }): {
-            updated: number;
-            batches: number;
-            priority: number;
-        };
+        updateViews(opt?: Paper.UpdateViewsOptions): Paper.RenderStats & { batches: number };
 
         hasScheduledUpdates(): boolean;
 
@@ -1939,48 +1982,30 @@ export namespace dia {
         * @param cellView cellView for which the visibility check is performed
         * @param opt if opt.cellVisibility is provided, it is used as the callback function instead of paper.options.cellVisibility.
         */
-        protected checkViewVisibility(cellView: dia.CellView, opt?: {
-            /** @deprecated Use `cellVisibility` */
-            viewport?: Paper.ViewportCallback;
-            cellVisibility?: Paper.CellVisibilityCallback;
-        }): {
-            mounted: number;
-            unmounted: number;
-        };
+        protected checkViewVisibility(
+            cellView: dia.CellView,
+            opt?: Paper.CellVisibilityOptions
+        ): Paper.UpdateVisibilityStats;
 
         protected scheduleViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
         protected dumpViewUpdate(view: mvc.View<any, any>): number;
 
-        protected dumpView(view: mvc.View<any, any>, opt?: { [key: string]: any }): number;
+        protected dumpView(view: mvc.View<any, any>, opt?: Paper.UpdateViewOptions & Paper.RenderCallbackOptions): number;
 
-        protected updateView(view: mvc.View<any, any>, flag: number, opt?: { [key: string]: any }): number;
+        protected updateView(view: mvc.View<any, any>, flag: number, opt?: Paper.UpdateViewOptions): number;
 
         protected registerUnmountedView(view: mvc.View<any, any>): number;
 
         protected registerMountedView(view: mvc.View<any, any>): number;
 
-        protected updateViewsAsync(opt?: {
-            batchSize?: number;
-            mountBatchSize?: number;
-            unmountBatchSize?: number;
-            /** @deprecated Use `cellVisibility` */
-            viewport?: Paper.ViewportCallback;
-            cellVisibility?: Paper.CellVisibilityCallback;
-            progress?: Paper.ProgressCallback;
-            before?: Paper.BeforeRenderCallback;
-        }): void;
+        protected updateViewsAsync(opt?: Paper.UpdateViewsAsyncOptions): void;
 
-        protected updateViewsBatch(opt?: {
-            batchSize?: number;
-            /** @deprecated Use `cellVisibility` */
-            viewport?: Paper.ViewportCallback;
-            cellVisibility?: Paper.CellVisibilityCallback;
-        }): Paper.UpdateStats;
+        protected updateViewsBatch(opt?: Paper.UpdateViewsBatchOptions): Paper.UpdateStats;
 
-        protected checkMountedViews(viewport: Paper.ViewportCallback, opt?: { unmountBatchSize?: number }): number;
+        protected checkMountedViews(viewport: Paper.ViewportCallback, opt?: Paper.UnmountOptions): number;
 
-        protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: { mountBatchSize?: number }): number;
+        protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: Paper.MountOptions): number;
 
         protected prioritizeCellViewMount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
 
