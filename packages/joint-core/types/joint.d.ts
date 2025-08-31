@@ -1415,10 +1415,10 @@ export namespace dia {
         type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;
 
         interface CellVisibilityOptions {
-            cellVisibility?: CellVisibilityCallback;
+            cellVisibility?: CellVisibilityCallback | null;
 
             /** @deprecated disable `legacyMode` and use `cellVisibility` instead */
-            viewport?: ViewportCallback;
+            viewport?: ViewportCallback | null;
         }
 
         interface MountOptions {
@@ -1488,7 +1488,7 @@ export namespace dia {
         type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
         type MeasureNodeCallback = (node: SVGGraphicsElement, cellView: dia.CellView) => g.Rect;
 
-        interface Options extends mvc.ViewOptions<Graph> {
+        interface Options extends mvc.ViewOptions<Graph>, CellVisibilityOptions, BeforeRenderOptions, AfterRenderOptions {
             // appearance
             width?: Dimension;
             height?: Dimension;
@@ -1551,13 +1551,8 @@ export namespace dia {
             frozen?: boolean;
             autoFreeze?: boolean;
             viewManagement?: ViewManagementOptions;
-            /** @deprecated Use `cellVisibility` */
-            viewport?: ViewportCallback | null;
-            cellVisibility?: CellVisibilityCallback | null;
             onViewUpdate?: (view: mvc.View<any, any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
-            beforeRender?: Paper.BeforeRenderCallback;
-            afterRender?: Paper.AfterRenderCallback;
             overflow?: boolean;
         }
 
