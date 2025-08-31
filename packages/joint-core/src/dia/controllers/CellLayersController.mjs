@@ -13,7 +13,7 @@ export class CellLayersController extends Listener {
 
         this.collection = new Collection();
         this.rootAttributes = this.processGraphCellLayersAttribute(this.graph.get('cellLayers'));
-        this.graph.set('cellLayers', Array.from(this.rootAttributes), { controller: this });
+        this.graph.set('cellLayers', Array.from(this.rootAttributes), { cellLayersController: this });
         this.graph.trigger('layers:update', Array.from(this.rootAttributes));
 
         this.startListening();
@@ -24,8 +24,8 @@ export class CellLayersController extends Listener {
 
         // make sure that `cellLayers` contains correct attributes
         this.listenTo(this.collection, 'change', (_context, cellLayer, opt) => {
-            if (opt.controller) {
-                return; // do not process changes triggered by this controller
+            if (opt.cellLayersController) {
+                return; // do not process changes triggered by this controllerf
             }
 
             const id = cellLayer.id;
@@ -36,7 +36,7 @@ export class CellLayersController extends Listener {
 
             this.rootAttributes[cellLayerIndex] = cellLayer.attributes;
 
-            this.graph.set('cellLayers', Array.from(this.rootAttributes), { controller: this });
+            this.graph.set('cellLayers', Array.from(this.rootAttributes), { cellLayersController: this });
         });
 
         this.listenTo(graph, 'add', (_context, cell) => {
@@ -48,12 +48,12 @@ export class CellLayersController extends Listener {
         });
 
         this.graph.listenTo(graph, 'change:cellLayers', (_context, cellLayers, opt) => {
-            if (opt.controller) {
+            if (opt.cellLayersController) {
                 return; // do not process changes triggered by this controller
             }
 
             this.rootAttributes = this.processGraphCellLayersAttribute(cellLayers);
-            this.graph.set('cellLayers', Array.from(this.rootAttributes), { controller: this });
+            this.graph.set('cellLayers', Array.from(this.rootAttributes), { cellLayersController: this });
             this.graph.trigger('layers:update', Array.from(this.rootAttributes));
         });
 
@@ -94,7 +94,7 @@ export class CellLayersController extends Listener {
 
         rootAttributes.forEach(attributes => {
             if (this.collection.has(attributes.id)) {
-                this.collection.get(attributes.id).set(attributes, { controller: true });
+                this.collection.get(attributes.id).set(attributes, { cellLayersController: this });
             } else {
                 const cellLayer = this.createCellLayer(attributes);
                 this.collection.add(cellLayer);
@@ -135,7 +135,7 @@ export class CellLayersController extends Listener {
             // If default layer has changed ensure the layer is set explicitly in the cell
             const defaultLayer = this.getDefaultCellLayer();
             defaultLayer.setEach('layer', defaultLayer.id, { silent: true });
-            defaultLayer.unset('default');
+            defaultLayer.unset('default', { silent: true });
         }
         this.defaultCellLayerId = newDefaultLayerId;
     }
@@ -194,15 +194,15 @@ export class CellLayersController extends Listener {
         const defaultLayer = this.getDefaultCellLayer();
         rootAttributes.find(attrs => attrs.id === defaultLayer.id).default = false;
         defaultLayer.setEach('layer', defaultLayer.id, { silent: true });
-        defaultLayer.unset('default');
+        defaultLayer.unset('default', { silent: true });
 
         rootAttributes.find(attrs => attrs.id === layerId).default = true;
         const layer = this.getCellLayer(layerId);
-        layer.set('default', true, { controller: true });
+        layer.set('default', true, { silent: true });
         this.defaultCellLayerId = layerId;
 
         // update the cellLayers attribute
-        this.graph.set('cellLayers', Array.from(rootAttributes), { controller: this });
+        this.graph.set('cellLayers', Array.from(rootAttributes), { cellLayersController: this });
         this.graph.trigger('layers:update', Array.from(rootAttributes));
     }
 
@@ -264,7 +264,7 @@ export class CellLayersController extends Listener {
             rootAttributes.splice(insertAt, 0, attributes);
         }
 
-        this.graph.set('cellLayers', Array.from(rootAttributes), { controller: this });
+        this.graph.set('cellLayers', Array.from(rootAttributes), { cellLayersController: this });
         this.graph.trigger('layers:update', Array.from(rootAttributes));
     }
 
@@ -289,7 +289,7 @@ export class CellLayersController extends Listener {
         if (this.rootAttributes.some(attrs => attrs.id === layerId)) {
             this.rootAttributes = this.rootAttributes.filter(l => l.id !== layerId);
 
-            this.graph.set('cellLayers', Array.from(this.rootAttributes), { controller: this });
+            this.graph.set('cellLayers', Array.from(this.rootAttributes), { cellLayersController: this });
             this.graph.trigger('layers:update', Array.from(this.rootAttributes));
         }
     }
