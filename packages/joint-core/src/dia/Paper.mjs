@@ -1547,16 +1547,20 @@ export const Paper = View.extend({
 
     updateCellVisibility: function(cell, opt = {}) {
         const cellViewLike = this._getCellViewLike(cell);
+        if (!cellViewLike) return;
         const stats = this.checkViewVisibility(cellViewLike, opt);
+        // Note: `unmounted` views are removed immediately
         if (stats.mounted > 0) {
-            this.dumpView(cell, opt);
+            // Mounting is scheduled. Run the update.
+            // Note: the view might be a placeholder.
+            this.requireView(cell);
         }
     },
 
     updateCellsVisibility: function(opt) {
         // Note: this method currently runs the visibility check for all cells twice
-        // The first check is to determine which cells are mounted or unmounted
-        // The second check is done when the cell is being rendered
+        // - The first check is to determine which cells are mounted or unmounted
+        // - The second check is done when the cell is being rendered
         this.checkViewport(opt);
         this.updateViews(opt);
     },
