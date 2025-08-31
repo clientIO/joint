@@ -1441,16 +1441,8 @@ export namespace dia {
             afterRender?: AfterRenderCallback;
         }
 
-        interface RenderCallbackOptions extends BeforeRenderOptions, AfterRenderOptions {
+        interface RenderCallbackOptions extends BeforeRenderOptions, AfterRenderOptions, mvc.Silenceable {
 
-        }
-
-        interface ProgressOptions {
-            progress?: ProgressCallback;
-        }
-
-        interface AsyncOptions {
-            async?: boolean;
         }
 
         interface KeyOptions {
@@ -1461,16 +1453,16 @@ export namespace dia {
             [key: string]: any;
         }
 
-        interface UpdateViewsOptions extends RenderCallbackOptions, UpdateViewsBatchOptions {
+        interface UpdateViewsBatchOptions extends UpdateViewOptions, BatchSizeOptions, CellVisibilityOptions {
 
         }
 
-        interface UpdateViewsBatchOptions extends BatchSizeOptions, CellVisibilityOptions, UpdateViewOptions {
+        interface UpdateViewsOptions extends UpdateViewsBatchOptions, RenderCallbackOptions {
 
         }
 
-        interface UpdateViewsAsyncOptions extends UpdateViewsBatchOptions, MountOptions, UnmountOptions, ProgressOptions, RenderCallbackOptions {
-
+        interface UpdateViewsAsyncOptions extends UpdateViewsBatchOptions, MountOptions, UnmountOptions, RenderCallbackOptions {
+            progress?: ProgressCallback;
         }
 
         interface UpdateCellVisibilityOptions extends CellVisibilityOptions, MountOptions, UnmountOptions {
@@ -1946,25 +1938,22 @@ export namespace dia {
 
         dumpViews(opt?: Paper.UpdateCellVisibilityOptions & Paper.UpdateViewsOptions): void;
 
-        updateCellVisibility(
-            cell: Cell | Cell.ID,
-            opt?: Paper.UpdateCellVisibilityOptions & Paper.AsyncOptions
-        ): void;
-
-        updateCellsVisibility(
-            opt?: Paper.UpdateCellVisibilityOptions & Paper.AsyncOptions
-        ): void;
-
-        /** @deprecated Use `updateCellsVisibility()` */
-        checkViewport(opt?: Paper.UpdateCellVisibilityOptions): Paper.UpdateVisibilityStats;
-
         updateViews(opt?: Paper.UpdateViewsOptions): Paper.RenderStats & { batches: number };
 
         hasScheduledUpdates(): boolean;
 
         disposeHiddenCellViews(): void;
 
-        isCellViewMounted(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+        isCellVisible(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+
+        updateCellVisibility(
+            cell: Cell | Cell.ID,
+            opt?: Paper.UpdateCellVisibilityOptions & Paper.UpdateViewOptions & Paper.RenderCallbackOptions
+        ): void;
+
+        updateCellsVisibility(
+            opt?: Paper.UpdateCellVisibilityOptions & Paper.UpdateViewsOptions
+        ): void;
 
         // events
 
@@ -2114,6 +2103,11 @@ export namespace dia {
          * @deprecated use transformToFitContent
          */
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
+
+        /**
+         * @deprecated Use `updateCellsVisibility()`
+         */
+        checkViewport(opt?: Paper.UpdateCellVisibilityOptions): Paper.UpdateVisibilityStats;
     }
 
     namespace PaperLayer {

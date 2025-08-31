@@ -977,13 +977,13 @@ export const Paper = View.extend({
         // This can happen when the cells are not in the viewport.
         let sourceFlag = 0;
         const sourceCell = model.getSourceCell();
-        if (sourceCell && !this.isCellViewMounted(sourceCell)) {
+        if (sourceCell && !this.isCellVisible(sourceCell)) {
             const sourceView = this.findViewByModel(sourceCell);
             sourceFlag = this.dumpView(sourceView, dumpOptions);
         }
         let targetFlag = 0;
         const targetCell = model.getTargetCell();
-        if (targetCell && !this.isCellViewMounted(targetCell)) {
+        if (targetCell && !this.isCellVisible(targetCell)) {
             const targetView = this.findViewByModel(targetCell);
             targetFlag = this.dumpView(targetView, dumpOptions);
         }
@@ -1060,13 +1060,10 @@ export const Paper = View.extend({
     dumpView: function(view, opt = {}) {
         const flag = this.dumpViewUpdate(view);
         if (!flag) return 0;
-        const shouldNotify = !opt.silent;
-        if (shouldNotify) this.notifyBeforeRender(opt);
+        this.notifyBeforeRender(opt);
         const leftover = this.updateView(view, flag, opt);
-        if (shouldNotify) {
-            const stats = { updated: 1, priority: view.UPDATE_PRIORITY };
-            this.notifyAfterRender(stats, opt);
-        }
+        const stats = { updated: 1, priority: view.UPDATE_PRIORITY };
+        this.notifyAfterRender(stats, opt);
         return leftover;
     },
 
@@ -1120,7 +1117,7 @@ export const Paper = View.extend({
         return flag;
     },
 
-    isCellViewMounted: function(cellOrId) {
+    isCellVisible: function(cellOrId) {
         const cid = cellOrId && this._idToCid[cellOrId.id || cellOrId];
         if (!cid) return false; // The view is not registered.
         return this.isViewMounted(cid);
@@ -1138,9 +1135,9 @@ export const Paper = View.extend({
     },
 
     dumpViews: function(opt) {
+        // Update cell visibility without `cellVisibility` callback i.e. make the cells visible
         const passingOpt = defaults({}, opt, { cellVisibility: null, viewport: null });
-        this.checkViewport(passingOpt);
-        this.updateViews(passingOpt);
+        this.updateCellsVisibility(passingOpt);
     },
 
     // Synchronous views update
@@ -1248,6 +1245,7 @@ export const Paper = View.extend({
     },
 
     notifyBeforeRender: function(opt = {}) {
+        if (opt.silent) return;
         let beforeFn = opt.beforeRender;
         if (typeof beforeFn !== 'function') {
             beforeFn = this.options.beforeRender;
@@ -1257,6 +1255,7 @@ export const Paper = View.extend({
     },
 
     notifyAfterRender: function(stats, opt = {}) {
+        if (opt.silent) return;
         let afterFn = opt.afterRender;
         if (typeof afterFn !== 'function') {
             afterFn = this.options.afterRender;
@@ -1547,20 +1546,26 @@ export const Paper = View.extend({
     },
 
     updateCellVisibility: function(cell, opt = {}) {
-        const stats = this.checkViewVisibility(this._getCellViewLike(cell), opt);
-        // Note: unmounting is done along with the visibility update
-        if (stats.mounted > 0 && (!this.isAsync() || (opt.async === false))) {
+        const cellViewLike = this._getCellViewLike(cell);
+        const stats = this.checkViewVisibility(cellViewLike, opt);
+        if (stats.mounted > 0) {
             this.dumpView(cell, opt);
         }
     },
 
-    updateCellsVisibility: function(opt = {}) {
+    updateCellsVisibility: function(opt) {
+        // Note: this method currently runs the visibility check for all cells twice
+        // The first check is to determine which cells are mounted or unmounted
+        // The second check is done when the cell is being rendered
         this.checkViewport(opt);
-        if (!this.isAsync() || (opt.async === false)) {
-            this.updateViews(opt);
-        }
+        this.updateViews(opt);
     },
 
+    /**
+     * @deprecated
+     * This method is deprecated, use `updateCellsVisibility` instead.
+     * The method will be renamed and make private in the future.
+     */
     checkViewport: function(opt) {
         var passingOpt = defaults({}, opt, {
             mountBatchSize: Infinity,

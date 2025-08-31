@@ -2847,13 +2847,13 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             paper.updateViewsBatch({ batchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 1, 'One view is mounted after checkViewport with mountBatchSize 1');
-            assert.ok(paper.isCellViewMounted(rects[0]), 'First view is mounted');
+            assert.ok(paper.isCellVisible(rects[0]), 'First view is mounted');
 
             paper.checkViewport({ mountBatchSize: 1 });
             paper.updateViewsBatch({ batchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 2, 'Two views are mounted after second updateViewsBatch');
-            assert.ok(paper.isCellViewMounted(rects[1]), 'Second view is mounted');
+            assert.ok(paper.isCellVisible(rects[1]), 'Second view is mounted');
 
             paper.prioritizeCellViewMount(rects[9]);
 
@@ -2861,13 +2861,13 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             paper.updateViewsBatch({ batchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 3, 'Three views are mounted after prioritizing unmounted view');
-            assert.ok(paper.isCellViewMounted(rects[9]), 'Prioritized view is mounted');
+            assert.ok(paper.isCellVisible(rects[9]), 'Prioritized view is mounted');
 
             paper.checkViewport({ mountBatchSize: 1 });
             paper.updateViewsBatch({ batchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 4, 'Four views are mounted after another updateViewsBatch');
-            assert.ok(paper.isCellViewMounted(rects[2]), 'Third view is mounted');
+            assert.ok(paper.isCellVisible(rects[2]), 'Third view is mounted');
 
             // Check the return values of prioritizeCellViewMount
             assert.equal(paper.prioritizeCellViewMount(rects[5]), true, 'Prioritization of unmounted view returned true');
@@ -2909,27 +2909,27 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             paper.updateViewsBatch({ batchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 9, 'One view is unmounted after checkViewport with unmountBatchSize 1');
-            assert.notOk(paper.isCellViewMounted(rects[0]), 'First view is not mounted');
+            assert.notOk(paper.isCellVisible(rects[0]), 'First view is not mounted');
 
             paper.checkViewport({ unmountBatchSize: 1 });
             paper.updateViewsBatch({ batchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 8, 'Two views are unmounted after second updateViewsBatch');
-            assert.notOk(paper.isCellViewMounted(rects[1]), 'Second view is not mounted');
-            assert.ok(paper.isCellViewMounted(rects[9]), 'Last view is still mounted');
+            assert.notOk(paper.isCellVisible(rects[1]), 'Second view is not mounted');
+            assert.ok(paper.isCellVisible(rects[9]), 'Last view is still mounted');
 
             paper.prioritizeCellViewUnmount(rects[9]);
             paper.checkViewport({ unmountBatchSize: 1 });
             paper.updateViewsBatch({ batchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 7, 'Three views are unmounted after prioritizing mounted view');
-            assert.notOk(paper.isCellViewMounted(rects[9]), 'Prioritized view is not mounted');
+            assert.notOk(paper.isCellVisible(rects[9]), 'Prioritized view is not mounted');
 
             paper.checkViewport({ unmountBatchSize: 1 });
             paper.updateViewsBatch({ batchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 6, 'Four views are unmounted after another updateViewsBatch');
-            assert.notOk(paper.isCellViewMounted(rects[2]), 'Third view is not mounted');
+            assert.notOk(paper.isCellVisible(rects[2]), 'Third view is not mounted');
 
             // Check the return values of prioritizeCellViewUnmount
             assert.equal(paper.prioritizeCellViewUnmount(rects[5]), true, 'Prioritization of mounted view returned true');
@@ -3575,14 +3575,14 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const rect = new joint.shapes.standard.Rectangle();
                     graph.addCell(rect);
 
-                    assert.ok(paper.isCellViewMounted(rect));
+                    assert.ok(paper.isCellVisible(rect));
 
                     paper.checkViewport({ cellVisibility: () => false });
                     paper.updateViews({ cellVisibility: () => false });
 
                     const rv1 = rect.findView(paper);
                     assert.ok(rv1 instanceof joint.dia.ElementView);
-                    assert.notOk(paper.isCellViewMounted(rect));
+                    assert.notOk(paper.isCellVisible(rect));
                     assert.ok(rv1.el.childElementCount === 0, 'The view is not yet rendered');
                     assert.notOk(rv1.el.isConnected, 'The view is not connected');
 
@@ -3591,14 +3591,14 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                     const rv2 = rect.findView(paper);
                     assert.ok(rv2 instanceof joint.dia.ElementView);
-                    assert.ok(paper.isCellViewMounted(rect));
+                    assert.ok(paper.isCellVisible(rect));
                     assert.ok(rv2.el.childElementCount > 0, 'The view is rendered');
                     assert.ok(rv2.el.isConnected, 'The view is connected');
 
                     // View has been removed
                     rect.remove();
                     assert.notOk(rect.findView(paper));
-                    assert.notOk(paper.isCellViewMounted(rect));
+                    assert.notOk(paper.isCellVisible(rect));
 
                     paper.remove();
                 });
@@ -3619,7 +3619,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     graph.addCell(rect);
 
                     assert.ok(rect.findView(paper) instanceof joint.dia.ElementView);
-                    assert.ok(paper.isCellViewMounted(rect));
+                    assert.ok(paper.isCellVisible(rect));
 
                     // View has been moved to the unmounted queue
                     paper.checkViewport({ cellVisibility: () => false });
@@ -3629,7 +3629,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     paper.checkViewport({ cellVisibility: () => true });
 
                     const rv2 = rect.findView(paper);
-                    assert.ok(paper.isCellViewMounted(rect));
+                    assert.ok(paper.isCellVisible(rect));
                     assert.ok(rv2 instanceof joint.dia.ElementView);
                     assert.ok(
                         rv2.el.childElementCount === 0,
@@ -3647,7 +3647,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     // View has been removed
                     rect.remove();
                     assert.notOk(rect.findView(paper));
-                    assert.notOk(paper.isCellViewMounted(rect));
+                    assert.notOk(paper.isCellVisible(rect));
 
                     paper.remove();
                 });
