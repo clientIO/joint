@@ -3701,4 +3701,176 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
         });
     });
+
+
+    QUnit.module('updateCellVisibility()', function(hooks) {
+
+        let graph;
+        let paper;
+
+        hooks.beforeEach(function() {
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                viewManagement: {
+                    disposeHidden: false
+                },
+            });
+        });
+
+        hooks.afterEach(function() {
+            paper.remove();
+        });
+
+        QUnit.test('hide mounted view', function(assert) {
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+            graph.addCell([rect1, rect2]);
+
+            assert.ok(paper.isCellVisible(rect1));
+            assert.ok(paper.isCellVisible(rect2));
+
+            paper.updateCellVisibility(rect1, { cellVisibility: () => false});
+            assert.notOk(paper.isCellVisible(rect1));
+            assert.ok(paper.isCellVisible(rect2));
+        });
+
+        QUnit.test('show detached view', function(assert) {
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+            graph.addCell([rect1, rect2]);
+
+            paper.updateCellsVisibility({ cellVisibility: () => false });
+            assert.notOk(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+
+            paper.updateCellVisibility(rect1, { cellVisibility: () => true });
+            assert.ok(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+        });
+
+        QUnit.test('show disposed view', function(assert) {
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+            graph.addCell([rect1, rect2]);
+
+            paper.updateCellsVisibility({ cellVisibility: () => false });
+            paper.disposeHiddenCellViews();
+            assert.notOk(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+
+            paper.updateCellVisibility(rect1, { cellVisibility: () => true });
+            assert.ok(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+        });
+
+        QUnit.test('re-evaluate the default visibility', function(assert) {
+
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+
+            let visibleRect = rect1.id;
+            paper.options.cellVisibility = (cell) => visibleRect === cell.id;
+
+            graph.addCell([rect1, rect2]);
+            assert.ok(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+
+            paper.updateCellVisibility(rect1);
+            assert.ok(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+
+            visibleRect = rect2.id;
+            paper.updateCellVisibility(rect2);
+            assert.ok(paper.isCellVisible(rect2));
+            assert.ok(paper.isCellVisible(rect1));
+
+            paper.updateCellVisibility(rect1);
+            assert.notOk(paper.isCellVisible(rect1));
+            assert.ok(paper.isCellVisible(rect2));
+        });
+    });
+
+    QUnit.module('updateCellsVisibility()', function(hooks) {
+
+        let graph;
+        let paper;
+
+        hooks.beforeEach(function() {
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                viewManagement: {
+                    disposeHidden: false
+                },
+            });
+        });
+
+        hooks.afterEach(function() {
+            paper.remove();
+        });
+
+        QUnit.test('hide mounted views', function(assert) {
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+            graph.addCell([rect1, rect2]);
+            assert.ok(paper.isCellVisible(rect1));
+            assert.ok(paper.isCellVisible(rect2));
+
+            paper.updateCellsVisibility({ cellVisibility: () => false});
+            assert.notOk(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+        });
+
+        QUnit.test('show detached views', function(assert) {
+            paper.options.cellVisibility = () => false;
+
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+            graph.addCell([rect1, rect2]);
+            assert.notOk(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+
+            paper.updateCellsVisibility({ cellVisibility: () => true });
+            assert.ok(paper.isCellVisible(rect1));
+            assert.ok(paper.isCellVisible(rect2));
+        });
+
+        QUnit.test('show disposed views', function(assert) {
+            paper.options.cellVisibility = () => false;
+
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+            graph.addCell([rect1, rect2]);
+            paper.disposeHiddenCellViews();
+            assert.notOk(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+
+            paper.updateCellsVisibility({ cellVisibility: () => true });
+            assert.ok(paper.isCellVisible(rect1));
+            assert.ok(paper.isCellVisible(rect2));
+        });
+
+        QUnit.test('re-evaluate the default visibility', function(assert) {
+            let visible = true;
+            paper.options.cellVisibility = () => visible;
+
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+            graph.addCell([rect1, rect2]);
+            assert.ok(paper.isCellVisible(rect1));
+            assert.ok(paper.isCellVisible(rect2));
+
+            paper.updateCellsVisibility();
+            assert.ok(paper.isCellVisible(rect1));
+            assert.ok(paper.isCellVisible(rect2));
+
+            visible = false;
+            paper.updateCellsVisibility();
+            assert.notOk(paper.isCellVisible(rect1));
+            assert.notOk(paper.isCellVisible(rect2));
+        });
+    });
 });

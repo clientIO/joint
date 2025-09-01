@@ -1929,9 +1929,7 @@ export namespace dia {
 
         requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
-        requireView<T extends ElementView | LinkView>(model: Cell | Cell.ID, opt?: dia.Cell.Options): T;
-
-        dumpViews(opt?: Paper.UpdateCellVisibilityOptions & Paper.UpdateViewsOptions): void;
+        requireView<T extends ElementView | LinkView>(cellOrId: Cell | Cell.ID, opt?: dia.Cell.Options): T;
 
         updateViews(opt?: Paper.UpdateViewsOptions): Paper.RenderStats & { batches: number };
 
@@ -2103,6 +2101,11 @@ export namespace dia {
          * @deprecated Use `updateCellsVisibility()`
          */
         checkViewport(opt?: Paper.UpdateCellVisibilityOptions): Paper.UpdateVisibilityStats;
+
+        /**
+         * @deprecated Use `updateCellsVisibility()`
+         */
+        dumpViews(opt?: Paper.UpdateCellVisibilityOptions & Paper.UpdateViewsOptions): void;
     }
 
     namespace PaperLayer {
