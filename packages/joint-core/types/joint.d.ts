@@ -1398,13 +1398,7 @@ export namespace dia {
             empty: boolean;
         }
 
-        type UpdateStats = {
-            priority: number;
-            updated: number;
-            empty?: boolean;
-            postponed?: number;
-            unmounted?: number;
-            mounted?: number;
+        type UpdateStats = RenderStats & Partial<RenderBatchStats> & {
             batches?: number;
         };
 
