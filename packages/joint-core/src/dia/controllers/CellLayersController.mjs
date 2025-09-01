@@ -1,6 +1,7 @@
 import { Collection } from '../../mvc/Collection.mjs';
 import { Listener } from '../../mvc/Listener.mjs';
 import { CellLayer } from '../groups/CellLayer.mjs';
+import { cloneDeep } from '../../util/util.mjs';
 
 const DEFAULT_CELL_LAYER_ID = 'cells';
 
@@ -34,7 +35,7 @@ export class CellLayersController extends Listener {
                 return;
             }
 
-            this.rootAttributes[cellLayerIndex] = cellLayer.attributes;
+            this.rootAttributes[cellLayerIndex] = cloneDeep(cellLayer.attributes);
 
             this.graph.set('cellLayers', Array.from(this.rootAttributes), { cellLayersController: this });
         });
@@ -88,7 +89,7 @@ export class CellLayersController extends Listener {
     }
 
     processGraphCellLayersAttribute(cellLayers = []) {
-        const rootAttributes = cellLayers;
+        const rootAttributes = Array.from(cellLayers);
 
         this._ensureDefaultLayer(rootAttributes);
 
