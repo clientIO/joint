@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import '../index.css';
 
 import Rectangle from './code-rectangle';
@@ -18,55 +18,38 @@ import PolyLine from './code-polyline';
 import ShadowLink from './code-shadow-link';
 import TextBlock from './code-text-block';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
 import RectangleRawCode from './code-rectangle?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import BorderedImageRawCode from './code-bordered-image?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import CircleRawCode from './code-circle?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import CylinderRawCode from './code-cylinder?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import DoubleLinkRawCode from './code-double-link?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import EllipseRawCode from './code-ellipse?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import EmbeddedImageRawCode from './code-embedded-image?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import HeaderedRectangleRawCode from './code-headered-rectangle?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import ImageRawCode from './code-image?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import InscribedImageRawCode from './code-inscribed-image?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import LinkRawCode from './code-link?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import PathRawCode from './code-path?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import PolygonRawCode from './code-polygon?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import PolyLineRawCode from './code-polyline?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import ShadowLinkRawCode from './code-shadow-link?raw';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-expect-error
+
 import TextBlockRawCode from './code-text-block?raw';
-import { makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeStory } from '../../utils/make-story';
 
 export type Story = StoryObj<typeof Rectangle>;
 

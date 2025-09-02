@@ -1,5 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { render, screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { GraphProvider } from '../../graph-provider/graph-provider';
 import { createElements, type InferElement } from '../../../utils/create';
 import { Paper } from '../paper';

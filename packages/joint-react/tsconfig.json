@@ -1,28 +1,32 @@
 {
   "compilerOptions": {
-    "target": "ESNEXT",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
+    "target": "ES2020",                          // stable JS output
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",                          // let Vite handle bundling
+    "moduleResolution": "bundler",               // <- **important**
+    "jsx": "react-jsx",                          // modern JSX transform
+    "declaration": true,                         // emit types for consumers
+    "declarationMap": true,                      // useful if publishing
+    "emitDeclarationOnly": false,
+    "outDir": "lib",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,                     // good for Vite
     "strict": true,
-    "module": "ESNext",
-    "outDir": "lib",
-    "incremental": false,
-    "declaration": true,
-    "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "downlevelIteration": true,
-    "sourceMap": false,
+    "skipLibCheck": true,
+
+    // For modern TS + Vite
+    "types": ["vite/client", "jest"],
+
+    // Optional path aliases
     "paths": {
       "@joint/react": ["./src/index.ts"],
       "storybook-config/*": ["./.storybook/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".storybook/**/*"]
+  "include": ["src", ".storybook/*", "vite.config.ts"],
+  "exclude": ["node_modules", "dist", "lib"]
 }

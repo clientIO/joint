@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import '../../examples/index.css';
 import Code from './code';
 

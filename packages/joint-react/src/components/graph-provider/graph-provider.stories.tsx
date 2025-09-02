@@ -3,15 +3,15 @@
 /* eslint-disable @eslint-react/dom/no-missing-button-type */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import { GraphProvider } from './graph-provider';
 import { createElements, createLinks, type InferElement, ReactElement } from '@joint/react';
 import { Paper, type RenderElement } from '../paper/paper';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { dia } from '@joint/core';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 
 const API_URL = getAPILink('GraphProvider');
 export type Story = StoryObj<typeof GraphProvider>;

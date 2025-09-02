@@ -1,12 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
-import type { Meta } from '@storybook/react/*';
+import type { Meta } from '@storybook/react';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
 import { Paper } from '../components/paper/paper';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { getAPILink } from '../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 
 const API_URL = getAPILink('useElements');
 

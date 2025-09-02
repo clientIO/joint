@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-//@ts-expect-error its js package without types
+
+// @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 
 import type { HTMLProps, JSX, PropsWithChildren } from 'react';

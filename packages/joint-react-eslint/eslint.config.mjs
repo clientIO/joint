@@ -139,6 +139,9 @@ const config = [
       "sonarjs/cognitive-complexity": "error",
       "sonarjs/prefer-immediate-return": "off",
       "sonarjs/todo-tag": "warn",
+      // We do not switch to 19 yet! Remove in major React upgrade (with not support for lower version than react 19!)
+      "@eslint-react/no-use-context": "off",
+      "@eslint-react/no-forward-ref": "off",
 
       // JSDoc
       "jsdoc/require-description": "error",

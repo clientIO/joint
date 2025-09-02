@@ -1,12 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { MeasuredNode } from './measured-node';
-import { useElement } from '@joint/react/src/hooks/use-element';
 import { PRIMARY } from 'storybook-config/theme';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { useElement } from '../../hooks';
+import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 
 const API_URL = getAPILink('MeasuredNode', 'variables');
 

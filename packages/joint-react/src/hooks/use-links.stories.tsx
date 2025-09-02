@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useLinks } from './use-links';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
-import { HookTester } from '@joint/react/src/stories/utils/hook-tester';
+import { getAPILink } from '../stories/utils/get-api-documentation-link';
+import { HookTester } from '../stories/utils/hook-tester';
+import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 
 const API_URL = getAPILink('useLinks');
 

@@ -3,13 +3,13 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import type { Meta, StoryObj } from '@storybook/react';
 import { useCreateElement } from './use-create-element';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { HTMLNode, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import '../stories/examples/index.css';
 import { Paper } from '../components';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
+import { getAPILink } from '../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 
 const API_URL = getAPILink('useCreateElement');
 

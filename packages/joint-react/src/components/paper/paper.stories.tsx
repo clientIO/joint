@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import { Paper } from './paper';
 import {
   SimpleGraphDecorator,
@@ -8,11 +8,11 @@ import {
 } from '../../../.storybook/decorators/with-simple-data';
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
-import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { MeasuredNode } from '../measured-node/measured-node';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation } from '../../stories/utils/make-story';
+import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 
 export type Story = StoryObj<typeof Paper>;
 

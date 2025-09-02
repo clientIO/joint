@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
 import { GraphStoreContext, PaperContext } from '../../context';
 import { dia, shapes } from '@joint/core';
 import { useGraph } from '../../hooks';

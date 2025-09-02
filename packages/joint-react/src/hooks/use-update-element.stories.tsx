@@ -4,10 +4,10 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { HTMLNode, RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useUpdateElement } from './use-update-element';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../stories/examples/index.css';
 import { BUTTON_CLASSNAME } from 'storybook-config/theme';
+import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
+import { getAPILink } from '../stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('useUpdateElement');
 

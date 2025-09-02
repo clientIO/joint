@@ -1,11 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { Mask } from './mask';
 import { PRIMARY, SECONDARY } from 'storybook-config/theme';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { forwardRef, type PropsWithChildren } from 'react';
 import { useElement } from '../../hooks';
+import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('Highlighter.Mask', 'variables');
 
