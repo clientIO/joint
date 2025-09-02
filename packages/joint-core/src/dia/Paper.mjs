@@ -1590,10 +1590,9 @@ export const Paper = View.extend({
      * Update the visibility of all cells.
      */
     updateCellsVisibility: function(opt = {}) {
-        // Note: this method currently runs the visibility check for all cells twice
-        // - The first check is to determine which cells are mounted or unmounted
-        // - The second check is done when the cell is being rendered
+        // Check the visibility of all cells and schedule their updates.
         this.scheduleCellsVisibilityUpdate(opt);
+        // Perform the scheduled updates while avoiding re-evaluating the visibility.
         const keepCurrentVisibility = (_, isVisible) => isVisible;
         this.updateViews({ ...opt, cellVisibility: keepCurrentVisibility });
     },

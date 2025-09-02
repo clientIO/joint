@@ -2766,19 +2766,16 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             assert.ok(cellVisibilityTrueSpy.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters');
             cellVisibilityTrueSpy.resetHistory();
 
-            paper.scheduleCellsVisibilityUpdate({ cellVisibility: cellVisibilityFalseSpy });
-            paper.updateViews();
+            paper.updateCellsVisibility({ cellVisibility: cellVisibilityFalseSpy });
 
             assert.ok(cellVisibilityFalseSpy.calledOnce, 'cellVisibility callback is called once for element after viewport check');
             assert.ok(cellVisibilityFalseSpy.calledWithExactly(rect, true, paper), 'cellVisibility callback is called with correct parameters after viewport check');
             cellVisibilityFalseSpy.resetHistory();
 
-            paper.scheduleCellsVisibilityUpdate();
-            paper.updateViews();
+            paper.updateCellsVisibility();
 
-            assert.ok(cellVisibilityTrueSpy.calledTwice, 'cellVisibility callback is called twice for element after viewport check');
-            assert.ok(cellVisibilityTrueSpy.firstCall.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters after viewport check');
-            assert.ok(cellVisibilityTrueSpy.lastCall.calledWithExactly(rect, true, paper), 'cellVisibility callback is called with correct parameters after viewport check');
+            assert.ok(cellVisibilityTrueSpy.calledOnce, 'cellVisibility callback is called twice for element after viewport check');
+            assert.ok(cellVisibilityTrueSpy.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters after viewport check');
             cellVisibilityTrueSpy.resetHistory();
 
             // Adding link
@@ -2918,28 +2915,24 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             assert.equal(cellNodesCount(paper), 0, 'No views are mounted initially');
 
-            paper.scheduleCellsVisibilityUpdate({ mountBatchSize: 1 });
-            paper.updateViewsBatch({ batchSize: 1 });
+            paper.updateCellsVisibility({ batchSize: 1, mountBatchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 1, 'One view is mounted after checkViewport with mountBatchSize 1');
             assert.ok(paper.isCellVisible(rects[0]), 'First view is mounted');
 
-            paper.scheduleCellsVisibilityUpdate({ mountBatchSize: 1 });
-            paper.updateViewsBatch({ batchSize: 1 });
+            paper.updateCellsVisibility({ batchSize: 1, mountBatchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 2, 'Two views are mounted after second updateViewsBatch');
             assert.ok(paper.isCellVisible(rects[1]), 'Second view is mounted');
 
             paper.prioritizeCellViewMount(rects[9]);
 
-            paper.scheduleCellsVisibilityUpdate({ mountBatchSize: 1 });
-            paper.updateViewsBatch({ batchSize: 1 });
+            paper.updateCellsVisibility({ batchSize: 1, mountBatchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 3, 'Three views are mounted after prioritizing unmounted view');
             assert.ok(paper.isCellVisible(rects[9]), 'Prioritized view is mounted');
 
-            paper.scheduleCellsVisibilityUpdate({ mountBatchSize: 1 });
-            paper.updateViewsBatch({ batchSize: 1 });
+            paper.updateCellsVisibility({ batchSize: 1, mountBatchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 4, 'Four views are mounted after another updateViewsBatch');
             assert.ok(paper.isCellVisible(rects[2]), 'Third view is mounted');
@@ -2980,28 +2973,24 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             assert.equal(cellNodesCount(paper), 10, 'All views are mounted initially');
 
-            paper.scheduleCellsVisibilityUpdate({ unmountBatchSize: 1 });
-            paper.updateViewsBatch({ batchSize: 1 });
+            paper.updateCellsVisibility({ batchSize: 1, unmountBatchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 9, 'One view is unmounted after checkViewport with unmountBatchSize 1');
             assert.notOk(paper.isCellVisible(rects[0]), 'First view is not mounted');
 
-            paper.scheduleCellsVisibilityUpdate({ unmountBatchSize: 1 });
-            paper.updateViewsBatch({ batchSize: 1 });
+            paper.updateCellsVisibility({ batchSize: 1, unmountBatchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 8, 'Two views are unmounted after second updateViewsBatch');
             assert.notOk(paper.isCellVisible(rects[1]), 'Second view is not mounted');
             assert.ok(paper.isCellVisible(rects[9]), 'Last view is still mounted');
 
             paper.prioritizeCellViewUnmount(rects[9]);
-            paper.scheduleCellsVisibilityUpdate({ unmountBatchSize: 1 });
-            paper.updateViewsBatch({ batchSize: 1 });
+            paper.updateCellsVisibility({ batchSize: 1, unmountBatchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 7, 'Three views are unmounted after prioritizing mounted view');
             assert.notOk(paper.isCellVisible(rects[9]), 'Prioritized view is not mounted');
 
-            paper.scheduleCellsVisibilityUpdate({ unmountBatchSize: 1 });
-            paper.updateViewsBatch({ batchSize: 1 });
+            paper.updateCellsVisibility({ batchSize: 1, unmountBatchSize: 1 });
 
             assert.equal(cellNodesCount(paper), 6, 'Four views are unmounted after another updateViewsBatch');
             assert.notOk(paper.isCellVisible(rects[2]), 'Third view is not mounted');
@@ -3048,14 +3037,12 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(onMountSpy.callCount, 1);
                 assert.ok(onMountSpy.lastCall.calledWithExactly(true));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 1);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 2);
@@ -3086,14 +3073,12 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(onMountSpy.callCount, 1);
                 assert.ok(onMountSpy.lastCall.calledWithExactly(true));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 1);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 2);
@@ -3125,21 +3110,18 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 0);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 1);
                 assert.ok(onMountSpy.lastCall.calledWithExactly(true));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 1);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 2);
@@ -3172,21 +3154,18 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 0);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 1);
                 assert.ok(onMountSpy.lastCall.calledWithExactly(true));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 1);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 2);
@@ -3219,20 +3198,17 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(onMountSpy.callCount, 1);
                 assert.ok(onMountSpy.lastCall.calledWithExactly(true));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 1);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
 
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 1);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 2);
@@ -3320,7 +3296,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 1);
 
-                paper.updateCellsVisibility({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 2);
@@ -3425,21 +3401,18 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 0);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 0);
                 assert.equal(onMountSpy.callCount, 1);
                 assert.ok(onMountSpy.lastCall.calledWithExactly(true));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 1);
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
 
                 assert.equal(onDetachSpy.callCount, 1);
                 assert.equal(onMountSpy.callCount, 2);
@@ -3471,20 +3444,16 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is initialized');
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
                 assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is disposed');
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
                 assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is still disposed');
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is initialized again');
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is still initialized');
 
                 paper.remove();
@@ -3510,12 +3479,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 assert.ok(Highlighter.has(rect.findView(paper)));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
                 assert.ok(Highlighter.has(rect.findView(paper)));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
                 assert.ok(Highlighter.has(rect.findView(paper)));
 
                 Highlighter.remove(rect.findView(paper), 'test-highlighter');
@@ -3548,12 +3515,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 assert.ok(rect.findView(paper).hasTools('test-tool'));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => false });
-                paper.updateViews({ cellVisibility: () => false });
+                paper.updateCellsVisibility({ cellVisibility: () => false });
                 assert.ok(rect.findView(paper).hasTools('test-tool'));
 
-                paper.scheduleCellsVisibilityUpdate({ cellVisibility: () => true });
-                paper.updateViews({ cellVisibility: () => true });
+                paper.updateCellsVisibility({ cellVisibility: () => true });
                 assert.ok(rect.findView(paper).hasTools('test-tool'));
 
                 rect.findView(paper).removeTools();
