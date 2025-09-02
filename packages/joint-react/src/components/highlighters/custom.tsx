@@ -48,7 +48,7 @@ export interface CustomHighlighterProps<
 // eslint-disable-next-line jsdoc/require-jsdoc
 function RawComponent<
   Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
->(props: CustomHighlighterProps<Highlighter>, forwardedRef: React.Ref<SVGElement>) {
+>(props: CustomHighlighterProps<Highlighter>, forwardedRef?: React.Ref<SVGElement>) {
   const { children, options, onCreateHighlighter, isHidden } = props;
   const id = useCellId();
   const paper = usePaper();

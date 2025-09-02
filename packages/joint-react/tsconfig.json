@@ -19,7 +19,7 @@
     "skipLibCheck": true,
 
     // For modern TS + Vite
-    "types": ["vite/client", "jest"],
+    "types": ["vite/client", "jest", "node"],
 
     // Optional path aliases
     "paths": {
