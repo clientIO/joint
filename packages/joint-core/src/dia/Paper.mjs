@@ -1557,7 +1557,7 @@ export const Paper = View.extend({
         if (stats.mounted > 0) {
             // Mounting is scheduled. Run the update.
             // Note: the view might be a placeholder.
-            this.requireView(cell);
+            this.requireView(cell, opt);
         }
     },
 
