@@ -1571,8 +1571,7 @@ export const Paper = View.extend({
 
     /**
      * @deprecated use `updateCellsVisibility` instead
-     * This method is deprecated, use `updateCellsVisibility` instead.
-     * The method will be renamed and make private in the future.
+     * This method will be renamed and made private in the future.
      */
     checkViewport: function(opt) {
         var passingOpt = defaults({}, opt, {
