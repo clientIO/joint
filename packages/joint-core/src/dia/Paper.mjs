@@ -442,8 +442,6 @@ export const Paper = View.extend({
 
         // Render existing cells in the graph
         this.resetViews(model.attributes.cells.models);
-        // Start the Rendering Loop
-        if (!this.isFrozen() && this.isAsync()) this.updateViewsAsync();
     },
 
     _resetUpdates: function() {
@@ -459,7 +457,8 @@ export const Paper = View.extend({
             freezeKey: null,
             sort: false,
             disabled: false,
-            idle: false
+            idle: false,
+            freshAfterReset: true,
         };
     },
 
@@ -1145,25 +1144,22 @@ export const Paper = View.extend({
     },
 
     // Synchronous views update
-    updateViews: function(opt) {
+    updateViews: function(opt = {}) {
         this.notifyBeforeRender(opt);
-        let batchStats;
-        let updateCount = 0;
-        let batchCount = 0;
-        let priority = MIN_PRIORITY;
-        do {
-            batchCount++;
-            batchStats = this.updateViewsBatch(opt);
-            updateCount += batchStats.updated;
-            priority = Math.min(batchStats.priority, priority);
-        } while (!batchStats.empty);
-        const stats = { updated: updateCount, batches: batchCount, priority };
+        const batchStats = this.updateViewsBatch({ ...opt, batchSize: Infinity });
+        const stats = {
+            updated: batchStats.updated,
+            priority: batchStats.priority,
+            // For backward compatibility. Will be removed in the future.
+            batches:  Number.isFinite(opt.batchSize) ? Math.ceil(batchStats.updated / opt.batchSize) : 1
+        };
         this.notifyAfterRender(stats, opt);
         return stats;
     },
 
     hasScheduledUpdates: function() {
-        const priorities = this._updates.priorities;
+        const updates = this._updates;
+        const priorities = updates.priorities;
         const priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
         let i = priorityIndexes.length;
         while (i > 0 && i--) {
@@ -1182,9 +1178,31 @@ export const Paper = View.extend({
             checkedMounted: 0,
         });
         const { _updates: updates, options } = this;
-        const id = updates.id;
-        if (id) {
+        const { id, mountedList, unmountedList, freshAfterReset } = updates;
+
+        // Should we run the next batch update this frame?
+        let runBatchUpdate = true;
+        if (!id) {
+            // If there's no scheduled frame, no batch update is needed.
+            runBatchUpdate = false;
+        } else {
+            // Cancel any scheduled frame.
             cancelFrame(id);
+            if (freshAfterReset) {
+                // First update after a reset.
+                updates.freshAfterReset = false;
+                // When `initializeUnmounted` is enabled, there are no scheduled updates.
+                // We check whether the `mountedList` and `unmountedList` are empty.
+                if (mountedList.length === 0 && unmountedList.length === 0) {
+                    // No updates to process; just trigger before/after render events.
+                    this.updateViews();
+                    // Batch update not needed. If autoFreeze is enabled, 'idle' event triggers next frame.
+                    runBatchUpdate = false;
+                }
+            }
+        }
+
+        if (runBatchUpdate) {
             if (data.processed === 0 && this.hasScheduledUpdates()) {
                 this.notifyBeforeRender(opt);
             }
@@ -1224,8 +1242,8 @@ export const Paper = View.extend({
                 if (options.autoFreeze && !this.hasScheduledUpdates()) {
                     // If there are no updates scheduled and we checked all unmounted views,
                     if (
-                        data.checkedUnmounted >= updates.unmountedList.length &&
-                        data.checkedMounted >= updates.mountedList.length
+                        data.checkedUnmounted >= unmountedList.length &&
+                        data.checkedMounted >= mountedList.length
                     ) {
                         // We freeze the paper and notify the idle state.
                         this.freeze();
