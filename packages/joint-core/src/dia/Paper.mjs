@@ -1136,7 +1136,7 @@ export const Paper = View.extend({
 
     /**
      * @deprecated use `updateCellsVisibility` instead.
-     * paper.updateCellsVisibility({ cellVisibility: () => true });
+     * `paper.updateCellsVisibility({ cellVisibility: () => true });`
      */
     dumpViews: function(opt) {
         // Update cell visibility without `cellVisibility` callback i.e. make the cells visible
