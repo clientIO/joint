@@ -1570,7 +1570,7 @@ export const Paper = View.extend({
     },
 
     /**
-     * @deprecated
+     * @deprecated use `updateCellsVisibility` instead
      * This method is deprecated, use `updateCellsVisibility` instead.
      * The method will be renamed and make private in the future.
      */
