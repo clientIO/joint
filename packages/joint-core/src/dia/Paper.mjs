@@ -1143,7 +1143,9 @@ export const Paper = View.extend({
         this.updateCellsVisibility(passingOpt);
     },
 
-    // Synchronous views update
+    /**
+     * Process all scheduled updates synchronously.
+     */
     updateViews: function(opt = {}) {
         this.notifyBeforeRender(opt);
         const batchStats = this.updateViewsBatch({ ...opt, batchSize: Infinity });
@@ -1211,7 +1213,7 @@ export const Paper = View.extend({
                 mountBatchSize: MOUNT_BATCH_SIZE - stats.mounted,
                 unmountBatchSize: MOUNT_BATCH_SIZE - stats.unmounted
             });
-            const checkStats = this.checkViewport(passingOpt);
+            const checkStats = this.scheduleCellsVisibilityUpdate(passingOpt);
             const unmountCount = checkStats.unmounted;
             const mountCount = checkStats.mounted;
             let processed = data.processed;
@@ -1237,7 +1239,7 @@ export const Paper = View.extend({
             } else {
                 data.checkedUnmounted += Math.max(passingOpt.mountBatchSize, 0);
                 data.checkedMounted += Math.max(passingOpt.unmountBatchSize, 0);
-                // The `checkViewport` could have scheduled some insertions
+                // The `scheduleCellsVisibilityUpdate` could have scheduled some insertions
                 // (note that removals are currently done synchronously).
                 if (options.autoFreeze && !this.hasScheduledUpdates()) {
                     // If there are no updates scheduled and we checked all unmounted views,
@@ -1567,6 +1569,10 @@ export const Paper = View.extend({
         };
     },
 
+    /**
+     * @public
+     * Update the visibility of a single cell.
+     */
     updateCellVisibility: function(cell, opt = {}) {
         const cellViewLike = this._getCellViewLike(cell);
         if (!cellViewLike) return;
@@ -1579,12 +1585,40 @@ export const Paper = View.extend({
         }
     },
 
-    updateCellsVisibility: function(opt) {
+    /**
+     * @public
+     * Update the visibility of all cells.
+     */
+    updateCellsVisibility: function(opt = {}) {
         // Note: this method currently runs the visibility check for all cells twice
         // - The first check is to determine which cells are mounted or unmounted
         // - The second check is done when the cell is being rendered
-        this.checkViewport(opt);
-        this.updateViews(opt);
+        this.scheduleCellsVisibilityUpdate(opt);
+        const keepCurrentVisibility = (_, isVisible) => isVisible;
+        this.updateViews({ ...opt, cellVisibility: keepCurrentVisibility });
+    },
+
+    /**
+     * @protected
+     * Run visibility checks for all cells and schedule their updates.
+     */
+    scheduleCellsVisibilityUpdate(opt) {
+        const passingOpt = defaults({}, opt, {
+            mountBatchSize: Infinity,
+            unmountBatchSize: Infinity
+        });
+        const visibilityCb = this._getCellVisibilityCallback(passingOpt);
+        const unmountedCount = this.checkMountedViews(visibilityCb, passingOpt);
+        if (unmountedCount > 0) {
+            // Do not check views, that have been just unmounted and pushed at the end of the cids array
+            var unmountedList = this._updates.unmountedList;
+            passingOpt.mountBatchSize = Math.min(unmountedList.length - unmountedCount, passingOpt.mountBatchSize);
+        }
+        const mountedCount = this.checkUnmountedViews(visibilityCb, passingOpt);
+        return {
+            mounted: mountedCount,
+            unmounted: unmountedCount
+        };
     },
 
     /**
@@ -1592,22 +1626,7 @@ export const Paper = View.extend({
      * This method will be renamed and made private in the future.
      */
     checkViewport: function(opt) {
-        var passingOpt = defaults({}, opt, {
-            mountBatchSize: Infinity,
-            unmountBatchSize: Infinity
-        });
-        const visibilityCb = this._getCellVisibilityCallback(passingOpt);
-        var unmountedCount = this.checkMountedViews(visibilityCb, passingOpt);
-        if (unmountedCount > 0) {
-            // Do not check views, that have been just unmounted and pushed at the end of the cids array
-            var unmountedList = this._updates.unmountedList;
-            passingOpt.mountBatchSize = Math.min(unmountedList.length - unmountedCount, passingOpt.mountBatchSize);
-        }
-        var mountedCount = this.checkUnmountedViews(visibilityCb, passingOpt);
-        return {
-            mounted: mountedCount,
-            unmounted: unmountedCount
-        };
+        return this.scheduleCellsVisibilityUpdate(opt);
     },
 
     freeze: function(opt) {
