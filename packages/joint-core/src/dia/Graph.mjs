@@ -57,6 +57,56 @@ const GraphCells = Collection.extend({
     },
 });
 
+const CellLayersCollection = Collection.extend({
+
+    initialize: function(models, opt) {
+
+        // Set the optional namespace where all model classes are defined.
+        if (opt.cellLayerNamespace) {
+            this.cellLayerNamespace = opt.cellLayerNamespace;
+        } else {
+            this.cellLayerNamespace = {
+                'CellLayer': CellLayer
+            }
+        }
+
+        this.graph = opt.graph;
+    },
+
+    model: function(attrs, opt) {
+
+        const collection = opt.collection;
+        const namespace = collection.cellLayerNamespace;
+        const { type } = attrs;
+
+        // Find the model class based on the `type` attribute in the cell namespace
+        const CellLayerClass = util.getByPath(namespace, type, '.');
+        if (!CellLayerClass) {
+            throw new Error(`dia.Graph: Could not find cell layer constructor for type: '${type}'. Make sure to add the constructor to 'cellLayerNamespace'.`);
+        }
+
+        return new CellLayerClass(attrs, opt);
+    },
+
+    _addReference: function(model, options) {
+        Collection.prototype._addReference.apply(this, arguments);
+        // If not in `dry` mode and the model does not have a graph reference yet,
+        // set the reference.
+        if (!options.dry && !model.graph) {
+            model.graph = this.graph;
+        }
+    },
+
+    _removeReference: function(model, options) {
+        Collection.prototype._removeReference.apply(this, arguments);
+        // If not in `dry` mode and the model has a reference to this exact graph,
+        // remove the reference.
+        if (!options.dry && model.graph === this.graph) {
+            model.graph = null;
+        }
+    },
+});
+
 
 export const Graph = Model.extend({
 
@@ -64,15 +114,17 @@ export const Graph = Model.extend({
 
         opt = opt || {};
 
-        this.cellLayersController = new CellLayersController({ graph: this });
+        const cellLayersCollection = this.cellLayersCollection = new CellLayersCollection();
 
         // retrigger layer events from the cellLayersCollection with the `layer:` prefix
-        this.cellLayersController.collection.on('all', function(eventName) {
-            if (eventName.startsWith('add') || eventName.startsWith('remove') || eventName.startsWith('change')) {
+        cellLayersCollection.on('all', function(eventName) {
+            if (eventName === 'add' || eventName === 'remove' || eventName.startsWith('change')) {
                 arguments[0] = 'layer:' + eventName;
                 this.trigger.apply(this, arguments);
             }
         }, this);
+
+        this.cellLayersController = new CellLayersController({ graph: this });
 
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
@@ -242,21 +294,24 @@ export const Graph = Model.extend({
             (attrs = {})[key] = val;
         }
 
+        // cellLayers attribute is handled separately via cellLayersController.
+        let cellLayers = attrs.cellLayers;
+        if (cellLayers) {
+            attrs = util.omit(attrs, 'cellLayers');
+            this.cellLayersController.resetRootCellLayers(cellLayers, opt);
+        }
+
         let cells = attrs.cells;
         // Make sure that `cells` attribute is handled separately via resetCells().
         if (cells) {
             attrs = util.omit(attrs, 'cells');
+            // Reset the cells collection.
+            this.resetCells(cells, opt);
         }
 
         // The rest of the attributes are applied via original set method.
         // 'cellLayers' attribute is processed in the `cellLayersController`.
         Model.prototype.set.call(this, attrs, opt);
-
-        // Resetting cells after the `cellLayers` attribute is processed.
-        if (cells) {
-            // Reset the cells collection.
-            this.resetCells(cells, opt);
-        }
 
         return this;
     },

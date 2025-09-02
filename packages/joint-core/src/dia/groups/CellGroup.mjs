@@ -72,7 +72,7 @@ export class CellGroup extends Model {
     }
 
     setEach(key, val, opt) {
-        this.cells.each(cell => {
+        this.cells.toArray().forEach(cell => {
             cell.set(key, val, opt);
         });
     }

@@ -1498,6 +1498,7 @@ export namespace dia {
             validateUnembedding?: (this: Paper, childView: ElementView) => boolean;
             // default views, models & attributes
             cellViewNamespace?: any;
+            layerViewNamespace?: any;
             routerNamespace?: any;
             connectorNamespace?: any;
             highlighterNamespace?: any;
@@ -2193,6 +2194,15 @@ export namespace dia {
         protected sortExact(): void;
 
         protected insertCellView(cellView: CellView): void;
+    }
+
+    class GridLayerView extends LayerView {
+
+        protected renderGrid(): void;
+
+        protected updateGrid(): void;
+
+        protected removeGrid(): void;
     }
 
     namespace ToolsView {

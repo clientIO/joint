@@ -1,7 +1,7 @@
 import { Collection } from '../../mvc/Collection.mjs';
 import { Listener } from '../../mvc/Listener.mjs';
 import { CellLayer } from '../groups/CellLayer.mjs';
-import { cloneDeep } from '../../util/util.mjs';
+import * as util from '../../util/util.mjs';
 
 const DEFAULT_CELL_LAYER_ID = 'cells';
 
@@ -11,11 +11,7 @@ export class CellLayersController extends Listener {
         super(context);
 
         this.graph = context.graph;
-
-        this.collection = new Collection();
-        this.rootAttributes = this.processGraphCellLayersAttribute(this.graph.get('cellLayers'));
-        this.graph.set('cellLayers', Array.from(this.rootAttributes), { cellLayersController: this });
-        this.graph.trigger('layers:update', Array.from(this.rootAttributes));
+        this.collection = graph.cellLayersCollection;
 
         this.startListening();
     }
@@ -24,9 +20,9 @@ export class CellLayersController extends Listener {
         const { graph } = this;
 
         // make sure that `cellLayers` contains correct attributes
-        this.listenTo(this.collection, 'change', (_context, cellLayer, opt) => {
+        /*this.listenTo(this.collection, 'change', (_context, cellLayer, opt) => {
             if (opt.cellLayersController) {
-                return; // do not process changes triggered by this controllerf
+                return; // do not process changes triggered by this controller
             }
 
             const id = cellLayer.id;
@@ -38,7 +34,7 @@ export class CellLayersController extends Listener {
             this.rootAttributes[cellLayerIndex] = cloneDeep(cellLayer.attributes);
 
             this.graph.set('cellLayers', Array.from(this.rootAttributes), { cellLayersController: this });
-        });
+        });*/
 
         this.listenTo(graph, 'add', (_context, cell) => {
             this.onAdd(cell);
@@ -48,7 +44,7 @@ export class CellLayersController extends Listener {
             this.onRemove(cell);
         });
 
-        this.graph.listenTo(graph, 'change:cellLayers', (_context, cellLayers, opt) => {
+        /*this.graph.listenTo(graph, 'change:cellLayers', (_context, cellLayers, opt) => {
             if (opt.cellLayersController) {
                 return; // do not process changes triggered by this controller
             }
@@ -56,7 +52,7 @@ export class CellLayersController extends Listener {
             this.rootAttributes = this.processGraphCellLayersAttribute(cellLayers);
             this.graph.set('cellLayers', Array.from(this.rootAttributes), { cellLayersController: this });
             this.graph.trigger('layers:update', Array.from(this.rootAttributes));
-        });
+        });*/
 
         this.listenTo(graph, 'reset', (_context, { models: cells }) => {
             const { collection } = this;
@@ -88,7 +84,22 @@ export class CellLayersController extends Listener {
         });
     }
 
-    processGraphCellLayersAttribute(cellLayers = []) {
+    _prepareCellLayer(cellLayer) {
+        let attrs;
+        if (cellLayer instanceof CellLayer) {
+            attrs = cellLayer.attributes;
+        } else {
+            attrs = cellLayer;
+        }
+
+        if (!util.isString(attrs.type)) {
+            throw new TypeError('dia.Graph: cellLayer type must be a string.');
+        }
+
+        return cell;
+    }
+
+    resetRootCellLayers(cellLayers = []) {
         const rootAttributes = Array.from(cellLayers);
 
         this._ensureDefaultLayer(rootAttributes);
@@ -106,12 +117,12 @@ export class CellLayersController extends Listener {
         this.collection.each(cellLayer => {
             if (!rootAttributes.some(attrs => attrs.id === cellLayer.id)) {
                 // move all cells to the default layer
-                cellLayer.setEach('layer', null);
+                cellLayer.setEach('layer', this.defaultCellLayerId);
                 this.collection.remove(cellLayer);
             }
         });
         return rootAttributes;
-    }
+    }*/
 
     _ensureDefaultLayer(rootAttributes) {
         const defaultLayers = rootAttributes.filter(attrs => attrs.default === true);
@@ -281,8 +292,10 @@ export class CellLayersController extends Listener {
         }
 
         const layer = this.getCellLayer(layerId);
-        // reset the layer to remove all cells from it
-        layer.reset();
+
+        this.graph.startBatch('remove-cell-layer');
+        // move all cells to the default layer
+        layer.setEach('layer', this.defaultCellLayerId);
 
         collection.remove(layerId);
 
@@ -293,6 +306,8 @@ export class CellLayersController extends Listener {
             this.graph.set('cellLayers', Array.from(this.rootAttributes), { cellLayersController: this });
             this.graph.trigger('layers:update', Array.from(this.rootAttributes));
         }
+
+        this.graph.stopBatch('remove-cell-layer');
     }
 
     minZIndex(layerId) {
