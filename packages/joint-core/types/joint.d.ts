@@ -1455,11 +1455,11 @@ export namespace dia {
 
         }
 
-        interface UpdateViewsAsyncOptions extends UpdateViewsBatchOptions, MountOptions, UnmountOptions, RenderCallbackOptions {
+        interface UpdateViewsAsyncOptions extends UpdateViewsBatchOptions, ScheduleCellVisibilityOptions, RenderCallbackOptions {
             progress?: ProgressCallback;
         }
 
-        interface UpdateCellVisibilityOptions extends CellVisibilityOptions, MountOptions, UnmountOptions {
+        interface ScheduleCellVisibilityOptions extends CellVisibilityOptions, MountOptions, UnmountOptions {
 
         }
 
@@ -1923,7 +1923,7 @@ export namespace dia {
 
         requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
-        requireView<T extends ElementView | LinkView>(cellOrId: Cell | Cell.ID, opt?: dia.Cell.Options): T;
+        requireView<T extends ElementView | LinkView>(cellOrId: Cell | Cell.ID, opt?: Paper.UpdateViewOptions & Paper.RenderCallbackOptions): T;
 
         updateViews(opt?: Paper.UpdateViewsOptions): Paper.RenderStats & { batches: number };
 
@@ -1935,11 +1935,11 @@ export namespace dia {
 
         updateCellVisibility(
             cell: Cell | Cell.ID,
-            opt?: Paper.UpdateCellVisibilityOptions & Paper.UpdateViewOptions & Paper.RenderCallbackOptions
+            opt?: Paper.CellVisibilityOptions & Paper.UpdateViewOptions & Paper.RenderCallbackOptions
         ): void;
 
         updateCellsVisibility(
-            opt?: Paper.UpdateCellVisibilityOptions & Paper.UpdateViewsOptions
+            opt?: Paper.ScheduleCellVisibilityOptions & Paper.UpdateViewsOptions
         ): void;
 
         // events
@@ -1977,7 +1977,7 @@ export namespace dia {
 
         protected updateViewsAsync(opt?: Paper.UpdateViewsAsyncOptions): void;
 
-        protected updateViewsBatch(opt?: Paper.UpdateViewsBatchOptions): Paper.UpdateStats;
+        protected updateViewsBatch(opt?: Paper.UpdateViewsBatchOptions): Paper.RenderBatchStats;
 
         protected checkMountedViews(viewport: Paper.ViewportCallback, opt?: Paper.UnmountOptions): number;
 
@@ -2094,12 +2094,12 @@ export namespace dia {
         /**
          * @deprecated Use `updateCellsVisibility()`
          */
-        checkViewport(opt?: Paper.UpdateCellVisibilityOptions): Paper.UpdateVisibilityStats;
+        checkViewport(opt?: Paper.ScheduleCellVisibilityOptions): Paper.UpdateVisibilityStats;
 
         /**
          * @deprecated Use `updateCellsVisibility()`
          */
-        dumpViews(opt?: Paper.UpdateCellVisibilityOptions & Paper.UpdateViewsOptions): void;
+        dumpViews(opt?: Paper.ScheduleCellVisibilityOptions & Paper.UpdateViewsOptions): void;
     }
 
     namespace PaperLayer {
