@@ -1195,7 +1195,7 @@ export const Paper = View.extend({
                 updates.freshAfterReset = false;
                 // When `initializeUnmounted` is enabled, there are no scheduled updates.
                 // We check whether the `mountedList` and `unmountedList` are empty.
-                if (mountedList.length === 0 && unmountedList.length === 0) {
+                if (!this.legacyMode && mountedList.length === 0 && unmountedList.length === 0) {
                     // No updates to process; We trigger before/after render events via `updateViews`.
                     // Note: If `autoFreeze` is enabled, 'idle' event triggers next frame.
                     this.updateViews();

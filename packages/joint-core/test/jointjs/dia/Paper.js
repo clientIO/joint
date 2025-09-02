@@ -2768,14 +2768,14 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             paper.updateCellsVisibility({ cellVisibility: cellVisibilityFalseSpy });
 
-            assert.ok(cellVisibilityFalseSpy.calledOnce, 'cellVisibility callback is called once for element after viewport check');
-            assert.ok(cellVisibilityFalseSpy.calledWithExactly(rect, true, paper), 'cellVisibility callback is called with correct parameters after viewport check');
+            assert.ok(cellVisibilityFalseSpy.calledOnce, 'cellVisibility callback is called once for element after visibility check');
+            assert.ok(cellVisibilityFalseSpy.calledWithExactly(rect, true, paper), 'cellVisibility callback is called with correct parameters after visibility check');
             cellVisibilityFalseSpy.resetHistory();
 
             paper.updateCellsVisibility();
 
-            assert.ok(cellVisibilityTrueSpy.calledOnce, 'cellVisibility callback is called twice for element after viewport check');
-            assert.ok(cellVisibilityTrueSpy.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters after viewport check');
+            assert.ok(cellVisibilityTrueSpy.calledOnce, 'cellVisibility callback is called once for element after visibility check');
+            assert.ok(cellVisibilityTrueSpy.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters after visibility check');
             cellVisibilityTrueSpy.resetHistory();
 
             // Adding link
