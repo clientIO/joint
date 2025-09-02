@@ -35,6 +35,7 @@ const config: StorybookConfig = {
     options: {},
   },
   docs: {
+    // @ts-expect-error - not typed yet
     autodocs: true,
   },
 };

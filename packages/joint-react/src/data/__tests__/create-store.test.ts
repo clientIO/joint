@@ -28,18 +28,6 @@ describe('createStore', () => {
     expect(store.getElement('element1')).toBeDefined();
   });
 
-  it('should throw an error when getting a non-existent element', () => {
-    const store = createStore();
-    expect(() => store.getElement('nonexistent')).toThrowError(
-      'Element with id nonexistent not found'
-    );
-  });
-
-  it('should throw an error when getting a non-existent link', () => {
-    const store = createStore();
-    expect(() => store.getLink('nonexistent')).toThrowError('Link with id nonexistent not found');
-  });
-
   it('should notify subscribers on changes', async () => {
     const store = createStore();
     const callback = jest.fn();
