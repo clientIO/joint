@@ -21,7 +21,7 @@ const tsConfigPath = path.resolve("./", "tsconfig.json");
 const config = [
   // Global ignores
   {
-    ignores: ["node_modules", "dist", "tsconfig.json"],
+    ignores: ["node_modules", "dist", "bundle-dist", "tsconfig.json"],
   },
 
   // Base recommended configs

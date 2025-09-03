@@ -16,7 +16,7 @@ import { CellIdContext } from '../../context/cell-id.context';
 import { HTMLElementItem, SVGElementItem } from './paper-element-item';
 import { type GraphProps } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
-import type { PaperEvents, PaperEventType } from '../../types/event.types';
+import type { PaperEvents } from '../../types/event.types';
 import { REACT_TYPE } from '../../models/react-element';
 import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
 import { PaperHTMLContainer } from './paper-html-container';
@@ -24,7 +24,7 @@ import { useGraph } from '../../hooks';
 import { PaperProvider, type ReactPaperOptions } from '../paper-provider/paper-provider';
 import { PaperContext } from '../../context';
 import { PaperCheck } from './paper-check';
-import { handleEvent } from '../../utils/handle-paper-events';
+import { handlePaperEvents } from '../../utils/handle-paper-events';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -269,11 +269,10 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     // An object to keep track of the listeners. It's not exposed, so the users
     const controller = new mvc.Listener();
     controller.listenTo(paper, 'resize', resizePaperContainer);
-    controller.listenTo(paper, 'all', (type: PaperEventType, ...args: unknown[]) =>
-      handleEvent(type, paperOptions, paper, ...args)
-    );
+    const stopListening = handlePaperEvents(paper, paperOptions);
     return () => {
       controller.stopListening();
+      stopListening();
     };
   }, [paperContainerStyle, paperContext, paperHTMLElement, paperOptions]);
 
