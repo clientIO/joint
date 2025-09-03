@@ -1963,6 +1963,9 @@ export namespace dia {
             opt?: Paper.CellVisibilityOptions
         ): Paper.UpdateVisibilityStats;
 
+
+        protected scheduleCellsVisibilityUpdate(opt?: Paper.ScheduleCellVisibilityOptions): Paper.UpdateVisibilityStats;
+
         protected scheduleViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
         protected dumpViewUpdate(view: mvc.View<any, any>): number;
