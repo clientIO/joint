@@ -6,6 +6,7 @@ import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
 import { CellLayersController } from './controllers/CellLayersController.mjs';
+import { CellLayersCollection } from './collections/CellLayersCollection.mjs';
 
 const GraphCells = Collection.extend({
 
@@ -57,69 +58,21 @@ const GraphCells = Collection.extend({
     },
 });
 
-const CellLayersCollection = Collection.extend({
-
-    initialize: function(models, opt) {
-
-        // Set the optional namespace where all model classes are defined.
-        if (opt.cellLayerNamespace) {
-            this.cellLayerNamespace = opt.cellLayerNamespace;
-        } else {
-            this.cellLayerNamespace = {
-                'CellLayer': CellLayer
-            }
-        }
-
-        this.graph = opt.graph;
-    },
-
-    model: function(attrs, opt) {
-
-        const collection = opt.collection;
-        const namespace = collection.cellLayerNamespace;
-        const { type } = attrs;
-
-        // Find the model class based on the `type` attribute in the cell namespace
-        const CellLayerClass = util.getByPath(namespace, type, '.');
-        if (!CellLayerClass) {
-            throw new Error(`dia.Graph: Could not find cell layer constructor for type: '${type}'. Make sure to add the constructor to 'cellLayerNamespace'.`);
-        }
-
-        return new CellLayerClass(attrs, opt);
-    },
-
-    _addReference: function(model, options) {
-        Collection.prototype._addReference.apply(this, arguments);
-        // If not in `dry` mode and the model does not have a graph reference yet,
-        // set the reference.
-        if (!options.dry && !model.graph) {
-            model.graph = this.graph;
-        }
-    },
-
-    _removeReference: function(model, options) {
-        Collection.prototype._removeReference.apply(this, arguments);
-        // If not in `dry` mode and the model has a reference to this exact graph,
-        // remove the reference.
-        if (!options.dry && model.graph === this.graph) {
-            model.graph = null;
-        }
-    },
-});
-
-
 export const Graph = Model.extend({
 
     initialize: function(attrs, opt) {
 
         opt = opt || {};
 
-        const cellLayersCollection = this.cellLayersCollection = new CellLayersCollection();
+        const cellLayersCollection = this.cellLayersCollection = new CellLayersCollection([], {
+            cellLayerNamespace: opt.cellLayerNamespace,
+            graph: this
+        });
 
         // retrigger layer events from the cellLayersCollection with the `layer:` prefix
         cellLayersCollection.on('all', function(eventName) {
-            if (eventName === 'add' || eventName === 'remove' || eventName.startsWith('change')) {
-                arguments[0] = 'layer:' + eventName;
+            if (eventName === 'add' || eventName === 'remove' || eventName === 'reset' || eventName.startsWith('change')) {
+                arguments[0] = 'layers:' + eventName;
                 this.trigger.apply(this, arguments);
             }
         }, this);
@@ -298,7 +251,7 @@ export const Graph = Model.extend({
         let cellLayers = attrs.cellLayers;
         if (cellLayers) {
             attrs = util.omit(attrs, 'cellLayers');
-            this.cellLayersController.resetRootCellLayers(cellLayers, opt);
+            this.resetCellLayers(cellLayers, opt);
         }
 
         let cells = attrs.cells;
@@ -414,6 +367,11 @@ export const Graph = Model.extend({
 
         this.stopBatch('reset', opt);
 
+        return this;
+    },
+
+    resetCellLayers: function(cellLayers, opt) {
+        this.cellLayersController.resetCellLayers(cellLayers, opt);
         return this;
     },
 

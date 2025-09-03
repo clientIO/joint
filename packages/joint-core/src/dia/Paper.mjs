@@ -295,10 +295,7 @@ export const Paper = View.extend({
 
         cellViewNamespace: null,
 
-        layerViewNamespace: {
-            'GridLayerView': GridLayerView,
-            'CellLayerView': CellLayerView,
-        },
+        layerViewNamespace: null,
 
         routerNamespace: null,
 
@@ -408,6 +405,14 @@ export const Paper = View.extend({
             /* eslint-enable no-undef */
         }
 
+        if (!options.layerViewNamespace) {
+            options.layerViewNamespace = {
+                LayerView,
+                CellLayerView,
+                GridLayerView,
+            }
+        }
+
         const model = this.model = options.model || new Graph;
 
         // This property tells us if we need to keep the compatibility
@@ -484,7 +489,6 @@ export const Paper = View.extend({
             .listenTo(model, 'remove', this.onCellRemoved)
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop)
-            .listenTo(model, 'layers:update', this.updateCellLayers);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
