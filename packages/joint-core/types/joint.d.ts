@@ -1455,11 +1455,11 @@ export namespace dia {
 
         }
 
-        interface UpdateViewsAsyncOptions extends UpdateViewsBatchOptions, ScheduleCellVisibilityOptions, RenderCallbackOptions {
+        interface UpdateViewsAsyncOptions extends UpdateViewsBatchOptions, ScheduleCellsVisibilityUpdateOptions, RenderCallbackOptions {
             progress?: ProgressCallback;
         }
 
-        interface ScheduleCellVisibilityOptions extends CellVisibilityOptions, MountOptions, UnmountOptions {
+        interface ScheduleCellsVisibilityUpdateOptions extends CellVisibilityOptions, MountOptions, UnmountOptions {
 
         }
 
@@ -1544,7 +1544,7 @@ export namespace dia {
             sorting?: sorting;
             frozen?: boolean;
             autoFreeze?: boolean;
-            viewManagement?: ViewManagementOptions;
+            viewManagement?: ViewManagementOptions | boolean;
             onViewUpdate?: (view: mvc.View<any, any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
             overflow?: boolean;
@@ -1939,7 +1939,7 @@ export namespace dia {
         ): void;
 
         updateCellsVisibility(
-            opt?: Paper.ScheduleCellVisibilityOptions & Paper.UpdateViewsOptions
+            opt?: Paper.ScheduleCellsVisibilityUpdateOptions & Paper.UpdateViewsOptions
         ): void;
 
         // events
@@ -1964,7 +1964,7 @@ export namespace dia {
         ): Paper.UpdateVisibilityStats;
 
 
-        protected scheduleCellsVisibilityUpdate(opt?: Paper.ScheduleCellVisibilityOptions): Paper.UpdateVisibilityStats;
+        protected scheduleCellsVisibilityUpdate(opt?: Paper.ScheduleCellsVisibilityUpdateOptions): Paper.UpdateVisibilityStats;
 
         protected scheduleViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
@@ -2097,12 +2097,12 @@ export namespace dia {
         /**
          * @deprecated Use `updateCellsVisibility()`
          */
-        checkViewport(opt?: Paper.ScheduleCellVisibilityOptions): Paper.UpdateVisibilityStats;
+        checkViewport(opt?: Paper.ScheduleCellsVisibilityUpdateOptions): Paper.UpdateVisibilityStats;
 
         /**
          * @deprecated Use `updateCellsVisibility()`
          */
-        dumpViews(opt?: Paper.ScheduleCellVisibilityOptions & Paper.UpdateViewsOptions): void;
+        dumpViews(opt?: Paper.ScheduleCellsVisibilityUpdateOptions & Paper.UpdateViewsOptions): void;
     }
 
     namespace PaperLayer {
