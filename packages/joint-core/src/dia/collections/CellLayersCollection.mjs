@@ -1,5 +1,6 @@
 import { Collection } from '../../mvc/index.mjs';
 import { CellLayer } from '../groups/CellLayer.mjs';
+import * as util from '../../util/index.mjs';
 
 export class CellLayersCollection extends Collection {
 
@@ -15,6 +16,10 @@ export class CellLayersCollection extends Collection {
         }
 
         this.graph = opt.graph;
+    }
+
+    modelId(attrs, idAttribute) {
+        return attrs[idAttribute || 'id'];
     }
 
     model(attrs, opt) {

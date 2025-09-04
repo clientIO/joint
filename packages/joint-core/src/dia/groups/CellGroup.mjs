@@ -53,7 +53,12 @@ export class CellGroup extends Model {
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
-        this.cells.on('all', this.trigger, this);
+        this.cells.on('all', function(eventName) {
+            if (eventName ==='reset' || eventName === 'sort') {
+                arguments[0] = 'layer:' + eventName;
+            }
+            this.trigger.apply(this, arguments);
+        }, this);
     }
 
     add(cell, opt) {

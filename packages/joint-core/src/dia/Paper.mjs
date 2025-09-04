@@ -488,7 +488,12 @@ export const Paper = View.extend({
         this.listenTo(model, 'add', this.onCellAdded)
             .listenTo(model, 'remove', this.onCellRemoved)
             .listenTo(model, 'reset', this.onGraphReset)
-            .listenTo(model, 'batch:stop', this.onGraphBatchStop)
+            .listenTo(model, 'batch:stop', this.onGraphBatchStop);
+
+        this.listenTo(model, 'layers:add', this.onCellLayerAdd)
+            .listenTo(model, 'layers:remove', this.onCellLayerRemove)
+            .listenTo(model, 'layers:reset', this.onCellLayersReset)
+            .listenTo(model, 'layers:sort', this.onCellLayersSort);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -531,6 +536,54 @@ export const Paper = View.extend({
                 this.updateViews(data);
             }
         }
+    },
+
+    onCellLayerAdd: function(cellLayer, _, opt) {
+        if (!this.hasLayerView(cellLayer.id)) {
+            const layerView = this.renderLayerView({
+                id: cellLayer.id,
+                model: cellLayer
+            });
+
+            this._cellLayerViews[cellLayer.id] = layerView;
+        }
+    },
+
+    onCellLayerRemove: function(cellLayer, _, opt) {
+        const cellLayerView = this._cellLayerViews[cellLayer.id];
+        if (cellLayerView) {
+            this.requestLayerViewRemove(cellLayerView);
+            delete this._cellLayerViews[cellLayer.id];
+        }
+    },
+
+    onCellLayersReset: function() {
+        this.resetCellLayerViews();
+    },
+
+    onCellLayersSort: function(collection) {
+
+    },
+
+    resetCellLayerViews: function() {
+        for (let id in this._cellLayerViews) {
+            this.requestLayerViewRemove(this._cellLayerViews[id]);
+            delete this._cellLayerViews[id];
+        }
+
+        const cellLayers = this.model.getCellLayers();
+        [...cellLayers].reverse().forEach(cellLayer => {
+            const layerView = this.renderLayerView({
+                id: cellLayer.id,
+                model: cellLayer
+            });
+
+            this._cellLayerViews[cellLayer.id] = layerView;
+            // insert the layer view into the paper layers before the labels layer
+            // in this case all cell layers are located between back and labels layer
+            // where the `cells` layer is located originally
+            this.insertLayerView(layerView, paperLayers.LABELS);
+        });
     },
 
     updateCellLayers: function(cellLayers) {
@@ -886,7 +939,7 @@ export const Paper = View.extend({
             this.insertLayerView(layerView);
         });
         // Render the cell layers.
-        this.updateCellLayers(this.model.get('cellLayers'));
+        this.resetCellLayerViews();
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(this.model.getDefaultCellLayer().id);
         const toolsLayerView = this.getLayerView(paperLayers.TOOLS);

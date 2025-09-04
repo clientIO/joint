@@ -71,7 +71,7 @@ export const Graph = Model.extend({
 
         // retrigger layer events from the cellLayersCollection with the `layer:` prefix
         cellLayersCollection.on('all', function(eventName) {
-            if (eventName === 'add' || eventName === 'remove' || eventName === 'reset' || eventName.startsWith('change')) {
+            if (!eventName.startsWith('cell:')) {
                 arguments[0] = 'layers:' + eventName;
                 this.trigger.apply(this, arguments);
             }

@@ -9,7 +9,7 @@ export class CellLayersController extends Listener {
         super(context);
 
         this.graph = context.graph;
-        this.collection = graph.cellLayersCollection;
+        this.collection = this.graph.cellLayersCollection;
 
         // Default setup
         this.defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
@@ -30,12 +30,16 @@ export class CellLayersController extends Listener {
         });
 
         this.listenTo(this.collection, 'reset', (_context, { models: cellLayers }) => {
-            this.defaultCellLayerId = attributes.find(attrs => attrs.default === true).id;
+            this.defaultCellLayerId = cellLayers.find(layer => layer.get('default') === true).id;
 
             cellLayers.forEach(cellLayer => {
                 this.onCellLayerAdd(cellLayer);
             });
         });
+
+        /*this.listenTo(this.collection, 'change:default', (_context, cellLayer, isDefault, opt) => {
+
+        });*/
 
         this.listenTo(graph, 'add', (_context, cell) => {
             this.onAdd(cell);
@@ -101,6 +105,7 @@ export class CellLayersController extends Listener {
                 default: true,
                 type: 'CellLayer',
             });
+            this.defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
         }
     }
 

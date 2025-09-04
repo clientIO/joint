@@ -201,6 +201,7 @@ export namespace dia {
 
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
+            cellLayerNamespace?: any,
             cellModel?: typeof Cell,
         });
 
@@ -211,7 +212,7 @@ export namespace dia {
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
-        addCellLayer(layer: CellLayer): void;
+        addCellLayer(layer: CellLayer | CellLayer.Attributes): void;
 
         insertCellLayer(layer: CellLayer, insertBefore?: string): void;
 
@@ -226,8 +227,6 @@ export namespace dia {
         hasCellLayer(id: string): boolean;
 
         getCellLayers(): CellLayer[];
-
-        getRootCellLayers(): CellLayer[];
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -1897,8 +1896,6 @@ export namespace dia {
         getLayerViews(): Array<LayerView>;
 
         getCellLayerViews(): Array<CellLayerView>;
-
-        protected updateCellLayers(cellLayers: Graph.CellLayerAttributes[]): void;
 
         // rendering
 
