@@ -1,9 +1,10 @@
-import { shapes, util, dia } from '@joint/core';
+import { shapes, util, dia, g } from '@joint/core';
 
 export const PADDING = 10;
 export const HEADER_HEIGHT = 30;
+export const HEADER_MIN_WIDTH = 140;
 
-class Base extends dia.Element {
+export class Base extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
@@ -21,6 +22,14 @@ class Base extends dia.Element {
                 bottom: PADDING
             }
         });
+    }
+
+    static filter(cell: dia.Cell) {
+        // Hide any element or link which is embedded inside a collapsed parent (or parent of the parent).
+        const hidden = cell.getAncestors().some((ancestor) => {
+            if ((ancestor as Container).isCollapsed()) return true;
+        });
+        return !hidden;
     }
 }
 
@@ -157,16 +166,30 @@ export class Container extends Base {
     }
 
     fitToChildElements(): void {
-        if (this.getEmbeddedCells().length === 0) {
-            this.resize(140, 100);
-        }
+        // adjust position and size based on children
+        const padding = {
+            top: HEADER_HEIGHT + PADDING,
+            left: PADDING,
+            right: PADDING,
+            bottom: PADDING
+        };
         this.fitToChildren({
-            padding: {
-                top: HEADER_HEIGHT + PADDING,
-                left: PADDING,
-                right: PADDING,
-                bottom: PADDING
-            }
+            filter: Base.filter,
+            padding
+        });
+
+        // make sure that size is at least minimum
+        const { x, y } = this.position();
+        const minRect = new g.Rect({
+            x,
+            y,
+            width: HEADER_MIN_WIDTH,
+            height: HEADER_HEIGHT
+        });
+        this.fitToChildren({
+            minRect,
+            filter: Base.filter,
+            padding
         });
     }
 
