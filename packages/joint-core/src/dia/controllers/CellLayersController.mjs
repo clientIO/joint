@@ -112,7 +112,7 @@ export class CellLayersController extends Listener {
     onCellLayerAdd(cellLayer) {
         if (!cellLayer.has('z')) {
             const lastLayer = this.collection.last();
-            const lastZ = lastLayer ? (lastCell.get('z') || 0) : 0;
+            const lastZ = lastLayer ? (lastLayer.get('z') || 0) : 0;
             cellLayer.set('z', lastZ + 1, { cellLayersController: this });
         }
     }
