@@ -625,10 +625,14 @@ export function handlePaperEvents(paper: dia.Paper, events: PaperEvents): () => 
   const controller = new mvc.Listener();
 
   for (const name in events) {
-    const listener = PAPER_EVENTS_MAPPER[name as keyof PaperEvents];
+    const eventName = name as keyof PaperEvents;
+    const event = events[eventName];
+    if (!event) continue;
+    const listener = PAPER_EVENTS_MAPPER[eventName];
     if (!listener) continue;
     controller.listenTo(paper, listener.jointEvent, (...args: never[]) => {
-      listener.handler(paper, ...args);
+      const objectResult = listener.handler(paper, ...args);
+      event(objectResult as never);
     });
   }
 
