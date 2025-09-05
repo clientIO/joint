@@ -493,7 +493,7 @@ export const Paper = View.extend({
         this.listenTo(model, 'layers:add', this.onCellLayerAdd)
             .listenTo(model, 'layers:remove', this.onCellLayerRemove)
             .listenTo(model, 'layers:reset', this.onCellLayersReset)
-            .listenTo(model, 'layers:sort', this.onCellLayersSort);
+            .listenTo(model, 'layers:update', this.onCellLayersUpdate);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -546,6 +546,7 @@ export const Paper = View.extend({
             });
 
             this._cellLayerViews[cellLayer.id] = layerView;
+            this.insertLayerView(layerView, paperLayers.LABELS);
         }
     },
 
@@ -561,8 +562,12 @@ export const Paper = View.extend({
         this.resetCellLayerViews();
     },
 
-    onCellLayersSort: function(collection) {
-
+    onCellLayersUpdate: function(cellLayers) {
+        [...cellLayers].reverse().forEach(cellLayer => {
+            if (!this.hasLayerView(cellLayer.id)) return;
+            const layerView = this.getLayerView(cellLayer.id);
+            this.insertLayerView(layerView, paperLayers.LABELS);
+        });
     },
 
     resetCellLayerViews: function() {

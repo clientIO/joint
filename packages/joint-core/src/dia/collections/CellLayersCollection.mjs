@@ -69,9 +69,4 @@ export class CellLayersCollection extends Collection {
 
         return super._prepareModel(attrs, options);
     }
-
-    // `comparator` makes it easy to sort cell layers based on their `z` index.
-    comparator(model) {
-        return model.get('z') || 0;
-    }
 }
