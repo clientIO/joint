@@ -33,10 +33,6 @@ export class CellLayer extends CellGroup {
                 cell.remove(opt);
             });
         });
-
-        this.on('change:default', (model, isDefault) => {
-            //
-        });
     }
 
     minZIndex() {
