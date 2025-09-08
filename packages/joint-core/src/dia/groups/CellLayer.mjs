@@ -29,7 +29,7 @@ export class CellLayer extends CellGroup {
 
         // remove all cells from this layer when the layer is removed from the graph
         this.on('remove', (_, _collection, opt) => {
-            this.cells.each(cell => {
+            this.cells.toArray().forEach(cell => {
                 cell.remove(opt);
             });
         });

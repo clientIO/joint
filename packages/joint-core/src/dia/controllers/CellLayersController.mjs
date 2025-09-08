@@ -103,8 +103,6 @@ export class CellLayersController extends Listener {
         }
     }
 
-
-
     onAdd(cell, reset = false) {
         const layerId = cell.layer() || this.defaultCellLayerId;
         const layer = this.getCellLayer(layerId);
@@ -209,7 +207,7 @@ export class CellLayersController extends Listener {
         }
 
         this.collection.add(cellLayer, { at: insertAt, silent: true });
-        this.graph.trigger('layers:update', this.collection.toArray());
+        this.graph.trigger('layers:sort', this.collection.toArray());
     }
 
     removeCellLayer(layerId, opt) {
