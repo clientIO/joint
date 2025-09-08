@@ -23,13 +23,13 @@ QUnit.module('layers-basic', function(hooks) {
     QUnit.test('Default layers setup', (assert) => {
         assert.ok(this.graph.cellLayersController, 'Cell layers controller is created');
 
-        const cellLayers = this.graph.get('cellLayers');
+        const cellLayersCollection = this.graph.cellLayersCollection;
 
-        assert.ok(Array.isArray(cellLayers), 'Graph has cellLayers attribute');
+        assert.ok(cellLayersCollection, 'Graph has cellLayers attribute');
 
-        assert.strictEqual(cellLayers.length, 1, 'Graph has one default cell layer');
+        assert.strictEqual(cellLayersCollection.models.length, 1, 'Graph has one default cell layer');
 
-        assert.strictEqual(cellLayers[0].id, 'cells', 'Graph has default cell layer with id "cells"');
+        assert.strictEqual(cellLayersCollection.models[0].id, 'cells', 'Graph has default cell layer with id "cells"');
 
         assert.ok(this.paper.getLayerView('cells'), 'Paper has default layer view for "cells" layer');
 
@@ -73,8 +73,8 @@ QUnit.module('layers-basic', function(hooks) {
     QUnit.test('default fromJSON() cellLayers', (assert) => {
         this.graph.fromJSON({
             cellLayers: [
-                { id: 'layer1' },
-                { id: 'layer2' }
+                { id: 'layer1', type: 'CellLayer' },
+                { id: 'layer2', type: 'CellLayer' }
             ],
             cells: [
                 {
@@ -98,14 +98,14 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(this.graph.hasCellLayer('layer2'), 'Graph has layer "layer2"');
         assert.ok(this.graph.hasCellLayer('cells'), 'Graph has default layer "cells"');
 
-        const rootLayers = this.graph.getRootCellLayers();
-        assert.strictEqual(rootLayers.length, 3, 'There are 3 root layers in the graph');
-        assert.equal(rootLayers[0].id, 'layer1', 'First layer is "layer1"');
-        assert.equal(rootLayers[1].id, 'layer2', 'Second layer is "layer2"');
-        assert.equal(rootLayers[2].id, 'cells', 'Third layer is "cells"');
+        const cellLayers = this.graph.getCellLayers();
+        assert.strictEqual(cellLayers.length, 3, 'There are 3 root layers in the graph');
+        assert.equal(cellLayers[0].id, 'layer1', 'First layer is "layer1"');
+        assert.equal(cellLayers[1].id, 'layer2', 'Second layer is "layer2"');
+        assert.equal(cellLayers[2].id, 'cells', 'Third layer is "cells"');
 
-        const layer1 = rootLayers[0];
-        const layer2 = rootLayers[1];
+        const layer1 = cellLayers[0];
+        const layer2 = cellLayers[1];
 
         assert.ok(layer1.cells.has('rect1'), 'Layer "layer1" has rectangle cell');
         assert.ok(layer2.cells.has('ellipse1'), 'Layer "layer2" has ellipse cell');
@@ -168,14 +168,13 @@ QUnit.module('layers-basic', function(hooks) {
 
         this.graph.setDefaultCellLayer('newLayer');
 
-        assert.equal(rect.get('layer'), 'cells', 'layer attr is set to "cells" as it is no longer the default');
-
         const newDefaultLayer = this.graph.getDefaultCellLayer();
         assert.equal(newDefaultLayer.id, 'newLayer', 'New default layer is "newLayer"');
 
-        rect.layer(null);
+        assert.equal(rect.get('layer'), undefined, 'layer attr is still undefined');
         assert.ok(newDefaultLayer.cells.has(rect.id), 'Rectangle cell moved to new default layer');
         assert.ok(!defaultLayer.cells.has(rect.id), 'Rectangle cell removed from old default layer');
+
         assert.ok(this.paper.getLayerViewNode(newDefaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved to new default layer view');
     });
 
@@ -184,9 +183,8 @@ QUnit.module('layers-basic', function(hooks) {
         const layer1 = new joint.dia.CellLayer({ id: 'layer1' });
 
         this.graph.addCellLayer(layer1);
-        this.graph.insertCellLayer(layer1);
 
-        const cellLayers = this.graph.get('cellLayers');
+        const cellLayers = this.graph.getCellLayers();
         assert.strictEqual(cellLayers[0].id, 'cells', 'First layer is "cells"');
         assert.strictEqual(cellLayers[1].id, 'layer1', 'Second layer is "layer1"');
 
@@ -194,32 +192,33 @@ QUnit.module('layers-basic', function(hooks) {
         this.graph.addCellLayer(layer2);
         this.graph.insertCellLayer(layer2, 'layer1');
 
-        const updatedCellLayers = this.graph.get('cellLayers');
+        const updatedCellLayers = this.graph.getCellLayers();
         assert.strictEqual(updatedCellLayers[0].id, 'cells', 'First layer is still "cells"');
         assert.strictEqual(updatedCellLayers[1].id, 'layer2', 'Second layer is now "layer2"');
         assert.strictEqual(updatedCellLayers[2].id, 'layer1', 'Third layer is "layer1"');
 
         this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'layer1');
 
-        const finalCellLayers = this.graph.get('cellLayers');
+        const finalCellLayers = this.graph.getCellLayers();
         assert.strictEqual(finalCellLayers[0].id, 'layer2', 'First layer is "layer2"');
         assert.strictEqual(finalCellLayers[1].id, 'cells', 'Second layer is still "layer2"');
         assert.strictEqual(finalCellLayers[2].id, 'layer1', 'Third layer is "layer1"');
 
         this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'cells');
-        assert.deepEqual(this.graph.get('cellLayers'), finalCellLayers, 'Inserting layer does not change order');
+        assert.deepEqual(this.graph.getCellLayers(), finalCellLayers, 'Inserting layer does not change order');
 
         this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'layer1');
-        assert.deepEqual(this.graph.get('cellLayers'), finalCellLayers, 'Inserting layer does not change order');
+        assert.deepEqual(this.graph.getCellLayers(), finalCellLayers, 'Inserting layer does not change order');
     });
 
     QUnit.test('using `cellLayers` attribute on Graph', (assert) => {
 
         this.graph.set('cellLayers', [{
-            id: 'layer1'
+            id: 'layer1',
+            type: 'CellLayer'
         }]);
 
-        const cellLayers = this.graph.get('cellLayers');
+        const cellLayers = this.graph.getCellLayers();
         assert.strictEqual(cellLayers.length, 2, 'Graph has two cell layers');
 
         assert.ok(this.graph.hasCellLayer('layer1'), 'Graph has layer "layer1"');
@@ -239,6 +238,7 @@ QUnit.module('layers-basic', function(hooks) {
 
         this.graph.set('cellLayers', [{
             id: 'layer1',
+            type: 'CellLayer',
             default: true
         }]);
 
@@ -249,12 +249,12 @@ QUnit.module('layers-basic', function(hooks) {
         assert.equal(rect1.get('layer'),  undefined, 'Cell "rect1" has no layer attribute');
 
         this.graph.set('cellLayers', [{
-            id: 'layer1'
+            id: 'layer1',
+            type: 'CellLayer'
         }]);
 
         assert.equal(this.graph.getDefaultCellLayer().id, 'cells', 'Default layer is back to "cells"');
-        assert.equal(rect1.get('layer'), 'layer1', 'Cell "rect1" layer attribute is set to "layer1"');
-        assert.equal(this.graph.getRootCellLayers().length, 2, 'There are 2 layers in the graph');
+        assert.equal(this.graph.getCellLayers().length, 2, 'There are 2 layers in the graph');
     });
 
 
@@ -263,28 +263,26 @@ QUnit.module('layers-basic', function(hooks) {
         const layer1 = new joint.dia.CellLayer({ id: 'layer1', name: 'Layer 1' });
 
         this.graph.addCellLayer(layer1);
-        this.graph.insertCellLayer(layer1);
 
-        const cellLayers = this.graph.get('cellLayers');
+        const cellLayers = this.graph.getCellLayers();
         assert.strictEqual(cellLayers.length, 2, 'Graph has two cell layers');
 
-        assert.equal(cellLayers[1].name, 'Layer 1', 'The custom attribute "name" is set correctly in the cell layer');
+        assert.equal(cellLayers[1].get('name'), 'Layer 1', 'The custom attribute "name" is set correctly in the cell layer');
 
         layer1.unset('name');
 
-        const updatedCellLayers = this.graph.get('cellLayers');
+        const updatedCellLayersJSON = this.graph.toJSON().cellLayers;
 
-        assert.strictEqual(updatedCellLayers.length, 2, 'Graph still has two cell layers after unsetting custom attribute');
-        assert.ok(!updatedCellLayers[1].hasOwnProperty('name'), 'The custom attribute "name" is removed from the cell layer');
+        assert.strictEqual(updatedCellLayersJSON.length, 2, 'Graph still has two cell layers after unsetting custom attribute');
+        assert.ok(!updatedCellLayersJSON[1].hasOwnProperty('name'), 'The custom attribute "name" is removed from the cell layer');
 
         layer1.set('name', 'Layer 1');
 
         const layer2 = new joint.dia.CellLayer({ id: 'layer2', description: 'This is layer 2' });
         this.graph.addCellLayer(layer2);
-        this.graph.insertCellLayer(layer2);
 
         const json = JSON.stringify(this.graph.toJSON());
 
-        assert.equal(json, `{"cellLayers":[{"id":"cells","default":true},{"type":"CellLayer","id":"layer1","name":"Layer 1"},{"type":"CellLayer","id":"layer2","description":"This is layer 2"}],"cells":[]}`, 'Graph JSON includes custom attributes in "cellLayers"');
+        assert.equal(json, `{"cells":[],"cellLayers":[{"type":"CellLayer","id":"cells","default":true},{"type":"CellLayer","id":"layer1","name":"Layer 1"},{"type":"CellLayer","id":"layer2","description":"This is layer 2"}]}`, 'Graph JSON includes custom attributes in "cellLayers"');
     });
 });

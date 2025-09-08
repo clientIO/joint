@@ -439,10 +439,6 @@ export const Paper = View.extend({
             viewsMap: {},
             order: [],
         };
-        // current ordered cell layers model attributes from the Graph
-        this._cellLayers = [];
-        // cellLayerViews hash
-        this._cellLayerViews = {};
 
         this.cloneOptions();
         this.render();
@@ -572,7 +568,7 @@ export const Paper = View.extend({
 
     resetCellLayerViews: function() {
         for (let id in this._cellLayerViews) {
-            this.requestLayerViewRemove(this._cellLayerViews[id]);
+            this._removeLayerView(this._cellLayerViews[id]);
             delete this._cellLayerViews[id];
         }
 
@@ -589,43 +585,6 @@ export const Paper = View.extend({
             // where the `cells` layer is located originally
             this.insertLayerView(layerView, paperLayers.LABELS);
         });
-    },
-
-    updateCellLayers: function(cellLayers) {
-        // find the cell layer views that are not in the new cellLayers array
-        // this process can be improved later but currently we are not expecting
-        // a lot of cell layers to be added or removed at once
-        const removedCellLayerViewIds = this._cellLayers
-            .filter(cellLayerView => !cellLayers.some(l => l.id === cellLayerView.id))
-            .map(cellLayerView => cellLayerView.id);
-
-        removedCellLayerViewIds.forEach(cellLayerViewId => {
-            this.requestLayerViewRemove(cellLayerViewId);
-            delete this._cellLayerViews[cellLayerViewId];
-        });
-
-        // reverse cellLayers array to render it in order
-        [...cellLayers].reverse().forEach(cellLayer => {
-            let layerView;
-            if (!this.hasLayerView(cellLayer.id)) {
-                const cellLayerModel = this.model.getCellLayer(cellLayer.id);
-
-                layerView = this.renderLayerView({
-                    id: cellLayer.id,
-                    model: cellLayerModel
-                });
-
-                this._cellLayerViews[cellLayer.id] = layerView;
-            } else {
-                layerView = this.getLayerView(cellLayer.id);
-            }
-            // insert the layer view into the paper layers before the labels layer
-            // in this case all cell layers are located between back and labels layer
-            // where the `cells` layer is located originally
-            this.insertLayerView(layerView, paperLayers.LABELS);
-        });
-
-        this._cellLayers = cellLayers;
     },
 
     cloneOptions: function() {
@@ -864,7 +823,7 @@ export const Paper = View.extend({
 
     // Returns ordered array of cell layer views
     getCellLayerViews() {
-        return this._cellLayers.map(attrs => this._cellLayerViews[attrs.id]);
+        return this.model.getCellLayers().map(cellLayer => this._cellLayerViews[cellLayer.id]);
     },
 
     render: function() {
@@ -879,6 +838,8 @@ export const Paper = View.extend({
         this.svg = svg;
         this.defs = defs;
         this.layers = layers;
+        // cellLayerViews hash
+        this._cellLayerViews = {};
 
         this.renderLayerViews();
 
@@ -1790,8 +1751,8 @@ export const Paper = View.extend({
         this.freeze();
         this._updates.disabled = true;
         //clean up all DOM elements/views to prevent memory leaks
-        this.removeLayerViews();
         this.removeViews();
+        this.removeLayerViews();
     },
 
     getComputedSize: function() {

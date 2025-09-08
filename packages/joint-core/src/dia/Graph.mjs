@@ -213,6 +213,7 @@ export const Graph = Model.extend({
         // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitly.
         var json = Model.prototype.toJSON.apply(this, arguments);
         json.cells = this.cellCollection.toJSON(opt.cellAttributes);
+        json.cellLayers = this.cellLayersCollection.toJSON();
         return json;
     },
 

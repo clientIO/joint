@@ -153,14 +153,17 @@ export class CellLayersController extends Listener {
         if (this.hasCellLayer(this.defaultCellLayerId)) {
             const previousDefaultLayer = this.getCellLayer(this.defaultCellLayerId);
             previousDefaultLayer.unset('default', { cellLayersController: this });
-            previousDefaultLayer.cells.each(cell => {
+            // set new default layer for paper to use when inserting to the new default layer
+            this.defaultCellLayerId = newDefaultLayer.id;
+            previousDefaultLayer.cells.toArray().forEach(cell => {
                 if (cell.get('layer') == null) {
                     previousDefaultLayer.remove(cell);
+                    newDefaultLayer.add(cell);
                 }
-                newDefaultLayer.add(cell);
             });
+        } else {
+            this.defaultCellLayerId = newDefaultLayer.id;
         }
-        this.defaultCellLayerId = newDefaultLayer.id;
     }
 
     addCellLayer(cellLayer, _opt) {
