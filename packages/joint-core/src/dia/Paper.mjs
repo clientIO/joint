@@ -489,7 +489,7 @@ export const Paper = View.extend({
         this.listenTo(model, 'layers:add', this.onCellLayerAdd)
             .listenTo(model, 'layers:remove', this.onCellLayerRemove)
             .listenTo(model, 'layers:reset', this.onCellLayersReset)
-            .listenTo(model, 'layers:update', this.onCellLayersUpdate);
+            .listenTo(model, 'layers:sort', this.onCellLayersUpdate);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
