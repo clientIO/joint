@@ -69,7 +69,7 @@ export class CellLayersController extends Listener {
         });
     }
 
-    resetCellLayers(cellLayers = []) {
+    resetCellLayers(cellLayers = [], opt = {}) {
         const attributes = cellLayers.map(cellLayer => {
             if (cellLayer instanceof CellLayer) {
                 return cellLayer.attributes;
@@ -81,7 +81,7 @@ export class CellLayersController extends Listener {
         this._ensureDefaultLayer(attributes);
         this.defaultCellLayerId = attributes.find(attrs => attrs.default === true).id;
 
-        this.collection.reset(attributes);
+        this.collection.reset(attributes, opt);
         this.graph.cellCollection.each(cell => {
             this.onAdd(cell);
         });

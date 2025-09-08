@@ -510,10 +510,10 @@ export const Graph = Model.extend({
     getFirstCell: function(layerId) {
         let cells;
         if (!layerId) {
-            const orderedLayers = this.cellLayersController.getRootCellLayers();
+            const orderedLayers = this.getCellLayers();
             cells = orderedLayers[0].cells;
         } else {
-            cells = this.cellLayersController.getCellLayer(layerId).cells;
+            cells = this.getCellLayer(layerId).cells;
         }
 
         return cells[0];
@@ -522,10 +522,10 @@ export const Graph = Model.extend({
     getLastCell: function(layerId) {
         let cells;
         if (!layerId) {
-            const orderedLayers = this.cellLayersController.getRootCellLayers();
+            const orderedLayers = this.getCellLayers();
             cells = orderedLayers[orderedLayers.length - 1].cells;
         } else {
-            cells = this.cellLayersController.getCellLayer(layerId).cells;
+            cells = this.getCellLayer(layerId).cells;
         }
 
         return cells[cells.length - 1];

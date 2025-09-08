@@ -212,6 +212,8 @@ export namespace dia {
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
+        resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.Options): this;
+
         addCellLayer(layer: CellLayer | CellLayer.Attributes): void;
 
         insertCellLayer(layer: CellLayer, insertBefore?: string): void;
@@ -227,6 +229,8 @@ export namespace dia {
         hasCellLayer(id: string): boolean;
 
         getCellLayers(): CellLayer[];
+
+        resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.Options): this;
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -1897,6 +1901,8 @@ export namespace dia {
 
         getCellLayerViews(): Array<CellLayerView>;
 
+        resetCellLayerViews(): void;
+
         // rendering
 
         freeze(opt?: Paper.FreezeOptions): void;
@@ -2063,6 +2069,14 @@ export namespace dia {
 
         protected onCellChanged(cell: Cell, opt: dia.Cell.Options): void;
         protected onCellChanged(cell: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
+
+        protected onCellLayerAdd(cellLayer: CellLayer, collection: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
+
+        protected onCellLayerRemove(cellLayer: CellLayer, collection: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
+
+        protected onCellLayersReset(cellLayers: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
+
+        protected onCellLayersUpdate(cellLayers: CellLayer[]): void;
 
         protected onGraphReset(cells: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
