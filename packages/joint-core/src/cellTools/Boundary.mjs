@@ -24,7 +24,7 @@ export const Boundary = ToolView.extend({
         const { relatedView: view, options, vel } = this;
         const { useModelGeometry, rotate } = options;
         const padding = util.normalizeSides(options.padding);
-        // It's a relative positioning if the tool is rendered inside the element view.
+        // Positioning is relative if the tool is drawn within the element view.
         const relative = !this.isOverlay();
         let bbox = getViewBBox(view, { useModelGeometry, relative }).moveAndExpand({
             x: -padding.left,
@@ -33,8 +33,8 @@ export const Boundary = ToolView.extend({
             height: padding.top + padding.bottom
         });
         var model = view.model;
-        // The rotation is implicit for relative positioning
-        // (the tool is transformed together with the element).
+        // With relative positioning, rotation is implicit
+        // (the tool rotates along with the element).
         if (model.isElement() && !relative) {
             var angle = model.angle();
             if (angle) {

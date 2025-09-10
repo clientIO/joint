@@ -34,10 +34,11 @@ export const Button = ToolView.extend({
     getElementMatrix() {
         const { relatedView: view, options } = this;
         let { x = 0, y = 0, offset = {}, useModelGeometry, rotate, scale } = options;
-        const isOverlay = this.isOverlay();
-        let bbox = getViewBBox(view, { useModelGeometry, relative: !isOverlay });
+        // Positioning is relative if the tool is drawn within the element view.
+        const relative = !this.isOverlay();
+        let bbox = getViewBBox(view, { useModelGeometry, relative });
         const angle = view.model.angle();
-        if (!rotate && isOverlay) bbox = bbox.bbox(angle);
+        if (!rotate && !relative) bbox = bbox.bbox(angle);
         const { x: offsetX = 0, y: offsetY = 0 } = offset;
         if (util.isPercentage(x)) {
             x = parseFloat(x) / 100 * bbox.width;
@@ -50,7 +51,9 @@ export const Button = ToolView.extend({
             y = Number(util.evalCalcExpression(y, bbox));
         }
         let matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
-        if (rotate && isOverlay) matrix = matrix.rotate(angle);
+        // With relative positioning, rotation is implicit
+        // (the tool rotates along with the element).
+        if (rotate && !relative) matrix = matrix.rotate(angle);
         matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
         if (scale) matrix = matrix.scale(scale);
         return matrix;
