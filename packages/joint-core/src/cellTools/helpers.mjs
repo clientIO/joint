@@ -1,6 +1,6 @@
 import * as connectionStrategies from '../connectionStrategies/index.mjs';
 
-export function getViewBBox(view, { useModelGeometry, relative } = {}) {
+export function getViewBBox(view, { useModelGeometry, relative, el = view.el } = {}) {
     const { model } = view;
     if (useModelGeometry) {
         const bbox = model.getBBox();
@@ -13,7 +13,7 @@ export function getViewBBox(view, { useModelGeometry, relative } = {}) {
     if (model.isLink()) {
         return view.getConnection().bbox();
     }
-    const bbox = view.getNodeUnrotatedBBox(view.el);
+    const bbox = view.getNodeUnrotatedBBox(el);
     if (relative) {
         const position = model.position();
         bbox.x -= position.x;

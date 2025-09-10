@@ -1,5 +1,6 @@
 import { ToolView } from '../dia/ToolView.mjs';
 import * as util from '../util/index.mjs';
+import { getViewBBox } from './helpers.mjs';
 
 export const Control = ToolView.extend({
     tagName: 'g',
@@ -103,22 +104,21 @@ export const Control = ToolView.extend({
             this.toggleExtras(false);
             return;
         }
-        const magnet = relatedView.findNode(selector);
-        if (!magnet) throw new Error('Control: invalid selector.');
-        const isOverlay = this.isOverlay();
-        if (!isOverlay && magnet.contains(this.el)) {
+        // The reference node for calculating the bounding box of the extras.
+        const refNode = relatedView.findNode(selector);
+        if (!refNode) throw new Error('Control: invalid selector.');
+        // Positioning is relative if the tool is drawn within the element view.
+        const relative = !this.isOverlay();
+        if (relative && refNode.contains(this.el)) {
+            // If the tool is inside the refNode, then the refNode bounding box
+            // would include the tool itself, which is not what we want.
             throw new Error('Control: the selector cannot match an ancestor of the tool.');
         }
         let padding = options.padding;
         if (!isFinite(padding)) padding = 0;
-        const bbox = relatedView.getNodeUnrotatedBBox(magnet);
+        const bbox = getViewBBox(relatedView, { relative, el: refNode });
         const model = relatedView.model;
-        if (!isOverlay) {
-            const position = model.position();
-            bbox.x -= position.x;
-            bbox.y -= position.y;
-        }
-        const angle = isOverlay ? model.angle() : 0;
+        const angle = relative ? 0 : model.angle();
         const center = bbox.center();
         if (angle) center.rotate(model.getCenter(), -angle);
         bbox.inflate(padding);
