@@ -75,12 +75,11 @@ export const Control = ToolView.extend({
         const { relatedView, options } = this;
         const { model } = relatedView;
         const relativePos = this.getPosition(relatedView, this);
-        const absolutePos = model.getAbsolutePointFromRelative(relativePos);
         const translate = this.isOverlay()
             // The tool is rendered in the coordinate system of the paper
-            ? absolutePos
+            ? model.getAbsolutePointFromRelative(relativePos)
             // The tool is rendered in the coordinate system of the relatedView
-            : model.getRelativePointFromAbsolute(absolutePos.x, absolutePos.y);
+            : relativePos;
         const { handleAttributes, scale } = options;
         let transformString =  `translate(${translate.x},${translate.y})`;
         if (scale) {
