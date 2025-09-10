@@ -9,7 +9,7 @@ export class CellLayersController extends Listener {
         super(context);
 
         this.graph = context.graph;
-        this.collection = this.graph.cellLayersCollection;
+        this.collection = this.graph.cellLayerCollection;
 
         // Default setup
         this.defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
@@ -25,10 +25,19 @@ export class CellLayersController extends Listener {
     startListening() {
         const { graph } = this;
 
-        this.listenTo(this.collection, 'add', (_context, cellLayer) => {
+        // if a new layer is added and it is marked as default,
+        // change the default layer
+        this.listenTo(this.collection, 'layer:add', (_context, cellLayer) => {
             if (cellLayer.get('default') === true) {
                 this._changeDefaultLayer(cellLayer);
             }
+        });
+
+        // remove all cells from this layer when the layer is removed from the graph
+        this.listenTo(this.collection, 'layer:remove', (_context, cellLayer) => {
+            cellLayer.cells.toArray().forEach(cell => {
+                cell.remove(opt);
+            });
         });
 
         this.listenTo(graph, 'add', (_context, cell) => {
@@ -207,7 +216,8 @@ export class CellLayersController extends Listener {
         }
 
         this.collection.add(cellLayer, { at: insertAt, silent: true });
-        this.graph.trigger('layers:sort', this.collection.toArray());
+        // trigger sort event manually since we are not using collection sorting workflow
+        this.collection.trigger('sort', this.collection.toArray());
     }
 
     removeCellLayer(layerId, opt) {

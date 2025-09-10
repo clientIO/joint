@@ -23,13 +23,13 @@ QUnit.module('layers-basic', function(hooks) {
     QUnit.test('Default layers setup', (assert) => {
         assert.ok(this.graph.cellLayersController, 'Cell layers controller is created');
 
-        const cellLayersCollection = this.graph.cellLayersCollection;
+        const cellLayerCollection = this.graph.cellLayerCollection;
 
-        assert.ok(cellLayersCollection, 'Graph has cellLayers attribute');
+        assert.ok(cellLayerCollection, 'Graph has cellLayers attribute');
 
-        assert.strictEqual(cellLayersCollection.models.length, 1, 'Graph has one default cell layer');
+        assert.strictEqual(cellLayerCollection.models.length, 1, 'Graph has one default cell layer');
 
-        assert.strictEqual(cellLayersCollection.models[0].id, 'cells', 'Graph has default cell layer with id "cells"');
+        assert.strictEqual(cellLayerCollection.models[0].id, 'cells', 'Graph has default cell layer with id "cells"');
 
         assert.ok(this.paper.getLayerView('cells'), 'Paper has default layer view for "cells" layer');
 

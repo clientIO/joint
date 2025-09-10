@@ -26,13 +26,6 @@ export class CellLayer extends CellGroup {
         this.cells.on('cell:change:z', () => {
             this.cells.sort();
         });
-
-        // remove all cells from this layer when the layer is removed from the graph
-        this.on('remove', (_, _collection, opt) => {
-            this.cells.toArray().forEach(cell => {
-                cell.remove(opt);
-            });
-        });
     }
 
     minZIndex() {

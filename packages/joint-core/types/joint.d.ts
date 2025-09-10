@@ -2076,7 +2076,7 @@ export namespace dia {
 
         protected onCellLayersReset(cellLayers: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
 
-        protected onCellLayersUpdate(cellLayers: CellLayer[]): void;
+        protected onCellLayersSort(cellLayers: CellLayer[]): void;
 
         protected onGraphReset(cells: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 

@@ -26,7 +26,7 @@ export const CellLayerView = LayerView.extend({
         const { model, options: { paper }} = this;
         const graph = paper.model;
 
-        this.listenTo(model, 'layer:sort', () => {
+        this.listenTo(model, 'sort', () => {
             if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
             this.sort();
         });

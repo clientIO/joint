@@ -2,9 +2,9 @@ import { Collection } from '../../mvc/index.mjs';
 import { CellLayer } from '../groups/CellLayer.mjs';
 import * as util from '../../util/index.mjs';
 
-export class CellLayersCollection extends Collection {
+export const GraphCellLayers = Collection.extend({
 
-    initialize(models, opt) {
+    initialize: function(models, opt) {
 
         // Set the optional namespace where all model classes are defined.
         if (opt.cellLayerNamespace) {
@@ -16,13 +16,9 @@ export class CellLayersCollection extends Collection {
         }
 
         this.graph = opt.graph;
-    }
+    },
 
-    modelId(attrs, idAttribute) {
-        return attrs[idAttribute || 'id'];
-    }
-
-    model(attrs, opt) {
+    model: function(attrs, opt) {
 
         const collection = opt.collection;
         const namespace = collection.cellLayerNamespace;
@@ -35,27 +31,27 @@ export class CellLayersCollection extends Collection {
         }
 
         return new CellLayerClass(attrs, opt);
-    }
+    },
 
-    _addReference(model, options) {
+    _addReference: function(model, options) {
         Collection.prototype._addReference.apply(this, arguments);
         // If not in `dry` mode and the model does not have a graph reference yet,
         // set the reference.
         if (!options.dry && !model.graph) {
             model.graph = this.graph;
         }
-    }
+    },
 
-    _removeReference(model, options) {
+    _removeReference: function(model, options) {
         Collection.prototype._removeReference.apply(this, arguments);
         // If not in `dry` mode and the model has a reference to this exact graph,
         // remove the reference.
         if (!options.dry && model.graph === this.graph) {
             model.graph = null;
         }
-    }
+    },
 
-    _prepareModel(attrs, options) {
+    _prepareModel: function(attrs, options) {
         let attributes;
         if (attrs instanceof CellLayer) {
             attributes = attrs.attributes;
@@ -67,6 +63,20 @@ export class CellLayersCollection extends Collection {
             throw new TypeError('dia.Graph: cellLayer type must be a string.');
         }
 
-        return super._prepareModel(attrs, options);
+        return Collection.prototype._prepareModel.apply(this, arguments);
+    },
+
+    _onModelEvent(event, model) {
+        if (model) {
+            if (event === 'changeId') {
+                var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
+                var id = this.modelId(model.attributes, model.idAttribute);
+                if (prevId != null) delete this._byId[prevId];
+                if (id != null) this._byId[id] = model;
+            }
+        }
+        arguments[0] = 'layer:' + event;
+        //retrigger model events with the `cell:` prefix
+        this.trigger.apply(this, arguments);
     }
-}
+});
