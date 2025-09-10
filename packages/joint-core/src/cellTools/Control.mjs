@@ -1,5 +1,6 @@
 import { ToolView } from '../dia/ToolView.mjs';
 import * as util from '../util/index.mjs';
+import { getViewBBox } from './helpers.mjs';
 
 export const Control = ToolView.extend({
     tagName: 'g',
@@ -76,8 +77,13 @@ export const Control = ToolView.extend({
         const { model } = relatedView;
         const relativePos = this.getPosition(relatedView, this);
         const absolutePos = model.getAbsolutePointFromRelative(relativePos);
+        const translate = this.isOverlay()
+            // The tool is rendered in the coordinate system of the paper
+            ? absolutePos
+            // The tool is rendered in the coordinate system of the relatedView
+            : model.getRelativePointFromAbsolute(absolutePos.x, absolutePos.y);
         const { handleAttributes, scale } = options;
-        let transformString =  `translate(${absolutePos.x},${absolutePos.y})`;
+        let transformString =  `translate(${translate.x},${translate.y})`;
         if (scale) {
             transformString += ` scale(${scale})`;
         }
@@ -97,11 +103,20 @@ export const Control = ToolView.extend({
         }
         const magnet = relatedView.findNode(selector);
         if (!magnet) throw new Error('Control: invalid selector.');
+        const isOverlay = this.isOverlay();
+        if (!isOverlay && magnet.contains(this.el)) {
+            throw new Error('Control: the selector cannot match an ancestor of the tool.');
+        }
         let padding = options.padding;
         if (!isFinite(padding)) padding = 0;
         const bbox = relatedView.getNodeUnrotatedBBox(magnet);
         const model = relatedView.model;
-        const angle = model.angle();
+        if (!isOverlay) {
+            const position = model.position();
+            bbox.x -= position.x;
+            bbox.y -= position.y;
+        }
+        const angle = isOverlay ? model.angle() : 0;
         const center = bbox.center();
         if (angle) center.rotate(model.getCenter(), -angle);
         bbox.inflate(padding);

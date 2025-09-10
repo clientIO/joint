@@ -10,19 +10,25 @@ export const HoverConnect = LinkHoverConnect.extend({
         const { relatedView: view, options } = this;
         let {
             useModelGeometry,
-            trackPath =  'M 0 0 H calc(w) V calc(h) H 0 Z'
+            trackPath = 'M 0 0 H calc(w) V calc(h) H 0 Z'
         } = options;
         if (typeof trackPath === 'function') {
             trackPath = trackPath.call(this, view);
         }
         if (isCalcExpression(trackPath)) {
-            const bbox = getViewBBox(view, useModelGeometry);
+            const bbox = getViewBBox(view, useModelGeometry, !this.isOverlay());
             trackPath = evalCalcExpression(trackPath, bbox);
         }
         return new g.Path(V.normalizePathData(trackPath));
     },
 
     getTrackMatrix() {
+        const isOverlay = this.isOverlay();
+        if (isOverlay) return this.getTrackMatrixAbsolute();
+        return V.createSVGMatrix();
+    },
+
+    getTrackMatrixAbsolute() {
         const { relatedView: view, options } = this;
         let { useModelGeometry, rotate } = options;
         let bbox = getViewBBox(view, useModelGeometry);

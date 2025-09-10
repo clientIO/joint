@@ -24,14 +24,15 @@ export const Boundary = ToolView.extend({
         const { relatedView: view, options, vel } = this;
         const { useModelGeometry, rotate } = options;
         const padding = util.normalizeSides(options.padding);
-        let bbox = getViewBBox(view, useModelGeometry).moveAndExpand({
+        const isOverlay = this.isOverlay();
+        let bbox = getViewBBox(view, useModelGeometry, !isOverlay).moveAndExpand({
             x: -padding.left,
             y: -padding.top,
             width: padding.left + padding.right,
             height: padding.top + padding.bottom
         });
         var model = view.model;
-        if (model.isElement()) {
+        if (model.isElement() && isOverlay) {
             var angle = model.angle();
             if (angle) {
                 if (rotate) {
