@@ -34,7 +34,7 @@ export class CellLayersController extends Listener {
         });
 
         // remove all cells from this layer when the layer is removed from the graph
-        this.listenTo(this.collection, 'layer:remove', (_context, cellLayer) => {
+        this.listenTo(this.collection, 'layer:remove', (_context, cellLayer, opt) => {
             cellLayer.cells.toArray().forEach(cell => {
                 cell.remove(opt);
             });

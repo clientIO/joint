@@ -185,14 +185,8 @@ export namespace dia {
             cellNamespace: any;
         }
 
-        interface CellLayerAttributes {
-            id: string;
-            default?: boolean;
-        }
-
         interface Attributes {
             cells?: Cells;
-            cellLayers?: CellLayer.Attributes[];
             [key: string]: any;
         }
     }
@@ -2157,7 +2151,7 @@ export namespace dia {
 
         interface Attributes extends mvc.ObjectHash {
             id: string;
-            type: string;
+            type?: string;
         }
     }
 
