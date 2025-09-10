@@ -25,7 +25,10 @@ export const Boundary = ToolView.extend({
         const { useModelGeometry, rotate } = options;
         const padding = util.normalizeSides(options.padding);
         const isOverlay = this.isOverlay();
-        let bbox = getViewBBox(view, useModelGeometry, !isOverlay).moveAndExpand({
+        let bbox = getViewBBox(view, {
+            useModelGeometry,
+            relative: !isOverlay
+        }).moveAndExpand({
             x: -padding.left,
             y: -padding.top,
             width: padding.left + padding.right,

@@ -1,6 +1,6 @@
 import * as connectionStrategies from '../connectionStrategies/index.mjs';
 
-export function getViewBBox(view, useModelGeometry, relative) {
+export function getViewBBox(view, { useModelGeometry, relative } = {}) {
     const { model } = view;
     if (useModelGeometry) {
         const bbox = model.getBBox();

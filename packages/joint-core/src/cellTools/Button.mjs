@@ -35,7 +35,7 @@ export const Button = ToolView.extend({
         const { relatedView: view, options } = this;
         let { x = 0, y = 0, offset = {}, useModelGeometry, rotate, scale } = options;
         const isOverlay = this.isOverlay();
-        let bbox = getViewBBox(view, useModelGeometry, !isOverlay);
+        let bbox = getViewBBox(view, { useModelGeometry, relative: !isOverlay });
         const angle = view.model.angle();
         if (!rotate && isOverlay) bbox = bbox.bbox(angle);
         const { x: offsetX = 0, y: offsetY = 0 } = offset;

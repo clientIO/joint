@@ -36,7 +36,7 @@ export const HoverConnect = Connect.extend({
                 selector: 'track',
                 attributes: {
                     'fill': 'none',
-                    'stroke': 'red',
+                    'stroke': 'transparent',
                     'stroke-width': options.trackWidth || 15,
                     'cursor': 'pointer'
                 }

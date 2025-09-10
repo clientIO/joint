@@ -16,22 +16,24 @@ export const HoverConnect = LinkHoverConnect.extend({
             trackPath = trackPath.call(this, view);
         }
         if (isCalcExpression(trackPath)) {
-            const bbox = getViewBBox(view, useModelGeometry, !this.isOverlay());
+            const bbox = getViewBBox(view, {
+                useModelGeometry,
+                relative: !this.isOverlay()
+            });
             trackPath = evalCalcExpression(trackPath, bbox);
         }
         return new g.Path(V.normalizePathData(trackPath));
     },
 
     getTrackMatrix() {
-        const isOverlay = this.isOverlay();
-        if (isOverlay) return this.getTrackMatrixAbsolute();
+        if (this.isOverlay()) return this.getTrackMatrixAbsolute();
         return V.createSVGMatrix();
     },
 
     getTrackMatrixAbsolute() {
         const { relatedView: view, options } = this;
         let { useModelGeometry, rotate } = options;
-        let bbox = getViewBBox(view, useModelGeometry);
+        let bbox = getViewBBox(view, { useModelGeometry });
         const angle = view.model.angle();
         if (!rotate) bbox = bbox.bbox(angle);
         let matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);

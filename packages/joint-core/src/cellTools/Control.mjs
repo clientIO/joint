@@ -1,6 +1,5 @@
 import { ToolView } from '../dia/ToolView.mjs';
 import * as util from '../util/index.mjs';
-import { getViewBBox } from './helpers.mjs';
 
 export const Control = ToolView.extend({
     tagName: 'g',
