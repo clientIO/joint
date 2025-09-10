@@ -72,7 +72,17 @@ export const Control = ToolView.extend({
         return this;
     },
     updateHandle: function(handleNode) {
+        const { options: { handleAttributes}} = this;
+        handleNode.setAttribute('transform', this.getHandleTransformString());
+        if (handleAttributes) {
+            for (let attrName in handleAttributes) {
+                handleNode.setAttribute(attrName, handleAttributes[attrName]);
+            }
+        }
+    },
+    getHandleTransformString() {
         const { relatedView, options } = this;
+        const { scale } = options;
         const { model } = relatedView;
         const relativePos = this.getPosition(relatedView, this);
         const translate = this.isOverlay()
@@ -80,17 +90,11 @@ export const Control = ToolView.extend({
             ? model.getAbsolutePointFromRelative(relativePos)
             // The tool is rendered in the coordinate system of the relatedView
             : relativePos;
-        const { handleAttributes, scale } = options;
         let transformString =  `translate(${translate.x},${translate.y})`;
         if (scale) {
             transformString += ` scale(${scale})`;
         }
-        handleNode.setAttribute('transform', transformString);
-        if (handleAttributes) {
-            for (let attrName in handleAttributes) {
-                handleNode.setAttribute(attrName, handleAttributes[attrName]);
-            }
-        }
+        return transformString;
     },
     updateExtras: function(extrasNode) {
         const { relatedView, options } = this;
