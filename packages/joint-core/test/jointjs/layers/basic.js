@@ -73,8 +73,8 @@ QUnit.module('layers-basic', function(hooks) {
     QUnit.test('default fromJSON() cellLayers', (assert) => {
         this.graph.fromJSON({
             cellLayers: [
-                { id: 'layer1', type: 'CellLayer' },
-                { id: 'layer2', type: 'CellLayer' }
+                { id: 'layer1' },
+                { id: 'layer2' }
             ],
             cells: [
                 {
@@ -291,8 +291,7 @@ QUnit.module('layers-basic', function(hooks) {
     QUnit.test('using `set("cellLayers")` set on Graph', (assert) => {
 
         this.graph.set('cellLayers', [{
-            id: 'layer1',
-            type: 'CellLayer'
+            id: 'layer1'
         }]);
 
         const cellLayers = this.graph.getCellLayers();
@@ -315,7 +314,6 @@ QUnit.module('layers-basic', function(hooks) {
 
         this.graph.set('cellLayers', [{
             id: 'layer1',
-            type: 'CellLayer',
             default: true
         }]);
 
@@ -326,8 +324,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.equal(rect1.get('layer'),  undefined, 'Cell "rect1" has no layer attribute');
 
         this.graph.set('cellLayers', [{
-            id: 'layer1',
-            type: 'CellLayer'
+            id: 'layer1'
         }]);
 
         assert.equal(this.graph.getDefaultCellLayer().id, 'cells', 'Default layer is back to "cells"');

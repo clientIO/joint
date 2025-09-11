@@ -60,7 +60,7 @@ export const GraphCellLayers = Collection.extend({
         }
 
         if (!util.isString(attributes.type)) {
-            throw new TypeError('dia.Graph: cellLayer type must be a string.');
+            attributes.type = 'CellLayer'; // default type
         }
 
         return Collection.prototype._prepareModel.apply(this, arguments);
