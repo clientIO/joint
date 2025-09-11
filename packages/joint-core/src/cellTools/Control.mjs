@@ -109,6 +109,7 @@ export const Control = ToolView.extend({
         let bbox;
         if (useModelGeometry) {
             if (selector !== 'root') {
+                // A selector other than null or `root` was provided.
                 console.warn('Control: selector will be ignored when `useModelGeometry` is used.');
             }
             bbox = getViewBBox(relatedView, { useModelGeometry, relative });

@@ -51,7 +51,7 @@ export const Button = ToolView.extend({
         let matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
         // With relative positioning, rotation is implicit
         // (the tool rotates along with the element).
-        if (rotate) matrix = matrix.rotate(angle);
+        if (rotate && !relative) matrix = matrix.rotate(angle);
         matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
         if (scale) matrix = matrix.scale(scale);
         return matrix;
