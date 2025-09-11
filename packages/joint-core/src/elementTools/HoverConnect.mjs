@@ -7,7 +7,7 @@ import { getToolOptions, getViewBBox } from '../cellTools/helpers.mjs';
 export const HoverConnect = LinkHoverConnect.extend({
 
     getTrackPath() {
-        const { relatedView: view, options } = this;
+        const { relatedView: view } = this;
         let {
             useModelGeometry,
             relative,

@@ -108,6 +108,22 @@ QUnit.module('elementTools', function(hooks) {
                 assert.equal(bbox.y + bbox.height / 2, testCase.position.y);
             });
         });
+
+        QUnit.test('is rendered correctly inside the element view when no layer is specified', function(assert) {
+            const { x: X, y: Y, width: SIZE } = element.getBBox();
+            const DX = 10;
+            var remove = new joint.elementTools.Remove({ x: DX });
+            elementView.addTools(new joint.dia.ToolsView({
+                layer: null,
+                tools: [remove]
+            }));
+            assert.ok(elementView.el.contains(remove.el));
+            assert.equal(remove.vel.getBBox({ target: paper.svg }).center().toString(), `${X+DX}@${Y}`);
+            element.translate(10, 10);
+            assert.equal(remove.vel.getBBox({ target: paper.svg }).center().toString(), `${X+10+DX}@${Y+10}`);
+            element.rotate(90);
+            assert.equal(remove.vel.getBBox({ target: paper.svg }).center().toString(), `${X+10+SIZE}@${Y+10+DX}`);
+        });
     });
 
     QUnit.module('Boundary', function() {
@@ -140,6 +156,25 @@ QUnit.module('elementTools', function(hooks) {
                 var bbox = boundary.vel.getBBox({ target: paper.svg });
                 assert.checkBboxApproximately(0, bbox, testCase.bbox);
             });
+        });
+
+        QUnit.test('is rendered correctly inside the element view when no layer is specified', function(assert) {
+            const PADDING = 13;
+            const ANGLE = 30;
+            var boundary = new joint.elementTools.Boundary({ padding: PADDING });
+            elementView.addTools(new joint.dia.ToolsView({
+                layer: null,
+                tools: [boundary]
+            }));
+            assert.ok(elementView.el.contains(boundary.el));
+            assert.equal(elementView.getBBox().toString(), elementView.model.getBBox().inflate(PADDING).toString());
+            element.translate(10, 10);
+            assert.equal(elementView.getBBox().toString(), elementView.model.getBBox().inflate(PADDING).toString());
+            element.rotate(ANGLE);
+            assert.equal(
+                elementView.getBBox().round().toString(),
+                elementView.model.getBBox().inflate(PADDING).bbox(ANGLE).round().toString()
+            );
         });
     });
 
@@ -207,6 +242,28 @@ QUnit.module('elementTools', function(hooks) {
                 );
                 assert.notOk(setPositionSpy.called);
             });
+        });
+
+        QUnit.test('is rendered correctly inside the element view when no layer is specified', function(assert) {
+            const DX = 11;
+            const DY = 13;
+            const { x: X, y: Y, height: SIZE } = element.getBBox();
+            const TestControl = joint.elementTools.Control.extend({
+                getPosition: function() {
+                    return { x: DX, y: DY };
+                }
+            });
+            var control = new TestControl({ selector: 'body' });
+            elementView.addTools(new joint.dia.ToolsView({
+                layer: null,
+                tools: [control]
+            }));
+            assert.ok(elementView.el.contains(control.el));
+            assert.equal(control.vel.getBBox({ target: paper.svg }).center().toString(), `${X+DX}@${X+DY}`);
+            element.translate(10, 10);
+            assert.equal(control.vel.getBBox({ target: paper.svg }).center().toString(), `${X+10+DX}@${X+10+DY}`);
+            element.rotate(90);
+            assert.equal(control.vel.getBBox({ target: paper.svg }).center().toString(), `${X+10+SIZE-DY}@${Y+10+DX}`);
         });
     });
 
