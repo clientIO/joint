@@ -1,5 +1,9 @@
 import * as connectionStrategies from '../connectionStrategies/index.mjs';
 
+/**
+ * Common helper for getting a cell view’s bounding box,
+ * configurable with `useModelGeometry`, `relative`, and `el`.
+ */
 export function getViewBBox(view, {
     useModelGeometry = false,
     relative = false,
@@ -26,6 +30,11 @@ export function getViewBBox(view, {
     return bbox;
 }
 
+/**
+ * Retrieves the tool options.
+ * Automatically overrides `useModelGeometry` and `rotate`
+ * if the tool is positioned relative to the element.
+ */
 export function getToolOptions(toolView) {
     // Positioning is relative if the tool is drawn within the element view.
     const relative = !toolView.isOverlay();
