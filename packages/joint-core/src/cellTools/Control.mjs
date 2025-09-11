@@ -73,7 +73,7 @@ export const Control = ToolView.extend({
         return this;
     },
     updateHandle: function(handleNode) {
-        const { options: { handleAttributes}} = this;
+        const { options: { handleAttributes }} = this;
         handleNode.setAttribute('transform', this.getHandleTransformString());
         if (handleAttributes) {
             for (let attrName in handleAttributes) {
