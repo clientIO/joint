@@ -26,6 +26,18 @@ export function getViewBBox(view, {
     return bbox;
 }
 
+export function getToolOptions(toolView) {
+    // Positioning is relative if the tool is drawn within the element view.
+    const relative = !toolView.isOverlay();
+    const { useModelGeometry, rotate, ...otherOptions } = toolView.options;
+    return {
+        ...otherOptions,
+        useModelGeometry: useModelGeometry || relative,
+        rotate: rotate || relative,
+        relative,
+    };
+}
+
 export function getAnchor(coords, view, magnet) {
     // take advantage of an existing logic inside of the
     // pin relative connection strategy

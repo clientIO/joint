@@ -1,6 +1,6 @@
 import { ToolView } from '../dia/ToolView.mjs';
 import * as util from '../util/index.mjs';
-import { getViewBBox } from './helpers.mjs';
+import { getToolOptions, getViewBBox } from './helpers.mjs';
 
 export const Control = ToolView.extend({
     tagName: 'g',
@@ -99,24 +99,27 @@ export const Control = ToolView.extend({
     },
     updateExtras: function(extrasNode) {
         const { relatedView, options } = this;
-        const { selector } = this.options;
+        const { selector, relative, useModelGeometry } = getToolOptions(this);
         if (!selector) {
+            // Hide the extras if no selector is given.
             this.toggleExtras(false);
             return;
         }
-        // The reference node for calculating the bounding box of the extras.
-        const refNode = relatedView.findNode(selector);
-        if (!refNode) throw new Error('Control: invalid selector.');
-        // Positioning is relative if the tool is drawn within the element view.
-        const relative = !this.isOverlay();
-        if (relative && refNode.contains(this.el)) {
-            // If the tool is inside the refNode, then the refNode bounding box
-            // would include the tool itself, which is not what we want.
-            throw new Error('Control: the selector cannot match an ancestor of the tool.');
+        // Get the size for the extras rectangle and update it.
+        let bbox;
+        if (useModelGeometry) {
+            if (selector !== 'root') {
+                console.warn('Control: selector will be ignored when `useModelGeometry` is used.');
+            }
+            bbox = getViewBBox(relatedView, { useModelGeometry, relative });
+        } else {
+            // The reference node for calculating the bounding box of the extras.
+            const el = relatedView.findNode(selector);
+            if (!el) throw new Error('Control: invalid selector.');
+            bbox = getViewBBox(relatedView, { el });
         }
         let padding = options.padding;
         if (!isFinite(padding)) padding = 0;
-        const bbox = getViewBBox(relatedView, { relative, el: refNode });
         const model = relatedView.model;
         // With relative positioning, rotation is implicit
         // (the tool rotates along with the element).

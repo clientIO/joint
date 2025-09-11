@@ -1,7 +1,7 @@
 
 import * as util from '../util/index.mjs';
 import { ToolView } from '../dia/ToolView.mjs';
-import { getViewBBox } from './helpers.mjs';
+import { getToolOptions, getViewBBox } from './helpers.mjs';
 
 export const Boundary = ToolView.extend({
     name: 'boundary',
@@ -21,25 +21,23 @@ export const Boundary = ToolView.extend({
         this.update();
     },
     update: function() {
-        const { relatedView: view, options, vel } = this;
-        const { useModelGeometry, rotate } = options;
-        const padding = util.normalizeSides(options.padding);
-        // Positioning is relative if the tool is drawn within the element view.
-        const relative = !this.isOverlay();
+        const { relatedView: view, vel } = this;
+        const { useModelGeometry, rotate, relative, padding } = getToolOptions(this);
+        const normalizedPadding = util.normalizeSides(padding);
         let bbox = getViewBBox(view, { useModelGeometry, relative }).moveAndExpand({
-            x: -padding.left,
-            y: -padding.top,
-            width: padding.left + padding.right,
-            height: padding.top + padding.bottom
+            x: -normalizedPadding.left,
+            y: -normalizedPadding.top,
+            width: normalizedPadding.left + normalizedPadding.right,
+            height: normalizedPadding.top + normalizedPadding.bottom
         });
-        var model = view.model;
+        const model = view.model;
         // With relative positioning, rotation is implicit
         // (the tool rotates along with the element).
         if (model.isElement() && !relative) {
-            var angle = model.angle();
+            const angle = model.angle();
             if (angle) {
                 if (rotate) {
-                    var origin = model.getCenter();
+                    const origin = model.getCenter();
                     vel.rotate(angle, origin.x, origin.y, { absolute: true });
                 } else {
                     bbox = bbox.bbox(angle);
