@@ -1,20 +1,24 @@
 import * as connectionStrategies from '../connectionStrategies/index.mjs';
 
-export function getViewBBox(view, { useModelGeometry, relative, el = view.el } = {}) {
+export function getViewBBox(view, {
+    useModelGeometry = false,
+    relative = false,
+    el = view.el
+} = {}) {
     const { model } = view;
+    let bbox;
     if (useModelGeometry) {
-        const bbox = model.getBBox();
-        if (relative) {
-            bbox.x = 0;
-            bbox.y = 0;
-        }
-        return bbox;
+        // cell model bbox
+        bbox = model.getBBox();
+    } else if (model.isLink()) {
+        // link view bbox
+        bbox = view.getConnection().bbox();
+    } else {
+        // element view bbox
+        bbox = view.getNodeUnrotatedBBox(el);
     }
-    if (model.isLink()) {
-        return view.getConnection().bbox();
-    }
-    const bbox = view.getNodeUnrotatedBBox(el);
     if (relative) {
+        // Relative to the element position.
         const position = model.position();
         bbox.x -= position.x;
         bbox.y -= position.y;

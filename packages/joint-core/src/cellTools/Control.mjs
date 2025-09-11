@@ -118,6 +118,8 @@ export const Control = ToolView.extend({
         if (!isFinite(padding)) padding = 0;
         const bbox = getViewBBox(relatedView, { relative, el: refNode });
         const model = relatedView.model;
+        // With relative positioning, rotation is implicit
+        // (the tool rotates along with the element).
         const angle = relative ? 0 : model.angle();
         const center = bbox.center();
         if (angle) center.rotate(model.getCenter(), -angle);
