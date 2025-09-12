@@ -2175,6 +2175,8 @@ export namespace dia {
         insertPivot(z: number): Comment;
 
         removePivots(): void;
+
+        reset(): void;
     }
 
     namespace CellGroup {
@@ -2188,22 +2190,22 @@ export namespace dia {
         }
     }
 
-    class CellGroup<C extends mvc.Collection = CellGroup.CellGroupCollection, A extends CellGroup.Attributes = CellGroup.Attributes> extends mvc.Model<A> {
+    class CellGroup<C extends CellGroup.CellGroupCollection = CellGroup.CellGroupCollection, A extends CellGroup.Attributes = CellGroup.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
         declare id: string;
 
+        protected cells: C;
+
         constructor(attributes?: DeepPartial<A>);
 
-        cells: C;
+        add(cell: Cell, opt?: S): void;
 
-        add(cell: Cell, opt?: Graph.Options): void;
+        remove(cell: Cell, opt?: S): void;
 
-        remove(cell: Cell, opt?: Graph.Options): void;
+        reset(cells?: Cell, opt?: S): void;
 
-        reset(cells?: Cell, opt?: Graph.Options): void;
-
-        setEach(attributeName: string, value?: Cell.Attributes[keyof Cell.Attributes], options?: dia.ModelSetOptions): void;
-        setEach(attributes: Partial<Cell.Attributes>, options?: dia.ModelSetOptions): void;
+        setEach(attributeName: string, value?: Cell.Attributes[keyof Cell.Attributes], options?: S): void;
+        setEach(attributes: Partial<Cell.Attributes>, options?: S): void;
     }
 
     namespace CellLayer {
@@ -2216,14 +2218,14 @@ export namespace dia {
         }
     }
 
-    class CellLayer extends CellGroup<CellLayer.CellLayerCollection, CellLayer.Attributes> implements CellGroup {
+    class CellLayer<C extends CellLayer.CellLayerCollection = CellLayer.CellLayerCollection, A extends CellLayer.Attributes = CellLayer.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends CellGroup<C, A, S> {
 
         minZIndex(): number;
 
         maxZIndex(): number;
     }
 
-    class CellLayerView extends LayerView<CellLayer> {
+    class CellLayerView<T extends CellLayer = CellLayer> extends LayerView<T> {
 
         protected startListening(): void;
 

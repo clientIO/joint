@@ -457,7 +457,7 @@ export const Paper = View.extend({
         };
 
         // Render existing cells in the graph
-        this.resetViews(model.attributes.cells.models);
+        this.resetViews(model.getCells());
     },
 
     _resetUpdates: function() {
