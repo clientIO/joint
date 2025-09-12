@@ -58,6 +58,7 @@ var paper = new Paper({
     autoFreeze: true,
     viewManagement: {
         lazyInitialize: true,
+        initializeUnmounted: true,
         disposeHidden: true,
     },
     defaultAnchor: {
