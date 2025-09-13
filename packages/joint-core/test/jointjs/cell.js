@@ -140,6 +140,20 @@ QUnit.module('cell', function(hooks) {
             assert.deepEqual(rect7.get('array'), testArray7, 'mergeArrays=false does not merge arrays');
             assert.notEqual(rect7.get('array'), testArray7, 'should not be the same array instance');
         });
+
+        QUnit.test('cellDefaultsMergeStrategy config', function(assert) {
+
+            // Save original config
+            const originalCellDefaultsMergeStrategy = joint.config.cellDefaultsMergeStrategy;
+
+            const mergeStrategySpy = sinon.spy();
+            joint.config.cellDefaultsMergeStrategy = mergeStrategySpy;
+            const rect = new joint.shapes.standard.Rectangle({ size: { width: 11, height: 13 }});
+            assert.ok(mergeStrategySpy.called);
+
+            // Restore original config
+            joint.config.cellDefaultsMergeStrategy = originalCellDefaultsMergeStrategy;
+        });
     });
 
     QUnit.module('parent', function(hooks) {
@@ -670,6 +684,22 @@ QUnit.module('cell', function(hooks) {
                 });
             });
         });
+
+        QUnit.test('cellMergeStrategy config', function(assert) {
+            // Save original config
+            const originalCellMergeStrategy = joint.config.cellMergeStrategy;
+
+            const mergeStrategySpy = sinon.spy();
+            joint.config.cellMergeStrategy = mergeStrategySpy;
+            const rect = new joint.shapes.standard.Rectangle();
+            assert.notOk(mergeStrategySpy.called);
+            rect.prop('size/width', 100);
+            assert.ok(mergeStrategySpy.called);
+            // Restore original config
+            joint.config.cellMergeStrategy = originalCellMergeStrategy;
+
+        });
+
     });
 
     QUnit.module('toJSON()', function() {

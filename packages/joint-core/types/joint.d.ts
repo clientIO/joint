@@ -8,6 +8,8 @@ export namespace config {
     var classNamePrefix: string;
     var defaultTheme: string;
     var doubleTapInterval: number;
+    var cellMergeStrategy: util.MergeCustomizer | null;
+    var cellDefaultsMergeStrategy: util.MergeCustomizer | null;
 }
 
 type NativeEvent = Event;
@@ -3054,6 +3056,8 @@ export namespace util {
     export function getRectPoint(rect: dia.BBox, position: dia.PositionName): g.Point;
 
     export function merge(destinationObject: object, ...args: any[]): object;
+
+    type MergeCustomizer = (value: any, srcValue: any, key: string, object: any, source: any, stack: any) => any;
 
     // ADDITIONAL SIMPLE UTIL FUNCTIONS:
 
