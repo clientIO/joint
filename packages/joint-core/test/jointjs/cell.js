@@ -150,6 +150,8 @@ QUnit.module('cell', function(hooks) {
             joint.config.cellDefaultsMergeStrategy = mergeStrategySpy;
             const rect = new joint.shapes.standard.Rectangle({ size: { width: 11, height: 13 }});
             assert.ok(mergeStrategySpy.called);
+            assert.ok(mergeStrategySpy.calledWith(1, 11, 'width'));
+            assert.ok(mergeStrategySpy.calledWith(1, 13, 'height'));
 
             // Restore original config
             joint.config.cellDefaultsMergeStrategy = originalCellDefaultsMergeStrategy;
@@ -693,11 +695,12 @@ QUnit.module('cell', function(hooks) {
             joint.config.cellMergeStrategy = mergeStrategySpy;
             const rect = new joint.shapes.standard.Rectangle();
             assert.notOk(mergeStrategySpy.called);
-            rect.prop('size/width', 100);
+            rect.prop('size/width', 11);
             assert.ok(mergeStrategySpy.called);
+            assert.ok(mergeStrategySpy.calledWith(1, 11, 'width'));
+
             // Restore original config
             joint.config.cellMergeStrategy = originalCellMergeStrategy;
-
         });
 
     });
