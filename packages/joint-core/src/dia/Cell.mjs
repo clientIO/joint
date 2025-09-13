@@ -666,7 +666,7 @@ export const Cell = Model.extend({
         for (const key in props) {
             // Merging the values of changed attributes with the current ones.
             const { changedValue } = merge(
-                { changedValue: cloneDeep(this.attributes[key]) },
+                merge({}, { changedValue: this.attributes[key] }),
                 { changedValue: props[key] },
                 config.cellMergeStrategy
             );
