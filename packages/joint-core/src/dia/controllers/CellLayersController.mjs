@@ -27,14 +27,14 @@ export class CellLayersController extends Listener {
 
         // if a new layer is added and it is marked as default,
         // change the default layer
-        this.listenTo(this.collection, 'layer:add', (_context, cellLayer) => {
+        this.listenTo(this.collection, 'layers:add', (_context, cellLayer) => {
             if (cellLayer.get('default') === true) {
                 this._changeDefaultLayer(cellLayer);
             }
         });
 
         // remove all cells from this layer when the layer is removed from the graph
-        this.listenTo(this.collection, 'layer:remove', (_context, cellLayer, opt) => {
+        this.listenTo(this.collection, 'layers:remove', (_context, cellLayer, opt) => {
             cellLayer.cells.toArray().forEach(cell => {
                 cell.remove(opt);
             });

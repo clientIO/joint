@@ -75,8 +75,13 @@ export const GraphCellLayers = Collection.extend({
                 if (id != null) this._byId[id] = model;
             }
         }
-        arguments[0] = 'layer:' + event;
-        //retrigger model events with the `cell:` prefix
+        let prefix;
+        if (event === 'add' || event === 'remove') {
+            prefix = 'layers:';
+        } else {
+            prefix = 'layer:';
+        }
+        arguments[0] = prefix + event;
         this.trigger.apply(this, arguments);
     }
 });

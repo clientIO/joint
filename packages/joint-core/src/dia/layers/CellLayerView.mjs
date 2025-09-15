@@ -26,21 +26,12 @@ export const CellLayerView = LayerView.extend({
         const { model, options: { paper }} = this;
         const graph = paper.model;
 
-        this.listenTo(model, 'sort', () => {
+        this.listenTo(model, 'cells:sort', () => {
             if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
             this.sort();
         });
 
-        this.listenTo(graph, 'batch:stop', (data) => {
-            const name = data && data.batchName;
-            const sortDelayingBatches = this.SORT_DELAYING_BATCHES;
-
-            if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
-                this.sort();
-            }
-        });
-
-        this.listenTo(model, 'cell:add', (cell, _collection, opt) => {
+        this.listenTo(model, 'cells:add', (cell, _collection, opt) => {
             if (!opt.initial) {
                 this._requestCellViewInsertion(cell, opt);
             }
@@ -49,6 +40,15 @@ export const CellLayerView = LayerView.extend({
         this.listenTo(model, 'cell:change:z', (cell, _value, opt) => {
             if (paper.options.sorting === sortingTypes.APPROX) {
                 this._requestCellViewInsertion(cell, opt);
+            }
+        });
+
+        this.listenTo(graph, 'batch:stop', (data) => {
+            const name = data && data.batchName;
+            const sortDelayingBatches = this.SORT_DELAYING_BATCHES;
+
+            if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
+                this.sort();
             }
         });
     },

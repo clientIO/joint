@@ -28,8 +28,14 @@ export class CellGroupCollection extends Collection {
                 if (id != null) this._byId[id] = model;
             }
         }
-        arguments[0] = 'cell:' + event;
-        //retrigger model events with the `cell:` prefix
+
+        let prefix;
+        if (event === 'add' || event === 'remove') {
+            prefix = 'cells:';
+        } else {
+            prefix = 'cell:';
+        }
+        arguments[0] = prefix + event;
         this.trigger.apply(this, arguments);
     }
 }
@@ -52,7 +58,12 @@ export class CellGroup extends Model {
         this.cells = new this.collectionConstructor();
 
         // Make all the events fired in the `cells` collection available.
-        this.cells.on('all', this.trigger, this);
+        this.cells.on('all', function(eventName) {
+            if (eventName === 'reset' || eventName === 'sort') {
+                arguments[0] = 'cells:' + eventName;
+            }
+            this.trigger.apply(this, arguments);
+        }, this);
     }
 
     add(cell, opt) {
