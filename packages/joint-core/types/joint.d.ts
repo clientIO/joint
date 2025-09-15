@@ -193,7 +193,11 @@ export namespace dia {
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
-        constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
+        constructor(attributes?: Graph.Attributes, opt?: {
+            cellNamespace?: any,
+            cellLayerNamespace?: any,
+            cellModel?: typeof Cell,
+        });
 
         addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
         addCell(cell: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
@@ -201,6 +205,26 @@ export namespace dia {
         addCells(cells: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
+
+        resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.Options): this;
+
+        addCellLayer(layer: CellLayer | CellLayer.Attributes): void;
+
+        insertCellLayer(layer: CellLayer, insertBefore?: string): void;
+
+        removeCellLayer(layer: CellLayer): void;
+
+        getDefaultCellLayer(): CellLayer;
+
+        setDefaultCellLayer(id: string): void;
+
+        getCellLayer(id: string): CellLayer;
+
+        hasCellLayer(id: string): boolean;
+
+        getCellLayers(): CellLayer[];
+
+        resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.Options): this;
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -210,9 +234,9 @@ export namespace dia {
 
         getCells(): Cell[];
 
-        getFirstCell(): Cell | undefined;
+        getFirstCell(layerId?: string): Cell | undefined;
 
-        getLastCell(): Cell | undefined;
+        getLastCell(layerId?: string): Cell | undefined;
 
         getConnectedLinks(cell: Cell, opt?: Graph.ConnectionOptions): Link[];
 
@@ -305,9 +329,9 @@ export namespace dia {
 
         hasActiveBatch(name?: string | string[]): boolean;
 
-        maxZIndex(): number;
+        maxZIndex(layerName?: string): number;
 
-        minZIndex(): number;
+        minZIndex(layerName?: string): number;
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
@@ -517,6 +541,9 @@ export namespace dia {
         position(): g.Point;
 
         z(): number;
+
+        layer(): string;
+        layer(id: string | null, opt?: Graph.Options): this;
 
         angle(): number;
 
@@ -1375,7 +1402,6 @@ export namespace dia {
         }
 
         enum Layers {
-            CELLS = 'cells',
             LABELS = 'labels',
             BACK = 'back',
             FRONT = 'front',
@@ -1525,6 +1551,7 @@ export namespace dia {
             validateUnembedding?: (this: Paper, childView: ElementView) => boolean;
             // default views, models & attributes
             cellViewNamespace?: any;
+            layerViewNamespace?: any;
             routerNamespace?: any;
             connectorNamespace?: any;
             highlighterNamespace?: any;
@@ -1887,29 +1914,40 @@ export namespace dia {
 
         // layers
 
-        getLayerNode(layerName: Paper.Layers | string): SVGGElement;
+        getLayerViewNode(id: Paper.Layers | string): SVGGElement;
 
-        getLayerView(layerName: Paper.Layers | string): PaperLayer;
+        // @deprecated use getLayerViewNode instead
+        getLayerNode(id: Paper.Layers | string): SVGElement;
 
-        hasLayerView(layerName: Paper.Layers | string): boolean;
+        getLayerView(id: Paper.Layers | string): LayerView;
 
-        renderLayers(layers: Array<{ name: string }>): void;
+        hasLayerView(id: Paper.Layers | string): boolean;
 
-        protected removeLayers(): void;
+        protected removeLayerViews(): void;
 
-        protected resetLayers(): void;
+        protected resetLayerViews(): void;
 
-        addLayer(layerName: string, layerView: PaperLayer, options?: { insertBefore?: string }): void;
+        renderLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
 
-        removeLayer(layer: string | PaperLayer): void;
+        createLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
 
-        moveLayer(layer: string | PaperLayer, insertBefore: string | PaperLayer | null): void;
+        addLayerView(layerView: LayerView): void;
 
-        hasLayer(layer: string | PaperLayer): boolean;
+        insertLayerView(layerView: LayerView, insertBefore?: string | LayerView): void;
 
-        getLayerNames(): string[];
+        removeLayerView(LayerView: LayerView): void;
 
-        getLayers(): Array<PaperLayer>;
+        requestLayerViewRemove(layerView: string | LayerView): void;
+
+        getLayerViewOrder(): string[];
+
+        getRootLayerViews(): Array<LayerView>;
+
+        getLayerViews(): Array<LayerView>;
+
+        getCellLayerViews(): Array<CellLayerView>;
+
+        resetCellLayerViews(): void;
 
         // rendering
 
@@ -2049,6 +2087,14 @@ export namespace dia {
         protected onCellChanged(cell: Cell, opt: dia.Cell.Options): void;
         protected onCellChanged(cell: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
+        protected onCellLayerAdd(cellLayer: CellLayer, collection: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
+
+        protected onCellLayerRemove(cellLayer: CellLayer, collection: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
+
+        protected onCellLayersReset(cellLayers: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
+
+        protected onCellLayersSort(cellLayers: CellLayer[]): void;
+
         protected onGraphReset(cells: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
         protected onGraphSort(): void;
@@ -2105,17 +2151,20 @@ export namespace dia {
         dumpViews(opt?: Paper.ScheduleCellsVisibilityUpdateOptions & Paper.UpdateViewsOptions): void;
     }
 
-    namespace PaperLayer {
+    namespace LayerView {
 
-        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
-            name: string;
+        interface Options<T extends mvc.Model | undefined = undefined> extends mvc.ViewOptions<T, SVGElement> {
+            id: string;
+            paper: Paper;
+            type?: string;
         }
     }
-    class PaperLayer extends mvc.View<undefined, SVGElement> {
 
-        constructor(opt?: PaperLayer.Options);
+    class LayerView<T extends mvc.Model | undefined = undefined> extends mvc.View<T, SVGElement> {
 
-        options: PaperLayer.Options;
+        constructor(opt?: LayerView.Options);
+
+        options: LayerView.Options;
 
         pivotNodes: { [z: number]: Comment };
 
@@ -2126,6 +2175,74 @@ export namespace dia {
         insertPivot(z: number): Comment;
 
         removePivots(): void;
+
+        reset(): void;
+    }
+
+    namespace CellGroup {
+
+        class CellGroupCollection extends mvc.Collection<Cell> {
+        }
+
+        interface Attributes extends mvc.ObjectHash {
+            id: string;
+            type?: string;
+        }
+    }
+
+    class CellGroup<C extends CellGroup.CellGroupCollection = CellGroup.CellGroupCollection, A extends CellGroup.Attributes = CellGroup.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
+
+        declare id: string;
+
+        protected cells: C;
+
+        constructor(attributes?: DeepPartial<A>);
+
+        add(cell: Cell, opt?: S): void;
+
+        remove(cell: Cell, opt?: S): void;
+
+        reset(cells?: Cell, opt?: S): void;
+
+        setEach(attributeName: string, value?: Cell.Attributes[keyof Cell.Attributes], options?: S): void;
+        setEach(attributes: Partial<Cell.Attributes>, options?: S): void;
+    }
+
+    namespace CellLayer {
+
+        class CellLayerCollection extends CellGroup.CellGroupCollection {
+        }
+
+        interface Attributes extends CellGroup.Attributes {
+            default?: boolean;
+        }
+    }
+
+    class CellLayer<C extends CellLayer.CellLayerCollection = CellLayer.CellLayerCollection, A extends CellLayer.Attributes = CellLayer.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends CellGroup<C, A, S> {
+
+        minZIndex(): number;
+
+        maxZIndex(): number;
+    }
+
+    class CellLayerView<T extends CellLayer = CellLayer> extends LayerView<T> {
+
+        protected startListening(): void;
+
+        protected sort(): void;
+
+        protected sortExact(): void;
+
+        protected insertCellView(cellView: CellView): void;
+    }
+
+    class GridLayerView extends LayerView {
+
+        protected renderGrid(): void;
+
+        protected updateGrid(): void;
+
+        protected removeGrid(): void;
     }
 
     namespace ToolsView {

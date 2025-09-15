@@ -2,67 +2,11 @@ import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
 import { Model } from '../mvc/Model.mjs';
-import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
-
-const GraphCells = Collection.extend({
-
-    initialize: function(models, opt) {
-
-        // Set the optional namespace where all model classes are defined.
-        if (opt.cellNamespace) {
-            this.cellNamespace = opt.cellNamespace;
-        } else {
-            /* eslint-disable no-undef */
-            this.cellNamespace = typeof joint !== 'undefined' && util.has(joint, 'shapes') ? joint.shapes : null;
-            /* eslint-enable no-undef */
-        }
-
-
-        this.graph = opt.graph;
-    },
-
-    model: function(attrs, opt) {
-
-        const collection = opt.collection;
-        const namespace = collection.cellNamespace;
-        const { type } = attrs;
-
-        // Find the model class based on the `type` attribute in the cell namespace
-        const ModelClass = util.getByPath(namespace, type, '.');
-        if (!ModelClass) {
-            throw new Error(`dia.Graph: Could not find cell constructor for type: '${type}'. Make sure to add the constructor to 'cellNamespace'.`);
-        }
-
-        return new ModelClass(attrs, opt);
-    },
-
-    _addReference: function(model, options) {
-        Collection.prototype._addReference.apply(this, arguments);
-        // If not in `dry` mode and the model does not have a graph reference yet,
-        // set the reference.
-        if (!options.dry && !model.graph) {
-            model.graph = this.graph;
-        }
-    },
-
-    _removeReference: function(model, options) {
-        Collection.prototype._removeReference.apply(this, arguments);
-        // If not in `dry` mode and the model has a reference to this exact graph,
-        // remove the reference.
-        if (!options.dry && model.graph === this.graph) {
-            model.graph = null;
-        }
-    },
-
-    // `comparator` makes it easy to sort cells based on their `z` index.
-    comparator: function(model) {
-
-        return model.get('z') || 0;
-    }
-});
-
+import { CellLayersController } from './controllers/CellLayersController.mjs';
+import { GraphCellLayers } from './collections/GraphCellLayers.mjs';
+import { GraphCells } from './collections/GraphCells.mjs';
 
 export const Graph = Model.extend({
 
@@ -70,23 +14,39 @@ export const Graph = Model.extend({
 
         opt = opt || {};
 
+        const cellLayerCollection = this.cellLayerCollection = new GraphCellLayers([], {
+            cellLayerNamespace: opt.cellLayerNamespace,
+            graph: this
+        });
+
+        // retrigger events from the cellLayerCollection
+        cellLayerCollection.on('all', function(eventName) {
+            // prevent cell events to be triggered on the graph as
+            // they are already triggered via the cell collection
+            if (eventName.startsWith('layer:cell:')) {
+                return;
+            }
+
+            if (eventName === 'reset' || eventName === 'sort') {
+                arguments[0] = 'layers:' + eventName;
+            }
+            this.trigger.apply(this, arguments);
+        }, this);
+
+        this.cellLayersController = new CellLayersController({ graph: this });
+
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
-        var cells = new GraphCells([], {
+        const cellCollection = this.cellCollection = new GraphCells([], {
             model: opt.cellModel,
             cellNamespace: opt.cellNamespace,
             graph: this
         });
-        Model.prototype.set.call(this, 'cells', cells);
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
-        cells.on('all', this.trigger, this);
-
-        // JointJS automatically doesn't trigger re-sort if models attributes are changed later when
-        // they're already in the collection. Therefore, we're triggering sort manually here.
-        this.on('change:z', this._sortOnChangeZ, this);
+        cellCollection.on('all', this.trigger, this);
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -112,17 +72,12 @@ export const Graph = Model.extend({
 
         this._batches = {};
 
-        cells.on('add', this._restructureOnAdd, this);
-        cells.on('remove', this._restructureOnRemove, this);
-        cells.on('reset', this._restructureOnReset, this);
-        cells.on('change:source', this._restructureOnChangeSource, this);
-        cells.on('change:target', this._restructureOnChangeTarget, this);
-        cells.on('remove', this._removeCell, this);
-    },
-
-    _sortOnChangeZ: function() {
-
-        this.get('cells').sort();
+        cellCollection.on('add', this._restructureOnAdd, this);
+        cellCollection.on('remove', this._restructureOnRemove, this);
+        cellCollection.on('reset', this._restructureOnReset, this);
+        cellCollection.on('change:source', this._restructureOnChangeSource, this);
+        cellCollection.on('change:target', this._restructureOnChangeTarget, this);
+        cellCollection.on('remove', this._removeCell, this);
     },
 
     _restructureOnAdd: function(cell) {
@@ -157,10 +112,10 @@ export const Graph = Model.extend({
         }
     },
 
-    _restructureOnReset: function(cells) {
+    _restructureOnReset: function(collection) {
 
-        // Normalize into an array of cells. The original `cells` is GraphCells mvc collection.
-        cells = cells.models;
+        // Normalize into an array of cells. The original `collection` is GraphCells mvc collection.
+        const cells = collection.models;
 
         this._out = {};
         this._in = {};
@@ -213,7 +168,12 @@ export const Graph = Model.extend({
         // JointJS does not recursively call `toJSON()` on attributes that are themselves models/collections.
         // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitly.
         var json = Model.prototype.toJSON.apply(this, arguments);
-        json.cells = this.get('cells').toJSON(opt.cellAttributes);
+        json.cells = this.cellCollection.toJSON(opt.cellAttributes);
+        // backward compatibility to not export default layers setup
+        if (this.cellLayerCollection.length === 1 && this.cellLayerCollection.at(0).get('id') === 'cells') {
+            return json;
+        }
+        json.cellLayers = this.cellLayerCollection.toJSON();
         return json;
     },
 
@@ -225,6 +185,15 @@ export const Graph = Model.extend({
         }
 
         return this.set(json, opt);
+    },
+
+    get: function(attr) {
+        if (attr === 'cells') {
+            // Backwards compatibility with the old `cells` attribute.
+            // Return the cells collection from the default cell layer.
+            return this.cellLayersController.getDefaultCellLayer().cells;
+        }
+        return Model.prototype.get.call(this, attr);
     },
 
     set: function(key, val, opt) {
@@ -239,21 +208,33 @@ export const Graph = Model.extend({
             (attrs = {})[key] = val;
         }
 
+        // cellLayers attribute is handled separately via cellLayersController.
+        let cellLayers = attrs.cellLayers;
+        if (cellLayers) {
+            attrs = util.omit(attrs, 'cellLayers');
+            this.resetCellLayers(cellLayers, opt);
+        }
+
+        let cells = attrs.cells;
         // Make sure that `cells` attribute is handled separately via resetCells().
-        if (attrs.hasOwnProperty('cells')) {
-            this.resetCells(attrs.cells, opt);
+        if (cells) {
             attrs = util.omit(attrs, 'cells');
+            // Reset the cells collection.
+            this.resetCells(cells, opt);
         }
 
         // The rest of the attributes are applied via original set method.
-        return Model.prototype.set.call(this, attrs, opt);
+        // 'cellLayers' attribute is processed in the `cellLayersController`.
+        Model.prototype.set.call(this, attrs, opt);
+
+        return this;
     },
 
     clear: function(opt) {
 
         opt = util.assign({}, opt, { clear: true });
 
-        var collection = this.get('cells');
+        var collection = this.cellCollection;
 
         if (collection.length === 0) return this;
 
@@ -295,16 +276,12 @@ export const Graph = Model.extend({
         return cell;
     },
 
-    minZIndex: function() {
-
-        var firstCell = this.get('cells').first();
-        return firstCell ? (firstCell.get('z') || 0) : 0;
+    minZIndex: function(layerId) {
+        return this.cellLayersController.minZIndex(layerId);
     },
 
-    maxZIndex: function() {
-
-        var lastCell = this.get('cells').last();
-        return lastCell ? (lastCell.get('z') || 0) : 0;
+    maxZIndex: function(layerId) {
+        return this.cellLayersController.maxZIndex(layerId);
     },
 
     addCell: function(cell, opt) {
@@ -314,18 +291,7 @@ export const Graph = Model.extend({
             return this.addCells(cell, opt);
         }
 
-        if (cell instanceof Model) {
-
-            if (!cell.has('z')) {
-                cell.set('z', this.maxZIndex() + 1);
-            }
-
-        } else if (cell.z === undefined) {
-
-            cell.z = this.maxZIndex() + 1;
-        }
-
-        this.get('cells').add(this._prepareCell(cell, opt), opt || {});
+        this.cellCollection.add(this._prepareCell(cell, opt), opt || {});
 
         return this;
     },
@@ -338,10 +304,10 @@ export const Graph = Model.extend({
         opt.maxPosition = opt.position = cells.length - 1;
 
         this.startBatch('add', opt);
-        cells.forEach(function(cell) {
+        cells.forEach((cell) => {
             this.addCell(cell, opt);
             opt.position--;
-        }, this);
+        });
         this.stopBatch('add', opt);
 
         return this;
@@ -352,11 +318,21 @@ export const Graph = Model.extend({
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
 
+        this.startBatch('reset', opt);
+
         var preparedCells = util.toArray(cells).map(function(cell) {
             return this._prepareCell(cell, opt);
         }, this);
-        this.get('cells').reset(preparedCells, opt);
 
+        this.cellCollection.reset(preparedCells, opt);
+
+        this.stopBatch('reset', opt);
+
+        return this;
+    },
+
+    resetCellLayers: function(cellLayers, opt) {
+        this.cellLayersController.resetCellLayers(cellLayers, opt);
         return this;
     },
 
@@ -393,7 +369,7 @@ export const Graph = Model.extend({
         // `joint.dia.Cell.prototype.remove` already triggers the `remove` event which is
         // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
         // would be triggered on the graph model.
-        this.get('cells').remove(cell, { silent: true });
+        this.cellCollection.remove(cell, { silent: true });
     },
 
     transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {
@@ -429,35 +405,90 @@ export const Graph = Model.extend({
         this.stopBatch(batchName);
     },
 
+    addCellLayer(cellLayer, opt) {
+        this.cellLayersController.addCellLayer(cellLayer, opt);
+    },
+
+    insertCellLayer(cellLayer, insertBefore) {
+        this.cellLayersController.insertCellLayer(cellLayer, insertBefore);
+    },
+
+    removeCellLayer(cellLayer, opt) {
+        this.cellLayersController.removeCellLayer(cellLayer.id, opt);
+    },
+
+    getDefaultCellLayer() {
+        return this.cellLayersController.getDefaultCellLayer();
+    },
+
+    setDefaultCellLayer(layerId) {
+        this.cellLayersController.setDefaultCellLayer(layerId);
+    },
+
+    getCellLayer(layerId) {
+        return this.cellLayersController.getCellLayer(layerId);
+    },
+
+    hasCellLayer(layerId) {
+        return this.cellLayersController.hasCellLayer(layerId);
+    },
+
+    getCellLayers() {
+        return this.cellLayersController.getCellLayers();
+    },
+
+    getRootCellLayers() {
+        return this.cellLayersController.getRootCellLayers();
+    },
+
+    getCellLayerCells(layerId) {
+        return this.cellLayersController.getCellLayerCells(layerId);
+    },
+
     // Get a cell by `id`.
     getCell: function(id) {
 
-        return this.get('cells').get(id);
+        return this.cellCollection.get(id);
     },
 
     getCells: function() {
-
-        return this.get('cells').toArray();
+        // We are using `cellLayersController.getCells()` instead of graph collection
+        // to preserve z-index ordering which is now handled by the cell layers.
+        return this.cellLayersController.getCells();
     },
 
     getElements: function() {
 
-        return this.get('cells').toArray().filter(cell => cell.isElement());
+        return this.getCells().filter(cell => cell.isElement());
     },
 
     getLinks: function() {
 
-        return this.get('cells').toArray().filter(cell => cell.isLink());
+        return this.getCells().filter(cell => cell.isLink());
     },
 
-    getFirstCell: function() {
+    getFirstCell: function(layerId) {
+        let cells;
+        if (!layerId) {
+            const orderedLayers = this.getCellLayers();
+            cells = orderedLayers[0].cells;
+        } else {
+            cells = this.getCellLayer(layerId).cells;
+        }
 
-        return this.get('cells').first();
+        return cells[0];
     },
 
-    getLastCell: function() {
+    getLastCell: function(layerId) {
+        let cells;
+        if (!layerId) {
+            const orderedLayers = this.getCellLayers();
+            cells = orderedLayers[orderedLayers.length - 1].cells;
+        } else {
+            cells = this.getCellLayer(layerId).cells;
+        }
 
-        return this.get('cells').last();
+        return cells[cells.length - 1];
     },
 
     // Get all inbound and outbound links connected to the cell `model`.
