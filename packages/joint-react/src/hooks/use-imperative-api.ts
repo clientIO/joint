@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -14,8 +15,15 @@ interface OnLoadReturn<Instance> {
 
 export interface UseImperativeApiOptions<Instance> {
   readonly onLoad: () => OnLoadReturn<Instance>;
+
+  /**
+   *
+   * @param instance
+   * @param reset - reset will call the onLoad function again to reset the instance
+   * @returns
+   */
   // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-  readonly onUpdate?: (instance: Instance) => void | (() => void);
+  readonly onUpdate?: (instance: Instance, reset: () => void) => void | (() => void);
   readonly isDisabled?: boolean;
 }
 
@@ -57,8 +65,7 @@ export function useImperativeApi<Instance>(
   const cleanupRef = useRef<(() => void) | null>(null);
   const hasMounted = useRef(false); // Track initial render
 
-  // Load and cleanup
-  useLayoutEffect(() => {
+  const onLoadCallback = useCallback(() => {
     if (isDisabled) {
       if (cleanupRef.current) {
         cleanupRef.current();
@@ -77,6 +84,19 @@ export function useImperativeApi<Instance>(
     return () => {
       cleanup();
     };
+    // we update cache only by dependencies change and isDisabled
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDisabled, ...dependencies]);
+
+  // Load and cleanup
+  useLayoutEffect(() => {
+    const cleanup = onLoadCallback();
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+    };
+    // this is called only when disabled - disabled mean, we remove the instance and cleanup
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDisabled]);
 
@@ -90,12 +110,13 @@ export function useImperativeApi<Instance>(
     if (!instance) {
       return;
     }
-    const cleanup = onUpdate(instance);
+    const cleanup = onUpdate(instance, onLoadCallback);
     return () => {
       if (typeof cleanup === 'function') {
         cleanup();
       }
     };
+    // we update cache only by dependencies change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies);
 

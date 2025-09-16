@@ -57,10 +57,13 @@ describe('useImperativeApi', () => {
     // Verify onUpdate is not called initially
     expect(onUpdate).not.toHaveBeenCalled();
 
-    // Change dependencies and verify onUpdate is called
+    // Change dependencies and verify onUpdate is called with reset function
     rerender({ dependencies: [2] });
     expect(onUpdate).toHaveBeenCalledTimes(1);
-    expect(onUpdate).toHaveBeenCalledWith({ value: 'test-instance' });
+    expect(onUpdate).toHaveBeenCalledWith(
+      { value: 'test-instance' },
+      expect.any(Function) // Ensure reset function is passed
+    );
   });
 
   it('should handle cleanup from onUpdate', () => {
@@ -82,5 +85,38 @@ describe('useImperativeApi', () => {
     unmount();
     expect(onLoad.mock.results[0].value.cleanup).toHaveBeenCalledTimes(1);
     expect(onUpdateCleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle reset functionality properly', () => {
+    let instanceValue = 'test-load';
+    const onLoad = jest.fn(() => ({
+      instance: { value: instanceValue },
+      cleanup: jest.fn(),
+    }));
+    const onUpdate = jest.fn((instance, reset) => {
+      reset();
+    });
+    const { result, rerender } = renderHook(
+      ({ counter }) => useImperativeApi({ onLoad, onUpdate }, [counter]),
+      {
+        initialProps: { counter: 0 },
+      }
+    );
+
+    // Verify initial load
+    expect(onLoad).toHaveBeenCalledTimes(1);
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(result.current.isReady).toBe(true);
+    expect(result.current.ref.current).toEqual({ value: 'test-load' });
+
+    act(() => {
+      instanceValue = 'test-reset';
+      rerender({ counter: 1 });
+    });
+
+    // Verify onUpdate and reset behavior
+    expect(onLoad).toHaveBeenCalledTimes(2);
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    expect(result.current.ref.current).toEqual({ value: 'test-reset' });
   });
 });

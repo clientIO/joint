@@ -5,19 +5,25 @@ import type { EventMap, PaperEvents } from '../types/event.types';
 export const PAPER_EVENTS_MAPPER: {
   [K in keyof PaperEvents]?: {
     jointEvent: keyof EventMap;
-    handler: (paper: dia.Paper, ...args: never[]) => unknown;
+    handler: (graph: dia.Graph, paper: dia.Paper, ...args: never[]) => unknown;
   };
 } = {
   // --- render ---
   onRenderDone: {
     jointEvent: 'render:done',
-    handler: (paper, stats: dia.Paper.UpdateStats, opt: unknown) => ({ paper, stats, opt }),
+    handler: (graph, paper, stats: dia.Paper.UpdateStats, opt: unknown) => ({
+      graph,
+      paper,
+      stats,
+      opt,
+    }),
   },
 
   // --- pointer click ---
   onCellPointerClick: {
     jointEvent: 'cell:pointerclick',
-    handler: (paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       cellView,
       event,
@@ -27,7 +33,15 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onElementPointerClick: {
     jointEvent: 'element:pointerclick',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event, x: number, y: number) => ({
+    handler: (
+      graph,
+      paper,
+      elementView: dia.ElementView,
+      event: dia.Event,
+      x: number,
+      y: number
+    ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -37,7 +51,8 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkPointerClick: {
     jointEvent: 'link:pointerclick',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -47,13 +62,20 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onBlankPointerClick: {
     jointEvent: 'blank:pointerclick',
-    handler: (paper, event: dia.Event, x: number, y: number) => ({ paper, event, x, y }),
+    handler: (graph, paper, event: dia.Event, x: number, y: number) => ({
+      graph,
+      paper,
+      event,
+      x,
+      y,
+    }),
   },
 
   // --- pointer dblclick ---
   onCellPointerDblClick: {
     jointEvent: 'cell:pointerdblclick',
-    handler: (paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       cellView,
       event,
@@ -63,7 +85,15 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onElementPointerDblClick: {
     jointEvent: 'element:pointerdblclick',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event, x: number, y: number) => ({
+    handler: (
+      graph,
+      paper,
+      elementView: dia.ElementView,
+      event: dia.Event,
+      x: number,
+      y: number
+    ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -73,7 +103,8 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkPointerDblClick: {
     jointEvent: 'link:pointerdblclick',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -83,13 +114,20 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onBlankPointerDblClick: {
     jointEvent: 'blank:pointerdblclick',
-    handler: (paper, event: dia.Event, x: number, y: number) => ({ paper, event, x, y }),
+    handler: (graph, paper, event: dia.Event, x: number, y: number) => ({
+      graph,
+      paper,
+      event,
+      x,
+      y,
+    }),
   },
 
   // --- contextmenu ---
   onCellContextMenu: {
     jointEvent: 'cell:contextmenu',
-    handler: (paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       cellView,
       event,
@@ -99,7 +137,15 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onElementContextMenu: {
     jointEvent: 'element:contextmenu',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event, x: number, y: number) => ({
+    handler: (
+      graph,
+      paper,
+      elementView: dia.ElementView,
+      event: dia.Event,
+      x: number,
+      y: number
+    ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -109,7 +155,8 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkContextMenu: {
     jointEvent: 'link:contextmenu',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -119,13 +166,20 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onBlankContextMenu: {
     jointEvent: 'blank:contextmenu',
-    handler: (paper, event: dia.Event, x: number, y: number) => ({ paper, event, x, y }),
+    handler: (graph, paper, event: dia.Event, x: number, y: number) => ({
+      graph,
+      paper,
+      event,
+      x,
+      y,
+    }),
   },
 
   // --- pointer down ---
   onCellPointerDown: {
     jointEvent: 'cell:pointerdown',
-    handler: (paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       cellView,
       event,
@@ -135,7 +189,15 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onElementPointerDown: {
     jointEvent: 'element:pointerdown',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event, x: number, y: number) => ({
+    handler: (
+      graph,
+      paper,
+      elementView: dia.ElementView,
+      event: dia.Event,
+      x: number,
+      y: number
+    ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -145,7 +207,8 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkPointerDown: {
     jointEvent: 'link:pointerdown',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -155,13 +218,20 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onBlankPointerDown: {
     jointEvent: 'blank:pointerdown',
-    handler: (paper, event: dia.Event, x: number, y: number) => ({ paper, event, x, y }),
+    handler: (graph, paper, event: dia.Event, x: number, y: number) => ({
+      graph,
+      paper,
+      event,
+      x,
+      y,
+    }),
   },
 
   // --- pointer move ---
   onCellPointerMove: {
     jointEvent: 'cell:pointermove',
-    handler: (paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       cellView,
       event,
@@ -171,7 +241,15 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onElementPointerMove: {
     jointEvent: 'element:pointermove',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event, x: number, y: number) => ({
+    handler: (
+      graph,
+      paper,
+      elementView: dia.ElementView,
+      event: dia.Event,
+      x: number,
+      y: number
+    ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -181,7 +259,8 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkPointerMove: {
     jointEvent: 'link:pointermove',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -191,13 +270,20 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onBlankPointerMove: {
     jointEvent: 'blank:pointermove',
-    handler: (paper, event: dia.Event, x: number, y: number) => ({ paper, event, x, y }),
+    handler: (graph, paper, event: dia.Event, x: number, y: number) => ({
+      graph,
+      paper,
+      event,
+      x,
+      y,
+    }),
   },
 
   // --- pointer up ---
   onCellPointerUp: {
     jointEvent: 'cell:pointerup',
-    handler: (paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       cellView,
       event,
@@ -207,7 +293,15 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onElementPointerUp: {
     jointEvent: 'element:pointerup',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event, x: number, y: number) => ({
+    handler: (
+      graph,
+      paper,
+      elementView: dia.ElementView,
+      event: dia.Event,
+      x: number,
+      y: number
+    ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -217,7 +311,8 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkPointerUp: {
     jointEvent: 'link:pointerup',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event, x: number, y: number) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -227,17 +322,29 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onBlankPointerUp: {
     jointEvent: 'blank:pointerup',
-    handler: (paper, event: dia.Event, x: number, y: number) => ({ paper, event, x, y }),
+    handler: (graph, paper, event: dia.Event, x: number, y: number) => ({
+      graph,
+      paper,
+      event,
+      x,
+      y,
+    }),
   },
 
   // --- mouse over/out ---
   onCellMouseOver: {
     jointEvent: 'cell:mouseover',
-    handler: (paper, cellView: dia.CellView, event: dia.Event) => ({ paper, cellView, event }),
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event) => ({
+      graph,
+      paper,
+      cellView,
+      event,
+    }),
   },
   onElementMouseOver: {
     jointEvent: 'element:mouseover',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event) => ({
+    handler: (graph, paper, elementView: dia.ElementView, event: dia.Event) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -245,20 +352,31 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkMouseOver: {
     jointEvent: 'link:mouseover',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event) => ({ paper, linkView, event }),
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event) => ({
+      graph,
+      paper,
+      linkView,
+      event,
+    }),
   },
   onBlankMouseOver: {
     jointEvent: 'blank:mouseover',
-    handler: (paper, event: dia.Event) => ({ paper, event }),
+    handler: (graph, paper, event: dia.Event) => ({ graph, paper, event }),
   },
 
   onCellMouseOut: {
     jointEvent: 'cell:mouseout',
-    handler: (paper, cellView: dia.CellView, event: dia.Event) => ({ paper, cellView, event }),
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event) => ({
+      graph,
+      paper,
+      cellView,
+      event,
+    }),
   },
   onElementMouseOut: {
     jointEvent: 'element:mouseout',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event) => ({
+    handler: (graph, paper, elementView: dia.ElementView, event: dia.Event) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -266,21 +384,32 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkMouseOut: {
     jointEvent: 'link:mouseout',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event) => ({ paper, linkView, event }),
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event) => ({
+      graph,
+      paper,
+      linkView,
+      event,
+    }),
   },
   onBlankMouseOut: {
     jointEvent: 'blank:mouseout',
-    handler: (paper, event: dia.Event) => ({ paper, event }),
+    handler: (graph, paper, event: dia.Event) => ({ graph, paper, event }),
   },
 
   // --- mouse enter/leave ---
   onCellMouseEnter: {
     jointEvent: 'cell:mouseenter',
-    handler: (paper, cellView: dia.CellView, event: dia.Event) => ({ paper, cellView, event }),
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event) => ({
+      graph,
+      paper,
+      cellView,
+      event,
+    }),
   },
   onElementMouseEnter: {
     jointEvent: 'element:mouseenter',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event) => ({
+    handler: (graph, paper, elementView: dia.ElementView, event: dia.Event) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -288,20 +417,31 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkMouseEnter: {
     jointEvent: 'link:mouseenter',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event) => ({ paper, linkView, event }),
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event) => ({
+      graph,
+      paper,
+      linkView,
+      event,
+    }),
   },
   onBlankMouseEnter: {
     jointEvent: 'blank:mouseenter',
-    handler: (paper, event: dia.Event) => ({ paper, event }),
+    handler: (graph, paper, event: dia.Event) => ({ graph, paper, event }),
   },
 
   onCellMouseLeave: {
     jointEvent: 'cell:mouseleave',
-    handler: (paper, cellView: dia.CellView, event: dia.Event) => ({ paper, cellView, event }),
+    handler: (graph, paper, cellView: dia.CellView, event: dia.Event) => ({
+      graph,
+      paper,
+      cellView,
+      event,
+    }),
   },
   onElementMouseLeave: {
     jointEvent: 'element:mouseleave',
-    handler: (paper, elementView: dia.ElementView, event: dia.Event) => ({
+    handler: (graph, paper, elementView: dia.ElementView, event: dia.Event) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -309,17 +449,23 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onLinkMouseLeave: {
     jointEvent: 'link:mouseleave',
-    handler: (paper, linkView: dia.LinkView, event: dia.Event) => ({ paper, linkView, event }),
+    handler: (graph, paper, linkView: dia.LinkView, event: dia.Event) => ({
+      graph,
+      paper,
+      linkView,
+      event,
+    }),
   },
   onBlankMouseLeave: {
     jointEvent: 'blank:mouseleave',
-    handler: (paper, event: dia.Event) => ({ paper, event }),
+    handler: (graph, paper, event: dia.Event) => ({ graph, paper, event }),
   },
 
   // --- mouse wheel ---
   onCellMouseWheel: {
     jointEvent: 'cell:mousewheel',
     handler: (
+      graph,
       paper,
       cellView: dia.CellView,
       event: dia.Event,
@@ -327,6 +473,7 @@ export const PAPER_EVENTS_MAPPER: {
       y: number,
       delta: number
     ) => ({
+      graph,
       paper,
       cellView,
       event,
@@ -338,6 +485,7 @@ export const PAPER_EVENTS_MAPPER: {
   onElementMouseWheel: {
     jointEvent: 'element:mousewheel',
     handler: (
+      graph,
       paper,
       elementView: dia.ElementView,
       event: dia.Event,
@@ -345,6 +493,7 @@ export const PAPER_EVENTS_MAPPER: {
       y: number,
       delta: number
     ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -356,6 +505,7 @@ export const PAPER_EVENTS_MAPPER: {
   onLinkMouseWheel: {
     jointEvent: 'link:mousewheel',
     handler: (
+      graph,
       paper,
       linkView: dia.LinkView,
       event: dia.Event,
@@ -363,6 +513,7 @@ export const PAPER_EVENTS_MAPPER: {
       y: number,
       delta: number
     ) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -373,7 +524,8 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onBlankMouseWheel: {
     jointEvent: 'blank:mousewheel',
-    handler: (paper, event: dia.Event, x: number, y: number, delta: number) => ({
+    handler: (graph, paper, event: dia.Event, x: number, y: number, delta: number) => ({
+      graph,
       paper,
       event,
       x,
@@ -385,7 +537,8 @@ export const PAPER_EVENTS_MAPPER: {
   // --- paper gestures ---
   onPan: {
     jointEvent: 'paper:pan',
-    handler: (paper, event: dia.Event, deltaX: number, deltaY: number) => ({
+    handler: (graph, paper, event: dia.Event, deltaX: number, deltaY: number) => ({
+      graph,
       paper,
       event,
       deltaX,
@@ -394,7 +547,8 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onPinch: {
     jointEvent: 'paper:pinch',
-    handler: (paper, event: dia.Event, x: number, y: number, scale: number) => ({
+    handler: (graph, paper, event: dia.Event, x: number, y: number, scale: number) => ({
+      graph,
       paper,
       event,
       x,
@@ -406,17 +560,18 @@ export const PAPER_EVENTS_MAPPER: {
   // --- paper mouse enter/leave ---
   onPaperMouseEnter: {
     jointEvent: 'paper:mouseenter',
-    handler: (paper, event: dia.Event) => ({ paper, event }),
+    handler: (graph, paper, event: dia.Event) => ({ graph, paper, event }),
   },
   onPaperMouseLeave: {
     jointEvent: 'paper:mouseleave',
-    handler: (paper, event: dia.Event) => ({ paper, event }),
+    handler: (graph, paper, event: dia.Event) => ({ graph, paper, event }),
   },
 
   // --- magnet events ---
   onElementMagnetPointerClick: {
     jointEvent: 'element:magnet:pointerclick',
     handler: (
+      graph,
       paper,
       elementView: dia.ElementView,
       event: dia.Event,
@@ -424,6 +579,7 @@ export const PAPER_EVENTS_MAPPER: {
       x: number,
       y: number
     ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -435,6 +591,7 @@ export const PAPER_EVENTS_MAPPER: {
   onElementMagnetPointerDblClick: {
     jointEvent: 'element:magnet:pointerdblclick',
     handler: (
+      graph,
       paper,
       elementView: dia.ElementView,
       event: dia.Event,
@@ -442,6 +599,7 @@ export const PAPER_EVENTS_MAPPER: {
       x: number,
       y: number
     ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -453,6 +611,7 @@ export const PAPER_EVENTS_MAPPER: {
   onElementMagnetContextMenu: {
     jointEvent: 'element:magnet:contextmenu',
     handler: (
+      graph,
       paper,
       elementView: dia.ElementView,
       event: dia.Event,
@@ -460,6 +619,7 @@ export const PAPER_EVENTS_MAPPER: {
       x: number,
       y: number
     ) => ({
+      graph,
       paper,
       elementView,
       event,
@@ -473,11 +633,13 @@ export const PAPER_EVENTS_MAPPER: {
   onCellHighlight: {
     jointEvent: 'cell:highlight',
     handler: (
+      graph,
       paper,
       cellView: dia.CellView,
       node: SVGElement,
       options: dia.CellView.EventHighlightOptions
     ) => ({
+      graph,
       paper,
       cellView,
       node,
@@ -487,11 +649,13 @@ export const PAPER_EVENTS_MAPPER: {
   onCellUnhighlight: {
     jointEvent: 'cell:unhighlight',
     handler: (
+      graph,
       paper,
       cellView: dia.CellView,
       node: SVGElement,
       options: dia.CellView.EventHighlightOptions
     ) => ({
+      graph,
       paper,
       cellView,
       node,
@@ -501,11 +665,13 @@ export const PAPER_EVENTS_MAPPER: {
   onCellHighlightInvalid: {
     jointEvent: 'cell:highlight:invalid',
     handler: (
+      graph,
       paper,
       cellView: dia.CellView,
       highlighterId: string,
       highlighter: dia.HighlighterView
     ) => ({
+      graph,
       paper,
       cellView,
       highlighterId,
@@ -517,6 +683,7 @@ export const PAPER_EVENTS_MAPPER: {
   onLinkConnect: {
     jointEvent: 'link:connect',
     handler: (
+      graph,
       paper,
       linkView: dia.LinkView,
       event: dia.Event,
@@ -524,6 +691,7 @@ export const PAPER_EVENTS_MAPPER: {
       newCellViewMagnet: SVGElement,
       arrowhead: dia.LinkEnd
     ) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -535,6 +703,7 @@ export const PAPER_EVENTS_MAPPER: {
   onLinkDisconnect: {
     jointEvent: 'link:disconnect',
     handler: (
+      graph,
       paper,
       linkView: dia.LinkView,
       event: dia.Event,
@@ -542,6 +711,7 @@ export const PAPER_EVENTS_MAPPER: {
       previousCellViewMagnet: SVGElement,
       arrowhead: dia.LinkEnd
     ) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -553,6 +723,7 @@ export const PAPER_EVENTS_MAPPER: {
   onLinkSnapConnect: {
     jointEvent: 'link:snap:connect',
     handler: (
+      graph,
       paper,
       linkView: dia.LinkView,
       event: dia.Event,
@@ -560,6 +731,7 @@ export const PAPER_EVENTS_MAPPER: {
       newCellViewMagnet: SVGElement,
       arrowhead: dia.LinkEnd
     ) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -571,6 +743,7 @@ export const PAPER_EVENTS_MAPPER: {
   onLinkSnapDisconnect: {
     jointEvent: 'link:snap:disconnect',
     handler: (
+      graph,
       paper,
       linkView: dia.LinkView,
       event: dia.Event,
@@ -578,6 +751,7 @@ export const PAPER_EVENTS_MAPPER: {
       previousCellViewMagnet: SVGElement,
       arrowhead: dia.LinkEnd
     ) => ({
+      graph,
       paper,
       linkView,
       event,
@@ -590,15 +764,28 @@ export const PAPER_EVENTS_MAPPER: {
   // --- transform events ---
   onTranslate: {
     jointEvent: 'translate',
-    handler: (paper, tx: number, ty: number, data: unknown) => ({ paper, tx, ty, data }),
+    handler: (graph, paper, tx: number, ty: number, data: unknown) => ({
+      graph,
+      paper,
+      tx,
+      ty,
+      data,
+    }),
   },
   onScale: {
     jointEvent: 'scale',
-    handler: (paper, sx: number, sy: number, data: unknown) => ({ paper, sx, sy, data }),
+    handler: (graph, paper, sx: number, sy: number, data: unknown) => ({
+      graph,
+      paper,
+      sx,
+      sy,
+      data,
+    }),
   },
   onResize: {
     jointEvent: 'resize',
-    handler: (paper, width: number, height: number, data: unknown) => ({
+    handler: (graph, paper, width: number, height: number, data: unknown) => ({
+      graph,
       paper,
       width,
       height,
@@ -607,21 +794,31 @@ export const PAPER_EVENTS_MAPPER: {
   },
   onTransform: {
     jointEvent: 'transform',
-    handler: (paper, matrix: SVGMatrix, data: unknown) => ({ paper, matrix, data }),
+    handler: (graph, paper, matrix: SVGMatrix, data: unknown) => ({ graph, paper, matrix, data }),
   },
   customEvents: {
     jointEvent: 'custom',
-    handler: (paper: dia.Paper, eventName: string, args: unknown[]) => ({ paper, eventName, args }),
+    handler: (graph, paper: dia.Paper, eventName: string, args: unknown[]) => ({
+      graph,
+      paper,
+      eventName,
+      args,
+    }),
   },
 };
 
 /**
  * Handles paper events by listening to the specified event types and invoking the corresponding handlers.
+ * @param graph - The graph instance associated with the paper.
  * @param paper - The paper instance to listen for events on.
  * @param events - An object containing event names and their associated handlers.
  * @returns A function to stop listening for the events.
  */
-export function handlePaperEvents(paper: dia.Paper, events: PaperEvents): () => void {
+export function handlePaperEvents(
+  graph: dia.Graph,
+  paper: dia.Paper,
+  events: PaperEvents
+): () => void {
   const controller = new mvc.Listener();
 
   for (const name in events) {
@@ -631,7 +828,7 @@ export function handlePaperEvents(paper: dia.Paper, events: PaperEvents): () => 
         const customEventHandler = events.customEvents[customEventName];
         if (customEventHandler) {
           controller.listenTo(paper, customEventName, (...args: Parameters<mvc.EventHandler>) => {
-            customEventHandler({ eventName: customEventName, args, paper });
+            customEventHandler({ eventName: customEventName, args, paper, graph });
           });
         }
       }
@@ -643,7 +840,7 @@ export function handlePaperEvents(paper: dia.Paper, events: PaperEvents): () => 
     if (!listener) continue;
 
     controller.listenTo(paper, listener.jointEvent, (...args: never[]) => {
-      const objectResult = listener.handler(paper, ...args);
+      const objectResult = listener.handler(graph, paper, ...args);
       if (typeof event === 'function') {
         event(objectResult as never);
       }

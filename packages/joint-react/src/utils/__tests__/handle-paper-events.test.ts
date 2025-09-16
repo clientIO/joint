@@ -119,7 +119,6 @@ const CASES: Array<{ name: string; jointEvent: string }> = [
   { name: 'onScale', jointEvent: 'scale' },
   { name: 'onResize', jointEvent: 'resize' },
   { name: 'onTransform', jointEvent: 'transform' },
-  { name: 'onCustomEvent', jointEvent: 'custom' },
 ];
 
 describe('handlePaperEvents', () => {
@@ -130,8 +129,9 @@ describe('handlePaperEvents', () => {
   it('creates an mvc.Listener controller', () => {
     const paper: any = {};
     const events: any = { onRenderDone: jest.fn() };
+    const graph: any = {};
 
-    handlePaperEvents(paper, events);
+    handlePaperEvents(graph, paper, events);
 
     expect(jointMocks.Listener).toHaveBeenCalledTimes(1);
   });
@@ -139,11 +139,11 @@ describe('handlePaperEvents', () => {
   it('registers listeners for every provided PaperEvent', () => {
     const paper: any = {};
     const events: Record<string, jest.Mock> = {};
-
+    const graph: any = {};
     // Provide all events
     for (const c of CASES) events[c.name] = jest.fn();
 
-    handlePaperEvents(paper, events as any);
+    handlePaperEvents(graph, paper, events as any);
 
     // One listenTo per provided event
     expect(jointMocks.listenTo).toHaveBeenCalledTimes(CASES.length);
@@ -160,8 +160,9 @@ describe('handlePaperEvents', () => {
       onRenderDone: jest.fn(),
       onCellPointerClick: jest.fn(),
     };
+    const graph: any = {};
 
-    handlePaperEvents(paper, events);
+    handlePaperEvents(graph, paper, events);
 
     expect(jointMocks.listenTo).toHaveBeenCalledTimes(2);
     expect(jointMocks.listenTo).toHaveBeenCalledWith(paper, 'render:done', expect.any(Function));
@@ -178,8 +179,8 @@ describe('handlePaperEvents', () => {
       onRenderDone: jest.fn(),
       notARealEvent: jest.fn(),
     };
-
-    handlePaperEvents(paper, events);
+    const graph: any = {};
+    handlePaperEvents(graph, paper, events);
 
     // Only real event was registered
     expect(jointMocks.listenTo).toHaveBeenCalledTimes(1);
@@ -189,8 +190,8 @@ describe('handlePaperEvents', () => {
   it('returns a disposer that calls stopListening()', () => {
     const paper: any = {};
     const events: any = { onRenderDone: jest.fn() };
-
-    const dispose = handlePaperEvents(paper, events);
+    const graph: any = {};
+    const dispose = handlePaperEvents(graph, paper, events);
     expect(jointMocks.stopListening).not.toHaveBeenCalled();
 
     dispose();
