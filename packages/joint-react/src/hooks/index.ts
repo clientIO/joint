@@ -11,3 +11,4 @@ export * from './use-create-element';
 export * from './use-create-link';
 export * from './use-are-elements-measured';
 export * from './use-paper-events';
+export * from './use-imperative-api';

@@ -97,7 +97,7 @@ export function useImperativeApi<Instance>(
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dependencies]);
+  }, dependencies);
 
   return { ref: instanceRef, isReady } as ImperativeStateResult<Instance>;
 }

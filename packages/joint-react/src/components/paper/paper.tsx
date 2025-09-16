@@ -118,6 +118,7 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
   /**
    * Enabled if renderElements is render to pure HTML elements.
    * By default, `joint/react` renderElements to SVG elements, so for using HTML elements without this prop, you need to use `foreignObject` element.
+   * @experimental - this feature is still experimental and there are known issues with HTML elements rendering. Use at your own risk.
    * @default false
    */
   readonly useHTMLOverlay?: boolean;
@@ -207,7 +208,6 @@ function Component<ElementItem extends GraphElement = GraphElement>(
       opacity: areElementsMeasured ? 1 : 0,
       pointerEvents: areElementsMeasured ? 'all' : 'none',
       position: 'relative',
-      overflow: 'hidden',
       ...defaultStyle,
     }),
     [areElementsMeasured, defaultStyle]

@@ -45,7 +45,6 @@ function Component({ onSetElement }: Readonly<Props>) {
       left: '0px',
       top: '0px',
       pointerEvents: 'none',
-      overflow: 'hidden',
     }),
     [paper.el.style.height, paper.el.style.width]
   );
