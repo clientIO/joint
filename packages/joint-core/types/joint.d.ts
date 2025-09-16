@@ -2161,6 +2161,10 @@ export namespace dia {
         hide(): this;
 
         mount(): this;
+
+        getLayer(): string | null;
+
+        hasLayer(): boolean;
     }
 
     namespace ToolView {
@@ -2203,6 +2207,8 @@ export namespace dia {
         blur(): void;
 
         update(): void;
+
+        isOverlay(): boolean;
 
         protected guard(evt: dia.Event): boolean;
     }

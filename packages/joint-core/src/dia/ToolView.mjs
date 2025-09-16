@@ -69,6 +69,10 @@ export const ToolView = mvc.View.extend({
         return !!this._visible;
     },
 
+    isOverlay: function() {
+        return !!this.parentView && this.parentView.hasLayer();
+    },
+
     focus: function() {
         var opacity = this.options.focusOpacity;
         if (isFinite(opacity)) this.el.style.opacity = opacity;

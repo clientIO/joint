@@ -1,5 +1,5 @@
 import { ToolView } from '../dia/ToolView.mjs';
-import { getViewBBox } from './helpers.mjs';
+import { getToolOptions, getViewBBox } from './helpers.mjs';
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 import V from '../V/index.mjs';
@@ -32,9 +32,9 @@ export const Button = ToolView.extend({
         return this.relatedView.model.isLink() ? this.getLinkMatrix() : this.getElementMatrix();
     },
     getElementMatrix() {
-        const { relatedView: view, options } = this;
-        let { x = 0, y = 0, offset = {}, useModelGeometry, rotate, scale } = options;
-        let bbox = getViewBBox(view, useModelGeometry);
+        const { relatedView: view } = this;
+        let { x = 0, y = 0, offset = {}, useModelGeometry, rotate, scale, relative } = getToolOptions(this);
+        let bbox = getViewBBox(view, { useModelGeometry, relative });
         const angle = view.model.angle();
         if (!rotate) bbox = bbox.bbox(angle);
         const { x: offsetX = 0, y: offsetY = 0 } = offset;
@@ -49,7 +49,9 @@ export const Button = ToolView.extend({
             y = Number(util.evalCalcExpression(y, bbox));
         }
         let matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
-        if (rotate) matrix = matrix.rotate(angle);
+        // With relative positioning, rotation is implicit
+        // (the tool rotates along with the element).
+        if (rotate && !relative) matrix = matrix.rotate(angle);
         matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
         if (scale) matrix = matrix.scale(scale);
         return matrix;
