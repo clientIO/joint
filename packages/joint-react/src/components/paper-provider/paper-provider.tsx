@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
+import { useCallback, useMemo, useRef, useContext } from 'react';
 import { GraphStoreContext, PaperContext } from '../../context';
 import { dia, shapes } from '@joint/core';
 import { useGraph } from '../../hooks';
@@ -9,6 +9,8 @@ import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider
 import { useElementViews, type OnPaperRenderElement } from '../../hooks/use-element-views';
 import { PaperProviderConfigContext } from '../../context/paper-provide-config-context';
 import type { GraphLink } from '../../types/link-types';
+import { useImperativeApi } from '../../hooks/use-imperative-api';
+import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
 const DEFAULT_CLICK_THRESHOLD = 10;
 
 type ReactPaperOptionsBase = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen' | 'defaultLink'>;
@@ -61,85 +63,115 @@ function Component(props: Readonly<PaperProviderProps>) {
     [defaultLink]
   );
 
-  const [paperCtx] = useState<PaperContext>(function (): PaperContext {
-    const portsStore = createPortsStore();
-    const elementView = dia.ElementView.extend({
-      // Render element using react, `elementView.el` is used as portal gate for react (createPortal)
-      onRender() {
-        // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
-        const elementView: dia.ElementView = this;
-        onRenderElement(elementView);
+  const { ref: paperCtxRef, isReady } = useImperativeApi(
+    {
+      onLoad() {
+        const portsStore = createPortsStore();
+        const elementView = dia.ElementView.extend({
+          // Render element using react, `elementView.el` is used as portal gate for react (createPortal)
+          onRender() {
+            // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
+            const elementView: dia.ElementView = this;
+            onRenderElement(elementView);
+          },
+          // Render port using react, `portData.portElement.node` is used as portal gate for react (createPortal)
+          _renderPorts() {
+            // This is firing when the ports are rendered (updated, inserted, removed)
+            // @ts-expect-error we use private jointjs api method, it throw error here.
+            dia.ElementView.prototype._renderPorts.call(this);
+            // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
+            const elementView: dia.ElementView = this;
+
+            const portElementsCache: Record<string, PortElementsCacheEntry> =
+              this._portElementsCache;
+            portsStore.onRenderPorts(elementView.model.id, portElementsCache);
+          },
+        });
+
+        // Create a new JointJS Paper with the provided options
+        const paper = new dia.Paper({
+          async: true,
+          sorting: dia.Paper.sorting.APPROX,
+          preventDefaultBlankAction: false,
+          frozen: true,
+          defaultLink: defaultLinkJointJS,
+          model: graph,
+          elementView,
+          ...paperOptions,
+          clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
+        });
+
+        /**
+         * Render paper ulitily - is called when html element is bind to the react paper component
+         * @param element - The HTML element to render the paper into
+         */
+        function renderPaper(element: HTMLElement) {
+          if (!paper) {
+            throw new Error('Paper is not created');
+          }
+
+          const elementToRender = overwriteDefaultPaperElement
+            ? overwriteDefaultPaperElement(instance)
+            : paper.el;
+
+          if (!elementToRender) {
+            throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
+          }
+
+          element.replaceChildren(elementToRender);
+          paper.unfreeze();
+        }
+
+        const instance: PaperContext = {
+          paper,
+          portsStore,
+          elementViews: EMPTY_OBJECT,
+          paperHTMLElement,
+          renderPaper,
+        };
+        return {
+          instance,
+          cleanup() {
+            paper.remove();
+          },
+        };
       },
-      // Render port using react, `portData.portElement.node` is used as portal gate for react (createPortal)
-      _renderPorts() {
-        // This is firing when the ports are rendered (updated, inserted, removed)
-        // @ts-expect-error we use private jointjs api method, it throw error here.
-        dia.ElementView.prototype._renderPorts.call(this);
-        // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
-        const elementView: dia.ElementView = this;
-
-        const portElementsCache: Record<string, PortElementsCacheEntry> = this._portElementsCache;
-        portsStore.onRenderPorts(elementView.model.id, portElementsCache);
+      onUpdate(instance) {
+        const { paper } = instance;
+        assignOptions(paper.options, {
+          defaultLink: defaultLinkJointJS,
+          ...paperOptions,
+        });
+        const { drawGrid, height, width, theme, gridSize } = paperOptions;
+        if (width !== undefined && height !== undefined) {
+          paper.setDimensions(width, height);
+        }
+        if (drawGrid) {
+          paper.setGrid(drawGrid);
+        }
+        if (gridSize !== undefined) {
+          paper.setGridSize(gridSize);
+        }
+        if (theme) {
+          paper.setTheme(theme);
+        }
       },
-    });
+    },
+    [defaultLinkJointJS, ...dependencyExtract(paperOptions)]
+  );
 
-    // Create a new JointJS Paper with the provided options
-    const paper = new dia.Paper({
-      async: true,
-      sorting: dia.Paper.sorting.APPROX,
-      preventDefaultBlankAction: false,
-      frozen: true,
-      defaultLink: defaultLinkJointJS,
-      model: graph,
-      elementView,
-      ...paperOptions,
-      clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
-    });
-
-    /**
-     * Render paper ulitily - is called when html element is bind to the react paper component
-     * @param element - The HTML element to render the paper into
-     */
-    function renderPaper(element: HTMLElement) {
-      if (!paper) {
-        throw new Error('Paper is not created');
-      }
-
-      const elementToRender = overwriteDefaultPaperElement
-        ? overwriteDefaultPaperElement(paperCtx)
-        : paper.el;
-
-      if (!elementToRender) {
-        throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
-      }
-
-      element.replaceChildren(elementToRender);
-      paper.unfreeze();
+  const paperContextFull = useMemo((): PaperContext | null => {
+    if (!isReady || !paperCtxRef.current) {
+      return null;
     }
-
     return {
-      paper,
-      portsStore,
-      elementViews: EMPTY_OBJECT,
-      paperHTMLElement,
-      renderPaper,
-    };
-  });
-
-  useEffect(() => {
-    paperCtx.paper.options = {
-      defaultLink: defaultLinkJointJS,
-      ...paperCtx.paper.options,
-      ...paperOptions,
-    };
-  }, [defaultLinkJointJS, paperCtx.paper, paperOptions]);
-
-  const paperContextFull = useMemo((): PaperContext => {
-    return {
-      ...paperCtx,
+      ...paperCtxRef.current,
       elementViews,
     };
-  }, [paperCtx, elementViews]);
+  }, [isReady, paperCtxRef, elementViews]);
+  if (!paperContextFull) {
+    return null;
+  }
 
   // Remove the check for existing context, always provide PaperContext
   return <PaperContext.Provider value={paperContextFull}>{children}</PaperContext.Provider>;

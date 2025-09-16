@@ -1,11 +1,12 @@
 import type React from 'react';
-import { forwardRef, useCallback, useEffect, useId } from 'react';
+import { forwardRef, useId } from 'react';
 import { useCellId } from '../../hooks/use-cell-id';
 import { usePaper } from '../../hooks/use-paper';
 import type { dia } from '@joint/core';
 import { useChildrenRef } from '../../hooks/use-children-ref';
-import { useHighlighter } from '../../hooks/use-highlighter';
 import typedMemo from '../../utils/typed-memo';
+import { useImperativeApi } from '../../hooks/use-imperative-api';
+import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
 
 export type OnCreateHighlighter<
   Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
@@ -55,38 +56,37 @@ function RawComponent<
   const highlighterId = useId();
   const { elementRef, elementChildren } = useChildrenRef(children, forwardedRef);
 
-  // ERROR HANDLING
-  useEffect(() => {
-    if (!elementRef.current) {
-      throw new Error('Highlighter children component must have accessible ref');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const create = useCallback(
-    (hOptions: Highlighter) => {
-      const cellView = paper.findViewByModel(id);
-      if (!cellView) {
-        return;
-      }
-      return onCreateHighlighter(cellView, elementRef.current ?? {}, highlighterId, hOptions);
+  useImperativeApi(
+    {
+      onLoad() {
+        const cellView = paper.findViewByModel(id);
+        if (!cellView) {
+          throw new Error('CellView not found for highlighter');
+        }
+        const instance = onCreateHighlighter(
+          cellView,
+          elementRef.current ?? {},
+          highlighterId,
+          options
+        );
+        return {
+          instance,
+          cleanup() {
+            instance?.remove();
+          },
+        };
+      },
+      onUpdate(instance) {
+        const oldOptions = instance?.options ?? {};
+        assignOptions(oldOptions, options as Partial<Highlighter>);
+        // @ts-expect-error Internal API
+        instance.update();
+      },
+      isDisabled: isHidden ?? false,
     },
-    [onCreateHighlighter, elementRef, highlighterId, id, paper]
+    dependencyExtract(options)
   );
 
-  const update = useCallback((instance: ReturnType<typeof create>, hOptions: Highlighter) => {
-    const oldOptions = instance?.options ?? {};
-    if (!instance?.options) {
-      return;
-    }
-    instance.options = {
-      ...oldOptions,
-      ...hOptions,
-    };
-
-    // @ts-expect-error Internal API
-    instance.update();
-  }, []);
-  useHighlighter(create, update, options, isHidden);
   return elementChildren;
 }
 

@@ -124,7 +124,7 @@ const config = [
       "react-hooks/exhaustive-deps": [
         "error",
         {
-          additionalHooks: "useInitAndSync",
+          additionalHooks: "",
         },
       ],
 

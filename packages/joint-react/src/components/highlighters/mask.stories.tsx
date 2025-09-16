@@ -40,6 +40,7 @@ export const Default = makeStory<Story>({
   args: {
     stroke: SECONDARY,
     children: <RectRender />,
+    isHidden: false,
   },
 
   apiURL: API_URL,
@@ -54,6 +55,7 @@ export const WithPadding = makeStory<Story>({
     padding: 10,
     stroke: SECONDARY,
     children: <RectRender />,
+    isHidden: false,
   },
 
   apiURL: API_URL,
@@ -70,6 +72,7 @@ export const WithSVGProps = makeStory<Story>({
     strokeWidth: 5,
     strokeLinejoin: 'bevel',
     children: <RectRender />,
+    isHidden: false,
   },
 
   apiURL: API_URL,

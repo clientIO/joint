@@ -10,7 +10,7 @@ export * from './utils/cell/cell-map';
 export * from './utils/cell/cell-utilities';
 export * from './utils/joint-jsx/jsx-to-markup';
 export * from './utils/link-utilities';
-export * from './utils/make-options';
+export * from './utils/object-utilities';
 
 export * from './models/react-element';
 

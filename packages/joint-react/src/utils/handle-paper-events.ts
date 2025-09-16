@@ -5,7 +5,7 @@ import type { EventMap, PaperEvents } from '../types/event.types';
 export const PAPER_EVENTS_MAPPER: {
   [K in keyof PaperEvents]?: {
     jointEvent: keyof EventMap;
-    handler: (paper: dia.Paper, ...args: never[]) => Parameters<NonNullable<PaperEvents[K]>>[0];
+    handler: (paper: dia.Paper, ...args: never[]) => unknown;
   };
 } = {
   // --- render ---
@@ -609,9 +609,9 @@ export const PAPER_EVENTS_MAPPER: {
     jointEvent: 'transform',
     handler: (paper, matrix: SVGMatrix, data: unknown) => ({ paper, matrix, data }),
   },
-  onCustomEvent: {
+  customEvents: {
     jointEvent: 'custom',
-    handler: (paper, eventName: string, args: unknown[]) => ({ paper, eventName, args }),
+    handler: (paper: dia.Paper, eventName: string, args: unknown[]) => ({ paper, eventName, args }),
   },
 };
 
@@ -626,13 +626,27 @@ export function handlePaperEvents(paper: dia.Paper, events: PaperEvents): () => 
 
   for (const name in events) {
     const eventName = name as keyof PaperEvents;
+    if (eventName === 'customEvents' && events.customEvents) {
+      for (const customEventName in events.customEvents) {
+        const customEventHandler = events.customEvents[customEventName];
+        if (customEventHandler) {
+          controller.listenTo(paper, customEventName, (...args: Parameters<mvc.EventHandler>) => {
+            customEventHandler({ eventName: customEventName, args, paper });
+          });
+        }
+      }
+      continue;
+    }
     const event = events[eventName];
     if (!event) continue;
     const listener = PAPER_EVENTS_MAPPER[eventName];
     if (!listener) continue;
+
     controller.listenTo(paper, listener.jointEvent, (...args: never[]) => {
       const objectResult = listener.handler(paper, ...args);
-      event(objectResult as never);
+      if (typeof event === 'function') {
+        event(objectResult as never);
+      }
     });
   }
 

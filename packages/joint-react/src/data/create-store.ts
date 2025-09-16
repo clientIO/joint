@@ -10,7 +10,7 @@ import type { CellMap } from '../utils/cell/cell-map';
 import type { Dispatch, SetStateAction } from 'react';
 import { CONTROLLED_MODE_BATCH_NAME } from '../utils/graph/update-graph';
 
-export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
+export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = { ...shapes, ReactElement };
 
 export interface StoreOptions<
   Graph extends dia.Graph,

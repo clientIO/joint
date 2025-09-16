@@ -1,23 +1,17 @@
-import { type dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import type { GraphLink } from '../../types/link-types';
 import {
   GraphAreElementsMeasuredContext,
   GraphStoreContext,
 } from '../../context/graph-store-context';
-import {
-  useEffect,
-  useLayoutEffect,
-  useState,
-  type Dispatch,
-  type PropsWithChildren,
-  type SetStateAction,
-} from 'react';
+import { useLayoutEffect, type Dispatch, type PropsWithChildren, type SetStateAction } from 'react';
 import { createStore, type Store } from '../../data/create-store';
 import { useElements } from '../../hooks/use-elements';
 import { useGraph } from '../../hooks';
 import { setElements, setLinks } from '../../utils/cell/cell-utilities';
 import type { GraphElement } from '../../types/element-types';
 import { CONTROLLED_MODE_BATCH_NAME } from '../../utils/graph/update-graph';
+import { useImperativeApi } from '../../hooks/use-imperative-api';
 
 interface GraphProviderHandlerProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -203,28 +197,31 @@ export function GraphProvider<
    * @returns - The graph store instance.
    */
 
-  const [graphStore, setGraphStore] = useState<null | Store>(null);
+  const { isReady, ref } = useImperativeApi(
+    {
+      onLoad() {
+        const newStore = store ?? createStore({ ...rest });
+        // We must use state initialization for the store, because it can be used in the same component.
 
-  useEffect(() => {
-    const newStore = store ?? createStore({ ...rest });
-    // We must use state initialization for the store, because it can be used in the same component.
-    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
-    setGraphStore(newStore);
-    return () => {
-      if (newStore) {
-        newStore.destroy(!!rest.graph || !!store?.graph);
-      }
-    };
-    // On load initialization
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+        return {
+          cleanup() {
+            if (newStore) {
+              newStore.destroy(!!rest.graph || !!store?.graph);
+            }
+          },
+          instance: newStore,
+        };
+      },
+    },
+    []
+  );
 
-  if (graphStore === null) {
+  if (!isReady) {
     return null;
   }
 
   return (
-    <GraphStoreContext.Provider value={graphStore}>
+    <GraphStoreContext.Provider value={ref.current}>
       <GraphProviderHandler {...props}>{children}</GraphProviderHandler>
     </GraphStoreContext.Provider>
   );

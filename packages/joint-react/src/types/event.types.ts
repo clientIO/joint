@@ -528,10 +528,8 @@ export interface PaperEvents {
   onResize?: (args: { width: number; height: number; data: unknown; paper: dia.Paper }) => void;
   onTransform?: (args: { matrix: SVGMatrix; data: unknown; paper: dia.Paper }) => void;
 
-  // Custom events
-  onCustomEvent?: (args: {
-    eventName: string;
-    args: Parameters<mvc.EventHandler>;
-    paper: dia.Paper;
-  }) => void;
+  customEvents?: Record<
+    string,
+    (args: { eventName: string; args: Parameters<mvc.EventHandler>; paper: dia.Paper }) => void
+  >;
 }

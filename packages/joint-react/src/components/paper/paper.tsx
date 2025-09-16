@@ -349,16 +349,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
   const hasPaper = !!paperContext?.paper;
   return (
     <>
-      <div
-        className={className}
-        ref={paperHTMLElement}
-        // ref={(refObject) => {
-        //   console.log(refObject);
-        //   // paperHTMLElement.current = refObject;
-        //   // renderPaper(refObject as HTMLElement);
-        // }}
-        style={paperContainerStyle}
-      >
+      <div className={className} ref={paperHTMLElement} style={paperContainerStyle}>
         {hasPaper && content}
       </div>
       {hasPaper && children}

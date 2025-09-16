@@ -77,16 +77,6 @@ export const WithHTMLElement: Story = {
   },
 };
 
-export const WithGrid: Story = {
-  args: {
-    drawGrid: true,
-    gridSize: 10,
-    renderElement: RenderHTMLElement as never,
-    width: '100%',
-    className: PAPER_CLASSNAME,
-  },
-};
-
 export const WithScaleDown: Story = {
   args: {
     scale: 0.7,
@@ -133,7 +123,6 @@ export const WithEvent: Story = {
     onCellPointerDown: action('onCellPointerDown'),
     onCellPointerMove: action('onCellPointerMove'),
     onCellPointerUp: action('onCellPointerUp'),
-    onCustomEvent: action('onCustomEvent'),
     onElementContextMenu: action('onElementContextMenu'),
     onElementMagnetContextMenu: action('onElementMagnetContextMenu'),
     onElementMagnetPointerClick: action('onElementMagnetPointerClick'),
@@ -220,11 +209,6 @@ export const WithCustomEvent: Story = {
     onElementPointerClick: ({ paper }) => {
       paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
     },
-    onCustomEvent: ({ args, eventName }) => {
-      action('onCustomEvent')(
-        `Custom event triggered: ${eventName} with args: ${JSON.stringify(args)}`
-      );
-    },
     width: '100%',
     className: PAPER_CLASSNAME,
   },
@@ -236,12 +220,6 @@ export const WithDrawGrid: Story = {
     onElementPointerClick: ({ paper }) => {
       paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
     },
-    onCustomEvent: ({ args, eventName }) => {
-      action('onCustomEvent')(
-        `Custom event triggered: ${eventName} with args: ${JSON.stringify(args)}`
-      );
-    },
-
     className: PAPER_CLASSNAME,
     drawGrid: { name: 'dot', thickness: 2, color: 'white' },
     drawGridSize: 10,

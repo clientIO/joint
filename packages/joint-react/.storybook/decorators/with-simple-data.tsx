@@ -4,7 +4,7 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 
-import type { HTMLProps, JSX, PropsWithChildren } from 'react';
+import { useCallback, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
 import type { InferElement } from '@joint/react';
 import {
   createElements,
@@ -15,6 +15,10 @@ import {
   useElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
+import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
+
+export type StoryFunction = PartialStoryFn<any, any>;
+export type StoryCtx = StoryContext<any, any>;
 
 const initialElements = createElements([
   {
@@ -59,10 +63,10 @@ export function SimpleGraphProviderDecorator({ children }: Readonly<PropsWithChi
   );
 }
 
-export function SimpleGraphDecorator(Story: any) {
+export function SimpleGraphDecorator(Story: StoryFunction, { args }: StoryCtx) {
   return (
     <SimpleGraphProviderDecorator>
-      <Story />
+      <Story {...args} />
     </SimpleGraphProviderDecorator>
   );
 }
@@ -109,12 +113,12 @@ export function RenderPaperWithChildren(properties: Readonly<{ children: JSX.Ele
   );
 }
 
-export function SimpleRenderItemDecorator(Story: any) {
-  return <RenderItemDecorator renderElement={Story} />;
-}
-
-export function SimpleRenderPaperDecorator(Story: any) {
-  return <RenderPaperWithChildren>{Story}</RenderPaperWithChildren>;
+export function SimpleRenderItemDecorator(Story: StoryFunction, { args }: StoryCtx) {
+  const component = useCallback(
+    (element: SimpleElement) => <Story {...element} {...args} />,
+    [Story, args]
+  );
+  return <RenderItemDecorator renderElement={component} />;
 }
 
 export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {

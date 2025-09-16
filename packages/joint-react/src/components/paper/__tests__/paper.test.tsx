@@ -129,9 +129,12 @@ describe('Paper Component', () => {
       }, [paper]);
       return null;
     }
+
+    // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
+    const customEvents = { MyCustomEventOnClick: handleCustomEvent };
     render(
       <GraphProvider initialElements={initialElements}>
-        <Paper<Element> onCustomEvent={handleCustomEvent}>
+        <Paper<Element> customEvents={customEvents}>
           <FireEvent />
         </Paper>
       </GraphProvider>
