@@ -23,7 +23,8 @@ export class CellLayer extends CellGroup {
     initialize(attrs) {
         super.initialize(attrs);
 
-        this.cells.on('cell:change:z', () => {
+        this.cells.on('change', (cell) => {
+            if (!cell.hasChanged('z')) return;
             this.cells.sort();
         });
     }

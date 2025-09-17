@@ -23,7 +23,8 @@ export const Graph = Model.extend({
         cellLayerCollection.on('all', function(eventName) {
             // prevent cell events to be triggered on the graph as
             // they are already triggered via the cell collection
-            if (eventName.startsWith('layer:cell:')) {
+            // includes both
+            if (eventName.startsWith('layer:cell')) {
                 return;
             }
 

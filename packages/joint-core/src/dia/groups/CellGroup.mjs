@@ -19,8 +19,9 @@ export class CellGroupCollection extends Collection {
     // Normally, all cells are part of the original Graph cellCollection,
     // this change allows cells to trigger 'add' and 'remove' events
     // when they are added/removed from a CellGroup.
-    _onModelEvent(event, model) {
+    /*_onModelEvent(event, model, collection) {
         if (model) {
+            if ((event === model.eventsPrefix + 'add' || event === model.eventsPrefix + 'remove') && collection !== this) return;
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
                 var id = this.modelId(model.attributes, model.idAttribute);
@@ -37,7 +38,7 @@ export class CellGroupCollection extends Collection {
         }
         arguments[0] = prefix + event;
         this.trigger.apply(this, arguments);
-    }
+    }*/
 }
 
 export class CellGroup extends Model {
@@ -50,6 +51,7 @@ export class CellGroup extends Model {
 
     preinitialize() {
         this.collectionConstructor = CellGroupCollection;
+        this.eventsPrefix = 'self:';
     }
 
     initialize(attrs) {
@@ -58,12 +60,7 @@ export class CellGroup extends Model {
         this.cells = new this.collectionConstructor();
 
         // Make all the events fired in the `cells` collection available.
-        this.cells.on('all', function(eventName) {
-            if (eventName === 'reset' || eventName === 'sort') {
-                arguments[0] = 'cells:' + eventName;
-            }
-            this.trigger.apply(this, arguments);
-        }, this);
+        this.cells.on('all', this.trigger, this);
     }
 
     add(cell, opt) {
@@ -74,10 +71,7 @@ export class CellGroup extends Model {
         this.cells.remove(cell, opt);
     }
 
-    reset(cells, opt) {
-        if (cells == null) {
-            cells = [];
-        }
+    reset(cells = [], opt) {
         this.cells.reset(cells, opt);
     }
 

@@ -26,18 +26,20 @@ export const CellLayerView = LayerView.extend({
         const { model, options: { paper }} = this;
         const graph = paper.model;
 
-        this.listenTo(model, 'cells:sort', () => {
+        this.listenTo(model, 'sort', () => {
             if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
             this.sort();
         });
 
-        this.listenTo(model, 'cells:add', (cell, _collection, opt) => {
+        this.listenTo(model, 'add', (cell, _collection, opt) => {
             if (!opt.initial) {
                 this._requestCellViewInsertion(cell, opt);
             }
         });
 
-        this.listenTo(model, 'cell:change:z', (cell, _value, opt) => {
+        this.listenTo(model, 'change', (cell, opt) => {
+            if (!cell.hasChanged('z')) return;
+            
             if (paper.options.sorting === sortingTypes.APPROX) {
                 this._requestCellViewInsertion(cell, opt);
             }

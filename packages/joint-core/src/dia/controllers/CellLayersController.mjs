@@ -15,8 +15,7 @@ export class CellLayersController extends Listener {
         this.defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
         this.addCellLayer({
             id: DEFAULT_CELL_LAYER_ID,
-            default: true,
-            type: 'CellLayer',
+            type: 'LegacyCellLayer',
         });
 
         this.startListening();
@@ -27,58 +26,45 @@ export class CellLayersController extends Listener {
 
         // if a new layer is added and it is marked as default,
         // change the default layer
-        this.listenTo(this.collection, 'layers:add', (_context, cellLayer) => {
+        /* this.listenTo(this.collection, 'layers:add', (_context, cellLayer) => {
             if (cellLayer.get('default') === true) {
                 this._changeDefaultLayer(cellLayer);
             }
-        });
+        }); */
 
         // remove all cells from this layer when the layer is removed from the graph
-        this.listenTo(this.collection, 'layers:remove', (_context, cellLayer, opt) => {
-            cellLayer.cells.toArray().forEach(cell => {
-                cell.remove(opt);
-            });
+        this.listenTo(this.collection, 'self:remove', (_context, cellLayer, opt = {}) => {
+            this.onCellLayerRemove(cellLayer, opt);
         });
 
-        this.listenTo(graph, 'add', (_context, cell) => {
-            this.onAdd(cell);
+        this.listenTo(graph, 'add', (_context, cell, opt = {}) => {
+            this.onCellAdd(cell, opt);
         });
 
-        this.listenTo(graph, 'remove', (_context, cell) => {
-            this.onRemove(cell);
+        this.listenTo(graph, 'remove', (_context, cell, opt = {}) => {
+            this.onCellRemove(cell, opt);
         });
 
-        this.listenTo(graph, 'reset', (_context, { models: cells }) => {
-            const { collection } = this;
-
-            collection.each(cellLayer => {
-                cellLayer.reset();
-            });
-
-            cells.forEach(cell => {
-                this.onAdd(cell, true);
-            });
+        this.listenTo(graph, 'reset', (_context, { models: cells }, opt = {}) => {
+            this.onGraphReset(cells, opt);
         });
 
-        this.listenTo(graph, 'change:layer', (_context, cell, layerId, opt) => {
-            if (!layerId) {
-                layerId = this.defaultCellLayerId;
-            }
-            const previousLayerId = cell.previous('layer') || this.defaultCellLayerId;
-
-            if (previousLayerId === layerId) {
-                return; // no change
-            }
-
-            const previousLayer = this.getCellLayer(previousLayerId);
-            previousLayer.remove(cell, opt);
-
-            const layer = this.getCellLayer(layerId);
-            layer.add(cell, opt);
+        this.listenTo(this.collection, 'change', (_context, cell, opt = {}) => {
+            this.onCellChange(cell, opt);
         });
     }
 
     resetCellLayers(cellLayers = [], opt = {}) {
+        if (!opt.defaultLayer) {
+            opt.defaultLayer = DEFAULT_CELL_LAYER_ID;
+
+            cellLayers.push({
+                id: DEFAULT_CELL_LAYER_ID,
+                type: 'LegacyCellLayer',
+            });
+        }
+        this.defaultCellLayerId = opt.defaultLayer;
+
         const attributes = cellLayers.map(cellLayer => {
             if (cellLayer instanceof CellLayer) {
                 return cellLayer.attributes;
@@ -87,38 +73,19 @@ export class CellLayersController extends Listener {
             }
         });
 
-        this._ensureDefaultLayer(attributes);
-        this.defaultCellLayerId = attributes.find(attrs => attrs.default === true).id;
-
         this.collection.reset(attributes, opt);
         this.graph.cellCollection.each(cell => {
-            this.onAdd(cell);
+            this.onCellAdd(cell, opt);
         });
     }
 
-    _ensureDefaultLayer(attributes) {
-        const defaultLayers = attributes.filter(attrs => attrs.default === true);
-
-        if (defaultLayers.length > 1) {
-            throw new Error('dia.Graph: Only one default cell layer can be defined.');
-        }
-        // if no default layer is defined, create one
-        if (defaultLayers.length === 0) {
-            attributes.push({
-                id: DEFAULT_CELL_LAYER_ID,
-                default: true,
-                type: 'CellLayer',
-            });
-        }
-    }
-
-    onAdd(cell, reset = false) {
+    onCellAdd(cell, opt) {
         const layerId = cell.layer() || this.defaultCellLayerId;
         const layer = this.getCellLayer(layerId);
 
         // compatibility
         // in the version before groups, z-index was not set on reset
-        if (!reset) {
+        if (!opt.reset) {
             if (!cell.has('z')) {
                 cell.set('z', layer.maxZIndex() + 1);
             }
@@ -126,16 +93,54 @@ export class CellLayersController extends Listener {
 
         // add to the layer without triggering rendering update
         // when the cell is just added to the graph, it will be rendered normally by the paper
-        layer.add(cell, { initial: true });
+        layer.add(cell, { ...opt, initial: true });
     }
 
-    onRemove(cell) {
+    onCellRemove(cell, opt) {
         const layerId = cell.layer() || this.defaultCellLayerId;
 
         if (this.hasCellLayer(layerId)) {
             const layer = this.getCellLayer(layerId);
-            layer.remove(cell);
+            layer.remove(cell, opt);
         }
+    }
+
+    onCellChange(cell, opt) {
+        if (!cell.hasChanged('layer')) return;
+
+        let layerId = cell.get('layer');
+        if (!layerId) {
+            layerId = this.defaultCellLayerId;
+        }
+        const previousLayerId = cell.previous('layer') || this.defaultCellLayerId;
+
+        if (previousLayerId === layerId) {
+            return; // no change
+        }
+
+        const previousLayer = this.getCellLayer(previousLayerId);
+        previousLayer.remove(cell, opt);
+
+        const layer = this.getCellLayer(layerId);
+        layer.add(cell, opt);
+    }
+
+    onGraphReset(cells, opt = {}) {
+        const { collection } = this;
+
+        collection.each(cellLayer => {
+            cellLayer.reset([], opt);
+        });
+
+        cells.forEach(cell => {
+            this.onCellAdd(cell, { ...opt, reset: true });
+        });
+    }
+
+    onCellLayerRemove(cellLayer, opt) {
+        cellLayer.cells.toArray().forEach(cell => {
+            cell.remove(opt);
+        });
     }
 
     getDefaultCellLayer() {
@@ -149,19 +154,19 @@ export class CellLayersController extends Listener {
 
         const layer = this.getCellLayer(layerId);
         this._changeDefaultLayer(layer);
-        layer.set('default', true, { cellLayersController: this });
     }
 
     _changeDefaultLayer(newDefaultLayer) {
-        if (newDefaultLayer.id === this.defaultCellLayerId) {
+        const newDefaultLayerId = newDefaultLayer.id;
+
+        if (newDefaultLayerId === this.defaultCellLayerId) {
             return; // no change
         }
 
         if (this.hasCellLayer(this.defaultCellLayerId)) {
             const previousDefaultLayer = this.getCellLayer(this.defaultCellLayerId);
-            previousDefaultLayer.unset('default', { cellLayersController: this });
             // set new default layer for paper to use when inserting to the new default layer
-            this.defaultCellLayerId = newDefaultLayer.id;
+            this.defaultCellLayerId = newDefaultLayerId;
             previousDefaultLayer.cells.toArray().forEach(cell => {
                 if (cell.get('layer') == null) {
                     previousDefaultLayer.remove(cell);
@@ -169,17 +174,20 @@ export class CellLayersController extends Listener {
                 }
             });
         } else {
-            this.defaultCellLayerId = newDefaultLayer.id;
+            this.defaultCellLayerId = newDefaultLayerId;
         }
     }
 
-    addCellLayer(cellLayer, _opt) {
+    /**
+     * Adds a new cell layer to the end of the layers collection
+     */
+    addCellLayer(cellLayer, opt) {
         const { collection } = this;
 
-        collection.add(cellLayer);
+        collection.add(cellLayer, opt);
     }
 
-    insertCellLayer(cellLayer, insertBefore) {
+    insertCellLayer(cellLayer, { insertBefore } = {}) {
         const id = cellLayer.id;
 
         // insert before itself is a no-op
@@ -217,7 +225,7 @@ export class CellLayersController extends Listener {
 
         this.collection.add(cellLayer, { at: insertAt, silent: true });
         // trigger sort event manually since we are not using collection sorting workflow
-        this.collection.trigger('sort', this.collection.toArray());
+        this.collection.trigger('sort', this.collection);
     }
 
     removeCellLayer(layerId, opt) {
