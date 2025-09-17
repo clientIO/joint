@@ -1,16 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  Paper,
-  useUpdateElement,
-  type InferElement,
-} from '@joint/react';
+import { createElements, createLinks, GraphProvider, Paper, type InferElement } from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
+import { useCellActions } from '../../../hooks/use-cell-actions';
 
 const initialElements = createElements([
   { id: '1', label: 'Node 1', color: PRIMARY, x: 100, y: 0 },
@@ -32,7 +26,7 @@ const initialEdges = createLinks([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderElement({ color, id }: BaseElementWithData) {
-  const setColor = useUpdateElement<BaseElementWithData>(id, 'color');
+  const { set } = useCellActions<BaseElementWithData>();
   return (
     <HTMLNode
       style={{
@@ -47,7 +41,7 @@ function RenderElement({ color, id }: BaseElementWithData) {
         className="nodrag"
         type="color"
         onChange={(event) => {
-          setColor(event.target.value);
+          set(id, (previous) => ({ ...previous, color: event.target.value }));
         }}
         defaultValue={color}
       />

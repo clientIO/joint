@@ -6,11 +6,11 @@ import {
   GraphProvider,
   Paper,
   useElements,
-  useUpdateElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { useCellActions } from '../../../hooks/use-cell-actions';
 
 const initialElements = createElements([
   { id: '1', color: PRIMARY, x: 100, y: 0, width: 130, height: 35 },
@@ -32,13 +32,13 @@ const initialEdges = createLinks([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function ElementInput({ id, color }: BaseElementWithData) {
-  const setColor = useUpdateElement<BaseElementWithData>(id, 'color');
+  const { set } = useCellActions<BaseElementWithData>();
   return (
     <input
       className="nodrag"
       type="color"
       value={color}
-      onChange={(event) => setColor(event.target.value)}
+      onChange={(event) => set(id, (previous) => ({ ...previous, color: event.target.value }))}
     />
   );
 }

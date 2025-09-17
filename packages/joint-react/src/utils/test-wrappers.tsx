@@ -58,5 +58,12 @@ export const simpleRenderElementWrapper = paperRenderElementWrapper({
         height: 99,
       },
     ],
+    initialLinks: [
+      {
+        id: '3',
+        source: '1',
+        target: '2',
+      },
+    ],
   },
 });

@@ -1,8 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
-import { useElements } from '../use-elements';
+import { useLinks } from '../use-links';
 
-describe('use-elements', () => {
+describe('use-links', () => {
   const wrapper = graphProviderWrapper({
     initialElements: [
       {
@@ -16,6 +16,13 @@ describe('use-elements', () => {
         height: 99,
       },
     ],
+    initialLinks: [
+      {
+        id: '3',
+        source: '1',
+        target: '2',
+      },
+    ],
   });
 
   it('should get elements properly without selector', async () => {
@@ -23,7 +30,7 @@ describe('use-elements', () => {
     const { result } = renderHook(
       () => {
         renders();
-        return useElements();
+        return useLinks();
       },
       {
         wrapper,
@@ -31,13 +38,9 @@ describe('use-elements', () => {
     );
 
     await waitFor(() => {
-      expect(renders).toHaveBeenCalledTimes(1);
-      expect(result.current.length).toBe(2);
-      expect(result.current[0].width).toBe(97);
-      expect(result.current[0].height).toBe(99);
-
-      expect(result.current[1].width).toBe(97);
-      expect(result.current[1].height).toBe(99);
+      expect(renders).toHaveBeenCalledTimes(2);
+      expect(result.current.length).toBe(1);
+      expect(result.current[0].id).toBe('3');
     });
   });
 
@@ -46,8 +49,9 @@ describe('use-elements', () => {
     const { result } = renderHook(
       () => {
         renders();
+        // @ts-expect-error - We are testing the selector functionality
         // eslint-disable-next-line sonarjs/no-nested-functions
-        return useElements((element) => element.map((items) => items.width));
+        return useLinks((element) => element.map((items) => items.source.id));
       },
       {
         wrapper,
@@ -55,10 +59,9 @@ describe('use-elements', () => {
     );
 
     await waitFor(() => {
-      expect(renders).toHaveBeenCalledTimes(1);
-      expect(result.current.length).toBe(2);
-      expect(result.current[0]).toBe(97);
-      expect(result.current[1]).toBe(97);
+      expect(renders).toHaveBeenCalledTimes(2);
+      expect(result.current.length).toBe(1);
+      expect(result.current[0]).toBe('1');
     });
   });
 });

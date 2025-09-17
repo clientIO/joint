@@ -16,8 +16,8 @@ import {
 } from '@joint/react';
 import { useCallback, useState } from 'react';
 import type { dia } from '@joint/core';
-import { useCreateElement } from '../../../hooks/use-create-element';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { useCellActions } from '../../../hooks/use-cell-actions';
 
 const initialElements = createElements([
   { id: '1', label: 'Node 1' },
@@ -51,7 +51,7 @@ function Main() {
     []
   );
   const graph = useGraph();
-  const addElement = useCreateElement<BaseElementWithData>();
+  const { set } = useCellActions<BaseElementWithData>();
 
   // Number of elements per row
   const [gridXSize, setGridXSize] = useState(3);
@@ -106,10 +106,14 @@ function Main() {
 
         <button
           onClick={() => {
-            addElement({
+            set({
               id: `${Math.random()}`,
               label: `Node ${elementsLength + 1}`,
+              height: 40,
+              width: 100,
             });
+            // Layout again with the new element
+            makeLayoutWithGrid({ graph, gridXSize });
           }}
           type="button"
           className="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

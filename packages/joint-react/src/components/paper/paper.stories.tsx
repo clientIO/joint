@@ -1,7 +1,10 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable react-perf/jsx-no-new-array-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import type { Meta, StoryObj } from '@storybook/react';
-import { Paper } from './paper';
+import { Paper, type RenderElement } from './paper';
 import {
   SimpleGraphDecorator,
   type SimpleElement,
@@ -13,6 +16,8 @@ import { MeasuredNode } from '../measured-node/measured-node';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
+import { GraphProvider } from '../graph-provider/graph-provider';
+import { useCellActions } from '../../hooks/use-cell-actions';
 
 export type Story = StoryObj<typeof Paper>;
 
@@ -223,5 +228,58 @@ export const WithDrawGrid: Story = {
     className: PAPER_CLASSNAME,
     drawGrid: { name: 'dot', thickness: 2, color: 'white' },
     drawGridSize: 10,
+  },
+};
+
+export const WithElementsHover: Story = {
+  args: {},
+  render: () => {
+    const renderElement: RenderElement = ({ width, height }) => {
+      const { set } = useCellActions();
+      return (
+        <div
+          onClick={() => {
+            set('l1', (previous) => ({ ...previous, hoverColor: 'blue' }));
+          }}
+          style={{ width, height, backgroundColor: 'lightgray' }}
+        ></div>
+      );
+    };
+    return (
+      <GraphProvider
+        initialElements={[
+          { width: 100, height: 40, id: '1', label: 'Element 1', x: 50, y: 50, hoverColor: 'red' },
+          {
+            width: 100,
+            height: 40,
+            id: '2',
+            label: 'Element 1',
+            x: 100,
+            y: 250,
+            hoverColor: 'red',
+          },
+        ]}
+        initialLinks={[
+          {
+            id: 'l1',
+            source: '1',
+            target: '2',
+            attrs: {
+              line: {
+                stroke: PRIMARY,
+              },
+            },
+          },
+        ]}
+      >
+        <Paper
+          useHTMLOverlay
+          className={PAPER_CLASSNAME}
+          width="100%"
+          height={400}
+          renderElement={renderElement}
+        />
+      </GraphProvider>
+    );
   },
 };

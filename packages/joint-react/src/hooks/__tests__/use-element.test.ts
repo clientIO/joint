@@ -1,9 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useElement } from '../use-element';
 import { paperRenderElementWrapper, simpleRenderElementWrapper } from '../../utils/test-wrappers';
-import { useUpdateElement } from '../use-update-element';
-import { useCreateElement } from '../use-create-element';
 import type { GraphElement } from '../../types/element-types';
+import { useCellActions } from '../use-cell-actions';
 
 describe('use-element', () => {
   it('should return data from usuElement hook without selector', async () => {
@@ -89,10 +88,11 @@ describe('use-element', () => {
     const { result } = renderHook(
       () => {
         renders();
+
+        const actions = useCellActions();
         return {
           element: useElement(selector),
-          update: useUpdateElement(),
-          create: useCreateElement(),
+          actions,
         };
       },
       {
@@ -106,16 +106,15 @@ describe('use-element', () => {
     });
 
     act(() => {
-      result.current.update('1', 'size', {
+      result.current.actions.set({
         width: 100,
+        id: '1',
         height: 100,
       });
     });
 
     await waitFor(() => {
       expect(renders).toHaveBeenCalledTimes(3);
-      // TODO WE SHOULD HANDLE THIS TO NOT BE CALLED
-      // now useElement is part of all data, so when one item is changed, it will be called
       expect(selectorCalls).toBe(4);
     });
   });
