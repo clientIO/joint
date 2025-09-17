@@ -105,6 +105,29 @@ export const DirectedGraph = {
         }
     },
 
+    /**
+     * Validates that the graph does not contain an arrangement of cells that Dagre considers invalid:
+     * - A child connected to a container.
+     * - A container connected to a child.
+     * - A container connected to a container.
+     * @param {dia.Graph} graph The graph to validate.
+     * @throws {Error} Throws an error if an invalid arrangement is encountered.
+     */
+    validateGraph: function(graph) {
+
+        graph.getLinks().forEach((link) => {
+            const source = link.getSourceElement();
+            const target = link.getTargetElement();
+            // is container = is element && has at least one embedded element
+            const isSourceContainer = source && source.getEmbeddedCells().some((cell) => cell.isElement());
+            const isTargetContainer = target && target.getEmbeddedCells().some((cell) => cell.isElement());
+            if ((isSourceContainer && target) || (source && isTargetContainer)) {
+                // see https://github.com/clientIO/joint/issues/455
+                throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
+            }
+        });
+    },
+
     layout: function(graphOrCells, opt) {
 
         var graph;
@@ -121,6 +144,7 @@ export const DirectedGraph = {
         graphOrCells = null;
 
         opt = util.defaults(opt || {}, {
+            validateGraph: true,
             resizeClusters: true,
             clusterPadding: 10,
             exportElement: this.exportElement,
@@ -128,8 +152,10 @@ export const DirectedGraph = {
             disableOptimalOrderHeuristic: false
         });
 
-        // create a graphlib.Graph that represents the joint.dia.Graph
-        // var glGraph = graph.toGraphLib({
+        // Check that we are not trying to connect a child to a container.
+        if (opt.validateGraph) this.validateGraph(graph);
+
+        // Create a graphlib.Graph that represents the joint.dia.Graph
         var glGraph = DirectedGraph.toGraphLib(graph, {
             directed: true,
             // We are about to use edge naming feature.
@@ -179,7 +205,7 @@ export const DirectedGraph = {
             }
         }
 
-        // Executes the layout.
+        // Execute the layout.
         dagreUtil.layout(glGraph, {
             debugTiming: !!opt.debugTiming,
             disableOptimalOrderHeuristic: !!opt.disableOptimalOrderHeuristic,

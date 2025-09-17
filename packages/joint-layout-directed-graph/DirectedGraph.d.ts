@@ -38,6 +38,7 @@ export namespace DirectedGraph {
         rankSep?: number;
         marginX?: number;
         marginY?: number;
+        validateGraph?: boolean;
         resizeClusters?: boolean;
         clusterPadding?: dia.Padding | 'default';
         debugTiming?: boolean;
