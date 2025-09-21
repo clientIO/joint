@@ -41,6 +41,7 @@ import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
 import { LayerView } from './layers/LayerView.mjs';
 import { CellLayerView } from './layers/CellLayerView.mjs';
+import { LegacyCellLayerView } from './layers/LegacyCellLayerView.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { Deque } from '../alg/Deque.mjs';
 import * as highlighters from '../highlighters/index.mjs';
@@ -405,13 +406,14 @@ export const Paper = View.extend({
             /* eslint-enable no-undef */
         }
 
-        if (!options.layerViewNamespace) {
-            options.layerViewNamespace = {
-                LayerView,
-                CellLayerView,
-                GridLayerView,
-            }
+        const defaultLayerViewNamespace = {
+            LayerView,
+            CellLayerView,
+            LegacyCellLayerView,
+            GridLayerView,
         }
+
+        this.layerViewNamespace = defaultsDeep({}, options.layerViewNamespace || {}, defaultLayerViewNamespace);
 
         const model = this.model = options.model || new Graph;
 
@@ -878,7 +880,7 @@ export const Paper = View.extend({
             type = modelType + 'View';
         }
 
-        const viewConstructor = this.options.layerViewNamespace[type] || LayerView;
+        const viewConstructor = this.layerViewNamespace[type] || LayerView;
 
         return new viewConstructor(options);
     },

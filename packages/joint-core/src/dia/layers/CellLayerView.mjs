@@ -19,7 +19,7 @@ export const CellLayerView = LayerView.extend({
 
     className: function() {
         const { id } = this.options;
-        return addClassNamePrefix(`${id}-layer`) + ' ' + addClassNamePrefix('viewport') + ' ' + addClassNamePrefix('joint-cell-layer');
+        return addClassNamePrefix(`${id}-layer`) + ' ' + addClassNamePrefix('joint-cell-layer');
     },
 
     startListening() {
@@ -39,7 +39,7 @@ export const CellLayerView = LayerView.extend({
 
         this.listenTo(model, 'change', (cell, opt) => {
             if (!cell.hasChanged('z')) return;
-            
+
             if (paper.options.sorting === sortingTypes.APPROX) {
                 this._requestCellViewInsertion(cell, opt);
             }

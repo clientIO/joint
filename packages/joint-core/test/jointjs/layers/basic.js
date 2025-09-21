@@ -176,23 +176,6 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(this.paper.getLayerViewNode(newDefaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved to new default layer view');
     });
 
-    QUnit.test('Adding new default layer', (assert) => {
-        const newLayer = new joint.dia.CellLayer({ id: 'newLayer', default: true });
-        this.graph.addCellLayer(newLayer);
-
-        assert.ok(this.paper.hasLayerView('newLayer'), 'Paper has layer view "newLayer"');
-
-        const rect = new joint.shapes.standard.Rectangle();
-        rect.addTo(this.graph);
-
-        const newDefaultLayer = this.graph.getDefaultCellLayer();
-        assert.equal(newDefaultLayer.id, 'newLayer', 'New default layer is "newLayer"');
-
-        assert.equal(rect.get('layer'), undefined, 'The layer is not defined (default)');
-        assert.ok(newDefaultLayer.cells.has(rect.id), 'Rectangle cell added to new default layer');
-        assert.ok(this.paper.getLayerViewNode(newDefaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to new default layer view');
-    });
-
     QUnit.test('Inserting layers', (assert) => {
 
         const layer1 = new joint.dia.CellLayer({ id: 'layer1' });
@@ -205,24 +188,24 @@ QUnit.module('layers-basic', function(hooks) {
 
         const layer2 = new joint.dia.CellLayer({ id: 'layer2' });
         this.graph.addCellLayer(layer2);
-        this.graph.insertCellLayer(layer2, 'layer1');
+        this.graph.insertCellLayer(layer2, { insertBefore: 'layer1' });
 
         const updatedCellLayers = this.graph.getCellLayers();
         assert.strictEqual(updatedCellLayers[0].id, 'cells', 'First layer is still "cells"');
         assert.strictEqual(updatedCellLayers[1].id, 'layer2', 'Second layer is now "layer2"');
         assert.strictEqual(updatedCellLayers[2].id, 'layer1', 'Third layer is "layer1"');
 
-        this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'layer1');
+        this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), { insertBefore: 'layer1' });
 
         const finalCellLayers = this.graph.getCellLayers();
         assert.strictEqual(finalCellLayers[0].id, 'layer2', 'First layer is "layer2"');
         assert.strictEqual(finalCellLayers[1].id, 'cells', 'Second layer is still "layer2"');
         assert.strictEqual(finalCellLayers[2].id, 'layer1', 'Third layer is "layer1"');
 
-        this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'cells');
+        this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), { insertBefore: 'cells' });
         assert.deepEqual(this.graph.getCellLayers(), finalCellLayers, 'Inserting layer does not change order');
 
-        this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'layer1');
+        this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), { insertBefore: 'layer1' });
         assert.deepEqual(this.graph.getCellLayers(), finalCellLayers, 'Inserting layer does not change order');
     });
 
@@ -312,10 +295,12 @@ QUnit.module('layers-basic', function(hooks) {
             layer: 'layer1'
         });
 
-        this.graph.set('cellLayers', [{
-            id: 'layer1',
-            default: true
-        }]);
+        this.graph.set({
+            cellLayers: [{
+                id: 'layer1',
+            }],
+            defaultCellLayer: 'layer1'
+        });
 
         assert.equal(this.graph.getDefaultCellLayer().id, 'layer1', 'Default layer is now "layer1"');
         assert.equal(this.graph.getCellLayer('layer1').cells.length, 2, 'Layer "layer1" has two cells');
@@ -357,6 +342,6 @@ QUnit.module('layers-basic', function(hooks) {
 
         const json = JSON.stringify(this.graph.toJSON());
 
-        assert.equal(json, `{"cells":[],"cellLayers":[{"type":"CellLayer","id":"cells","default":true},{"type":"CellLayer","id":"layer1","name":"Layer 1"},{"type":"CellLayer","id":"layer2","description":"This is layer 2"}]}`, 'Graph JSON includes custom attributes in "cellLayers"');
+        assert.equal(json, `{"cells":[],"cellLayers":[{"type":"LegacyCellLayer","id":"cells"},{"type":"CellLayer","id":"layer1","name":"Layer 1"},{"type":"CellLayer","id":"layer2","description":"This is layer 2"}],"defaultCellLayer":"cells"}`, 'Graph JSON includes custom attributes in "cellLayers"');
     });
 });

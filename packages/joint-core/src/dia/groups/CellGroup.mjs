@@ -21,7 +21,6 @@ export class CellGroupCollection extends Collection {
     // when they are added/removed from a CellGroup.
     /*_onModelEvent(event, model, collection) {
         if (model) {
-            if ((event === model.eventsPrefix + 'add' || event === model.eventsPrefix + 'remove') && collection !== this) return;
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
                 var id = this.modelId(model.attributes, model.idAttribute);
@@ -29,14 +28,6 @@ export class CellGroupCollection extends Collection {
                 if (id != null) this._byId[id] = model;
             }
         }
-
-        let prefix;
-        if (event === 'add' || event === 'remove') {
-            prefix = 'cells:';
-        } else {
-            prefix = 'cell:';
-        }
-        arguments[0] = prefix + event;
         this.trigger.apply(this, arguments);
     }*/
 }

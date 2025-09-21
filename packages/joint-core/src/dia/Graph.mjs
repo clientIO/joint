@@ -21,16 +21,7 @@ export const Graph = Model.extend({
 
         // retrigger events from the cellLayerCollection
         cellLayerCollection.on('all', function(eventName) {
-            // prevent cell events to be triggered on the graph as
-            // they are already triggered via the cell collection
-            // includes both
-            if (eventName.startsWith('layer:cell')) {
-                return;
-            }
-
-            if (eventName === 'reset' || eventName === 'sort') {
-                arguments[0] = 'layers:' + eventName;
-            }
+            arguments[0] = 'layers:' + eventName;
             this.trigger.apply(this, arguments);
         }, this);
 
@@ -175,6 +166,7 @@ export const Graph = Model.extend({
             return json;
         }
         json.cellLayers = this.cellLayerCollection.toJSON();
+        json.defaultCellLayer = this.cellLayersController.defaultCellLayerId;
         return json;
     },
 
@@ -212,8 +204,13 @@ export const Graph = Model.extend({
         // cellLayers attribute is handled separately via cellLayersController.
         let cellLayers = attrs.cellLayers;
         if (cellLayers) {
+            let defaultCellLayer = attrs.defaultCellLayer;
+            if (defaultCellLayer != null) {
+                attrs = util.omit(attrs, 'defaultCellLayer');
+            }
+
             attrs = util.omit(attrs, 'cellLayers');
-            this.resetCellLayers(cellLayers, opt);
+            this.resetCellLayers(Array.from(cellLayers), { ...opt, defaultCellLayer });
         }
 
         let cells = attrs.cells;

@@ -33,15 +33,15 @@ export class CellLayersController extends Listener {
         }); */
 
         // remove all cells from this layer when the layer is removed from the graph
-        this.listenTo(this.collection, 'self:remove', (_context, cellLayer, opt = {}) => {
+        this.listenTo(this.collection, 'remove', (_context, cellLayer, opt = {}) => {
             this.onCellLayerRemove(cellLayer, opt);
         });
 
-        this.listenTo(graph, 'add', (_context, cell, opt = {}) => {
+        this.listenTo(graph, 'add', (_context, cell, _, opt = {}) => {
             this.onCellAdd(cell, opt);
         });
 
-        this.listenTo(graph, 'remove', (_context, cell, opt = {}) => {
+        this.listenTo(graph, 'remove', (_context, cell, _, opt = {}) => {
             this.onCellRemove(cell, opt);
         });
 
@@ -49,21 +49,28 @@ export class CellLayersController extends Listener {
             this.onGraphReset(cells, opt);
         });
 
-        this.listenTo(this.collection, 'change', (_context, cell, opt = {}) => {
+        this.listenTo(graph, 'change', (_context, cell, opt = {}) => {
             this.onCellChange(cell, opt);
         });
     }
 
     resetCellLayers(cellLayers = [], opt = {}) {
-        if (!opt.defaultLayer) {
-            opt.defaultLayer = DEFAULT_CELL_LAYER_ID;
+        let defaultCellLayerId = opt.defaultCellLayer;
+
+        if (!defaultCellLayerId) {
+            defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
 
             cellLayers.push({
                 id: DEFAULT_CELL_LAYER_ID,
                 type: 'LegacyCellLayer',
             });
         }
-        this.defaultCellLayerId = opt.defaultLayer;
+
+        if (!cellLayers.some(layer => layer.id === defaultCellLayerId)) {
+            throw new Error(`dia.Graph: default cell layer with id '${defaultCellLayerId}' must be one of the defined cell layers.`);
+        }
+
+        this.defaultCellLayerId = defaultCellLayerId;
 
         const attributes = cellLayers.map(cellLayer => {
             if (cellLayer instanceof CellLayer) {

@@ -4,16 +4,18 @@ import * as util from '../../util/index.mjs';
 
 export const GraphCellLayers = Collection.extend({
 
+    modelInstance: CellLayer,
+
+    defaultCellLayerNamespace: {
+        CellLayer: CellLayer,
+        LegacyCellLayer: CellLayer
+    },
+
     initialize: function(models, opt) {
 
         // Set the optional namespace where all model classes are defined.
-        if (opt.cellLayerNamespace) {
-            this.cellLayerNamespace = opt.cellLayerNamespace;
-        } else {
-            this.cellLayerNamespace = {
-                CellLayer
-            }
-        }
+        const cellLayerNamespace = opt.cellLayerNamespace || {};
+        this.cellLayerNamespace = util.defaultsDeep({}, cellLayerNamespace, this.defaultCellLayerNamespace);
 
         this.graph = opt.graph;
     },
@@ -33,24 +35,6 @@ export const GraphCellLayers = Collection.extend({
         return new CellLayerClass(attrs, opt);
     },
 
-    _addReference: function(model, options) {
-        Collection.prototype._addReference.apply(this, arguments);
-        // If not in `dry` mode and the model does not have a graph reference yet,
-        // set the reference.
-        if (!options.dry && !model.graph) {
-            model.graph = this.graph;
-        }
-    },
-
-    _removeReference: function(model, options) {
-        Collection.prototype._removeReference.apply(this, arguments);
-        // If not in `dry` mode and the model has a reference to this exact graph,
-        // remove the reference.
-        if (!options.dry && model.graph === this.graph) {
-            model.graph = null;
-        }
-    },
-
     _prepareModel: function(attrs, options) {
         let attributes;
         if (attrs instanceof CellLayer) {
@@ -66,22 +50,20 @@ export const GraphCellLayers = Collection.extend({
         return Collection.prototype._prepareModel.apply(this, arguments);
     },
 
+    // Do not propagate inner cell layer collection events.
+    // Allow only for cell layer model events.
     _onModelEvent(event, model) {
-        if (model) {
+        if (model && model instanceof this.modelInstance) {
+            if ((event === model.eventsPrefix + 'add' || event === model.eventsPrefix + 'remove') && model.collection !== this) return;
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
                 var id = this.modelId(model.attributes, model.idAttribute);
                 if (prevId != null) delete this._byId[prevId];
                 if (id != null) this._byId[id] = model;
             }
+
+            arguments[0] = arguments[0].replace(model.eventsPrefix, '');
+            this.trigger.apply(this, arguments);
         }
-        let prefix;
-        if (event === 'add' || event === 'remove') {
-            prefix = 'layers:';
-        } else {
-            prefix = 'layer:';
-        }
-        arguments[0] = prefix + event;
-        this.trigger.apply(this, arguments);
     }
 });
