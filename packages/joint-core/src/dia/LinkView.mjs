@@ -111,7 +111,7 @@ export const LinkView = CellView.extend({
             this.updateTools(opt);
             flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.LABELS, Flags.TOOLS, Flags.CONNECTOR]);
 
-            if (env.test('isAppleWebkit')) {
+            if (env.test('isAppleWebKit')) {
                 this.__fixWebKitBug268376();
             }
 
