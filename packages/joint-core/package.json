@@ -105,7 +105,7 @@
     "load-grunt-config": "4.0.1",
     "lodash": "~4.17.21",
     "mocha": "11.1.0",
-    "puppeteer": "24.16.0",
+    "puppeteer": "24.22.0",
     "qunit": "2.24.1",
     "requirejs": "2.3.6",
     "rollup": "4.36.0",
