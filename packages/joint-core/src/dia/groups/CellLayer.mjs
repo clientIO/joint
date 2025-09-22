@@ -11,6 +11,7 @@ export class CellLayerCollection extends CellGroupCollection {
 export class CellLayer extends CellGroup {
 
     preinitialize() {
+        super.preinitialize();
         this.collectionConstructor = CellLayerCollection;
     }
 
