@@ -9,7 +9,7 @@ export const env = {
                 /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
         },
 
-        // works for: (1) macOS Safari, (3) any WKWebView, (2) any iOS browser (including Safari, CriOS, EdgiOS, OPR, FxiOS)
+        // works for: (1) macOS Safari, (2) any WKWebView, (3) any iOS browser (including Safari, CriOS, EdgiOS, OPR, FxiOS)
         isAppleWebKit: function() {
             const userAgent = navigator.userAgent;
             const isAppleWebKit = /applewebkit/i.test(userAgent);
