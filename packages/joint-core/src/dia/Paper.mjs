@@ -40,7 +40,7 @@ import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
 import { LayerView } from './layers/LayerView.mjs';
-import { CellLayerView } from './layers/CellLayerView.mjs';
+import { CELL_LAYER_VIEW_MARKER, CellLayerView } from './layers/CellLayerView.mjs';
 import { LegacyCellLayerView } from './layers/LegacyCellLayerView.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { Deque } from '../alg/Deque.mjs';
@@ -535,21 +535,25 @@ export const Paper = View.extend({
         }
     },
 
+    /*
+    * When a new cell layer is added to the graph, we create a new layer view
+    */
     onCellLayerAdd: function(cellLayer, _, opt) {
         if (!this.hasLayerView(cellLayer.id)) {
-            const layerView = this.renderLayerView({
+            const layerView = this.createLayerView({
                 id: cellLayer.id,
                 model: cellLayer
             });
 
             this._cellLayerViews[cellLayer.id] = layerView;
-            this.insertLayerView(layerView, paperLayers.LABELS);
+            this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
         }
     },
 
     onCellLayerRemove: function(cellLayer, _, opt) {
         const cellLayerView = this._cellLayerViews[cellLayer.id];
         if (cellLayerView) {
+            // requesting removal so it will wait for cell views to be removed first
             this.requestLayerViewRemove(cellLayerView);
             delete this._cellLayerViews[cellLayer.id];
         }
@@ -563,7 +567,7 @@ export const Paper = View.extend({
         [...cellLayers].reverse().forEach(cellLayer => {
             if (!this.hasLayerView(cellLayer.id)) return;
             const layerView = this.getLayerView(cellLayer.id);
-            this.insertLayerView(layerView, paperLayers.LABELS);
+            this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
         });
     },
 
@@ -575,7 +579,7 @@ export const Paper = View.extend({
 
         const cellLayers = this.model.getCellLayers();
         [...cellLayers].reverse().forEach(cellLayer => {
-            const layerView = this.renderLayerView({
+            const layerView = this.createLayerView({
                 id: cellLayer.id,
                 model: cellLayer
             });
@@ -584,7 +588,7 @@ export const Paper = View.extend({
             // insert the layer view into the paper layers before the labels layer
             // in this case all cell layers are located between back and labels layer
             // where the `cells` layer is located originally
-            this.insertLayerView(layerView, paperLayers.LABELS);
+            this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
         });
     },
 
@@ -767,20 +771,21 @@ export const Paper = View.extend({
         this.requestViewUpdate(layerView, FLAG_REMOVE, UPDATE_PRIORITY);
     },
 
-    insertLayerView(layerView, insertBefore) {
+    insertLayerView(layerView, opt = {}) {
         if (!(layerView instanceof LayerView)) {
             throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
         }
 
         const layerId = layerView.id;
 
+        // register the view if it doesn't exist in Paper
         if (!this.hasLayerView(layerId)) {
-            throw new Error(`dia.Paper: Unknown layer view "${layerId}".`);
+            this._registerLayerView(layerView);
         }
 
         const { _layers: { order }} = this;
 
-        if (!insertBefore) {
+        if (!opt.insertBefore) {
             // remove from order in case the layer view is already in the order
             // this is needed for the case when the layer view is inserted in the new position
             if (order.indexOf(layerId) !== -1) {
@@ -789,7 +794,7 @@ export const Paper = View.extend({
             order.push(layerId);
             this.layers.appendChild(layerView.el);
         } else {
-            const beforeLayerView = this._requireLayerView(insertBefore);
+            const beforeLayerView = this._requireLayerView(opt.insertBefore);
             const beforeLayerViewId = beforeLayerView.id;
             if (layerId === beforeLayerViewId) {
                 // The layer view is already in the right place.
@@ -867,6 +872,10 @@ export const Paper = View.extend({
     },
 
     createLayerView(options) {
+        if (options == null) {
+            throw new Error('dia.Paper: Layer view options are required.');
+        }
+
         if (options.id == null) {
             throw new Error('dia.Paper: Layer view id is required.');
         }
@@ -882,21 +891,8 @@ export const Paper = View.extend({
 
         const viewConstructor = this.layerViewNamespace[type] || LayerView;
 
-        return new viewConstructor(options);
-    },
+        const layerView = new viewConstructor(options);
 
-    renderLayerView: function(options) {
-        if (options == null) {
-            throw new Error('dia.Paper: Layer view options are required.');
-        }
-
-        const layerView = this.createLayerView(options);
-        this.addLayerView(layerView);
-        return layerView;
-    },
-
-    addLayerView: function(layerView) {
-        this._registerLayerView(layerView);
         return layerView;
     },
 
@@ -904,7 +900,7 @@ export const Paper = View.extend({
         this.removeLayerViews();
         // Render the paper layers.
         this._layersSettings.forEach(options => {
-            const layerView = this.renderLayerView(options);
+            const layerView = this.createLayerView(options);
             this.insertLayerView(layerView);
         });
         // Render the cell layers.
@@ -1178,7 +1174,7 @@ export const Paper = View.extend({
         if (!view) return 0;
         const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT } = this;
         const { model } = view;
-        if (view instanceof CellLayerView) {
+        if (view[CELL_LAYER_VIEW_MARKER]) {
             if (flag & FLAG_REMOVE) {
                 this.removeLayerView(view);
                 return 0;

@@ -210,7 +210,7 @@ export namespace dia {
 
         addCellLayer(layer: CellLayer | CellLayer.Attributes): void;
 
-        insertCellLayer(layer: CellLayer, insertBefore?: string): void;
+        insertCellLayer(layer: CellLayer, options?: { insertBefore?: string }): void;
 
         removeCellLayer(layer: CellLayer): void;
 
@@ -1927,13 +1927,9 @@ export namespace dia {
 
         protected resetLayerViews(): void;
 
-        renderLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
-
         createLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
 
-        addLayerView(layerView: LayerView): void;
-
-        insertLayerView(layerView: LayerView, insertBefore?: string | LayerView): void;
+        insertLayerView(layerView: LayerView, options?: { insertBefore?: string | LayerView }): void;
 
         removeLayerView(LayerView: LayerView): void;
 

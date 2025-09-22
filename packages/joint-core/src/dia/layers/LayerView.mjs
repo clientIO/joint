@@ -8,7 +8,7 @@ export const LayerView = View.extend({
     pivotNodes: null,
     defaultTheme: null,
 
-    UPDATE_PRIORITY: 10,
+    UPDATE_PRIORITY: 4,
 
     options: {
         id: ''

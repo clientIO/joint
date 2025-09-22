@@ -111,3 +111,12 @@ export const CellLayerView = LayerView.extend({
         }
     }
 });
+
+// Internal tag to identify this object as a cell view instance.
+// Used instead of `instanceof` for performance and cross-frame safety.
+
+export const CELL_LAYER_VIEW_MARKER = Symbol('joint.cellLayerViewMarker');
+
+Object.defineProperty(CellLayerView.prototype, CELL_LAYER_VIEW_MARKER, {
+    value: true,
+});
