@@ -82,14 +82,6 @@ export class CellLayersController extends Listener {
         const layerId = cell.layer() || this.defaultCellLayerId;
         const layer = this.getCellLayer(layerId);
 
-        // compatibility
-        // in the version before groups, z-index was not set on reset
-        if (!opt.reset) {
-            if (!cell.has('z')) {
-                cell.set('z', layer.maxZIndex() + 1);
-            }
-        }
-
         // add to the layer without triggering rendering update
         // when the cell is just added to the graph, it will be rendered normally by the paper
         layer.add(cell, { ...opt, initial: true });
@@ -132,7 +124,7 @@ export class CellLayersController extends Listener {
         });
 
         cells.forEach(cell => {
-            this.onCellAdd(cell, { ...opt, reset: true });
+            this.onCellAdd(cell, opt);
         });
     }
 

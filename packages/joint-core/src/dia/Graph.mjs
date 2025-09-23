@@ -182,9 +182,13 @@ export const Graph = Model.extend({
 
     get: function(attr) {
         if (attr === 'cells') {
-            // Backwards compatibility with the old `cells` attribute.
+            // Compatibility with the old `cells` attribute.
             // Return the cells collection from the default cell layer.
-            return this.cellLayersController.getDefaultCellLayer().cells;
+            const collection = this.cellLayersController.getDefaultCellLayer().cells;
+            // inject current cellCollection namespace for backward compatibility,
+            // we are using get('cells') to retrieve cellNamespace in several apps and JointJS+ components
+            collection.cellNamespace = this.cellCollection.cellNamespace;
+            return collection;
         }
         return Model.prototype.get.call(this, attr);
     },
@@ -258,7 +262,7 @@ export const Graph = Model.extend({
         return this;
     },
 
-    _prepareCell: function(cell) {
+    _prepareCell: function(cell, opt = {}) {
 
         let attrs;
         if (cell instanceof Model) {
@@ -269,6 +273,22 @@ export const Graph = Model.extend({
 
         if (!util.isString(attrs.type)) {
             throw new TypeError('dia.Graph: cell type must be a string.');
+        }
+
+        // compatibility: in the version before groups, z-index was not set on reset.
+        // Do it now to preserve the old behavior where 'change:z' event
+        // was not triggered on graph when cell was added to the graph because it was set
+        // before adding to the cellCollection.
+        if (!opt.reset) {
+            if (cell instanceof Model) {
+                if (!cell.has('z')) {
+                    const layer = cell.get('layer') ? this.getCellLayer(cell.get('layer')) : this.getDefaultCellLayer();
+                    cell.set('z', layer.maxZIndex() + 1);
+                }
+            } else if (cell.z === undefined) {
+                const layer = cell.layer ? this.getCellLayer(cell.layer) : this.getDefaultCellLayer();
+                cell.z = layer.maxZIndex() + 1;
+            }
         }
 
         return cell;
@@ -285,7 +305,6 @@ export const Graph = Model.extend({
     addCell: function(cell, opt) {
 
         if (Array.isArray(cell)) {
-
             return this.addCells(cell, opt);
         }
 
@@ -319,7 +338,7 @@ export const Graph = Model.extend({
         this.startBatch('reset', opt);
 
         var preparedCells = util.toArray(cells).map(function(cell) {
-            return this._prepareCell(cell, opt);
+            return this._prepareCell(cell, { ...opt, reset: true });
         }, this);
 
         this.cellCollection.reset(preparedCells, opt);
