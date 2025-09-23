@@ -111,8 +111,8 @@ export const LinkView = CellView.extend({
             this.updateTools(opt);
             flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.LABELS, Flags.TOOLS, Flags.CONNECTOR]);
 
-            if (env.test('isSafari')) {
-                this.__fixSafariBug268376();
+            if (env.test('isAppleWebKit')) {
+                this.__fixWebKitBug268376();
             }
 
             return flags;
@@ -165,8 +165,8 @@ export const LinkView = CellView.extend({
         return flags;
     },
 
-    __fixSafariBug268376: function() {
-        // Safari has a bug where any change after the first render is not reflected in the DOM.
+    __fixWebKitBug268376: function() {
+        // WebKit has a bug where any change after the first render is not reflected in the DOM.
         // https://bugs.webkit.org/show_bug.cgi?id=268376
         const { el } = this;
         const childNodes = Array.from(el.childNodes);

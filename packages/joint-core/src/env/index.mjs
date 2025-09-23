@@ -9,9 +9,12 @@ export const env = {
                 /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
         },
 
-        // works for iOS browsers too
-        isSafari: function() {
-            return /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
+        // works for: (1) macOS Safari, (2) any WKWebView, (3) any iOS browser (including Safari, CriOS, EdgiOS, OPR, FxiOS)
+        isAppleWebKit: function() {
+            const userAgent = navigator.userAgent;
+            const isAppleWebKit = /applewebkit/i.test(userAgent);
+            const isChromium = /chrome/i.test(userAgent); // e.g. Chrome, Edge, Opera, SamsungBrowser
+            return isAppleWebKit && !isChromium;
         }
     },
 
