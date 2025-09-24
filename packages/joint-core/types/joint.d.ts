@@ -644,7 +644,7 @@ export namespace dia {
             filter?: (cell: Cell) => boolean;
             deep?: boolean;
             padding?: Padding;
-            minRect?: g.Rect;
+            minRect?: Partial<BBox>;
             expandOnly?: boolean;
             shrinkOnly?: boolean;
         }

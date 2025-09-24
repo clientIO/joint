@@ -496,12 +496,53 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.a.getBBox(), new g.Rect(0, 0, 200, 300), 'Shallow: minRect is applied when there are no children.');
         });
 
+        QUnit.test('shallow + minRect defaults (from `a`)', function(assert) {
+            const a = this.a;
+            // defaults for x and y
+            a.position(11, 13);
+            a.fitToChildren({ minRect: { width: 200, height: 300 } });
+            assert.deepEqual(
+                a.getBBox().toJSON(),
+                { x: 11, y: 13, width: 200, height: 300 },
+                'Shallow: minRect uses current position when x and y are not specified.'
+            );
+            // defaults for width and height
+            a.resize(1, 1);
+            a.fitToChildren({ minRect: { x: 0, y: 0 } });
+            assert.deepEqual(
+                a.getBBox().toJSON(),
+                { x: 0, y: 0, width: 1, height: 1 },
+                'Shallow: minRect uses current size when width and height are not specified.'
+            );
+        });
+
         QUnit.test('shallow + minRect (from `mainGroup`)', function(assert) {
 
             this.mainGroup.fitToChildren({ minRect: { x: 0, y: 0, width: 200, height: 300 } });
             assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(0, 0, 602, 302), 'Shallow: minRect is applied to element only (mainGroup).');
             assert.deepEqual(this.group1.getBBox(), new g.Rect(101, 101, 100, 100), 'Shallow: minRect is not applied to child.');
             assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: minRect is not applied to child.');
+        });
+
+        QUnit.test('shallow + minRect defaults (from `mainGroup`)', function(assert) {
+            const childrenBBox = this.graph.getCellsBBox(this.mainGroup.getEmbeddedCells().filter(cell => cell.isElement()));
+            const mainGroup = this.mainGroup;
+            // defaults for x and y
+            mainGroup.position(11, 13);
+            mainGroup.fitToChildren({ minRect: { width: 200, height: 300 } });
+            assert.deepEqual(
+                mainGroup.getBBox().toJSON(),
+                childrenBBox.union(new g.Rect(11, 13, 200, 300)).toJSON(),
+                'Shallow: minRect uses current position when x and y are not specified.'
+            );
+            // defaults for width and height
+            mainGroup.resize(1, 1);
+            mainGroup.fitToChildren({ minRect: { x: 0, y: 0 } });
+            assert.deepEqual(
+                mainGroup.getBBox().toJSON(),
+                childrenBBox.union(new g.Rect(0, 0, 1, 1)).toJSON(),
+                'Shallow: minRect uses current size when width and height are not specified.'
+            );
         });
 
         QUnit.test('shallow + minRect (from `group2`)', function(assert) {
