@@ -7,7 +7,8 @@ module.exports = function() {
         options: {
             output: {
                 ascii_only: true
-            }
+            },
+            banner: `'use strict';`
         },
         deps: {
             files: {
