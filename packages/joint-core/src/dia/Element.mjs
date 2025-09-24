@@ -421,8 +421,9 @@ export const Element = Cell.extend({
 
         let minBBox = null;
         if (opt.minRect) {
+            const minRect = assign(this.getBBox().toJSON(), opt.minRect);
             // Coerce `opt.minRect` to g.Rect (missing properties = 0).
-            minBBox = new Rect(opt.minRect);
+            minBBox = new Rect(minRect);
         }
 
         const elementsBBox = this.graph.getCellsBBox(opt.elements);
