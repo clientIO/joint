@@ -203,6 +203,14 @@ export namespace dia {
             defaultCellLayer?: string;
             [key: string]: any;
         }
+
+        type ResetCellLayersOptions = Options & {
+            defaultCellLayer?: string;
+        }
+
+        type AddCellLayerOptions = Options & {
+            insertBefore?: string;
+        }
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -224,9 +232,9 @@ export namespace dia {
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
-        resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.Options): this;
+        resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.ResetCellLayersOptions): this;
 
-        addCellLayer(layer: CellLayer | CellLayer.Attributes, options?: { insertBefore?: string }): void;
+        addCellLayer(layer: CellLayer | CellLayer.Attributes, options?: Graph.AddCellLayerOptions): void;
 
         removeCellLayer(layer: CellLayer): void;
 
@@ -239,8 +247,6 @@ export namespace dia {
         hasCellLayer(id: string): boolean;
 
         getCellLayers(): CellLayer[];
-
-        resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.Options): this;
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -2226,7 +2232,6 @@ export namespace dia {
         }
 
         interface Attributes extends CellGroup.Attributes {
-            default?: boolean;
         }
     }
 

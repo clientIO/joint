@@ -10,7 +10,7 @@ export const GraphCellLayers = Collection.extend({
         CellLayer: CellLayer
     },
 
-    initialize: function(models, opt) {
+    initialize: function(models, opt = {}) {
 
         // Set the optional namespace where all model classes are defined.
         const cellLayerNamespace = opt.cellLayerNamespace || {};
