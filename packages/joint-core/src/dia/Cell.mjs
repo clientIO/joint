@@ -72,7 +72,7 @@ export const Cell = Model.extend({
             this.preinitialize.apply(this, arguments);
         }
         this.cid = uniqueId('c');
-        this.eventsPrefix = '';
+        this.eventPrefix = '';
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};

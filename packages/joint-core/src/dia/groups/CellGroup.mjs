@@ -26,7 +26,10 @@ export class CellGroup extends Model {
 
     preinitialize() {
         this.collectionConstructor = CellGroupCollection;
-        this.eventsPrefix = 'self:';
+        // this allows for propagating events from the inner `cells` collection
+        // without any prefix and therefore distinguish them from the events
+        // fired by the CellGroup model itself.
+        this.eventPrefix = 'self:';
     }
 
     initialize(attrs) {

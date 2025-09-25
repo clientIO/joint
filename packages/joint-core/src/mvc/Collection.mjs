@@ -193,7 +193,7 @@ assign(Collection.prototype, Events, {
             for (i = 0; i < toAdd.length; i++) {
                 if (at != null) options.index = at + i;
                 model = toAdd[i];
-                model.trigger(model.eventsPrefix + 'add', model, this, options);
+                model.trigger(model.eventPrefix + 'add', model, this, options);
             }
             if (sort || orderChanged) this.trigger('sort', this, options);
             if (toAdd.length || toRemove.length || toMerge.length) {
@@ -420,7 +420,7 @@ assign(Collection.prototype, Events, {
 
             if (!options.silent) {
                 options.index = index;
-                model.trigger(model.eventsPrefix + 'remove', model, this, options);
+                model.trigger(model.eventPrefix + 'remove', model, this, options);
             }
 
             removed.push(model);
@@ -459,7 +459,7 @@ assign(Collection.prototype, Events, {
     // in other collections are ignored.
     _onModelEvent: function(event, model, collection, options) {
         if (model) {
-            if ((event === model.eventsPrefix + 'add' || event === model.eventsPrefix + 'remove') && collection !== this) return;
+            if ((event === model.eventPrefix + 'add' || event === model.eventPrefix + 'remove') && collection !== this) return;
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
                 var id = this.modelId(model.attributes, model.idAttribute);

@@ -58,7 +58,7 @@ export const GraphCellLayers = Collection.extend({
                 if (id != null) this._byId[id] = model;
             }
 
-            arguments[0] = arguments[0].slice(model.eventsPrefix.length);
+            arguments[0] = arguments[0].slice(model.eventPrefix.length);
             this.trigger.apply(this, arguments);
         }
     }

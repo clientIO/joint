@@ -26,16 +26,16 @@ export var Model = function(attributes, options) {
     var attrs = attributes || {};
     options || (options = {});
 
-    this.eventsPrefix = '';
-    if (options.eventsPrefix) {
-        this.eventsPrefix = options.eventsPrefix;
+    this.eventPrefix = '';
+    if (options.eventPrefix) {
+        this.eventPrefix = options.eventPrefix;
     }
 
     this.preinitialize.apply(this, arguments);
     this.cid = uniqueId(this.cidPrefix);
     this.attributes = {};
     if (options.collection) this.collection = options.collection;
-    
+
     var attributeDefaults = result(this, 'defaults');
 
     // Just _.defaults would work fine, but the additional _.extends
@@ -144,14 +144,14 @@ assign(Model.prototype, Events, {
         if (this.idAttribute in attrs) {
             var prevId = this.id;
             this.id = this.get(this.idAttribute);
-            this.trigger(this.eventsPrefix + 'changeId', this, prevId, options);
+            this.trigger(this.eventPrefix + 'changeId', this, prevId, options);
         }
 
         // Trigger all relevant attribute changes.
         if (!silent) {
             if (changes.length) this._pending = options;
             for (var i = 0; i < changes.length; i++) {
-                this.trigger(this.eventsPrefix + 'change:' + changes[i], this, current[changes[i]], options);
+                this.trigger(this.eventPrefix + 'change:' + changes[i], this, current[changes[i]], options);
             }
         }
 
@@ -162,7 +162,7 @@ assign(Model.prototype, Events, {
             while (this._pending) {
                 options = this._pending;
                 this._pending = false;
-                this.trigger(this.eventsPrefix + 'change', this, options);
+                this.trigger(this.eventPrefix + 'change', this, options);
             }
         }
         this._pending = false;
