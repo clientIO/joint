@@ -15,8 +15,6 @@ export const GraphCellLayers = Collection.extend({
         // Set the optional namespace where all model classes are defined.
         const cellLayerNamespace = opt.cellLayerNamespace || {};
         this.cellLayerNamespace = util.defaultsDeep({}, cellLayerNamespace, this.defaultCellLayerNamespace);
-
-        this.graph = opt.graph;
     },
 
     model: function(attrs, opt) {
@@ -39,8 +37,10 @@ export const GraphCellLayers = Collection.extend({
             let attributes;
 
             attributes = util.clone(attrs);
-            attributes.type = 'CellLayer';
-            arguments[0] = attributes;
+            if (!attributes.type) {
+                attributes.type = 'CellLayer';
+                arguments[0] = attributes;
+            }
         }
 
         return Collection.prototype._prepareModel.apply(this, arguments);

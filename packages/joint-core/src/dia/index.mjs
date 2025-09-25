@@ -15,3 +15,5 @@ export * from './layers/LayerView.mjs';
 export * from './layers/GridLayerView.mjs';
 export * from './groups/CellGroup.mjs';
 export * from './groups/CellLayer.mjs';
+export * from './collections/GraphCellLayers.mjs';
+export * from './collections/GraphCells.mjs';

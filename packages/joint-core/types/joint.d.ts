@@ -151,6 +151,15 @@ export namespace dia {
         util.filter.FilterJSON<'brightness'> |
         util.filter.FilterJSON<'contrast'>;
 
+    class GraphCells extends mvc.Collection<Cell> {
+        cellNamespace: any;
+        graph: dia.Graph;
+    }
+
+    class GraphCellLayers extends mvc.Collection<CellLayer> {
+        cellLayerNamespace: any;
+    }
+
     export namespace Graph {
 
         interface Options {
@@ -180,18 +189,27 @@ export namespace dia {
             searchBy?: SearchByKey;
         }
 
-        class Cells extends mvc.Collection<Cell> {
-            graph: Graph;
-            cellNamespace: any;
-        }
+        type Cells = GraphCells;
 
         interface Attributes {
-            cells?: Cells;
+            //@deprecated
+            cells?: GraphCells;
+            [key: string]: any;
+        }
+
+        interface JSON {
+            cells: Array<Cell.JSON>;
+            cellLayers?: Array<CellLayer.Attributes>;
+            defaultCellLayer?: string;
             [key: string]: any;
         }
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
+
+        cellCollection: GraphCells;
+
+        cellLayerCollection: GraphCellLayers;
 
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
