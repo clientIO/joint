@@ -171,13 +171,24 @@ export const Graph = Model.extend({
     },
 
     fromJSON: function(json, opt) {
+        const { cells, cellLayers, defaultCellLayer, ...attrs } = json;
 
-        if (!json.cells) {
-
+        if (!cells) {
             throw new Error('Graph JSON must contain cells array.');
         }
 
-        return this.set(json, opt);
+        if (cellLayers) {
+            this.resetCellLayers(Array.from(cellLayers), { ...opt, defaultCellLayer });
+        }
+
+        if (cells) {
+            // Reset the cells collection.
+            this.resetCells(cells, opt);
+        }
+
+        this.set(attrs, opt);
+
+        return this;
     },
 
     get: function(attr) {
@@ -191,45 +202,6 @@ export const Graph = Model.extend({
             return collection;
         }
         return Model.prototype.get.call(this, attr);
-    },
-
-    set: function(key, val, opt) {
-
-        var attrs;
-
-        // Handle both `key`, value and {key: value} style arguments.
-        if (typeof key === 'object') {
-            attrs = key;
-            opt = val;
-        } else {
-            (attrs = {})[key] = val;
-        }
-
-        // cellLayers attribute is handled separately via cellLayersController.
-        let cellLayers = attrs.cellLayers;
-        if (cellLayers) {
-            let defaultCellLayer = attrs.defaultCellLayer;
-            if (defaultCellLayer != null) {
-                attrs = util.omit(attrs, 'defaultCellLayer');
-            }
-
-            attrs = util.omit(attrs, 'cellLayers');
-            this.resetCellLayers(Array.from(cellLayers), { ...opt, defaultCellLayer });
-        }
-
-        let cells = attrs.cells;
-        // Make sure that `cells` attribute is handled separately via resetCells().
-        if (cells) {
-            attrs = util.omit(attrs, 'cells');
-            // Reset the cells collection.
-            this.resetCells(cells, opt);
-        }
-
-        // The rest of the attributes are applied via original set method.
-        // 'cellLayers' attribute is processed in the `cellLayersController`.
-        Model.prototype.set.call(this, attrs, opt);
-
-        return this;
     },
 
     clear: function(opt) {
@@ -424,10 +396,6 @@ export const Graph = Model.extend({
 
     addCellLayer(cellLayer, opt) {
         this.cellLayersController.addCellLayer(cellLayer, opt);
-    },
-
-    insertCellLayer(cellLayer, insertBefore) {
-        this.cellLayersController.insertCellLayer(cellLayer, insertBefore);
     },
 
     removeCellLayer(cellLayer, opt) {

@@ -208,9 +208,7 @@ export namespace dia {
 
         resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.Options): this;
 
-        addCellLayer(layer: CellLayer | CellLayer.Attributes): void;
-
-        insertCellLayer(layer: CellLayer, options?: { insertBefore?: string }): void;
+        addCellLayer(layer: CellLayer | CellLayer.Attributes, options?: { insertBefore?: string }): void;
 
         removeCellLayer(layer: CellLayer): void;
 

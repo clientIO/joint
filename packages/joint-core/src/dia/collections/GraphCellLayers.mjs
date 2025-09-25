@@ -1,14 +1,13 @@
 import { Collection } from '../../mvc/index.mjs';
-import { CellLayer } from '../groups/CellLayer.mjs';
+import { CELL_LAYER_MARKER, CellLayer } from '../groups/CellLayer.mjs';
 import * as util from '../../util/index.mjs';
 
 export const GraphCellLayers = Collection.extend({
 
-    modelInstance: CellLayer,
+    modelInstanceMarker: CELL_LAYER_MARKER,
 
     defaultCellLayerNamespace: {
-        CellLayer: CellLayer,
-        LegacyCellLayer: CellLayer
+        CellLayer: CellLayer
     },
 
     initialize: function(models, opt) {
@@ -35,16 +34,13 @@ export const GraphCellLayers = Collection.extend({
         return new CellLayerClass(attrs, opt);
     },
 
-    _prepareModel: function(attrs, options) {
-        let attributes;
-        if (attrs instanceof CellLayer) {
-            attributes = attrs.attributes;
-        } else {
-            attributes = attrs;
-        }
+    _prepareModel: function(attrs) {
+        if (!attrs[CELL_LAYER_MARKER]) {
+            let attributes;
 
-        if (!util.isString(attributes.type)) {
-            attributes.type = 'CellLayer'; // default type
+            attributes = util.clone(attrs);
+            attributes.type = 'CellLayer';
+            arguments[0] = attributes;
         }
 
         return Collection.prototype._prepareModel.apply(this, arguments);
@@ -53,7 +49,7 @@ export const GraphCellLayers = Collection.extend({
     // Do not propagate inner cell layer collection events.
     // Allow only for cell layer model events.
     _onModelEvent(event, model) {
-        if (model && model instanceof this.modelInstance) {
+        if (model && model[this.modelInstanceMarker]) {
             if ((event === model.eventsPrefix + 'add' || event === model.eventsPrefix + 'remove') && model.collection !== this) return;
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
@@ -62,7 +58,7 @@ export const GraphCellLayers = Collection.extend({
                 if (id != null) this._byId[id] = model;
             }
 
-            arguments[0] = arguments[0].replace(model.eventsPrefix, '');
+            arguments[0] = arguments[0].slice(model.eventsPrefix.length);
             this.trigger.apply(this, arguments);
         }
     }

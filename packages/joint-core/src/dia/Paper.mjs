@@ -98,7 +98,6 @@ const defaultHighlighting = {
 const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 
 export const Paper = View.extend({
-
     className: 'paper',
 
     options: {
@@ -409,7 +408,6 @@ export const Paper = View.extend({
         const defaultLayerViewNamespace = {
             LayerView,
             CellLayerView,
-            LegacyCellLayerView,
             GridLayerView,
         }
 
@@ -889,7 +887,12 @@ export const Paper = View.extend({
             type = modelType + 'View';
         }
 
-        const viewConstructor = this.layerViewNamespace[type] || LayerView;
+        let viewConstructor;
+        if (options.id === 'cells') {
+            viewConstructor = LegacyCellLayerView;
+        } else {
+            viewConstructor = this.layerViewNamespace[type] || LayerView;
+        }
 
         const layerView = new viewConstructor(options);
 

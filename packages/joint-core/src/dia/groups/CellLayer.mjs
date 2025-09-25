@@ -40,3 +40,9 @@ export class CellLayer extends CellGroup {
         return lastCell ? (lastCell.get('z') || 0) : 0;
     }
 }
+
+export const CELL_LAYER_MARKER = Symbol('joint.cellLayerMarker');
+
+Object.defineProperty(CellLayer.prototype, CELL_LAYER_MARKER, {
+    value: true,
+});

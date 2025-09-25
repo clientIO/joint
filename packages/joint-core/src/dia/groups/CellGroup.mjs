@@ -14,22 +14,6 @@ export class CellGroupCollection extends Collection {
             throw new Error('CellGroupCollection only accepts Cell instances.');
         }
     }
-
-    // Trigger events even if the model is in another collection.
-    // Normally, all cells are part of the original Graph cellCollection,
-    // this change allows cells to trigger 'add' and 'remove' events
-    // when they are added/removed from a CellGroup.
-    /*_onModelEvent(event, model, collection) {
-        if (model) {
-            if (event === 'changeId') {
-                var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
-                var id = this.modelId(model.attributes, model.idAttribute);
-                if (prevId != null) delete this._byId[prevId];
-                if (id != null) this._byId[id] = model;
-            }
-        }
-        this.trigger.apply(this, arguments);
-    }*/
 }
 
 export class CellGroup extends Model {
@@ -72,3 +56,9 @@ export class CellGroup extends Model {
         });
     }
 }
+
+export const CELL_GROUP_MARKER = Symbol('joint.cellGroupMarker');
+
+Object.defineProperty(CellGroup.prototype, CELL_GROUP_MARKER, {
+    value: true,
+});
