@@ -50,7 +50,7 @@ export const GraphCellLayers = Collection.extend({
     // Allow only for cell layer model events.
     _onModelEvent(event, model) {
         if (model && model[this.modelInstanceMarker]) {
-            if ((event === model.eventsPrefix + 'add' || event === model.eventsPrefix + 'remove') && model.collection !== this) return;
+            if ((event === model.eventPrefix + 'add' || event === model.eventPrefix + 'remove') && model.collection !== this) return;
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
                 var id = this.modelId(model.attributes, model.idAttribute);
