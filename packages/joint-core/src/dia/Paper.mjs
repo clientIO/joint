@@ -409,7 +409,7 @@ export const Paper = View.extend({
             LayerView,
             CellLayerView,
             GridLayerView,
-        }
+        };
 
         this.layerViewNamespace = defaultsDeep({}, options.layerViewNamespace || {}, defaultLayerViewNamespace);
 

@@ -1,5 +1,4 @@
 import { Listener } from '../../mvc/Listener.mjs';
-import { CellLayer } from '../groups/CellLayer.mjs';
 
 const DEFAULT_CELL_LAYER_ID = 'cells';
 
@@ -169,7 +168,7 @@ export class CellLayersController extends Listener {
 
         const originalLayersArray = this.getCellLayers();
 
-        let currentIndex
+        let currentIndex;
         if (this.hasCellLayer(id)) {
             currentIndex = originalLayersArray.findIndex(layer => layer === cellLayer);
             if (currentIndex === originalLayersArray.length - 1 && !insertBefore) {
