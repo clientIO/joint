@@ -32,7 +32,7 @@ import { Model } from '../mvc/Model.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';
-
+import { config } from '../config/index.mjs';
 
 // Cell base model.
 // --------------------------
@@ -79,7 +79,9 @@ export const Cell = Model.extend({
         if ((defaults = result(this, 'defaults'))) {
             //<custom code>
             // Replaced the call to _.defaults with util.merge.
-            const customizer = (options && options.mergeArrays === true) ? false : attributesMerger;
+            const customizer = (options && options.mergeArrays === true)
+                ? false
+                : config.cellDefaultsMergeStrategy || attributesMerger;
             attrs = merge({}, defaults, attrs, customizer);
             //</custom code>
         }
@@ -645,7 +647,7 @@ export const Cell = Model.extend({
                 options.rewrite && unsetByPath(baseAttributes, path, '/');
 
                 // Merge update with the model attributes.
-                var attributes = merge(baseAttributes, update);
+                var attributes = merge(baseAttributes, update, config.cellMergeStrategy);
                 // Finally, set the property to the updated attributes.
                 return this.set(property, attributes[property], options);
 
@@ -668,7 +670,11 @@ export const Cell = Model.extend({
         const changedAttributes = {};
         for (const key in props) {
             // Merging the values of changed attributes with the current ones.
-            const { changedValue } = merge({}, { changedValue: this.attributes[key] }, { changedValue: props[key] });
+            const { changedValue } = merge(
+                merge({}, { changedValue: this.attributes[key] }),
+                { changedValue: props[key] },
+                config.cellMergeStrategy
+            );
             changedAttributes[key] = changedValue;
         }
 

@@ -121,10 +121,14 @@ export const HoverConnect = Connect.extend({
         return V.createSVGMatrix();
     },
 
+    getTrackMatrixAbsolute() {
+        return this.getTrackMatrix();
+    },
+
     getTrackRatioFromEvent(evt) {
         const { relatedView, trackPath } = this;
         const localPoint = relatedView.paper.clientToLocalPoint(evt.clientX, evt.clientY);
-        const trackPoint = V.transformPoint(localPoint, this.getTrackMatrix().inverse());
+        const trackPoint = V.transformPoint(localPoint, this.getTrackMatrixAbsolute().inverse());
         return trackPath.closestPointLength(trackPoint);
     },
 

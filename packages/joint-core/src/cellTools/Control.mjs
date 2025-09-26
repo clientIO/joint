@@ -1,5 +1,6 @@
 import { ToolView } from '../dia/ToolView.mjs';
 import * as util from '../util/index.mjs';
+import { getToolOptions, getViewBBox } from './helpers.mjs';
 
 export const Control = ToolView.extend({
     tagName: 'g',
@@ -72,36 +73,58 @@ export const Control = ToolView.extend({
         return this;
     },
     updateHandle: function(handleNode) {
-        const { relatedView, options } = this;
-        const { model } = relatedView;
-        const relativePos = this.getPosition(relatedView, this);
-        const absolutePos = model.getAbsolutePointFromRelative(relativePos);
-        const { handleAttributes, scale } = options;
-        let transformString =  `translate(${absolutePos.x},${absolutePos.y})`;
-        if (scale) {
-            transformString += ` scale(${scale})`;
-        }
-        handleNode.setAttribute('transform', transformString);
+        const { options: { handleAttributes }} = this;
+        handleNode.setAttribute('transform', this.getHandleTransformString());
         if (handleAttributes) {
             for (let attrName in handleAttributes) {
                 handleNode.setAttribute(attrName, handleAttributes[attrName]);
             }
         }
     },
+    getHandleTransformString() {
+        const { relatedView, options } = this;
+        const { scale } = options;
+        const { model } = relatedView;
+        const relativePos = this.getPosition(relatedView, this);
+        const translate = this.isOverlay()
+            // The tool is rendered in the coordinate system of the paper
+            ? model.getAbsolutePointFromRelative(relativePos)
+            // The tool is rendered in the coordinate system of the relatedView
+            : relativePos;
+        let transformString =  `translate(${translate.x},${translate.y})`;
+        if (scale) {
+            transformString += ` scale(${scale})`;
+        }
+        return transformString;
+    },
     updateExtras: function(extrasNode) {
         const { relatedView, options } = this;
-        const { selector } = this.options;
+        const { selector, relative, useModelGeometry } = getToolOptions(this);
         if (!selector) {
+            // Hide the extras if no selector is given.
             this.toggleExtras(false);
             return;
         }
-        const magnet = relatedView.findNode(selector);
-        if (!magnet) throw new Error('Control: invalid selector.');
+        // Get the size for the extras rectangle and update it.
+        let bbox;
+        if (useModelGeometry) {
+            if (selector !== 'root') {
+                // A selector other than null or `root` was provided.
+                console.warn('Control: selector will be ignored when `useModelGeometry` is used.');
+            }
+            bbox = getViewBBox(relatedView, { useModelGeometry, relative });
+        } else {
+            // The reference node for calculating the bounding box of the extras.
+            const el = relatedView.findNode(selector);
+            if (!el) throw new Error('Control: invalid selector.');
+            bbox = getViewBBox(relatedView, { el });
+        }
         let padding = options.padding;
         if (!isFinite(padding)) padding = 0;
-        const bbox = relatedView.getNodeUnrotatedBBox(magnet);
         const model = relatedView.model;
-        const angle = model.angle();
+        // With relative positioning, rotation is implicit
+        // (the tool rotates along with the element).
+        const angle = relative ? 0 : model.angle();
         const center = bbox.center();
         if (angle) center.rotate(model.getCenter(), -angle);
         bbox.inflate(padding);

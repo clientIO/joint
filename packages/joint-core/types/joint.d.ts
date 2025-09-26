@@ -8,6 +8,8 @@ export namespace config {
     var classNamePrefix: string;
     var defaultTheme: string;
     var doubleTapInterval: number;
+    var cellMergeStrategy: util.MergeCustomizer | null;
+    var cellDefaultsMergeStrategy: util.MergeCustomizer | null;
 }
 
 type NativeEvent = Event;
@@ -691,7 +693,7 @@ export namespace dia {
             filter?: (cell: Cell) => boolean;
             deep?: boolean;
             padding?: Padding;
-            minRect?: g.Rect;
+            minRect?: Partial<BBox>;
             expandOnly?: boolean;
             shrinkOnly?: boolean;
         }
@@ -2295,6 +2297,10 @@ export namespace dia {
         hide(): this;
 
         mount(): this;
+
+        getLayer(): string | null;
+
+        hasLayer(): boolean;
     }
 
     namespace ToolView {
@@ -2337,6 +2343,8 @@ export namespace dia {
         blur(): void;
 
         update(): void;
+
+        isOverlay(): boolean;
 
         protected guard(evt: dia.Event): boolean;
     }
@@ -3188,6 +3196,8 @@ export namespace util {
     export function getRectPoint(rect: dia.BBox, position: dia.PositionName): g.Point;
 
     export function merge(destinationObject: object, ...args: any[]): object;
+
+    type MergeCustomizer = (value: any, srcValue: any, key: string, object: any, source: any, stack: any) => any;
 
     // ADDITIONAL SIMPLE UTIL FUNCTIONS:
 

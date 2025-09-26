@@ -7,12 +7,12 @@ module.exports = function() {
         options: {
             output: {
                 ascii_only: true
-            }
+            },
+            banner: `'use strict';`
         },
         deps: {
-            files: {
-                'build/min/lodash.min.js': 'node_modules/lodash/lodash.js'
-            }
+            src: 'node_modules/lodash/lodash.js',
+            dest: 'build/min/lodash.min.js'
         },
         geometry: {
             src: modules.geometry.umd,

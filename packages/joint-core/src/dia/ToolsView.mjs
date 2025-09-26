@@ -138,12 +138,21 @@ export const ToolsView = mvc.View.extend({
         this.tools = null;
     },
 
+    getLayer() {
+        const { layer = Paper.Layers.TOOLS } = this.options;
+        return layer;
+    },
+
+    hasLayer() {
+        return !!this.getLayer();
+    },
+
     mount: function() {
         const { options, el } = this;
-        const { relatedView, layer = Paper.Layers.TOOLS, z } = options;
+        const { relatedView, z } = options;
         if (relatedView) {
-            if (layer) {
-                relatedView.paper.getLayerView(layer).insertSortedNode(el, z);
+            if (this.hasLayer()) {
+                relatedView.paper.getLayerView(this.getLayer()).insertSortedNode(el, z);
             } else {
                 relatedView.el.appendChild(el);
             }
