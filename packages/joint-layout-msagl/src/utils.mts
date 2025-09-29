@@ -55,7 +55,7 @@ function importElement(element: dia.Element, parent: Graph, options: Required<Op
 
     // Element has children therefore it is a subgraph
     const subgraph = new Graph(String(element.id));
-    const geomGraph = new GeomGraph(subgraph)
+    const geomGraph = new GeomGraph(subgraph);
 
     const labelSize = options.getLabelSize(element);
     if (labelSize) {
@@ -238,7 +238,6 @@ function curveToVertices(curve: Curve, edgeRoutingMode: EdgeRoutingMode): dia.Po
         }
     }
 
-    // return new g.Polyline(vertices).simplify({ threshold: 0.001 }).points;
     return vertices;
 }
 
