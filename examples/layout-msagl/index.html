@@ -1,68 +1,98 @@
-
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8"/>
-    <title>Layout MSAGL | JointJS</title>
-    <link rel="stylesheet" href="dist/styles.css"/>
-  </head>
-  <body>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Layout MSAGL | JointJS</title>
+  <link rel="stylesheet" href="dist/styles.css" />
+</head>
+
+<body>
+  <div class="container">
     <div id="paper"></div>
-    <div id="controls">
+  </div>
+  <div id="hud">
+    <section id="info">
+      <span class="eyebrow">joint-layout-msagl</span>
+      <h1 id="graph-title">Nested Portfolio</h1>
+      <p id="graph-description">Embedded teams remain grouped while joint-layout-msagl routes cross-cutting work around
+        department bounds.</p>
+      <p id="layout-summary">Left → Right layering · Rectilinear routing · 115px node spacing</p>
+    </section>
+    <section id="controls">
+      <h2>Layout Controls</h2>
       <div class="control-group">
-        <label for="layout-direction">Layout Direction:</label>
-        <select id="layout-direction">
-          <option value="0">Top to Bottom</option>
-          <option value="1">Left to Right</option>
-          <option value="2">Bottom to Top</option>
-          <option value="3">Right to Left</option>
-        </select>
+        <label for="layout-direction">Layout Direction</label>
+        <div>
+          <select id="layout-direction">
+            <option value="0">Top to Bottom</option>
+            <option value="1">Left to Right</option>
+            <option value="2">Bottom to Top</option>
+            <option value="3">Right to Left</option>
+          </select>
+        </div>
       </div>
 
       <div class="control-group">
-        <label for="edge-routing">Edge Routing:</label>
-        <select id="edge-routing">
-          <option value="4">Rectilinear</option>
-          <option value="1">Spline Bundling</option>
-        </select>
+        <label for="edge-routing">Edge Routing</label>
+        <div>
+          <select id="edge-routing">
+            <option value="4">Rectilinear</option>
+            <option value="1">Spline Bundling</option>
+          </select>
+        </div>
       </div>
 
       <div class="control-group">
-        <label for="layer-separation">Layer Separation:</label>
-        <input type="range" id="layer-separation" min="20" max="200" step="10" value="50">
-        <span id="layer-separation-value">50</span>
+        <label for="layer-separation">Layer Separation</label>
+        <div>
+          <input type="range" id="layer-separation" min="40" max="220" step="10" value="120" />
+          <span id="layer-separation-value">120</span>
+        </div>
       </div>
 
       <div class="control-group">
-        <label for="node-separation">Node Separation:</label>
-        <input type="range" id="node-separation" min="20" max="200" step="10" value="50">
-        <span id="node-separation-value">50</span>
+        <label for="node-separation">Node Separation</label>
+        <div>
+          <input type="range" id="node-separation" min="40" max="220" step="10" value="115" />
+          <span id="node-separation-value">115</span>
+        </div>
       </div>
 
       <div class="control-group">
-        <label for="margin">Margin:</label>
-        <input type="range" id="margin" min="0" max="100" step="5" value="20">
-        <span id="margin-value">20</span>
+        <label for="margin">Margin</label>
+        <div>
+          <input type="range" id="margin" min="0" max="120" step="5" value="80" />
+          <span id="margin-value">80</span>
+        </div>
       </div>
 
       <div class="control-group">
-        <label for="graph-type">Graph Type:</label>
-        <select id="graph-type">
-          <option value="tree">Tree</option>
-          <option value="dag">Directed Acyclic Graph</option>
-          <option value="network">Network</option>
-          <option value="cycle">Cycle</option>
-          <option value="complete">Complete Graph</option>
-          <option value="self-links">Self Links</option>
-          <option value="nested">Nested Subgraphs</option>
-        </select>
+        <label for="graph-type">Graph Story</label>
+        <div>
+          <select id="graph-type">
+            <option value="tree" selected>Product Decision Tree</option>
+            <option value="dag">Data Platform DAG</option>
+            <option value="network">Collaboration Network</option>
+            <option value="cycle">Creative Delivery Loop</option>
+            <option value="complete">Expertise Matrix</option>
+            <option value="self-links">Feedback Channels</option>
+            <option value="nested">Nested Portfolio</option>
+          </select>
+        </div>
       </div>
 
-      <div class="control-group">
-        <label for="use-vertices">Use Vertices:</label>
-        <input type="checkbox" id="use-vertices" checked>
+      <div class="control-group checkbox">
+        <label for="use-vertices">Use Vertices</label>
+        <div>
+          <input type="checkbox" id="use-vertices" checked />
+        </div>
       </div>
-    </div>
-    <script src="dist/bundle.js"></script>
-  </body>
+
+      <p class="footnote">Adjust the sliders to see joint-layout-msagl update the layout in real time.</p>
+    </section>
+  </div>
+  <script src="dist/bundle.js"></script>
+</body>
+
 </html>

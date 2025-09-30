@@ -1,6 +1,7 @@
 import { dia, shapes, util, g } from '@joint/core';
 import { layout, LayerDirectionEnum, EdgeRoutingMode, Options } from '@joint/layout-msagl';
-import { createGraph } from './utils';
+import { createGraph, defaultGraphType, graphTitles } from './graph/presets';
+import type { GraphMeta, GraphType } from './graph/types';
 import '../css/styles.css';
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
@@ -10,124 +11,178 @@ const paper = new dia.Paper({
     el: document.getElementById('paper'),
     width: '100%',
     height: '100%',
-    gridSize: 10,
     interactive: false,
     async: true,
-    frozen: true
+    frozen: true,
+    labelsLayer: true
 });
 
-// Setup UI controls event listeners
+const layerSeparationInput = document.getElementById('layer-separation') as HTMLInputElement;
+const nodeSeparationInput = document.getElementById('node-separation') as HTMLInputElement;
+const marginInput = document.getElementById('margin') as HTMLInputElement;
+const directionSelect = document.getElementById('layout-direction') as HTMLSelectElement;
+const routingSelect = document.getElementById('edge-routing') as HTMLSelectElement;
+const graphTypeSelect = document.getElementById('graph-type') as HTMLSelectElement;
+const useVerticesCheckbox = document.getElementById('use-vertices') as HTMLInputElement;
+
+const layerSeparationDisplay = document.getElementById('layer-separation-value');
+const nodeSeparationDisplay = document.getElementById('node-separation-value');
+const marginDisplay = document.getElementById('margin-value');
+
+const titleEl = document.getElementById('graph-title');
+const descriptionEl = document.getElementById('graph-description');
+const layoutSummaryEl = document.getElementById('layout-summary');
+
+const directionLabels: Record<number, string> = {
+    [LayerDirectionEnum.TB]: 'Top → Bottom',
+    [LayerDirectionEnum.LR]: 'Left → Right',
+    [LayerDirectionEnum.BT]: 'Bottom → Top',
+    [LayerDirectionEnum.RL]: 'Right → Left'
+};
+
+const routingLabels: Record<number, string> = {
+    [EdgeRoutingMode.Rectilinear]: 'Rectilinear',
+    [EdgeRoutingMode.SplineBundling]: 'Spline Bundling'
+};
+
+const updateRangeDisplay = (input: HTMLInputElement, display: HTMLElement | null, value?: number) => {
+    if (typeof value === 'number') {
+        input.value = String(value);
+    }
+    if (display) {
+        display.textContent = input.value;
+    }
+};
+
+const applyGraphMeta = (meta: GraphMeta) => {
+    const { layout: layoutPreset } = meta;
+
+    directionSelect.value = String(layoutPreset.layerDirection);
+    routingSelect.value = String(layoutPreset.edgeRoutingMode);
+    updateRangeDisplay(layerSeparationInput, layerSeparationDisplay, layoutPreset.layerSeparation);
+    updateRangeDisplay(nodeSeparationInput, nodeSeparationDisplay, layoutPreset.nodeSeparation);
+    updateRangeDisplay(marginInput, marginDisplay, layoutPreset.margin);
+    useVerticesCheckbox.checked = layoutPreset.useVertices;
+
+    updateGraphInfo(meta);
+};
+
+const updateGraphInfo = (meta: GraphMeta) => {
+    if (titleEl) {
+        titleEl.textContent = meta.title;
+    }
+    if (descriptionEl) {
+        descriptionEl.textContent = meta.description;
+    }
+};
+
+const formatDirection = (direction: LayerDirectionEnum) => {
+    return directionLabels[direction] ?? 'Custom direction';
+};
+
+const formatRouting = (mode: EdgeRoutingMode) => {
+    return routingLabels[mode] ?? 'Custom routing';
+};
+
+const updateLayoutSummary = (options: Options) => {
+    if (!layoutSummaryEl) {
+        return;
+    }
+
+    const direction = formatDirection(options.layerDirection as LayerDirectionEnum);
+    const routing = formatRouting(options.edgeRoutingMode as EdgeRoutingMode);
+    const nodeSpacing = Math.round(options.nodeSeparation ?? 0);
+
+    layoutSummaryEl.textContent = `${direction} layering · ${routing} routing · ${nodeSpacing}px node spacing`;
+};
+
 const setupControlListeners = () => {
-    // Get range input elements
-    const layerSepRange = document.getElementById('layer-separation') as HTMLInputElement;
-    const nodeSepRange = document.getElementById('node-separation') as HTMLInputElement;
-    const marginRange = document.getElementById('margin') as HTMLInputElement;
-
-    // Setup value display updates for range inputs
-    const layerSepValue = document.getElementById('layer-separation-value');
-    layerSepRange.addEventListener('input', () => {
-        if (layerSepValue) layerSepValue.textContent = layerSepRange.value;
+    layerSeparationInput.addEventListener('input', () => {
+        updateRangeDisplay(layerSeparationInput, layerSeparationDisplay);
         runLayout();
     });
 
-    const nodeSepValue = document.getElementById('node-separation-value');
-    nodeSepRange.addEventListener('input', () => {
-        if (nodeSepValue) nodeSepValue.textContent = nodeSepRange.value;
+    nodeSeparationInput.addEventListener('input', () => {
+        updateRangeDisplay(nodeSeparationInput, nodeSeparationDisplay);
         runLayout();
     });
 
-    const marginValue = document.getElementById('margin-value');
-    marginRange.addEventListener('input', () => {
-        if (marginValue) marginValue.textContent = marginRange.value;
+    marginInput.addEventListener('input', () => {
+        updateRangeDisplay(marginInput, marginDisplay);
         runLayout();
     });
 
-    // Get select controls
-    const directionSelect = document.getElementById('layout-direction') as HTMLSelectElement;
-    const routingSelect = document.getElementById('edge-routing') as HTMLSelectElement;
-    const graphTypeSelect = document.getElementById('graph-type') as HTMLSelectElement;
-    const useVerticesCheckbox = document.getElementById('use-vertices') as HTMLInputElement;
-
-    // Add event listeners to direction, routing, and vertices controls for layout update
-    [directionSelect, routingSelect, useVerticesCheckbox].forEach(control => {
+    [directionSelect, routingSelect, useVerticesCheckbox].forEach((control) => {
         control.addEventListener('change', runLayout);
     });
 
-    
+    Array.from(graphTypeSelect.options).forEach((option) => {
+        const id = option.value as GraphType;
+        if (graphTitles[id]) {
+            option.textContent = graphTitles[id];
+        }
+    });
+
     graphTypeSelect.addEventListener('change', () => {
-        createGraph(graph, graphTypeSelect.value);
+        const meta = createGraph(graph, graphTypeSelect.value);
+        applyGraphMeta(meta);
         runLayout();
     });
 };
 
-// Get layout options from UI controls
 const getLayoutOptions = (): Options => {
-    const directionSelect = document.getElementById('layout-direction') as HTMLSelectElement;
-    const routingSelect = document.getElementById('edge-routing') as HTMLSelectElement;
-    const layerSepRange = document.getElementById('layer-separation') as HTMLInputElement;
-    const nodeSepRange = document.getElementById('node-separation') as HTMLInputElement;
-    const marginRange = document.getElementById('margin') as HTMLInputElement;
-    const useVerticesCheckbox = document.getElementById('use-vertices') as HTMLInputElement;
-
-    // Define the vertices setter function
     const verticesSetter = (link: dia.Link, vertices: dia.Point[]) => {
         link.transition('vertices', vertices, {
             duration: 500,
             timingFunction: util.timing.cubic,
             rewrite: true,
             valueFunction: (start: dia.Point[], end: dia.Point[]) => {
-
                 let from = start ?? [];
                 const to = end ?? [];
 
-                // Fix up array length - so they match and we can interpolate between them
                 if (from.length < to.length) {
-                    const middle = (link.findView(paper) as dia.LinkView).getPointAtRatio(0.5);
-                    from.push(...Array.from({ length: to.length - from.length }, () => middle));
+                    const midpoint = (link.findView(paper) as dia.LinkView).getPointAtRatio(0.5);
+                    from.push(...Array.from({ length: to.length - from.length }, () => midpoint));
                 } else if (from.length > to.length) {
                     from = Array.from({ length: to.length }, (_, i) => from[i]);
                 }
 
                 return (t: number) => {
-
-                    return from.map((point, i) => {
+                    return from.map((point, index) => {
                         return {
-                            x: point.x + (to[i].x - point.x) * t,
-                            y: point.y + (to[i].y - point.y) * t
-                        }
+                            x: point.x + (to[index].x - point.x) * t,
+                            y: point.y + (to[index].y - point.y) * t
+                        };
                     });
-                }
+                };
             }
         });
     };
 
+    const margin = Number(marginInput.value);
+
     return {
         layerDirection: Number(directionSelect.value) as LayerDirectionEnum,
         edgeRoutingMode: Number(routingSelect.value) as EdgeRoutingMode,
-        layerSeparation: Number(layerSepRange.value),
-        nodeSeparation: Number(nodeSepRange.value),
-        polylinePadding: 10,
-        gridSize: 10,
+        layerSeparation: Number(layerSeparationInput.value),
+        nodeSeparation: Number(nodeSeparationInput.value),
+        polylinePadding: 12,
+        gridSize: 0,
         margins: {
-            left: Number(marginRange.value),
-            right: Number(marginRange.value),
-            top: Number(marginRange.value),
-            bottom: Number(marginRange.value)
+            left: margin,
+            right: margin,
+            top: margin,
+            bottom: margin
         },
-        // Custom position setter to animate the transition
         setPosition: (element: dia.Element, position: dia.Point) => {
-
             element.transition('position', position, {
                 duration: 500,
                 timingFunction: util.timing.cubic,
                 valueFunction: util.interpolate.object
             });
         },
-        // Use either false or the custom vertices setter based on checkbox
         setVertices: useVerticesCheckbox.checked ? verticesSetter : false,
-        // Custom anchor setter to animate the transition
         setAnchor: (link, referencePoint, bbox, endType) => {
-
             const anchorArgs = {
                 dx: referencePoint.x - bbox.x - bbox.width / 2,
                 dy: referencePoint.y - bbox.y - bbox.height / 2
@@ -138,7 +193,8 @@ const getLayoutOptions = (): Options => {
                 return;
             }
 
-            link.transition(`${endType}/anchor/args`,
+            link.transition(
+                `${endType}/anchor/args`,
                 anchorArgs,
                 {
                     duration: 500,
@@ -147,22 +203,17 @@ const getLayoutOptions = (): Options => {
                 }
             );
         },
-        // Custom labels setter to animate the transition
         setLabels: (link, labelPosition, points) => {
-
             const polyline = new g.Polyline(points);
-            const linkSize = link.get('labelSize') as { width: number, height: number };
-
+            const linkSize = link.get('labelSize') as { width: number; height: number };
             const cx = labelPosition.x + linkSize.width / 2;
             const cy = labelPosition.y + linkSize.height / 2;
-
             const center = new g.Point(cx, cy);
-
             const distance = polyline.closestPointLength(center);
-            // Get the tangent at the closest point to calculate the offset
             const tangent = polyline.tangentAtLength(distance);
 
-            link.transition('labels/0/position',
+            link.transition(
+                'labels/0/position',
                 {
                     distance,
                     offset: tangent?.pointOffset(center) || 0
@@ -177,25 +228,36 @@ const getLayoutOptions = (): Options => {
     };
 };
 
-// Run the layout with current options
 const runLayout = () => {
     paper.freeze();
     const options = getLayoutOptions();
-    // options.edgeRoutingMode = EdgeRoutingMode.SplineBundling;
-    // options.layerSeparation = 150;
-    // options.nodeSeparation = 150;
+
     if (!options.setVertices) {
-        // Unset all vertices if setVertices is false
-        graph.getLinks().forEach(link => link.vertices([]))
+        graph.getLinks().forEach((link) => link.vertices([]));
     }
+
     layout(graph, options);
-    paper.unfreeze();
+    paper.unfreeze({
+        afterRender: () => {
+            paper.transformToFitContent({
+                padding: 40,
+                horizontalAlign: 'middle',
+                verticalAlign: 'middle',
+                useModelGeometry: true
+            });
+        }
+    });
+    updateLayoutSummary(options);
 };
 
-// Initialize the demo
 const initDemo = () => {
     setupControlListeners();
-    createGraph(graph, 'tree');
+
+    const initialType = (graphTypeSelect.value || defaultGraphType) as GraphType;
+    graphTypeSelect.value = initialType;
+
+    const meta = createGraph(graph, initialType);
+    applyGraphMeta(meta);
     runLayout();
 };
 
