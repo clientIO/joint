@@ -83,6 +83,10 @@ interface Options {
     // Edge routing
     edgeRoutingMode?: EdgeRoutingMode; // Default: EdgeRoutingMode.Rectilinear
     polylinePadding?: number; // Default: 1
+    // Rectilinear self-loop offset
+    // Vertical pixel offset applied to the two inner vertices of a self-edge
+    // when edgeRoutingMode is Rectilinear. Default: 10
+    rectilinearSelfEdgeOffset?: number;
     // Grid and margins
     gridSize?: number; // Default: 10
     margins?: { // Default: { left: 10, right: 10, top: 10, bottom: 10 }
@@ -297,7 +301,7 @@ If `getLabelSize` returns `undefined` for a cell, no space is reserved for its l
 
 ## ⚠️ Caveats & Known Limitations
 
-- **Rectilinear self‑loops** – When `edgeRoutingMode` is set to `Rectilinear`, we currently apply a _static_ offset to self‑edges. The resulting loop can look artificially large or misplaced. This limitation originates in the upstream `msagljs` library and will disappear once it is addressed there.
+- **Rectilinear self‑loops** – When `edgeRoutingMode` is set to `Rectilinear`, self‑edges use a configurable vertical offset controlled by `rectilinearSelfEdgeOffset` (default `10`). This is a stop‑gap until upstream `msagljs` provides native rectilinear self‑loop geometry.
 - **Subgraph resizing** – Parent elements that embed other elements are resized by the layout to tightly pack all their children.
 - **Subgraph layout direction** - Layout inside subgraphs is always set to `TB` (Top-to-Bottom) direction, as other directions can cause layout issues.
 

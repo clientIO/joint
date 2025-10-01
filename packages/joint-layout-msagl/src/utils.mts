@@ -25,7 +25,6 @@ enum EDGE_TYPE {
     SelfEdge,
     OutEdge
 }
-const RECTILINEAR_SELF_EDGE_OFFSET = 10;
 
 export function importJointGraph(graph: dia.Graph, msGraph: Graph, options: Required<Options>) {
 
@@ -112,7 +111,7 @@ function applyLinkLayout(
             if (edgeType === EDGE_TYPE.OutEdge) {
                 vertices.push(...curveToVertices(curve, options.edgeRoutingMode));
             } else {
-                vertices.push(...selfEdgeVertices(curve, options.edgeRoutingMode));
+                vertices.push(...selfEdgeVertices(curve, options.edgeRoutingMode, options.rectilinearSelfEdgeOffset));
             }
         }
 
@@ -128,12 +127,18 @@ function applyLinkLayout(
 
         if (options.setLabels) {
 
-            const labelPosition = label.boundingBox.leftBottom;
+            const { leftBottom } = label.boundingBox;
+            const labelBBox = {
+                x: leftBottom.x,
+                y: leftBottom.y,
+                width: label.boundingBox.width,
+                height: label.boundingBox.height
+            }
 
             if (util.isFunction(options.setLabels)) {
-                (options.setLabels as unknown as typeof setLabels)(link, labelPosition, points);
+                (options.setLabels as unknown as typeof setLabels)(link, labelBBox, points);
             } else {
-                setLabels(link, labelPosition, points);
+                setLabels(link, labelBBox, points);
             }
         }
     }
@@ -241,13 +246,13 @@ function curveToVertices(curve: Curve, edgeRoutingMode: EdgeRoutingMode): dia.Po
     return vertices;
 }
 
-function selfEdgeVertices(curve: Curve, edgeRoutingMode: EdgeRoutingMode): dia.Point[] {
+function selfEdgeVertices(curve: Curve, edgeRoutingMode: EdgeRoutingMode, rectilinearSelfEdgeOffset: number): dia.Point[] {
     // If the routing mode is rectilinear, we create the vertices for the link ourselves
     if (edgeRoutingMode === EdgeRoutingMode.Rectilinear) {
         const { start, end } = curve;
         return [
-            { x: start.x, y: start.y + RECTILINEAR_SELF_EDGE_OFFSET },
-            { x: end.x, y: end.y + RECTILINEAR_SELF_EDGE_OFFSET }
+            { x: start.x, y: start.y + rectilinearSelfEdgeOffset },
+            { x: end.x, y: end.y + rectilinearSelfEdgeOffset }
         ];
     } else {
         return curveToVertices(curve, edgeRoutingMode);

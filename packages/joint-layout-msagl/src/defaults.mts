@@ -6,7 +6,8 @@ export const defaultOptions: Required<Options> = {
     layerSeparation: 40,
     nodeSeparation: 20,
     polylinePadding: 1,
-    gridSize: 10,
+    rectilinearSelfEdgeOffset: 10,
+    gridSize: 0,
     edgeRoutingMode: EdgeRoutingMode.Rectilinear,
     margins: {
         left: 10,
@@ -40,14 +41,14 @@ export function setVertices(link: dia.Link, vertices: dia.Point[]) {
     link.vertices(vertices);
 }
 
-export function setLabels(link: dia.Link, labelPosition: dia.Point, points: dia.Point[]) {
+export function setLabels(link: dia.Link, labelBBox: dia.BBox, points: dia.Point[]) {
 
     const polyline = new g.Polyline(points);
 
-    const linkSize = link.get('labelSize') as { width: number, height: number };
+    const { x, y, width, height } = labelBBox;
 
-    const cx = labelPosition.x + linkSize.width / 2;
-    const cy = labelPosition.y + linkSize.height / 2;
+    const cx = x + width / 2;
+    const cy = y + height / 2;
 
     const center = new g.Point(cx, cy);
 
