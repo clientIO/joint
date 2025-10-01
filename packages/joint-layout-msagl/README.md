@@ -71,7 +71,7 @@ type GetSizeCallback = (element: dia.Element) => dia.Size;
 type GetLabelSizeCallback = (cell: dia.Link | dia.Element) => dia.Size | undefined;
 type SetPositionCallback = (element: dia.Element, position: dia.Point) => void;
 type SetVerticesCallback = (link: dia.Link, vertices: dia.Point[]) => void;
-type SetLabelsCallback = (link: dia.Link, labelPosition: dia.Point, points: dia.Point[]) => void;
+type SetLabelsCallback = (link: dia.Link, labelBBox: dia.BBox, points: dia.Point[]) => void;
 type SetAnchorCallback = (link: dia.Link, linkEndPoint: dia.Point, bbox: dia.BBox, endType: 'source' | 'target') => void;
 
 interface Options {
@@ -88,7 +88,7 @@ interface Options {
     // when edgeRoutingMode is Rectilinear. Default: 10
     rectilinearSelfEdgeOffset?: number;
     // Grid and margins
-    gridSize?: number; // Default: 10
+    gridSize?: number; // Default: 0
     margins?: { // Default: { left: 10, right: 10, top: 10, bottom: 10 }
         left: number;
         right: number;
