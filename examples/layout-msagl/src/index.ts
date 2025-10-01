@@ -167,7 +167,6 @@ const getLayoutOptions = (): Options => {
         layerSeparation: Number(layerSeparationInput.value),
         nodeSeparation: Number(nodeSeparationInput.value),
         polylinePadding: 12,
-        gridSize: 0,
         margins: {
             left: margin,
             right: margin,
@@ -203,11 +202,12 @@ const getLayoutOptions = (): Options => {
                 }
             );
         },
-        setLabels: (link, labelPosition, points) => {
+        setLabels: (link, labelBBox, points) => {
+            const { x, y, width, height } = labelBBox;
+
             const polyline = new g.Polyline(points);
-            const linkSize = link.get('labelSize') as { width: number; height: number };
-            const cx = labelPosition.x + linkSize.width / 2;
-            const cy = labelPosition.y + linkSize.height / 2;
+            const cx = x + width / 2;
+            const cy = y + height / 2;
             const center = new g.Point(cx, cy);
             const distance = polyline.closestPointLength(center);
             const tangent = polyline.tangentAtLength(distance);
@@ -240,7 +240,7 @@ const runLayout = () => {
     paper.unfreeze({
         afterRender: () => {
             paper.transformToFitContent({
-                padding: 40,
+                padding: options.margins,
                 horizontalAlign: 'middle',
                 verticalAlign: 'middle',
                 useModelGeometry: true
