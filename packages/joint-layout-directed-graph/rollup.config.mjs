@@ -45,7 +45,15 @@ export default [
                 },
                 plugins: [
                     // Uglify.
-                    terser({ format: { ascii_only: true, preamble: `'use strict';` }}),
+                    // - see `joint-core/grunt/config/uglify.js`
+                    terser({
+                        compress: {
+                            module: false
+                        },
+                        format: {
+                            ascii_only: true
+                        }
+                    }),
                     // Add JointJS banner to all distribution files.
                     banner(() => bannerText)
                 ]

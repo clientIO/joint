@@ -4,11 +4,14 @@ const path = require('path');
 module.exports = function() {
 
     return {
+        // - see also `joint-layout-directed-graph/rollup.config.mjs`
         options: {
+            compress: {
+                module: false
+            },
             output: {
                 ascii_only: true
             },
-            banner: `'use strict';`
         },
         deps: {
             src: 'node_modules/lodash/lodash.js',
