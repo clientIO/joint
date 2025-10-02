@@ -452,9 +452,9 @@ export namespace dia {
 
         protected generateId(): string | number;
 
-        protected stopPendingTransitions(path?: string, delim?: string): void;
+        protected stopPendingTransitions(path?: Path, delim?: string): void;
 
-        protected stopScheduledTransitions(path?: string, delim?: string): void;
+        protected stopScheduledTransitions(path?: Path, delim?: string): void;
 
         toJSON(opt?: dia.Cell.ExportOptions): Cell.JSON<any, A>;
 
