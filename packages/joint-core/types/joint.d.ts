@@ -238,7 +238,7 @@ export namespace dia {
 
         addCellLayer(layer: CellLayer | CellLayer.Attributes, options?: Graph.AddCellLayerOptions): void;
 
-        removeCellLayer(layer: CellLayer): void;
+        removeCellLayer(layer: CellLayer, opt?: Graph.Options): void;
 
         getDefaultCellLayer(): CellLayer;
 

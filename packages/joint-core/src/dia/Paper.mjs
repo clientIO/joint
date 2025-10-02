@@ -888,6 +888,7 @@ export const Paper = View.extend({
         }
 
         let viewConstructor;
+        // For backward compatibility we use the LegacyCellLayerView for the `cells` layer.
         if (options.id === 'cells') {
             viewConstructor = LegacyCellLayerView;
         } else {

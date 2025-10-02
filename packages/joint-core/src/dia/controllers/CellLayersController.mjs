@@ -168,7 +168,7 @@ export class CellLayersController extends Listener {
 
         const originalLayersArray = this.getCellLayers();
 
-        let currentIndex;
+        let currentIndex = null;
         if (this.hasCellLayer(id)) {
             currentIndex = originalLayersArray.findIndex(layer => layer === cellLayer);
             if (currentIndex === originalLayersArray.length - 1 && !insertBefore) {
@@ -191,7 +191,7 @@ export class CellLayersController extends Listener {
             }
         }
 
-        if (currentIndex) {
+        if (currentIndex != null) {
             this.collection.add(cellLayer, { at: insertAt, silent: true });
             // trigger sort event manually since we are not using collection sorting workflow
             this.collection.trigger('sort', this.collection);
