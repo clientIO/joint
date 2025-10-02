@@ -2216,7 +2216,7 @@ export namespace dia {
 
         protected cells: C;
 
-        constructor(attributes?: DeepPartial<A>);
+        constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<CellGroup>);
 
         add(cell: Cell, opt?: S): void;
 
@@ -3421,6 +3421,7 @@ export namespace mvc {
 
     interface ModelConstructorOptions<TModel extends Model = Model> extends ModelSetOptions, Parseable {
         collection?: Collection<TModel> | undefined;
+        eventPrefix?: string | undefined;
     }
 
     type CombinedModelConstructorOptions<E, M extends Model<any, any, E> = Model> = ModelConstructorOptions<M> & E;
