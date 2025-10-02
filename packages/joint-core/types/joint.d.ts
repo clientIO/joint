@@ -492,11 +492,11 @@ export namespace dia {
 
         removeAttr(path: Path, opt?: Cell.Options): this;
 
-        transition(path: string, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
+        transition(path: Path, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
 
         getTransitions(): string[];
 
-        stopTransitions(path?: string, delim?: string): this;
+        stopTransitions(path?: Path, delim?: string): this;
 
         embed(cell: Cell | Cell[], opt?: Cell.EmbedOptions): this;
 
