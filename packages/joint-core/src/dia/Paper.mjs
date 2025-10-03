@@ -440,15 +440,15 @@ export const Paper = View.extend({
             order: [],
         };
 
-        this.cloneOptions();
-        this.render();
-        this._setDimensions();
-        this.startListening();
-
         // Hash of all cell views.
         this._views = {};
         this._viewPlaceholders = {};
         this._idToCid = {};
+
+        this.cloneOptions();
+        this.render();
+        this._setDimensions();
+        this.startListening();
 
         // Mouse wheel events buffer
         this._mw_evt_buffer = {
@@ -600,6 +600,10 @@ export const Paper = View.extend({
             // in this case all cell layers are located between back and labels layer
             // where the `cells` layer is located originally
             this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
+
+            // insert all existing cell views into the newly created cell layer view
+            // it is needed in case when cell layers where reset without cells resetting
+            layerView.refresh();
         });
     },
 

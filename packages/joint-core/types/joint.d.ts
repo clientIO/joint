@@ -2214,7 +2214,7 @@ export namespace dia {
 
         declare id: string;
 
-        protected cells: C;
+        cells: C;
 
         constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<CellGroup>);
 

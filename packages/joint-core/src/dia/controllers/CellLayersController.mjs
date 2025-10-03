@@ -31,6 +31,10 @@ export class CellLayersController extends Listener {
             this.onCellLayerRemove(cellLayer, opt);
         });
 
+        this.listenTo(this.collection, 'reset', (_context, collection, opt = {}) => {
+            this.onCellLayersCollectionReset(collection, opt);
+        });
+
         this.listenTo(graph, 'add', (_context, cell, _, opt = {}) => {
             this.onCellAdd(cell, opt);
         });
@@ -53,12 +57,14 @@ export class CellLayersController extends Listener {
 
         let defaultCellLayerId = opt.defaultCellLayer;
 
-        if (!defaultCellLayerId) {
-            defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
-
+        if (cellLayersArray.length === 0) {
             cellLayersArray.push({
                 id: DEFAULT_CELL_LAYER_ID
             });
+        }
+
+        if (!defaultCellLayerId) {
+            defaultCellLayerId = cellLayersArray[0].id;
         }
 
         if (!cellLayersArray.some(layer => layer.id === defaultCellLayerId)) {
@@ -67,7 +73,20 @@ export class CellLayersController extends Listener {
 
         this.defaultCellLayerId = defaultCellLayerId;
 
+        this.graph.startBatch('reset-layers', opt);
         this.collection.reset(cellLayersArray, opt);
+        this.graph.stopBatch('reset-layers', opt);
+    }
+
+    onCellLayersCollectionReset(collection, opt) {
+        const previousCellLayers = opt.previousModels;
+
+        previousCellLayers.forEach(previousLayer => {
+            if (!collection.get(previousLayer.id)) {
+                this.onCellLayerRemove(previousLayer, opt);
+            }
+        });
+
         this.graph.cellCollection.each(cell => {
             this.onCellAdd(cell, opt);
         });

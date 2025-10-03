@@ -96,13 +96,12 @@ QUnit.module('layers-basic', function(hooks) {
 
         assert.ok(this.graph.hasCellLayer('layer1'), 'Graph has layer "layer1"');
         assert.ok(this.graph.hasCellLayer('layer2'), 'Graph has layer "layer2"');
-        assert.ok(this.graph.hasCellLayer('cells'), 'Graph has default layer "cells"');
+        assert.equal(this.graph.getDefaultCellLayer().id, 'layer1', 'Graph has default layer "layer1"');
 
         const cellLayers = this.graph.getCellLayers();
-        assert.strictEqual(cellLayers.length, 3, 'There are 3 root layers in the graph');
+        assert.strictEqual(cellLayers.length, 2, 'There are 2 cell layers in the graph');
         assert.equal(cellLayers[0].id, 'layer1', 'First layer is "layer1"');
         assert.equal(cellLayers[1].id, 'layer2', 'Second layer is "layer2"');
-        assert.equal(cellLayers[2].id, 'cells', 'Third layer is "cells"');
 
         const layer1 = cellLayers[0];
         const layer2 = cellLayers[1];
@@ -117,7 +116,6 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(layer2Node.querySelector(`[model-id="ellipse1"]`), 'Layer view for "layer2" has ellipse cell view node');
 
         assert.ok(layer1Node.nextSibling === layer2Node, '"layer1" layer view is before "layer2" layer view');
-        assert.ok(layer2Node.nextSibling === this.paper.getLayerViewNode('cells'), '"layer2" layer view is before "cells" layer view');
     });
 
     QUnit.test('Changing layer() attribute', (assert) => {
@@ -247,6 +245,58 @@ QUnit.module('layers-basic', function(hooks) {
 
         assert.strictEqual(this.graph.getCellLayers().length, 1, 'There is still 1 layer in the graph');
     });
+
+    QUnit.test('resetting layers', (assert) => {
+        const layer1 = new joint.dia.CellLayer({ id: 'layer1' });
+        this.graph.addCellLayer(layer1);
+        const layer2 = new joint.dia.CellLayer({ id: 'layer2' });
+        this.graph.addCellLayer(layer2);
+
+        this.graph.addCell({
+            type: 'standard.Rectangle',
+            id: 'rect1',
+            layer: 'layer1'
+        });
+
+        this.graph.addCell({
+            type: 'standard.Rectangle',
+            id: 'rect2',
+            layer: 'layer2'
+        });
+
+        assert.strictEqual(this.graph.getCellLayers().length, 3, 'There are 3 layers in the graph');
+
+        this.graph.resetCellLayers();
+
+        const cellLayers = this.graph.getCellLayers();
+        assert.strictEqual(cellLayers.length, 1, 'There is 1 layer in the graph');
+        assert.strictEqual(cellLayers[0].id, 'cells', 'The only layer is "cells"');
+
+        assert.equal(this.graph.getCells().length, 0, 'There are no cells in the graph');
+        assert.equal(this.paper.el.querySelectorAll('.joint-cell-layer').length, 1, 'There is 1 layer view in the paper');
+        assert.equal(this.paper.el.querySelectorAll('.joint-cell').length, 0, 'There are no cell views in the paper');
+
+        this.graph.addCellLayer(layer1);
+
+        this.graph.addCell({
+            type: 'standard.Rectangle',
+            id: 'rect1',
+            layer: 'layer1'
+        });
+
+        this.graph.resetCellLayers([
+            { id: 'layer1' }
+        ]);
+
+        const updatedCellLayers = this.graph.getCellLayers();
+        assert.strictEqual(updatedCellLayers.length, 1, 'There is 1 layer in the graph');
+        assert.strictEqual(updatedCellLayers[0].id, 'layer1', 'The only layer is "layer1"');
+        assert.equal(this.graph.getCells().length, 1, 'There is 1 cell in the graph');
+
+        assert.equal(this.paper.el.querySelectorAll('.joint-cell-layer').length, 1, 'There is 1 layer view in the paper');
+        assert.equal(this.paper.el.querySelectorAll('.joint-cell-layer [model-id="rect1"]').length, 1, 'The cell view is in the layer view');
+    });
+
 
     QUnit.test('removing layer with cells', (assert) => {
         const layer1 = new joint.dia.CellLayer({ id: 'layer1' });

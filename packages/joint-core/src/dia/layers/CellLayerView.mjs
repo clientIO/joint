@@ -118,6 +118,15 @@ export const CellLayerView = LayerView.extend({
         }
     },
 
+    refresh() {
+        const { options: { paper }} = this;
+        const graph = paper.model;
+
+        graph.cellCollection.each(cell => {
+            this._requestCellViewInsertion(cell, { refresh: true });
+        });
+    },
+
     _requestCellViewInsertion(cell, opt) {
         const { options: { paper }} = this;
 
