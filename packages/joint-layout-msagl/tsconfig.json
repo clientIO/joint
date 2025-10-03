@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2022",
+    "target": "ES2019",
     "moduleResolution": "node",
     "declaration": true,
     "declarationMap": true,
@@ -18,7 +18,7 @@
     "inlineSources": true,
     "inlineSourceMap": true,
     "lib": [
-      "es2022",
+      "ES2019",
       "dom"
     ]
   },
