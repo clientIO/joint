@@ -82,29 +82,4 @@ QUnit.module('CellGroup', function(hooks) {
             'change:a', 'change'
         ], 'the correct events were fired');
     });
-
-    QUnit.test('setEach() sets an attribute on each cell in the cells collection', (assert) => {
-        const group = new joint.dia.CellGroup();
-        const events = [];
-        group.on('all', (eventName) => {
-            events.push(eventName);
-        });
-
-        const cell1 = new joint.shapes.standard.Rectangle();
-        const cell2 = new joint.shapes.standard.Ellipse();
-        group.add([cell1, cell2]);
-
-        assert.equal(group.cells.length, 2, 'cells collection has two cells');
-
-        group.setEach('a', 1);
-
-        assert.equal(cell1.get('a'), 1, 'cell1 has attribute a=1');
-        assert.equal(cell2.get('a'), 1, 'cell2 has attribute a=1');
-
-        assert.deepEqual(events, [
-            'add', 'add', 'update',
-            'change:a', 'change',
-            'change:a', 'change'
-        ], 'the correct events were fired');
-    });
 });

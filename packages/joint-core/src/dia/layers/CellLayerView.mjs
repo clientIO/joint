@@ -26,33 +26,49 @@ export const CellLayerView = LayerView.extend({
         const { model, options: { paper }} = this;
         const graph = paper.model;
 
-        this.listenTo(model, 'sort', () => {
-            if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
+        this.listenTo(model, 'sort', this.onCellLayerSort);
+
+        this.listenTo(model, 'add', this.onCellAdd);
+
+        this.listenTo(model, 'change', this.onCellChange);
+
+        this.listenTo(graph, 'batch:stop', this.onGraphBatchStop);
+    },
+
+    onCellLayerSort() {
+        const { options: { paper }} = this;
+        const graph = paper.model;
+
+        if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
+        this.sort();
+    },
+
+    onCellAdd(cell, _collection, opt) {
+        // do not insert cell view here, it will be done in the Paper
+        if (!opt.initial) {
+            this._requestCellViewInsertion(cell, opt);
+        }
+    },
+
+    onCellChange(cell, opt) {
+        if (!cell.hasChanged('z')) return;
+
+        const { options: { paper }} = this;
+        if (paper.options.sorting === sortingTypes.APPROX) {
+            this._requestCellViewInsertion(cell, opt);
+        }
+    },
+
+    onGraphBatchStop(data) {
+        const { options: { paper }} = this;
+        const graph = paper.model;
+
+        const name = data && data.batchName;
+        const sortDelayingBatches = this.SORT_DELAYING_BATCHES;
+
+        if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
             this.sort();
-        });
-
-        this.listenTo(model, 'add', (cell, _collection, opt) => {
-            if (!opt.initial) {
-                this._requestCellViewInsertion(cell, opt);
-            }
-        });
-
-        this.listenTo(model, 'change', (cell, opt) => {
-            if (!cell.hasChanged('z')) return;
-
-            if (paper.options.sorting === sortingTypes.APPROX) {
-                this._requestCellViewInsertion(cell, opt);
-            }
-        });
-
-        this.listenTo(graph, 'batch:stop', (data) => {
-            const name = data && data.batchName;
-            const sortDelayingBatches = this.SORT_DELAYING_BATCHES;
-
-            if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
-                this.sort();
-            }
-        });
+        }
     },
 
     sort() {
@@ -112,7 +128,7 @@ export const CellLayerView = LayerView.extend({
     }
 });
 
-// Internal tag to identify this object as a cell view instance.
+// Internal tag to identify this object as a cell layer view instance.
 // Used instead of `instanceof` for performance and cross-frame safety.
 
 export const CELL_LAYER_VIEW_MARKER = Symbol('joint.cellLayerViewMarker');

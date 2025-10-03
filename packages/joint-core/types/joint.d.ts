@@ -2223,9 +2223,6 @@ export namespace dia {
         remove(cell: Cell, opt?: S): void;
 
         reset(cells?: Cell, opt?: S): void;
-
-        setEach(attributeName: string, value?: Cell.Attributes[keyof Cell.Attributes], options?: S): void;
-        setEach(attributes: Partial<Cell.Attributes>, options?: S): void;
     }
 
     namespace CellLayer {

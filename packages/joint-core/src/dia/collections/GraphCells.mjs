@@ -1,6 +1,11 @@
 import { Collection } from '../../mvc/Collection.mjs';
 import * as util from '../../util/index.mjs';
 
+/**
+ * @class GraphCells
+ * @description A collection of cells used in dia.Graph. It facilitates creating cell models from JSON using cellNamespace
+ * and stores a reference to the graph when the cell model has been added.
+ */
 export const GraphCells = Collection.extend({
 
     initialize: function(models, opt) {

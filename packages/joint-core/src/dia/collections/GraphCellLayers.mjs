@@ -2,9 +2,11 @@ import { Collection } from '../../mvc/index.mjs';
 import { CELL_LAYER_MARKER, CellLayer } from '../groups/CellLayer.mjs';
 import * as util from '../../util/index.mjs';
 
+/**
+ * @class GraphCellLayers
+ * @description A collection of cell layers used in dia.Graph. It facilitates creating cell layers from JSON using cellLayerNamespace.
+ */
 export const GraphCellLayers = Collection.extend({
-
-    modelInstanceMarker: CELL_LAYER_MARKER,
 
     defaultCellLayerNamespace: {
         CellLayer: CellLayer
@@ -49,17 +51,20 @@ export const GraphCellLayers = Collection.extend({
     // Do not propagate inner cell layer collection events.
     // Allow only for cell layer model events.
     _onModelEvent(event, model) {
-        if (model && model[this.modelInstanceMarker]) {
-            if ((event === model.eventPrefix + 'add' || event === model.eventPrefix + 'remove') && model.collection !== this) return;
-            if (event === 'changeId') {
-                var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
-                var id = this.modelId(model.attributes, model.idAttribute);
-                if (prevId != null) delete this._byId[prevId];
-                if (id != null) this._byId[id] = model;
-            }
+        if (!model || !model[CELL_LAYER_MARKER])
+            return;
 
-            arguments[0] = arguments[0].slice(model.eventPrefix.length);
-            this.trigger.apply(this, arguments);
+        if ((event === model.eventPrefix + 'add' || event === model.eventPrefix + 'remove') && model.collection !== this)
+            return;
+
+        if (event === 'changeId') {
+            var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
+            var id = this.modelId(model.attributes, model.idAttribute);
+            if (prevId != null) delete this._byId[prevId];
+            if (id != null) this._byId[id] = model;
         }
+
+        arguments[0] = arguments[0].slice(model.eventPrefix.length);
+        this.trigger.apply(this, arguments);
     }
 });

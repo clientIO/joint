@@ -178,7 +178,7 @@ export const Graph = Model.extend({
         }
 
         if (cellLayers) {
-            this.resetCellLayers(Array.from(cellLayers), { ...opt, defaultCellLayer });
+            this.resetCellLayers(cellLayers, { ...opt, defaultCellLayer });
         }
 
         if (cells) {

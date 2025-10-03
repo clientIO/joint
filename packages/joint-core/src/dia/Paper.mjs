@@ -537,33 +537,46 @@ export const Paper = View.extend({
     * When a new cell layer is added to the graph, we create a new layer view
     */
     onCellLayerAdd: function(cellLayer, _, opt) {
-        if (!this.hasLayerView(cellLayer.id)) {
-            const layerView = this.createLayerView({
-                id: cellLayer.id,
-                model: cellLayer
-            });
+        if (this.hasLayerView(cellLayer.id))
+            return;
 
-            this._cellLayerViews[cellLayer.id] = layerView;
-            this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
+        const layerView = this.createLayerView({
+            id: cellLayer.id,
+            model: cellLayer
+        });
+
+        this._cellLayerViews[cellLayer.id] = layerView;
+
+        let insertBefore = paperLayers.LABELS;
+
+        const cellLayers = this.model.getCellLayers();
+        const index = cellLayers.indexOf(cellLayer);
+        if (index !== cellLayers.length - 1) {
+            // there is a cell layer after the current one, so insert before that one
+            insertBefore = cellLayers[index + 1].id;
         }
+
+        this.insertLayerView(layerView, { insertBefore });
     },
 
     onCellLayerRemove: function(cellLayer, _, opt) {
-        const cellLayerView = this._cellLayerViews[cellLayer.id];
-        if (cellLayerView) {
-            // requesting removal so it will wait for cell views to be removed first
-            this.requestLayerViewRemove(cellLayerView);
-            delete this._cellLayerViews[cellLayer.id];
-        }
+        if (!this.hasLayerView(cellLayer.id))
+            return;
+
+        const cellLayerView = this.getLayerView(cellLayer.id);
+        // requesting removal so it will wait for cell views to be removed first
+        this.requestLayerViewRemove(cellLayerView);
+        delete this._cellLayerViews[cellLayer.id];
     },
 
     onCellLayersReset: function() {
         this.resetCellLayerViews();
     },
 
-    onCellLayersSort: function(cellLayers) {
-        [...cellLayers].reverse().forEach(cellLayer => {
+    onCellLayersSort: function(cellLayersCollection) {
+        cellLayersCollection.models.forEach(cellLayer => {
             if (!this.hasLayerView(cellLayer.id)) return;
+
             const layerView = this.getLayerView(cellLayer.id);
             this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
         });
@@ -576,7 +589,7 @@ export const Paper = View.extend({
         }
 
         const cellLayers = this.model.getCellLayers();
-        [...cellLayers].reverse().forEach(cellLayer => {
+        cellLayers.forEach(cellLayer => {
             const layerView = this.createLayerView({
                 id: cellLayer.id,
                 model: cellLayer

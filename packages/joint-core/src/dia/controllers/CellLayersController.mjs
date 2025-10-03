@@ -2,6 +2,10 @@ import { Listener } from '../../mvc/Listener.mjs';
 
 const DEFAULT_CELL_LAYER_ID = 'cells';
 
+/**
+ * @class CellLayersController
+ * @description A controller that manages cell layers in a dia.Graph.
+ */
 export class CellLayersController extends Listener {
 
     constructor(context) {
@@ -45,23 +49,25 @@ export class CellLayersController extends Listener {
     }
 
     resetCellLayers(cellLayers = [], opt = {}) {
+        const cellLayersArray = cellLayers.slice();
+
         let defaultCellLayerId = opt.defaultCellLayer;
 
         if (!defaultCellLayerId) {
             defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
 
-            cellLayers.push({
+            cellLayersArray.push({
                 id: DEFAULT_CELL_LAYER_ID
             });
         }
 
-        if (!cellLayers.some(layer => layer.id === defaultCellLayerId)) {
+        if (!cellLayersArray.some(layer => layer.id === defaultCellLayerId)) {
             throw new Error(`dia.Graph: default cell layer with id '${defaultCellLayerId}' must be one of the defined cell layers.`);
         }
 
         this.defaultCellLayerId = defaultCellLayerId;
 
-        this.collection.reset(cellLayers, opt);
+        this.collection.reset(cellLayersArray, opt);
         this.graph.cellCollection.each(cell => {
             this.onCellAdd(cell, opt);
         });
@@ -86,7 +92,8 @@ export class CellLayersController extends Listener {
     }
 
     onCellChange(cell, opt) {
-        if (!cell.hasChanged('layer')) return;
+        if (!cell.hasChanged('layer'))
+            return;
 
         let layerId = cell.get('layer');
         if (!layerId) {

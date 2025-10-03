@@ -1,5 +1,9 @@
 import { Model, Collection } from '../../mvc/index.mjs';
 
+/**
+ * @class CellGroupCollection
+ * @description A CellGroupCollection is a collection of cells used in CellGroup.
+ */
 export class CellGroupCollection extends Collection {
 
     _prepareModel(attrs, _options) {
@@ -16,6 +20,10 @@ export class CellGroupCollection extends Collection {
     }
 }
 
+/**
+ * @class CellGroup
+ * @description A CellGroup is a model that contains a collection of cells.
+ */
 export class CellGroup extends Model {
 
     defaults() {
@@ -51,12 +59,6 @@ export class CellGroup extends Model {
 
     reset(cells = [], opt) {
         this.cells.reset(cells, opt);
-    }
-
-    setEach(key, val, opt) {
-        this.cells.toArray().forEach(cell => {
-            cell.set(key, val, opt);
-        });
     }
 }
 

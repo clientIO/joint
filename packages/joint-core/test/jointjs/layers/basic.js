@@ -110,13 +110,14 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(layer1.cells.has('rect1'), 'Layer "layer1" has rectangle cell');
         assert.ok(layer2.cells.has('ellipse1'), 'Layer "layer2" has ellipse cell');
 
-        const layerViewNode = this.paper.getLayerViewNode('layer1');
+        const layer1Node = this.paper.getLayerViewNode('layer1');
+        assert.ok(layer1Node.querySelector(`[model-id="rect1"]`), 'Layer view for "layer1" has rectangle cell view node');
 
-        assert.ok(layerViewNode.querySelector(`[model-id="rect1"]`), 'Layer view for "layer1" has rectangle cell view node');
+        const layer2Node = this.paper.getLayerViewNode('layer2');
+        assert.ok(layer2Node.querySelector(`[model-id="ellipse1"]`), 'Layer view for "layer2" has ellipse cell view node');
 
-        const layerViewNode2 = this.paper.getLayerViewNode('layer2');
-
-        assert.ok(layerViewNode2.querySelector(`[model-id="ellipse1"]`), 'Layer view for "layer2" has ellipse cell view node');
+        assert.ok(layer1Node.nextSibling === layer2Node, '"layer1" layer view is before "layer2" layer view');
+        assert.ok(layer2Node.nextSibling === this.paper.getLayerViewNode('cells'), '"layer2" layer view is before "cells" layer view');
     });
 
     QUnit.test('Changing layer() attribute', (assert) => {
@@ -186,8 +187,15 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(cellLayers[0].id, 'cells', 'First layer is "cells"');
         assert.strictEqual(cellLayers[1].id, 'layer1', 'Second layer is "layer1"');
 
+        const cellsLayerNode = this.paper.getLayerViewNode('cells');
+        const layer1Node = this.paper.getLayerViewNode('layer1');
+        assert.ok(cellsLayerNode.nextSibling === layer1Node, '"cells" layer view is before "layer1" layer view');
+
         const layer2 = new joint.dia.CellLayer({ id: 'layer2' });
         this.graph.addCellLayer(layer2, { insertBefore: 'layer1' });
+        const layer2Node = this.paper.getLayerViewNode('layer2');
+        assert.ok(cellsLayerNode.nextSibling === layer2Node, '"cells" layer view is before "layer2" layer view');
+        assert.ok(layer2Node.nextSibling === layer1Node, '"layer2" layer view is before "layer1" layer view');
 
         const updatedCellLayers = this.graph.getCellLayers();
         assert.strictEqual(updatedCellLayers[0].id, 'cells', 'First layer is still "cells"');
@@ -195,6 +203,9 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(updatedCellLayers[2].id, 'layer1', 'Third layer is "layer1"');
 
         this.graph.addCellLayer(this.graph.getDefaultCellLayer(), { insertBefore: 'layer1' });
+
+        assert.ok(cellsLayerNode.nextSibling === layer1Node, '"cells" layer view is before "layer1" layer view');
+        assert.ok(layer2Node.nextSibling === cellsLayerNode, '"layer2" layer view is before "cells" layer view');
 
         const finalCellLayers = this.graph.getCellLayers();
         assert.strictEqual(finalCellLayers[0].id, 'layer2', 'First layer is "layer2"');

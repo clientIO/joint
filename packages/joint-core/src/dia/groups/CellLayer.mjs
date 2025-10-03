@@ -24,10 +24,14 @@ export class CellLayer extends CellGroup {
     initialize(attrs) {
         super.initialize(attrs);
 
-        this.cells.on('change', (cell) => {
-            if (!cell.hasChanged('z')) return;
-            this.cells.sort();
-        });
+        this.cells.on('change', this.onCellChange, this);
+    }
+
+    onCellChange(cell, _opt) {
+        if (!cell.hasChanged('z'))
+            return;
+
+        this.cells.sort();
     }
 
     minZIndex() {
