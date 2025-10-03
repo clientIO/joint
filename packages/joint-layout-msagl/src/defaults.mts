@@ -29,8 +29,8 @@ function getSize(element: dia.Element): dia.Size {
     return element.size();
 }
 
-function getLabelSize(cell: dia.Link | dia.Element): dia.Size | undefined {
-    return cell.get('labelSize') as { width: number, height: number } | undefined;
+function getLabelSize(cell: dia.Cell): dia.Size | undefined {
+    return cell.get('labelSize') as dia.Size | undefined;
 }
 
 function setPosition(element: dia.Element, position: dia.Point) {

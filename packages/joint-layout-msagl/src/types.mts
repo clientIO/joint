@@ -9,7 +9,7 @@ export enum EdgeRoutingMode {
 export { LayerDirectionEnum };
 
 type GetSizeCallback = (element: dia.Element) => dia.Size;
-type GetLabelSizeCallback = (cell: dia.Link | dia.Element) => dia.Size | undefined;
+type GetLabelSizeCallback = (cell: dia.Cell) => dia.Size | undefined;
 type SetPositionCallback = (element: dia.Element, position: dia.Point) => void;
 type SetVerticesCallback = (link: dia.Link, vertices: dia.Point[]) => void;
 type SetLabelsCallback = (link: dia.Link, labelBBox: dia.BBox, points: dia.Point[]) => void;

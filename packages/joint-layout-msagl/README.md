@@ -68,7 +68,7 @@ Main layout function with full customization options.
 ```ts
 // Callback type definitions
 type GetSizeCallback = (element: dia.Element) => dia.Size;
-type GetLabelSizeCallback = (cell: dia.Link | dia.Element) => dia.Size | undefined;
+type GetLabelSizeCallback = (cell: dia.Cell) => dia.Size | undefined;
 type SetPositionCallback = (element: dia.Element, position: dia.Point) => void;
 type SetVerticesCallback = (link: dia.Link, vertices: dia.Point[]) => void;
 type SetLabelsCallback = (link: dia.Link, labelBBox: dia.BBox, points: dia.Point[]) => void;
