@@ -242,7 +242,7 @@ export namespace dia {
 
         getDefaultCellLayer(): CellLayer;
 
-        setDefaultCellLayer(id: string): void;
+        setDefaultCellLayer(id: string, opt?: Graph.Options): void;
 
         getCellLayer(id: string): CellLayer;
 
@@ -2245,11 +2245,15 @@ export namespace dia {
 
         protected startListening(): void;
 
-        protected sort(): void;
+        sort(): void;
 
-        protected sortExact(): void;
+        sortExact(): void;
 
-        protected insertCellView(cellView: CellView): void;
+        insertCellView(cellView: CellView): void;
+
+        requestCellViewInsertion(cellView: CellView, opt?: { [key: string]: any }): void;
+
+        requestCellViewsInsertion(opt?: { [key: string]: any }): void;
     }
 
     class GridLayerView extends LayerView {

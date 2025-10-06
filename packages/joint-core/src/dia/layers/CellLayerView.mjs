@@ -3,6 +3,12 @@ import { sortElements } from '../../util/index.mjs';
 import { addClassNamePrefix } from '../../util/util.mjs';
 import { sortingTypes } from '../Paper.mjs';
 
+/**
+ * @class CellLayerView
+ * @description A CellLayerView is responsible for managing the rendering of cell views inside a cell layer.
+ * It listens to the corresponding CellLayer model and updates the DOM accordingly.
+ * It uses dia.Paper sorting options to sort cell views in the DOM based on their `z` attribute.
+ */
 export const CellLayerView = LayerView.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
@@ -46,7 +52,7 @@ export const CellLayerView = LayerView.extend({
     onCellAdd(cell, _collection, opt) {
         // do not insert cell view here, it will be done in the Paper
         if (!opt.initial) {
-            this._requestCellViewInsertion(cell, opt);
+            this.requestCellViewInsertion(cell, opt);
         }
     },
 
@@ -55,7 +61,7 @@ export const CellLayerView = LayerView.extend({
 
         const { options: { paper }} = this;
         if (paper.options.sorting === sortingTypes.APPROX) {
-            this._requestCellViewInsertion(cell, opt);
+            this.requestCellViewInsertion(cell, opt);
         }
     },
 
@@ -118,16 +124,16 @@ export const CellLayerView = LayerView.extend({
         }
     },
 
-    refresh() {
+    requestCellViewsInsertion(opt = {}) {
         const { options: { paper }} = this;
         const graph = paper.model;
 
         graph.cellCollection.each(cell => {
-            this._requestCellViewInsertion(cell, { refresh: true });
+            this.requestCellViewInsertion(cell);
         });
     },
 
-    _requestCellViewInsertion(cell, opt) {
+    requestCellViewInsertion(cell, opt = {}) {
         const { options: { paper }} = this;
 
         const viewLike = paper._getCellViewLike(cell);

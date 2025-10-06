@@ -603,7 +603,7 @@ export const Paper = View.extend({
 
             // insert all existing cell views into the newly created cell layer view
             // it is needed in case when cell layers where reset without cells resetting
-            layerView.refresh();
+            layerView.requestCellViewsInsertion();
         });
     },
 

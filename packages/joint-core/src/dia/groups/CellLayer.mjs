@@ -1,5 +1,9 @@
 import { CellGroupCollection, CellGroup } from './CellGroup.mjs';
 
+/**
+ * @class CellLayerCollection
+ * @description A CellLayerCollection is a collection of cells which supports sorting by z attribute.
+ */
 export class CellLayerCollection extends CellGroupCollection {
 
     // `comparator` makes it easy to sort cells based on their `z` index.
@@ -8,6 +12,11 @@ export class CellLayerCollection extends CellGroupCollection {
     }
 }
 
+/**
+ * @class CellLayer
+ * @description A CellLayer is a CellGroup with additional helper methods for z-index management.
+ * The inner collection is sorted by z-index automatically.
+ */
 export class CellLayer extends CellGroup {
 
     preinitialize() {

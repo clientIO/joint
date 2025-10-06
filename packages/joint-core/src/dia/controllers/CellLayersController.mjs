@@ -19,6 +19,7 @@ export class CellLayersController extends Listener {
         this.addCellLayer({
             id: DEFAULT_CELL_LAYER_ID
         });
+        this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId);
 
         this.startListening();
     }
@@ -71,9 +72,11 @@ export class CellLayersController extends Listener {
             throw new Error(`dia.Graph: default cell layer with id '${defaultCellLayerId}' must be one of the defined cell layers.`);
         }
 
-        this.defaultCellLayerId = defaultCellLayerId;
-
         this.graph.startBatch('reset-layers', opt);
+        if (this.defaultCellLayerId !== defaultCellLayerId) {
+            this.defaultCellLayerId = defaultCellLayerId;
+            this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, opt);
+        }
         this.collection.reset(cellLayersArray, opt);
         this.graph.stopBatch('reset-layers', opt);
     }
@@ -81,6 +84,7 @@ export class CellLayersController extends Listener {
     onCellLayersCollectionReset(collection, opt) {
         const previousCellLayers = opt.previousModels;
 
+        // remove cells from the layers that have been removed
         previousCellLayers.forEach(previousLayer => {
             if (!collection.get(previousLayer.id)) {
                 this.onCellLayerRemove(previousLayer, opt);
@@ -153,17 +157,12 @@ export class CellLayersController extends Listener {
         return this.collection.get(this.defaultCellLayerId);
     }
 
-    setDefaultCellLayer(layerId) {
-        if (!this.hasCellLayer(layerId)) {
-            throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
+    setDefaultCellLayer(newDefaultLayerId, opt = {}) {
+        if (!this.hasCellLayer(newDefaultLayerId)) {
+            throw new Error(`dia.Graph: Cell layer with id '${newDefaultLayerId}' does not exist.`);
         }
 
-        const layer = this.getCellLayer(layerId);
-        this._changeDefaultLayer(layer);
-    }
-
-    _changeDefaultLayer(newDefaultLayer) {
-        const newDefaultLayerId = newDefaultLayer.id;
+        const newDefaultLayer = this.getCellLayer(newDefaultLayerId);
 
         if (newDefaultLayerId === this.defaultCellLayerId) {
             return; // no change
@@ -182,6 +181,8 @@ export class CellLayersController extends Listener {
         } else {
             this.defaultCellLayerId = newDefaultLayerId;
         }
+
+        this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, opt);
     }
 
     addCellLayer(cellLayer, { insertBefore } = {}) {
