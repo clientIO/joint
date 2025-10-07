@@ -266,7 +266,7 @@ QUnit.module('layers-basic', function(hooks) {
 
         assert.strictEqual(this.graph.getCellLayers().length, 3, 'There are 3 layers in the graph');
 
-        this.graph.resetCellLayers();
+        this.graph.resetCellLayers([{ id: 'cells' }]);
 
         const cellLayers = this.graph.getCellLayers();
         assert.strictEqual(cellLayers.length, 1, 'There is 1 layer in the graph');

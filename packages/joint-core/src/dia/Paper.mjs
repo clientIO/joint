@@ -23,6 +23,7 @@ import {
     result,
     camelCase,
     cloneDeep,
+    clone,
     invoke,
     hashCode,
     filter as _filter,
@@ -895,24 +896,30 @@ export const Paper = View.extend({
             throw new Error('dia.Paper: Layer view id is required.');
         }
 
-        options.paper = this;
+        const viewOptions = clone(options);
 
-        let type = options.type;
-
-        if (options.model) {
-            const modelType = options.model.get('type') || options.model.constructor.name;
-            type = modelType + 'View';
-        }
+        // inject paper reference to the layer view
+        viewOptions.paper = this;
 
         let viewConstructor;
-        // For backward compatibility we use the LegacyCellLayerView for the `cells` layer.
-        if (options.id === 'cells') {
-            viewConstructor = LegacyCellLayerView;
+
+        if (viewOptions.model) {
+            const modelType = viewOptions.model.get('type') || viewOptions.model.constructor.name;
+            const type = modelType + 'View';
+
+            // For backward compatibility we use the LegacyCellLayerView for the default `cells` layer.
+            if (viewOptions.model.get('__legacy')) {
+                viewConstructor = LegacyCellLayerView;
+            } else {
+                viewConstructor = this.layerViewNamespace[type] || LayerView;
+            }
         } else {
+            // Paper layers
+            const type = viewOptions.type;
             viewConstructor = this.layerViewNamespace[type] || LayerView;
         }
 
-        const layerView = new viewConstructor(options);
+        const layerView = new viewConstructor(viewOptions);
 
         return layerView;
     },

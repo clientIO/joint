@@ -40,6 +40,12 @@ export const Graph = Model.extend({
         // to the outside world.
         cellCollection.on('all', this.trigger, this);
 
+        // For backward compatibility, we keep put legacy 'cells' cell layer collection here.
+        this.attributes.cells = this.getCellLayer('cells').cells;
+        // inject current cellCollection namespace for backward compatibility,
+        // we are using get('cells') to retrieve cellNamespace in several apps and JointJS+ components
+        this.attributes.cells.cellNamespace = this.cellCollection.cellNamespace;
+
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
         // must be reflected in the `al` object. This object provides fast answers to
@@ -161,11 +167,16 @@ export const Graph = Model.extend({
         // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitly.
         var json = Model.prototype.toJSON.apply(this, arguments);
         json.cells = this.cellCollection.toJSON(opt.cellAttributes);
-        // backward compatibility to not export default layers setup
-        if (this.cellLayerCollection.length === 1 && this.cellLayerCollection.at(0).get('id') === 'cells') {
+        // backward compatibility: do not export default layers setup
+        if (this.cellLayerCollection.length === 1 && this.cellLayerCollection.at(0).get('__legacy') === true) {
             return json;
         }
         json.cellLayers = this.cellLayerCollection.toJSON();
+        // remove legacy flag before export
+        json.cellLayers.forEach(layer => {
+            delete layer['__legacy'];
+        });
+
         json.defaultCellLayer = this.cellLayersController.defaultCellLayerId;
         return json;
     },
@@ -189,19 +200,6 @@ export const Graph = Model.extend({
         this.set(attrs, opt);
 
         return this;
-    },
-
-    get: function(attr) {
-        if (attr === 'cells') {
-            // Compatibility with the old `cells` attribute.
-            // Return the cells collection from the default cell layer.
-            const collection = this.cellLayersController.getDefaultCellLayer().cells;
-            // inject current cellCollection namespace for backward compatibility,
-            // we are using get('cells') to retrieve cellNamespace in several apps and JointJS+ components
-            collection.cellNamespace = this.cellCollection.cellNamespace;
-            return collection;
-        }
-        return Model.prototype.get.call(this, attr);
     },
 
     clear: function(opt) {
@@ -248,10 +246,9 @@ export const Graph = Model.extend({
         }
 
         // compatibility: in the version before groups, z-index was not set on reset.
-        // Do it now to preserve the old behavior where 'change:z' event
-        // was not triggered on graph when cell was added to the graph because it was set
-        // before adding to the cellCollection.
-        if (!opt.reset) {
+        // We are doing it here instead in the cell layer to preserve the old behavior where 'change:z' event
+        // was not triggered on graph when cell was added to the graph because it was set before adding to the cellCollection.
+        if (opt.ensureZIndex) {
             if (cell instanceof Model) {
                 if (!cell.has('z')) {
                     const layer = cell.get('layer') ? this.getCellLayer(cell.get('layer')) : this.getDefaultCellLayer();
@@ -280,7 +277,7 @@ export const Graph = Model.extend({
             return this.addCells(cell, opt);
         }
 
-        this.cellCollection.add(this._prepareCell(cell, opt), opt || {});
+        this.cellCollection.add(this._prepareCell(cell, { ...opt, ensureZIndex: true }), opt || {});
 
         return this;
     },
@@ -310,7 +307,8 @@ export const Graph = Model.extend({
         this.startBatch('reset', opt);
 
         var preparedCells = util.toArray(cells).map(function(cell) {
-            return this._prepareCell(cell, { ...opt, reset: true });
+            // do not ensure z-index on reset for backward compatibility
+            return this._prepareCell(cell, { ...opt, ensureZIndex: false });
         }, this);
 
         this.cellCollection.reset(preparedCells, opt);
