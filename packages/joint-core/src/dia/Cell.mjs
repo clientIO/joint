@@ -822,7 +822,8 @@ export const Cell = Model.extend({
         const { _scheduledTransitionIds = {}} = this;
         let transitions = Object.keys(_scheduledTransitionIds);
         if (path) {
-            const pathArray = Array.isArray(path) ? path.map(item => item.toString()) : path.split(delim);
+            // Ensure all path segments are strings for `isEqual` comparison, since it strictly compares values
+            const pathArray = Array.isArray(path) ? path.map(item => String(item)) : path.split(delim);
             transitions = transitions.filter((key) => {
                 return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
             });
@@ -841,7 +842,8 @@ export const Cell = Model.extend({
         const { _transitionIds = {}} = this;
         let transitions = Object.keys(_transitionIds);
         if (path) {
-            const pathArray = Array.isArray(path) ? path.map(item => item.toString()) : path.split(delim);
+            // Ensure all path segments are strings for `isEqual` comparison, since it strictly compares values
+            const pathArray = Array.isArray(path) ? path.map(item => String(item)) : path.split(delim);
             transitions = transitions.filter((key) => {
                 return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
             });
