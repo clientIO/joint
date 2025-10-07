@@ -65,7 +65,7 @@ Main layout function with full customization options.
 
 ```ts
 interface LayoutResult {
-    bbox: dia.BBox;         // Tight bounding box of the laid out graph
+    bbox: g.Rect;           // Tight bounding box of the laid out graph
     msGraph: Graph;         // Underlying MSAGL graph data structure
     msGeomGraph: GeomGraph; // Geometry instance used by MSAGL to layout graph
 }

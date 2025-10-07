@@ -1,5 +1,5 @@
 import { LayerDirectionEnum } from "@msagl/core";
-import { type dia } from "@joint/core";
+import type { dia, g } from "@joint/core";
 import type { Graph, GeomGraph } from "@msagl/core";
 
 export enum EdgeRoutingMode {
@@ -40,7 +40,7 @@ export interface Options {
 }
 
 export interface LayoutResult {
-    bbox: dia.BBox;
+    bbox: g.Rect;
     msGraph: Graph;
     msGeomGraph: GeomGraph;
 }
