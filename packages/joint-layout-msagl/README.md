@@ -53,7 +53,7 @@ layout(graph, {
 
 ### Main Functions
 
-#### `layout(graphOrCells, options?): g.Rect`
+#### `layout(graphOrCells, options?): LayoutResult`
 
 Main layout function with full customization options.
 
@@ -61,7 +61,15 @@ Main layout function with full customization options.
 - `graphOrCells`: `dia.Graph | dia.Cell[]` - JointJS graph or array of cells to layout
 - `options?`: `Options` - Layout configuration (see below)
 
-**Returns:** `g.Rect` - Bounding box of the laid out graph
+**Returns:** `LayoutResult`
+
+```ts
+interface LayoutResult {
+    bbox: dia.BBox;         // Tight bounding box of the laid out graph
+    msGraph: Graph;         // Underlying MSAGL graph data structure
+    msGeomGraph: GeomGraph; // Geometry instance used by MSAGL to layout graph
+}
+```
 
 ### Options Interface
 
@@ -304,6 +312,7 @@ If `getLabelSize` returns `undefined` for a cell, no space is reserved for its l
 - **Rectilinear self‑loops** – When `edgeRoutingMode` is set to `Rectilinear`, self‑edges use a configurable vertical offset controlled by `rectilinearSelfEdgeOffset` (default `10`). This is a stop‑gap until upstream `msagljs` provides native rectilinear self‑loop geometry.
 - **Subgraph resizing** – Parent elements that embed other elements are resized by the layout to tightly pack all their children.
 - **Subgraph layout direction** - Layout inside subgraphs is always set to `TB` (Top-to-Bottom) direction, as other directions can cause layout issues.
+- **Link labels in subgraphs** – Link labels within subgraphs may be positioned incorrectly, despite the layout correctly reserving space for them.
 
 ## 📄 License
 
