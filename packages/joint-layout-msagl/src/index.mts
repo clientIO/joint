@@ -5,12 +5,12 @@ import {
     buildLayoutSettings,
     importJointGraph
 } from "./utils.mjs";
-import { type Options, LayerDirectionEnum } from './types.mjs';
+import { type Options, type LayoutResult, LayerDirectionEnum } from './types.mjs';
 import { defaultOptions } from "./defaults.mjs";
 
 const LAYOUT_BATCH_NAME = 'layout';
 
-export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options): g.Rect {
+export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options): LayoutResult {
 
     // Merge user options with defaults and cast to the correct type
     const finalOptions = util.defaultsDeep({}, options || {}, defaultOptions) as Required<Options>;
@@ -59,19 +59,18 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     graph.stopBatch(LAYOUT_BATCH_NAME);
 
     const bbox = geomGraph.boundingBox;
+    const margins = geomGraph.margins;
 
-    // empty geomGraph returns { x: 0, y: 0, width: -1, height: 20 }
-    if (bbox.isEmpty()) return new g.Rect(0, 0, 0, 0);
-
-    // Use finalOptions.margins for calculating final bounding box
-    const { left, right, top, bottom } = finalOptions.margins;
-
-    return new g.Rect(
-        bbox.left + left,
-        bbox.bottom + bottom,
-        bbox.width - (left + right),
-        bbox.height - (top + bottom)
-    );
+    return {
+        bbox: new g.Rect(
+            margins.left,
+            margins.bottom,
+            Math.abs(bbox.width - (margins.left + margins.right)),
+            Math.abs(bbox.height - (margins.top + margins.bottom))
+        ),
+        msGraph,
+        msGeomGraph: geomGraph
+    }
 }
 
 export * from './types.mjs';
