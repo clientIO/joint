@@ -112,14 +112,13 @@ export class CellLayersController extends Listener {
     }
 
     onCellChange(cell, opt) {
-        if (!cell.hasChanged('layer'))
+        const layerAttribute = this.graph.layerAttribute;
+
+        if (!cell.hasChanged(layerAttribute))
             return;
 
-        let layerId = cell.get('layer');
-        if (!layerId) {
-            layerId = this.defaultCellLayerId;
-        }
-        const previousLayerId = cell.previous('layer') || this.defaultCellLayerId;
+        let layerId = cell.layer() || this.defaultCellLayerId;
+        const previousLayerId = cell.previous(layerAttribute) || this.defaultCellLayerId;
 
         if (previousLayerId === layerId) {
             return; // no change
@@ -167,10 +166,12 @@ export class CellLayersController extends Listener {
 
         if (this.hasCellLayer(this.defaultCellLayerId)) {
             const previousDefaultLayer = this.getCellLayer(this.defaultCellLayerId);
+            const layerAttribute = this.graph.layerAttribute;
             // set new default layer for paper to use when inserting to the new default layer
             this.defaultCellLayerId = newDefaultLayerId;
+            // move all cells that do not have explicit layer set to the new default layer
             previousDefaultLayer.cells.toArray().forEach(cell => {
-                if (cell.get('layer') == null) {
+                if (cell.get(layerAttribute) == null) {
                     previousDefaultLayer.remove(cell);
                     newDefaultLayer.add(cell);
                 }

@@ -970,14 +970,16 @@ export const Cell = Model.extend({
     },
 
     layer: function(layerId, opt) {
+        const layerAttribute = this.graph ? this.graph.layerAttribute : 'layer';
+
         // if strictly null unset the layer
         if (layerId === null) {
-            return this.unset('layer', opt);
+            return this.unset(layerAttribute, opt);
         }
 
         // if undefined return the current layer id
         if (layerId === undefined) {
-            layerId = this.get('layer') || null;
+            layerId = this.get(layerAttribute) || null;
             // If the cell is part of a graph, use the graph's default cell layer.
             if (layerId == null && this.graph) {
                 layerId = this.graph.getDefaultCellLayer().id;
@@ -991,7 +993,7 @@ export const Cell = Model.extend({
             throw new Error('dia.Cell: Layer id must be a string.');
         }
 
-        return this.set('layer', layerId, opt);
+        return this.set(layerAttribute, layerId, opt);
     }
 
 }, {

@@ -225,6 +225,7 @@ export namespace dia {
             cellNamespace?: any,
             cellLayerNamespace?: any,
             cellModel?: typeof Cell,
+            layerAttribute?: string,
         });
 
         addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;

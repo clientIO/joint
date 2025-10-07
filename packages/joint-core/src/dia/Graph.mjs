@@ -46,6 +46,9 @@ export const Graph = Model.extend({
         // we are using get('cells') to retrieve cellNamespace in several apps and JointJS+ components
         this.attributes.cells.cellNamespace = this.cellCollection.cellNamespace;
 
+        // Attribute name used to store layer id in the cell model.
+        this.layerAttribute = opt.layerAttribute || 'layer';
+
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
         // must be reflected in the `al` object. This object provides fast answers to
@@ -233,8 +236,8 @@ export const Graph = Model.extend({
     },
 
     _prepareCell: function(cell, opt = {}) {
-
         let attrs;
+
         if (cell instanceof Model) {
             attrs = cell.attributes;
         } else {
@@ -249,13 +252,14 @@ export const Graph = Model.extend({
         // We are doing it here instead in the cell layer to preserve the old behavior where 'change:z' event
         // was not triggered on graph when cell was added to the graph because it was set before adding to the cellCollection.
         if (opt.ensureZIndex) {
+            const layerId = attrs[this.layerAttribute] || this.cellLayersController.defaultCellLayerId;
+            const layer = this.cellLayersController.getCellLayer(layerId);
+
             if (cell instanceof Model) {
                 if (!cell.has('z')) {
-                    const layer = cell.get('layer') ? this.getCellLayer(cell.get('layer')) : this.getDefaultCellLayer();
                     cell.set('z', layer.maxZIndex() + 1);
                 }
             } else if (cell.z === undefined) {
-                const layer = cell.layer ? this.getCellLayer(cell.layer) : this.getDefaultCellLayer();
                 cell.z = layer.maxZIndex() + 1;
             }
         }
