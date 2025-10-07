@@ -1651,4 +1651,15 @@ QUnit.module('graph', function(hooks) {
             assert.equal(link.target().id, replacementElement.id);
         });
     });
+
+    QUnit.test('layerAttribute option', function(assert) {
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes, layerAttribute: '_layerId' });
+
+        assert.equal(graph.layerAttribute, '_layerId', 'layerAttribute option is taken into account');
+
+        const rect = new joint.shapes.standard.Rectangle();
+        graph.addCell(rect);
+
+        assert.equal(rect.layer(), 'cells', 'default layer is "cells"');
+    });
 });
