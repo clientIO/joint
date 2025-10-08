@@ -280,14 +280,6 @@ export class CellLayersController extends Listener {
         return this.collection.toArray();
     }
 
-    getCellLayerCells(layerId) {
-        if (!this.hasCellLayer(layerId)) {
-            throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
-        }
-
-        return this.collection.get(layerId).cells.toArray();
-    }
-
     getCells() {
         const cells = [];
 

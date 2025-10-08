@@ -275,7 +275,7 @@ export const Cell = Model.extend({
             const maxZ = graph.maxZIndex(layerId);
             let z = maxZ - cells.length + 1;
 
-            const layerCells = graph.getCellLayerCells(layerId);
+            const layerCells = graph.getCellLayer(layerId).cells.toArray();
 
             let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== (layerCells.length - cells.length));
             if (!shouldUpdate) {
@@ -319,7 +319,7 @@ export const Cell = Model.extend({
 
             let z = graph.minZIndex(layerId);
 
-            const layerCells = graph.getCellLayerCells(layerId);
+            const layerCells = graph.getCellLayer(layerId).cells.toArray();
 
             let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {

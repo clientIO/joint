@@ -56,6 +56,8 @@ import { GridLayerView } from './layers/GridLayerView.mjs';
 const paperLayers = {
     GRID: 'grid',
     BACK: 'back',
+    /** @deprecated */
+    CELLS: 'cells',
     FRONT: 'front',
     TOOLS: 'tools',
     LABELS: 'labels'

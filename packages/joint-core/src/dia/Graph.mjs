@@ -408,8 +408,8 @@ export const Graph = Model.extend({
         return this.cellLayersController.getDefaultCellLayer();
     },
 
-    setDefaultCellLayer(layerId) {
-        this.cellLayersController.setDefaultCellLayer(layerId);
+    setDefaultCellLayer(layerId, opt) {
+        this.cellLayersController.setDefaultCellLayer(layerId, opt);
     },
 
     getCellLayer(layerId) {
@@ -422,14 +422,6 @@ export const Graph = Model.extend({
 
     getCellLayers() {
         return this.cellLayersController.getCellLayers();
-    },
-
-    getRootCellLayers() {
-        return this.cellLayersController.getRootCellLayers();
-    },
-
-    getCellLayerCells(layerId) {
-        return this.cellLayersController.getCellLayerCells(layerId);
     },
 
     // Get a cell by `id`.

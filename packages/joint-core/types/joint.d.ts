@@ -194,7 +194,7 @@ export namespace dia {
         type Cells = GraphCells;
 
         interface Attributes {
-            //@deprecated
+            /** @deprecated use cellsCollection property **/
             cells?: GraphCells;
             [key: string]: any;
         }
@@ -220,6 +220,8 @@ export namespace dia {
         cellCollection: GraphCells;
 
         cellLayerCollection: GraphCellLayers;
+
+        layerAttribute: string;
 
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
@@ -1430,6 +1432,8 @@ export namespace dia {
             LABELS = 'labels',
             BACK = 'back',
             FRONT = 'front',
+            /** @deprecated */
+            CELLS = 'cells',
             TOOLS = 'tools',
             GRID = 'grid',
         }
@@ -1762,10 +1766,14 @@ export namespace dia {
 
         svg: SVGSVGElement;
         defs: SVGDefsElement;
+
+        /** @deprecated use getLayerViewNode()*/
         cells: SVGGElement;
+        /** @deprecated use layers property*/
+        viewport: SVGGElement;
+
         tools: SVGGElement;
         layers: SVGGElement;
-        viewport: SVGGElement;
 
         GUARDED_TAG_NAMES: string[];
         FORM_CONTROLS_TAG_NAMES: string[];
@@ -1941,7 +1949,7 @@ export namespace dia {
 
         getLayerViewNode(id: Paper.Layers | string): SVGGElement;
 
-        // @deprecated use getLayerViewNode instead
+        /** @deprecated use `getLayerViewNode()` **/
         getLayerNode(id: Paper.Layers | string): SVGElement;
 
         getLayerView(id: Paper.Layers | string): LayerView;
