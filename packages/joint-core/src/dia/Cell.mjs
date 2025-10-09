@@ -754,6 +754,7 @@ export const Cell = Model.extend({
 
         var firstFrameTime = 0;
         var interpolatingFunction;
+        const transitionKey = Array.isArray(path) ? path.join(delim) : path;
 
         var setter = function(runtime) {
 
@@ -764,10 +765,10 @@ export const Cell = Model.extend({
             progress = runtime / opt.duration;
 
             if (progress < 1) {
-                this._transitionIds[path] = id = nextFrame(setter);
+                this._transitionIds[transitionKey] = id = nextFrame(setter);
             } else {
                 progress = 1;
-                delete this._transitionIds[path];
+                delete this._transitionIds[transitionKey];
             }
 
             propertyValue = interpolatingFunction(opt.timingFunction(progress));
@@ -776,7 +777,7 @@ export const Cell = Model.extend({
 
             this.prop(path, propertyValue, opt);
 
-            if (!id) this.trigger('transition:end', this, path);
+            if (!id) this.trigger('transition:end', this, transitionKey);
 
         }.bind(this);
 
@@ -785,10 +786,10 @@ export const Cell = Model.extend({
 
         var initiator = (callback) => {
 
-            if (_scheduledTransitionIds[path]) {
-                _scheduledTransitionIds[path] = without(_scheduledTransitionIds[path], initialId);
-                if (_scheduledTransitionIds[path].length === 0) {
-                    delete _scheduledTransitionIds[path];
+            if (_scheduledTransitionIds[transitionKey]) {
+                _scheduledTransitionIds[transitionKey] = without(_scheduledTransitionIds[transitionKey], initialId);
+                if (_scheduledTransitionIds[transitionKey].length === 0) {
+                    delete _scheduledTransitionIds[transitionKey];
                 }
             }
 
@@ -796,16 +797,16 @@ export const Cell = Model.extend({
 
             interpolatingFunction = opt.valueFunction(getByPath(this.attributes, path, delim), value);
 
-            this._transitionIds[path] = nextFrame(callback);
+            this._transitionIds[transitionKey] = nextFrame(callback);
 
-            this.trigger('transition:start', this, path);
+            this.trigger('transition:start', this, transitionKey);
 
         };
 
         initialId = setTimeout(initiator, opt.delay, setter);
 
-        _scheduledTransitionIds[path] || (_scheduledTransitionIds[path] = []);
-        _scheduledTransitionIds[path].push(initialId);
+        _scheduledTransitionIds[transitionKey] || (_scheduledTransitionIds[transitionKey] = []);
+        _scheduledTransitionIds[transitionKey].push(initialId);
 
         return initialId;
     },
@@ -821,7 +822,8 @@ export const Cell = Model.extend({
         const { _scheduledTransitionIds = {}} = this;
         let transitions = Object.keys(_scheduledTransitionIds);
         if (path) {
-            const pathArray = path.split(delim);
+            // Ensure all path segments are strings for `isEqual` comparison, since it strictly compares values
+            const pathArray = Array.isArray(path) ? path.map(item => String(item)) : path.split(delim);
             transitions = transitions.filter((key) => {
                 return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
             });
@@ -840,7 +842,8 @@ export const Cell = Model.extend({
         const { _transitionIds = {}} = this;
         let transitions = Object.keys(_transitionIds);
         if (path) {
-            const pathArray = path.split(delim);
+            // Ensure all path segments are strings for `isEqual` comparison, since it strictly compares values
+            const pathArray = Array.isArray(path) ? path.map(item => String(item)) : path.split(delim);
             transitions = transitions.filter((key) => {
                 return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
             });

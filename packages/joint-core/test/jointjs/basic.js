@@ -2111,6 +2111,119 @@ QUnit.module('basic', function(hooks) {
         }, 200);
     });
 
+    QUnit.test('transition: array path events', function(assert) {
+
+        var done = assert.async();
+
+        assert.expect(6);
+
+        var el = new joint.shapes.standard.Rectangle({
+            nested: {
+                timer: -1
+            }
+        });
+
+        el.transition(['nested', 'timer'], 100, {
+            delay: 100,
+            duration: 100
+        });
+
+        el.on('transition:start', function(cell, path) {
+            assert.equal(cell, el);
+            assert.equal(path, 'nested/timer');
+            assert.equal(el.get('nested').timer, -1);
+        });
+
+        el.on('transition:end', function(cell, path) {
+            assert.equal(cell, el);
+            assert.equal(path, 'nested/timer');
+            assert.equal(el.get('nested').timer, 100);
+            done();
+        });
+    });
+
+    QUnit.test('transition: array path with numeric indices', function(assert) {
+
+        var done = assert.async();
+
+        assert.expect(4);
+
+        var el = new joint.shapes.standard.Rectangle({
+            ports: {
+                items: [
+                    { attrs: { first: { r: 5 } } },
+                    { attrs: { first: { r: 3 } } }
+                ]
+            }
+        });
+
+        el.transition(['ports', 'items', 0, 'attrs', 'first', 'r'], 10, {
+            delay: 100,
+            duration: 100
+        });
+
+        el.on('transition:start', function(_cell, path) {
+            assert.equal(path, 'ports/items/0/attrs/first/r');
+            assert.equal(el.get('ports').items[0].attrs.first.r, 5);
+        });
+
+        el.on('transition:end', function(_cell, path) {
+            assert.equal(path, 'ports/items/0/attrs/first/r');
+            assert.equal(el.get('ports').items[0].attrs.first.r, 10);
+            done();
+        });
+    });
+
+    QUnit.test('transition: array path stopTransitions', function(assert) {
+        assert.expect(6);
+        var done = assert.async();
+        var el = new joint.shapes.standard.Rectangle({ 
+            test1: 0, 
+            test2: 0, 
+            nested: { test3: 0 }
+        });
+        this.graph.addCell(el);
+        el.transition('test1', 100);
+        el.transition(['nested', 'test3'], 100);
+        el.transition('test2', 100);
+        assert.equal(el.getTransitions().length, 3);
+        el.stopTransitions(['nested', 'test3']);
+        assert.equal(el.getTransitions().length, 2);
+        el.stopTransitions();
+        assert.equal(el.getTransitions().length, 0);
+        setTimeout(function() {
+            assert.equal(el.attributes.test1, 0);
+            assert.equal(el.attributes.test2, 0);
+            assert.equal(el.attributes.nested.test3, 0);
+            done();
+        }, 200);
+    });
+
+    QUnit.test('transition: array path prefix stopping', function(assert) {
+        assert.expect(4);
+        var done = assert.async();
+        var el = new joint.shapes.standard.Rectangle({ 
+            attrs: { 
+                label: { 
+                    fontSize: 12,
+                    x: 0
+                }
+            }
+        });
+        this.graph.addCell(el);
+        el.transition(['attrs', 'label', 'fontSize'], 18);
+        el.transition(['attrs', 'label', 'x'], 100);
+        assert.equal(el.getTransitions().length, 2);
+        // Stop all transitions under 'attrs' prefix
+        el.stopTransitions(['attrs']);
+        assert.equal(el.getTransitions().length, 0);
+        setTimeout(function() {
+            assert.equal(el.attributes.attrs.label.fontSize, 12);
+            assert.equal(el.attributes.attrs.label.x, 0);
+            done();
+        }, 200);
+    });
+
     QUnit.test('cell.getAncestors()', function(assert) {
 
         var r0 = new joint.shapes.standard.Rectangle;
