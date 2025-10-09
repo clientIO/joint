@@ -586,6 +586,7 @@ export const Paper = View.extend({
     },
 
     resetCellLayerViews: function() {
+        // remove all existing cell layer views
         for (let id in this._cellLayerViews) {
             this._removeLayerView(this._cellLayerViews[id]);
             delete this._cellLayerViews[id];

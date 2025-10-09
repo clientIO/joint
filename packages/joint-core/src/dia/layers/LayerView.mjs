@@ -19,7 +19,7 @@ export const LayerView = View.extend({
         this.id = this.options.id || this.cid;
     },
 
-    // prevents id it be set on the DOM element
+    // prevents id to be set on the DOM element
     _setAttributes: function(attrs) {
         if (attrs) {
             delete attrs.id;

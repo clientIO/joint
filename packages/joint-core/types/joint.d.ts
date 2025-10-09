@@ -1976,7 +1976,7 @@ export namespace dia {
 
         getCellLayerViews(): Array<CellLayerView>;
 
-        resetCellLayerViews(): void;
+        protected resetCellLayerViews(): void;
 
         // rendering
 
@@ -2203,9 +2203,11 @@ export namespace dia {
 
         insertPivot(z: number): Comment;
 
-        removePivots(): void;
+        isEmpty(): boolean;
 
         reset(): void;
+
+        protected removePivots(): void;
     }
 
     namespace CellGroup {
@@ -2252,8 +2254,6 @@ export namespace dia {
 
     class CellLayerView<T extends CellLayer = CellLayer> extends LayerView<T> {
 
-        protected startListening(): void;
-
         sort(): void;
 
         sortExact(): void;
@@ -2263,15 +2263,34 @@ export namespace dia {
         requestCellViewInsertion(cellView: CellView, opt?: { [key: string]: any }): void;
 
         requestCellViewsInsertion(opt?: { [key: string]: any }): void;
+
+        protected startListening(): void;
+
+        protected onCellAdd(cell: Cell, collection: CellLayer.CellLayerCollection, opt: Graph.Options): void;
+
+        protected onCellChanged(cell: Cell, opt: Cell.Options): void;
+
+        protected onCellLayerSort(collection: CellLayer.CellLayerCollection, opt: Graph.Options): void;
+
+        protected onGraphBatchStop(data: any): void;
+    }
+
+    namespace GridLayerView {
+
+        interface Options extends LayerView.Options {
+            patterns?: Record<string, Paper.GridOptions[]>;
+        }
     }
 
     class GridLayerView extends LayerView {
 
-        protected renderGrid(): void;
+        setGrid(opt?: null | boolean | string | Paper.GridOptions | Paper.GridOptions[]): void;
 
-        protected updateGrid(): void;
+        renderGrid(): void;
 
-        protected removeGrid(): void;
+        updateGrid(): void;
+
+        removeGrid(): void;
     }
 
     namespace ToolsView {
