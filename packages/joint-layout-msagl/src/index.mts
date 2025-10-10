@@ -5,8 +5,9 @@ import {
     buildLayoutSettings,
     importJointGraph
 } from "./utils.mjs";
-import { type Options, type LayoutResult, LayerDirectionEnum } from './types.mjs';
+import { type Options, type LayoutResult } from './types.mjs';
 import { defaultOptions } from "./defaults.mjs";
+import { LayerDirectionEnum } from "./enums.mjs";
 
 const LAYOUT_BATCH_NAME = 'layout';
 
@@ -30,7 +31,12 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     const geomGraph = new GeomGraph(msGraph);
 
     // Use finalOptions for margins and layout settings
-    geomGraph.margins = finalOptions.margins;
+    geomGraph.margins = {
+        left: finalOptions.marginX,
+        right: finalOptions.marginX,
+        top: finalOptions.marginY,
+        bottom: finalOptions.marginY
+    };
 
     // Process the JointJS graph and convert it to a MSAGL graph
     importJointGraph(graph, msGraph, finalOptions);
@@ -46,8 +52,8 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
         // Since anything else will cause the layout to break
         layoutSettings.layerDirection = LayerDirectionEnum.TB;
         geomSubgraph.layoutSettings = layoutSettings;
-        // Propagate the margins to the subgraph
-        geomSubgraph.margins = finalOptions.margins;
+        // Propagate the margins (cluster padding) to the subgraph
+        geomSubgraph.margins = finalOptions.clusterPadding;
     }
 
     layoutGraphWithSugiayma(geomGraph, new CancelToken(), true);
@@ -74,3 +80,4 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
 }
 
 export * from './types.mjs';
+export * from './enums.mjs';

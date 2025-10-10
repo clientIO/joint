@@ -97,7 +97,9 @@ interface Options {
     rectilinearSelfEdgeOffset?: number;
     // Grid and margins
     gridSize?: number; // Default: 0
-    margins?: { // Default: { left: 10, right: 10, top: 10, bottom: 10 }
+    marginX?: number; // Default: 10
+    marginY?: number; // Default: 10
+    clusterPadding?: { // Default: { left: 10, right: 10, top: 10, bottom: 10 }
         left: number;
         right: number;
         top: number;

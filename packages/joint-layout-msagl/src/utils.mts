@@ -17,7 +17,8 @@ import {
     LineSegment
 } from '@msagl/core';
 import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
-import { type Options, EdgeRoutingMode } from './types.mjs';
+import type { Options } from './types.mjs';
+import { EdgeRoutingMode } from "./enums.mjs";
 import { sampleBezierSeg, sampleEllipse } from './sampling.mjs';
 import { setVertices, setLabels, setAnchor } from './defaults.mjs';
 

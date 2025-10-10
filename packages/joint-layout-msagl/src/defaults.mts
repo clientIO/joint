@@ -1,5 +1,6 @@
 import { type dia, g } from "@joint/core";
-import { type Options, LayerDirectionEnum, EdgeRoutingMode } from './types.mjs';
+import { type Options } from './types.mjs';
+import { EdgeRoutingMode, LayerDirectionEnum } from "./enums.mjs";
 
 export const defaultOptions: Required<Options> = {
     layerDirection: LayerDirectionEnum.TB,
@@ -9,7 +10,9 @@ export const defaultOptions: Required<Options> = {
     rectilinearSelfEdgeOffset: 10,
     gridSize: 0,
     edgeRoutingMode: EdgeRoutingMode.Rectilinear,
-    margins: {
+    marginX: 10,
+    marginY: 10,
+    clusterPadding: {
         left: 10,
         right: 10,
         top: 10,
