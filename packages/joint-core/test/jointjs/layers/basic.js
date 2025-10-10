@@ -94,8 +94,6 @@ QUnit.module('layers-basic', function(hooks) {
             ]
         });
 
-        console.log(joint.config)
-
         assert.ok(this.graph.hasCellLayer('layer1'), 'Graph has layer "layer1"');
         assert.ok(this.graph.hasCellLayer('layer2'), 'Graph has layer "layer2"');
         assert.equal(this.graph.getDefaultCellLayer().id, 'layer1', 'Graph has default layer "layer1"');
