@@ -15,7 +15,7 @@ export type LayoutPreset = {
     edgeRoutingMode: EdgeRoutingMode;
     layerSeparation: number;
     nodeSeparation: number;
-    margin: number;
+    clusterPadding?: number;
     useVertices: boolean;
 };
 

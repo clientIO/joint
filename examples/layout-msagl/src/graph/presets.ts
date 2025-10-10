@@ -17,7 +17,7 @@ const graphPresets: Record<GraphType, GraphPreset> = {
             edgeRoutingMode: EdgeRoutingMode.Rectilinear,
             layerSeparation: 110,
             nodeSeparation: 80,
-            margin: 40,
+            clusterPadding: undefined,
             useVertices: true
         },
         build: (palette: PaletteCycler) => buildGraph(treeBlueprint, palette)
@@ -32,7 +32,7 @@ const graphPresets: Record<GraphType, GraphPreset> = {
             edgeRoutingMode: EdgeRoutingMode.Rectilinear,
             layerSeparation: 120,
             nodeSeparation: 90,
-            margin: 40,
+            clusterPadding: undefined,
             useVertices: true
         },
         build: (palette: PaletteCycler) => buildGraph(dagBlueprint, palette)
@@ -47,7 +47,7 @@ const graphPresets: Record<GraphType, GraphPreset> = {
             edgeRoutingMode: EdgeRoutingMode.SplineBundling,
             layerSeparation: 140,
             nodeSeparation: 130,
-            margin: 40,
+            clusterPadding: undefined,
             useVertices: true
         },
         build: (palette: PaletteCycler) => buildGraph(networkBlueprint, palette)
@@ -62,7 +62,7 @@ const graphPresets: Record<GraphType, GraphPreset> = {
             edgeRoutingMode: EdgeRoutingMode.SplineBundling,
             layerSeparation: 120,
             nodeSeparation: 110,
-            margin: 40,
+            clusterPadding: undefined,
             useVertices: true
         },
         build: (palette: PaletteCycler) => buildGraph(cycleBlueprint, palette)
@@ -77,7 +77,7 @@ const graphPresets: Record<GraphType, GraphPreset> = {
             edgeRoutingMode: EdgeRoutingMode.SplineBundling,
             layerSeparation: 150,
             nodeSeparation: 150,
-            margin: 40,
+            clusterPadding: undefined,
             useVertices: true
         },
         build: (palette: PaletteCycler) => buildGraph(completeBlueprint, palette)
@@ -92,7 +92,7 @@ const graphPresets: Record<GraphType, GraphPreset> = {
             edgeRoutingMode: EdgeRoutingMode.Rectilinear,
             layerSeparation: 110,
             nodeSeparation: 120,
-            margin: 40,
+            clusterPadding: undefined,
             useVertices: true
         },
         build: (palette: PaletteCycler) => {
@@ -133,7 +133,7 @@ const graphPresets: Record<GraphType, GraphPreset> = {
             edgeRoutingMode: EdgeRoutingMode.Rectilinear,
             layerSeparation: 140,
             nodeSeparation: 115,
-            margin: 80,
+            clusterPadding: 80,
             useVertices: true
         },
         build: (palette: PaletteCycler) => buildGraph(nestedBlueprint, palette)

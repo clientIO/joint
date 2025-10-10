@@ -52,7 +52,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 32px;
-    width: 340px;
+    width: 360px;
     padding: 32px 32px 32px 0;
     pointer-events: none;
 }

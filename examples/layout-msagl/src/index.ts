@@ -14,12 +14,13 @@ const paper = new dia.Paper({
     interactive: false,
     async: true,
     frozen: true,
-    labelsLayer: true
+    labelsLayer: true,
+    defaultConnectionPoint: { name: 'boundary', args: { extrapolate: true }}
 });
 
 const layerSeparationInput = document.getElementById('layer-separation') as HTMLInputElement;
 const nodeSeparationInput = document.getElementById('node-separation') as HTMLInputElement;
-const marginInput = document.getElementById('margin') as HTMLInputElement;
+const clusterPaddingInput = document.getElementById('cluster-padding') as HTMLInputElement;
 const directionSelect = document.getElementById('layout-direction') as HTMLSelectElement;
 const routingSelect = document.getElementById('edge-routing') as HTMLSelectElement;
 const graphTypeSelect = document.getElementById('graph-type') as HTMLSelectElement;
@@ -27,7 +28,8 @@ const useVerticesCheckbox = document.getElementById('use-vertices') as HTMLInput
 
 const layerSeparationDisplay = document.getElementById('layer-separation-value');
 const nodeSeparationDisplay = document.getElementById('node-separation-value');
-const marginDisplay = document.getElementById('margin-value');
+const clusterPaddingDisplay = document.getElementById('cluster-padding-value');
+const clusterPaddingGroup = document.getElementById('cluster-padding-group');
 
 const titleEl = document.getElementById('graph-title');
 const descriptionEl = document.getElementById('graph-description');
@@ -45,6 +47,9 @@ const routingLabels: Record<number, string> = {
     [EdgeRoutingMode.SplineBundling]: 'Spline Bundling'
 };
 
+// Keep track of the currently selected graph type to decide UI visibility and options
+const metaState: { currentType: GraphType } = { currentType: defaultGraphType };
+
 const updateRangeDisplay = (input: HTMLInputElement, display: HTMLElement | null, value?: number) => {
     if (typeof value === 'number') {
         input.value = String(value);
@@ -57,11 +62,21 @@ const updateRangeDisplay = (input: HTMLInputElement, display: HTMLElement | null
 const applyGraphMeta = (meta: GraphMeta) => {
     const { layout: layoutPreset } = meta;
 
+    // Remember current type for later decisions (e.g., cluster padding visibility)
+    metaState.currentType = meta.id;
+
     directionSelect.value = String(layoutPreset.layerDirection);
     routingSelect.value = String(layoutPreset.edgeRoutingMode);
     updateRangeDisplay(layerSeparationInput, layerSeparationDisplay, layoutPreset.layerSeparation);
     updateRangeDisplay(nodeSeparationInput, nodeSeparationDisplay, layoutPreset.nodeSeparation);
-    updateRangeDisplay(marginInput, marginDisplay, layoutPreset.margin);
+    if (typeof layoutPreset.clusterPadding === 'number') {
+        updateRangeDisplay(clusterPaddingInput, clusterPaddingDisplay, layoutPreset.clusterPadding);
+    }
+
+    // Show cluster padding control only for the 'nested' graph type
+    if (clusterPaddingGroup) {
+        clusterPaddingGroup.style.display = meta.id === 'nested' ? '' : 'none';
+    }
     useVerticesCheckbox.checked = layoutPreset.useVertices;
 
     updateGraphInfo(meta);
@@ -92,8 +107,9 @@ const updateLayoutSummary = (options: Options) => {
     const direction = formatDirection(options.layerDirection as LayerDirectionEnum);
     const routing = formatRouting(options.edgeRoutingMode as EdgeRoutingMode);
     const nodeSpacing = Math.round(options.nodeSeparation ?? 0);
+    const layerSpacing = Math.round(options.layerSeparation ?? 0);
 
-    layoutSummaryEl.textContent = `${direction} layering · ${routing} routing · ${nodeSpacing}px node spacing`;
+    layoutSummaryEl.textContent = `${direction} layering · ${routing} routing · ${layerSpacing}px layer spacing · ${nodeSpacing}px node spacing`;
 };
 
 const setupControlListeners = () => {
@@ -107,8 +123,8 @@ const setupControlListeners = () => {
         runLayout();
     });
 
-    marginInput.addEventListener('input', () => {
-        updateRangeDisplay(marginInput, marginDisplay);
+    clusterPaddingInput.addEventListener('input', () => {
+        updateRangeDisplay(clusterPaddingInput, clusterPaddingDisplay);
         runLayout();
     });
 
@@ -159,7 +175,11 @@ const getLayoutOptions = (): Options => {
         });
     };
 
-    const margin = Number(marginInput.value);
+    const clusterPadding = Number(clusterPaddingInput.value);
+
+    // Extra size used to avoid links bending too close to arrowhead
+    // Note: This is a workaround until MSAGL eventually makes the `options.padding` work
+    const extraSize = 10;
 
     return {
         layerDirection: Number(directionSelect.value) as LayerDirectionEnum,
@@ -167,13 +187,29 @@ const getLayoutOptions = (): Options => {
         layerSeparation: Number(layerSeparationInput.value),
         nodeSeparation: Number(nodeSeparationInput.value),
         polylinePadding: 12,
-        margins: {
-            left: margin,
-            right: margin,
-            top: margin,
-            bottom: margin
+        getSize: (element: dia.Element) => {
+            const size = element.size();
+            return {
+                width: size.width + extraSize,
+                height: size.height + extraSize
+            };
         },
+        marginX: 10,
+        marginY: 10,
+        clusterPadding: {
+            left: clusterPadding,
+            right: clusterPadding,
+            top: clusterPadding,
+            bottom: clusterPadding
+        },
+        rectilinearSelfEdgeOffset: 20,
         setPosition: (element: dia.Element, position: dia.Point) => {
+
+            if (element.getEmbeddedCells().length === 0) {
+                position.x += extraSize / 2;
+                position.y += extraSize / 2;
+            }
+
             element.transition('position', position, {
                 duration: 500,
                 timingFunction: util.timing.cubic,
@@ -240,7 +276,7 @@ const runLayout = () => {
     paper.unfreeze({
         afterRender: () => {
             paper.transformToFitContent({
-                padding: options.margins,
+                padding: 20,
                 horizontalAlign: 'middle',
                 verticalAlign: 'middle',
                 useModelGeometry: true
