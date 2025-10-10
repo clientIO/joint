@@ -315,6 +315,7 @@ If `getLabelSize` returns `undefined` for a cell, no space is reserved for its l
 - **Subgraph resizing** – Parent elements that embed other elements are resized by the layout to tightly pack all their children.
 - **Subgraph layout direction** - Layout inside subgraphs is always set to `TB` (Top-to-Bottom) direction, as other directions can cause layout issues.
 - **Link labels in subgraphs** – Link labels within subgraphs may be positioned incorrectly, despite the layout correctly reserving space for them.
+- **Obstacle padding (first‑bend distance)** – MSAGL exposes an `edgeRoutingSettings.Padding` option intended to keep edges a minimum distance away from obstacles (nodes) and thus control where the first bend occurs. In msagljs this setting is currently not working.
 
 ## 📄 License
 
