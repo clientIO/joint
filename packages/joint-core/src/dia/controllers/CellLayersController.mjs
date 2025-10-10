@@ -11,6 +11,10 @@ export class CellLayersController extends Listener {
     constructor(context) {
         super(context);
 
+        // Make sure there are no arguments passed to the callbacks.
+        // See the `mvc.Listener` documentation for more details.
+        this.callbackArguments = [];
+
         this.graph = context.graph;
         this.collection = this.graph.cellLayerCollection;
 
@@ -29,27 +33,27 @@ export class CellLayersController extends Listener {
         const { graph } = this;
 
         // remove all cells from this layer when the layer is removed from the graph
-        this.listenTo(this.collection, 'remove', (_context, cellLayer, opt = {}) => {
+        this.listenTo(this.collection, 'remove', (cellLayer, opt = {}) => {
             this.onCellLayerRemove(cellLayer, opt);
         });
 
-        this.listenTo(this.collection, 'reset', (_context, collection, opt = {}) => {
+        this.listenTo(this.collection, 'reset', (collection, opt = {}) => {
             this.onCellLayersCollectionReset(collection, opt);
         });
 
-        this.listenTo(graph, 'add', (_context, cell, _, opt = {}) => {
+        this.listenTo(graph, 'add', (cell, _, opt = {}) => {
             this.onCellAdd(cell, opt);
         });
 
-        this.listenTo(graph, 'remove', (_context, cell, _, opt = {}) => {
+        this.listenTo(graph, 'remove', (cell, _, opt = {}) => {
             this.onCellRemove(cell, opt);
         });
 
-        this.listenTo(graph, 'reset', (_context, { models: cells }, opt = {}) => {
+        this.listenTo(graph, 'reset', ({ models: cells }, opt = {}) => {
             this.onGraphReset(cells, opt);
         });
 
-        this.listenTo(graph, 'change', (_context, cell, opt = {}) => {
+        this.listenTo(graph, 'change', (cell, opt = {}) => {
             this.onCellChange(cell, opt);
         });
     }

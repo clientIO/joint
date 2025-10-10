@@ -1661,5 +1661,17 @@ QUnit.module('graph', function(hooks) {
         graph.addCell(rect);
 
         assert.equal(rect.layer(), 'cells', 'default layer is "cells"');
+
+        graph.addCellLayer({ id: 'my-layer' });
+
+        rect.layer('my-layer');
+
+        assert.equal(rect.get('_layerId'), 'my-layer', 'layer attribute is changed accordingly');
+
+        graph.addCellLayer({ id: 'another-layer' });
+
+        rect.set('_layerId', 'another-layer');
+
+        assert.equal(rect.layer(), 'another-layer', 'layer() reflects changes in the layer attribute');
     });
 });

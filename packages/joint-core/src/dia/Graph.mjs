@@ -40,10 +40,10 @@ export const Graph = Model.extend({
         // to the outside world.
         cellCollection.on('all', this.trigger, this);
 
-        // For backward compatibility, we keep put legacy 'cells' cell layer collection here.
+        // For backward compatibility, we keep legacy 'cells' cell collection in attributes.
+        // This only makes sense as long as user use default layers setup.
         this.attributes.cells = this.getCellLayer('cells').cells;
-        // inject current cellCollection namespace for backward compatibility,
-        // we are using get('cells') to retrieve cellNamespace in several apps and JointJS+ components
+        // inject current cellCollection namespace for backward compatibility
         this.attributes.cells.cellNamespace = this.cellCollection.cellNamespace;
 
         // Attribute name used to store layer id in the cell model.

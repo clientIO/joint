@@ -1,5 +1,5 @@
 import { View } from '../../mvc/index.mjs';
-import { addClassNamePrefix } from '../../util/util.mjs';
+import { addClassNamePrefix, clone } from '../../util/util.mjs';
 
 export const LayerView = View.extend({
 
@@ -21,11 +21,10 @@ export const LayerView = View.extend({
 
     // prevents id to be set on the DOM element
     _setAttributes: function(attrs) {
-        if (attrs) {
-            delete attrs.id;
-        }
+        const newAttrs = clone(attrs);
+        delete newAttrs.id;
 
-        View.prototype._setAttributes.apply(this, arguments);
+        View.prototype._setAttributes.call(this, newAttrs);
     },
 
     className: function() {

@@ -125,10 +125,9 @@ export const CellLayerView = LayerView.extend({
     },
 
     requestCellViewsInsertion(opt = {}) {
-        const { options: { paper }} = this;
-        const graph = paper.model;
+        const { model } = this;
 
-        graph.cellCollection.each(cell => {
+        model.cells.each(cell => {
             this.requestCellViewInsertion(cell);
         });
     },
