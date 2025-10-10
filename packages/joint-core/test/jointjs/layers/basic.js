@@ -94,6 +94,8 @@ QUnit.module('layers-basic', function(hooks) {
             ]
         });
 
+        console.log(joint.config)
+
         assert.ok(this.graph.hasCellLayer('layer1'), 'Graph has layer "layer1"');
         assert.ok(this.graph.hasCellLayer('layer2'), 'Graph has layer "layer2"');
         assert.equal(this.graph.getDefaultCellLayer().id, 'layer1', 'Graph has default layer "layer1"');
@@ -147,8 +149,8 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved back to default layer view');
     });
 
-    QUnit.test('Different layer attribute on graph', (assert) => {
-        this.graph.layerAttribute = '_layerId';
+    QUnit.test('Different layer attribute config', (assert) => {
+        joint.config.layerAttribute = '_layerId';
 
         const newLayer = new joint.dia.CellLayer({ id: 'newLayer' });
         this.graph.addCellLayer(newLayer);
@@ -165,6 +167,9 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(this.paper.getLayerViewNode('newLayer').querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to "newLayer" layer view');
 
         assert.equal(rect.get('_layerId'), 'newLayer', 'The custom layer attribute is set correctly');
+
+        // Clean up
+        joint.config.layerAttribute = 'layer';
     });
 
     QUnit.test('Changing default layer', (assert) => {

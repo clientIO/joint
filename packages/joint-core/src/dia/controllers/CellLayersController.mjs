@@ -1,4 +1,5 @@
 import { Listener } from '../../mvc/Listener.mjs';
+import { config } from '../../config/index.mjs';
 
 const DEFAULT_CELL_LAYER_ID = 'cells';
 
@@ -98,7 +99,7 @@ export class CellLayersController extends Listener {
     }
 
     onCellAdd(cell, opt) {
-        const layerId = cell.layer() || this.defaultCellLayerId;
+        const layerId = this._getLayerId(cell);
         const layer = this.getCellLayer(layerId);
 
         // add to the layer without triggering rendering update
@@ -107,7 +108,7 @@ export class CellLayersController extends Listener {
     }
 
     onCellRemove(cell, opt) {
-        const layerId = cell.layer() || this.defaultCellLayerId;
+        const layerId = this._getLayerId(cell);
 
         if (this.hasCellLayer(layerId)) {
             const layer = this.getCellLayer(layerId);
@@ -116,12 +117,12 @@ export class CellLayersController extends Listener {
     }
 
     onCellChange(cell, opt) {
-        const layerAttribute = this.graph.layerAttribute;
+        const layerAttribute = config.layerAttribute;
 
         if (!cell.hasChanged(layerAttribute))
             return;
 
-        let layerId = cell.layer() || this.defaultCellLayerId;
+        let layerId = this._getLayerId(cell);
         const previousLayerId = cell.previous(layerAttribute) || this.defaultCellLayerId;
 
         if (previousLayerId === layerId) {
@@ -170,7 +171,7 @@ export class CellLayersController extends Listener {
 
         if (this.hasCellLayer(this.defaultCellLayerId)) {
             const previousDefaultLayer = this.getCellLayer(this.defaultCellLayerId);
-            const layerAttribute = this.graph.layerAttribute;
+            const layerAttribute = config.layerAttribute;
             // set new default layer for paper to use when inserting to the new default layer
             this.defaultCellLayerId = newDefaultLayerId;
             // move all cells that do not have explicit layer set to the new default layer
@@ -292,5 +293,11 @@ export class CellLayersController extends Listener {
         });
 
         return cells;
+    }
+
+    _getLayerId(cell) {
+        // we don't use cell.layer() here because when the graph reference is not set on the cell
+        // cell.layer() would return null
+        return cell.get(config.layerAttribute) || this.defaultCellLayerId;
     }
 }

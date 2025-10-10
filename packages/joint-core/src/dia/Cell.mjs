@@ -970,7 +970,7 @@ export const Cell = Model.extend({
     },
 
     layer: function(layerId, opt) {
-        const layerAttribute = this.graph ? this.graph.layerAttribute : 'layer';
+        const layerAttribute = config.layerAttribute;
 
         // if strictly null unset the layer
         if (layerId === null) {

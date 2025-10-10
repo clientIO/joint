@@ -10,6 +10,7 @@ export namespace config {
     var doubleTapInterval: number;
     var cellMergeStrategy: util.MergeCustomizer | null;
     var cellDefaultsMergeStrategy: util.MergeCustomizer | null;
+    var layerAttribute: string;
 }
 
 type NativeEvent = Event;
@@ -221,13 +222,10 @@ export namespace dia {
 
         cellLayerCollection: GraphCellLayers;
 
-        layerAttribute: string;
-
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
             cellLayerNamespace?: any,
-            cellModel?: typeof Cell,
-            layerAttribute?: string,
+            cellModel?: typeof Cell
         });
 
         addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;

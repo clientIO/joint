@@ -1652,10 +1652,10 @@ QUnit.module('graph', function(hooks) {
         });
     });
 
-    QUnit.test('layerAttribute option', function(assert) {
-        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes, layerAttribute: '_layerId' });
+    QUnit.test('layerAttribute config option', function(assert) {
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
-        assert.equal(graph.layerAttribute, '_layerId', 'layerAttribute option is taken into account');
+        joint.config.layerAttribute = '_layerId';
 
         const rect = new joint.shapes.standard.Rectangle();
         graph.addCell(rect);
@@ -1673,5 +1673,8 @@ QUnit.module('graph', function(hooks) {
         rect.set('_layerId', 'another-layer');
 
         assert.equal(rect.layer(), 'another-layer', 'layer() reflects changes in the layer attribute');
+
+        // Clean up.
+        joint.config.layerAttribute = 'layer';
     });
 });

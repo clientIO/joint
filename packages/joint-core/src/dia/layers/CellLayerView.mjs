@@ -20,6 +20,8 @@ export const CellLayerView = LayerView.extend({
 
     init() {
         LayerView.prototype.init.apply(this, arguments);
+
+        this.paper = this.options.paper;
         this.startListening();
     },
 
@@ -29,7 +31,7 @@ export const CellLayerView = LayerView.extend({
     },
 
     startListening() {
-        const { model, options: { paper }} = this;
+        const { model, paper } = this;
         const graph = paper.model;
 
         this.listenTo(model, 'sort', this.onCellLayerSort);
@@ -42,7 +44,7 @@ export const CellLayerView = LayerView.extend({
     },
 
     onCellLayerSort() {
-        const { options: { paper }} = this;
+        const { paper } = this;
         const graph = paper.model;
 
         if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
@@ -59,14 +61,14 @@ export const CellLayerView = LayerView.extend({
     onCellChange(cell, opt) {
         if (!cell.hasChanged('z')) return;
 
-        const { options: { paper }} = this;
+        const { paper } = this;
         if (paper.options.sorting === sortingTypes.APPROX) {
             this.requestCellViewInsertion(cell, opt);
         }
     },
 
     onGraphBatchStop(data) {
-        const { options: { paper }} = this;
+        const { paper } = this;
         const graph = paper.model;
 
         const name = data && data.batchName;
@@ -78,7 +80,7 @@ export const CellLayerView = LayerView.extend({
     },
 
     sort() {
-        const { options: { paper }} = this;
+        const { paper } = this;
         if (!paper)
             return;
 
@@ -111,7 +113,7 @@ export const CellLayerView = LayerView.extend({
 
     insertCellView(cellView) {
         const { el, model } = cellView;
-        const { options: { paper }} = this;
+        const { paper } = this;
 
         switch (paper.options.sorting) {
             case sortingTypes.APPROX:
@@ -128,12 +130,12 @@ export const CellLayerView = LayerView.extend({
         const { model } = this;
 
         model.cells.each(cell => {
-            this.requestCellViewInsertion(cell);
+            this.requestCellViewInsertion(cell, opt);
         });
     },
 
     requestCellViewInsertion(cell, opt = {}) {
-        const { options: { paper }} = this;
+        const { paper } = this;
 
         const viewLike = paper._getCellViewLike(cell);
         if (viewLike) {

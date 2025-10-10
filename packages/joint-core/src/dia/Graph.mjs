@@ -7,6 +7,7 @@ import { cloneCells } from '../util/index.mjs';
 import { CellLayersController } from './controllers/CellLayersController.mjs';
 import { GraphCellLayers } from './collections/GraphCellLayers.mjs';
 import { GraphCells } from './collections/GraphCells.mjs';
+import { config } from '../config/index.mjs';
 
 export const Graph = Model.extend({
 
@@ -45,9 +46,6 @@ export const Graph = Model.extend({
         this.attributes.cells = this.getCellLayer('cells').cells;
         // inject current cellCollection namespace for backward compatibility
         this.attributes.cells.cellNamespace = this.cellCollection.cellNamespace;
-
-        // Attribute name used to store layer id in the cell model.
-        this.layerAttribute = opt.layerAttribute || 'layer';
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -252,7 +250,9 @@ export const Graph = Model.extend({
         // We are doing it here instead in the cell layer to preserve the old behavior where 'change:z' event
         // was not triggered on graph when cell was added to the graph because it was set before adding to the cellCollection.
         if (opt.ensureZIndex) {
-            const layerId = attrs[this.layerAttribute] || this.cellLayersController.defaultCellLayerId;
+            const layerAttribute = config.layerAttribute;
+
+            const layerId = attrs[layerAttribute] || this.cellLayersController.defaultCellLayerId;
             const layer = this.cellLayersController.getCellLayer(layerId);
 
             if (cell instanceof Model) {
