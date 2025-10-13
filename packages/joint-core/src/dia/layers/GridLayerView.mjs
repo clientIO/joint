@@ -20,10 +20,10 @@ export const GridLayerView = LayerView.extend({
 
     init() {
         LayerView.prototype.init.apply(this, arguments);
-        const { options: { paper }} = this;
+        this.paper = this.options.paper;
         this._gridCache = null;
         this._gridSettings = [];
-        this.listenTo(paper, 'transform resize', this.updateGrid);
+        this.listenTo(this.paper, 'transform resize', this.updateGrid);
     },
 
     setGrid(drawGrid) {
@@ -51,7 +51,7 @@ export const GridLayerView = LayerView.extend({
 
     renderGrid() {
 
-        const { options: { paper }} = this;
+        const { paper } = this;
         const { _gridSettings: gridSettings } = this;
 
         this.removeGrid();
@@ -96,7 +96,7 @@ export const GridLayerView = LayerView.extend({
 
     updateGrid() {
 
-        const { _gridCache: grid, _gridSettings: gridSettings, options: { paper }} = this;
+        const { _gridCache: grid, _gridSettings: gridSettings, paper } = this;
         if (!grid) return;
         const { root: vSvg, patterns } = grid;
         const { x, y, width, height } = paper.getArea();
@@ -114,7 +114,7 @@ export const GridLayerView = LayerView.extend({
     },
 
     _getPatternId(index) {
-        return `pattern_${this.options.paper.cid}_${index}`;
+        return `pattern_${this.paper.cid}_${index}`;
     },
 
     _getGridRefs() {

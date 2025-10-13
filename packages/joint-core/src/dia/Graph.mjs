@@ -16,8 +16,7 @@ export const Graph = Model.extend({
         opt = opt || {};
 
         const cellLayerCollection = this.cellLayerCollection = new GraphCellLayers([], {
-            cellLayerNamespace: opt.cellLayerNamespace,
-            graph: this
+            cellLayerNamespace: opt.cellLayerNamespace
         });
 
         // retrigger events from the cellLayerCollection
