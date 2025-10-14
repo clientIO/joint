@@ -64,6 +64,7 @@ export const GraphCellLayers = Collection.extend({
             if (id != null) this._byId[id] = model;
         }
 
+        // remove the event prefix from cell layer model events
         arguments[0] = arguments[0].slice(model.eventPrefix.length);
         this.trigger.apply(this, arguments);
     }

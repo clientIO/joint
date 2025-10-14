@@ -27,7 +27,10 @@ export const CellLayerView = LayerView.extend({
 
     className: function() {
         const { id } = this.options;
-        return addClassNamePrefix(`${id}-layer`) + ' ' + addClassNamePrefix('joint-cell-layer');
+        return [
+            addClassNamePrefix(`${id}-layer`),
+            addClassNamePrefix('cell-layer')
+        ].join(' ');
     },
 
     startListening() {
