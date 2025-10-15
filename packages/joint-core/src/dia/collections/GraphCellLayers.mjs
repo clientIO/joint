@@ -60,8 +60,8 @@ export const GraphCellLayers = Collection.extend({
         if (event === 'changeId') {
             var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
             var id = this.modelId(model.attributes, model.idAttribute);
-            if (prevId != null) delete this._byId[prevId];
-            if (id != null) this._byId[id] = model;
+            if (prevId != null) this._byId.delete(prevId);
+            if (id != null) this._byId.set(id, model);
         }
 
         // remove the event prefix from cell layer model events
