@@ -50,8 +50,8 @@ export class CellLayersController extends Listener {
             this.onCellRemove(cell, opt);
         });
 
-        this.listenTo(graph, 'reset', ({ models: cells }, opt = {}) => {
-            this.onGraphReset(cells, opt);
+        this.listenTo(graph, 'reset', (collection, opt = {}) => {
+            this.onGraphReset(collection, opt);
         });
 
         this.listenTo(graph, 'change', (cell, opt = {}) => {
@@ -93,9 +93,11 @@ export class CellLayersController extends Listener {
             }
         });
 
-        this.graph.cellCollection.each(cell => {
-            this.onCellAdd(cell, opt);
-        });
+        // do not add existing cells if we are resetting whole graph
+        // this option is used during graph.fromJSON
+        if (!opt.clean) {
+            this.resetLayersCollections(this.graph.cellCollection.models, opt);
+        }
     }
 
     onCellAdd(cell, opt) {
@@ -136,21 +138,34 @@ export class CellLayersController extends Listener {
         layer.add(cell, opt);
     }
 
-    onGraphReset(cells, opt = {}) {
-        const { collection } = this;
-
-        collection.each(cellLayer => {
-            cellLayer.reset([], opt);
-        });
-
-        cells.forEach(cell => {
-            this.onCellAdd(cell, opt);
-        });
+    onGraphReset(cellsCollection, opt = {}) {
+        // do not request insertion with `initial: true` option
+        this.resetLayersCollections(cellsCollection.models, { ...opt, initial: true });
     }
 
     onCellLayerRemove(cellLayer, opt) {
         cellLayer.cells.toArray().forEach(cell => {
             cell.remove(opt);
+        });
+    }
+
+    resetLayersCollections(cells, opt = {}) {
+        const { collection } = this;
+
+        const layersMap = collection.reduce((map, layer) => {
+            map[layer.id] = [];
+            return map;
+        }, {});
+
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
+            const layerId = this._getLayerId(cell);
+            layersMap[layerId].push(cell);
+        }
+
+        Object.keys(layersMap).forEach(layerId => {
+            const layer = collection.get(layerId);
+            layer.reset(layersMap[layerId], opt);
         });
     }
 
@@ -286,10 +301,10 @@ export class CellLayersController extends Listener {
     }
 
     getCells() {
-        const cells = [];
+        let cells = [];
 
         this.collection.each(cellLayer => {
-            cells.push(...cellLayer.cells);
+            cells = cells.concat(cellLayer.cells.models);
         });
 
         return cells;

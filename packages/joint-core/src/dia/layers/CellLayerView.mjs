@@ -41,6 +41,8 @@ export const CellLayerView = LayerView.extend({
 
         this.listenTo(model, 'add', this.onCellAdd);
 
+        this.listenTo(model, 'reset', this.onCellLayerReset);
+
         this.listenTo(model, 'change', this.onCellChange);
 
         this.listenTo(graph, 'batch:stop', this.onGraphBatchStop);
@@ -58,6 +60,12 @@ export const CellLayerView = LayerView.extend({
         // do not insert cell view here, it will be done in the Paper
         if (!opt.initial) {
             this.requestCellViewInsertion(cell, opt);
+        }
+    },
+
+    onCellLayerReset(_collection, opt) {
+        if (!opt.initial) {
+            this.requestCellViewsInsertion(opt);
         }
     },
 
@@ -132,9 +140,11 @@ export const CellLayerView = LayerView.extend({
     requestCellViewsInsertion(opt = {}) {
         const { model } = this;
 
-        model.cells.each(cell => {
+        const cellsArray = model.cells.models;
+        for (let i = 0; i < cellsArray.length; i++) {
+            const cell = cellsArray[i]
             this.requestCellViewInsertion(cell, opt);
-        });
+        }
     },
 
     requestCellViewInsertion(cell, opt = {}) {
