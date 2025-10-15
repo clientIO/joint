@@ -1,4 +1,4 @@
-import type { FC, PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import { forwardRef, useCallback, useMemo } from 'react';
 import type { OnCreateHighlighter } from './custom';
 import { Custom } from './custom';
@@ -18,7 +18,7 @@ export interface OpacityHighlighterProps extends PropsWithChildren {
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
+function Component(props: OpacityHighlighterProps, forwardedRef?: React.Ref<SVGElement>) {
   const { children, alphaValue = 1, isHidden } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
     const data: dia.HighlighterView.Options = {
@@ -49,4 +49,4 @@ function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGEl
  * return <Highlighter.Opacity />
  * ```
  */
-export const Opacity: FC<OpacityHighlighterProps> = forwardRef(Component);
+export const Opacity = forwardRef<SVGElement, OpacityHighlighterProps>(Component);

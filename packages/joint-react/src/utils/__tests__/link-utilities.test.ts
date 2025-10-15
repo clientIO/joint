@@ -3,13 +3,13 @@ import * as linkUtilities from '../link-utilities';
 describe('link-utilities', () => {
   describe('getLinkId', () => {
     it('returns id if passed a string', () => {
-      expect(linkUtilities.getLinkId('foo')).toBe('foo');
+      expect(linkUtilities.getCellId('foo')).toBe('foo');
     });
     it('returns id property if passed an object', () => {
-      expect(linkUtilities.getLinkId({ id: 'bar' })).toBe('bar');
+      expect(linkUtilities.getCellId({ id: 'bar' })).toBe('bar');
     });
     it('returns undefined if object has no id', () => {
-      expect(linkUtilities.getLinkId({})).toBeUndefined();
+      expect(linkUtilities.getCellId({})).toBeUndefined();
     });
   });
 

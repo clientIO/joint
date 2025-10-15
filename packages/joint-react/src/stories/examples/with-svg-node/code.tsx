@@ -35,6 +35,7 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 function RenderedRect({ width, height, label }: BaseElementWithData) {
   const textMargin = 20;
   const cornerRadius = 5;
+
   return (
     <>
       <rect rx={cornerRadius} ry={cornerRadius} width={width} height={height} fill={PRIMARY} />
@@ -81,7 +82,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

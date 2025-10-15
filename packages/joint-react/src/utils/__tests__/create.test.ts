@@ -33,7 +33,7 @@ describe('create', () => {
         width: 100,
         height: 100,
         somethingElse: 'test',
-        type: 'react',
+        type: 'ReactElement',
         attrs: {
           rect: { 'alignment-baseline': 'middle' },
         },

@@ -36,8 +36,6 @@ export function getElement<Element extends GraphElement = GraphElement>(
     ...position,
     ...size,
     id: cell.id,
-    isElement: true,
-    isLink: false,
     data: cell.attributes.data,
     type: cell.attributes.type,
     ports: cell.get('ports'),
@@ -64,8 +62,6 @@ export function getLink(cell: dia.Cell<dia.Cell.Attributes>): GraphLink {
   return {
     ...cell.attributes,
     id: cell.id,
-    isElement: false,
-    isLink: true,
     source: cell.get('source') as dia.Cell.ID,
     target: cell.get('target') as dia.Cell.ID,
     type: cell.attributes.type,

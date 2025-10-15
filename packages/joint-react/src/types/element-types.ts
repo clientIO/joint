@@ -19,7 +19,7 @@ export interface StandardShapesTypeMapper {
   'standard.Polygon': shapes.standard.PolygonSelectors;
   'standard.Polyline': shapes.standard.PolylineSelectors;
   'standard.TextBlock': shapes.standard.TextBlockSelectors;
-  react: ReactElementAttributes;
+  ReactElement: ReactElementAttributes;
 }
 
 export type StandardShapesType = keyof StandardShapesTypeMapper;

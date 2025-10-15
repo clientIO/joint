@@ -1,21 +1,20 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable no-shadow */
 /* eslint-disable sonarjs/prefer-read-only-props */
-import type { Meta, StoryObj } from '@storybook/react/*';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import type { Meta, StoryObj } from '@storybook/react';
 import '../../stories/examples/index.css';
 import {
   createElements,
   createLinks,
   GraphProvider,
   MeasuredNode,
-  Paper,
   Port,
   useElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { PortGroup } from './port-group';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
+import { Paper } from '../paper/paper';
 
 const initialElements = createElements([
   {
@@ -73,7 +72,7 @@ function RenderItem(Story: React.FC) {
 function PaperDecorator(Story: React.FC) {
   const renderItem = () => RenderItem(Story);
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Paper
         className={PAPER_CLASSNAME}
         width={'100%'}

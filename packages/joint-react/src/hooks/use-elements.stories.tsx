@@ -1,18 +1,17 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
-import type { Meta } from '@storybook/react/*';
+import type { Meta } from '@storybook/react';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
-import { Paper } from '../components/paper/paper';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { getAPILink } from '../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
+import { Paper } from '../components/paper/paper';
 
 const API_URL = getAPILink('useElements');
 
 const meta: Meta<typeof HookTester> = {
-  title: 'Hooks/useElements',
+  title: 'Hooks/useElements useLinks',
   component: HookTester,
   decorators: [SimpleGraphDecorator],
   parameters: makeRootDocumentation({
@@ -88,7 +87,7 @@ function Component() {
 export const WithGetJustSize = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements) => elements.size],
+    hookArgs: [(elements) => elements.length],
     render: (result) => (
       <div>
         <Paper
@@ -106,7 +105,7 @@ export const WithGetJustSize = makeStory<Story>({
   code: `import { useElements } from '@joint/react'
 
 function Component() {
-  const size = useElements((elements) => elements.size);
+  const size = useElements((elements) => elements.length);
   return <div>size of elements is: {JSON.stringify(size)}</div>;
 }`,
   description: 'Get the size of the elements.',

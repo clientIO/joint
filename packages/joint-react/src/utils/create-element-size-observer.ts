@@ -35,12 +35,15 @@ export function createElementSizeObserver<AnyHTMLOrSVGElement extends HTMLElemen
       const { inlineSize, blockSize } = size;
       // Update the size of the cell in the graph.
       onResize({ width: inlineSize, height: blockSize });
+      break; // We only care about the first entry
     }
   });
 
   // trigger the observer immediately
-  const { width, height } = element.getBoundingClientRect();
-  onResize({ width, height });
+  requestAnimationFrame(() => {
+    const { width, height } = element.getBoundingClientRect();
+    if (width > 0 && height > 0) onResize({ width, height });
+  });
 
   // Start observing the HTML element.
   observer.observe(element, { box: 'border-box' });

@@ -61,7 +61,7 @@ function Component(props: PortItemProps) {
   const cellId = useCellId();
   const paperCtx = useContext(PaperContext);
   if (!paperCtx) {
-    throw new Error('PortItem must be used within a `PaperProvider` or `Paper` component');
+    throw new Error('PortItem must be used within a Paper context');
   }
   const { portsStore, paper } = paperCtx;
   const { graph } = useGraphStore();

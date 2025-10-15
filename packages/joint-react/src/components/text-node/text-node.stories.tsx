@@ -1,14 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable no-shadow */
 
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { TextNode } from './text-node';
 import { PRIMARY } from 'storybook-config/theme';
 import { useElement } from '../../hooks';
 import { MeasuredNode } from '../measured-node/measured-node';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 
 const API_URL = getAPILink('TextNode', 'variables');
 export type Story = StoryObj<typeof TextNode>;

@@ -6,8 +6,8 @@ import type { GraphElement } from '../types/element-types';
 import { useCallback } from 'react';
 
 /**
- * A hook to access a specific graph element from the Paper context.
- * It must be used inside a PaperProvider.
+ * A hook to access a specific graph element from the current `Paper` context.
+ * Use it only inside `renderElement` or components rendered from within.
  * This hook returns the selected element based on its cell id. It accepts:
  * - a selector function, which extracts the desired part from the element.
  * (By default, it returns the entire element.)
@@ -29,7 +29,7 @@ import { useCallback } from 'react';
  *   (element) => element,
  *   (prev, next) => prev.width === next.width
  * );
- * @param selector The selector function to pick part of the element. @default initialElementselector
+ * @param selector The selector function to pick part of the element. @default identity
  * @param isEqual The function used to check equality. @default util.isEqual
  * @returns The selected element based on the current cell id.
  */
@@ -42,8 +42,8 @@ export function useElement<Element extends GraphElement, ReturnedElements = Elem
 
   const subscribeForElement = useCallback(
     (subscribeCallback: () => void) => {
-      return subscribe((changedIds) => {
-        if (changedIds?.has(id)) {
+      return subscribe((update) => {
+        if (update?.diffIds.has(id)) {
           subscribeCallback();
         }
       });

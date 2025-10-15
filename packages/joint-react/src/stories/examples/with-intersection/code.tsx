@@ -3,9 +3,9 @@ import {
   createElements,
   GraphProvider,
   MeasuredNode,
-  Paper,
   useElements,
   useGraph,
+  Paper,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
@@ -52,7 +52,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider elements={initialElements}>
       <Main />
     </GraphProvider>
   );

@@ -4,10 +4,10 @@ import { dia } from '@joint/core';
 import '../../stories/examples/index.css';
 import { GraphProvider, jsx, Paper } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleGraphDecorator } from 'storybook-config/decorators/with-simple-data';
-import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation } from '../../stories/utils/make-story';
 
 const API_URL = getAPILink('jsx');
 
@@ -51,11 +51,7 @@ const initialElements = [
 
 function App() {
   return (
-    <GraphProvider
-      cellNamespace={{ CustomRect }}
-      initialElements={initialElements}
-      initialLinks={[]}
-    >
+    <GraphProvider cellNamespace={{ CustomRect }} elements={initialElements} links={[]}>
       <Paper width={320} height={220} className={PAPER_CLASSNAME} />
     </GraphProvider>
   );

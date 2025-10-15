@@ -9,7 +9,6 @@ import { glob } from 'glob';
 
 const execAsync = promisify(exec);
 const entryDir = 'src';
-const entry = path.join(entryDir, 'index.ts');
 const outDir = 'dist';
 const external = [
   'react',
@@ -61,38 +60,40 @@ async function cleanDist() {
 }
 
 /**
- * Build the library
+ * Build the library (development-optimized build)
  */
 async function build() {
   try {
     await cleanDist();
 
+    const commonOptions: esbuild.BuildOptions = {
+      preserveSymlinks: true,
+      external: [...external, 'process'], // 👈 keep process unresolved
+      sourcemap: true,
+      minify: false, // 👈 no minification (dev friendly)
+      treeShaking: true,
+      target: ['esnext'], // modern for dev
+      define: {
+        'process.env.NODE_ENV': 'process.env.NODE_ENV',
+      },
+    };
+
     // CommonJS build
     await esbuild.build({
-      entryPoints: [entry],
+      ...commonOptions,
+      entryPoints: await getAllFiles(entryDir),
       bundle: true,
       format: 'cjs',
-      outfile: path.join(outDir, 'cjs/index.js'),
-      minify: true,
-      treeShaking: true,
-      pure: ['console.log'],
-      preserveSymlinks: true,
-      external,
-      sourcemap: true,
-      target: ['node14'],
+      outdir: path.join(outDir, 'cjs'),
     });
 
-    // ESM build
+    // ESM build (per-file, no bundle)
     await esbuild.build({
+      ...commonOptions,
       entryPoints: await getAllFiles(entryDir),
-      bundle: false,
+      bundle: true,
       format: 'esm',
       outdir: path.join(outDir, 'esm'),
-      minify: true,
-      treeShaking: true,
-      preserveSymlinks: true,
-      sourcemap: true,
-      target: ['node14'],
     });
 
     // Generate TypeScript declarations
@@ -100,7 +101,7 @@ async function build() {
       'npx tsc --project tsconfig.types.json --declaration --emitDeclarationOnly --outDir dist/types'
     );
 
-    console.log('Build completed successfully!');
+    console.log('Development build completed successfully!');
   } catch (error) {
     console.error('Build failed:', error);
     // eslint-disable-next-line unicorn/no-process-exit

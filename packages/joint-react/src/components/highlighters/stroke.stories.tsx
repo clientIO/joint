@@ -1,11 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { Stroke } from './stroke';
 import { PRIMARY, SECONDARY } from 'storybook-config/theme';
-import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { useElement } from '../../hooks';
 import { forwardRef, type PropsWithChildren } from 'react';
+import { makeRootDocumentation } from '../../stories/utils/make-story';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('Highlighter.Stroke', 'variables');
 
