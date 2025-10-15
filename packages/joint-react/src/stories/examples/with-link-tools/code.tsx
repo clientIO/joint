@@ -6,8 +6,8 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  Paper,
   jsx,
+  Paper,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
@@ -119,7 +119,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

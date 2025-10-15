@@ -3,11 +3,11 @@ import * as Stories from './story';
 import CodeSVG from './code-svg?raw';
 import CodeHTML from './code-html?raw';
 import CodeHTMLRenderer from './code-html-renderer?raw';
-import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-documentation-link'
+import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-documentation-link';
 
 <Meta of={Stories} />
 
-# Get Started with @joint/react
+# Get started with @joint/react
 
 Welcome! This guide will help you get started with the new `@joint/react` library, which brings the power of [JointJS](https://www.jointjs.com/) to React. We'll walk through the core concepts step by step, with live examples and code blocks.
 
@@ -17,129 +17,166 @@ Welcome! This guide will help you get started with the new `@joint/react` librar
 
 - **@joint/react** is a React-first API for building interactive diagrams, powered by [JointJS](https://www.jointjs.com/).
 - **JointJS** is a diagramming library for creating flowcharts, BPMN, ER diagrams, and more.
-- **@joint/react** wraps JointJS concepts in idiomatic React components and hooks.
+- **@joint/react** wraps JointJS concepts in idiomatic React components and hooks, making it intuitive for React developers.
 
 ---
 
-## 2. Core Concepts
+## 2. Core concepts
 
 - **Element (Node):** A visual item in your diagram (e.g., a rectangle, circle, or custom shape).
 - **Link (Edge):** A connection between two elements.
 - **Graph:** The data model holding all elements and links.
-- **Paper:** The UI component that renders the graph.
 - **GraphProvider:** React context provider for managing the graph state.
+- **Paper:** The main rendering component for nodes and links.
 - **Ports:** Named connection points on elements for precise linking.
 - **MeasuredNode:** Utility for auto-sizing nodes based on their content.
 
 ---
 
-## 3. Creating Elements and Links
+## 3. Creating elements and links
 
 ### a. Elements (Nodes)
 
-You can create elements with or without a custom type. The type is inferred automatically, but you can also specify it for type safety.
+`createElements` is a convenience helper. You can also pass plain objects with at least an `id` and geometry (`x`, `y`, `width`, `height`).
 
 ```tsx
-// Inferred type
+// Using createElements (sugar code)
+import { createElements } from '@joint/react';
+
 const elements = createElements([
   { id: '1', label: 'Node 1', x: 100, y: 0, width: 100, height: 25 },
   { id: '2', label: 'Node 2', x: 100, y: 200, width: 100, height: 25 },
 ]);
 
-// Here we can use the inferred type
-type ElementType = InferElement<typeof elements>;
-
-// With custom type
-interface MyNode extends GraphElement {
-  label: string;
-  color: string;
-}
-const customElements = createElements<MyNode>([
-  { id: 'a', label: 'A', color: 'red', x: 0, y: 0, width: 80, height: 40 },
-]);
+// Without createElements
+const elements = [
+  { id: 'sta', label: 'Custom Node', x: 50, y: 50, width: 80, height: 40 },
+] as const;
 ```
 
 ### b. Links (Edges)
 
-Links connect elements by their `id`. You can use simple strings or objects (for advanced features like ports).
+Similarly, `createLinks` is a helper for defining links. Plain objects with `id`, `source`, and `target` also work.
 
 ```tsx
-// Simple link by id
-const links = createLinks([{ id: 'l1', source: '1', target: '2' }]);
+// Using createLinks (sugar code)
+import { createLinks } from '@joint/react';
 
-// Link with port (advanced)
-const linksWithPorts = createLinks([
-  { id: 'l2', source: { id: '1', port: 'out' }, target: { id: '2', port: 'in' } }
+const links = createLinks([
+  { id: 'l1', source: '1', target: '2' },
 ]);
+
+// Without createLinks
+const links = [
+  { id: 'l2', source: 'sta', target: '2' },
+] as const;
 ```
 
 ---
 
-## 4. Setting Up the Graph Context
+## 4. Setting up the GraphProvider context
 
-Wrap your app (or diagram) with {getAPIDocumentationLink('GraphProvider')}. This provides the graph context to all child components.
-- **initialElements:** Initial elements to load.
-- **initialLinks:** Initial links to load.
+Wrap your app with the `GraphProvider` component to provide the graph context to all child components.
+
 ```tsx
-<GraphProvider initialElements={elements} initialLinks={links}>
-  {/* Your diagram components */}
+import { GraphProvider } from '@joint/react';
+
+<GraphProvider elements={elements} links={links}>
+  {/* Add Paper or other components here */}
 </GraphProvider>
 ```
 
-- You can also use `initialElements` and `initialLinks` directly on the {getAPIDocumentationLink('Paper', 'variables')} component for simple cases without need to use the GraphProvider.
+For simpler use cases, you can render a standalone view without a surrounding provider:
 
 ```tsx
-<Paper initialElements={elements} initialLinks={links}>
-  {/* Your diagram components */}
-</Paper>
+<Paper elements={elements} links={links} />
 ```
 
 ---
 
-## 5. Rendering the Diagram with Paper
+## 5. Rendering the diagram
 
-The {getAPIDocumentationLink('Paper', 'variables')} component renders your graph. It is the main UI component.
-
-- **renderElement:** Function to render each node.
-- **elementSelector:** (Optional) Selects which elements to render.
-- **Events:** Handle user interactions (e.g., onLinkMouseEnter).
+The `Paper` component renders your graph. It provides props for customizing the rendering and handling interactions.
 
 ```tsx
-// MyNode is a custom type
-function RenderItem({ width, height, label }: MyNode) {
+function RenderNode({ width, height, label }) {
   return <rect width={width} height={height} fill="lightblue"><title>{label}</title></rect>;
 }
 
-<Paper width="100%" height={300} renderElement={RenderItem} />
+<Paper
+  width="100%"
+  height={300}
+  renderElement={RenderNode}
+  onLinkMouseEnter={({ linkView }) => {
+    linkView.highlight();
+  }}
+/>
 ```
 
 ---
 
-## 6. Using HTML in Nodes
+## 6. Using HTML in nodes
 
-By default, nodes are rendered as SVG. To use HTML, wrap your content in a `foreignObject` or use the `useHTMLOverlay` prop.
+If you need full HTML support, enable the experimental `useHTMLOverlay` prop to render real HTML outside the SVG. Otherwise, use `<foreignObject>`.
 
 ```tsx
-function RenderHTMLNode({ label, width, height }) {
+<Paper
+  useHTMLOverlay
+  renderElement={({ label }) => (
+    <div style={{
+      background: 'lightgray',
+      padding: '10px',
+      borderRadius: '5px',
+      boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+    }}>
+      {label}
+    </div>
+  )}
+/>
+```
+
+---
+
+## 7. Advanced features
+
+### a. Ports
+
+Ports allow you to define named connection points on elements for links.
+
+```tsx
+function RenderNodeWithPorts({ label, width, height }) {
   return (
-    <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="node">{label}</div>
-      </MeasuredNode>
-    </foreignObject>
+    <>
+      <rect width={width} height={height} fill="lightblue">
+        <title>{label}</title>
+      </rect>
+      <Port.Group id="ports" position="top">
+        <Port id="in">
+          <circle r={5} fill="red" />
+        </Port>
+        <Port id="out">
+          <circle r={5} fill="green" />
+        </Port>
+      </Port.Group>
+    </>
   );
 }
 ```
 
-Or, with `useHTMLOverlay` (renders HTML outside SVG, no `foreignObject` needed):
+### b. Customizing behavior
+
+Customize link behavior with props like `defaultRouter` and `defaultConnector`:
 
 ```tsx
-<Paper useHTMLOverlay renderElement={RenderHTMLNode} />
+<Paper
+  defaultRouter={{ name: 'manhattan' }}
+  defaultConnector={{ name: 'smooth' }}
+/>
 ```
 
 ---
 
-## 7. Live Examples
+## 8. Live examples
 
 ### SVG Node Example
 
@@ -150,8 +187,6 @@ ${CodeSVG}
 \`\`\``}
 </Markdown>
 
----
-
 ### HTML Node Example
 
 <Canvas of={Stories.HTML} />
@@ -160,8 +195,6 @@ ${CodeSVG}
 ${CodeHTML}
 \`\`\``}
 </Markdown>
-
----
 
 ### HTML Overlay Example
 
@@ -174,67 +207,7 @@ ${CodeHTMLRenderer}
 
 ---
 
-## 8. Advanced: Ports, Events, and Customization
-
-### a. Ports
-
-Ports allow you to define named connection points on elements for links.
-
-We can also define it in declerative way, using the `ports` components.
-```tsx
-function RenderNodeWithPorts({ label, width, height }) {
-  return (
-    <>
-    <MeasuredNode>
-      <rect width={width} height={height} fill="lightblue">
-        <title>{label}</title>
-      </rect>
-    </MeasuredNode>
-    <Port.Group id="ports" position="top">
-      <Port id="in" >
-        <circle r={5} fill="red" />
-      </Port>
-      <Port id="out">
-        <circle r={5} fill="green" />
-      </Port>
-    </Port.Group>
-    <>
-  );
-}
-```
-
-### b. Events
-
-Handle user interactions with events like `onLinkMouseEnter`, `onElementsSizeReady`, etc.
-
-```tsx
-<Paper
-  onLinkMouseEnter={({ linkView, paper }) => {
-    // Add custom link tools or highlighters
-  }}
-  onElementsSizeReady={({ paper }) => {
-    // Fit content to view
-    paper.transformToFitContent({ padding: 40 });
-  }}
-  // ...other props
-/>
-```
-
-### c. Customizing Link Behavior
-
-You can change how links behave and look by setting props like `defaultRouter`, `defaultConnector`, `defaultAnchor`, etc.
-
-```tsx
-<Paper
-  defaultRouter={{ name: 'rightAngle', args: { margin: 28 } }}
-  defaultConnector={{ name: 'straight' }}
-  // ...other props
-/>
-```
-
----
-
-## 9. Key Terms
+## 9. Key terms
 
 - **GraphProvider:** React context for graph data.
 - **Paper:** Renders the graph visually.
@@ -246,10 +219,164 @@ You can change how links behave and look by setting props like `defaultRouter`, 
 
 ---
 
-## 10. More Resources
+## 10. More resources
 
 - [@joint/react API Reference](https://github.com/clientIO/joint-plus/tree/main/packages/joint-react)
 - [JointJS Documentation](https://docs.jointjs.com/)
+
+## 11. Multiple views in a single GraphProvider
+
+You can render multiple `Paper` instances inside one `GraphProvider` to create features like a minimap, a read-only overview, or separate layers. When using multiple views in development, assign a unique `id` to each view.
+
+```tsx
+import { GraphProvider } from '@joint/react';
+
+const elements = createElements([
+  { id: '1', label: 'A', x: 50, y: 50, width: 80, height: 40 },
+  { id: '2', label: 'B', x: 250, y: 180, width: 80, height: 40 },
+]);
+
+export function MultiViews() {
+  return (
+    <GraphProvider elements={elements}>
+      {/* Main interactive canvas */}
+      <Paper id="main" width={800} height={500} />
+
+      {/* Read-only overview/minimap */}
+      <Paper
+        id="overview"
+        width={200}
+        height={120}
+        interactive={false}
+        scale={0.25}
+        style={{ border: '1px solid #ddd' }}
+      />
+    </GraphProvider>
+  );
+}
+```
+
+Tips:
+- Give each view a stable `id`.
+- Use `interactive={false}` and a smaller `scale` for an overview/minimap.
+- Share the same `elements`/`links` via the parent `GraphProvider`.
+
+---
+
+
+## 12. Accessing a view via hook or ref
+
+There are two ergonomic ways to reach the underlying Paper/Graph of a view for imperative needs.
+
+### a. Via hook (by id)
+
+Use an internal hook to subscribe to a named view from anywhere under `GraphProvider`. This is handy for utilities colocated outside the view subtree.
+
+```tsx
+import { useEffect } from 'react';
+// import { useGraphView } from '@joint/react' // ensure it is exported in your setup
+
+function FitToContent() {
+  const view = useGraphView('main');
+  useEffect(() => {
+    view?.paper.fitToContent({ padding: 20 });
+  }, [view]);
+  return null;
+}
+
+export function WithHook() {
+  return (
+    <GraphProvider elements={elements}>
+      <Paper id="main" />
+      <FitToContent />
+    </GraphProvider>
+  );
+}
+```
+
+### b. Via ref (accessing paperCtx)
+
+Any component that accepts a `ref` (such as `Paper` or `GraphProvider`) exposes its instance/context via the ref. For `Paper`, the instance (including the underlying JointJS Paper) can be accessed via the `paperCtx` property on the ref object.
+
+```tsx
+import { useEffect, useRef } from 'react';
+import type { PaperContext } from '@joint/react';
+
+export function WithRef() {
+  const paperRef = useRef<PaperContext | null>(null);
+  useEffect(() => {
+    // Access the Paper context (paperCtx) from the ref
+    const paperCtx = paperRef.current?.paperCtx;
+    // You can also access the JointJS Paper instance directly
+    const paper = paperCtx?.paper;
+    paper?.scale(2, 2);
+  }, []);
+
+  return (
+    <GraphProvider elements={elements}>
+      <Paper id="zoomed" ref={paperRef} />
+    </GraphProvider>
+  );
+}
+```
+
+---
+
+## 13. Small real‑world patterns
+
+### a. Canvas + Minimap
+
+```tsx
+function GraphWithMinimap() {
+  return (
+    <GraphProvider elements={elements} links={links}>
+      <Paper id="main" width="100%" height={400} />
+      <div style={{ position: 'absolute', right: 16, bottom: 16 }}>
+        <Paper id="mini" width={180} height={120} interactive={false} scale={0.2} />
+      </div>
+    </GraphProvider>
+  );
+}
+```
+
+### b. Read‑only preview next to an editor
+
+```tsx
+function EditorWithPreview() {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16 }}>
+      <GraphProvider elements={elements} links={links}>
+        <Paper id="editable" />
+      </GraphProvider>
+      <GraphProvider elements={elements} links={links}>
+        <Paper id="preview" interactive={false} />
+      </GraphProvider>
+    </div>
+  );
+}
+```
+
+### c. HTML nodes with overlay
+
+```tsx
+const renderElement = ({ label }) => (
+  <div style={{ padding: 8, borderRadius: 8, background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,.15)' }}>
+    {label}
+  </div>
+);
+
+function HtmlNodes() {
+  return (
+    <GraphProvider elements={elements}>
+      <Paper useHTMLOverlay renderElement={renderElement} />
+    </GraphProvider>
+  );
+}
+```
+
+
 ---
 
 Happy diagramming! 🚀
+
+---

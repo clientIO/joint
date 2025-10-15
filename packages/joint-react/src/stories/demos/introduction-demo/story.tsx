@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import Code from './code';
-//@ts-expect-error storybook parser
+
 import RawCode from './code?raw';
-//@ts-expect-error storybook parser
+
 import CodeCss from './index.css?raw';
 export type Story = StoryObj<typeof Code>;
 

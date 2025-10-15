@@ -1,15 +1,19 @@
-import type { StoryObj } from '@storybook/react/*';
+/* eslint-disable @typescript-eslint/no-unnecessary-type-constraint */
 import type React from 'react';
 
 // MakeStory utility
-interface MakeStoryOptions<T extends StoryObj> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface MakeStoryOptions<T extends any> {
   readonly component?: React.FC;
   readonly code?: string;
   readonly name?: string;
   readonly apiURL?: string;
   readonly description?: string;
+  // @ts-expect-error we know type - its used just for story
   readonly args?: T['args'];
+  // @ts-expect-error we know type - its used just for story
   readonly decorators?: T['decorators'];
+  // @ts-expect-error we know type - its used just for story
   readonly play?: T['play'];
 }
 
@@ -23,8 +27,8 @@ interface MakeStoryOptions<T extends StoryObj> {
  * @returns
  * A story object that can be used in Storybook.
  */
-//@ts-expect-error T is not assignable to type StoryObj
-export function makeStory<T>(options: MakeStoryOptions<T>): T {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function makeStory<T extends any>(options: MakeStoryOptions<T>): T {
   const { component, code, name, apiURL, description = '', args, decorators, play } = options;
   return {
     play,
@@ -62,7 +66,6 @@ interface MakeRootDocsOptions {
  * @returns
  * An object containing the docs and source code.
  */
-// eslint-disable-next-line unicorn/prevent-abbreviations
 export function makeRootDocumentation(options: MakeRootDocsOptions) {
   const { code, apiURL, description = '' } = options;
 

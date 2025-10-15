@@ -33,6 +33,7 @@ export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVG
   elementRef: RefObject<AnyHTMLOrSVGElement | null>,
   options?: MeasureNodeOptions
 ) {
+  // TODO - add exception for using multiple measured node for single element
   const { setSize } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
   const id = useCellId();
@@ -52,13 +53,6 @@ export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVG
 
     const previous = { width: 0, height: 0 };
 
-    // Check if the element is already measured
-    if (hasMeasuredNode(id)) {
-      // If it is already measured, we don't need to set the size again
-      throw new Error(
-        `Multiple measurements used. Element with id ${id} is already measured, only one element inside the graph can be measured at a time`
-      );
-    }
     const clean = setMeasuredNode(id);
 
     // Create the observer that calls back on measurement changes

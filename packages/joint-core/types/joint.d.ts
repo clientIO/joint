@@ -2323,17 +2323,17 @@ export namespace dia {
 
 export namespace highlighters {
 
-    import HighlighterView = dia.HighlighterView;
+    type HighlighterView = dia.HighlighterView; 
 
-    interface AddClassHighlighterArguments extends HighlighterView.Options {
+    interface AddClassHighlighterArguments extends dia.HighlighterView.Options {
         className?: string;
     }
 
-    interface OpacityHighlighterArguments extends HighlighterView.Options {
+    interface OpacityHighlighterArguments extends dia.HighlighterView.Options {
         alphaValue?: number;
     }
 
-    interface StrokeHighlighterArguments extends HighlighterView.Options {
+    interface StrokeHighlighterArguments extends dia.HighlighterView.Options {
         padding?: number;
         rx?: number;
         ry?: number;
@@ -2342,7 +2342,7 @@ export namespace highlighters {
         attrs?: attributes.NativeSVGAttributes;
     }
 
-    interface MaskHighlighterArguments extends HighlighterView.Options {
+    interface MaskHighlighterArguments extends dia.HighlighterView.Options {
         padding?: number;
         maskClip?: number;
         deep?: boolean;
@@ -4281,8 +4281,8 @@ export namespace attributes {
         filter?: string | dia.SVGFilterJSON;
         fill?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
         stroke?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
-        sourceMarker?: dia.SVGMarkerJSON;
-        targetMarker?: dia.SVGMarkerJSON;
+        sourceMarker?: dia.SVGMarkerJSON | null;
+        targetMarker?: dia.SVGMarkerJSON | null;
         vertexMarker?: dia.SVGMarkerJSON;
         props?: SVGAttributeProps;
         text?: string;

@@ -1,18 +1,24 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable react-perf/jsx-no-new-array-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import type { Meta, StoryObj } from '@storybook/react/*';
-import { Paper } from './paper';
+import type { Meta, StoryObj } from '@storybook/react';
 import {
   SimpleGraphDecorator,
   type SimpleElement,
 } from '../../../.storybook/decorators/with-simple-data';
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
-import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { MeasuredNode } from '../measured-node/measured-node';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation } from '../../stories/utils/make-story';
+import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
+import { useCellActions } from '../../hooks/use-cell-actions';
+import { Paper } from './paper';
+import type { RenderElement } from './paper.types';
+import { GraphProvider } from '../graph/graph-provider';
 
 export type Story = StoryObj<typeof Paper>;
 
@@ -23,11 +29,15 @@ const meta: Meta<typeof Paper> = {
   decorators: [SimpleGraphDecorator],
   parameters: makeRootDocumentation({
     description: `
-Paper is a component that renders graph elements. It is used to display and interact with graph elements.
+Paper renders nodes and links using the JointJS Paper under the hood. Compose it inside a GraphProvider. Define node UI via the renderElement prop, and use useHTMLOverlay or <foreignObject> for HTML content.
     `,
     apiURL: API_URL,
-    code: `import { Paper } from '@joint/react'
-<Paper renderElement={() => <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />} />
+    code: `import { GraphProvider } from '@joint/react'
+<GraphProvider>
+  <Paper renderElement={({ width, height }) => (
+    <rect rx={10} ry={10} width={width} height={height} fill={"blue"} />
+  )} />
+</GraphProvider>
     `,
   }),
 };
@@ -71,16 +81,6 @@ export const WithRectElement: Story = {
 
 export const WithHTMLElement: Story = {
   args: {
-    renderElement: RenderHTMLElement as never,
-    width: '100%',
-    className: PAPER_CLASSNAME,
-  },
-};
-
-export const WithGrid: Story = {
-  args: {
-    drawGrid: true,
-    gridSize: 10,
     renderElement: RenderHTMLElement as never,
     width: '100%',
     className: PAPER_CLASSNAME,
@@ -133,7 +133,6 @@ export const WithEvent: Story = {
     onCellPointerDown: action('onCellPointerDown'),
     onCellPointerMove: action('onCellPointerMove'),
     onCellPointerUp: action('onCellPointerUp'),
-    onCustomEvent: action('onCustomEvent'),
     onElementContextMenu: action('onElementContextMenu'),
     onElementMagnetContextMenu: action('onElementMagnetContextMenu'),
     onElementMagnetPointerClick: action('onElementMagnetPointerClick'),
@@ -220,12 +219,74 @@ export const WithCustomEvent: Story = {
     onElementPointerClick: ({ paper }) => {
       paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
     },
-    onCustomEvent: ({ args, eventName }) => {
-      action('onCustomEvent')(
-        `Custom event triggered: ${eventName} with args: ${JSON.stringify(args)}`
-      );
-    },
     width: '100%',
     className: PAPER_CLASSNAME,
+  },
+};
+
+export const WithDrawGrid: Story = {
+  args: {
+    renderElement: RenderHTMLElement as never,
+    onElementPointerClick: ({ paper }) => {
+      paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
+    },
+    className: PAPER_CLASSNAME,
+    drawGrid: { name: 'dot', thickness: 2, color: 'white' },
+    drawGridSize: 10,
+  },
+};
+
+export const WithOnClickColorChange: Story = {
+  args: {},
+  render: () => {
+    const renderElement: RenderElement = ({ width, height, hoverColor, id }) => {
+      const { set } = useCellActions();
+      return (
+        <div
+          className="node"
+          onClick={() => {
+            set(id, (previous) => ({ ...previous, hoverColor: 'blue' }));
+          }}
+          style={{ width, height, backgroundColor: hoverColor }}
+        ></div>
+      );
+    };
+    return (
+      <GraphProvider
+        elements={[
+          { width: 100, height: 40, id: '1', label: 'Element 1', x: 50, y: 50, hoverColor: 'red' },
+          {
+            width: 100,
+            height: 40,
+            id: '2',
+            label: 'Element 1',
+            x: 100,
+            y: 250,
+            hoverColor: 'red',
+          },
+        ]}
+        links={[
+          {
+            id: 'l1',
+            source: '1',
+            target: '2',
+            attrs: {
+              line: {
+                stroke: PRIMARY,
+              },
+            },
+          },
+        ]}
+      >
+        <Paper
+          id="main"
+          useHTMLOverlay
+          className={PAPER_CLASSNAME}
+          width="100%"
+          height={400}
+          renderElement={renderElement}
+        />
+      </GraphProvider>
+    );
   },
 };

@@ -7,12 +7,12 @@ import {
   Paper,
   useElements,
   usePaper,
-  useUpdateElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
 import { useCallback } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { useCellActions } from '../../../hooks/use-cell-actions';
 
 const initialElements = createElements([
   { id: '1', label: 'Node 1', x: 20, y: 100 },
@@ -36,17 +36,18 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RotatableNode({ label, id, width, height }: Readonly<BaseElementWithData>) {
   const paper = usePaper();
-  const setRotation = useUpdateElement(id, 'angle');
+  const { set } = useCellActions();
 
   const dragHandle = useCallback(
     (event: PointerEvent) => {
+      if (!paper) return;
       const graph = paper.model;
       const point = paper.clientToLocalPoint(event.clientX, event.clientY);
       const center = graph.getCell(id).getBBox().center();
       const deg = center.angleBetween(point, center.clone().offset(0, -1));
-      setRotation(Math.round(deg));
+      set(id, (previous) => ({ ...previous, angle: Math.round(deg) }));
     },
-    [id, paper, setRotation]
+    [id, paper, set]
   );
 
   const handlePointerDown = useCallback(
@@ -114,7 +115,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

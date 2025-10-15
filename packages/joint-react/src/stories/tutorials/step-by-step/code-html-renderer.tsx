@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback, useState } from 'react';
 import {
   createElements,
@@ -44,9 +43,10 @@ function Controls() {
         type="button"
         // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
         onClick={() => {
-          const center = paper.getArea().center();
+          const center = paper?.getArea().center();
+          if (!center) return;
           zoomLevel = Math.min(3, zoomLevel + 0.2);
-          paper.scaleUniformAtPoint(zoomLevel, center);
+          paper?.scaleUniformAtPoint(zoomLevel, center);
         }}
         className={BUTTON_CLASSNAME}
       >
@@ -56,9 +56,10 @@ function Controls() {
         type="button"
         // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
         onClick={() => {
-          const center = paper.getArea().center();
+          const center = paper?.getArea().center();
+          if (!center) return;
           zoomLevel = Math.max(0.2, zoomLevel - 0.2);
-          paper.scaleUniformAtPoint(zoomLevel, center);
+          paper?.scaleUniformAtPoint(zoomLevel, center);
         }}
         className={`${BUTTON_CLASSNAME} ml-2`}
       >
@@ -108,7 +109,7 @@ function Main() {
 
 export default function App(props: Readonly<GraphProps>) {
   return (
-    <GraphProvider {...props} initialLinks={initialEdges} initialElements={initialElements}>
+    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
       <Main />
     </GraphProvider>
   );

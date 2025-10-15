@@ -1,4 +1,4 @@
-import type { FC, PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import { forwardRef, useCallback, useMemo } from 'react';
 import type { OnCreateHighlighter } from './custom';
 import { Custom } from './custom';
@@ -37,7 +37,7 @@ export interface StrokeHighlighterProps extends PropsWithChildren, React.SVGProp
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
+function Component(props: StrokeHighlighterProps, forwardedRef?: React.Ref<SVGElement>) {
   const {
     children,
     layer,
@@ -84,4 +84,4 @@ function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGEle
  * return <Highlighter.Stroke />
  * ```
  */
-export const Stroke: FC<StrokeHighlighterProps> = forwardRef(Component);
+export const Stroke = forwardRef<SVGElement, StrokeHighlighterProps>(Component);
