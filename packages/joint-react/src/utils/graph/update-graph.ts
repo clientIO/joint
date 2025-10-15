@@ -54,8 +54,10 @@ export function updateCell(options: UpdateCellOptions) {
 
   if (originalCell) {
     const isLink = originalCell.isLink();
-    if (originalCell.get('type') === getType(newCell, 'type') && !isLink) {
+    if (originalCell.get('type') === getType(newCell, 'type')) {
       originalCell.set(getAttributes(newCell), { silent: isSilenced });
+    } else if (isLink) {
+      graph.addCell(newCell, { silent: isSilenced });
     } else {
       originalCell.remove({ disconnectLinks: true, silent: isSilenced });
       graph.addCell(newCell, { silent: isSilenced });

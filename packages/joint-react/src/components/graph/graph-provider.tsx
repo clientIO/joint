@@ -9,8 +9,7 @@ import {
 } from 'react';
 import { createStore, type GraphStore } from '../../data/create-graph-store';
 import { useElements } from '../../hooks/use-elements';
-import { useGraph } from '../../hooks';
-import { setElements, setLinks } from '../../utils/cell/cell-utilities';
+import { useGraphStore } from '../../hooks';
 import type { GraphElement } from '../../types/element-types';
 import { CONTROLLED_MODE_BATCH_NAME } from '../../utils/graph/update-graph';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
@@ -60,7 +59,10 @@ interface GraphProviderBaseProps<
  * @returns A context provider for the measured state of elements.
  * @private
  */
-export function GraphProviderHandler(props: PropsWithChildren<GraphProviderBaseProps>) {
+export function GraphProviderHandler<
+  Element extends dia.Element | GraphElement = dia.Element,
+  Link extends dia.Link | GraphLink = dia.Link,
+>(props: PropsWithChildren<GraphProviderBaseProps<Element, Link>>) {
   const { elements, links, onElementsChange, onLinksChange, children } = props;
   const areElementsMeasured = useElements((items) => {
     let areMeasured = true;
@@ -73,7 +75,7 @@ export function GraphProviderHandler(props: PropsWithChildren<GraphProviderBaseP
     return areMeasured;
   });
 
-  const graph = useGraph();
+  const { graph, setElements, setLinks } = useGraphStore();
 
   const areElementsInControlledMode = !!onElementsChange;
   const areLinksInControlledMode = !!onLinksChange;
@@ -85,11 +87,11 @@ export function GraphProviderHandler(props: PropsWithChildren<GraphProviderBaseP
     if (!isControlledMode) return;
 
     graph.startBatch(CONTROLLED_MODE_BATCH_NAME);
-    if (areElementsInControlledMode) {
-      setElements({ graph, elements });
+    if (areElementsInControlledMode && elements !== undefined) {
+      setElements(elements);
     }
-    if (areLinksInControlledMode) {
-      setLinks({ graph, links });
+    if (areLinksInControlledMode && links !== undefined) {
+      setLinks(links as GraphLink[]);
     }
     graph.stopBatch(CONTROLLED_MODE_BATCH_NAME);
   }, [
@@ -100,6 +102,8 @@ export function GraphProviderHandler(props: PropsWithChildren<GraphProviderBaseP
     elements,
     links,
     isControlledMode,
+    setElements,
+    setLinks,
   ]);
 
   useLayoutEffect(() => {
@@ -107,15 +111,15 @@ export function GraphProviderHandler(props: PropsWithChildren<GraphProviderBaseP
     // It fixes issue with a flickering of un-measured react elements.
     if (isControlledMode) return;
     if (!areElementsMeasured) return;
-
+    if (!links?.length) return;
     const hasSomePort = links?.some((link) => {
       const { source, target } = link;
-      const sourceObject = getTargetOrSource(source);
-      const targetObject = getTargetOrSource(target);
+      const sourceObject = getTargetOrSource(source as dia.Link.EndJSON);
+      const targetObject = getTargetOrSource(target as dia.Link.EndJSON);
       return sourceObject.port || targetObject.port;
     });
     if (!hasSomePort) return;
-    setLinks({ graph, links });
+    setLinks(links as GraphLink[]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [areElementsMeasured, isControlledMode]);
 

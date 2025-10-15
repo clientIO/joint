@@ -74,6 +74,14 @@ export interface GraphStore<Graph extends dia.Graph = dia.Graph> {
    * Get elements
    */
   readonly getElements: () => GraphElement[];
+
+  /**
+   *
+   * @param elements - New elements to set in the graph.
+   * @returns
+   */
+
+  readonly setElements: (elements: GraphElement[]) => void;
   /**
    * Get element by id
    */
@@ -82,6 +90,10 @@ export interface GraphStore<Graph extends dia.Graph = dia.Graph> {
    *  Get links
    */
   readonly getLinks: () => GraphLink[];
+  /**
+   * Set links
+   */
+  readonly setLinks: (links: GraphLink[]) => void;
   /**
    * Get link by id
    */
@@ -109,6 +121,9 @@ export interface GraphStore<Graph extends dia.Graph = dia.Graph> {
    * This will trigger a re-render of all components that are subscribed to the store.
    */
   readonly forceUpdateStore: () => UpdateResult;
+
+  readonly addPaper: (id: string, paper: dia.Paper) => void;
+  readonly removePaper: (id: string) => void;
 }
 
 /**
@@ -211,7 +226,7 @@ export function createStoreWithGraph<
   graph.on('batch:stop', onBatchStop);
 
   const measuredNodes = new Set<dia.Cell.ID>();
-
+  const { dataRef } = graphData;
   /**
    * Force update the graph.
    * This function is called when the graph is updated.
@@ -226,21 +241,26 @@ export function createStoreWithGraph<
     }
 
     const updateResult = graphData.updateStore(graph);
+
     // Skip processing changes in controlled mode since they are already handled.
     // This prevents circular calls to `onElementsChange`.
     // For example, if a user manages elements via React state and updates the graph using setElements,
     // this function will be triggered. However, we avoid re-triggering `onElementsChange` to prevent redundant updates.
     // We call `onElementsChange` and `onLinksChange` explicitly only when direct change on `dia.Graph` occurs.
-    if (batchName !== CONTROLLED_MODE_BATCH_NAME) {
-      if (onElementsChange && updateResult.areElementsChanged) {
-        const mappedElements = graphData.elements.map((element) => element);
-        onElementsChange(mappedElements as SetStateAction<Element[]>);
-      }
-      if (onLinksChange && updateResult.areLinksChanged) {
-        const changedLinks = graphData.links.map((link) => link);
-        onLinksChange(changedLinks as SetStateAction<Link[]>);
-      }
+
+    if (batchName === CONTROLLED_MODE_BATCH_NAME) {
+      return updateResult;
     }
+
+    if (onElementsChange && updateResult.areElementsChanged) {
+      const mappedElements = dataRef.elements.map((element) => element);
+      onElementsChange(mappedElements as SetStateAction<Element[]>);
+    }
+    if (onLinksChange && updateResult.areLinksChanged) {
+      const changedLinks = dataRef.links.map((link) => link);
+      onLinksChange(changedLinks as SetStateAction<Link[]>);
+    }
+
     return updateResult;
   }
   /**
@@ -292,17 +312,68 @@ export function createStoreWithGraph<
   }
   // Force update the graph to ensure it's in sync with the store.
   forceUpdateStore();
+  const papers = new Map<string, dia.Paper>();
+
+  /**
+   * Freeze all papers to optimize performance during batch updates.
+   */
+  function freezePapers() {
+    for (const [, paper] of papers) {
+      paper.freeze();
+    }
+  }
+
+  /**
+   * Unfreeze all papers after batch updates are complete.
+   */
+  function unfreezePapers() {
+    for (const [, paper] of papers) {
+      paper.unfreeze();
+    }
+  }
+
+  /**
+   * Apply controlled update to the graph.
+   * This function freezes all papers, starts a batch, applies the update function,
+   * and then stops the batch and unfreezes the papers.
+   * @param callback - The update function to apply.
+   */
+  function applyControlledUpdate(callback: () => void) {
+    if (!graph) return;
+    freezePapers(); // your helper
+    try {
+      callback(); // call setElements / setLinks WITHOUT silent
+    } finally {
+      unfreezePapers();
+    }
+  }
 
   const store: GraphStore<Graph> = {
+    addPaper(id: string, paper: dia.Paper) {
+      papers.set(id, paper);
+    },
+    removePaper(id: string) {
+      papers.delete(id);
+    },
     forceUpdateStore,
     destroy,
     graph,
     subscribe: elementsEvents.subscribe,
     getElements() {
-      return graphData.elements;
+      return dataRef.elements;
+    },
+    setElements(newElements) {
+      applyControlledUpdate(() => {
+        setElements({ graph, elements: newElements });
+      });
+    },
+    setLinks(newLinks) {
+      applyControlledUpdate(() => {
+        setLinks({ graph, links: newLinks });
+      });
     },
     getLinks() {
-      return graphData.links;
+      return dataRef.links;
     },
     getElement<E extends GraphElement>(id: dia.Cell.ID) {
       const item = graphData.getElementById(id);

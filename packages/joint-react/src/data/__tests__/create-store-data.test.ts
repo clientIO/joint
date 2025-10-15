@@ -11,9 +11,9 @@ describe('create-store-data', () => {
       x: 10,
     });
     graph.addCell(element);
-    expect(storeData.elements.length).toBe(0);
+    expect(storeData.dataRef.elements.length).toBe(0);
     storeData.updateStore(graph);
-    expect(storeData.elements.length).toBe(1);
+    expect(storeData.dataRef.elements.length).toBe(1);
   });
   it('should handle proper data update', () => {
     const graph = new dia.Graph();
@@ -24,10 +24,10 @@ describe('create-store-data', () => {
       position: { x: 10, y: 20 },
     });
     graph.addCell(element);
-    expect(storeData.elements.length).toBe(0);
+    expect(storeData.dataRef.elements.length).toBe(0);
     storeData.updateStore(graph);
-    expect(storeData.elements.length).toBe(1);
-    expect(storeData.elements.find((element_) => element_.id === 'element1')?.x).toBe(10);
+    expect(storeData.dataRef.elements.length).toBe(1);
+    expect(storeData.dataRef.elements.find((element_) => element_.id === 'element1')?.x).toBe(10);
 
     const updatedElement = new dia.Element({
       type: 'standard.Rectangle',
@@ -36,9 +36,9 @@ describe('create-store-data', () => {
     });
 
     graph.resetCells([updatedElement]);
-    expect(storeData.elements.length).toBe(1);
+    expect(storeData.dataRef.elements.length).toBe(1);
     storeData.updateStore(graph);
-    expect(storeData.elements.find((element_) => element_.id === 'element1')?.x).toBe(30);
+    expect(storeData.dataRef.elements.find((element_) => element_.id === 'element1')?.x).toBe(30);
   });
   it('should handle proper data deletion', () => {
     const graph = new dia.Graph();
@@ -49,12 +49,12 @@ describe('create-store-data', () => {
       x: 10,
     });
     graph.addCell(element);
-    expect(storeData.elements.length).toBe(0);
+    expect(storeData.dataRef.elements.length).toBe(0);
     storeData.updateStore(graph);
-    expect(storeData.elements.length).toBe(1);
+    expect(storeData.dataRef.elements.length).toBe(1);
     graph.removeCells([element]);
-    expect(storeData.elements.length).toBe(1);
+    expect(storeData.dataRef.elements.length).toBe(1);
     storeData.updateStore(graph);
-    expect(storeData.elements.length).toBe(0);
+    expect(storeData.dataRef.elements.length).toBe(0);
   });
 });

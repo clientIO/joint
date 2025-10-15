@@ -21,17 +21,19 @@ interface StoreData<
   /** Clear everything */
   readonly destroy: () => void;
 
-  /** Public, array-first shape */
-  elements: Element[];
-  links: GraphLink[];
-
   /** O(1) helpers built on top of private indices */
   readonly getElementById: (id: dia.Cell.ID) => Element | undefined;
   readonly getLinkById: (id: dia.Cell.ID) => GraphLink | undefined;
+  readonly dataRef: DataRef<Element>;
 }
 interface Options<Element extends GraphElement> {
   readonly elements?: Element[];
   readonly links?: GraphLink[];
+}
+
+interface DataRef<Element extends GraphElement> {
+  elements: Element[];
+  links: GraphLink[];
 }
 /**
  * Array-first store with internal id->index maps.
@@ -50,7 +52,7 @@ export function createStoreData<
 >(options: Options<Element> = {}): StoreData<Graph, Element> {
   // Public arrays
 
-  const ref: {
+  const dataRef: {
     elements: Element[];
     links: GraphLink[];
   } = {
@@ -69,7 +71,7 @@ export function createStoreData<
    */
   function getElementById(id: dia.Cell.ID): Element | undefined {
     const i = eIndex.get(id);
-    return i == null ? undefined : ref.elements[i];
+    return i == null ? undefined : dataRef.elements[i];
   }
   /**
    * Retrieves a link by its ID.
@@ -78,7 +80,7 @@ export function createStoreData<
    */
   function getLinkById(id: dia.Cell.ID): GraphLink | undefined {
     const i = lIndex.get(id);
-    return i == null ? undefined : ref.links[i];
+    return i == null ? undefined : dataRef.links[i];
   }
 
   /**
@@ -127,7 +129,7 @@ export function createStoreData<
     // Deletions: if the new arrays are shorter than old or some ids disappeared,
     // we’ve already “changed”. To catch pure deletions where values equal but gone:
     if (!areElementsChanged) {
-      areElementsChanged = ref.elements.length !== nextElements.length;
+      areElementsChanged = dataRef.elements.length !== nextElements.length;
       if (!areElementsChanged) {
         // Cheap structural check: same length but different ids/order?
         for (const [i, nextElement] of nextElements.entries()) {
@@ -141,7 +143,7 @@ export function createStoreData<
       }
     }
     if (!areLinksChanged) {
-      areLinksChanged = ref.links.length !== nextLinks.length;
+      areLinksChanged = dataRef.links.length !== nextLinks.length;
       if (!areLinksChanged) {
         for (const [i, nextLink] of nextLinks.entries()) {
           const idNow = nextLink?.id as dia.Cell.ID | undefined;
@@ -156,12 +158,12 @@ export function createStoreData<
 
     // Swap (immutably) only when changed to preserve referential equality
     if (areElementsChanged) {
-      ref.elements = nextElements;
+      dataRef.elements = nextElements;
       eIndex = nextEIndex;
     }
 
     if (areLinksChanged) {
-      ref.links = nextLinks;
+      dataRef.links = nextLinks;
       lIndex = nextLIndex;
     }
 
@@ -176,8 +178,8 @@ export function createStoreData<
    * Clears all elements and links from the store and resets internal indices.
    */
   function destroy() {
-    ref.elements = [];
-    ref.links = [];
+    dataRef.elements = [];
+    dataRef.links = [];
     eIndex.clear();
     lIndex.clear();
   }
@@ -187,18 +189,6 @@ export function createStoreData<
     destroy,
     getElementById,
     getLinkById,
-    get elements() {
-      return ref.elements;
-    },
-    set elements(_value: Element[]) {
-      throw new Error('elements is read-only; call updateStore(graph) instead.');
-    },
-
-    get links() {
-      return ref.links;
-    },
-    set links(_value: GraphLink[]) {
-      throw new Error('links is read-only; call updateStore(graph) instead.');
-    },
+    dataRef,
   } as StoreData<Graph, Element>;
 }

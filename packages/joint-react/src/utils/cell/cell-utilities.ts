@@ -45,6 +45,7 @@ export function processLink(link: dia.Link | GraphLink): CellOrJsonCell {
 export interface SetLinksOptions {
   readonly graph: dia.Graph;
   readonly links?: Array<dia.Link | GraphLink>;
+  readonly isSilenced?: boolean;
 }
 
 /**
@@ -57,7 +58,7 @@ export interface SetLinksOptions {
  * It also converts the source and target of the links to a standard format.
  */
 export function setLinks(options: SetLinksOptions) {
-  const { graph, links } = options;
+  const { graph, links, isSilenced } = options;
   if (links === undefined) {
     return;
   }
@@ -72,6 +73,7 @@ export function setLinks(options: SetLinksOptions) {
       return link;
     }),
     isLink: true,
+    isSilenced,
   });
 }
 
@@ -115,6 +117,7 @@ export function processElement<T extends dia.Element | GraphElement>(
 export interface SetElementsOptions {
   readonly graph: dia.Graph;
   readonly elements?: Array<dia.Element | GraphElement>;
+  readonly isSilenced?: boolean;
 }
 
 /**
@@ -128,7 +131,7 @@ export interface SetElementsOptions {
  * It also checks for unsized elements and returns their IDs.
  */
 export function setElements(options: SetElementsOptions) {
-  const { graph, elements } = options;
+  const { graph, elements, isSilenced } = options;
   if (elements === undefined) {
     return new Set<string>();
   }
@@ -137,6 +140,7 @@ export function setElements(options: SetElementsOptions) {
     graph,
     cells: elements.map((item) => processElement(item, unsizedIds)),
     isLink: false,
+    isSilenced,
   });
   return unsizedIds;
 }

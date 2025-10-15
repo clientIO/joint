@@ -120,10 +120,4 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
    * @returns
    */
   readonly onRenderElement?: OnPaperRenderElement;
-
-  /**
-   * Optional ID for the view, if not provided, a unique ID will be generated.
-   * !important - when using multiple views (on DEV), you need to provide an unique ID to each view to avoid conflicts.
-   */
-  readonly id?: string;
 }
