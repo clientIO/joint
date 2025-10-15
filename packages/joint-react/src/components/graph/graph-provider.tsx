@@ -14,7 +14,6 @@ import type { GraphElement } from '../../types/element-types';
 import { CONTROLLED_MODE_BATCH_NAME } from '../../utils/graph/update-graph';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphAreElementsMeasuredContext, GraphStoreContext } from '../../context';
-import { getTargetOrSource } from '../../utils/cell/get-link-targe-and-source-ids';
 
 interface GraphProviderBaseProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,49 +78,31 @@ export function GraphProviderHandler<
 
   const areElementsInControlledMode = !!onElementsChange;
   const areLinksInControlledMode = !!onLinksChange;
-  const isControlledMode = areElementsInControlledMode || areLinksInControlledMode;
   // Controlled mode for elements
   useLayoutEffect(() => {
     if (!areElementsMeasured) return;
     if (!graph) return;
-    if (!isControlledMode) return;
+    if (!areElementsInControlledMode) return;
 
     graph.startBatch(CONTROLLED_MODE_BATCH_NAME);
     if (areElementsInControlledMode && elements !== undefined) {
       setElements(elements);
     }
+    graph.stopBatch(CONTROLLED_MODE_BATCH_NAME);
+  }, [areElementsInControlledMode, areElementsMeasured, elements, graph, setElements]);
+
+  // Controlled mode for links
+  useLayoutEffect(() => {
+    if (!areElementsMeasured) return;
+    if (!graph) return;
+    if (!areLinksInControlledMode) return;
+
+    graph.startBatch(CONTROLLED_MODE_BATCH_NAME);
     if (areLinksInControlledMode && links !== undefined) {
       setLinks(links as GraphLink[]);
     }
     graph.stopBatch(CONTROLLED_MODE_BATCH_NAME);
-  }, [
-    areElementsInControlledMode,
-    areElementsMeasured,
-    areLinksInControlledMode,
-    graph,
-    elements,
-    links,
-    isControlledMode,
-    setElements,
-    setLinks,
-  ]);
-
-  useLayoutEffect(() => {
-    // with this all links are connected only when react elements are measured
-    // It fixes issue with a flickering of un-measured react elements.
-    if (isControlledMode) return;
-    if (!areElementsMeasured) return;
-    if (!links?.length) return;
-    const hasSomePort = links?.some((link) => {
-      const { source, target } = link;
-      const sourceObject = getTargetOrSource(source as dia.Link.EndJSON);
-      const targetObject = getTargetOrSource(target as dia.Link.EndJSON);
-      return sourceObject.port || targetObject.port;
-    });
-    if (!hasSomePort) return;
-    setLinks(links as GraphLink[]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [areElementsMeasured, isControlledMode]);
+  }, [areElementsMeasured, areLinksInControlledMode, graph, links, setLinks]);
 
   return (
     <GraphAreElementsMeasuredContext.Provider value={areElementsMeasured}>

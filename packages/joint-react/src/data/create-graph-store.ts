@@ -121,9 +121,6 @@ export interface GraphStore<Graph extends dia.Graph = dia.Graph> {
    * This will trigger a re-render of all components that are subscribed to the store.
    */
   readonly forceUpdateStore: () => UpdateResult;
-
-  readonly addPaper: (id: string, paper: dia.Paper) => void;
-  readonly removePaper: (id: string) => void;
 }
 
 /**
@@ -312,49 +309,8 @@ export function createStoreWithGraph<
   }
   // Force update the graph to ensure it's in sync with the store.
   forceUpdateStore();
-  const papers = new Map<string, dia.Paper>();
-
-  /**
-   * Freeze all papers to optimize performance during batch updates.
-   */
-  function freezePapers() {
-    for (const [, paper] of papers) {
-      paper.freeze();
-    }
-  }
-
-  /**
-   * Unfreeze all papers after batch updates are complete.
-   */
-  function unfreezePapers() {
-    for (const [, paper] of papers) {
-      paper.unfreeze();
-    }
-  }
-
-  /**
-   * Apply controlled update to the graph.
-   * This function freezes all papers, starts a batch, applies the update function,
-   * and then stops the batch and unfreezes the papers.
-   * @param callback - The update function to apply.
-   */
-  function applyControlledUpdate(callback: () => void) {
-    if (!graph) return;
-    freezePapers(); // your helper
-    try {
-      callback(); // call setElements / setLinks WITHOUT silent
-    } finally {
-      unfreezePapers();
-    }
-  }
 
   const store: GraphStore<Graph> = {
-    addPaper(id: string, paper: dia.Paper) {
-      papers.set(id, paper);
-    },
-    removePaper(id: string) {
-      papers.delete(id);
-    },
     forceUpdateStore,
     destroy,
     graph,
@@ -363,14 +319,10 @@ export function createStoreWithGraph<
       return dataRef.elements;
     },
     setElements(newElements) {
-      applyControlledUpdate(() => {
-        setElements({ graph, elements: newElements });
-      });
+      setElements({ graph, elements: newElements });
     },
     setLinks(newLinks) {
-      applyControlledUpdate(() => {
-        setLinks({ graph, links: newLinks });
-      });
+      setLinks({ graph, links: newLinks });
     },
     getLinks() {
       return dataRef.links;

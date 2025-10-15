@@ -75,7 +75,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     ...paperOptions
   } = props;
 
-  const { graph, addPaper, removePaper } = useGraphStore();
+  const { graph } = useGraphStore();
   const areElementsMeasured = useAreElementMeasured();
   const { onRenderElement, elementViews } = useElementViews();
   const elements = useElements((items) => items.map(elementSelector));
@@ -196,12 +196,10 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
           Object.assign(instance, contextUpdate.contextUpdate);
         }
 
-        addPaper(id, paper);
         return {
           instance,
           cleanup() {
             paper.remove();
-            removePaper(id);
             portsStore.destroy();
             contextUpdate?.cleanup?.();
           },

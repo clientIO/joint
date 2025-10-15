@@ -33,6 +33,7 @@ export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVG
   elementRef: RefObject<AnyHTMLOrSVGElement | null>,
   options?: MeasureNodeOptions
 ) {
+  // TODO - add exception for using multiple measured node for single element
   const { setSize } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
   const id = useCellId();

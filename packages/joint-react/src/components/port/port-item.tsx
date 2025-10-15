@@ -80,9 +80,9 @@ function Component(props: PortItemProps) {
       throw new Error(`Port id is required`);
     }
 
-    const alreadyExists = cell.getPorts().some((p) => p.id === id);
+    const alreadyExists = cell.hasPort(id);
     if (alreadyExists) {
-      throw new Error(`Port with id ${id} already exists`);
+      throw new Error(`Port with id ${id} already exists in cell ${cellId}`);
     }
 
     const port: dia.Element.Port = {
@@ -104,6 +104,7 @@ function Component(props: PortItemProps) {
     };
 
     cell.addPort(port);
+
     return () => {
       cell.removePort(id);
     };
@@ -123,6 +124,7 @@ function Component(props: PortItemProps) {
     const elementView = paper.findViewByModel(cellId);
 
     elementView.cleanNodesCache();
+
     for (const link of graph.getConnectedLinks(elementView.model)) {
       const target = link.target();
       const source = link.source();
@@ -136,8 +138,14 @@ function Component(props: PortItemProps) {
       if (!isPortLink) {
         continue;
       }
+
+      const linkView = link.findView(paper);
       // @ts-expect-error we use private jointjs api method, it throw error here.
-      link.findView(paper).requestConnectionUpdate({ async: false });
+      linkView._sourceMagnet = null;
+      // @ts-expect-error we use private jointjs api method, it throw error here.
+      linkView._targetMagnet = null;
+      // @ts-expect-error we use private jointjs api method, it throw error here.
+      linkView.requestConnectionUpdate({ async: false });
     }
   }, [cellId, graph, id, paper, portalNode]);
 

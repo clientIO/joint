@@ -111,7 +111,7 @@ export function createLinks<
   Link extends GraphLink<Type>,
   Type extends StandardLinkShapesType | string = 'standard.Link',
 >(data: Array<Link & GraphLink<Type>>): Array<Link & GraphLink> {
-  return data.map((link) => ({ ...link, isElement: false, isLink: true }));
+  return data.map((link) => link);
 }
 
 /**
@@ -128,5 +128,5 @@ export function createLinkItem<
   Link extends GraphLink<Type>,
   Type extends StandardLinkShapesType | string = 'standard.Link',
 >(link: Link & GraphLink<Type>): Link & GraphLink {
-  return { ...link, isElement: false, isLink: true };
+  return link;
 }

@@ -24,6 +24,7 @@ export function createElementSizeObserver<AnyHTMLOrSVGElement extends HTMLElemen
   onResize: (position: SizeObserver) => void
 ) {
   // Create a ResizeObserver to observe changes in the size of the HTML element.
+  // TODO not optimal - maybe debounce, maybe change to something else.
   const observer = new ResizeObserver((entries) => {
     for (const entry of entries) {
       const { borderBoxSize } = entry;
