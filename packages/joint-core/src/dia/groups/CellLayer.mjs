@@ -12,48 +12,64 @@ export class CellLayerCollection extends CellGroupCollection {
         return model.get('z') || 0;
     }
 
-    // When you have more items than you want to add or remove individually,
-    // you can reset the entire set with a new list of models, without firing
-    // any granular `add` or `remove` events. Fires `reset` when finished.
-    // Useful for bulk operations and optimizations.
-    reset(models, options) {
-        options = options ? util.clone(options) : {};
-        for (var i = 0; i < this.models.length; i++) {
-            this._removeReference(this.models[i], options);
-        }
-        options.previousModels = this.models;
-        this._reset();
-        models = this.addWithReset(models, options);
-        if (!options.silent) this.trigger('reset', this, options);
-        return models;
+    // fast version for reset function
+    // it does not clear the `_byId` map
+    _removeReferenceFast(model) {
+        if (this === model.collection) delete model.collection;
+        model.off('all', this._onModelEvent, this);
     }
 
-    // Add a model, or list of models to the set. `models` may be
-    // Models or raw JavaScript objects to be converted to Models, or any
-    // combination of the two.
-    addWithReset(models, options) {
-        if (models == null) return;
+    // fast version for reset function
+    // when we have references map passed from outside
+    _addReferenceFast(model) {
+        model.on('all', this._onModelEvent, this);
+    }
 
+    // This method overrides base mvc.Collection implementation
+    // in a way that improves performance of resetting large collections.
+    // For cell layers specifically, there is an option where we put references
+    // from the main collection in order to improve performance when
+    // there is only one layer
+    reset(models, options) {
+        options = options ? util.clone(options) : {};
+        for (let i = 0; i < this.models.length; i++) {
+            this._removeReferenceFast(this.models[i]);
+        }
+        options.previousModels = this.models;
+
+        this._reset();
         options = util.assign({}, { add: true, remove: false, merge: false }, options);
-
         const sort = options.sort !== false;
-        // Turn bare objects into model references, and prevent invalid models
-        // from being added.
-        let model, i;
-        for (i = 0; i < models.length; i++) {
-            model = this._prepareModel(models[i], options);
-            if (model) {
+
+        let model;
+        // If we have references passed from outside, use them.
+        // This is an optimization if we have only one layer in the graph.
+        if (options.references) {
+            this._byId = options.references;
+            for (let i = 0; i < models.length; i++) {
+                model = models[i];
                 this.models.push(model);
-                this._addReference(model, options);
+                this._addReferenceFast(model, options);
+            }
+        } else {
+            for (let i = 0; i < models.length; i++) {
+                model = this._prepareModel(models[i], options);
+                if (model) {
+                    this.models.push(model);
+                    this._addReference(model, options);
+                }
             }
         }
 
         this.length = this.models.length;
 
-        if (sort) this.sort({ silent: true });
+        if (sort) {
+            this.sort({ silent: true });
+        }
 
+        if (!options.silent) this.trigger('reset', this, options);
 
-        return this.models
+        return this.models;
     }
 }
 

@@ -55,34 +55,38 @@ export const GraphCells = Collection.extend({
         }
     },
 
+    // fast version for reset function
+    // it does not clear the `_byId` map
+    _removeReferenceFast: function(model, options) {
+        if (this === model.collection) delete model.collection;
+        model.off('all', this._onModelEvent, this);
+
+        // If not in `dry` mode and the model has a reference to this exact graph,
+        // remove the reference.
+        if (!options.dry && model.graph === this.graph) {
+            model.graph = null;
+        }
+    },
+
     // When you have more items than you want to add or remove individually,
     // you can reset the entire set with a new list of models, without firing
     // any granular `add` or `remove` events. Fires `reset` when finished.
     // Useful for bulk operations and optimizations.
     reset: function(models, options) {
         options = options ? util.clone(options) : {};
-        for (var i = 0; i < this.models.length; i++) {
-            this._removeReference(this.models[i], options);
+        for (let i = 0; i < this.models.length; i++) {
+            this._removeReferenceFast(this.models[i], options);
         }
         options.previousModels = this.models;
-        this._reset();
-        models = this.addWithReset(models, options);
-        if (!options.silent) this.trigger('reset', this, options);
-        return models;
-    },
 
-    // Add a model, or list of models to the set. `models` may be
-    // Models or raw JavaScript objects to be converted to Models, or any
-    // combination of the two.
-    addWithReset: function(models, options) {
-        if (models == null) return;
+        this._reset();
 
         options = util.assign({}, { add: true, remove: false, merge: false }, options);
 
         // Turn bare objects into model references, and prevent invalid models
         // from being added.
-        let model, i;
-        for (i = 0; i < models.length; i++) {
+        let model;
+        for (let i = 0; i < models.length; i++) {
             model = this._prepareModel(models[i], options);
             if (model) {
                 this.models.push(model);
@@ -92,6 +96,8 @@ export const GraphCells = Collection.extend({
 
         this.length = this.models.length;
 
-        return this.models
+        if (!options.silent) this.trigger('reset', this, options);
+
+        return this.models;
     },
 });

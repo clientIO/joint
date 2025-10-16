@@ -163,9 +163,16 @@ export class CellLayersController extends Listener {
             layersMap[layerId].push(cell);
         }
 
-        Object.keys(layersMap).forEach(layerId => {
-            const layer = collection.get(layerId);
-            layer.reset(layersMap[layerId], opt);
+        // optimization for the case when there is only one layer
+        // we pass references map to avoid setting map on the layer
+        if (collection.length === 1) {
+            const onlyLayer = collection.at(0);
+            onlyLayer.reset(layersMap[onlyLayer.id], {...opt, references: new Map(this.graph.cellCollection._byId) });
+            return;
+        }
+
+        collection.each(layer => {
+            layer.reset(layersMap[layer.id], opt);
         });
     }
 
