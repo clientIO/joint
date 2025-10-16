@@ -175,8 +175,6 @@ const getLayoutOptions = (): Options => {
         });
     };
 
-    const clusterPadding = Number(clusterPaddingInput.value);
-
     // Extra size used to avoid links bending too close to arrowhead
     // Note: This is a workaround until MSAGL eventually makes the `options.padding` work
     const extraSize = 10;
@@ -184,8 +182,8 @@ const getLayoutOptions = (): Options => {
     return {
         layerDirection: Number(directionSelect.value) as LayerDirectionEnum,
         edgeRoutingMode: Number(routingSelect.value) as EdgeRoutingMode,
-        layerSeparation: Number(layerSeparationInput.value),
-        nodeSeparation: Number(nodeSeparationInput.value),
+        layerSeparation: layerSeparationInput.valueAsNumber,
+        nodeSeparation: nodeSeparationInput.valueAsNumber,
         polylinePadding: 12,
         getSize: (element: dia.Element) => {
             const size = element.size();
@@ -194,14 +192,9 @@ const getLayoutOptions = (): Options => {
                 height: size.height + extraSize
             };
         },
-        marginX: 10,
-        marginY: 10,
-        clusterPadding: {
-            left: clusterPadding,
-            right: clusterPadding,
-            top: clusterPadding,
-            bottom: clusterPadding
-        },
+        offsetX: 10,
+        offsetY: 10,
+        clusterPadding: clusterPaddingInput.valueAsNumber,
         rectilinearSelfEdgeOffset: 20,
         setPosition: (element: dia.Element, position: dia.Point) => {
 
