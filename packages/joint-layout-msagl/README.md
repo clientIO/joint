@@ -97,14 +97,9 @@ interface Options {
     rectilinearSelfEdgeOffset?: number;
     // Grid and margins
     gridSize?: number; // Default: 0
-    marginX?: number; // Default: 10
-    marginY?: number; // Default: 10
-    clusterPadding?: { // Default: { left: 10, right: 10, top: 10, bottom: 10 }
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-    };
+    offsetX?: number; // Default: 10
+    offsetY?: number; // Default: 10
+    clusterPadding?: dia.Sides; // Default: 10
     // Element sizing callbacks
     getSize?: GetSizeCallback; // Default: element.size()
     getLabelSize?: GetLabelSizeCallback; // Default: element.get('labelSize')

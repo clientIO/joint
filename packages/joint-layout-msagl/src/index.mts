@@ -30,12 +30,12 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     const msGraph = new Graph();
     const geomGraph = new GeomGraph(msGraph);
 
-    // Use finalOptions for margins and layout settings
+    // Use finalOptions for offsets (margins) and layout settings
     geomGraph.margins = {
-        left: finalOptions.marginX,
-        right: finalOptions.marginX,
-        top: finalOptions.marginY,
-        bottom: finalOptions.marginY
+        left: finalOptions.offsetX,
+        top: finalOptions.offsetY,
+        right: 0,
+        bottom: 0
     };
 
     // Process the JointJS graph and convert it to a MSAGL graph
@@ -53,7 +53,7 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
         layoutSettings.layerDirection = LayerDirectionEnum.TB;
         geomSubgraph.layoutSettings = layoutSettings;
         // Propagate the margins (cluster padding) to the subgraph
-        geomSubgraph.margins = finalOptions.clusterPadding;
+        geomSubgraph.margins = util.normalizeSides(finalOptions.clusterPadding) as Required<dia.PaddingJSON>;
     }
 
     layoutGraphWithSugiayma(geomGraph, new CancelToken(), true);
@@ -70,7 +70,7 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     return {
         bbox: new g.Rect(
             margins.left,
-            margins.bottom,
+            margins.top,
             Math.abs(bbox.width - (margins.left + margins.right)),
             Math.abs(bbox.height - (margins.top + margins.bottom))
         ),

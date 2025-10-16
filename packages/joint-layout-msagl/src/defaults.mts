@@ -10,14 +10,9 @@ export const defaultOptions: Required<Options> = {
     rectilinearSelfEdgeOffset: 10,
     gridSize: 0,
     edgeRoutingMode: EdgeRoutingMode.Rectilinear,
-    marginX: 10,
-    marginY: 10,
-    clusterPadding: {
-        left: 10,
-        right: 10,
-        top: 10,
-        bottom: 10
-    },
+    offsetX: 10,
+    offsetY: 10,
+    clusterPadding: 10,
     getSize,
     getLabelSize,
     setPosition,

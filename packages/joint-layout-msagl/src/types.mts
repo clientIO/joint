@@ -43,23 +43,18 @@ export interface Options {
      * @defaultValue EdgeRoutingMode.Rectilinear
      */
     edgeRoutingMode?: EdgeRoutingMode
-    /** Horizontal page margin applied to the top-level graph.
+    /** Horizontal page offset applied to the top-level graph.
      * @defaultValue 10
      */
-    marginX?: number,
-    /** Vertical page margin applied to the top-level graph.
+    offsetX?: number,
+    /** Vertical page offset applied to the top-level graph.
      * @defaultValue 10
      */
-    marginY?: number,
+    offsetY?: number,
     /** Padding applied to subgraph clusters.
-     * @defaultValue { left: 10, right: 10, top: 10, bottom: 10 }
+     * @defaultValue 10
      */
-    clusterPadding?: {
-        left: number,
-        right: number,
-        top: number,
-        bottom: number
-    },
+    clusterPadding?: dia.Sides,
     /**
      * Returns the element's size used during layout.
      * @defaultValue element.size()
