@@ -72,6 +72,7 @@ export const Cell = Model.extend({
             this.preinitialize.apply(this, arguments);
         }
         this.cid = uniqueId('c');
+        this.eventPrefix = '';
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
@@ -247,7 +248,7 @@ export const Cell = Model.extend({
             }
         }
 
-        this.trigger('remove', this, graph.attributes.cells, opt);
+        this.trigger('remove', this, graph.cellCollection, opt);
 
         graph.stopBatch('remove');
 
@@ -255,7 +256,7 @@ export const Cell = Model.extend({
     },
 
     toFront: function(opt) {
-        var graph = this.graph;
+        const { graph } = this;
         if (graph) {
             opt = defaults(opt || {}, { foregroundEmbeds: true });
 
@@ -269,12 +270,14 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const maxZ = graph.maxZIndex();
+            const layerId = this.layer();
+
+            const maxZ = graph.maxZIndex(layerId);
             let z = maxZ - cells.length + 1;
 
-            const collection = graph.get('cells');
+            const layerCells = graph.getCellLayer(layerId).cells.toArray();
 
-            let shouldUpdate = (collection.toArray().indexOf(sortedCells[0]) !== (collection.length - cells.length));
+            let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== (layerCells.length - cells.length));
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;
@@ -298,7 +301,7 @@ export const Cell = Model.extend({
     },
 
     toBack: function(opt) {
-        var graph = this.graph;
+        const { graph } = this;
         if (graph) {
             opt = defaults(opt || {}, { foregroundEmbeds: true });
 
@@ -312,11 +315,13 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            let z = graph.minZIndex();
+            const layerId = this.layer();
 
-            var collection = graph.get('cells');
+            let z = graph.minZIndex(layerId);
 
-            let shouldUpdate = (collection.toArray().indexOf(sortedCells[0]) !== 0);
+            const layerCells = graph.getCellLayer(layerId).cells.toArray();
+
+            let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;
@@ -965,6 +970,33 @@ export const Cell = Model.extend({
             .getPointRotatedAroundCenter(this.angle(), x, y)
             // Transform the absolute position into relative
             .difference(this.position());
+    },
+
+    layer: function(layerId, opt) {
+        const layerAttribute = config.layerAttribute;
+
+        // if strictly null unset the layer
+        if (layerId === null) {
+            return this.unset(layerAttribute, opt);
+        }
+
+        // if undefined return the current layer id
+        if (layerId === undefined) {
+            layerId = this.get(layerAttribute) || null;
+            // If the cell is part of a graph, use the graph's default cell layer.
+            if (layerId == null && this.graph) {
+                layerId = this.graph.getDefaultCellLayer().id;
+            }
+
+            return layerId;
+        }
+
+        // otherwise set the layer id
+        if (!isString(layerId)) {
+            throw new Error('dia.Cell: Layer id must be a string.');
+        }
+
+        return this.set(layerAttribute, layerId, opt);
     }
 
 }, {

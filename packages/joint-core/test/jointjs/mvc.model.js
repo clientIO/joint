@@ -902,4 +902,38 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(model.id, 3);
     });
 
+    QUnit.test('event prefix functionality', function(assert) {
+        const model = new joint.mvc.Model({}, {
+            eventPrefix: 'prefix:'
+        });
+        const events = [];
+        model.on('all', function(eventName) {
+            events.push(eventName);
+        });
+        model.set({ a: 1 });
+        model.unset('a');
+        assert.deepEqual(events, ['prefix:change:a', 'prefix:change', 'prefix:change:a', 'prefix:change']);
+    });
+
+    QUnit.test('event prefix when inside of the collection', function(assert) {
+        const collection = new joint.mvc.Collection();
+        const events = [];
+        collection.on('all', function(eventName) {
+            events.push(eventName);
+        });
+        const model = new joint.mvc.Model({}, {
+            eventPrefix: 'prefix:'
+        });
+        const modelEvents = [];
+        model.on('all', function(eventName) {
+            modelEvents.push(eventName);
+        });
+
+        collection.add(model);
+        model.set({ a: 1 });
+        model.unset('a');
+        collection.remove(model);
+        assert.deepEqual(events, ['prefix:add', 'update', 'prefix:change:a', 'prefix:change', 'prefix:change:a', 'prefix:change', 'prefix:remove', 'update']);
+        assert.deepEqual(modelEvents, ['prefix:add', 'prefix:change:a', 'prefix:change', 'prefix:change:a', 'prefix:change', 'prefix:remove']);
+    });
 });
