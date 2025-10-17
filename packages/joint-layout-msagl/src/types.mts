@@ -45,11 +45,11 @@ export interface Options {
      */
     edgeRoutingMode?: EdgeRoutingMode
     /** Horizontal origin of the top-level graph.
-     * @defaultValue 10
+     * @defaultValue 0
      */
     x?: number,
     /** Vertical origin of the top-level graph.
-     * @defaultValue 10
+     * @defaultValue 0
      */
     y?: number,
     /** Padding applied to subgraph clusters.
