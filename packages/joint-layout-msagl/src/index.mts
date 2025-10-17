@@ -30,10 +30,10 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     const msGraph = new Graph();
     const geomGraph = new GeomGraph(msGraph);
 
-    // Use finalOptions for offsets (margins) and layout settings
+    // Use finalOptions for origin offsets and layout settings
     geomGraph.margins = {
-        left: finalOptions.offsetX,
-        top: finalOptions.offsetY,
+        left: finalOptions.x,
+        top: finalOptions.y,
         right: 0,
         bottom: 0
     };

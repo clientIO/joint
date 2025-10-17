@@ -192,8 +192,8 @@ const getLayoutOptions = (): Options => {
                 height: size.height + extraSize
             };
         },
-        offsetX: 10,
-        offsetY: 10,
+        x: 10,
+        y: 10,
         clusterPadding: clusterPaddingInput.valueAsNumber,
         rectilinearSelfEdgeOffset: 20,
         setPosition: (element: dia.Element, position: dia.Point) => {

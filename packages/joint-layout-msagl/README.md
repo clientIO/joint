@@ -95,10 +95,10 @@ interface Options {
     // Vertical pixel offset applied to the two inner vertices of a self-edge
     // when edgeRoutingMode is Rectilinear. Default: 10
     rectilinearSelfEdgeOffset?: number;
-    // Grid and margins
+    // Grid and origin
     gridSize?: number; // Default: 0
-    offsetX?: number; // Default: 10
-    offsetY?: number; // Default: 10
+    x?: number; // Default: 10
+    y?: number; // Default: 10
     clusterPadding?: dia.Sides; // Default: 10
     // Element sizing callbacks
     getSize?: GetSizeCallback; // Default: element.size()

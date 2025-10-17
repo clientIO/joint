@@ -43,14 +43,14 @@ export interface Options {
      * @defaultValue EdgeRoutingMode.Rectilinear
      */
     edgeRoutingMode?: EdgeRoutingMode
-    /** Horizontal page offset applied to the top-level graph.
+    /** Horizontal origin of the top-level graph.
      * @defaultValue 10
      */
-    offsetX?: number,
-    /** Vertical page offset applied to the top-level graph.
+    x?: number,
+    /** Vertical origin of the top-level graph.
      * @defaultValue 10
      */
-    offsetY?: number,
+    y?: number,
     /** Padding applied to subgraph clusters.
      * @defaultValue 10
      */
