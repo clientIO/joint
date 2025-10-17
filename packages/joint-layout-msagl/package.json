@@ -1,0 +1,83 @@
+{
+  "name": "@joint/layout-msagl",
+  "title": "JointJS LayoutMSAGL",
+  "main": "./dist/esm/index.mjs",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/esm/index.d.mts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.mjs",
+      "types": "./dist/esm/index.d.mts",
+      "default": "./dist/esm/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "SECURITY.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "version": "4.1.3",
+  "description": "LayoutMSAGL module for JointJS",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "contributors": [
+    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
+    "Martin Kanera <martin@jointjs.com> (https://github.com/MartinKanera)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-layout-msagl"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MPL-2.0",
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "scripts": {
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:umd": "rollup --config",
+    "build": "yarn clean && yarn build:esm && yarn build:umd",
+    "dist": "yarn build",
+    "watch": "yarn build && concurrently \"tsc --project tsconfig.esm.json --watch\" \"rollup --config --watch\"",
+    "test": "yarn build && karma start karma.conf.js",
+    "clean": "rm -rf dist",
+    "prepack": "yarn build"
+  },
+  "dependencies": {
+    "@joint/core": "workspace:~",
+    "@msagl/core": "^1.1.23"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "concurrently": "^9.2.0",
+    "karma": "^6.4.2",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.1",
+    "karma-qunit": "^4.1.2",
+    "puppeteer": "24.4.0",
+    "qunit": "^2.24.1",
+    "rollup": "4.36.0",
+    "rollup-plugin-banner2": "^1.2.2",
+    "typescript": "^5.7.3"
+  },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
+  },
+  "keywords": [
+    "jointjs",
+    "layout",
+    "msagl"
+  ]
+}
