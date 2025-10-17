@@ -235,6 +235,8 @@ export namespace dia {
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
+        syncCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): void;
+
         resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.ResetCellLayersOptions): this;
 
         addCellLayer(layer: CellLayer | CellLayer.Attributes, options?: Graph.AddCellLayerOptions): void;

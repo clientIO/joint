@@ -338,6 +338,66 @@ export const Graph = Model.extend({
         return this;
     },
 
+    syncCell: function(cellInit, opt = {}) {
+        const batchName = 'sync-cell';
+        this.startBatch(batchName, opt);
+        const cellAttributes = (cellInit instanceof Model)
+            ? cellInit.attributes
+            : cellInit;
+        const currentCell = this.getCell(cellInit.id);
+        if (currentCell) {
+            // `cellInit` is either a model or attributes object
+            if (currentCell.get('type') !== cellAttributes.type) {
+                // Replace the cell if the type has changed
+                // 1. Remove the cell without removing connected links or embedded cells.
+                // See `joint.dia.Cell.prototype.remove`
+                this.startBatch('remove');
+                currentCell.trigger('remove', currentCell, this.attributes.cells, { ...opt, clear: true });
+                this.stopBatch('remove');
+                // 2. Add the replacement cell
+                this.addCell(cellInit, opt);
+            } else {
+                // Update existing cell
+                // Note: the existing cell attributes are not removed,
+                // if they're missing in `cellAttributes`.
+                currentCell.set(cellAttributes, opt);
+            }
+        } else {
+            // The cell does not exist yet, add it
+            this.addCell(cellInit, opt);
+        }
+        this.stopBatch(batchName);
+    },
+
+    syncCells: function(cellInits, opt = {}) {
+
+        const batchName = 'sync-cells';
+        const currentCells = this.getCells();
+        const newCellsMap = new Map();
+        const preventSortOpt = { ...opt, sort: false };
+
+        this.startBatch(batchName, opt);
+
+        // Add or update incoming cells
+        for (const cellInit of cellInits) {
+            newCellsMap.set(cellInit.id, true); // only track existence
+            this.syncCell(cellInit, preventSortOpt);
+        }
+
+        // Remove cells not present in the incoming array
+        for (const cell of currentCells) {
+            if (!newCellsMap.has(cell.id)) {
+                cell.remove(preventSortOpt);
+            }
+        }
+
+        // Note: can we trigger sort() only if any cell had its 'z' changed
+        // or if any cell was added/removed?
+        if (opt.sort !== false) this.get('cells').sort(opt);
+
+        this.stopBatch(batchName);
+    },
+
     _removeCell: function(cell, collection, options) {
 
         options = options || {};
