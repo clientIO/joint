@@ -107,7 +107,7 @@ interface Options {
     // Callbacks for customizing how the layout is applied
     setPosition?: SetPositionCallback; // Default: element.position(x, y)
     setVertices?: boolean | SetVerticesCallback; // Default: true
-    setLabels?: boolean | SetLabelsCallback; // Default: true  
+    setLabels?: boolean | SetLabelsCallback; // Default: true
     setAnchor?: boolean | SetAnchorCallback; // Default: true
     setClusterSize?: SetClusterSizeCallback; // Default: element.size(size)
 }
