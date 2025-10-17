@@ -1149,12 +1149,14 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             const rect2View = rect2.findView(paper);
                             const linkView = link.findView(paper);
                             const onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
-                            const rect1Replacement = rect1.clone();
-                            rect1Replacement.position(100, 100);
-                            graph.syncCells([rect1Replacement]);
-                            assert.equal(onViewUpdateSpy.callCount, 2);
-                            assert.ok(onViewUpdateSpy.calledWithExactly(linkView, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            const rect1Replacement = new joint.shapes.standard.Circle({ id: rect1.id });
+                            graph.syncCells([rect1Replacement], { test: true });
+                            const rect1ReplacementView = rect1Replacement.findView(paper);
+                            assert.equal(onViewUpdateSpy.callCount, 3);
                             assert.ok(onViewUpdateSpy.calledWithExactly(rect1View, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(rect1ReplacementView, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            // The link view should be updated because one of its endpoints changed.
+                            assert.ok(onViewUpdateSpy.calledWithExactly(linkView, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
                             onViewUpdateSpy.restore();
                         });
                     });
