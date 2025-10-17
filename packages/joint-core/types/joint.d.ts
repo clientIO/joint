@@ -204,6 +204,8 @@ export namespace dia {
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
+        syncCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): void;
+
         getCell(id: Cell.ID | Cell): Cell;
 
         getElements(): Element[];

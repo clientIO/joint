@@ -207,6 +207,142 @@ QUnit.module('graph', function(hooks) {
         });
     });
 
+    QUnit.module('syncCells()', function(hooks) {
+
+        QUnit.test('should synchronize cell attributes', function(assert) {
+            const graph = this.graph;
+            graph.resetCells([{
+                id: 'a',
+                type: 'standard.Rectangle',
+                test: 'old'
+            }, {
+                id: 'b',
+                type: 'standard.Rectangle',
+                test: 'old'
+            }]);
+            graph.syncCells([{
+                id: 'a',
+                type: 'standard.Rectangle',
+                test: 'new-a'
+            }, {
+                id: 'b',
+                type: 'standard.Rectangle',
+                test: 'new-b'
+            }, new joint.shapes.standard.Rectangle({ id: 'c' })]);
+            const a = graph.getCell('a');
+            assert.equal(a.get('test'), 'new-a');
+            const b = graph.getCell('b');
+            assert.equal(b.get('test'), 'new-b');
+            const c = graph.getCell('c');
+            assert.ok(c);
+            assert.equal(graph.getCells().length, 3);
+        });
+
+        QUnit.test('should add new cells', function(assert) {
+            const graph = this.graph;
+            graph.syncCells([{
+                id: 'a',
+                type: 'standard.Rectangle',
+            }, new joint.shapes.standard.Rectangle({ id: 'b' })]);
+            const a = graph.getCell('a');
+            assert.ok(a);
+            const b = graph.getCell('b');
+            assert.ok(b);
+            assert.equal(graph.getCells().length, 2);
+        });
+
+        QUnit.test('should remove missing cells', function(assert) {
+            const graph = this.graph;
+            graph.resetCells([{
+                id: 'a',
+                type: 'standard.Rectangle',
+            }]);
+            graph.syncCells([]);
+            const a = graph.getCell('a');
+            assert.notOk(a);
+            assert.equal(graph.getCells().length, 0);
+        });
+
+        QUnit.test('should do all operations in batch mode', function(assert) {
+            const graph = this.graph;
+            assert.expect(4);
+            graph.on('batch:start', function(data) {
+                assert.ok(true, 'Batch mode started');
+                assert.ok(data.batchName === 'sync', 'Batch name is correct');
+            });
+            graph.on('batch:stop', function(data) {
+                assert.ok(true, 'Batch mode stopped');
+                assert.ok(data.batchName === 'sync', 'Batch name is correct');
+            });
+            graph.syncCells([{
+                id: 'a',
+                type: 'standard.Rectangle',
+            }]);
+        });
+
+        QUnit.test('should replace the cell if type is changed', function(assert) {
+            const graph = this.graph;
+            graph.resetCells([
+                { id: 'a', type: 'standard.Rectangle' },
+                new joint.shapes.standard.Rectangle({ id: 'b' })
+            ]);
+            graph.syncCells([
+                { id: 'a', type: 'standard.Circle' },
+                new joint.shapes.standard.Circle({ id: 'b' })
+            ]);
+            const a = graph.getCell('a');
+            assert.equal(a.get('type'), 'standard.Circle');
+            const b = graph.getCell('b');
+            assert.equal(b.get('type'), 'standard.Circle');
+        });
+
+        QUnit.test('should preserve the connected links when replacing cells', function(assert) {
+            const graph = this.graph;
+            const link = new joint.shapes.standard.Link({ id: 'l1', source: { id: 'a' }, target: { id: 'b' } });
+            graph.resetCells([
+                { id: 'a', type: 'standard.Rectangle' },
+                { id: 'b', type: 'standard.Rectangle' },
+                link
+            ]);
+            graph.syncCells([
+                { id: 'a', type: 'standard.Rectangle' },
+                { id: 'b', type: 'standard.Circle' },
+                link
+            ]);
+            const l1 = graph.getCell('l1');
+            assert.equal(l1.get('source').id, 'a');
+            assert.equal(l1.get('target').id, 'b');
+            assert.equal(graph.getElements().length, 2);
+            assert.equal(graph.getLinks().length, 1);
+        });
+
+        QUnit.test('should pass options to each operation', function(assert) {
+            const graph = this.graph;
+            assert.expect(4);
+            const opt = { some: 'option' };
+            graph.on('add', function(cell, _, options) {
+                assert.equal(options.some, 'option', 'Option value is correct');
+            });
+            graph.on('change', function(cell, options) {
+                assert.equal(options.some, 'option', 'Option value is correct');
+            });
+            graph.on('remove', function(cell, _, options) {
+                assert.equal(options.some, 'option', 'Option value is correct');
+            });
+            graph.on('sort', function(collection, options) {
+                assert.equal(options.some, 'option', 'Option value is correct');
+            });
+            graph.resetCells([
+                { id: 'a', type: 'standard.Rectangle', test: 'old' },
+                new joint.shapes.standard.Rectangle({ id: 'b' })
+            ]);
+            graph.syncCells([
+                { id: 'a', type: 'standard.Rectangle', test: 'new' },
+                new joint.shapes.standard.Rectangle({ id: 'c' })
+            ], opt);
+        });
+    });
+
     QUnit.module('addCells()', function(hooks) {
 
         var cells;
