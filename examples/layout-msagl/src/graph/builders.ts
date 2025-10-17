@@ -1,4 +1,4 @@
-import { dia, shapes } from '@joint/core';
+import { dia, shapes, util } from '@joint/core';
 import { defaultFallbackColor } from './palette';
 import { LinkOptions, NodeOptions, PaletteCycler } from './types';
 
@@ -119,11 +119,7 @@ export const createParentNode = (label: string, fill: string, size: { width: num
 };
 
 export const createLink = (source: dia.Element, target: dia.Element, options: LinkOptions = {}): dia.Link => {
-    const LINK_COLOR = '#3B4252';
-    const LABEL_RECT_FILL = '#FFFFFF';
-    const LABEL_RECT_STROKE = '#E5E9F0';
-    const LABEL_TEXT_COLOR = '#374151';
-    const color = options.color ?? LINK_COLOR;
+    const color = options.color ?? '#3B4252';
     const thickness = options.thickness ?? 1.8;
     const showLabel = options.showLabel ?? Boolean(options.label);
     const labelText = options.label ?? `${source.attr('label/text')} → ${target.attr('label/text')}`;
@@ -147,12 +143,16 @@ export const createLink = (source: dia.Element, target: dia.Element, options: Li
         }
     };
 
+    const documentStyles = getComputedStyle(document.documentElement);
+
     if (showLabel) {
+        const fontSize = 12;
+        const bgColor = documentStyles.getPropertyValue('--bg-soft') ?? '#333333';
         Object.assign(baseConfig, {
             labelSize: measureLabelText(labelText, {
-                font: '11px "Inter", sans-serif',
-                horizontalPadding: 10,
-                verticalPadding: 6
+                font: `${fontSize}px "Inter, "Segoe UI", sans-serif`,
+                horizontalPadding: 4,
+                verticalPadding: 4
             }),
             labels: [
                 {
@@ -160,23 +160,17 @@ export const createLink = (source: dia.Element, target: dia.Element, options: Li
                         distance: 0.5,
                         offset: 0
                     },
+                    markup: util.svg`
+                        <text @selector="label"/>
+                    `,
                     attrs: {
-                        rect: {
-                            fill: LABEL_RECT_FILL,
-                            stroke: LABEL_RECT_STROKE,
-                            strokeWidth: 1,
-                            rx: 8,
-                            ry: 8,
-                            height: 'calc(h + 12)',
-                            width: 'calc(w + 20)',
-                            x: 'calc(x - 10)',
-                            y: 'calc(y - 6)',
-                            pointerEvents: 'none'
-                        },
-                        text: {
+                        label: {
                             text: labelText,
-                            fill: LABEL_TEXT_COLOR,
-                            fontSize: 11,
+                            fill: '#FFFFFF',
+                            stroke: bgColor,
+                            strokeWidth: 3,
+                            paintOrder: 'stroke',
+                            fontSize,
                             fontFamily: 'Inter, "Segoe UI", sans-serif',
                             fontWeight: '500',
                             textAnchor: 'middle',

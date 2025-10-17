@@ -253,6 +253,13 @@ const getLayoutOptions = (): Options => {
                     valueFunction: util.interpolate.object
                 }
             );
+        },
+        setClusterSize: (element: dia.Element, size: dia.Size) => {
+            element.transition('size', size, {
+                duration: 500,
+                timingFunction: util.timing.cubic,
+                valueFunction: util.interpolate.object
+            });
         }
     };
 };
