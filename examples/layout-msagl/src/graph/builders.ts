@@ -2,6 +2,8 @@ import { dia, shapes, util } from '@joint/core';
 import { defaultFallbackColor } from './palette';
 import { LinkOptions, NodeOptions, PaletteCycler } from './types';
 
+const documentStyles = getComputedStyle(document.documentElement);
+
 export const makePaletteCycler = (palette: string[]): PaletteCycler => {
     const colors = palette.length ? palette : [defaultFallbackColor];
     let index = 0;
@@ -143,8 +145,6 @@ export const createLink = (source: dia.Element, target: dia.Element, options: Li
         }
     };
 
-    const documentStyles = getComputedStyle(document.documentElement);
-
     if (showLabel) {
         const fontSize = 12;
         const bgColor = documentStyles.getPropertyValue('--bg-soft') ?? '#333333';
@@ -168,7 +168,7 @@ export const createLink = (source: dia.Element, target: dia.Element, options: Li
                             text: labelText,
                             fill: '#FFFFFF',
                             stroke: bgColor,
-                            strokeWidth: 3,
+                            strokeWidth: 2,
                             paintOrder: 'stroke',
                             fontSize,
                             fontFamily: 'Inter, "Segoe UI", sans-serif',
