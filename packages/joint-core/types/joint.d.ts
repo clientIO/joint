@@ -499,9 +499,9 @@ export namespace dia {
 
         protected generateId(): string | number;
 
-        protected stopPendingTransitions(path?: string, delim?: string): void;
+        protected stopPendingTransitions(path?: Path, delim?: string): void;
 
-        protected stopScheduledTransitions(path?: string, delim?: string): void;
+        protected stopScheduledTransitions(path?: Path, delim?: string): void;
 
         toJSON(opt?: dia.Cell.ExportOptions): Cell.JSON<any, A>;
 
@@ -539,11 +539,11 @@ export namespace dia {
 
         removeAttr(path: Path, opt?: Cell.Options): this;
 
-        transition(path: string, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
+        transition(path: Path, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
 
         getTransitions(): string[];
 
-        stopTransitions(path?: string, delim?: string): this;
+        stopTransitions(path?: Path, delim?: string): this;
 
         embed(cell: Cell | Cell[], opt?: Cell.EmbedOptions): this;
 
