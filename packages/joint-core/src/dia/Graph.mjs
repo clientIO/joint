@@ -338,9 +338,34 @@ export const Graph = Model.extend({
         return this;
     },
 
-    syncCell: function(cellInit, opt = {}) {
-        const batchName = 'sync-cell';
+    /**
+     * @protected
+     * @description Replace an existing cell with a new cell.
+     */
+    _replaceCell: function(currentCell, newCellInit, opt = {}) {
+        const batchName = 'replace-cell';
         this.startBatch(batchName, opt);
+        // 1. Remove the cell without removing connected links or embedded cells.
+        // See `joint.dia.Cell.prototype.remove`
+        currentCell.trigger('remove', currentCell, this.attributes.cells, {
+            ...opt,
+            clear: true
+        });
+        // 2. Add the replacement cell
+        this.addCell(newCellInit, {
+            ...opt,
+            replace: true
+        });
+        this.stopBatch(batchName);
+    },
+
+    /**
+     * @protected
+     * @description Synchronize a single graph cell with the provided cell (model or attributes).
+     * If the cell with the same `id` exists, it is updated. If the cell does not exist, it is added.
+     * If the existing cell type is different from the incoming cell type, the existing cell is replaced.
+     */
+    _syncCell: function(cellInit, opt = {}) {
         const cellAttributes = (cellInit instanceof Model)
             ? cellInit.attributes
             : cellInit;
@@ -349,13 +374,7 @@ export const Graph = Model.extend({
             // `cellInit` is either a model or attributes object
             if (currentCell.get('type') !== cellAttributes.type) {
                 // Replace the cell if the type has changed
-                // 1. Remove the cell without removing connected links or embedded cells.
-                // See `joint.dia.Cell.prototype.remove`
-                this.startBatch('remove');
-                currentCell.trigger('remove', currentCell, this.attributes.cells, { ...opt, clear: true });
-                this.stopBatch('remove');
-                // 2. Add the replacement cell
-                this.addCell(cellInit, opt);
+                this._replaceCell(currentCell, cellInit, opt);
             } else {
                 // Update existing cell
                 // Note: the existing cell attributes are not removed,
@@ -366,28 +385,44 @@ export const Graph = Model.extend({
             // The cell does not exist yet, add it
             this.addCell(cellInit, opt);
         }
-        this.stopBatch(batchName);
     },
 
+    /**
+     * @public
+     * @description Synchronize the graph cells with the provided array of cells (models or attributes).
+     */
     syncCells: function(cellInits, opt = {}) {
 
         const batchName = 'sync-cells';
-        const currentCells = this.getCells();
-        const newCellsMap = new Map();
-        const preventSortOpt = { ...opt, sort: false };
+        const { removeMissing = false, ...setOpt } = opt;
+
+        let currentCells, newCellsMap;
+        if (removeMissing) {
+            // We need to track existing cells to remove the missing ones later
+            currentCells = this.getCells();
+            newCellsMap = new Map();
+        }
 
         this.startBatch(batchName, opt);
 
+        // Prevent multiple sorts during sync
+        setOpt.sort = false;
+
         // Add or update incoming cells
         for (const cellInit of cellInits) {
-            newCellsMap.set(cellInit.id, true); // only track existence
-            this.syncCell(cellInit, preventSortOpt);
+            if (removeMissing) {
+                // only track existence
+                newCellsMap.set(cellInit.id, true);
+            }
+            this._syncCell(cellInit, setOpt);
         }
 
-        // Remove cells not present in the incoming array
-        for (const cell of currentCells) {
-            if (!newCellsMap.has(cell.id)) {
-                cell.remove(preventSortOpt);
+        if (removeMissing) {
+            // Remove cells not present in the incoming array
+            for (const cell of currentCells) {
+                if (!newCellsMap.has(cell.id)) {
+                    cell.remove(setOpt);
+                }
             }
         }
 

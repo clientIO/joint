@@ -40,6 +40,8 @@ export namespace dia {
 
     type Size = Pick<BBox, 'width' | 'height'>;
 
+    type CellInit = Cell | Cell.JSON;
+
     type PaddingJSON = {
         left?: number;
         top?: number;
@@ -186,6 +188,10 @@ export namespace dia {
             strict?: boolean;
         }
 
+        interface SyncCellOptions extends Options {
+            removeMissing?: boolean;
+        }
+
         type SearchByKey = 'bbox' | PositionName;
 
         interface FindUnderElementOptions extends FindInAreaOptions, FindAtPointOptions {
@@ -228,14 +234,14 @@ export namespace dia {
             cellModel?: typeof Cell
         });
 
-        addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
-        addCell(cell: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
+        addCell(cell: CellInit, opt?: CollectionAddOptions): this;
+        addCell(cell: Array<CellInit>, opt?: CollectionAddOptions): this;
 
-        addCells(cells: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
+        addCells(cells: Array<CellInit>, opt?: CollectionAddOptions): this;
 
-        resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
+        resetCells(cells: Array<CellInit>, opt?: Graph.Options): this;
 
-        syncCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): void;
+        syncCells(cells: Array<CellInit>, opt?: Graph.SyncCellOptions): void;
 
         resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.ResetCellLayersOptions): this;
 
@@ -340,6 +346,10 @@ export namespace dia {
         protected _isValidLinkUnderElement(link: Link, element: Element): boolean;
 
         protected _filterCellsUnderElement(cells: Cell[], element: Element, opt: Graph.FindUnderElementOptions): Cell[];
+
+        protected _syncCell(cellInit: CellInit, opt?: Graph.Options): void;
+
+        protected _replaceCell(currentCell: Cell, newCellInit: CellInit,  opt?: Graph.Options): void;
 
         /** @deprecated use `findElementsAtPoint` instead */
         findModelsFromPoint(p: Point): Element[];

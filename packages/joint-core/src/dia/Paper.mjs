@@ -279,7 +279,7 @@ export const Paper = View.extend({
             // 2. the view was just mounted (added back to the paper by viewport function)
             // 3. the change was marked as `isolate`.
             // 4. the view model was just removed from the graph
-            if ((flag & (paper.FLAG_INSERT | paper.FLAG_REMOVE)) || opt.mounting || opt.isolate) return;
+            if ((!opt.replace && (flag & (paper.FLAG_INSERT | paper.FLAG_REMOVE))) || opt.mounting || opt.isolate) return;
             paper.requestConnectedLinksUpdate(view, priority, opt);
         },
 
