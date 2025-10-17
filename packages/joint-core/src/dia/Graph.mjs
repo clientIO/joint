@@ -372,6 +372,101 @@ export const Graph = Model.extend({
         return this;
     },
 
+    /**
+     * @protected
+     * @description Replace an existing cell with a new cell.
+     */
+    _replaceCell: function(currentCell, newCellInit, opt = {}) {
+        const batchName = 'replace-cell';
+        this.startBatch(batchName, opt);
+        // 1. Remove the cell without removing connected links or embedded cells.
+        // See `joint.dia.Cell.prototype.remove`
+        currentCell.trigger('remove', currentCell, this.attributes.cells, {
+            ...opt,
+            clear: true
+        });
+        // 2. Add the replacement cell
+        this.addCell(newCellInit, {
+            ...opt,
+            replace: true
+        });
+        this.stopBatch(batchName);
+    },
+
+    /**
+     * @protected
+     * @description Synchronize a single graph cell with the provided cell (model or attributes).
+     * If the cell with the same `id` exists, it is updated. If the cell does not exist, it is added.
+     * If the existing cell type is different from the incoming cell type, the existing cell is replaced.
+     */
+    _syncCell: function(cellInit, opt = {}) {
+        const cellAttributes = (cellInit instanceof Model)
+            ? cellInit.attributes
+            : cellInit;
+        const currentCell = this.getCell(cellInit.id);
+        if (currentCell) {
+            // `cellInit` is either a model or attributes object
+            if (currentCell.get('type') !== cellAttributes.type) {
+                // Replace the cell if the type has changed
+                this._replaceCell(currentCell, cellInit, opt);
+            } else {
+                // Update existing cell
+                // Note: the existing cell attributes are not removed,
+                // if they're missing in `cellAttributes`.
+                currentCell.set(cellAttributes, opt);
+            }
+        } else {
+            // The cell does not exist yet, add it
+            this.addCell(cellInit, opt);
+        }
+    },
+
+    /**
+     * @public
+     * @description Synchronize the graph cells with the provided array of cells (models or attributes).
+     */
+    syncCells: function(cellInits, opt = {}) {
+
+        const batchName = 'sync-cells';
+        const { removeMissing = false, ...setOpt } = opt;
+
+        let currentCells, newCellsMap;
+        if (removeMissing) {
+            // We need to track existing cells to remove the missing ones later
+            currentCells = this.getCells();
+            newCellsMap = new Map();
+        }
+
+        this.startBatch(batchName, opt);
+
+        // Prevent multiple sorts during sync
+        setOpt.sort = false;
+
+        // Add or update incoming cells
+        for (const cellInit of cellInits) {
+            if (removeMissing) {
+                // only track existence
+                newCellsMap.set(cellInit.id, true);
+            }
+            this._syncCell(cellInit, setOpt);
+        }
+
+        if (removeMissing) {
+            // Remove cells not present in the incoming array
+            for (const cell of currentCells) {
+                if (!newCellsMap.has(cell.id)) {
+                    cell.remove(setOpt);
+                }
+            }
+        }
+
+        // Note: can we trigger sort() only if any cell had its 'z' changed
+        // or if any cell was added/removed?
+        if (opt.sort !== false) this.get('cells').sort(opt);
+
+        this.stopBatch(batchName);
+    },
+
     _removeCell: function(cell, collection, options) {
 
         options = options || {};
