@@ -294,7 +294,7 @@ QUnit.module('graph', function(hooks) {
                 graph.on({
                     'batch:start': batchStartSpy,
                     'batch:stop': batchStopSpy
-                })
+                });
                 graph.syncCells([
                     { id: 'a', type: 'standard.Rectangle' },
                     { id: 'b', type: 'standard.Rectangle' }
