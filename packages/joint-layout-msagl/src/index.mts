@@ -14,7 +14,7 @@ const LAYOUT_BATCH_NAME = 'layout';
 export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options): LayoutResult {
 
     // Merge user options with defaults and cast to the correct type
-    const finalOptions = util.defaultsDeep({}, options || {}, defaultOptions) as Required<Options>;
+    const finalOptions = util.defaults({}, options || {}, defaultOptions) as Required<Options>;
 
     let graph: dia.Graph;
 

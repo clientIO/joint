@@ -175,7 +175,7 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph, option
         // Note: If the node is a subgraph, its size has been modified
         // when packing its children, so we need to set it explicitly
         if (geomNode.node instanceof Graph) {
-            element.size(geomNode.boundingBox.width, geomNode.boundingBox.height);
+            options.setClusterSize(element, { width: geomNode.boundingBox.width, height: geomNode.boundingBox.height });
         }
 
         const selfEdges = Array.from(geomNode.selfEdges());

@@ -81,6 +81,7 @@ type SetPositionCallback = (element: dia.Element, position: dia.Point) => void;
 type SetVerticesCallback = (link: dia.Link, vertices: dia.Point[]) => void;
 type SetLabelsCallback = (link: dia.Link, labelBBox: dia.BBox, points: dia.Point[]) => void;
 type SetAnchorCallback = (link: dia.Link, linkEndPoint: dia.Point, bbox: dia.BBox, endType: 'source' | 'target') => void;
+type SetClusterSizeCallback = (element: dia.Element, size: dia.Size) => void;
 
 interface Options {
     // Layout direction
@@ -97,8 +98,8 @@ interface Options {
     rectilinearSelfEdgeOffset?: number;
     // Grid and origin
     gridSize?: number; // Default: 0
-    x?: number; // Default: 10
-    y?: number; // Default: 10
+    x?: number; // Default: 0
+    y?: number; // Default: 0
     clusterPadding?: dia.Sides; // Default: 10
     // Element sizing callbacks
     getSize?: GetSizeCallback; // Default: element.size()
@@ -108,6 +109,7 @@ interface Options {
     setVertices?: boolean | SetVerticesCallback; // Default: true
     setLabels?: boolean | SetLabelsCallback; // Default: true  
     setAnchor?: boolean | SetAnchorCallback; // Default: true
+    setClusterSize?: SetClusterSizeCallback; // Default: element.size(size)
 }
 ```
 
@@ -311,6 +313,7 @@ If `getLabelSize` returns `undefined` for a cell, no space is reserved for its l
 - **Subgraph layout direction** - Layout inside subgraphs is always set to `TB` (Top-to-Bottom) direction, as other directions can cause layout issues.
 - **Link labels in subgraphs** – Link labels within subgraphs may be positioned incorrectly, despite the layout correctly reserving space for them.
 - **Obstacle padding (first‑bend distance)** – MSAGL exposes an `edgeRoutingSettings.Padding` option intended to keep edges a minimum distance away from obstacles (nodes) and thus control where the first bend occurs. In msagljs this setting is currently not working.
+- **ID handling** - MSAGL expects IDs to be string values so `id: 1` and `id: '1'` are considered the same.
 
 ## 📄 License
 

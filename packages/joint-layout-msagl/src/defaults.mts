@@ -10,15 +10,16 @@ export const defaultOptions: Required<Options> = {
     rectilinearSelfEdgeOffset: 10,
     gridSize: 0,
     edgeRoutingMode: EdgeRoutingMode.Rectilinear,
-    x: 10,
-    y: 10,
+    x: 0,
+    y: 0,
     clusterPadding: 10,
     getSize,
     getLabelSize,
     setPosition,
     setVertices: true,
     setLabels: true,
-    setAnchor: true
+    setAnchor: true,
+    setClusterSize
 };
 
 // --- Default Callbacks
@@ -70,4 +71,8 @@ export function setAnchor(link: dia.Link, linkEndPoint: dia.Point, bbox: dia.BBo
             dy: linkEndPoint.y - bbox.y - bbox.height / 2,
         }
     });
+}
+
+export function setClusterSize(element: dia.Element, size: dia.Size) {
+    element.size(size);
 }

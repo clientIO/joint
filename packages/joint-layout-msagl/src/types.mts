@@ -9,6 +9,7 @@ type SetPositionCallback = (element: dia.Element, position: dia.Point) => void;
 type SetVerticesCallback = (link: dia.Link, vertices: dia.Point[]) => void;
 type SetLabelsCallback = (link: dia.Link, labelBBox: dia.BBox, points: dia.Point[]) => void;
 type SetAnchorCallback = (link: dia.Link, linkEndPoint: dia.Point, bbox: dia.BBox, endType: 'source' | 'target') => void;
+type SetClusterSizeCallback = (element: dia.Element, size: dia.Size) => void;
 
 /**
  * Layout configuration options.
@@ -107,6 +108,12 @@ export interface Options {
      * });
      */
     setAnchor?: boolean | SetAnchorCallback;
+    /**
+     * Sets the size of a cluster.
+     * @remarks The function will be called with the cluster element and the size that was computed by the layout.
+     * @defaultValue (element, size) => element.size(size)
+     */
+    setClusterSize?: SetClusterSizeCallback;
 }
 
 export interface LayoutResult {
