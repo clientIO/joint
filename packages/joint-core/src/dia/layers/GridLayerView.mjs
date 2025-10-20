@@ -1,4 +1,4 @@
-import { PaperLayer } from '../PaperLayer.mjs';
+import { LayerView } from './LayerView.mjs';
 import {
     isFunction,
     isString,
@@ -9,7 +9,7 @@ import {
 } from '../../util/index.mjs';
 import V from '../../V/index.mjs';
 
-export const GridLayer = PaperLayer.extend({
+export const GridLayerView = LayerView.extend({
 
     style: {
         'pointer-events': 'none'
@@ -19,11 +19,11 @@ export const GridLayer = PaperLayer.extend({
     _gridSettings: null,
 
     init() {
-        PaperLayer.prototype.init.apply(this, arguments);
-        const { options: { paper }} = this;
+        LayerView.prototype.init.apply(this, arguments);
+        this.paper = this.options.paper;
         this._gridCache = null;
         this._gridSettings = [];
-        this.listenTo(paper, 'transform resize', this.updateGrid);
+        this.listenTo(this.paper, 'transform resize', this.updateGrid);
     },
 
     setGrid(drawGrid) {
@@ -51,7 +51,7 @@ export const GridLayer = PaperLayer.extend({
 
     renderGrid() {
 
-        const { options: { paper }} = this;
+        const { paper } = this;
         const { _gridSettings: gridSettings } = this;
 
         this.removeGrid();
@@ -96,7 +96,7 @@ export const GridLayer = PaperLayer.extend({
 
     updateGrid() {
 
-        const { _gridCache: grid, _gridSettings: gridSettings, options: { paper }} = this;
+        const { _gridCache: grid, _gridSettings: gridSettings, paper } = this;
         if (!grid) return;
         const { root: vSvg, patterns } = grid;
         const { x, y, width, height } = paper.getArea();
@@ -114,7 +114,7 @@ export const GridLayer = PaperLayer.extend({
     },
 
     _getPatternId(index) {
-        return `pattern_${this.options.paper.cid}_${index}`;
+        return `pattern_${this.paper.cid}_${index}`;
     },
 
     _getGridRefs() {
@@ -143,30 +143,30 @@ export const GridLayer = PaperLayer.extend({
 
     _resolveDrawGridOption(opt) {
 
-        var namespace = this.options.patterns;
+        const namespace = this.options.patterns;
         if (isString(opt) && Array.isArray(namespace[opt])) {
             return namespace[opt].map(function(item) {
                 return assign({}, item);
             });
         }
 
-        var options = opt || { args: [{}] };
-        var isArray = Array.isArray(options);
-        var name = options.name;
+        const options = opt || { args: [{}] };
+        const isArray = Array.isArray(options);
+        let name = options.name;
 
         if (!isArray && !name && !options.markup) {
             name = 'dot';
         }
 
         if (name && Array.isArray(namespace[name])) {
-            var pattern = namespace[name].map(function(item) {
+            const pattern = namespace[name].map(function(item) {
                 return assign({}, item);
             });
 
-            var args = Array.isArray(options.args) ? options.args : [options.args || {}];
+            const args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
             defaults(args[0], omit(opt, 'args'));
-            for (var i = 0; i < args.length; i++) {
+            for (let i = 0; i < args.length; i++) {
                 if (pattern[i]) {
                     assign(pattern[i], args[i]);
                 }

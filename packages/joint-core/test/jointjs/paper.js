@@ -97,9 +97,9 @@ QUnit.module('paper', function(hooks) {
 
     });
 
-    QUnit.test('paper.addCell() number of sortViews()', function(assert) {
+    QUnit.test('paper.addCell() number of sort()', function(assert) {
 
-        var spy = sinon.spy(this.paper, 'sortViews');
+        var spy = sinon.spy(this.paper.getLayerView('cells'), 'sort');
 
         var r1 = new joint.shapes.standard.Rectangle;
         var r2 = new joint.shapes.standard.Rectangle;
@@ -119,9 +119,9 @@ QUnit.module('paper', function(hooks) {
 
     });
 
-    QUnit.test('paper.addCells() number of sortViews()', function(assert) {
+    QUnit.test('paper.addCells() number of sort()', function(assert) {
 
-        var spy = sinon.spy(this.paper, 'sortViews');
+        var spy = sinon.spy(this.paper.getLayerView('cells'), 'sort');
 
         var r1 = new joint.shapes.standard.Rectangle;
         var r2 = new joint.shapes.standard.Rectangle;
@@ -1929,7 +1929,7 @@ QUnit.module('paper', function(hooks) {
         };
 
         const getGridVel = function(paper) {
-            return V(paper.getLayerNode(joint.dia.Paper.Layers.GRID).firstChild);
+            return V(paper.getLayerViewNode(joint.dia.Paper.Layers.GRID).firstChild);
         };
 
         var preparePaper = function(drawGrid, paperSettings) {

@@ -1651,4 +1651,30 @@ QUnit.module('graph', function(hooks) {
             assert.equal(link.target().id, replacementElement.id);
         });
     });
+
+    QUnit.test('layerAttribute config option', function(assert) {
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+        joint.config.layerAttribute = '_layerId';
+
+        const rect = new joint.shapes.standard.Rectangle();
+        graph.addCell(rect);
+
+        assert.equal(rect.layer(), 'cells', 'default layer is "cells"');
+
+        graph.addCellLayer({ id: 'my-layer' });
+
+        rect.layer('my-layer');
+
+        assert.equal(rect.get('_layerId'), 'my-layer', 'layer attribute is changed accordingly');
+
+        graph.addCellLayer({ id: 'another-layer' });
+
+        rect.set('_layerId', 'another-layer');
+
+        assert.equal(rect.layer(), 'another-layer', 'layer() reflects changes in the layer attribute');
+
+        // Clean up.
+        joint.config.layerAttribute = 'layer';
+    });
 });
