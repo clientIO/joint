@@ -207,11 +207,11 @@ export namespace dia {
             [key: string]: any;
         }
 
-        type ResetCellLayersOptions = Options & {
+        interface ResetCellLayersOptions extends Options {
             defaultCellLayer?: string;
         }
 
-        type AddCellLayerOptions = Options & {
+        interface AddCellLayerOptions extends Options {
             insertBefore?: string;
         }
     }

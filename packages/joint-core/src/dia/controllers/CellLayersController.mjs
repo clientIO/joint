@@ -20,12 +20,11 @@ export class CellLayersController extends Listener {
         this.collection = this.graph.cellLayerCollection;
 
         // Default setup
-        this.defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
-        this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId);
         this.addCellLayer({
             id: DEFAULT_CELL_LAYER_ID,
             __legacy: true
         });
+        this.defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
 
         this.startListening();
     }

@@ -22,6 +22,8 @@ export const GraphCells = Collection.extend({
         this.graph = opt.graph;
     },
 
+    // Overriding the default `model` method to create cell models
+    // based on their `type` attribute and the `cellNamespace` option.
     model: function(attrs, opt) {
 
         const collection = opt.collection;
@@ -37,6 +39,8 @@ export const GraphCells = Collection.extend({
         return new ModelClass(attrs, opt);
     },
 
+    // Override Collection's _addReference
+    // to set the graph reference on the model.
     _addReference: function(model, options) {
         Collection.prototype._addReference.apply(this, arguments);
         // If not in `dry` mode and the model does not have a graph reference yet,
@@ -46,6 +50,8 @@ export const GraphCells = Collection.extend({
         }
     },
 
+    // Override Collection's _removeReference
+    // to remove the graph reference from the model.
     _removeReference: function(model, options) {
         Collection.prototype._removeReference.apply(this, arguments);
         // If not in `dry` mode and the model has a reference to this exact graph,
@@ -55,8 +61,9 @@ export const GraphCells = Collection.extend({
         }
     },
 
-    // fast version for reset function
-    // it does not clear the `_byId` map
+    // fast version of _removeReference for reset method.
+    // It does not clear the `_byId` map because it is cleared as part of the reset.
+    // TODO: move "fast" logic to the `mvc.Collection` in later versions.
     _removeReferenceFast: function(model, options) {
         if (this === model.collection) delete model.collection;
         model.off('all', this._onModelEvent, this);

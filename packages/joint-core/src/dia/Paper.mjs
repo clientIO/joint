@@ -2102,6 +2102,7 @@ export const Paper = View.extend({
         }
 
         // combine all content area rectangles from all cell layers
+        // using only cell layer views to avoid including non-cell view content (e.g. grid)
         const bbox = g.Rect.fromRectUnion(...cellLayerViews.map(cellLayerView => V(cellLayerView.el).getBBox()));
         return bbox;
     },

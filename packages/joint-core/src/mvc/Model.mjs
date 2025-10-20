@@ -26,10 +26,7 @@ export var Model = function(attributes, options) {
     var attrs = attributes || {};
     options || (options = {});
 
-    this.eventPrefix = '';
-    if (options.eventPrefix) {
-        this.eventPrefix = options.eventPrefix;
-    }
+    this.eventPrefix = options.eventPrefix || '';
 
     this.preinitialize.apply(this, arguments);
     this.cid = uniqueId(this.cidPrefix);
