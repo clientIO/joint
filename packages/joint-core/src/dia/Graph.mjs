@@ -2,12 +2,14 @@ import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
 import { Model } from '../mvc/Model.mjs';
+import { Listener } from '../mvc/Listener.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
 import { CellLayersController } from './controllers/CellLayersController.mjs';
 import { GraphCellLayers } from './collections/GraphCellLayers.mjs';
 import { GraphCells } from './collections/GraphCells.mjs';
 import { config } from '../config/index.mjs';
+import { CELL_MARKER } from './Cell.mjs';
 
 export const Graph = Model.extend({
 
@@ -235,7 +237,7 @@ export const Graph = Model.extend({
     _prepareCell: function(cell, opt = {}) {
         let attrs;
 
-        if (cell instanceof Model) {
+        if (cell[CELL_MARKER]) {
             attrs = cell.attributes;
         } else {
             attrs = cell;
@@ -254,7 +256,7 @@ export const Graph = Model.extend({
             const layerId = attrs[layerAttribute] || this.cellLayersController.defaultCellLayerId;
             const layer = this.cellLayersController.getCellLayer(layerId);
 
-            if (cell instanceof Model) {
+            if (cell[CELL_MARKER]) {
                 if (!cell.has('z')) {
                     cell.set('z', layer.maxZIndex() + 1);
                 }
@@ -347,7 +349,7 @@ export const Graph = Model.extend({
         this.startBatch(batchName, opt);
         // 1. Remove the cell without removing connected links or embedded cells.
         // See `joint.dia.Cell.prototype.remove`
-        currentCell.trigger('remove', currentCell, this.attributes.cells, {
+        currentCell.trigger('remove', currentCell, currentCell.collection, {
             ...opt,
             clear: true
         });
@@ -366,7 +368,7 @@ export const Graph = Model.extend({
      * If the existing cell type is different from the incoming cell type, the existing cell is replaced.
      */
     _syncCell: function(cellInit, opt = {}) {
-        const cellAttributes = (cellInit instanceof Model)
+        const cellAttributes = (cellInit[CELL_MARKER])
             ? cellInit.attributes
             : cellInit;
         const currentCell = this.getCell(cellInit.id);
@@ -394,13 +396,30 @@ export const Graph = Model.extend({
     syncCells: function(cellInits, opt = {}) {
 
         const batchName = 'sync-cells';
-        const { removeMissing = false, ...setOpt } = opt;
+        const { remove = false, ...setOpt } = opt;
 
         let currentCells, newCellsMap;
-        if (removeMissing) {
+        if (remove) {
             // We need to track existing cells to remove the missing ones later
             currentCells = this.getCells();
             newCellsMap = new Map();
+        }
+
+        // Observe changes to the graph cells
+        const changeObserver = new Listener();
+        const changedLayers = new Set();
+        const shouldSort = opt.sort !== false;
+        if (shouldSort) {
+            changeObserver.listenTo(this, {
+                'add': (cell) => {
+                    changedLayers.add(cell.layer());
+                },
+                'change': (cell) => {
+                    if (cell.hasChanged(config.layerAttribute) || cell.hasChanged('z')) {
+                        changedLayers.add(cell.layer());
+                    }
+                }
+            });
         }
 
         this.startBatch(batchName, opt);
@@ -410,14 +429,14 @@ export const Graph = Model.extend({
 
         // Add or update incoming cells
         for (const cellInit of cellInits) {
-            if (removeMissing) {
+            if (remove) {
                 // only track existence
                 newCellsMap.set(cellInit.id, true);
             }
             this._syncCell(cellInit, setOpt);
         }
 
-        if (removeMissing) {
+        if (remove) {
             // Remove cells not present in the incoming array
             for (const cell of currentCells) {
                 if (!newCellsMap.has(cell.id)) {
@@ -426,9 +445,13 @@ export const Graph = Model.extend({
             }
         }
 
-        // Note: can we trigger sort() only if any cell had its 'z' changed
-        // or if any cell was added/removed?
-        if (opt.sort !== false) this.get('cells').sort(opt);
+        if (shouldSort) {
+            // Sort layers that had changes affecting z-index or layer
+            changeObserver.stopListening();
+            for (const layerId of changedLayers) {
+                this.cellLayersController.getCellLayer(layerId).cells.sort(opt);
+            }
+        }
 
         this.stopBatch(batchName);
     },

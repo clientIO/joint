@@ -1025,3 +1025,12 @@ export const Cell = Model.extend({
         return Cell;
     }
 });
+
+// Internal tag to identify this object as a cell view instance.
+// Used instead of `instanceof` for performance and cross-frame safety.
+
+export const CELL_MARKER = Symbol('joint.cellMarker');
+
+Object.defineProperty(Cell.prototype, CELL_MARKER, {
+    value: true,
+});

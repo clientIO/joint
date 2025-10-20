@@ -189,7 +189,7 @@ export namespace dia {
         }
 
         interface SyncCellOptions extends Options {
-            removeMissing?: boolean;
+            remove?: boolean;
         }
 
         type SearchByKey = 'bbox' | PositionName;
