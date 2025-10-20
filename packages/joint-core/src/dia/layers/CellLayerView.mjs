@@ -142,7 +142,7 @@ export const CellLayerView = LayerView.extend({
 
         const cellsArray = model.cells.models;
         for (let i = 0; i < cellsArray.length; i++) {
-            const cell = cellsArray[i]
+            const cell = cellsArray[i];
             this.requestCellViewInsertion(cell, opt);
         }
     },

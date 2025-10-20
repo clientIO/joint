@@ -167,7 +167,7 @@ export class CellLayersController extends Listener {
         // we pass references map to avoid setting map on the layer
         if (collection.length === 1) {
             const onlyLayer = collection.at(0);
-            onlyLayer.reset(layersMap[onlyLayer.id], {...opt, references: new Map(this.graph.cellCollection._byId) });
+            onlyLayer.reset(layersMap[onlyLayer.id], { ...opt, references: new Map(this.graph.cellCollection._byId) });
             return;
         }
 

@@ -567,7 +567,7 @@ export namespace dia {
 
         z(): number;
 
-        layer(): string;
+        layer(): string | null;
         layer(id: string | null, opt?: Graph.Options): this;
 
         angle(): number;
