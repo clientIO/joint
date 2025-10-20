@@ -374,7 +374,7 @@ export const Graph = Model.extend({
         const currentCell = this.getCell(cellInit.id);
         if (currentCell) {
             // `cellInit` is either a model or attributes object
-            if (currentCell.get('type') !== cellAttributes.type) {
+            if ('type' in cellAttributes && currentCell.get('type') !== cellAttributes.type) {
                 // Replace the cell if the type has changed
                 this._replaceCell(currentCell, cellInit, opt);
             } else {
@@ -406,10 +406,11 @@ export const Graph = Model.extend({
         }
 
         // Observe changes to the graph cells
-        const changeObserver = new Listener();
-        const changedLayers = new Set();
+        let changeObserver, changedLayers;
         const shouldSort = opt.sort !== false;
         if (shouldSort) {
+            changeObserver = new Listener();
+            changedLayers = new Set();
             changeObserver.listenTo(this, {
                 'add': (cell) => {
                     changedLayers.add(cell.layer());

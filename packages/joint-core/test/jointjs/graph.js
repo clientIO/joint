@@ -233,6 +233,50 @@ QUnit.module('graph', function(hooks) {
                 const c = graph.getCell('c');
                 assert.ok(c);
             });
+
+            QUnit.test('syncing attributes should require an id only', function(assert) {
+                const graph = this.graph;
+                graph.resetCells([{
+                    id: 'a',
+                    type: 'standard.Rectangle',
+                    test: 'old'
+                }]);
+                graph.syncCells([
+                    { id: 'a', test: 'synced' }
+                ]);
+                const a = graph.getCell('a');
+                assert.equal(a.get('test'), 'synced');
+            });
+
+            QUnit.test('should sort the layers that were affected', function(assert) {
+                const graph = this.graph;
+                graph.resetCellLayers([{ id: 'l1' }, { id: 'l2' }, { id: 'l3' }, { id: 'l4' }, { id: 'l5' }]);
+                graph.resetCells([{
+                    id: 'a',
+                    type: 'standard.Rectangle',
+                    layer: 'l1'
+                }, {
+                    id: 'b',
+                    type: 'standard.Rectangle',
+                    layer: 'l2'
+                }, {
+                    id: 'c',
+                    type: 'standard.Rectangle',
+                    layer: 'l3'
+                }]);
+                const sortSpy = sinon.spy();
+                graph.on('sort', sortSpy);
+                graph.syncCells([
+                    { id: 'a', someAttribute: 'someValue' },
+                    { id: 'b', z: 1 },
+                    { id: 'c', layer: 'l4' },
+                    { id: 'd', type: 'standard.Rectangle', layer: 'l5' }
+                ]);
+                assert.equal(sortSpy.callCount, 3, 'Three layers should be sorted.');
+                assert.ok(sortSpy.calledWith(graph.getCellLayer('l2').cells), 'CellLayer l2 sorted.');
+                assert.ok(sortSpy.calledWith(graph.getCellLayer('l4').cells), 'CellLayer l4 sorted.');
+                assert.ok(sortSpy.calledWith(graph.getCellLayer('l5').cells), 'CellLayer l5 sorted.');
+            });
         });
 
         QUnit.module('remove: true', function() {
