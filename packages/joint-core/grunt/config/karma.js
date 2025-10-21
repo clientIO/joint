@@ -23,9 +23,11 @@ module.exports = function(grunt) {
         switch (reporter) {
             case 'lcov':
                 reporters = [{ type: 'lcovonly', subdir: '.', file: `${name}.lcov` }];
+                check = grunt.file.readJSON('coverage.json')[name];
                 break;
             case 'html':
                 reporters = [{ type: 'html' }];
+                check = grunt.file.readJSON('coverage.json')[name];
                 break;
             case '':
                 reporters = [{ type: 'text-summary' }];
