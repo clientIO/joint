@@ -100,10 +100,10 @@ export class CellLayersController extends Listener {
         }
 
         const previousLayer = this.getCellLayer(previousLayerId);
-        previousLayer.remove(cell, opt);
+        previousLayer.remove(cell, { ...opt, layerChange: true });
 
         const layer = this.getCellLayer(layerId);
-        layer.add(cell, opt);
+        layer.add(cell, { ...opt, layerChange: true });
     }
 
     resetLayersCollections(cells, opt = {}) {

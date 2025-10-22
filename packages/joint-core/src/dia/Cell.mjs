@@ -248,12 +248,7 @@ export const Cell = Model.extend({
             }
         }
 
-        // The collection is a cell layer collection in this case.
-        if (collection) {
-            collection.remove(this, opt);
-        }
-
-        //this.trigger('remove', this, graph.cellCollection, opt);
+        this.trigger('remove', this, this.collection, opt);
 
         graph.stopBatch('remove');
 

@@ -103,7 +103,8 @@ export const Graph = Model.extend({
         }
     },
 
-    _restructureOnRemove: function(cell) {
+    _restructureOnRemove: function(cell, _collection, options) {
+        if (options.layerChange) return;
 
         if (cell.isLink()) {
             delete this._edges[cell.id];
@@ -158,7 +159,13 @@ export const Graph = Model.extend({
     },
 
     _onCellLayerReset: function(collection, options) {
-        options.previousModels.forEach(this._restructureOnRemove, this);
+        // don't do anything if it is after `resetCells` call
+        if (options.initial) return;
+
+        options.previousModels.forEach((cell) => {
+            this._restructureOnRemove(cell);
+            this._removeCell(cell, collection, options);
+        });
 
         collection.models.forEach(this._restructureOnAdd, this);
     },
@@ -356,9 +363,10 @@ export const Graph = Model.extend({
         return this;
     },
 
-    _removeCell: function(cell, _collection, options) {
-
+    _removeCell: function(cell, collection, options) {
         options = options || {};
+
+        if (options.layerChange) return;
 
         if (!options.clear) {
             // Applications might provide a `disconnectLinks` option set to `true` in order to
@@ -372,6 +380,12 @@ export const Graph = Model.extend({
                 this.removeLinks(cell, options);
             }
         }
+
+        // Silently remove the cell from the cells collection. Silently, because
+        // `joint.dia.Cell.prototype.remove` already triggers the `remove` event which is
+        // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
+        // would be triggered on the graph model.
+        collection.remove(cell, { silent: true });
     },
 
     transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {
