@@ -1,5 +1,6 @@
 import { Listener } from '../../mvc/Listener.mjs';
 import { config } from '../../config/index.mjs';
+import { CELL_MARKER } from '../Cell.mjs';
 
 const DEFAULT_CELL_LAYER_ID = 'cells';
 
@@ -30,30 +31,11 @@ export class CellLayersController extends Listener {
     }
 
     startListening() {
-        const { graph } = this;
-
-        // remove all cells from this layer when the layer is removed from the graph
-        this.listenTo(this.collection, 'remove', (cellLayer, opt = {}) => {
-            this.onCellLayerRemove(cellLayer, opt);
-        });
-
         this.listenTo(this.collection, 'reset', (collection, opt = {}) => {
             this.onCellLayersCollectionReset(collection, opt);
         });
 
-        this.listenTo(graph, 'add', (cell, _, opt = {}) => {
-            this.onCellAdd(cell, opt);
-        });
-
-        this.listenTo(graph, 'remove', (cell, _, opt = {}) => {
-            this.onCellRemove(cell, opt);
-        });
-
-        this.listenTo(graph, 'reset', (collection, opt = {}) => {
-            this.onGraphReset(collection, opt);
-        });
-
-        this.listenTo(graph, 'change', (cell, opt = {}) => {
+        this.listenTo(this.collection, 'cell:change', (cell, opt = {}) => {
             this.onCellChange(cell, opt);
         });
     }
@@ -78,24 +60,20 @@ export class CellLayersController extends Listener {
             this.defaultCellLayerId = defaultCellLayerId;
             this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, opt);
         }
-        this.collection.reset(cellLayers, opt);
+
+        const cells = this.getCells();
+        // save cells to reinsert them after the layers have been reset
+        this.collection.reset(cellLayers, { ...opt, previousCells: cells });
         this.graph.stopBatch('reset-layers', opt);
     }
 
-    onCellLayersCollectionReset(collection, opt) {
-        const previousCellLayers = opt.previousModels;
-
-        // remove cells from the layers that have been removed
-        previousCellLayers.forEach(previousLayer => {
-            if (!collection.get(previousLayer.id)) {
-                this.onCellLayerRemove(previousLayer, opt);
-            }
-        });
+    onCellLayersCollectionReset(_collection, opt) {
+        const previousCells = opt.previousCells || [];
 
         // do not add existing cells if we are resetting whole graph
         // this option is used during graph.fromJSON
         if (!opt.clean) {
-            this.resetLayersCollections(this.graph.cellCollection.models, opt);
+            this.resetLayersCollections(previousCells, opt);
         }
     }
 
@@ -106,15 +84,6 @@ export class CellLayersController extends Listener {
         // add to the layer without triggering rendering update
         // when the cell is just added to the graph, it will be rendered normally by the paper
         layer.add(cell, { ...opt, initial: true });
-    }
-
-    onCellRemove(cell, opt) {
-        const layerId = this._getLayerId(cell);
-
-        if (this.hasCellLayer(layerId)) {
-            const layer = this.getCellLayer(layerId);
-            layer.remove(cell, opt);
-        }
     }
 
     onCellChange(cell, opt) {
@@ -137,17 +106,6 @@ export class CellLayersController extends Listener {
         layer.add(cell, opt);
     }
 
-    onGraphReset(cellsCollection, opt = {}) {
-        // do not request insertion with `initial: true` option
-        this.resetLayersCollections(cellsCollection.models, { ...opt, initial: true });
-    }
-
-    onCellLayerRemove(cellLayer, opt) {
-        cellLayer.cells.toArray().forEach(cell => {
-            cell.remove(opt);
-        });
-    }
-
     resetLayersCollections(cells, opt = {}) {
         const { collection } = this;
 
@@ -160,14 +118,6 @@ export class CellLayersController extends Listener {
             const cell = cells[i];
             const layerId = this._getLayerId(cell);
             layersMap[layerId].push(cell);
-        }
-
-        // optimization for the case when there is only one layer
-        // we pass references map to avoid setting map on the layer
-        if (collection.length === 1) {
-            const onlyLayer = collection.at(0);
-            onlyLayer.reset(layersMap[onlyLayer.id], { ...opt, references: new Map(this.graph.cellCollection._byId) });
-            return;
         }
 
         collection.each(layer => {
@@ -306,6 +256,18 @@ export class CellLayersController extends Listener {
         return this.collection.toArray();
     }
 
+    getCell(id) {
+        for (let i = 0; i < this.collection.length; i++) {
+            const cellLayer = this.collection.at(i);
+            const cell = cellLayer.cells.get(id);
+            if (cell) {
+                return cell;
+            }
+        }
+        // backward compatibility: return undefined if cell is not found
+        return undefined;
+    }
+
     getCells() {
         let cells = [];
 
@@ -316,9 +278,34 @@ export class CellLayersController extends Listener {
         return cells;
     }
 
+    addCell(cell, opt = {}) {
+        const layerId = this._getLayerId(cell);
+        const layer = this.getCellLayer(layerId);
+
+        // add to the layer without triggering rendering update
+        // when the cell is just added to the graph, it will be rendered normally by the paper
+        layer.add(cell, { ...opt, initial: true });
+    }
+
+    resetCells(cells = [], opt = {}) {
+        // do not request insertion with `initial: true` option
+        this.resetLayersCollections(cells, { ...opt, initial: true });
+
+        // Trigger a `reset` event on the graph.
+        // Use default cell layer collection as backward compatible option.
+        // Whe should remove this options from the event in the future.
+        // We are doing it here to ensure that `reset` event is triggered
+        // and Paper will insert cells accordingly in its event listener.
+        this.graph.trigger('reset', this.collection.get(this.defaultCellLayerId).cells, opt);
+    }
+
     _getLayerId(cell) {
         // we don't use cell.layer() here because when the graph reference is not set on the cell
         // cell.layer() would return null
-        return cell.get(config.layerAttribute) || this.defaultCellLayerId;
+        if (cell[CELL_MARKER]) {
+            return cell.get(config.layerAttribute) || this.defaultCellLayerId;
+        }
+
+        return cell[config.layerAttribute] || this.defaultCellLayerId;
     }
 }

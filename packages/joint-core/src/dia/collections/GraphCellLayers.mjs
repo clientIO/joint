@@ -1,5 +1,7 @@
 import { Collection } from '../../mvc/index.mjs';
 import { CELL_LAYER_MARKER, CellLayer } from '../groups/CellLayer.mjs';
+import { CELL_LAYER_COLLECTION_MARKER } from './CellLayerCollection.mjs';
+import { CELL_MARKER } from '../Cell.mjs';
 import * as util from '../../util/index.mjs';
 
 /**
@@ -12,11 +14,21 @@ export const GraphCellLayers = Collection.extend({
         CellLayer: CellLayer
     },
 
-    initialize: function(models, opt = {}) {
-
-        // Set the optional namespace where all model classes are defined.
+    initialize: function(_models, opt = {}) {
+        // Set the namespace where all cell layer classes are defined.
         const cellLayerNamespace = opt.cellLayerNamespace || {};
         this.cellLayerNamespace = util.defaultsDeep({}, cellLayerNamespace, this.defaultCellLayerNamespace);
+
+        // Set the namespace where all cell classes are defined.
+        if (opt.cellNamespace) {
+            this.cellNamespace = opt.cellNamespace;
+        } else {
+            /* eslint-disable no-undef */
+            this.cellNamespace = typeof joint !== 'undefined' && util.has(joint, 'shapes') ? joint.shapes : null;
+            /* eslint-enable no-undef */
+        }
+
+        this.graph = opt.graph;
     },
 
     model: function(attrs, opt) {
@@ -34,38 +46,78 @@ export const GraphCellLayers = Collection.extend({
         return new CellLayerClass(attrs, opt);
     },
 
-    _prepareModel: function(attrs) {
+    _prepareModel: function(attrs, options) {
         if (!attrs[CELL_LAYER_MARKER]) {
-            let attributes;
+            const preparedAttributes = util.clone(attrs);
+            const preparedOptions = util.clone(options);
 
-            attributes = util.clone(attrs);
-            if (!attributes.type) {
-                attributes.type = 'CellLayer';
-                arguments[0] = attributes;
+            if (!preparedAttributes.type) {
+                preparedAttributes.type = 'CellLayer';
             }
+
+            preparedOptions.graph = this.graph;
+            preparedOptions.cellNamespace = this.cellNamespace;
+
+            return Collection.prototype._prepareModel.call(this, preparedAttributes, preparedOptions);
         }
+
+        attrs.cells.graph = this.graph;
+        attrs.cells.cellNamespace = this.cellNamespace;
 
         return Collection.prototype._prepareModel.apply(this, arguments);
     },
 
     // Do not propagate inner cell layer collection events.
     // Allow only for cell layer model events.
-    _onModelEvent(event, model) {
-        if (!model || !model[CELL_LAYER_MARKER])
+    _onModelEvent(_eventName, entity) {
+        if (!entity) return;
+
+        if (entity[CELL_LAYER_MARKER]) {
+            this._onCellLayerEvent.apply(this, arguments);
+            return;
+        }
+
+        if (entity[CELL_MARKER]) {
+            this._onCellEvent.apply(this, arguments);
+            return;
+        }
+
+        if (entity[CELL_LAYER_COLLECTION_MARKER]) {
+            this._onCellLayerCollectionEvent.apply(this, arguments);
+            return;
+        }
+    },
+
+    _onCellLayerEvent(eventName, layer) {
+        if ((eventName === layer.eventPrefix + 'add' || eventName === layer.eventPrefix + 'remove') && layer.collection !== this)
             return;
 
-        if ((event === model.eventPrefix + 'add' || event === model.eventPrefix + 'remove') && model.collection !== this)
-            return;
-
-        if (event === 'changeId') {
-            var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
-            var id = this.modelId(model.attributes, model.idAttribute);
+        if (eventName === 'changeId') {
+            var prevId = this.modelId(layer.previousAttributes(), layer.idAttribute);
+            var id = this.modelId(layer.attributes, layer.idAttribute);
             if (prevId != null) this._byId.delete(prevId);
-            if (id != null) this._byId.set(id, model);
+            if (id != null) this._byId.set(id, layer);
         }
 
         // remove the event prefix from cell layer model events
-        arguments[0] = arguments[0].slice(model.eventPrefix.length);
+        // and re-trigger them on the collection with `layers:` prefix
+
+        arguments[0] = 'layer:' + arguments[0].slice(layer.eventPrefix.length);
+
+        this.trigger.apply(this, arguments);
+    },
+
+    _onCellEvent() {
+        // retrigger cell events with `cell:` prefix
+        arguments[0] = 'cell:' + arguments[0];
+
+        this.trigger.apply(this, arguments);
+    },
+
+    _onCellLayerCollectionEvent() {
+        // retrigger cell layer collection events with `layer:` prefix
+        arguments[0] = 'layer:' + arguments[0];
+
         this.trigger.apply(this, arguments);
     }
 });

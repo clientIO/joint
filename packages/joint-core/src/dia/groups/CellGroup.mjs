@@ -1,24 +1,5 @@
 import { Model, Collection } from '../../mvc/index.mjs';
-
-/**
- * @class CellGroupCollection
- * @description A CellGroupCollection is a collection of cells used in CellGroup.
- */
-export class CellGroupCollection extends Collection {
-
-    _prepareModel(attrs, _options) {
-        if (this._isModel(attrs)) {
-            // Do not change collection attribute of a cell model;
-            // make sure that the cell will get the collection assigned
-            // when it is added to the graph collection.
-            // This makes sure that when the cell is removed or added
-            // to the collection, events on dia.Graph will be triggered properly.
-            return attrs;
-        } else {
-            throw new Error('CellGroupCollection only accepts Cell instances.');
-        }
-    }
-}
+import { CellGroupCollection } from '../collections/CellGroupCollection.mjs';
 
 /**
  * @class CellGroup
@@ -40,13 +21,22 @@ export class CellGroup extends Model {
         this.eventPrefix = 'self:';
     }
 
-    initialize(attrs) {
+    initialize(attrs, options) {
         super.initialize(attrs);
 
-        this.cells = new this.collectionConstructor();
+        const collectionOptions = this.getCollectionOptions(attrs, options);
+
+        this.cells = new this.collectionConstructor([], collectionOptions);
 
         // Make all the events fired in the `cells` collection available.
         this.cells.on('all', this.trigger, this);
+    }
+
+    /**
+     * @protected
+     */
+    getCollectionOptions(_attrs, _options) {
+        return {}
     }
 
     add(cell, opt) {

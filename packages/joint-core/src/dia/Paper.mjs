@@ -176,7 +176,7 @@ export const Paper = View.extend({
         // }
         defaultLink: function() {
             // Do not create hard dependency on the joint.shapes.standard namespace (by importing the standard.Link model directly)
-            const { cellNamespace } = this.model.cellCollection;
+            const { cellNamespace } = this.model.cellLayerCollection;
             const ctor = getByPath(cellNamespace, ['standard', 'Link']);
             if (!ctor) throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
             return new ctor();
@@ -488,8 +488,8 @@ export const Paper = View.extend({
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
 
-        this.listenTo(model, 'layers:add', this.onCellLayerAdd)
-            .listenTo(model, 'layers:remove', this.onCellLayerRemove)
+        this.listenTo(model, 'layer:add', this.onCellLayerAdd)
+            .listenTo(model, 'layer:remove', this.onCellLayerRemove)
             .listenTo(model, 'layers:reset', this.onCellLayersReset)
             .listenTo(model, 'layers:sort', this.onCellLayersSort);
 

@@ -248,7 +248,12 @@ export const Cell = Model.extend({
             }
         }
 
-        this.trigger('remove', this, graph.cellCollection, opt);
+        // The collection is a cell layer collection in this case.
+        if (collection) {
+            collection.remove(this, opt);
+        }
+
+        //this.trigger('remove', this, graph.cellCollection, opt);
 
         graph.stopBatch('remove');
 
@@ -1024,4 +1029,13 @@ export const Cell = Model.extend({
         /* eslint-enable no-undef */
         return Cell;
     }
+});
+
+// Internal tag to identify this object as a cell view instance.
+// Used instead of `instanceof` for performance and cross-frame safety.
+
+export const CELL_MARKER = Symbol('joint.cellMarker');
+
+Object.defineProperty(Cell.prototype, CELL_MARKER, {
+    value: true,
 });
