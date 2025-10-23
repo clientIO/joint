@@ -351,7 +351,8 @@ export const Graph = Model.extend({
         // See `joint.dia.Cell.prototype.remove`
         currentCell.trigger('remove', currentCell, currentCell.collection, {
             ...opt,
-            clear: true
+            clear: true,
+            replace: true
         });
         // 2. Add the replacement cell
         this.addCell(newCellInit, {
