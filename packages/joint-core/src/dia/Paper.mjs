@@ -499,7 +499,7 @@ export const Paper = View.extend({
     },
 
     onCellAdded: function(cell, _, opt) {
-        // insert only on initial adding
+        // insert only on initial adding omitting moves between layers
         if (!opt.initial) return;
 
         var position = opt.position;
