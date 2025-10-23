@@ -248,7 +248,18 @@ export const Cell = Model.extend({
             }
         }
 
-        this.trigger('remove', this, this.collection, opt);
+        // remove from the collection in the current graph.
+        // in the rare cases when the collection of the cell is not belonging to the current graph layer
+        // we need to remove from the correspondent layer in current cell's graph,
+        // see "graph: dry flag" test
+        if (this.graph === this.collection.graph) {
+            this.trigger('remove', this, this.collection, opt);
+        } else {
+            const layerId = this.layer();
+            if (graph.hasCellLayer(layerId)) {
+                this.trigger('remove', this, graph.getCellLayer(layerId).cells, opt);
+            }
+        }
 
         graph.stopBatch('remove');
 
