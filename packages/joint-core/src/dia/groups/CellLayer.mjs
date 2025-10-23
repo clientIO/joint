@@ -97,11 +97,10 @@ export class CellLayer extends CellGroup {
         this.cells.on('change', this.onCellChange, this);
     }
 
-    onCellChange(cell, _opt) {
-        if (!cell.hasChanged('z'))
-            return;
-
-        this.cells.sort();
+    onCellChange(cell, opt) {
+        if (cell.hasChanged('z') && opt.sort !== false) {
+            this.cells.sort();
+        }
     }
 
     minZIndex() {

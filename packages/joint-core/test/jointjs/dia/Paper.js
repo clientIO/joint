@@ -1137,6 +1137,28 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.ok(onViewUpdateSpy.calledWithExactly(linkView2, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
                             onViewUpdateSpy.restore();
                         });
+
+                        QUnit.test('replace cell', function(assert) {
+                            const rect1 = new joint.shapes.standard.Rectangle();
+                            const rect2 = new joint.shapes.standard.Rectangle();
+                            const link = new joint.shapes.standard.Link();
+                            link.source(rect1);
+                            link.target(rect2);
+                            graph.addCells([rect1, rect2, link]);
+                            const rect1View = rect1.findView(paper);
+                            const rect2View = rect2.findView(paper);
+                            const linkView = link.findView(paper);
+                            const onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
+                            const rect1Replacement = new joint.shapes.standard.Circle({ id: rect1.id });
+                            graph.syncCells([rect1Replacement], { test: true });
+                            const rect1ReplacementView = rect1Replacement.findView(paper);
+                            assert.equal(onViewUpdateSpy.callCount, 3);
+                            assert.ok(onViewUpdateSpy.calledWithExactly(rect1View, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(rect1ReplacementView, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            // The link view should be updated because one of its endpoints changed.
+                            assert.ok(onViewUpdateSpy.calledWithExactly(linkView, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            onViewUpdateSpy.restore();
+                        });
                     });
 
                     QUnit.module('onViewPostponed', function() {
