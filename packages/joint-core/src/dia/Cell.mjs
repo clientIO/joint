@@ -249,6 +249,7 @@ export const Cell = Model.extend({
         }
 
         // remove from the collection in the current graph.
+        // backward compatibility:
         // in the rare cases when the collection of the cell is not belonging to the current graph layer
         // we need to remove from the correspondent layer in current cell's graph,
         // see "graph: dry flag" test

@@ -27,6 +27,12 @@ export const Graph = Model.extend({
             // emit cell events without prefix
             if (eventName.startsWith('cell:')) {
                 arguments[0] = eventName.slice(5);
+                if (eventName === 'cell:add' || eventName === 'cell:remove') {
+                    const options = arguments[2] || {};
+                    // omit layer move events
+                    if (options.layerChange) return;
+                }
+
                 this.trigger.apply(this, arguments);
                 return;
             }
@@ -36,8 +42,6 @@ export const Graph = Model.extend({
                 // remove in favor of `layer:sort` after a few releases
                 if (eventName === 'layer:sort') {
                     this.trigger('sort', arguments[1], arguments[2]);
-                } else {
-                    this.trigger.apply(this, arguments);
                 }
                 return;
             }
@@ -340,6 +344,13 @@ export const Graph = Model.extend({
         }, this);
 
         this.cellLayersController.resetCells(preparedCells, opt);
+
+        // Trigger a `reset` event on the graph.
+        // Use default cell layer collection as backward compatible option.
+        // Whe should remove this options from the event in the future.
+        // We are doing it here to ensure that `reset` event is triggered
+        // and Paper will insert cells accordingly in its event listener.
+        this.trigger('reset', this.getDefaultCellLayer().cells, opt);
 
         this.stopBatch('reset', opt);
 
