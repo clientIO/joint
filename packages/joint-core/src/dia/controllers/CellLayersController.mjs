@@ -35,8 +35,41 @@ export class CellLayersController extends Listener {
             this.onCellLayersCollectionReset(collection, opt);
         });
 
+        this.listenTo(this.collection, 'remove', (cellLayer, opt = {}) => {
+            this.onCellLayerRemove(cellLayer, opt);
+        });
+
+        this.listenTo(this.collection, 'layer:reset', (collection, opt = {}) => {
+            this.onCellLayerReset(collection.layer, opt);
+        });
+
         this.listenTo(this.collection, 'cell:change', (cell, opt = {}) => {
             this.onCellChange(cell, opt);
+        });
+    }
+
+    onCellLayerRemove(cellLayer, opt) {
+        // remove all cells from removed cell layer
+        cellLayer.cells.toArray().forEach(cell => {
+            cell.remove(opt);
+        });
+    }
+
+    // On cell layer reset remove all previous cells from the graph
+    // and add new cells accordingly using `add` event.
+    // Adding like this omits graph._prepareCell method.
+    onCellLayerReset(cellLayer, opt) {
+        // on initial reset, all cells are added in bulk using graph `reset` event
+        if (opt.initial) return;
+
+        const previousCells = opt.previousModels || [];
+
+        previousCells.forEach(cell => {
+            cell.remove(opt);
+        });
+
+        cellLayer.cells.each(cell => {
+            cell.trigger('add', cell, cellLayer.cells, { ...opt, initial: true});
         });
     }
 
@@ -67,13 +100,23 @@ export class CellLayersController extends Listener {
         this.graph.stopBatch('reset-layers', opt);
     }
 
-    onCellLayersCollectionReset(_collection, opt) {
+    onCellLayersCollectionReset(collection, opt) {
         const previousCells = opt.previousCells || [];
+        const previousCellLayers = opt.previousModels;
+
+        // remove cells from the layers that have been removed
+        previousCellLayers.forEach(previousLayer => {
+            if (!collection.get(previousLayer.id)) {
+                this.onCellLayerRemove(previousLayer, opt);
+            }
+        });
 
         // do not add existing cells if we are resetting whole graph
         // this option is used during graph.fromJSON
         if (!opt.clean) {
-            this.resetLayersCollections(previousCells, opt);
+            // use silent option to avoid reinserting cells
+            // at this points they all are already in paper
+            this.resetLayersCollections(previousCells, { ...opt, silent: true });
         }
     }
 
@@ -117,7 +160,9 @@ export class CellLayersController extends Listener {
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
             const layerId = this._getLayerId(cell);
-            layersMap[layerId].push(cell);
+            if (collection.has(layerId)) {
+                layersMap[layerId].push(cell);
+            }
         }
 
         collection.each(layer => {
@@ -148,8 +193,8 @@ export class CellLayersController extends Listener {
             // move all cells that do not have explicit layer set to the new default layer
             previousDefaultLayer.cells.toArray().forEach(cell => {
                 if (cell.get(layerAttribute) == null) {
-                    previousDefaultLayer.remove(cell);
-                    newDefaultLayer.add(cell);
+                    previousDefaultLayer.remove(cell, { ...opt, layerChange: true });
+                    newDefaultLayer.add(cell, { ...opt, layerChange: true });
                 }
             });
         } else {

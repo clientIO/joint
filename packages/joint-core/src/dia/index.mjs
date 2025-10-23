@@ -17,3 +17,4 @@ export * from './groups/CellGroup.mjs';
 export * from './groups/CellLayer.mjs';
 export * from './collections/GraphCellLayers.mjs';
 export * from './collections/CellLayerCollection.mjs';
+export * from './collections/CellGroupCollection.mjs';

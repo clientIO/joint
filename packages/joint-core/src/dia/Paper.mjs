@@ -488,8 +488,8 @@ export const Paper = View.extend({
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
 
-        this.listenTo(model, 'layer:add', this.onCellLayerAdd)
-            .listenTo(model, 'layer:remove', this.onCellLayerRemove)
+        this.listenTo(model, 'layers:add', this.onCellLayerAdd)
+            .listenTo(model, 'layers:remove', this.onCellLayerRemove)
             .listenTo(model, 'layers:reset', this.onCellLayersReset)
             .listenTo(model, 'layers:sort', this.onCellLayersSort);
 
