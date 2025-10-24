@@ -11,7 +11,7 @@ export const CELL_GROUP_COLLECTION_MARKER = Symbol('joint.cellGroupCollectionMar
  */
 export class CellGroupCollection extends Collection {
 
-    CELL_GROUP_COLLECTION_MARKER = CELL_GROUP_COLLECTION_MARKER;
+    [CELL_GROUP_COLLECTION_MARKER] = true;
 
     // Method for checking whether an object should be considered a model for
     // the purposes of adding to the collection.

@@ -29,9 +29,18 @@ export const Graph = Model.extend({
             // emit cell events without prefix
             if (eventName.startsWith('cell:')) {
                 // skip 'cell:add' and 'cell:remove' events as they are handled on the graph level
-                if (eventName === 'cell:add' || eventName === 'cell:remove') {
+                if (eventName === 'cell:remove') {
                     return;
                 }
+
+                // removing 'cell:' prefix
+                if (eventName === 'cell:add') {
+                    const options = arguments[2];
+                    if (options && options.layerChange) {
+                        return;
+                    }
+                }
+
                 arguments[0] = eventName.slice(5);
                 this.trigger.apply(this, arguments);
                 return;

@@ -11,7 +11,7 @@ export const CELL_LAYER_COLLECTION_MARKER = Symbol('joint.cellLayerCollectionMar
  */
 export class CellLayerCollection extends CellGroupCollection {
 
-    CELL_LAYER_COLLECTION_MARKER = CELL_LAYER_COLLECTION_MARKER;
+    [CELL_LAYER_COLLECTION_MARKER] = true;
 
     initialize(_models, opt) {
         this.cellNamespace = opt.cellNamespace;

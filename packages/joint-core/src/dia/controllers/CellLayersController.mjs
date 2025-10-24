@@ -308,11 +308,7 @@ export class CellLayersController extends Listener {
         const layerId = this._getLayerId(cell);
         const layer = this.getCellLayer(layerId);
 
-        // add to the layer without triggering rendering update
-        // when the cell is just added to the graph, it will be rendered normally by the paper
-        const cellInstance = layer.add(cell, { ...opt, cellLayersController: this });
-
-        this.graph.trigger('add', cellInstance, layer.cells, opt);
+        layer.add(cell, { ...opt, cellLayersController: this });
     }
 
     resetCells(cells = [], opt = {}) {
