@@ -14,15 +14,15 @@ async function readFolder(location) {
             if (!file.ext && !exclude.includes(item)) {
 
                 let items1 = await readFolder(path.join(location, item));
-                res = res.concat(items1)
+                res = res.concat(items1);
             }
 
             if (file.ext === '.html') {
 
-                res.push(path.join(location, item))
+                res.push(path.join(location, item));
             }
         }
-        return res
+        return res;
     });
 }
 

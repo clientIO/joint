@@ -176,7 +176,7 @@ export const DirectedGraph = {
         if (util.isFunction(opt.customOrder)) {
             customOrder = (dagreGraph, order) => {
                 opt.customOrder(dagreGraph, graph, order);
-            }
+            };
         }
 
         // Executes the layout.

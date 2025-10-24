@@ -61,8 +61,8 @@ QUnit.module('DirectedGraph', function(hooks) {
         assert.equal(id, '1');
         ({ x, y } = elements[0].position());
         assert.deepEqual({ x, y }, { x: 50, y: 50 });
-        ({ width, height} = elements[0].size());
-        assert.deepEqual({ width, height }, {width: 100, height: 50 });
+        ({ width, height } = elements[0].size());
+        assert.deepEqual({ width, height }, { width: 100, height: 50 });
         (elementLabel = elements[0].attr('label/text'));
         assert.equal(elementLabel, 'A');
 
@@ -70,8 +70,8 @@ QUnit.module('DirectedGraph', function(hooks) {
         assert.equal(id, '2');
         ({ x, y } = elements[1].position());
         assert.deepEqual({ x, y }, { x: 50, y: 150 });
-        ({ width, height} = elements[1].size());
-        assert.deepEqual({ width, height }, {width: 100, height: 50 });
+        ({ width, height } = elements[1].size());
+        assert.deepEqual({ width, height }, { width: 100, height: 50 });
         (elementLabel = elements[1].attr('label/text'));
         assert.equal(elementLabel, 'B');
 
@@ -79,8 +79,8 @@ QUnit.module('DirectedGraph', function(hooks) {
         assert.equal(id, '3');
         ({ x, y } = elements[2].position());
         assert.deepEqual({ x, y }, { x: 50, y: 250 });
-        ({ width, height} = elements[2].size());
-        assert.deepEqual({ width, height }, {width: 100, height: 50 });
+        ({ width, height } = elements[2].size());
+        assert.deepEqual({ width, height }, { width: 100, height: 50 });
         (elementLabel = elements[2].attr('label/text'));
         assert.equal(elementLabel, 'C');
 
