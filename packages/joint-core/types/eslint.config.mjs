@@ -5,7 +5,6 @@ import js from '@eslint/js';
 
 export default defineConfig([
     {
-        ignores: ['**/node_modules', 'scripts', 'dist', 'build'],
         files: ['**/*.ts', '**/*.tsx'],
         extends: [
             js.configs.recommended,

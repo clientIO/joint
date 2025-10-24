@@ -1,4 +1,6 @@
 import { defineConfig } from 'eslint/config';
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 import js from '@eslint/js';
 import globals from 'globals';
 
@@ -9,10 +11,20 @@ export default defineConfig([
     },
     {
         // common rules for all checked files
-        extends: [js.configs.recommended],
+        files: ['**/*.js', '**/*.mjs', '**/*.ts', '**/*.mts'],
+        extends: [
+            js.configs.recommended,
+            'plugin:@typescript-eslint/recommended'
+        ],
+        plugins: {
+            "@typescript-eslint": typescriptEslint
+        },
         languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'module',
+            parser: tsParser,
+            parserOptions: {
+                ecmaVersion: 2022,
+                sourceType: 'module'
+            },
             globals: {
                 ...globals.browser,
                 ...globals.node,
@@ -30,14 +42,9 @@ export default defineConfig([
             'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
-            'no-prototype-builtins': ['off']
-        }
-    },
-    {
-        // support `import _ with { type: 'json' }` syntax
-        files: ['rollup.config.mjs'],
-        languageOptions: {
-            ecmaVersion: 2025
+            'no-prototype-builtins': ['off'],
+            'prefer-const': ['off'],
+            '@typescript-eslint/no-unused-vars': ['off']
         }
     },
     {
@@ -46,19 +53,7 @@ export default defineConfig([
         languageOptions: {
             globals: {
                 joint: 'readonly',
-                graphlib: 'readonly',
                 QUnit: 'readonly'
-            }
-        }
-    },
-    {
-        // extra globals
-        files: ['test/nodejs/nodejs.js'],
-        languageOptions: {
-            globals: {
-                describe: 'readonly',
-                it: 'readonly',
-                should: 'readonly'
             }
         }
     }

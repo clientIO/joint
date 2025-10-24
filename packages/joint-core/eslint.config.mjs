@@ -15,7 +15,9 @@ export default defineConfig([
             sourceType: 'module',
             globals: {
                 ...globals.browser,
-                ...globals.node
+                ...globals.node,
+                Uint8Array: 'readonly',
+                CDATASection: 'readonly'
             }
         },
         rules: {

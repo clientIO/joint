@@ -5,7 +5,7 @@ import globals from 'globals';
 export default defineConfig([
     {
         // globally ignored folders
-        ignores: ['coverage/', 'dist/']
+        ignores: ['**/node_modules/', '**/dist/', '**/build/']
     },
     {
         // common rules for all checked files
@@ -31,35 +31,6 @@ export default defineConfig([
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
             'no-prototype-builtins': ['off']
-        }
-    },
-    {
-        // support `import _ with { type: 'json' }` syntax
-        files: ['rollup.config.mjs'],
-        languageOptions: {
-            ecmaVersion: 2025
-        }
-    },
-    {
-        // extra globals
-        files: ['test/index.js'],
-        languageOptions: {
-            globals: {
-                joint: 'readonly',
-                graphlib: 'readonly',
-                QUnit: 'readonly'
-            }
-        }
-    },
-    {
-        // extra globals
-        files: ['test/nodejs/nodejs.js'],
-        languageOptions: {
-            globals: {
-                describe: 'readonly',
-                it: 'readonly',
-                should: 'readonly'
-            }
         }
     }
 ]);
