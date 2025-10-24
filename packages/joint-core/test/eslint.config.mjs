@@ -6,7 +6,7 @@ import globals from 'globals';
 
 export default defineConfig([
     {
-        ignores: ['**/node_modules', 'scripts', 'dist', 'build'],
+        // common rules for all checked files
         files: ['**/*.js', '**/*.mjs', '**/*.ts'],
         extends: [
             js.configs.recommended,

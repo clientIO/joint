@@ -36,7 +36,9 @@
     "prepack": "yarn run dist",
     "dist": "rollup --config",
     "build": "rollup --config",
-    "test": "mocha test/nodejs/nodejs.js && karma start karma.conf.js"
+    "test": "mocha test/nodejs/nodejs.js && karma start karma.conf.js",
+    "lint": "eslint . --ext .mjs,.js",
+    "lint-fix": "yarn run lint --fix"
   },
   "files": [
     "./DirectedGraph.d.ts",
@@ -52,8 +54,10 @@
     "@joint/core": "workspace:~"
   },
   "devDependencies": {
+    "@eslint/js": "9.23.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "9.23.0",
     "globals": "16.0.0",
     "karma": "^6.4.2",
     "karma-chrome-launcher": "^3.2.0",

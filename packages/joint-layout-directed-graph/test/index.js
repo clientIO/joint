@@ -294,7 +294,7 @@ QUnit.module('DirectedGraph', function(hooks) {
 
             bbox = DirectedGraph.layout(graph);
 
-            assert.ok(bbox instanceof g.Rect);
+            assert.ok(bbox instanceof joint.g.Rect);
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
 
             bbox = DirectedGraph.layout(graph, {

@@ -2322,7 +2322,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/eslintrc@npm:3.3.1, @eslint/eslintrc@npm:^3.2.0, @eslint/eslintrc@npm:^3.3.1":
+"@eslint/eslintrc@npm:^3.2.0, @eslint/eslintrc@npm:^3.3.1":
   version: 3.3.1
   resolution: "@eslint/eslintrc@npm:3.3.1"
   dependencies:
@@ -2733,7 +2733,6 @@ __metadata:
   dependencies:
     "@babel/core": "npm:7.26.10"
     "@babel/preset-env": "npm:7.26.9"
-    "@eslint/eslintrc": "npm:3.3.1"
     "@eslint/js": "npm:9.23.0"
     "@microsoft/api-extractor": "npm:7.52.10"
     "@rollup/plugin-babel": "npm:^6.0.4"
@@ -3069,9 +3068,11 @@ __metadata:
   dependencies:
     "@dagrejs/dagre": "npm:~1.1.4"
     "@dagrejs/graphlib": "npm:~2.2.4"
+    "@eslint/js": "npm:9.23.0"
     "@joint/core": "workspace:~"
     "@rollup/plugin-node-resolve": "npm:^15.2.3"
     "@rollup/plugin-terser": "npm:^0.4.4"
+    eslint: "npm:9.23.0"
     globals: "npm:16.0.0"
     karma: "npm:^6.4.2"
     karma-chrome-launcher: "npm:^3.2.0"

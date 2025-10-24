@@ -4,17 +4,17 @@ import globals from 'globals';
 
 export default defineConfig([
     {
-        ignores: ['**/node_modules', 'scripts', 'dist', 'build'],
-        files: ['**/*.js', '**/*.mjs'],
+        // globally ignored folders
+        ignores: ['coverage/', 'dist/']
+    },
+    {
+        // common rules for all files
         extends: [js.configs.recommended],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',
             globals: {
-                ...globals.browser,
-                ...globals.node,
-                Uint8Array: 'readonly',
-                CDATASection: 'readonly'
+                ...globals.node
             }
         },
         rules: {
@@ -28,6 +28,35 @@ export default defineConfig([
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
             'no-prototype-builtins': ['off']
+        }
+    },
+    {
+        // support `import _ with { type: 'json' }` syntax
+        files: ['rollup.config.mjs'],
+        languageOptions: {
+            ecmaVersion: 2025
+        }
+    },
+    {
+        // extra globals
+        files: ['test/index.js'],
+        languageOptions: {
+            globals: {
+                joint: 'readonly',
+                graphlib: 'readonly',
+                QUnit: 'readonly'
+            }
+        }
+    },
+    {
+        // extra globals
+        files: ['test/nodejs/nodejs.js'],
+        languageOptions: {
+            globals: {
+                describe: 'readonly',
+                it: 'readonly',
+                should: 'readonly'
+            }
         }
     }
 ]);

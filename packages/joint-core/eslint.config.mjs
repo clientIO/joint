@@ -4,17 +4,18 @@ import globals from 'globals';
 
 export default defineConfig([
     {
-        ignores: ['**/node_modules', 'scripts', 'dist', 'build'],
-        files: ['**/*.js', '**/*.mjs'],
+        // globally ignored folders
+        ignores: ['build/', 'dist/', 'scripts/']
+    },
+    {
+        // common rules for all checked files
         extends: [js.configs.recommended],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',
             globals: {
                 ...globals.browser,
-                ...globals.node,
-                Uint8Array: 'readonly',
-                CDATASection: 'readonly'
+                ...globals.node
             }
         },
         rules: {
