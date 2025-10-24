@@ -39,10 +39,6 @@ export class CellLayersController extends Listener {
             this.onCellLayerRemove(cellLayer, opt);
         });
 
-        this.listenTo(this.collection, 'layer:reset', (collection, opt = {}) => {
-            this.onCellLayerReset(collection.layer, opt);
-        });
-
         this.listenTo(this.collection, 'cell:change', (cell, opt = {}) => {
             this.onCellChange(cell, opt);
         });
@@ -52,24 +48,6 @@ export class CellLayersController extends Listener {
         // remove all cells from removed cell layer
         cellLayer.cells.toArray().forEach(cell => {
             cell.remove(opt);
-        });
-    }
-
-    // On cell layer reset remove all previous cells from the graph
-    // and add new cells accordingly using `add` event.
-    // Adding like this omits graph._prepareCell method.
-    onCellLayerReset(cellLayer, opt) {
-        // on initial reset, all cells are added in bulk using graph `reset` event
-        if (opt.initial) return;
-
-        const previousCells = opt.previousModels || [];
-
-        previousCells.forEach(cell => {
-            cell.remove(opt);
-        });
-
-        cellLayer.cells.each(cell => {
-            cell.trigger('add', cell, cellLayer.cells, { ...opt, initial: true});
         });
     }
 
@@ -94,39 +72,17 @@ export class CellLayersController extends Listener {
             this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, opt);
         }
 
-        const cells = this.getCells();
-        // save cells to reinsert them after the layers have been reset
-        this.collection.reset(cellLayers, { ...opt, previousCells: cells });
+        this.collection.reset(cellLayers, { ...opt, cellLayersController: this });
         this.graph.stopBatch('reset-layers', opt);
     }
 
     onCellLayersCollectionReset(collection, opt) {
-        const previousCells = opt.previousCells || [];
         const previousCellLayers = opt.previousModels;
 
         // remove cells from the layers that have been removed
         previousCellLayers.forEach(previousLayer => {
-            if (!collection.get(previousLayer.id)) {
-                this.onCellLayerRemove(previousLayer, opt);
-            }
+            this.onCellLayerRemove(previousLayer, opt);
         });
-
-        // do not add existing cells if we are resetting whole graph
-        // this option is used during graph.fromJSON
-        if (!opt.clean) {
-            // use silent option to avoid reinserting cells
-            // at this points they all are already in paper
-            this.resetLayersCollections(previousCells, { ...opt, silent: true });
-        }
-    }
-
-    onCellAdd(cell, opt) {
-        const layerId = this._getLayerId(cell);
-        const layer = this.getCellLayer(layerId);
-
-        // add to the layer without triggering rendering update
-        // when the cell is just added to the graph, it will be rendered normally by the paper
-        layer.add(cell, { ...opt, initial: true });
     }
 
     onCellChange(cell, opt) {
@@ -143,10 +99,18 @@ export class CellLayersController extends Listener {
         }
 
         const previousLayer = this.getCellLayer(previousLayerId);
-        previousLayer.remove(cell, { ...opt, layerChange: true });
+        previousLayer.remove(cell, {
+            ...opt,
+            cellLayersController: this,
+            layerChange: true
+        });
 
         const layer = this.getCellLayer(layerId);
-        layer.add(cell, { ...opt, layerChange: true });
+        layer.add(cell, {
+            ...opt,
+            cellLayersController: this,
+            layerChange: true
+        });
     }
 
     resetLayersCollections(cells, opt = {}) {
@@ -166,7 +130,7 @@ export class CellLayersController extends Listener {
         }
 
         collection.each(layer => {
-            layer.reset(layersMap[layer.id], opt);
+            layer.reset(layersMap[layer.id], { ...opt, cellLayersController: this });
         });
     }
 
@@ -193,8 +157,16 @@ export class CellLayersController extends Listener {
             // move all cells that do not have explicit layer set to the new default layer
             previousDefaultLayer.cells.toArray().forEach(cell => {
                 if (cell.get(layerAttribute) == null) {
-                    previousDefaultLayer.remove(cell, { ...opt, layerChange: true });
-                    newDefaultLayer.add(cell, { ...opt, layerChange: true });
+                    previousDefaultLayer.remove(cell, {
+                        ...opt,
+                        cellLayersController: this,
+                        layerChange: true
+                    });
+                    newDefaultLayer.add(cell, {
+                        ...opt,
+                        cellLayersController: this,
+                        layerChange: true
+                    });
                 }
             });
         } else {
@@ -222,7 +194,7 @@ export class CellLayersController extends Listener {
             }
 
             // remove the layer from its current position
-            this.collection.remove(id, { silent: true });
+            this.collection.remove(id, { silent: true, cellLayersController: this });
         }
 
         // array after removal
@@ -238,12 +210,19 @@ export class CellLayersController extends Listener {
         }
 
         if (currentIndex != null) {
-            this.collection.add(cellLayer, { at: insertAt, silent: true });
+            this.collection.add(cellLayer, {
+                at: insertAt,
+                cellLayersController: this,
+                silent: true
+            });
             // trigger sort event manually since we are not using collection sorting workflow
             this.collection.trigger('sort', this.collection);
         } else {
             // add to the collection with event when new layer has been added
-            this.collection.add(cellLayer, { at: insertAt });
+            this.collection.add(cellLayer, {
+                at: insertAt,
+                cellLayersController: this
+            });
         }
     }
 
@@ -260,7 +239,7 @@ export class CellLayersController extends Listener {
 
         this.graph.startBatch('remove-cell-layer');
 
-        collection.remove(layerId, opt);
+        collection.remove(layerId, { ...opt, cellLayersController: this });
 
         this.graph.stopBatch('remove-cell-layer');
     }
@@ -301,6 +280,8 @@ export class CellLayersController extends Listener {
         return this.collection.toArray();
     }
 
+    // returns undefined if cell is not found
+    // TODO: improve it in the future
     getCell(id) {
         for (let i = 0; i < this.collection.length; i++) {
             const cellLayer = this.collection.at(i);
@@ -329,19 +310,13 @@ export class CellLayersController extends Listener {
 
         // add to the layer without triggering rendering update
         // when the cell is just added to the graph, it will be rendered normally by the paper
-        layer.add(cell, { ...opt, initial: true });
+        const cellInstance = layer.add(cell, { ...opt, cellLayersController: this });
+
+        this.graph.trigger('add', cellInstance, layer.cells, opt);
     }
 
     resetCells(cells = [], opt = {}) {
-        // do not request insertion with `initial: true` option
-        this.resetLayersCollections(cells, { ...opt, initial: true });
-
-        // Trigger a `reset` event on the graph.
-        // Use default cell layer collection as backward compatible option.
-        // Whe should remove this options from the event in the future.
-        // We are doing it here to ensure that `reset` event is triggered
-        // and Paper will insert cells accordingly in its event listener.
-        this.graph.trigger('reset', this.collection.get(this.defaultCellLayerId).cells, opt);
+        this.resetLayersCollections(cells, opt);
     }
 
     _getLayerId(cell) {

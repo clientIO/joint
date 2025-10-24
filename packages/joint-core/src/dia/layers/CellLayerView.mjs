@@ -41,8 +41,6 @@ export const CellLayerView = LayerView.extend({
 
         this.listenTo(model, 'add', this.onCellAdd);
 
-        this.listenTo(model, 'reset', this.onCellLayerReset);
-
         this.listenTo(model, 'change', this.onCellChange);
 
         this.listenTo(graph, 'batch:stop', this.onGraphBatchStop);
@@ -56,16 +54,10 @@ export const CellLayerView = LayerView.extend({
         this.sort();
     },
 
-    onCellAdd(cell, _collection, opt) {
-        // do not insert cell view here, it will be done in the Paper
-        if (!opt.initial) {
+    onCellAdd(cell, _collection, opt = {}) {
+        // request insert on layer change
+        if (opt.layerChange) {
             this.requestCellViewInsertion(cell, opt);
-        }
-    },
-
-    onCellLayerReset(_collection, opt) {
-        if (!opt.initial) {
-            this.requestCellViewsInsertion(opt);
         }
     },
 

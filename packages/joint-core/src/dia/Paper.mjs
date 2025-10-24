@@ -499,9 +499,6 @@ export const Paper = View.extend({
     },
 
     onCellAdded: function(cell, _, opt) {
-        // insert only on initial adding omitting moves between layers
-        if (!opt.initial) return;
-
         var position = opt.position;
         if (this.isAsync() || !isNumber(position)) {
             this.renderView(cell, opt);
@@ -513,9 +510,6 @@ export const Paper = View.extend({
     },
 
     onCellRemoved: function(cell, _, opt) {
-        // do not remove when the cell is moved to another layer
-        if (opt.layerChange) return;
-
         const viewLike = this._getCellViewLike(cell);
         if (!viewLike) return;
         if (viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) {

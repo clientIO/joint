@@ -317,18 +317,6 @@ QUnit.module('layers-basic', function(hooks) {
             { id: 'layer1' }
         ]);
 
-        let updatedCellLayers = this.graph.getCellLayers();
-        assert.strictEqual(updatedCellLayers.length, 1, 'There is 1 layer in the graph');
-        assert.strictEqual(updatedCellLayers[0].id, 'layer1', 'The only layer is "layer1"');
-        assert.equal(this.graph.getCells().length, 1, 'There is 1 cell in the graph');
-
-        assert.equal(this.paper.el.querySelectorAll('.joint-cell-layer').length, 1, 'There is 1 layer view in the paper');
-        assert.equal(this.paper.el.querySelectorAll('.joint-cell-layer [model-id="rect1"]').length, 1, 'The rect1 view is in the layer view');
-        assert.equal(this.paper.el.querySelectorAll('.joint-cell-layer [model-id="rect2"]').length, 0, 'The is no rect2 view in the layer view');
-
-
-        this.graph.resetCellLayers([{ id: 'layer1' }], { clean: true });
-
         updatedCellLayers = this.graph.getCellLayers();
 
         assert.strictEqual(updatedCellLayers.length, 1, 'There is 1 layer in the graph');

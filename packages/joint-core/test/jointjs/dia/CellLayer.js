@@ -19,7 +19,7 @@ QUnit.module('CellLayer', function(hooks) {
         const rect2 = new joint.shapes.standard.Rectangle({ z: 1 });
         const rect3 = new joint.shapes.standard.Rectangle({ z: 3 });
 
-        layer.add([rect1, rect2, rect3]);
+        layer.add([rect1, rect2, rect3], { cellLayersController: true });
 
         assert.equal(layer.cells.at(0), rect2, 'the first cell is the one with the lowest z-index');
         assert.equal(layer.cells.at(1), rect3, 'the second cell is the one with the middle z-index');
@@ -53,7 +53,7 @@ QUnit.module('CellLayer', function(hooks) {
         const rect2 = new joint.shapes.standard.Rectangle({ z: 1 });
         const rect3 = new joint.shapes.standard.Rectangle({ z: 3 });
 
-        layer.add([rect1, rect2, rect3]);
+        layer.add([rect1, rect2, rect3], { cellLayersController: true });
 
         assert.equal(layer.minZIndex(), 1, 'minZIndex is correct');
         assert.equal(layer.maxZIndex(), 5, 'maxZIndex is correct');

@@ -3,6 +3,7 @@ import { CELL_LAYER_MARKER, CellLayer } from '../groups/CellLayer.mjs';
 import { CELL_LAYER_COLLECTION_MARKER } from './CellLayerCollection.mjs';
 import { CELL_MARKER } from '../Cell.mjs';
 import * as util from '../../util/index.mjs';
+import { remove } from '../../mvc/Dom/methods.mjs';
 
 /**
  * @class GraphCellLayers
@@ -116,5 +117,29 @@ export const GraphCellLayers = Collection.extend({
         arguments[0] = 'layer:' + arguments[0];
 
         this.trigger.apply(this, arguments);
+    },
+
+    reset(models = [], options = {}) {
+        if (models.length && !options.cellLayersController) {
+            throw new Error('dia.GraphCellLayers: resetting collection directly is not supported, use graph.resetCellLayers() method instead.');
+        }
+        return Collection.prototype.reset.call(this, models, options);
+    },
+
+    add(models, options = {}) {
+        if (!options.cellLayersController) {
+            // do not throw exception on empty adds
+            if ((Array.isArray(models) && models.length) && models) {
+                throw new Error('dia.GraphCellLayers: adding cell layers directly to the collection is not supported, use graph.addCellLayer() method instead.');
+            }
+        }
+        return Collection.prototype.add.call(this, models, options);
+    },
+
+    remove(models, options = {}) {
+        if (!options.cellLayersController) {
+            throw new Error('dia.GraphCellLayers: removing cell layers directly from the collection is not supported, use graph.removeCellLayer() method instead.');
+        }
+        return Collection.prototype.remove.call(this, models, options);
     }
 });

@@ -2,12 +2,16 @@ import { Collection } from '../../mvc/Collection.mjs';
 import * as util from '../../util/util.mjs';
 import { CELL_MARKER } from '../Cell.mjs';
 
+export const CELL_GROUP_COLLECTION_MARKER = Symbol('joint.cellGroupCollectionMarker');
+
 /**
  * @class CellGroupCollection
  * @description A CellGroupCollection is a collection of cells used in CellGroup.
  * Supports fast reset functionality.
  */
 export class CellGroupCollection extends Collection {
+
+    CELL_GROUP_COLLECTION_MARKER = CELL_GROUP_COLLECTION_MARKER;
 
     // Method for checking whether an object should be considered a model for
     // the purposes of adding to the collection.
@@ -63,9 +67,3 @@ export class CellGroupCollection extends Collection {
         return this.models;
     }
 }
-
-export const CELL_GROUP_COLLECTION_MARKER = Symbol('joint.cellGroupCollectionMarker');
-
-Object.defineProperty(CellGroupCollection.prototype, CELL_GROUP_COLLECTION_MARKER, {
-    value: true,
-});

@@ -1,6 +1,8 @@
 import { CellGroupCollection } from './CellGroupCollection.mjs';
 import * as util from '../../util/index.mjs';
 
+export const CELL_LAYER_COLLECTION_MARKER = Symbol('joint.cellLayerCollectionMarker');
+
 /**
  * @class CellLayerCollection
  * @description A CellLayerCollection is a collection of cells which supports sorting by z attribute.
@@ -8,6 +10,8 @@ import * as util from '../../util/index.mjs';
  * and stores a reference to the graph when the cell model has been added.
  */
 export class CellLayerCollection extends CellGroupCollection {
+
+    CELL_LAYER_COLLECTION_MARKER = CELL_LAYER_COLLECTION_MARKER;
 
     initialize(_models, opt) {
         this.cellNamespace = opt.cellNamespace;
@@ -66,9 +70,3 @@ export class CellLayerCollection extends CellGroupCollection {
         return model.get('z') || 0;
     }
 }
-
-export const CELL_LAYER_COLLECTION_MARKER = Symbol('joint.cellLayerCollectionMarker');
-
-Object.defineProperty(CellLayerCollection.prototype, CELL_LAYER_COLLECTION_MARKER, {
-    value: true,
-});

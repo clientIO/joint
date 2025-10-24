@@ -40,7 +40,7 @@ export class CellGroup extends Model {
     }
 
     add(cell, opt) {
-        this.cells.add(cell, opt);
+        return this.cells.add(cell, opt);
     }
 
     remove(cell, opt) {
@@ -48,7 +48,7 @@ export class CellGroup extends Model {
     }
 
     reset(cells = [], opt) {
-        this.cells.reset(cells, opt);
+        return this.cells.reset(cells, opt);
     }
 }
 

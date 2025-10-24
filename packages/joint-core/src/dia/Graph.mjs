@@ -7,6 +7,7 @@ import { cloneCells } from '../util/index.mjs';
 import { CellLayersController } from './controllers/CellLayersController.mjs';
 import { GraphCellLayers } from './collections/GraphCellLayers.mjs';
 import { config } from '../config/index.mjs';
+import { CELL_MARKER } from './Cell.mjs';
 
 export const Graph = Model.extend({
 
@@ -19,26 +20,25 @@ export const Graph = Model.extend({
             cellNamespace: opt.cellNamespace,
             /** @deprecated use cellNamespace instead */
             model: opt.cellModel,
-            graph: this
+            graph: this,
+            cellLayersController: true
         });
 
         // retrigger events from the cellLayerCollection
         cellLayerCollection.on('all', function(eventName) {
             // emit cell events without prefix
             if (eventName.startsWith('cell:')) {
-                arguments[0] = eventName.slice(5);
+                // skip 'cell:add' and 'cell:remove' events as they are handled on the graph level
                 if (eventName === 'cell:add' || eventName === 'cell:remove') {
-                    const options = arguments[2] || {};
-                    // omit layer move events
-                    if (options.layerChange) return;
+                    return;
                 }
-
+                arguments[0] = eventName.slice(5);
                 this.trigger.apply(this, arguments);
                 return;
             }
 
             if (eventName.startsWith('layer:')) {
-                // backward compatibility for old `sort` event
+                // backwards compatibility for old `sort` event
                 // remove in favor of `layer:sort` after a few releases
                 if (eventName === 'layer:sort') {
                     this.trigger('sort', arguments[1], arguments[2]);
@@ -53,7 +53,7 @@ export const Graph = Model.extend({
 
         this.cellLayersController = new CellLayersController({ graph: this });
 
-        // For backward compatibility, we keep legacy 'cells' cell collection in attributes.
+        // For backwards compatibility, we keep legacy 'cells' cell collection in attributes.
         // This only makes sense as long as user use default layers setup.
         this.attributes.cells = this.getCellLayer('cells').cells;
 
@@ -82,13 +82,12 @@ export const Graph = Model.extend({
         this._batches = {};
 
         this.on('reset', this._restructureOnReset, this);
+        this.on('add', this._restructureOnAdd, this);
+        this.on('remove', this._restructureOnRemove, this);
+        this.on('remove', this._removeCell, this);
 
-        cellLayerCollection.on('layer:reset', this._onCellLayerReset, this);
-        cellLayerCollection.on('cell:add', this._restructureOnAdd, this);
-        cellLayerCollection.on('cell:remove', this._restructureOnRemove, this);
         cellLayerCollection.on('cell:change:source', this._restructureOnChangeSource, this);
         cellLayerCollection.on('cell:change:target', this._restructureOnChangeTarget, this);
-        cellLayerCollection.on('cell:remove', this._removeCell, this);
     },
 
     _restructureOnAdd: function(cell) {
@@ -162,18 +161,6 @@ export const Graph = Model.extend({
         }
     },
 
-    _onCellLayerReset: function(collection, options) {
-        // don't do anything if it is after `resetCells` call
-        if (options.initial) return;
-
-        options.previousModels.forEach((cell) => {
-            this._restructureOnRemove(cell);
-            this._removeCell(cell, collection, options);
-        });
-
-        collection.models.forEach(this._restructureOnAdd, this);
-    },
-
     // Return all outbound edges for the node. Return value is an object
     // of the form: [edgeId] -> true
     getOutboundEdges: function(node) {
@@ -197,7 +184,7 @@ export const Graph = Model.extend({
         const cells = this.getCells();
         json.cells = cells.map(model => model.toJSON(opt.cellAttributes));
 
-        // backward compatibility: do not export default layers setup
+        // backwards compatibility: do not export default layers setup
         if (this.cellLayerCollection.length === 1 && this.cellLayerCollection.at(0).get('__legacy') === true) {
             return json;
         }
@@ -219,7 +206,7 @@ export const Graph = Model.extend({
         }
 
         if (cellLayers) {
-            this.resetCellLayers(cellLayers, { ...opt, defaultCellLayer, clean: true });
+            this.resetCellLayers(cellLayers, { ...opt, defaultCellLayer });
         }
 
         if (cells) {
@@ -263,7 +250,7 @@ export const Graph = Model.extend({
     _prepareCell: function(cell, opt = {}) {
         let attrs;
 
-        if (cell instanceof Model) {
+        if (cell[CELL_MARKER]) {
             attrs = cell.attributes;
         } else {
             attrs = cell;
@@ -282,7 +269,7 @@ export const Graph = Model.extend({
             const layerId = attrs[layerAttribute] || this.cellLayersController.defaultCellLayerId;
             const layer = this.cellLayersController.getCellLayer(layerId);
 
-            if (cell instanceof Model) {
+            if (cell[CELL_MARKER]) {
                 if (!cell.has('z')) {
                     cell.set('z', layer.maxZIndex() + 1);
                 }
@@ -339,14 +326,14 @@ export const Graph = Model.extend({
         this.startBatch('reset', opt);
 
         const preparedCells = util.toArray(cells).map(function(cell) {
-            // do not ensure z-index on reset for backward compatibility
+            // do not ensure z-index on reset for backwards compatibility
             return this._prepareCell(cell, { ...opt, ensureZIndex: false });
         }, this);
 
         this.cellLayersController.resetCells(preparedCells, opt);
 
         // Trigger a `reset` event on the graph.
-        // Use default cell layer collection as backward compatible option.
+        // Use default cell layer collection as a backwards compatible option.
         // Whe should remove this options from the event in the future.
         // We are doing it here to ensure that `reset` event is triggered
         // and Paper will insert cells accordingly in its event listener.
@@ -377,8 +364,6 @@ export const Graph = Model.extend({
     _removeCell: function(cell, collection, options) {
         options = options || {};
 
-        if (options.layerChange) return;
-
         if (!options.clear) {
             // Applications might provide a `disconnectLinks` option set to `true` in order to
             // disconnect links when a cell is removed rather then removing them. The default
@@ -392,11 +377,8 @@ export const Graph = Model.extend({
             }
         }
 
-        // Silently remove the cell from the cells collection. Silently, because
-        // `joint.dia.Cell.prototype.remove` already triggers the `remove` event which is
-        // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
-        // would be triggered on the graph model.
-        collection.remove(cell, { silent: true });
+        // remove the cell from the cell layer
+        collection.layer.remove(cell, { ...options, cellLayersController: this.cellLayersController });
     },
 
     transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {

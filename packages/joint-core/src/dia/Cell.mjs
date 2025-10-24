@@ -254,11 +254,11 @@ export const Cell = Model.extend({
         // we need to remove from the correspondent layer in current cell's graph,
         // see "graph: dry flag" test
         if (this.graph === this.collection.graph) {
-            this.trigger('remove', this, this.collection, opt);
+            this.graph.trigger('remove', this, this.collection, opt);
         } else {
             const layerId = this.layer();
             if (graph.hasCellLayer(layerId)) {
-                this.trigger('remove', this, graph.getCellLayer(layerId).cells, opt);
+                this.graph.trigger('remove', this, graph.getCellLayer(layerId).cells, opt);
             }
         }
 
