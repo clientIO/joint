@@ -1,4 +1,4 @@
-import { Model, Collection } from '../../mvc/index.mjs';
+import { Model } from '../../mvc/index.mjs';
 import { CellGroupCollection } from '../collections/CellGroupCollection.mjs';
 
 /**
@@ -34,9 +34,10 @@ export class CellGroup extends Model {
 
     /**
      * @protected
+     * Returns the options to be passed to the inner `cells` collection constructor.
      */
     getCollectionOptions(_attrs, _options) {
-        return {}
+        return {};
     }
 
     add(cell, opt) {
