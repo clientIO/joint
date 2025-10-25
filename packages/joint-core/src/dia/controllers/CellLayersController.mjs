@@ -10,6 +10,8 @@ const DEFAULT_CELL_LAYER_ID = 'cells';
  */
 export class CellLayersController extends Listener {
 
+    legacyMode = true;
+
     constructor(context) {
         super(context);
 
@@ -23,8 +25,12 @@ export class CellLayersController extends Listener {
         // Default setup
         this.addCellLayer({
             id: DEFAULT_CELL_LAYER_ID,
-            __legacy: true
         });
+
+        // By default, we are in legacy mode
+        // Any new layers added will disable legacy mode
+        this.legacyMode = true;
+
         this.defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
 
         this.startListening();
@@ -45,7 +51,7 @@ export class CellLayersController extends Listener {
     }
 
     onCellLayerRemove(cellLayer, opt) {
-        // remove all cells from removed cell layer
+        // Remove all cells from the removed layer
         cellLayer.cells.toArray().forEach(cell => {
             cell.remove(opt);
         });
@@ -55,6 +61,8 @@ export class CellLayersController extends Listener {
         if (!Array.isArray(cellLayers) || cellLayers.length === 0) {
             throw new Error('dia.Graph: At least one cell layer must be defined.');
         }
+
+        this.legacyMode = false;
 
         let defaultCellLayerId = opt.defaultCellLayer;
 
@@ -79,7 +87,7 @@ export class CellLayersController extends Listener {
     onCellLayersCollectionReset(collection, opt) {
         const previousCellLayers = opt.previousModels;
 
-        // remove cells from the layers that have been removed
+        // Remove cells from the layers that have been removed
         previousCellLayers.forEach(previousLayer => {
             this.onCellLayerRemove(previousLayer, opt);
         });
@@ -184,6 +192,8 @@ export class CellLayersController extends Listener {
             return;
         }
 
+        this.legacyMode = false;
+
         const originalLayersArray = this.getCellLayers();
 
         let currentIndex = null;
@@ -193,11 +203,11 @@ export class CellLayersController extends Listener {
                 return; // already at the end
             }
 
-            // remove the layer from its current position
+            // Remove the layer from its current position
             this.collection.remove(id, { silent: true, cellLayersController: this });
         }
 
-        // array after removal
+        // The cell layers array after removing the layer (if it existed)
         const layersArray = this.getCellLayers();
         let insertAt;
         if (!insertBefore) {
@@ -215,10 +225,12 @@ export class CellLayersController extends Listener {
                 cellLayersController: this,
                 silent: true
             });
-            // trigger sort event manually since we are not using collection sorting workflow
+            // Trigger `sort` event manually
+            // since we are not using collection sorting workflow
             this.collection.trigger('sort', this.collection);
         } else {
-            // add to the collection with event when new layer has been added
+            // Add to the collection and trigger an event
+            // when new layer has been added
             this.collection.add(cellLayer, {
                 at: insertAt,
                 cellLayersController: this
@@ -280,9 +292,8 @@ export class CellLayersController extends Listener {
         return this.collection.toArray();
     }
 
-    // returns undefined if cell is not found
-    // TODO: improve it in the future
     getCell(id) {
+        // TODO: should we create a map of cells for faster lookup?
         for (let i = 0; i < this.collection.length; i++) {
             const cellLayer = this.collection.at(i);
             const cell = cellLayer.cells.get(id);
@@ -290,7 +301,7 @@ export class CellLayersController extends Listener {
                 return cell;
             }
         }
-        // backward compatibility: return undefined if cell is not found
+        // Backward compatibility: return undefined if cell is not found
         return undefined;
     }
 

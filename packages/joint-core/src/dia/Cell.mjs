@@ -248,18 +248,25 @@ export const Cell = Model.extend({
             }
         }
 
-        // remove from the collection in the current graph.
-        // backward compatibility:
-        // in the rare cases when the collection of the cell is not belonging to the current graph layer
-        // we need to remove from the correspondent layer in current cell's graph,
-        // see "graph: dry flag" test
-        if (this.graph === this.collection.graph) {
-            this.graph.trigger('remove', this, this.collection, opt);
+        // Remove from the collection in the current graph.
+
+        let ownerCollection;
+        if (graph === collection.graph) {
+            ownerCollection = collection;
         } else {
+            // backward compatibility:
+            // In the rare cases when the collection of the cell is not belonging
+            // to the current graph layer we need to remove it
+            // from the correspondent layer in current cell's graph,
+            // See "graph: dry flag" test.
             const layerId = this.layer();
             if (graph.hasCellLayer(layerId)) {
-                this.graph.trigger('remove', this, graph.getCellLayer(layerId).cells, opt);
+                ownerCollection = graph.getCellLayer(layerId).cells;
             }
+        }
+
+        if (ownerCollection) {
+            graph.trigger('remove', this, ownerCollection, opt);
         }
 
         graph.stopBatch('remove');
