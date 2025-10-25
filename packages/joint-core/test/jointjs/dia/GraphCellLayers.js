@@ -13,11 +13,11 @@ QUnit.module('GraphCellLayers', function(hooks) {
             events.push(eventName);
         });
 
-        const layer1 = collection.add({ id: 'layer1' });
+        const layer1 = collection.add({ id: 'layer1' }, { cellLayersController: true});
         assert.ok(layer1 instanceof joint.dia.CellLayer, 'layer1 is instance of CellLayer');
         assert.equal(layer1.id, 'layer1', 'layer1 id is set correctly');
 
-        const layer2 = collection.add({ type: 'CellLayer', id: 'layer2' });
+        const layer2 = collection.add({ type: 'CellLayer', id: 'layer2' }, { cellLayersController: true});
         assert.ok(layer2 instanceof joint.dia.CellLayer, 'layer2 is instance of CellLayer');
         assert.equal(layer2.id, 'layer2', 'layer2 id is set correctly');
 
@@ -35,21 +35,21 @@ QUnit.module('GraphCellLayers', function(hooks) {
         const collection = new joint.dia.GraphCellLayers();
 
         assert.throws(() => {
-            collection.add({ type: 'InvalidType', id: 'layer1' });
+            collection.add({ type: 'InvalidType', id: 'layer1' }, { cellLayersController: true});
         }, /dia.Graph: Could not find cell layer constructor for type: 'InvalidType'. Make sure to add the constructor to 'cellLayerNamespace'./, 'throws error when adding invalid cellLayer type');
     });
 
     QUnit.test('remove cellLayer', (assert) => {
         const collection = new joint.dia.GraphCellLayers();
-        const layer1 = collection.add({ id: 'layer1' });
-        const layer2 = collection.add({ id: 'layer2' });
+        const layer1 = collection.add({ id: 'layer1' }, { cellLayersController: true});
+        const layer2 = collection.add({ id: 'layer2' }, { cellLayersController: true});
 
         const events = [];
         collection.on('all', (eventName) => {
             events.push(eventName);
         });
 
-        collection.remove(layer1);
+        collection.remove(layer1, { cellLayersController: true });
         assert.equal(collection.length, 1, 'collection has 1 layer after removal');
         assert.equal(collection.at(0), layer2, 'remaining layer is layer2');
 
@@ -72,7 +72,7 @@ QUnit.module('GraphCellLayers', function(hooks) {
 
         assert.deepEqual(collection.cellLayerNamespace, { ...collection.defaultCellLayerNamespace, ...namespace }, 'cellLayerNamespace is set correctly');
 
-        const customLayer = collection.add({ type: 'CustomCellLayer', id: 'custom1' });
+        const customLayer = collection.add({ type: 'CustomCellLayer', id: 'custom1' }, { cellLayersController: true});
         assert.ok(customLayer instanceof CustomCellLayer, 'custom layer is created correctly');
     });
 });

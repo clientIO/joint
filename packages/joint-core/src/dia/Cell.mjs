@@ -248,7 +248,19 @@ export const Cell = Model.extend({
             }
         }
 
-        this.trigger('remove', this, graph.cellCollection, opt);
+        // remove from the collection in the current graph.
+        // backward compatibility:
+        // in the rare cases when the collection of the cell is not belonging to the current graph layer
+        // we need to remove from the correspondent layer in current cell's graph,
+        // see "graph: dry flag" test
+        if (this.graph === this.collection.graph) {
+            this.graph.trigger('remove', this, this.collection, opt);
+        } else {
+            const layerId = this.layer();
+            if (graph.hasCellLayer(layerId)) {
+                this.graph.trigger('remove', this, graph.getCellLayer(layerId).cells, opt);
+            }
+        }
 
         graph.stopBatch('remove');
 
@@ -1024,4 +1036,13 @@ export const Cell = Model.extend({
         /* eslint-enable no-undef */
         return Cell;
     }
+});
+
+// Internal tag to identify this object as a cell view instance.
+// Used instead of `instanceof` for performance and cross-frame safety.
+
+export const CELL_MARKER = Symbol('joint.cellMarker');
+
+Object.defineProperty(Cell.prototype, CELL_MARKER, {
+    value: true,
 });
