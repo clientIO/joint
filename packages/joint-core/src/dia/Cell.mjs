@@ -74,7 +74,7 @@ export const Cell = Model.extend({
         this.cid = uniqueId('c');
         this.eventPrefix = '';
         this.attributes = {};
-        if (options && options.collection) this.collection = options.collection;
+        if (options && !options.dry && options.collection) this.collection = options.collection;
         if (options && options.parse) attrs = this.parse(attrs, options) || {};
         if ((defaults = result(this, 'defaults'))) {
             //<custom code>
@@ -87,12 +87,6 @@ export const Cell = Model.extend({
         }
         this.set(attrs, options);
         this.changed = {};
-        if (options && options.portLayoutNamespace) {
-            this.portLayoutNamespace = options.portLayoutNamespace;
-        }
-        if (options && options.portLabelLayoutNamespace) {
-            this.portLabelLayoutNamespace = options.portLabelLayoutNamespace;
-        }
         this.initialize.apply(this, arguments);
     },
 
@@ -143,6 +137,13 @@ export const Cell = Model.extend({
     },
 
     initialize: function(options) {
+
+        if (options && options.portLayoutNamespace) {
+            this.portLayoutNamespace = options.portLayoutNamespace;
+        }
+        if (options && options.portLabelLayoutNamespace) {
+            this.portLabelLayoutNamespace = options.portLabelLayoutNamespace;
+        }
 
         const idAttribute = this.getIdAttribute();
         if (!options || options[idAttribute] === undefined) {
@@ -249,25 +250,8 @@ export const Cell = Model.extend({
         }
 
         // Remove from the collection in the current graph.
-
-        let ownerCollection;
-        if (graph === collection.graph) {
-            ownerCollection = collection;
-        } else {
-            // backward compatibility:
-            // In the rare cases when the collection of the cell is not belonging
-            // to the current graph layer we need to remove it
-            // from the correspondent layer in current cell's graph,
-            // See "graph: dry flag" test.
-            const layerId = this.layer();
-            if (graph.hasCellLayer(layerId)) {
-                ownerCollection = graph.getCellLayer(layerId).cells;
-            }
-        }
-
-        if (ownerCollection) {
-            graph.trigger('remove', this, ownerCollection, opt);
-        }
+        // Note: if `graph` exists, then the `collection` also exists.
+        graph.trigger('remove', this, collection, opt);
 
         graph.stopBatch('remove');
 
@@ -887,7 +871,7 @@ export const Cell = Model.extend({
         return this;
     },
 
-    // A shorcut making it easy to create constructs like the following:
+    // A shortcut making it easy to create constructs like the following:
     // `var el = (new joint.shapes.standard.Rectangle()).addTo(graph)`.
     addTo: function(graph, opt) {
 

@@ -25,8 +25,8 @@ export class CellGroupCollection extends Collection {
 
     // fast version for reset function
     // it does not clear the `_byId` map
-    _removeReferenceFast(model) {
-        if (this === model.collection) delete model.collection;
+    _removeReferenceFast(model, options) {
+        if (!options.dry && this === model.collection) delete model.collection;
         model.off('all', this._onModelEvent, this);
     }
 

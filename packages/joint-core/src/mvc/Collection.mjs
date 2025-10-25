@@ -382,7 +382,7 @@ assign(Collection.prototype, Events, {
     // collection.
     _prepareModel: function(attrs, options) {
         if (this._isModel(attrs)) {
-            if (!attrs.collection) attrs.collection = this;
+            if (!options.dry && !attrs.collection) attrs.collection = this;
             return attrs;
         }
         options = options ? clone(options) : {};
@@ -449,7 +449,7 @@ assign(Collection.prototype, Events, {
         this._byId.delete(model.cid);
         var id = this.modelId(model.attributes, model.idAttribute);
         if (id != null) this._byId.delete(id);
-        if (this === model.collection) delete model.collection;
+        if (!options.dry && this === model.collection) delete model.collection;
         model.off('all', this._onModelEvent, this);
     },
 

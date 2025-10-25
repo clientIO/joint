@@ -31,7 +31,7 @@ export var Model = function(attributes, options) {
     this.preinitialize.apply(this, arguments);
     this.cid = uniqueId(this.cidPrefix);
     this.attributes = {};
-    if (options.collection) this.collection = options.collection;
+    if (!options.dry && options.collection) this.collection = options.collection;
 
     var attributeDefaults = result(this, 'defaults');
 
