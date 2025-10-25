@@ -61,33 +61,21 @@ function removeEmptyAttributes(obj) {
 
 export const Cell = Model.extend({
 
-    // This is the same as mvc.Model with the only difference that is uses util.merge
-    // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
-    constructor: function(attributes, options) {
+    cidPrefix: 'c',
 
-        var defaults;
-        var attrs = attributes || {};
-        if (typeof this.preinitialize === 'function') {
-            // Check to support an older version
-            this.preinitialize.apply(this, arguments);
-        }
-        this.cid = uniqueId('c');
-        this.eventPrefix = '';
-        this.attributes = {};
-        if (options && !options.dry && options.collection) this.collection = options.collection;
-        if (options && options.parse) attrs = this.parse(attrs, options) || {};
-        if ((defaults = result(this, 'defaults'))) {
-            //<custom code>
-            // Replaced the call to _.defaults with util.merge.
+    // Default attributes are merged deeply instead of shallowly.
+    _setDefaults: function(ctorAttributes, options) {
+        let attributes;
+        const attributeDefaults = result(this, 'defaults');
+        if (attributeDefaults) {
             const customizer = (options && options.mergeArrays === true)
                 ? false
                 : config.cellDefaultsMergeStrategy || attributesMerger;
-            attrs = merge({}, defaults, attrs, customizer);
-            //</custom code>
+            attributes = merge({}, attributeDefaults, ctorAttributes, customizer);
+        } else {
+            attributes = ctorAttributes;
         }
-        this.set(attrs, options);
-        this.changed = {};
-        this.initialize.apply(this, arguments);
+        this.set(attributes, options);
     },
 
     translate: function(dx, dy, opt) {
@@ -136,17 +124,10 @@ export const Cell = Model.extend({
         return finalAttributes;
     },
 
-    initialize: function(options) {
-
-        if (options && options.portLayoutNamespace) {
-            this.portLayoutNamespace = options.portLayoutNamespace;
-        }
-        if (options && options.portLabelLayoutNamespace) {
-            this.portLabelLayoutNamespace = options.portLabelLayoutNamespace;
-        }
+    initialize: function(attributes) {
 
         const idAttribute = this.getIdAttribute();
-        if (!options || options[idAttribute] === undefined) {
+        if (!attributes || attributes[idAttribute] === undefined) {
             this.set(idAttribute, this.generateId(), { silent: true });
         }
 

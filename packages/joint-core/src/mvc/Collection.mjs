@@ -386,7 +386,7 @@ assign(Collection.prototype, Events, {
             return attrs;
         }
         options = options ? clone(options) : {};
-        options.collection = this;
+        if (!options.dry) options.collection = this;
 
         var model;
         if (this.model.prototype) {
