@@ -3043,6 +3043,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-elk-ts@workspace:examples/layout-elk-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-elk-ts@workspace:examples/layout-elk-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    css-loader: "npm:3.5.3"
+    elkjs: "npm:^0.11.0"
+    sass-loader: "npm:8.0.2"
+    style-loader: "npm:1.2.1"
+    ts-loader: "npm:^9.2.5"
+    typescript: "npm:5.8.2"
+    webpack: "npm:5.98.0"
+    webpack-cli: "npm:6.0.1"
+    webpack-dev-server: "npm:5.2.0"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-fta-js@workspace:examples/fta-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-fta-js@workspace:examples/fta-js"
@@ -10878,6 +10895,13 @@ __metadata:
   version: 1.5.199
   resolution: "electron-to-chromium@npm:1.5.199"
   checksum: 10/96967ead8348d26bdf30f31235d97ee39b57d9794b62969d4191b616f29e6bcad1df1f5e29d127c730cb7739a2aca9ee84a918ba54a8bf4fce06f390b558f795
+  languageName: node
+  linkType: hard
+
+"elkjs@npm:^0.11.0":
+  version: 0.11.0
+  resolution: "elkjs@npm:0.11.0"
+  checksum: 10/afc7bf05b2d40c21cce4654ed383fb6c97c12a200edf00ac01762a9fa177d6784a0ef752f2f4356bec041a13a05aac9ac31f66ee990ffa0ded31f0575ae93177
   languageName: node
   linkType: hard
 
