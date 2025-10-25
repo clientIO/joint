@@ -20,8 +20,8 @@ export class CellGroupCollection extends Collection {
     }
 
     modelId(attrs, idAttribute) {
-	    return attrs[idAttribute || 'id'];
-	}
+        return attrs[idAttribute || 'id'];
+    }
 
     // fast version for reset function
     // it does not clear the `_byId` map
