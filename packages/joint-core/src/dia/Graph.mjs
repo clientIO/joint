@@ -238,8 +238,8 @@ export const Graph = Model.extend({
 
         this.startBatch('clear', opt);
 
-        const sortedCells = cells.sort((a, b) => {
-            return (a.isLink() ? 1 : 2) - (b.isLink() ? 1 : 2);
+        const sortedCells = util.sortBy(cells, (cell) => {
+            return cell.isLink() ? 1 : 2;
         });
 
         do {
