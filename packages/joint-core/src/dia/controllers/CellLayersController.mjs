@@ -62,6 +62,7 @@ export class CellLayersController extends Listener {
             throw new Error('dia.Graph: At least one cell layer must be defined.');
         }
 
+        // Resetting cell layers disables legacy mode
         this.legacyMode = false;
 
         let defaultCellLayerId = opt.defaultCellLayer;
@@ -192,6 +193,7 @@ export class CellLayersController extends Listener {
             return;
         }
 
+        // Adding a new layer disables legacy mode
         this.legacyMode = false;
 
         const originalLayersArray = this.getCellLayers();
@@ -326,13 +328,12 @@ export class CellLayersController extends Listener {
         this.resetLayersCollections(cells, opt);
     }
 
-    _getLayerId(cell) {
+    _getLayerId(cellInit) {
         // we don't use cell.layer() here because when the graph reference is not set on the cell
         // cell.layer() would return null
-        if (cell[CELL_MARKER]) {
-            return cell.get(config.layerAttribute) || this.defaultCellLayerId;
-        }
-
-        return cell[config.layerAttribute] || this.defaultCellLayerId;
+        const cellAttributes = cellInit[CELL_MARKER]
+            ? cellInit.attributes
+            : cellInit;
+        return cellAttributes[config.layerAttribute] || this.defaultCellLayerId;
     }
 }
