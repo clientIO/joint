@@ -137,7 +137,5 @@ export const GraphCellLayers = Collection.extend({
             throw new Error('dia.GraphCellLayers: removing cell layers directly from the collection is not supported, use graph.removeCellLayer() method instead.');
         }
         return Collection.prototype.remove.call(this, models, options);
-    },
-
-    _
+    }
 });
