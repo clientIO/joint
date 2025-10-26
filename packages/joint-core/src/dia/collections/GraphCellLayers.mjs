@@ -14,14 +14,20 @@ export const GraphCellLayers = Collection.extend({
         CellLayer: CellLayer
     },
 
+    /**
+     * @override
+     * @description Initializes the collection and sets up the cell layer and cell namespaces.
+     */
     initialize: function(_models, opt = {}) {
-        // Set the namespace where all cell layer classes are defined.
-        const cellLayerNamespace = opt.cellLayerNamespace || {};
-        this.cellLayerNamespace = util.defaultsDeep({}, cellLayerNamespace, this.defaultCellLayerNamespace);
+        const { cellLayerNamespace, cellNamespace } = opt;
 
-        // Set the namespace where all cell classes are defined.
-        if (opt.cellNamespace) {
-            this.cellNamespace = opt.cellNamespace;
+        // Initialize the namespace that holds all available cell layer classes.
+        // Custom namespaces are merged with the default ones.
+        this.cellLayerNamespace = util.assign({}, this.defaultCellLayerNamespace, cellLayerNamespace);
+
+        // Initialize the namespace for all cell model classes, if provided.
+        if (cellNamespace) {
+            this.cellNamespace = cellNamespace;
         } else {
             /* eslint-disable no-undef */
             this.cellNamespace = typeof joint !== 'undefined' && util.has(joint, 'shapes') ? joint.shapes : null;
@@ -31,6 +37,11 @@ export const GraphCellLayers = Collection.extend({
         this.graph = opt.graph;
     },
 
+    /**
+     * @override
+     * @description Overrides the default `model` method
+     * to create cell layer models based on their `type` attribute.
+     */
     model: function(attrs, opt) {
 
         const collection = opt.collection;
@@ -46,51 +57,66 @@ export const GraphCellLayers = Collection.extend({
         return new CellLayerClass(attrs, opt);
     },
 
+    /**
+     * @override
+     * @description Overrides the default `_prepareModel` method
+     * to set `cellNamespace` and `graph` references on the created cell layers.
+     */
     _prepareModel: function(attrs, options) {
         if (!attrs[CELL_LAYER_MARKER]) {
-            const preparedAttributes = util.clone(attrs);
-            const preparedOptions = util.clone(options);
-
-            if (!preparedAttributes.type) {
+            // Add a mandatory `type` attribute if missing
+            let preparedAttributes;
+            if (!attrs.type) {
+                preparedAttributes = util.clone(attrs);
                 preparedAttributes.type = 'CellLayer';
+            } else {
+                preparedAttributes = attrs;
             }
 
+            const preparedOptions = util.clone(options);
             preparedOptions.graph = this.graph;
             preparedOptions.cellNamespace = this.cellNamespace;
 
             return Collection.prototype._prepareModel.call(this, preparedAttributes, preparedOptions);
         }
-
+        // `attrs` is already a CellLayer instance
         attrs.cellCollection.graph = this.graph;
         attrs.cellCollection.cellNamespace = this.cellNamespace;
 
         return Collection.prototype._prepareModel.apply(this, arguments);
     },
 
-    // Do not propagate inner cell layer collection events.
-    // Allow only for cell layer model events.
-    _onModelEvent(_eventName, entity) {
-        if (!entity) return;
+    /**
+     * @override
+     * @description Overrides the default `_onModelEvent` method
+     * to distinguish between events coming from different model types.
+     */
+    _onModelEvent(_eventName, model) {
+        if (!model) return;
 
-        if (entity[CELL_LAYER_MARKER]) {
+        if (model[CELL_LAYER_MARKER]) {
             this._onCellLayerEvent.apply(this, arguments);
             return;
         }
 
-        if (entity[CELL_MARKER]) {
+        if (model[CELL_MARKER]) {
             this._onCellEvent.apply(this, arguments);
             return;
         }
 
-        if (entity[CELL_LAYER_COLLECTION_MARKER]) {
+        if (model[CELL_LAYER_COLLECTION_MARKER]) {
             this._onCellLayerCollectionEvent.apply(this, arguments);
             return;
         }
     },
 
     _onCellLayerEvent(eventName, layer) {
-        if ((eventName === layer.eventPrefix + 'add' || eventName === layer.eventPrefix + 'remove') && layer.collection !== this)
+        if (
+            layer.collection !== this &&
+            (eventName === layer.eventPrefix + 'add' || eventName === layer.eventPrefix + 'remove')
+        ) {
             return;
+        }
 
         if (eventName === 'changeId') {
             var prevId = this.modelId(layer.previousAttributes(), layer.idAttribute);
@@ -106,40 +132,62 @@ export const GraphCellLayers = Collection.extend({
     },
 
     _onCellEvent() {
-        // retrigger cell events with `cell:` prefix
+        // forward cell events with `cell:` prefix
         arguments[0] = 'cell:' + arguments[0];
 
         this.trigger.apply(this, arguments);
     },
 
     _onCellLayerCollectionEvent() {
-        // retrigger cell layer collection events with `layer:` prefix
+        // forward cell layer collection events with `layer:` prefix
         arguments[0] = 'layer:' + arguments[0];
 
         this.trigger.apply(this, arguments);
     },
 
-    reset(models = [], options = {}) {
-        if (!options.cellLayersController && !options.silent) {
-            throw new Error('dia.GraphCellLayers: resetting collection directly is not supported, use graph.resetCellLayers() method instead.');
-        }
-        return Collection.prototype.reset.call(this, models, options);
+    /**
+     * @override
+     * @description Add an assertion to prevent direct resetting of the collection.
+     */
+    reset(models, options) {
+        this._assertInternalCall(options);
+        return Collection.prototype.reset.apply(this, arguments);
     },
 
-    add(models, options = {}) {
-        if (!options.cellLayersController && !options.silent) {
-            throw new Error('dia.GraphCellLayers: adding cell layers directly to the collection is not supported, use graph.addCellLayer() method instead.');
-        }
-        return Collection.prototype.add.call(this, models, options);
+    /**
+     * @override
+     * @description Add an assertion to prevent direct addition of layers.
+     */
+    add(models, options) {
+        this._assertInternalCall(options);
+        return Collection.prototype.add.apply(this, arguments);
     },
 
-    remove(models, options = {}) {
-        if (!options.cellLayersController && !options.silent) {
-            throw new Error('dia.GraphCellLayers: removing cell layers directly from the collection is not supported, use graph.removeCellLayer() method instead.');
-        }
-        return Collection.prototype.remove.call(this, models, options);
+    /**
+     * @override
+     * @description Add an assertion to prevent direct removal of layers.
+     */
+    remove(models, options){
+        this._assertInternalCall(options);
+        return Collection.prototype.remove.apply(this, arguments);
     },
 
+    /**
+     * @protected
+     * @description Asserts that the collection manipulation
+     * is done via internal graph methods. Otherwise, it throws an error.
+     * This is a temporary measure until cell layers API is stabilized.
+     */
+    _assertInternalCall(options) {
+        if (options && !options.cellLayersController && !options.silent) {
+            throw new Error('dia.GraphCellLayers: direct manipulation of the collection is not supported, use graph methods instead.');
+        }
+    },
+
+    /**
+     * @public
+     * @description Move a cell from its current layer to a target layer.
+     */
     moveCellBetweenLayers(cell, targetLayerId, options = {}) {
 
         const sourceLayer = cell.collection?.layer;
