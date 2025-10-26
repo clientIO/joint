@@ -104,7 +104,9 @@ export class CellLayersController extends Listener {
         const previousLayerId = cell.previous(layerAttribute) || this.defaultCellLayerId;
 
         if (previousLayerId === layerId) {
-            return; // no change
+            // Implicit default layer to explicit default layer case (or vice versa)
+            // No follow-up action needed
+            return;
         }
 
         const previousLayer = this.getCellLayer(previousLayerId);

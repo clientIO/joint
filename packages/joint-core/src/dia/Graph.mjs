@@ -271,12 +271,12 @@ export const Graph = Model.extend({
         }
 
         // Backward compatibility: prior v4.2, z-index was not set during reset.
-        // We now set it in the cell layer to preserve the old behavior, where adding a cell to the graph
-        // did not trigger a 'change:z' event because the value was already assigned before adding it to the layer.
         if (opt && opt.ensureZIndex) {
             if (cellAttributes.z === undefined) {
                 const layerId = cellAttributes[config.layerAttribute] || this.cellLayersController.defaultCellLayerId;
                 const layer = this.cellLayersController.getCellLayer(layerId);
+                // The `cell` is not part of the graph yet,
+                // so no events need to be triggered.
                 cellAttributes.z = layer.maxZIndex() + 1;
             }
         }
@@ -330,7 +330,7 @@ export const Graph = Model.extend({
 
         const cellArray = util.toArray(cells);
         // Do not ensure z-index on reset for backwards compatibility
-        const prepareOptions = { ...opt, ensureZIndex: true };
+        const prepareOptions = { ...opt, ensureZIndex: false };
         for (const cell of cellArray) {
             this._prepareCell(cell, prepareOptions);
         }
