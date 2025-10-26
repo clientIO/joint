@@ -8,7 +8,7 @@ QUnit.module('CellGroup', function(hooks) {
         assert.ok(group.eventPrefix === 'self:', 'eventPrefix is set to "self:"');
     });
 
-    QUnit.test('add() adds a cell to the cells collection', (assert) => {
+    QUnit.test('cells.add() adds a cell to the cells collection', (assert) => {
         const group = new joint.dia.CellGroup();
         const events = [];
         group.on('all', (eventName) => {
@@ -16,7 +16,7 @@ QUnit.module('CellGroup', function(hooks) {
         });
 
         const cell = new joint.shapes.standard.Rectangle();
-        group.add(cell);
+        group.cells.add(cell);
 
         cell.set('a', 1);
 
@@ -28,7 +28,7 @@ QUnit.module('CellGroup', function(hooks) {
         ], 'the correct events were fired');
     });
 
-    QUnit.test('remove() removes a cell from the cells collection', (assert) => {
+    QUnit.test('cells.remove() removes a cell from the cells collection', (assert) => {
         const group = new joint.dia.CellGroup();
         const events = [];
         group.on('all', (eventName) => {
@@ -37,11 +37,11 @@ QUnit.module('CellGroup', function(hooks) {
 
         const cell1 = new joint.shapes.standard.Rectangle();
         const cell2 = new joint.shapes.standard.Ellipse();
-        group.add([cell1, cell2]);
+        group.cells.add([cell1, cell2]);
 
         assert.equal(group.cells.length, 2, 'cells collection has two cells');
 
-        group.remove(cell1);
+        group.cells.remove(cell1);
 
         cell2.set('a', 1);
 
@@ -55,7 +55,7 @@ QUnit.module('CellGroup', function(hooks) {
         ], 'the correct events were fired');
     });
 
-    QUnit.test('reset() resets the cells collection', (assert) => {
+    QUnit.test('cells.reset() resets the cells collection', (assert) => {
         const group = new joint.dia.CellGroup();
         const events = [];
         group.on('all', (eventName) => {
@@ -64,12 +64,12 @@ QUnit.module('CellGroup', function(hooks) {
 
         const cell1 = new joint.shapes.standard.Rectangle();
         const cell2 = new joint.shapes.standard.Ellipse();
-        group.add([cell1, cell2]);
+        group.cells.add([cell1, cell2]);
 
         assert.equal(group.cells.length, 2, 'cells collection has two cells');
 
         const cell3 = new joint.shapes.standard.Polygon();
-        group.reset([cell3]);
+        group.cells.reset([cell3]);
 
         cell3.set('a', 1);
 

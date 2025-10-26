@@ -108,14 +108,14 @@ export class CellLayersController extends Listener {
         }
 
         const previousLayer = this.getCellLayer(previousLayerId);
-        previousLayer.remove(cell, {
+        previousLayer.cells.remove(cell, {
             ...opt,
             cellLayersController: this,
             layerChange: true
         });
 
         const layer = this.getCellLayer(layerId);
-        layer.add(cell, {
+        layer.cells.add(cell, {
             ...opt,
             cellLayersController: this,
             layerChange: true
@@ -139,7 +139,7 @@ export class CellLayersController extends Listener {
         }
 
         collection.each(layer => {
-            layer.reset(layersMap[layer.id], { ...opt, cellLayersController: this });
+            layer.cells.reset(layersMap[layer.id], { ...opt, cellLayersController: this });
         });
     }
 
@@ -166,12 +166,12 @@ export class CellLayersController extends Listener {
             // move all cells that do not have explicit layer set to the new default layer
             previousDefaultLayer.cells.toArray().forEach(cell => {
                 if (cell.get(layerAttribute) == null) {
-                    previousDefaultLayer.remove(cell, {
+                    previousDefaultLayer.cells.remove(cell, {
                         ...opt,
                         cellLayersController: this,
                         layerChange: true
                     });
-                    newDefaultLayer.add(cell, {
+                    newDefaultLayer.cells.add(cell, {
                         ...opt,
                         cellLayersController: this,
                         layerChange: true
@@ -321,7 +321,7 @@ export class CellLayersController extends Listener {
         const layerId = this._getLayerId(cell);
         const layer = this.getCellLayer(layerId);
 
-        layer.add(cell, { ...opt, cellLayersController: this });
+        layer.cells.add(cell, { ...opt, cellLayersController: this });
     }
 
     resetCells(cells = [], opt = {}) {

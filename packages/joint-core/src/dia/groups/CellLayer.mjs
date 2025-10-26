@@ -1,12 +1,16 @@
 import { CellGroup } from './CellGroup.mjs';
 import { CellLayerCollection } from '../collections/CellLayerCollection.mjs';
 
+export const CELL_LAYER_MARKER = Symbol('joint.cellLayerMarker');
+
 /**
  * @class CellLayer
  * @description A CellLayer is a CellGroup with additional helper methods for z-index management.
  * The inner collection is sorted by z-index automatically.
  */
 export class CellLayer extends CellGroup {
+
+    [CELL_LAYER_MARKER] = true;
 
     preinitialize() {
         super.preinitialize();
@@ -17,30 +21,6 @@ export class CellLayer extends CellGroup {
         return {
             type: 'CellLayer',
         };
-    }
-
-    add(cell, opt = {}) {
-        if (!opt.cellLayersController) {
-            throw new Error('dia.CellLayer: adding cells directly to a CellLayer is not supported. Please use cell.layer() method to control the layer assignment.');
-        }
-
-        return super.add(cell, opt);
-    }
-
-    remove(cell, opt = {}) {
-        if (!opt.cellLayersController) {
-            throw new Error('dia.CellLayer: removing cells directly from a CellLayer is not supported. Please use cell.layer() method to control the layer assignment.');
-        }
-
-        return super.remove(cell, opt);
-    }
-
-    reset(cells = [], opt = {}) {
-        if (!opt.cellLayersController) {
-            throw new Error('dia.CellLayer: resetting cells directly is not supported. Please use graph.resetCellLayers() to reset cell layers.');
-        }
-
-        return super.reset(cells, opt);
     }
 
     initialize(attrs, options) {
@@ -74,9 +54,3 @@ export class CellLayer extends CellGroup {
         return lastCell ? (lastCell.get('z') || 0) : 0;
     }
 }
-
-export const CELL_LAYER_MARKER = Symbol('joint.cellLayerMarker');
-
-Object.defineProperty(CellLayer.prototype, CELL_LAYER_MARKER, {
-    value: true,
-});

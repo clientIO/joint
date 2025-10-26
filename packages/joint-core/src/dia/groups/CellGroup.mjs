@@ -1,11 +1,15 @@
 import { Model } from '../../mvc/index.mjs';
 import { CellGroupCollection } from '../collections/CellGroupCollection.mjs';
 
+export const CELL_GROUP_MARKER = Symbol('joint.cellGroupMarker');
+
 /**
  * @class CellGroup
  * @description A CellGroup is a model that contains a collection of cells.
  */
 export class CellGroup extends Model {
+
+    [CELL_GROUP_MARKER] = true;
 
     defaults() {
         return {
@@ -39,22 +43,4 @@ export class CellGroup extends Model {
     getCollectionOptions(_attrs, _options) {
         return {};
     }
-
-    add(cell, opt) {
-        return this.cells.add(cell, opt);
-    }
-
-    remove(cell, opt) {
-        this.cells.remove(cell, opt);
-    }
-
-    reset(cells = [], opt) {
-        return this.cells.reset(cells, opt);
-    }
 }
-
-export const CELL_GROUP_MARKER = Symbol('joint.cellGroupMarker');
-
-Object.defineProperty(CellGroup.prototype, CELL_GROUP_MARKER, {
-    value: true,
-});
