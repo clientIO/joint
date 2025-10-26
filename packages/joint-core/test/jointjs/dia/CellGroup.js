@@ -3,8 +3,8 @@ QUnit.module('CellGroup', function(hooks) {
     QUnit.test('default setup', (assert) => {
         const group = new joint.dia.CellGroup();
 
-        assert.ok(group.cells instanceof joint.dia.CellGroupCollection, 'CellGroup has a cells collection');
-        assert.equal(group.cells.length, 0, 'cells collection is empty');
+        assert.ok(group.cellCollection instanceof joint.dia.CellGroupCollection, 'CellGroup has a cells collection');
+        assert.equal(group.cellCollection.length, 0, 'cells collection is empty');
         assert.ok(group.eventPrefix === 'self:', 'eventPrefix is set to "self:"');
     });
 
@@ -16,12 +16,12 @@ QUnit.module('CellGroup', function(hooks) {
         });
 
         const cell = new joint.shapes.standard.Rectangle();
-        group.cells.add(cell);
+        group.cellCollection.add(cell);
 
         cell.set('a', 1);
 
-        assert.equal(group.cells.length, 1, 'cells collection has one cell');
-        assert.equal(group.cells.at(0), cell, 'the cell is the one that was added');
+        assert.equal(group.cellCollection.length, 1, 'cells collection has one cell');
+        assert.equal(group.cellCollection.at(0), cell, 'the cell is the one that was added');
 
         assert.deepEqual(events, [
             'add', 'update', 'change:a', 'change'
@@ -37,16 +37,16 @@ QUnit.module('CellGroup', function(hooks) {
 
         const cell1 = new joint.shapes.standard.Rectangle();
         const cell2 = new joint.shapes.standard.Ellipse();
-        group.cells.add([cell1, cell2]);
+        group.cellCollection.add([cell1, cell2]);
 
-        assert.equal(group.cells.length, 2, 'cells collection has two cells');
+        assert.equal(group.cellCollection.length, 2, 'cells collection has two cells');
 
-        group.cells.remove(cell1);
+        group.cellCollection.remove(cell1);
 
         cell2.set('a', 1);
 
-        assert.equal(group.cells.length, 1, 'cells collection has one cell');
-        assert.equal(group.cells.at(0), cell2, 'the remaining cell is the one that was not removed');
+        assert.equal(group.cellCollection.length, 1, 'cells collection has one cell');
+        assert.equal(group.cellCollection.at(0), cell2, 'the remaining cell is the one that was not removed');
 
         assert.deepEqual(events, [
             'add', 'add', 'update',
@@ -64,17 +64,17 @@ QUnit.module('CellGroup', function(hooks) {
 
         const cell1 = new joint.shapes.standard.Rectangle();
         const cell2 = new joint.shapes.standard.Ellipse();
-        group.cells.add([cell1, cell2]);
+        group.cellCollection.add([cell1, cell2]);
 
-        assert.equal(group.cells.length, 2, 'cells collection has two cells');
+        assert.equal(group.cellCollection.length, 2, 'cells collection has two cells');
 
         const cell3 = new joint.shapes.standard.Polygon();
-        group.cells.reset([cell3]);
+        group.cellCollection.reset([cell3]);
 
         cell3.set('a', 1);
 
-        assert.equal(group.cells.length, 1, 'cells collection has one cell');
-        assert.equal(group.cells.at(0), cell3, 'the remaining cell is the one that was not removed');
+        assert.equal(group.cellCollection.length, 1, 'cells collection has one cell');
+        assert.equal(group.cellCollection.at(0), cell3, 'the remaining cell is the one that was not removed');
 
         assert.deepEqual(events, [
             'add', 'add', 'update',

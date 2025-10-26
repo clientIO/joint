@@ -19,7 +19,7 @@ export class CellGroup extends Model {
 
     preinitialize() {
         this.collectionConstructor = CellGroupCollection;
-        // this allows for propagating events from the inner `cells` collection
+        // This allows for propagating events from the inner `cellCollection` collection
         // without any prefix and therefore distinguish them from the events
         // fired by the CellGroup model itself.
         this.eventPrefix = 'self:';
@@ -30,15 +30,15 @@ export class CellGroup extends Model {
 
         const collectionOptions = this.getCollectionOptions(attrs, options);
 
-        this.cells = new this.collectionConstructor([], collectionOptions);
+        this.cellCollection = new this.collectionConstructor([], collectionOptions);
 
-        // Make all the events fired in the `cells` collection available.
-        this.cells.on('all', this.trigger, this);
+        // Forward all events from the inner `cellCollection` collection
+        this.cellCollection.on('all', this.trigger, this);
     }
 
     /**
      * @protected
-     * Returns the options to be passed to the inner `cells` collection constructor.
+     * Returns the options to be passed to the inner `cellCollection` constructor.
      */
     getCollectionOptions(_attrs, _options) {
         return {};

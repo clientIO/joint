@@ -26,7 +26,7 @@ export class CellLayer extends CellGroup {
     initialize(attrs, options) {
         super.initialize(attrs, options);
 
-        this.cells.on('change', this.onCellChange, this);
+        this.cellCollection.on('change', this.onCellChange, this);
     }
 
     getCollectionOptions(_attrs, options = {}) {
@@ -41,16 +41,16 @@ export class CellLayer extends CellGroup {
         if (!cell.hasChanged('z'))
             return;
 
-        this.cells.sort();
+        this.cellCollection.sort();
     }
 
     minZIndex() {
-        const firstCell = this.cells.first();
+        const firstCell = this.cellCollection.first();
         return firstCell ? (firstCell.get('z') || 0) : 0;
     }
 
     maxZIndex() {
-        const lastCell = this.cells.last();
+        const lastCell = this.cellCollection.last();
         return lastCell ? (lastCell.get('z') || 0) : 0;
     }
 }

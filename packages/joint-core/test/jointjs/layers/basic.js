@@ -61,8 +61,8 @@ QUnit.module('layers-basic', function(hooks) {
 
         const defaultCellLayer = this.graph.getDefaultCellLayer();
 
-        assert.ok(defaultCellLayer.cells.has('rect1'), 'Default cell layer has rectangle cell');
-        assert.ok(defaultCellLayer.cells.has('ellipse1'), 'Default cell layer has ellipse cell');
+        assert.ok(defaultCellLayer.cellCollection.has('rect1'), 'Default cell layer has rectangle cell');
+        assert.ok(defaultCellLayer.cellCollection.has('ellipse1'), 'Default cell layer has ellipse cell');
 
         const layerViewNode = this.paper.getLayerViewNode(defaultCellLayer.id);
 
@@ -106,8 +106,8 @@ QUnit.module('layers-basic', function(hooks) {
         const layer1 = cellLayers[0];
         const layer2 = cellLayers[1];
 
-        assert.ok(layer1.cells.has('rect1'), 'Layer "layer1" has rectangle cell');
-        assert.ok(layer2.cells.has('ellipse1'), 'Layer "layer2" has ellipse cell');
+        assert.ok(layer1.cellCollection.has('rect1'), 'Layer "layer1" has rectangle cell');
+        assert.ok(layer2.cellCollection.has('ellipse1'), 'Layer "layer2" has ellipse cell');
 
         const layer1Node = this.paper.getLayerViewNode('layer1');
         assert.ok(layer1Node.querySelector(`[model-id="rect1"]`), 'Layer view for "layer1" has rectangle cell view node');
@@ -124,7 +124,7 @@ QUnit.module('layers-basic', function(hooks) {
 
         const defaultLayer = this.graph.getDefaultCellLayer();
 
-        assert.ok(defaultLayer.cells.has(rect.id), 'Rectangle cell added to default layer');
+        assert.ok(defaultLayer.cellCollection.has(rect.id), 'Rectangle cell added to default layer');
         assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
 
         const newLayer = new joint.dia.CellLayer({ id: 'newLayer' });
@@ -134,15 +134,15 @@ QUnit.module('layers-basic', function(hooks) {
 
         rect.set('layer', 'newLayer');
 
-        assert.ok(newLayer.cells.has(rect.id), 'Rectangle cell moved to new layer');
-        assert.ok(!defaultLayer.cells.has(rect.id), 'Rectangle cell removed from default layer');
+        assert.ok(newLayer.cellCollection.has(rect.id), 'Rectangle cell moved to new layer');
+        assert.ok(!defaultLayer.cellCollection.has(rect.id), 'Rectangle cell removed from default layer');
 
         assert.ok(this.paper.getLayerViewNode('newLayer').querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to new layer view');
 
         rect.set('layer', null);
 
-        assert.ok(defaultLayer.cells.has(rect.id), 'Rectangle cell moved back to default layer');
-        assert.ok(!newLayer.cells.has(rect.id), 'Rectangle cell removed from new layer');
+        assert.ok(defaultLayer.cellCollection.has(rect.id), 'Rectangle cell moved back to default layer');
+        assert.ok(!newLayer.cellCollection.has(rect.id), 'Rectangle cell removed from new layer');
 
         assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved back to default layer view');
     });
@@ -157,11 +157,11 @@ QUnit.module('layers-basic', function(hooks) {
         rect.addTo(this.graph);
 
         const defaultLayer = this.graph.getDefaultCellLayer();
-        assert.ok(defaultLayer.cells.has(rect.id), 'Rectangle cell added to default layer');
+        assert.ok(defaultLayer.cellCollection.has(rect.id), 'Rectangle cell added to default layer');
         assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
 
         rect.layer('newLayer');
-        assert.ok(newLayer.cells.has(rect.id), 'Rectangle cell added to "newLayer" layer');
+        assert.ok(newLayer.cellCollection.has(rect.id), 'Rectangle cell added to "newLayer" layer');
         assert.ok(this.paper.getLayerViewNode('newLayer').querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to "newLayer" layer view');
 
         assert.equal(rect.get('_layerId'), 'newLayer', 'The custom layer attribute is set correctly');
@@ -183,7 +183,7 @@ QUnit.module('layers-basic', function(hooks) {
 
         assert.equal(rect.get('layer'), undefined, 'The layer is not defined (default)');
         assert.equal(defaultLayer.id, 'cells', 'Default layer is "cells"');
-        assert.ok(defaultLayer.cells.has(rect.id), 'Rectangle cell added to default layer');
+        assert.ok(defaultLayer.cellCollection.has(rect.id), 'Rectangle cell added to default layer');
         assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
 
         this.graph.setDefaultCellLayer('newLayer');
@@ -192,8 +192,8 @@ QUnit.module('layers-basic', function(hooks) {
         assert.equal(newDefaultLayer.id, 'newLayer', 'New default layer is "newLayer"');
 
         assert.equal(rect.get('layer'), undefined, 'layer attr is still undefined');
-        assert.ok(newDefaultLayer.cells.has(rect.id), 'Rectangle cell moved to new default layer');
-        assert.ok(!defaultLayer.cells.has(rect.id), 'Rectangle cell removed from old default layer');
+        assert.ok(newDefaultLayer.cellCollection.has(rect.id), 'Rectangle cell moved to new default layer');
+        assert.ok(!defaultLayer.cellCollection.has(rect.id), 'Rectangle cell removed from old default layer');
 
         assert.ok(this.paper.getLayerViewNode(newDefaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved to new default layer view');
     });
@@ -345,7 +345,7 @@ QUnit.module('layers-basic', function(hooks) {
         });
 
         assert.strictEqual(this.graph.getCellLayers().length, 2, 'There are 2 layers in the graph');
-        assert.strictEqual(layer1.cells.length, 2, 'Layer "layer1" has 2 cells');
+        assert.strictEqual(layer1.cellCollection.length, 2, 'Layer "layer1" has 2 cells');
 
         this.graph.removeCellLayer(layer1);
 
@@ -354,7 +354,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(cellLayers[0].id, 'cells', 'The only layer is "cells"');
 
         const defaultLayer = this.graph.getDefaultCellLayer();
-        assert.strictEqual(defaultLayer.cells.length, 0, 'Default layer has no cells');
+        assert.strictEqual(defaultLayer.cellCollection.length, 0, 'Default layer has no cells');
 
         assert.ok(!this.graph.getCell('rect1'), 'Cell "rect1" is removed from the graph');
         assert.ok(!this.graph.getCell('rect2'), 'Cell "rect2" is removed from the graph');

@@ -3,8 +3,8 @@ QUnit.module('CellLayer', function(hooks) {
     QUnit.test('default setup', (assert) => {
         const layer = new joint.dia.CellLayer();
 
-        assert.ok(layer.cells instanceof joint.dia.CellLayerCollection, 'CellLayer has a cells collection');
-        assert.equal(layer.cells.length, 0, 'cells collection is empty');
+        assert.ok(layer.cellCollection instanceof joint.dia.CellLayerCollection, 'CellLayer has a cells collection');
+        assert.equal(layer.cellCollection.length, 0, 'cells collection is empty');
         assert.ok(layer.eventPrefix === 'self:', 'eventPrefix is set to "self:"');
     });
 
@@ -19,17 +19,17 @@ QUnit.module('CellLayer', function(hooks) {
         const rect2 = new joint.shapes.standard.Rectangle({ z: 1 });
         const rect3 = new joint.shapes.standard.Rectangle({ z: 3 });
 
-        layer.cells.add([rect1, rect2, rect3], { cellLayersController: true });
+        layer.cellCollection.add([rect1, rect2, rect3], { cellLayersController: true });
 
-        assert.equal(layer.cells.at(0), rect2, 'the first cell is the one with the lowest z-index');
-        assert.equal(layer.cells.at(1), rect3, 'the second cell is the one with the middle z-index');
-        assert.equal(layer.cells.at(2), rect1, 'the last cell is the one with the highest z-index');
+        assert.equal(layer.cellCollection.at(0), rect2, 'the first cell is the one with the lowest z-index');
+        assert.equal(layer.cellCollection.at(1), rect3, 'the second cell is the one with the middle z-index');
+        assert.equal(layer.cellCollection.at(2), rect1, 'the last cell is the one with the highest z-index');
 
         rect1.set('z', 0); // change z-index of rect1 to be the lowest
 
-        assert.equal(layer.cells.at(0), rect1, 'the first cell is now the one with the lowest z-index');
-        assert.equal(layer.cells.at(1), rect2, 'the second cell is now the one with the middle z-index');
-        assert.equal(layer.cells.at(2), rect3, 'the last cell is now the one with the highest z-index');
+        assert.equal(layer.cellCollection.at(0), rect1, 'the first cell is now the one with the lowest z-index');
+        assert.equal(layer.cellCollection.at(1), rect2, 'the second cell is now the one with the middle z-index');
+        assert.equal(layer.cellCollection.at(2), rect3, 'the last cell is now the one with the highest z-index');
 
         assert.deepEqual(events, [
             "add",
@@ -53,7 +53,7 @@ QUnit.module('CellLayer', function(hooks) {
         const rect2 = new joint.shapes.standard.Rectangle({ z: 1 });
         const rect3 = new joint.shapes.standard.Rectangle({ z: 3 });
 
-        layer.cells.add([rect1, rect2, rect3], { cellLayersController: true });
+        layer.cellCollection.add([rect1, rect2, rect3], { cellLayersController: true });
 
         assert.equal(layer.minZIndex(), 1, 'minZIndex is correct');
         assert.equal(layer.maxZIndex(), 5, 'maxZIndex is correct');

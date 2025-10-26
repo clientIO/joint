@@ -61,8 +61,8 @@ export const GraphCellLayers = Collection.extend({
             return Collection.prototype._prepareModel.call(this, preparedAttributes, preparedOptions);
         }
 
-        attrs.cells.graph = this.graph;
-        attrs.cells.cellNamespace = this.cellNamespace;
+        attrs.cellCollection.graph = this.graph;
+        attrs.cellCollection.cellNamespace = this.cellNamespace;
 
         return Collection.prototype._prepareModel.apply(this, arguments);
     },
@@ -99,6 +99,7 @@ export const GraphCellLayers = Collection.extend({
             if (id != null) this._byId.set(id, layer);
         }
 
+        // TODO: why it has prefix in the first place?
         arguments[0] = arguments[0].slice(layer.eventPrefix.length);
 
         this.trigger.apply(this, arguments);

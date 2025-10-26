@@ -30,7 +30,7 @@ export const Graph = Model.extend({
 
         // Retain legacy 'cells' collection in attributes for backward compatibility.
         // Applicable only when the default layer setup is used.
-        this.attributes.cells = this.getCellLayer('cells').cells;
+        this.attributes.cells = this.getCellLayer('cells').cellCollection;
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -346,7 +346,7 @@ export const Graph = Model.extend({
         // (while multiple `reset` events are triggered on cell layers).
         // Use default cell layer collection as a backwards compatible option.
         // Note: We should remove the `collection` parameter from the `reset` event.
-        this.trigger('reset', this.getDefaultCellLayer().cells, opt);
+        this.trigger('reset', this.getDefaultCellLayer().cellCollection, opt);
 
         this.stopBatch('reset', opt);
 
@@ -475,10 +475,11 @@ export const Graph = Model.extend({
     getFirstCell: function(layerId) {
         let cells;
         if (!layerId) {
+            // Get the first cell from the bottommost layer
             const orderedLayers = this.getCellLayers();
-            cells = orderedLayers[0].cells;
+            cells = orderedLayers[0].cellCollection.models;
         } else {
-            cells = this.getCellLayer(layerId).cells;
+            cells = this.getCellLayer(layerId).cellCollection.models;
         }
 
         return cells[0];
@@ -487,10 +488,11 @@ export const Graph = Model.extend({
     getLastCell: function(layerId) {
         let cells;
         if (!layerId) {
+            // Get the last cell from the topmost layer
             const orderedLayers = this.getCellLayers();
-            cells = orderedLayers[orderedLayers.length - 1].cells;
+            cells = orderedLayers[orderedLayers.length - 1].cellCollection.models;
         } else {
-            cells = this.getCellLayer(layerId).cells;
+            cells = this.getCellLayer(layerId).cellCollection.models;
         }
 
         return cells[cells.length - 1];

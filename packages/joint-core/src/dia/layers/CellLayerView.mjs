@@ -103,7 +103,7 @@ export const CellLayerView = LayerView.extend({
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.
         const cellNodes = Array.from(this.el.children).filter(node => node.getAttribute('model-id'));
-        const cellCollection = this.model.cells;
+        const cellCollection = this.model.cellCollection;
 
         sortElements(cellNodes, function(a, b) {
             const cellA = cellCollection.get(a.getAttribute('model-id'));
@@ -132,7 +132,7 @@ export const CellLayerView = LayerView.extend({
     requestCellViewsInsertion(opt = {}) {
         const { model } = this;
 
-        const cellsArray = model.cells.models;
+        const cellsArray = model.cellCollection.models;
         for (let i = 0; i < cellsArray.length; i++) {
             const cell = cellsArray[i];
             this.requestCellViewInsertion(cell, opt);

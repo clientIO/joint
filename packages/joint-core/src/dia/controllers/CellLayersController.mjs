@@ -52,7 +52,7 @@ export class CellLayersController extends Listener {
 
     onCellLayerRemove(cellLayer, opt) {
         // Remove all cells from the removed layer
-        cellLayer.cells.toArray().forEach(cell => {
+        cellLayer.cellCollection.toArray().forEach(cell => {
             cell.remove(opt);
         });
     }
@@ -108,14 +108,14 @@ export class CellLayersController extends Listener {
         }
 
         const previousLayer = this.getCellLayer(previousLayerId);
-        previousLayer.cells.remove(cell, {
+        previousLayer.cellCollection.remove(cell, {
             ...opt,
             cellLayersController: this,
             layerChange: true
         });
 
         const layer = this.getCellLayer(layerId);
-        layer.cells.add(cell, {
+        layer.cellCollection.add(cell, {
             ...opt,
             cellLayersController: this,
             layerChange: true
@@ -139,7 +139,7 @@ export class CellLayersController extends Listener {
         }
 
         collection.each(layer => {
-            layer.cells.reset(layersMap[layer.id], { ...opt, cellLayersController: this });
+            layer.cellCollection.reset(layersMap[layer.id], { ...opt, cellLayersController: this });
         });
     }
 
@@ -164,14 +164,14 @@ export class CellLayersController extends Listener {
             // set new default layer for paper to use when inserting to the new default layer
             this.defaultCellLayerId = newDefaultLayerId;
             // move all cells that do not have explicit layer set to the new default layer
-            previousDefaultLayer.cells.toArray().forEach(cell => {
+            previousDefaultLayer.cellCollection.toArray().forEach(cell => {
                 if (cell.get(layerAttribute) == null) {
-                    previousDefaultLayer.cells.remove(cell, {
+                    previousDefaultLayer.cellCollection.remove(cell, {
                         ...opt,
                         cellLayersController: this,
                         layerChange: true
                     });
-                    newDefaultLayer.cells.add(cell, {
+                    newDefaultLayer.cellCollection.add(cell, {
                         ...opt,
                         cellLayersController: this,
                         layerChange: true
@@ -298,7 +298,7 @@ export class CellLayersController extends Listener {
         // TODO: should we create a map of cells for faster lookup?
         for (let i = 0; i < this.collection.length; i++) {
             const cellLayer = this.collection.at(i);
-            const cell = cellLayer.cells.get(id);
+            const cell = cellLayer.cellCollection.get(id);
             if (cell) {
                 return cell;
             }
@@ -311,17 +311,17 @@ export class CellLayersController extends Listener {
         let cells = [];
 
         this.collection.each(cellLayer => {
-            cells = cells.concat(cellLayer.cells.models);
+            cells = cells.concat(cellLayer.cellCollection.models);
         });
 
         return cells;
     }
 
-    addCell(cell, opt = {}) {
-        const layerId = this._getLayerId(cell);
+    addCell(cellInit, opt = {}) {
+        const layerId = this._getLayerId(cellInit);
         const layer = this.getCellLayer(layerId);
 
-        layer.cells.add(cell, { ...opt, cellLayersController: this });
+        layer.cellCollection.add(cellInit, { ...opt, cellLayersController: this });
     }
 
     resetCells(cells = [], opt = {}) {
