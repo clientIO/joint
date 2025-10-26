@@ -296,9 +296,8 @@ export class CellLayersController extends Listener {
 
     getCell(id) {
         // TODO: should we create a map of cells for faster lookup?
-        for (let i = 0; i < this.layerCollection.length; i++) {
-            const cellLayer = this.layerCollection.at(i);
-            const cell = cellLayer.cellCollection.get(id);
+        for (const layer of this.layerCollection.models) {
+            const cell = layer.cellCollection.get(id);
             if (cell) {
                 return cell;
             }
@@ -308,12 +307,19 @@ export class CellLayersController extends Listener {
     }
 
     getCells() {
-        let cells = [];
-
-        this.layerCollection.each(cellLayer => {
-            cells = cells.concat(cellLayer.cellCollection.models);
-        });
-
+        const layers = this.layerCollection.models;
+        if (layers.length === 1) {
+            // Single layer:
+            // Fast path, just return the copy of the only layer's cells
+            return layers[0].cellCollection.models.slice();
+        }
+        // Multiple layers:
+        // Each layer has its models sorted already, so we can just concatenate
+        // them in the order of layers.
+        const cells = [];
+        for (const layer of layers) {
+            Array.prototype.push.apply(cells, layer.cellCollection.models);
+        }
         return cells;
     }
 
