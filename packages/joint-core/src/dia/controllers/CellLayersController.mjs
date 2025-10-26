@@ -20,7 +20,7 @@ export class CellLayersController extends Listener {
         this.callbackArguments = [];
 
         this.graph = context.graph;
-        this.collection = this.graph.cellLayerCollection;
+        this.layerCollection = this.graph.cellLayerCollection;
 
         // Default setup
         this.addCellLayer({
@@ -37,15 +37,15 @@ export class CellLayersController extends Listener {
     }
 
     startListening() {
-        this.listenTo(this.collection, 'reset', (collection, opt = {}) => {
+        this.listenTo(this.layerCollection, 'reset', (collection, opt = {}) => {
             this.onCellLayersCollectionReset(collection, opt);
         });
 
-        this.listenTo(this.collection, 'remove', (cellLayer, opt = {}) => {
+        this.listenTo(this.layerCollection, 'remove', (cellLayer, opt = {}) => {
             this.onCellLayerRemove(cellLayer, opt);
         });
 
-        this.listenTo(this.collection, 'cell:change', (cell, opt = {}) => {
+        this.listenTo(this.layerCollection, 'cell:change', (cell, opt = {}) => {
             this.onCellChange(cell, opt);
         });
     }
@@ -81,7 +81,7 @@ export class CellLayersController extends Listener {
             this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, opt);
         }
 
-        this.collection.reset(cellLayers, { ...opt, cellLayersController: this });
+        this.layerCollection.reset(cellLayers, { ...opt, cellLayersController: this });
         this.graph.stopBatch('reset-layers', opt);
     }
 
@@ -123,7 +123,7 @@ export class CellLayersController extends Listener {
     }
 
     resetLayersCollections(cells, opt = {}) {
-        const { collection } = this;
+        const { layerCollection: collection } = this;
 
         const layersMap = collection.reduce((map, layer) => {
             map[layer.id] = [];
@@ -144,7 +144,7 @@ export class CellLayersController extends Listener {
     }
 
     getDefaultCellLayer() {
-        return this.collection.get(this.defaultCellLayerId);
+        return this.layerCollection.get(this.defaultCellLayerId);
     }
 
     setDefaultCellLayer(newDefaultLayerId, opt = {}) {
@@ -206,7 +206,7 @@ export class CellLayersController extends Listener {
             }
 
             // Remove the layer from its current position
-            this.collection.remove(id, { silent: true, cellLayersController: this });
+            this.layerCollection.remove(id, { silent: true, cellLayersController: this });
         }
 
         // The cell layers array after removing the layer (if it existed)
@@ -222,18 +222,18 @@ export class CellLayersController extends Listener {
         }
 
         if (currentIndex != null) {
-            this.collection.add(cellLayer, {
+            this.layerCollection.add(cellLayer, {
                 at: insertAt,
                 cellLayersController: this,
                 silent: true
             });
             // Trigger `sort` event manually
             // since we are not using collection sorting workflow
-            this.collection.trigger('sort', this.collection);
+            this.layerCollection.trigger('sort', this.layerCollection);
         } else {
             // Add to the collection and trigger an event
             // when new layer has been added
-            this.collection.add(cellLayer, {
+            this.layerCollection.add(cellLayer, {
                 at: insertAt,
                 cellLayersController: this
             });
@@ -241,7 +241,7 @@ export class CellLayersController extends Listener {
     }
 
     removeCellLayer(layerId, opt) {
-        const { collection, defaultCellLayerId } = this;
+        const { layerCollection: collection, defaultCellLayerId } = this;
 
         if (layerId === defaultCellLayerId) {
             throw new Error('dia.Graph: default layer cannot be removed.');
@@ -279,7 +279,7 @@ export class CellLayersController extends Listener {
     }
 
     hasCellLayer(layerId) {
-        return this.collection.has(layerId);
+        return this.layerCollection.has(layerId);
     }
 
     getCellLayer(layerId) {
@@ -287,17 +287,17 @@ export class CellLayersController extends Listener {
             throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
         }
 
-        return this.collection.get(layerId);
+        return this.layerCollection.get(layerId);
     }
 
     getCellLayers() {
-        return this.collection.toArray();
+        return this.layerCollection.toArray();
     }
 
     getCell(id) {
         // TODO: should we create a map of cells for faster lookup?
-        for (let i = 0; i < this.collection.length; i++) {
-            const cellLayer = this.collection.at(i);
+        for (let i = 0; i < this.layerCollection.length; i++) {
+            const cellLayer = this.layerCollection.at(i);
             const cell = cellLayer.cellCollection.get(id);
             if (cell) {
                 return cell;
@@ -310,7 +310,7 @@ export class CellLayersController extends Listener {
     getCells() {
         let cells = [];
 
-        this.collection.each(cellLayer => {
+        this.layerCollection.each(cellLayer => {
             cells = cells.concat(cellLayer.cellCollection.models);
         });
 

@@ -257,38 +257,31 @@ export const Graph = Model.extend({
         return this;
     },
 
-    _prepareCell: function(cell, opt = {}) {
-        let attrs;
+    _prepareCell: function(cellInit, opt) {
 
-        if (cell[CELL_MARKER]) {
-            attrs = cell.attributes;
+        let cellAttributes;
+        if (cellInit[CELL_MARKER]) {
+            cellAttributes = cellInit.attributes;
         } else {
-            attrs = cell;
+            cellAttributes = cellInit;
         }
 
-        if (!util.isString(attrs.type)) {
+        if (!util.isString(cellAttributes.type)) {
             throw new TypeError('dia.Graph: cell type must be a string.');
         }
 
-        // compatibility: in the version before groups, z-index was not set on reset.
-        // We are doing it here instead in the cell layer to preserve the old behavior where 'change:z' event
-        // was not triggered on graph when cell was added to the graph because it was set before adding to the cell layer.
-        if (opt.ensureZIndex) {
-            const layerAttribute = config.layerAttribute;
-
-            const layerId = attrs[layerAttribute] || this.cellLayersController.defaultCellLayerId;
-            const layer = this.cellLayersController.getCellLayer(layerId);
-
-            if (cell[CELL_MARKER]) {
-                if (!cell.has('z')) {
-                    cell.set('z', layer.maxZIndex() + 1);
-                }
-            } else if (cell.z === undefined) {
-                cell.z = layer.maxZIndex() + 1;
+        // Backward compatibility: prior v4.2, z-index was not set during reset.
+        // We now set it in the cell layer to preserve the old behavior, where adding a cell to the graph
+        // did not trigger a 'change:z' event because the value was already assigned before adding it to the layer.
+        if (opt && opt.ensureZIndex) {
+            if (cellAttributes.z === undefined) {
+                const layerId = cellAttributes[config.layerAttribute] || this.cellLayersController.defaultCellLayerId;
+                const layer = this.cellLayersController.getCellLayer(layerId);
+                cellAttributes.z = layer.maxZIndex() + 1;
             }
         }
 
-        return cell;
+        return cellInit;
     },
 
     minZIndex: function(layerId) {
@@ -305,8 +298,8 @@ export const Graph = Model.extend({
             return this.addCells(cell, opt);
         }
 
-        const preparedCell = this._prepareCell(cell, { ...opt, ensureZIndex: true });
-        this.cellLayersController.addCell(preparedCell, opt);
+        this._prepareCell(cell, { ...opt, ensureZIndex: true });
+        this.cellLayersController.addCell(cell, opt);
 
         return this;
     },
@@ -335,17 +328,20 @@ export const Graph = Model.extend({
 
         this.startBatch('reset', opt);
 
-        const preparedCells = util.toArray(cells).map((cell) => {
-            // Do not ensure z-index on reset for backwards compatibility
-            return this._prepareCell(cell, { ...opt, ensureZIndex: false });
-        });
+        const cellArray = util.toArray(cells);
+        // Do not ensure z-index on reset for backwards compatibility
+        const prepareOptions = { ...opt, ensureZIndex: true };
+        for (const cell of cellArray) {
+            this._prepareCell(cell, prepareOptions);
+        }
 
-        this.cellLayersController.resetCells(preparedCells, opt);
+        this.cellLayersController.resetCells(cellArray, opt);
 
         // Trigger a single `reset` event on the graph
         // (while multiple `reset` events are triggered on cell layers).
-        // Use default cell layer collection as a backwards compatible option.
-        // Note: We should remove the `collection` parameter from the `reset` event.
+        // Backwards compatibility: use default cell layer collection
+        // The `collection` parameter is retained for backwards compatibility,
+        // and it is subject to removal in future releases.
         this.trigger('reset', this.getDefaultCellLayer().cellCollection, opt);
 
         this.stopBatch('reset', opt);
