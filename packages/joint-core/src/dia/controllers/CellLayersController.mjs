@@ -95,39 +95,14 @@ export class CellLayersController extends Listener {
     }
 
     onCellChange(cell, opt) {
-        const layerAttribute = config.layerAttribute;
-
-        if (!cell.hasChanged(layerAttribute))
-            return;
-
-        let layerId = this._getLayerId(cell);
-        const previousLayerId = cell.previous(layerAttribute) || this.defaultCellLayerId;
-
-        if (previousLayerId === layerId) {
-            // Implicit default layer to explicit default layer case (or vice versa)
-            // No follow-up action needed
-            return;
-        }
-
-        const previousLayer = this.getCellLayer(previousLayerId);
-        previousLayer.cellCollection.remove(cell, {
-            ...opt,
-            cellLayersController: this,
-            layerChange: true
-        });
-
-        const layer = this.getCellLayer(layerId);
-        layer.cellCollection.add(cell, {
-            ...opt,
-            cellLayersController: this,
-            layerChange: true
-        });
+        if (!cell.hasChanged(config.layerAttribute)) return;
+        this.layerCollection.moveCellBetweenLayers(cell, this._getLayerId(cell), opt);
     }
 
     resetLayersCollections(cells, opt = {}) {
-        const { layerCollection: collection } = this;
+        const { layerCollection } = this;
 
-        const layersMap = collection.reduce((map, layer) => {
+        const layersMap = layerCollection.reduce((map, layer) => {
             map[layer.id] = [];
             return map;
         }, {});
@@ -135,12 +110,12 @@ export class CellLayersController extends Listener {
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
             const layerId = this._getLayerId(cell);
-            if (collection.has(layerId)) {
+            if (layerCollection.has(layerId)) {
                 layersMap[layerId].push(cell);
             }
         }
 
-        collection.each(layer => {
+        layerCollection.each(layer => {
             layer.cellCollection.reset(layersMap[layer.id], { ...opt, cellLayersController: this });
         });
     }
@@ -149,12 +124,10 @@ export class CellLayersController extends Listener {
         return this.layerCollection.get(this.defaultCellLayerId);
     }
 
-    setDefaultCellLayer(newDefaultLayerId, opt = {}) {
+    setDefaultCellLayer(newDefaultLayerId, options = {}) {
         if (!this.hasCellLayer(newDefaultLayerId)) {
             throw new Error(`dia.Graph: Cell layer with id '${newDefaultLayerId}' does not exist.`);
         }
-
-        const newDefaultLayer = this.getCellLayer(newDefaultLayerId);
 
         if (newDefaultLayerId === this.defaultCellLayerId) {
             return; // no change
@@ -163,28 +136,18 @@ export class CellLayersController extends Listener {
         if (this.hasCellLayer(this.defaultCellLayerId)) {
             const previousDefaultLayer = this.getCellLayer(this.defaultCellLayerId);
             const layerAttribute = config.layerAttribute;
-            // set new default layer for paper to use when inserting to the new default layer
+            // Set the new default layer for future cell additions
             this.defaultCellLayerId = newDefaultLayerId;
-            // move all cells that do not have explicit layer set to the new default layer
+            // Reassign any cells lacking an explicit layer to the new default layer
             previousDefaultLayer.cellCollection.toArray().forEach(cell => {
-                if (cell.get(layerAttribute) == null) {
-                    previousDefaultLayer.cellCollection.remove(cell, {
-                        ...opt,
-                        cellLayersController: this,
-                        layerChange: true
-                    });
-                    newDefaultLayer.cellCollection.add(cell, {
-                        ...opt,
-                        cellLayersController: this,
-                        layerChange: true
-                    });
-                }
+                if (cell.get(layerAttribute) != null) return;
+                this.layerCollection.moveCellBetweenLayers(cell, newDefaultLayerId, options);
             });
         } else {
             this.defaultCellLayerId = newDefaultLayerId;
         }
 
-        this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, opt);
+        this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, options);
     }
 
     addCellLayer(cellLayer, { insertBefore } = {}) {
@@ -243,7 +206,7 @@ export class CellLayersController extends Listener {
     }
 
     removeCellLayer(layerId, opt) {
-        const { layerCollection: collection, defaultCellLayerId } = this;
+        const { layerCollection, defaultCellLayerId } = this;
 
         if (layerId === defaultCellLayerId) {
             throw new Error('dia.Graph: default layer cannot be removed.');
@@ -255,7 +218,7 @@ export class CellLayersController extends Listener {
 
         this.graph.startBatch('remove-cell-layer');
 
-        collection.remove(layerId, { ...opt, cellLayersController: this });
+        layerCollection.remove(layerId, { ...opt, cellLayersController: this });
 
         this.graph.stopBatch('remove-cell-layer');
     }

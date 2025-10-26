@@ -55,8 +55,9 @@ export const CellLayerView = LayerView.extend({
     },
 
     onCellAdd(cell, _collection, opt = {}) {
-        // request insert on layer change
-        if (opt.layerChange) {
+        // When a cell is moved from one layer to another,
+        // request insertion of its view in the new layer.
+        if (opt.fromLayer) {
             this.requestCellViewInsertion(cell, opt);
         }
     },

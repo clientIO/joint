@@ -75,7 +75,7 @@ export const Graph = Model.extend({
             // Skip if a `cell` is added to a different layer due to layer change
             if (eventName === 'cell:add') {
                 const options = arguments[2];
-                if (options && options.layerChange) {
+                if (options && options.fromLayer) {
                     return;
                 }
             }
@@ -115,7 +115,6 @@ export const Graph = Model.extend({
     },
 
     _restructureOnRemove: function(cell, _collection, options) {
-        if (options.layerChange) return;
 
         if (cell.isLink()) {
             delete this._edges[cell.id];
