@@ -2224,15 +2224,9 @@ export namespace dia {
 
         declare id: string;
 
-        cells: C;
+        cellCollection: C;
 
         constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<CellGroup>);
-
-        add(cell: Cell, opt?: S): void;
-
-        remove(cell: Cell, opt?: S): void;
-
-        reset(cells?: Cell, opt?: S): void;
     }
 
     namespace CellLayer {

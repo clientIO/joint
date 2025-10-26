@@ -15,15 +15,7 @@ export const Element = Cell.extend({
     },
 
     initialize: function(attributes, options) {
-        // Override port layout namespaces if provided in options
-        if (options && options.portLayoutNamespace) {
-            this.portLayoutNamespace = options.portLayoutNamespace;
-        }
-        // Override port label layout namespaces if provided in options
-        if (options && options.portLabelLayoutNamespace) {
-            this.portLabelLayoutNamespace = options.portLabelLayoutNamespace;
-        }
-        this._initializePorts();
+        this._initializePorts(options);
         Cell.prototype.initialize.apply(this, arguments);
     },
 
