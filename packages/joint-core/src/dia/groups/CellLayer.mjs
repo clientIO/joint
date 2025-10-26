@@ -1,20 +1,22 @@
-import { CellGroup } from './CellGroup.mjs';
+import { Model } from '../../mvc/index.mjs';
 import { CellLayerCollection } from '../collections/CellLayerCollection.mjs';
 
 export const CELL_LAYER_MARKER = Symbol('joint.cellLayerMarker');
 
 /**
  * @class CellLayer
- * @description A CellLayer is a CellGroup with additional helper methods for z-index management.
- * The inner collection is sorted by z-index automatically.
+ * @description A CellLayer is a sorted collection of cells which supports z-index management.
  */
-export class CellLayer extends CellGroup {
+export class CellLayer extends Model {
 
     [CELL_LAYER_MARKER] = true;
 
     preinitialize() {
-        super.preinitialize();
         this.collectionConstructor = CellLayerCollection;
+        // This allows for propagating events from the inner `cellCollection` collection
+        // without any prefix and therefore distinguish them from the events
+        // fired by the CellGroup model itself.
+        this.eventPrefix = 'self:';
     }
 
     defaults() {
@@ -23,24 +25,23 @@ export class CellLayer extends CellGroup {
         };
     }
 
-    initialize(attrs, options) {
+    initialize(attrs, options = {}) {
         super.initialize(attrs, options);
 
-        this.cellCollection.on('change', this.onCellChange, this);
-    }
-
-    getCollectionOptions(_attrs, options = {}) {
-        return {
+        this.cellCollection = new this.collectionConstructor([], {
             layer: this,
             graph: options.graph,
             cellNamespace: options.cellNamespace,
-        };
+        });
+
+        // Forward all events from the inner `cellCollection` collection
+        this.cellCollection.on('all', this.trigger, this);
+        // Listen to cell changes to manage z-index sorting
+        this.cellCollection.on('change', this.onCellChange, this);
     }
 
-    onCellChange(cell, _opt) {
-        if (!cell.hasChanged('z'))
-            return;
-
+    onCellChange(cell, opt) {
+        if (opt.sort === false || !cell.hasChanged('z')) return;
         this.cellCollection.sort();
     }
 
