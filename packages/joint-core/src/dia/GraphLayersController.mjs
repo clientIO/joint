@@ -96,7 +96,7 @@ export class GraphLayersController extends Listener {
 
     onCellChange(cell, opt) {
         if (!cell.hasChanged(config.layerAttribute)) return;
-        this.layerCollection.moveCellBetweenLayers(cell, this._getLayerId(cell), opt);
+        this.moveCellBetweenLayers(cell, this._getLayerId(cell), opt);
     }
 
     resetLayersCollections(cells, opt = {}) {
@@ -139,9 +139,9 @@ export class GraphLayersController extends Listener {
             // Set the new default layer for future cell additions
             this.defaultCellLayerId = newDefaultLayerId;
             // Reassign any cells lacking an explicit layer to the new default layer
-            previousDefaultLayer.cellCollection.toArray().forEach(cell => {
+            previousDefaultLayer.cellCollection.each(cell => {
                 if (cell.get(layerAttribute) != null) return;
-                this.layerCollection.moveCellBetweenLayers(cell, newDefaultLayerId, options);
+                this.moveCellBetweenLayers(cell, newDefaultLayerId, options);
             });
         } else {
             this.defaultCellLayerId = newDefaultLayerId;
@@ -293,6 +293,40 @@ export class GraphLayersController extends Listener {
         const layer = this.getCellLayer(layerId);
 
         layer.cellCollection.add(cellInit, { ...opt, graph: this.graph.cid });
+    }
+
+    /**
+     * @public
+     * @description Move a cell from its current layer to a target layer.
+     */
+    moveCellBetweenLayers(cell, targetLayerId, options = {}) {
+
+        const sourceLayer = cell.collection?.layer;
+        if (!sourceLayer) {
+            throw new Error('dia.GraphLayersController: cannot move a cell that is not part of any layer.');
+        }
+
+        const targetLayer = this.layerCollection.get(targetLayerId);
+        if (!targetLayer) {
+            throw new Error(`dia.GraphLayersController: cannot move cell to layer '${targetLayerId}' because such layer does not exist.`);
+        }
+
+        if (sourceLayer === targetLayer) {
+            // 1. The provided cell is already in the target layer
+            // 2. Implicit default layer vs. explicit default (or vice versa)
+            // No follow-up action needed
+            return;
+        }
+
+        const moveOptions = {
+            ...options,
+            graph: this.graph.cid,
+            fromLayer: sourceLayer.id,
+            toLayer: targetLayer.id
+        };
+        // Move the cell between the two layer collections
+        sourceLayer.cellCollection.remove(cell, moveOptions);
+        targetLayer.cellCollection.add(cell, moveOptions);
     }
 
     resetCells(cells = [], opt = {}) {

@@ -186,37 +186,4 @@ export const GraphLayerCollection = Collection.extend({
         }
     },
 
-    /**
-     * @public
-     * @description Move a cell from its current layer to a target layer.
-     */
-    moveCellBetweenLayers(cell, targetLayerId, options = {}) {
-
-        const sourceLayer = cell.collection?.layer;
-        if (!sourceLayer) {
-            throw new Error('dia.GraphLayerCollection: cannot move a cell that is not part of any layer.');
-        }
-
-        const targetLayer = this.get(targetLayerId);
-        if (!targetLayer) {
-            throw new Error(`dia.GraphLayerCollection: cannot move cell to layer '${targetLayerId}' because such layer does not exist.`);
-        }
-
-        if (sourceLayer === targetLayer) {
-            // 1. The provided cell is already in the target layer
-            // 2. Implicit default layer vs. explicit default (or vice versa)
-            // No follow-up action needed
-            return;
-        }
-
-        const moveOptions = {
-            ...options,
-            graph: this.graph.cid,
-            fromLayer: sourceLayer.id,
-            toLayer: targetLayer.id
-        };
-        // Move the cell between the two layer collections
-        sourceLayer.cellCollection.remove(cell, moveOptions);
-        targetLayer.cellCollection.add(cell, moveOptions);
-    },
 });

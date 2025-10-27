@@ -389,7 +389,7 @@ export const Graph = Model.extend({
         // Remove the cell from the cell layer
         collection.remove(cell, {
             ...options,
-            cellLayersController: this.layersController
+            graph: this.cid
         });
     },
 
