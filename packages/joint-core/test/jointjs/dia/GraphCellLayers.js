@@ -3,7 +3,7 @@ QUnit.module('GraphLayerCollection', function(hooks) {
     QUnit.test('default setup', (assert) => {
         const collection = new joint.dia.GraphLayerCollection();
 
-        assert.deepEqual(collection.cellLayerNamespace, collection.defaultCellLayerNamespace, 'cellLayerNamespace is set to default');
+        assert.deepEqual(collection.layerNamespace, collection.defaultLayerNamespace, 'layerNamespace is set to default');
     });
 
     QUnit.test('add layers', (assert) => {
@@ -36,7 +36,7 @@ QUnit.module('GraphLayerCollection', function(hooks) {
 
         assert.throws(() => {
             collection.add({ type: 'InvalidType', id: 'layer1' }, { graph: 'a graph' });
-        }, /dia.Graph: Could not find cell layer constructor for type: 'InvalidType'. Make sure to add the constructor to 'cellLayerNamespace'./, 'throws error when adding invalid cellLayer type');
+        }, /dia.Graph: Could not find cell layer constructor for type: 'InvalidType'. Make sure to add the constructor to 'layerNamespace'./, 'throws error when adding invalid cellLayer type');
     });
 
     QUnit.test('remove GraphLayer', (assert) => {
@@ -59,7 +59,7 @@ QUnit.module('GraphLayerCollection', function(hooks) {
         ], 'events are triggered correctly on removal');
     });
 
-    QUnit.test('custom cellLayerNamespace', (assert) => {
+    QUnit.test('custom layerNamespace', (assert) => {
         class CustomGraphLayer extends joint.dia.GraphLayer {
             defaults() {
                 return {
@@ -68,9 +68,9 @@ QUnit.module('GraphLayerCollection', function(hooks) {
             }
         }
         const namespace = { CustomGraphLayer };
-        const collection = new joint.dia.GraphLayerCollection([], { cellLayerNamespace: namespace });
+        const collection = new joint.dia.GraphLayerCollection([], { layerNamespace: namespace });
 
-        assert.deepEqual(collection.cellLayerNamespace, { ...collection.defaultCellLayerNamespace, ...namespace }, 'cellLayerNamespace is set correctly');
+        assert.deepEqual(collection.layerNamespace, { ...collection.defaultLayerNamespace, ...namespace }, 'layerNamespace is set correctly');
 
         const customLayer = collection.add({ type: 'CustomGraphLayer', id: 'custom1' }, { graph: 'a graph' });
         assert.ok(customLayer instanceof CustomGraphLayer, 'custom layer is created correctly');

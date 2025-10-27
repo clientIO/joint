@@ -6,11 +6,11 @@ import * as util from '../util/index.mjs';
 
 /**
  * @class GraphLayerCollection
- * @description A collection of cell layers used in dia.Graph. It facilitates creating cell layers from JSON using cellLayerNamespace.
+ * @description A collection of cell layers used in dia.Graph. It facilitates creating cell layers from JSON using layerNamespace.
  */
 export const GraphLayerCollection = Collection.extend({
 
-    defaultCellLayerNamespace: {
+    defaultLayerNamespace: {
         GraphLayer
     },
 
@@ -19,11 +19,11 @@ export const GraphLayerCollection = Collection.extend({
      * @description Initializes the collection and sets up the cell layer and cell namespaces.
      */
     initialize: function(_models, options = {}) {
-        const { cellLayerNamespace, cellNamespace, graph } = options;
+        const { layerNamespace, cellNamespace, graph } = options;
 
         // Initialize the namespace that holds all available cell layer classes.
         // Custom namespaces are merged with the default ones.
-        this.cellLayerNamespace = util.assign({}, this.defaultCellLayerNamespace, cellLayerNamespace);
+        this.layerNamespace = util.assign({}, this.defaultLayerNamespace, layerNamespace);
 
         // Initialize the namespace for all cell model classes, if provided.
         if (cellNamespace) {
@@ -45,13 +45,13 @@ export const GraphLayerCollection = Collection.extend({
     model: function(attrs, opt) {
 
         const collection = opt.collection;
-        const namespace = collection.cellLayerNamespace;
+        const namespace = collection.layerNamespace;
         const { type } = attrs;
 
         // Find the model class based on the `type` attribute in the cell namespace
         const CellLayerClass = util.getByPath(namespace, type, '.');
         if (!CellLayerClass) {
-            throw new Error(`dia.Graph: Could not find cell layer constructor for type: '${type}'. Make sure to add the constructor to 'cellLayerNamespace'.`);
+            throw new Error(`dia.Graph: Could not find cell layer constructor for type: '${type}'. Make sure to add the constructor to 'layerNamespace'.`);
         }
 
         return new CellLayerClass(attrs, opt);

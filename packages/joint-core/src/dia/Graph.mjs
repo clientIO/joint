@@ -14,7 +14,7 @@ export const Graph = Model.extend({
     initialize: function(attrs, options = {}) {
 
         const layerCollection = this.layerCollection = new GraphLayerCollection([], {
-            cellLayerNamespace: options.cellLayerNamespace,
+            layerNamespace: options.layerNamespace,
             cellNamespace: options.cellNamespace,
             graph: this,
             /** @deprecated use cellNamespace instead */
