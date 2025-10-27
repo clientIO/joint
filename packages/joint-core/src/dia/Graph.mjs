@@ -344,7 +344,7 @@ export const Graph = Model.extend({
         // Backwards compatibility: use default cell layer collection
         // The `collection` parameter is retained for backwards compatibility,
         // and it is subject to removal in future releases.
-        this.trigger('reset', this.getDefaultCellLayer().cellCollection, opt);
+        this.trigger('reset', this.getDefaultLayer().cellCollection, opt);
 
         this.stopBatch('reset', opt);
 
@@ -423,28 +423,28 @@ export const Graph = Model.extend({
         this.stopBatch(batchName);
     },
 
-    addCellLayer(cellLayer, opt) {
-        this.layersController.addCellLayer(cellLayer, opt);
+    addLayer(cellLayer, opt) {
+        this.layersController.addLayer(cellLayer, opt);
     },
 
-    removeCellLayer(cellLayer, opt) {
-        this.layersController.removeCellLayer(cellLayer.id, opt);
+    removeLayer(cellLayer, opt) {
+        this.layersController.removeLayer(cellLayer.id, opt);
     },
 
-    getDefaultCellLayer() {
-        return this.layersController.getDefaultCellLayer();
+    getDefaultLayer() {
+        return this.layersController.getDefaultLayer();
     },
 
-    setDefaultCellLayer(layerId, opt) {
-        this.layersController.setDefaultCellLayer(layerId, opt);
+    setDefaultLayer(layerId, opt) {
+        this.layersController.setDefaultLayer(layerId, opt);
     },
 
     getLayer(layerId) {
         return this.layersController.getLayer(layerId);
     },
 
-    hasCellLayer(layerId) {
-        return this.layersController.hasCellLayer(layerId);
+    hasLayer(layerId) {
+        return this.layersController.hasLayer(layerId);
     },
 
     getLayers() {

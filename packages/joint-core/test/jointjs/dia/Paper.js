@@ -1614,7 +1614,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 paper.options.labelsLayer = true;
                 paper.options.sorting = joint.dia.Paper.sorting.APPROX;
                 labelsLayer = paper.getLayerViewNode(joint.dia.Paper.Layers.LABELS);
-                cellsLayer = paper.getLayerViewNode(paper.model.getDefaultCellLayer().id);
+                cellsLayer = paper.getLayerViewNode(paper.model.getDefaultLayer().id);
             });
 
             QUnit.test('sanity', function(assert) {
@@ -2490,7 +2490,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         QUnit.test('sanity', function(assert) {
             assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.BACK));
             assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.GRID));
-            assert.ok(paper.getLayerViewNode(paper.model.getDefaultCellLayer().id));
+            assert.ok(paper.getLayerViewNode(paper.model.getDefaultLayer().id));
             assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.FRONT));
             assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.TOOLS));
             assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.LABELS));
@@ -2501,7 +2501,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('returns true when layer exists', function(assert) {
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.BACK));
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.GRID));
-                assert.ok(paper.hasLayerView(paper.model.getDefaultCellLayer().id));
+                assert.ok(paper.hasLayerView(paper.model.getDefaultLayer().id));
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.FRONT));
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.TOOLS));
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.LABELS));
@@ -2572,7 +2572,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 graph.addCells([new joint.shapes.standard.Rectangle()], { async: false });
                 assert.throws(
                     function() {
-                        paper.removeLayerView(graph.getDefaultCellLayer().id);
+                        paper.removeLayerView(graph.getDefaultLayer().id);
                     },
                     /dia.Paper: The layer view is not empty./,
                     'Layer "cells" cannot be removed because it contains views.'
@@ -2700,7 +2700,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 graph.removeCells([r2], { async: false });
 
                 const testLayer = new joint.dia.GraphLayer({ id: 'test' });
-                graph.addCellLayer(testLayer);
+                graph.addLayer(testLayer);
 
                 assert.ok(paper.hasLayerView('test'), 'Layer view "test" is created in Paper.');
 
@@ -2715,7 +2715,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.ok(paper.getLayerViewNode('cells').contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
 
                 const testLayer = new joint.dia.GraphLayer({ id: 'test' });
-                graph.addCellLayer(testLayer);
+                graph.addLayer(testLayer);
 
                 assert.ok(paper.hasLayerView('test'), 'Layer view "test" is created in Paper.');
 

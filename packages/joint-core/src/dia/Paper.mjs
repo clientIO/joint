@@ -937,7 +937,7 @@ export const Paper = View.extend({
         // Render the cell layers.
         this.resetCellLayerViews();
         // Throws an exception if doesn't exist
-        const cellsLayerView = this.getLayerView(this.model.getDefaultCellLayer().id);
+        const cellsLayerView = this.getLayerView(this.model.getDefaultLayer().id);
         const toolsLayerView = this.getLayerView(paperLayers.TOOLS);
         const labelsLayerView = this.getLayerView(paperLayers.LABELS);
         // backwards compatibility
@@ -2372,7 +2372,7 @@ export const Paper = View.extend({
         const { model } = view;
 
         // layer can be null if it is added to the graph with 'dry' option
-        const layerId = model.layer() || this.model.getDefaultCellLayer().id;
+        const layerId = model.layer() || this.model.getDefaultLayer().id;
         const layerView = this.getLayerView(layerId);
 
         layerView.insertCellView(view);

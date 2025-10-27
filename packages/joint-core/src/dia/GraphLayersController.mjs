@@ -23,7 +23,7 @@ export class GraphLayersController extends Listener {
         this.layerCollection = this.graph.layerCollection;
 
         // Default setup
-        this.addCellLayer({
+        this.addLayer({
             id: DEFAULT_CELL_LAYER_ID,
         });
 
@@ -119,12 +119,12 @@ export class GraphLayersController extends Listener {
         });
     }
 
-    getDefaultCellLayer() {
+    getDefaultLayer() {
         return this.layerCollection.get(this.defaultCellLayerId);
     }
 
-    setDefaultCellLayer(newDefaultLayerId, options = {}) {
-        if (!this.hasCellLayer(newDefaultLayerId)) {
+    setDefaultLayer(newDefaultLayerId, options = {}) {
+        if (!this.hasLayer(newDefaultLayerId)) {
             throw new Error(`dia.Graph: Cell layer with id '${newDefaultLayerId}' does not exist.`);
         }
 
@@ -132,7 +132,7 @@ export class GraphLayersController extends Listener {
             return; // no change
         }
 
-        if (this.hasCellLayer(this.defaultCellLayerId)) {
+        if (this.hasLayer(this.defaultCellLayerId)) {
             const previousDefaultLayer = this.getLayer(this.defaultCellLayerId);
             const layerAttribute = config.layerAttribute;
             // Set the new default layer for future cell additions
@@ -149,7 +149,7 @@ export class GraphLayersController extends Listener {
         this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, options);
     }
 
-    addCellLayer(cellLayer, { insertBefore } = {}) {
+    addLayer(cellLayer, { insertBefore } = {}) {
         const id = cellLayer.id;
 
         // insert before itself is a no-op
@@ -163,7 +163,7 @@ export class GraphLayersController extends Listener {
         const originalLayersArray = this.getLayers();
 
         let currentIndex = null;
-        if (this.hasCellLayer(id)) {
+        if (this.hasLayer(id)) {
             currentIndex = originalLayersArray.findIndex(layer => layer === cellLayer);
             if (currentIndex === originalLayersArray.length - 1 && !insertBefore) {
                 return; // already at the end
@@ -204,14 +204,14 @@ export class GraphLayersController extends Listener {
         }
     }
 
-    removeCellLayer(layerId, opt) {
+    removeLayer(layerId, opt) {
         const { layerCollection, defaultCellLayerId } = this;
 
         if (layerId === defaultCellLayerId) {
             throw new Error('dia.Graph: default layer cannot be removed.');
         }
 
-        if (!this.hasCellLayer(layerId)) {
+        if (!this.hasLayer(layerId)) {
             throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
         }
 
@@ -232,12 +232,12 @@ export class GraphLayersController extends Listener {
         return layer.cellCollection.maxZIndex();
     }
 
-    hasCellLayer(layerId) {
+    hasLayer(layerId) {
         return this.layerCollection.has(layerId);
     }
 
     getLayer(layerId) {
-        if (!this.hasCellLayer(layerId)) {
+        if (!this.hasLayer(layerId)) {
             throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
         }
 

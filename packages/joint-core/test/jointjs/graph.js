@@ -1662,13 +1662,13 @@ QUnit.module('graph', function(hooks) {
 
         assert.equal(rect.layer(), 'cells', 'default layer is "cells"');
 
-        graph.addCellLayer({ id: 'my-layer' });
+        graph.addLayer({ id: 'my-layer' });
 
         rect.layer('my-layer');
 
         assert.equal(rect.get('_layerId'), 'my-layer', 'layer attribute is changed accordingly');
 
-        graph.addCellLayer({ id: 'another-layer' });
+        graph.addLayer({ id: 'another-layer' });
 
         rect.set('_layerId', 'another-layer');
 
