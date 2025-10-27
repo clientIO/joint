@@ -1,5 +1,5 @@
-import { Model } from '../../mvc/index.mjs';
-import { CellLayerCollection } from '../CellCollection.mjs';
+import { Model } from '../mvc/index.mjs';
+import { CellLayerCollection } from './CellCollection.mjs';
 
 export const CELL_LAYER_MARKER = Symbol('joint.cellLayerMarker');
 

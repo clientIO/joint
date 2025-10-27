@@ -13,6 +13,6 @@ export * from './HighlighterView.mjs';
 export * from './layers/CellLayerView.mjs';
 export * from './layers/LayerView.mjs';
 export * from './layers/GridLayerView.mjs';
-export * from './groups/CellLayer.mjs';
+export * from './GraphLayer.mjs';
 export * from './GraphLayerCollection.mjs';
 export * from './CellCollection.mjs';
