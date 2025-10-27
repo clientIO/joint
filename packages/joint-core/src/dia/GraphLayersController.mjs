@@ -57,7 +57,7 @@ export class GraphLayersController extends Listener {
         });
     }
 
-    resetCellLayers(layers, opt = {}) {
+    resetLayers(layers, opt = {}) {
         if (!Array.isArray(layers) || layers.length === 0) {
             throw new Error('dia.Graph: At least one cell layer must be defined.');
         }
@@ -133,7 +133,7 @@ export class GraphLayersController extends Listener {
         }
 
         if (this.hasCellLayer(this.defaultCellLayerId)) {
-            const previousDefaultLayer = this.getCellLayer(this.defaultCellLayerId);
+            const previousDefaultLayer = this.getLayer(this.defaultCellLayerId);
             const layerAttribute = config.layerAttribute;
             // Set the new default layer for future cell additions
             this.defaultCellLayerId = newDefaultLayerId;
@@ -160,7 +160,7 @@ export class GraphLayersController extends Listener {
         // Adding a new layer disables legacy mode
         this.legacyMode = false;
 
-        const originalLayersArray = this.getCellLayers();
+        const originalLayersArray = this.getLayers();
 
         let currentIndex = null;
         if (this.hasCellLayer(id)) {
@@ -174,7 +174,7 @@ export class GraphLayersController extends Listener {
         }
 
         // The cell layers array after removing the layer (if it existed)
-        const layersArray = this.getCellLayers();
+        const layersArray = this.getLayers();
         let insertAt;
         if (!insertBefore) {
             insertAt = layersArray.length;
@@ -223,12 +223,12 @@ export class GraphLayersController extends Listener {
     }
 
     minZIndex(layerId = this.defaultCellLayerId) {
-        const layer = this.getCellLayer(layerId);
+        const layer = this.getLayer(layerId);
         return layer.cellCollection.minZIndex();
     }
 
     maxZIndex(layerId = this.defaultCellLayerId) {
-        const layer = this.getCellLayer(layerId);
+        const layer = this.getLayer(layerId);
         return layer.cellCollection.maxZIndex();
     }
 
@@ -236,7 +236,7 @@ export class GraphLayersController extends Listener {
         return this.layerCollection.has(layerId);
     }
 
-    getCellLayer(layerId) {
+    getLayer(layerId) {
         if (!this.hasCellLayer(layerId)) {
             throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
         }
@@ -244,7 +244,7 @@ export class GraphLayersController extends Listener {
         return this.layerCollection.get(layerId);
     }
 
-    getCellLayers() {
+    getLayers() {
         return this.layerCollection.toArray();
     }
 
@@ -279,7 +279,7 @@ export class GraphLayersController extends Listener {
 
     addCell(cellInit, opt = {}) {
         const layerId = this._getLayerId(cellInit);
-        const layer = this.getCellLayer(layerId);
+        const layer = this.getLayer(layerId);
 
         layer.cellCollection.add(cellInit, { ...opt, graph: this.graph.cid });
     }

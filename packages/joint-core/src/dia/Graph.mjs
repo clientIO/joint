@@ -28,7 +28,7 @@ export const Graph = Model.extend({
 
         // Retain legacy 'cells' collection in attributes for backward compatibility.
         // Applicable only when the default layer setup is used.
-        this.attributes.cells = this.getCellLayer('cells').cellCollection;
+        this.attributes.cells = this.getLayer('cells').cellCollection;
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -213,7 +213,7 @@ export const Graph = Model.extend({
         }
 
         if (layers) {
-            this.resetCellLayers(layers, { ...opt, defaultCellLayer });
+            this.resetLayers(layers, { ...opt, defaultCellLayer });
         }
 
         if (cells) {
@@ -351,8 +351,8 @@ export const Graph = Model.extend({
         return this;
     },
 
-    resetCellLayers: function(layers, opt) {
-        this.layersController.resetCellLayers(layers, opt);
+    resetLayers: function(layers, opt) {
+        this.layersController.resetLayers(layers, opt);
         return this;
     },
 
@@ -439,16 +439,16 @@ export const Graph = Model.extend({
         this.layersController.setDefaultCellLayer(layerId, opt);
     },
 
-    getCellLayer(layerId) {
-        return this.layersController.getCellLayer(layerId);
+    getLayer(layerId) {
+        return this.layersController.getLayer(layerId);
     },
 
     hasCellLayer(layerId) {
         return this.layersController.hasCellLayer(layerId);
     },
 
-    getCellLayers() {
-        return this.layersController.getCellLayers();
+    getLayers() {
+        return this.layersController.getLayers();
     },
 
     // Get a cell by `id`.
@@ -474,10 +474,10 @@ export const Graph = Model.extend({
         let cells;
         if (!layerId) {
             // Get the first cell from the bottommost layer
-            const orderedLayers = this.getCellLayers();
+            const orderedLayers = this.getLayers();
             cells = orderedLayers[0].cellCollection.models;
         } else {
-            cells = this.getCellLayer(layerId).cellCollection.models;
+            cells = this.getLayer(layerId).cellCollection.models;
         }
 
         return cells[0];
@@ -487,10 +487,10 @@ export const Graph = Model.extend({
         let cells;
         if (!layerId) {
             // Get the last cell from the topmost layer
-            const orderedLayers = this.getCellLayers();
+            const orderedLayers = this.getLayers();
             cells = orderedLayers[orderedLayers.length - 1].cellCollection.models;
         } else {
-            cells = this.getCellLayer(layerId).cellCollection.models;
+            cells = this.getLayer(layerId).cellCollection.models;
         }
 
         return cells[cells.length - 1];

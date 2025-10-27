@@ -552,7 +552,7 @@ export const Paper = View.extend({
 
         let insertBefore = paperLayers.LABELS;
 
-        const layers = this.model.getCellLayers();
+        const layers = this.model.getLayers();
         const index = layers.indexOf(cellLayer);
         if (index !== layers.length - 1) {
             // there is a cell layer after the current one, so insert before that one
@@ -592,7 +592,7 @@ export const Paper = View.extend({
             delete this._cellLayerViews[id];
         }
 
-        const layers = this.model.getCellLayers();
+        const layers = this.model.getLayers();
         layers.forEach(cellLayer => {
             const layerView = this.createLayerView({
                 id: cellLayer.id,
@@ -850,7 +850,7 @@ export const Paper = View.extend({
 
     // Returns ordered array of cell layer views
     getCellLayerViews() {
-        return this.model.getCellLayers().map(cellLayer => this._cellLayerViews[cellLayer.id]);
+        return this.model.getLayers().map(cellLayer => this._cellLayerViews[cellLayer.id]);
     },
 
     render: function() {
