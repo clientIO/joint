@@ -20,7 +20,7 @@ export class CellLayersController extends Listener {
         this.callbackArguments = [];
 
         this.graph = context.graph;
-        this.layerCollection = this.graph.cellLayerCollection;
+        this.layerCollection = this.graph.layerCollection;
 
         // Default setup
         this.addCellLayer({

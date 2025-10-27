@@ -1,6 +1,6 @@
 import { Collection } from '../mvc/index.mjs';
 import { GRAPH_LAYER_MARKER, GraphLayer } from './GraphLayer.mjs';
-import { CELL_LAYER_COLLECTION_MARKER } from './CellCollection.mjs';
+import { CELL_COLLECTION_MARKER } from './CellCollection.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 import * as util from '../util/index.mjs';
 
@@ -105,8 +105,8 @@ export const GraphLayerCollection = Collection.extend({
             return;
         }
 
-        if (model[CELL_LAYER_COLLECTION_MARKER]) {
-            this._onCellLayerCollectionEvent.apply(this, arguments);
+        if (model[CELL_COLLECTION_MARKER]) {
+            this._onCellCollectionEvent.apply(this, arguments);
             return;
         }
     },
@@ -140,7 +140,7 @@ export const GraphLayerCollection = Collection.extend({
         this.trigger.apply(this, arguments);
     },
 
-    _onCellLayerCollectionEvent() {
+    _onCellCollectionEvent() {
         // forward cell layer collection events with `layer:` prefix
         arguments[0] = 'layer:' + arguments[0];
 

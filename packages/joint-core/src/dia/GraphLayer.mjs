@@ -1,5 +1,5 @@
 import { Model } from '../mvc/index.mjs';
-import { CellLayerCollection } from './CellCollection.mjs';
+import { CellCollection } from './CellCollection.mjs';
 
 export const GRAPH_LAYER_MARKER = Symbol('joint.graphLayerMarker');
 
@@ -27,7 +27,7 @@ export class GraphLayer extends Model {
     initialize(attrs, options = {}) {
         super.initialize(attrs, options);
 
-        this.cellCollection = new CellLayerCollection([], {
+        this.cellCollection = new CellCollection([], {
             layer: this,
             graph: options.graph,
             cellNamespace: options.cellNamespace,

@@ -2,17 +2,17 @@ import * as util from '../util/index.mjs';
 import { Collection } from '../mvc/Collection.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 
-export const CELL_LAYER_COLLECTION_MARKER = Symbol('joint.cellLayerCollectionMarker');
+export const CELL_COLLECTION_MARKER = Symbol('joint.cellCollectionMarker');
 
 /**
- * @class CellLayerCollection
- * @description A CellLayerCollection is a collection of cells which supports sorting by z attribute.
+ * @class CellCollection
+ * @description A CellCollection is a collection of cells which supports z-index management.
  * Additionally, it facilitates creating cell models from JSON using cellNamespace
  * and stores a reference to the graph when the cell model has been added.
  */
-export class CellLayerCollection extends Collection {
+export class CellCollection extends Collection {
 
-    [CELL_LAYER_COLLECTION_MARKER] = true;
+    [CELL_COLLECTION_MARKER] = true;
 
     initialize(_models, opt) {
         this.cellNamespace = opt.cellNamespace;

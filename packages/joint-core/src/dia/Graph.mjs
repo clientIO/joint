@@ -15,7 +15,7 @@ export const Graph = Model.extend({
 
         opt = opt || {};
 
-        const cellLayerCollection = this.cellLayerCollection = new GraphLayerCollection([], {
+        const layerCollection = this.layerCollection = new GraphLayerCollection([], {
             cellLayerNamespace: opt.cellLayerNamespace,
             cellNamespace: opt.cellNamespace,
             /** @deprecated use cellNamespace instead */
@@ -23,8 +23,8 @@ export const Graph = Model.extend({
             graph: this,
         });
 
-        // Re-trigger events from the `cellLayerCollection` on the graph instance.
-        cellLayerCollection.on('all', this._forwardCellLayerCollectionEvents, this);
+        // Re-trigger events from the `layerCollection` on the graph instance.
+        layerCollection.on('all', this._forwardCellCollectionEvents, this);
 
         this.cellLayersController = new CellLayersController({ graph: this });
 
@@ -61,11 +61,11 @@ export const Graph = Model.extend({
         this.on('remove', this._restructureOnRemove, this);
         this.on('remove', this._removeCell, this);
 
-        cellLayerCollection.on('cell:change:source', this._restructureOnChangeSource, this);
-        cellLayerCollection.on('cell:change:target', this._restructureOnChangeTarget, this);
+        layerCollection.on('cell:change:source', this._restructureOnChangeSource, this);
+        layerCollection.on('cell:change:target', this._restructureOnChangeTarget, this);
     },
 
-    _forwardCellLayerCollectionEvents: function(eventName) {
+    _forwardCellCollectionEvents: function(eventName) {
         // Forward cell events without prefix
         if (eventName.startsWith('cell:')) {
             // Skip 'cell:remove' events as they are handled on the graph level
@@ -184,7 +184,7 @@ export const Graph = Model.extend({
 
     toJSON: function(opt = {}) {
 
-        const { cellLayerCollection, cellLayersController } = this;
+        const { layerCollection, cellLayersController } = this;
         // Get the graph model attributes as a base JSON.
         const json = Model.prototype.toJSON.apply(this, arguments);
 
@@ -199,7 +199,7 @@ export const Graph = Model.extend({
         }
 
         // Add `cellLayers` array holding all the cell layers in the graph.
-        json.cellLayers = cellLayerCollection.toJSON();
+        json.cellLayers = layerCollection.toJSON();
 
         // Add `defaultCellLayer` property indicating the default cell layer ID.
         json.defaultCellLayer = cellLayersController.defaultCellLayerId;
