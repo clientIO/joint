@@ -4,7 +4,7 @@ import * as g from '../g/index.mjs';
 import { Model } from '../mvc/Model.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
-import { CellLayersController } from './controllers/CellLayersController.mjs';
+import { GraphLayersController } from './GraphLayersController.mjs';
 import { GraphLayerCollection } from './GraphLayerCollection.mjs';
 import { config } from '../config/index.mjs';
 import { CELL_MARKER } from './Cell.mjs';
@@ -26,7 +26,7 @@ export const Graph = Model.extend({
         // Re-trigger events from the `layerCollection` on the graph instance.
         layerCollection.on('all', this._forwardCellCollectionEvents, this);
 
-        this.cellLayersController = new CellLayersController({ graph: this });
+        this.layersController = new GraphLayersController({ graph: this });
 
         // Retain legacy 'cells' collection in attributes for backward compatibility.
         // Applicable only when the default layer setup is used.
@@ -184,14 +184,14 @@ export const Graph = Model.extend({
 
     toJSON: function(opt = {}) {
 
-        const { layerCollection, cellLayersController } = this;
+        const { layerCollection, layersController } = this;
         // Get the graph model attributes as a base JSON.
         const json = Model.prototype.toJSON.apply(this, arguments);
 
         // Add `cells` array holding all the cells in the graph.
         json.cells = this.getCells().map(cell => cell.toJSON(opt.cellAttributes));
 
-        if (cellLayersController.legacyMode) {
+        if (layersController.legacyMode) {
             // Backwards compatibility for legacy setup
             // with single default cell layer 'cells'.
             // In this case, we do not need to export cell layers.
@@ -202,7 +202,7 @@ export const Graph = Model.extend({
         json.cellLayers = layerCollection.toJSON();
 
         // Add `defaultCellLayer` property indicating the default cell layer ID.
-        json.defaultCellLayer = cellLayersController.defaultCellLayerId;
+        json.defaultCellLayer = layersController.defaultCellLayerId;
 
         return json;
     },
@@ -272,8 +272,8 @@ export const Graph = Model.extend({
         // Backward compatibility: prior v4.2, z-index was not set during reset.
         if (opt && opt.ensureZIndex) {
             if (cellAttributes.z === undefined) {
-                const layerId = cellAttributes[config.layerAttribute] || this.cellLayersController.defaultCellLayerId;
-                const layer = this.cellLayersController.getCellLayer(layerId);
+                const layerId = cellAttributes[config.layerAttribute] || this.layersController.defaultCellLayerId;
+                const layer = this.layersController.getCellLayer(layerId);
                 const zIndex = layer.maxZIndex() + 1;
                 if (cellInit[CELL_MARKER]) {
                     // Set with event in case there is a listener
@@ -290,11 +290,11 @@ export const Graph = Model.extend({
     },
 
     minZIndex: function(layerId) {
-        return this.cellLayersController.minZIndex(layerId);
+        return this.layersController.minZIndex(layerId);
     },
 
     maxZIndex: function(layerId) {
-        return this.cellLayersController.maxZIndex(layerId);
+        return this.layersController.maxZIndex(layerId);
     },
 
     addCell: function(cell, opt) {
@@ -304,7 +304,7 @@ export const Graph = Model.extend({
         }
 
         this._prepareCell(cell, { ...opt, ensureZIndex: true });
-        this.cellLayersController.addCell(cell, opt);
+        this.layersController.addCell(cell, opt);
 
         return this;
     },
@@ -340,7 +340,7 @@ export const Graph = Model.extend({
             this._prepareCell(cell, prepareOptions);
         }
 
-        this.cellLayersController.resetCells(cellArray, opt);
+        this.layersController.resetCells(cellArray, opt);
 
         // Trigger a single `reset` event on the graph
         // (while multiple `reset` events are triggered on cell layers).
@@ -355,7 +355,7 @@ export const Graph = Model.extend({
     },
 
     resetCellLayers: function(cellLayers, opt) {
-        this.cellLayersController.resetCellLayers(cellLayers, opt);
+        this.layersController.resetCellLayers(cellLayers, opt);
         return this;
     },
 
@@ -389,7 +389,7 @@ export const Graph = Model.extend({
         // Remove the cell from the cell layer
         collection.remove(cell, {
             ...options,
-            cellLayersController: this.cellLayersController
+            cellLayersController: this.layersController
         });
     },
 
@@ -427,40 +427,40 @@ export const Graph = Model.extend({
     },
 
     addCellLayer(cellLayer, opt) {
-        this.cellLayersController.addCellLayer(cellLayer, opt);
+        this.layersController.addCellLayer(cellLayer, opt);
     },
 
     removeCellLayer(cellLayer, opt) {
-        this.cellLayersController.removeCellLayer(cellLayer.id, opt);
+        this.layersController.removeCellLayer(cellLayer.id, opt);
     },
 
     getDefaultCellLayer() {
-        return this.cellLayersController.getDefaultCellLayer();
+        return this.layersController.getDefaultCellLayer();
     },
 
     setDefaultCellLayer(layerId, opt) {
-        this.cellLayersController.setDefaultCellLayer(layerId, opt);
+        this.layersController.setDefaultCellLayer(layerId, opt);
     },
 
     getCellLayer(layerId) {
-        return this.cellLayersController.getCellLayer(layerId);
+        return this.layersController.getCellLayer(layerId);
     },
 
     hasCellLayer(layerId) {
-        return this.cellLayersController.hasCellLayer(layerId);
+        return this.layersController.hasCellLayer(layerId);
     },
 
     getCellLayers() {
-        return this.cellLayersController.getCellLayers();
+        return this.layersController.getCellLayers();
     },
 
     // Get a cell by `id`.
     getCell: function(id) {
-        return this.cellLayersController.getCell(id);
+        return this.layersController.getCell(id);
     },
 
     getCells: function() {
-        return this.cellLayersController.getCells();
+        return this.layersController.getCells();
     },
 
     getElements: function() {

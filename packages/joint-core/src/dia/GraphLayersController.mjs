@@ -1,14 +1,14 @@
-import { Listener } from '../../mvc/Listener.mjs';
-import { config } from '../../config/index.mjs';
-import { CELL_MARKER } from '../Cell.mjs';
+import { Listener } from '../mvc/Listener.mjs';
+import { config } from '../config/index.mjs';
+import { CELL_MARKER } from './Cell.mjs';
 
 const DEFAULT_CELL_LAYER_ID = 'cells';
 
 /**
- * @class CellLayersController
+ * @class GraphLayersController
  * @description A controller that manages cell layers in a dia.Graph.
  */
-export class CellLayersController extends Listener {
+export class GraphLayersController extends Listener {
 
     legacyMode = true;
 

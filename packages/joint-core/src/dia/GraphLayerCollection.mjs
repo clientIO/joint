@@ -211,7 +211,7 @@ export const GraphLayerCollection = Collection.extend({
 
         const moveOptions = {
             ...options,
-            cellLayersController: this.graph.cellLayersController,
+            cellLayersController: this.graph.layersController,
             fromLayer: sourceLayer.id,
             toLayer: targetLayer.id
         };

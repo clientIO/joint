@@ -21,7 +21,7 @@ QUnit.module('layers-basic', function(hooks) {
     });
 
     QUnit.test('Default layers setup', (assert) => {
-        assert.ok(this.graph.cellLayersController, 'Cell layers controller is created');
+        assert.ok(this.graph.layersController, 'Cell layers controller is created');
 
         const layerCollection = this.graph.layerCollection;
 
