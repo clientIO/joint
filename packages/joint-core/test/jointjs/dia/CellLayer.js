@@ -63,4 +63,79 @@ QUnit.module('CellLayer', function(hooks) {
         assert.equal(layer.minZIndex(), -10, 'minZIndex is updated correctly');
         assert.equal(layer.maxZIndex(), 5, 'maxZIndex remains the same');
     });
+
+    QUnit.test('cells.add() adds a cell to the cells collection', (assert) => {
+        const layer = new joint.dia.CellLayer();
+        const events = [];
+        layer.on('all', (eventName) => {
+            events.push(eventName);
+        });
+
+        const cell = new joint.shapes.standard.Rectangle();
+        layer.cellCollection.add(cell);
+
+        cell.set('a', 1);
+
+        assert.equal(layer.cellCollection.length, 1, 'cells collection has one cell');
+        assert.equal(layer.cellCollection.at(0), cell, 'the cell is the one that was added');
+
+        assert.deepEqual(events, [
+            'add', 'sort', 'update', 'change:a', 'change'
+        ], 'the correct events were fired');
+    });
+
+    QUnit.test('cells.remove() removes a cell from the cells collection', (assert) => {
+        const layer = new joint.dia.CellLayer();
+        const events = [];
+        layer.on('all', (eventName) => {
+            events.push(eventName);
+        });
+
+        const cell1 = new joint.shapes.standard.Rectangle();
+        const cell2 = new joint.shapes.standard.Ellipse();
+        layer.cellCollection.add([cell1, cell2]);
+
+        assert.equal(layer.cellCollection.length, 2, 'cells collection has two cells');
+
+        layer.cellCollection.remove(cell1);
+
+        cell2.set('a', 1);
+
+        assert.equal(layer.cellCollection.length, 1, 'cells collection has one cell');
+        assert.equal(layer.cellCollection.at(0), cell2, 'the remaining cell is the one that was not removed');
+
+        assert.deepEqual(events, [
+            'add', 'add', 'sort', 'update',
+            'remove', 'update',
+            'change:a', 'change'
+        ], 'the correct events were fired');
+    });
+
+    QUnit.test('cells.reset() resets the cells collection', (assert) => {
+        const layer = new joint.dia.CellLayer();
+        const events = [];
+        layer.on('all', (eventName) => {
+            events.push(eventName);
+        });
+
+        const cell1 = new joint.shapes.standard.Rectangle();
+        const cell2 = new joint.shapes.standard.Ellipse();
+        layer.cellCollection.add([cell1, cell2]);
+
+        assert.equal(layer.cellCollection.length, 2, 'cells collection has two cells');
+
+        const cell3 = new joint.shapes.standard.Polygon();
+        layer.cellCollection.reset([cell3]);
+
+        cell3.set('a', 1);
+
+        assert.equal(layer.cellCollection.length, 1, 'cells collection has one cell');
+        assert.equal(layer.cellCollection.at(0), cell3, 'the remaining cell is the one that was not removed');
+
+        assert.deepEqual(events, [
+            'add', 'add', 'sort', 'update',
+            'reset',
+            'change:a', 'change'
+        ], 'the correct events were fired');
+    });
 });

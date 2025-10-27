@@ -1,5 +1,6 @@
-import { CellGroupCollection } from './CellGroupCollection.mjs';
 import * as util from '../../util/index.mjs';
+import { Collection } from '../../mvc/Collection.mjs';
+import { CELL_MARKER } from '../Cell.mjs';
 
 export const CELL_LAYER_COLLECTION_MARKER = Symbol('joint.cellLayerCollectionMarker');
 
@@ -9,7 +10,7 @@ export const CELL_LAYER_COLLECTION_MARKER = Symbol('joint.cellLayerCollectionMar
  * Additionally, it facilitates creating cell models from JSON using cellNamespace
  * and stores a reference to the graph when the cell model has been added.
  */
-export class CellLayerCollection extends CellGroupCollection {
+export class CellLayerCollection extends Collection {
 
     [CELL_LAYER_COLLECTION_MARKER] = true;
 
@@ -17,6 +18,12 @@ export class CellLayerCollection extends CellGroupCollection {
         this.cellNamespace = opt.cellNamespace;
         this.graph = opt.graph;
         this.layer = opt.layer;
+    }
+
+    // Method for checking whether an object should be considered a model for
+    // the purposes of adding to the collection.
+    _isModel(model) {
+        return Boolean(model[CELL_MARKER]);
     }
 
     // Overriding the default `model` method to create cell models
@@ -34,7 +41,7 @@ export class CellLayerCollection extends CellGroupCollection {
 
         return new ModelClass(attrs, opt);
     }
-
+    7;
     // Override to set graph reference
     _addReference(model, options) {
         super._addReference(model, options);
@@ -57,16 +64,59 @@ export class CellLayerCollection extends CellGroupCollection {
 
     // remove graph reference additionally
     _removeReferenceFast(model, options) {
-        super._removeReferenceFast(model, options);
-        // If not in `dry` mode and the model has a reference to this exact graph,
-        // remove the reference.
-        if (!options.dry && model.graph === this.graph) {
-            model.graph = null;
+        if (!options.dry) {
+            // If not in `dry` mode and the model has a reference
+            // to this exact graph/collection, remove the reference.
+            if (this === model.collection) {
+                delete model.collection;
+            }
+            if (this.graph === model.graph) {
+                model.graph = null;
+            }
         }
+
+        model.off('all', this._onModelEvent, this);
     }
 
     // `comparator` makes it easy to sort cells based on their `z` index.
     comparator(model) {
         return model.get('z') || 0;
+    }
+
+    // This method overrides base mvc.Collection implementation
+    // in a way that improves performance of resetting large collections.
+    // For cell layers specifically, there is an option where we put references
+    // from the main collection in order to improve performance when
+    // there is only one layer
+    reset(models, options) {
+        options = util.assign({}, { add: true, remove: false, merge: false }, options);
+
+        for (let i = 0; i < this.models.length; i++) {
+            this._removeReferenceFast(this.models[i], options);
+        }
+        options.previousModels = this.models;
+        this._reset();
+
+        for (let i = 0; i < models.length; i++) {
+            const model = this._prepareModel(models[i], options);
+            if (model) {
+                this.models.push(model);
+                this._addReference(model, options);
+            }
+        }
+
+        this.length = this.models.length;
+
+        const sort = this.comparator && options.sort !== false;
+
+        if (sort) {
+            this.sort({ silent: true });
+        }
+
+        if (!options.silent) {
+            this.trigger('reset', this, options);
+        }
+
+        return this.models;
     }
 }

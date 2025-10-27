@@ -12,7 +12,6 @@ export class CellLayer extends Model {
     [CELL_LAYER_MARKER] = true;
 
     preinitialize() {
-        this.collectionConstructor = CellLayerCollection;
         // This allows for propagating events from the inner `cellCollection` collection
         // without any prefix and therefore distinguish them from the events
         // fired by the CellGroup model itself.
@@ -28,7 +27,7 @@ export class CellLayer extends Model {
     initialize(attrs, options = {}) {
         super.initialize(attrs, options);
 
-        this.cellCollection = new this.collectionConstructor([], {
+        this.cellCollection = new CellLayerCollection([], {
             layer: this,
             graph: options.graph,
             cellNamespace: options.cellNamespace,
