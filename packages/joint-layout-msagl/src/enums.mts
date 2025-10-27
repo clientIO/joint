@@ -1,4 +1,4 @@
-export { LayerDirectionEnum } from "@msagl/core";
+export { LayerDirectionEnum } from '@msagl/core';
 
 /**
  * Edge routing strategy.

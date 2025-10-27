@@ -5,20 +5,17 @@ import globals from 'globals';
 export default defineConfig([
     {
         // globally ignored folders
-        ignores: ['**/node_modules/', '**/dist/', '**/build/']
+        ignores: ['**/build/', '**/dist/', '**/node_modules/']
     },
     {
         // common rules for all checked files
-        extends: [js.configs.recommended],
         languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'module',
             globals: {
                 ...globals.browser,
                 ...globals.node,
                 Uint8Array: 'readonly',
-                CDATASection: 'readonly'
-            }
+                CDATASection: 'readonly',
+            },
         },
         rules: {
             'indent': ['error', 4, { 'SwitchCase': 1 }],
@@ -26,11 +23,24 @@ export default defineConfig([
             'no-console': ['error', { 'allow': ['warn'] }],
             'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
             'no-constant-condition': ['off'],
-            'no-undef': ['error'],
-            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
-            'no-prototype-builtins': ['off']
-        }
-    }
+            'no-prototype-builtins': ['off'],
+        },
+    },
+    {
+        // rules for JS files
+        files: ['**/*.js', '**/*.mjs'],
+        extends: [
+            js.configs.recommended,
+        ],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'module',
+        },
+        rules: {
+            'no-undef': ['error'],
+            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
+        },
+    },
 ]);

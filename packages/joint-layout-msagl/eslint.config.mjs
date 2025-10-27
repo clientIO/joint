@@ -1,36 +1,23 @@
 import { defineConfig } from 'eslint/config';
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
 import js from '@eslint/js';
 import globals from 'globals';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 
 export default defineConfig([
     {
         // globally ignored folders
-        ignores: ['coverage/', 'dist/']
+        ignores: ['coverage/', 'dist/', 'node_modules/']
     },
     {
         // common rules for all checked files
-        files: ['**/*.js', '**/*.mjs', '**/*.ts', '**/*.mts'],
-        extends: [
-            js.configs.recommended,
-            'plugin:@typescript-eslint/recommended'
-        ],
-        plugins: {
-            "@typescript-eslint": typescriptEslint
-        },
         languageOptions: {
-            parser: tsParser,
-            parserOptions: {
-                ecmaVersion: 2022,
-                sourceType: 'module'
-            },
             globals: {
                 ...globals.browser,
                 ...globals.node,
                 Uint8Array: 'readonly',
-                CDATASection: 'readonly'
-            }
+                CDATASection: 'readonly',
+            },
         },
         rules: {
             'indent': ['error', 4, { 'SwitchCase': 1 }],
@@ -38,14 +25,32 @@ export default defineConfig([
             'no-console': ['error', { 'allow': ['warn'] }],
             'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
             'no-constant-condition': ['off'],
-            'no-undef': ['error'],
-            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
             'no-prototype-builtins': ['off'],
-            'prefer-const': ['off'],
-            '@typescript-eslint/no-unused-vars': ['off']
-        }
+        },
+    },
+    {
+        // rules for JS files
+        files: ['**/*.js', '**/*.mjs'],
+        extends: [
+            js.configs.recommended,
+        ],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'module',
+        },
+        rules: {
+            'no-undef': ['error'],
+            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
+        },
+    },
+    {
+        // extra support for `import _ with { type: 'json' }` syntax
+        files: ['rollup.config.mjs'],
+        languageOptions: {
+            ecmaVersion: 2025,
+        },
     },
     {
         // extra globals
@@ -53,8 +58,26 @@ export default defineConfig([
         languageOptions: {
             globals: {
                 joint: 'readonly',
-                QUnit: 'readonly'
-            }
-        }
-    }
+                QUnit: 'readonly',
+            },
+        },
+    },
+    {
+        // rules for TS files
+        files: ['**/*.ts', '**/*.mts'],
+        plugins: {
+            '@typescript-eslint': tsPlugin,
+        },
+        extends: [
+            js.configs.recommended,
+            '@typescript-eslint/recommended',
+        ],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                ecmaVersion: 2022,
+                sourceType: 'module',
+            },
+        },
+    },
 ]);

@@ -8,13 +8,13 @@ export default defineConfig([
     {
         // common rules for all checked files
         files: ['**/*.js', '**/*.mjs', '**/*.ts'],
-        extends: [
-            js.configs.recommended,
-            'plugin:@typescript-eslint/recommended'
-        ],
         plugins: {
             '@typescript-eslint': typescriptEslint
         },
+        extends: [
+            js.configs.recommended,
+            '@typescript-eslint/recommended'
+        ],
         languageOptions: {
             parser: tsParser,
             parserOptions: {

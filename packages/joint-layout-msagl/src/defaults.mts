@@ -1,6 +1,6 @@
-import { type dia, g } from "@joint/core";
+import { type dia, g } from '@joint/core';
 import { type Options } from './types.mjs';
-import { EdgeRoutingMode, LayerDirectionEnum } from "./enums.mjs";
+import { EdgeRoutingMode, LayerDirectionEnum } from './enums.mjs';
 
 export const defaultOptions: Required<Options> = {
     layerDirection: LayerDirectionEnum.TB,
