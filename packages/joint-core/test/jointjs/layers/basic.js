@@ -59,12 +59,12 @@ QUnit.module('layers-basic', function(hooks) {
 
         assert.ok(this.graph.hasLayer('cells'), 'Graph has default layer "cells"');
 
-        const defaultCellLayer = this.graph.getDefaultLayer();
+        const defaultLayer = this.graph.getDefaultLayer();
 
-        assert.ok(defaultCellLayer.cellCollection.has('rect1'), 'Default cell layer has rectangle cell');
-        assert.ok(defaultCellLayer.cellCollection.has('ellipse1'), 'Default cell layer has ellipse cell');
+        assert.ok(defaultLayer.cellCollection.has('rect1'), 'Default cell layer has rectangle cell');
+        assert.ok(defaultLayer.cellCollection.has('ellipse1'), 'Default cell layer has ellipse cell');
 
-        const layerViewNode = this.paper.getLayerViewNode(defaultCellLayer.id);
+        const layerViewNode = this.paper.getLayerViewNode(defaultLayer.id);
 
         assert.ok(layerViewNode.querySelector(`[model-id="rect1"]`), 'Layer view has rectangle cell view node');
         assert.ok(layerViewNode.querySelector(`[model-id="ellipse1"]`), 'Layer view has ellipse cell view node');
@@ -385,6 +385,6 @@ QUnit.module('layers-basic', function(hooks) {
 
         const json = JSON.stringify(this.graph.toJSON());
 
-        assert.equal(json, `{"cells":[],"layers":[{"type":"GraphLayer","id":"cells"},{"type":"GraphLayer","id":"layer1","name":"Layer 1"},{"type":"GraphLayer","id":"layer2","description":"This is layer 2"}],"defaultCellLayer":"cells"}`, 'Graph JSON includes custom attributes in "layers"');
+        assert.equal(json, `{"cells":[],"layers":[{"type":"GraphLayer","id":"cells"},{"type":"GraphLayer","id":"layer1","name":"Layer 1"},{"type":"GraphLayer","id":"layer2","description":"This is layer 2"}],"defaultLayer":"cells"}`, 'Graph JSON includes custom attributes in "layers"');
     });
 });

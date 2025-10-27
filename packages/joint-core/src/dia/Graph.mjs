@@ -199,21 +199,21 @@ export const Graph = Model.extend({
         // Add `layers` array holding all the cell layers in the graph.
         json.layers = layerCollection.toJSON();
 
-        // Add `defaultCellLayer` property indicating the default cell layer ID.
-        json.defaultCellLayer = layersController.defaultCellLayerId;
+        // Add `defaultLayer` property indicating the default cell layer ID.
+        json.defaultLayer = layersController.defaultLayerId;
 
         return json;
     },
 
     fromJSON: function(json, opt) {
-        const { cells, layers, defaultCellLayer, ...attrs } = json;
+        const { cells, layers, defaultLayer, ...attrs } = json;
 
         if (!cells) {
             throw new Error('Graph JSON must contain cells array.');
         }
 
         if (layers) {
-            this.resetLayers(layers, { ...opt, defaultCellLayer });
+            this.resetLayers(layers, { ...opt, defaultLayer });
         }
 
         if (cells) {
@@ -270,7 +270,7 @@ export const Graph = Model.extend({
         // Backward compatibility: prior v4.2, z-index was not set during reset.
         if (opt && opt.ensureZIndex) {
             if (cellAttributes.z === undefined) {
-                const layerId = cellAttributes[config.layerAttribute] || this.layersController.defaultCellLayerId;
+                const layerId = cellAttributes[config.layerAttribute] || this.layersController.defaultLayerId;
                 const zIndex = this.maxZIndex(layerId) + 1;
                 if (cellInit[CELL_MARKER]) {
                     // Set with event in case there is a listener

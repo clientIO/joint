@@ -2,7 +2,7 @@ import { Listener } from '../mvc/Listener.mjs';
 import { config } from '../config/index.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 
-const DEFAULT_CELL_LAYER_ID = 'cells';
+const DEFAULT_LAYER_ID = 'cells';
 
 /**
  * @class GraphLayersController
@@ -24,37 +24,37 @@ export class GraphLayersController extends Listener {
 
         // Default setup
         this.addLayer({
-            id: DEFAULT_CELL_LAYER_ID,
+            id: DEFAULT_LAYER_ID,
         });
 
         // By default, we are in legacy mode
         // Any new layers added will disable legacy mode
         this.legacyMode = true;
 
-        this.defaultCellLayerId = DEFAULT_CELL_LAYER_ID;
+        this.defaultLayerId = DEFAULT_LAYER_ID;
 
         this.startListening();
     }
 
     startListening() {
-        this.listenTo(this.layerCollection, 'reset', (collection, opt = {}) => {
-            this.onCellLayersCollectionReset(collection, opt);
-        });
-
-        this.listenTo(this.layerCollection, 'remove', (cellLayer, opt = {}) => {
-            this.onCellLayerRemove(cellLayer, opt);
-        });
-
-        this.listenTo(this.layerCollection, 'cell:change', (cell, opt = {}) => {
-            this.onCellChange(cell, opt);
-        });
+        this.listenTo(this.layerCollection, 'reset', this.onLayerCollectionReset, this);
+        this.listenTo(this.layerCollection, 'remove', this.onLayerRemove, this);
+        this.listenTo(this.layerCollection, 'cell:change', this.onCellChange, this);
     }
 
-    onCellLayerRemove(cellLayer, opt) {
-        // Remove all cells from the removed layer
-        cellLayer.cellCollection.toArray().forEach(cell => {
-            cell.remove(opt);
-        });
+    onLayerRemove(layer, opt) {
+        // When a layer is removed, also remove all its cells from the graph
+        this.clearLayer(layer, opt);
+    }
+
+    /**
+     * @description Removes all cells from the specified layer.
+     */
+    clearLayer(layer, opt) {
+        const cells = layer.cellCollection.models; // This is a live array
+        while (cells.length > 0) {
+            cells[0].remove(opt);
+        }
     }
 
     resetLayers(layers, opt = {}) {
@@ -65,32 +65,29 @@ export class GraphLayersController extends Listener {
         // Resetting cell layers disables legacy mode
         this.legacyMode = false;
 
-        let defaultCellLayerId = opt.defaultCellLayer;
-        if (!defaultCellLayerId) {
-            defaultCellLayerId = layers[0].id;
+        let defaultLayerId = opt.defaultLayer;
+        if (!defaultLayerId) {
+            defaultLayerId = layers[0].id;
         }
 
-        if (!layers.some(layer => layer.id === defaultCellLayerId)) {
-            throw new Error(`dia.Graph: default cell layer with id '${defaultCellLayerId}' must be one of the defined cell layers.`);
+        if (!layers.some(layer => layer.id === defaultLayerId)) {
+            throw new Error(`dia.Graph: default cell layer with id '${defaultLayerId}' must be one of the defined cell layers.`);
         }
 
         this.graph.startBatch('reset-layers', opt);
-        if (this.defaultCellLayerId !== defaultCellLayerId) {
-            this.defaultCellLayerId = defaultCellLayerId;
-            this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, opt);
+        if (this.defaultLayerId !== defaultLayerId) {
+            this.defaultLayerId = defaultLayerId;
+            this.graph.trigger('layers:default:change', this.graph, this.defaultLayerId, opt);
         }
 
         this.layerCollection.reset(layers, { ...opt, graph: this.graph.cid });
         this.graph.stopBatch('reset-layers', opt);
     }
 
-    onCellLayersCollectionReset(collection, opt) {
-        const previousCellLayers = opt.previousModels;
-
+    onLayerCollectionReset(collection, opt) {
+        const previousLayers = opt.previousModels;
         // Remove cells from the layers that have been removed
-        previousCellLayers.forEach(previousLayer => {
-            this.onCellLayerRemove(previousLayer, opt);
-        });
+        previousLayers.forEach(layer => this.clearLayer(layer, opt));
     }
 
     onCellChange(cell, opt) {
@@ -120,7 +117,7 @@ export class GraphLayersController extends Listener {
     }
 
     getDefaultLayer() {
-        return this.layerCollection.get(this.defaultCellLayerId);
+        return this.layerCollection.get(this.defaultLayerId);
     }
 
     setDefaultLayer(newDefaultLayerId, options = {}) {
@@ -128,25 +125,25 @@ export class GraphLayersController extends Listener {
             throw new Error(`dia.Graph: Cell layer with id '${newDefaultLayerId}' does not exist.`);
         }
 
-        if (newDefaultLayerId === this.defaultCellLayerId) {
+        if (newDefaultLayerId === this.defaultLayerId) {
             return; // no change
         }
 
-        if (this.hasLayer(this.defaultCellLayerId)) {
-            const previousDefaultLayer = this.getLayer(this.defaultCellLayerId);
+        if (this.hasLayer(this.defaultLayerId)) {
+            const previousDefaultLayer = this.getLayer(this.defaultLayerId);
             const layerAttribute = config.layerAttribute;
             // Set the new default layer for future cell additions
-            this.defaultCellLayerId = newDefaultLayerId;
+            this.defaultLayerId = newDefaultLayerId;
             // Reassign any cells lacking an explicit layer to the new default layer
             previousDefaultLayer.cellCollection.each(cell => {
                 if (cell.get(layerAttribute) != null) return;
                 this.moveCellBetweenLayers(cell, newDefaultLayerId, options);
             });
         } else {
-            this.defaultCellLayerId = newDefaultLayerId;
+            this.defaultLayerId = newDefaultLayerId;
         }
 
-        this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, options);
+        this.graph.trigger('layers:default:change', this.graph, this.defaultLayerId, options);
     }
 
     addLayer(layer, { insertBefore } = {}) {
@@ -205,9 +202,9 @@ export class GraphLayersController extends Listener {
     }
 
     removeLayer(layerId, opt) {
-        const { layerCollection, defaultCellLayerId } = this;
+        const { layerCollection, defaultLayerId } = this;
 
-        if (layerId === defaultCellLayerId) {
+        if (layerId === defaultLayerId) {
             throw new Error('dia.Graph: default layer cannot be removed.');
         }
 
@@ -222,12 +219,12 @@ export class GraphLayersController extends Listener {
         this.graph.stopBatch('remove-cell-layer');
     }
 
-    minZIndex(layerId = this.defaultCellLayerId) {
+    minZIndex(layerId = this.defaultLayerId) {
         const layer = this.getLayer(layerId);
         return layer.cellCollection.minZIndex();
     }
 
-    maxZIndex(layerId = this.defaultCellLayerId) {
+    maxZIndex(layerId = this.defaultLayerId) {
         const layer = this.getLayer(layerId);
         return layer.cellCollection.maxZIndex();
     }
@@ -324,6 +321,6 @@ export class GraphLayersController extends Listener {
         const cellAttributes = cellInit[CELL_MARKER]
             ? cellInit.attributes
             : cellInit;
-        return cellAttributes[config.layerAttribute] || this.defaultCellLayerId;
+        return cellAttributes[config.layerAttribute] || this.defaultLayerId;
     }
 }
