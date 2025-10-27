@@ -1,8 +1,8 @@
-import { Collection } from '../../mvc/index.mjs';
-import { CELL_LAYER_MARKER, CellLayer } from '../groups/CellLayer.mjs';
-import { CELL_LAYER_COLLECTION_MARKER } from './CellLayerCollection.mjs';
-import { CELL_MARKER } from '../Cell.mjs';
-import * as util from '../../util/index.mjs';
+import { Collection } from '../mvc/index.mjs';
+import { CELL_LAYER_MARKER, CellLayer } from './groups/CellLayer.mjs';
+import { CELL_LAYER_COLLECTION_MARKER } from './CellCollection.mjs';
+import { CELL_MARKER } from './Cell.mjs';
+import * as util from '../util/index.mjs';
 
 /**
  * @class GraphCellLayers

@@ -1,6 +1,6 @@
-import * as util from '../../util/index.mjs';
-import { Collection } from '../../mvc/Collection.mjs';
-import { CELL_MARKER } from '../Cell.mjs';
+import * as util from '../util/index.mjs';
+import { Collection } from '../mvc/Collection.mjs';
+import { CELL_MARKER } from './Cell.mjs';
 
 export const CELL_LAYER_COLLECTION_MARKER = Symbol('joint.cellLayerCollectionMarker');
 

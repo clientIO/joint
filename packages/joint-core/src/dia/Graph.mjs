@@ -5,7 +5,7 @@ import { Model } from '../mvc/Model.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
 import { CellLayersController } from './controllers/CellLayersController.mjs';
-import { GraphCellLayers } from './collections/GraphCellLayers.mjs';
+import { GraphCellLayers } from './GraphLayerCollection.mjs';
 import { config } from '../config/index.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 
