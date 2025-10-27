@@ -552,11 +552,11 @@ export const Paper = View.extend({
 
         let insertBefore = paperLayers.LABELS;
 
-        const cellLayers = this.model.getCellLayers();
-        const index = cellLayers.indexOf(cellLayer);
-        if (index !== cellLayers.length - 1) {
+        const layers = this.model.getCellLayers();
+        const index = layers.indexOf(cellLayer);
+        if (index !== layers.length - 1) {
             // there is a cell layer after the current one, so insert before that one
-            insertBefore = cellLayers[index + 1].id;
+            insertBefore = layers[index + 1].id;
         }
 
         this.insertLayerView(layerView, { insertBefore });
@@ -576,11 +576,11 @@ export const Paper = View.extend({
         this.resetCellLayerViews();
     },
 
-    onCellLayersSort: function(cellLayersCollection) {
-        cellLayersCollection.models.forEach(cellLayer => {
-            if (!this.hasLayerView(cellLayer.id)) return;
+    onCellLayersSort: function(layerCollection) {
+        layerCollection.each(layer => {
+            if (!this.hasLayerView(layer.id)) return;
 
-            const layerView = this.getLayerView(cellLayer.id);
+            const layerView = this.getLayerView(layer.id);
             this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
         });
     },
@@ -592,8 +592,8 @@ export const Paper = View.extend({
             delete this._cellLayerViews[id];
         }
 
-        const cellLayers = this.model.getCellLayers();
-        cellLayers.forEach(cellLayer => {
+        const layers = this.model.getCellLayers();
+        layers.forEach(cellLayer => {
             const layerView = this.createLayerView({
                 id: cellLayer.id,
                 model: cellLayer

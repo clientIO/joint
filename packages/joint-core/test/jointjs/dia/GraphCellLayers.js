@@ -6,7 +6,7 @@ QUnit.module('GraphLayerCollection', function(hooks) {
         assert.deepEqual(collection.cellLayerNamespace, collection.defaultCellLayerNamespace, 'cellLayerNamespace is set to default');
     });
 
-    QUnit.test('add cellLayers', (assert) => {
+    QUnit.test('add layers', (assert) => {
         const collection = new joint.dia.GraphLayerCollection();
         const events = [];
         collection.on('all', (eventName) => {

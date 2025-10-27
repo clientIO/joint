@@ -46,8 +46,8 @@ QUnit.module('GraphLayer', function(hooks) {
     QUnit.test('minZIndex() and maxZIndex()', (assert) => {
         const layer = new joint.dia.GraphLayer();
 
-        assert.equal(layer.minZIndex(), 0, 'minZIndex is 0 when there are no cells');
-        assert.equal(layer.maxZIndex(), 0, 'maxZIndex is 0 when there are no cells');
+        assert.equal(layer.cellCollection.minZIndex(), 0, 'minZIndex is 0 when there are no cells');
+        assert.equal(layer.cellCollection.maxZIndex(), 0, 'maxZIndex is 0 when there are no cells');
 
         const rect1 = new joint.shapes.standard.Rectangle({ z: 5 });
         const rect2 = new joint.shapes.standard.Rectangle({ z: 1 });
@@ -55,13 +55,13 @@ QUnit.module('GraphLayer', function(hooks) {
 
         layer.cellCollection.add([rect1, rect2, rect3]);
 
-        assert.equal(layer.minZIndex(), 1, 'minZIndex is correct');
-        assert.equal(layer.maxZIndex(), 5, 'maxZIndex is correct');
+        assert.equal(layer.cellCollection.minZIndex(), 1, 'minZIndex is correct');
+        assert.equal(layer.cellCollection.maxZIndex(), 5, 'maxZIndex is correct');
 
         rect2.set('z', -10);
 
-        assert.equal(layer.minZIndex(), -10, 'minZIndex is updated correctly');
-        assert.equal(layer.maxZIndex(), 5, 'maxZIndex remains the same');
+        assert.equal(layer.cellCollection.minZIndex(), -10, 'minZIndex is updated correctly');
+        assert.equal(layer.cellCollection.maxZIndex(), 5, 'maxZIndex remains the same');
     });
 
     QUnit.test('cells.add() adds a cell to the cells collection', (assert) => {

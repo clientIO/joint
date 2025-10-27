@@ -57,8 +57,8 @@ export class GraphLayersController extends Listener {
         });
     }
 
-    resetCellLayers(cellLayers = [], opt = {}) {
-        if (!Array.isArray(cellLayers) || cellLayers.length === 0) {
+    resetCellLayers(layers, opt = {}) {
+        if (!Array.isArray(layers) || layers.length === 0) {
             throw new Error('dia.Graph: At least one cell layer must be defined.');
         }
 
@@ -66,12 +66,11 @@ export class GraphLayersController extends Listener {
         this.legacyMode = false;
 
         let defaultCellLayerId = opt.defaultCellLayer;
-
         if (!defaultCellLayerId) {
-            defaultCellLayerId = cellLayers[0].id;
+            defaultCellLayerId = layers[0].id;
         }
 
-        if (!cellLayers.some(layer => layer.id === defaultCellLayerId)) {
+        if (!layers.some(layer => layer.id === defaultCellLayerId)) {
             throw new Error(`dia.Graph: default cell layer with id '${defaultCellLayerId}' must be one of the defined cell layers.`);
         }
 
@@ -81,7 +80,7 @@ export class GraphLayersController extends Listener {
             this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, opt);
         }
 
-        this.layerCollection.reset(cellLayers, { ...opt, graph: this.graph.cid });
+        this.layerCollection.reset(layers, { ...opt, graph: this.graph.cid });
         this.graph.stopBatch('reset-layers', opt);
     }
 
