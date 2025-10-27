@@ -10,7 +10,7 @@ export * from './Paper.mjs';
 export * from './ToolView.mjs';
 export * from './ToolsView.mjs';
 export * from './HighlighterView.mjs';
-export * from './layers/CellLayerView.mjs';
+export * from './layers/GraphLayerView.mjs';
 export * from './layers/LayerView.mjs';
 export * from './layers/GridLayerView.mjs';
 export * from './GraphLayer.mjs';

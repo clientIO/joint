@@ -2699,7 +2699,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 graph.removeCells([r2], { async: false });
 
-                const testLayer = new joint.dia.CellLayer({ id: 'test' });
+                const testLayer = new joint.dia.GraphLayer({ id: 'test' });
                 graph.addCellLayer(testLayer);
 
                 assert.ok(paper.hasLayerView('test'), 'Layer view "test" is created in Paper.');
@@ -2714,7 +2714,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 graph.addCell(r1, { async: false });
                 assert.ok(paper.getLayerViewNode('cells').contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
 
-                const testLayer = new joint.dia.CellLayer({ id: 'test' });
+                const testLayer = new joint.dia.GraphLayer({ id: 'test' });
                 graph.addCellLayer(testLayer);
 
                 assert.ok(paper.hasLayerView('test'), 'Layer view "test" is created in Paper.');

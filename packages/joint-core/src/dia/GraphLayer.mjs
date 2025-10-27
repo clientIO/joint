@@ -1,15 +1,15 @@
 import { Model } from '../mvc/index.mjs';
 import { CellLayerCollection } from './CellCollection.mjs';
 
-export const CELL_LAYER_MARKER = Symbol('joint.cellLayerMarker');
+export const GRAPH_LAYER_MARKER = Symbol('joint.graphLayerMarker');
 
 /**
- * @class CellLayer
- * @description A CellLayer is a sorted collection of cells which supports z-index management.
+ * @class GraphLayer
+ * @description A GraphLayer is a model representing a single layer in a dia.Graph.
  */
-export class CellLayer extends Model {
+export class GraphLayer extends Model {
 
-    [CELL_LAYER_MARKER] = true;
+    [GRAPH_LAYER_MARKER] = true;
 
     preinitialize() {
         // This allows for propagating events from the inner `cellCollection` collection
@@ -20,7 +20,7 @@ export class CellLayer extends Model {
 
     defaults() {
         return {
-            type: 'CellLayer',
+            type: 'GraphLayer',
         };
     }
 

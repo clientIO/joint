@@ -127,7 +127,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(defaultLayer.cellCollection.has(rect.id), 'Rectangle cell added to default layer');
         assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
 
-        const newLayer = new joint.dia.CellLayer({ id: 'newLayer' });
+        const newLayer = new joint.dia.GraphLayer({ id: 'newLayer' });
         this.graph.addCellLayer(newLayer);
 
         assert.ok(this.paper.hasLayerView('newLayer'), 'Paper has layer view "newLayer"');
@@ -150,7 +150,7 @@ QUnit.module('layers-basic', function(hooks) {
     QUnit.test('Different layer attribute config', (assert) => {
         joint.config.layerAttribute = '_layerId';
 
-        const newLayer = new joint.dia.CellLayer({ id: 'newLayer' });
+        const newLayer = new joint.dia.GraphLayer({ id: 'newLayer' });
         this.graph.addCellLayer(newLayer);
 
         const rect = new joint.shapes.standard.Rectangle();
@@ -171,7 +171,7 @@ QUnit.module('layers-basic', function(hooks) {
     });
 
     QUnit.test('Changing default layer', (assert) => {
-        const newLayer = new joint.dia.CellLayer({ id: 'newLayer' });
+        const newLayer = new joint.dia.GraphLayer({ id: 'newLayer' });
         this.graph.addCellLayer(newLayer);
 
         assert.ok(this.paper.hasLayerView('newLayer'), 'Paper has layer view "newLayer"');
@@ -200,7 +200,7 @@ QUnit.module('layers-basic', function(hooks) {
 
     QUnit.test('Inserting layers', (assert) => {
 
-        const layer1 = new joint.dia.CellLayer({ id: 'layer1' });
+        const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });
 
         this.graph.addCellLayer(layer1);
 
@@ -212,7 +212,7 @@ QUnit.module('layers-basic', function(hooks) {
         const layer1Node = this.paper.getLayerViewNode('layer1');
         assert.ok(cellsLayerNode.nextSibling === layer1Node, '"cells" layer view is before "layer1" layer view');
 
-        const layer2 = new joint.dia.CellLayer({ id: 'layer2' });
+        const layer2 = new joint.dia.GraphLayer({ id: 'layer2' });
         this.graph.addCellLayer(layer2, { insertBefore: 'layer1' });
         const layer2Node = this.paper.getLayerViewNode('layer2');
         assert.ok(cellsLayerNode.nextSibling === layer2Node, '"cells" layer view is before "layer2" layer view');
@@ -241,10 +241,10 @@ QUnit.module('layers-basic', function(hooks) {
     });
 
     QUnit.test('removing layers', (assert) => {
-        const layer1 = new joint.dia.CellLayer({ id: 'layer1' });
+        const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });
         this.graph.addCellLayer(layer1);
 
-        const layer2 = new joint.dia.CellLayer({ id: 'layer2' });
+        const layer2 = new joint.dia.GraphLayer({ id: 'layer2' });
         this.graph.addCellLayer(layer2);
 
         assert.strictEqual(this.graph.getCellLayers().length, 3, 'There are 3 layers in the graph');
@@ -270,9 +270,9 @@ QUnit.module('layers-basic', function(hooks) {
     });
 
     QUnit.test('resetting layers', (assert) => {
-        const layer1 = new joint.dia.CellLayer({ id: 'layer1' });
+        const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });
         this.graph.addCellLayer(layer1);
-        const layer2 = new joint.dia.CellLayer({ id: 'layer2' });
+        const layer2 = new joint.dia.GraphLayer({ id: 'layer2' });
         this.graph.addCellLayer(layer2);
 
         this.graph.addCell({
@@ -329,7 +329,7 @@ QUnit.module('layers-basic', function(hooks) {
 
 
     QUnit.test('removing layer with cells', (assert) => {
-        const layer1 = new joint.dia.CellLayer({ id: 'layer1' });
+        const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });
         this.graph.addCellLayer(layer1);
 
         this.graph.addCell({
@@ -362,7 +362,7 @@ QUnit.module('layers-basic', function(hooks) {
 
     QUnit.test('custom attributes in "cellLayers"', (assert) => {
 
-        const layer1 = new joint.dia.CellLayer({ id: 'layer1', name: 'Layer 1' });
+        const layer1 = new joint.dia.GraphLayer({ id: 'layer1', name: 'Layer 1' });
 
         this.graph.addCellLayer(layer1);
 
@@ -380,11 +380,11 @@ QUnit.module('layers-basic', function(hooks) {
 
         layer1.set('name', 'Layer 1');
 
-        const layer2 = new joint.dia.CellLayer({ id: 'layer2', description: 'This is layer 2' });
+        const layer2 = new joint.dia.GraphLayer({ id: 'layer2', description: 'This is layer 2' });
         this.graph.addCellLayer(layer2);
 
         const json = JSON.stringify(this.graph.toJSON());
 
-        assert.equal(json, `{"cells":[],"cellLayers":[{"type":"CellLayer","id":"cells"},{"type":"CellLayer","id":"layer1","name":"Layer 1"},{"type":"CellLayer","id":"layer2","description":"This is layer 2"}],"defaultCellLayer":"cells"}`, 'Graph JSON includes custom attributes in "cellLayers"');
+        assert.equal(json, `{"cells":[],"cellLayers":[{"type":"GraphLayer","id":"cells"},{"type":"GraphLayer","id":"layer1","name":"Layer 1"},{"type":"GraphLayer","id":"layer2","description":"This is layer 2"}],"defaultCellLayer":"cells"}`, 'Graph JSON includes custom attributes in "cellLayers"');
     });
 });

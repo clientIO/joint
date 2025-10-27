@@ -1,5 +1,5 @@
 import { Collection } from '../mvc/index.mjs';
-import { CELL_LAYER_MARKER, CellLayer } from './GraphLayer.mjs';
+import { GRAPH_LAYER_MARKER, GraphLayer } from './GraphLayer.mjs';
 import { CELL_LAYER_COLLECTION_MARKER } from './CellCollection.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 import * as util from '../util/index.mjs';
@@ -11,7 +11,7 @@ import * as util from '../util/index.mjs';
 export const GraphCellLayers = Collection.extend({
 
     defaultCellLayerNamespace: {
-        CellLayer: CellLayer
+        GraphLayer
     },
 
     /**
@@ -63,12 +63,13 @@ export const GraphCellLayers = Collection.extend({
      * to set `cellNamespace` and `graph` references on the created cell layers.
      */
     _prepareModel: function(attrs, options) {
-        if (!attrs[CELL_LAYER_MARKER]) {
+        if (!attrs[GRAPH_LAYER_MARKER]) {
             // Add a mandatory `type` attribute if missing
             let preparedAttributes;
             if (!attrs.type) {
                 preparedAttributes = util.clone(attrs);
-                preparedAttributes.type = 'CellLayer';
+                // TODO: no hard-coded type
+                preparedAttributes.type = 'GraphLayer';
             } else {
                 preparedAttributes = attrs;
             }
@@ -94,7 +95,7 @@ export const GraphCellLayers = Collection.extend({
     _onModelEvent(_eventName, model) {
         if (!model) return;
 
-        if (model[CELL_LAYER_MARKER]) {
+        if (model[GRAPH_LAYER_MARKER]) {
             this._onCellLayerEvent.apply(this, arguments);
             return;
         }
@@ -125,7 +126,8 @@ export const GraphCellLayers = Collection.extend({
             if (id != null) this._byId.set(id, layer);
         }
 
-        // TODO: why it has prefix in the first place?
+        // TODO: write why
+        // Self: events
         arguments[0] = arguments[0].slice(layer.eventPrefix.length);
 
         this.trigger.apply(this, arguments);

@@ -4,12 +4,12 @@ import { addClassNamePrefix } from '../../util/util.mjs';
 import { sortingTypes } from '../Paper.mjs';
 
 /**
- * @class CellLayerView
- * @description A CellLayerView is responsible for managing the rendering of cell views inside a cell layer.
+ * @class GraphLayerView
+ * @description A GraphLayerView is responsible for managing the rendering of cell views inside a cell layer.
  * It listens to the corresponding CellLayer model and updates the DOM accordingly.
  * It uses dia.Paper sorting options to sort cell views in the DOM based on their `z` attribute.
  */
-export const CellLayerView = LayerView.extend({
+export const GraphLayerView = LayerView.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
 
@@ -153,8 +153,8 @@ export const CellLayerView = LayerView.extend({
 // Internal tag to identify this object as a cell layer view instance.
 // Used instead of `instanceof` for performance and cross-frame safety.
 
-export const CELL_LAYER_VIEW_MARKER = Symbol('joint.cellLayerViewMarker');
+export const GRAPH_LAYER_VIEW_MARKER = Symbol('joint.graphLayerViewMarker');
 
-Object.defineProperty(CellLayerView.prototype, CELL_LAYER_VIEW_MARKER, {
+Object.defineProperty(GraphLayerView.prototype, GRAPH_LAYER_VIEW_MARKER, {
     value: true,
 });

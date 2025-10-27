@@ -14,11 +14,11 @@ QUnit.module('GraphCellLayers', function(hooks) {
         });
 
         const layer1 = collection.add({ id: 'layer1' }, { cellLayersController: true});
-        assert.ok(layer1 instanceof joint.dia.CellLayer, 'layer1 is instance of CellLayer');
+        assert.ok(layer1 instanceof joint.dia.GraphLayer, 'layer1 is instance of GraphLayer');
         assert.equal(layer1.id, 'layer1', 'layer1 id is set correctly');
 
-        const layer2 = collection.add({ type: 'CellLayer', id: 'layer2' }, { cellLayersController: true});
-        assert.ok(layer2 instanceof joint.dia.CellLayer, 'layer2 is instance of CellLayer');
+        const layer2 = collection.add({ type: 'GraphLayer', id: 'layer2' }, { cellLayersController: true});
+        assert.ok(layer2 instanceof joint.dia.GraphLayer, 'layer2 is instance of GraphLayer');
         assert.equal(layer2.id, 'layer2', 'layer2 id is set correctly');
 
         assert.equal(collection.length, 2, 'collection has 2 layers');
@@ -31,7 +31,7 @@ QUnit.module('GraphCellLayers', function(hooks) {
         ], 'events are triggered correctly');
     });
 
-    QUnit.test('add invalid cellLayer type', (assert) => {
+    QUnit.test('add invalid GraphLayer type', (assert) => {
         const collection = new joint.dia.GraphCellLayers();
 
         assert.throws(() => {
@@ -39,7 +39,7 @@ QUnit.module('GraphCellLayers', function(hooks) {
         }, /dia.Graph: Could not find cell layer constructor for type: 'InvalidType'. Make sure to add the constructor to 'cellLayerNamespace'./, 'throws error when adding invalid cellLayer type');
     });
 
-    QUnit.test('remove cellLayer', (assert) => {
+    QUnit.test('remove GraphLayer', (assert) => {
         const collection = new joint.dia.GraphCellLayers();
         const layer1 = collection.add({ id: 'layer1' }, { cellLayersController: true});
         const layer2 = collection.add({ id: 'layer2' }, { cellLayersController: true});
@@ -60,19 +60,19 @@ QUnit.module('GraphCellLayers', function(hooks) {
     });
 
     QUnit.test('custom cellLayerNamespace', (assert) => {
-        class CustomCellLayer extends joint.dia.CellLayer {
+        class CustomGraphLayer extends joint.dia.GraphLayer {
             defaults() {
                 return {
-                    type: 'CustomCellLayer'
+                    type: 'CustomGraphLayer'
                 };
             }
         }
-        const namespace = { CustomCellLayer };
+        const namespace = { CustomGraphLayer };
         const collection = new joint.dia.GraphCellLayers([], { cellLayerNamespace: namespace });
 
         assert.deepEqual(collection.cellLayerNamespace, { ...collection.defaultCellLayerNamespace, ...namespace }, 'cellLayerNamespace is set correctly');
 
-        const customLayer = collection.add({ type: 'CustomCellLayer', id: 'custom1' }, { cellLayersController: true});
-        assert.ok(customLayer instanceof CustomCellLayer, 'custom layer is created correctly');
+        const customLayer = collection.add({ type: 'CustomGraphLayer', id: 'custom1' }, { cellLayersController: true});
+        assert.ok(customLayer instanceof CustomGraphLayer, 'custom layer is created correctly');
     });
 });

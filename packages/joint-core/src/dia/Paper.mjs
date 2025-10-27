@@ -41,8 +41,8 @@ import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
 import { LayerView } from './layers/LayerView.mjs';
-import { CELL_LAYER_VIEW_MARKER, CellLayerView } from './layers/CellLayerView.mjs';
-import { LegacyCellLayerView } from './layers/LegacyCellLayerView.mjs';
+import { GRAPH_LAYER_VIEW_MARKER, GraphLayerView } from './layers/GraphLayerView.mjs';
+import { LegacyGraphLayerView } from './layers/LegacyGraphLayerView.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { Deque } from '../alg/Deque.mjs';
 import * as highlighters from '../highlighters/index.mjs';
@@ -410,7 +410,7 @@ export const Paper = View.extend({
 
         const defaultLayerViewNamespace = {
             LayerView,
-            CellLayerView,
+            GraphLayerView,
             GridLayerView,
         };
 
@@ -910,9 +910,9 @@ export const Paper = View.extend({
             const modelType = viewOptions.model.get('type') || viewOptions.model.constructor.name;
             const type = modelType + 'View';
 
-            // For backward compatibility we use the LegacyCellLayerView for the default `cells` layer.
+            // For backward compatibility we use the LegacyGraphLayerView for the default `cells` layer.
             if (this.model.cellLayersController.legacyMode) {
-                viewConstructor = LegacyCellLayerView;
+                viewConstructor = LegacyGraphLayerView;
             } else {
                 viewConstructor = this.layerViewNamespace[type] || LayerView;
             }
@@ -1205,7 +1205,7 @@ export const Paper = View.extend({
         if (!view) return 0;
         const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT } = this;
         const { model } = view;
-        if (view[CELL_LAYER_VIEW_MARKER]) {
+        if (view[GRAPH_LAYER_VIEW_MARKER]) {
             if (flag & FLAG_REMOVE) {
                 this.removeLayerView(view);
                 return 0;

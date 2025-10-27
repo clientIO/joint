@@ -41,7 +41,7 @@ export class CellLayerCollection extends Collection {
 
         return new ModelClass(attrs, opt);
     }
-    7;
+
     // Override to set graph reference
     _addReference(model, options) {
         super._addReference(model, options);
