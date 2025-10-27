@@ -1,26 +1,26 @@
 {
     "joint": {
         "global": {
-            "statements": 72,
-            "branches": 66,
-            "functions": 71,
-            "lines": 73
+            "statements": 83,
+            "branches": 76,
+            "functions": 85,
+            "lines": 85
         }
     },
     "vectorizer": {
         "global": {
-            "statements": 73,
-            "branches": 62,
-            "functions": 74,
-            "lines": 74
+            "statements": 82,
+            "branches": 75,
+            "functions": 79,
+            "lines": 83
         }
     },
     "geometry": {
         "global": {
-            "statements": 81,
-            "branches": 78,
-            "functions": 75,
-            "lines": 82
+            "statements": 85,
+            "branches": 80,
+            "functions": 79,
+            "lines": 86
         }
     }
 }

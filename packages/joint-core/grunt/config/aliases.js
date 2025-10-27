@@ -66,7 +66,10 @@ module.exports = function(grunt) {
             'qunit:vectorizer',
             'qunit:geometry'
         ],
-        'test:coverage': ['test:src'],
+        'test:coverage': [
+            'shell:rollup-test-bundle',
+            'test:src'
+        ],
         'test:e2e': ['mochaTest:e2e'],
         'test:e2e:all': [
             'test:e2e:chrome-linux',
