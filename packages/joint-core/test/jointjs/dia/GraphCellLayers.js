@@ -36,7 +36,7 @@ QUnit.module('GraphLayerCollection', function(hooks) {
 
         assert.throws(() => {
             collection.add({ type: 'InvalidType', id: 'layer1' }, { graph: 'a graph' });
-        }, /dia.Graph: Could not find cell layer constructor for type: 'InvalidType'. Make sure to add the constructor to 'layerNamespace'./, 'throws error when adding invalid cellLayer type');
+        }, /dia.Graph: Could not find cell layer constructor for type: 'InvalidType'. Make sure to add the constructor to 'layerNamespace'./, 'throws error when adding invalid GraphLayer type');
     });
 
     QUnit.test('remove GraphLayer', (assert) => {

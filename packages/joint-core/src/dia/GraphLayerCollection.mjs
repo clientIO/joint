@@ -49,12 +49,12 @@ export const GraphLayerCollection = Collection.extend({
         const { type } = attrs;
 
         // Find the model class based on the `type` attribute in the cell namespace
-        const CellLayerClass = util.getByPath(namespace, type, '.');
-        if (!CellLayerClass) {
+        const GraphLayerClass = util.getByPath(namespace, type, '.');
+        if (!GraphLayerClass) {
             throw new Error(`dia.Graph: Could not find cell layer constructor for type: '${type}'. Make sure to add the constructor to 'layerNamespace'.`);
         }
 
-        return new CellLayerClass(attrs, opt);
+        return new GraphLayerClass(attrs, opt);
     },
 
     /**
@@ -80,7 +80,7 @@ export const GraphLayerCollection = Collection.extend({
 
             return Collection.prototype._prepareModel.call(this, preparedAttributes, preparedOptions);
         }
-        // `attrs` is already a CellLayer instance
+        // `attrs` is already a GraphLayer instance
         attrs.cellCollection.graph = this.graph;
         attrs.cellCollection.cellNamespace = this.cellNamespace;
 
@@ -96,7 +96,7 @@ export const GraphLayerCollection = Collection.extend({
         if (!model) return;
 
         if (model[GRAPH_LAYER_MARKER]) {
-            this._onCellLayerEvent.apply(this, arguments);
+            this._onLayerEvent.apply(this, arguments);
             return;
         }
 
@@ -111,24 +111,26 @@ export const GraphLayerCollection = Collection.extend({
         }
     },
 
-    _onCellLayerEvent(eventName, layer) {
+    _onLayerEvent(eventName, layer) {
+        const layerEventPrefix = layer.eventPrefix;
         if (
             layer.collection !== this &&
-            (eventName === layer.eventPrefix + 'add' || eventName === layer.eventPrefix + 'remove')
+            (eventName === layerEventPrefix + 'add' || eventName === layerEventPrefix + 'remove')
         ) {
             return;
         }
 
+        // Layer was changed
         if (eventName === 'changeId') {
-            var prevId = this.modelId(layer.previousAttributes(), layer.idAttribute);
-            var id = this.modelId(layer.attributes, layer.idAttribute);
+            const prevId = this.modelId(layer.previousAttributes(), layer.idAttribute);
+            const id = this.modelId(layer.attributes, layer.idAttribute);
             if (prevId != null) this._byId.delete(prevId);
             if (id != null) this._byId.set(id, layer);
         }
 
-        // TODO: write why
-        // Self: events
-        arguments[0] = arguments[0].slice(layer.eventPrefix.length);
+        // `self:` prefix
+        // forward layer model events without prefix
+        arguments[0] = arguments[0].slice(layerEventPrefix.length);
 
         this.trigger.apply(this, arguments);
     },
