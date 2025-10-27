@@ -1,4 +1,4 @@
-QUnit.module('CellLayerView', function(hooks) {
+QUnit.module('GraphLayerView', function(hooks) {
 
     hooks.beforeEach(() => {
         const fixtureEl = fixtures.getElement();
