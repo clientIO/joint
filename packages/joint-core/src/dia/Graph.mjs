@@ -274,9 +274,11 @@ export const Graph = Model.extend({
             if (cellAttributes.z === undefined) {
                 const layerId = cellAttributes[config.layerAttribute] || this.cellLayersController.defaultCellLayerId;
                 const layer = this.cellLayersController.getCellLayer(layerId);
-                const zIndex = layer.minZIndex() - 1;
+                const zIndex = layer.maxZIndex() + 1;
                 if (cellInit[CELL_MARKER]) {
-                    // TODO write why
+                    // Set with event in case there is a listener
+                    // directly on the cell instance
+                    // (the cell is not part of graph yet)
                     cellInit.set('z', zIndex, opt);
                 } else {
                     cellAttributes.z = zIndex;
