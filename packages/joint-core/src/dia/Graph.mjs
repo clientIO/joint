@@ -423,12 +423,12 @@ export const Graph = Model.extend({
         this.stopBatch(batchName);
     },
 
-    addLayer(cellLayer, opt) {
-        this.layersController.addLayer(cellLayer, opt);
+    addLayer(layer, opt) {
+        this.layersController.addLayer(layer, opt);
     },
 
-    removeLayer(cellLayer, opt) {
-        this.layersController.removeLayer(cellLayer.id, opt);
+    removeLayer(layer, opt) {
+        this.layersController.removeLayer(layer.id, opt);
     },
 
     getDefaultLayer() {
@@ -471,29 +471,25 @@ export const Graph = Model.extend({
     },
 
     getFirstCell: function(layerId) {
-        let cells;
+        let layer;
         if (!layerId) {
-            // Get the first cell from the bottommost layer
-            const orderedLayers = this.getLayers();
-            cells = orderedLayers[0].cellCollection.models;
+            // Get the first cell from the bottom-most layer
+            layer = this.getLayers().at(0);
         } else {
-            cells = this.getLayer(layerId).cellCollection.models;
+            layer = this.getLayer(layerId);
         }
-
-        return cells[0];
+        return layer.cellCollection.models.at(0);
     },
 
     getLastCell: function(layerId) {
-        let cells;
+        let layer;
         if (!layerId) {
-            // Get the last cell from the topmost layer
-            const orderedLayers = this.getLayers();
-            cells = orderedLayers[orderedLayers.length - 1].cellCollection.models;
+            // Get the last cell from the top-most layer
+            layer = this.getLayers().at(-1);
         } else {
-            cells = this.getLayer(layerId).cellCollection.models;
+            layer = this.getLayer(layerId);
         }
-
-        return cells[cells.length - 1];
+        return layer.cellCollection.models.at(-1);
     },
 
     // Get all inbound and outbound links connected to the cell `model`.

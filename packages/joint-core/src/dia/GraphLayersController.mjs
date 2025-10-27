@@ -149,8 +149,8 @@ export class GraphLayersController extends Listener {
         this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, options);
     }
 
-    addLayer(cellLayer, { insertBefore } = {}) {
-        const id = cellLayer.id;
+    addLayer(layer, { insertBefore } = {}) {
+        const id = layer.id;
 
         // insert before itself is a no-op
         if (id === insertBefore) {
@@ -164,7 +164,7 @@ export class GraphLayersController extends Listener {
 
         let currentIndex = null;
         if (this.hasLayer(id)) {
-            currentIndex = originalLayersArray.findIndex(layer => layer === cellLayer);
+            currentIndex = originalLayersArray.findIndex(l => l === layer);
             if (currentIndex === originalLayersArray.length - 1 && !insertBefore) {
                 return; // already at the end
             }
@@ -186,7 +186,7 @@ export class GraphLayersController extends Listener {
         }
 
         if (currentIndex != null) {
-            this.layerCollection.add(cellLayer, {
+            this.layerCollection.add(layer, {
                 at: insertAt,
                 graph: this.graph.cid,
                 silent: true
@@ -197,7 +197,7 @@ export class GraphLayersController extends Listener {
         } else {
             // Add to the collection and trigger an event
             // when new layer has been added
-            this.layerCollection.add(cellLayer, {
+            this.layerCollection.add(layer, {
                 at: insertAt,
                 graph: this.graph.cid
             });
