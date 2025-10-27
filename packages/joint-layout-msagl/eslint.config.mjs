@@ -1,8 +1,8 @@
 import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
 import globals from 'globals';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
 
 export default defineConfig([
     {
@@ -19,12 +19,17 @@ export default defineConfig([
                 CDATASection: 'readonly',
             },
         },
+        extends: [
+            js.configs.recommended,
+        ],
         rules: {
             'indent': ['error', 4, { 'SwitchCase': 1 }],
             'space-before-function-paren': ['error', 'never'],
             'no-console': ['error', { 'allow': ['warn'] }],
             'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
             'no-constant-condition': ['off'],
+            'no-undef': ['error'],
+            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
             'no-prototype-builtins': ['off'],
@@ -33,16 +38,9 @@ export default defineConfig([
     {
         // rules for JS files
         files: ['**/*.js', '**/*.mjs'],
-        extends: [
-            js.configs.recommended,
-        ],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',
-        },
-        rules: {
-            'no-undef': ['error'],
-            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
         },
     },
     {
@@ -78,6 +76,19 @@ export default defineConfig([
                 ecmaVersion: 2022,
                 sourceType: 'module',
             },
+        },
+        rules: {
+            'indent': ['error', 4, { 'SwitchCase': 1 }],
+            'space-before-function-paren': ['error', 'never'],
+            'no-console': ['error', { 'allow': ['warn'] }],
+            'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
+            'no-constant-condition': ['off'],
+            'no-undef': ['off'],
+            'no-unused-vars': ['off'],
+            '@typescript-eslint/no-unused-vars': ['off'],
+            'quotes': ['error', 'single'],
+            'semi': ['error', 'always'],
+            'no-prototype-builtins': ['off'],
         },
     },
 ]);

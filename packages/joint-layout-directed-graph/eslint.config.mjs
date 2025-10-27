@@ -17,30 +17,28 @@ export default defineConfig([
                 CDATASection: 'readonly',
             },
         },
+        extends: [
+            js.configs.recommended,
+        ],
         rules: {
             'indent': ['error', 4, { 'SwitchCase': 1 }],
             'space-before-function-paren': ['error', 'never'],
             'no-console': ['error', { 'allow': ['warn'] }],
             'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
             'no-constant-condition': ['off'],
+            'no-undef': ['error'],
+            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
-            'no-prototype-builtins': ['off']
+            'no-prototype-builtins': ['off'],
         }
     },
     {
         // rules for JS files
         files: ['**/*.js', '**/*.mjs'],
-        extends: [
-            js.configs.recommended,
-        ],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',
-        },
-        rules: {
-            'no-undef': ['error'],
-            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
         },
     },
     {
