@@ -53,7 +53,7 @@ QUnit.module('GraphLayer', function(hooks) {
         const rect2 = new joint.shapes.standard.Rectangle({ z: 1 });
         const rect3 = new joint.shapes.standard.Rectangle({ z: 3 });
 
-        layer.cellCollection.add([rect1, rect2, rect3], { cellLayersController: true });
+        layer.cellCollection.add([rect1, rect2, rect3]);
 
         assert.equal(layer.minZIndex(), 1, 'minZIndex is correct');
         assert.equal(layer.maxZIndex(), 5, 'maxZIndex is correct');

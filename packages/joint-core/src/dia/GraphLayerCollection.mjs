@@ -181,7 +181,7 @@ export const GraphLayerCollection = Collection.extend({
      * This is a temporary measure until cell layers API is stabilized.
      */
     _assertInternalCall(options) {
-        if (options && !options.cellLayersController && !options.silent) {
+        if (options && !options.graph && !options.silent) {
             throw new Error('dia.GraphLayerCollection: direct manipulation of the collection is not supported, use graph methods instead.');
         }
     },
@@ -211,7 +211,7 @@ export const GraphLayerCollection = Collection.extend({
 
         const moveOptions = {
             ...options,
-            cellLayersController: this.graph.layersController,
+            graph: this.graph.cid,
             fromLayer: sourceLayer.id,
             toLayer: targetLayer.id
         };

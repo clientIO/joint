@@ -81,7 +81,7 @@ export class GraphLayersController extends Listener {
             this.graph.trigger('layers:default:change', this.graph, this.defaultCellLayerId, opt);
         }
 
-        this.layerCollection.reset(cellLayers, { ...opt, cellLayersController: this });
+        this.layerCollection.reset(cellLayers, { ...opt, graph: this.graph.cid });
         this.graph.stopBatch('reset-layers', opt);
     }
 
@@ -116,7 +116,7 @@ export class GraphLayersController extends Listener {
         }
 
         layerCollection.each(layer => {
-            layer.cellCollection.reset(layersMap[layer.id], { ...opt, cellLayersController: this });
+            layer.cellCollection.reset(layersMap[layer.id], { ...opt, graph: this.graph.cid });
         });
     }
 
@@ -171,7 +171,7 @@ export class GraphLayersController extends Listener {
             }
 
             // Remove the layer from its current position
-            this.layerCollection.remove(id, { silent: true, cellLayersController: this });
+            this.layerCollection.remove(id, { silent: true, graph: this.graph.cid });
         }
 
         // The cell layers array after removing the layer (if it existed)
@@ -189,7 +189,7 @@ export class GraphLayersController extends Listener {
         if (currentIndex != null) {
             this.layerCollection.add(cellLayer, {
                 at: insertAt,
-                cellLayersController: this,
+                graph: this.graph.cid,
                 silent: true
             });
             // Trigger `sort` event manually
@@ -200,7 +200,7 @@ export class GraphLayersController extends Listener {
             // when new layer has been added
             this.layerCollection.add(cellLayer, {
                 at: insertAt,
-                cellLayersController: this
+                graph: this.graph.cid
             });
         }
     }
@@ -218,7 +218,7 @@ export class GraphLayersController extends Listener {
 
         this.graph.startBatch('remove-cell-layer');
 
-        layerCollection.remove(layerId, { ...opt, cellLayersController: this });
+        layerCollection.remove(layerId, { ...opt, graph: this.graph.cid });
 
         this.graph.stopBatch('remove-cell-layer');
     }
@@ -292,7 +292,7 @@ export class GraphLayersController extends Listener {
         const layerId = this._getLayerId(cellInit);
         const layer = this.getCellLayer(layerId);
 
-        layer.cellCollection.add(cellInit, { ...opt, cellLayersController: this });
+        layer.cellCollection.add(cellInit, { ...opt, graph: this.graph.cid });
     }
 
     resetCells(cells = [], opt = {}) {
