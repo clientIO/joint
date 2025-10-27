@@ -99,7 +99,7 @@ export class GraphLayersController extends Listener {
         this.moveCellBetweenLayers(cell, this._getLayerId(cell), opt);
     }
 
-    resetLayersCollections(cells, opt = {}) {
+    resetCells(cells = [], opt = {}) {
         const { layerCollection } = this;
 
         const layersMap = layerCollection.reduce((map, layer) => {
@@ -223,24 +223,14 @@ export class GraphLayersController extends Listener {
         this.graph.stopBatch('remove-cell-layer');
     }
 
-    minZIndex(layerId) {
-        const { defaultCellLayerId } = this;
-
-        layerId = layerId || defaultCellLayerId;
-
+    minZIndex(layerId = this.defaultCellLayerId) {
         const layer = this.getCellLayer(layerId);
-
-        return layer.minZIndex();
+        return layer.cellCollection.minZIndex();
     }
 
-    maxZIndex(layerId) {
-        const { defaultCellLayerId } = this;
-
-        layerId = layerId || defaultCellLayerId;
-
+    maxZIndex(layerId = this.defaultCellLayerId) {
         const layer = this.getCellLayer(layerId);
-
-        return layer.maxZIndex();
+        return layer.cellCollection.maxZIndex();
     }
 
     hasCellLayer(layerId) {
@@ -327,10 +317,6 @@ export class GraphLayersController extends Listener {
         // Move the cell between the two layer collections
         sourceLayer.cellCollection.remove(cell, moveOptions);
         targetLayer.cellCollection.add(cell, moveOptions);
-    }
-
-    resetCells(cells = [], opt = {}) {
-        this.resetLayersCollections(cells, opt);
     }
 
     _getLayerId(cellInit) {

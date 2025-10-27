@@ -273,8 +273,7 @@ export const Graph = Model.extend({
         if (opt && opt.ensureZIndex) {
             if (cellAttributes.z === undefined) {
                 const layerId = cellAttributes[config.layerAttribute] || this.layersController.defaultCellLayerId;
-                const layer = this.layersController.getCellLayer(layerId);
-                const zIndex = layer.maxZIndex() + 1;
+                const zIndex = this.maxZIndex(layerId) + 1;
                 if (cellInit[CELL_MARKER]) {
                     // Set with event in case there is a listener
                     // directly on the cell instance

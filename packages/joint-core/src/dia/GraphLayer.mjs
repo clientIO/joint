@@ -43,14 +43,4 @@ export class GraphLayer extends Model {
         if (opt.sort === false || !cell.hasChanged('z')) return;
         this.cellCollection.sort();
     }
-
-    minZIndex() {
-        const firstCell = this.cellCollection.first();
-        return firstCell ? (firstCell.get('z') || 0) : 0;
-    }
-
-    maxZIndex() {
-        const lastCell = this.cellCollection.last();
-        return lastCell ? (lastCell.get('z') || 0) : 0;
-    }
 }

@@ -119,4 +119,12 @@ export class CellCollection extends Collection {
 
         return this.models;
     }
+
+    minZIndex() {
+        return (this.first()?.get('z') || 0);
+    }
+
+    maxZIndex() {
+        return (this.last()?.get('z') || 0);
+    }
 }
