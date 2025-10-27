@@ -18,8 +18,8 @@ export const GraphLayerCollection = Collection.extend({
      * @override
      * @description Initializes the collection and sets up the cell layer and cell namespaces.
      */
-    initialize: function(_models, opt = {}) {
-        const { cellLayerNamespace, cellNamespace } = opt;
+    initialize: function(_models, options = {}) {
+        const { cellLayerNamespace, cellNamespace, graph } = options;
 
         // Initialize the namespace that holds all available cell layer classes.
         // Custom namespaces are merged with the default ones.
@@ -34,7 +34,7 @@ export const GraphLayerCollection = Collection.extend({
             /* eslint-enable no-undef */
         }
 
-        this.graph = opt.graph;
+        this.graph = graph;
     },
 
     /**

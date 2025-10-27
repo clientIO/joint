@@ -11,19 +11,17 @@ import { CELL_MARKER } from './Cell.mjs';
 
 export const Graph = Model.extend({
 
-    initialize: function(attrs, opt) {
-
-        opt = opt || {};
+    initialize: function(attrs, options = {}) {
 
         const layerCollection = this.layerCollection = new GraphLayerCollection([], {
-            cellLayerNamespace: opt.cellLayerNamespace,
-            cellNamespace: opt.cellNamespace,
-            /** @deprecated use cellNamespace instead */
-            model: opt.cellModel,
+            cellLayerNamespace: options.cellLayerNamespace,
+            cellNamespace: options.cellNamespace,
             graph: this,
+            /** @deprecated use cellNamespace instead */
+            model: options.cellModel,
         });
 
-        // Re-trigger events from the `layerCollection` on the graph instance.
+        // Forward events from the `layerCollection` on the graph instance.
         layerCollection.on('all', this._forwardCellCollectionEvents, this);
 
         this.layersController = new GraphLayersController({ graph: this });
@@ -198,8 +196,8 @@ export const Graph = Model.extend({
             return json;
         }
 
-        // Add `cellLayers` array holding all the cell layers in the graph.
-        json.cellLayers = layerCollection.toJSON();
+        // Add `layers` array holding all the cell layers in the graph.
+        json.layers = layerCollection.toJSON();
 
         // Add `defaultCellLayer` property indicating the default cell layer ID.
         json.defaultCellLayer = layersController.defaultCellLayerId;
@@ -208,14 +206,14 @@ export const Graph = Model.extend({
     },
 
     fromJSON: function(json, opt) {
-        const { cells, cellLayers, defaultCellLayer, ...attrs } = json;
+        const { cells, layers, defaultCellLayer, ...attrs } = json;
 
         if (!cells) {
             throw new Error('Graph JSON must contain cells array.');
         }
 
-        if (cellLayers) {
-            this.resetCellLayers(cellLayers, { ...opt, defaultCellLayer });
+        if (layers) {
+            this.resetCellLayers(layers, { ...opt, defaultCellLayer });
         }
 
         if (cells) {
@@ -353,8 +351,8 @@ export const Graph = Model.extend({
         return this;
     },
 
-    resetCellLayers: function(cellLayers, opt) {
-        this.layersController.resetCellLayers(cellLayers, opt);
+    resetCellLayers: function(layers, opt) {
+        this.layersController.resetCellLayers(layers, opt);
         return this;
     },
 
