@@ -488,10 +488,10 @@ export const Paper = View.extend({
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
 
-        this.listenTo(model, 'layers:add', this.onCellLayerAdd)
-            .listenTo(model, 'layers:remove', this.onCellLayerRemove)
-            .listenTo(model, 'layers:reset', this.onCellLayersReset)
-            .listenTo(model, 'layers:sort', this.onCellLayersSort);
+        this.listenTo(model, 'layers:add', this.onGraphLayerAdd)
+            .listenTo(model, 'layers:remove', this.onGraphLayerRemove)
+            .listenTo(model, 'layers:reset', this.onGraphLayersReset)
+            .listenTo(model, 'layers:sort', this.onGraphLayersSort);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -539,7 +539,7 @@ export const Paper = View.extend({
     /*
     * When a new cell layer is added to the graph, we create a new layer view
     */
-    onCellLayerAdd: function(cellLayer, _, opt) {
+    onGraphLayerAdd: function(cellLayer, _, opt) {
         if (this.hasLayerView(cellLayer.id))
             return;
 
@@ -562,21 +562,21 @@ export const Paper = View.extend({
         this.insertLayerView(layerView, { insertBefore });
     },
 
-    onCellLayerRemove: function(cellLayer, _, opt) {
+    onGraphLayerRemove: function(cellLayer, _, opt) {
         if (!this.hasLayerView(cellLayer.id))
             return;
 
         const cellLayerView = this.getLayerView(cellLayer.id);
         // requesting removal so it will wait for cell views to be removed first
-        this.requestLayerViewRemove(cellLayerView);
+        this.requestLayerViewRemoval(cellLayerView);
         delete this._cellLayerViews[cellLayer.id];
     },
 
-    onCellLayersReset: function() {
-        this.resetCellLayerViews();
+    onGraphLayersReset: function() {
+        this.resetGraphLayerViews();
     },
 
-    onCellLayersSort: function(layerCollection) {
+    onGraphLayersSort: function(layerCollection) {
         layerCollection.each(layer => {
             if (!this.hasLayerView(layer.id)) return;
 
@@ -585,7 +585,7 @@ export const Paper = View.extend({
         });
     },
 
-    resetCellLayerViews: function() {
+    resetGraphLayerViews: function() {
         // remove all existing cell layer views
         for (let id in this._cellLayerViews) {
             this._removeLayerView(this._cellLayerViews[id]);
@@ -781,7 +781,7 @@ export const Paper = View.extend({
         this._removeLayerView(layerView);
     },
 
-    requestLayerViewRemove(layerView) {
+    requestLayerViewRemoval(layerView) {
         layerView = this._requireLayerView(layerView);
 
         const { FLAG_REMOVE } = this;
@@ -849,7 +849,7 @@ export const Paper = View.extend({
     },
 
     // Returns ordered array of cell layer views
-    getCellLayerViews() {
+    getGraphLayerViews() {
         return this.model.getLayers().map(cellLayer => this._cellLayerViews[cellLayer.id]);
     },
 
@@ -935,7 +935,7 @@ export const Paper = View.extend({
             this.insertLayerView(layerView);
         });
         // Render the cell layers.
-        this.resetCellLayerViews();
+        this.resetGraphLayerViews();
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(this.model.getDefaultLayer().id);
         const toolsLayerView = this.getLayerView(paperLayers.TOOLS);
@@ -2365,7 +2365,7 @@ export const Paper = View.extend({
     },
 
     sortLayerViewsExact: function() {
-        this.getCellLayerViews().forEach(view => view.sortExact());
+        this.getGraphLayerViews().forEach(view => view.sortExact());
     },
 
     insertView: function(view, isInitialInsert) {

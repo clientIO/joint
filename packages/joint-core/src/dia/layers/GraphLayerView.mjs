@@ -6,7 +6,7 @@ import { sortingTypes } from '../Paper.mjs';
 /**
  * @class GraphLayerView
  * @description A GraphLayerView is responsible for managing the rendering of cell views inside a cell layer.
- * It listens to the corresponding CellLayer model and updates the DOM accordingly.
+ * It listens to the corresponding GraphLayer model and updates the DOM accordingly.
  * It uses dia.Paper sorting options to sort cell views in the DOM based on their `z` attribute.
  */
 export const GraphLayerView = LayerView.extend({
@@ -37,7 +37,7 @@ export const GraphLayerView = LayerView.extend({
         const { model, paper } = this;
         const graph = paper.model;
 
-        this.listenTo(model, 'sort', this.onCellLayerSort);
+        this.listenTo(model, 'sort', this.onGraphLayerSort);
 
         this.listenTo(model, 'add', this.onCellAdd);
 
@@ -46,7 +46,7 @@ export const GraphLayerView = LayerView.extend({
         this.listenTo(graph, 'batch:stop', this.onGraphBatchStop);
     },
 
-    onCellLayerSort() {
+    onGraphLayerSort() {
         const { paper } = this;
         const graph = paper.model;
 

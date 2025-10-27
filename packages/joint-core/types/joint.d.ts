@@ -1963,9 +1963,9 @@ export namespace dia {
 
         insertLayerView(layerView: LayerView, options?: { insertBefore?: string | LayerView }): void;
 
-        removeLayerView(LayerView: LayerView): void;
+        removeLayerView(layerView: LayerView): void;
 
-        requestLayerViewRemove(layerView: string | LayerView): void;
+        requestLayerViewRemoval(layerView: string | LayerView): void;
 
         getLayerViewOrder(): string[];
 
