@@ -1,13 +1,13 @@
-QUnit.module('GraphCellLayers', function(hooks) {
+QUnit.module('GraphLayerCollection', function(hooks) {
 
     QUnit.test('default setup', (assert) => {
-        const collection = new joint.dia.GraphCellLayers();
+        const collection = new joint.dia.GraphLayerCollection();
 
         assert.deepEqual(collection.cellLayerNamespace, collection.defaultCellLayerNamespace, 'cellLayerNamespace is set to default');
     });
 
     QUnit.test('add cellLayers', (assert) => {
-        const collection = new joint.dia.GraphCellLayers();
+        const collection = new joint.dia.GraphLayerCollection();
         const events = [];
         collection.on('all', (eventName) => {
             events.push(eventName);
@@ -32,7 +32,7 @@ QUnit.module('GraphCellLayers', function(hooks) {
     });
 
     QUnit.test('add invalid GraphLayer type', (assert) => {
-        const collection = new joint.dia.GraphCellLayers();
+        const collection = new joint.dia.GraphLayerCollection();
 
         assert.throws(() => {
             collection.add({ type: 'InvalidType', id: 'layer1' }, { cellLayersController: true});
@@ -40,7 +40,7 @@ QUnit.module('GraphCellLayers', function(hooks) {
     });
 
     QUnit.test('remove GraphLayer', (assert) => {
-        const collection = new joint.dia.GraphCellLayers();
+        const collection = new joint.dia.GraphLayerCollection();
         const layer1 = collection.add({ id: 'layer1' }, { cellLayersController: true});
         const layer2 = collection.add({ id: 'layer2' }, { cellLayersController: true});
 
@@ -68,7 +68,7 @@ QUnit.module('GraphCellLayers', function(hooks) {
             }
         }
         const namespace = { CustomGraphLayer };
-        const collection = new joint.dia.GraphCellLayers([], { cellLayerNamespace: namespace });
+        const collection = new joint.dia.GraphLayerCollection([], { cellLayerNamespace: namespace });
 
         assert.deepEqual(collection.cellLayerNamespace, { ...collection.defaultCellLayerNamespace, ...namespace }, 'cellLayerNamespace is set correctly');
 

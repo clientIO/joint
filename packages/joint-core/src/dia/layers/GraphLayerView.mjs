@@ -29,7 +29,7 @@ export const GraphLayerView = LayerView.extend({
         const { id } = this.options;
         return [
             addClassNamePrefix(`${id}-layer`),
-            addClassNamePrefix('cell-layer')
+            addClassNamePrefix('graph-layer')
         ].join(' ');
     },
 

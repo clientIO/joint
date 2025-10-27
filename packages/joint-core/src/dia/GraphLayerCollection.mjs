@@ -5,10 +5,10 @@ import { CELL_MARKER } from './Cell.mjs';
 import * as util from '../util/index.mjs';
 
 /**
- * @class GraphCellLayers
+ * @class GraphLayerCollection
  * @description A collection of cell layers used in dia.Graph. It facilitates creating cell layers from JSON using cellLayerNamespace.
  */
-export const GraphCellLayers = Collection.extend({
+export const GraphLayerCollection = Collection.extend({
 
     defaultCellLayerNamespace: {
         GraphLayer
@@ -182,7 +182,7 @@ export const GraphCellLayers = Collection.extend({
      */
     _assertInternalCall(options) {
         if (options && !options.cellLayersController && !options.silent) {
-            throw new Error('dia.GraphCellLayers: direct manipulation of the collection is not supported, use graph methods instead.');
+            throw new Error('dia.GraphLayerCollection: direct manipulation of the collection is not supported, use graph methods instead.');
         }
     },
 
@@ -194,12 +194,12 @@ export const GraphCellLayers = Collection.extend({
 
         const sourceLayer = cell.collection?.layer;
         if (!sourceLayer) {
-            throw new Error('dia.GraphCellLayers: cannot move a cell that is not part of any layer.');
+            throw new Error('dia.GraphLayerCollection: cannot move a cell that is not part of any layer.');
         }
 
         const targetLayer = this.get(targetLayerId);
         if (!targetLayer) {
-            throw new Error(`dia.GraphCellLayers: cannot move cell to layer '${targetLayerId}' because such layer does not exist.`);
+            throw new Error(`dia.GraphLayerCollection: cannot move cell to layer '${targetLayerId}' because such layer does not exist.`);
         }
 
         if (sourceLayer === targetLayer) {

@@ -24,7 +24,7 @@ QUnit.module('GraphLayerView', function(hooks) {
         const layerView = new joint.dia.GraphLayerView({ id: 'test', model: layer, paper: this.paper });
 
         assert.ok(layerView.el.classList.contains('joint-test-layer'));
-        assert.ok(layerView.el.classList.contains('joint-cell-layer'));
+        assert.ok(layerView.el.classList.contains('joint-graph-layer'));
 
         assert.ok(layerView.el.style.webkitUserSelect === 'none');
         assert.ok(layerView.el.style.userSelect === 'none');
