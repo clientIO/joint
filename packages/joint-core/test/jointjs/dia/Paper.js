@@ -1613,8 +1613,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             hooks.beforeEach(function() {
                 paper.options.labelsLayer = true;
                 paper.options.sorting = joint.dia.Paper.sorting.APPROX;
-                labelsLayer = paper.getLayerViewNode(joint.dia.Paper.Layers.LABELS);
-                cellsLayer = paper.getLayerViewNode(paper.model.getDefaultLayer().id);
+                labelsLayer = paper.getLayerView(joint.dia.Paper.Layers.LABELS).el;
+                cellsLayer = paper.getLayerView(paper.model.getDefaultLayer().id).el;
             });
 
             QUnit.test('sanity', function(assert) {
@@ -2488,12 +2488,12 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
 
         QUnit.test('sanity', function(assert) {
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.BACK));
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.GRID));
-            assert.ok(paper.getLayerViewNode(paper.model.getDefaultLayer().id));
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.FRONT));
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.TOOLS));
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.LABELS));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.BACK));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.GRID));
+            assert.ok(paper.getLayerView(paper.model.getDefaultLayer().id));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.FRONT));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.TOOLS));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.LABELS));
         });
 
         QUnit.module('hasLayer()', function(assert) {
@@ -2686,7 +2686,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 const r1 = new joint.shapes.standard.Rectangle();
                 graph.addCell(r1, { async: false });
-                assert.ok(paper.getLayerViewNode('cells').contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
+                assert.ok(paper.getLayerView('cells').el.contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
 
                 const r2 = new joint.shapes.standard.Rectangle({ layer: 'test' });
                 assert.throws(
@@ -2705,14 +2705,14 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.ok(paper.hasLayerView('test'), 'Layer view "test" is created in Paper.');
 
                 graph.addCell(r2, { async: false });
-                assert.ok(paper.getLayerViewNode('test').contains(r2.findView(paper).el), 'cell view is added to the "test" layer');
+                assert.ok(paper.getLayerView('test').el.contains(r2.findView(paper).el), 'cell view is added to the "test" layer');
             });
 
             QUnit.test('cell view is moved to correct layer', function(assert) {
 
                 const r1 = new joint.shapes.standard.Rectangle();
                 graph.addCell(r1, { async: false });
-                assert.ok(paper.getLayerViewNode('cells').contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
+                assert.ok(paper.getLayerView('cells').el.contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
 
                 const testLayer = new joint.dia.GraphLayer({ id: 'test' });
                 graph.addLayer(testLayer);
@@ -2720,7 +2720,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.ok(paper.hasLayerView('test'), 'Layer view "test" is created in Paper.');
 
                 r1.set('layer', 'test', { async: false });
-                assert.ok(paper.getLayerViewNode('test').contains(r1.findView(paper).el), 'cell view is moved to the "test" layer');
+                assert.ok(paper.getLayerView('test').el.contains(r1.findView(paper).el), 'cell view is moved to the "test" layer');
             });
         });
     });

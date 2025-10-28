@@ -1952,9 +1952,8 @@ export namespace dia {
 
         // layers
 
-        getLayerViewNode(id: Paper.Layers | string): SVGGElement;
-
         getLayerView(id: Paper.Layers | string): LayerView;
+        getLayerView(id: GraphLayer): GraphLayerView;
 
         hasLayerView(id: Paper.Layers | string): boolean;
 
@@ -2157,7 +2156,7 @@ export namespace dia {
         protected addStylesheet(stylesheet: string): void;
 
         /**
-         * @deprecated use `getLayerViewNode()`
+         * @deprecated use `getLayerView(id).el` instead
          * **/
         getLayerNode(id: Paper.Layers | string): SVGElement;
 

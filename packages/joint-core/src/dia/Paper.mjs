@@ -734,12 +734,8 @@ export const Paper = View.extend({
         return layerView;
     },
 
-    getLayerViewNode(layerId) {
-        return this.getLayerView(layerId).el;
-    },
-
     /**
-     * @deprecated use `getLayerViewNode()` instead
+     * @deprecated use `getLayerView(layerId).el` instead
      */
     getLayerNode(layerId) {
         return this.getLayerView(layerId).el;

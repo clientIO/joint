@@ -64,7 +64,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(defaultLayer.cellCollection.has('rect1'), 'Default layer has rectangle cell');
         assert.ok(defaultLayer.cellCollection.has('ellipse1'), 'Default layer has ellipse cell');
 
-        const layerViewNode = this.paper.getLayerViewNode(defaultLayer.id);
+        const layerViewNode = this.paper.getLayerView(defaultLayer.id).el;
 
         assert.ok(layerViewNode.querySelector(`[model-id="rect1"]`), 'Layer view has rectangle cell view node');
         assert.ok(layerViewNode.querySelector(`[model-id="ellipse1"]`), 'Layer view has ellipse cell view node');
@@ -109,10 +109,10 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(layer1.cellCollection.has('rect1'), 'Layer "layer1" has rectangle cell');
         assert.ok(layer2.cellCollection.has('ellipse1'), 'Layer "layer2" has ellipse cell');
 
-        const layer1Node = this.paper.getLayerViewNode('layer1');
+        const layer1Node = this.paper.getLayerView('layer1').el;
         assert.ok(layer1Node.querySelector(`[model-id="rect1"]`), 'Layer view for "layer1" has rectangle cell view node');
 
-        const layer2Node = this.paper.getLayerViewNode('layer2');
+        const layer2Node = this.paper.getLayerView('layer2').el;
         assert.ok(layer2Node.querySelector(`[model-id="ellipse1"]`), 'Layer view for "layer2" has ellipse cell view node');
 
         assert.ok(layer1Node.nextSibling === layer2Node, '"layer1" layer view is before "layer2" layer view');
@@ -125,7 +125,7 @@ QUnit.module('layers-basic', function(hooks) {
         const defaultLayer = this.graph.getDefaultLayer();
 
         assert.ok(defaultLayer.cellCollection.has(rect.id), 'Rectangle cell added to default layer');
-        assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
+        assert.ok(this.paper.getLayerView(defaultLayer.id).el.querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
 
         const newLayer = new joint.dia.GraphLayer({ id: 'newLayer' });
         this.graph.addLayer(newLayer);
@@ -137,14 +137,14 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(newLayer.cellCollection.has(rect.id), 'Rectangle cell moved to new layer');
         assert.ok(!defaultLayer.cellCollection.has(rect.id), 'Rectangle cell removed from default layer');
 
-        assert.ok(this.paper.getLayerViewNode('newLayer').querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to new layer view');
+        assert.ok(this.paper.getLayerView('newLayer').el.querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to new layer view');
 
         rect.set('layer', null);
 
         assert.ok(defaultLayer.cellCollection.has(rect.id), 'Rectangle cell moved back to default layer');
         assert.ok(!newLayer.cellCollection.has(rect.id), 'Rectangle cell removed from new layer');
 
-        assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved back to default layer view');
+        assert.ok(this.paper.getLayerView(defaultLayer.id).el.querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved back to default layer view');
     });
 
     QUnit.test('Different layer attribute config', (assert) => {
@@ -158,11 +158,11 @@ QUnit.module('layers-basic', function(hooks) {
 
         const defaultLayer = this.graph.getDefaultLayer();
         assert.ok(defaultLayer.cellCollection.has(rect.id), 'Rectangle cell added to default layer');
-        assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
+        assert.ok(this.paper.getLayerView(defaultLayer.id).el.querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
 
         rect.layer('newLayer');
         assert.ok(newLayer.cellCollection.has(rect.id), 'Rectangle cell added to "newLayer" layer');
-        assert.ok(this.paper.getLayerViewNode('newLayer').querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to "newLayer" layer view');
+        assert.ok(this.paper.getLayerView('newLayer').el.querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to "newLayer" layer view');
 
         assert.equal(rect.get('_layerId'), 'newLayer', 'The custom layer attribute is set correctly');
 
@@ -184,7 +184,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.equal(rect.get('layer'), undefined, 'The layer is not defined (default)');
         assert.equal(defaultLayer.id, 'cells', 'Default layer is "cells"');
         assert.ok(defaultLayer.cellCollection.has(rect.id), 'Rectangle cell added to default layer');
-        assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
+        assert.ok(this.paper.getLayerView(defaultLayer.id).el.querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
 
         this.graph.setDefaultLayer('newLayer');
 
@@ -195,7 +195,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(newDefaultLayer.cellCollection.has(rect.id), 'Rectangle cell moved to new default layer');
         assert.ok(!defaultLayer.cellCollection.has(rect.id), 'Rectangle cell removed from old default layer');
 
-        assert.ok(this.paper.getLayerViewNode(newDefaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved to new default layer view');
+        assert.ok(this.paper.getLayerView(newDefaultLayer.id).el.querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved to new default layer view');
     });
 
     QUnit.test('Inserting layers', (assert) => {
@@ -208,13 +208,13 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(layers[0].id, 'cells', 'First layer is "cells"');
         assert.strictEqual(layers[1].id, 'layer1', 'Second layer is "layer1"');
 
-        const cellsLayerNode = this.paper.getLayerViewNode('cells');
-        const layer1Node = this.paper.getLayerViewNode('layer1');
+        const cellsLayerNode = this.paper.getLayerView('cells').el;
+        const layer1Node = this.paper.getLayerView('layer1').el;
         assert.ok(cellsLayerNode.nextSibling === layer1Node, '"cells" layer view is before "layer1" layer view');
 
         const layer2 = new joint.dia.GraphLayer({ id: 'layer2' });
         this.graph.addLayer(layer2, { insertBefore: 'layer1' });
-        const layer2Node = this.paper.getLayerViewNode('layer2');
+        const layer2Node = this.paper.getLayerView('layer2').el;
         assert.ok(cellsLayerNode.nextSibling === layer2Node, '"cells" layer view is before "layer2" layer view');
         assert.ok(layer2Node.nextSibling === layer1Node, '"layer2" layer view is before "layer1" layer view');
 

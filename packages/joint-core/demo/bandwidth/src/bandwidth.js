@@ -32,7 +32,7 @@ const line = vectorizer('line', {
     'stroke': '#333',
     'stroke-width': 2
 });
-line.appendTo(paper.getLayerNode(dia.Paper.Layers.BACK));
+line.appendTo(paper.getLayerView(dia.Paper.Layers.BACK).el);
 
 // The style can be added in an external CSS file too
 const style = vectorizer.createSVGStyle(`
