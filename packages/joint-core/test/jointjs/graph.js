@@ -367,6 +367,19 @@ QUnit.module('graph', function(hooks) {
                 assert.equal(b.get('type'), 'standard.Circle');
             });
 
+            QUnit.test('should carry over attributes when replacing cells', function(assert) {
+                const graph = this.graph;
+                graph.resetCells([
+                    { id: 'a', type: 'standard.Rectangle', test1: 'old', test2: 'old' }
+                ]);
+                graph.syncCells([
+                    { id: 'a', type: 'standard.Circle', test2: 'new' }
+                ]);
+                const a = graph.getCell('a');
+                assert.equal(a.get('test1'), 'old');
+                assert.equal(a.get('test2'), 'new');
+            });
+
             QUnit.test('should preserve the connected links when replacing cells', function(assert) {
                 const graph = this.graph;
                 graph.resetCells([
