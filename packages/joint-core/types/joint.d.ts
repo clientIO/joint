@@ -1443,6 +1443,8 @@ export namespace dia {
             GRID = 'grid',
         }
 
+        type LayerRef = Layers | string | dia.LayerView | dia.GraphLayer;
+
         interface RenderStats {
             priority: number;
             updated: number;
@@ -1952,26 +1954,24 @@ export namespace dia {
 
         // layers
 
-        getLayerView(id: Paper.Layers | string): LayerView;
-        getLayerView(id: GraphLayer): GraphLayerView;
+        getLayerView(layerRef: Paper.LayerRef): LayerView;
+        getLayerView(layer: GraphLayer): GraphLayerView;
 
-        hasLayerView(id: Paper.Layers | string): boolean;
+        hasLayerView(layerRef: Paper.LayerRef): boolean;
+
+        getLayerViews(): Array<LayerView>;
+
+        getGraphLayerViews(): Array<GraphLayerView>;
 
         createLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
 
-        insertLayerView(layerView: LayerView, options?: { insertBefore?: string | LayerView }): void;
+        insertLayerView(layerView: LayerView, options?: { insertBefore?: Paper.LayerRef }): void;
 
         removeLayerView(layerView: LayerView): void;
 
         requestLayerViewRemoval(layerView: string | LayerView): void;
 
-        getLayerViewOrder(): string[];
-
-        getRootLayerViews(): Array<LayerView>;
-
-        getLayerViews(): Array<LayerView>;
-
-        getGraphLayerViews(): Array<GraphLayerView>;
+        protected getLayerViewOrder(): string[];
 
         protected removeLayerViews(): void;
 

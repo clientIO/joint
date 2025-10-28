@@ -40,7 +40,7 @@ import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LayerView } from './layers/LayerView.mjs';
+import { LAYER_VIEW_MARKER, LayerView } from './layers/LayerView.mjs';
 import { GRAPH_LAYER_VIEW_MARKER, GraphLayerView } from './layers/GraphLayerView.mjs';
 import { LegacyGraphLayerView } from './layers/LegacyGraphLayerView.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
@@ -705,13 +705,28 @@ export const Paper = View.extend({
         }];
     },
 
-    hasLayerView(layerId) {
+    /**
+     * @public
+     * @description Checks whether the layer view exists by the given layer id or layer model.
+     * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
+     * @return {boolean} True if the layer view exists, false otherwise.
+     */
+    hasLayerView(layerRef) {
+        let layerId;
+        if (isString(layerRef)) {
+            layerId = layerRef;
+        } else if (layerRef) {
+            layerId = layerRef.id;
+        } else {
+            return false;
+        }
         return (layerId in this._layers.viewsMap);
     },
 
     /**
-     * Returns the layer view by the given layer id or layer model.
-     * @param {string|dia.Layer} layerRef - Layer id or layer model.
+     * @public
+     * @description Returns the layer view by the given layer id or layer model.
+     * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
      * @return {dia.LayerView} The layer view.
      * @throws {Error} if the layer view is not found
      */
@@ -772,26 +787,46 @@ export const Paper = View.extend({
         viewsMap[layerId] = layerView;
     },
 
+    /**
+     * @public
+     * @description Removes the layer view by the given layer id or layer model.
+     * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
+     * @throws {Error} if the layer view is not empty
+     */
     removeLayerView(layerRef) {
         const layerView = this.getLayerView(layerRef);
-
         if (!layerView.isEmpty()) {
             throw new Error('dia.Paper: The layer view is not empty.');
         }
+
         this._removeLayerView(layerView);
     },
 
+    /**
+     * @public
+     * @description Schedules the layer view removal by the given layer id or layer model.
+     * The actual removal will be performed during the paper update cycle.
+     * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
+     */
     requestLayerViewRemoval(layerRef) {
         const layerView = this.getLayerView(layerRef);
-
         const { FLAG_REMOVE } = this;
         const { UPDATE_PRIORITY } = layerView;
 
         this.requestViewUpdate(layerView, FLAG_REMOVE, UPDATE_PRIORITY);
     },
 
-    insertLayerView(layerView, opt = {}) {
-        if (!(layerView instanceof LayerView)) {
+    /**
+     * @public
+     * @description Inserts the layer view into the paper.
+     * If the layer view already exists in the paper, it is moved to the new position.
+     * @param {dia.LayerView} layerView - The layer view to insert.
+     * @param {Object} [options] - Insertion options.
+     * @param {string|dia.GraphLayer} [options.insertBefore] - Layer id or layer model before
+     * which the layer view should be inserted.
+     */
+    insertLayerView(layerView, options = {}) {
+        if (!layerView || !layerView[LAYER_VIEW_MARKER]) {
             throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
         }
 
@@ -803,17 +838,11 @@ export const Paper = View.extend({
         }
 
         const { _layers: { order }} = this;
+        const currentLayerIndex = order.indexOf(layerId);
 
-        if (!opt.insertBefore) {
-            // remove from order in case the layer view is already in the order
-            // this is needed for the case when the layer view is inserted in the new position
-            if (order.indexOf(layerId) !== -1) {
-                order.splice(order.indexOf(layerId), 1);
-            }
-            order.push(layerId);
-            this.layers.appendChild(layerView.el);
-        } else {
-            const beforeLayerView = this.getLayerView(opt.insertBefore);
+        // Should the layer view be inserted before another layer view?
+        if (options.insertBefore) {
+            const beforeLayerView = this.getLayerView(options.insertBefore);
             const beforeLayerViewId = beforeLayerView.id;
             if (layerId === beforeLayerViewId) {
                 // The layer view is already in the right place.
@@ -821,36 +850,53 @@ export const Paper = View.extend({
             }
 
             let beforeLayerPosition = order.indexOf(beforeLayerViewId);
-            // remove from order in case of a move command
-            if (order.indexOf(layerId) !== -1) {
-                if (order.indexOf(layerId) < beforeLayerPosition) {
+            // Remove from the `order` list if the layer view is already in the order.
+            if (currentLayerIndex !== -1) {
+                if (currentLayerIndex < beforeLayerPosition) {
                     beforeLayerPosition -= 1;
                 }
-                order.splice(order.indexOf(layerId), 1);
+                order.splice(currentLayerIndex, 1);
             }
             order.splice(beforeLayerPosition, 0, layerId);
             this.layers.insertBefore(layerView.el, beforeLayerView.el);
+            return;
         }
+
+        // Remove from the `order` list if the layer view is already in the order.
+        // This is needed for the case when the layer view is inserted in the new position.
+        if (currentLayerIndex !== -1) {
+            order.splice(currentLayerIndex, 1);
+        }
+        order.push(layerId);
+        this.layers.appendChild(layerView.el);
     },
 
-    // Returns a sorted array of layer view ids.
+    /**
+     * @protected
+     * @description Returns an array of layer view ids in the order they are rendered.
+     * @returns {string[]} An array of layer view ids.
+     */
     getLayerViewOrder() {
         return this._layers.order.slice();
     },
 
-    // Returns a sorted array of ordered layer views.
-    getRootLayerViews() {
+    /**
+     * @public
+     * @description Returns an array of layer views in the order they are rendered.
+     * @returns {dia.LayerView[]} An array of layer views.
+     */
+    getLayerViews() {
         return this.getLayerViewOrder().map(id => this.getLayerView(id));
     },
 
-    // Returns all registered layer views.
-    getLayerViews() {
-        return Object.values(this._layers.viewsMap);
-    },
-
-    // Returns ordered array of layer views
+    /**
+     * @public
+     * @description Returns an array of graph layer views in the order they are rendered.
+     * @returns {dia.GraphLayerView[]} An array of graph layer views.
+     */
     getGraphLayerViews() {
-        return this.model.getLayers().map(layer => this._layers.viewsMap[layer.id]);
+        const { _layers: { viewsMap }} = this;
+        return this.model.getLayers().map(layer => viewsMap[layer.id]);
     },
 
     render: function() {
