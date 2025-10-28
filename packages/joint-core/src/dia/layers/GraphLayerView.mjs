@@ -56,7 +56,7 @@ export const GraphLayerView = LayerView.extend({
         // When a cell is moved from one layer to another,
         // request insertion of its view in the new layer.
         if (opt.fromLayer) {
-            this.requestCellViewInsertion(cell, opt);
+            this.paper.requestCellViewInsertion(cell, opt);
         }
     },
 
@@ -65,7 +65,7 @@ export const GraphLayerView = LayerView.extend({
 
         const { paper } = this;
         if (paper.options.sorting === sortingTypes.APPROX) {
-            this.requestCellViewInsertion(cell, opt);
+            paper.requestCellViewInsertion(cell, opt);
         }
     },
 
@@ -127,24 +127,6 @@ export const GraphLayerView = LayerView.extend({
         }
     },
 
-    requestCellViewsInsertion(opt = {}) {
-        const { model } = this;
-
-        const cellsArray = model.cellCollection.models;
-        for (let i = 0; i < cellsArray.length; i++) {
-            const cell = cellsArray[i];
-            this.requestCellViewInsertion(cell, opt);
-        }
-    },
-
-    requestCellViewInsertion(cell, opt = {}) {
-        const { paper } = this;
-
-        const viewLike = paper._getCellViewLike(cell);
-        if (viewLike) {
-            paper.requestViewUpdate(viewLike, paper.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
-        }
-    }
 });
 
 // Internal tag to identify this object as a layer view instance.

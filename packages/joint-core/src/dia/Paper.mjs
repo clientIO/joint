@@ -574,10 +574,20 @@ export const Paper = View.extend({
         this.requestLayerViewRemoval(this.getLayerView(layer.id));
     },
 
+    /**
+     * @protected
+     * @description When the graph layer collection is reset,
+     * we re-render all graph layer views.
+     **/
     onGraphLayerCollectionReset: function() {
-        this.resetGraphLayerViews();
+        this.renderGraphLayerViews();
     },
 
+    /**
+     * @protected
+     * @description When the graph layer collection is sorted,
+     * we reorder all graph layer views.
+     **/
     onGraphLayerCollectionSort: function(layerCollection) {
         layerCollection.each(layer => {
             if (!this.hasLayerView(layer.id)) return;
@@ -614,7 +624,9 @@ export const Paper = View.extend({
             // Insert all existing cell views into the newly created layer view.
             // This is required in cases where the layer collection was reset
             // without resetting the individual cells.
-            layerView.requestCellViewsInsertion();
+            layerView.model.cellCollection.each(cell => {
+                this.requestCellViewInsertion(cell);
+            });
         });
     },
 
@@ -773,22 +785,55 @@ export const Paper = View.extend({
         return this.getLayerView(layerId).el;
     },
 
+    /**
+     * @protected
+     * @description Removes the given layer view from the paper.
+     * It does not check whether the layer view is empty.
+     * @param {dia.LayerView} layerView - The layer view to remove.
+     */
     _removeLayerView(layerView) {
         this._unregisterLayerView(layerView);
         layerView.remove();
     },
 
+
+    /**
+     * @protected
+     * @description Removes all layer views from the paper.
+     * It does not check whether the layer views are empty.
+     */
+    _removeLayerViews: function() {
+        const { _layers } = this;
+        Object.values(_layers.viewsMap).forEach(layerView => {
+            layerView.remove();
+        });
+        _layers.order = [];
+        _layers.viewsMap = {};
+    },
+
+    /**
+     * @protected
+     * @description Unregisters the given layer view from the paper.
+     * @param {dia.LayerView} layerView - The layer view to unregister.
+     */
     _unregisterLayerView(layerView) {
         const { _layers: { viewsMap, order }} = this;
         const layerId = layerView.id;
-
-        if (order.indexOf(layerId) !== -1) {
-            order.splice(order.indexOf(layerId), 1);
+        const layerIndex = order.indexOf(layerId);
+        if (layerIndex !== -1) {
+            order.splice(layerIndex, 1);
         }
 
         delete viewsMap[layerId];
     },
 
+    /**
+     * @protected
+     * @description Registers the given layer view in the paper.
+     * @param {dia.LayerView} layerView - The layer view to register.
+     * @throws {Error} if the layer view is not an instance of dia.LayerView
+     * @throws {Error} if the layer view already exists in the paper
+     */
     _registerLayerView(layerView) {
         if (!(layerView instanceof LayerView)) {
             throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
@@ -824,13 +869,27 @@ export const Paper = View.extend({
      * @description Schedules the layer view removal by the given layer id or layer model.
      * The actual removal will be performed during the paper update cycle.
      * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
+     * @param {Object} [opt] - Update options.
      */
-    requestLayerViewRemoval(layerRef) {
+    requestLayerViewRemoval(layerRef, opt) {
         const layerView = this.getLayerView(layerRef);
         const { FLAG_REMOVE } = this;
         const { UPDATE_PRIORITY } = layerView;
 
-        this.requestViewUpdate(layerView, FLAG_REMOVE, UPDATE_PRIORITY);
+        this.requestViewUpdate(layerView, FLAG_REMOVE, UPDATE_PRIORITY, opt);
+    },
+
+    /**
+     * @public
+     * @description Schedules the cell view insertion into the appropriate layer view.
+     * The actual insertion will be performed during the paper update cycle.
+     * @param {dia.Cell} cell - The cell model whose view should be inserted.
+     * @param {Object} [opt] - Update options.
+     */
+    requestCellViewInsertion(cell, opt) {
+        const viewLike = this._getCellViewLike(cell);
+        if (!viewLike) return;
+        this.requestViewUpdate(viewLike, this.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
     },
 
     /**
@@ -998,7 +1057,7 @@ export const Paper = View.extend({
      * @description Renders all paper layer views and graph layer views.
      */
     renderLayerViews: function() {
-        this.removeLayerViews();
+        this._removeLayerViews();
         // Render the paper layers.
         this.renderImplicitLayerViews();
         // Render the layers.
@@ -1016,14 +1075,6 @@ export const Paper = View.extend({
         labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
         labelsLayerView.el.style.webkitUserSelect = 'none';
         labelsLayerView.el.style.userSelect = 'none';
-    },
-
-    /**
-     * @protected
-     * @description Removes all layer views from the paper.
-     */
-    removeLayerViews: function() {
-        this.getLayerViews().forEach(layerView => this._removeLayerView(layerView));
     },
 
     /**
@@ -1921,7 +1972,7 @@ export const Paper = View.extend({
         this._updates.disabled = true;
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
-        this.removeLayerViews();
+        this._removeLayerViews();
     },
 
     getComputedSize: function() {
