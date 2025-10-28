@@ -380,6 +380,22 @@ QUnit.module('graph', function(hooks) {
                 assert.equal(a.get('test2'), 'new');
             });
 
+            QUnit.test('should not create a new instance when replacing cell with an instance', function(assert) {
+                const graph = this.graph;
+                graph.resetCells([
+                    { id: 'a', type: 'standard.Rectangle', test1: 'old', test2: 'old' }
+                ]);
+                const replacementCell = new joint.shapes.standard.Circle({ id: 'a', test2: 'new' });
+                graph.syncCells([
+                    replacementCell
+                ]);
+                const a = graph.getCell('a');
+                assert.equal(a.get('test1'), 'old');
+                assert.equal(a.get('test2'), 'new');
+                assert.equal(a, replacementCell);
+                assert.ok(replacementCell.graph === graph);
+            });
+
             QUnit.test('should preserve the connected links when replacing cells', function(assert) {
                 const graph = this.graph;
                 graph.resetCells([
