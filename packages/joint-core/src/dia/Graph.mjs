@@ -191,15 +191,15 @@ export const Graph = Model.extend({
 
         if (layersController.legacyMode) {
             // Backwards compatibility for legacy setup
-            // with single default cell layer 'cells'.
-            // In this case, we do not need to export cell layers.
+            // with single default layer 'cells'.
+            // In this case, we do not need to export layers.
             return json;
         }
 
-        // Add `layers` array holding all the cell layers in the graph.
+        // Add `layers` array holding all the layers in the graph.
         json.layers = layerCollection.toJSON();
 
-        // Add `defaultLayer` property indicating the default cell layer ID.
+        // Add `defaultLayer` property indicating the default layer ID.
         json.defaultLayer = layersController.defaultLayerId;
 
         return json;
@@ -340,8 +340,8 @@ export const Graph = Model.extend({
         this.layersController.resetCells(cellArray, opt);
 
         // Trigger a single `reset` event on the graph
-        // (while multiple `reset` events are triggered on cell layers).
-        // Backwards compatibility: use default cell layer collection
+        // (while multiple `reset` events are triggered on layers).
+        // Backwards compatibility: use default layer collection
         // The `collection` parameter is retained for backwards compatibility,
         // and it is subject to removal in future releases.
         this.trigger('reset', this.getDefaultLayer().cellCollection, opt);
@@ -383,7 +383,7 @@ export const Graph = Model.extend({
             }
         }
 
-        // Remove the cell from the cell layer
+        // Remove the cell from the layer
         collection.remove(cell, {
             ...options,
             graph: this.cid

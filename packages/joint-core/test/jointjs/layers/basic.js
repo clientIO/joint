@@ -21,15 +21,15 @@ QUnit.module('layers-basic', function(hooks) {
     });
 
     QUnit.test('Default layers setup', (assert) => {
-        assert.ok(this.graph.layersController, 'Cell layers controller is created');
+        assert.ok(this.graph.layersController, 'Layers controller is created');
 
         const layerCollection = this.graph.layerCollection;
 
         assert.ok(layerCollection, 'Graph has layerCollection attribute');
 
-        assert.strictEqual(layerCollection.models.length, 1, 'Graph has one default cell layer');
+        assert.strictEqual(layerCollection.models.length, 1, 'Graph has one default layer');
 
-        assert.strictEqual(layerCollection.models[0].id, 'cells', 'Graph has default cell layer with id "cells"');
+        assert.strictEqual(layerCollection.models[0].id, 'cells', 'Graph has default layer with id "cells"');
 
         assert.ok(this.paper.getLayerView('cells'), 'Paper has default layer view for "cells" layer');
 
@@ -61,8 +61,8 @@ QUnit.module('layers-basic', function(hooks) {
 
         const defaultLayer = this.graph.getDefaultLayer();
 
-        assert.ok(defaultLayer.cellCollection.has('rect1'), 'Default cell layer has rectangle cell');
-        assert.ok(defaultLayer.cellCollection.has('ellipse1'), 'Default cell layer has ellipse cell');
+        assert.ok(defaultLayer.cellCollection.has('rect1'), 'Default layer has rectangle cell');
+        assert.ok(defaultLayer.cellCollection.has('ellipse1'), 'Default layer has ellipse cell');
 
         const layerViewNode = this.paper.getLayerViewNode(defaultLayer.id);
 
@@ -99,7 +99,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.equal(this.graph.getDefaultLayer().id, 'layer1', 'Graph has default layer "layer1"');
 
         const layers = this.graph.getLayers();
-        assert.strictEqual(layers.length, 2, 'There are 2 cell layers in the graph');
+        assert.strictEqual(layers.length, 2, 'There are 2 layers in the graph');
         assert.equal(layers[0].id, 'layer1', 'First layer is "layer1"');
         assert.equal(layers[1].id, 'layer2', 'Second layer is "layer2"');
 
@@ -367,16 +367,16 @@ QUnit.module('layers-basic', function(hooks) {
         this.graph.addLayer(layer1);
 
         const layers = this.graph.getLayers();
-        assert.strictEqual(layers.length, 2, 'Graph has two cell layers');
+        assert.strictEqual(layers.length, 2, 'Graph has two layers');
 
-        assert.equal(layers[1].get('name'), 'Layer 1', 'The custom attribute "name" is set correctly in the cell layer');
+        assert.equal(layers[1].get('name'), 'Layer 1', 'The custom attribute "name" is set correctly in the layer');
 
         layer1.unset('name');
 
         const updatedLayersJSON = this.graph.toJSON().layers;
 
-        assert.strictEqual(updatedLayersJSON.length, 2, 'Graph still has two cell layers after unsetting custom attribute');
-        assert.ok(!updatedLayersJSON[1].hasOwnProperty('name'), 'The custom attribute "name" is removed from the cell layer');
+        assert.strictEqual(updatedLayersJSON.length, 2, 'Graph still has two layers after unsetting custom attribute');
+        assert.ok(!updatedLayersJSON[1].hasOwnProperty('name'), 'The custom attribute "name" is removed from the layer');
 
         layer1.set('name', 'Layer 1');
 

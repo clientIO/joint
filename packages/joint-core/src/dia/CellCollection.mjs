@@ -85,7 +85,7 @@ export class CellCollection extends Collection {
 
     // This method overrides base mvc.Collection implementation
     // in a way that improves performance of resetting large collections.
-    // For cell layers specifically, there is an option where we put references
+    // For layers specifically, there is an option where we put references
     // from the main collection in order to improve performance when
     // there is only one layer
     reset(models, options) {

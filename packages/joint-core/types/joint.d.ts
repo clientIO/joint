@@ -154,13 +154,21 @@ export namespace dia {
         util.filter.FilterJSON<'brightness'> |
         util.filter.FilterJSON<'contrast'>;
 
-    class GraphCells extends mvc.Collection<Cell> {
+    class CellCollection extends mvc.Collection<Cell> {
+
         cellNamespace: any;
-        graph: dia.Graph;
+        graph: Graph;
+        layer: GraphLayer;
+
+        minZIndex(): number;
+
+        maxZIndex(): number;
     }
 
-    class GraphCellLayers extends mvc.Collection<CellLayer> {
-        cellLayerNamespace: any;
+    class GraphLayerCollection extends mvc.Collection<GraphLayer> {
+
+        layerNamespace: any;
+        graph: Graph;
     }
 
     export namespace Graph {
@@ -196,35 +204,33 @@ export namespace dia {
 
         interface Attributes {
             /** @deprecated use cellsCollection property **/
-            cells?: GraphCells;
+            cells?: CellCollection;
             [key: string]: any;
         }
 
         interface JSON {
             cells: Array<Cell.JSON>;
-            cellLayers?: Array<CellLayer.Attributes>;
-            defaultCellLayer?: string;
+            layers?: Array<GraphLayer.Attributes>;
+            defaultLayer?: string;
             [key: string]: any;
         }
 
-        interface ResetCellLayersOptions extends Options {
-            defaultCellLayer?: string;
+        interface ResetLayersOptions extends Options {
+            defaultLayer?: string;
         }
 
-        interface AddCellLayerOptions extends Options {
+        interface AddLayerOptions extends Options {
             insertBefore?: string;
         }
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
-        cellCollection: GraphCells;
-
-        cellLayerCollection: GraphCellLayers;
+        layerCollection: GraphLayerCollection;
 
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
-            cellLayerNamespace?: any,
+            layerNamespace?: any,
             /** @deprecated use cellNamespace instead */
             cellModel?: typeof Cell
         });
@@ -236,21 +242,21 @@ export namespace dia {
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
-        resetCellLayers(layers: Array<CellLayer | CellLayer.Attributes>, opt?: Graph.ResetCellLayersOptions): this;
+        resetLayers(layers: Array<GraphLayer | GraphLayer.Attributes>, opt?: Graph.ResetLayersOptions): this;
 
-        addCellLayer(layer: CellLayer | CellLayer.Attributes, options?: Graph.AddCellLayerOptions): void;
+        addLayer(layer: GraphLayer | GraphLayer.Attributes, options?: Graph.AddLayerOptions): void;
 
-        removeCellLayer(layer: CellLayer, opt?: Graph.Options): void;
+        removeLayer(layer: GraphLayer, opt?: Graph.Options): void;
 
-        getDefaultCellLayer(): CellLayer;
+        getDefaultLayer(): GraphLayer;
 
-        setDefaultCellLayer(id: string, opt?: Graph.Options): void;
+        setDefaultLayer(id: string, opt?: Graph.Options): void;
 
-        getCellLayer(id: string): CellLayer;
+        getLayer(id: string): GraphLayer;
 
-        hasCellLayer(id: string): boolean;
+        hasLayer(id: string): boolean;
 
-        getCellLayers(): CellLayer[];
+        getLayers(): GraphLayer[];
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -1973,9 +1979,9 @@ export namespace dia {
 
         getLayerViews(): Array<LayerView>;
 
-        getCellLayerViews(): Array<CellLayerView>;
+        getGraphLayerViews(): Array<GraphLayerView>;
 
-        protected resetCellLayerViews(): void;
+        protected resetGraphLayerViews(): void;
 
         // rendering
 
@@ -2115,13 +2121,13 @@ export namespace dia {
         protected onCellChanged(cell: Cell, opt: dia.Cell.Options): void;
         protected onCellChanged(cell: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected onCellLayerAdd(cellLayer: CellLayer, collection: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
+        protected onGraphLayerAdd(layer: GraphLayer, collection: mvc.Collection<GraphLayer>, opt: dia.Graph.Options): void;
 
-        protected onCellLayerRemove(cellLayer: CellLayer, collection: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
+        protected onGraphLayerRemove(layer: GraphLayer, collection: mvc.Collection<GraphLayer>, opt: dia.Graph.Options): void;
 
-        protected onCellLayersReset(cellLayers: mvc.Collection<CellLayer>, opt: dia.Graph.Options): void;
+        protected onGraphLayerCollectionReset(layer: mvc.Collection<GraphLayer>, opt: dia.Graph.Options): void;
 
-        protected onCellLayersSort(cellLayers: CellLayer[]): void;
+        protected onGraphLayerCollectionSort(layer: GraphLayer[]): void;
 
         protected onGraphReset(cells: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
@@ -2209,10 +2215,7 @@ export namespace dia {
         protected removePivots(): void;
     }
 
-    namespace CellGroup {
-
-        class CellGroupCollection extends mvc.Collection<Cell> {
-        }
+    namespace GraphLayer {
 
         interface Attributes extends mvc.ObjectHash {
             id: string;
@@ -2220,32 +2223,16 @@ export namespace dia {
         }
     }
 
-    class CellGroup<C extends CellGroup.CellGroupCollection = CellGroup.CellGroupCollection, A extends CellGroup.Attributes = CellGroup.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
+    class GraphLayer<C extends CellCollection = CellCollection, A extends GraphLayer.Attributes = GraphLayer.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
         declare id: string;
 
         cellCollection: C;
 
-        constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<CellGroup>);
+        constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<GraphLayer>);
     }
 
-    namespace CellLayer {
-
-        class CellLayerCollection extends CellGroup.CellGroupCollection {
-        }
-
-        interface Attributes extends CellGroup.Attributes {
-        }
-    }
-
-    class CellLayer<C extends CellLayer.CellLayerCollection = CellLayer.CellLayerCollection, A extends CellLayer.Attributes = CellLayer.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends CellGroup<C, A, S> {
-
-        minZIndex(): number;
-
-        maxZIndex(): number;
-    }
-
-    class CellLayerView<T extends CellLayer = CellLayer> extends LayerView<T> {
+    class GraphLayerView<T extends GraphLayer = GraphLayer> extends LayerView<T> {
 
         sort(): void;
 
@@ -2259,11 +2246,11 @@ export namespace dia {
 
         protected startListening(): void;
 
-        protected onCellAdd(cell: Cell, collection: CellLayer.CellLayerCollection, opt: Graph.Options): void;
+        protected onCellAdd(cell: Cell, collection: CellCollection, opt: Graph.Options): void;
 
         protected onCellChanged(cell: Cell, opt: Cell.Options): void;
 
-        protected onCellLayerSort(collection: CellLayer.CellLayerCollection, opt: Graph.Options): void;
+        protected onGraphLayerSort(collection: CellCollection, opt: Graph.Options): void;
 
         protected onGraphBatchStop(data: any): void;
     }

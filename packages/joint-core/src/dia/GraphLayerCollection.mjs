@@ -6,7 +6,7 @@ import * as util from '../util/index.mjs';
 
 /**
  * @class GraphLayerCollection
- * @description A collection of cell layers used in dia.Graph. It facilitates creating cell layers from JSON using layerNamespace.
+ * @description A collection of layers used in dia.Graph. It facilitates creating layers from JSON using layerNamespace.
  */
 export const GraphLayerCollection = Collection.extend({
 
@@ -16,12 +16,12 @@ export const GraphLayerCollection = Collection.extend({
 
     /**
      * @override
-     * @description Initializes the collection and sets up the cell layer and cell namespaces.
+     * @description Initializes the collection and sets up the layer and cell namespaces.
      */
     initialize: function(_models, options = {}) {
         const { layerNamespace, cellNamespace, graph } = options;
 
-        // Initialize the namespace that holds all available cell layer classes.
+        // Initialize the namespace that holds all available layer classes.
         // Custom namespaces are merged with the default ones.
         this.layerNamespace = util.assign({}, this.defaultLayerNamespace, layerNamespace);
 
@@ -40,7 +40,7 @@ export const GraphLayerCollection = Collection.extend({
     /**
      * @override
      * @description Overrides the default `model` method
-     * to create cell layer models based on their `type` attribute.
+     * to create layer models based on their `type` attribute.
      */
     model: function(attrs, opt) {
 
@@ -51,7 +51,7 @@ export const GraphLayerCollection = Collection.extend({
         // Find the model class based on the `type` attribute in the cell namespace
         const GraphLayerClass = util.getByPath(namespace, type, '.');
         if (!GraphLayerClass) {
-            throw new Error(`dia.Graph: Could not find cell layer constructor for type: '${type}'. Make sure to add the constructor to 'layerNamespace'.`);
+            throw new Error(`dia.Graph: Could not find layer constructor for type: '${type}'. Make sure to add the constructor to 'layerNamespace'.`);
         }
 
         return new GraphLayerClass(attrs, opt);
@@ -60,7 +60,7 @@ export const GraphLayerCollection = Collection.extend({
     /**
      * @override
      * @description Overrides the default `_prepareModel` method
-     * to set `cellNamespace` and `graph` references on the created cell layers.
+     * to set `cellNamespace` and `graph` references on the created layers.
      */
     _prepareModel: function(attrs, options) {
         if (!attrs[GRAPH_LAYER_MARKER]) {
@@ -143,7 +143,7 @@ export const GraphLayerCollection = Collection.extend({
     },
 
     _onCellCollectionEvent() {
-        // forward cell layer collection events with `layer:` prefix
+        // forward layer collection events with `layer:` prefix
         arguments[0] = 'layer:' + arguments[0];
 
         this.trigger.apply(this, arguments);
@@ -180,7 +180,7 @@ export const GraphLayerCollection = Collection.extend({
      * @protected
      * @description Asserts that the collection manipulation
      * is done via internal graph methods. Otherwise, it throws an error.
-     * This is a temporary measure until cell layers API is stabilized.
+     * This is a temporary measure until layers API is stabilized.
      */
     _assertInternalCall(options) {
         if (options && !options.graph && !options.silent) {

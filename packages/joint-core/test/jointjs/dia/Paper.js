@@ -2680,7 +2680,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
         });
 
-        QUnit.module('cell layer attribute', function() {
+        QUnit.module('layer attribute', function() {
 
             QUnit.test('cell view is rendered in correct layer', function(assert) {
 
@@ -2693,8 +2693,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     () => {
                         graph.addCell(r2, { async: false });
                     },
-                    /dia.Graph: Cell layer with id 'test' does not exist./,
-                    'Cell layer "test" does not exist in Graph.'
+                    /dia.Graph: Layer with id 'test' does not exist./,
+                    'Layer "test" does not exist in Graph.'
                 );
 
                 graph.removeCells([r2], { async: false });

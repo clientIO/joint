@@ -5,7 +5,7 @@ import { sortingTypes } from '../Paper.mjs';
 
 /**
  * @class GraphLayerView
- * @description A GraphLayerView is responsible for managing the rendering of cell views inside a cell layer.
+ * @description A GraphLayerView is responsible for managing the rendering of cell views inside a layer.
  * It listens to the corresponding GraphLayer model and updates the DOM accordingly.
  * It uses dia.Paper sorting options to sort cell views in the DOM based on their `z` attribute.
  */
@@ -34,21 +34,19 @@ export const GraphLayerView = LayerView.extend({
     },
 
     startListening() {
-        const { model, paper } = this;
-        const graph = paper.model;
+        const {
+            model: graphLayer,
+            paper: { model: graph }
+        } = this;
 
-        this.listenTo(model, 'sort', this.onGraphLayerSort);
-
-        this.listenTo(model, 'add', this.onCellAdd);
-
-        this.listenTo(model, 'change', this.onCellChange);
-
+        this.listenTo(graphLayer, 'sort', this.onGraphLayerSort);
+        this.listenTo(graphLayer, 'add', this.onCellAdd);
+        this.listenTo(graphLayer, 'change', this.onCellChange);
         this.listenTo(graph, 'batch:stop', this.onGraphBatchStop);
     },
 
     onGraphLayerSort() {
-        const { paper } = this;
-        const graph = paper.model;
+        const graph = this.paper.model;
 
         if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
         this.sort();
@@ -72,8 +70,7 @@ export const GraphLayerView = LayerView.extend({
     },
 
     onGraphBatchStop(data) {
-        const { paper } = this;
-        const graph = paper.model;
+        const graph = this.paper.model;
 
         const name = data && data.batchName;
         const sortDelayingBatches = this.SORT_DELAYING_BATCHES;
@@ -150,7 +147,7 @@ export const GraphLayerView = LayerView.extend({
     }
 });
 
-// Internal tag to identify this object as a cell layer view instance.
+// Internal tag to identify this object as a layer view instance.
 // Used instead of `instanceof` for performance and cross-frame safety.
 
 export const GRAPH_LAYER_VIEW_MARKER = Symbol('joint.graphLayerViewMarker');

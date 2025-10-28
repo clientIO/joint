@@ -422,7 +422,7 @@ export const Paper = View.extend({
         // with the v4 API and behavior.
         this.legacyMode = !options.viewManagement;
 
-        // Paper layers except the cell layers.
+        // Paper layers except the layers.
         this._layersSettings = [{
             id: paperLayers.GRID,
             type: 'GridLayerView',
@@ -490,8 +490,8 @@ export const Paper = View.extend({
 
         this.listenTo(model, 'layers:add', this.onGraphLayerAdd)
             .listenTo(model, 'layers:remove', this.onGraphLayerRemove)
-            .listenTo(model, 'layers:reset', this.onGraphLayersReset)
-            .listenTo(model, 'layers:sort', this.onGraphLayersSort);
+            .listenTo(model, 'layers:reset', this.onGraphLayerCollectionReset)
+            .listenTo(model, 'layers:sort', this.onGraphLayerCollectionSort);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -537,46 +537,46 @@ export const Paper = View.extend({
     },
 
     /*
-    * When a new cell layer is added to the graph, we create a new layer view
+    * When a new layer is added to the graph, we create a new layer view
     */
-    onGraphLayerAdd: function(cellLayer, _, opt) {
-        if (this.hasLayerView(cellLayer.id))
+    onGraphLayerAdd: function(layer, _, opt) {
+        if (this.hasLayerView(layer.id))
             return;
 
         const layerView = this.createLayerView({
-            id: cellLayer.id,
-            model: cellLayer
+            id: layer.id,
+            model: layer
         });
 
-        this._cellLayerViews[cellLayer.id] = layerView;
+        this._graphLayerViews[layer.id] = layerView;
 
         let insertBefore = paperLayers.LABELS;
 
         const layers = this.model.getLayers();
-        const index = layers.indexOf(cellLayer);
+        const index = layers.indexOf(layer);
         if (index !== layers.length - 1) {
-            // there is a cell layer after the current one, so insert before that one
+            // there is a layer after the current one, so insert before that one
             insertBefore = layers[index + 1].id;
         }
 
         this.insertLayerView(layerView, { insertBefore });
     },
 
-    onGraphLayerRemove: function(cellLayer, _, opt) {
-        if (!this.hasLayerView(cellLayer.id))
+    onGraphLayerRemove: function(layer, _, opt) {
+        if (!this.hasLayerView(layer.id))
             return;
 
-        const cellLayerView = this.getLayerView(cellLayer.id);
-        // requesting removal so it will wait for cell views to be removed first
-        this.requestLayerViewRemoval(cellLayerView);
-        delete this._cellLayerViews[cellLayer.id];
+        // Request layer removal. Since the UPDATE_PRIORITY is lower
+        // than cells update priority, the cell views will be removed first.
+        this.requestLayerViewRemoval(this.getLayerView(layer.id));
+        delete this._graphLayerViews[layer.id];
     },
 
-    onGraphLayersReset: function() {
+    onGraphLayerCollectionReset: function() {
         this.resetGraphLayerViews();
     },
 
-    onGraphLayersSort: function(layerCollection) {
+    onGraphLayerCollectionSort: function(layerCollection) {
         layerCollection.each(layer => {
             if (!this.hasLayerView(layer.id)) return;
 
@@ -586,27 +586,26 @@ export const Paper = View.extend({
     },
 
     resetGraphLayerViews: function() {
-        // remove all existing cell layer views
-        for (let id in this._cellLayerViews) {
-            this._removeLayerView(this._cellLayerViews[id]);
-            delete this._cellLayerViews[id];
+        // remove all existing layer views
+        for (let id in this._graphLayerViews) {
+            this._removeLayerView(this._graphLayerViews[id]);
+            delete this._graphLayerViews[id];
         }
 
-        const layers = this.model.getLayers();
-        layers.forEach(cellLayer => {
+        this.model.getLayers().forEach(graphLayer => {
             const layerView = this.createLayerView({
-                id: cellLayer.id,
-                model: cellLayer
+                id: graphLayer.id,
+                model: graphLayer
             });
 
-            this._cellLayerViews[cellLayer.id] = layerView;
+            this._graphLayerViews[graphLayer.id] = layerView;
             // insert the layer view into the paper layers before the labels layer
-            // in this case all cell layers are located between back and labels layer
+            // in this case all layers are located between back and labels layer
             // where the `cells` layer is located originally
             this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
 
-            // insert all existing cell views into the newly created cell layer view
-            // it is needed in case when cell layers where reset without cells resetting
+            // insert all existing cell views into the newly created layer view
+            // it is needed in case when layers where reset without cells resetting
             layerView.requestCellViewsInsertion();
         });
     },
@@ -848,9 +847,9 @@ export const Paper = View.extend({
         return Object.values(this._layers.viewsMap);
     },
 
-    // Returns ordered array of cell layer views
+    // Returns ordered array of layer views
     getGraphLayerViews() {
-        return this.model.getLayers().map(cellLayer => this._cellLayerViews[cellLayer.id]);
+        return this.model.getLayers().map(layer => this._graphLayerViews[layer.id]);
     },
 
     render: function() {
@@ -865,8 +864,8 @@ export const Paper = View.extend({
         this.svg = svg;
         this.defs = defs;
         this.layers = layers;
-        // cellLayerViews hash
-        this._cellLayerViews = {};
+        // GraphLayerViews map
+        this._graphLayerViews = {};
 
         this.renderLayerViews();
 
@@ -934,7 +933,7 @@ export const Paper = View.extend({
             const layerView = this.createLayerView(options);
             this.insertLayerView(layerView);
         });
-        // Render the cell layers.
+        // Render the layers.
         this.resetGraphLayerViews();
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(this.model.getDefaultLayer().id);
@@ -2094,16 +2093,16 @@ export const Paper = View.extend({
             return this.model.getBBox() || new Rect();
         }
 
-        const cellLayerViews = Object.values(this._cellLayerViews);
-        // return an empty rectangle if there are no cell layers
+        const graphLayerViews = Object.values(this._graphLayerViews);
+        // Return an empty rectangle if there are no layers
         // should not happen in practice
-        if (cellLayerViews.length === 0) {
+        if (graphLayerViews.length === 0) {
             return new Rect();
         }
 
-        // combine all content area rectangles from all cell layers
-        // using only cell layer views to avoid including non-cell view content (e.g. grid)
-        const bbox = g.Rect.fromRectUnion(...cellLayerViews.map(cellLayerView => V(cellLayerView.el).getBBox()));
+        // Combine content area rectangles from all layers,
+        // considering only graph layer views to exclude non-cell elements (e.g., grid, tools)
+        const bbox = g.Rect.fromRectUnion(...graphLayerViews.map(view => view.vel.getBBox()));
         return bbox;
     },
 
