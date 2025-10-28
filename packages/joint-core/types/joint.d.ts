@@ -1973,11 +1973,15 @@ export namespace dia {
 
         protected getLayerViewOrder(): string[];
 
+        protected renderLayerViews(): void;
+
+        protected renderImplicitLayerViews(): void;
+
+        protected renderGraphLayerViews(): void;
+
         protected removeLayerViews(): void;
 
         protected resetLayerViews(): void;
-
-        protected resetGraphLayerViews(): void;
 
         // rendering
 

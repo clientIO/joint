@@ -422,25 +422,24 @@ export const Paper = View.extend({
         // with the v4 API and behavior.
         this.legacyMode = !options.viewManagement;
 
-        // Paper layers except the layers.
-        this._layersSettings = [{
-            id: paperLayers.GRID,
-            type: 'GridLayerView',
-            patterns: this.constructor.gridPatterns
-        }, {
-            id: paperLayers.BACK,
-        }, {
-            id: paperLayers.LABELS,
-        }, {
-            id: paperLayers.FRONT
-        }, {
-            id: paperLayers.TOOLS
-        }];
-
         // Layers (SVGGroups)
         this._layers = {
             viewsMap: {},
             order: [],
+            // Layer views without graph layer views
+            implicit: [{
+                id: paperLayers.GRID,
+                type: 'GridLayerView',
+                patterns: this.constructor.gridPatterns
+            }, {
+                id: paperLayers.BACK,
+            }, {
+                id: paperLayers.LABELS,
+            }, {
+                id: paperLayers.FRONT
+            }, {
+                id: paperLayers.TOOLS
+            }]
         };
 
         // Hash of all cell views.
@@ -538,7 +537,7 @@ export const Paper = View.extend({
 
     /**
     * @protected
-    * When a new layer is added to the graph, we create a new layer view
+    * @description When a new layer is added to the graph, we create a new layer view
     **/
     onGraphLayerAdd: function(layer, _, opt) {
         if (this.hasLayerView(layer.id)) return;
@@ -565,7 +564,7 @@ export const Paper = View.extend({
 
     /**
      * @protected
-     * When a layer is removed from the graph, we remove the corresponding layer view
+     * @description When a layer is removed from the graph, we remove the corresponding layer view
      **/
     onGraphLayerRemove: function(layer, _, opt) {
         if (!this.hasLayerView(layer.id)) return;
@@ -588,8 +587,15 @@ export const Paper = View.extend({
         });
     },
 
-    resetGraphLayerViews: function() {
+    /**
+     * @protected
+     * @description Resets all graph layer views.
+     */
+    renderGraphLayerViews: function() {
         // Remove all existing graph layer views
+        // Note: we don't use `getGraphLayerViews()` here because
+        // rendered graph layer views could be different from the ones
+        // in the graph layer collection (`onResetGraphLayerCollectionReset`).
         this.getLayerViews().forEach(layerView => {
             if (!layerView[GRAPH_LAYER_VIEW_MARKER]) return;
             this._removeLayerView(layerView);
@@ -609,6 +615,17 @@ export const Paper = View.extend({
             // This is required in cases where the layer collection was reset
             // without resetting the individual cells.
             layerView.requestCellViewsInsertion();
+        });
+    },
+
+    /**
+     * @protected
+     * @description Renders all implicit layer views.
+     */
+    renderImplicitLayerViews: function() {
+        this._layers.implicit.forEach(options => {
+            const layerView = this.createLayerView(options);
+            this.insertLayerView(layerView);
         });
     },
 
@@ -934,6 +951,14 @@ export const Paper = View.extend({
         V(this.svg).prepend(V.createSVGStyle(css));
     },
 
+    /**
+     * @public
+     * @description Creates a layer view instance based on the provided options.
+     * It finds the appropriate layer view constructor from the paper's
+     * `layerViewNamespace` and instantiates it.
+     * @param {*} options See `dia.LayerView` options.
+     * @returns {dia.LayerView}
+     */
     createLayerView(options) {
         if (options == null) {
             throw new Error('dia.Paper: Layer view options are required.');
@@ -949,7 +974,6 @@ export const Paper = View.extend({
         viewOptions.paper = this;
 
         let viewConstructor;
-
         if (viewOptions.model) {
             const modelType = viewOptions.model.get('type') || viewOptions.model.constructor.name;
             const type = modelType + 'View';
@@ -966,20 +990,19 @@ export const Paper = View.extend({
             viewConstructor = this.layerViewNamespace[type] || LayerView;
         }
 
-        const layerView = new viewConstructor(viewOptions);
-
-        return layerView;
+        return new viewConstructor(viewOptions);
     },
 
+    /**
+     * @protected
+     * @description Renders all paper layer views and graph layer views.
+     */
     renderLayerViews: function() {
         this.removeLayerViews();
         // Render the paper layers.
-        this._layersSettings.forEach(options => {
-            const layerView = this.createLayerView(options);
-            this.insertLayerView(layerView);
-        });
+        this.renderImplicitLayerViews();
         // Render the layers.
-        this.resetGraphLayerViews();
+        this.renderGraphLayerViews();
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(this.model.getDefaultLayer().id);
         const toolsLayerView = this.getLayerView(paperLayers.TOOLS);
@@ -988,19 +1011,27 @@ export const Paper = View.extend({
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
         // user-select: none;
+        // Backwards compatibility: same as `LegacyGraphLayerView` we keep
+        // the `viewport` class on the labels layer.
         labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
         labelsLayerView.el.style.webkitUserSelect = 'none';
         labelsLayerView.el.style.userSelect = 'none';
     },
 
+    /**
+     * @protected
+     * @description Removes all layer views from the paper.
+     */
     removeLayerViews: function() {
-        const { _layers: { viewsMap }} = this;
-        Object.values(viewsMap).forEach(layerView => this._removeLayerView(layerView));
+        this.getLayerViews().forEach(layerView => this._removeLayerView(layerView));
     },
 
+    /**
+     * @protected
+     * @description Resets all layer views.
+     */
     resetLayerViews: function() {
-        const { _layers: { viewsMap }} = this;
-        Object.values(viewsMap).forEach(layerView => layerView.reset());
+        this.getLayerViews().forEach(layerView => layerView.reset());
     },
 
     update: function() {
