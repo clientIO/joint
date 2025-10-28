@@ -354,8 +354,13 @@ export const Graph = Model.extend({
             clear: true,
             replace: true
         });
-        // 2. Add the replacement cell
-        this.addCell(newCellInit, {
+        const newCellInitAttributes = (newCellInit[CELL_MARKER])
+            ? newCellInit.attributes
+            : newCellInit;
+        // 2. Combine the current cell attributes with the new cell attributes
+        const replacementCellAttributes = Object.assign({}, currentCell.attributes, newCellInitAttributes);
+        // 3. Add the replacement cell
+        this.addCell(replacementCellAttributes, {
             ...opt,
             replace: true
         });
