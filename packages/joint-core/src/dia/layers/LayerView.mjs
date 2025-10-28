@@ -84,3 +84,12 @@ export const LayerView = View.extend({
         this.removePivots();
     }
 });
+
+// Internal tag to identify this object as a layer view instance.
+// Used instead of `instanceof` for performance and cross-frame safety.
+
+export const LAYER_VIEW_MARKER = Symbol('joint.layerViewMarker');
+
+Object.defineProperty(LayerView.prototype, LAYER_VIEW_MARKER, {
+    value: true,
+});

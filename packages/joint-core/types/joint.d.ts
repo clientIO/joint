@@ -200,7 +200,7 @@ export namespace dia {
             searchBy?: SearchByKey;
         }
 
-        type Cells = GraphCells;
+        type Cells = CellCollection;
 
         interface Attributes {
             /** @deprecated use cellsCollection property **/
@@ -1954,16 +1954,9 @@ export namespace dia {
 
         getLayerViewNode(id: Paper.Layers | string): SVGGElement;
 
-        /** @deprecated use `getLayerViewNode()` **/
-        getLayerNode(id: Paper.Layers | string): SVGElement;
-
         getLayerView(id: Paper.Layers | string): LayerView;
 
         hasLayerView(id: Paper.Layers | string): boolean;
-
-        protected removeLayerViews(): void;
-
-        protected resetLayerViews(): void;
 
         createLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
 
@@ -1980,6 +1973,10 @@ export namespace dia {
         getLayerViews(): Array<LayerView>;
 
         getGraphLayerViews(): Array<GraphLayerView>;
+
+        protected removeLayerViews(): void;
+
+        protected resetLayerViews(): void;
 
         protected resetGraphLayerViews(): void;
 
@@ -2158,6 +2155,11 @@ export namespace dia {
         protected customEventTrigger(event: dia.Event, view: CellView, rootNode?: SVGElement): dia.Event | null;
 
         protected addStylesheet(stylesheet: string): void;
+
+        /**
+         * @deprecated use `getLayerViewNode()`
+         * **/
+        getLayerNode(id: Paper.Layers | string): SVGElement;
 
         /**
          * @deprecated use `findElementViewsAtPoint()

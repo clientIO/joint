@@ -536,40 +536,43 @@ export const Paper = View.extend({
         }
     },
 
-    /*
+    /**
+    * @protected
     * When a new layer is added to the graph, we create a new layer view
-    */
+    **/
     onGraphLayerAdd: function(layer, _, opt) {
-        if (this.hasLayerView(layer.id))
-            return;
+        if (this.hasLayerView(layer.id)) return;
 
         const layerView = this.createLayerView({
             id: layer.id,
             model: layer
         });
 
-        this._graphLayerViews[layer.id] = layerView;
-
-        let insertBefore = paperLayers.LABELS;
-
         const layers = this.model.getLayers();
-        const index = layers.indexOf(layer);
-        if (index !== layers.length - 1) {
-            // there is a layer after the current one, so insert before that one
+        let insertBefore;
+        // Note: There is always at least one graph layer.
+        if (layers[layers.length - 1] === layer) {
+            // This is the last layer, so insert before the labels layer
+            insertBefore = paperLayers.LABELS;
+        } else {
+            // There is a layer after the current one, so insert before that one
+            const index = layers.indexOf(layer);
             insertBefore = layers[index + 1].id;
         }
 
         this.insertLayerView(layerView, { insertBefore });
     },
 
+    /**
+     * @protected
+     * When a layer is removed from the graph, we remove the corresponding layer view
+     **/
     onGraphLayerRemove: function(layer, _, opt) {
-        if (!this.hasLayerView(layer.id))
-            return;
+        if (!this.hasLayerView(layer.id)) return;
 
         // Request layer removal. Since the UPDATE_PRIORITY is lower
         // than cells update priority, the cell views will be removed first.
         this.requestLayerViewRemoval(this.getLayerView(layer.id));
-        delete this._graphLayerViews[layer.id];
     },
 
     onGraphLayerCollectionReset: function() {
@@ -586,26 +589,25 @@ export const Paper = View.extend({
     },
 
     resetGraphLayerViews: function() {
-        // remove all existing layer views
-        for (let id in this._graphLayerViews) {
-            this._removeLayerView(this._graphLayerViews[id]);
-            delete this._graphLayerViews[id];
-        }
-
-        this.model.getLayers().forEach(graphLayer => {
+        // Remove all existing graph layer views
+        this.getLayerViews().forEach(layerView => {
+            if (!layerView[GRAPH_LAYER_VIEW_MARKER]) return;
+            this._removeLayerView(layerView);
+        });
+        // Create and insert new graph layer views
+        this.model.getLayers().forEach(layer => {
             const layerView = this.createLayerView({
-                id: graphLayer.id,
-                model: graphLayer
+                id: layer.id,
+                model: layer
             });
-
-            this._graphLayerViews[graphLayer.id] = layerView;
-            // insert the layer view into the paper layers before the labels layer
-            // in this case all layers are located between back and labels layer
-            // where the `cells` layer is located originally
+            // Insert the layer view into the paper layers, just before the labels layer.
+            // All cell layers are positioned between the "back" and "labels" layers,
+            // with the default "cells" layer originally occupying this position.
             this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
 
-            // insert all existing cell views into the newly created layer view
-            // it is needed in case when layers where reset without cells resetting
+            // Insert all existing cell views into the newly created layer view.
+            // This is required in cases where the layer collection was reset
+            // without resetting the individual cells.
             layerView.requestCellViewsInsertion();
         });
     },
@@ -707,19 +709,38 @@ export const Paper = View.extend({
         return (layerId in this._layers.viewsMap);
     },
 
-    getLayerView(layerId) {
-        const { _layers: { viewsMap }} = this;
-        if (layerId in viewsMap) {
-            return viewsMap[layerId];
+    /**
+     * Returns the layer view by the given layer id or layer model.
+     * @param {string|dia.Layer} layerRef - Layer id or layer model.
+     * @return {dia.LayerView} The layer view.
+     * @throws {Error} if the layer view is not found
+     */
+    getLayerView(layerRef) {
+
+        let layerId;
+        if (isString(layerRef)) {
+            layerId = layerRef;
+        } else if (layerRef) {
+            layerId = layerRef.id;
+        } else {
+            throw new Error('dia.Paper: No layer provided.');
         }
-        throw new Error(`dia.Paper: Unknown layer view "${layerId}".`);
+
+        const layerView = this._layers.viewsMap[layerId];
+        if (!layerView) {
+            throw new Error(`dia.Paper: Unknown layer view "${layerId}".`);
+        }
+
+        return layerView;
     },
 
     getLayerViewNode(layerId) {
         return this.getLayerView(layerId).el;
     },
 
-    // Deprecated, we have used it in some applications
+    /**
+     * @deprecated use `getLayerViewNode()` instead
+     */
     getLayerNode(layerId) {
         return this.getLayerView(layerId).el;
     },
@@ -755,24 +776,8 @@ export const Paper = View.extend({
         viewsMap[layerId] = layerView;
     },
 
-    _requireLayerView(layerView) {
-        let layerId;
-        if (isString(layerView)) {
-            layerId = layerView;
-        } else if (layerView instanceof LayerView) {
-            layerId = layerView.id;
-        } else {
-            throw new Error('dia.Paper: The layer view must be provided.');
-        }
-
-        if (!this.hasLayerView(layerId)) {
-            throw new Error(`dia.Paper: Unknown layer view "${layerId}".`);
-        }
-        return this.getLayerView(layerId);
-    },
-
-    removeLayerView(layerView) {
-        layerView = this._requireLayerView(layerView);
+    removeLayerView(layerRef) {
+        const layerView = this.getLayerView(layerRef);
 
         if (!layerView.isEmpty()) {
             throw new Error('dia.Paper: The layer view is not empty.');
@@ -780,8 +785,8 @@ export const Paper = View.extend({
         this._removeLayerView(layerView);
     },
 
-    requestLayerViewRemoval(layerView) {
-        layerView = this._requireLayerView(layerView);
+    requestLayerViewRemoval(layerRef) {
+        const layerView = this.getLayerView(layerRef);
 
         const { FLAG_REMOVE } = this;
         const { UPDATE_PRIORITY } = layerView;
@@ -812,7 +817,7 @@ export const Paper = View.extend({
             order.push(layerId);
             this.layers.appendChild(layerView.el);
         } else {
-            const beforeLayerView = this._requireLayerView(opt.insertBefore);
+            const beforeLayerView = this.getLayerView(opt.insertBefore);
             const beforeLayerViewId = beforeLayerView.id;
             if (layerId === beforeLayerViewId) {
                 // The layer view is already in the right place.
@@ -849,7 +854,7 @@ export const Paper = View.extend({
 
     // Returns ordered array of layer views
     getGraphLayerViews() {
-        return this.model.getLayers().map(layer => this._graphLayerViews[layer.id]);
+        return this.model.getLayers().map(layer => this._layers.viewsMap[layer.id]);
     },
 
     render: function() {
@@ -864,8 +869,6 @@ export const Paper = View.extend({
         this.svg = svg;
         this.defs = defs;
         this.layers = layers;
-        // GraphLayerViews map
-        this._graphLayerViews = {};
 
         this.renderLayerViews();
 
@@ -2093,7 +2096,7 @@ export const Paper = View.extend({
             return this.model.getBBox() || new Rect();
         }
 
-        const graphLayerViews = Object.values(this._graphLayerViews);
+        const graphLayerViews = this.getGraphLayerViews();
         // Return an empty rectangle if there are no layers
         // should not happen in practice
         if (graphLayerViews.length === 0) {

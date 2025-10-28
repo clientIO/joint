@@ -2546,7 +2546,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     function() {
                         paper.removeLayerView();
                     },
-                    /dia.Paper: The layer view must be provided./,
+                    /dia.Paper: No layer provided./,
                     'Layer view must be provided.'
                 );
             });
