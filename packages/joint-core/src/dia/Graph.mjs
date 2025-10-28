@@ -364,7 +364,7 @@ export const Graph = Model.extend({
 
         if (newCellInit[CELL_MARKER]) {
             // If the new cell is a model, set the merged attributes on the model
-            newCellInit.set(replacementCellAttributes);
+            newCellInit.set(replacementCellAttributes, opt);
             replacement = newCellInit;
         } else {
             replacement = replacementCellAttributes;
