@@ -14,9 +14,35 @@ export const LayerView = View.extend({
         id: ''
     },
 
+    paper: null,
+
     init: function() {
         this.pivotNodes = {};
         this.id = this.options.id || this.cid;
+    },
+
+    setPaperReference: function(paper) {
+        this.paper = paper;
+        this.afterPaperReferenceSet(paper);
+    },
+
+    unsetPaperReference: function() {
+        this.beforePaperReferenceUnset();
+        this.paper = null;
+    },
+
+    assertPaperReference() {
+        if (!this.paper) {
+            throw new Error('LayerView: paper reference is not set.');
+        }
+    },
+
+    afterPaperReferenceSet: function() {
+        // Can be overridden in subclasses.
+    },
+
+    beforePaperReferenceUnset: function() {
+        // Can be overridden in subclasses.
     },
 
     // prevents id to be set on the DOM element

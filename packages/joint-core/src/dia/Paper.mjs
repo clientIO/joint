@@ -1019,11 +1019,14 @@ export const Paper = View.extend({
     _unregisterLayerView(layerView) {
         const { _layers: { viewsMap, order }} = this;
         const layerId = layerView.id;
+        // Remove the layer id from the order list.
         const layerIndex = order.indexOf(layerId);
         if (layerIndex !== -1) {
             order.splice(layerIndex, 1);
         }
-
+        // Unlink the layer view from the paper.
+        layerView.unsetPaperReference();
+        // Remove the layer view from the paper's registry.
         delete viewsMap[layerId];
     },
 
@@ -1043,10 +1046,10 @@ export const Paper = View.extend({
             throw new Error(`dia.Paper: The layer view "${layerView.id}" already exists.`);
         }
 
-        const { _layers: { viewsMap }} = this;
-        const layerId = layerView.id;
-
-        viewsMap[layerId] = layerView;
+        // Link the layer view back to the paper.
+        layerView.setPaperReference(this);
+        // Store the layer view in the paper's registry.
+        this._layers.viewsMap[layerView.id] = layerView;
     },
 
     /**
@@ -1228,9 +1231,6 @@ export const Paper = View.extend({
         }
 
         const viewOptions = clone(options);
-
-        // inject paper reference to the layer view
-        viewOptions.paper = this;
 
         let viewConstructor;
         if (viewOptions.model) {

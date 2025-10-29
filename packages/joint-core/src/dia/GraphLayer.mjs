@@ -33,6 +33,8 @@ export class GraphLayer extends Model {
             cellNamespace: options.cellNamespace,
         });
 
+        this.graph = options.graph;
+
         // Forward all events from the inner `cellCollection` collection
         this.cellCollection.on('all', this.trigger, this);
         // Listen to cell changes to manage z-index sorting

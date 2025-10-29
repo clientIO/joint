@@ -1995,6 +1995,8 @@ export namespace dia {
 
         requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
+        requestCellViewInsertion(cell: Cell | Cell.ID, opt?: { [key: string]: any }): void;
+
         requireView<T extends ElementView | LinkView>(cellOrId: Cell | Cell.ID, opt?: Paper.UpdateViewOptions & Paper.RenderCallbackOptions): T;
 
         updateViews(opt?: Paper.UpdateViewsOptions): Paper.RenderStats & { batches: number };
@@ -2217,7 +2219,17 @@ export namespace dia {
 
         reset(): void;
 
+        setPaperReference(paper: Paper): void;
+
+        unsetPaperReference(): void;
+
         protected removePivots(): void;
+
+        protected afterPaperReferenceSet(paper: Paper): void;
+
+        protected beforePaperReferenceUnset(paper: Paper): void;
+
+        protected assertPaperReferenceSet(): void;
     }
 
     namespace GraphLayer {
@@ -2244,12 +2256,6 @@ export namespace dia {
         sortExact(): void;
 
         insertCellView(cellView: CellView): void;
-
-        requestCellViewInsertion(cellView: CellView, opt?: { [key: string]: any }): void;
-
-        requestCellViewsInsertion(opt?: { [key: string]: any }): void;
-
-        protected startListening(): void;
 
         protected onCellAdd(cell: Cell, collection: CellCollection, opt: Graph.Options): void;
 

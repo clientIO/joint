@@ -18,11 +18,11 @@ export const GraphLayerView = LayerView.extend({
         userSelect: 'none'
     },
 
+    graph: null,
+
     init() {
         LayerView.prototype.init.apply(this, arguments);
-
-        this.paper = this.options.paper;
-        this.startListening();
+        this.graph = this.model.graph;
     },
 
     className: function() {
@@ -33,30 +33,31 @@ export const GraphLayerView = LayerView.extend({
         ].join(' ');
     },
 
-    startListening() {
-        const {
-            model: graphLayer,
-            paper: { model: graph }
-        } = this;
+    afterPaperReferenceSet(paper) {
+        this.listenTo(this.model, 'sort', this.onGraphLayerSort);
+        this.listenTo(this.model, 'add', this.onCellAdd);
+        this.listenTo(this.model, 'change', this.onCellChange);
+        this.listenTo(this.graph, 'batch:stop', this.onGraphBatchStop);
+    },
 
-        this.listenTo(graphLayer, 'sort', this.onGraphLayerSort);
-        this.listenTo(graphLayer, 'add', this.onCellAdd);
-        this.listenTo(graphLayer, 'change', this.onCellChange);
-        this.listenTo(graph, 'batch:stop', this.onGraphBatchStop);
+    beforePaperReferenceUnset() {
+        this.stopListening(this.model);
+        this.stopListening(this.graph);
     },
 
     onGraphLayerSort() {
-        const graph = this.paper.model;
+        const { graph } = this;
 
         if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
         this.sort();
     },
 
     onCellAdd(cell, _collection, opt = {}) {
+        const { paper } = this;
         // When a cell is moved from one layer to another,
         // request insertion of its view in the new layer.
         if (opt.fromLayer) {
-            this.paper.requestCellViewInsertion(cell, opt);
+            paper.requestCellViewInsertion(cell, opt);
         }
     },
 
@@ -70,8 +71,7 @@ export const GraphLayerView = LayerView.extend({
     },
 
     onGraphBatchStop(data) {
-        const graph = this.paper.model;
-
+        const { graph } = this;
         const name = data && data.batchName;
         const sortDelayingBatches = this.SORT_DELAYING_BATCHES;
 
@@ -81,9 +81,8 @@ export const GraphLayerView = LayerView.extend({
     },
 
     sort() {
+        this.assertPaperReference();
         const { paper } = this;
-        if (!paper)
-            return;
 
         if (!paper.isExactSorting()) {
             // noop
@@ -113,8 +112,9 @@ export const GraphLayerView = LayerView.extend({
     },
 
     insertCellView(cellView) {
-        const { el, model } = cellView;
+        this.assertPaperReference();
         const { paper } = this;
+        const { el, model } = cellView;
 
         switch (paper.options.sorting) {
             case sortingTypes.APPROX:

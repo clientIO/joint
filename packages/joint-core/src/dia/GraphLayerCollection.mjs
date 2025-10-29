@@ -82,6 +82,7 @@ export const GraphLayerCollection = Collection.extend({
         }
         // `attrs` is already a GraphLayer instance
         attrs.cellCollection.graph = this.graph;
+        attrs.graph = this.graph;
         attrs.cellCollection.cellNamespace = this.cellNamespace;
 
         return Collection.prototype._prepareModel.apply(this, arguments);
