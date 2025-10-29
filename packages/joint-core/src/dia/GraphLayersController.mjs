@@ -157,6 +157,10 @@ export class GraphLayersController extends Listener {
             return;
         }
 
+        if (before && !this.hasLayer(before)) {
+            throw new Error(`dia.Graph: Layer with id '${before}' does not exist`);
+        }
+
         const originalLayersArray = this.getLayers();
 
         let currentIndex = null;
@@ -177,9 +181,6 @@ export class GraphLayersController extends Listener {
             insertAt = layersArray.length;
         } else {
             insertAt = layersArray.findIndex(layer => layer.id === before);
-            if (insertAt === -1) {
-                throw new Error(`dia.Graph: Layer with id '${before}' does not exist`);
-            }
         }
 
         if (currentIndex != null) {

@@ -252,7 +252,7 @@ export namespace dia {
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
-        resetLayers(layers: Array<GraphLayer | GraphLayer.Attributes>, opt?: Graph.ResetLayersOptions): this;
+        resetLayers(layers: Array<Graph.LayerInit>, opt?: Graph.ResetLayersOptions): this;
 
         addLayer(layerInit: Graph.LayerInit, opt?: Graph.AddLayerOptions): void;
 
