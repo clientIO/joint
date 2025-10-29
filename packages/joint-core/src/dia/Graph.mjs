@@ -496,7 +496,7 @@ export const Graph = Model.extend({
             // Sort layers that had changes affecting z-index or layer
             changeObserver.stopListening();
             for (const layerId of changedLayers) {
-                this.cellLayersController.getCellLayer(layerId).cells.sort(opt);
+                this.getLayer(layerId).cellCollection.sort(opt);
             }
         }
 

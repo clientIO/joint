@@ -328,7 +328,7 @@ QUnit.module("graph", function (hooks) {
 
             QUnit.test('should sort the layers that were affected', function(assert) {
                 const graph = this.graph;
-                graph.resetCellLayers([{ id: 'l1' }, { id: 'l2' }, { id: 'l3' }, { id: 'l4' }, { id: 'l5' }]);
+                graph.resetLayers([{ id: 'l1' }, { id: 'l2' }, { id: 'l3' }, { id: 'l4' }, { id: 'l5' }]);
                 graph.resetCells([{
                     id: 'a',
                     type: 'standard.Rectangle',
@@ -351,9 +351,9 @@ QUnit.module("graph", function (hooks) {
                     { id: 'd', type: 'standard.Rectangle', layer: 'l5' }
                 ]);
                 assert.equal(sortSpy.callCount, 3, 'Three layers should be sorted.');
-                assert.ok(sortSpy.calledWith(graph.getCellLayer('l2').cells), 'CellLayer l2 sorted.');
-                assert.ok(sortSpy.calledWith(graph.getCellLayer('l4').cells), 'CellLayer l4 sorted.');
-                assert.ok(sortSpy.calledWith(graph.getCellLayer('l5').cells), 'CellLayer l5 sorted.');
+                assert.ok(sortSpy.calledWith(graph.getLayer('l2').cells), 'Layer l2 sorted.');
+                assert.ok(sortSpy.calledWith(graph.getLayer('l4').cells), 'Layer l4 sorted.');
+                assert.ok(sortSpy.calledWith(graph.getLayer('l5').cells), 'Layer l5 sorted.');
             });
         });
 
