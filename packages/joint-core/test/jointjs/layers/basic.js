@@ -320,10 +320,10 @@ QUnit.module('layers-basic', function(hooks) {
 
         assert.strictEqual(updatedLayers.length, 1, 'There is 1 layer in the graph');
         assert.strictEqual(updatedLayers[0].id, 'layer1', 'The only layer is "layer1"');
-        assert.equal(this.graph.getCells().length, 0, 'There is 0 cell in the graph');
+        assert.equal(this.graph.getCells().length, 0, 'There are 0 cells in the graph');
 
         assert.equal(this.paper.el.querySelectorAll('.joint-graph-layer').length, 1, 'There is 1 layer view in the paper');
-        assert.equal(this.paper.el.querySelectorAll('.joint-graph-layer .joint-cell').length, 0, 'The is no cell views in the layer view');
+        assert.equal(this.paper.el.querySelectorAll('.joint-graph-layer .joint-cell').length, 0, 'There are no cell views in the layer view');
     });
 
 

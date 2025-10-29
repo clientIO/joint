@@ -18,7 +18,7 @@ graph.addLayer({ id: 'layer2', layerAttribute: 2 }, { flag: 1 });
 graph.addLayer(myLayer);
 graph.addLayer({ id: 'layer3', type: 'MyGraphLayer' });
 graph.moveLayer('layer1', { before: 'cells' });
-graph.moveLayer(layer1, { index: 2,flag: 1 });
+graph.moveLayer(layer1, { index: 2, flag: 1 });
 graph.hasLayer('cells');
 const layer2 = graph.getLayer('layer2');
 if (graph.hasLayer('layer2')) {

@@ -10,7 +10,7 @@ QUnit.module('GraphLayer', function(hooks) {
 
     QUnit.test('sort by z-index', (assert) => {
         const layer = new joint.dia.GraphLayer();
-        events = [];
+        const events = [];
         layer.on('all', (eventName) => {
             events.push(eventName);
         });
