@@ -1,7 +1,7 @@
 //@ts-nocheck
 import { dia } from '@joint/core';
 import { Model, Function } from '@joint/decorators';
-import svg from './Arrow.svg';
+import svg from './arrow.svg';
 
 interface ArrowAttributes extends dia.Element.Attributes {
     arrowHeight: number;

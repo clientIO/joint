@@ -125,7 +125,7 @@ const graphPresets: Record<GraphType, GraphPreset> = {
     },
     nested: {
         id: 'nested',
-        title: 'Nested Portfolio',
+        title: 'Microservice Architecture',
         description: 'Embedded teams remain grouped while joint-layout-msagl routes cross-cutting work around department bounds.',
         palette: paletteLibrary.nested,
         layout: {

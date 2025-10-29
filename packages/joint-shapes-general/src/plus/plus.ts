@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
 import { Model, Function } from '@joint/decorators';
-import svg from './Plus.svg';
+import svg from './plus.svg';
 
 interface PlusAttributes extends dia.Element.Attributes {
     offset: number;
