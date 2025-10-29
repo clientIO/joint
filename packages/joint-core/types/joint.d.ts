@@ -157,8 +157,8 @@ export namespace dia {
     class CellCollection extends mvc.Collection<Cell> {
 
         cellNamespace: any;
-        graph: Graph;
         layer: GraphLayer;
+//      graph: Graph;
 
         minZIndex(): number;
 
@@ -220,7 +220,7 @@ export namespace dia {
         }
 
         interface AddLayerOptions extends Options {
-            insertBefore?: string;
+            before?: string;
         }
     }
 
@@ -1963,7 +1963,7 @@ export namespace dia {
 
         getGraphLayerViews(): Array<GraphLayerView>;
 
-        insertLayerView(layerView: LayerView, options?: { insertBefore?: Paper.LayerRef }): void;
+        insertLayerView(layerView: LayerView, options?: { before?: Paper.LayerRef }): void;
 
         removeLayerView(layerView: LayerView): void;
 

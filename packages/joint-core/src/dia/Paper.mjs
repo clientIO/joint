@@ -751,18 +751,18 @@ export const Paper = View.extend({
         });
 
         const layers = this.model.getLayers();
-        let insertBefore;
+        let before;
         // Note: There is always at least one graph layer.
         if (layers[layers.length - 1] === layer) {
             // This is the last layer, so insert before the labels layer
-            insertBefore = paperLayers.LABELS;
+            before = paperLayers.LABELS;
         } else {
             // There is a layer after the current one, so insert before that one
             const index = layers.indexOf(layer);
-            insertBefore = layers[index + 1].id;
+            before = layers[index + 1].id;
         }
 
-        this.insertLayerView(layerView, { insertBefore });
+        this.insertLayerView(layerView, { before });
     },
 
     /**
@@ -796,7 +796,7 @@ export const Paper = View.extend({
             if (!this.hasLayerView(layer.id)) return;
 
             const layerView = this.getLayerView(layer.id);
-            this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
+            this.insertLayerView(layerView, { before: paperLayers.LABELS });
         });
     },
 
@@ -822,7 +822,7 @@ export const Paper = View.extend({
             // Insert the layer view into the paper layers, just before the labels layer.
             // All cell layers are positioned between the "back" and "labels" layers,
             // with the default "cells" layer originally occupying this position.
-            this.insertLayerView(layerView, { insertBefore: paperLayers.LABELS });
+            this.insertLayerView(layerView, { before: paperLayers.LABELS });
 
             // Insert all existing cell views into the newly created layer view.
             // This is required in cases where the layer collection was reset
@@ -1101,7 +1101,7 @@ export const Paper = View.extend({
      * If the layer view already exists in the paper, it is moved to the new position.
      * @param {dia.LayerView} layerView - The layer view to insert.
      * @param {Object} [options] - Insertion options.
-     * @param {string|dia.GraphLayer} [options.insertBefore] - Layer id or layer model before
+     * @param {string|dia.GraphLayer} [options.before] - Layer id or layer model before
      * which the layer view should be inserted.
      */
     insertLayerView(layerView, options = {}) {
@@ -1120,8 +1120,8 @@ export const Paper = View.extend({
         const currentLayerIndex = order.indexOf(layerId);
 
         // Should the layer view be inserted before another layer view?
-        if (options.insertBefore) {
-            const beforeLayerView = this.getLayerView(options.insertBefore);
+        if (options.before) {
+            const beforeLayerView = this.getLayerView(options.before);
             const beforeLayerViewId = beforeLayerView.id;
             if (layerId === beforeLayerViewId) {
                 // The layer view is already in the right place.

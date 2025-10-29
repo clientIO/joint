@@ -146,11 +146,11 @@ export class GraphLayersController extends Listener {
         this.graph.trigger('layers:default:change', this.graph, this.defaultLayerId, options);
     }
 
-    addLayer(layer, { insertBefore } = {}) {
+    addLayer(layer, { before } = {}) {
         const id = layer.id;
 
         // insert before itself is a no-op
-        if (id === insertBefore) {
+        if (id === before) {
             return;
         }
 
@@ -162,7 +162,7 @@ export class GraphLayersController extends Listener {
         let currentIndex = null;
         if (this.hasLayer(id)) {
             currentIndex = originalLayersArray.findIndex(l => l === layer);
-            if (currentIndex === originalLayersArray.length - 1 && !insertBefore) {
+            if (currentIndex === originalLayersArray.length - 1 && !before) {
                 return; // already at the end
             }
 
@@ -173,12 +173,12 @@ export class GraphLayersController extends Listener {
         // The layers array after removing the layer (if it existed)
         const layersArray = this.getLayers();
         let insertAt;
-        if (!insertBefore) {
+        if (!before) {
             insertAt = layersArray.length;
         } else {
-            insertAt = layersArray.findIndex(layer => layer.id === insertBefore);
+            insertAt = layersArray.findIndex(layer => layer.id === before);
             if (insertAt === -1) {
-                throw new Error(`dia.Graph: Layer with id '${insertBefore}' does not exist`);
+                throw new Error(`dia.Graph: Layer with id '${before}' does not exist`);
             }
         }
 

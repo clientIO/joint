@@ -213,7 +213,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(cellsLayerNode.nextSibling === layer1Node, '"cells" layer view is before "layer1" layer view');
 
         const layer2 = new joint.dia.GraphLayer({ id: 'layer2' });
-        this.graph.addLayer(layer2, { insertBefore: 'layer1' });
+        this.graph.addLayer(layer2, { before: 'layer1' });
         const layer2Node = this.paper.getLayerView('layer2').el;
         assert.ok(cellsLayerNode.nextSibling === layer2Node, '"cells" layer view is before "layer2" layer view');
         assert.ok(layer2Node.nextSibling === layer1Node, '"layer2" layer view is before "layer1" layer view');
@@ -223,7 +223,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(updatedLayers[1].id, 'layer2', 'Second layer is now "layer2"');
         assert.strictEqual(updatedLayers[2].id, 'layer1', 'Third layer is "layer1"');
 
-        this.graph.addLayer(this.graph.getDefaultLayer(), { insertBefore: 'layer1' });
+        this.graph.addLayer(this.graph.getDefaultLayer(), { before: 'layer1' });
 
         assert.ok(cellsLayerNode.nextSibling === layer1Node, '"cells" layer view is before "layer1" layer view');
         assert.ok(layer2Node.nextSibling === cellsLayerNode, '"layer2" layer view is before "cells" layer view');
@@ -233,10 +233,10 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(finalLayers[1].id, 'cells', 'Second layer is still "layer2"');
         assert.strictEqual(finalLayers[2].id, 'layer1', 'Third layer is "layer1"');
 
-        this.graph.addLayer(this.graph.getDefaultLayer(), { insertBefore: 'cells' });
+        this.graph.addLayer(this.graph.getDefaultLayer(), { before: 'cells' });
         assert.deepEqual(this.graph.getLayers(), finalLayers, 'Inserting layer does not change order');
 
-        this.graph.addLayer(this.graph.getDefaultLayer(), { insertBefore: 'layer1' });
+        this.graph.addLayer(this.graph.getDefaultLayer(), { before: 'layer1' });
         assert.deepEqual(this.graph.getLayers(), finalLayers, 'Inserting layer does not change order');
     });
 

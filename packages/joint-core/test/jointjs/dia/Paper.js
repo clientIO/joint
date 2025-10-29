@@ -2611,7 +2611,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('throws error when invalid position is provided', function(assert) {
                 assert.throws(
                     function() {
-                        paper.insertLayerView(paper.getLayerView(joint.dia.Paper.Layers.BACK), { insertBefore: 'test' });
+                        paper.insertLayerView(paper.getLayerView(joint.dia.Paper.Layers.BACK), { before: 'test' });
                     },
                     /dia.Paper: Unknown layer view "test"./,
                     'Invalid position "test".'
@@ -2637,7 +2637,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 });
                 assert.equal(paper.getLayerViewOrder().indexOf('test'), -1);
                 assert.notOk(paper.hasLayerView('test'));
-                paper.insertLayerView(testLayer, { insertBefore: 'cells' });
+                paper.insertLayerView(testLayer, { before: 'cells' });
                 assert.ok(paper.hasLayerView('test'));
                 const order = paper.getLayerViewOrder();
                 assert.equal(order.indexOf('test'), order.indexOf('cells') - 1);
@@ -2646,7 +2646,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('moves the specified layer to the specified position', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [firstLayer, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(secondLayer), { insertBefore: firstLayer });
+                paper.insertLayerView(paper.getLayerView(secondLayer), { before: firstLayer });
                 const [newFirstLayer, newSecondLayer] = paper.getLayerViewOrder();
                 assert.equal(newFirstLayer, secondLayer);
                 assert.equal(newSecondLayer, firstLayer);
@@ -2664,7 +2664,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('it\'s possible to move the layer to the same position', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [firstLayer, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(firstLayer), { insertBefore: secondLayer });
+                paper.insertLayerView(paper.getLayerView(firstLayer), { before: secondLayer });
                 const newLayerNames = paper.getLayerViewOrder();
                 assert.equal(newLayerNames.at(0), firstLayer);
                 assert.equal(newLayerNames.at(1), secondLayer);
@@ -2673,7 +2673,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('it\'s ok to move layer before itself', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(secondLayer), { insertBefore: secondLayer });
+                paper.insertLayerView(paper.getLayerView(secondLayer), { before: secondLayer });
                 const newLayerNames = paper.getLayerViewOrder();
                 assert.equal(newLayerNames.at(1), secondLayer);
             });
