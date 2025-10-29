@@ -38,7 +38,7 @@ import { View, views as viewsRegistry } from '../mvc/index.mjs';
 import { CellView, CELL_VIEW_MARKER } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
-import { Cell } from './Cell.mjs';
+import { CELL_MARKER } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
 import { LAYER_VIEW_MARKER, LayerView } from './LayerView.mjs';
 import { GRAPH_LAYER_VIEW_MARKER, GraphLayerView } from './GraphLayerView.mjs';
@@ -1038,14 +1038,13 @@ export const Paper = View.extend({
      * @throws {Error} if the layer view already exists in the paper
      */
     _registerLayerView(layerView) {
-        if (!(layerView instanceof LayerView)) {
+        if (!layerView || !layerView[LAYER_VIEW_MARKER]) {
             throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
         }
 
         if (this.hasLayerView(layerView.id)) {
             throw new Error(`dia.Paper: The layer view "${layerView.id}" already exists.`);
         }
-
         // Link the layer view back to the paper.
         layerView.setPaperReference(this);
         // Store the layer view in the paper's registry.
@@ -1412,24 +1411,23 @@ export const Paper = View.extend({
     },
 
     requestConnectedLinksUpdate: function(view, priority, opt) {
-        if (view instanceof CellView) {
-            var model = view.model;
-            var links = this.model.getConnectedLinks(model);
-            for (var j = 0, n = links.length; j < n; j++) {
-                var link = links[j];
-                var linkView = this._getCellViewLike(link);
-                if (!linkView) continue;
-                // We do not have to update placeholder views.
-                // They will be updated on initial render.
-                if (linkView[CELL_VIEW_PLACEHOLDER_MARKER]) continue;
-                var nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
-                this.scheduleViewUpdate(linkView, linkView.getFlag(LinkView.Flags.UPDATE), nextPriority, opt);
-            }
+        if (!view || !view[CELL_VIEW_MARKER]) return;
+        var model = view.model;
+        var links = this.model.getConnectedLinks(model);
+        for (var j = 0, n = links.length; j < n; j++) {
+            var link = links[j];
+            var linkView = this._getCellViewLike(link);
+            if (!linkView) continue;
+            // We do not have to update placeholder views.
+            // They will be updated on initial render.
+            if (linkView[CELL_VIEW_PLACEHOLDER_MARKER]) continue;
+            var nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
+            this.scheduleViewUpdate(linkView, linkView.getFlag(LinkView.Flags.UPDATE), nextPriority, opt);
         }
     },
 
     forcePostponedViewUpdate: function(view, flag) {
-        if (!view || !(view instanceof CellView)) return false;
+        if (!view || !view[CELL_VIEW_MARKER]) return false;
         const model = view.model;
         if (model.isElement()) return false;
         const dumpOptions = { silent: true };
@@ -3743,7 +3741,7 @@ export const Paper = View.extend({
             return true;
         }
 
-        if (view && view.model && (view.model instanceof Cell)) {
+        if (view && view.model && (view.model[CELL_MARKER])) {
             return false;
         }
 
