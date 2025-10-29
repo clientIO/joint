@@ -770,11 +770,11 @@ export const Paper = View.extend({
      * @description When a layer is removed from the graph, we remove the corresponding layer view
      **/
     onGraphLayerRemove: function(layer, _, opt) {
-        if (!this.hasLayerView(layer.id)) return;
+        if (!this.hasLayerView(layer)) return;
 
         // Request layer removal. Since the UPDATE_PRIORITY is lower
         // than cells update priority, the cell views will be removed first.
-        this.requestLayerViewRemoval(this.getLayerView(layer.id));
+        this.requestLayerViewRemoval(layer);
     },
 
     /**

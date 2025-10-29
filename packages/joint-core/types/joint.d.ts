@@ -1963,13 +1963,13 @@ export namespace dia {
 
         getGraphLayerViews(): Array<GraphLayerView>;
 
-        createLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
-
         insertLayerView(layerView: LayerView, options?: { insertBefore?: Paper.LayerRef }): void;
 
         removeLayerView(layerView: LayerView): void;
 
-        requestLayerViewRemoval(layerView: string | LayerView): void;
+        protected requestLayerViewRemoval(layerRef: Paper.LayerRef): void;
+
+        protected createLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
 
         protected getLayerViewOrder(): string[];
 
