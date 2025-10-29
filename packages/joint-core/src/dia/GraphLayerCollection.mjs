@@ -1,5 +1,5 @@
 import { Collection } from '../mvc/index.mjs';
-import { GRAPH_LAYER_MARKER, GraphLayer } from './GraphLayer.mjs';
+import { DEFAULT_GRAPH_LAYER_TYPE, GRAPH_LAYER_MARKER, GraphLayer } from './GraphLayer.mjs';
 import { CELL_COLLECTION_MARKER } from './CellCollection.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 import * as util from '../util/index.mjs';
@@ -68,8 +68,7 @@ export const GraphLayerCollection = Collection.extend({
             let preparedAttributes;
             if (!attrs.type) {
                 preparedAttributes = util.clone(attrs);
-                // TODO: no hard-coded type
-                preparedAttributes.type = 'GraphLayer';
+                preparedAttributes.type = DEFAULT_GRAPH_LAYER_TYPE;
             } else {
                 preparedAttributes = attrs;
             }

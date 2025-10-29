@@ -3,6 +3,8 @@ import { CellCollection } from './CellCollection.mjs';
 
 export const GRAPH_LAYER_MARKER = Symbol('joint.graphLayerMarker');
 
+export const DEFAULT_GRAPH_LAYER_TYPE = 'GraphLayer';
+
 /**
  * @class GraphLayer
  * @description A GraphLayer is a model representing a single layer in a dia.Graph.
@@ -20,7 +22,7 @@ export class GraphLayer extends Model {
 
     defaults() {
         return {
-            type: 'GraphLayer',
+            type: DEFAULT_GRAPH_LAYER_TYPE
         };
     }
 
