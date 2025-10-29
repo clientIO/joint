@@ -350,8 +350,17 @@ PortData.prototype = {
 
 export const elementPortPrototype = {
 
-    _initializePorts: function() {
-
+    _initializePorts: function(options) {
+        if (options) {
+            // Override port layout namespaces if provided in options
+            if (options.portLayoutNamespace) {
+                this.portLayoutNamespace = options.portLayoutNamespace;
+            }
+            // Override port label layout namespaces if provided in options
+            if (options.portLabelLayoutNamespace) {
+                this.portLabelLayoutNamespace = options.portLabelLayoutNamespace;
+            }
+        }
         this._createPortData();
         this.on('change:ports', function() {
 

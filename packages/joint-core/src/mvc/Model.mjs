@@ -25,21 +25,12 @@ import {
 export var Model = function(attributes, options) {
     var attrs = attributes || {};
     options || (options = {});
-
     this.eventPrefix = options.eventPrefix || '';
-
     this.preinitialize.apply(this, arguments);
     this.cid = uniqueId(this.cidPrefix);
     this.attributes = {};
     if (options.collection) this.collection = options.collection;
-
-    var attributeDefaults = result(this, 'defaults');
-
-    // Just _.defaults would work fine, but the additional _.extends
-    // is in there for historical reasons. See #3843.
-    attrs = defaults(assign({}, attributeDefaults, attrs), attributeDefaults);
-
-    this.set(attrs, options);
+    this._setDefaults(attrs, options);
     this.changed = {};
     this.initialize.apply(this, arguments);
 };
@@ -239,6 +230,14 @@ assign(Model.prototype, Events, {
         if (!error) return true;
         this.trigger('invalid', this, error, assign(options, { validationError: error }));
         return false;
+    },
+
+    _setDefaults: function(ctorAttributes, options) {
+        const attributeDefaults = result(this, 'defaults');
+        // Just _.defaults would work fine, but the additional _.extends
+        // is in there for historical reasons. See #3843.
+        const attributes = defaults(assign({}, attributeDefaults, ctorAttributes), attributeDefaults);
+        this.set(attributes, options);
     }
 
 });

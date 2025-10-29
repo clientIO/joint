@@ -1,5 +1,4 @@
 import {
-    uniqueId,
     union,
     result,
     merge,
@@ -61,39 +60,21 @@ function removeEmptyAttributes(obj) {
 
 export const Cell = Model.extend({
 
-    // This is the same as mvc.Model with the only difference that is uses util.merge
-    // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
-    constructor: function(attributes, options) {
+    cidPrefix: 'c',
 
-        var defaults;
-        var attrs = attributes || {};
-        if (typeof this.preinitialize === 'function') {
-            // Check to support an older version
-            this.preinitialize.apply(this, arguments);
-        }
-        this.cid = uniqueId('c');
-        this.eventPrefix = '';
-        this.attributes = {};
-        if (options && options.collection) this.collection = options.collection;
-        if (options && options.parse) attrs = this.parse(attrs, options) || {};
-        if ((defaults = result(this, 'defaults'))) {
-            //<custom code>
-            // Replaced the call to _.defaults with util.merge.
+    // Default attributes are merged deeply instead of shallowly.
+    _setDefaults: function(ctorAttributes, options) {
+        let attributes;
+        const attributeDefaults = result(this, 'defaults');
+        if (attributeDefaults) {
             const customizer = (options && options.mergeArrays === true)
                 ? false
                 : config.cellDefaultsMergeStrategy || attributesMerger;
-            attrs = merge({}, defaults, attrs, customizer);
-            //</custom code>
+            attributes = merge({}, attributeDefaults, ctorAttributes, customizer);
+        } else {
+            attributes = ctorAttributes;
         }
-        this.set(attrs, options);
-        this.changed = {};
-        if (options && options.portLayoutNamespace) {
-            this.portLayoutNamespace = options.portLayoutNamespace;
-        }
-        if (options && options.portLabelLayoutNamespace) {
-            this.portLabelLayoutNamespace = options.portLabelLayoutNamespace;
-        }
-        this.initialize.apply(this, arguments);
+        this.set(attributes, options);
     },
 
     translate: function(dx, dy, opt) {
@@ -142,10 +123,10 @@ export const Cell = Model.extend({
         return finalAttributes;
     },
 
-    initialize: function(options) {
+    initialize: function(attributes) {
 
         const idAttribute = this.getIdAttribute();
-        if (!options || options[idAttribute] === undefined) {
+        if (!attributes || attributes[idAttribute] === undefined) {
             this.set(idAttribute, this.generateId(), { silent: true });
         }
 
@@ -248,7 +229,9 @@ export const Cell = Model.extend({
             }
         }
 
-        this.trigger('remove', this, graph.cellCollection, opt);
+        // Remove from the collection in the current graph.
+        // Note: if `graph` exists, then the `collection` also exists.
+        graph.trigger('remove', this, collection, opt);
 
         graph.stopBatch('remove');
 
@@ -275,7 +258,7 @@ export const Cell = Model.extend({
             const maxZ = graph.maxZIndex(layerId);
             let z = maxZ - cells.length + 1;
 
-            const layerCells = graph.getCellLayer(layerId).cells.toArray();
+            const layerCells = graph.getLayer(layerId).cellCollection.toArray();
 
             let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== (layerCells.length - cells.length));
             if (!shouldUpdate) {
@@ -319,7 +302,7 @@ export const Cell = Model.extend({
 
             let z = graph.minZIndex(layerId);
 
-            const layerCells = graph.getCellLayer(layerId).cells.toArray();
+            const layerCells = graph.getLayer(layerId).cellCollection.toArray();
 
             let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {
@@ -868,7 +851,7 @@ export const Cell = Model.extend({
         return this;
     },
 
-    // A shorcut making it easy to create constructs like the following:
+    // A shortcut making it easy to create constructs like the following:
     // `var el = (new joint.shapes.standard.Rectangle()).addTo(graph)`.
     addTo: function(graph, opt) {
 
@@ -983,9 +966,9 @@ export const Cell = Model.extend({
         // if undefined return the current layer id
         if (layerId === undefined) {
             layerId = this.get(layerAttribute) || null;
-            // If the cell is part of a graph, use the graph's default cell layer.
+            // If the cell is part of a graph, use the graph's default layer.
             if (layerId == null && this.graph) {
-                layerId = this.graph.getDefaultCellLayer().id;
+                layerId = this.graph.getDefaultLayer().id;
             }
 
             return layerId;
@@ -1024,4 +1007,13 @@ export const Cell = Model.extend({
         /* eslint-enable no-undef */
         return Cell;
     }
+});
+
+// Internal tag to identify this object as a cell view instance.
+// Used instead of `instanceof` for performance and cross-frame safety.
+
+export const CELL_MARKER = Symbol('joint.cellMarker');
+
+Object.defineProperty(Cell.prototype, CELL_MARKER, {
+    value: true,
 });

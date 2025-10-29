@@ -14,9 +14,8 @@ export const Element = Cell.extend({
         angle: 0
     },
 
-    initialize: function() {
-
-        this._initializePorts();
+    initialize: function(attributes, options) {
+        this._initializePorts(options);
         Cell.prototype.initialize.apply(this, arguments);
     },
 

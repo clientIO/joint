@@ -1,15 +1,15 @@
 import { LayerView } from './LayerView.mjs';
-import { sortElements } from '../../util/index.mjs';
-import { addClassNamePrefix } from '../../util/util.mjs';
-import { sortingTypes } from '../Paper.mjs';
+import { sortElements } from '../util/index.mjs';
+import { addClassNamePrefix } from '../util/util.mjs';
+import { sortingTypes } from './Paper.mjs';
 
 /**
- * @class CellLayerView
- * @description A CellLayerView is responsible for managing the rendering of cell views inside a cell layer.
- * It listens to the corresponding CellLayer model and updates the DOM accordingly.
+ * @class GraphLayerView
+ * @description A GraphLayerView is responsible for managing the rendering of cell views inside a layer.
+ * It listens to the corresponding GraphLayer model and updates the DOM accordingly.
  * It uses dia.Paper sorting options to sort cell views in the DOM based on their `z` attribute.
  */
-export const CellLayerView = LayerView.extend({
+export const GraphLayerView = LayerView.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
 
@@ -18,54 +18,46 @@ export const CellLayerView = LayerView.extend({
         userSelect: 'none'
     },
 
+    graph: null,
+
     init() {
         LayerView.prototype.init.apply(this, arguments);
-
-        this.paper = this.options.paper;
-        this.startListening();
+        this.graph = this.model.graph;
     },
 
     className: function() {
         const { id } = this.options;
         return [
             addClassNamePrefix(`${id}-layer`),
-            addClassNamePrefix('cell-layer')
+            addClassNamePrefix('cells')
         ].join(' ');
     },
 
-    startListening() {
-        const { model, paper } = this;
-        const graph = paper.model;
-
-        this.listenTo(model, 'sort', this.onCellLayerSort);
-
-        this.listenTo(model, 'add', this.onCellAdd);
-
-        this.listenTo(model, 'reset', this.onCellLayerReset);
-
-        this.listenTo(model, 'change', this.onCellChange);
-
-        this.listenTo(graph, 'batch:stop', this.onGraphBatchStop);
+    afterPaperReferenceSet(paper) {
+        this.listenTo(this.model, 'sort', this.onGraphLayerSort);
+        this.listenTo(this.model, 'add', this.onCellAdd);
+        this.listenTo(this.model, 'change', this.onCellChange);
+        this.listenTo(this.graph, 'batch:stop', this.onGraphBatchStop);
     },
 
-    onCellLayerSort() {
-        const { paper } = this;
-        const graph = paper.model;
+    beforePaperReferenceUnset() {
+        this.stopListening(this.model);
+        this.stopListening(this.graph);
+    },
+
+    onGraphLayerSort() {
+        const { graph } = this;
 
         if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
         this.sort();
     },
 
-    onCellAdd(cell, _collection, opt) {
-        // do not insert cell view here, it will be done in the Paper
-        if (!opt.initial) {
-            this.requestCellViewInsertion(cell, opt);
-        }
-    },
-
-    onCellLayerReset(_collection, opt) {
-        if (!opt.initial) {
-            this.requestCellViewsInsertion(opt);
+    onCellAdd(cell, _collection, opt = {}) {
+        const { paper } = this;
+        // When a cell is moved from one layer to another,
+        // request insertion of its view in the new layer.
+        if (opt.fromLayer) {
+            paper.requestCellViewInsertion(cell, opt);
         }
     },
 
@@ -74,14 +66,12 @@ export const CellLayerView = LayerView.extend({
 
         const { paper } = this;
         if (paper.options.sorting === sortingTypes.APPROX) {
-            this.requestCellViewInsertion(cell, opt);
+            paper.requestCellViewInsertion(cell, opt);
         }
     },
 
     onGraphBatchStop(data) {
-        const { paper } = this;
-        const graph = paper.model;
-
+        const { graph } = this;
         const name = data && data.batchName;
         const sortDelayingBatches = this.SORT_DELAYING_BATCHES;
 
@@ -91,9 +81,8 @@ export const CellLayerView = LayerView.extend({
     },
 
     sort() {
+        this.assertPaperReference();
         const { paper } = this;
-        if (!paper)
-            return;
 
         if (!paper.isExactSorting()) {
             // noop
@@ -111,7 +100,7 @@ export const CellLayerView = LayerView.extend({
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.
         const cellNodes = Array.from(this.el.children).filter(node => node.getAttribute('model-id'));
-        const cellCollection = this.model.cells;
+        const cellCollection = this.model.cellCollection;
 
         sortElements(cellNodes, function(a, b) {
             const cellA = cellCollection.get(a.getAttribute('model-id'));
@@ -123,8 +112,9 @@ export const CellLayerView = LayerView.extend({
     },
 
     insertCellView(cellView) {
-        const { el, model } = cellView;
+        this.assertPaperReference();
         const { paper } = this;
+        const { el, model } = cellView;
 
         switch (paper.options.sorting) {
             case sortingTypes.APPROX:
@@ -137,31 +127,13 @@ export const CellLayerView = LayerView.extend({
         }
     },
 
-    requestCellViewsInsertion(opt = {}) {
-        const { model } = this;
-
-        const cellsArray = model.cells.models;
-        for (let i = 0; i < cellsArray.length; i++) {
-            const cell = cellsArray[i];
-            this.requestCellViewInsertion(cell, opt);
-        }
-    },
-
-    requestCellViewInsertion(cell, opt = {}) {
-        const { paper } = this;
-
-        const viewLike = paper._getCellViewLike(cell);
-        if (viewLike) {
-            paper.requestViewUpdate(viewLike, paper.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
-        }
-    }
 });
 
-// Internal tag to identify this object as a cell layer view instance.
+// Internal tag to identify this object as a layer view instance.
 // Used instead of `instanceof` for performance and cross-frame safety.
 
-export const CELL_LAYER_VIEW_MARKER = Symbol('joint.cellLayerViewMarker');
+export const GRAPH_LAYER_VIEW_MARKER = Symbol('joint.graphLayerViewMarker');
 
-Object.defineProperty(CellLayerView.prototype, CELL_LAYER_VIEW_MARKER, {
+Object.defineProperty(GraphLayerView.prototype, GRAPH_LAYER_VIEW_MARKER, {
     value: true,
 });

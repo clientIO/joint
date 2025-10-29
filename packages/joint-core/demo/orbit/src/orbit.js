@@ -38,7 +38,7 @@
         'stroke': '#34495E',
         'stroke-width': 1,
         'stroke-dasharray': '2, 2'
-    }).appendTo(paper.getLayerNode('back'));
+    }).appendTo(paper.getLayerView('back').el);
 
     var earthSize = 40;
     var earthPosition = findPointAtOrbit(100, 100, earthSize, earthSize);
