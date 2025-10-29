@@ -158,7 +158,7 @@ export namespace dia {
 
         cellNamespace: any;
         layer: GraphLayer;
-//      graph: Graph;
+        graph: Graph;
 
         minZIndex(): number;
 
