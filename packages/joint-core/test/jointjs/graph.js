@@ -3610,7 +3610,7 @@ QUnit.module("graph", function (hooks) {
 
         QUnit.module('removeLayer()', function () {
 
-            QUnit.test('no options', function (assert) {
+            QUnit.test('remove by id', function (assert) {
 
                 const graph = new joint.dia.Graph(
                     {},
@@ -3628,6 +3628,27 @@ QUnit.module("graph", function (hooks) {
                 assert.ok(graph.hasLayer("layer2"), "'layer2' still exists");
 
                 graph.removeLayer("layer2");
+                assert.notOk(graph.hasLayer("layer2"), "'layer2' removed");
+            });
+
+            QUnit.test('remove by instance', function (assert) {
+
+                const graph = new joint.dia.Graph(
+                    {},
+                    { cellNamespace: joint.shapes },
+                );
+
+                graph.addLayer({ id: "layer1" });
+                graph.addLayer({ id: "layer2" });
+
+                assert.ok(graph.hasLayer("layer1"), "'layer1' exists");
+                assert.ok(graph.hasLayer("layer2"), "'layer2' exists");
+
+                graph.removeLayer(graph.getLayer("layer1"));
+                assert.notOk(graph.hasLayer("layer1"), "'layer1' removed");
+                assert.ok(graph.hasLayer("layer2"), "'layer2' still exists");
+
+                graph.removeLayer(graph.getLayer("layer2"));
                 assert.notOk(graph.hasLayer("layer2"), "'layer2' removed");
             });
 
@@ -3672,7 +3693,7 @@ QUnit.module("graph", function (hooks) {
                     "layerId and options are passed to 'remove' event"
                 );
                 assert.ok(eventSpy.calledWithMatch('layers:update'), "layers:update event is triggered");
-                assert.equal(eventSpy.calledCount, 4);
+                assert.equal(eventSpy.callCount, 4);
             });
         });
 
