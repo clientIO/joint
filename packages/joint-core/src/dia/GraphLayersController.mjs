@@ -23,7 +23,7 @@ export class GraphLayersController extends Listener {
         this.layerCollection = this.graph.layerCollection;
 
         // Default setup
-        this.addLayer({
+        this.insertLayer({
             id: DEFAULT_LAYER_ID,
         });
 
@@ -146,16 +146,16 @@ export class GraphLayersController extends Listener {
         this.graph.trigger('layers:default:change', this.graph, this.defaultLayerId, options);
     }
 
-    addLayer(layer, { before } = {}) {
+    insertLayer(layer, before = null, opt = {}) {
         const id = layer.id;
+
+        // Adding a new layer disables legacy mode
+        this.legacyMode = false;
 
         // insert before itself is a no-op
         if (id === before) {
             return;
         }
-
-        // Adding a new layer disables legacy mode
-        this.legacyMode = false;
 
         const originalLayersArray = this.getLayers();
 
@@ -190,11 +190,12 @@ export class GraphLayersController extends Listener {
             });
             // Trigger `sort` event manually
             // since we are not using collection sorting workflow
-            this.layerCollection.trigger('sort', this.layerCollection);
+            this.layerCollection.trigger('sort', this.layerCollection, opt);
         } else {
             // Add to the collection and trigger an event
             // when new layer has been added
             this.layerCollection.add(layer, {
+                ...opt,
                 at: insertAt,
                 graph: this.graph.cid
             });

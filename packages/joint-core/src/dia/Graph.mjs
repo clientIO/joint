@@ -423,12 +423,81 @@ export const Graph = Model.extend({
         this.stopBatch(batchName);
     },
 
-    addLayer(layer, opt) {
-        this.layersController.addLayer(layer, opt);
+    /**
+     * @public
+     * Adds a new layer to the graph.
+     * @param {GraphLayer | GraphLayerJSON} layerInit
+     * @param {*} opt
+     * @param {string | null} [opt.before] - ID of the layer
+     * before which to insert the new layer. If `null`, the layer is added at the end.
+     * @throws Will throw an error if the layer to add is invalid
+     * @throws Will throw an error if a layer with the same ID already exists
+     * @throws Will throw if `before` reference is invalid
+     */
+    addLayer(layerInit, opt = {}) {
+        if (!layerInit || !layerInit.id) {
+            throw new Error('dia.Graph: Layer to add is invalid.');
+        }
+        if (this.hasLayer(layerInit.id)) {
+            throw new Error(`dia.Graph: Layer with id '${layerInit.id}' already exists.`);
+        }
+        const { before = null, ...insertOptions } = opt;
+        this.layersController.insertLayer(layerInit, before, insertOptions);
     },
 
-    removeLayer(layer, opt) {
-        this.layersController.removeLayer(layer.id, opt);
+    /**
+     * @public
+     * Moves an existing layer to a new position in the layer stack.
+     * @param {string | GraphLayer} layerRef - ID or reference of the layer to move.
+     * @param {*} opt
+     * @param {string | null} [opt.before] - ID of the layer
+     * before which to insert the moved layer. If `null`, the layer is moved to the end.
+     * @param {number} [opt.index] - Zero-based index to which to move the layer.
+     * @throws Will throw an error if the layer to move does not exist
+     * @throws Will throw an error if `before` reference is invalid
+     * @throws Will throw an error if both `before` and `index` options are provided
+     */
+    moveLayer(layerRef, opt = {}) {
+        if (!layerRef || !this.hasLayer(layerRef)) {
+            throw new Error('dia.Graph: Layer to move does not exist.');
+        }
+        let { before = null, index, ...moveOptions } = opt;
+        if (before && index !== undefined) {
+            throw new Error('dia.Graph: Options "before" and "index" are mutually exclusive.');
+        }
+        let computedBefore;
+        if (index !== undefined) {
+            const layersArray = this.getLayers().toArray();
+            if (index >= layersArray.length) {
+                // If index is greater than the number of layers,
+                // set before to null (move to the end).
+                before = null;
+            } else if (index < 0) {
+                // If index is negative, move to the beginning.
+                before = layersArray[0].id;
+            } else {
+                // Otherwise, get the layer ID at the specified index.
+                before = layersArray[index].id;
+            }
+        } else {
+            computedBefore = before;
+        }
+        this.layersController.insertLayer(layerRef, computedBefore, moveOptions);
+    },
+
+    /**
+     * @public
+     * Removes an existing layer from the graph.
+     * @param {string | GraphLayer} layerRef - ID or reference of the layer to remove.
+     * @param {*} opt
+     * @throws Will throw an error if the layer to remove does not exist
+     */
+    removeLayer(layerRef, opt) {
+        if (!layerRef || !this.hasLayer(layerRef)) {
+            throw new Error('dia.Graph: Layer to remove is invalid.');
+        }
+        const layerId = util.isString(layerRef) ? layerRef : layerRef.id;
+        this.layersController.removeLayer(layerId, opt);
     },
 
     getDefaultLayer() {

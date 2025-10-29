@@ -223,7 +223,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(updatedLayers[1].id, 'layer2', 'Second layer is now "layer2"');
         assert.strictEqual(updatedLayers[2].id, 'layer1', 'Third layer is "layer1"');
 
-        this.graph.addLayer(this.graph.getDefaultLayer(), { before: 'layer1' });
+        this.graph.moveLayer(this.graph.getDefaultLayer(), { before: 'layer1' });
 
         assert.ok(cellsLayerNode.nextSibling === layer1Node, '"cells" layer view is before "layer1" layer view');
         assert.ok(layer2Node.nextSibling === cellsLayerNode, '"layer2" layer view is before "cells" layer view');

@@ -202,6 +202,10 @@ export namespace dia {
 
         type Cells = CellCollection;
 
+        type LayerInit = GraphLayer | GraphLayer.Attributes;
+
+        type LayerRef = GraphLayer | GraphLayer.ID;
+
         interface Attributes {
             /** @deprecated use cellsCollection property **/
             cells?: CellCollection;
@@ -220,8 +224,14 @@ export namespace dia {
         }
 
         interface AddLayerOptions extends Options {
-            before?: string;
+            before?: GraphLayer.ID | null;
         }
+
+        interface MoveLayerOptions extends Options {
+            before?: GraphLayer.ID | null;
+            number?: number;
+        }
+
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -244,9 +254,11 @@ export namespace dia {
 
         resetLayers(layers: Array<GraphLayer | GraphLayer.Attributes>, opt?: Graph.ResetLayersOptions): this;
 
-        addLayer(layer: GraphLayer | GraphLayer.Attributes, options?: Graph.AddLayerOptions): void;
+        addLayer(layerInit: Graph.LayerInit, opt?: Graph.AddLayerOptions): void;
 
-        removeLayer(layer: GraphLayer, opt?: Graph.Options): void;
+        moveLayer(layerRef: Graph.LayerRef, opt?: Graph.MoveLayerOptions): void;
+
+        removeLayer(layerRef: Graph.LayerRef, opt?: Graph.Options): void;
 
         getDefaultLayer(): GraphLayer;
 
@@ -2234,8 +2246,10 @@ export namespace dia {
 
     namespace GraphLayer {
 
+        type ID = string;
+
         interface Attributes extends mvc.ObjectHash {
-            id: string;
+            id: ID;
             type?: string;
         }
     }
