@@ -1067,7 +1067,7 @@ export const Paper = View.extend({
     },
 
     /**
-     * @public
+     * @protected
      * @description Schedules the layer view removal by the given layer id or layer model.
      * The actual removal will be performed during the paper update cycle.
      * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
@@ -1083,6 +1083,7 @@ export const Paper = View.extend({
 
     /**
      * @public
+     * @internal not documented
      * @description Schedules the cell view insertion into the appropriate layer view.
      * The actual insertion will be performed during the paper update cycle.
      * @param {dia.Cell} cell - The cell model whose view should be inserted.
@@ -1213,7 +1214,7 @@ export const Paper = View.extend({
     },
 
     /**
-     * @public
+     * @protected
      * @description Creates a layer view instance based on the provided options.
      * It finds the appropriate layer view constructor from the paper's
      * `layerViewNamespace` and instantiates it.
