@@ -98,6 +98,220 @@ const defaultHighlighting = {
     }
 };
 
+const gridPatterns = {
+
+    dot: [{
+        color: '#AAAAAA',
+        thickness: 1,
+        markup: 'rect',
+        render: function(el, opt) {
+            V(el).attr({
+                width: opt.thickness,
+                height: opt.thickness,
+                fill: opt.color
+            });
+        }
+    }],
+
+    fixedDot: [{
+        color: '#AAAAAA',
+        thickness: 1,
+        markup: 'rect',
+        render: function(el, opt) {
+            V(el).attr({ fill: opt.color });
+        },
+        update: function(el, opt, paper) {
+            const { sx, sy } = paper.scale();
+            const width = sx <= 1 ? opt.thickness : opt.thickness / sx;
+            const height = sy <= 1 ? opt.thickness : opt.thickness / sy;
+            V(el).attr({ width, height });
+        }
+    }],
+
+    mesh: [{
+        color: '#AAAAAA',
+        thickness: 1,
+        markup: 'path',
+        render: function(el, opt) {
+
+            var d;
+            var width = opt.width;
+            var height = opt.height;
+            var thickness = opt.thickness;
+
+            if (width - thickness >= 0 && height - thickness >= 0) {
+                d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+            } else {
+                d = 'M 0 0 0 0';
+            }
+
+            V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+        }
+    }],
+
+    doubleMesh: [{
+        color: '#AAAAAA',
+        thickness: 1,
+        markup: 'path',
+        render: function(el, opt) {
+
+            var d;
+            var width = opt.width;
+            var height = opt.height;
+            var thickness = opt.thickness;
+
+            if (width - thickness >= 0 && height - thickness >= 0) {
+                d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+            } else {
+                d = 'M 0 0 0 0';
+            }
+
+            V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+        }
+    }, {
+        color: '#000000',
+        thickness: 3,
+        scaleFactor: 4,
+        markup: 'path',
+        render: function(el, opt) {
+
+            var d;
+            var width = opt.width;
+            var height = opt.height;
+            var thickness = opt.thickness;
+
+            if (width - thickness >= 0 && height - thickness >= 0) {
+                d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+            } else {
+                d = 'M 0 0 0 0';
+            }
+
+            V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+        }
+    }]
+};
+
+const backgroundPatterns = {
+
+    flipXy: function(img) {
+        // d b
+        // q p
+
+        var canvas = document.createElement('canvas');
+        var imgWidth = img.width;
+        var imgHeight = img.height;
+
+        canvas.width = 2 * imgWidth;
+        canvas.height = 2 * imgHeight;
+
+        var ctx = canvas.getContext('2d');
+        // top-left image
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // xy-flipped bottom-right image
+        ctx.setTransform(-1, 0, 0, -1, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // x-flipped top-right image
+        ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // y-flipped bottom-left image
+        ctx.setTransform(1, 0, 0, -1, 0, canvas.height);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+        return canvas;
+    },
+
+    flipX: function(img) {
+        // d b
+        // d b
+
+        var canvas = document.createElement('canvas');
+        var imgWidth = img.width;
+        var imgHeight = img.height;
+
+        canvas.width = imgWidth * 2;
+        canvas.height = imgHeight;
+
+        var ctx = canvas.getContext('2d');
+        // left image
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // flipped right image
+        ctx.translate(2 * imgWidth, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+        return canvas;
+    },
+
+    flipY: function(img) {
+        // d d
+        // q q
+
+        var canvas = document.createElement('canvas');
+        var imgWidth = img.width;
+        var imgHeight = img.height;
+
+        canvas.width = imgWidth;
+        canvas.height = imgHeight * 2;
+
+        var ctx = canvas.getContext('2d');
+        // top image
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // flipped bottom image
+        ctx.translate(0, 2 * imgHeight);
+        ctx.scale(1, -1);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+        return canvas;
+    },
+
+    watermark: function(img, opt) {
+        //   d
+        // d
+
+        opt = opt || {};
+
+        var imgWidth = img.width;
+        var imgHeight = img.height;
+
+        var canvas = document.createElement('canvas');
+        canvas.width = imgWidth * 3;
+        canvas.height = imgHeight * 3;
+
+        var ctx = canvas.getContext('2d');
+        var angle = isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
+        var radians = toRad(angle);
+        var stepX = canvas.width / 4;
+        var stepY = canvas.height / 4;
+
+        for (var i = 0; i < 4; i++) {
+            for (var j = 0; j < 4; j++) {
+                if ((i + j) % 2 > 0) {
+                    // reset the current transformations
+                    ctx.setTransform(1, 0, 0, 1, (2 * i - 1) * stepX, (2 * j - 1) * stepY);
+                    ctx.rotate(radians);
+                    ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+                }
+            }
+        }
+
+        return canvas;
+    }
+};
+
+const implicitLayers = [{
+    id: paperLayers.GRID,
+    type: 'GridLayerView',
+    patterns: gridPatterns
+}, {
+    id: paperLayers.BACK,
+}, {
+    id: paperLayers.LABELS,
+}, {
+    id: paperLayers.FRONT
+}, {
+    id: paperLayers.TOOLS
+}];
+
 const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 
 export const Paper = View.extend({
@@ -399,6 +613,9 @@ export const Paper = View.extend({
     FLAG_REMOVE: 1<<29,
     FLAG_INIT: 1<<28,
 
+    // Layers that are always present on the paper (e.g. grid, back, front, tools)
+    implicitLayers,
+
     init: function() {
 
         const { options } = this;
@@ -426,20 +643,6 @@ export const Paper = View.extend({
         this._layers = {
             viewsMap: {},
             order: [],
-            // Layer views without graph layer views
-            implicit: [{
-                id: paperLayers.GRID,
-                type: 'GridLayerView',
-                patterns: this.constructor.gridPatterns
-            }, {
-                id: paperLayers.BACK,
-            }, {
-                id: paperLayers.LABELS,
-            }, {
-                id: paperLayers.FRONT
-            }, {
-                id: paperLayers.TOOLS
-            }]
         };
 
         // Hash of all cell views.
@@ -635,8 +838,8 @@ export const Paper = View.extend({
      * @description Renders all implicit layer views.
      */
     renderImplicitLayerViews: function() {
-        this._layers.implicit.forEach(options => {
-            const layerView = this.createLayerView(options);
+        this.implicitLayers.forEach(layerInit => {
+            const layerView = this.createLayerView(layerInit);
             this.insertLayerView(layerView);
         });
     },
@@ -803,12 +1006,9 @@ export const Paper = View.extend({
      * It does not check whether the layer views are empty.
      */
     _removeLayerViews: function() {
-        const { _layers } = this;
-        Object.values(_layers.viewsMap).forEach(layerView => {
-            layerView.remove();
+        Object.values(this._layers.viewsMap).forEach(layerView => {
+            this._removeLayerView(layerView);
         });
-        _layers.order = [];
-        _layers.viewsMap = {};
     },
 
     /**
@@ -3916,198 +4116,6 @@ export const Paper = View.extend({
 
     Layers: paperLayers,
 
-    backgroundPatterns: {
-
-        flipXy: function(img) {
-            // d b
-            // q p
-
-            var canvas = document.createElement('canvas');
-            var imgWidth = img.width;
-            var imgHeight = img.height;
-
-            canvas.width = 2 * imgWidth;
-            canvas.height = 2 * imgHeight;
-
-            var ctx = canvas.getContext('2d');
-            // top-left image
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // xy-flipped bottom-right image
-            ctx.setTransform(-1, 0, 0, -1, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // x-flipped top-right image
-            ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // y-flipped bottom-left image
-            ctx.setTransform(1, 0, 0, -1, 0, canvas.height);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-
-            return canvas;
-        },
-
-        flipX: function(img) {
-            // d b
-            // d b
-
-            var canvas = document.createElement('canvas');
-            var imgWidth = img.width;
-            var imgHeight = img.height;
-
-            canvas.width = imgWidth * 2;
-            canvas.height = imgHeight;
-
-            var ctx = canvas.getContext('2d');
-            // left image
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // flipped right image
-            ctx.translate(2 * imgWidth, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-
-            return canvas;
-        },
-
-        flipY: function(img) {
-            // d d
-            // q q
-
-            var canvas = document.createElement('canvas');
-            var imgWidth = img.width;
-            var imgHeight = img.height;
-
-            canvas.width = imgWidth;
-            canvas.height = imgHeight * 2;
-
-            var ctx = canvas.getContext('2d');
-            // top image
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // flipped bottom image
-            ctx.translate(0, 2 * imgHeight);
-            ctx.scale(1, -1);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-
-            return canvas;
-        },
-
-        watermark: function(img, opt) {
-            //   d
-            // d
-
-            opt = opt || {};
-
-            var imgWidth = img.width;
-            var imgHeight = img.height;
-
-            var canvas = document.createElement('canvas');
-            canvas.width = imgWidth * 3;
-            canvas.height = imgHeight * 3;
-
-            var ctx = canvas.getContext('2d');
-            var angle = isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
-            var radians = toRad(angle);
-            var stepX = canvas.width / 4;
-            var stepY = canvas.height / 4;
-
-            for (var i = 0; i < 4; i++) {
-                for (var j = 0; j < 4; j++) {
-                    if ((i + j) % 2 > 0) {
-                        // reset the current transformations
-                        ctx.setTransform(1, 0, 0, 1, (2 * i - 1) * stepX, (2 * j - 1) * stepY);
-                        ctx.rotate(radians);
-                        ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
-                    }
-                }
-            }
-
-            return canvas;
-        }
-    },
-    gridPatterns: {
-        dot: [{
-            color: '#AAAAAA',
-            thickness: 1,
-            markup: 'rect',
-            render: function(el, opt) {
-                V(el).attr({
-                    width: opt.thickness,
-                    height: opt.thickness,
-                    fill: opt.color
-                });
-            }
-        }],
-        fixedDot: [{
-            color: '#AAAAAA',
-            thickness: 1,
-            markup: 'rect',
-            render: function(el, opt) {
-                V(el).attr({ fill: opt.color });
-            },
-            update: function(el, opt, paper) {
-                const { sx, sy } = paper.scale();
-                const width = sx <= 1 ? opt.thickness : opt.thickness / sx;
-                const height = sy <= 1 ? opt.thickness : opt.thickness / sy;
-                V(el).attr({ width, height });
-            }
-        }],
-        mesh: [{
-            color: '#AAAAAA',
-            thickness: 1,
-            markup: 'path',
-            render: function(el, opt) {
-
-                var d;
-                var width = opt.width;
-                var height = opt.height;
-                var thickness = opt.thickness;
-
-                if (width - thickness >= 0 && height - thickness >= 0) {
-                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
-                } else {
-                    d = 'M 0 0 0 0';
-                }
-
-                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
-            }
-        }],
-        doubleMesh: [{
-            color: '#AAAAAA',
-            thickness: 1,
-            markup: 'path',
-            render: function(el, opt) {
-
-                var d;
-                var width = opt.width;
-                var height = opt.height;
-                var thickness = opt.thickness;
-
-                if (width - thickness >= 0 && height - thickness >= 0) {
-                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
-                } else {
-                    d = 'M 0 0 0 0';
-                }
-
-                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
-            }
-        }, {
-            color: '#000000',
-            thickness: 3,
-            scaleFactor: 4,
-            markup: 'path',
-            render: function(el, opt) {
-
-                var d;
-                var width = opt.width;
-                var height = opt.height;
-                var thickness = opt.thickness;
-
-                if (width - thickness >= 0 && height - thickness >= 0) {
-                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
-                } else {
-                    d = 'M 0 0 0 0';
-                }
-
-                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
-            }
-        }]
-    }
+    backgroundPatterns,
+    gridPatterns,
 });
