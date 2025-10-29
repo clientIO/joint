@@ -6,8 +6,8 @@ import {
     omit,
     assign,
     merge,
-} from '../../util/index.mjs';
-import V from '../../V/index.mjs';
+} from '../util/index.mjs';
+import V from '../V/index.mjs';
 
 export const GridLayerView = LayerView.extend({
 

@@ -229,7 +229,7 @@ export namespace dia {
 
         interface MoveLayerOptions extends Options {
             before?: GraphLayer.ID | null;
-            number?: number;
+            index?: number;
         }
 
     }

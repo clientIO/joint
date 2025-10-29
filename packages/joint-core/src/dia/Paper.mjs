@@ -40,9 +40,9 @@ import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LAYER_VIEW_MARKER, LayerView } from './layers/LayerView.mjs';
-import { GRAPH_LAYER_VIEW_MARKER, GraphLayerView } from './layers/GraphLayerView.mjs';
-import { LegacyGraphLayerView } from './layers/LegacyGraphLayerView.mjs';
+import { LAYER_VIEW_MARKER, LayerView } from './LayerView.mjs';
+import { GRAPH_LAYER_VIEW_MARKER, GraphLayerView } from './GraphLayerView.mjs';
+import { LegacyGraphLayerView } from './LegacyGraphLayerView.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { Deque } from '../alg/Deque.mjs';
 import * as highlighters from '../highlighters/index.mjs';
@@ -51,7 +51,7 @@ import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
-import { GridLayerView } from './layers/GridLayerView.mjs';
+import { GridLayerView } from './GridLayerView.mjs';
 
 const paperLayers = {
     GRID: 'grid',

@@ -1,7 +1,7 @@
 import { LayerView } from './LayerView.mjs';
-import { sortElements } from '../../util/index.mjs';
-import { addClassNamePrefix } from '../../util/util.mjs';
-import { sortingTypes } from '../Paper.mjs';
+import { sortElements } from '../util/index.mjs';
+import { addClassNamePrefix } from '../util/util.mjs';
+import { sortingTypes } from './Paper.mjs';
 
 /**
  * @class GraphLayerView

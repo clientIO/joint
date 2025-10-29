@@ -1,5 +1,5 @@
 import { GraphLayerView } from './GraphLayerView.mjs';
-import { addClassNamePrefix } from '../../util/util.mjs';
+import { addClassNamePrefix } from '../util/util.mjs';
 
 /**
  * @class LegacyGraphLayerView

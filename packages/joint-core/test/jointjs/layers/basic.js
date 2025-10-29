@@ -222,9 +222,8 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(updatedLayers[0].id, 'cells', 'First layer is still "cells"');
         assert.strictEqual(updatedLayers[1].id, 'layer2', 'Second layer is now "layer2"');
         assert.strictEqual(updatedLayers[2].id, 'layer1', 'Third layer is "layer1"');
-
+        // Moving layers
         this.graph.moveLayer(this.graph.getDefaultLayer(), { before: 'layer1' });
-
         assert.ok(cellsLayerNode.nextSibling === layer1Node, '"cells" layer view is before "layer1" layer view');
         assert.ok(layer2Node.nextSibling === cellsLayerNode, '"layer2" layer view is before "cells" layer view');
 
@@ -233,10 +232,10 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(finalLayers[1].id, 'cells', 'Second layer is still "layer2"');
         assert.strictEqual(finalLayers[2].id, 'layer1', 'Third layer is "layer1"');
 
-        this.graph.addLayer(this.graph.getDefaultLayer(), { before: 'cells' });
+        this.graph.moveLayer(this.graph.getDefaultLayer(), { before: 'cells' });
         assert.deepEqual(this.graph.getLayers(), finalLayers, 'Inserting layer does not change order');
 
-        this.graph.addLayer(this.graph.getDefaultLayer(), { before: 'layer1' });
+        this.graph.moveLayer(this.graph.getDefaultLayer(), { before: 'layer1' });
         assert.deepEqual(this.graph.getLayers(), finalLayers, 'Inserting layer does not change order');
     });
 

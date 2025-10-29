@@ -1,5 +1,5 @@
-import { View } from '../../mvc/index.mjs';
-import { addClassNamePrefix, clone } from '../../util/util.mjs';
+import { View } from '../mvc/index.mjs';
+import { addClassNamePrefix, clone } from '../util/util.mjs';
 
 export const LayerView = View.extend({
 
