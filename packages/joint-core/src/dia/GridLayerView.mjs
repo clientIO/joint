@@ -6,8 +6,8 @@ import {
     omit,
     assign,
     merge,
-} from '../../util/index.mjs';
-import V from '../../V/index.mjs';
+} from '../util/index.mjs';
+import V from '../V/index.mjs';
 
 export const GridLayerView = LayerView.extend({
 
@@ -23,7 +23,14 @@ export const GridLayerView = LayerView.extend({
         this.paper = this.options.paper;
         this._gridCache = null;
         this._gridSettings = [];
-        this.listenTo(this.paper, 'transform resize', this.updateGrid);
+    },
+
+    afterPaperReferenceSet(paper) {
+        this.listenTo(paper, 'transform resize', this.updateGrid);
+    },
+
+    beforePaperReferenceUnset(paper) {
+        this.stopListening(paper);
     },
 
     setGrid(drawGrid) {

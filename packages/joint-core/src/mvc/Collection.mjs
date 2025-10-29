@@ -304,7 +304,7 @@ assign(Collection.prototype, Events, {
 
     // Define how to uniquely identify models in the collection.
     modelId: function(attrs, idAttribute) {
-        return attrs[idAttribute || this.model.prototype.idAttribute || 'id'];
+        return attrs[idAttribute || this.model.prototype?.idAttribute || 'id'];
     },
 
     // Get an iterator of all models in this collection.
@@ -382,11 +382,11 @@ assign(Collection.prototype, Events, {
     // collection.
     _prepareModel: function(attrs, options) {
         if (this._isModel(attrs)) {
-            if (!attrs.collection) attrs.collection = this;
+            if (!options.dry && !attrs.collection) attrs.collection = this;
             return attrs;
         }
         options = options ? clone(options) : {};
-        options.collection = this;
+        if (!options.dry) options.collection = this;
 
         var model;
         if (this.model.prototype) {
@@ -449,7 +449,7 @@ assign(Collection.prototype, Events, {
         this._byId.delete(model.cid);
         var id = this.modelId(model.attributes, model.idAttribute);
         if (id != null) this._byId.delete(id);
-        if (this === model.collection) delete model.collection;
+        if (!options.dry && this === model.collection) delete model.collection;
         model.off('all', this._onModelEvent, this);
     },
 
