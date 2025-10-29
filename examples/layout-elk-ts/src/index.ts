@@ -9,6 +9,8 @@ type ElkGraph = Require<ElkNode, 'children' | 'edges'>;
 
 const colors = ['#F8FCDA', '#E3E9C2', '#F9FBB2', '#C89F9C'];
 const ELK_DIRECTION = 'RIGHT';
+const DEFAULT_LABEL_WIDTH = 50;
+const DEFAULT_LABEL_HEIGHT = 20;
 
 const init = () => {
 
@@ -44,10 +46,12 @@ const init = () => {
     const elk = new ELK({
         workerUrl: '../node_modules/elkjs/lib/elk-worker.js',
     });
-    elk.layout(getElkGraph(graph)).then(res => {
-        updateGraph(res, graph);
+    elk.layout(getElkGraph(graph)).then(elkGraph => {
+        updateGraph(elkGraph, graph);
         paper.unfreeze();
         zoom(paper, 1);
+    }).catch(error => {
+        console.error('ELK layout error:', error.message);
     });
 };
 
@@ -128,7 +132,10 @@ function createLink(sourceId: dia.Cell.ID, targetId: dia.Cell.ID): dia.Link {
         source: { id: sourceId },
         target: { id: targetId },
         labels: [{
-            size: { width: 50, height: 20 },
+            size: {
+                width: DEFAULT_LABEL_WIDTH,
+                height: DEFAULT_LABEL_HEIGHT
+            },
             attrs: {
                 text: {
                     text: `${sourceId} → ${targetId}`,
@@ -189,6 +196,7 @@ function generateCells(
         cells.push(createLink(sourceId, targetId));
     });
     // Adjust element sizes based on the number of connected links
+    // (If we are using vertical ELK direction, we expand horizontally)
     const dimension = ['DOWN', 'UP'].includes(ELK_DIRECTION) ? 'width' : 'height';
     elementMap.forEach(([element, count]) => {
         if (count <= 10) return;
@@ -286,8 +294,8 @@ function getElkGraph(graph: dia.Graph): ElkNode {
             targets: [targetId],
             labels: link.labels().map(label => ({
                 text: '-', // some text is required (ELK ignores empty labels)
-                width: label.size?.width || 50,
-                height: label.size?.height || 30,
+                width: label.size?.width || DEFAULT_LABEL_WIDTH,
+                height: label.size?.height || DEFAULT_LABEL_HEIGHT,
                 layoutOptions: {
                     // This works, but does not allocate space for the label
                     // 'edgeLabels.placement': 'HEAD' // 'CENTER' | 'HEAD' | 'TAIL'
