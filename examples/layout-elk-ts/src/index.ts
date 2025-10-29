@@ -7,7 +7,7 @@ import './styles.scss';
 type Require<T, K extends keyof T> = T & { [P in K]+?: T[P] };
 type ElkGraph = Require<ElkNode, 'children' | 'edges'>;
 
-const colors = ['#F8FCDA', '#E3E9C2', '#F9FBB2', '#C89F9C']
+const colors = ['#F8FCDA', '#E3E9C2', '#F9FBB2', '#C89F9C'];
 const ELK_DIRECTION = 'RIGHT';
 
 const init = () => {
@@ -34,7 +34,7 @@ const init = () => {
             }
         }
     });
-    document.getElementById('canvas').appendChild(paper.el);
+    document.getElementById('canvas')!.appendChild(paper.el);
     addZoomAndPanListeners(paper);
 
     // Generate JointJS cells from example data
@@ -51,24 +51,28 @@ const init = () => {
     });
 };
 
-function zoom(paper: dia.Paper, zoomLevel: number) {
+function zoom(paper: dia.Paper, zoomLevel: number): void {
     paper.scale(zoomLevel);
-    paper.fitToContent({ useModelGeometry: true, padding: 100 * zoomLevel, allowNewOrigin: 'any' });
+    paper.fitToContent({
+        useModelGeometry: true,
+        padding: 100 * zoomLevel,
+        allowNewOrigin: 'any'
+    });
 }
 
 /**
  * Add toolbar zoom in/out listeners to the paper and setup panning.
  */
-function addZoomAndPanListeners(paper: dia.Paper) {
+function addZoomAndPanListeners(paper: dia.Paper): void {
 
     let zoomLevel = paper.scale().sx;
 
-    document.getElementById('zoom-in').addEventListener('click', () => {
+    document.getElementById('zoom-in')!.addEventListener('click', () => {
         zoomLevel = Math.min(3, zoomLevel + 0.2);
         zoom(paper, zoomLevel);
     });
 
-    document.getElementById('zoom-out').addEventListener('click', () => {
+    document.getElementById('zoom-out')!.addEventListener('click', () => {
         zoomLevel = Math.max(0.2, zoomLevel - 0.2);
         zoom(paper, zoomLevel);
     });
@@ -94,7 +98,7 @@ function addZoomAndPanListeners(paper: dia.Paper) {
 /**
  * Create a rectangle element with given id.
  */
-function createElement(id) {
+function createElement(id: dia.Cell.ID): dia.Element {
     return new shapes.standard.Rectangle({
         id: id,
         size: { width: 100, height: 40 },
@@ -107,7 +111,7 @@ function createElement(id) {
                 ry: 5
             },
             label: {
-                text: id,
+                text: `${id}`,
                 fill: '#333',
                 fontSize: 14,
                 fontFamily: 'Arial, helvetica, sans-serif'
@@ -119,7 +123,7 @@ function createElement(id) {
 /**
  * Create a link between sourceId and targetId with a label.
  */
-function createLink(sourceId, targetId) {
+function createLink(sourceId: dia.Cell.ID, targetId: dia.Cell.ID): dia.Link {
     return new shapes.standard.Link({
         source: { id: sourceId },
         target: { id: targetId },
@@ -152,7 +156,10 @@ function createLink(sourceId, targetId) {
  * Generate cells from simplified link data
  * [{ source: 'sourceId', target: 'targetId' }, ...]
  */
-function generateCells(dependencies, graph) {
+function generateCells(
+    dependencies: Array<{ source: dia.Cell.ID, target: dia.Cell.ID }>,
+    graph: dia.Graph
+): void {
     const elementMap = new Map();
     const cells = [];
     dependencies.forEach(dep => {
@@ -295,7 +302,7 @@ function getElkGraph(graph: dia.Graph): ElkNode {
 /**
  * Update JointJS graph based on ELK layout result.
  */
-function updateGraph(elkGraph: ElkGraph, graph: dia.Graph) {
+function updateGraph(elkGraph: ElkGraph, graph: dia.Graph): void {
     updateElements(elkGraph.children, graph);
     updateLinks(elkGraph.edges, graph);
 }
@@ -303,7 +310,7 @@ function updateGraph(elkGraph: ElkGraph, graph: dia.Graph) {
 /**
  * Update JointJS elements based on ELK node layout.
  */
-function updateElements(nodes: ElkNode[], graph: dia.Graph) {
+function updateElements(nodes: ElkNode[], graph: dia.Graph): void {
     for (const node of nodes) {
         const el = graph.getCell(node.id) as dia.Element;
         el.position(node.x, node.y);
@@ -313,7 +320,7 @@ function updateElements(nodes: ElkNode[], graph: dia.Graph) {
 /**
  * Update JointJS links based on ELK edge layout.
  */
-function updateLinks(edges: ElkExtendedEdge[], graph: dia.Graph) {
+function updateLinks(edges: ElkExtendedEdge[], graph: dia.Graph): void {
     for (const edge of edges) {
         const { sections, labels: edgeLabels } = edge;
         if (!sections) continue;
@@ -338,7 +345,10 @@ function updateLinks(edges: ElkExtendedEdge[], graph: dia.Graph) {
 /**
  * Convert absolute label position to relative position on the link polyline.
  */
-function getLinkLabelPosition(polyline: g.Polyline, edgeLabel: ElkLabel): dia.Link.LabelPosition {
+function getLinkLabelPosition(
+    polyline: g.Polyline,
+    edgeLabel: ElkLabel
+): dia.Link.LabelPosition {
     const labelPosition = {
         x: edgeLabel.x + edgeLabel.width / 2,
         y: edgeLabel.y + edgeLabel.height / 2
@@ -356,7 +366,10 @@ function getLinkLabelPosition(polyline: g.Polyline, edgeLabel: ElkLabel): dia.Li
 /**
  * Get link end definition for given element and absolute end point.
  */
-function getLinkEnd(endElement: dia.Element, endPoint: dia.Point): dia.Link.EndJSON {
+function getLinkEnd(
+    endElement: dia.Element,
+    endPoint: dia.Point
+): dia.Link.EndJSON {
     const delta = endElement.getRelativePointFromAbsolute(endPoint);
     return {
         id: endElement.id,
@@ -371,10 +384,14 @@ function getLinkEnd(endElement: dia.Element, endPoint: dia.Point): dia.Link.EndJ
     };
 }
 
-function getLinkLabels(link: dia.Link, edgeLabels: ElkLabel[], polyline: g.Polyline): dia.Link.Label[] {
+function getLinkLabels(
+    link: dia.Link,
+    edgeLabels: ElkLabel[],
+    polyline: g.Polyline
+): dia.Link.Label[] {
     const labels = util.cloneDeep(link.labels());
     edgeLabels.forEach((edgeLabel, index) => {
-       // Note: If the diagram is meant to stay static,
+        // Note: If the diagram is meant to stay static,
         // we could also create JointJS elements instead of using link labels.
         labels[index].position = getLinkLabelPosition(polyline, edgeLabel);
     });

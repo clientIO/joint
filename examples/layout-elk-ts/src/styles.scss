@@ -3,25 +3,24 @@ html, body {
     margin: 0;
     padding: 0;
 }
-body {
-    margin: 0;
-}
 
 #canvas {
     position: absolute;
+    margin-top: 50px;
+    margin-left: 20px;
     border: 1px solid #E2E2E2;
     background-color: #F3F7F6;
     overflow: hidden;
-    margin: 20px;
 }
 
 .toolbar {
     display: flex;
     position: fixed;
     width: 100%;
-    top: 18px;
+    top: 10px;
+    margin-left: 30px;
     text-align: center;
-    justify-content: center;
+    justify-content: left;
     z-index: 1;
 }
 
