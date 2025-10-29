@@ -4,7 +4,7 @@ import type { ElkNode, ElkExtendedEdge, ElkLabel } from 'elkjs/lib/elk-api.d.ts'
 import dependenciesJSON from './dependencies.json';
 import './styles.scss';
 
-type Require<T, K extends keyof T> = T & { [P in K]+?: T[P] };
+type Require<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 type ElkGraph = Require<ElkNode, 'children' | 'edges'>;
 
 const colors = ['#F8FCDA', '#E3E9C2', '#F9FBB2', '#C89F9C'];
@@ -46,11 +46,11 @@ const init = () => {
     const elk = new ELK({
         workerUrl: '../node_modules/elkjs/lib/elk-worker.js',
     });
-    elk.layout(getElkGraph(graph)).then(elkGraph => {
-        updateGraph(elkGraph, graph);
+    elk.layout(getElkGraph(graph)).then((elkGraph) => {
+        updateGraph(elkGraph as ElkGraph, graph);
         paper.unfreeze();
         zoom(paper, 1);
-    }).catch(error => {
+    }).catch((error) => {
         console.error('ELK layout error:', error.message);
     });
 };
@@ -87,7 +87,7 @@ function addZoomAndPanListeners(paper: dia.Paper): void {
             clientX: evt.clientX,
             scrollY: window.scrollY,
             clientY: evt.clientY
-        }
+        };
     });
 
     paper.on('blank:pointermove', (evt) => {
@@ -96,8 +96,7 @@ function addZoomAndPanListeners(paper: dia.Paper): void {
             evt.data.scrollY + (evt.data.clientY - evt.clientY)
         );
     });
-
-};
+}
 
 /**
  * Create a rectangle element with given id.
@@ -169,7 +168,7 @@ function generateCells(
 ): void {
     const elementMap = new Map();
     const cells = [];
-    dependencies.forEach(dep => {
+    dependencies.forEach((dep) => {
         // The ELK graph uses string IDs
         const sourceId = `${dep.source}`;
         const targetId = `${dep.target}`;
@@ -210,8 +209,8 @@ function generateCells(
  * @param {dia.Graph} graph
  * @returns {Object} ELK graph structure
  */
-function getElkGraph(graph: dia.Graph): ElkNode {
-    const elkGraph: ElkNode = {
+function getElkGraph(graph: dia.Graph): ElkGraph {
+    const elkGraph: ElkGraph = {
         id: 'root',
         layoutOptions: {
             /**
@@ -270,7 +269,7 @@ function getElkGraph(graph: dia.Graph): ElkNode {
         edges: []
     };
 
-    graph.getElements().forEach(element => {
+    graph.getElements().forEach((element) => {
         const size = element.size();
         const elkNode: ElkNode = {
             id: `${element.id}`,
@@ -282,7 +281,7 @@ function getElkGraph(graph: dia.Graph): ElkNode {
         elkGraph.children.push(elkNode);
     });
 
-    graph.getLinks().forEach(link => {
+    graph.getLinks().forEach((link) => {
         const sourceId = `${link.source().id}`;
         const targetId = `${link.target().id}`;
         if (!sourceId || !targetId) {
@@ -292,7 +291,7 @@ function getElkGraph(graph: dia.Graph): ElkNode {
             id: `${link.id}`,
             sources: [sourceId],
             targets: [targetId],
-            labels: link.labels().map(label => ({
+            labels: link.labels().map((label) => ({
                 text: '-', // some text is required (ELK ignores empty labels)
                 width: label.size?.width || DEFAULT_LABEL_WIDTH,
                 height: label.size?.height || DEFAULT_LABEL_HEIGHT,
@@ -323,7 +322,7 @@ function updateElements(nodes: ElkNode[], graph: dia.Graph): void {
         const el = graph.getCell(node.id) as dia.Element;
         el.position(node.x, node.y);
     }
-};
+}
 
 /**
  * Update JointJS links based on ELK edge layout.
