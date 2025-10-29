@@ -461,13 +461,13 @@ export const Graph = Model.extend({
         if (!layerRef || !this.hasLayer(layerRef)) {
             throw new Error('dia.Graph: Layer to move does not exist.');
         }
-        let { before = null, index, ...moveOptions } = opt;
+        let { before = null, index, ...insertOptions } = opt;
         if (before && index !== undefined) {
             throw new Error('dia.Graph: Options "before" and "index" are mutually exclusive.');
         }
         let computedBefore;
         if (index !== undefined) {
-            const layersArray = this.getLayers().toArray();
+            const layersArray = this.getLayers();
             if (index >= layersArray.length) {
                 // If index is greater than the number of layers,
                 // set before to null (move to the end).
@@ -482,7 +482,7 @@ export const Graph = Model.extend({
         } else {
             computedBefore = before;
         }
-        this.layersController.insertLayer(layerRef, computedBefore, moveOptions);
+        this.layersController.insertLayer(layerRef, computedBefore, insertOptions);
     },
 
     /**
