@@ -202,39 +202,15 @@ export const Cell = Model.extend({
     },
 
     remove: function(opt = {}) {
-
-        // Store the graph in a variable because `this.graph` won't be accessible
-        // after `this.trigger('remove', ...)` down below.
         const { graph, collection } = this;
-        if (!graph) {
+        // If the cell is not part of a graph
+        // just remove it from the collection (if any).
+        if (graph) {
+            graph.removeCell(this, opt);
+        } else {
             // The collection is a common mvc collection (not the graph collection).
             if (collection) collection.remove(this, opt);
-            return this;
         }
-
-        graph.startBatch('remove');
-
-        // First, unembed this cell from its parent cell if there is one.
-        const parentCell = this.getParentCell();
-        if (parentCell) {
-            parentCell.unembed(this, opt);
-        }
-
-        // Remove also all the cells, which were embedded into this cell
-        const embeddedCells = this.getEmbeddedCells();
-        for (let i = 0, n = embeddedCells.length; i < n; i++) {
-            const embed = embeddedCells[i];
-            if (embed) {
-                embed.remove(opt);
-            }
-        }
-
-        // Remove from the collection in the current graph.
-        // Note: if `graph` exists, then the `collection` also exists.
-        graph.trigger('remove', this, collection, opt);
-
-        graph.stopBatch('remove');
-
         return this;
     },
 

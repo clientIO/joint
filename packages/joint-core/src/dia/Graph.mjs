@@ -246,7 +246,7 @@ export const Graph = Model.extend({
             // Note that all the links are removed first, so it's
             // safe to remove the elements without removing the connected
             // links first.
-            sortedCells.shift().remove(opt);
+            this.removeCell(sortedCells.shift(), opt);
 
         } while (sortedCells.length > 0);
 
@@ -360,9 +360,8 @@ export const Graph = Model.extend({
     removeCells: function(cells, opt) {
 
         if (cells.length) {
-
             this.startBatch('remove');
-            util.invoke(cells, 'remove', opt);
+            cells.forEach((cell) => this.removeCell(cell, opt));
             this.stopBatch('remove');
         }
 
@@ -375,14 +374,10 @@ export const Graph = Model.extend({
      */
     _replaceCell: function(currentCell, newCellInit, opt = {}) {
         const batchName = 'replace-cell';
+        const replaceOptions = { ...opt, replace: true };
         this.startBatch(batchName, opt);
         // 1. Remove the cell without removing connected links or embedded cells.
-        // See `joint.dia.Cell.prototype.remove`
-        this.trigger('remove', currentCell, currentCell.collection, {
-            ...opt,
-            clear: true,
-            replace: true
-        });
+        this.removeCell(currentCell, replaceOptions);
 
         const newCellInitAttributes = (newCellInit[CELL_MARKER])
             ? newCellInit.attributes
@@ -393,17 +388,14 @@ export const Graph = Model.extend({
 
         if (newCellInit[CELL_MARKER]) {
             // If the new cell is a model, set the merged attributes on the model
-            newCellInit.set(replacementCellAttributes, opt);
+            newCellInit.set(replacementCellAttributes, replaceOptions);
             replacement = newCellInit;
         } else {
             replacement = replacementCellAttributes;
         }
 
         // 3. Add the replacement cell
-        this.addCell(replacement, {
-            ...opt,
-            replace: true
-        });
+        this.addCell(replacement, replaceOptions);
         this.stopBatch(batchName);
     },
 
@@ -487,7 +479,7 @@ export const Graph = Model.extend({
             // Remove cells not present in the incoming array
             for (const cell of currentCells) {
                 if (!newCellsMap.has(cell.id)) {
-                    cell.remove(setOpt);
+                    this.removeCell(cell, setOpt);
                 }
             }
         }
@@ -503,26 +495,72 @@ export const Graph = Model.extend({
         this.stopBatch(batchName);
     },
 
-    _removeCell: function(cell, collection, options) {
+    /**
+     * @public
+     * @description Remove a cell from the graph.
+     * @param {dia.Cell} cell
+     * @param {Object} [options]
+     * @param {boolean} [options.disconnectLinks=false] - If `true`, the connected links are
+     * disconnected instead of removed.
+     * @param {boolean} [options.clear=false] - If `true`, the cell is removed
+     * along with all its connected links and embedded cells. @internal
+     * @param {boolean} [options.replace=false] - If `true`, the cell is removed
+     * without removing connected links or embedded cells. @internal
+     * @throws Will throw an error if no cell is provided
+     * @throws Will throw an error if the cell to remove does not exist in the graph
+     **/
+    removeCell(cellRef, options = {}) {
+        if (!cellRef) {
+            throw new Error('dia.Graph: no cell provided.');
+        }
+        const cell = cellRef[CELL_MARKER] ? cellRef : this.getCell(cellRef);
+        if (!cell) {
+            throw new Error('dia.Graph: cell to remove does not exist in the graph.');
+        }
+        if (cell.graph !== this) return;
+        const batchRequired = !options.replace;
+        if (batchRequired) this.startBatch('remove');
+        this.trigger('remove', cell, cell.collection, options);
+        if (batchRequired) this.stopBatch('remove');
+    },
 
-        options || (options = {});
+    _removeCell: function(cell, collection, options = {}) {
+        const { replace, clear, disconnectLinks } = options;
+        const removeOptions = { ...options, graph: this.cid };
+        // When replacing a cell, we do not want to remove its embeds or
+        // unembed it from its parent.
+        if (!replace) {
+            // First, unembed this cell from its parent cell if there is one.
+            const parentCell = cell.getParentCell();
+            if (parentCell) {
+                parentCell.unembed(cell, removeOptions);
+            }
 
-        if (!options.clear) {
+            // Remove also all the cells, which were embedded into this cell
+            const embeddedCells = cell.getEmbeddedCells();
+            for (let i = 0, n = embeddedCells.length; i < n; i++) {
+                const embed = embeddedCells[i];
+                if (embed) {
+                    this.removeCell(embed, removeOptions);
+                }
+            }
+        }
+        // When not clearing the whole graph or replacing the cell,
+        // we don't want to remove the connected links.
+        if (!clear && !replace) {
+
             // Applications might provide a `disconnectLinks` option set to `true` in order to
             // disconnect links when a cell is removed rather then removing them. The default
             // is to remove all the associated links.
-            if (options.disconnectLinks) {
-                this.disconnectLinks(cell, options);
+            if (disconnectLinks) {
+                this.disconnectLinks(cell, removeOptions);
             } else {
-                this.removeLinks(cell, options);
+                this.removeLinks(cell, removeOptions);
             }
         }
 
-        // Remove the cell from the layer
-        collection.remove(cell, {
-            ...options,
-            graph: this.cid
-        });
+        // Remove the cell from the cell collection.
+        collection.remove(cell, removeOptions);
     },
 
     transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {
@@ -1223,9 +1261,10 @@ export const Graph = Model.extend({
     },
 
     // Remove links connected to the cell `model` completely.
-    removeLinks: function(model, opt) {
-
-        util.invoke(this.getConnectedLinks(model), 'remove', opt);
+    removeLinks: function(cell, opt) {
+        this.getConnectedLinks(cell).forEach(link => {
+            this.removeCell(link, opt);
+        });
     },
 
     // Find all cells at given point

@@ -40,8 +40,6 @@ export namespace dia {
 
     type Size = Pick<BBox, 'width' | 'height'>;
 
-    type CellInit = Cell | Cell.JSON;
-
     type PaddingJSON = {
         left?: number;
         top?: number;
@@ -199,6 +197,12 @@ export namespace dia {
             remove?: boolean;
         }
 
+        interface RemoveCellOptions extends Options {
+            disconnectLinks?: boolean;
+            replace?: boolean;
+            clear?: boolean;
+        }
+
         type SearchByKey = 'bbox' | PositionName;
 
         interface FindUnderElementOptions extends FindInAreaOptions, FindAtPointOptions {
@@ -206,6 +210,10 @@ export namespace dia {
         }
 
         type Cells = CellCollection;
+
+        type CellInit = Cell | Cell.JSON;
+
+        type CellRef = Cell | Cell.ID;
 
         type LayerInit = GraphLayer | GraphLayer.Attributes;
 
@@ -250,14 +258,18 @@ export namespace dia {
             cellModel?: typeof Cell
         });
 
-        addCell(cell: CellInit, opt?: CollectionAddOptions): this;
-        addCell(cell: Array<CellInit>, opt?: CollectionAddOptions): this;
+        addCell(cell: Graph.CellInit, opt?: CollectionAddOptions): this;
+        addCell(cell: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
 
-        addCells(cells: Array<CellInit>, opt?: CollectionAddOptions): this;
+        addCells(cells: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
 
-        resetCells(cells: Array<CellInit>, opt?: Graph.Options): this;
+        removeCell(cell: Graph.CellRef, opt?: Graph.RemoveCellOptions): void;
 
-        syncCells(cells: Array<CellInit>, opt?: Graph.SyncCellOptions): void;
+        removeCells(cells: Graph.CellRef[], opt?: Graph.RemoveCellOptions): this;
+
+        resetCells(cells: Array<Graph.CellInit>, opt?: Graph.Options): this;
+
+        syncCells(cells: Array<Graph.CellInit>, opt?: Graph.SyncCellOptions): void;
 
         resetLayers(layers: Array<Graph.LayerInit>, opt?: Graph.ResetLayersOptions): this;
 
@@ -277,7 +289,7 @@ export namespace dia {
 
         getLayers(): GraphLayer[];
 
-        getCell(id: Cell.ID | Cell): Cell;
+        getCell(id: Graph.CellRef): Cell;
 
         getElements(): Element[];
 
@@ -293,7 +305,7 @@ export namespace dia {
 
         disconnectLinks(cell: Cell, opt?: S): void;
 
-        removeLinks(cell: Cell, opt?: Cell.DisconnectableOptions): void;
+        removeLinks(cell: Graph.CellRef, opt?: Graph.RemoveCellOptions): void;
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -365,9 +377,9 @@ export namespace dia {
 
         protected _filterCellsUnderElement(cells: Cell[], element: Element, opt: Graph.FindUnderElementOptions): Cell[];
 
-        protected _syncCell(cellInit: CellInit, opt?: Graph.Options): void;
+        protected _syncCell(cellInit: Graph.CellInit, opt?: Graph.Options): void;
 
-        protected _replaceCell(currentCell: Cell, newCellInit: CellInit,  opt?: Graph.Options): void;
+        protected _replaceCell(currentCell: Cell, newCellInit: Graph.CellInit,  opt?: Graph.Options): void;
 
         /** @deprecated use `findElementsAtPoint` instead */
         findModelsFromPoint(p: Point): Element[];
@@ -387,8 +399,6 @@ export namespace dia {
         maxZIndex(layerName?: string): number;
 
         minZIndex(layerName?: string): number;
-
-        removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
         transferCellEmbeds(sourceCell: Cell, targetCell: Cell, opt?: S): void;
 
@@ -447,9 +457,7 @@ export namespace dia {
             deep?: T;
         }
 
-        interface DisconnectableOptions extends Options {
-            disconnectLinks?: boolean;
-        }
+        type DisconnectableOptions = Graph.RemoveCellOptions;
 
         interface GetEmbeddedCellsOptions extends EmbeddableOptions {
             breadthFirst?: boolean;
@@ -730,7 +738,7 @@ export namespace dia {
         }
 
         interface FitParentOptions extends FitToChildrenOptions {
-            terminator?: Cell | Cell.ID;
+            terminator?: Graph.CellRef;
         }
 
         interface RotateOptions {
@@ -1879,7 +1887,7 @@ export namespace dia {
 
         findView<T extends ElementView | LinkView>(element: mvc.$SVGElement): T;
 
-        findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
+        findViewByModel<T extends ElementView | LinkView>(model: Graph.CellRef): T;
 
         /**
          * Finds all the element views at the specified point
@@ -1941,7 +1949,7 @@ export namespace dia {
 
         getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
 
-        getModelById(id: Cell.ID | Cell): Cell;
+        getModelById(id: Graph.CellRef): Cell;
 
         setDimensions(width: Paper.Dimension, height: Paper.Dimension, data?: any): void;
 
@@ -2018,9 +2026,9 @@ export namespace dia {
 
         requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
-        requestCellViewInsertion(cell: Cell | Cell.ID, opt?: { [key: string]: any }): void;
+        requestCellViewInsertion(cell: Graph.CellRef, opt?: { [key: string]: any }): void;
 
-        requireView<T extends ElementView | LinkView>(cellOrId: Cell | Cell.ID, opt?: Paper.UpdateViewOptions & Paper.RenderCallbackOptions): T;
+        requireView<T extends ElementView | LinkView>(cellOrId: Graph.CellRef, opt?: Paper.UpdateViewOptions & Paper.RenderCallbackOptions): T;
 
         updateViews(opt?: Paper.UpdateViewsOptions): Paper.RenderStats & { batches: number };
 
@@ -2028,10 +2036,10 @@ export namespace dia {
 
         disposeHiddenCellViews(): void;
 
-        isCellVisible(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+        isCellVisible(cellOrId: Graph.CellRef): boolean;
 
         updateCellVisibility(
-            cell: Cell | Cell.ID,
+            cell: Graph.CellRef,
             opt?: Paper.CellVisibilityOptions & Paper.UpdateViewOptions & Paper.RenderCallbackOptions
         ): void;
 
@@ -2083,9 +2091,9 @@ export namespace dia {
 
         protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: Paper.MountOptions): number;
 
-        protected prioritizeCellViewMount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+        protected prioritizeCellViewMount(cellOrId: Graph.CellRef): boolean;
 
-        protected prioritizeCellViewUnmount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+        protected prioritizeCellViewUnmount(cellOrId: Graph.CellRef): boolean;
 
         protected isViewMounted(viewOrCid: dia.CellView | string): boolean;
 
