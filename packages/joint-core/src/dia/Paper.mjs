@@ -488,12 +488,24 @@ export const Paper = View.extend({
 
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
-            // Do not update connected links when:
-            // 1. the view was just inserted (added to the graph and rendered)
-            // 2. the view was just mounted (added back to the paper by viewport function)
-            // 3. the change was marked as `isolate`.
-            // 4. the view model was just removed from the graph
-            if ((flag & (paper.FLAG_INSERT | paper.FLAG_REMOVE)) || opt.mounting || opt.isolate) return;
+            if (opt.mounting || opt.isolate) {
+                // Do not update connected links when:
+                // - the view was just mounted (added back to the paper by viewport function)
+                // - the change was marked as `isolate`.
+                return;
+            }
+            // Always update connected links when the view model was replaced with another model
+            // with the same id.
+            // Note: the removal is done in 2 steps: remove the old model, add the new model.
+            // We update connected links on the add step.
+            if (!(opt.replace && opt.add)) {
+                if ((flag & (paper.FLAG_INSERT | paper.FLAG_REMOVE))) {
+                    // Do not update connected links when:
+                    // - the view was just inserted (added to the graph and rendered)
+                    // - the view model was just removed from the graph
+                    return;
+                }
+            }
             paper.requestConnectedLinksUpdate(view, priority, opt);
         },
 
