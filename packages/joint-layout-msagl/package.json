@@ -72,7 +72,7 @@
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",
     "karma-qunit": "^4.1.2",
-    "puppeteer": "24.4.0",
+    "puppeteer": "24.22.0",
     "qunit": "^2.24.1",
     "rollup": "4.36.0",
     "rollup-plugin-banner2": "^1.2.2",

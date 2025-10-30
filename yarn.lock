@@ -3100,7 +3100,7 @@ __metadata:
     karma-chrome-launcher: "npm:^3.2.0"
     karma-coverage: "npm:^2.2.1"
     karma-qunit: "npm:^4.1.2"
-    puppeteer: "npm:24.4.0"
+    puppeteer: "npm:24.22.0"
     qunit: "npm:^2.24.1"
     rollup: "npm:4.36.0"
     rollup-plugin-banner2: "npm:^1.2.2"
@@ -3757,23 +3757,6 @@ __metadata:
   bin:
     browsers: lib/cjs/main-cli.js
   checksum: 10/6e9763a567252faf88ba3a699d76b9651cc4355be7602feb6dd21eab1c826cc7616e22f50d584a5727a1cab420ee0c2f232da22704fe25903f7a41c96470a227
-  languageName: node
-  linkType: hard
-
-"@puppeteer/browsers@npm:2.8.0":
-  version: 2.8.0
-  resolution: "@puppeteer/browsers@npm:2.8.0"
-  dependencies:
-    debug: "npm:^4.4.0"
-    extract-zip: "npm:^2.0.1"
-    progress: "npm:^2.0.3"
-    proxy-agent: "npm:^6.5.0"
-    semver: "npm:^7.7.1"
-    tar-fs: "npm:^3.0.8"
-    yargs: "npm:^17.7.2"
-  bin:
-    browsers: lib/cjs/main-cli.js
-  checksum: 10/168a2580328c3b652255ca317788687b16f6da63c818f100cb2984f21f8860976ba54c5ed2cacead635bed1d303f9674cee8d7f3b724158e118d6e18cd4d62ec
   languageName: node
   linkType: hard
 
@@ -8866,18 +8849,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chromium-bidi@npm:2.1.2":
-  version: 2.1.2
-  resolution: "chromium-bidi@npm:2.1.2"
-  dependencies:
-    mitt: "npm:^3.0.1"
-    zod: "npm:^3.24.1"
-  peerDependencies:
-    devtools-protocol: "*"
-  checksum: 10/b8af33a7c2182d98e24aa0f6b1d0ab6dcfbd0ce75a418ef8c5bb5abf5fafabbd6a8e4c3052bfd2dd0651b97cc0790ac88d6702fe5ce6886742d0d2c73dbd161e
-  languageName: node
-  linkType: hard
-
 "chromium-bidi@npm:8.0.0":
   version: 8.0.0
   resolution: "chromium-bidi@npm:8.0.0"
@@ -10336,13 +10307,6 @@ __metadata:
   version: 0.0.1107588
   resolution: "devtools-protocol@npm:0.0.1107588"
   checksum: 10/6d1645a65573b668545b4f70c1c9a4f5d1b7778e183eeba60bb7d6aa98e0d736b5a3ea2e114f5befd929ab5e9f84618a9d4af6be0950155ee79f12dbfea79fca
-  languageName: node
-  linkType: hard
-
-"devtools-protocol@npm:0.0.1413902":
-  version: 0.0.1413902
-  resolution: "devtools-protocol@npm:0.0.1413902"
-  checksum: 10/42e83c43b37be02ced0bfda0b73c4ec60513054240f3bed138ca38cdddac587b6a67a27b2926ec478ca65760fc87d9799b5a16456f521ab2bb142afd39edaeb2
   languageName: node
   linkType: hard
 
@@ -19274,20 +19238,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"puppeteer-core@npm:24.4.0":
-  version: 24.4.0
-  resolution: "puppeteer-core@npm:24.4.0"
-  dependencies:
-    "@puppeteer/browsers": "npm:2.8.0"
-    chromium-bidi: "npm:2.1.2"
-    debug: "npm:^4.4.0"
-    devtools-protocol: "npm:0.0.1413902"
-    typed-query-selector: "npm:^2.12.0"
-    ws: "npm:^8.18.1"
-  checksum: 10/71d85626bff439683e319850c47ca6fc5d653b2e4229e78d665aabff2d60ea1114f30bbfcdfffd4d113de06f90c83cce1dd5c15c44ad317febf08731ef48695a
-  languageName: node
-  linkType: hard
-
 "puppeteer@npm:24.22.0":
   version: 24.22.0
   resolution: "puppeteer@npm:24.22.0"
@@ -19301,22 +19251,6 @@ __metadata:
   bin:
     puppeteer: lib/cjs/puppeteer/node/cli.js
   checksum: 10/cffe56e7b8507c43f5450362291a6c1fb28aa613d844034bffcf4cdddf5f42e918695d742eae45ad843e6b7ca88b1134747b44cfd1724048a3913c642e982bb9
-  languageName: node
-  linkType: hard
-
-"puppeteer@npm:24.4.0":
-  version: 24.4.0
-  resolution: "puppeteer@npm:24.4.0"
-  dependencies:
-    "@puppeteer/browsers": "npm:2.8.0"
-    chromium-bidi: "npm:2.1.2"
-    cosmiconfig: "npm:^9.0.0"
-    devtools-protocol: "npm:0.0.1413902"
-    puppeteer-core: "npm:24.4.0"
-    typed-query-selector: "npm:^2.12.0"
-  bin:
-    puppeteer: lib/cjs/puppeteer/node/cli.js
-  checksum: 10/ad60fc7d295c843d6a9e01fb2310bd5d671d0516d29e6ae58718e197c642dcd0fd90d8030d9b12e50ba7122752fd1cd67dbdd490b9e6378def0c7087d5c23efc
   languageName: node
   linkType: hard
 
@@ -22363,7 +22297,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar-fs@npm:^3.0.6, tar-fs@npm:^3.0.8, tar-fs@npm:^3.1.0, tar-fs@npm:^3.1.1":
+"tar-fs@npm:^3.0.6, tar-fs@npm:^3.1.0, tar-fs@npm:^3.1.1":
   version: 3.1.1
   resolution: "tar-fs@npm:3.1.1"
   dependencies:
@@ -25039,7 +24973,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^8.11.0, ws@npm:^8.13.0, ws@npm:^8.18.0, ws@npm:^8.18.1, ws@npm:^8.18.3, ws@npm:^8.2.3, ws@npm:^8.8.0":
+"ws@npm:^8.11.0, ws@npm:^8.13.0, ws@npm:^8.18.0, ws@npm:^8.18.3, ws@npm:^8.2.3, ws@npm:^8.8.0":
   version: 8.18.3
   resolution: "ws@npm:8.18.3"
   peerDependencies:
