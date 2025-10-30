@@ -1146,7 +1146,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             link.target(rect2);
                             graph.addCells([rect1, rect2, link]);
                             const rect1View = rect1.findView(paper);
-                            const rect2View = rect2.findView(paper);
                             const linkView = link.findView(paper);
                             const onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
                             const rect1Replacement = new joint.shapes.standard.Circle({ id: rect1.id });

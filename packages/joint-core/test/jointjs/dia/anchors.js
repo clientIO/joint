@@ -127,7 +127,6 @@ QUnit.module('anchors', function(hooks) {
 
                 const sourceElement = link.getSourceElement();
                 const sourceBBox = sourceElement.getBBox();
-                const sourceCenter = sourceBBox.center();
                 const anchor = {
                     name,
                     args: {

@@ -19,21 +19,6 @@ export default defineConfig([
                 CDATASection: 'readonly',
             },
         },
-        extends: [
-            js.configs.recommended,
-        ],
-        rules: {
-            'indent': ['error', 4, { 'SwitchCase': 1 }],
-            'space-before-function-paren': ['error', 'never'],
-            'no-console': ['error', { 'allow': ['warn'] }],
-            'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
-            'no-constant-condition': ['off'],
-            'no-undef': ['error'],
-            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
-            'quotes': ['error', 'single'],
-            'semi': ['error', 'always'],
-            'no-prototype-builtins': ['off'],
-        },
     },
     {
         // rules for JS files
@@ -41,6 +26,21 @@ export default defineConfig([
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',
+        },
+        extends: [
+            js.configs.recommended,
+        ],
+        rules: {
+            'indent': ['error', 4, { 'SwitchCase': 1 }],
+            'no-console': ['error', { 'allow': ['warn'] }],
+            'no-constant-condition': ['off'],
+            'no-prototype-builtins': ['off'],
+            'no-undef': ['error'],
+            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
+            'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
+            'quotes': ['error', 'single'],
+            'semi': ['error', 'always'],
+            'space-before-function-paren': ['error', 'never'],
         },
     },
     {
@@ -63,13 +63,6 @@ export default defineConfig([
     {
         // rules for TS files
         files: ['**/*.ts', '**/*.mts'],
-        plugins: {
-            '@typescript-eslint': tsPlugin,
-        },
-        extends: [
-            js.configs.recommended,
-            '@typescript-eslint/recommended',
-        ],
         languageOptions: {
             parser: tsParser,
             parserOptions: {
@@ -77,18 +70,24 @@ export default defineConfig([
                 sourceType: 'module',
             },
         },
+        plugins: {
+            '@typescript-eslint': tsPlugin,
+        },
+        extends: [
+            js.configs.recommended,
+            '@typescript-eslint/recommended',
+        ],
         rules: {
             'indent': ['error', 4, { 'SwitchCase': 1 }],
-            'space-before-function-paren': ['error', 'never'],
             'no-console': ['error', { 'allow': ['warn'] }],
-            'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
             'no-constant-condition': ['off'],
+            'no-prototype-builtins': ['off'],
             'no-undef': ['off'],
-            'no-unused-vars': ['off'],
             '@typescript-eslint/no-unused-vars': ['off'],
+            'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
-            'no-prototype-builtins': ['off'],
+            'space-before-function-paren': ['error', 'never'],
         },
     },
 ]);

@@ -19,6 +19,15 @@ export default defineConfig([
                 CDATASection: 'readonly',
             },
         },
+    },
+    {
+        // rules for JS files
+        files: ['**/*.js', '**/*.mjs'],
+        ignores: ['**/test/ts/*.js'],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'module',
+        },
         extends: [
             js.configs.recommended,
         ],
@@ -30,30 +39,14 @@ export default defineConfig([
             'no-undef': ['error'],
             'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
             'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
-            'prefer-const': ['off'], // TODO: TRY TO REMOVE (WAS ONLY FOR TESTS)
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
             'space-before-function-paren': ['error', 'never'],
         },
     },
     {
-        // rules for JS files
-        files: ['**/*.js', '**/*.mjs'],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'module',
-        },
-    },
-    {
         // rules for TS files
         files: ['**/*.ts', '**/*.mts'],
-        plugins: {
-            '@typescript-eslint': tsPlugin,
-        },
-        extends: [
-            js.configs.recommended,
-            '@typescript-eslint/recommended',
-        ],
         languageOptions: {
             parser: tsParser,
             parserOptions: {
@@ -61,23 +54,28 @@ export default defineConfig([
                 sourceType: 'module',
             },
         },
+        plugins: {
+            '@typescript-eslint': tsPlugin,
+        },
+        extends: [
+            js.configs.recommended,
+            '@typescript-eslint/recommended',
+        ],
         rules: {
             'indent': ['error', 4, { 'SwitchCase': 1 }],
             'no-console': ['error', { 'allow': ['warn'] }],
             'no-constant-condition': ['off'],
             'no-prototype-builtins': ['off'],
             'no-undef': ['off'],
-            'no-unused-vars': ['off'], // TODO: TRY TO REMOVE (SET BY TYPESCRIPT-ESLINT?)
             '@typescript-eslint/no-unused-vars': ['off'],
             'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
-            'prefer-const': ['off'], // TODO: TRY TO REMOVE (WAS ONLY FOR TESTS)
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
             'space-before-function-paren': ['error', 'never'],
         },
     },
     {
-        // rules for tests
+        // extra globals
         files: ['**/test/**'],
         languageOptions: {
             globals: {
@@ -96,15 +94,8 @@ export default defineConfig([
         },
     },
     {
-        // rules for types
+        // different rules for types
         files: ['**/types/*.d.ts'],
-        plugins: {
-            '@typescript-eslint': tsPlugin,
-        },
-        extends: [
-            js.configs.recommended,
-            '@typescript-eslint/recommended',
-        ],
         languageOptions: {
             parser: tsParser,
             parserOptions: {
@@ -112,14 +103,21 @@ export default defineConfig([
                 sourceType: 'module',
             },
         },
+        plugins: {
+            '@typescript-eslint': tsPlugin,
+        },
+        extends: [
+            js.configs.recommended,
+            '@typescript-eslint/recommended',
+        ],
         rules: {
-            'comma-spacing': ['error'], // TODO: TRY TO REMOVE
+            'comma-spacing': ['error'],
             'indent': ['error', 4, { 'SwitchCase': 1 }],
             '@typescript-eslint/no-empty-object-type': ['off'],
-            '@typescript-eslint/no-explicit-any': ['off'], // TODO: SWITCH TO 'warn'
-            '@typescript-eslint/no-unsafe-function-type': ['off'], // TODO: SWITCH TO 'warn'
-            '@typescript-eslint/no-unused-vars': ['off'], // TODO: SWITCH TO 'warn'
-            'no-var': ['off'], // TODO: SWITCH TO 'warn'
+            '@typescript-eslint/no-explicit-any': ['off'],
+            '@typescript-eslint/no-unsafe-function-type': ['off'],
+            '@typescript-eslint/no-unused-vars': ['off'],
+            'no-var': ['off'],
             'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
