@@ -204,6 +204,8 @@ QUnit.module('layers-basic', function(hooks) {
 
         this.graph.addLayer(layer1);
 
+        assert.equal(layer1.graph, this.graph, 'Layer1 graph reference is set');
+
         const layers = this.graph.getLayers();
         assert.strictEqual(layers[0].id, 'cells', 'First layer is "cells"');
         assert.strictEqual(layers[1].id, 'layer1', 'Second layer is "layer1"');
@@ -243,12 +245,18 @@ QUnit.module('layers-basic', function(hooks) {
         const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });
         this.graph.addLayer(layer1);
 
+        assert.equal(layer1.graph, this.graph, 'Layer1 graph reference is set');
+
         const layer2 = new joint.dia.GraphLayer({ id: 'layer2' });
         this.graph.addLayer(layer2);
+
+        assert.equal(layer2.graph, this.graph, 'Layer2 graph reference is set');
 
         assert.strictEqual(this.graph.getLayers().length, 3, 'There are 3 layers in the graph');
 
         this.graph.removeLayer(layer1);
+
+        assert.equal(layer1.graph, null, 'Layer1 graph reference is removed');
 
         const layers = this.graph.getLayers();
         assert.strictEqual(layers.length, 2, 'There are 2 layers in the graph');
@@ -256,6 +264,8 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(layers[1].id, 'layer2', 'Second layer is "layer2"');
 
         this.graph.removeLayer(layer2);
+
+        assert.equal(layer2.graph, null, 'Layer2 graph reference is removed');
 
         const updatedLayers = this.graph.getLayers();
         assert.strictEqual(updatedLayers.length, 1, 'There is 1 layer in the graph');
@@ -290,7 +300,13 @@ QUnit.module('layers-basic', function(hooks) {
 
         this.graph.resetLayers([{ id: 'cells' }]);
 
+        assert.equal(layer1.graph, null, 'Layer1 graph reference is removed after reset');
+        assert.equal(layer2.graph, null, 'Layer2 graph reference is removed after reset');
+
         const layers = this.graph.getLayers();
+
+        assert.equal(layers[0].graph, this.graph, 'Layer graph reference is set after reset');
+
         assert.strictEqual(layers.length, 1, 'There is 1 layer in the graph');
         assert.strictEqual(layers[0].id, 'cells', 'The only layer is "cells"');
 
@@ -331,17 +347,17 @@ QUnit.module('layers-basic', function(hooks) {
         const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });
         this.graph.addLayer(layer1);
 
-        this.graph.addCell({
-            type: 'standard.Rectangle',
+        const rect1 = new joint.shapes.standard.Rectangle({
             id: 'rect1',
             layer: 'layer1'
         });
 
-        this.graph.addCell({
-            type: 'standard.Rectangle',
+        const rect2 = new joint.shapes.standard.Rectangle({
             id: 'rect2',
             layer: 'layer1'
         });
+
+        this.graph.addCells([rect1, rect2]);
 
         assert.strictEqual(this.graph.getLayers().length, 2, 'There are 2 layers in the graph');
         assert.strictEqual(layer1.cellCollection.length, 2, 'Layer "layer1" has 2 cells');
@@ -357,6 +373,9 @@ QUnit.module('layers-basic', function(hooks) {
 
         assert.ok(!this.graph.getCell('rect1'), 'Cell "rect1" is removed from the graph');
         assert.ok(!this.graph.getCell('rect2'), 'Cell "rect2" is removed from the graph');
+
+        assert.notOk(rect1.graph, 'Cell "rect1" graph reference is removed');
+        assert.notOk(rect2.graph, 'Cell "rect2" graph reference is removed');
     });
 
     QUnit.test('custom attributes in "layers"', (assert) => {

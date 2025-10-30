@@ -15,8 +15,6 @@ export class CellCollection extends Collection {
     [CELL_COLLECTION_MARKER] = true;
 
     initialize(_models, opt) {
-        this.cellNamespace = opt.cellNamespace;
-        this.graph = opt.graph;
         this.layer = opt.layer;
     }
 
@@ -31,6 +29,11 @@ export class CellCollection extends Collection {
     model(attrs, opt) {
 
         const namespace = this.cellNamespace;
+
+        if (!namespace) {
+            throw new Error('dia.CellCollection: cellNamespace is required to instantiate a Cell from JSON.');
+        }
+
         const { type } = attrs;
 
         // Find the model class based on the `type` attribute in the cell namespace
@@ -45,37 +48,42 @@ export class CellCollection extends Collection {
     // Override to set graph reference
     _addReference(model, options) {
         super._addReference(model, options);
+
         // If not in `dry` mode and the model does not have a graph reference yet,
         // set the reference.
         if (!options.dry && !model.graph) {
-            model.graph = this.graph;
+            model.graph = this.layer.graph;
         }
     }
 
     // Override to remove graph reference
     _removeReference(model, options) {
         super._removeReference(model, options);
+
         // If not in `dry` mode and the model has a reference to this exact graph,
         // remove the reference.
-        if (!options.dry && model.graph === this.graph) {
+        // Note: graph reference is removed from the layer after the `remove` event is fired.
+        // Due to this, event handlers can still access the graph during the `remove` event.
+        if (!options.dry && model.graph === this.layer.graph) {
             model.graph = null;
         }
     }
 
     // remove graph reference additionally
     _removeReferenceFast(model, options) {
+        model.off('all', this._onModelEvent, this);
+
         if (!options.dry) {
             // If not in `dry` mode and the model has a reference
             // to this exact graph/collection, remove the reference.
             if (this === model.collection) {
                 delete model.collection;
             }
-            if (this.graph === model.graph) {
+
+            if (model.graph === this.layer.graph) {
                 model.graph = null;
             }
         }
-
-        model.off('all', this._onModelEvent, this);
     }
 
     // `comparator` makes it easy to sort cells based on their `z` index.

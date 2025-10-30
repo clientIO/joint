@@ -30,12 +30,8 @@ export class GraphLayer extends Model {
         super.initialize(attrs, options);
 
         this.cellCollection = new CellCollection([], {
-            layer: this,
-            graph: options.graph,
-            cellNamespace: options.cellNamespace,
+            layer: this
         });
-
-        this.graph = options.graph;
 
         // Forward all events from the inner `cellCollection` collection
         this.cellCollection.on('all', this.trigger, this);

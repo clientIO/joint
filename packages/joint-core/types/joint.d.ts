@@ -160,7 +160,6 @@ export namespace dia {
 
         cellNamespace: any;
         layer: GraphLayer;
-        graph: Graph;
 
         minZIndex(): number;
 
@@ -2271,6 +2270,7 @@ export namespace dia {
         declare id: string;
 
         cellCollection: C;
+        graph: Graph | null;
 
         constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<GraphLayer>);
     }

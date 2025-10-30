@@ -57,32 +57,40 @@ export const GraphLayerCollection = Collection.extend({
         return new GraphLayerClass(attrs, opt);
     },
 
+    // Override to set graph reference
+    _addReference(layer, options) {
+        Collection.prototype._addReference.call(this, layer, options);
+
+        // assign graph and cellNamespace references
+        // to the added layer
+        layer.graph = this.graph;
+        layer.cellCollection.cellNamespace = this.cellNamespace;
+    },
+
+    // Override to remove graph reference
+    _removeReference(layer, options) {
+        Collection.prototype._removeReference.call(this, layer, options);
+
+        // remove graph and cellNamespace references
+        // from the removed layer
+        layer.graph = null;
+        layer.cellCollection.cellNamespace = null;
+    },
+
     /**
      * @override
      * @description Overrides the default `_prepareModel` method
-     * to set `cellNamespace` and `graph` references on the created layers.
+     * to set default layer type if missing.
      */
     _prepareModel: function(attrs, options) {
         if (!attrs[GRAPH_LAYER_MARKER]) {
             // Add a mandatory `type` attribute if missing
-            let preparedAttributes;
             if (!attrs.type) {
-                preparedAttributes = util.clone(attrs);
+                const preparedAttributes = util.clone(attrs);
                 preparedAttributes.type = DEFAULT_GRAPH_LAYER_TYPE;
-            } else {
-                preparedAttributes = attrs;
+                arguments[0] = preparedAttributes;
             }
-
-            const preparedOptions = util.clone(options);
-            preparedOptions.graph = this.graph;
-            preparedOptions.cellNamespace = this.cellNamespace;
-
-            return Collection.prototype._prepareModel.call(this, preparedAttributes, preparedOptions);
         }
-        // `attrs` is already a GraphLayer instance
-        attrs.cellCollection.graph = this.graph;
-        attrs.graph = this.graph;
-        attrs.cellCollection.cellNamespace = this.cellNamespace;
 
         return Collection.prototype._prepareModel.apply(this, arguments);
     },
