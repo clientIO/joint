@@ -703,6 +703,41 @@ QUnit.module("graph", function (hooks) {
         });
     });
 
+    QUnit.module('removeCell()', function(hooks) {
+
+        QUnit.test('throwing errors', function(assert) {
+            const graph = this.graph;
+            assert.throws(
+                function() {
+                    graph.removeCell(null);
+                }, /dia.Graph: no cell provided./
+            );
+            assert.throws(
+                function() {
+                    graph.removeCell('non-existing-id');
+                }, /dia.Graph: cell to remove does not exist in the graph./
+            );
+        });
+
+        QUnit.test('remove by id', function(assert) {
+            const graph = this.graph;
+            const cell = new joint.shapes.standard.Rectangle();
+            graph.addCell(cell);
+            assert.ok(graph.getCell(cell.id));
+            graph.removeCell(cell.id);
+            assert.notOk(graph.getCell(cell.id));
+        });
+
+        QUnit.test('remove by instance', function(assert) {
+            const graph = this.graph;
+            const cell = new joint.shapes.standard.Rectangle();
+            graph.addCell(cell);
+            assert.ok(graph.getCell(cell.id));
+            graph.removeCell(cell);
+            assert.notOk(graph.getCell(cell.id));
+        });
+    });
+
     QUnit.test("storing reference on models", function (assert) {
         const fromInstance = new joint.shapes.standard.Rectangle({ id: "a" });
         const fromPlainObject = { id: "b", type: "standard.Rectangle" };
