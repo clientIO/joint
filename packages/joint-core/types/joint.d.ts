@@ -158,7 +158,6 @@ export namespace dia {
 
         cellNamespace: any;
         layer: GraphLayer;
-        graph: Graph;
 
         minZIndex(): number;
 
@@ -2252,6 +2251,10 @@ export namespace dia {
             id: ID;
             type?: string;
         }
+
+        interface Options extends mvc.ModelConstructorOptions<GraphLayer> {
+            cellNamespace?: any;
+        }
     }
 
     class GraphLayer<C extends CellCollection = CellCollection, A extends GraphLayer.Attributes = GraphLayer.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -2259,8 +2262,9 @@ export namespace dia {
         declare id: string;
 
         cellCollection: C;
+        graph: Graph | null;
 
-        constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<GraphLayer>);
+        constructor(attributes?: DeepPartial<A>, options?: GraphLayer.Options);
     }
 
     class GraphLayerView<T extends GraphLayer = GraphLayer> extends LayerView<T> {
