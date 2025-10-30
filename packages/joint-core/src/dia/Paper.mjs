@@ -1109,30 +1109,57 @@ export const Paper = View.extend({
 
     /**
      * @public
-     * @description Inserts the layer view into the paper.
-     * If the layer view already exists in the paper, it is moved to the new position.
-     * @param {dia.LayerView} layerView - The layer view to insert.
-     * @param {Object} [options] - Insertion options.
+     * @description Adds the layer view to the paper.
+     * @param {dia.LayerView} layerView - The layer view to add.
+     * @param {Object} [options] - Adding options.
      * @param {string|dia.GraphLayer} [options.before] - Layer id or layer model before
-     * which the layer view should be inserted.
      */
-    insertLayerView(layerView, options = {}) {
+    addLayerView(layerView, options = {}) {
+        this._registerLayerView(layerView);
+        this.insertLayerView(layerView, options.before);
+    },
+
+    /**
+     * @public
+     * @description Moves the layer view.
+     * @param {dia.LayerView} layerView - The layer view to move.
+     * @param {Object} [options] - Moving options.
+     * @param {string|dia.GraphLayer} [options.before] - Layer id or layer model before
+     */
+    moveLayerView(layerView, options = {}) {
         if (!layerView || !layerView[LAYER_VIEW_MARKER]) {
             throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
         }
 
         const layerId = layerView.id;
 
-        // register the view if it doesn't exist in Paper
-        if (!this.hasLayerView(layerId)) {
-            this._registerLayerView(layerView);
+        if (!this.hasLayerView(layerView)) {
+            throw new Error(`dia.Paper: Unknown layer view "${layerId}".`);
         }
+
+        this.insertLayerView(layerView, options.before);
+    },
+
+    /**
+     * @protected
+     * @description Inserts the layer view into the paper.
+     * If the layer view already exists in the paper, it is moved to the new position.
+     * @param {dia.LayerView} layerView - The layer view to insert.
+     * @param {string|dia.GraphLayer} [before] - Layer id or layer model before
+     * which the layer view should be inserted.
+     */
+    insertLayerView(layerView, before) {
+        if (!layerView || !layerView[LAYER_VIEW_MARKER]) {
+            throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
+        }
+
+        const layerId = layerView.id;
 
         const { _layers: { order }} = this;
         const currentLayerIndex = order.indexOf(layerId);
 
         // Should the layer view be inserted before another layer view?
-        if (options.before) {
+        if (before) {
             const beforeLayerView = this.getLayerView(options.before);
             const beforeLayerViewId = beforeLayerView.id;
             if (layerId === beforeLayerViewId) {
