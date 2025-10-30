@@ -355,6 +355,42 @@ QUnit.module("graph", function (hooks) {
                 assert.ok(sortSpy.calledWith(graph.getLayer('l4').cellCollection), 'Layer l4 sorted.');
                 assert.ok(sortSpy.calledWith(graph.getLayer('l5').cellCollection), 'Layer l5 sorted.');
             });
+
+            QUnit.test('should replace link and correctly set a new target', function(assert) {
+                const graph = this.graph;
+                graph.resetCells([{
+                    id: 'source',
+                    type: 'standard.Rectangle'
+                }, {
+                    id: 'target',
+                    type: 'standard.Rectangle'
+                }, {
+                    id: 'new-target',
+                    type: 'standard.Rectangle'
+                }, {
+                    id: 'link1',
+                    type: 'standard.Link',
+                    source: { id: 'source' },
+                    target: { id: 'target' }
+                }]);
+                graph.syncCells([{
+                    id: 'link1',
+                    type: 'standard.DoubleLink',
+                    target: { id: 'new-target' },
+                }]);
+                const link = graph.getCell('link1');
+                const source = graph.getCell('source');
+                const target = graph.getCell('target');
+                const newTarget = graph.getCell('new-target');
+                assert.equal(link.get('type'), 'standard.DoubleLink');
+                assert.equal(link.get('source').id, 'source');
+                assert.equal(link.get('target').id, 'new-target');
+                assert.equal(graph.getNeighbors(source).length, 1);
+                assert.equal(graph.getNeighbors(source)[0].id, 'new-target');
+                assert.equal(graph.getNeighbors(target).length, 0);
+                assert.equal(graph.getNeighbors(newTarget).length, 1);
+                assert.equal(graph.getNeighbors(newTarget)[0].id, 'source');
+            });
         });
 
         QUnit.module('remove: true', function() {
