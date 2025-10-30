@@ -74,13 +74,13 @@ export const GraphLayerCollection = Collection.extend({
         // remove graph and cellNamespace references
         // from the removed layer
         layer.graph = null;
-        layer.cellCollection.cellNamespace = layer._cellNamespace;
+        layer.cellCollection.cellNamespace = null;
     },
 
     /**
      * @override
      * @description Overrides the default `_prepareModel` method
-     * to set `cellNamespace` and `graph` references on the created layers.
+     * to set default layer type if missing.
      */
     _prepareModel: function(attrs, options) {
         if (!attrs[GRAPH_LAYER_MARKER]) {

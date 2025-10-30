@@ -2251,10 +2251,6 @@ export namespace dia {
             id: ID;
             type?: string;
         }
-
-        interface Options extends mvc.ModelConstructorOptions<GraphLayer> {
-            cellNamespace?: any;
-        }
     }
 
     class GraphLayer<C extends CellCollection = CellCollection, A extends GraphLayer.Attributes = GraphLayer.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -2264,7 +2260,7 @@ export namespace dia {
         cellCollection: C;
         graph: Graph | null;
 
-        constructor(attributes?: DeepPartial<A>, options?: GraphLayer.Options);
+        constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<GraphLayer>);
     }
 
     class GraphLayerView<T extends GraphLayer = GraphLayer> extends LayerView<T> {

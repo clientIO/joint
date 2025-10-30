@@ -15,7 +15,6 @@ export class CellCollection extends Collection {
     [CELL_COLLECTION_MARKER] = true;
 
     initialize(_models, opt) {
-        this.cellNamespace = opt.cellNamespace || {};
         this.layer = opt.layer;
     }
 
@@ -30,6 +29,11 @@ export class CellCollection extends Collection {
     model(attrs, opt) {
 
         const namespace = this.cellNamespace;
+
+        if (!namespace) {
+            throw new Error('dia.CellCollection: No cellNamespace defined. Currently, adding cells using JSON is not supported without adding layer to the Graph');
+        }
+
         const { type } = attrs;
 
         // Find the model class based on the `type` attribute in the cell namespace

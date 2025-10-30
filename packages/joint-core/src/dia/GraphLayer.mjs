@@ -30,13 +30,8 @@ export class GraphLayer extends Model {
         super.initialize(attrs, options);
 
         this.cellCollection = new CellCollection([], {
-            layer: this,
-            cellNamespace: options.cellNamespace,
+            layer: this
         });
-
-        // save cellNamespace value so we can assign it back
-        // when layer is removed from the GraphLayerCollection
-        this._cellNamespace = options.cellNamespace;
 
         // Forward all events from the inner `cellCollection` collection
         this.cellCollection.on('all', this.trigger, this);
