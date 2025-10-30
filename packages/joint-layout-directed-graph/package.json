@@ -37,7 +37,7 @@
     "dist": "rollup --config",
     "build": "rollup --config",
     "test": "mocha test/nodejs/nodejs.js && karma start karma.conf.js",
-    "lint": "eslint . --ext .mjs,.js",
+    "lint": "eslint .",
     "lint-fix": "yarn run lint --fix"
   },
   "files": [

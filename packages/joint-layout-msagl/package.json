@@ -51,7 +51,7 @@
     "build:umd": "rollup --config",
     "watch": "yarn build && concurrently \"tsc --project tsconfig.esm.json --watch\" \"rollup --config --watch\"",
     "test": "yarn build && karma start karma.conf.js",
-    "lint": "eslint . --ext .mjs,.js",
+    "lint": "eslint .",
     "lint-fix": "yarn run lint --fix"
   },
   "dependencies": {

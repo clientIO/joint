@@ -10,6 +10,7 @@ var sourceFile = process.argv[2];
 var destDir = process.argv[3];
 
 if (!sourceFile || !destDir) {
+    // eslint-disable-next-line no-console
     console.error('Usage:', process.argv[1], '<html file> <destination directory>');
     process.exit(1);
 }

@@ -35,6 +35,7 @@ const generateDemoLinks = async function() {
     const links = urls.map(item => {
         return `<a href="${item}">${item}</a><br/>`;
     });
+    // eslint-disable-next-line no-console
     console.log(links.join('\n'));
 };
 
