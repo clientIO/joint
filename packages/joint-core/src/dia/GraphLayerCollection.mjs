@@ -85,15 +85,11 @@ export const GraphLayerCollection = Collection.extend({
     _prepareModel: function(attrs, options) {
         if (!attrs[GRAPH_LAYER_MARKER]) {
             // Add a mandatory `type` attribute if missing
-            let preparedAttributes;
             if (!attrs.type) {
-                preparedAttributes = util.clone(attrs);
+                const preparedAttributes = util.clone(attrs);
                 preparedAttributes.type = DEFAULT_GRAPH_LAYER_TYPE;
-            } else {
-                preparedAttributes = attrs;
+                arguments[0] = preparedAttributes;
             }
-
-            arguments[0] = preparedAttributes;
         }
 
         return Collection.prototype._prepareModel.apply(this, arguments);

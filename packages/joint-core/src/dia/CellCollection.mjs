@@ -31,7 +31,7 @@ export class CellCollection extends Collection {
         const namespace = this.cellNamespace;
 
         if (!namespace) {
-            throw new Error('dia.CellCollection: cellNamespace is required. Currently, adding cells using JSON is not supported without adding layer to the Graph');
+            throw new Error('dia.CellCollection: cellNamespace is required to instantiate a Cell from JSON.');
         }
 
         const { type } = attrs;
