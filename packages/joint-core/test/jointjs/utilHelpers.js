@@ -259,7 +259,7 @@ QUnit.module('Lodash util helpers', function() {
 
             try {
                 actual = joint.util.invoke(array, 'toUpperCase');
-            } catch (e) {
+            } catch {
                 throw new Error('should not error on nullish elements');
             }
 
@@ -279,7 +279,7 @@ QUnit.module('Lodash util helpers', function() {
 
             try {
                 actual = joint.util.invoke(objects, 'a');
-            } catch (e) {
+            } catch {
                 throw new Error('should not error on elements with missing properties');
             }
 
@@ -318,7 +318,7 @@ QUnit.module('Lodash util helpers', function() {
             var actual = values.map((value) => {
                 try {
                     return joint.util.invokeProperty(value, 'a.b', 1, 2);
-                } catch (e) {
+                } catch {
                     throw new Error('should not error on nullish elements');
                 }
             });
@@ -2643,7 +2643,7 @@ QUnit.module('Lodash util helpers', function() {
             const actual = pairs.map((pair) => {
                 try {
                     return joint.util.merge(pair[0], pair[1]).el === pair[1].el;
-                } catch (e) {
+                } catch {
                     throw new Error('Should not error on DOM elements.');
                 }
             });

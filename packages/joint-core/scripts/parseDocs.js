@@ -1,17 +1,18 @@
 'use strict';
 
 /*
-	This is a node script for parsing an HTML doc file into a hierarchical directory structure.
+    This is a node script for parsing an HTML doc file into a hierarchical directory structure.
 
-	Install required NPM modules locally, but don't save to package.json file.
+    Install required NPM modules locally, but don't save to package.json file.
 */
 
 var sourceFile = process.argv[2];
 var destDir = process.argv[3];
 
 if (!sourceFile || !destDir) {
+    // eslint-disable-next-line no-console
     console.error('Usage:', process.argv[1], '<html file> <destination directory>');
-    return process.exit(1);
+    process.exit(1);
 }
 
 var cheerio = require('cheerio');
@@ -69,8 +70,8 @@ $els.each(function() {
 
             while (
                 ($nextEl = ($nextEl && $nextEl.next()) || (!$nextEl && $el.next())) &&
-				$nextEl.length > 0 &&
-				!$nextEl.attr('id')
+                $nextEl.length > 0 &&
+                !$nextEl.attr('id')
             ) {
                 html += $('<div/>').append($nextEl.clone()).html();
             }

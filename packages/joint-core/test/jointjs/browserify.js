@@ -8,4 +8,3 @@ QUnit.module('Browserify', function() {
         assert.ok(typeof joint.dia.Paper === 'function', 'joint.dia.Paper should be a function');
     });
 });
-

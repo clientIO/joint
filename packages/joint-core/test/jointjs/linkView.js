@@ -774,7 +774,6 @@ QUnit.module('linkView', function(hooks) {
             assert.ok(sourceAnchorSpy.notCalled);
             assert.ok(sourceMagnetAnchorSpy.calledWithExactly(
                 linkView2,
-                // eslint-disable-next-line no-undef
                 linkView2.findNode('line'),
                 sinon.match(function(value) {
                     return value instanceof SVGElement;

@@ -1,7 +1,7 @@
-import type { LayerDirectionEnum } from "@msagl/core";
-import type { dia, g } from "@joint/core";
-import type { Graph, GeomGraph } from "@msagl/core";
-import type { EdgeRoutingMode } from "./enums.mjs";
+import type { LayerDirectionEnum } from '@msagl/core';
+import type { dia, g } from '@joint/core';
+import type { Graph, GeomGraph } from '@msagl/core';
+import type { EdgeRoutingMode } from './enums.mjs';
 
 type GetSizeCallback = (element: dia.Element) => dia.Size;
 type GetLabelSizeCallback = (cell: dia.Cell) => dia.Size | undefined;

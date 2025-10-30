@@ -1,13 +1,13 @@
-import { dia, g, util } from "@joint/core";
+import { dia, g, util } from '@joint/core';
 import { Graph, GeomGraph, layoutGraphWithSugiayma, CancelToken } from '@msagl/core';
 import {
     applyLayoutResult,
     buildLayoutSettings,
     importJointGraph
-} from "./utils.mjs";
+} from './utils.mjs';
 import { type Options, type LayoutResult } from './types.mjs';
-import { defaultOptions } from "./defaults.mjs";
-import { LayerDirectionEnum } from "./enums.mjs";
+import { defaultOptions } from './defaults.mjs';
+import { LayerDirectionEnum } from './enums.mjs';
 
 const LAYOUT_BATCH_NAME = 'layout';
 
@@ -76,7 +76,7 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
         ),
         msGraph,
         msGeomGraph: geomGraph
-    }
+    };
 }
 
 export * from './types.mjs';

@@ -32,14 +32,14 @@ QUnit.module('GraphLayer', function(hooks) {
         assert.equal(layer.cellCollection.at(2), rect3, 'the last cell is now the one with the highest z-index');
 
         assert.deepEqual(events, [
-            "add",
-            "add",
-            "add",
-            "sort",
-            "update",
-            "change:z",
-            "sort",
-            "change"
+            'add',
+            'add',
+            'add',
+            'sort',
+            'update',
+            'change:z',
+            'sort',
+            'change'
         ], 'the correct events were fired');
     });
 

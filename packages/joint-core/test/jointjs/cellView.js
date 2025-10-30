@@ -667,9 +667,9 @@ QUnit.module('cellView', function(hooks) {
 
     });
 
-    QUnit.module('getLinkEnd()', function (hooks) {
-        ['port1', 13].forEach(function (portId) {
-            QUnit.test('port id: ' + typeof portId, function (assert) {
+    QUnit.module('getLinkEnd()', function(hooks) {
+        ['port1', 13].forEach(function(portId) {
+            QUnit.test('port id: ' + typeof portId, function(assert) {
                 const cell = cellView.model;
                 cell.addPort({
                     id: portId,

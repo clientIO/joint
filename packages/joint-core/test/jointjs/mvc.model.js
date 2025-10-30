@@ -440,7 +440,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
 
     QUnit.test('validate with error callback', function(assert) {
         assert.expect(8);
-        var lastError, boundError;
+        var boundError;
         var model = new joint.mvc.Model();
         model.validate = function(attrs) {
             if (attrs.admin) return 'Can\'t change admin status.';
@@ -468,8 +468,8 @@ QUnit.module('joint.mvc.Model', function(hooks) {
                 assert.equal(this.attributes.one, 1);
             }
         });
-        var providedattrs = new Defaulted({});
-        var emptyattrs = new Defaulted();
+        new Defaulted({});
+        new Defaulted();
     });
 
     QUnit.test('Inherit class properties', function(assert) {
@@ -784,8 +784,8 @@ QUnit.module('joint.mvc.Model', function(hooks) {
                 assert.equal(attrs, undefined);
             }
         });
-        var emptyattrs = new Model();
-        var undefinedattrs = new Model(undefined);
+        new Model();
+        new Model(undefined);
     });
 
     QUnit.test('#1664 - Changing from one value, silently to another, back to original triggers a change.', function(assert) {
@@ -816,7 +816,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         var Model = joint.mvc.Model.extend({
             parse: function() { this.has('a'); } // shouldn't throw an error
         });
-        var model = new Model(null, { parse: true });
+        new Model(null, { parse: true });
         assert.expect(0);
     });
 
