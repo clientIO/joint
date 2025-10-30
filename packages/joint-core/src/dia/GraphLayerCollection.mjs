@@ -73,7 +73,7 @@ export const GraphLayerCollection = Collection.extend({
 
         // remove graph and cellNamespace references
         // from the removed layer
-        layer.graph = undefined;
+        layer.graph = null;
         layer.cellCollection.cellNamespace = layer._cellNamespace;
     },
 

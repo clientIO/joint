@@ -45,12 +45,8 @@ export class CellCollection extends Collection {
     _addReference(model, options) {
         super._addReference(model, options);
 
-        // do not set graph reference if there is no layer associated with this collection
-        if (!this.layer) return;
-
         // If not in `dry` mode and the model does not have a graph reference yet,
         // set the reference.
-
         if (!options.dry && !model.graph) {
             model.graph = this.layer.graph;
         }
@@ -62,7 +58,9 @@ export class CellCollection extends Collection {
 
         // If not in `dry` mode and the model has a reference to this exact graph,
         // remove the reference.
-        if (!options.dry && model.graph === this.layer?.graph) {
+        // Note: graph reference is removed from the layer after the `remove` event is fired.
+        // Due to this, event handlers can still access the graph during the `remove` event.
+        if (!options.dry && model.graph === this.layer.graph) {
             model.graph = null;
         }
     }
