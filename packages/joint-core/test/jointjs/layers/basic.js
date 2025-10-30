@@ -295,7 +295,7 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(layers[0].id, 'cells', 'The only layer is "cells"');
 
         assert.equal(this.graph.getCells().length, 0, 'There are no cells in the graph');
-        assert.equal(this.paper.el.querySelectorAll('.joint-graph-layer').length, 1, 'There is 1 layer view in the paper');
+        assert.equal(this.paper.el.querySelectorAll('.joint-cells').length, 1, 'There is 1 layer view in the paper');
         assert.equal(this.paper.el.querySelectorAll('.joint-cell').length, 0, 'There are no cell views in the paper');
 
         this.graph.addLayer(layer1);
@@ -322,8 +322,8 @@ QUnit.module('layers-basic', function(hooks) {
         assert.strictEqual(updatedLayers[0].id, 'layer1', 'The only layer is "layer1"');
         assert.equal(this.graph.getCells().length, 0, 'There are 0 cells in the graph');
 
-        assert.equal(this.paper.el.querySelectorAll('.joint-graph-layer').length, 1, 'There is 1 layer view in the paper');
-        assert.equal(this.paper.el.querySelectorAll('.joint-graph-layer .joint-cell').length, 0, 'There are no cell views in the layer view');
+        assert.equal(this.paper.el.querySelectorAll('.joint-cells').length, 1, 'There is 1 layer view in the paper');
+        assert.equal(this.paper.el.querySelectorAll('.joint-cells .joint-cell').length, 0, 'There are no cell views in the layer view');
     });
 
 
