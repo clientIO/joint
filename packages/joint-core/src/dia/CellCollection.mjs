@@ -15,8 +15,7 @@ export class CellCollection extends Collection {
     [CELL_COLLECTION_MARKER] = true;
 
     initialize(_models, opt) {
-        this.cellNamespace = opt.cellNamespace;
-        this.graph = opt.graph;
+        this.cellNamespace = opt.cellNamespace || {};
         this.layer = opt.layer;
     }
 
@@ -45,19 +44,28 @@ export class CellCollection extends Collection {
     // Override to set graph reference
     _addReference(model, options) {
         super._addReference(model, options);
+
+        // do not set graph reference if there is no layer associated with this collection
+        if (!this.layer) return;
+
         // If not in `dry` mode and the model does not have a graph reference yet,
         // set the reference.
+
         if (!options.dry && !model.graph) {
-            model.graph = this.graph;
+            model.graph = this.layer.graph;
         }
     }
 
     // Override to remove graph reference
     _removeReference(model, options) {
         super._removeReference(model, options);
+
+        // do not remove graph reference if there is no layer associated with this collection
+        if (!this.layer) return;
+
         // If not in `dry` mode and the model has a reference to this exact graph,
         // remove the reference.
-        if (!options.dry && model.graph === this.graph) {
+        if (!options.dry && model.graph === this.layer.graph) {
             model.graph = null;
         }
     }

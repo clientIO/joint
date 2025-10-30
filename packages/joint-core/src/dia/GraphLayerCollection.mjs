@@ -57,6 +57,26 @@ export const GraphLayerCollection = Collection.extend({
         return new GraphLayerClass(attrs, opt);
     },
 
+    // Override to set graph reference
+     _addReference(layer, options) {
+        super._addReference(model, options);
+
+        // assign graph and cellNamespace references
+        // to the added layer
+        layer.graph = this.graph;
+        layer.cellCollection.cellNamespace = this.cellNamespace;
+    },
+
+    // Override to remove graph reference
+    _removeReference(layer, options) {
+        super._removeReference(model, options);
+
+        // remove graph and cellNamespace references
+        // from the removed layer
+        layer.graph = undefined;
+        layer.cellCollection.cellNamespace = layer._cellNamespace;
+    },
+
     /**
      * @override
      * @description Overrides the default `_prepareModel` method
@@ -73,16 +93,8 @@ export const GraphLayerCollection = Collection.extend({
                 preparedAttributes = attrs;
             }
 
-            const preparedOptions = util.clone(options);
-            preparedOptions.graph = this.graph;
-            preparedOptions.cellNamespace = this.cellNamespace;
-
-            return Collection.prototype._prepareModel.call(this, preparedAttributes, preparedOptions);
+            arguments[0] = preparedAttributes;
         }
-        // `attrs` is already a GraphLayer instance
-        attrs.cellCollection.graph = this.graph;
-        attrs.graph = this.graph;
-        attrs.cellCollection.cellNamespace = this.cellNamespace;
 
         return Collection.prototype._prepareModel.apply(this, arguments);
     },

@@ -31,11 +31,12 @@ export class GraphLayer extends Model {
 
         this.cellCollection = new CellCollection([], {
             layer: this,
-            graph: options.graph,
             cellNamespace: options.cellNamespace,
         });
 
-        this.graph = options.graph;
+        // save cellNamespace value so we can assign it back
+        // when layer is removed from the GraphLayerCollection
+        this._cellNamespace = options.cellNamespace;
 
         // Forward all events from the inner `cellCollection` collection
         this.cellCollection.on('all', this.trigger, this);
