@@ -31,7 +31,7 @@ export class CellCollection extends Collection {
         const namespace = this.cellNamespace;
 
         if (!namespace) {
-            throw new Error('dia.CellCollection: No cellNamespace defined. Currently, adding cells using JSON is not supported without adding layer to the Graph');
+            throw new Error('dia.CellCollection: cellNamespace is required. Currently, adding cells using JSON is not supported without adding layer to the Graph');
         }
 
         const { type } = attrs;
@@ -80,7 +80,7 @@ export class CellCollection extends Collection {
                 delete model.collection;
             }
 
-            if (model.graph === this.layer?.graph) {
+            if (model.graph === this.layer.graph) {
                 model.graph = null;
             }
         }
