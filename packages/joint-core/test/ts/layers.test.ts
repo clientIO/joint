@@ -22,7 +22,7 @@ graph.moveLayer(layer1, { index: 2, flag: 1 });
 graph.hasLayer('cells');
 const layer2 = graph.getLayer('layer2');
 if (graph.hasLayer('layer2')) {
-  const layer2CellCount = layer2.cellCollection.length;
+    const layer2CellCount = layer2.cellCollection.length;
 }
 const layers = graph.getLayers();
 graph.removeLayer('layer2');

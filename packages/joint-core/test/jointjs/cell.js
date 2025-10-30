@@ -937,4 +937,3 @@ QUnit.module('cell', function(hooks) {
     });
 
 });
-

@@ -1047,7 +1047,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         });
 
                         QUnit.test('with a generic mvc.View', function(assert) {
-                            const confirmUpdateSpy = sinon.spy(function() { return 0x0; })
+                            const confirmUpdateSpy = sinon.spy(function() { return 0x0; });
                             const CustomView = joint.mvc.View.extend({ confirmUpdate: confirmUpdateSpy });
                             const view = new CustomView;
                             paper.el.appendChild(view.el);
@@ -1060,7 +1060,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.ok(confirmUpdateSpy.calledOnce, 'confirmUpdate should be called again');
                             paper.dumpViews({ viewport: () => true });
                             assert.ok(confirmUpdateSpy.calledTwice, 'confirmUpdate should be called again');
-                            assert.ok(confirmUpdateSpy.lastCall.calledWithExactly(paper.FLAG_INSERT, sinon.match.object))
+                            assert.ok(confirmUpdateSpy.lastCall.calledWithExactly(paper.FLAG_INSERT, sinon.match.object));
                         });
                     });
 
@@ -3600,9 +3600,9 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 paper.remove();
             });
 
-            QUnit.module("findViewByModel()", function () {
+            QUnit.module('findViewByModel()', function() {
 
-                QUnit.test("it returns view instance after it was disposed", function (assert) {
+                QUnit.test('it returns view instance after it was disposed', function(assert) {
                     const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
                     paper = new Paper({
@@ -3642,7 +3642,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     paper.remove();
                 });
 
-                QUnit.test("after view was checked visible (but not yet rendered)", function (assert) {
+                QUnit.test('after view was checked visible (but not yet rendered)', function(assert) {
                     // This is an edge case
                     const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
@@ -3671,7 +3671,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     assert.ok(rv2 instanceof joint.dia.ElementView);
                     assert.ok(
                         rv2.el.childElementCount === 0,
-                        "The view is not yet rendered",
+                        'The view is not yet rendered',
                     );
 
                     // Now, the view is updated
@@ -3679,7 +3679,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const rv3 = rect.findView(paper);
                     assert.ok(
                         rv3.el.childElementCount > 0,
-                        "The view is rendered",
+                        'The view is rendered',
                     );
 
                     // View has been removed
@@ -3690,7 +3690,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     paper.remove();
                 });
 
-                QUnit.test("view is preserved through update cycle", function (assert) {
+                QUnit.test('view is preserved through update cycle', function(assert) {
                     // This test is to document the current behavior. It's not necessarily
                     // a must-be behavior. But it's important to know when it changes.
                     const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
@@ -3766,7 +3766,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             assert.ok(paper.isCellVisible(rect1));
             assert.ok(paper.isCellVisible(rect2));
 
-            paper.updateCellVisibility(rect1, { cellVisibility: () => false});
+            paper.updateCellVisibility(rect1, { cellVisibility: () => false });
             assert.notOk(paper.isCellVisible(rect1));
             assert.ok(paper.isCellVisible(rect2));
         });
@@ -3854,7 +3854,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             assert.ok(paper.isCellVisible(rect1));
             assert.ok(paper.isCellVisible(rect2));
 
-            paper.updateCellsVisibility({ cellVisibility: () => false});
+            paper.updateCellsVisibility({ cellVisibility: () => false });
             assert.notOk(paper.isCellVisible(rect1));
             assert.notOk(paper.isCellVisible(rect2));
         });

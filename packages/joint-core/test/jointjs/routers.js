@@ -458,7 +458,7 @@ QUnit.module('routers', function(hooks) {
                     args: {
                         ...anchors.sourceAnchor
                     },
-                    name: sourceSide 
+                    name: sourceSide
                 }
             },
             target: {
@@ -470,7 +470,7 @@ QUnit.module('routers', function(hooks) {
                     name: targetSide
                 }
             },
-            router 
+            router
         });
 
         this.graph.addCells([r1, r2, l]);
@@ -1503,7 +1503,7 @@ QUnit.module('routers', function(hooks) {
         const anchorTemplate = {
             args: {},
             name: 'top',
-        }; 
+        };
 
         const [r1, r2, l] = this.addTestSubjects('top', 'top', rightAngleRouter, { sourceAnchor: { dx: -elementSize.width / 2 + 1 }});
 
@@ -1576,7 +1576,7 @@ QUnit.module('routers', function(hooks) {
         const anchorTemplate = {
             args: {},
             name: 'bottom',
-        }; 
+        };
 
         const [r1, r2, l] = this.addTestSubjects('bottom', 'bottom', rightAngleRouter, { targetAnchor: { dx: -elementSize.width / 2 + 1 }});
 
@@ -1726,7 +1726,7 @@ QUnit.module('routers', function(hooks) {
         d = this.paper.findViewByModel(l).metrics.data;
 
         assert.checkDataPath(d, 'M 1 200 L 1 228 L -28 228 L -28 -28 L 25 -28 L 25 0', 'Source above target (source wider) - route going left');
-    
+
         l.source(r1, {
             anchor: {
                 name: 'bottom',

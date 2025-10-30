@@ -66,8 +66,8 @@ QUnit.module('layers-basic', function(hooks) {
 
         const layerViewNode = this.paper.getLayerView(defaultLayer.id).el;
 
-        assert.ok(layerViewNode.querySelector(`[model-id="rect1"]`), 'Layer view has rectangle cell view node');
-        assert.ok(layerViewNode.querySelector(`[model-id="ellipse1"]`), 'Layer view has ellipse cell view node');
+        assert.ok(layerViewNode.querySelector('[model-id="rect1"]'), 'Layer view has rectangle cell view node');
+        assert.ok(layerViewNode.querySelector('[model-id="ellipse1"]'), 'Layer view has ellipse cell view node');
     });
 
     QUnit.test('default fromJSON() layers', (assert) => {
@@ -110,10 +110,10 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(layer2.cellCollection.has('ellipse1'), 'Layer "layer2" has ellipse cell');
 
         const layer1Node = this.paper.getLayerView('layer1').el;
-        assert.ok(layer1Node.querySelector(`[model-id="rect1"]`), 'Layer view for "layer1" has rectangle cell view node');
+        assert.ok(layer1Node.querySelector('[model-id="rect1"]'), 'Layer view for "layer1" has rectangle cell view node');
 
         const layer2Node = this.paper.getLayerView('layer2').el;
-        assert.ok(layer2Node.querySelector(`[model-id="ellipse1"]`), 'Layer view for "layer2" has ellipse cell view node');
+        assert.ok(layer2Node.querySelector('[model-id="ellipse1"]'), 'Layer view for "layer2" has ellipse cell view node');
 
         assert.ok(layer1Node.nextSibling === layer2Node, '"layer1" layer view is before "layer2" layer view');
     });
@@ -403,6 +403,6 @@ QUnit.module('layers-basic', function(hooks) {
 
         const json = JSON.stringify(this.graph.toJSON());
 
-        assert.equal(json, `{"cells":[],"layers":[{"type":"GraphLayer","id":"cells"},{"type":"GraphLayer","id":"layer1","name":"Layer 1"},{"type":"GraphLayer","id":"layer2","description":"This is layer 2"}],"defaultLayer":"cells"}`, 'Graph JSON includes custom attributes in "layers"');
+        assert.equal(json, '{"cells":[],"layers":[{"type":"GraphLayer","id":"cells"},{"type":"GraphLayer","id":"layer1","name":"Layer 1"},{"type":"GraphLayer","id":"layer2","description":"This is layer 2"}],"defaultLayer":"cells"}', 'Graph JSON includes custom attributes in "layers"');
     });
 });

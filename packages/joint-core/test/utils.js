@@ -339,4 +339,3 @@ window.fixtures = {
         fixtureEl.style.left = '';
     }
 };
-
