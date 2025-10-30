@@ -378,7 +378,7 @@ export const Graph = Model.extend({
         this.startBatch(batchName, opt);
         // 1. Remove the cell without removing connected links or embedded cells.
         // See `joint.dia.Cell.prototype.remove`
-        currentCell.trigger('remove', currentCell, currentCell.collection, {
+        this.trigger('remove', currentCell, currentCell.collection, {
             ...opt,
             clear: true,
             replace: true
