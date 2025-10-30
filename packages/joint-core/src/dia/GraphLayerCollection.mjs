@@ -58,8 +58,8 @@ export const GraphLayerCollection = Collection.extend({
     },
 
     // Override to set graph reference
-     _addReference(layer, options) {
-        super._addReference(model, options);
+    _addReference(layer, options) {
+        Collection.prototype._addReference.call(this, layer, options);
 
         // assign graph and cellNamespace references
         // to the added layer
@@ -69,7 +69,7 @@ export const GraphLayerCollection = Collection.extend({
 
     // Override to remove graph reference
     _removeReference(layer, options) {
-        super._removeReference(model, options);
+        Collection.prototype._removeReference.call(this, layer, options);
 
         // remove graph and cellNamespace references
         // from the removed layer

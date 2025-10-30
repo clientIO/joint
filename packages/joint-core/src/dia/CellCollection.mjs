@@ -60,30 +60,28 @@ export class CellCollection extends Collection {
     _removeReference(model, options) {
         super._removeReference(model, options);
 
-        // do not remove graph reference if there is no layer associated with this collection
-        if (!this.layer) return;
-
         // If not in `dry` mode and the model has a reference to this exact graph,
         // remove the reference.
-        if (!options.dry && model.graph === this.layer.graph) {
+        if (!options.dry && model.graph === this.layer?.graph) {
             model.graph = null;
         }
     }
 
     // remove graph reference additionally
     _removeReferenceFast(model, options) {
+        model.off('all', this._onModelEvent, this);
+
         if (!options.dry) {
             // If not in `dry` mode and the model has a reference
             // to this exact graph/collection, remove the reference.
             if (this === model.collection) {
                 delete model.collection;
             }
-            if (this.graph === model.graph) {
+
+            if (model.graph === this.layer?.graph) {
                 model.graph = null;
             }
         }
-
-        model.off('all', this._onModelEvent, this);
     }
 
     // `comparator` makes it easy to sort cells based on their `z` index.
