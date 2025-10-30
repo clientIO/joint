@@ -502,14 +502,15 @@ export const Graph = Model.extend({
      * @param {Object} [options]
      * @param {boolean} [options.disconnectLinks=false] - If `true`, the connected links are
      * disconnected instead of removed.
-     * @param {boolean} [options.clear=false] - If `true`, the cell is removed
-     * along with all its connected links and embedded cells. @internal
-     * @param {boolean} [options.replace=false] - If `true`, the cell is removed
-     * without removing connected links or embedded cells. @internal
+     * @param {boolean} [options.clear=false] - If `true`, the connected links
+     * are kept. @internal
+     * @param {boolean} [options.replace=false] - If `true`, the connected links and
+     * embedded cells are kept. @internal
      * @throws Will throw an error if no cell is provided
-     * @throws Will throw an error if the cell to remove does not exist in the graph
+     * @throws Will throw an error if the ID of the cell to remove
+     * does not exist in the graph
      **/
-    removeCell(cellRef, options = {}) {
+    removeCell: function(cellRef, options = {}) {
         if (!cellRef) {
             throw new Error('dia.Graph: no cell provided.');
         }
