@@ -3,6 +3,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
+import stylisticPlugin from '@stylistic/eslint-plugin';
 
 export default defineConfig([
     {
@@ -105,6 +106,7 @@ export default defineConfig([
         },
         plugins: {
             '@typescript-eslint': tsPlugin,
+            '@stylistic': stylisticPlugin,
         },
         extends: [
             js.configs.recommended,
@@ -124,7 +126,7 @@ export default defineConfig([
             'semi-spacing': ['error', { 'before': false, 'after': true }],
             'space-before-function-paren': ['error', 'never'],
             'space-in-parens': ['error', 'never'],
-            // '@stylistic/type-annotation-spacing': ['error', { 'after': true, 'before': false }], // TODO: ADD @stylistic/eslint-plugin
+            '@stylistic/type-annotation-spacing': ['error', { 'after': true, 'before': false, 'overrides': { 'arrow': { 'before': true, 'after': true }}}],
         }
     },
 ]);
