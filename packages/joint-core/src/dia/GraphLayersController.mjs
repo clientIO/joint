@@ -37,7 +37,6 @@ export class GraphLayersController extends Listener {
     }
 
     startListening() {
-        this.listenTo(this.graph, 'layers:reset', this.onLayerCollectionReset, this);
         this.listenTo(this.layerCollection, 'layer:remove', this.onLayerRemove, this);
         // Listening to the collection instead of the graph itself
         // to avoid graph attribute change events
@@ -67,29 +66,14 @@ export class GraphLayersController extends Listener {
         // Resetting layers disables legacy mode
         this.legacyMode = false;
 
-        let defaultLayerId = opt.defaultLayer;
-        if (!defaultLayerId) {
-            defaultLayerId = layers[0].id;
-        }
+        const { defaultLayer: defaultLayerId = layers[0].id } = opt;
 
         if (!layers.some(layer => layer.id === defaultLayerId)) {
             throw new Error(`dia.Graph: default layer with id '${defaultLayerId}' must be one of the defined layers.`);
         }
 
-        this.graph.startBatch('reset-layers', opt);
-        if (this.defaultLayerId !== defaultLayerId) {
-            this.defaultLayerId = defaultLayerId;
-            this.graph.trigger('layers:default:change', this.graph, this.defaultLayerId, opt);
-        }
-
+        this.defaultLayerId = defaultLayerId;
         this.layerCollection.reset(layers, { ...opt, graph: this.graph.cid });
-        this.graph.stopBatch('reset-layers', opt);
-    }
-
-    onLayerCollectionReset(collection, opt) {
-        const previousLayers = opt.previousModels;
-        // Remove cells from the layers that have been removed
-        previousLayers.forEach(layer => this.clearLayer(layer, opt));
     }
 
     onCellChange(cell, opt) {

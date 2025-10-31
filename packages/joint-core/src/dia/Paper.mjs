@@ -704,7 +704,6 @@ export const Paper = View.extend({
 
         this.listenTo(model, 'layer:add', this.onGraphLayerAdd)
             .listenTo(model, 'layer:remove', this.onGraphLayerRemove)
-            .listenTo(model, 'layers:reset', this.onGraphLayerCollectionReset)
             .listenTo(model, 'layers:sort', this.onGraphLayerCollectionSort);
 
         this.on('cell:highlight', this.onCellHighlight)
@@ -734,7 +733,13 @@ export const Paper = View.extend({
     },
 
     onGraphReset: function(_collection, opt) {
+        // Re-render all graph layer views
+        // but keep the implicit layer views.
+        this.renderGraphLayerViews();
         this.resetLayerViews();
+        // Backward compatibility: reassign the `cells` property
+        // with the default layer view.
+        this.assertLayerViews();
         this.resetViews(this.model.getCells(), opt);
     },
 
@@ -787,15 +792,6 @@ export const Paper = View.extend({
         // Request layer removal. Since the UPDATE_PRIORITY is lower
         // than cells update priority, the cell views will be removed first.
         this.requestLayerViewRemoval(layer);
-    },
-
-    /**
-     * @protected
-     * @description When the graph layer collection is reset,
-     * we re-render all graph layer views.
-     **/
-    onGraphLayerCollectionReset: function() {
-        this.renderGraphLayerViews();
     },
 
     /**
@@ -1329,14 +1325,24 @@ export const Paper = View.extend({
         this.renderImplicitLayerViews();
         // Render the layers.
         this.renderGraphLayerViews();
-        // Throws an exception if doesn't exist
+        // Ensure that essential layer views are present.
+        this.assertLayerViews();
+    },
+
+    /**
+     * @protected
+     * @description Ensures that essential layer views are present on the paper.
+     * @throws {Error} if any of the essential layer views is missing
+     */
+    assertLayerViews: function() {
+        // Throws an exception if essential layer views are missing.
         const cellsLayerView = this.getLayerView(this.model.getDefaultLayer().id);
         const toolsLayerView = this.getLayerView(paperLayers.TOOLS);
         const labelsLayerView = this.getLayerView(paperLayers.LABELS);
+
         // backwards compatibility
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
-        // user-select: none;
         // Backwards compatibility: same as `LegacyGraphLayerView` we keep
         // the `viewport` class on the labels layer.
         labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));

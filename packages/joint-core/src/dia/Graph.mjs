@@ -92,8 +92,9 @@ export const Graph = Model.extend({
         }
     },
 
-    _onLayerEvent(_eventName, _layer) {
-        // forward layer events with `layer:` prefix
+    _onLayerEvent() {
+
+        // Note: the layer event prefix is `layer:`
         this.trigger.apply(this, arguments);
     },
 
@@ -103,11 +104,8 @@ export const Graph = Model.extend({
             return;
         }
         // Skip if a `cell` is added to a different layer due to layer change
-        if (eventName === 'add') {
-            const options = arguments[2];
-            if (options && options.fromLayer) {
-                return;
-            }
+        if (eventName === 'add' && arguments[2]?.fromLayer) {
+            return;
         }
         this.trigger.apply(this, arguments);
     },
@@ -120,10 +118,10 @@ export const Graph = Model.extend({
         }
 
         // Do not forward `layer:remove` or `layer:sort` events to the graph
-        return;
     },
 
-    _onGraphLayerCollectionEvent() {
+    _onGraphLayerCollectionEvent(eventName) {
+        if (eventName === 'reset') return;
         // Forward layer collection events with `layers:` prefix.
         // For example `layers:reset` event when the layer collection is reset
         arguments[0] = 'layers:' + arguments[0];
@@ -246,6 +244,8 @@ export const Graph = Model.extend({
             throw new Error('Graph JSON must contain cells array.');
         }
 
+        this.set(attrs, { silent: true });
+
         if (layers) {
             this.resetLayers(layers, { ...opt, defaultLayer });
         }
@@ -254,8 +254,6 @@ export const Graph = Model.extend({
             // Reset the cells collection.
             this.resetCells(cells, opt);
         }
-
-        this.set(attrs, opt);
 
         return this;
     },

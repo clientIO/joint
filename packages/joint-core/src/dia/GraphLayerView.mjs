@@ -38,8 +38,6 @@ export const GraphLayerView = LayerView.extend({
         this.listenTo(this.model, 'add', this.onCellAdd);
         this.listenTo(this.model, 'change', this.onCellChange);
         this.listenTo(this.graph, 'batch:stop', this.onGraphBatchStop);
-        this.listenTo(this.graph, 'reset', this.onGraphReset);
-
     },
 
     beforePaperReferenceUnset() {
@@ -80,11 +78,6 @@ export const GraphLayerView = LayerView.extend({
         if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
             this.sort();
         }
-    },
-
-    onGraphReset(_, opt) {
-        if (opt.sort === false) return;
-        this.sort();
     },
 
     sort() {
