@@ -17,7 +17,7 @@ export class GraphLayer extends Model {
         // This allows for propagating events from the inner `cellCollection` collection
         // without any prefix and therefore distinguish them from the events
         // fired by the CellGroup model itself.
-        this.eventPrefix = 'self:';
+        this.eventPrefix = 'layer:';
     }
 
     defaults() {

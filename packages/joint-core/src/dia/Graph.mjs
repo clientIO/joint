@@ -6,7 +6,9 @@ import { Listener } from '../mvc/Listener.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
 import { GraphLayersController } from './GraphLayersController.mjs';
-import { GraphLayerCollection } from './GraphLayerCollection.mjs';
+import { GraphLayerCollection, GRAPH_LAYER_COLLECTION_MARKER } from './GraphLayerCollection.mjs';
+import { CELL_COLLECTION_MARKER } from './CellCollection.mjs';
+import { GRAPH_LAYER_MARKER } from './GraphLayer.mjs';
 import { config } from '../config/index.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 
@@ -60,40 +62,69 @@ export const Graph = Model.extend({
         this.on('remove', this._restructureOnRemove, this);
         this.on('remove', this._removeCell, this);
 
-        layerCollection.on('cell:change:source', this._restructureOnChangeSource, this);
-        layerCollection.on('cell:change:target', this._restructureOnChangeTarget, this);
+        layerCollection.on('change:source', this._restructureOnChangeSource, this);
+        layerCollection.on('change:target', this._restructureOnChangeTarget, this);
     },
 
-    _forwardCellCollectionEvents: function(eventName) {
-        // Forward cell events without prefix
-        if (eventName.startsWith('cell:')) {
-            // Skip 'cell:remove' events as they are handled on the graph level
-            if (eventName === 'cell:remove') {
+    _forwardCellCollectionEvents: function(_eventName, model) {
+        if (!model) return;
+
+        if (model[GRAPH_LAYER_MARKER]) {
+            this._onLayerEvent.apply(this, arguments);
+            return;
+        }
+
+        if (model[CELL_MARKER]) {
+            this._onCellEvent.apply(this, arguments);
+            return;
+        }
+
+        if (model[CELL_COLLECTION_MARKER]) {
+            this._onCellCollectionEvent.apply(this, arguments);
+            return;
+        }
+
+        if (model[GRAPH_LAYER_COLLECTION_MARKER]) {
+            this._onGraphLayerCollectionEvent.apply(this, arguments);
+            return;
+        }
+    },
+
+    _onLayerEvent(_eventName, _layer) {
+        // forward layer events with `layer:` prefix
+        this.trigger.apply(this, arguments);
+    },
+
+    _onCellEvent(eventName) {
+        // Skip cell 'remove' events as they are handled on the graph level
+        if (eventName === 'remove') {
+            return;
+        }
+        // Skip if a `cell` is added to a different layer due to layer change
+        if (eventName === 'add') {
+            const options = arguments[2];
+            if (options && options.fromLayer) {
                 return;
             }
-            // Skip if a `cell` is added to a different layer due to layer change
-            if (eventName === 'cell:add') {
-                const options = arguments[2];
-                if (options && options.fromLayer) {
-                    return;
-                }
-            }
-            // Removing 'cell:' prefix
-            arguments[0] = eventName.slice(5);
-            this.trigger.apply(this, arguments);
-            return;
         }
-        // Do not forward layer events with 'layer:' prefix
-        if (eventName.startsWith('layer:')) {
+        this.trigger.apply(this, arguments);
+    },
+
+    _onCellCollectionEvent(eventName) {
+        if (eventName === 'sort') {
             // Backwards compatibility:
-            // Trigger 'sort' event for 'layer:sort' events
-            if (eventName === 'layer:sort') {
-                this.trigger('sort', arguments[1], arguments[2]);
-            }
-            return;
+            // Trigger 'sort' event for cell collection 'sort' events
+            this.trigger('sort', arguments[1], arguments[2]);
         }
-        // Forward other events with 'layers:' prefix
-        arguments[0] = 'layers:' + eventName;
+
+        // Do not forward `layer:remove` or `layer:sort` events to the graph
+        return;
+    },
+
+    _onGraphLayerCollectionEvent() {
+        // Forward layer collection events with `layers:` prefix.
+        // For example `layers:reset` event when the layer collection is reset
+        arguments[0] = 'layers:' + arguments[0];
         this.trigger.apply(this, arguments);
     },
 
