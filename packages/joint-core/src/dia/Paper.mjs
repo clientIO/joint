@@ -774,7 +774,7 @@ export const Paper = View.extend({
             before = layers[index + 1].id;
         }
 
-        this.insertLayerView(layerView, { before });
+        this.addLayerView(layerView, { before });
     },
 
     /**
@@ -805,10 +805,9 @@ export const Paper = View.extend({
      **/
     onGraphLayerCollectionSort: function(layerCollection) {
         layerCollection.each(layer => {
-            if (!this.hasLayerView(layer.id)) return;
+            if (!this.hasLayerView(layer)) return;
 
-            const layerView = this.getLayerView(layer.id);
-            this.insertLayerView(layerView, { before: paperLayers.LABELS });
+            this.moveLayerView(layer, { before: paperLayers.LABELS });
         });
     },
 
@@ -834,7 +833,7 @@ export const Paper = View.extend({
             // Insert the layer view into the paper layers, just before the labels layer.
             // All cell layers are positioned between the "back" and "labels" layers,
             // with the default "cells" layer originally occupying this position.
-            this.insertLayerView(layerView, { before: paperLayers.LABELS });
+            this.addLayerView(layerView, { before: paperLayers.LABELS });
 
             // Insert all existing cell views into the newly created layer view.
             // This is required in cases where the layer collection was reset
@@ -852,7 +851,7 @@ export const Paper = View.extend({
     renderImplicitLayerViews: function() {
         this.implicitLayers.forEach(layerInit => {
             const layerView = this.createLayerView(layerInit);
-            this.insertLayerView(layerView);
+            this.addLayerView(layerView);
         });
     },
 
@@ -1108,32 +1107,88 @@ export const Paper = View.extend({
     },
 
     /**
+     * @private
+     * Helper method for addLayerView and moveLayerView methods
+     */
+    _getBeforeLayerViewFromOptions(layerView, options) {
+        let { before = null, index } = options;
+
+        if (before && index !== undefined) {
+            throw new Error('dia.Paper: Options "before" and "index" are mutually exclusive.');
+        }
+
+        let computedBefore;
+        if (index !== undefined) {
+            const { _layers: { order }} = this;
+            if (index >= order.length) {
+                // If index is greater than the number of layers,
+                // return before as null (move to the end).
+                computedBefore = null;
+            } else if (index < 0) {
+                // If index is negative, move to the beginning.
+                computedBefore = order[0];
+            } else {
+                const originalIndex = order.indexOf(layerView.id);
+                if (originalIndex !== -1 && index > originalIndex) {
+                    // If moving a layer upwards in the stack, we need to adjust the index
+                    // to account for the layer being removed from its original position.
+                    index += 1;
+                }
+                // Otherwise, get the layer ID at the specified index.
+                computedBefore = order[index] || null;
+            }
+        } else {
+            computedBefore = before;
+        }
+
+        return computedBefore ? this.getLayerView(computedBefore) : null;
+    },
+
+    /**
      * @public
+     * @description Adds the layer view to the paper.
+     * @param {dia.LayerView} layerView - The layer view to add.
+     * @param {Object} [options] - Adding options.
+     * @param {string|dia.GraphLayer} [options.before] - Layer id or layer model before
+     */
+    addLayerView(layerView, options = {}) {
+        this._registerLayerView(layerView);
+
+        const beforeLayerView = this._getBeforeLayerViewFromOptions(layerView, options);
+        this.insertLayerView(layerView, beforeLayerView);
+    },
+
+    /**
+     * @public
+     * @description Moves the layer view.
+     * @param {Paper.LayerRef} layerRef - The layer view reference to move.
+     * @param {Object} [options] - Moving options.
+     * @param {Paper.LayerRef} [options.before] - Layer id or layer model before
+     * @param {number} [options.index] - Zero-based index to which to move the layer view.
+     */
+    moveLayerView(layerRef, options = {}) {
+        const layerView = this.getLayerView(layerRef);
+
+        const beforeLayerView = this._getBeforeLayerViewFromOptions(layerView, options);
+        this.insertLayerView(layerView, beforeLayerView);
+    },
+
+    /**
+     * @protected
      * @description Inserts the layer view into the paper.
      * If the layer view already exists in the paper, it is moved to the new position.
      * @param {dia.LayerView} layerView - The layer view to insert.
-     * @param {Object} [options] - Insertion options.
-     * @param {string|dia.GraphLayer} [options.before] - Layer id or layer model before
+     * @param {dia.LayerView} [before] - Layer view before
      * which the layer view should be inserted.
      */
-    insertLayerView(layerView, options = {}) {
-        if (!layerView || !layerView[LAYER_VIEW_MARKER]) {
-            throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
-        }
-
+    insertLayerView(layerView, beforeLayerView) {
         const layerId = layerView.id;
-
-        // register the view if it doesn't exist in Paper
-        if (!this.hasLayerView(layerId)) {
-            this._registerLayerView(layerView);
-        }
 
         const { _layers: { order }} = this;
         const currentLayerIndex = order.indexOf(layerId);
 
         // Should the layer view be inserted before another layer view?
-        if (options.before) {
-            const beforeLayerView = this.getLayerView(options.before);
+        if (beforeLayerView) {
             const beforeLayerViewId = beforeLayerView.id;
             if (layerId === beforeLayerViewId) {
                 // The layer view is already in the right place.

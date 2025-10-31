@@ -2604,19 +2604,19 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 const testLayer = new joint.dia.LayerView({
                     id: 'test'
                 });
-                paper.insertLayerView(testLayer);
+                paper.addLayerView(testLayer);
                 assert.ok(paper.hasLayerView('test'));
                 paper.removeLayerView(testLayer);
                 assert.notOk(paper.hasLayerView('test'));
             });
         });
 
-        QUnit.module('insertLayerView()', function() {
+        QUnit.module('addLayerView() and moveLayerView()', function() {
 
             QUnit.test('throws error when invalid parameters are provided', function(assert) {
                 assert.throws(
                     function() {
-                        paper.insertLayerView();
+                        paper.addLayerView();
                     },
                     /dia.Paper: The layer view must be an instance of dia.LayerView./,
                     'Layer name must be provided.'
@@ -2625,40 +2625,40 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             QUnit.test('registers layer when layer does not exist', function(assert) {
                 assert.notOk(paper.hasLayerView('test'));
-                paper.insertLayerView(new joint.dia.LayerView({ id: 'test' }));
+                paper.addLayerView(new joint.dia.LayerView({ id: 'test' }));
                 assert.ok(paper.hasLayerView('test'));
             });
 
             QUnit.test('throws error when invalid position is provided', function(assert) {
                 assert.throws(
                     function() {
-                        paper.insertLayerView(paper.getLayerView(joint.dia.Paper.Layers.BACK), { before: 'test' });
+                        paper.moveLayerView(paper.getLayerView(joint.dia.Paper.Layers.BACK), { before: 'test' });
                     },
                     /dia.Paper: Unknown layer view "test"./,
                     'Invalid position "test".'
                 );
             });
 
-            QUnit.test('inserts a new layer at the end of the order', function(assert) {
+            QUnit.test('adds a new layer at the end of the order', function(assert) {
                 const testLayer = new joint.dia.LayerView({
                     id: 'test'
                 });
                 assert.equal(paper.getLayerViewOrder().indexOf('test'), -1);
                 assert.notOk(paper.hasLayerView('test'));
-                paper.insertLayerView(testLayer);
+                paper.addLayerView(testLayer);
                 assert.ok(paper.hasLayerView('test'));
                 const order = paper.getLayerViewOrder();
                 assert.equal(order.indexOf('test'), order.length - 1);
             });
 
 
-            QUnit.test('inserts a new layer before the specified layer', function(assert) {
+            QUnit.test('adds a new layer before the specified layer', function(assert) {
                 const testLayer = new joint.dia.LayerView({
                     id: 'test'
                 });
                 assert.equal(paper.getLayerViewOrder().indexOf('test'), -1);
                 assert.notOk(paper.hasLayerView('test'));
-                paper.insertLayerView(testLayer, { before: 'cells' });
+                paper.addLayerView(testLayer, { before: 'cells' });
                 assert.ok(paper.hasLayerView('test'));
                 const order = paper.getLayerViewOrder();
                 assert.equal(order.indexOf('test'), order.indexOf('cells') - 1);
@@ -2667,7 +2667,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('moves the specified layer to the specified position', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [firstLayer, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(secondLayer), { before: firstLayer });
+                paper.moveLayerView(paper.getLayerView(secondLayer), { before: firstLayer });
                 const [newFirstLayer, newSecondLayer] = paper.getLayerViewOrder();
                 assert.equal(newFirstLayer, secondLayer);
                 assert.equal(newSecondLayer, firstLayer);
@@ -2676,7 +2676,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('moves the specified layer to the end of the layers list', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [firstLayer, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(firstLayer));
+                paper.moveLayerView(paper.getLayerView(firstLayer));
                 const newLayerNames = paper.getLayerViewOrder();
                 assert.equal(newLayerNames.at(0), secondLayer);
                 assert.equal(newLayerNames.at(-1), firstLayer);
@@ -2685,7 +2685,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('it\'s possible to move the layer to the same position', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [firstLayer, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(firstLayer), { before: secondLayer });
+                paper.moveLayerView(paper.getLayerView(firstLayer), { before: secondLayer });
                 const newLayerNames = paper.getLayerViewOrder();
                 assert.equal(newLayerNames.at(0), firstLayer);
                 assert.equal(newLayerNames.at(1), secondLayer);
@@ -2694,11 +2694,31 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('it\'s ok to move layer before itself', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(secondLayer), { before: secondLayer });
+                paper.moveLayerView(paper.getLayerView(secondLayer), { before: secondLayer });
                 const newLayerNames = paper.getLayerViewOrder();
                 assert.equal(newLayerNames.at(1), secondLayer);
             });
 
+            QUnit.test('adds and moves layer at the index', function(assert){
+                const testLayer = new joint.dia.LayerView({
+                    id: 'test'
+                });
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), -1);
+                assert.notOk(paper.hasLayerView('test'));
+                paper.addLayerView(testLayer, { index: 0 });
+                assert.ok(paper.hasLayerView('test'));
+                const order = paper.getLayerViewOrder();
+                assert.equal(order.indexOf('test'), 0);
+
+                paper.moveLayerView(testLayer, { index: 2 });
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), 2, 'Layer "test" is at index 2');
+
+                paper.moveLayerView(testLayer, { index: -1 })
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), 0, 'Layer "test" is at index 0 when -1 is provided');
+
+                paper.moveLayerView(testLayer, { index: 100 })
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), paper.getLayerViewOrder().length -1, 'Layer "test" is at the end when out of bounds index is provided');
+            });
         });
 
         QUnit.module('layer attribute', function() {

@@ -3838,8 +3838,8 @@ QUnit.module('graph', function(hooks) {
                 graph.moveLayer('layer2', { index: 3 });
                 assert.deepEqual(
                     graph.getLayers().map((layer) => layer.id),
-                    ['cells', 'layer1', 'layer2', 'layer3'],
-                    '\'layer2\' moved before last index',
+                    ['cells', 'layer1', 'layer3', 'layer2'],
+                    '\'layer2\' moved at the index 3',
                 );
 
                 // Move to middle index.

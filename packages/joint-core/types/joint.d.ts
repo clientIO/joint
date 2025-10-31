@@ -236,15 +236,10 @@ export namespace dia {
             defaultLayer?: string;
         }
 
-        interface AddLayerOptions extends Options {
-            before?: GraphLayer.ID | null;
-        }
-
-        interface MoveLayerOptions extends Options {
+        interface InsertLayerOptions extends Options {
             before?: GraphLayer.ID | null;
             index?: number;
         }
-
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -273,9 +268,9 @@ export namespace dia {
 
         resetLayers(layers: Array<Graph.LayerInit>, opt?: Graph.ResetLayersOptions): this;
 
-        addLayer(layerInit: Graph.LayerInit, opt?: Graph.AddLayerOptions): void;
+        addLayer(layerInit: Graph.LayerInit, opt?: Graph.InsertLayerOptions): void;
 
-        moveLayer(layerRef: Graph.LayerRef, opt?: Graph.MoveLayerOptions): void;
+        moveLayer(layerRef: Graph.LayerRef, opt?: Graph.InsertLayerOptions): void;
 
         removeLayer(layerRef: Graph.LayerRef, opt?: Graph.Options): void;
 
@@ -1792,6 +1787,11 @@ export namespace dia {
             view: CellView;
             magnet: SVGElement;
         }
+
+        interface InsertLayerViewOptions {
+            before?: LayerRef | null;
+            index?: number;
+        }
     }
 
     class Paper extends mvc.View<Graph> {
@@ -1994,9 +1994,13 @@ export namespace dia {
 
         getGraphLayerViews(): Array<GraphLayerView>;
 
-        insertLayerView(layerView: LayerView, options?: { before?: Paper.LayerRef }): void;
+        addLayerView(layerView: LayerView, options?: Paper.InsertLayerViewOptions): void;
 
-        removeLayerView(layerView: LayerView): void;
+        moveLayerView(layerRef: Paper.LayerRef, options?: Paper.InsertLayerViewOptions): void;
+
+        removeLayerView(layerRef: Paper.LayerRef): void;
+
+        protected insertLayerView(layerView: LayerView, before?: Paper.LayerRef ): void;
 
         protected requestLayerViewRemoval(layerRef: Paper.LayerRef): void;
 
