@@ -3771,7 +3771,7 @@ QUnit.module('graph', function(hooks) {
                 graph.addLayer({ id: 'my-layer' }, { testOption: true });
                 assert.ok(eventSpy.calledTwice, 'two events are triggered');
                 assert.ok(
-                    eventSpy.calledWithExactly('layers:add', graph.getLayer('my-layer'), graph.layerCollection, sinon.match({ testOption: true })),
+                    eventSpy.calledWithExactly('layer:add', graph.getLayer('my-layer'), graph.layerCollection, sinon.match({ testOption: true })),
                     'options are passed to \'add\' event'
                 );
                 assert.ok(eventSpy.calledWithMatch('layers:update'), 'layers:update event is triggered');
@@ -4006,7 +4006,7 @@ QUnit.module('graph', function(hooks) {
                 const layer1 = graph.getLayer('layer1');
                 graph.removeLayer('layer1', { testOption: true });
                 assert.ok(
-                    eventSpy.calledWithExactly('layers:remove', layer1, graph.layerCollection, sinon.match({ testOption: true })),
+                    eventSpy.calledWithExactly('layer:remove', layer1, graph.layerCollection, sinon.match({ testOption: true })),
                     'layerId and options are passed to \'remove\' event'
                 );
                 assert.ok(eventSpy.calledWithMatch('layers:update'), 'layers:update event is triggered');

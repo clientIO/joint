@@ -1,6 +1,5 @@
 import { Collection } from '../mvc/index.mjs';
 import { DEFAULT_GRAPH_LAYER_TYPE, GRAPH_LAYER_MARKER, GraphLayer } from './GraphLayer.mjs';
-import { CELL_COLLECTION_MARKER } from './CellCollection.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 import * as util from '../util/index.mjs';
 
@@ -97,68 +96,6 @@ export const GraphLayerCollection = Collection.extend({
 
     /**
      * @override
-     * @description Overrides the default `_onModelEvent` method
-     * to distinguish between events coming from different model types.
-     */
-    _onModelEvent(_eventName, model) {
-        if (!model) return;
-
-        if (model[GRAPH_LAYER_MARKER]) {
-            this._onLayerEvent.apply(this, arguments);
-            return;
-        }
-
-        if (model[CELL_MARKER]) {
-            this._onCellEvent.apply(this, arguments);
-            return;
-        }
-
-        if (model[CELL_COLLECTION_MARKER]) {
-            this._onCellCollectionEvent.apply(this, arguments);
-            return;
-        }
-    },
-
-    _onLayerEvent(eventName, layer) {
-        const layerEventPrefix = layer.eventPrefix;
-        if (
-            layer.collection !== this &&
-            (eventName === layerEventPrefix + 'add' || eventName === layerEventPrefix + 'remove')
-        ) {
-            return;
-        }
-
-        // Layer was changed
-        if (eventName === 'changeId') {
-            const prevId = this.modelId(layer.previousAttributes(), layer.idAttribute);
-            const id = this.modelId(layer.attributes, layer.idAttribute);
-            if (prevId != null) this._byId.delete(prevId);
-            if (id != null) this._byId.set(id, layer);
-        }
-
-        // `self:` prefix
-        // forward layer model events without prefix
-        arguments[0] = arguments[0].slice(layerEventPrefix.length);
-
-        this.trigger.apply(this, arguments);
-    },
-
-    _onCellEvent() {
-        // forward cell events with `cell:` prefix
-        arguments[0] = 'cell:' + arguments[0];
-
-        this.trigger.apply(this, arguments);
-    },
-
-    _onCellCollectionEvent() {
-        // forward layer collection events with `layer:` prefix
-        arguments[0] = 'layer:' + arguments[0];
-
-        this.trigger.apply(this, arguments);
-    },
-
-    /**
-     * @override
      * @description Add an assertion to prevent direct resetting of the collection.
      */
     reset(models, options) {
@@ -185,6 +122,24 @@ export const GraphLayerCollection = Collection.extend({
     },
 
     /**
+     * @override
+     * @description Overrides the default `_onModelEvent` method
+     * to distinguish between events coming from different model types.
+     */
+    _onModelEvent(_eventName, model) {
+        if (!model) return;
+
+        if (model[CELL_MARKER]) {
+            // Do not filter cell `add` and `remove` events
+            this.trigger.apply(this, arguments);
+            return;
+        }
+
+        // For other events, use the default behavior
+        Collection.prototype._onModelEvent.apply(this, arguments);
+    },
+
+    /**
      * @protected
      * @description Asserts that the collection manipulation
      * is done via internal graph methods. Otherwise, it throws an error.
@@ -196,4 +151,13 @@ export const GraphLayerCollection = Collection.extend({
         }
     },
 
+});
+
+// Internal tag to identify this object as a graph layer collection instance.
+// Used instead of `instanceof` for performance and cross-frame safety.
+
+export const GRAPH_LAYER_COLLECTION_MARKER = Symbol('joint.graphLayerCollection');
+
+Object.defineProperty(GraphLayerCollection.prototype, GRAPH_LAYER_COLLECTION_MARKER, {
+    value: true,
 });

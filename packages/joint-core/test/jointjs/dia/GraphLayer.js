@@ -5,7 +5,7 @@ QUnit.module('GraphLayer', function(hooks) {
 
         assert.ok(layer.cellCollection instanceof joint.dia.CellCollection, 'GraphLayer has a cells collection');
         assert.equal(layer.cellCollection.length, 0, 'cells collection is empty');
-        assert.ok(layer.eventPrefix === 'self:', 'eventPrefix is set to "self:"');
+        assert.ok(layer.eventPrefix === 'layer:', 'eventPrefix is set to "layer:"');
     });
 
     QUnit.test('sort by z-index', (assert) => {

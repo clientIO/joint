@@ -24,9 +24,9 @@ QUnit.module('GraphLayerCollection', function(hooks) {
         assert.equal(collection.length, 2, 'collection has 2 layers');
 
         assert.deepEqual(events, [
-            'add',
+            'layer:add',
             'update',
-            'add',
+            'layer:add',
             'update'
         ], 'events are triggered correctly');
     });
@@ -54,7 +54,7 @@ QUnit.module('GraphLayerCollection', function(hooks) {
         assert.equal(collection.at(0), layer2, 'remaining layer is layer2');
 
         assert.deepEqual(events, [
-            'remove',
+            'layer:remove',
             'update'
         ], 'events are triggered correctly on removal');
     });
