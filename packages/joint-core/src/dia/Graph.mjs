@@ -361,17 +361,17 @@ export const Graph = Model.extend({
     // reset the entire cells collection in one go.
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
+        // Note: `cells` is always an array and `opt` is always an object.
+        // See `wrappers.cells` at the end of this file.
 
-        this.startBatch('reset', opt);
-
-        const cellArray = util.toArray(cells);
-        // Do not ensure z-index on reset for backwards compatibility
+        // Backwards compatibility:
+        // Do not set z-index if not provided
         const prepareOptions = { ...opt, ensureZIndex: false };
-        for (const cell of cellArray) {
+        for (const cell of cells) {
             this._prepareCell(cell, prepareOptions);
         }
 
-        this.layersController.resetCells(cellArray, opt);
+        this.layersController.resetCells(cells, opt);
 
         // Trigger a single `reset` event on the graph
         // (while multiple `reset` events are triggered on layers).
@@ -379,8 +379,6 @@ export const Graph = Model.extend({
         // The `collection` parameter is retained for backwards compatibility,
         // and it is subject to removal in future releases.
         this.trigger('reset', this.getDefaultLayer().cellCollection, opt);
-
-        this.stopBatch('reset', opt);
 
         return this;
     },

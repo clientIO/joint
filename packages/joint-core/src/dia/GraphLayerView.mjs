@@ -11,7 +11,7 @@ import { sortingTypes } from './Paper.mjs';
  */
 export const GraphLayerView = LayerView.extend({
 
-    SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
+    SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
 
     style: {
         webkitUserSelect: 'none',
@@ -38,6 +38,8 @@ export const GraphLayerView = LayerView.extend({
         this.listenTo(this.model, 'add', this.onCellAdd);
         this.listenTo(this.model, 'change', this.onCellChange);
         this.listenTo(this.graph, 'batch:stop', this.onGraphBatchStop);
+        this.listenTo(this.graph, 'reset', this.onGraphReset);
+
     },
 
     beforePaperReferenceUnset() {
@@ -78,6 +80,11 @@ export const GraphLayerView = LayerView.extend({
         if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
             this.sort();
         }
+    },
+
+    onGraphReset(_, opt) {
+        if (opt.sort === false) return;
+        this.sort();
     },
 
     sort() {
