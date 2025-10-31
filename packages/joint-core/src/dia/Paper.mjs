@@ -1106,6 +1106,10 @@ export const Paper = View.extend({
         this.requestViewUpdate(viewLike, this.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
     },
 
+    /**
+     * @private
+     * Helper method for addLayerView and moveLayerView methods
+     */
     _getBeforeLayerViewFromOptions(layerView, options) {
         let { before = null, index } = options;
 
