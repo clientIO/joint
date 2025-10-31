@@ -1116,8 +1116,6 @@ export const Paper = View.extend({
         let computedBefore;
         if (index !== undefined) {
             const { _layers: { order }} = this;
-            const originalIndex = order.indexOf(layerView.id) !== -1 ? order.indexOf(layerView.id) : null;
-
             if (index >= order.length) {
                 // If index is greater than the number of layers,
                 // return before as null (move to the end).
@@ -1126,8 +1124,8 @@ export const Paper = View.extend({
                 // If index is negative, move to the beginning.
                 computedBefore = order[0];
             } else {
-
-                if (originalIndex != null && index > originalIndex) {
+                const originalIndex = order.indexOf(layerView.id);
+                if (originalIndex !== -1 && index > originalIndex) {
                     // If moving a layer upwards in the stack, we need to adjust the index
                     // to account for the layer being removed from its original position.
                     index += 1;

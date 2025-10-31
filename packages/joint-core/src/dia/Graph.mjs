@@ -611,7 +611,6 @@ export const Graph = Model.extend({
         let computedBefore;
         if (index !== undefined) {
             const layersArray = this.getLayers();
-            const originalIndex = layersArray.indexOf(layer) !== -1 ? layersArray.indexOf(layer) : null;
             if (index >= layersArray.length) {
                 // If index is greater than the number of layers,
                 // return before as null (move to the end).
@@ -620,7 +619,8 @@ export const Graph = Model.extend({
                 // If index is negative, move to the beginning.
                 computedBefore = layersArray[0].id;
             } else {
-                if (originalIndex != null && index > originalIndex) {
+                const originalIndex = layersArray.indexOf(layer);
+                if (originalIndex !== -1 && index > originalIndex) {
                     // If moving a layer upwards in the stack, we need to adjust the index
                     // to account for the layer being removed from its original position.
                     index += 1;
