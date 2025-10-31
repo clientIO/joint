@@ -598,12 +598,34 @@ export const Graph = Model.extend({
     },
 
     /**
+     * @private
+     * Helper method for addLayer and moveLayer methods
+     */
+    _getBeforeLayerIdByIndex(index) {
+        const layersArray = this.getLayers();
+        let beforeId;
+        if (index >= layersArray.length) {
+            // If index is greater than the number of layers,
+            // set before to null (move to the end).
+            beforeId = null;
+        } else if (index < 0) {
+            // If index is negative, move to the beginning.
+            beforeId = layersArray[0].id;
+        } else {
+            // Otherwise, get the layer ID at the specified index.
+            beforeId = layersArray[index].id;
+        }
+        return beforeId;
+    },
+
+    /**
      * @public
      * Adds a new layer to the graph.
      * @param {GraphLayer | GraphLayerJSON} layerInit
      * @param {*} opt
      * @param {string | null} [opt.before] - ID of the layer
      * before which to insert the new layer. If `null`, the layer is added at the end.
+     * @param {number} [opt.index] - Zero-based index to which to add the layer.
      * @throws Will throw an error if the layer to add is invalid
      * @throws Will throw an error if a layer with the same ID already exists
      * @throws Will throw if `before` reference is invalid
@@ -615,8 +637,17 @@ export const Graph = Model.extend({
         if (this.hasLayer(layerInit.id)) {
             throw new Error(`dia.Graph: Layer with id '${layerInit.id}' already exists.`);
         }
-        const { before = null, ...insertOptions } = opt;
-        this.layersController.insertLayer(layerInit, before, insertOptions);
+        const { before = null, index, ...insertOptions } = opt;
+        if (before && index !== undefined) {
+            throw new Error('dia.Graph: Options "before" and "index" are mutually exclusive.');
+        }
+        let computedBefore;
+        if (index !== undefined) {
+            computedBefore = this._getBeforeLayerIdByIndex(index);
+        } else {
+            computedBefore = before;
+        }
+        this.layersController.insertLayer(layerInit, computedBefore, insertOptions);
     },
 
     /**
@@ -641,18 +672,7 @@ export const Graph = Model.extend({
         }
         let computedBefore;
         if (index !== undefined) {
-            const layersArray = this.getLayers();
-            if (index >= layersArray.length) {
-                // If index is greater than the number of layers,
-                // set before to null (move to the end).
-                computedBefore = null;
-            } else if (index < 0) {
-                // If index is negative, move to the beginning.
-                computedBefore = layersArray[0].id;
-            } else {
-                // Otherwise, get the layer ID at the specified index.
-                computedBefore = layersArray[index].id;
-            }
+            computedBefore = this._getBeforeLayerIdByIndex(index);
         } else {
             computedBefore = before;
         }

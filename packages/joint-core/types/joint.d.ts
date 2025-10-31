@@ -238,6 +238,7 @@ export namespace dia {
 
         interface AddLayerOptions extends Options {
             before?: GraphLayer.ID | null;
+            index?: number;
         }
 
         interface MoveLayerOptions extends Options {
@@ -1792,6 +1793,14 @@ export namespace dia {
             view: CellView;
             magnet: SVGElement;
         }
+
+        interface AddLayerViewOptions {
+            before?: LayerRef;
+        }
+
+        interface MoveLayerViewOptions {
+            before?: LayerRef;
+        }
     }
 
     class Paper extends mvc.View<Graph> {
@@ -1994,9 +2003,13 @@ export namespace dia {
 
         getGraphLayerViews(): Array<GraphLayerView>;
 
-        insertLayerView(layerView: LayerView, options?: { before?: Paper.LayerRef }): void;
+        addLayerView(layerView: LayerView, options?: Paper.AddLayerViewOptions): void;
 
-        removeLayerView(layerView: LayerView): void;
+        moveLayerView(layerRef: Paper.LayerRef, options?: Paper.MoveLayerViewOptions): void;
+
+        removeLayerView(layerRef: Paper.LayerRef): void;
+
+        protected insertLayerView(layerView: LayerView, before?: Paper.LayerRef ): void;
 
         protected requestLayerViewRemoval(layerRef: Paper.LayerRef): void;
 
