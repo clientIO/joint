@@ -1106,7 +1106,7 @@ export const Paper = View.extend({
         this.requestViewUpdate(viewLike, this.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
     },
 
-    _getBeforeFromInsertOptions(layerView, options) {
+    _getBeforeLayerViewFromOptions(layerView, options) {
         let { before = null, index } = options;
 
         if (before && index !== undefined) {
@@ -1150,7 +1150,7 @@ export const Paper = View.extend({
     addLayerView(layerView, options = {}) {
         this._registerLayerView(layerView);
 
-        const beforeLayerView = this._getBeforeFromInsertOptions(layerView, options);
+        const beforeLayerView = this._getBeforeLayerViewFromOptions(layerView, options);
         this.insertLayerView(layerView, beforeLayerView);
     },
 
@@ -1165,7 +1165,7 @@ export const Paper = View.extend({
     moveLayerView(layerRef, options = {}) {
         const layerView = this.getLayerView(layerRef);
 
-        const beforeLayerView = this._getBeforeFromInsertOptions(layerView, options);
+        const beforeLayerView = this._getBeforeLayerViewFromOptions(layerView, options);
         this.insertLayerView(layerView, beforeLayerView);
     },
 
