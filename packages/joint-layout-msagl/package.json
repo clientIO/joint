@@ -1,7 +1,7 @@
 {
   "name": "@joint/layout-msagl",
   "title": "JointJS LayoutMSAGL",
-  "version": "4.1.3",
+  "version": "4.2.0",
   "description": "LayoutMSAGL module for JointJS",
   "sideEffects": false,
   "main": "./dist/esm/index.mjs",
