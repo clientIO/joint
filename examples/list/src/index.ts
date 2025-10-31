@@ -24,11 +24,11 @@ const LIST_ADD_BUTTON_SIZE = 20;
 const LIST_REMOVE_BUTTON_SIZE = 16;
 const LIST_IMAGE_SIZE = 20;
 
-const itemPosition = (portsArgs: dia.Element.Port[], elBBox: dia.BBox): g.Point[] => {
+const itemPosition = (portsArgs: dia.Element.Port[], elBBox: dia.BBox): Array<{ x: number; y: number; angle: number }> => {
     return portsArgs.map((_port: dia.Element.Port, index: number, { length }) => {
         const bottom = elBBox.height - (LIST_ITEM_HEIGHT + LIST_ADD_BUTTON_SIZE) / 2 - PADDING_S;
         const y = (length - 1 - index) * (LIST_ITEM_HEIGHT + LIST_ITEM_GAP);
-        return new g.Point(0, bottom - y);
+        return { x: 0, y: bottom - y, angle: 0 };
     });
 };
 
