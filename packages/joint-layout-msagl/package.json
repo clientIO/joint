@@ -1,25 +1,12 @@
 {
   "name": "@joint/layout-msagl",
   "title": "JointJS LayoutMSAGL",
+  "version": "4.1.3",
+  "description": "LayoutMSAGL module for JointJS",
+  "sideEffects": false,
   "main": "./dist/esm/index.mjs",
   "module": "./dist/esm/index.mjs",
   "types": "./dist/esm/index.d.mts",
-  "exports": {
-    ".": {
-      "import": "./dist/esm/index.mjs",
-      "types": "./dist/esm/index.d.mts",
-      "default": "./dist/esm/index.mjs"
-    }
-  },
-  "files": [
-    "dist",
-    "SECURITY.md",
-    "README.md",
-    "LICENSE"
-  ],
-  "sideEffects": false,
-  "version": "4.1.3",
-  "description": "LayoutMSAGL module for JointJS",
   "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
@@ -41,6 +28,9 @@
   "installConfig": {
     "hoistingLimits": "workspaces"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn build",
@@ -54,6 +44,19 @@
     "lint": "eslint .",
     "lint-fix": "yarn run lint --fix"
   },
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.mjs",
+      "types": "./dist/esm/index.d.mts",
+      "default": "./dist/esm/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "SECURITY.md",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@joint/core": "workspace:~",
     "@msagl/core": "^1.1.23"
