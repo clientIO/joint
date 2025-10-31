@@ -28,7 +28,7 @@
   * dia.Element - add `getPortBBox()` and `getPortCenter()` methods
   * dia.Element - support custom `portLayoutNamespace` and `portLabelLayoutNamespace`
   * dia.Element - support passing custom port label layout functions to `label.position`
-  * dia.ELement - optimize cloning in `getPort()` method
+  * dia.Element - optimize cloning in `getPort()` method
   * dia.Element - optimize `hasPort()` and `hasPorts()` methods
   * dia.Element - fix to parse numeric strings in port position args
   * dia.Cell - add `getCenter()` method
