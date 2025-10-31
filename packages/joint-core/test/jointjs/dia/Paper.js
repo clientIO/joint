@@ -2713,10 +2713,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 paper.moveLayerView(testLayer, { index: 2 });
                 assert.equal(paper.getLayerViewOrder().indexOf('test'), 2, 'Layer "test" is at index 2');
 
-                paper.moveLayerView(testLayer, { index: -1 })
+                paper.moveLayerView(testLayer, { index: -1 });
                 assert.equal(paper.getLayerViewOrder().indexOf('test'), 0, 'Layer "test" is at index 0 when -1 is provided');
 
-                paper.moveLayerView(testLayer, { index: 100 })
+                paper.moveLayerView(testLayer, { index: 100 });
                 assert.equal(paper.getLayerViewOrder().indexOf('test'), paper.getLayerViewOrder().length -1, 'Layer "test" is at the end when out of bounds index is provided');
             });
         });

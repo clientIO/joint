@@ -62,17 +62,14 @@ export const Graph = Model.extend({
         this.on('remove', this._restructureOnRemove, this);
         this.on('remove', this._removeCell, this);
 
+        // Listening to the collection instead of the graph itself
+        // to avoid graph attribute change events
         layerCollection.on('change:source', this._restructureOnChangeSource, this);
         layerCollection.on('change:target', this._restructureOnChangeTarget, this);
     },
 
     _forwardCellCollectionEvents: function(_eventName, model) {
         if (!model) return;
-
-        if (model[GRAPH_LAYER_MARKER]) {
-            this._onLayerEvent.apply(this, arguments);
-            return;
-        }
 
         if (model[CELL_MARKER]) {
             this._onCellEvent.apply(this, arguments);
@@ -81,6 +78,11 @@ export const Graph = Model.extend({
 
         if (model[CELL_COLLECTION_MARKER]) {
             this._onCellCollectionEvent.apply(this, arguments);
+            return;
+        }
+
+        if (model[GRAPH_LAYER_MARKER]) {
+            this._onLayerEvent.apply(this, arguments);
             return;
         }
 
@@ -114,7 +116,7 @@ export const Graph = Model.extend({
         if (eventName === 'sort') {
             // Backwards compatibility:
             // Trigger 'sort' event for cell collection 'sort' events
-            this.trigger('sort', arguments[1], arguments[2]);
+            this.trigger.apply(this, arguments);
         }
 
         // Do not forward `layer:remove` or `layer:sort` events to the graph

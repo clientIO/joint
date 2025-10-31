@@ -38,7 +38,9 @@ export class GraphLayersController extends Listener {
 
     startListening() {
         this.listenTo(this.graph, 'layers:reset', this.onLayerCollectionReset, this);
-        this.listenTo(this.graph, 'layer:remove', this.onLayerRemove, this);
+        this.listenTo(this.layerCollection, 'layer:remove', this.onLayerRemove, this);
+        // Listening to the collection instead of the graph itself
+        // to avoid graph attribute change events
         this.listenTo(this.layerCollection, 'change', this.onCellChange, this);
     }
 

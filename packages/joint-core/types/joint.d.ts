@@ -2000,7 +2000,7 @@ export namespace dia {
 
         removeLayerView(layerRef: Paper.LayerRef): void;
 
-        protected insertLayerView(layerView: LayerView, before?: Paper.LayerRef ): void;
+        protected insertLayerView(layerView: LayerView, before?: Paper.LayerRef): void;
 
         protected requestLayerViewRemoval(layerRef: Paper.LayerRef): void;
 

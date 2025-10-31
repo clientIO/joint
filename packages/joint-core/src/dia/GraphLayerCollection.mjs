@@ -1,6 +1,5 @@
 import { Collection } from '../mvc/index.mjs';
 import { DEFAULT_GRAPH_LAYER_TYPE, GRAPH_LAYER_MARKER, GraphLayer } from './GraphLayer.mjs';
-import { CELL_COLLECTION_MARKER } from './CellCollection.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 import * as util from '../util/index.mjs';
 
