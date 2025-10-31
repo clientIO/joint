@@ -1,4 +1,69 @@
-TBD (v4.2.0)
+31-10-2025 (v4.2.0)
+
+  @joint/core
+  * examples.layout-elk-ts - add new example
+  * dia.Paper - add `measureNode()` callback option
+  * dia.Paper - add `viewManagement` option for advanced view lifecycle management
+  * dia.Paper - add `cellVisibility()` callback option
+  * dia.Paper - add `disposeHiddenCellViews()` method
+  * dia.Paper - add `prioritizeCellViewMount()` and `prioritizeCellViewUnmount()` methods
+  * dia.Paper - add `updateCellVisibility()` and `updateCellsVisibility()` methods
+  * dia.Paper - add `isCellVisible()` method
+  * dia.Paper - rework `autoFreeze` option
+  * dia.Paper - add cell layers functionality
+  * dia.Paper - fix to only trigger `'render:idle'` event after all updates are completed
+  * dia.Paper - fix generic view detachment when `viewport()` callback returns `false`
+  * dia.Paper - fix to trigger `'render:*'` events when paper model is reset with no cells
+  * dia.Paper - fix rendering of first batch of updates in `async` mode to be asynchronous
+  * dia.LinkView - allow link-to-link snap
+  * dia.LinkView - fix to prevent link snap to a magnet when only the host cell is close enough
+  * dia.LinkView - fix missing arrowheads in WKWebView
+  * dia.CellView - make `getNodeBBox()` method work for nodes outside the render tree
+  * dia.CellView - optimize measurements of nodes referenced by `ref` attribute
+  * dia.Graph - add `syncCells()` method
+  * dia.Graph - add `removeCell()` method
+  * dia.Element - add `filter` option to `fitToChildren()` and `fitParent()` methods
+  * dia.Element - add `minRect` option to `fitToChildren()` and `fitParent()` methods
+  * dia.Element - support port position `args` inside `position` property
+  * dia.Element - add `getPortBBox()` and `getPortCenter()` methods
+  * dia.Element - support custom `portLayoutNamespace` and `portLabelLayoutNamespace`
+  * dia.Element - support passing custom port label layout functions to `label.position`
+  * dia.ELement - optimize cloning in `getPort()` method
+  * dia.Element - optimize `hasPort()` and `hasPorts()` methods
+  * dia.Element - fix to parse numeric strings in port position args
+  * dia.Cell - add `getCenter()` method
+  * dia.Cell - add cell attributes merge strategy
+  * dia.Cell - support array paths in `transition()` and `stopTransition()` methods
+  * dia.Cell - expose `getAttributeDefinition()` method
+  * dia.Cell - fix to always create deep copy of arrays in constructor
+  * dia.attributes - add `useNoBreakSpace` which reinstates `V.sanitizeText()` functionality
+  * dia.attributes - fix `textWrap` attribute when Paper is not in render tree
+  * dia.HighlighterView - add static `has()` method to check if CellView has a highlighter attached
+  * dia.HighlighterView - fix to prevent highlighting nodes outside cell view
+  * dia.HighlighterView - fix to prevent removing not-yet-mounted HighlighterViews on unmount
+  * elementTools - fix tools position when attached directly to ElementView
+  * linkTools.Vertices - fix to call blur when `redundancyRemoval: false`
+  * anchors - add `useModelGeometry` option to all anchors
+  * anchors - add support for `calc()` expressions in `dx`, `dy` options
+  * anchors.midSide - add `mode` and `preferenceThreshold` options
+  * connectionPoints - add `useModelGeometry` option to `bbox` and `rectangle`
+  * mvc.View - allow providing custom `cid` in constructor
+  * mvc.Collection - use a Map to store references
+  * Vectorizer - add `safe` option to `getTransformToElement()` method
+  * Vectorizer - add static `getCommonAncestor()` method
+  * Vectorizer - add `useNoBreakSpace` option to `text()` method
+  * Vectorizer - deprecate static `sanitizeText()` method
+  * Vectorizer - fix to preserve camelCase in 'attributeName', 'repeatCount' attribute names
+  * Vectorizer - fix to handle implicit line coordinates in `convertToPathData()` method
+  * Geometry - add `moveAroundPoint()` method to `Rect`
+  * fix to keep 'use strict' for minified files
+
+  @joint/layout-directed-graph
+  * layout.DirectedGraph - support `clusterPadding: 'default'`
+  * layout.DirectedGraph - expose Dagre `disableOptimalOrderHeuristic` and `customOrder` options
+
+  @joint/layout-msagl
+  * layout.MSAGL - add new layout package utilizing the Microsoft Automatic Graph Layout
 
 13-03-2025 (v4.1.4)
 
