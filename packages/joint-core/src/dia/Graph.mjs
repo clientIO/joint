@@ -601,52 +601,62 @@ export const Graph = Model.extend({
      * @private
      * Helper method for addLayer and moveLayer methods
      */
-    _getBeforeLayerIdByIndex(index) {
-        const layersArray = this.getLayers();
-        let beforeId;
-        if (index >= layersArray.length) {
-            // If index is greater than the number of layers,
-            // set before to null (move to the end).
-            beforeId = null;
-        } else if (index < 0) {
-            // If index is negative, move to the beginning.
-            beforeId = layersArray[0].id;
-        } else {
-            // Otherwise, get the layer ID at the specified index.
-            beforeId = layersArray[index].id;
+    _getBeforeLayerIdFromOptions(options, layer = null) {
+        let { before = null, index } = options;
+
+        if (before && index !== undefined) {
+            throw new Error('dia.Graph: Options "before" and "index" are mutually exclusive.');
         }
-        return beforeId;
+
+        let computedBefore;
+        if (index !== undefined) {
+            const layersArray = this.getLayers();
+            const originalIndex = layersArray.indexOf(layer) !== -1 ? layersArray.indexOf(layer) : null;
+            if (index >= layersArray.length) {
+                // If index is greater than the number of layers,
+                // return before as null (move to the end).
+                computedBefore = null;
+            } else if (index < 0) {
+                // If index is negative, move to the beginning.
+                computedBefore = layersArray[0].id;
+            } else {
+                if (originalIndex != null && index > originalIndex) {
+                    // If moving a layer upwards in the stack, we need to adjust the index
+                    // to account for the layer being removed from its original position.
+                    index += 1;
+                }
+                // Otherwise, get the layer ID at the specified index.
+                computedBefore = layersArray[index]?.id || null;
+            }
+        } else {
+            computedBefore = before;
+        }
+
+        return computedBefore;
     },
 
     /**
      * @public
      * Adds a new layer to the graph.
      * @param {GraphLayer | GraphLayerJSON} layerInit
-     * @param {*} opt
-     * @param {string | null} [opt.before] - ID of the layer
+     * @param {*} options
+     * @param {string | null} [options.before] - ID of the layer
      * before which to insert the new layer. If `null`, the layer is added at the end.
-     * @param {number} [opt.index] - Zero-based index to which to add the layer.
+     * @param {number} [options.index] - Zero-based index to which to add the layer.
      * @throws Will throw an error if the layer to add is invalid
      * @throws Will throw an error if a layer with the same ID already exists
      * @throws Will throw if `before` reference is invalid
      */
-    addLayer(layerInit, opt = {}) {
+    addLayer(layerInit, options = {}) {
         if (!layerInit || !layerInit.id) {
             throw new Error('dia.Graph: Layer to add is invalid.');
         }
         if (this.hasLayer(layerInit.id)) {
             throw new Error(`dia.Graph: Layer with id '${layerInit.id}' already exists.`);
         }
-        const { before = null, index, ...insertOptions } = opt;
-        if (before && index !== undefined) {
-            throw new Error('dia.Graph: Options "before" and "index" are mutually exclusive.');
-        }
-        let computedBefore;
-        if (index !== undefined) {
-            computedBefore = this._getBeforeLayerIdByIndex(index);
-        } else {
-            computedBefore = before;
-        }
+        const { before = null, index, ...insertOptions } = options;
+
+        const computedBefore = this._getBeforeLayerIdFromOptions({ before, index });
         this.layersController.insertLayer(layerInit, computedBefore, insertOptions);
     },
 
@@ -654,29 +664,23 @@ export const Graph = Model.extend({
      * @public
      * Moves an existing layer to a new position in the layer stack.
      * @param {string | GraphLayer} layerRef - ID or reference of the layer to move.
-     * @param {*} opt
-     * @param {string | null} [opt.before] - ID of the layer
+     * @param {*} options
+     * @param {string | null} [options.before] - ID of the layer
      * before which to insert the moved layer. If `null`, the layer is moved to the end.
-     * @param {number} [opt.index] - Zero-based index to which to move the layer.
+     * @param {number} [options.index] - Zero-based index to which to move the layer.
      * @throws Will throw an error if the layer to move does not exist
      * @throws Will throw an error if `before` reference is invalid
      * @throws Will throw an error if both `before` and `index` options are provided
      */
-    moveLayer(layerRef, opt = {}) {
+    moveLayer(layerRef, options = {}) {
         if (!layerRef || !this.hasLayer(layerRef)) {
             throw new Error('dia.Graph: Layer to move does not exist.');
         }
-        const { before = null, index, ...insertOptions } = opt;
-        if (before && index !== undefined) {
-            throw new Error('dia.Graph: Options "before" and "index" are mutually exclusive.');
-        }
-        let computedBefore;
-        if (index !== undefined) {
-            computedBefore = this._getBeforeLayerIdByIndex(index);
-        } else {
-            computedBefore = before;
-        }
-        this.layersController.insertLayer(this.getLayer(layerRef), computedBefore, insertOptions);
+        const layer = this.getLayer(layerRef);
+        const { before = null, index, ...insertOptions } = options;
+
+        const computedBefore = this._getBeforeLayerIdFromOptions({ before, index }, layer);
+        this.layersController.insertLayer(layer, computedBefore, insertOptions);
     },
 
     /**

@@ -1106,22 +1106,40 @@ export const Paper = View.extend({
         this.requestViewUpdate(viewLike, this.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
     },
 
-    _getBeforeLayerIdByIndex(index) {
-        const { _layers: { order }} = this;
+    _getBeforeFromInsertOptions(layerView, options) {
+        let { before = null, index } = options;
 
-        let beforeId;
-        if (index >= order.length) {
-            // If index is greater than the number of layers,
-            // set before to null (move to the end).
-            beforeId = null;
-        } else if (index < 0) {
-            // If index is negative, move to the beginning.
-            beforeId = order[0];
-        } else {
-            // Otherwise, get the layer ID at the specified index.
-            beforeId = order[index];
+        if (before && index !== undefined) {
+            throw new Error('dia.Paper: Options "before" and "index" are mutually exclusive.');
         }
-        return beforeId;
+
+        let computedBefore;
+        if (index !== undefined) {
+            const { _layers: { order }} = this;
+            const originalIndex = order.indexOf(layerView.id) !== -1 ? order.indexOf(layerView.id) : null;
+
+            if (index >= order.length) {
+                // If index is greater than the number of layers,
+                // return before as null (move to the end).
+                computedBefore = null;
+            } else if (index < 0) {
+                // If index is negative, move to the beginning.
+                computedBefore = order[0];
+            } else {
+
+                if (originalIndex != null && index > originalIndex) {
+                    // If moving a layer upwards in the stack, we need to adjust the index
+                    // to account for the layer being removed from its original position.
+                    index += 1;
+                }
+                // Otherwise, get the layer ID at the specified index.
+                computedBefore = order[index] || null;
+            }
+        } else {
+            computedBefore = before;
+        }
+
+        return computedBefore ? this.getLayerView(computedBefore) : null;
     },
 
     /**
@@ -1134,18 +1152,7 @@ export const Paper = View.extend({
     addLayerView(layerView, options = {}) {
         this._registerLayerView(layerView);
 
-        const { before = null, index } = options;
-        if (before && index !== undefined) {
-            throw new Error('dia.Paper: Options "before" and "index" are mutually exclusive.');
-        }
-        let computedBefore;
-        if (index !== undefined) {
-            computedBefore = this._getBeforeLayerIdByIndex(index);
-        } else {
-            computedBefore = before;
-        }
-        const beforeLayerView = computedBefore ? this.getLayerView(computedBefore) : null;
-
+        const beforeLayerView = this._getBeforeFromInsertOptions(layerView, options);
         this.insertLayerView(layerView, beforeLayerView);
     },
 
@@ -1160,18 +1167,7 @@ export const Paper = View.extend({
     moveLayerView(layerRef, options = {}) {
         const layerView = this.getLayerView(layerRef);
 
-        const { before = null, index } = options;
-        if (before && index !== undefined) {
-            throw new Error('dia.Paper: Options "before" and "index" are mutually exclusive.');
-        }
-        let computedBefore;
-        if (index !== undefined) {
-            computedBefore = this._getBeforeLayerIdByIndex(index);
-        } else {
-            computedBefore = before;
-        }
-        const beforeLayerView = computedBefore ? this.getLayerView(computedBefore) : null;
-
+        const beforeLayerView = this._getBeforeFromInsertOptions(layerView, options);
         this.insertLayerView(layerView, beforeLayerView);
     },
 

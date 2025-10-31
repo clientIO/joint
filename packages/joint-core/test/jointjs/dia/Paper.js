@@ -2711,8 +2711,13 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(order.indexOf('test'), 0);
 
                 paper.moveLayerView(testLayer, { index: 2 });
-                const newOrder = paper.getLayerViewOrder();
-                assert.equal(newOrder.indexOf('test'), 1);
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), 2, 'Layer "test" is at index 2');
+
+                paper.moveLayerView(testLayer, { index: -1 })
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), 0, 'Layer "test" is at index 0 when -1 is provided');
+
+                paper.moveLayerView(testLayer, { index: 100 })
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), paper.getLayerViewOrder().length -1, 'Layer "test" is at the end when out of bounds index is provided');
             });
         });
 
