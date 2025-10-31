@@ -43,4 +43,8 @@ export class GraphLayer extends Model {
         if (opt.sort === false || !cell.hasChanged('z')) return;
         this.cellCollection.sort();
     }
+
+    getCells() {
+        return this.cellCollection.toArray();
+    }
 }

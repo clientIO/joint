@@ -151,6 +151,70 @@ export const GraphLayerCollection = Collection.extend({
         }
     },
 
+    getCell(id) {
+        // TODO: should we create a map of cells for faster lookup?
+        for (const layer of this.models) {
+            const cell = layer.cellCollection.get(id);
+            if (cell) {
+                return cell;
+            }
+        }
+        // Backward compatibility: return undefined if cell is not found
+        return undefined;
+    },
+
+    getCells() {
+        const layers = this.models;
+        if (layers.length === 1) {
+            // Single layer:
+            // Fast path, just return the copy of the only layer's cells
+            return layers[0].getCells();
+        }
+        // Multiple layers:
+        // Each layer has its models sorted already, so we can just concatenate
+        // them in the order of layers.
+        const cells = [];
+        for (const layer of layers) {
+            Array.prototype.push.apply(cells, layer.cellCollection.models);
+        }
+        return cells;
+    },
+
+    /**
+     * @public
+     * @description Move a cell from its current layer to a target layer.
+     */
+    moveCellBetweenLayers(cell, targetLayerId, options = {}) {
+
+        const sourceLayer = cell.collection?.layer;
+        if (!sourceLayer) {
+            throw new Error('dia.GraphLayerCollection: cannot move a cell that is not part of any layer.');
+        }
+
+        const targetLayer = this.get(targetLayerId);
+        if (!targetLayer) {
+            throw new Error(`dia.GraphLayerCollection: cannot move cell to layer '${targetLayerId}' because such layer does not exist.`);
+        }
+
+        if (sourceLayer === targetLayer) {
+            // 1. The provided cell is already in the target layer
+            // 2. Implicit default layer vs. explicit default (or vice versa)
+            // No follow-up action needed
+            return;
+        }
+
+        const moveOptions = {
+            ...options,
+            // TODO
+            graph: true,
+            // graph: this.graph.cid,
+            fromLayer: sourceLayer.id,
+            toLayer: targetLayer.id
+        };
+        // Move the cell between the two layer collections
+        sourceLayer.cellCollection.remove(cell, moveOptions);
+        targetLayer.cellCollection.add(cell, moveOptions);
+    }
 });
 
 // Internal tag to identify this object as a graph layer collection instance.

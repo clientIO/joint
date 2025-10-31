@@ -318,12 +318,15 @@ export const Graph = Model.extend({
         return cellInit;
     },
 
-    minZIndex: function(layerId) {
-        return this.layersController.minZIndex(layerId);
+    // TODO:  getDefaultLayerId()?
+    minZIndex: function(layerId = this.getDefaultLayer().id) {
+        const layer = this.getLayer(layerId);
+        return layer.cellCollection.minZIndex(layerId);
     },
 
-    maxZIndex: function(layerId) {
-        return this.layersController.maxZIndex(layerId);
+    maxZIndex: function(layerId = this.getDefaultLayer().id) {
+        const layer = this.getLayer(layerId);
+        return layer.cellCollection.maxZIndex(layerId);
     },
 
     addCell: function(cell, opt) {
@@ -736,24 +739,27 @@ export const Graph = Model.extend({
     },
 
     getLayer(layerId) {
-        return this.layersController.getLayer(layerId);
+        if (!this.hasLayer(layerId)) {
+            throw new Error(`dia.Graph: Layer with id '${layerId}' does not exist.`);
+        }
+        return this.layerCollection.get(layerId);
     },
 
     hasLayer(layerId) {
-        return this.layersController.hasLayer(layerId);
+        return this.layerCollection.has(layerId);
     },
 
     getLayers() {
-        return this.layersController.getLayers();
+        return this.layerCollection.toArray();
     },
 
     // Get a cell by `id`.
     getCell: function(id) {
-        return this.layersController.getCell(id);
+        return this.layerCollection.getCell(id);
     },
 
     getCells: function() {
-        return this.layersController.getCells();
+        return this.layerCollection.getCells();
     },
 
     getElements: function() {
