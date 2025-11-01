@@ -1,6 +1,6 @@
 import { Collection } from '../mvc/index.mjs';
-import { DEFAULT_GRAPH_LAYER_TYPE, GRAPH_LAYER_MARKER, GraphLayer } from './GraphLayer.mjs';
-import { CELL_MARKER } from './Cell.mjs';
+import { DEFAULT_GRAPH_LAYER_TYPE, GraphLayer } from './GraphLayer.mjs';
+import { CELL_MARKER,GRAPH_LAYER_MARKER, GRAPH_LAYER_COLLECTION_MARKER } from './symbols.mjs';
 import * as util from '../util/index.mjs';
 
 /**
@@ -299,11 +299,6 @@ export const GraphLayerCollection = Collection.extend({
     }
 
 });
-
-// Internal tag to identify this object as a graph layer collection instance.
-// Used instead of `instanceof` for performance and cross-frame safety.
-
-export const GRAPH_LAYER_COLLECTION_MARKER = Symbol('joint.graphLayerCollection');
 
 Object.defineProperty(GraphLayerCollection.prototype, GRAPH_LAYER_COLLECTION_MARKER, {
     value: true,

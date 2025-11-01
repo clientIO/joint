@@ -2,6 +2,7 @@ import { LayerView } from './LayerView.mjs';
 import { sortElements } from '../util/index.mjs';
 import { addClassNamePrefix } from '../util/util.mjs';
 import { sortingTypes } from './Paper.mjs';
+import { GRAPH_LAYER_VIEW_MARKER } from './symbols.mjs';
 
 /**
  * @class GraphLayerView
@@ -128,11 +129,6 @@ export const GraphLayerView = LayerView.extend({
     },
 
 });
-
-// Internal tag to identify this object as a layer view instance.
-// Used instead of `instanceof` for performance and cross-frame safety.
-
-export const GRAPH_LAYER_VIEW_MARKER = Symbol('joint.graphLayerViewMarker');
 
 Object.defineProperty(GraphLayerView.prototype, GRAPH_LAYER_VIEW_MARKER, {
     value: true,

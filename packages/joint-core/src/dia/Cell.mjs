@@ -32,6 +32,7 @@ import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';
 import { config } from '../config/index.mjs';
+import { CELL_MARKER } from './symbols.mjs';
 
 // Cell base model.
 // --------------------------
@@ -984,11 +985,6 @@ export const Cell = Model.extend({
         return Cell;
     }
 });
-
-// Internal tag to identify this object as a cell view instance.
-// Used instead of `instanceof` for performance and cross-frame safety.
-
-export const CELL_MARKER = Symbol('joint.cellMarker');
 
 Object.defineProperty(Cell.prototype, CELL_MARKER, {
     value: true,

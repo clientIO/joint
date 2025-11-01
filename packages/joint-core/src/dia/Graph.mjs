@@ -8,7 +8,7 @@ import { cloneCells } from '../util/index.mjs';
 import { GraphLayersController } from './GraphLayersController.mjs';
 import { GraphLayerCollection } from './GraphLayerCollection.mjs';
 import { config } from '../config/index.mjs';
-import { CELL_MARKER } from './Cell.mjs';
+import { CELL_MARKER } from './symbols.mjs';
 
 const DEFAULT_LAYER_ID = 'cells';
 

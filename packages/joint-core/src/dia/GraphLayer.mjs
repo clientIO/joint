@@ -1,7 +1,6 @@
 import { Model } from '../mvc/index.mjs';
 import { CellCollection } from './CellCollection.mjs';
-
-export const GRAPH_LAYER_MARKER = Symbol('joint.graphLayerMarker');
+import { GRAPH_LAYER_MARKER } from './symbols.mjs';
 
 export const DEFAULT_GRAPH_LAYER_TYPE = 'GraphLayer';
 

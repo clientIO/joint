@@ -35,16 +35,18 @@ import {
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views as viewsRegistry } from '../mvc/index.mjs';
-import { CellView, CELL_VIEW_MARKER } from './CellView.mjs';
+import { CellView } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
-import { CELL_MARKER } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LAYER_VIEW_MARKER, LayerView } from './LayerView.mjs';
-import { GRAPH_LAYER_VIEW_MARKER, GraphLayerView } from './GraphLayerView.mjs';
+import { LayerView } from './LayerView.mjs';
+import { GraphLayerView } from './GraphLayerView.mjs';
 import { LegacyGraphLayerView } from './LegacyGraphLayerView.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { Deque } from '../alg/Deque.mjs';
+import {
+    CELL_MARKER, CELL_VIEW_MARKER, LAYER_VIEW_MARKER, GRAPH_LAYER_VIEW_MARKER
+} from './symbols.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';

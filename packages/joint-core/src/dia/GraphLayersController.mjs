@@ -1,9 +1,6 @@
 import { Listener } from '../mvc/Listener.mjs';
 import { config } from '../config/index.mjs';
-import { CELL_MARKER } from './Cell.mjs';
-import { CELL_COLLECTION_MARKER } from './CellCollection.mjs';
-import { GRAPH_LAYER_MARKER } from './GraphLayer.mjs';
-import { GRAPH_LAYER_COLLECTION_MARKER } from './GraphLayerCollection.mjs';
+import { CELL_MARKER, CELL_COLLECTION_MARKER, GRAPH_LAYER_MARKER, GRAPH_LAYER_COLLECTION_MARKER } from './symbols.mjs';
 
 /**
  * @class GraphLayersController
