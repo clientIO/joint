@@ -126,11 +126,10 @@ export const GraphLayerCollection = Collection.extend({
      * @description Overrides the default `_onModelEvent` method
      * to distinguish between events coming from different model types.
      */
-    _onModelEvent(_eventName, model) {
-        if (!model) return;
-
-        if (model[CELL_MARKER]) {
+    _onModelEvent(_, model) {
+        if (model && model[CELL_MARKER]) {
             // Do not filter cell `add` and `remove` events
+            // See `mvc.Collection` for more details
             this.trigger.apply(this, arguments);
             return;
         }
@@ -155,13 +154,9 @@ export const GraphLayerCollection = Collection.extend({
      * @public
      * @description Inserts a layer before another layer or at the end if `beforeLayerId` is null.
      */
-    insert(layer, beforeLayerId = null, options = {}) {
+    insert(layerInit, beforeLayerId = null, options = {}) {
 
-        // TODO
-        // Adding a new layer disables legacy mode
-        // this.legacyMode = false;
-
-        const id = layer.id;
+        const id = layerInit.id;
         if (id === beforeLayerId) {
             // Inserting before itself is a no-op
             return;
@@ -193,7 +188,7 @@ export const GraphLayerCollection = Collection.extend({
 
         if (currentIndex !== -1) {
             // Re-insert the layer at the new position.
-            this.add(layer, {
+            this.add(layerInit, {
                 at: insertAt,
                 silent: true
             });
@@ -203,7 +198,7 @@ export const GraphLayerCollection = Collection.extend({
         } else {
             // Add to the collection and trigger an event
             // when new layer has been added
-            this.add(layer, {
+            this.add(layerInit, {
                 ...options,
                 at: insertAt,
             });
@@ -284,7 +279,7 @@ export const GraphLayerCollection = Collection.extend({
      * @public
      * @description Adds a cell to the specified layer.
      */
-    addCellToLayer(cell, layerId, options) {
+    addCellToLayer(cell, layerId, options = {}) {
         const targetLayer = this.get(layerId);
         if (!targetLayer) {
             throw new Error(`dia.GraphLayerCollection: layer with id '${layerId}' does not exist.`);

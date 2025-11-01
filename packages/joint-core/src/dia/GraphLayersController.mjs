@@ -8,8 +8,6 @@ import { CELL_MARKER, CELL_COLLECTION_MARKER, GRAPH_LAYER_MARKER, GRAPH_LAYER_CO
  */
 export class GraphLayersController extends Listener {
 
-    legacyMode = true;
-
     constructor(options) {
         super(options);
 
@@ -111,5 +109,4 @@ export class GraphLayersController extends Listener {
         arguments[0] = 'layers:' + arguments[0];
         this.graph.trigger.apply(this.graph, arguments);
     }
-
 }

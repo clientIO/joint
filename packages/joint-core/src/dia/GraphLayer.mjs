@@ -15,7 +15,7 @@ export class GraphLayer extends Model {
     preinitialize() {
         // This allows for propagating events from the inner `cellCollection` collection
         // without any prefix and therefore distinguish them from the events
-        // fired by the CellGroup model itself.
+        // fired by the GraphLayer model itself.
         this.eventPrefix = 'layer:';
     }
 
@@ -43,6 +43,10 @@ export class GraphLayer extends Model {
         this.cellCollection.sort();
     }
 
+    /**
+     * @public
+     * @description Returns all cells in this layer.
+     */
     getCells() {
         return this.cellCollection.toArray();
     }

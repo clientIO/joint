@@ -328,7 +328,16 @@ QUnit.module('graph', function(hooks) {
 
             QUnit.test('should sort the layers that were affected', function(assert) {
                 const graph = this.graph;
-                graph.resetLayers([{ id: 'l1' }, { id: 'l2' }, { id: 'l3' }, { id: 'l4' }, { id: 'l5' }]);
+                graph.fromJSON({
+                    layers: [
+                        { id: 'l1' },
+                        { id: 'l2' },
+                        { id: 'l3' },
+                        { id: 'l4' },
+                        { id: 'l5' }
+                    ],
+                    cells: []
+                });
                 graph.resetCells([{
                     id: 'a',
                     type: 'standard.Rectangle',

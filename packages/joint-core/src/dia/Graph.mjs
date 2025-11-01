@@ -10,10 +10,22 @@ import { GraphLayerCollection } from './GraphLayerCollection.mjs';
 import { config } from '../config/index.mjs';
 import { CELL_MARKER } from './symbols.mjs';
 
+// The ID of the default graph layer.
 const DEFAULT_LAYER_ID = 'cells';
 
 export const Graph = Model.extend({
 
+    /**
+     * @todo Remove in v5.0.0
+     * @description In legacy mode, the information about layers is not
+     * exported into JSON.
+     */
+    legacyMode: true,
+
+    /**
+     * @protected
+     * @description The ID of the default layer.
+     */
     defaultLayerId: DEFAULT_LAYER_ID,
 
     initialize: function(attrs, options = {}) {
@@ -29,8 +41,11 @@ export const Graph = Model.extend({
         // The default setup includes a single default layer.
         this.layerCollection.add({ id: DEFAULT_LAYER_ID }, { graph: this.cid });
 
-        // Retain legacy 'cells' collection in attributes for backward compatibility.
-        // Applicable only when the default layer setup is used.
+        /**
+         * @todo Remove in v5.0.0
+         * @description Retain legacy 'cells' collection in attributes for backward compatibility.
+         * Applicable only when the default layer setup is used.
+         */
         this.attributes.cells = this.getLayer(DEFAULT_LAYER_ID).cellCollection;
 
         // Controller that manages communication between the graph and its layers.
@@ -63,12 +78,12 @@ export const Graph = Model.extend({
         this.on('reset', this._restructureOnReset, this);
         this.on('add', this._restructureOnAdd, this);
         this.on('remove', this._restructureOnRemove, this);
-        this.on('remove', this._removeCell, this);
-
         // Listening to the collection instead of the graph itself
         // to avoid reacting to graph attribute change events
         layerCollection.on('change:source', this._restructureOnChangeSource, this);
         layerCollection.on('change:target', this._restructureOnChangeTarget, this);
+
+        this.on('remove', this._removeCell, this);
     },
 
     _restructureOnAdd: function(cell) {
@@ -181,16 +196,20 @@ export const Graph = Model.extend({
     },
 
     fromJSON: function(json, opt) {
-        const { cells, layers, defaultLayer, ...attrs } = json;
+        const { cells, layers, defaultLayer, ...attributes } = json;
 
         if (!cells) {
             throw new Error('Graph JSON must contain cells array.');
         }
 
-        this.set(attrs, { silent: true });
+        this.set(attributes, { silent: true });
+
+        if (defaultLayer) {
+            this.defaultLayerId = defaultLayer;
+        }
 
         if (layers) {
-            this.resetLayers(layers, { ...opt, defaultLayer });
+            this._resetLayers(layers, defaultLayer, opt);
         }
 
         if (cells) {
@@ -358,8 +377,13 @@ export const Graph = Model.extend({
         return cellAttributes[config.layerAttribute] || this.defaultLayerId;
     },
 
-    // TODO
-    resetLayers: function(layers, options = {}) {
+    /**
+     * @protected
+     * @description Reset the layers in the graph.
+     * It assumes the existing cells have been removed beforehand
+     * or can be discarded.
+     */
+    _resetLayers: function(layers, defaultLayerId, options = {}) {
         if (!Array.isArray(layers) || layers.length === 0) {
             throw new Error('dia.Graph: At least one layer must be defined.');
         }
@@ -367,14 +391,18 @@ export const Graph = Model.extend({
         // Resetting layers disables legacy mode
         this.legacyMode = false;
 
-        // The default layer must be one of the defined layers
-        const { defaultLayer: defaultLayerId = layers[0].id } = options;
-        if (!layers.some(layer => layer.id === defaultLayerId)) {
-            throw new Error(`dia.Graph: default layer with id '${defaultLayerId}' must be one of the defined layers.`);
-        }
-
-        this.defaultLayerId = defaultLayerId;
         this.layerCollection.reset(layers, { ...options, graph: this.cid });
+
+        // If no default layer is specified, use the first layer as default
+        if (defaultLayerId) {
+            // The default layer must be one of the defined layers
+            if (!this.hasLayer(defaultLayerId)) {
+                throw new Error(`dia.Graph: default layer with id '${defaultLayerId}' does not exist.`);
+            }
+            this.defaultLayerId = defaultLayerId;
+        } else {
+            this.defaultLayerId = this.layerCollection.at(0).id;
+        }
 
         return this;
     },
