@@ -313,7 +313,7 @@ QUnit.module('Layers', function(hooks) {
         assert.equal(layers[0].graph, this.graph, 'Layer graph reference is set after reset');
         assert.equal(layers.length, 1, 'There is 1 layer in the graph');
         assert.equal(layers[0].id, 'cells', 'The only layer is "cells"');
-        assert.equal(this.graph.getCells().length, 1, 'There are no cells in the graph');
+        assert.equal(this.graph.getCells().length, 1, 'There is 1 cell in the graph');
         assert.ok(this.graph.getCell('rect3'), 'Cell "rect3" is added to the graph');
         assert.equal(this.paper.el.querySelectorAll('.joint-cells').length, 1, 'There is 1 layer view in the paper');
         assert.equal(this.paper.el.querySelectorAll('.joint-cell').length, 1, 'There is 1 cell view in the paper');
@@ -345,7 +345,7 @@ QUnit.module('Layers', function(hooks) {
 
         const updatedLayers = this.graph.getLayers();
 
-        assert.equal(updatedLayers.length, 2, 'There is 1 layer in the graph');
+        assert.equal(updatedLayers.length, 2, 'There are 2 layers in the graph');
         assert.notOk(this.graph.hasLayer('cells'), 'Layer "cells" is removed after reset');
         assert.ok(this.graph.getCell('rect4'), 'Cell "rect4" is added to the graph after reset');
         assert.equal(this.graph.getLayer('layer1').getCells().length, 0, 'Layer "layer1" has no cells after reset');
