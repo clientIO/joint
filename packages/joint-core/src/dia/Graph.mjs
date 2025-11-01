@@ -329,7 +329,7 @@ export const Graph = Model.extend({
      */
     resetCells: function(cellInits, options) {
         const { layerCollection } = this;
-        // Note: `cells` is always an array and `opt` is always an object.
+        // Note: `cellInits` is always an array and `options` is always an object.
         // See `wrappers.cells` at the end of this file.
 
         // When resetting cells, do not set z-index if not provided.
@@ -745,11 +745,11 @@ export const Graph = Model.extend({
      * @public
      * Removes an existing layer from the graph.
      * @param {string | GraphLayer} layerRef - ID or reference of the layer to remove.
-     * @param {*} opt
-     * @throw Will throw an error if no layer is provided
+     * @param {*} options
+     * @throws Will throw an error if no layer is provided
      * @throws Will throw an error if the layer to remove does not exist
      */
-    removeLayer(layerRef, opt) {
+    removeLayer(layerRef, options = {}) {
         if (!layerRef) {
             throw new Error('dia.Graph: No layer provided.');
         }
@@ -765,7 +765,7 @@ export const Graph = Model.extend({
         }
 
         this.startBatch('remove-layer');
-        this.layerCollection.remove(layerId, { ...opt, graph: this.cid });
+        this.layerCollection.remove(layerId, { ...options, graph: this.cid });
         this.stopBatch('remove-layer');
     },
 
