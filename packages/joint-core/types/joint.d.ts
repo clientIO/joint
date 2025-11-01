@@ -164,10 +164,20 @@ export namespace dia {
         maxZIndex(): number;
     }
 
-    class GraphLayerCollection extends mvc.Collection<GraphLayer> {
+    class GraphLayerCollection<L extends GraphLayer = GraphLayer> extends mvc.Collection<L> {
 
         layerNamespace: any;
         graph: Graph;
+
+        insert(layer: Graph.LayerInit, beforeId: GraphLayer.ID | null, opt?: CollectionAddOptions): void;
+
+        getCell(id: Graph.CellRef): Cell | undefined;
+
+        getCells(): Cell[];
+
+        moveCellBetweenLayers(cell: Cell, targetLayerId: GraphLayer.ID, opt?: CollectionAddOptions): void;
+
+        addCellToLayer(cell: Cell, layerId: GraphLayer.ID, opt?: CollectionAddOptions): void;
     }
 
     export namespace Graph {
@@ -232,10 +242,6 @@ export namespace dia {
             [key: string]: any;
         }
 
-        interface ResetLayersOptions extends Options {
-            defaultLayer?: string;
-        }
-
         interface InsertLayerOptions extends Options {
             before?: GraphLayer.ID | null;
             index?: number;
@@ -245,6 +251,8 @@ export namespace dia {
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
         layerCollection: GraphLayerCollection;
+
+        defaultLayerId: GraphLayer.ID;
 
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
@@ -265,8 +273,6 @@ export namespace dia {
         resetCells(cells: Array<Graph.CellInit>, opt?: Graph.Options): this;
 
         syncCells(cells: Array<Graph.CellInit>, opt?: Graph.SyncCellOptions): void;
-
-        resetLayers(layers: Array<Graph.LayerInit>, opt?: Graph.ResetLayersOptions): this;
 
         addLayer(layerInit: Graph.LayerInit, opt?: Graph.InsertLayerOptions): void;
 
@@ -376,6 +382,8 @@ export namespace dia {
 
         protected _replaceCell(currentCell: Cell, newCellInit: Graph.CellInit,  opt?: Graph.Options): void;
 
+        protected _resetLayers(layers: Array<Graph.LayerInit>, defaultLayerId: GraphLayer.ID | null, opt?: Graph.Options): this;
+
         /** @deprecated use `findElementsAtPoint` instead */
         findModelsFromPoint(p: Point): Element[];
 
@@ -391,9 +399,9 @@ export namespace dia {
 
         hasActiveBatch(name?: string | string[]): boolean;
 
-        maxZIndex(layerName?: string): number;
+        maxZIndex(layerId?: GraphLayer.ID): number;
 
-        minZIndex(layerName?: string): number;
+        minZIndex(layerId?: GraphLayer.ID): number;
 
         transferCellEmbeds(sourceCell: Cell, targetCell: Cell, opt?: S): void;
 
@@ -2285,6 +2293,8 @@ export namespace dia {
         graph: Graph | null;
 
         constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<GraphLayer>);
+
+        getCells(): Cell[];
     }
 
     class GraphLayerView<T extends GraphLayer = GraphLayer> extends LayerView<T> {

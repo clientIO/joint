@@ -39,7 +39,7 @@ export const Graph = Model.extend({
         });
 
         // The default setup includes a single default layer.
-        this.layerCollection.add({ id: DEFAULT_LAYER_ID }, { graph: this.cid });
+        layerCollection.add({ id: DEFAULT_LAYER_ID }, { graph: this.cid });
 
         /**
          * @todo Remove in v5.0.0
