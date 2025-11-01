@@ -202,14 +202,18 @@ export const Graph = Model.extend({
             throw new Error('Graph JSON must contain cells array.');
         }
 
+        // The `fromJSON` should trigger a single 'reset' event at the end.
+        // Set all attributes silently for now.
         this.set(attributes, { silent: true });
 
         if (layers) {
+            // Reset the layers collection
+            // (`layers:reset` is not forwarded to the graph).
             this._resetLayers(layers, defaultLayer, opt);
         }
 
         if (cells) {
-            // Reset the cells collection.
+            // Reset the cells collection and trigger the 'reset' event.
             this.resetCells(cells, opt);
         }
 

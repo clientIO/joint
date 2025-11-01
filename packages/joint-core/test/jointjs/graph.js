@@ -3339,6 +3339,36 @@ QUnit.module('graph', function(hooks) {
             '{"cells":[{"type":"standard.Ellipse","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"standard.Link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"standard.Rectangle","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}',
         );
 
+        QUnit.test('triggers a single "reset" event', function(assert) {
+
+            this.graph.fromJSON(json); // Warm-up
+
+            const graphEventSpy = sinon.spy();
+            this.graph.on('all', graphEventSpy);
+
+            this.graph.fromJSON({
+                layers: [
+                    { id: 'layer1' },
+                    { id: 'layer2' },
+                ],
+                defaultLayer: 'layer2',
+                cells: [{ id: 'rect3', type: 'standard.Rectangle'  }],
+                testAttribute: 42,
+            }, { testOption: true });
+
+            assert.equal(graphEventSpy.callCount, 1, 'Only one event is triggered');
+            assert.ok(
+                graphEventSpy.calledWithExactly(
+                    'reset',
+                    // Backward compatibility
+                    // in v5.x this should be the graph itself
+                    this.graph.getDefaultLayer().cellCollection,
+                    sinon.match({ testOption: true })
+                ),
+                '"reset" event is triggered'
+            );
+        });
+
         QUnit.test(
             'should reconstruct graph data from JSON object',
             function(assert) {

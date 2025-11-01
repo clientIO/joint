@@ -103,7 +103,12 @@ export class GraphLayersController extends Listener {
     }
 
     forwardLayerCollectionEvent(eventName) {
-        if (eventName === 'reset') return;
+        if (eventName === 'reset') {
+            // Currently, there is no need to forward `layers:reset` event.
+            // The graph `fromJSON()` triggers a single `reset` event after
+            // resetting cells, layers and attributes.
+            return;
+        }
         // Forward layer collection events with `layers:` prefix.
         // For example `layers:reset` event when the layer collection is reset
         arguments[0] = 'layers:' + arguments[0];
