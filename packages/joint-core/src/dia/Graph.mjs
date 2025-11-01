@@ -6,13 +6,15 @@ import { Listener } from '../mvc/Listener.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
 import { GraphLayersController } from './GraphLayersController.mjs';
-import { GraphLayerCollection, GRAPH_LAYER_COLLECTION_MARKER } from './GraphLayerCollection.mjs';
-import { CELL_COLLECTION_MARKER } from './CellCollection.mjs';
-import { GRAPH_LAYER_MARKER } from './GraphLayer.mjs';
+import { GraphLayerCollection } from './GraphLayerCollection.mjs';
 import { config } from '../config/index.mjs';
 import { CELL_MARKER } from './Cell.mjs';
 
+const DEFAULT_LAYER_ID = 'cells';
+
 export const Graph = Model.extend({
+
+    defaultLayerId: DEFAULT_LAYER_ID,
 
     initialize: function(attrs, options = {}) {
 
@@ -24,14 +26,15 @@ export const Graph = Model.extend({
             model: options.cellModel,
         });
 
-        // Forward events from the `layerCollection` on the graph instance.
-        layerCollection.on('all', this._forwardCellCollectionEvents, this);
-
-        this.layersController = new GraphLayersController({ graph: this });
+        // The default setup includes a single default layer.
+        this.layerCollection.add({ id: DEFAULT_LAYER_ID }, { graph: this.cid });
 
         // Retain legacy 'cells' collection in attributes for backward compatibility.
         // Applicable only when the default layer setup is used.
-        this.attributes.cells = this.getLayer('cells').cellCollection;
+        this.attributes.cells = this.getLayer(DEFAULT_LAYER_ID).cellCollection;
+
+        // Controller that manages communication between the graph and its layers.
+        this.layersController = new GraphLayersController({ graph: this });
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -63,69 +66,9 @@ export const Graph = Model.extend({
         this.on('remove', this._removeCell, this);
 
         // Listening to the collection instead of the graph itself
-        // to avoid graph attribute change events
+        // to avoid reacting to graph attribute change events
         layerCollection.on('change:source', this._restructureOnChangeSource, this);
         layerCollection.on('change:target', this._restructureOnChangeTarget, this);
-    },
-
-    _forwardCellCollectionEvents: function(_eventName, model) {
-        if (!model) return;
-
-        if (model[CELL_MARKER]) {
-            this._onCellEvent.apply(this, arguments);
-            return;
-        }
-
-        if (model[CELL_COLLECTION_MARKER]) {
-            this._onCellCollectionEvent.apply(this, arguments);
-            return;
-        }
-
-        if (model[GRAPH_LAYER_MARKER]) {
-            this._onLayerEvent.apply(this, arguments);
-            return;
-        }
-
-        if (model[GRAPH_LAYER_COLLECTION_MARKER]) {
-            this._onGraphLayerCollectionEvent.apply(this, arguments);
-            return;
-        }
-    },
-
-    _onLayerEvent() {
-
-        // Note: the layer event prefix is `layer:`
-        this.trigger.apply(this, arguments);
-    },
-
-    _onCellEvent(eventName) {
-        // Skip cell 'remove' events as they are handled on the graph level
-        if (eventName === 'remove') {
-            return;
-        }
-        // Skip if a `cell` is added to a different layer due to layer change
-        if (eventName === 'add' && arguments[2]?.fromLayer) {
-            return;
-        }
-        this.trigger.apply(this, arguments);
-    },
-
-    _onCellCollectionEvent(eventName) {
-        if (eventName === 'sort') {
-            // Backwards compatibility:
-            // Trigger 'sort' event for cell collection 'sort' events
-            this.trigger.apply(this, arguments);
-        }
-
-        // Do not forward `layer:remove` or `layer:sort` events to the graph
-    },
-
-    _onGraphLayerCollectionEvent(eventName) {
-        if (eventName === 'reset') return;
-        // Forward layer collection events with `layers:` prefix.
-        // For example `layers:reset` event when the layer collection is reset
-        arguments[0] = 'layers:' + arguments[0];
-        this.trigger.apply(this, arguments);
     },
 
     _restructureOnAdd: function(cell) {
@@ -214,14 +157,14 @@ export const Graph = Model.extend({
 
     toJSON: function(opt = {}) {
 
-        const { layerCollection, layersController } = this;
+        const { layerCollection } = this;
         // Get the graph model attributes as a base JSON.
         const json = Model.prototype.toJSON.apply(this, arguments);
 
         // Add `cells` array holding all the cells in the graph.
         json.cells = this.getCells().map(cell => cell.toJSON(opt.cellAttributes));
 
-        if (layersController.legacyMode) {
+        if (this.legacyMode) {
             // Backwards compatibility for legacy setup
             // with single default layer 'cells'.
             // In this case, we do not need to export layers.
@@ -232,7 +175,7 @@ export const Graph = Model.extend({
         json.layers = layerCollection.toJSON();
 
         // Add `defaultLayer` property indicating the default layer ID.
-        json.defaultLayer = layersController.defaultLayerId;
+        json.defaultLayer = this.defaultLayerId;
 
         return json;
     },
@@ -302,7 +245,7 @@ export const Graph = Model.extend({
         // Backward compatibility: prior v4.2, z-index was not set during reset.
         if (opt && opt.ensureZIndex) {
             if (cellAttributes.z === undefined) {
-                const layerId = cellAttributes[config.layerAttribute] || this.layersController.defaultLayerId;
+                const layerId = cellAttributes[config.layerAttribute] || this.defaultLayerId;
                 const zIndex = this.maxZIndex(layerId) + 1;
                 if (cellInit[CELL_MARKER]) {
                     // Set with event in case there is a listener
@@ -318,13 +261,12 @@ export const Graph = Model.extend({
         return cellInit;
     },
 
-    // TODO:  getDefaultLayerId()?
-    minZIndex: function(layerId = this.getDefaultLayer().id) {
+    minZIndex: function(layerId = this.defaultLayerId) {
         const layer = this.getLayer(layerId);
         return layer.cellCollection.minZIndex(layerId);
     },
 
-    maxZIndex: function(layerId = this.getDefaultLayer().id) {
+    maxZIndex: function(layerId = this.defaultLayerId) {
         const layer = this.getLayer(layerId);
         return layer.cellCollection.maxZIndex(layerId);
     },
@@ -336,9 +278,10 @@ export const Graph = Model.extend({
         }
 
         this._prepareCell(cellInit, { ...opt, ensureZIndex: true });
-
-        const layerId = this.layersController._getLayerId(cellInit);
-        this.layerCollection.addCellToLayer(cellInit, layerId, { ...opt, graph: this.cid });
+        this.layerCollection.addCellToLayer(cellInit, this.getCellLayerId(cellInit), {
+            ...opt,
+            graph: this.cid
+        });
 
         return this;
     },
@@ -360,34 +303,79 @@ export const Graph = Model.extend({
         return this;
     },
 
-    // When adding a lot of cells, it is much more efficient to
-    // reset the entire cells collection in one go.
-    // Useful for bulk operations and optimizations.
-    resetCells: function(cells, opt) {
+    /**
+     * @public
+     * @description Reset the cells in the graph.
+     * Useful for bulk operations and optimizations.
+     */
+    resetCells: function(cellInits, options) {
+        const { layerCollection } = this;
         // Note: `cells` is always an array and `opt` is always an object.
         // See `wrappers.cells` at the end of this file.
 
-        // Backwards compatibility:
-        // Do not set z-index if not provided
-        const prepareOptions = { ...opt, ensureZIndex: false };
-        for (const cell of cells) {
-            this._prepareCell(cell, prepareOptions);
+        // When resetting cells, do not set z-index if not provided.
+        const prepareOptions = { ...options, ensureZIndex: false };
+        // Mark cellCollection resets as coming from the graph
+        const resetOptions = { ...options, graph: this.cid };
+
+        // Initialize a map of layer IDs to arrays of cells
+        const layerCellsMap = layerCollection.reduce((map, layer) => {
+            map[layer.id] = [];
+            return map;
+        }, {});
+
+        // Distribute cells into their respective layers
+        for (let i = 0; i < cellInits.length; i++) {
+            const cellInit = cellInits[i];
+            const layerId = this.getCellLayerId(cellInit);
+            if (layerId in layerCellsMap) {
+                this._prepareCell(cellInit, prepareOptions);
+                layerCellsMap[layerId].push(cellInit);
+            } else {
+                throw new Error(`dia.Graph: Layer with id '${layerId}' does not exist.`);
+            }
         }
 
-        this.layersController.resetCells(cells, opt);
+        // Reset each layer's cell collection with the corresponding cells.
+        layerCollection.each(layer => {
+            layer.cellCollection.reset(layerCellsMap[layer.id], resetOptions);
+        });
 
         // Trigger a single `reset` event on the graph
         // (while multiple `reset` events are triggered on layers).
         // Backwards compatibility: use default layer collection
         // The `collection` parameter is retained for backwards compatibility,
         // and it is subject to removal in future releases.
-        this.trigger('reset', this.getDefaultLayer().cellCollection, opt);
+        this.trigger('reset', this.getDefaultLayer().cellCollection, options);
 
         return this;
     },
 
-    resetLayers: function(layers, opt) {
-        this.layersController.resetLayers(layers, opt);
+    getCellLayerId: function(cellInit) {
+        const cellAttributes = cellInit[CELL_MARKER]
+            ? cellInit.attributes
+            : cellInit;
+        return cellAttributes[config.layerAttribute] || this.defaultLayerId;
+    },
+
+    // TODO
+    resetLayers: function(layers, options = {}) {
+        if (!Array.isArray(layers) || layers.length === 0) {
+            throw new Error('dia.Graph: At least one layer must be defined.');
+        }
+
+        // Resetting layers disables legacy mode
+        this.legacyMode = false;
+
+        // The default layer must be one of the defined layers
+        const { defaultLayer: defaultLayerId = layers[0].id } = options;
+        if (!layers.some(layer => layer.id === defaultLayerId)) {
+            throw new Error(`dia.Graph: default layer with id '${defaultLayerId}' must be one of the defined layers.`);
+        }
+
+        this.defaultLayerId = defaultLayerId;
+        this.layerCollection.reset(layers, { ...options, graph: this.cid });
+
         return this;
     },
 
@@ -692,7 +680,7 @@ export const Graph = Model.extend({
         insertOptions.graph = this.cid;
 
         // Adding a new layer disables legacy mode
-        this.layersController.legacyMode = false;
+        this.legacyMode = false;
 
         const beforeId = this._getBeforeLayerIdFromOptions({ before, index });
         this.layerCollection.insert(layerInit, beforeId, insertOptions);
@@ -719,7 +707,7 @@ export const Graph = Model.extend({
         insertOptions.graph = this.cid;
 
         // Moving a layer disables legacy mode
-        this.layersController.legacyMode = false;
+        this.legacyMode = false;
 
         const beforeId = this._getBeforeLayerIdFromOptions({ before, index }, layer);
         this.layerCollection.insert(layer, beforeId, insertOptions);
@@ -754,11 +742,44 @@ export const Graph = Model.extend({
     },
 
     getDefaultLayer() {
-        return this.layersController.getDefaultLayer();
+        return this.layerCollection.get(this.defaultLayerId);
     },
 
-    setDefaultLayer(layerId, opt) {
-        this.layersController.setDefaultLayer(layerId, opt);
+    setDefaultLayer(layerRef, options = {}) {
+        if (!layerRef) {
+            throw new Error('dia.Graph: No default layer ID provided.');
+        }
+
+        // Make sure the layer exists
+        const defaultLayerId = layerRef.id ? layerRef.id : layerRef;
+        if (!this.hasLayer(defaultLayerId)) {
+            throw new Error(`dia.Graph: Layer with id '${defaultLayerId}' does not exist.`);
+        }
+
+        // If the default layer is not changing, do nothing
+        const currentDefaultLayerId = this.defaultLayerId;
+        if (defaultLayerId === currentDefaultLayerId) {
+            // The default layer stays the same
+            return;
+        }
+
+        // Set the new default layer ID
+        this.defaultLayerId = defaultLayerId;
+
+        // If there was a previous default layer,
+        // reassign any cells lacking an explicit layer to the new default layer
+        if (this.hasLayer(currentDefaultLayerId)) {
+            const currentDefaultLayer = this.getLayer(currentDefaultLayerId);
+            currentDefaultLayer.cellCollection.each(cell => {
+                if (cell.get(config.layerAttribute) != null) return;
+                this.layerCollection.moveCellBetweenLayers(cell, defaultLayerId, {
+                    ...options,
+                    graph: this.cid
+                });
+            });
+        }
+        // TODO: the name of the event should be `default-layer:change`
+        this.trigger('layers:default:change', this, defaultLayerId, options);
     },
 
     getLayer(layerId) {
