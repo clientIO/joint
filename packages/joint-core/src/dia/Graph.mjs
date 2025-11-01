@@ -204,10 +204,6 @@ export const Graph = Model.extend({
 
         this.set(attributes, { silent: true });
 
-        if (defaultLayer) {
-            this.defaultLayerId = defaultLayer;
-        }
-
         if (layers) {
             this._resetLayers(layers, defaultLayer, opt);
         }

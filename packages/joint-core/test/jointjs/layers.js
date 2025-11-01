@@ -278,7 +278,7 @@ QUnit.module('Layers', function(hooks) {
         assert.strictEqual(this.graph.getLayers().length, 1, 'There is still 1 layer in the graph');
     });
 
-    QUnit.test('reset cells and layers with fromJSON()', (assert) => {
+    QUnit.test('resetting cells and layers via fromJSON()', (assert) => {
         const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });
         this.graph.addLayer(layer1);
         const layer2 = new joint.dia.GraphLayer({ id: 'layer2' });
