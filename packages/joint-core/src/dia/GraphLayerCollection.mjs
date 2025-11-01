@@ -151,6 +151,69 @@ export const GraphLayerCollection = Collection.extend({
         }
     },
 
+    /**
+     * @public
+     * @description Inserts a layer before another layer or at the end if `beforeLayerId` is null.
+     */
+    insert(layer, beforeLayerId = null, options = {}) {
+
+        // TODO
+        // Adding a new layer disables legacy mode
+        // this.legacyMode = false;
+
+        const id = layer.id;
+        if (id === beforeLayerId) {
+            // Inserting before itself is a no-op
+            return;
+        }
+
+        if (beforeLayerId && !this.has(beforeLayerId)) {
+            throw new Error(`dia.GraphLayerCollection: Layer with id '${beforeLayerId}' does not exist`);
+        }
+
+        // See if the layer is already in the collection
+        let currentIndex = -1;
+        if (this.has(id)) {
+            currentIndex = this.findIndex(l => l.id === id);
+            if ((currentIndex === this.length - 1) && !beforeLayerId) {
+                // The layer is already at the end
+                return;
+            }
+            // Remove the layer from its current position
+            this.remove(id, { silent: true });
+        }
+
+        // At what index to insert the layer?
+        let insertAt;
+        if (!beforeLayerId) {
+            insertAt = this.length;
+        } else {
+            insertAt = this.findIndex(l => l.id === beforeLayerId);
+        }
+
+        if (currentIndex !== -1) {
+            // Re-insert the layer at the new position.
+            this.add(layer, {
+                at: insertAt,
+                silent: true
+            });
+            // Trigger `sort` event manually
+            // since we are not using collection sorting workflow
+            this.trigger('sort', this, options);
+        } else {
+            // Add to the collection and trigger an event
+            // when new layer has been added
+            this.add(layer, {
+                ...options,
+                at: insertAt,
+            });
+        }
+    },
+
+    /**
+     * @public
+     * @description Finds and returns a cell by its id from all layers.
+     */
     getCell(id) {
         // TODO: should we create a map of cells for faster lookup?
         for (const layer of this.models) {
@@ -163,6 +226,10 @@ export const GraphLayerCollection = Collection.extend({
         return undefined;
     },
 
+    /**
+     * @public
+     * @description Returns all cells in all layers in the correct order.
+     */
     getCells() {
         const layers = this.models;
         if (layers.length === 1) {
@@ -205,16 +272,32 @@ export const GraphLayerCollection = Collection.extend({
 
         const moveOptions = {
             ...options,
-            // TODO
-            graph: true,
-            // graph: this.graph.cid,
             fromLayer: sourceLayer.id,
             toLayer: targetLayer.id
         };
         // Move the cell between the two layer collections
         sourceLayer.cellCollection.remove(cell, moveOptions);
         targetLayer.cellCollection.add(cell, moveOptions);
+    },
+
+    /**
+     * @public
+     * @description Adds a cell to the specified layer.
+     */
+    addCellToLayer(cell, layerId, options) {
+        const targetLayer = this.get(layerId);
+        if (!targetLayer) {
+            throw new Error(`dia.GraphLayerCollection: layer with id '${layerId}' does not exist.`);
+        }
+
+        const addOptions = {
+            ...options,
+            toLayer: targetLayer.id
+        };
+        // Add the cell to the target layer collection
+        targetLayer.cellCollection.add(cell, addOptions);
     }
+
 });
 
 // Internal tag to identify this object as a graph layer collection instance.

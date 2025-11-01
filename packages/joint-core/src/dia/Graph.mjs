@@ -329,14 +329,16 @@ export const Graph = Model.extend({
         return layer.cellCollection.maxZIndex(layerId);
     },
 
-    addCell: function(cell, opt) {
+    addCell: function(cellInit, opt) {
 
-        if (Array.isArray(cell)) {
-            return this.addCells(cell, opt);
+        if (Array.isArray(cellInit)) {
+            return this.addCells(cellInit, opt);
         }
 
-        this._prepareCell(cell, { ...opt, ensureZIndex: true });
-        this.layersController.addCell(cell, opt);
+        this._prepareCell(cellInit, { ...opt, ensureZIndex: true });
+
+        const layerId = this.layersController._getLayerId(cellInit);
+        this.layerCollection.addCellToLayer(cellInit, layerId, { ...opt, graph: this.cid });
 
         return this;
     },
@@ -687,9 +689,13 @@ export const Graph = Model.extend({
             throw new Error(`dia.Graph: Layer with id '${layerInit.id}' already exists.`);
         }
         const { before = null, index, ...insertOptions } = options;
+        insertOptions.graph = this.cid;
 
-        const computedBefore = this._getBeforeLayerIdFromOptions({ before, index });
-        this.layersController.insertLayer(layerInit, computedBefore, insertOptions);
+        // Adding a new layer disables legacy mode
+        this.layersController.legacyMode = false;
+
+        const beforeId = this._getBeforeLayerIdFromOptions({ before, index });
+        this.layerCollection.insert(layerInit, beforeId, insertOptions);
     },
 
     /**
@@ -710,9 +716,13 @@ export const Graph = Model.extend({
         }
         const layer = this.getLayer(layerRef);
         const { before = null, index, ...insertOptions } = options;
+        insertOptions.graph = this.cid;
 
-        const computedBefore = this._getBeforeLayerIdFromOptions({ before, index }, layer);
-        this.layersController.insertLayer(layer, computedBefore, insertOptions);
+        // Moving a layer disables legacy mode
+        this.layersController.legacyMode = false;
+
+        const beforeId = this._getBeforeLayerIdFromOptions({ before, index }, layer);
+        this.layerCollection.insert(layer, beforeId, insertOptions);
     },
 
     /**
@@ -720,14 +730,27 @@ export const Graph = Model.extend({
      * Removes an existing layer from the graph.
      * @param {string | GraphLayer} layerRef - ID or reference of the layer to remove.
      * @param {*} opt
+     * @throw Will throw an error if no layer is provided
      * @throws Will throw an error if the layer to remove does not exist
      */
     removeLayer(layerRef, opt) {
-        if (!layerRef || !this.hasLayer(layerRef)) {
-            throw new Error('dia.Graph: Layer to remove is invalid.');
+        if (!layerRef) {
+            throw new Error('dia.Graph: No layer provided.');
         }
-        const layerId = util.isString(layerRef) ? layerRef : layerRef.id;
-        this.layersController.removeLayer(layerId, opt);
+        const layerId = layerRef.id ? layerRef.id : layerRef;
+        if (!this.hasLayer(layerId)) {
+            throw new Error(`dia.Graph: Layer with id '${layerId}' does not exist.`);
+        }
+
+        // Prevent removing the default layer
+        const { id: defaultLayerId } = this.getDefaultLayer();
+        if (layerId === defaultLayerId) {
+            throw new Error('dia.Graph: default layer cannot be removed.');
+        }
+
+        this.startBatch('remove-layer');
+        this.layerCollection.remove(layerId, { ...opt, graph: this.cid });
+        this.stopBatch('remove-layer');
     },
 
     getDefaultLayer() {

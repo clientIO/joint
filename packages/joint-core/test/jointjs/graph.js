@@ -3979,7 +3979,7 @@ QUnit.module('graph', function(hooks) {
                     () => {
                         graph.removeLayer('non-existing-layer');
                     },
-                    /Layer to remove is invalid./,
+                    /Layer with id 'non-existing-layer' does not exist./,
                     'throws when removing non-existing layer',
                 );
 

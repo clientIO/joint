@@ -12,50 +12,42 @@ export class GraphLayersController extends Listener {
 
     legacyMode = true;
 
-    constructor(context) {
-        super(context);
+    constructor(options) {
+        super(options);
 
         // Make sure there are no arguments passed to the callbacks.
         // See the `mvc.Listener` documentation for more details.
         this.callbackArguments = [];
 
-        this.graph = context.graph;
-        this.layerCollection = this.graph.layerCollection;
+        const graph = options.graph;
+        this.graph = graph;
+        this.layerCollection = graph.layerCollection;
 
-        // Default setup
-        this.insertLayer({
-            id: DEFAULT_LAYER_ID,
-        });
-
-        // By default, we are in legacy mode
-        // Any new layers added will disable legacy mode
-        this.legacyMode = true;
-
+        // The default setup includes a single default layer.
+        this.layerCollection.add({ id: DEFAULT_LAYER_ID }, { graph: graph.cid });
         this.defaultLayerId = DEFAULT_LAYER_ID;
 
         this.startListening();
     }
 
     startListening() {
-        this.listenTo(this.layerCollection, 'layer:remove', this.onLayerRemove, this);
+        this.listenTo(this.layerCollection, 'layer:remove', this.onLayerRemove);
         // Listening to the collection instead of the graph itself
         // to avoid graph attribute change events
-        this.listenTo(this.layerCollection, 'change', this.onCellChange, this);
+        this.listenTo(this.layerCollection, 'change', this.onCellChange);
     }
 
     onLayerRemove(layer, opt) {
         // When a layer is removed, also remove all its cells from the graph
-        this.clearLayer(layer, opt);
+        this.graph.removeCells(layer.getCells(), opt);
     }
 
-    /**
-     * @description Removes all cells from the specified layer.
-     */
-    clearLayer(layer, opt) {
-        const cells = layer.cellCollection.models; // This is a live array
-        while (cells.length > 0) {
-            cells[0].remove(opt);
-        }
+    onCellChange(cell, opt) {
+        if (!cell.hasChanged(config.layerAttribute)) return;
+        this.layerCollection.moveCellBetweenLayers(cell, this._getLayerId(cell), {
+            ...opt,
+            graph: this.graph.cid
+        });
     }
 
     resetLayers(layers, opt = {}) {
@@ -74,11 +66,6 @@ export class GraphLayersController extends Listener {
 
         this.defaultLayerId = defaultLayerId;
         this.layerCollection.reset(layers, { ...opt, graph: this.graph.cid });
-    }
-
-    onCellChange(cell, opt) {
-        if (!cell.hasChanged(config.layerAttribute)) return;
-        this.layerCollection.moveCellBetweenLayers(cell, this._getLayerId(cell), opt);
     }
 
     resetCells(cells = [], opt = {}) {
@@ -123,7 +110,10 @@ export class GraphLayersController extends Listener {
             // Reassign any cells lacking an explicit layer to the new default layer
             previousDefaultLayer.cellCollection.each(cell => {
                 if (cell.get(layerAttribute) != null) return;
-                this.layerCollection.moveCellBetweenLayers(cell, newDefaultLayerId, options);
+                this.layerCollection.moveCellBetweenLayers(cell, newDefaultLayerId, {
+                    ...options,
+                    graph: this.graph.cid
+                });
             });
         } else {
             this.defaultLayerId = newDefaultLayerId;
@@ -131,90 +121,6 @@ export class GraphLayersController extends Listener {
 
         this.graph.trigger('layers:default:change', this.graph, this.defaultLayerId, options);
     }
-
-    insertLayer(layer, before = null, opt = {}) {
-        const id = layer.id;
-
-        // Adding a new layer disables legacy mode
-        this.legacyMode = false;
-
-        // insert before itself is a no-op
-        if (id === before) {
-            return;
-        }
-
-        if (before && !this.graph.hasLayer(before)) {
-            throw new Error(`dia.Graph: Layer with id '${before}' does not exist`);
-        }
-
-        const originalLayersArray = this.graph.getLayers();
-
-        let currentIndex = null;
-        if (this.graph.hasLayer(id)) {
-            currentIndex = originalLayersArray.findIndex(l => l === layer);
-            if (currentIndex === originalLayersArray.length - 1 && !before) {
-                return; // already at the end
-            }
-
-            // Remove the layer from its current position
-            this.layerCollection.remove(id, { silent: true, graph: this.graph.cid });
-        }
-
-        // The layers array after removing the layer (if it existed)
-        const layersArray = this.graph.getLayers();
-        let insertAt;
-        if (!before) {
-            insertAt = layersArray.length;
-        } else {
-            insertAt = layersArray.findIndex(layer => layer.id === before);
-        }
-
-        if (currentIndex != null) {
-            this.layerCollection.add(layer, {
-                at: insertAt,
-                graph: this.graph.cid,
-                silent: true
-            });
-            // Trigger `sort` event manually
-            // since we are not using collection sorting workflow
-            this.layerCollection.trigger('sort', this.layerCollection, opt);
-        } else {
-            // Add to the collection and trigger an event
-            // when new layer has been added
-            this.layerCollection.add(layer, {
-                ...opt,
-                at: insertAt,
-                graph: this.graph.cid
-            });
-        }
-    }
-
-    removeLayer(layerId, opt) {
-        const { layerCollection, defaultLayerId } = this;
-
-        if (layerId === defaultLayerId) {
-            throw new Error('dia.Graph: default layer cannot be removed.');
-        }
-
-        if (!this.graph.hasLayer(layerId)) {
-            throw new Error(`dia.Graph: Layer with id '${layerId}' does not exist.`);
-        }
-
-        this.graph.startBatch('remove-layer');
-
-        layerCollection.remove(layerId, { ...opt, graph: this.graph.cid });
-
-        this.graph.stopBatch('remove-layer');
-    }
-
-    addCell(cellInit, opt = {}) {
-        const layerId = this._getLayerId(cellInit);
-        const layer = this.graph.getLayer(layerId);
-
-        layer.cellCollection.add(cellInit, { ...opt, graph: this.graph.cid });
-    }
-
-
 
     _getLayerId(cellInit) {
         // we don't use cell.layer() here because when the graph reference is not set on the cell
