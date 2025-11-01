@@ -630,6 +630,9 @@ export const Paper = View.extend({
     // Layers that are always present on the paper (e.g. grid, back, front, tools)
     implicitLayers,
 
+    // Reference layer for inserting new graph layers.
+    graphLayerRefId: paperLayers.LABELS,
+
     init: function() {
 
         const { options } = this;
@@ -805,7 +808,7 @@ export const Paper = View.extend({
         layerCollection.each(layer => {
             if (!this.hasLayerView(layer)) return;
 
-            this.moveLayerView(layer, { before: paperLayers.LABELS });
+            this.moveLayerView(layer, { before: this.graphLayerRefId });
         });
     },
 
@@ -831,14 +834,7 @@ export const Paper = View.extend({
             // Insert the layer view into the paper layers, just before the labels layer.
             // All cell layers are positioned between the "back" and "labels" layers,
             // with the default "cells" layer originally occupying this position.
-            this.addLayerView(layerView, { before: paperLayers.LABELS });
-
-            // Insert all existing cell views into the newly created layer view.
-            // This is required in cases where the layer collection was reset
-            // without resetting the individual cells.
-            layerView.model.cellCollection.each(cell => {
-                this.requestCellViewInsertion(cell);
-            });
+            this.addLayerView(layerView, { before: this.graphLayerRefId });
         });
     },
 
