@@ -282,12 +282,12 @@ export const Graph = Model.extend({
 
     minZIndex: function(layerId = this.defaultLayerId) {
         const layer = this.getLayer(layerId);
-        return layer.cellCollection.minZIndex(layerId);
+        return layer.cellCollection.minZIndex();
     },
 
     maxZIndex: function(layerId = this.defaultLayerId) {
         const layer = this.getLayer(layerId);
-        return layer.cellCollection.maxZIndex(layerId);
+        return layer.cellCollection.maxZIndex();
     },
 
     addCell: function(cellInit, opt) {
