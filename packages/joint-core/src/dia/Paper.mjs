@@ -2769,10 +2769,9 @@ export const Paper = View.extend({
     },
 
     insertView: function(view, isInitialInsert) {
-        const { model } = view;
 
         // layer can be null if it is added to the graph with 'dry' option
-        const layerId = model.layer() || this.model.getDefaultLayer().id;
+        const layerId = this.model.getCellLayerId(view.model);
         const layerView = this.getLayerView(layerId);
 
         layerView.insertCellView(view);

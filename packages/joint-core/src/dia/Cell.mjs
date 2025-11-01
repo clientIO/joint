@@ -230,7 +230,7 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const layerId = this.layer();
+            const layerId = graph.getCellLayerId(this);
 
             const maxZ = graph.maxZIndex(layerId);
             let z = maxZ - cells.length + 1;
@@ -275,7 +275,7 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const layerId = this.layer();
+            const layerId = graph.getCellLayerId(this);
 
             let z = graph.minZIndex(layerId);
 
@@ -935,23 +935,21 @@ export const Cell = Model.extend({
     layer: function(layerId, opt) {
         const layerAttribute = config.layerAttribute;
 
-        // if strictly null unset the layer
+        // Getter:
+
+        // If `undefined` return the current layer ID
+        if (layerId === undefined) {
+            return this.get(layerAttribute) || null;
+        }
+
+        // Setter:
+
+        // If strictly `null` unset the layer
         if (layerId === null) {
             return this.unset(layerAttribute, opt);
         }
 
-        // if undefined return the current layer id
-        if (layerId === undefined) {
-            layerId = this.get(layerAttribute) || null;
-            // If the cell is part of a graph, use the graph's default layer.
-            if (layerId == null && this.graph) {
-                layerId = this.graph.getDefaultLayer().id;
-            }
-
-            return layerId;
-        }
-
-        // otherwise set the layer id
+        // Otherwise set the layer ID
         if (!isString(layerId)) {
             throw new Error('dia.Cell: Layer id must be a string.');
         }

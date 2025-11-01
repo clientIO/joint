@@ -3724,7 +3724,7 @@ QUnit.module('graph', function(hooks) {
             const rect = new joint.shapes.standard.Rectangle();
             graph.addCell(rect);
 
-            assert.equal(rect.layer(), 'cells', 'default layer is "cells"');
+            assert.equal(graph.getCellLayerId(rect), 'cells', 'layer id is "cells"');
 
             graph.addLayer({ id: 'my-layer' });
 

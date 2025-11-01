@@ -290,6 +290,8 @@ export namespace dia {
 
         getLayers(): GraphLayer[];
 
+        getCellLayerId(cell: Graph.CellRef): GraphLayer.ID;
+
         getCell(id: Graph.CellRef): Cell;
 
         getElements(): Element[];

@@ -371,6 +371,9 @@ export const Graph = Model.extend({
     },
 
     getCellLayerId: function(cellInit) {
+        if (!cellInit) {
+            throw new Error('dia.Graph: No cell provided.');
+        }
         const cellAttributes = cellInit[CELL_MARKER]
             ? cellInit.attributes
             : cellInit;
@@ -501,11 +504,11 @@ export const Graph = Model.extend({
             changedLayers = new Set();
             changeObserver.listenTo(this, {
                 'add': (cell) => {
-                    changedLayers.add(cell.layer());
+                    changedLayers.add(this.getCellLayerId(cell));
                 },
                 'change': (cell) => {
                     if (cell.hasChanged(config.layerAttribute) || cell.hasChanged('z')) {
-                        changedLayers.add(cell.layer());
+                        changedLayers.add(this.getCellLayerId(cell));
                     }
                 }
             });
