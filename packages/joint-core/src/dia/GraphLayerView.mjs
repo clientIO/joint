@@ -35,9 +35,9 @@ export const GraphLayerView = LayerView.extend({
     },
 
     afterPaperReferenceSet(paper) {
-        this.listenTo(this.model, 'sort', this.onGraphLayerSort);
-        this.listenTo(this.model, 'add', this.onCellAdd);
+        this.listenTo(this.model, 'sort', this.onCellCollectionSort);
         this.listenTo(this.model, 'change', this.onCellChange);
+        this.listenTo(this.graph, 'move', this.onCellMove);
         this.listenTo(this.graph, 'batch:stop', this.onGraphBatchStop);
     },
 
@@ -46,37 +46,30 @@ export const GraphLayerView = LayerView.extend({
         this.stopListening(this.graph);
     },
 
-    onGraphLayerSort() {
-        const { graph } = this;
-
-        if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
+    onCellCollectionSort() {
+        if (this.graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
         this.sort();
     },
 
-    onCellAdd(cell, _collection, opt = {}) {
-        const { paper } = this;
+    onCellMove(cell, opt = {}) {
         // When a cell is moved from one layer to another,
         // request insertion of its view in the new layer.
-        if (opt.fromLayer) {
-            paper.requestCellViewInsertion(cell, opt);
-        }
+        this.paper.requestCellViewInsertion(cell, opt);
     },
 
     onCellChange(cell, opt) {
         if (!cell.hasChanged('z')) return;
-
-        const { paper } = this;
-        if (paper.options.sorting === sortingTypes.APPROX) {
-            paper.requestCellViewInsertion(cell, opt);
+        // Re-insert the cell view to maintain correct z-ordering
+        if (this.paper.options.sorting === sortingTypes.APPROX) {
+            this.paper.requestCellViewInsertion(cell, opt);
         }
     },
 
     onGraphBatchStop(data) {
-        const { graph } = this;
         const name = data && data.batchName;
         const sortDelayingBatches = this.SORT_DELAYING_BATCHES;
-
-        if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
+        // After certain batches, sorting may be required
+        if (sortDelayingBatches.includes(name) && !this.graph.hasActiveBatch(sortDelayingBatches)) {
             this.sort();
         }
     },

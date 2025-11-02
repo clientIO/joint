@@ -52,13 +52,14 @@ export class GraphLayersController extends Listener {
      * Note: an embedded cell might come from a different layer,
      * so we can not use the layer's cell collection to remove it.
      */
-    onCellRemove(cell, _, options) {
-        const { replace, clear, disconnectLinks } = options;
-        const { graph, layerCollection } = this;
+    onCellRemove(cell, options) {
+        // If the cell is being moved from one layer to another,
+        // no further action is needed.
+        if (options.fromLayer) return;
 
         // When replacing a cell, we do not want to remove its embeds or
         // unembed it from its parent.
-        if (replace) return;
+        if (options.replace) return;
 
         // First, unembed this cell from its parent cell if there is one.
         const parentCell = cell.getParentCell();
@@ -71,21 +72,21 @@ export class GraphLayersController extends Listener {
         for (let i = 0, n = embeddedCells.length; i < n; i++) {
             const embed = embeddedCells[i];
             if (embed) {
-                layerCollection.removeCell(embed, options);
+                this.layerCollection.removeCell(embed, options);
             }
         }
 
         // When not clearing the whole graph or replacing the cell,
         // we don't want to remove the connected links.
-        if (!clear) {
+        if (!options.clear) {
 
             // Applications might provide a `disconnectLinks` option set to `true` in order to
             // disconnect links when a cell is removed rather then removing them. The default
             // is to remove all the associated links.
-            if (disconnectLinks) {
-                graph.disconnectLinks(cell, options);
+            if (options.disconnectLinks) {
+                this.graph.disconnectLinks(cell, options);
             } else {
-                graph.removeLinks(cell, options);
+                this.graph.removeLinks(cell, options);
             }
         }
     }
@@ -101,12 +102,13 @@ export class GraphLayersController extends Listener {
             // should receive removal notifications in the following order:
             // embeds → links → cell.
             switch (eventName) {
-                case 'change':
-                    this.onCellChange.call(this, model, arguments[2], arguments[3]);
+                case 'change': /* (cell, options) */
+                    this.onCellChange.call(this, model, arguments[2]);
                     break;
-                case 'remove':
-                    // When a cell is removed from a layer, ensure it is also removed from the graph.
-                    this.onCellRemove.call(this, model, arguments[2], arguments[3]);
+                case 'remove': /* (cell, collection, options) */
+                    // When a cell is removed from a layer,
+                    // ensure it is also removed from the graph.
+                    this.onCellRemove.call(this, model, arguments[3]);
                     break;
             }
             // Notify the graph about cell events.
@@ -135,22 +137,25 @@ export class GraphLayersController extends Listener {
         this.graph.trigger.apply(this.graph, arguments);
     }
 
-    forwardCellEvent(eventName) {
-        if ((eventName === 'remove' || eventName === 'add') && arguments[2]?.fromLayer) {
-            // Moving a cell from one layer to another is an internal operation
-            // that should not be exposed at the graph level.
+    forwardCellEvent(eventName, cell, _, options) {
+        // Moving a cell from one layer to another is an internal operation
+        // that should not be exposed at the graph level.
+        // The single `move` event is triggered instead.
+        if (eventName === 'remove' && options.fromLayer) return;
+        if (eventName === 'add' && options.fromLayer) {
+            this.graph.trigger('move', cell, options);
             return;
         }
+
         this.graph.trigger.apply(this.graph, arguments);
     }
 
     forwardCellCollectionEvent(eventName) {
-        if (eventName === 'sort') {
-            // Backwards compatibility:
-            // Trigger 'sort' event for cell collection 'sort' events
-            this.graph.trigger.apply(this.graph, arguments);
-        }
         // Do not forward `layer:remove` or `layer:sort` events to the graph
+        if (eventName !== 'sort') return;
+        // Backwards compatibility:
+        // Trigger 'sort' event for cell collection 'sort' events
+        this.graph.trigger.apply(this.graph, arguments);
     }
 
     forwardLayerCollectionEvent(eventName) {

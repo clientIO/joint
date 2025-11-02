@@ -2309,11 +2309,11 @@ export namespace dia {
 
         insertCellView(cellView: CellView): void;
 
-        protected onCellAdd(cell: Cell, collection: CellCollection, opt: Graph.Options): void;
+        protected onCellMove(cell: Cell, opt: Graph.Options): void;
 
-        protected onCellChanged(cell: Cell, opt: Cell.Options): void;
+        protected onCellChange(cell: Cell, opt: Cell.Options): void;
 
-        protected onGraphLayerSort(collection: CellCollection, opt: Graph.Options): void;
+        protected onCellCollectionSort(collection: CellCollection, opt: Graph.Options): void;
 
         protected onGraphBatchStop(data: any): void;
     }

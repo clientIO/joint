@@ -770,20 +770,48 @@ export const Graph = Model.extend({
             return;
         }
 
+        // Get all cells that belong to the current default layer implicitly
+        const implicitLayerCells = this.getImplicitLayerCells();
+
         // Set the new default layer ID
         this.defaultLayerId = defaultLayerId;
 
-        // If there was a previous default layer,
-        // reassign any cells lacking an explicit layer to the new default layer
-        if (this.hasLayer(currentDefaultLayerId)) {
-            const currentDefaultLayer = this.getLayer(currentDefaultLayerId);
-            currentDefaultLayer.cellCollection.each(cell => {
-                if (cell.get(config.layerAttribute) != null) return;
-                this.layerCollection.moveCellBetweenLayers(cell, defaultLayerId, options);
-            });
+        const batchName = 'default-layer-change';
+
+        this.startBatch(batchName, options);
+
+        if (implicitLayerCells.length > 0) {
+            // Reassign any cells lacking an explicit layer to the new default layer.
+            // Do not sort yet, wait until all cells are moved.
+            const moveOptions = { ...options, sort: false };
+            for (const cell of implicitLayerCells) {
+                this.layerCollection.moveCellBetweenLayers(cell, defaultLayerId, moveOptions);
+            }
+            // Now sort the new default layer
+            if (options.sort !== false) {
+                this.getDefaultLayer().cellCollection.sort(options);
+            }
         }
-        // TODO: the name of the event should be `default-layer:change`
-        this.trigger('layers:default:change', this, defaultLayerId, options);
+
+        this.trigger('default-layer-change', this, {
+            ...options,
+            fromLayer: currentDefaultLayerId,
+            toLayer: defaultLayerId
+        });
+
+        this.stopBatch(batchName, options);
+    },
+
+    /**
+     * @protected
+     * @description Get all cells that do not have an explicit layer assigned.
+     * These cells belong to the default layer implicitly.
+     * @return {Array<dia.Cell>} Array of cells without an explicit layer.
+     */
+    getImplicitLayerCells() {
+        return this.getDefaultLayer().cellCollection.filter(cell => {
+            return cell.get(config.layerAttribute) == null;
+        });
     },
 
     getLayer(layerId) {

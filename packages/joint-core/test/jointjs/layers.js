@@ -170,6 +170,46 @@ QUnit.module('Layers', function(hooks) {
         joint.config.layerAttribute = 'layer';
     });
 
+    QUnit.test('Changing layer should trigger correct events', (assert) => {
+        const rect = new joint.shapes.standard.Rectangle();
+        this.graph.addLayer({ id: 'newLayer' });
+        this.graph.addCell(rect);
+
+        const eventSpy = sinon.spy();
+        this.graph.on('all', eventSpy);
+
+        // Set a new layer
+        rect.set('layer', 'newLayer', { testOption: true });
+        assert.deepEqual(eventSpy.args.map(arg => arg[0]), [
+            'change:layer',
+            'move',
+            'sort',
+            'change'
+        ]);
+        assert.ok(eventSpy.calledWithExactly('move', rect, sinon.match({
+            fromLayer: 'cells',
+            toLayer: 'newLayer',
+            testOption: true
+        })));
+        // Unset the layer (back to default)
+        eventSpy.resetHistory();
+        rect.unset('layer');
+        assert.deepEqual(eventSpy.args.map(arg => arg[0]), [
+            'change:layer',
+            'move',
+            'sort',
+            'change'
+        ]);
+        // Prevent sorting
+        eventSpy.resetHistory();
+        rect.set('layer', 'newLayer', { sort: false });
+        assert.deepEqual(eventSpy.args.map(arg => arg[0]), [
+            'change:layer',
+            'move',
+            'change'
+        ]);
+    });
+
     QUnit.test('Changing default layer', (assert) => {
         const newLayer = new joint.dia.GraphLayer({ id: 'newLayer' });
         this.graph.addLayer(newLayer);
@@ -196,6 +236,65 @@ QUnit.module('Layers', function(hooks) {
         assert.ok(!defaultLayer.cellCollection.has(rect.id), 'Rectangle cell removed from old default layer');
 
         assert.ok(this.paper.getLayerView(newDefaultLayer.id).el.querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved to new default layer view');
+    });
+
+    QUnit.test('Changing the default layer should trigger correct events', (assert) => {
+        assert.equal(this.graph.getCells().length, 0, 'Graph has no cells initially');
+
+        this.graph.addLayer({ id: 'newLayer' });
+
+        const eventSpy = sinon.spy();
+        this.graph.on('all', eventSpy);
+
+        this.graph.setDefaultLayer('newLayer');
+        assert.deepEqual(eventSpy.args.map(arg => arg[0]), [
+            'batch:start',
+            'default-layer-change',
+            'batch:stop'
+        ]);
+
+        const r1 = new joint.shapes.standard.Rectangle();
+        const r2 = new joint.shapes.standard.Ellipse();
+        const r3 = new joint.shapes.standard.Ellipse({ layer: 'newLayer' });
+        this.graph.addCell([r1, r2, r3]);
+
+        eventSpy.resetHistory();
+        this.graph.setDefaultLayer('cells', { testOption: true });
+        assert.deepEqual(eventSpy.args.map(arg => arg[0]), [
+            'batch:start',
+            'move',
+            'move',
+            'sort',
+            'default-layer-change',
+            'batch:stop'
+        ]);
+        assert.ok(eventSpy.calledWithExactly('move', r1, sinon.match({
+            fromLayer: 'newLayer',
+            toLayer: 'cells',
+            testOption: true
+        })));
+        assert.ok(eventSpy.calledWithExactly('move', r2, sinon.match({
+            fromLayer: 'newLayer',
+            toLayer: 'cells',
+            testOption: true
+        })));
+        assert.ok(eventSpy.calledWithExactly('default-layer-change', this.graph, sinon.match({
+            testOption: true
+        })));
+
+        eventSpy.resetHistory();
+        this.graph.setDefaultLayer('cells');
+        assert.equal(eventSpy.callCount, 0, 'No events are triggered when setting the same default layer again');
+
+        eventSpy.resetHistory();
+        this.graph.setDefaultLayer('newLayer', { sort: false });
+        assert.deepEqual(eventSpy.args.map(arg => arg[0]), [
+            'batch:start',
+            'move',
+            'move',
+            'default-layer-change',
+            'batch:stop'
+        ]);
     });
 
     QUnit.test('Inserting layers', (assert) => {
