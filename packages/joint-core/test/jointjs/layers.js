@@ -29,7 +29,7 @@ QUnit.module('Layers', function(hooks) {
 
         assert.strictEqual(layerCollection.models.length, 1, 'Graph has one default layer');
 
-        assert.strictEqual(layerCollection.models[0].id, 'cells', 'Graph has default layer with id "cells"');
+        assert.strictEqual(layerCollection.models[0].id, 'cells', 'Graph has default layer "cells"');
 
         assert.ok(this.paper.getLayerView('cells'), 'Paper has default layer view for "cells" layer');
 
@@ -371,17 +371,22 @@ QUnit.module('Layers', function(hooks) {
 
         this.graph.addCells([rect1, rect2]);
 
-        assert.strictEqual(this.graph.getLayers().length, 2, 'There are 2 layers in the graph');
-        assert.strictEqual(layer1.cellCollection.length, 2, 'Layer "layer1" has 2 cells');
+        assert.equal(this.graph.getLayers().length, 2, 'There are 2 layers in the graph');
+        assert.equal(layer1.cellCollection.length, 2, 'Layer "layer1" has 2 cells');
 
+        assert.throws(() => {
+            this.graph.removeLayer(layer1);
+        }, /Layer "layer1" cannot be removed because it is not empty./, 'Removing layer with cells throws error');
+
+        this.graph.removeCells(layer1.getCells());
         this.graph.removeLayer(layer1);
 
         const layers = this.graph.getLayers();
-        assert.strictEqual(layers.length, 1, 'There is 1 layer in the graph');
-        assert.strictEqual(layers[0].id, 'cells', 'The only layer is "cells"');
+        assert.equal(layers.length, 1, 'There is 1 layer in the graph');
+        assert.equal(layers[0].id, 'cells', 'The only layer is "cells"');
 
         const defaultLayer = this.graph.getDefaultLayer();
-        assert.strictEqual(defaultLayer.cellCollection.length, 0, 'Default layer has no cells');
+        assert.equal(defaultLayer.cellCollection.length, 0, 'Default layer has no cells');
 
         assert.ok(!this.graph.getCell('rect1'), 'Cell "rect1" is removed from the graph');
         assert.ok(!this.graph.getCell('rect2'), 'Cell "rect2" is removed from the graph');

@@ -154,7 +154,7 @@ export namespace dia {
         util.filter.FilterJSON<'brightness'> |
         util.filter.FilterJSON<'contrast'>;
 
-    class CellCollection extends mvc.Collection<Cell> {
+    class CellCollection<C extends Cell = Cell> extends mvc.Collection<C> {
 
         cellNamespace: any;
         layer: GraphLayer;
@@ -169,15 +169,17 @@ export namespace dia {
         layerNamespace: any;
         graph: Graph;
 
-        insert(layer: Graph.LayerInit, beforeId: GraphLayer.ID | null, opt?: CollectionAddOptions): void;
+        insert(layer: Graph.LayerInit, beforeId: GraphLayer.ID | null, opt?: ObjectHash): void;
 
-        getCell(id: Graph.CellRef): Cell | undefined;
+        getCell(cellRef: Graph.CellRef): Cell | undefined;
 
         getCells(): Cell[];
 
-        moveCellBetweenLayers(cell: Cell, targetLayerId: GraphLayer.ID, opt?: CollectionAddOptions): void;
+        removeCell(cell: Cell, opt?: ObjectHash): void;
 
-        addCellToLayer(cell: Cell, layerId: GraphLayer.ID, opt?: CollectionAddOptions): void;
+        moveCellBetweenLayers(cell: Cell, targetLayerId: GraphLayer.ID, opt?: ObjectHash): void;
+
+        addCellToLayer(cell: Cell, layerId: GraphLayer.ID, opt?: ObjectHash): void;
     }
 
     export namespace Graph {
@@ -268,7 +270,7 @@ export namespace dia {
 
         removeCell(cell: Graph.CellRef, opt?: Graph.RemoveCellOptions): void;
 
-        removeCells(cells: Graph.CellRef[], opt?: Graph.RemoveCellOptions): this;
+        removeCells(cells: Array<Graph.CellRef>, opt?: Graph.RemoveCellOptions): this;
 
         resetCells(cells: Array<Graph.CellInit>, opt?: Graph.Options): this;
 

@@ -710,6 +710,38 @@ QUnit.module('graph', function(hooks) {
                 cells.length - cellsToRemove.length,
             );
         });
+
+        QUnit.test('should not fail when removing embedded cells and links', function(assert) {
+            const { graph } = this;
+
+            const e1 = new joint.shapes.standard.Rectangle({ id: 'e1' });
+            const e2 = new joint.shapes.standard.Rectangle({ id: 'e2' });
+            const e3 = new joint.shapes.standard.Rectangle({ id: 'e3' });
+            // Link between elements
+            const l1 = new joint.shapes.standard.Link({ id: 'l1', source: { id: e2.id }, target: { id: e3.id }});
+            // Element-to-link link
+            const l2 = new joint.shapes.standard.Link({ id: 'l2' });
+            e2.embed(l2);
+            const l3 = new joint.shapes.standard.Link({ id: 'l3', source: { id: e1.id }, target: { id: l2.id }});
+            // Loop-link
+            const l4 = new joint.shapes.standard.Link({ id: 'l4', source: { id: e3.id }, target: { id: e3.id }});
+
+            const cells = [e1, e2, e3, l1, l2, l3, l4];
+            // Delete by instances
+            graph.resetCells(cells);
+            e1.embed(e2);
+            e2.embed(e3);
+            assert.equal(graph.getCells().length, cells.length);
+            graph.removeCells(cells);
+            assert.ok(graph.getCells().length === 0);
+            // Delete by ids
+            graph.resetCells(cells);
+            e1.embed(e2);
+            e2.embed(e3);
+            assert.equal(graph.getCells().length, cells.length);
+            graph.removeCells(cells.map(cell => cell.id));
+            assert.ok(graph.getCells().length === 0);
+        });
     });
 
     QUnit.module('removeCell()', function(hooks) {
@@ -3784,7 +3816,7 @@ QUnit.module('graph', function(hooks) {
                     () => {
                         graph.addLayer({ id: 'my-layer' });
                     },
-                    /Layer with id 'my-layer' already exists./,
+                    /Layer "my-layer" already exists./,
                     'throws when adding a layer with an existing id',
                 );
 
@@ -3792,7 +3824,7 @@ QUnit.module('graph', function(hooks) {
                     () => {
                         graph.addLayer({ id: 'my-other-layer' }, { before: 'non-existing-layer' });
                     },
-                    /Layer with id 'non-existing-layer' does not exist/,
+                    /Layer "non-existing-layer" does not exist/,
                     'throws when \'before\' option refers to non-existing layer',
                 );
 
@@ -3927,7 +3959,7 @@ QUnit.module('graph', function(hooks) {
                     () => {
                         graph.moveLayer('layer1', { before: 'non-existing-layer' });
                     },
-                    /Layer with id 'non-existing-layer' does not exist/,
+                    /Layer "non-existing-layer" does not exist/,
                     'throws when \'before\' option refers to non-existing layer',
                 );
 
@@ -4018,7 +4050,7 @@ QUnit.module('graph', function(hooks) {
                     () => {
                         graph.removeLayer('non-existing-layer');
                     },
-                    /Layer with id 'non-existing-layer' does not exist./,
+                    /Layer "non-existing-layer" does not exist./,
                     'throws when removing non-existing layer',
                 );
 
@@ -4049,7 +4081,7 @@ QUnit.module('graph', function(hooks) {
                     'layerId and options are passed to \'remove\' event'
                 );
                 assert.ok(eventSpy.calledWithMatch('layers:update'), 'layers:update event is triggered');
-                assert.equal(eventSpy.callCount, 4);
+                assert.equal(eventSpy.callCount, 2);
             });
         });
 

@@ -163,7 +163,7 @@ export const GraphLayerCollection = Collection.extend({
         }
 
         if (beforeLayerId && !this.has(beforeLayerId)) {
-            throw new Error(`dia.GraphLayerCollection: Layer with id '${beforeLayerId}' does not exist`);
+            throw new Error(`dia.GraphLayerCollection: Layer "${beforeLayerId}" does not exist`);
         }
 
         // See if the layer is already in the collection
@@ -209,10 +209,10 @@ export const GraphLayerCollection = Collection.extend({
      * @public
      * @description Finds and returns a cell by its id from all layers.
      */
-    getCell(id) {
+    getCell(cellRef) {
         // TODO: should we create a map of cells for faster lookup?
         for (const layer of this.models) {
-            const cell = layer.cellCollection.get(id);
+            const cell = layer.cellCollection.get(cellRef);
             if (cell) {
                 return cell;
             }
@@ -240,6 +240,16 @@ export const GraphLayerCollection = Collection.extend({
             Array.prototype.push.apply(cells, layer.cellCollection.models);
         }
         return cells;
+    },
+
+    /**
+     * @public
+     * @description Removes a cell from its current layer.
+     */
+    removeCell(cell, options = {}) {
+        const cellCollection = cell.collection?.layer?.cellCollection;
+        if (!cellCollection) return;
+        cellCollection.remove(cell, options);
     },
 
     /**
@@ -282,7 +292,7 @@ export const GraphLayerCollection = Collection.extend({
     addCellToLayer(cell, layerId, options = {}) {
         const targetLayer = this.get(layerId);
         if (!targetLayer) {
-            throw new Error(`dia.GraphLayerCollection: layer with id '${layerId}' does not exist.`);
+            throw new Error(`dia.GraphLayerCollection: layer "${layerId}" does not exist.`);
         }
 
         const addOptions = {

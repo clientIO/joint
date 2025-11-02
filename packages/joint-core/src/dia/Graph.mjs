@@ -82,8 +82,6 @@ export const Graph = Model.extend({
         // to avoid reacting to graph attribute change events
         layerCollection.on('change:source', this._restructureOnChangeSource, this);
         layerCollection.on('change:target', this._restructureOnChangeTarget, this);
-
-        this.on('remove', this._removeCell, this);
     },
 
     _restructureOnAdd: function(cell) {
@@ -239,7 +237,7 @@ export const Graph = Model.extend({
             // Note that all the links are removed first, so it's
             // safe to remove the elements without removing the connected
             // links first.
-            this.removeCell(sortedCells.shift(), opt);
+            this.layerCollection.removeCell(sortedCells.shift(), opt);
 
         } while (sortedCells.length > 0);
 
@@ -290,17 +288,14 @@ export const Graph = Model.extend({
         return layer.cellCollection.maxZIndex();
     },
 
-    addCell: function(cellInit, opt) {
+    addCell: function(cellInit, options) {
 
         if (Array.isArray(cellInit)) {
-            return this.addCells(cellInit, opt);
+            return this.addCells(cellInit, options);
         }
 
-        this._prepareCell(cellInit, { ...opt, ensureZIndex: true });
-        this.layerCollection.addCellToLayer(cellInit, this.getCellLayerId(cellInit), {
-            ...opt,
-            graph: this.cid
-        });
+        this._prepareCell(cellInit, { ...options, ensureZIndex: true });
+        this.layerCollection.addCellToLayer(cellInit, this.getCellLayerId(cellInit), options);
 
         return this;
     },
@@ -351,7 +346,7 @@ export const Graph = Model.extend({
                 this._prepareCell(cellInit, prepareOptions);
                 layerCellsMap[layerId].push(cellInit);
             } else {
-                throw new Error(`dia.Graph: Layer with id '${layerId}' does not exist.`);
+                throw new Error(`dia.Graph: Layer "${layerId}" does not exist.`);
             }
         }
 
@@ -400,7 +395,7 @@ export const Graph = Model.extend({
         if (defaultLayerId) {
             // The default layer must be one of the defined layers
             if (!this.hasLayer(defaultLayerId)) {
-                throw new Error(`dia.Graph: default layer with id '${defaultLayerId}' does not exist.`);
+                throw new Error(`dia.Graph: default layer "${defaultLayerId}" does not exist.`);
             }
             this.defaultLayerId = defaultLayerId;
         } else {
@@ -410,14 +405,31 @@ export const Graph = Model.extend({
         return this;
     },
 
-    removeCells: function(cells, opt) {
-
-        if (cells.length) {
-            this.startBatch('remove');
-            cells.forEach((cell) => this.removeCell(cell, opt));
-            this.stopBatch('remove');
+    /**
+     * @public
+     * @description Remove multiple cells from the graph.
+     * @param {Array<dia.Cell | dia.Cell.ID>} cellRefs - Array of cell references (models or IDs) to remove.
+     * @param {Object} [options] - Removal options. See {@link dia.Graph#removeCell}.
+     */
+    removeCells: function(cellRefs, options) {
+        if (!cellRefs.length) return this;
+        // Remove multiple cells in a single batch
+        this.startBatch('remove');
+        for (const cellRef of cellRefs) {
+            if (!cellRef) continue;
+            let cell;
+            if (cellRef[CELL_MARKER]) {
+                cell = cellRef;
+            } else {
+                cell = this.getCell(cellRef);
+                if (!cell) {
+                    // The cell might have been already removed (embedded cell, connected link, etc.)
+                    continue;
+                }
+            }
+            this.layerCollection.removeCell(cell, options);
         }
-
+        this.stopBatch('remove');
         return this;
     },
 
@@ -430,7 +442,7 @@ export const Graph = Model.extend({
         const replaceOptions = { ...opt, replace: true };
         this.startBatch(batchName, opt);
         // 1. Remove the cell without removing connected links or embedded cells.
-        this.removeCell(currentCell, replaceOptions);
+        this.layerCollection.removeCell(currentCell, replaceOptions);
 
         const newCellInitAttributes = (newCellInit[CELL_MARKER])
             ? newCellInit.attributes
@@ -532,7 +544,7 @@ export const Graph = Model.extend({
             // Remove cells not present in the incoming array
             for (const cell of currentCells) {
                 if (!newCellsMap.has(cell.id)) {
-                    this.removeCell(cell, setOpt);
+                    this.layerCollection.removeCell(cell, setOpt);
                 }
             }
         }
@@ -563,7 +575,7 @@ export const Graph = Model.extend({
      * @throws Will throw an error if the ID of the cell to remove
      * does not exist in the graph
      **/
-    removeCell: function(cellRef, options = {}) {
+    removeCell: function(cellRef, options) {
         if (!cellRef) {
             throw new Error('dia.Graph: no cell provided.');
         }
@@ -572,49 +584,9 @@ export const Graph = Model.extend({
             throw new Error('dia.Graph: cell to remove does not exist in the graph.');
         }
         if (cell.graph !== this) return;
-        const batchRequired = !options.replace;
-        if (batchRequired) this.startBatch('remove');
-        this.trigger('remove', cell, cell.collection, options);
-        if (batchRequired) this.stopBatch('remove');
-    },
-
-    _removeCell: function(cell, collection, options = {}) {
-        const { replace, clear, disconnectLinks } = options;
-        const removeOptions = { ...options, graph: this.cid };
-        // When replacing a cell, we do not want to remove its embeds or
-        // unembed it from its parent.
-        if (!replace) {
-            // First, unembed this cell from its parent cell if there is one.
-            const parentCell = cell.getParentCell();
-            if (parentCell) {
-                parentCell.unembed(cell, removeOptions);
-            }
-
-            // Remove also all the cells, which were embedded into this cell
-            const embeddedCells = cell.getEmbeddedCells();
-            for (let i = 0, n = embeddedCells.length; i < n; i++) {
-                const embed = embeddedCells[i];
-                if (embed) {
-                    this.removeCell(embed, removeOptions);
-                }
-            }
-        }
-        // When not clearing the whole graph or replacing the cell,
-        // we don't want to remove the connected links.
-        if (!clear && !replace) {
-
-            // Applications might provide a `disconnectLinks` option set to `true` in order to
-            // disconnect links when a cell is removed rather then removing them. The default
-            // is to remove all the associated links.
-            if (disconnectLinks) {
-                this.disconnectLinks(cell, removeOptions);
-            } else {
-                this.removeLinks(cell, removeOptions);
-            }
-        }
-
-        // Remove the cell from the cell collection.
-        collection.remove(cell, removeOptions);
+        this.startBatch('remove');
+        cell.collection.remove(cell, options);
+        this.stopBatch('remove');
     },
 
     transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {
@@ -705,7 +677,7 @@ export const Graph = Model.extend({
             throw new Error('dia.Graph: Layer to add is invalid.');
         }
         if (this.hasLayer(layerInit.id)) {
-            throw new Error(`dia.Graph: Layer with id '${layerInit.id}' already exists.`);
+            throw new Error(`dia.Graph: Layer "${layerInit.id}" already exists.`);
         }
         const { before = null, index, ...insertOptions } = options;
         insertOptions.graph = this.cid;
@@ -756,20 +728,24 @@ export const Graph = Model.extend({
         if (!layerRef) {
             throw new Error('dia.Graph: No layer provided.');
         }
+
+        // The layer must exist
         const layerId = layerRef.id ? layerRef.id : layerRef;
-        if (!this.hasLayer(layerId)) {
-            throw new Error(`dia.Graph: Layer with id '${layerId}' does not exist.`);
-        }
+        const layer = this.getLayer(layerId);
 
         // Prevent removing the default layer
+        // Note: if there is only one layer, it is also the default layer.
         const { id: defaultLayerId } = this.getDefaultLayer();
         if (layerId === defaultLayerId) {
             throw new Error('dia.Graph: default layer cannot be removed.');
         }
 
-        this.startBatch('remove-layer');
+        // A layer with cells cannot be removed
+        if (layer.cellCollection.length > 0) {
+            throw new Error(`dia.Graph: Layer "${layerId}" cannot be removed because it is not empty.`);
+        }
+
         this.layerCollection.remove(layerId, { ...options, graph: this.cid });
-        this.stopBatch('remove-layer');
     },
 
     getDefaultLayer() {
@@ -784,7 +760,7 @@ export const Graph = Model.extend({
         // Make sure the layer exists
         const defaultLayerId = layerRef.id ? layerRef.id : layerRef;
         if (!this.hasLayer(defaultLayerId)) {
-            throw new Error(`dia.Graph: Layer with id '${defaultLayerId}' does not exist.`);
+            throw new Error(`dia.Graph: Layer "${defaultLayerId}" does not exist.`);
         }
 
         // If the default layer is not changing, do nothing
@@ -803,10 +779,7 @@ export const Graph = Model.extend({
             const currentDefaultLayer = this.getLayer(currentDefaultLayerId);
             currentDefaultLayer.cellCollection.each(cell => {
                 if (cell.get(config.layerAttribute) != null) return;
-                this.layerCollection.moveCellBetweenLayers(cell, defaultLayerId, {
-                    ...options,
-                    graph: this.cid
-                });
+                this.layerCollection.moveCellBetweenLayers(cell, defaultLayerId, options);
             });
         }
         // TODO: the name of the event should be `default-layer:change`
@@ -815,22 +788,21 @@ export const Graph = Model.extend({
 
     getLayer(layerId) {
         if (!this.hasLayer(layerId)) {
-            throw new Error(`dia.Graph: Layer with id '${layerId}' does not exist.`);
+            throw new Error(`dia.Graph: Layer "${layerId}" does not exist.`);
         }
         return this.layerCollection.get(layerId);
     },
 
-    hasLayer(layerId) {
-        return this.layerCollection.has(layerId);
+    hasLayer(layerRef) {
+        return this.layerCollection.has(layerRef);
     },
 
     getLayers() {
         return this.layerCollection.toArray();
     },
 
-    // Get a cell by `id`.
-    getCell: function(id) {
-        return this.layerCollection.getCell(id);
+    getCell: function(cellRef) {
+        return this.layerCollection.getCell(cellRef);
     },
 
     getCells: function() {
@@ -901,6 +873,7 @@ export const Graph = Model.extend({
                 // (because they are inbound and outbound edges of the same two elements)
                 if (edges[edge]) return;
                 var link = graph.getCell(edge);
+                if (!link) return;
                 links.push(link);
                 edges[edge] = true;
                 if (indirect) {
@@ -926,6 +899,7 @@ export const Graph = Model.extend({
                 // (because they are inbound and outbound edges of the same two elements)
                 if (edges[edge]) return;
                 var link = graph.getCell(edge);
+                if (!link) return;
                 links.push(link);
                 edges[edge] = true;
                 if (indirect) {
@@ -1398,7 +1372,7 @@ export const Graph = Model.extend({
     // Remove links connected to the cell `model` completely.
     removeLinks: function(cell, opt) {
         this.getConnectedLinks(cell).forEach(link => {
-            this.removeCell(link, opt);
+            this.layerCollection.removeCell(link, opt);
         });
     },
 

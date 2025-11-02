@@ -4,7 +4,8 @@ import { CELL_MARKER, CELL_COLLECTION_MARKER, GRAPH_LAYER_MARKER, GRAPH_LAYER_CO
 
 /**
  * @class GraphLayersController
- * @description A controller that manages layers in a dia.Graph.
+ * @description Coordinates interactions between the graph and its layers.
+ * Automatically moves cells between layers when the layer attribute changes.
  */
 export class GraphLayersController extends Listener {
 
@@ -27,21 +28,14 @@ export class GraphLayersController extends Listener {
     }
 
     startListening() {
-        const { layerCollection } = this;
-        // Forward events from the `layerCollection` on the graph instance.
-        this.listenTo(layerCollection, 'all', this.forwardEvent);
-        // Handle layer removal events
-        this.listenTo(layerCollection, 'layer:remove', this.onLayerRemove);
-        // Listening to the collection instead of the graph itself
-        // to avoid graph attribute change events
-        this.listenTo(layerCollection, 'change', this.onCellChange);
+        // Handle all events from the layer collection and its inner cell collections.
+        this.listenTo(this.layerCollection, 'all', this.onLayerCollectionEvent);
     }
 
-    onLayerRemove(layer, opt) {
-        // When a layer is removed, also remove all its cells from the graph
-        this.graph.removeCells(layer.getCells(), opt);
-    }
-
+    /**
+     * @description When a cell changes its layer attribute,
+     * move the cell to the target layer.
+     */
     onCellChange(cell, opt) {
         if (!cell.hasChanged(config.layerAttribute)) return;
         // Move the cell to the appropriate layer
@@ -52,10 +46,70 @@ export class GraphLayersController extends Listener {
         });
     }
 
-    forwardEvent(_, model) {
+    /**
+     * @description When a cell is removed from a layer,
+     * also remove its embeds and connected links from the graph.
+     * Note: an embedded cell might come from a different layer,
+     * so we can not use the layer's cell collection to remove it.
+     */
+    onCellRemove(cell, _, options) {
+        const { replace, clear, disconnectLinks } = options;
+        const { graph, layerCollection } = this;
+
+        // When replacing a cell, we do not want to remove its embeds or
+        // unembed it from its parent.
+        if (replace) return;
+
+        // First, unembed this cell from its parent cell if there is one.
+        const parentCell = cell.getParentCell();
+        if (parentCell) {
+            parentCell.unembed(cell, options);
+        }
+
+        // Remove also all the cells, which were embedded into this cell
+        const embeddedCells = cell.getEmbeddedCells();
+        for (let i = 0, n = embeddedCells.length; i < n; i++) {
+            const embed = embeddedCells[i];
+            if (embed) {
+                layerCollection.removeCell(embed, options);
+            }
+        }
+
+        // When not clearing the whole graph or replacing the cell,
+        // we don't want to remove the connected links.
+        if (!clear) {
+
+            // Applications might provide a `disconnectLinks` option set to `true` in order to
+            // disconnect links when a cell is removed rather then removing them. The default
+            // is to remove all the associated links.
+            if (disconnectLinks) {
+                graph.disconnectLinks(cell, options);
+            } else {
+                graph.removeLinks(cell, options);
+            }
+        }
+    }
+
+    onLayerCollectionEvent(eventName, model) {
         if (!model) return;
 
         if (model[CELL_MARKER]) {
+            // First handle cell-specific cases that require custom processing,
+            // then forward the event to the graph.
+            // For example, when a cell is removed from a layer, its embeds and
+            // connected links must be removed as well. Listeners on the graph
+            // should receive removal notifications in the following order:
+            // embeds → links → cell.
+            switch (eventName) {
+                case 'change':
+                    this.onCellChange.call(this, model, arguments[2], arguments[3]);
+                    break;
+                case 'remove':
+                    // When a cell is removed from a layer, ensure it is also removed from the graph.
+                    this.onCellRemove.call(this, model, arguments[2], arguments[3]);
+                    break;
+            }
+            // Notify the graph about cell events.
             this.forwardCellEvent.apply(this, arguments);
             return;
         }
@@ -82,12 +136,9 @@ export class GraphLayersController extends Listener {
     }
 
     forwardCellEvent(eventName) {
-        // Skip cell 'remove' events as they are handled on the graph level
-        if (eventName === 'remove') {
-            return;
-        }
-        // Skip if a `cell` is added to a different layer due to layer change
-        if (eventName === 'add' && arguments[2]?.fromLayer) {
+        if ((eventName === 'remove' || eventName === 'add') && arguments[2]?.fromLayer) {
+            // Moving a cell from one layer to another is an internal operation
+            // that should not be exposed at the graph level.
             return;
         }
         this.graph.trigger.apply(this.graph, arguments);
