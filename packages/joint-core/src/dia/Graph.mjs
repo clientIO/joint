@@ -55,7 +55,7 @@ export const Graph = Model.extend({
         // `Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
         // must be reflected in the `al` object. This object provides fast answers to
-        // questions such as "what are the neighbours of this node" or "what
+        // questions such as "what are the neighbors of this node" or "what
         // are the sibling links of this link".
         this.topologyIndex = new GraphTopologyIndex({ layerCollection });
 

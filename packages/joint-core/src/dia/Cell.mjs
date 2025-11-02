@@ -205,7 +205,7 @@ export const Cell = Model.extend({
     remove: function(opt = {}) {
         const { graph, collection } = this;
         // If the cell is part of a graph, remove it using the graph API.
-        // To make sure it removed in a batch operation.
+        // To make sure the cell is removed in a batch operation.
         if (graph) {
             graph.removeCell(this, opt);
         } else {
