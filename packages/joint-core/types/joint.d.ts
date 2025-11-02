@@ -310,6 +310,10 @@ export namespace dia {
 
         defaultLayerId: GraphLayer.ID;
 
+        layersController: GraphLayersController;
+
+        topologyIndex: GraphTopologyIndex;
+
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
             layerNamespace?: any,
