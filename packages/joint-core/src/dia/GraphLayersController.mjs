@@ -102,10 +102,10 @@ export class GraphLayersController extends Listener {
             // should receive removal notifications in the following order:
             // embeds → links → cell.
             switch (eventName) {
-                case 'change': /* (cell, options) */
+                case 'change': /* ('change', cell, options) */
                     this.onCellChange.call(this, model, arguments[2]);
                     break;
-                case 'remove': /* (cell, collection, options) */
+                case 'remove': /* ('remove', cell, collection, options) */
                     // When a cell is removed from a layer,
                     // ensure it is also removed from the graph.
                     this.onCellRemove.call(this, model, arguments[3]);
@@ -137,15 +137,11 @@ export class GraphLayersController extends Listener {
         this.graph.trigger.apply(this.graph, arguments);
     }
 
-    forwardCellEvent(eventName, cell, _, options) {
+    forwardCellEvent(eventName, cell) {
         // Moving a cell from one layer to another is an internal operation
         // that should not be exposed at the graph level.
         // The single `move` event is triggered instead.
-        if (eventName === 'remove' && options.fromLayer) return;
-        if (eventName === 'add' && options.fromLayer) {
-            this.graph.trigger('move', cell, options);
-            return;
-        }
+        if ((eventName === 'remove' || eventName === 'add') && arguments[3]?.fromLayer) return;
 
         this.graph.trigger.apply(this.graph, arguments);
     }

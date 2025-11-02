@@ -283,6 +283,9 @@ export const GraphLayerCollection = Collection.extend({
         // Move the cell between the two layer collections
         sourceLayer.cellCollection.remove(cell, moveOptions);
         targetLayer.cellCollection.add(cell, moveOptions);
+        // Trigger a single `move` event to ease distinguishing layer moves
+        // from add/remove operations
+        cell.trigger('move', cell, moveOptions);
     },
 
     /**

@@ -182,8 +182,8 @@ QUnit.module('Layers', function(hooks) {
         rect.set('layer', 'newLayer', { testOption: true });
         assert.deepEqual(eventSpy.args.map(arg => arg[0]), [
             'change:layer',
-            'move',
             'sort',
+            'move',
             'change'
         ]);
         assert.ok(eventSpy.calledWithExactly('move', rect, sinon.match({
@@ -196,8 +196,8 @@ QUnit.module('Layers', function(hooks) {
         rect.unset('layer');
         assert.deepEqual(eventSpy.args.map(arg => arg[0]), [
             'change:layer',
-            'move',
             'sort',
+            'move',
             'change'
         ]);
         // Prevent sorting

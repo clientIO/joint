@@ -37,7 +37,7 @@ export const GraphLayerView = LayerView.extend({
     afterPaperReferenceSet(paper) {
         this.listenTo(this.model, 'sort', this.onCellCollectionSort);
         this.listenTo(this.model, 'change', this.onCellChange);
-        this.listenTo(this.graph, 'move', this.onCellMove);
+        this.listenTo(this.model, 'move', this.onCellMove);
         this.listenTo(this.graph, 'batch:stop', this.onGraphBatchStop);
     },
 
