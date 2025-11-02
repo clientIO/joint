@@ -9,6 +9,7 @@ import { GraphLayersController } from './GraphLayersController.mjs';
 import { GraphLayerCollection } from './GraphLayerCollection.mjs';
 import { config } from '../config/index.mjs';
 import { CELL_MARKER } from './symbols.mjs';
+import { GraphTopologyIndex } from './GraphTopologyIndex.mjs';
 
 // The ID of the default graph layer.
 const DEFAULT_LAYER_ID = 'cells';
@@ -51,121 +52,14 @@ export const Graph = Model.extend({
         // Controller that manages communication between the graph and its layers.
         this.layersController = new GraphLayersController({ graph: this });
 
-        // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
+        // `Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
         // must be reflected in the `al` object. This object provides fast answers to
         // questions such as "what are the neighbours of this node" or "what
         // are the sibling links of this link".
-
-        // Outgoing edges per node. Note that we use a hash-table for the list
-        // of outgoing edges for a faster lookup.
-        // [nodeId] -> Object [edgeId] -> true
-        this._out = {};
-        // Ingoing edges per node.
-        // [nodeId] -> Object [edgeId] -> true
-        this._in = {};
-        // `_nodes` is useful for quick lookup of all the elements in the graph, without
-        // having to go through the whole cells array.
-        // [node ID] -> true
-        this._nodes = {};
-        // `_edges` is useful for quick lookup of all the links in the graph, without
-        // having to go through the whole cells array.
-        // [edgeId] -> true
-        this._edges = {};
+        this.topologyIndex = new GraphTopologyIndex({ layerCollection });
 
         this._batches = {};
-
-        this.on('reset', this._restructureOnReset, this);
-        this.on('add', this._restructureOnAdd, this);
-        this.on('remove', this._restructureOnRemove, this);
-        // Listening to the collection instead of the graph itself
-        // to avoid reacting to graph attribute change events
-        layerCollection.on('change:source', this._restructureOnChangeSource, this);
-        layerCollection.on('change:target', this._restructureOnChangeTarget, this);
-    },
-
-    _restructureOnAdd: function(cell) {
-
-        if (cell.isLink()) {
-            this._edges[cell.id] = true;
-            var { source, target } = cell.attributes;
-            if (source.id) {
-                (this._out[source.id] || (this._out[source.id] = {}))[cell.id] = true;
-            }
-            if (target.id) {
-                (this._in[target.id] || (this._in[target.id] = {}))[cell.id] = true;
-            }
-        } else {
-            this._nodes[cell.id] = true;
-        }
-    },
-
-    _restructureOnRemove: function(cell, _collection, options) {
-
-        if (cell.isLink()) {
-            delete this._edges[cell.id];
-            var { source, target } = cell.attributes;
-            if (source.id && this._out[source.id] && this._out[source.id][cell.id]) {
-                delete this._out[source.id][cell.id];
-            }
-            if (target.id && this._in[target.id] && this._in[target.id][cell.id]) {
-                delete this._in[target.id][cell.id];
-            }
-        } else {
-            delete this._nodes[cell.id];
-        }
-    },
-
-    // restructure on the whole graph reset, e.g. when fromJSON or resetCells is called
-    _restructureOnReset: function() {
-
-        // Normalize into an array of cells. The original `collection` is GraphCells mvc collection.
-        const cells = this.getCells();
-
-        this._out = {};
-        this._in = {};
-        this._nodes = {};
-        this._edges = {};
-
-        cells.forEach(this._restructureOnAdd, this);
-    },
-
-    _restructureOnChangeSource: function(link) {
-
-        var prevSource = link.previous('source');
-        if (prevSource.id && this._out[prevSource.id]) {
-            delete this._out[prevSource.id][link.id];
-        }
-        var source = link.attributes.source;
-        if (source.id) {
-            (this._out[source.id] || (this._out[source.id] = {}))[link.id] = true;
-        }
-    },
-
-    _restructureOnChangeTarget: function(link) {
-
-        var prevTarget = link.previous('target');
-        if (prevTarget.id && this._in[prevTarget.id]) {
-            delete this._in[prevTarget.id][link.id];
-        }
-        var target = link.get('target');
-        if (target.id) {
-            (this._in[target.id] || (this._in[target.id] = {}))[link.id] = true;
-        }
-    },
-
-    // Return all outbound edges for the node. Return value is an object
-    // of the form: [edgeId] -> true
-    getOutboundEdges: function(node) {
-
-        return (this._out && this._out[node]) || {};
-    },
-
-    // Return all inbound edges for the node. Return value is an object
-    // of the form: [edgeId] -> true
-    getInboundEdges: function(node) {
-
-        return (this._in && this._in[node]) || {};
     },
 
     toJSON: function(opt = {}) {
@@ -365,6 +259,13 @@ export const Graph = Model.extend({
         return this;
     },
 
+    /**
+     * @public
+     * @description Get the layer ID in which the cell resides.
+     * Cells without an explicit layer are assigned to the default layer.
+     * @param {dia.Cell | Object} cellInit - Cell model or attributes.
+     * @returns {string} - The layer ID.
+     */
     getCellLayerId: function(cellInit) {
         if (!cellInit) {
             throw new Error('dia.Graph: No cell provided.');
@@ -895,7 +796,7 @@ export const Graph = Model.extend({
         }
 
         function addOutbounds(graph, model) {
-            util.forIn(graph.getOutboundEdges(model.id), function(_, edge) {
+            util.forIn(graph.topologyIndex.getOutboundEdges(model.id), function(_, edge) {
                 // skip links that were already added
                 // (those must be self-loop links)
                 // (because they are inbound and outbound edges of the same two elements)
@@ -921,7 +822,7 @@ export const Graph = Model.extend({
         }
 
         function addInbounds(graph, model) {
-            util.forIn(graph.getInboundEdges(model.id), function(_, edge) {
+            util.forIn(graph.topologyIndex.getInboundEdges(model.id), function(_, edge) {
                 // skip links that were already added
                 // (those must be self-loop links)
                 // (because they are inbound and outbound edges of the same two elements)
@@ -962,7 +863,7 @@ export const Graph = Model.extend({
             embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    util.forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    util.forIn(this.topologyIndex.getOutboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
                             var { source, target } = edgeCell.attributes;
@@ -982,7 +883,7 @@ export const Graph = Model.extend({
                     }.bind(this));
                 }
                 if (inbound) {
-                    util.forIn(this.getInboundEdges(cell.id), function(exists, edge) {
+                    util.forIn(this.topologyIndex.getInboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
                             var { source, target } = edgeCell.attributes;
@@ -1291,38 +1192,22 @@ export const Graph = Model.extend({
 
     // Get all the roots of the graph. Time complexity: O(|V|).
     getSources: function() {
-
-        var sources = [];
-        util.forIn(this._nodes, function(exists, node) {
-            if (!this._in[node] || util.isEmpty(this._in[node])) {
-                sources.push(this.getCell(node));
-            }
-        }.bind(this));
-        return sources;
+        return this.topologyIndex.getSourceNodes().map(nodeId => this.getCell(nodeId));
     },
 
     // Get all the leafs of the graph. Time complexity: O(|V|).
     getSinks: function() {
-
-        var sinks = [];
-        util.forIn(this._nodes, function(exists, node) {
-            if (!this._out[node] || util.isEmpty(this._out[node])) {
-                sinks.push(this.getCell(node));
-            }
-        }.bind(this));
-        return sinks;
+        return this.topologyIndex.getSinkNodes().map(nodeId => this.getCell(nodeId));
     },
 
     // Return `true` if `element` is a root. Time complexity: O(1).
     isSource: function(element) {
-
-        return !this._in[element.id] || util.isEmpty(this._in[element.id]);
+        return this.topologyIndex.isSourceNode(element.id);
     },
 
     // Return `true` if `element` is a leaf. Time complexity: O(1).
     isSink: function(element) {
-
-        return !this._out[element.id] || util.isEmpty(this._out[element.id]);
+        return this.topologyIndex.isSinkNode(element.id);
     },
 
     // Return `true` is `elementB` is a successor of `elementA`. Return `false` otherwise.

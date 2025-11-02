@@ -182,6 +182,60 @@ export namespace dia {
         addCellToLayer(cell: Cell, layerId: GraphLayer.ID, opt?: ObjectHash): void;
     }
 
+    class GraphLayersController extends mvc.Listener<[]> {
+
+        graph: Graph;
+
+        layerCollection: GraphLayerCollection;
+
+        startListening(): void;
+
+        protected onCellChange(cell: Cell, opt: ObjectHash): void;
+
+        protected onCellRemove(cell: Cell, opt: ObjectHash): void;
+
+        protected onLayerCollectionEvent(eventName: string, ...args: any[]): void;
+
+        protected forwardLayerEvent(...args: any[]): void;
+
+        protected forwardCellEvent(...args: any[]): void;
+
+        protected forwardCellCollectionEvent(...args: any[]): void;
+
+        protected forwardLayerCollectionEvent(...args: any[]): void;
+    }
+
+    class GraphTopologyIndex extends mvc.Listener<[]> {
+
+        layerCollection: GraphLayerCollection;
+
+        startListening(): void;
+
+        getOutboundEdges(id: Cell.ID): { [edgeId: string]: true };
+
+        getInboundEdges(id: Cell.ID): { [edgeId: string]: true };
+
+        getSinkNodes(): string[];
+
+        getSourceNodes(): string[];
+
+        isSinkNode(id: Cell.ID): boolean;
+
+        isSourceNode(id: Cell.ID): boolean;
+
+        protected initializeIndex(): void;
+
+        protected _restructureOnReset(): void;
+
+        protected _restructureOnAdd(cell: Cell): void;
+
+        protected _restructureOnRemove(cell: Cell): void;
+
+        protected _restructureOnChangeSource(cell: Cell): void;
+
+        protected _restructureOnChangeTarget(cell: Cell): void;
+    }
+
     export namespace Graph {
 
         interface Options {
