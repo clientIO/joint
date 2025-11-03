@@ -223,8 +223,6 @@ export const Graph = Model.extend({
 
         // When resetting cells, do not set z-index if not provided.
         const prepareOptions = { ...options, ensureZIndex: false };
-        // Mark cellCollection resets as coming from the graph
-        const resetOptions = { ...options, graph: this.cid };
 
         // Initialize a map of layer IDs to arrays of cells
         const layerCellsMap = layerCollection.reduce((map, layer) => {
@@ -246,7 +244,7 @@ export const Graph = Model.extend({
 
         // Reset each layer's cell collection with the corresponding cells.
         layerCollection.each(layer => {
-            layer.cellCollection.reset(layerCellsMap[layer.id], resetOptions);
+            layer.cellCollection.reset(layerCellsMap[layer.id], options);
         });
 
         // Trigger a single `reset` event on the graph
