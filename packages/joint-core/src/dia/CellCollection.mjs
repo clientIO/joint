@@ -1,8 +1,6 @@
 import * as util from '../util/index.mjs';
 import { Collection } from '../mvc/Collection.mjs';
-import { CELL_MARKER } from './Cell.mjs';
-
-export const CELL_COLLECTION_MARKER = Symbol('joint.cellCollectionMarker');
+import { CELL_MARKER, CELL_COLLECTION_MARKER } from './symbols.mjs';
 
 /**
  * @class CellCollection

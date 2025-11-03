@@ -2734,7 +2734,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     () => {
                         graph.addCell(r2, { async: false });
                     },
-                    /dia.Graph: Layer with id 'test' does not exist./,
+                    /dia.Graph: Layer "test" does not exist./,
                     'Layer "test" does not exist in Graph.'
                 );
 

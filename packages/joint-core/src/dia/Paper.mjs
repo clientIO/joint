@@ -35,16 +35,18 @@ import {
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views as viewsRegistry } from '../mvc/index.mjs';
-import { CellView, CELL_VIEW_MARKER } from './CellView.mjs';
+import { CellView } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
-import { CELL_MARKER } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LAYER_VIEW_MARKER, LayerView } from './LayerView.mjs';
-import { GRAPH_LAYER_VIEW_MARKER, GraphLayerView } from './GraphLayerView.mjs';
+import { LayerView } from './LayerView.mjs';
+import { GraphLayerView } from './GraphLayerView.mjs';
 import { LegacyGraphLayerView } from './LegacyGraphLayerView.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { Deque } from '../alg/Deque.mjs';
+import {
+    CELL_MARKER, CELL_VIEW_MARKER, LAYER_VIEW_MARKER, GRAPH_LAYER_VIEW_MARKER
+} from './symbols.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
@@ -628,6 +630,9 @@ export const Paper = View.extend({
     // Layers that are always present on the paper (e.g. grid, back, front, tools)
     implicitLayers,
 
+    // Reference layer for inserting new graph layers.
+    graphLayerRefId: paperLayers.LABELS,
+
     init: function() {
 
         const { options } = this;
@@ -704,7 +709,6 @@ export const Paper = View.extend({
 
         this.listenTo(model, 'layer:add', this.onGraphLayerAdd)
             .listenTo(model, 'layer:remove', this.onGraphLayerRemove)
-            .listenTo(model, 'layers:reset', this.onGraphLayerCollectionReset)
             .listenTo(model, 'layers:sort', this.onGraphLayerCollectionSort);
 
         this.on('cell:highlight', this.onCellHighlight)
@@ -734,7 +738,13 @@ export const Paper = View.extend({
     },
 
     onGraphReset: function(_collection, opt) {
+        // Re-render all graph layer views
+        // but keep the implicit layer views.
+        this.renderGraphLayerViews();
         this.resetLayerViews();
+        // Backward compatibility: reassign the `cells` property
+        // with the default layer view.
+        this.assertLayerViews();
         this.resetViews(this.model.getCells(), opt);
     },
 
@@ -791,15 +801,6 @@ export const Paper = View.extend({
 
     /**
      * @protected
-     * @description When the graph layer collection is reset,
-     * we re-render all graph layer views.
-     **/
-    onGraphLayerCollectionReset: function() {
-        this.renderGraphLayerViews();
-    },
-
-    /**
-     * @protected
      * @description When the graph layer collection is sorted,
      * we reorder all graph layer views.
      **/
@@ -807,7 +808,7 @@ export const Paper = View.extend({
         layerCollection.each(layer => {
             if (!this.hasLayerView(layer)) return;
 
-            this.moveLayerView(layer, { before: paperLayers.LABELS });
+            this.moveLayerView(layer, { before: this.graphLayerRefId });
         });
     },
 
@@ -833,14 +834,7 @@ export const Paper = View.extend({
             // Insert the layer view into the paper layers, just before the labels layer.
             // All cell layers are positioned between the "back" and "labels" layers,
             // with the default "cells" layer originally occupying this position.
-            this.addLayerView(layerView, { before: paperLayers.LABELS });
-
-            // Insert all existing cell views into the newly created layer view.
-            // This is required in cases where the layer collection was reset
-            // without resetting the individual cells.
-            layerView.model.cellCollection.each(cell => {
-                this.requestCellViewInsertion(cell);
-            });
+            this.addLayerView(layerView, { before: this.graphLayerRefId });
         });
     },
 
@@ -1329,14 +1323,24 @@ export const Paper = View.extend({
         this.renderImplicitLayerViews();
         // Render the layers.
         this.renderGraphLayerViews();
-        // Throws an exception if doesn't exist
+        // Ensure that essential layer views are present.
+        this.assertLayerViews();
+    },
+
+    /**
+     * @protected
+     * @description Ensures that essential layer views are present on the paper.
+     * @throws {Error} if any of the essential layer views is missing
+     */
+    assertLayerViews: function() {
+        // Throws an exception if essential layer views are missing.
         const cellsLayerView = this.getLayerView(this.model.getDefaultLayer().id);
         const toolsLayerView = this.getLayerView(paperLayers.TOOLS);
         const labelsLayerView = this.getLayerView(paperLayers.LABELS);
+
         // backwards compatibility
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
-        // user-select: none;
         // Backwards compatibility: same as `LegacyGraphLayerView` we keep
         // the `viewport` class on the labels layer.
         labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
@@ -2761,10 +2765,9 @@ export const Paper = View.extend({
     },
 
     insertView: function(view, isInitialInsert) {
-        const { model } = view;
 
         // layer can be null if it is added to the graph with 'dry' option
-        const layerId = model.layer() || this.model.getDefaultLayer().id;
+        const layerId = this.model.getCellLayerId(view.model);
         const layerView = this.getLayerView(layerId);
 
         layerView.insertCellView(view);
