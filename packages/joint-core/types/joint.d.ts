@@ -166,6 +166,7 @@ export namespace dia {
 
     class GraphLayerCollection<L extends GraphLayer = GraphLayer> extends mvc.Collection<L> {
 
+        cellNamespace: any;
         layerNamespace: any;
         graph: Graph;
 
