@@ -235,7 +235,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helper-plugin-utils@npm:^7.0.0, @babel/helper-plugin-utils@npm:^7.10.4, @babel/helper-plugin-utils@npm:^7.12.13, @babel/helper-plugin-utils@npm:^7.14.5, @babel/helper-plugin-utils@npm:^7.18.6, @babel/helper-plugin-utils@npm:^7.26.5, @babel/helper-plugin-utils@npm:^7.27.1, @babel/helper-plugin-utils@npm:^7.8.0":
+"@babel/helper-plugin-utils@npm:^7.0.0, @babel/helper-plugin-utils@npm:^7.10.4, @babel/helper-plugin-utils@npm:^7.12.13, @babel/helper-plugin-utils@npm:^7.14.5, @babel/helper-plugin-utils@npm:^7.18.6, @babel/helper-plugin-utils@npm:^7.25.9, @babel/helper-plugin-utils@npm:^7.26.5, @babel/helper-plugin-utils@npm:^7.27.1, @babel/helper-plugin-utils@npm:^7.8.0":
   version: 7.27.1
   resolution: "@babel/helper-plugin-utils@npm:7.27.1"
   checksum: 10/96136c2428888e620e2ec493c25888f9ceb4a21099dcf3dd4508ea64b58cdedbd5a9fb6c7b352546de84d6c24edafe482318646932a22c449ebd16d16c22d864
@@ -268,7 +268,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helper-skip-transparent-expression-wrappers@npm:^7.27.1":
+"@babel/helper-skip-transparent-expression-wrappers@npm:^7.25.9, @babel/helper-skip-transparent-expression-wrappers@npm:^7.27.1":
   version: 7.27.1
   resolution: "@babel/helper-skip-transparent-expression-wrappers@npm:7.27.1"
   dependencies:
@@ -954,6 +954,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/plugin-transform-nullish-coalescing-operator@npm:7.26.6":
+  version: 7.26.6
+  resolution: "@babel/plugin-transform-nullish-coalescing-operator@npm:7.26.6"
+  dependencies:
+    "@babel/helper-plugin-utils": "npm:^7.26.5"
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: 10/3832609f043dd1cd8076ab6a00a201573ef3f95bb2144d57787e4a973b3189884c16b4e77ff8e84a6ca47bc3b65bb7df10dca2f6163dfffc316ac96c37b0b5a6
+  languageName: node
+  linkType: hard
+
 "@babel/plugin-transform-nullish-coalescing-operator@npm:^7.26.6, @babel/plugin-transform-nullish-coalescing-operator@npm:^7.27.1":
   version: 7.27.1
   resolution: "@babel/plugin-transform-nullish-coalescing-operator@npm:7.27.1"
@@ -1011,6 +1022,18 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.0.0-0
   checksum: 10/f4356b04cf21a98480f9788ea50f1f13ee88e89bb6393ba4b84d1f39a4a84c7928c9a4328e8f4c5b6deb218da68a8fd17bf4f46faec7653ddc20ffaaa5ba49f4
+  languageName: node
+  linkType: hard
+
+"@babel/plugin-transform-optional-chaining@npm:7.25.9":
+  version: 7.25.9
+  resolution: "@babel/plugin-transform-optional-chaining@npm:7.25.9"
+  dependencies:
+    "@babel/helper-plugin-utils": "npm:^7.25.9"
+    "@babel/helper-skip-transparent-expression-wrappers": "npm:^7.25.9"
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: 10/bc838a499fd9892e163b8bc9bfbc4bf0b28cc3232ee0a6406ae078257c8096518f871d09b4a32c11f4a2d6953c3bc1984619ef748f7ad45aed0b0d9689a8eb36
   languageName: node
   linkType: hard
 
@@ -2725,6 +2748,8 @@ __metadata:
   resolution: "@joint/core@workspace:packages/joint-core"
   dependencies:
     "@babel/core": "npm:7.26.10"
+    "@babel/plugin-transform-nullish-coalescing-operator": "npm:7.26.6"
+    "@babel/plugin-transform-optional-chaining": "npm:7.25.9"
     "@babel/preset-env": "npm:7.26.9"
     "@eslint/js": "npm:9.38.0"
     "@microsoft/api-extractor": "npm:7.52.10"
