@@ -2,6 +2,8 @@
 
   @joint/core
   * examples.layout-elk-ts - add new example
+  * dia.Paper - introduce layers API
+  * dia.Paper - rework `autoFreeze` option
   * dia.Paper - add `measureNode()` callback option
   * dia.Paper - add `viewManagement` option for advanced view lifecycle management
   * dia.Paper - add `cellVisibility()` callback option
@@ -9,8 +11,6 @@
   * dia.Paper - add `prioritizeCellViewMount()` and `prioritizeCellViewUnmount()` methods
   * dia.Paper - add `updateCellVisibility()` and `updateCellsVisibility()` methods
   * dia.Paper - add `isCellVisible()` method
-  * dia.Paper - rework `autoFreeze` option
-  * dia.Paper - add cell layers functionality
   * dia.Paper - fix to only trigger `'render:idle'` event after all updates are completed
   * dia.Paper - fix generic view detachment when `viewport()` callback returns `false`
   * dia.Paper - fix to trigger `'render:*'` events when paper model is reset with no cells
@@ -53,10 +53,10 @@
   * Vectorizer - add static `getCommonAncestor()` method
   * Vectorizer - add `useNoBreakSpace` option to `text()` method
   * Vectorizer - deprecate static `sanitizeText()` method
-  * Vectorizer - fix to preserve camelCase in 'attributeName', 'repeatCount' attribute names
+  * Vectorizer - fix to preserve camelCase in `attributeName`, `repeatCount` attribute names
   * Vectorizer - fix to handle implicit line coordinates in `convertToPathData()` method
   * Geometry - add `moveAroundPoint()` method to `Rect`
-  * fix to keep 'use strict' for minified files
+  * fix to keep `'use strict'` for minified files
 
   @joint/layout-directed-graph
   * layout.DirectedGraph - support `clusterPadding: 'default'`
