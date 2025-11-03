@@ -36,14 +36,11 @@ export class GraphLayersController extends Listener {
      * @description When a cell changes its layer attribute,
      * move the cell to the target layer.
      */
-    onCellChange(cell, opt) {
+    onCellChange(cell, options) {
         if (!cell.hasChanged(config.layerAttribute)) return;
         // Move the cell to the appropriate layer
         const targetLayerId = this.graph.getCellLayerId(cell);
-        this.layerCollection.moveCellBetweenLayers(cell, targetLayerId, {
-            ...opt,
-            graph: this.graph.cid
-        });
+        this.layerCollection.moveCellBetweenLayers(cell, targetLayerId, options);
     }
 
     /**
