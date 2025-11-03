@@ -660,9 +660,7 @@ export const Graph = Model.extend({
 
         // Make sure the layer exists
         const defaultLayerId = layerRef.id ? layerRef.id : layerRef;
-        if (!this.hasLayer(defaultLayerId)) {
-            throw new Error(`dia.Graph: Layer "${defaultLayerId}" does not exist.`);
-        }
+        const defaultLayer = this.getLayer(defaultLayerId);
 
         // If the default layer is not changing, do nothing
         const currentDefaultLayerId = this.defaultLayerId;
@@ -678,7 +676,6 @@ export const Graph = Model.extend({
         this.defaultLayerId = defaultLayerId;
 
         const batchName = 'default-layer-change';
-
         this.startBatch(batchName, options);
 
         if (implicitLayerCells.length > 0) {
@@ -690,14 +687,15 @@ export const Graph = Model.extend({
             }
             // Now sort the new default layer
             if (options.sort !== false) {
-                this.getDefaultLayer().cellCollection.sort(options);
+                defaultLayer.cellCollection.sort(options);
             }
         }
 
-        this.trigger('default-layer-change', this, {
+        // Pretend to trigger the event on the layer itself.
+        // It will bubble up as `layer:default` event on the graph.
+        defaultLayer.trigger(defaultLayer.eventPrefix + 'default', defaultLayer, {
             ...options,
-            fromLayer: currentDefaultLayerId,
-            toLayer: defaultLayerId
+            previousDefaultLayerId: currentDefaultLayerId
         });
 
         this.stopBatch(batchName, options);

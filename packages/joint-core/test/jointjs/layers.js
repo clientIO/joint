@@ -249,7 +249,7 @@ QUnit.module('Layers', function(hooks) {
         this.graph.setDefaultLayer('newLayer');
         assert.deepEqual(eventSpy.args.map(arg => arg[0]), [
             'batch:start',
-            'default-layer-change',
+            'layer:default',
             'batch:stop'
         ]);
 
@@ -265,7 +265,7 @@ QUnit.module('Layers', function(hooks) {
             'move',
             'move',
             'sort',
-            'default-layer-change',
+            'layer:default',
             'batch:stop'
         ]);
         assert.ok(eventSpy.calledWithExactly('move', r1, sinon.match({
@@ -278,8 +278,9 @@ QUnit.module('Layers', function(hooks) {
             toLayer: 'cells',
             testOption: true
         })));
-        assert.ok(eventSpy.calledWithExactly('default-layer-change', this.graph, sinon.match({
-            testOption: true
+        assert.ok(eventSpy.calledWithExactly('layer:default', this.graph.getLayer('cells'), sinon.match({
+            testOption: true,
+            previousDefaultLayerId: 'newLayer'
         })));
 
         eventSpy.resetHistory();
@@ -292,7 +293,7 @@ QUnit.module('Layers', function(hooks) {
             'batch:start',
             'move',
             'move',
-            'default-layer-change',
+            'layer:default',
             'batch:stop'
         ]);
     });
