@@ -473,6 +473,7 @@ QUnit.module('Layers', function(hooks) {
         assert.ok(beforePaperRefUnsetSpy.calledOnce, 'beforePaperReferenceUnset should be called once');
         assert.ok(beforePaperRefUnsetSpy.calledWithExactly(paper), 'beforePaperReferenceUnset should be called with paper reference');
         assert.equal(layerView.paper, null, 'layerView paper reference should be removed');
+        assert.ok(afterPaperRefSetSpy.calledOnce, 'afterPaperReferenceSet should still be called only once');
     });
 
     QUnit.test('removing layer with cells', (assert) => {
