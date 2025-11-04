@@ -353,7 +353,7 @@ export namespace dia {
 
         getCellLayerId(cell: Graph.CellRef): GraphLayer.ID;
 
-        getCell(id: Graph.CellRef): Cell;
+        getCell(id: Graph.CellRef): Cell | undefined;
 
         getElements(): Element[];
 
@@ -657,7 +657,7 @@ export namespace dia {
 
         addTo(graph: Graph, opt?: Graph.Options): this;
 
-        findView(paper: Paper): CellView;
+        findView(paper: Paper): CellView | undefined;
 
         isLink(): this is Link;
 
@@ -1825,6 +1825,7 @@ export namespace dia {
             'link:snap:disconnect': (linkView: dia.LinkView, evt: dia.Event, prevCellView: dia.CellView, prevCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
             // render
             'render:done': (stats: UpdateStats, opt: any) => void;
+            'render:idle': (opt?: Paper.UpdateViewsAsyncOptions) => void;
             // transformations
             'translate': (tx: number, ty: number, data: unknown) => void;
             'scale': (sx: number, sy: number, data: unknown) => void;
@@ -1956,9 +1957,9 @@ export namespace dia {
 
         getContentBBox(opt?: { useModelGeometry: boolean }): g.Rect;
 
-        findView<T extends ElementView | LinkView>(element: mvc.$SVGElement): T;
+        findView<T extends ElementView | LinkView>(element: mvc.$SVGElement): T | undefined;
 
-        findViewByModel<T extends ElementView | LinkView>(model: Graph.CellRef): T;
+        findViewByModel<T extends ElementView | LinkView>(model: Graph.CellRef): T | undefined;
 
         /**
          * Finds all the element views at the specified point
@@ -2020,7 +2021,7 @@ export namespace dia {
 
         getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
 
-        getModelById(id: Graph.CellRef): Cell;
+        getModelById(id: Graph.CellRef): Cell | undefined;
 
         setDimensions(width: Paper.Dimension, height: Paper.Dimension, data?: any): void;
 
@@ -2103,7 +2104,7 @@ export namespace dia {
 
         requestCellViewInsertion(cell: Graph.CellRef, opt?: { [key: string]: any }): void;
 
-        requireView<T extends ElementView | LinkView>(cellOrId: Graph.CellRef, opt?: Paper.UpdateViewOptions & Paper.RenderCallbackOptions): T;
+        requireView<T extends ElementView | LinkView>(cellOrId: Graph.CellRef, opt?: Paper.UpdateViewOptions & Paper.RenderCallbackOptions): T | null;
 
         updateViews(opt?: Paper.UpdateViewsOptions): Paper.RenderStats & { batches: number };
 
@@ -2165,7 +2166,7 @@ export namespace dia {
         protected checkMountedViews(viewport: Paper.ViewportCallback, opt?: Paper.UnmountOptions): number;
 
         protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: Paper.MountOptions): number;
-
+        
         protected prioritizeCellViewMount(cellOrId: Graph.CellRef): boolean;
 
         protected prioritizeCellViewUnmount(cellOrId: Graph.CellRef): boolean;
@@ -2173,7 +2174,7 @@ export namespace dia {
         protected isViewMounted(viewOrCid: dia.CellView | string): boolean;
 
         protected isAsync(): boolean;
-
+        
         protected isIdle(): boolean;
 
         protected isExactSorting(): boolean;
