@@ -2333,7 +2333,7 @@ export namespace dia {
 
         protected afterPaperReferenceSet(paper: Paper): void;
 
-        protected beforePaperReferenceUnset(paper: Paper): void;
+        protected beforePaperReferenceUnset(): void;
 
         protected assertPaperReferenceSet(): void;
     }
