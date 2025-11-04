@@ -24,7 +24,7 @@
     "lint": "yarn workspaces foreach --all -tvv run lint",
     "lint-fix": "yarn workspaces foreach --all -tvv run lint-fix",
     "dist": "yarn workspaces foreach --all -tvv run dist",
-    "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/layout-directed-graph\" --include \"@joint/core\" pack --out %s-%v.tgz"
+    "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/layout-msagl\" --include \"@joint/layout-directed-graph\" --include \"@joint/core\" pack --out %s-%v.tgz"
   },
   "workspaces": [
     "./packages/*",
