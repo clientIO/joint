@@ -1825,6 +1825,7 @@ export namespace dia {
             'link:snap:disconnect': (linkView: dia.LinkView, evt: dia.Event, prevCellView: dia.CellView, prevCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
             // render
             'render:done': (stats: UpdateStats, opt: any) => void;
+            'render:idle': (opt: Paper.UpdateViewsAsyncOptions) => void;
             // transformations
             'translate': (tx: number, ty: number, data: unknown) => void;
             'scale': (sx: number, sy: number, data: unknown) => void;
