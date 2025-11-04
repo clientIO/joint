@@ -34,7 +34,8 @@
     "hoistingLimits": "workspaces"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "module": "./dist/joint.js"
   },
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
