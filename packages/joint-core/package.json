@@ -5,7 +5,7 @@
   "description": "JavaScript diagramming library",
   "sideEffects": false,
   "main": "./dist/joint.min.js",
-  "module": "joint.mjs",
+  "module": "./dist/joint.js",
   "types": "./types/index.d.ts",
   "homepage": "https://jointjs.com",
   "author": {
