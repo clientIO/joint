@@ -454,6 +454,27 @@ QUnit.module('Layers', function(hooks) {
         assert.equal(this.paper.el.querySelectorAll('.joint-cells .joint-cell').length, 1, 'There is 1 cell view in the layer view');
     });
 
+    QUnit.test('adding/removing layerView should run correct lifecycle methods', (assert) => {
+        const { paper } = this;
+
+        const layerView = new joint.dia.LayerView();
+        const afterPaperRefSetSpy = sinon.spy(layerView, 'afterPaperReferenceSet');
+        const beforePaperRefUnsetSpy = sinon.spy(layerView, 'beforePaperReferenceUnset');
+
+        paper.addLayerView(layerView);
+
+        assert.ok(afterPaperRefSetSpy.calledOnce, 'afterPaperReferenceSet should be called once');
+        assert.ok(afterPaperRefSetSpy.calledWithExactly(paper), 'afterPaperReferenceSet should be called with paper reference');
+        assert.equal(layerView.paper, paper, 'layerView paper reference should be set');
+        assert.notOk(beforePaperRefUnsetSpy.called, 'beforePaperReferenceUnset should not be called yet');
+
+        paper.removeLayerView(layerView);
+
+        assert.ok(beforePaperRefUnsetSpy.calledOnce, 'beforePaperReferenceUnset should be called once');
+        assert.ok(beforePaperRefUnsetSpy.calledWithExactly(paper), 'beforePaperReferenceUnset should be called with paper reference');
+        assert.equal(layerView.paper, null, 'layerView paper reference should be removed');
+        assert.ok(afterPaperRefSetSpy.calledOnce, 'afterPaperReferenceSet should still be called only once');
+    });
 
     QUnit.test('removing layer with cells', (assert) => {
         const layer1 = new joint.dia.GraphLayer({ id: 'layer1' });

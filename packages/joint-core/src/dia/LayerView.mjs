@@ -28,7 +28,8 @@ export const LayerView = View.extend({
     },
 
     unsetPaperReference: function() {
-        this.beforePaperReferenceUnset();
+        if (!this.paper) return;
+        this.beforePaperReferenceUnset(this.paper);
         this.paper = null;
     },
 
