@@ -20,6 +20,26 @@ QUnit.module('Layers', function(hooks) {
         this.paper = null;
     });
 
+    /**
+     * @todo remove the legacy mode tests in v5.0
+     */
+    QUnit.module('legacyMode', (assert) => {
+
+        QUnit.test('should enter legacy mode by default', (assert) => {
+            assert.ok(this.graph.legacyMode, 'Graph is in legacy mode');
+            this.graph.addLayer({ id: 'layer1' });
+            assert.notOk(this.graph.legacyMode, 'Graph exited legacy mode after adding a layer');
+        });
+
+        QUnit.test('should render legacy view in legacy mode', (assert) => {
+            const layerView = this.paper.getLayerView('cells');
+            assert.ok(layerView.el.classList.contains('joint-viewport'));
+            this.graph.addLayer({ id: 'layer1' });
+            const layerView2 = this.paper.getLayerView('layer1');
+            assert.notOk(layerView2.el.classList.contains('joint-viewport'));
+        });
+    });
+
     QUnit.test('Default layers setup', (assert) => {
         assert.ok(this.graph.layersController, 'Layers controller is created');
 
