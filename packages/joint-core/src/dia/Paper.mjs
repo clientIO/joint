@@ -1484,17 +1484,21 @@ export const Paper = View.extend({
 
     requestConnectedLinksUpdate: function(view, priority, opt) {
         if (!view || !view[CELL_VIEW_MARKER]) return;
-        var model = view.model;
-        var links = this.model.getConnectedLinks(model);
-        for (var j = 0, n = links.length; j < n; j++) {
-            var link = links[j];
-            var linkView = this._getCellViewLike(link);
+        const model = view.model;
+        const links = this.model.getConnectedLinks(model);
+        for (let j = 0, n = links.length; j < n; j++) {
+            const link = links[j];
+            const linkView = this._getCellViewLike(link);
             if (!linkView) continue;
             // We do not have to update placeholder views.
             // They will be updated on initial render.
             if (linkView[CELL_VIEW_PLACEHOLDER_MARKER]) continue;
-            var nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
-            this.scheduleViewUpdate(linkView, linkView.getFlag(LinkView.Flags.UPDATE), nextPriority, opt);
+            const flagLabels = [LinkView.Flags.UPDATE];
+            // We need to tell the link view which end requested this update.
+            if (link.getTargetCell() === model) flagLabels.push(LinkView.Flags.TARGET);
+            if (link.getSourceCell() === model) flagLabels.push(LinkView.Flags.SOURCE);
+            const nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
+            this.scheduleViewUpdate(linkView, linkView.getFlag(flagLabels), nextPriority, opt);
         }
     },
 
