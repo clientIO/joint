@@ -1299,7 +1299,7 @@ export const Paper = View.extend({
             const type = modelType + 'View';
 
             // For backward compatibility we use the LegacyGraphLayerView for the default `cells` layer.
-            if (this.model.layersController.legacyMode) {
+            if (this.model.legacyMode) {
                 viewConstructor = LegacyGraphLayerView;
             } else {
                 viewConstructor = this.layerViewNamespace[type] || LayerView;
