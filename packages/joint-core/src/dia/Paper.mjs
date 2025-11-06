@@ -731,6 +731,9 @@ export const Paper = View.extend({
         const viewLike = this._getCellViewLike(cell);
         if (!viewLike) return;
         if (viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) {
+            // It's a cell placeholder, it must be in the unmounted list.
+            // Remove it from there and unregister.
+            this._updates.unmountedList.delete(viewLike.cid);
             this._unregisterCellViewPlaceholder(viewLike);
         } else {
             this.requestViewUpdate(viewLike, this.FLAG_REMOVE, viewLike.UPDATE_PRIORITY, opt);
@@ -2031,6 +2034,8 @@ export const Paper = View.extend({
             let view = viewsRegistry[cid] || this._viewPlaceholders[cid];
             if (!view) {
                 // This should not occur
+                // Prevent looping over this invalid cid
+                unmountedList.popHead();
                 continue;
             }
             if (!this._evalCellVisibility(view, false, visibilityCb)) {
