@@ -5,6 +5,7 @@
   * dia.Paper - introduce layers API
   * dia.Paper - rework `autoFreeze` option
   * dia.Paper - add `measureNode()` callback option
+  * dia.Paper - add `findClosestMagnetToPoint()` method
   * dia.Paper - add `viewManagement` option for advanced view lifecycle management
   * dia.Paper - add `cellVisibility()` callback option
   * dia.Paper - add `disposeHiddenCellViews()` method
@@ -38,6 +39,7 @@
   * dia.Cell - fix to always create deep copy of arrays in constructor
   * dia.attributes - add `useNoBreakSpace` which reinstates `V.sanitizeText()` functionality
   * dia.attributes - fix `textWrap` attribute when Paper is not in render tree
+  * dia.HighlighterView - `z` option now supports highlighter positioning within SVG
   * dia.HighlighterView - add static `has()` method to check if CellView has a highlighter attached
   * dia.HighlighterView - fix to prevent highlighting nodes outside cell view
   * dia.HighlighterView - fix to prevent removing not-yet-mounted HighlighterViews on unmount
