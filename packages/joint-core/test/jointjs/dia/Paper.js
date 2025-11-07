@@ -1807,6 +1807,44 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
     });
 
+
+    QUnit.test('removing a cell placeholder should remove it from unmounted queue', function(assert) {
+
+        const rect1 = new joint.shapes.standard.Rectangle();
+        const rect2 = new joint.shapes.standard.Rectangle();
+        const link1 = new joint.shapes.standard.Link();
+        link1.target(rect1);
+
+        const testPaper = new Paper({
+            el: paperEl,
+            model: graph,
+            async: false,
+            viewManagement: true,
+            cellVisibility: (cell) => cell === rect1,
+        });
+
+        testPaper.freeze();
+
+        rect1.addTo(graph); // add to mounted queue
+        link1.addTo(graph); // add to unmounted queue
+
+        assert.notOk(testPaper.isCellVisible(rect1));
+
+        link1.remove(); // and remove the link1 placeholder
+        rect2.addTo(graph); // add to unmounted queue
+
+        testPaper.unfreeze();
+
+        assert.ok(testPaper.isCellVisible(rect1));
+        assert.notOk(testPaper.isCellVisible(rect2));
+
+        // Try to make both rect1 and rect2 visible
+        testPaper.updateCellsVisibility({ cellVisibility: (cell) => cell === rect2 || cell === rect1 });
+
+        assert.ok(testPaper.isCellVisible(rect1));
+        assert.ok(testPaper.isCellVisible(rect2));
+    });
+
     QUnit.module('async = TRUE, autoFreeze = TRUE', function(hooks) {
 
         const onRenderDone = (paper) => new Promise(resolve => paper.once('render:done', (opt) => resolve(opt)));
