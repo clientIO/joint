@@ -50,7 +50,7 @@ const init = () => {
         updateGraph(elkGraph as ElkGraph, graph);
         paper.unfreeze();
         zoom(paper, 1);
-        window.scroll(670, 560);
+        window.scroll(640, 560);
     }).catch((error) => {
         console.error('ELK layout error:', error.message);
     });
