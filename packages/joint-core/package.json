@@ -1,7 +1,7 @@
 {
   "name": "@joint/core",
   "title": "JointJS",
-  "version": "4.1.3",
+  "version": "4.2.0",
   "description": "JavaScript diagramming library",
   "sideEffects": false,
   "main": "./dist/joint.min.js",
@@ -34,7 +34,8 @@
     "hoistingLimits": "workspaces"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "module": "./dist/joint.js"
   },
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
