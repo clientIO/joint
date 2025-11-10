@@ -758,6 +758,19 @@ export const ElementView = CellView.extend({
             pointerOffset: position.difference(x, y),
             restrictedArea: this.paper.getRestrictedArea(view, x, y)
         });
+
+        const { paper } = this;
+
+        const data = this.eventData(evt);
+
+        // If `whenNotAllowed` is set, run embedding validation immediately on drag start.
+        // This ensures `validateUnembedding` is called even if no drag occurs (click without
+        // movement), which enforces validation on single-click interactions.
+        if (paper.options.embeddingMode && data.whenNotAllowed) {
+            this.prepareEmbedding(data);
+            this.processEmbedding(data, evt, x, y);
+            this.eventData(evt, { embedding: true });
+        }
     },
 
     dragMagnetStart: function(evt, x, y) {

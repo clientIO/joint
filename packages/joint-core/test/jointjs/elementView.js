@@ -362,4 +362,35 @@ QUnit.module('elementView', function(hooks) {
         });
 
     });
+
+    QUnit.module('dragStart', function() {
+
+        QUnit.test('Run unembedding validation on pointerdown when whenNotAllowed is set', function(assert) {
+            const validateUnembeddingSpy = sinon.spy(() => false);
+
+            paper.options.validateUnembedding = validateUnembeddingSpy;
+            paper.options.embeddingMode = true;
+
+            const element = new joint.shapes.standard.Rectangle();
+            paper.model.resetCells([element]);
+            const elementView = element.findView(paper);
+
+            const event = {
+                target: elementView.el
+            };
+
+            // Set the event data to enable embedding validation.
+            // `whenNotAllowed` is set so the embedding validation should be called on pointerdown.
+            elementView.eventData(event, {
+                initialParentId: 'initial-parent-id',
+                whenNotAllowed: 'remove'
+            });
+
+            elementView.pointerdown(event, 0, 0);
+            elementView.pointerup(event, 0, 0);
+
+            assert.ok(validateUnembeddingSpy.calledOnce);
+            assert.equal(element.graph, undefined);
+        });
+    });
 });
