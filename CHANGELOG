@@ -1,7 +1,8 @@
 10-11-2025 (v4.2.0)
 
-  @joint/core
   * add new ELK layout example
+
+  @joint/core
   * dia.Paper - introduce layers API
   * dia.Paper - rework `autoFreeze` option
   * dia.Paper - add `measureNode()` callback option
