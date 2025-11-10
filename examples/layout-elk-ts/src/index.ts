@@ -46,10 +46,12 @@ const init = () => {
     const elk = new ELK({
         workerUrl: '../node_modules/elkjs/lib/elk-worker.js',
     });
-    elk.layout(getElkGraph(graph)).then((elkGraph) => {
-        updateGraph(elkGraph as ElkGraph, graph);
+    elk.layout(getElkGraph(graph)).then((elkGraph: ElkGraph) => {
+        updateGraph(elkGraph, graph);
         paper.unfreeze();
         zoom(paper, 1);
+        // Scroll into a busy area of the example
+        window.scroll(650, 560);
     }).catch((error) => {
         console.error('ELK layout error:', error.message);
     });
