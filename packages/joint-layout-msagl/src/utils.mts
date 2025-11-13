@@ -16,9 +16,9 @@ import {
     BezierSeg,
     LineSegment
 } from '@msagl/core';
-import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
+import { IdentifiableGeomEdge } from './IdentifiableGeomEdge.mjs';
 import type { Options } from './types.mjs';
-import { EdgeRoutingMode } from "./enums.mjs";
+import { EdgeRoutingMode } from './enums.mjs';
 import { sampleBezierSeg, sampleEllipse } from './sampling.mjs';
 import { setVertices, setLabels, setAnchor } from './defaults.mjs';
 
@@ -134,7 +134,7 @@ function applyLinkLayout(
                 y: leftBottom.y,
                 width: label.boundingBox.width,
                 height: label.boundingBox.height
-            }
+            };
 
             if (util.isFunction(options.setLabels)) {
                 (options.setLabels as unknown as typeof setLabels)(link, labelBBox, points);

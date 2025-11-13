@@ -364,7 +364,7 @@ QUnit.module('joint.mvc.ViewBase', function(hooks) {
         $el.trigger('click');
         assert.equal(1, count);
 
-        var view2 = new View;
+        new View;
         $el.trigger('click');
         assert.equal(3, count);
 
@@ -382,7 +382,7 @@ QUnit.module('joint.mvc.ViewBase', function(hooks) {
             }
         });
 
-        var myView = new View;
+        new View;
         $('body').trigger('fake$event').trigger('fake$event');
 
         $('body').off('fake$event');

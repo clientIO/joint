@@ -1,5 +1,6 @@
-import { View } from '../../mvc/index.mjs';
-import { addClassNamePrefix, clone } from '../../util/util.mjs';
+import { View } from '../mvc/index.mjs';
+import { addClassNamePrefix, clone } from '../util/util.mjs';
+import { LAYER_VIEW_MARKER } from './symbols.mjs';
 
 export const LayerView = View.extend({
 
@@ -14,9 +15,36 @@ export const LayerView = View.extend({
         id: ''
     },
 
+    paper: null,
+
     init: function() {
         this.pivotNodes = {};
         this.id = this.options.id || this.cid;
+    },
+
+    setPaperReference: function(paper) {
+        this.paper = paper;
+        this.afterPaperReferenceSet(paper);
+    },
+
+    unsetPaperReference: function() {
+        if (!this.paper) return;
+        this.beforePaperReferenceUnset(this.paper);
+        this.paper = null;
+    },
+
+    assertPaperReference() {
+        if (!this.paper) {
+            throw new Error('LayerView: paper reference is not set.');
+        }
+    },
+
+    afterPaperReferenceSet: function() {
+        // Can be overridden in subclasses.
+    },
+
+    beforePaperReferenceUnset: function() {
+        // Can be overridden in subclasses.
     },
 
     // prevents id to be set on the DOM element
@@ -83,4 +111,8 @@ export const LayerView = View.extend({
     reset: function() {
         this.removePivots();
     }
+});
+
+Object.defineProperty(LayerView.prototype, LAYER_VIEW_MARKER, {
+    value: true,
 });

@@ -7,9 +7,15 @@
         constructor.prototype.children == null) {
             Object.defineProperty(constructor.prototype, 'children', {
                 get: function() {
-                    var i = 0, node, nodes = this.childNodes, children = [];
                     // Iterate all childNodes
-                    while (node = nodes[i++]) {
+                    const nodes = this.childNodes || [];
+                    const nodesLength = nodes.length;
+                    let i = 0;
+                    let node;
+                    const children = [];
+                    while (i < nodesLength) {
+                        node = nodes[i];
+                        i += 1;
                         // Remember those, that are Node.ELEMENT_NODE (1)
                         if (node.nodeType === 1) { children.push(node); }
                     }
@@ -339,4 +345,3 @@ window.fixtures = {
         fixtureEl.style.left = '';
     }
 };
-

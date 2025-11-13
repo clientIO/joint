@@ -1,5 +1,4 @@
 import {
-    uniqueId,
     union,
     result,
     merge,
@@ -33,6 +32,7 @@ import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';
 import { config } from '../config/index.mjs';
+import { CELL_MARKER } from './symbols.mjs';
 
 // Cell base model.
 // --------------------------
@@ -61,39 +61,21 @@ function removeEmptyAttributes(obj) {
 
 export const Cell = Model.extend({
 
-    // This is the same as mvc.Model with the only difference that is uses util.merge
-    // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
-    constructor: function(attributes, options) {
+    cidPrefix: 'c',
 
-        var defaults;
-        var attrs = attributes || {};
-        if (typeof this.preinitialize === 'function') {
-            // Check to support an older version
-            this.preinitialize.apply(this, arguments);
-        }
-        this.cid = uniqueId('c');
-        this.eventPrefix = '';
-        this.attributes = {};
-        if (options && options.collection) this.collection = options.collection;
-        if (options && options.parse) attrs = this.parse(attrs, options) || {};
-        if ((defaults = result(this, 'defaults'))) {
-            //<custom code>
-            // Replaced the call to _.defaults with util.merge.
+    // Default attributes are merged deeply instead of shallowly.
+    _setDefaults: function(ctorAttributes, options) {
+        let attributes;
+        const attributeDefaults = result(this, 'defaults');
+        if (attributeDefaults) {
             const customizer = (options && options.mergeArrays === true)
                 ? false
                 : config.cellDefaultsMergeStrategy || attributesMerger;
-            attrs = merge({}, defaults, attrs, customizer);
-            //</custom code>
+            attributes = merge({}, attributeDefaults, ctorAttributes, customizer);
+        } else {
+            attributes = ctorAttributes;
         }
-        this.set(attrs, options);
-        this.changed = {};
-        if (options && options.portLayoutNamespace) {
-            this.portLayoutNamespace = options.portLayoutNamespace;
-        }
-        if (options && options.portLabelLayoutNamespace) {
-            this.portLabelLayoutNamespace = options.portLabelLayoutNamespace;
-        }
-        this.initialize.apply(this, arguments);
+        this.set(attributes, options);
     },
 
     translate: function(dx, dy, opt) {
@@ -142,10 +124,10 @@ export const Cell = Model.extend({
         return finalAttributes;
     },
 
-    initialize: function(options) {
+    initialize: function(attributes) {
 
         const idAttribute = this.getIdAttribute();
-        if (!options || options[idAttribute] === undefined) {
+        if (!attributes || attributes[idAttribute] === undefined) {
             this.set(idAttribute, this.generateId(), { silent: true });
         }
 
@@ -221,37 +203,15 @@ export const Cell = Model.extend({
     },
 
     remove: function(opt = {}) {
-
-        // Store the graph in a variable because `this.graph` won't be accessible
-        // after `this.trigger('remove', ...)` down below.
         const { graph, collection } = this;
-        if (!graph) {
+        // If the cell is part of a graph, remove it using the graph API.
+        // To make sure the cell is removed in a batch operation.
+        if (graph) {
+            graph.removeCell(this, opt);
+        } else {
             // The collection is a common mvc collection (not the graph collection).
             if (collection) collection.remove(this, opt);
-            return this;
         }
-
-        graph.startBatch('remove');
-
-        // First, unembed this cell from its parent cell if there is one.
-        const parentCell = this.getParentCell();
-        if (parentCell) {
-            parentCell.unembed(this, opt);
-        }
-
-        // Remove also all the cells, which were embedded into this cell
-        const embeddedCells = this.getEmbeddedCells();
-        for (let i = 0, n = embeddedCells.length; i < n; i++) {
-            const embed = embeddedCells[i];
-            if (embed) {
-                embed.remove(opt);
-            }
-        }
-
-        this.trigger('remove', this, graph.cellCollection, opt);
-
-        graph.stopBatch('remove');
-
         return this;
     },
 
@@ -270,12 +230,12 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const layerId = this.layer();
+            const layerId = graph.getCellLayerId(this);
 
             const maxZ = graph.maxZIndex(layerId);
             let z = maxZ - cells.length + 1;
 
-            const layerCells = graph.getCellLayer(layerId).cells.toArray();
+            const layerCells = graph.getLayer(layerId).cellCollection.toArray();
 
             let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== (layerCells.length - cells.length));
             if (!shouldUpdate) {
@@ -315,11 +275,11 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const layerId = this.layer();
+            const layerId = graph.getCellLayerId(this);
 
             let z = graph.minZIndex(layerId);
 
-            const layerCells = graph.getCellLayer(layerId).cells.toArray();
+            const layerCells = graph.getLayer(layerId).cellCollection.toArray();
 
             let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {
@@ -868,7 +828,7 @@ export const Cell = Model.extend({
         return this;
     },
 
-    // A shorcut making it easy to create constructs like the following:
+    // A shortcut making it easy to create constructs like the following:
     // `var el = (new joint.shapes.standard.Rectangle()).addTo(graph)`.
     addTo: function(graph, opt) {
 
@@ -975,23 +935,21 @@ export const Cell = Model.extend({
     layer: function(layerId, opt) {
         const layerAttribute = config.layerAttribute;
 
-        // if strictly null unset the layer
+        // Getter:
+
+        // If `undefined` return the current layer ID
+        if (layerId === undefined) {
+            return this.get(layerAttribute) || null;
+        }
+
+        // Setter:
+
+        // If strictly `null` unset the layer
         if (layerId === null) {
             return this.unset(layerAttribute, opt);
         }
 
-        // if undefined return the current layer id
-        if (layerId === undefined) {
-            layerId = this.get(layerAttribute) || null;
-            // If the cell is part of a graph, use the graph's default cell layer.
-            if (layerId == null && this.graph) {
-                layerId = this.graph.getDefaultCellLayer().id;
-            }
-
-            return layerId;
-        }
-
-        // otherwise set the layer id
+        // Otherwise set the layer ID
         if (!isString(layerId)) {
             throw new Error('dia.Cell: Layer id must be a string.');
         }
@@ -1024,4 +982,8 @@ export const Cell = Model.extend({
         /* eslint-enable no-undef */
         return Cell;
     }
+});
+
+Object.defineProperty(Cell.prototype, CELL_MARKER, {
+    value: true,
 });

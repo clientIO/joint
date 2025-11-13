@@ -1,4 +1,4 @@
-QUnit.module('CellLayerView', function(hooks) {
+QUnit.module('GraphLayerView', function(hooks) {
 
     hooks.beforeEach(() => {
         const fixtureEl = fixtures.getElement();
@@ -20,11 +20,11 @@ QUnit.module('CellLayerView', function(hooks) {
     });
 
     QUnit.test('default setup', (assert) => {
-        const layer = new joint.dia.CellLayer();
-        const layerView = new joint.dia.CellLayerView({ id: 'test', model: layer, paper: this.paper });
+        const layer = new joint.dia.GraphLayer();
+        const layerView = new joint.dia.GraphLayerView({ id: 'test', model: layer, paper: this.paper });
 
         assert.ok(layerView.el.classList.contains('joint-test-layer'));
-        assert.ok(layerView.el.classList.contains('joint-cell-layer'));
+        assert.ok(layerView.el.classList.contains('joint-cells'));
 
         assert.ok(layerView.el.style.webkitUserSelect === 'none');
         assert.ok(layerView.el.style.userSelect === 'none');

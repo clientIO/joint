@@ -1047,7 +1047,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         });
 
                         QUnit.test('with a generic mvc.View', function(assert) {
-                            const confirmUpdateSpy = sinon.spy(function() { return 0x0; })
+                            const confirmUpdateSpy = sinon.spy(function() { return 0x0; });
                             const CustomView = joint.mvc.View.extend({ confirmUpdate: confirmUpdateSpy });
                             const view = new CustomView;
                             paper.el.appendChild(view.el);
@@ -1060,7 +1060,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.ok(confirmUpdateSpy.calledOnce, 'confirmUpdate should be called again');
                             paper.dumpViews({ viewport: () => true });
                             assert.ok(confirmUpdateSpy.calledTwice, 'confirmUpdate should be called again');
-                            assert.ok(confirmUpdateSpy.lastCall.calledWithExactly(paper.FLAG_INSERT, sinon.match.object))
+                            assert.ok(confirmUpdateSpy.lastCall.calledWithExactly(paper.FLAG_INSERT, sinon.match.object));
                         });
                     });
 
@@ -1112,11 +1112,12 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             paper.unfreeze();
                             var onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
                             var confirmUpdateSpy = sinon.spy(joint.dia.LinkView.prototype, 'confirmUpdate');
-                            // This will trigger onViewUpdate twice (link1 attrs, link2 source/target)
+                            // This will trigger onViewUpdate thrice (link1 attrs, link2 source/target, link1 source/target)
                             link1.attr('line/stroke', 'red', { test: true });
-                            assert.ok(onViewUpdateSpy.calledTwice);
-                            assert.ok(onViewUpdateSpy.calledWithExactly(link1.findView(paper), sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
-                            assert.ok(onViewUpdateSpy.calledWithExactly(link2.findView(paper), sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledThrice);
+                            assert.ok(onViewUpdateSpy.calledWithExactly(link1.findView(paper), sinon.match.number, 1, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(link2.findView(paper), sinon.match.number, 2, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(link1.findView(paper), sinon.match.number, 3, sinon.match({ test: true }), paper));
                             assert.ok(confirmUpdateSpy.calledTwice);
                             onViewUpdateSpy.restore();
                             confirmUpdateSpy.restore();
@@ -1135,6 +1136,27 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.equal(onViewUpdateSpy.callCount, 2);
                             assert.ok(onViewUpdateSpy.calledWithExactly(linkView1, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
                             assert.ok(onViewUpdateSpy.calledWithExactly(linkView2, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            onViewUpdateSpy.restore();
+                        });
+
+                        QUnit.test('replace cell', function(assert) {
+                            const rect1 = new joint.shapes.standard.Rectangle();
+                            const rect2 = new joint.shapes.standard.Rectangle();
+                            const link = new joint.shapes.standard.Link();
+                            link.source(rect1);
+                            link.target(rect2);
+                            graph.addCells([rect1, rect2, link]);
+                            const rect1View = rect1.findView(paper);
+                            const linkView = link.findView(paper);
+                            const onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
+                            const rect1Replacement = new joint.shapes.standard.Circle({ id: rect1.id });
+                            graph.syncCells([rect1Replacement], { test: true });
+                            const rect1ReplacementView = rect1Replacement.findView(paper);
+                            assert.equal(onViewUpdateSpy.callCount, 3);
+                            assert.ok(onViewUpdateSpy.calledWithExactly(rect1View, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(rect1ReplacementView, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            // The link view should be updated because one of its endpoints changed.
+                            assert.ok(onViewUpdateSpy.calledWithExactly(linkView, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
                             onViewUpdateSpy.restore();
                         });
                     });
@@ -1613,8 +1635,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             hooks.beforeEach(function() {
                 paper.options.labelsLayer = true;
                 paper.options.sorting = joint.dia.Paper.sorting.APPROX;
-                labelsLayer = paper.getLayerViewNode(joint.dia.Paper.Layers.LABELS);
-                cellsLayer = paper.getLayerViewNode(paper.model.getDefaultCellLayer().id);
+                labelsLayer = paper.getLayerView(joint.dia.Paper.Layers.LABELS).el;
+                cellsLayer = paper.getLayerView(paper.model.getDefaultLayer().id).el;
             });
 
             QUnit.test('sanity', function(assert) {
@@ -1783,6 +1805,44 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
         });
+    });
+
+
+    QUnit.test('removing a cell placeholder should remove it from unmounted queue', function(assert) {
+
+        const rect1 = new joint.shapes.standard.Rectangle();
+        const rect2 = new joint.shapes.standard.Rectangle();
+        const link1 = new joint.shapes.standard.Link();
+        link1.target(rect1);
+
+        const testPaper = new Paper({
+            el: paperEl,
+            model: graph,
+            async: false,
+            viewManagement: true,
+            cellVisibility: (cell) => cell === rect1,
+        });
+
+        testPaper.freeze();
+
+        rect1.addTo(graph); // add to mounted queue
+        link1.addTo(graph); // add to unmounted queue
+
+        assert.notOk(testPaper.isCellVisible(rect1));
+
+        link1.remove(); // and remove the link1 placeholder
+        rect2.addTo(graph); // add to unmounted queue
+
+        testPaper.unfreeze();
+
+        assert.ok(testPaper.isCellVisible(rect1));
+        assert.notOk(testPaper.isCellVisible(rect2));
+
+        // Try to make both rect1 and rect2 visible
+        testPaper.updateCellsVisibility({ cellVisibility: (cell) => cell === rect2 || cell === rect1 });
+
+        assert.ok(testPaper.isCellVisible(rect1));
+        assert.ok(testPaper.isCellVisible(rect2));
     });
 
     QUnit.module('async = TRUE, autoFreeze = TRUE', function(hooks) {
@@ -2488,12 +2548,12 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
 
         QUnit.test('sanity', function(assert) {
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.BACK));
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.GRID));
-            assert.ok(paper.getLayerViewNode(paper.model.getDefaultCellLayer().id));
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.FRONT));
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.TOOLS));
-            assert.ok(paper.getLayerViewNode(joint.dia.Paper.Layers.LABELS));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.BACK));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.GRID));
+            assert.ok(paper.getLayerView(paper.model.getDefaultLayer().id));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.FRONT));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.TOOLS));
+            assert.ok(paper.getLayerView(joint.dia.Paper.Layers.LABELS));
         });
 
         QUnit.module('hasLayer()', function(assert) {
@@ -2501,7 +2561,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('returns true when layer exists', function(assert) {
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.BACK));
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.GRID));
-                assert.ok(paper.hasLayerView(paper.model.getDefaultCellLayer().id));
+                assert.ok(paper.hasLayerView(paper.model.getDefaultLayer().id));
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.FRONT));
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.TOOLS));
                 assert.ok(paper.hasLayerView(joint.dia.Paper.Layers.LABELS));
@@ -2546,7 +2606,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     function() {
                         paper.removeLayerView();
                     },
-                    /dia.Paper: The layer view must be provided./,
+                    /dia.Paper: No layer provided./,
                     'Layer view must be provided.'
                 );
             });
@@ -2572,7 +2632,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 graph.addCells([new joint.shapes.standard.Rectangle()], { async: false });
                 assert.throws(
                     function() {
-                        paper.removeLayerView(graph.getDefaultCellLayer().id);
+                        paper.removeLayerView(graph.getDefaultLayer().id);
                     },
                     /dia.Paper: The layer view is not empty./,
                     'Layer "cells" cannot be removed because it contains views.'
@@ -2583,19 +2643,19 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 const testLayer = new joint.dia.LayerView({
                     id: 'test'
                 });
-                paper.insertLayerView(testLayer);
+                paper.addLayerView(testLayer);
                 assert.ok(paper.hasLayerView('test'));
                 paper.removeLayerView(testLayer);
                 assert.notOk(paper.hasLayerView('test'));
             });
         });
 
-        QUnit.module('insertLayerView()', function() {
+        QUnit.module('addLayerView() and moveLayerView()', function() {
 
             QUnit.test('throws error when invalid parameters are provided', function(assert) {
                 assert.throws(
                     function() {
-                        paper.insertLayerView();
+                        paper.addLayerView();
                     },
                     /dia.Paper: The layer view must be an instance of dia.LayerView./,
                     'Layer name must be provided.'
@@ -2604,40 +2664,40 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             QUnit.test('registers layer when layer does not exist', function(assert) {
                 assert.notOk(paper.hasLayerView('test'));
-                paper.insertLayerView(new joint.dia.LayerView({ id: 'test' }));
+                paper.addLayerView(new joint.dia.LayerView({ id: 'test' }));
                 assert.ok(paper.hasLayerView('test'));
             });
 
             QUnit.test('throws error when invalid position is provided', function(assert) {
                 assert.throws(
                     function() {
-                        paper.insertLayerView(paper.getLayerView(joint.dia.Paper.Layers.BACK), { insertBefore: 'test' });
+                        paper.moveLayerView(paper.getLayerView(joint.dia.Paper.Layers.BACK), { before: 'test' });
                     },
                     /dia.Paper: Unknown layer view "test"./,
                     'Invalid position "test".'
                 );
             });
 
-            QUnit.test('inserts a new layer at the end of the order', function(assert) {
+            QUnit.test('adds a new layer at the end of the order', function(assert) {
                 const testLayer = new joint.dia.LayerView({
                     id: 'test'
                 });
                 assert.equal(paper.getLayerViewOrder().indexOf('test'), -1);
                 assert.notOk(paper.hasLayerView('test'));
-                paper.insertLayerView(testLayer);
+                paper.addLayerView(testLayer);
                 assert.ok(paper.hasLayerView('test'));
                 const order = paper.getLayerViewOrder();
                 assert.equal(order.indexOf('test'), order.length - 1);
             });
 
 
-            QUnit.test('inserts a new layer before the specified layer', function(assert) {
+            QUnit.test('adds a new layer before the specified layer', function(assert) {
                 const testLayer = new joint.dia.LayerView({
                     id: 'test'
                 });
                 assert.equal(paper.getLayerViewOrder().indexOf('test'), -1);
                 assert.notOk(paper.hasLayerView('test'));
-                paper.insertLayerView(testLayer, { insertBefore: 'cells' });
+                paper.addLayerView(testLayer, { before: 'cells' });
                 assert.ok(paper.hasLayerView('test'));
                 const order = paper.getLayerViewOrder();
                 assert.equal(order.indexOf('test'), order.indexOf('cells') - 1);
@@ -2646,7 +2706,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('moves the specified layer to the specified position', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [firstLayer, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(secondLayer), { insertBefore: firstLayer });
+                paper.moveLayerView(paper.getLayerView(secondLayer), { before: firstLayer });
                 const [newFirstLayer, newSecondLayer] = paper.getLayerViewOrder();
                 assert.equal(newFirstLayer, secondLayer);
                 assert.equal(newSecondLayer, firstLayer);
@@ -2655,7 +2715,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('moves the specified layer to the end of the layers list', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [firstLayer, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(firstLayer));
+                paper.moveLayerView(paper.getLayerView(firstLayer));
                 const newLayerNames = paper.getLayerViewOrder();
                 assert.equal(newLayerNames.at(0), secondLayer);
                 assert.equal(newLayerNames.at(-1), firstLayer);
@@ -2664,7 +2724,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('it\'s possible to move the layer to the same position', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [firstLayer, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(firstLayer), { insertBefore: secondLayer });
+                paper.moveLayerView(paper.getLayerView(firstLayer), { before: secondLayer });
                 const newLayerNames = paper.getLayerViewOrder();
                 assert.equal(newLayerNames.at(0), firstLayer);
                 assert.equal(newLayerNames.at(1), secondLayer);
@@ -2673,54 +2733,74 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('it\'s ok to move layer before itself', function(assert) {
                 const order = paper.getLayerViewOrder();
                 const [, secondLayer] = order;
-                paper.insertLayerView(paper.getLayerView(secondLayer), { insertBefore: secondLayer });
+                paper.moveLayerView(paper.getLayerView(secondLayer), { before: secondLayer });
                 const newLayerNames = paper.getLayerViewOrder();
                 assert.equal(newLayerNames.at(1), secondLayer);
             });
 
+            QUnit.test('adds and moves layer at the index', function(assert){
+                const testLayer = new joint.dia.LayerView({
+                    id: 'test'
+                });
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), -1);
+                assert.notOk(paper.hasLayerView('test'));
+                paper.addLayerView(testLayer, { index: 0 });
+                assert.ok(paper.hasLayerView('test'));
+                const order = paper.getLayerViewOrder();
+                assert.equal(order.indexOf('test'), 0);
+
+                paper.moveLayerView(testLayer, { index: 2 });
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), 2, 'Layer "test" is at index 2');
+
+                paper.moveLayerView(testLayer, { index: -1 });
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), 0, 'Layer "test" is at index 0 when -1 is provided');
+
+                paper.moveLayerView(testLayer, { index: 100 });
+                assert.equal(paper.getLayerViewOrder().indexOf('test'), paper.getLayerViewOrder().length -1, 'Layer "test" is at the end when out of bounds index is provided');
+            });
         });
 
-        QUnit.module('cell layer attribute', function() {
+        QUnit.module('layer attribute', function() {
 
             QUnit.test('cell view is rendered in correct layer', function(assert) {
 
                 const r1 = new joint.shapes.standard.Rectangle();
                 graph.addCell(r1, { async: false });
-                assert.ok(paper.getLayerViewNode('cells').contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
+                assert.ok(paper.getLayerView('cells').el.contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
 
                 const r2 = new joint.shapes.standard.Rectangle({ layer: 'test' });
                 assert.throws(
                     () => {
                         graph.addCell(r2, { async: false });
                     },
-                    /dia.Graph: Cell layer with id 'test' does not exist./,
-                    'Cell layer "test" does not exist in Graph.'
+                    /dia.Graph: Layer "test" does not exist./,
+                    'Layer "test" does not exist in Graph.'
                 );
 
                 graph.removeCells([r2], { async: false });
 
-                const testLayer = new joint.dia.CellLayer({ id: 'test' });
-                graph.addCellLayer(testLayer);
+                const testLayer = new joint.dia.GraphLayer({ id: 'test' });
+                graph.addLayer(testLayer);
 
                 assert.ok(paper.hasLayerView('test'), 'Layer view "test" is created in Paper.');
 
                 graph.addCell(r2, { async: false });
-                assert.ok(paper.getLayerViewNode('test').contains(r2.findView(paper).el), 'cell view is added to the "test" layer');
+                assert.ok(paper.getLayerView('test').el.contains(r2.findView(paper).el), 'cell view is added to the "test" layer');
             });
 
             QUnit.test('cell view is moved to correct layer', function(assert) {
 
                 const r1 = new joint.shapes.standard.Rectangle();
                 graph.addCell(r1, { async: false });
-                assert.ok(paper.getLayerViewNode('cells').contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
+                assert.ok(paper.getLayerView('cells').el.contains(r1.findView(paper).el), 'cell view is in the "cells" layer');
 
-                const testLayer = new joint.dia.CellLayer({ id: 'test' });
-                graph.addCellLayer(testLayer);
+                const testLayer = new joint.dia.GraphLayer({ id: 'test' });
+                graph.addLayer(testLayer);
 
                 assert.ok(paper.hasLayerView('test'), 'Layer view "test" is created in Paper.');
 
                 r1.set('layer', 'test', { async: false });
-                assert.ok(paper.getLayerViewNode('test').contains(r1.findView(paper).el), 'cell view is moved to the "test" layer');
+                assert.ok(paper.getLayerView('test').el.contains(r1.findView(paper).el), 'cell view is moved to the "test" layer');
             });
         });
     });
@@ -3578,9 +3658,9 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 paper.remove();
             });
 
-            QUnit.module("findViewByModel()", function () {
+            QUnit.module('findViewByModel()', function() {
 
-                QUnit.test("it returns view instance after it was disposed", function (assert) {
+                QUnit.test('it returns view instance after it was disposed', function(assert) {
                     const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
                     paper = new Paper({
@@ -3620,7 +3700,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     paper.remove();
                 });
 
-                QUnit.test("after view was checked visible (but not yet rendered)", function (assert) {
+                QUnit.test('after view was checked visible (but not yet rendered)', function(assert) {
                     // This is an edge case
                     const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
@@ -3649,7 +3729,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     assert.ok(rv2 instanceof joint.dia.ElementView);
                     assert.ok(
                         rv2.el.childElementCount === 0,
-                        "The view is not yet rendered",
+                        'The view is not yet rendered',
                     );
 
                     // Now, the view is updated
@@ -3657,7 +3737,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const rv3 = rect.findView(paper);
                     assert.ok(
                         rv3.el.childElementCount > 0,
-                        "The view is rendered",
+                        'The view is rendered',
                     );
 
                     // View has been removed
@@ -3668,7 +3748,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     paper.remove();
                 });
 
-                QUnit.test("view is preserved through update cycle", function (assert) {
+                QUnit.test('view is preserved through update cycle', function(assert) {
                     // This test is to document the current behavior. It's not necessarily
                     // a must-be behavior. But it's important to know when it changes.
                     const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
@@ -3744,7 +3824,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             assert.ok(paper.isCellVisible(rect1));
             assert.ok(paper.isCellVisible(rect2));
 
-            paper.updateCellVisibility(rect1, { cellVisibility: () => false});
+            paper.updateCellVisibility(rect1, { cellVisibility: () => false });
             assert.notOk(paper.isCellVisible(rect1));
             assert.ok(paper.isCellVisible(rect2));
         });
@@ -3832,7 +3912,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             assert.ok(paper.isCellVisible(rect1));
             assert.ok(paper.isCellVisible(rect2));
 
-            paper.updateCellsVisibility({ cellVisibility: () => false});
+            paper.updateCellsVisibility({ cellVisibility: () => false });
             assert.notOk(paper.isCellVisible(rect1));
             assert.notOk(paper.isCellVisible(rect2));
         });

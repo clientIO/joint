@@ -69,15 +69,15 @@ QUnit.module('HighlighterView', function(hooks) {
     QUnit.module('static has()', function() {
 
         QUnit.test('has by id', function(assert) {
-            const h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1');
-            const h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2');
+            joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1');
+            joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2');
             assert.ok(joint.dia.HighlighterView.has(elementView, 'highlighter-id-1'));
             assert.ok(joint.dia.HighlighterView.has(elementView, 'highlighter-id-2'));
             assert.notOk(joint.dia.HighlighterView.has(elementView, 'highlighter-id-3'));
             // Extended Class
             const Child = joint.dia.HighlighterView.extend({});
             assert.notOk(Child.has(elementView, 'highlighter-id-1'));
-            const h3 = Child.add(elementView, 'body', 'highlighter-id-3');
+            Child.add(elementView, 'body', 'highlighter-id-3');
             assert.ok(Child.has(elementView, 'highlighter-id-3'));
             assert.ok(joint.dia.HighlighterView.has(elementView, 'highlighter-id-3'));
             // Remove highlighter and check again
@@ -90,13 +90,13 @@ QUnit.module('HighlighterView', function(hooks) {
 
         QUnit.test('has any', function(assert) {
             assert.notOk(joint.dia.HighlighterView.has(elementView));
-            const h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1');
-            const h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2');
+            joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1');
+            joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2');
             assert.ok(joint.dia.HighlighterView.has(elementView));
             // Extended Class
             const Child = joint.dia.HighlighterView.extend({});
             assert.notOk(Child.has(elementView));
-            const h3 = Child.add(elementView, 'body', 'highlighter-id-3');
+            Child.add(elementView, 'body', 'highlighter-id-3');
             assert.ok(Child.has(elementView));
             // Remove highlighter and check again
             joint.dia.HighlighterView.remove(elementView, 'highlighter-id-1');
@@ -297,7 +297,7 @@ QUnit.module('HighlighterView', function(hooks) {
 
                 // Layer = Back/Front
                 ['back', 'front'].forEach(function(layer) {
-                    var vLayer = V(paper.getLayerViewNode(layer));
+                    var vLayer = paper.getLayerView(layer).vel;
                     var layerChildrenCount = vLayer.children().length;
                     highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
                         layer: layer
@@ -341,7 +341,7 @@ QUnit.module('HighlighterView', function(hooks) {
                 var h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1', { layer: layer, z: 2 });
                 var h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2', { layer: layer, z: 3  });
                 var h3 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-3', { layer: layer, z: 1 });
-                var frontLayerNode = paper.getLayerViewNode(layer);
+                var frontLayerNode = paper.getLayerView(layer).el;
                 assert.equal(frontLayerNode.children.length, 3);
                 assert.equal(frontLayerNode.children[0], h3.el.parentNode);
                 assert.equal(frontLayerNode.children[1], h1.el.parentNode);

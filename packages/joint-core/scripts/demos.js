@@ -14,15 +14,15 @@ async function readFolder(location) {
             if (!file.ext && !exclude.includes(item)) {
 
                 let items1 = await readFolder(path.join(location, item));
-                res = res.concat(items1)
+                res = res.concat(items1);
             }
 
             if (file.ext === '.html') {
 
-                res.push(path.join(location, item))
+                res.push(path.join(location, item));
             }
         }
-        return res
+        return res;
     });
 }
 
@@ -35,6 +35,7 @@ const generateDemoLinks = async function() {
     const links = urls.map(item => {
         return `<a href="${item}">${item}</a><br/>`;
     });
+    // eslint-disable-next-line no-console
     console.log(links.join('\n'));
 };
 

@@ -1,7 +1,7 @@
 {
   "name": "@joint/layout-directed-graph",
   "title": "JointJS LayoutDirectedGraph",
-  "version": "4.1.4",
+  "version": "4.2.0",
   "description": "LayoutDirectedGraph module for JointJS",
   "main": "dist/DirectedGraph.js",
   "module": "./DirectedGraph.mjs",
@@ -19,7 +19,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/clientIO/joint.git",
-    "directory": "packages/joint-layout-directed"
+    "directory": "packages/joint-layout-directed-graph"
   },
   "bugs": {
     "url": "https://github.com/clientIO/joint/issues"
@@ -36,7 +36,9 @@
     "prepack": "yarn run dist",
     "dist": "rollup --config",
     "build": "rollup --config",
-    "test": "mocha test/nodejs/nodejs.js && karma start karma.conf.js"
+    "test": "mocha test/nodejs/nodejs.js && karma start karma.conf.js",
+    "lint": "eslint .",
+    "lint-fix": "yarn run lint --fix"
   },
   "files": [
     "./DirectedGraph.d.ts",
@@ -52,8 +54,10 @@
     "@joint/core": "workspace:~"
   },
   "devDependencies": {
+    "@eslint/js": "9.38.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "9.38.0",
     "globals": "16.0.0",
     "karma": "^6.4.2",
     "karma-chrome-launcher": "^3.2.0",

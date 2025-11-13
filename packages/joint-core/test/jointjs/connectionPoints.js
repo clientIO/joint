@@ -233,7 +233,6 @@ QUnit.module('connectionPoints', function(hooks) {
 
                     r1.rotate(45);
 
-                    const r1BBoxWR = r1.getBBox({ rotate: true });
                     const p1BBoxWR = r1.getPortBBox('p1', { rotate: true });
 
                     line = new g.Line(p1BBoxWR.center().offset(0, 1000), p1BBoxWR.center());

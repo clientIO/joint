@@ -2,285 +2,194 @@ import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
 import { Model } from '../mvc/Model.mjs';
+import { Listener } from '../mvc/Listener.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
-import { CellLayersController } from './controllers/CellLayersController.mjs';
-import { GraphCellLayers } from './collections/GraphCellLayers.mjs';
-import { GraphCells } from './collections/GraphCells.mjs';
+import { GraphLayersController } from './GraphLayersController.mjs';
+import { GraphLayerCollection } from './GraphLayerCollection.mjs';
 import { config } from '../config/index.mjs';
+import { CELL_MARKER } from './symbols.mjs';
+import { GraphTopologyIndex } from './GraphTopologyIndex.mjs';
+
+// The ID of the default graph layer.
+const DEFAULT_LAYER_ID = 'cells';
 
 export const Graph = Model.extend({
 
-    initialize: function(attrs, opt) {
+    /**
+     * @todo Remove in v5.0.0
+     * @description In legacy mode, the information about layers is not
+     * exported into JSON.
+     */
+    legacyMode: true,
 
-        opt = opt || {};
+    /**
+     * @protected
+     * @description The ID of the default layer.
+     */
+    defaultLayerId: DEFAULT_LAYER_ID,
 
-        const cellLayerCollection = this.cellLayerCollection = new GraphCellLayers([], {
-            cellLayerNamespace: opt.cellLayerNamespace
+    initialize: function(attrs, options = {}) {
+
+        const layerCollection = this.layerCollection = new GraphLayerCollection([], {
+            layerNamespace: options.layerNamespace,
+            cellNamespace: options.cellNamespace,
+            graph: this,
+            /** @deprecated use cellNamespace instead */
+            model: options.cellModel,
         });
 
-        // retrigger events from the cellLayerCollection
-        cellLayerCollection.on('all', function(eventName) {
-            arguments[0] = 'layers:' + eventName;
-            this.trigger.apply(this, arguments);
-        }, this);
+        // The default setup includes a single default layer.
+        layerCollection.add({ id: DEFAULT_LAYER_ID }, { graph: this.cid });
 
-        this.cellLayersController = new CellLayersController({ graph: this });
+        /**
+         * @todo Remove in v5.0.0
+         * @description Retain legacy 'cells' collection in attributes for backward compatibility.
+         * Applicable only when the default layer setup is used.
+         */
+        this.attributes.cells = this.getLayer(DEFAULT_LAYER_ID).cellCollection;
 
-        // Passing `cellModel` function in the options object to graph allows for
-        // setting models based on attribute objects. This is especially handy
-        // when processing JSON graphs that are in a different than JointJS format.
-        const cellCollection = this.cellCollection = new GraphCells([], {
-            model: opt.cellModel,
-            cellNamespace: opt.cellNamespace,
-            graph: this
-        });
+        // Controller that manages communication between the graph and its layers.
+        this.layersController = new GraphLayersController({ graph: this });
 
-        // Make all the events fired in the `cells` collection available.
-        // to the outside world.
-        cellCollection.on('all', this.trigger, this);
-
-        // For backward compatibility, we keep legacy 'cells' cell collection in attributes.
-        // This only makes sense as long as user use default layers setup.
-        this.attributes.cells = this.getCellLayer('cells').cells;
-        // inject current cellCollection namespace for backward compatibility
-        this.attributes.cells.cellNamespace = this.cellCollection.cellNamespace;
-
-        // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
+        // `Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
         // must be reflected in the `al` object. This object provides fast answers to
-        // questions such as "what are the neighbours of this node" or "what
+        // questions such as "what are the neighbors of this node" or "what
         // are the sibling links of this link".
-
-        // Outgoing edges per node. Note that we use a hash-table for the list
-        // of outgoing edges for a faster lookup.
-        // [nodeId] -> Object [edgeId] -> true
-        this._out = {};
-        // Ingoing edges per node.
-        // [nodeId] -> Object [edgeId] -> true
-        this._in = {};
-        // `_nodes` is useful for quick lookup of all the elements in the graph, without
-        // having to go through the whole cells array.
-        // [node ID] -> true
-        this._nodes = {};
-        // `_edges` is useful for quick lookup of all the links in the graph, without
-        // having to go through the whole cells array.
-        // [edgeId] -> true
-        this._edges = {};
+        this.topologyIndex = new GraphTopologyIndex({ layerCollection });
 
         this._batches = {};
-
-        cellCollection.on('add', this._restructureOnAdd, this);
-        cellCollection.on('remove', this._restructureOnRemove, this);
-        cellCollection.on('reset', this._restructureOnReset, this);
-        cellCollection.on('change:source', this._restructureOnChangeSource, this);
-        cellCollection.on('change:target', this._restructureOnChangeTarget, this);
-        cellCollection.on('remove', this._removeCell, this);
-    },
-
-    _restructureOnAdd: function(cell) {
-
-        if (cell.isLink()) {
-            this._edges[cell.id] = true;
-            var { source, target } = cell.attributes;
-            if (source.id) {
-                (this._out[source.id] || (this._out[source.id] = {}))[cell.id] = true;
-            }
-            if (target.id) {
-                (this._in[target.id] || (this._in[target.id] = {}))[cell.id] = true;
-            }
-        } else {
-            this._nodes[cell.id] = true;
-        }
-    },
-
-    _restructureOnRemove: function(cell) {
-
-        if (cell.isLink()) {
-            delete this._edges[cell.id];
-            var { source, target } = cell.attributes;
-            if (source.id && this._out[source.id] && this._out[source.id][cell.id]) {
-                delete this._out[source.id][cell.id];
-            }
-            if (target.id && this._in[target.id] && this._in[target.id][cell.id]) {
-                delete this._in[target.id][cell.id];
-            }
-        } else {
-            delete this._nodes[cell.id];
-        }
-    },
-
-    _restructureOnReset: function(collection) {
-
-        // Normalize into an array of cells. The original `collection` is GraphCells mvc collection.
-        const cells = collection.models;
-
-        this._out = {};
-        this._in = {};
-        this._nodes = {};
-        this._edges = {};
-
-        cells.forEach(this._restructureOnAdd, this);
-    },
-
-    _restructureOnChangeSource: function(link) {
-
-        var prevSource = link.previous('source');
-        if (prevSource.id && this._out[prevSource.id]) {
-            delete this._out[prevSource.id][link.id];
-        }
-        var source = link.attributes.source;
-        if (source.id) {
-            (this._out[source.id] || (this._out[source.id] = {}))[link.id] = true;
-        }
-    },
-
-    _restructureOnChangeTarget: function(link) {
-
-        var prevTarget = link.previous('target');
-        if (prevTarget.id && this._in[prevTarget.id]) {
-            delete this._in[prevTarget.id][link.id];
-        }
-        var target = link.get('target');
-        if (target.id) {
-            (this._in[target.id] || (this._in[target.id] = {}))[link.id] = true;
-        }
-    },
-
-    // Return all outbound edges for the node. Return value is an object
-    // of the form: [edgeId] -> true
-    getOutboundEdges: function(node) {
-
-        return (this._out && this._out[node]) || {};
-    },
-
-    // Return all inbound edges for the node. Return value is an object
-    // of the form: [edgeId] -> true
-    getInboundEdges: function(node) {
-
-        return (this._in && this._in[node]) || {};
     },
 
     toJSON: function(opt = {}) {
 
-        // JointJS does not recursively call `toJSON()` on attributes that are themselves models/collections.
-        // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitly.
-        var json = Model.prototype.toJSON.apply(this, arguments);
-        json.cells = this.cellCollection.toJSON(opt.cellAttributes);
-        // backward compatibility: do not export default layers setup
-        if (this.cellLayerCollection.length === 1 && this.cellLayerCollection.at(0).get('__legacy') === true) {
+        const { layerCollection } = this;
+        // Get the graph model attributes as a base JSON.
+        const json = Model.prototype.toJSON.apply(this, arguments);
+
+        // Add `cells` array holding all the cells in the graph.
+        json.cells = this.getCells().map(cell => cell.toJSON(opt.cellAttributes));
+
+        if (this.legacyMode) {
+            // Backwards compatibility for legacy setup
+            // with single default layer 'cells'.
+            // In this case, we do not need to export layers.
             return json;
         }
-        json.cellLayers = this.cellLayerCollection.toJSON();
-        // remove legacy flag before export
-        json.cellLayers.forEach(layer => {
-            delete layer['__legacy'];
-        });
 
-        json.defaultCellLayer = this.cellLayersController.defaultCellLayerId;
+        // Add `layers` array holding all the layers in the graph.
+        json.layers = layerCollection.toJSON();
+
+        // Add `defaultLayer` property indicating the default layer ID.
+        json.defaultLayer = this.defaultLayerId;
+
         return json;
     },
 
     fromJSON: function(json, opt) {
-        const { cells, cellLayers, defaultCellLayer, ...attrs } = json;
+        const { cells, layers, defaultLayer, ...attributes } = json;
 
         if (!cells) {
             throw new Error('Graph JSON must contain cells array.');
         }
 
-        if (cellLayers) {
-            this.resetCellLayers(cellLayers, { ...opt, defaultCellLayer, clean: true });
+        // The `fromJSON` should trigger a single 'reset' event at the end.
+        // Set all attributes silently for now.
+        this.set(attributes, { silent: true });
+
+        if (layers) {
+            // Reset the layers collection
+            // (`layers:reset` is not forwarded to the graph).
+            this._resetLayers(layers, defaultLayer, opt);
         }
 
         if (cells) {
-            // Reset the cells collection.
+            // Reset the cells collection and trigger the 'reset' event.
             this.resetCells(cells, opt);
         }
-
-        this.set(attrs, opt);
 
         return this;
     },
 
+    /** @deprecated  */
     clear: function(opt) {
-
         opt = util.assign({}, opt, { clear: true });
 
-        var collection = this.cellCollection;
+        const cells = this.getCells();
 
-        if (collection.length === 0) return this;
+        if (cells.length === 0) return this;
 
         this.startBatch('clear', opt);
 
-        // The elements come after the links.
-        var cells = collection.sortBy(function(cell) {
+        const sortedCells = util.sortBy(cells, (cell) => {
             return cell.isLink() ? 1 : 2;
         });
 
         do {
-
             // Remove all the cells one by one.
             // Note that all the links are removed first, so it's
             // safe to remove the elements without removing the connected
             // links first.
-            cells.shift().remove(opt);
+            this.layerCollection.removeCell(sortedCells.shift(), opt);
 
-        } while (cells.length > 0);
+        } while (sortedCells.length > 0);
 
         this.stopBatch('clear');
 
         return this;
     },
 
-    _prepareCell: function(cell, opt = {}) {
-        let attrs;
+    _prepareCell: function(cellInit, opt) {
 
-        if (cell instanceof Model) {
-            attrs = cell.attributes;
+        let cellAttributes;
+        if (cellInit[CELL_MARKER]) {
+            cellAttributes = cellInit.attributes;
         } else {
-            attrs = cell;
+            cellAttributes = cellInit;
         }
 
-        if (!util.isString(attrs.type)) {
+        if (!util.isString(cellAttributes.type)) {
             throw new TypeError('dia.Graph: cell type must be a string.');
         }
 
-        // compatibility: in the version before groups, z-index was not set on reset.
-        // We are doing it here instead in the cell layer to preserve the old behavior where 'change:z' event
-        // was not triggered on graph when cell was added to the graph because it was set before adding to the cellCollection.
-        if (opt.ensureZIndex) {
-            const layerAttribute = config.layerAttribute;
-
-            const layerId = attrs[layerAttribute] || this.cellLayersController.defaultCellLayerId;
-            const layer = this.cellLayersController.getCellLayer(layerId);
-
-            if (cell instanceof Model) {
-                if (!cell.has('z')) {
-                    cell.set('z', layer.maxZIndex() + 1);
+        // Backward compatibility: prior v4.2, z-index was not set during reset.
+        if (opt && opt.ensureZIndex) {
+            if (cellAttributes.z === undefined) {
+                const layerId = cellAttributes[config.layerAttribute] || this.defaultLayerId;
+                const zIndex = this.maxZIndex(layerId) + 1;
+                if (cellInit[CELL_MARKER]) {
+                    // Set with event in case there is a listener
+                    // directly on the cell instance
+                    // (the cell is not part of graph yet)
+                    cellInit.set('z', zIndex, opt);
+                } else {
+                    cellAttributes.z = zIndex;
                 }
-            } else if (cell.z === undefined) {
-                cell.z = layer.maxZIndex() + 1;
             }
         }
 
-        return cell;
+        return cellInit;
     },
 
-    minZIndex: function(layerId) {
-        return this.cellLayersController.minZIndex(layerId);
+    minZIndex: function(layerId = this.defaultLayerId) {
+        const layer = this.getLayer(layerId);
+        return layer.cellCollection.minZIndex();
     },
 
-    maxZIndex: function(layerId) {
-        return this.cellLayersController.maxZIndex(layerId);
+    maxZIndex: function(layerId = this.defaultLayerId) {
+        const layer = this.getLayer(layerId);
+        return layer.cellCollection.maxZIndex();
     },
 
-    addCell: function(cell, opt) {
+    addCell: function(cellInit, options) {
 
-        if (Array.isArray(cell)) {
-            return this.addCells(cell, opt);
+        if (Array.isArray(cellInit)) {
+            return this.addCells(cellInit, options);
         }
 
-        this.cellCollection.add(this._prepareCell(cell, { ...opt, ensureZIndex: true }), opt || {});
+        this._prepareCell(cellInit, { ...options, ensureZIndex: true });
+        this.layerCollection.addCellToLayer(cellInit, this.getCellLayerId(cellInit), options);
 
         return this;
     },
@@ -302,64 +211,281 @@ export const Graph = Model.extend({
         return this;
     },
 
-    // When adding a lot of cells, it is much more efficient to
-    // reset the entire cells collection in one go.
-    // Useful for bulk operations and optimizations.
-    resetCells: function(cells, opt) {
+    /**
+     * @public
+     * @description Reset the cells in the graph.
+     * Useful for bulk operations and optimizations.
+     */
+    resetCells: function(cellInits, options) {
+        const { layerCollection } = this;
+        // Note: `cellInits` is always an array and `options` is always an object.
+        // See `wrappers.cells` at the end of this file.
 
-        this.startBatch('reset', opt);
+        // When resetting cells, do not set z-index if not provided.
+        const prepareOptions = { ...options, ensureZIndex: false };
 
-        var preparedCells = util.toArray(cells).map(function(cell) {
-            // do not ensure z-index on reset for backward compatibility
-            return this._prepareCell(cell, { ...opt, ensureZIndex: false });
-        }, this);
+        // Initialize a map of layer IDs to arrays of cells
+        const layerCellsMap = layerCollection.reduce((map, layer) => {
+            map[layer.id] = [];
+            return map;
+        }, {});
 
-        this.cellCollection.reset(preparedCells, opt);
-
-        this.stopBatch('reset', opt);
-
-        return this;
-    },
-
-    resetCellLayers: function(cellLayers, opt) {
-        this.cellLayersController.resetCellLayers(cellLayers, opt);
-        return this;
-    },
-
-    removeCells: function(cells, opt) {
-
-        if (cells.length) {
-
-            this.startBatch('remove');
-            util.invoke(cells, 'remove', opt);
-            this.stopBatch('remove');
-        }
-
-        return this;
-    },
-
-    _removeCell: function(cell, collection, options) {
-
-        options = options || {};
-
-        if (!options.clear) {
-            // Applications might provide a `disconnectLinks` option set to `true` in order to
-            // disconnect links when a cell is removed rather then removing them. The default
-            // is to remove all the associated links.
-            if (options.disconnectLinks) {
-
-                this.disconnectLinks(cell, options);
-
+        // Distribute cells into their respective layers
+        for (let i = 0; i < cellInits.length; i++) {
+            const cellInit = cellInits[i];
+            const layerId = this.getCellLayerId(cellInit);
+            if (layerId in layerCellsMap) {
+                this._prepareCell(cellInit, prepareOptions);
+                layerCellsMap[layerId].push(cellInit);
             } else {
-
-                this.removeLinks(cell, options);
+                throw new Error(`dia.Graph: Layer "${layerId}" does not exist.`);
             }
         }
-        // Silently remove the cell from the cells collection. Silently, because
-        // `joint.dia.Cell.prototype.remove` already triggers the `remove` event which is
-        // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
-        // would be triggered on the graph model.
-        this.cellCollection.remove(cell, { silent: true });
+
+        // Reset each layer's cell collection with the corresponding cells.
+        layerCollection.each(layer => {
+            layer.cellCollection.reset(layerCellsMap[layer.id], options);
+        });
+
+        // Trigger a single `reset` event on the graph
+        // (while multiple `reset` events are triggered on layers).
+        // Backwards compatibility: use default layer collection
+        // The `collection` parameter is retained for backwards compatibility,
+        // and it is subject to removal in future releases.
+        this.trigger('reset', this.getDefaultLayer().cellCollection, options);
+
+        return this;
+    },
+
+    /**
+     * @public
+     * @description Get the layer ID in which the cell resides.
+     * Cells without an explicit layer are assigned to the default layer.
+     * @param {dia.Cell | Object} cellInit - Cell model or attributes.
+     * @returns {string} - The layer ID.
+     */
+    getCellLayerId: function(cellInit) {
+        if (!cellInit) {
+            throw new Error('dia.Graph: No cell provided.');
+        }
+        const cellAttributes = cellInit[CELL_MARKER]
+            ? cellInit.attributes
+            : cellInit;
+        return cellAttributes[config.layerAttribute] || this.defaultLayerId;
+    },
+
+    /**
+     * @protected
+     * @description Reset the layers in the graph.
+     * It assumes the existing cells have been removed beforehand
+     * or can be discarded.
+     */
+    _resetLayers: function(layers, defaultLayerId, options = {}) {
+        if (!Array.isArray(layers) || layers.length === 0) {
+            throw new Error('dia.Graph: At least one layer must be defined.');
+        }
+
+        // Resetting layers disables legacy mode
+        this.legacyMode = false;
+
+        this.layerCollection.reset(layers, { ...options, graph: this.cid });
+
+        // If no default layer is specified, use the first layer as default
+        if (defaultLayerId) {
+            // The default layer must be one of the defined layers
+            if (!this.hasLayer(defaultLayerId)) {
+                throw new Error(`dia.Graph: default layer "${defaultLayerId}" does not exist.`);
+            }
+            this.defaultLayerId = defaultLayerId;
+        } else {
+            this.defaultLayerId = this.layerCollection.at(0).id;
+        }
+
+        return this;
+    },
+
+    /**
+     * @public
+     * @description Remove multiple cells from the graph.
+     * @param {Array<dia.Cell | dia.Cell.ID>} cellRefs - Array of cell references (models or IDs) to remove.
+     * @param {Object} [options] - Removal options. See {@link dia.Graph#removeCell}.
+     */
+    removeCells: function(cellRefs, options) {
+        if (!cellRefs.length) return this;
+        // Remove multiple cells in a single batch
+        this.startBatch('remove');
+        for (const cellRef of cellRefs) {
+            if (!cellRef) continue;
+            let cell;
+            if (cellRef[CELL_MARKER]) {
+                cell = cellRef;
+            } else {
+                cell = this.getCell(cellRef);
+                if (!cell) {
+                    // The cell might have been already removed (embedded cell, connected link, etc.)
+                    continue;
+                }
+            }
+            this.layerCollection.removeCell(cell, options);
+        }
+        this.stopBatch('remove');
+        return this;
+    },
+
+    /**
+     * @protected
+     * @description Replace an existing cell with a new cell.
+     */
+    _replaceCell: function(currentCell, newCellInit, opt = {}) {
+        const batchName = 'replace-cell';
+        const replaceOptions = { ...opt, replace: true };
+        this.startBatch(batchName, opt);
+        // 1. Remove the cell without removing connected links or embedded cells.
+        this.layerCollection.removeCell(currentCell, replaceOptions);
+
+        const newCellInitAttributes = (newCellInit[CELL_MARKER])
+            ? newCellInit.attributes
+            : newCellInit;
+        // 2. Combine the current cell attributes with the new cell attributes
+        const replacementCellAttributes = Object.assign({}, currentCell.attributes, newCellInitAttributes);
+        let replacement;
+
+        if (newCellInit[CELL_MARKER]) {
+            // If the new cell is a model, set the merged attributes on the model
+            newCellInit.set(replacementCellAttributes, replaceOptions);
+            replacement = newCellInit;
+        } else {
+            replacement = replacementCellAttributes;
+        }
+
+        // 3. Add the replacement cell
+        this.addCell(replacement, replaceOptions);
+        this.stopBatch(batchName);
+    },
+
+    /**
+     * @protected
+     * @description Synchronize a single graph cell with the provided cell (model or attributes).
+     * If the cell with the same `id` exists, it is updated. If the cell does not exist, it is added.
+     * If the existing cell type is different from the incoming cell type, the existing cell is replaced.
+     */
+    _syncCell: function(cellInit, opt = {}) {
+        const cellAttributes = (cellInit[CELL_MARKER])
+            ? cellInit.attributes
+            : cellInit;
+        const currentCell = this.getCell(cellInit.id);
+        if (currentCell) {
+            // `cellInit` is either a model or attributes object
+            if ('type' in cellAttributes && currentCell.get('type') !== cellAttributes.type) {
+                // Replace the cell if the type has changed
+                this._replaceCell(currentCell, cellInit, opt);
+            } else {
+                // Update existing cell
+                // Note: the existing cell attributes are not removed,
+                // if they're missing in `cellAttributes`.
+                currentCell.set(cellAttributes, opt);
+            }
+        } else {
+            // The cell does not exist yet, add it
+            this.addCell(cellInit, opt);
+        }
+    },
+
+    /**
+     * @public
+     * @description Synchronize the graph cells with the provided array of cells (models or attributes).
+     */
+    syncCells: function(cellInits, opt = {}) {
+
+        const batchName = 'sync-cells';
+        const { remove = false, ...setOpt } = opt;
+
+        let currentCells, newCellsMap;
+        if (remove) {
+            // We need to track existing cells to remove the missing ones later
+            currentCells = this.getCells();
+            newCellsMap = new Map();
+        }
+
+        // Observe changes to the graph cells
+        let changeObserver, changedLayers;
+        const shouldSort = opt.sort !== false;
+        if (shouldSort) {
+            changeObserver = new Listener();
+            changedLayers = new Set();
+            changeObserver.listenTo(this, {
+                'add': (cell) => {
+                    changedLayers.add(this.getCellLayerId(cell));
+                },
+                'change': (cell) => {
+                    if (cell.hasChanged(config.layerAttribute) || cell.hasChanged('z')) {
+                        changedLayers.add(this.getCellLayerId(cell));
+                    }
+                }
+            });
+        }
+
+        this.startBatch(batchName, opt);
+
+        // Prevent multiple sorts during sync
+        setOpt.sort = false;
+
+        // Add or update incoming cells
+        for (const cellInit of cellInits) {
+            if (remove) {
+                // only track existence
+                newCellsMap.set(cellInit.id, true);
+            }
+            this._syncCell(cellInit, setOpt);
+        }
+
+        if (remove) {
+            // Remove cells not present in the incoming array
+            for (const cell of currentCells) {
+                if (!newCellsMap.has(cell.id)) {
+                    this.layerCollection.removeCell(cell, setOpt);
+                }
+            }
+        }
+
+        if (shouldSort) {
+            // Sort layers that had changes affecting z-index or layer
+            changeObserver.stopListening();
+            for (const layerId of changedLayers) {
+                this.getLayer(layerId).cellCollection.sort(opt);
+            }
+        }
+
+        this.stopBatch(batchName);
+    },
+
+    /**
+     * @public
+     * @description Remove a cell from the graph.
+     * @param {dia.Cell} cell
+     * @param {Object} [options]
+     * @param {boolean} [options.disconnectLinks=false] - If `true`, the connected links are
+     * disconnected instead of removed.
+     * @param {boolean} [options.clear=false] - If `true`, the connected links
+     * are kept. @internal
+     * @param {boolean} [options.replace=false] - If `true`, the connected links and
+     * embedded cells are kept. @internal
+     * @throws Will throw an error if no cell is provided
+     * @throws Will throw an error if the ID of the cell to remove
+     * does not exist in the graph
+     **/
+    removeCell: function(cellRef, options) {
+        if (!cellRef) {
+            throw new Error('dia.Graph: no cell provided.');
+        }
+        const cell = cellRef[CELL_MARKER] ? cellRef : this.getCell(cellRef);
+        if (!cell) {
+            throw new Error('dia.Graph: cell to remove does not exist in the graph.');
+        }
+        if (cell.graph !== this) return;
+        this.startBatch('remove');
+        cell.collection.remove(cell, options);
+        this.stopBatch('remove');
     },
 
     transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {
@@ -395,44 +521,217 @@ export const Graph = Model.extend({
         this.stopBatch(batchName);
     },
 
-    addCellLayer(cellLayer, opt) {
-        this.cellLayersController.addCellLayer(cellLayer, opt);
+    /**
+     * @private
+     * Helper method for addLayer and moveLayer methods
+     */
+    _getBeforeLayerIdFromOptions(options, layer = null) {
+        let { before = null, index } = options;
+
+        if (before && index !== undefined) {
+            throw new Error('dia.Graph: Options "before" and "index" are mutually exclusive.');
+        }
+
+        let computedBefore;
+        if (index !== undefined) {
+            const layersArray = this.getLayers();
+            if (index >= layersArray.length) {
+                // If index is greater than the number of layers,
+                // return before as null (move to the end).
+                computedBefore = null;
+            } else if (index < 0) {
+                // If index is negative, move to the beginning.
+                computedBefore = layersArray[0].id;
+            } else {
+                const originalIndex = layersArray.indexOf(layer);
+                if (originalIndex !== -1 && index > originalIndex) {
+                    // If moving a layer upwards in the stack, we need to adjust the index
+                    // to account for the layer being removed from its original position.
+                    index += 1;
+                }
+                // Otherwise, get the layer ID at the specified index.
+                computedBefore = layersArray[index]?.id || null;
+            }
+        } else {
+            computedBefore = before;
+        }
+
+        return computedBefore;
     },
 
-    removeCellLayer(cellLayer, opt) {
-        this.cellLayersController.removeCellLayer(cellLayer.id, opt);
+    /**
+     * @public
+     * Adds a new layer to the graph.
+     * @param {GraphLayer | GraphLayerJSON} layerInit
+     * @param {*} options
+     * @param {string | null} [options.before] - ID of the layer
+     * before which to insert the new layer. If `null`, the layer is added at the end.
+     * @param {number} [options.index] - Zero-based index to which to add the layer.
+     * @throws Will throw an error if the layer to add is invalid
+     * @throws Will throw an error if a layer with the same ID already exists
+     * @throws Will throw if `before` reference is invalid
+     */
+    addLayer(layerInit, options = {}) {
+        if (!layerInit || !layerInit.id) {
+            throw new Error('dia.Graph: Layer to add is invalid.');
+        }
+        if (this.hasLayer(layerInit.id)) {
+            throw new Error(`dia.Graph: Layer "${layerInit.id}" already exists.`);
+        }
+        const { before = null, index, ...insertOptions } = options;
+        insertOptions.graph = this.cid;
+
+        // Adding a new layer disables legacy mode
+        this.legacyMode = false;
+
+        const beforeId = this._getBeforeLayerIdFromOptions({ before, index });
+        this.layerCollection.insert(layerInit, beforeId, insertOptions);
     },
 
-    getDefaultCellLayer() {
-        return this.cellLayersController.getDefaultCellLayer();
+    /**
+     * @public
+     * Moves an existing layer to a new position in the layer stack.
+     * @param {string | GraphLayer} layerRef - ID or reference of the layer to move.
+     * @param {*} options
+     * @param {string | null} [options.before] - ID of the layer
+     * before which to insert the moved layer. If `null`, the layer is moved to the end.
+     * @param {number} [options.index] - Zero-based index to which to move the layer.
+     * @throws Will throw an error if the layer to move does not exist
+     * @throws Will throw an error if `before` reference is invalid
+     * @throws Will throw an error if both `before` and `index` options are provided
+     */
+    moveLayer(layerRef, options = {}) {
+        if (!layerRef || !this.hasLayer(layerRef)) {
+            throw new Error('dia.Graph: Layer to move does not exist.');
+        }
+        const layer = this.getLayer(layerRef);
+        const { before = null, index, ...insertOptions } = options;
+        insertOptions.graph = this.cid;
+
+        // Moving a layer disables legacy mode
+        this.legacyMode = false;
+
+        const beforeId = this._getBeforeLayerIdFromOptions({ before, index }, layer);
+        this.layerCollection.insert(layer, beforeId, insertOptions);
     },
 
-    setDefaultCellLayer(layerId, opt) {
-        this.cellLayersController.setDefaultCellLayer(layerId, opt);
+    /**
+     * @public
+     * Removes an existing layer from the graph.
+     * @param {string | GraphLayer} layerRef - ID or reference of the layer to remove.
+     * @param {*} options
+     * @throws Will throw an error if no layer is provided
+     * @throws Will throw an error if the layer to remove does not exist
+     */
+    removeLayer(layerRef, options = {}) {
+        if (!layerRef) {
+            throw new Error('dia.Graph: No layer provided.');
+        }
+
+        // The layer must exist
+        const layerId = layerRef.id ? layerRef.id : layerRef;
+        const layer = this.getLayer(layerId);
+
+        // Prevent removing the default layer
+        // Note: if there is only one layer, it is also the default layer.
+        const { id: defaultLayerId } = this.getDefaultLayer();
+        if (layerId === defaultLayerId) {
+            throw new Error('dia.Graph: default layer cannot be removed.');
+        }
+
+        // A layer with cells cannot be removed
+        if (layer.cellCollection.length > 0) {
+            throw new Error(`dia.Graph: Layer "${layerId}" cannot be removed because it is not empty.`);
+        }
+
+        this.layerCollection.remove(layerId, { ...options, graph: this.cid });
     },
 
-    getCellLayer(layerId) {
-        return this.cellLayersController.getCellLayer(layerId);
+    getDefaultLayer() {
+        return this.layerCollection.get(this.defaultLayerId);
     },
 
-    hasCellLayer(layerId) {
-        return this.cellLayersController.hasCellLayer(layerId);
+    setDefaultLayer(layerRef, options = {}) {
+        if (!layerRef) {
+            throw new Error('dia.Graph: No default layer ID provided.');
+        }
+
+        // Make sure the layer exists
+        const defaultLayerId = layerRef.id ? layerRef.id : layerRef;
+        const defaultLayer = this.getLayer(defaultLayerId);
+
+        // If the default layer is not changing, do nothing
+        const currentDefaultLayerId = this.defaultLayerId;
+        if (defaultLayerId === currentDefaultLayerId) {
+            // The default layer stays the same
+            return;
+        }
+
+        // Get all cells that belong to the current default layer implicitly
+        const implicitLayerCells = this.getImplicitLayerCells();
+
+        // Set the new default layer ID
+        this.defaultLayerId = defaultLayerId;
+
+        const batchName = 'default-layer-change';
+        this.startBatch(batchName, options);
+
+        if (implicitLayerCells.length > 0) {
+            // Reassign any cells lacking an explicit layer to the new default layer.
+            // Do not sort yet, wait until all cells are moved.
+            const moveOptions = { ...options, sort: false };
+            for (const cell of implicitLayerCells) {
+                this.layerCollection.moveCellBetweenLayers(cell, defaultLayerId, moveOptions);
+            }
+            // Now sort the new default layer
+            if (options.sort !== false) {
+                defaultLayer.cellCollection.sort(options);
+            }
+        }
+
+        // Pretend to trigger the event on the layer itself.
+        // It will bubble up as `layer:default` event on the graph.
+        defaultLayer.trigger(defaultLayer.eventPrefix + 'default', defaultLayer, {
+            ...options,
+            previousDefaultLayerId: currentDefaultLayerId
+        });
+
+        this.stopBatch(batchName, options);
     },
 
-    getCellLayers() {
-        return this.cellLayersController.getCellLayers();
+    /**
+     * @protected
+     * @description Get all cells that do not have an explicit layer assigned.
+     * These cells belong to the default layer implicitly.
+     * @return {Array<dia.Cell>} Array of cells without an explicit layer.
+     */
+    getImplicitLayerCells() {
+        return this.getDefaultLayer().cellCollection.filter(cell => {
+            return cell.get(config.layerAttribute) == null;
+        });
     },
 
-    // Get a cell by `id`.
-    getCell: function(id) {
+    getLayer(layerId) {
+        if (!this.hasLayer(layerId)) {
+            throw new Error(`dia.Graph: Layer "${layerId}" does not exist.`);
+        }
+        return this.layerCollection.get(layerId);
+    },
 
-        return this.cellCollection.get(id);
+    hasLayer(layerRef) {
+        return this.layerCollection.has(layerRef);
+    },
+
+    getLayers() {
+        return this.layerCollection.toArray();
+    },
+
+    getCell: function(cellRef) {
+        return this.layerCollection.getCell(cellRef);
     },
 
     getCells: function() {
-        // We are using `cellLayersController.getCells()` instead of graph collection
-        // to preserve z-index ordering which is now handled by the cell layers.
-        return this.cellLayersController.getCells();
+        return this.layerCollection.getCells();
     },
 
     getElements: function() {
@@ -446,27 +745,25 @@ export const Graph = Model.extend({
     },
 
     getFirstCell: function(layerId) {
-        let cells;
+        let layer;
         if (!layerId) {
-            const orderedLayers = this.getCellLayers();
-            cells = orderedLayers[0].cells;
+            // Get the first cell from the bottom-most layer
+            layer = this.getLayers().at(0);
         } else {
-            cells = this.getCellLayer(layerId).cells;
+            layer = this.getLayer(layerId);
         }
-
-        return cells[0];
+        return layer.cellCollection.models.at(0);
     },
 
     getLastCell: function(layerId) {
-        let cells;
+        let layer;
         if (!layerId) {
-            const orderedLayers = this.getCellLayers();
-            cells = orderedLayers[orderedLayers.length - 1].cells;
+            // Get the last cell from the top-most layer
+            layer = this.getLayers().at(-1);
         } else {
-            cells = this.getCellLayer(layerId).cells;
+            layer = this.getLayer(layerId);
         }
-
-        return cells[cells.length - 1];
+        return layer.cellCollection.models.at(-1);
     },
 
     // Get all inbound and outbound links connected to the cell `model`.
@@ -495,12 +792,13 @@ export const Graph = Model.extend({
         }
 
         function addOutbounds(graph, model) {
-            util.forIn(graph.getOutboundEdges(model.id), function(_, edge) {
+            util.forIn(graph.topologyIndex.getOutboundEdges(model.id), function(_, edge) {
                 // skip links that were already added
                 // (those must be self-loop links)
                 // (because they are inbound and outbound edges of the same two elements)
                 if (edges[edge]) return;
                 var link = graph.getCell(edge);
+                if (!link) return;
                 links.push(link);
                 edges[edge] = true;
                 if (indirect) {
@@ -520,12 +818,13 @@ export const Graph = Model.extend({
         }
 
         function addInbounds(graph, model) {
-            util.forIn(graph.getInboundEdges(model.id), function(_, edge) {
+            util.forIn(graph.topologyIndex.getInboundEdges(model.id), function(_, edge) {
                 // skip links that were already added
                 // (those must be self-loop links)
                 // (because they are inbound and outbound edges of the same two elements)
                 if (edges[edge]) return;
                 var link = graph.getCell(edge);
+                if (!link) return;
                 links.push(link);
                 edges[edge] = true;
                 if (indirect) {
@@ -560,7 +859,7 @@ export const Graph = Model.extend({
             embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    util.forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    util.forIn(this.topologyIndex.getOutboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
                             var { source, target } = edgeCell.attributes;
@@ -580,7 +879,7 @@ export const Graph = Model.extend({
                     }.bind(this));
                 }
                 if (inbound) {
-                    util.forIn(this.getInboundEdges(cell.id), function(exists, edge) {
+                    util.forIn(this.topologyIndex.getInboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
                             var { source, target } = edgeCell.attributes;
@@ -889,38 +1188,22 @@ export const Graph = Model.extend({
 
     // Get all the roots of the graph. Time complexity: O(|V|).
     getSources: function() {
-
-        var sources = [];
-        util.forIn(this._nodes, function(exists, node) {
-            if (!this._in[node] || util.isEmpty(this._in[node])) {
-                sources.push(this.getCell(node));
-            }
-        }.bind(this));
-        return sources;
+        return this.topologyIndex.getSourceNodes().map(nodeId => this.getCell(nodeId));
     },
 
     // Get all the leafs of the graph. Time complexity: O(|V|).
     getSinks: function() {
-
-        var sinks = [];
-        util.forIn(this._nodes, function(exists, node) {
-            if (!this._out[node] || util.isEmpty(this._out[node])) {
-                sinks.push(this.getCell(node));
-            }
-        }.bind(this));
-        return sinks;
+        return this.topologyIndex.getSinkNodes().map(nodeId => this.getCell(nodeId));
     },
 
     // Return `true` if `element` is a root. Time complexity: O(1).
     isSource: function(element) {
-
-        return !this._in[element.id] || util.isEmpty(this._in[element.id]);
+        return this.topologyIndex.isSourceNode(element.id);
     },
 
     // Return `true` if `element` is a leaf. Time complexity: O(1).
     isSink: function(element) {
-
-        return !this._out[element.id] || util.isEmpty(this._out[element.id]);
+        return this.topologyIndex.isSinkNode(element.id);
     },
 
     // Return `true` is `elementB` is a successor of `elementA`. Return `false` otherwise.
@@ -996,9 +1279,10 @@ export const Graph = Model.extend({
     },
 
     // Remove links connected to the cell `model` completely.
-    removeLinks: function(model, opt) {
-
-        util.invoke(this.getConnectedLinks(model), 'remove', opt);
+    removeLinks: function(cell, opt) {
+        this.getConnectedLinks(cell).forEach(link => {
+            this.layerCollection.removeCell(link, opt);
+        });
     },
 
     // Find all cells at given point

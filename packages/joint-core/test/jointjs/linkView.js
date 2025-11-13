@@ -774,7 +774,6 @@ QUnit.module('linkView', function(hooks) {
             assert.ok(sourceAnchorSpy.notCalled);
             assert.ok(sourceMagnetAnchorSpy.calledWithExactly(
                 linkView2,
-                // eslint-disable-next-line no-undef
                 linkView2.findNode('line'),
                 sinon.match(function(value) {
                     return value instanceof SVGElement;
@@ -1866,6 +1865,37 @@ QUnit.module('linkView', function(hooks) {
                 paper.dumpView(rv1b);
                 assert.equal(linkView.getEndMagnet(end), rv1b.el.querySelector('rect'));
             });
+        });
+
+        QUnit.test('is re-evaluated when connected element updates', function(assert) {
+            link.source(r1);
+            link.target(r2);
+            const r1EvalMagnetSpy = sinon.spy(rv1, 'getMagnetFromLinkEnd');
+            const r2EvalMagnetSpy = sinon.spy(rv2, 'getMagnetFromLinkEnd');
+
+            r1.translate(10, 0);
+            linkView.getEndMagnet('source');
+            assert.ok(r1EvalMagnetSpy.calledOnce, 'Magnet is evaluated on first call');
+            assert.ok(r1EvalMagnetSpy.calledOn(rv1));
+            assert.ok(r1EvalMagnetSpy.calledWithExactly(link.source()));
+            assert.notOk(r2EvalMagnetSpy.called);
+            linkView.getEndMagnet('source');
+            assert.ok(r1EvalMagnetSpy.calledOnce, 'Cache is used on second call');
+            assert.notOk(r2EvalMagnetSpy.called);
+
+            r1EvalMagnetSpy.resetHistory();
+
+            r2.translate(0, 10);
+            linkView.getEndMagnet('target');
+            assert.notOk(r1EvalMagnetSpy.called);
+            assert.ok(r2EvalMagnetSpy.calledOnce, 'Magnet is evaluated on first call');
+            assert.ok(r2EvalMagnetSpy.calledOn(rv2));
+            assert.ok(r2EvalMagnetSpy.calledWithExactly(link.target()));
+            linkView.getEndMagnet('target');
+            assert.notOk(r1EvalMagnetSpy.called);
+            assert.ok(r2EvalMagnetSpy.calledOnce, 'Cache is used on second call');
+
+            r2EvalMagnetSpy.resetHistory();
         });
     });
 });

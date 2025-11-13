@@ -12,4 +12,3 @@ QUnit.module('Webpack', function() {
         paper.remove();
     });
 });
-

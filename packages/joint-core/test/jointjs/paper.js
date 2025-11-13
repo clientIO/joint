@@ -1929,7 +1929,7 @@ QUnit.module('paper', function(hooks) {
         };
 
         const getGridVel = function(paper) {
-            return V(paper.getLayerViewNode(joint.dia.Paper.Layers.GRID).firstChild);
+            return V(paper.getLayerView(joint.dia.Paper.Layers.GRID).el.firstChild);
         };
 
         var preparePaper = function(drawGrid, paperSettings) {
