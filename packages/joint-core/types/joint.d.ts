@@ -3318,9 +3318,17 @@ export namespace layout {
             angle: number;
         };
 
-        type LayoutFunction = (ports: Array<dia.Element.Port>, elBBox: g.Rect, opt: Options) => Array<Partial<Transformation>>;
+        interface LayoutOptions {
+            [key: string]: any;
+        }
 
-        interface Options {
+        type LayoutFunction<T = LayoutOptions> = (
+            portsArgs: Array<T>,
+            elBBox: g.Rect,
+            portGroupArgs: LayoutOptions
+        ) => Array<Partial<Transformation>>;
+
+        interface Options extends LayoutOptions {
             x?: number | string;
             y?: number | string;
             dx?: number;
@@ -3331,19 +3339,20 @@ export namespace layout {
             startAngle?: number;
             step?: number;
             compensateRotation?: boolean;
-            [key: string]: any;
         }
 
-        export var absolute: LayoutFunction;
+        /** @todo use generic LayoutFunction<Options> when possible */
+        export var absolute: LayoutFunction<Options>;
+        export var line: LayoutFunction<Options>;
+        export var left: LayoutFunction<Options>;
+        export var right: LayoutFunction<Options>;
+        export var top: LayoutFunction<Options>;
+        export var bottom: LayoutFunction<Options>;
+        export var ellipseSpread: LayoutFunction<Options>;
+        export var ellipse: LayoutFunction<Options>;
+
         /** @deprecated */
-        export var fn: LayoutFunction;
-        export var line: LayoutFunction;
-        export var left: LayoutFunction;
-        export var right: LayoutFunction;
-        export var top: LayoutFunction;
-        export var bottom: LayoutFunction;
-        export var ellipseSpread: LayoutFunction;
-        export var ellipse: LayoutFunction;
+        export var fn: LayoutFunction<Options>;
     }
 
     export namespace PortLabel {

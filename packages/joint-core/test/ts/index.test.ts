@@ -4,6 +4,12 @@ import * as joint from '../../';
 
 const graph = new joint.dia.Graph({ graphAttribute: true });
 
+const layoutPortGroupFn: joint.layout.Port.LayoutFunction = (portGroupOptions) => {
+    return portGroupOptions.map((portOptions) => {
+        return { x: portOptions.start, /* y: 0, angle: 0 */ };
+    });
+};
+
 const rectangle = new joint.shapes.standard.Rectangle({
     attrs: {
         body: {
@@ -33,6 +39,13 @@ const rectangle = new joint.shapes.standard.Rectangle({
         label: {
             text: null
         }
+    },
+    ports: {
+        groups: {
+            customGroup: {
+                position: layoutPortGroupFn
+            }
+        }
     }
 });
 
@@ -57,7 +70,7 @@ link.attr({
     line: {
         targetMarker: null
     }
-})
+});
 
 graph.addCells([
     rectangle,
