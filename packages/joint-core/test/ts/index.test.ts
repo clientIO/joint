@@ -29,6 +29,9 @@ const rectangle = new joint.shapes.standard.Rectangle({
                     blur: 5
                 }
             }
+        },
+        label: {
+            text: null
         }
     }
 });
@@ -49,6 +52,12 @@ const link = new joint.shapes.standard.Link({
         }
     }
 });
+
+link.attr({
+    line: {
+        targetMarker: null
+    }
+})
 
 graph.addCells([
     rectangle,
