@@ -3341,7 +3341,7 @@ export namespace layout {
             compensateRotation?: boolean;
         }
 
-        /** @todo use generic LayoutFunction<Options> when possible */
+        /** @todo define Options types per-layout */
         export var absolute: LayoutFunction<Options>;
         export var line: LayoutFunction<Options>;
         export var left: LayoutFunction<Options>;
