@@ -25,6 +25,11 @@ type _DeepPartial<T> = {
 
 type DeepPartial<T> = _DeepPartial<_DeepRequired<T>>;
 
+/**
+ * A type that makes all properties of T nullable.
+ */
+type Nullable<T> = { [K in keyof T]: T[K] | null };
+
 // We use `DOMElement` later in the code, to avoid conflicts with the `dia.Element` type.
 type DOMElement = Element;
 
@@ -493,7 +498,7 @@ export namespace dia {
         }
 
         interface Selectors {
-            [selector: string]: attributes.SVGAttributes | undefined;
+            [selector: string]: Nullable<attributes.SVGAttributes> | undefined;
         }
 
         interface Attributes extends GenericAttributes<Selectors> {
@@ -918,18 +923,7 @@ export namespace dia {
             connector?: connectors.Connector | connectors.ConnectorJSON;
         }
 
-        interface LinkSelectors extends Cell.Selectors {
-            '.connection'?: attributes.SVGPathAttributes;
-            '.connection-wrap'?: attributes.SVGPathAttributes;
-            '.marker-source'?: attributes.SVGPathAttributes;
-            '.marker-target'?: attributes.SVGPathAttributes;
-            '.labels'?: attributes.SVGAttributes;
-            '.marker-vertices'?: attributes.SVGAttributes;
-            '.marker-arrowheads'?: attributes.SVGAttributes;
-            '.link-tools'?: attributes.SVGAttributes;
-        }
-
-        interface Attributes extends Cell.GenericAttributes<LinkSelectors> {
+        interface Attributes extends Cell.GenericAttributes<Cell.Selectors> {
         }
 
         interface LabelPosition {
@@ -2740,43 +2734,43 @@ export namespace highlighters {
 export namespace shapes {
 
     interface SVGTextSelector extends dia.Cell.Selectors {
-        text?: attributes.SVGTextAttributes;
+        text?: Nullable<attributes.SVGTextAttributes>;
     }
 
     interface SVGRectSelector extends dia.Cell.Selectors {
-        rect?: attributes.SVGRectAttributes;
+        rect?: Nullable<attributes.SVGRectAttributes>;
     }
 
     interface SVGCircleSelector extends dia.Cell.Selectors {
-        circle?: attributes.SVGCircleAttributes;
+        circle?: Nullable<attributes.SVGCircleAttributes>;
     }
 
     interface SVGEllipseSelector extends dia.Cell.Selectors {
-        ellipse?: attributes.SVGEllipseAttributes;
+        ellipse?: Nullable<attributes.SVGEllipseAttributes>;
     }
 
     interface SVGPolygonSelector extends dia.Cell.Selectors {
-        polygon?: attributes.SVGPolygonAttributes;
+        polygon?: Nullable<attributes.SVGPolygonAttributes>;
     }
 
     interface SVGPolylineSelector extends dia.Cell.Selectors {
-        polyline?: attributes.SVGPolylineAttributes;
+        polyline?: Nullable<attributes.SVGPolylineAttributes>;
     }
 
     interface SVGImageSelector extends dia.Cell.Selectors {
-        image?: attributes.SVGImageAttributes;
+        image?: Nullable<attributes.SVGImageAttributes>;
     }
 
     interface SVGPathSelector extends dia.Cell.Selectors {
-        path?: attributes.SVGPathAttributes;
+        path?: Nullable<attributes.SVGPathAttributes>;
     }
 
     namespace standard {
 
         interface RectangleSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            body?: attributes.SVGRectAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            body?: Nullable<attributes.SVGRectAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type RectangleAttributes = dia.Element.GenericAttributes<RectangleSelectors>;
@@ -2785,9 +2779,9 @@ export namespace shapes {
         }
 
         interface CircleSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            body?: attributes.SVGCircleAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            body?: Nullable<attributes.SVGCircleAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type CircleAttributes = dia.Element.GenericAttributes<CircleSelectors>;
@@ -2796,9 +2790,9 @@ export namespace shapes {
         }
 
         interface EllipseSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            body?: attributes.SVGEllipseAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            body?: Nullable<attributes.SVGEllipseAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type EllipseAttributes = dia.Element.GenericAttributes<EllipseSelectors>;
@@ -2807,9 +2801,9 @@ export namespace shapes {
         }
 
         interface PathSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            body?: attributes.SVGPathAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            body?: Nullable<attributes.SVGPathAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type PathAttributes = dia.Element.GenericAttributes<PathSelectors>;
@@ -2818,9 +2812,9 @@ export namespace shapes {
         }
 
         interface PolygonSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            body?: attributes.SVGPolygonAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            body?: Nullable<attributes.SVGPolygonAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type PolygonAttributes = dia.Element.GenericAttributes<PolygonSelectors>;
@@ -2829,9 +2823,9 @@ export namespace shapes {
         }
 
         interface PolylineSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            body?: attributes.SVGPolylineAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            body?: Nullable<attributes.SVGPolylineAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type PolylineAttributes = dia.Element.GenericAttributes<PolylineSelectors>;
@@ -2840,9 +2834,9 @@ export namespace shapes {
         }
 
         interface ImageSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            image?: attributes.SVGImageAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            image?: Nullable<attributes.SVGImageAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type ImageAttributes = dia.Element.GenericAttributes<ImageSelectors>;
@@ -2851,11 +2845,11 @@ export namespace shapes {
         }
 
         interface BorderedImageSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            border?: attributes.SVGRectAttributes;
-            background?: attributes.SVGRectAttributes;
-            image?: attributes.SVGImageAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            border?: Nullable<attributes.SVGRectAttributes>;
+            background?: Nullable<attributes.SVGRectAttributes>;
+            image?: Nullable<attributes.SVGImageAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type BorderedImageAttributes = dia.Element.GenericAttributes<BorderedImageSelectors>;
@@ -2864,10 +2858,10 @@ export namespace shapes {
         }
 
         interface EmbeddedImageSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            body?: attributes.SVGRectAttributes;
-            image?: attributes.SVGImageAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            body?: Nullable<attributes.SVGRectAttributes>;
+            image?: Nullable<attributes.SVGImageAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type EmbeddedImageAttributes = dia.Element.GenericAttributes<EmbeddedImageSelectors>;
@@ -2876,11 +2870,11 @@ export namespace shapes {
         }
 
         interface InscribedImageSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            border?: attributes.SVGEllipseAttributes;
-            background?: attributes.SVGEllipseAttributes;
-            image?: attributes.SVGImageAttributes;
-            label?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            border?: Nullable<attributes.SVGEllipseAttributes>;
+            background?: Nullable<attributes.SVGEllipseAttributes>;
+            image?: Nullable<attributes.SVGImageAttributes>;
+            label?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type InscribedImageAttributes = dia.Element.GenericAttributes<InscribedImageSelectors>;
@@ -2889,11 +2883,11 @@ export namespace shapes {
         }
 
         interface HeaderedRectangleSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            body?: attributes.SVGRectAttributes;
-            header?: attributes.SVGRectAttributes;
-            headerText?: attributes.SVGTextAttributes;
-            bodyText?: attributes.SVGTextAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            body?: Nullable<attributes.SVGRectAttributes>;
+            header?: Nullable<attributes.SVGRectAttributes>;
+            headerText?: Nullable<attributes.SVGTextAttributes>;
+            bodyText?: Nullable<attributes.SVGTextAttributes>;
         }
 
         type HeaderedRectangleAttributes = dia.Element.GenericAttributes<HeaderedRectangleSelectors>;
@@ -2906,9 +2900,9 @@ export namespace shapes {
         }
 
         interface CylinderSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
             body?: CylinderBodyAttributes;
-            top?: attributes.SVGEllipseAttributes;
+            top?: Nullable<attributes.SVGEllipseAttributes>;
         }
 
         type CylinderAttributes = dia.Element.GenericAttributes<CylinderSelectors>;
@@ -2919,13 +2913,13 @@ export namespace shapes {
         }
 
         interface TextBlockSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            body?: attributes.SVGRectAttributes;
-            label?: {
+            root?: Nullable<attributes.SVGAttributes>;
+            body?: Nullable<attributes.SVGRectAttributes>;
+            label?: Nullable<{
                 text?: string;
                 style?: { [key: string]: any };
                 [key: string]: any;
-            };
+            }>;
         }
 
         type TextBlockAttributes = dia.Element.GenericAttributes<TextBlockSelectors>;
@@ -2934,9 +2928,9 @@ export namespace shapes {
         }
 
         interface LinkSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            line?: attributes.SVGPathAttributes;
-            wrapper?: attributes.SVGPathAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            line?: Nullable<attributes.SVGPathAttributes>;
+            wrapper?: Nullable<attributes.SVGPathAttributes>;
         }
 
         type LinkAttributes = dia.Link.GenericAttributes<LinkSelectors>;
@@ -2945,9 +2939,9 @@ export namespace shapes {
         }
 
         interface DoubleLinkSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            line?: attributes.SVGPathAttributes;
-            outline?: attributes.SVGPathAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            line?: Nullable<attributes.SVGPathAttributes>;
+            outline?: Nullable<attributes.SVGPathAttributes>;
         }
 
         type DoubleLinkAttributes = dia.Link.GenericAttributes<DoubleLinkSelectors>;
@@ -2956,60 +2950,14 @@ export namespace shapes {
         }
 
         interface ShadowLinkSelectors extends dia.Cell.Selectors {
-            root?: attributes.SVGAttributes;
-            line?: attributes.SVGPathAttributes;
-            shadow?: attributes.SVGPathAttributes;
+            root?: Nullable<attributes.SVGAttributes>;
+            line?: Nullable<attributes.SVGPathAttributes>;
+            shadow?: Nullable<attributes.SVGPathAttributes>;
         }
 
         type ShadowLinkAttributes = dia.Link.GenericAttributes<ShadowLinkSelectors>;
 
         class ShadowLink extends dia.Link<ShadowLinkAttributes> {
-        }
-    }
-
-    namespace devs {
-
-        interface ModelSelectors extends dia.Cell.Selectors {
-            '.label'?: attributes.SVGTextAttributes;
-            '.body'?: attributes.SVGRectAttributes;
-        }
-
-        interface ModelAttributes extends dia.Element.GenericAttributes<ModelSelectors> {
-            inPorts?: string[];
-            outPorts?: string[];
-        }
-
-        class Model extends dia.Element {
-
-            constructor(attributes?: ModelAttributes, opt?: { [key: string]: any });
-
-            changeInGroup(properties: any, opt?: any): boolean;
-
-            changeOutGroup(properties: any, opt?: any): boolean;
-
-            createPortItem(group: string, port: string): any;
-
-            createPortItems(group: string, ports: string[]): any[];
-
-            addOutPort(port: string, opt?: any): this;
-
-            addInPort(port: string, opt?: any): this;
-
-            removeOutPort(port: string, opt?: any): this;
-
-            removeInPort(port: string, opt?: any): this;
-        }
-
-        class Coupled extends Model {
-
-        }
-
-        class Atomic extends Model {
-
-        }
-
-        class Link extends dia.Link {
-
         }
     }
 }
@@ -3370,9 +3318,17 @@ export namespace layout {
             angle: number;
         };
 
-        type LayoutFunction = (ports: Array<dia.Element.Port>, elBBox: g.Rect, opt: Options) => Array<Transformation>;
+        interface LayoutOptions {
+            [key: string]: any;
+        }
 
-        interface Options {
+        type LayoutFunction<T = LayoutOptions> = (
+            portsArgs: Array<T>,
+            elBBox: g.Rect,
+            portGroupArgs: LayoutOptions
+        ) => Array<Partial<Transformation>>;
+
+        interface Options extends LayoutOptions {
             x?: number | string;
             y?: number | string;
             dx?: number;
@@ -3383,19 +3339,20 @@ export namespace layout {
             startAngle?: number;
             step?: number;
             compensateRotation?: boolean;
-            [key: string]: any;
         }
 
-        export var absolute: LayoutFunction;
+        /** @todo define Options types per-layout */
+        export var absolute: LayoutFunction<Options>;
+        export var line: LayoutFunction<Options>;
+        export var left: LayoutFunction<Options>;
+        export var right: LayoutFunction<Options>;
+        export var top: LayoutFunction<Options>;
+        export var bottom: LayoutFunction<Options>;
+        export var ellipseSpread: LayoutFunction<Options>;
+        export var ellipse: LayoutFunction<Options>;
+
         /** @deprecated */
-        export var fn: LayoutFunction;
-        export var line: LayoutFunction;
-        export var left: LayoutFunction;
-        export var right: LayoutFunction;
-        export var top: LayoutFunction;
-        export var bottom: LayoutFunction;
-        export var ellipseSpread: LayoutFunction;
-        export var ellipse: LayoutFunction;
+        export var fn: LayoutFunction<Options>;
     }
 
     export namespace PortLabel {
