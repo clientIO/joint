@@ -1903,7 +1903,7 @@ QUnit.module('element ports', function() {
 
             var getGroup = function(id) {
                 return shape._portSettingsData.groups[id];
-            }
+            };
             var getPort = function(id) {
                 return _.find(shape._portSettingsData.ports, function(p) {
                     return p.id === id;
@@ -2711,7 +2711,7 @@ QUnit.module('element ports', function() {
                 position: { x: elX, y: elY },
                 size: { width: elWidth, height: elHeight },
                 angle: 90,
-            })
+            });
 
             const portUnrotatedBBox = shape.getPortBBox('one');
             const portRotatedBBox = shape.getPortBBox('one', { rotate: true });
@@ -2766,31 +2766,31 @@ QUnit.module('element ports', function() {
 
         QUnit.test('return group names of all ports', function(assert) {
 
-                const shape = new joint.shapes.standard.Rectangle();
+            const shape = new joint.shapes.standard.Rectangle();
 
-                assert.deepEqual(shape.getPortGroupNames(), [], 'no groups');
+            assert.deepEqual(shape.getPortGroupNames(), [], 'no groups');
 
-                shape.set({
-                    ports: {
-                        groups: {
-                            a: { position: 'left' },
-                            b: { position: 'right' }
-                        },
-                        items: [
-                            { id: 'one', group: 'a' },
-                            { id: 'two', group: 'b' },
-                            { id: 'three', group: 'b' },
-                            { id: 'four', group: 'b' }
-                        ]
-                    }
-                });
-
-                assert.deepEqual(shape.getPortGroupNames(), ['a', 'b'], 'group with ports');
-
-                shape.prop('ports/groups/c', { position: 'top' });
-
-                assert.deepEqual(shape.getPortGroupNames(), ['a', 'b', 'c'], 'group without ports');
+            shape.set({
+                ports: {
+                    groups: {
+                        a: { position: 'left' },
+                        b: { position: 'right' }
+                    },
+                    items: [
+                        { id: 'one', group: 'a' },
+                        { id: 'two', group: 'b' },
+                        { id: 'three', group: 'b' },
+                        { id: 'four', group: 'b' }
+                    ]
+                }
             });
+
+            assert.deepEqual(shape.getPortGroupNames(), ['a', 'b'], 'group with ports');
+
+            shape.prop('ports/groups/c', { position: 'top' });
+
+            assert.deepEqual(shape.getPortGroupNames(), ['a', 'b', 'c'], 'group without ports');
+        });
     });
 
     QUnit.module('portProp', function() {

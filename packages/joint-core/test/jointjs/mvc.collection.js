@@ -1044,16 +1044,16 @@ QUnit.module('joint.mvc.Collection', function(hooks) {
             _addReference: function(model) {
                 joint.mvc.Collection.prototype._addReference.apply(this, arguments);
                 calls.add++;
-                assert.equal(model, this._byId[model.id]);
-                assert.equal(model, this._byId[model.cid]);
+                assert.equal(model, this._byId.get(model.id));
+                assert.equal(model, this._byId.get(model.cid));
                 assert.equal(model._events.all.length, 1);
             },
 
             _removeReference: function(model) {
                 joint.mvc.Collection.prototype._removeReference.apply(this, arguments);
                 calls.remove++;
-                assert.equal(this._byId[model.id], void 0);
-                assert.equal(this._byId[model.cid], void 0);
+                assert.equal(this._byId.get(model.id), void 0);
+                assert.equal(this._byId.get(model.cid), void 0);
                 assert.equal(model.collection, void 0);
             }
 

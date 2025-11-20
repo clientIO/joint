@@ -1,34 +1,63 @@
 import { View } from '../mvc/index.mjs';
-import { addClassNamePrefix } from '../util/util.mjs';
+import { addClassNamePrefix, clone } from '../util/util.mjs';
+import { LAYER_VIEW_MARKER } from './symbols.mjs';
 
-export const LayersNames = {
-    GRID: 'grid',
-    CELLS: 'cells',
-    BACK: 'back',
-    FRONT: 'front',
-    TOOLS: 'tools',
-    LABELS: 'labels'
-};
-
-export const PaperLayer = View.extend({
+export const LayerView = View.extend({
 
     tagName: 'g',
     svgElement: true,
     pivotNodes: null,
     defaultTheme: null,
 
+    UPDATE_PRIORITY: 4,
+
     options: {
-        name: ''
+        id: ''
     },
 
-    className: function() {
-        const { name } = this.options;
-        if (!name) return null;
-        return addClassNamePrefix(`${name}-layer`);
-    },
+    paper: null,
 
     init: function() {
         this.pivotNodes = {};
+        this.id = this.options.id || this.cid;
+    },
+
+    setPaperReference: function(paper) {
+        this.paper = paper;
+        this.afterPaperReferenceSet(paper);
+    },
+
+    unsetPaperReference: function() {
+        if (!this.paper) return;
+        this.beforePaperReferenceUnset(this.paper);
+        this.paper = null;
+    },
+
+    assertPaperReference() {
+        if (!this.paper) {
+            throw new Error('LayerView: paper reference is not set.');
+        }
+    },
+
+    afterPaperReferenceSet: function() {
+        // Can be overridden in subclasses.
+    },
+
+    beforePaperReferenceUnset: function() {
+        // Can be overridden in subclasses.
+    },
+
+    // prevents id to be set on the DOM element
+    _setAttributes: function(attrs) {
+        const newAttrs = clone(attrs);
+        delete newAttrs.id;
+
+        View.prototype._setAttributes.call(this, newAttrs);
+    },
+
+    className: function() {
+        const { id } = this.options;
+        return addClassNamePrefix(`${id}-layer`);
     },
 
     insertSortedNode: function(node, z) {
@@ -79,4 +108,11 @@ export const PaperLayer = View.extend({
         return this.el.children.length === 0;
     },
 
+    reset: function() {
+        this.removePivots();
+    }
+});
+
+Object.defineProperty(LayerView.prototype, LAYER_VIEW_MARKER, {
+    value: true,
 });

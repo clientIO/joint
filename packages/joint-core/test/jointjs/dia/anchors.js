@@ -127,7 +127,6 @@ QUnit.module('anchors', function(hooks) {
 
                 const sourceElement = link.getSourceElement();
                 const sourceBBox = sourceElement.getBBox();
-                const sourceCenter = sourceBBox.center();
                 const anchor = {
                     name,
                     args: {
@@ -429,7 +428,7 @@ QUnit.module('anchors', function(hooks) {
 
             QUnit.module('prefer-vertical', function() {
 
-                [undefined, 0].forEach(function (anchorPreferenceThreshold) {
+                [undefined, 0].forEach(function(anchorPreferenceThreshold) {
                     QUnit.test(`preferenceThreshold=${anchorPreferenceThreshold}`, function(assert) {
                         const anchor = {
                             name: 'midSide',
@@ -656,19 +655,19 @@ QUnit.module('anchors', function(hooks) {
 
             QUnit.module('prefer-horizontal', function() {
 
-                [undefined, 0].forEach(function (anchorPreferenceThreshold) {
+                [undefined, 0].forEach(function(anchorPreferenceThreshold) {
                     QUnit.test(
                         `preferenceThreshold=${anchorPreferenceThreshold}`,
-                        function (assert) {
+                        function(assert) {
                             const anchor = {
-                                name: "midSide",
+                                name: 'midSide',
                                 args: {
-                                    mode: "prefer-horizontal",
+                                    mode: 'prefer-horizontal',
                                     preferenceThreshold:
                                         anchorPreferenceThreshold,
                                 },
                             };
-                            link.prop(["source", "anchor"], anchor, {
+                            link.prop(['source', 'anchor'], anchor, {
                                 rewrite: true,
                             });
 

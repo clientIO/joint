@@ -14,8 +14,7 @@ if (V.isV(rect1)) {
     point.offset(10, 10);
 }
 
-let rect2: V;
-rect2 = rect1;
+const rect2: V = rect1 as V;
 rect2.attr({ fill: 'yellow' });
 V.ensureId(rect2.node);
 V.createSVGMatrix({});
@@ -34,7 +33,6 @@ if (Vectorizer.isV(rect3)) {
     point.offset(10, 10);
 }
 
-let rect4: Vectorizer;
-rect4 = rect3;
+const rect4: Vectorizer = rect3 as Vectorizer;
 rect4.attr({ fill: 'yellow' });
 Vectorizer.ensureId(rect4.node);

@@ -486,8 +486,8 @@ function zoomByRange(range, ctm = V.createSVGMatrix({})) {
         return cells;
     }, []);
 
-    const back = paper.getLayerNode(dia.Paper.Layers.BACK);
-    const front = paper.getLayerNode(dia.Paper.Layers.FRONT);
+    const back = paper.getLayerView(dia.Paper.Layers.BACK).el;
+    const front = paper.getLayerView(dia.Paper.Layers.FRONT).el;
     // move the front layer above tools
     front.parentNode.append(front);
 

@@ -148,7 +148,7 @@ QUnit.module('cell', function(hooks) {
 
             const mergeStrategySpy = sinon.spy();
             joint.config.cellDefaultsMergeStrategy = mergeStrategySpy;
-            const rect = new joint.shapes.standard.Rectangle({ size: { width: 11, height: 13 }});
+            new joint.shapes.standard.Rectangle({ size: { width: 11, height: 13 }});
             assert.ok(mergeStrategySpy.called);
             assert.ok(mergeStrategySpy.calledWith(1, 11, 'width'));
             assert.ok(mergeStrategySpy.calledWith(1, 13, 'height'));
@@ -937,4 +937,3 @@ QUnit.module('cell', function(hooks) {
     });
 
 });
-

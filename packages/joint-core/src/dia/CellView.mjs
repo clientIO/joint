@@ -21,6 +21,7 @@ import V from '../V/index.mjs';
 import $ from '../mvc/Dom/index.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { evalAttributes, evalAttribute } from './attributes/eval.mjs';
+import { CELL_VIEW_MARKER } from './symbols.mjs';
 
 const HighlightingTypes = {
     DEFAULT: 'default',
@@ -1395,8 +1396,6 @@ Object.defineProperty(CellView.prototype, 'useCSSSelectors', {
 
 // Internal tag to identify this object as a cell view instance.
 // Used instead of `instanceof` for performance and cross-frame safety.
-
-export const CELL_VIEW_MARKER = Symbol('joint.cellViewMarker');
 
 Object.defineProperty(CellView.prototype, CELL_VIEW_MARKER, {
     value: true,

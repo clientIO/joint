@@ -457,7 +457,7 @@ QUnit.module('linkTools', function(hooks) {
                 var link3 = new joint.shapes.standard.Link();
                 graph.addCells(link2, link3);
 
-                var toolsLayerNode = paper.getLayerNode(layer);
+                var toolsLayerNode = paper.getLayerView(layer).el;
                 var t1 = new joint.dia.ToolsView({ z: 2, tools: [], layer: layer });
                 var t2 = new joint.dia.ToolsView({ z: 3, tools: [], layer: layer });
                 var t3 = new joint.dia.ToolsView({ z: 1, tools: [], layer: layer });

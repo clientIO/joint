@@ -107,14 +107,14 @@ paper.fitToContent({ padding: { top: 10  }, allowNewOrigin: false });
 const cellView = graph.getCells()[0].findView(paper);
 cellView.vel.addClass('test-class');
 
-let isHTMLView: AssertExtends<typeof paper.vel, null> = true;
-let isSVGView: AssertExtends<typeof cellView.vel, joint.Vectorizer> = true;
+const isHTMLView: AssertExtends<typeof paper.vel, null> = true;
+const isSVGView: AssertExtends<typeof cellView.vel, joint.Vectorizer> = true;
 
 const { size, position } = rectangle.toJSON();
-let isTypeofSize: AssertExtends<typeof size, joint.dia.Size> = true;
-let isTypeofPoint: AssertExtends<typeof position, joint.dia.Point> = true;
+const isTypeofSize: AssertExtends<typeof size, joint.dia.Size> = true;
+const isTypeofPoint: AssertExtends<typeof position, joint.dia.Point> = true;
 
-const layer = new joint.dia.PaperLayer();
+const layer = new joint.dia.LayerView();
 layer.insertNode(cellView.el);
 layer.insertSortedNode(cellView.el, 5);
 
@@ -140,8 +140,8 @@ paper.on({
 
 cellView.listenTo(paper, {
     'cell:highlight': function(cellView, node, opt) {
-        let isHighlightingOptions: AssertExtends<typeof opt, joint.dia.CellView.EventHighlightOptions> = true;
-        let isSVGElement: AssertExtends<typeof node, SVGElement> = true;
+        const isHighlightingOptions: AssertExtends<typeof opt, joint.dia.CellView.EventHighlightOptions> = true;
+        const isSVGElement: AssertExtends<typeof node, SVGElement> = true;
         if (opt.type === joint.dia.CellView.Highlighting.DEFAULT) {
             cellView.el.classList.add('highlighted');
         }

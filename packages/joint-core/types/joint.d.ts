@@ -10,6 +10,7 @@ export namespace config {
     var doubleTapInterval: number;
     var cellMergeStrategy: util.MergeCustomizer | null;
     var cellDefaultsMergeStrategy: util.MergeCustomizer | null;
+    var layerAttribute: string;
 }
 
 type NativeEvent = Event;
@@ -153,6 +154,89 @@ export namespace dia {
         util.filter.FilterJSON<'brightness'> |
         util.filter.FilterJSON<'contrast'>;
 
+    class CellCollection<C extends Cell = Cell> extends mvc.Collection<C> {
+
+        cellNamespace: any;
+        layer: GraphLayer;
+
+        minZIndex(): number;
+
+        maxZIndex(): number;
+    }
+
+    class GraphLayerCollection<L extends GraphLayer = GraphLayer> extends mvc.Collection<L> {
+
+        cellNamespace: any;
+        layerNamespace: any;
+        graph: Graph;
+
+        insert(layer: Graph.LayerInit, beforeId: GraphLayer.ID | null, opt?: ObjectHash): void;
+
+        getCell(cellRef: Graph.CellRef): Cell | undefined;
+
+        getCells(): Cell[];
+
+        removeCell(cell: Cell, opt?: ObjectHash): void;
+
+        moveCellBetweenLayers(cell: Cell, targetLayerId: GraphLayer.ID, opt?: ObjectHash): void;
+
+        addCellToLayer(cell: Cell, layerId: GraphLayer.ID, opt?: ObjectHash): void;
+    }
+
+    class GraphLayersController extends mvc.Listener<[]> {
+
+        graph: Graph;
+
+        layerCollection: GraphLayerCollection;
+
+        startListening(): void;
+
+        protected onCellChange(cell: Cell, opt: ObjectHash): void;
+
+        protected onCellRemove(cell: Cell, opt: ObjectHash): void;
+
+        protected onLayerCollectionEvent(eventName: string, ...args: any[]): void;
+
+        protected forwardLayerEvent(...args: any[]): void;
+
+        protected forwardCellEvent(...args: any[]): void;
+
+        protected forwardCellCollectionEvent(...args: any[]): void;
+
+        protected forwardLayerCollectionEvent(...args: any[]): void;
+    }
+
+    class GraphTopologyIndex extends mvc.Listener<[]> {
+
+        layerCollection: GraphLayerCollection;
+
+        startListening(): void;
+
+        getOutboundEdges(id: Cell.ID): { [edgeId: string]: true };
+
+        getInboundEdges(id: Cell.ID): { [edgeId: string]: true };
+
+        getSinkNodes(): string[];
+
+        getSourceNodes(): string[];
+
+        isSinkNode(id: Cell.ID): boolean;
+
+        isSourceNode(id: Cell.ID): boolean;
+
+        protected initializeIndex(): void;
+
+        protected _restructureOnReset(): void;
+
+        protected _restructureOnAdd(cell: Cell): void;
+
+        protected _restructureOnRemove(cell: Cell): void;
+
+        protected _restructureOnChangeSource(cell: Cell): void;
+
+        protected _restructureOnChangeTarget(cell: Cell): void;
+    }
+
     export namespace Graph {
 
         interface Options {
@@ -176,35 +260,100 @@ export namespace dia {
             strict?: boolean;
         }
 
+        interface SyncCellOptions extends Options {
+            remove?: boolean;
+        }
+
+        interface RemoveCellOptions extends Options {
+            disconnectLinks?: boolean;
+            replace?: boolean;
+            clear?: boolean;
+        }
+
         type SearchByKey = 'bbox' | PositionName;
 
         interface FindUnderElementOptions extends FindInAreaOptions, FindAtPointOptions {
             searchBy?: SearchByKey;
         }
 
-        class Cells extends mvc.Collection<Cell> {
-            graph: Graph;
-            cellNamespace: any;
-        }
+        type Cells = CellCollection;
+
+        type CellInit = Cell | Cell.JSON;
+
+        type CellRef = Cell | Cell.ID;
+
+        type LayerInit = GraphLayer | GraphLayer.Attributes;
+
+        type LayerRef = GraphLayer | GraphLayer.ID;
 
         interface Attributes {
-            cells?: Cells;
+            /** @deprecated use cellsCollection property **/
+            cells?: CellCollection;
             [key: string]: any;
+        }
+
+        interface JSON {
+            cells: Array<Cell.JSON>;
+            layers?: Array<GraphLayer.Attributes>;
+            defaultLayer?: string;
+            [key: string]: any;
+        }
+
+        interface InsertLayerOptions extends Options {
+            before?: GraphLayer.ID | null;
+            index?: number;
         }
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
-        constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
+        layerCollection: GraphLayerCollection;
 
-        addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
-        addCell(cell: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
+        defaultLayerId: GraphLayer.ID;
 
-        addCells(cells: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
+        layersController: GraphLayersController;
 
-        resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
+        topologyIndex: GraphTopologyIndex;
 
-        getCell(id: Cell.ID | Cell): Cell;
+        constructor(attributes?: Graph.Attributes, opt?: {
+            cellNamespace?: any,
+            layerNamespace?: any,
+            /** @deprecated use cellNamespace instead */
+            cellModel?: typeof Cell
+        });
+
+        addCell(cell: Graph.CellInit, opt?: CollectionAddOptions): this;
+        addCell(cell: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
+
+        addCells(cells: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
+
+        removeCell(cell: Graph.CellRef, opt?: Graph.RemoveCellOptions): void;
+
+        removeCells(cells: Array<Graph.CellRef>, opt?: Graph.RemoveCellOptions): this;
+
+        resetCells(cells: Array<Graph.CellInit>, opt?: Graph.Options): this;
+
+        syncCells(cells: Array<Graph.CellInit>, opt?: Graph.SyncCellOptions): void;
+
+        addLayer(layerInit: Graph.LayerInit, opt?: Graph.InsertLayerOptions): void;
+
+        moveLayer(layerRef: Graph.LayerRef, opt?: Graph.InsertLayerOptions): void;
+
+        removeLayer(layerRef: Graph.LayerRef, opt?: Graph.Options): void;
+
+        getDefaultLayer(): GraphLayer;
+
+        setDefaultLayer(id: string, opt?: Graph.Options): void;
+
+        getLayer(id: string): GraphLayer;
+
+        hasLayer(id: string): boolean;
+
+        getLayers(): GraphLayer[];
+
+        getCellLayerId(cell: Graph.CellRef): GraphLayer.ID;
+
+        getCell(id: Graph.CellRef): Cell;
 
         getElements(): Element[];
 
@@ -212,15 +361,15 @@ export namespace dia {
 
         getCells(): Cell[];
 
-        getFirstCell(): Cell | undefined;
+        getFirstCell(layerId?: string): Cell | undefined;
 
-        getLastCell(): Cell | undefined;
+        getLastCell(layerId?: string): Cell | undefined;
 
         getConnectedLinks(cell: Cell, opt?: Graph.ConnectionOptions): Link[];
 
         disconnectLinks(cell: Cell, opt?: S): void;
 
-        removeLinks(cell: Cell, opt?: Cell.DisconnectableOptions): void;
+        removeLinks(cell: Graph.CellRef, opt?: Graph.RemoveCellOptions): void;
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -292,6 +441,12 @@ export namespace dia {
 
         protected _filterCellsUnderElement(cells: Cell[], element: Element, opt: Graph.FindUnderElementOptions): Cell[];
 
+        protected _syncCell(cellInit: Graph.CellInit, opt?: Graph.Options): void;
+
+        protected _replaceCell(currentCell: Cell, newCellInit: Graph.CellInit,  opt?: Graph.Options): void;
+
+        protected _resetLayers(layers: Array<Graph.LayerInit>, defaultLayerId: GraphLayer.ID | null, opt?: Graph.Options): this;
+
         /** @deprecated use `findElementsAtPoint` instead */
         findModelsFromPoint(p: Point): Element[];
 
@@ -307,11 +462,9 @@ export namespace dia {
 
         hasActiveBatch(name?: string | string[]): boolean;
 
-        maxZIndex(): number;
+        maxZIndex(layerId?: GraphLayer.ID): number;
 
-        minZIndex(): number;
-
-        removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
+        minZIndex(layerId?: GraphLayer.ID): number;
 
         transferCellEmbeds(sourceCell: Cell, targetCell: Cell, opt?: S): void;
 
@@ -370,9 +523,7 @@ export namespace dia {
             deep?: T;
         }
 
-        interface DisconnectableOptions extends Options {
-            disconnectLinks?: boolean;
-        }
+        type DisconnectableOptions = Graph.RemoveCellOptions;
 
         interface GetEmbeddedCellsOptions extends EmbeddableOptions {
             breadthFirst?: boolean;
@@ -520,6 +671,9 @@ export namespace dia {
 
         z(): number;
 
+        layer(): string | null;
+        layer(id: string | null, opt?: Graph.Options): this;
+
         angle(): number;
 
         getBBox(): g.Rect;
@@ -650,7 +804,7 @@ export namespace dia {
         }
 
         interface FitParentOptions extends FitToChildrenOptions {
-            terminator?: Cell | Cell.ID;
+            terminator?: Graph.CellRef;
         }
 
         interface RotateOptions {
@@ -1377,13 +1531,16 @@ export namespace dia {
         }
 
         enum Layers {
-            CELLS = 'cells',
             LABELS = 'labels',
             BACK = 'back',
             FRONT = 'front',
+            /** @deprecated */
+            CELLS = 'cells',
             TOOLS = 'tools',
             GRID = 'grid',
         }
+
+        type LayerRef = Layers | string | dia.LayerView | dia.GraphLayer;
 
         interface RenderStats {
             priority: number;
@@ -1527,6 +1684,7 @@ export namespace dia {
             validateUnembedding?: (this: Paper, childView: ElementView) => boolean;
             // default views, models & attributes
             cellViewNamespace?: any;
+            layerViewNamespace?: any;
             routerNamespace?: any;
             connectorNamespace?: any;
             highlighterNamespace?: any;
@@ -1667,6 +1825,7 @@ export namespace dia {
             'link:snap:disconnect': (linkView: dia.LinkView, evt: dia.Event, prevCellView: dia.CellView, prevCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
             // render
             'render:done': (stats: UpdateStats, opt: any) => void;
+            'render:idle': (opt: Paper.UpdateViewsAsyncOptions) => void;
             // transformations
             'translate': (tx: number, ty: number, data: unknown) => void;
             'scale': (sx: number, sy: number, data: unknown) => void;
@@ -1700,6 +1859,11 @@ export namespace dia {
             view: CellView;
             magnet: SVGElement;
         }
+
+        interface InsertLayerViewOptions {
+            before?: LayerRef | null;
+            index?: number;
+        }
     }
 
     class Paper extends mvc.View<Graph> {
@@ -1712,10 +1876,14 @@ export namespace dia {
 
         svg: SVGSVGElement;
         defs: SVGDefsElement;
+
+        /** @deprecated use getLayerViewNode()*/
         cells: SVGGElement;
+        /** @deprecated use layers property*/
+        viewport: SVGGElement;
+
         tools: SVGGElement;
         layers: SVGGElement;
-        viewport: SVGGElement;
 
         GUARDED_TAG_NAMES: string[];
         FORM_CONTROLS_TAG_NAMES: string[];
@@ -1791,7 +1959,7 @@ export namespace dia {
 
         findView<T extends ElementView | LinkView>(element: mvc.$SVGElement): T;
 
-        findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
+        findViewByModel<T extends ElementView | LinkView>(model: Graph.CellRef): T;
 
         /**
          * Finds all the element views at the specified point
@@ -1853,7 +2021,7 @@ export namespace dia {
 
         getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
 
-        getModelById(id: Cell.ID | Cell): Cell;
+        getModelById(id: Graph.CellRef): Cell;
 
         setDimensions(width: Paper.Dimension, height: Paper.Dimension, data?: any): void;
 
@@ -1889,29 +2057,38 @@ export namespace dia {
 
         // layers
 
-        getLayerNode(layerName: Paper.Layers | string): SVGGElement;
+        getLayerView(layerRef: Paper.LayerRef): LayerView;
+        getLayerView(layer: GraphLayer): GraphLayerView;
 
-        getLayerView(layerName: Paper.Layers | string): PaperLayer;
+        hasLayerView(layerRef: Paper.LayerRef): boolean;
 
-        hasLayerView(layerName: Paper.Layers | string): boolean;
+        getLayerViews(): Array<LayerView>;
 
-        renderLayers(layers: Array<{ name: string }>): void;
+        getGraphLayerViews(): Array<GraphLayerView>;
 
-        protected removeLayers(): void;
+        addLayerView(layerView: LayerView, options?: Paper.InsertLayerViewOptions): void;
 
-        protected resetLayers(): void;
+        moveLayerView(layerRef: Paper.LayerRef, options?: Paper.InsertLayerViewOptions): void;
 
-        addLayer(layerName: string, layerView: PaperLayer, options?: { insertBefore?: string }): void;
+        removeLayerView(layerRef: Paper.LayerRef): void;
 
-        removeLayer(layer: string | PaperLayer): void;
+        protected insertLayerView(layerView: LayerView, before?: Paper.LayerRef): void;
 
-        moveLayer(layer: string | PaperLayer, insertBefore: string | PaperLayer | null): void;
+        protected requestLayerViewRemoval(layerRef: Paper.LayerRef): void;
 
-        hasLayer(layer: string | PaperLayer): boolean;
+        protected createLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
 
-        getLayerNames(): string[];
+        protected getLayerViewOrder(): string[];
 
-        getLayers(): Array<PaperLayer>;
+        protected renderLayerViews(): void;
+
+        protected renderImplicitLayerViews(): void;
+
+        protected renderGraphLayerViews(): void;
+
+        protected removeLayerViews(): void;
+
+        protected resetLayerViews(): void;
 
         // rendering
 
@@ -1925,7 +2102,9 @@ export namespace dia {
 
         requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
-        requireView<T extends ElementView | LinkView>(cellOrId: Cell | Cell.ID, opt?: Paper.UpdateViewOptions & Paper.RenderCallbackOptions): T;
+        requestCellViewInsertion(cell: Graph.CellRef, opt?: { [key: string]: any }): void;
+
+        requireView<T extends ElementView | LinkView>(cellOrId: Graph.CellRef, opt?: Paper.UpdateViewOptions & Paper.RenderCallbackOptions): T;
 
         updateViews(opt?: Paper.UpdateViewsOptions): Paper.RenderStats & { batches: number };
 
@@ -1933,10 +2112,10 @@ export namespace dia {
 
         disposeHiddenCellViews(): void;
 
-        isCellVisible(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+        isCellVisible(cellOrId: Graph.CellRef): boolean;
 
         updateCellVisibility(
-            cell: Cell | Cell.ID,
+            cell: Graph.CellRef,
             opt?: Paper.CellVisibilityOptions & Paper.UpdateViewOptions & Paper.RenderCallbackOptions
         ): void;
 
@@ -1988,9 +2167,9 @@ export namespace dia {
 
         protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: Paper.MountOptions): number;
 
-        protected prioritizeCellViewMount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+        protected prioritizeCellViewMount(cellOrId: Graph.CellRef): boolean;
 
-        protected prioritizeCellViewUnmount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+        protected prioritizeCellViewUnmount(cellOrId: Graph.CellRef): boolean;
 
         protected isViewMounted(viewOrCid: dia.CellView | string): boolean;
 
@@ -2051,6 +2230,14 @@ export namespace dia {
         protected onCellChanged(cell: Cell, opt: dia.Cell.Options): void;
         protected onCellChanged(cell: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
+        protected onGraphLayerAdd(layer: GraphLayer, collection: mvc.Collection<GraphLayer>, opt: dia.Graph.Options): void;
+
+        protected onGraphLayerRemove(layer: GraphLayer, collection: mvc.Collection<GraphLayer>, opt: dia.Graph.Options): void;
+
+        protected onGraphLayerCollectionReset(layer: mvc.Collection<GraphLayer>, opt: dia.Graph.Options): void;
+
+        protected onGraphLayerCollectionSort(layer: GraphLayer[]): void;
+
         protected onGraphReset(cells: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
         protected onGraphSort(): void;
@@ -2082,6 +2269,11 @@ export namespace dia {
         protected addStylesheet(stylesheet: string): void;
 
         /**
+         * @deprecated use `getLayerView(id).el` instead
+         * **/
+        getLayerNode(id: Paper.Layers | string): SVGElement;
+
+        /**
          * @deprecated use `findElementViewsAtPoint()
          */
         findViewsFromPoint(point: string | Point): ElementView[];
@@ -2107,17 +2299,20 @@ export namespace dia {
         dumpViews(opt?: Paper.ScheduleCellsVisibilityUpdateOptions & Paper.UpdateViewsOptions): void;
     }
 
-    namespace PaperLayer {
+    namespace LayerView {
 
-        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
-            name: string;
+        interface Options<T extends mvc.Model | undefined = undefined> extends mvc.ViewOptions<T, SVGElement> {
+            id: string;
+            paper: Paper;
+            type?: string;
         }
     }
-    class PaperLayer extends mvc.View<undefined, SVGElement> {
 
-        constructor(opt?: PaperLayer.Options);
+    class LayerView<T extends mvc.Model | undefined = undefined> extends mvc.View<T, SVGElement> {
 
-        options: PaperLayer.Options;
+        constructor(opt?: LayerView.Options);
+
+        options: LayerView.Options;
 
         pivotNodes: { [z: number]: Comment };
 
@@ -2127,7 +2322,78 @@ export namespace dia {
 
         insertPivot(z: number): Comment;
 
-        removePivots(): void;
+        isEmpty(): boolean;
+
+        reset(): void;
+
+        setPaperReference(paper: Paper): void;
+
+        unsetPaperReference(): void;
+
+        protected removePivots(): void;
+
+        protected afterPaperReferenceSet(paper: Paper): void;
+
+        protected beforePaperReferenceUnset(paper: Paper): void;
+
+        protected assertPaperReferenceSet(): void;
+    }
+
+    namespace GraphLayer {
+
+        type ID = string;
+
+        interface Attributes extends mvc.ObjectHash {
+            id: ID;
+            type?: string;
+        }
+    }
+
+    class GraphLayer<C extends CellCollection = CellCollection, A extends GraphLayer.Attributes = GraphLayer.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
+
+        declare id: string;
+
+        cellCollection: C;
+        graph: Graph | null;
+
+        constructor(attributes?: DeepPartial<A>, options?: mvc.ModelConstructorOptions<GraphLayer>);
+
+        getCells(): Cell[];
+    }
+
+    class GraphLayerView<T extends GraphLayer = GraphLayer> extends LayerView<T> {
+
+        sort(): void;
+
+        sortExact(): void;
+
+        insertCellView(cellView: CellView): void;
+
+        protected onCellMove(cell: Cell, opt: Graph.Options): void;
+
+        protected onCellChange(cell: Cell, opt: Cell.Options): void;
+
+        protected onCellCollectionSort(collection: CellCollection, opt: Graph.Options): void;
+
+        protected onGraphBatchStop(data: any): void;
+    }
+
+    namespace GridLayerView {
+
+        interface Options extends LayerView.Options {
+            patterns?: Record<string, Paper.GridOptions[]>;
+        }
+    }
+
+    class GridLayerView extends LayerView {
+
+        setGrid(opt?: null | boolean | string | Paper.GridOptions | Paper.GridOptions[]): void;
+
+        renderGrid(): void;
+
+        updateGrid(): void;
+
+        removeGrid(): void;
     }
 
     namespace ToolsView {
@@ -3287,6 +3553,7 @@ export namespace mvc {
 
     interface ModelConstructorOptions<TModel extends Model = Model> extends ModelSetOptions, Parseable {
         collection?: Collection<TModel> | undefined;
+        eventPrefix?: string | undefined;
     }
 
     type CombinedModelConstructorOptions<E, M extends Model<any, any, E> = Model> = ModelConstructorOptions<M> & E;

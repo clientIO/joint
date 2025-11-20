@@ -1,4 +1,5 @@
 import V from '../V/index.mjs';
+import * as g from '../g/index.mjs';
 import {
     isNumber,
     assign,
@@ -12,7 +13,6 @@ import {
     isFunction,
     isPlainObject,
     getByPath,
-    sortElements,
     isString,
     guid,
     normalizeEvent,
@@ -23,6 +23,7 @@ import {
     result,
     camelCase,
     cloneDeep,
+    clone,
     invoke,
     hashCode,
     filter as _filter,
@@ -34,23 +35,37 @@ import {
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views as viewsRegistry } from '../mvc/index.mjs';
-import { CellView, CELL_VIEW_MARKER } from './CellView.mjs';
+import { CellView } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
-import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LayersNames, PaperLayer } from './PaperLayer.mjs';
+import { LayerView } from './LayerView.mjs';
+import { GraphLayerView } from './GraphLayerView.mjs';
+import { LegacyGraphLayerView } from './LegacyGraphLayerView.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { Deque } from '../alg/Deque.mjs';
+import {
+    CELL_MARKER, CELL_VIEW_MARKER, LAYER_VIEW_MARKER, GRAPH_LAYER_VIEW_MARKER
+} from './symbols.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
-import { GridLayer } from './layers/GridLayer.mjs';
+import { GridLayerView } from './GridLayerView.mjs';
 
-const sortingTypes = {
+const paperLayers = {
+    GRID: 'grid',
+    BACK: 'back',
+    /** @deprecated */
+    CELLS: 'cells',
+    FRONT: 'front',
+    TOOLS: 'tools',
+    LABELS: 'labels'
+};
+
+export const sortingTypes = {
     NONE: 'sorting-none',
     APPROX: 'sorting-approximate',
     EXACT: 'sorting-exact'
@@ -85,24 +100,223 @@ const defaultHighlighting = {
     }
 };
 
-const defaultLayers = [{
-    name: LayersNames.GRID,
+const gridPatterns = {
+
+    dot: [{
+        color: '#AAAAAA',
+        thickness: 1,
+        markup: 'rect',
+        render: function(el, opt) {
+            V(el).attr({
+                width: opt.thickness,
+                height: opt.thickness,
+                fill: opt.color
+            });
+        }
+    }],
+
+    fixedDot: [{
+        color: '#AAAAAA',
+        thickness: 1,
+        markup: 'rect',
+        render: function(el, opt) {
+            V(el).attr({ fill: opt.color });
+        },
+        update: function(el, opt, paper) {
+            const { sx, sy } = paper.scale();
+            const width = sx <= 1 ? opt.thickness : opt.thickness / sx;
+            const height = sy <= 1 ? opt.thickness : opt.thickness / sy;
+            V(el).attr({ width, height });
+        }
+    }],
+
+    mesh: [{
+        color: '#AAAAAA',
+        thickness: 1,
+        markup: 'path',
+        render: function(el, opt) {
+
+            var d;
+            var width = opt.width;
+            var height = opt.height;
+            var thickness = opt.thickness;
+
+            if (width - thickness >= 0 && height - thickness >= 0) {
+                d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+            } else {
+                d = 'M 0 0 0 0';
+            }
+
+            V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+        }
+    }],
+
+    doubleMesh: [{
+        color: '#AAAAAA',
+        thickness: 1,
+        markup: 'path',
+        render: function(el, opt) {
+
+            var d;
+            var width = opt.width;
+            var height = opt.height;
+            var thickness = opt.thickness;
+
+            if (width - thickness >= 0 && height - thickness >= 0) {
+                d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+            } else {
+                d = 'M 0 0 0 0';
+            }
+
+            V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+        }
+    }, {
+        color: '#000000',
+        thickness: 3,
+        scaleFactor: 4,
+        markup: 'path',
+        render: function(el, opt) {
+
+            var d;
+            var width = opt.width;
+            var height = opt.height;
+            var thickness = opt.thickness;
+
+            if (width - thickness >= 0 && height - thickness >= 0) {
+                d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
+            } else {
+                d = 'M 0 0 0 0';
+            }
+
+            V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+        }
+    }]
+};
+
+const backgroundPatterns = {
+
+    flipXy: function(img) {
+        // d b
+        // q p
+
+        var canvas = document.createElement('canvas');
+        var imgWidth = img.width;
+        var imgHeight = img.height;
+
+        canvas.width = 2 * imgWidth;
+        canvas.height = 2 * imgHeight;
+
+        var ctx = canvas.getContext('2d');
+        // top-left image
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // xy-flipped bottom-right image
+        ctx.setTransform(-1, 0, 0, -1, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // x-flipped top-right image
+        ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // y-flipped bottom-left image
+        ctx.setTransform(1, 0, 0, -1, 0, canvas.height);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+        return canvas;
+    },
+
+    flipX: function(img) {
+        // d b
+        // d b
+
+        var canvas = document.createElement('canvas');
+        var imgWidth = img.width;
+        var imgHeight = img.height;
+
+        canvas.width = imgWidth * 2;
+        canvas.height = imgHeight;
+
+        var ctx = canvas.getContext('2d');
+        // left image
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // flipped right image
+        ctx.translate(2 * imgWidth, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+        return canvas;
+    },
+
+    flipY: function(img) {
+        // d d
+        // q q
+
+        var canvas = document.createElement('canvas');
+        var imgWidth = img.width;
+        var imgHeight = img.height;
+
+        canvas.width = imgWidth;
+        canvas.height = imgHeight * 2;
+
+        var ctx = canvas.getContext('2d');
+        // top image
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // flipped bottom image
+        ctx.translate(0, 2 * imgHeight);
+        ctx.scale(1, -1);
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+        return canvas;
+    },
+
+    watermark: function(img, opt) {
+        //   d
+        // d
+
+        opt = opt || {};
+
+        var imgWidth = img.width;
+        var imgHeight = img.height;
+
+        var canvas = document.createElement('canvas');
+        canvas.width = imgWidth * 3;
+        canvas.height = imgHeight * 3;
+
+        var ctx = canvas.getContext('2d');
+        var angle = isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
+        var radians = toRad(angle);
+        var stepX = canvas.width / 4;
+        var stepY = canvas.height / 4;
+
+        for (var i = 0; i < 4; i++) {
+            for (var j = 0; j < 4; j++) {
+                if ((i + j) % 2 > 0) {
+                    // reset the current transformations
+                    ctx.setTransform(1, 0, 0, 1, (2 * i - 1) * stepX, (2 * j - 1) * stepY);
+                    ctx.rotate(radians);
+                    ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+                }
+            }
+        }
+
+        return canvas;
+    }
+};
+
+const implicitLayers = [{
+    id: paperLayers.GRID,
+    type: 'GridLayerView',
+    patterns: gridPatterns
 }, {
-    name: LayersNames.BACK,
+    id: paperLayers.BACK,
 }, {
-    name: LayersNames.CELLS,
+    id: paperLayers.LABELS,
 }, {
-    name: LayersNames.LABELS,
+    id: paperLayers.FRONT
 }, {
-    name: LayersNames.FRONT
-}, {
-    name: LayersNames.TOOLS
+    id: paperLayers.TOOLS
 }];
 
 const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 
 export const Paper = View.extend({
-
     className: 'paper',
 
     options: {
@@ -178,7 +392,7 @@ export const Paper = View.extend({
         // }
         defaultLink: function() {
             // Do not create hard dependency on the joint.shapes.standard namespace (by importing the standard.Link model directly)
-            const { cellNamespace } = this.model.get('cells');
+            const { cellNamespace } = this.model.layerCollection;
             const ctor = getByPath(cellNamespace, ['standard', 'Link']);
             if (!ctor) throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
             return new ctor();
@@ -276,12 +490,24 @@ export const Paper = View.extend({
 
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
-            // Do not update connected links when:
-            // 1. the view was just inserted (added to the graph and rendered)
-            // 2. the view was just mounted (added back to the paper by viewport function)
-            // 3. the change was marked as `isolate`.
-            // 4. the view model was just removed from the graph
-            if ((flag & (paper.FLAG_INSERT | paper.FLAG_REMOVE)) || opt.mounting || opt.isolate) return;
+            if (opt.mounting || opt.isolate) {
+                // Do not update connected links when:
+                // - the view was just mounted (added back to the paper by viewport function)
+                // - the change was marked as `isolate`.
+                return;
+            }
+            // Always update connected links when the view model was replaced with another model
+            // with the same id.
+            // Note: the removal is done in 2 steps: remove the old model, add the new model.
+            // We update connected links on the add step.
+            if (!(opt.replace && opt.add)) {
+                if ((flag & (paper.FLAG_INSERT | paper.FLAG_REMOVE))) {
+                    // Do not update connected links when:
+                    // - the view was just inserted (added to the graph and rendered)
+                    // - the view model was just removed from the graph
+                    return;
+                }
+            }
             paper.requestConnectedLinksUpdate(view, priority, opt);
         },
 
@@ -300,6 +526,8 @@ export const Paper = View.extend({
 
         cellViewNamespace: null,
 
+        layerViewNamespace: null,
+
         routerNamespace: null,
 
         connectorNamespace: null,
@@ -312,7 +540,7 @@ export const Paper = View.extend({
 
         connectionPointNamespace: connectionPoints,
 
-        overflow: false
+        overflow: false,
     },
 
     events: {
@@ -356,10 +584,12 @@ export const Paper = View.extend({
     `,
 
     svg: null,
-    viewport: null,
     defs: null,
     tools: null,
     layers: null,
+
+    // deprecated, use layers element instead
+    viewport: null,
 
     // For storing the current transformation matrix (CTM) of the paper's viewport.
     _viewportMatrix: null,
@@ -371,7 +601,6 @@ export const Paper = View.extend({
     // Paper Layers
     _layers: null,
 
-    SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
     // If you interact with these elements,
     // the default interaction such as `element move` is prevented.
@@ -394,13 +623,15 @@ export const Paper = View.extend({
     // to mitigate the differences between the model and view geometry.
     DEFAULT_FIND_BUFFER: 200,
 
-    // Default layer to insert the cell views into.
-    DEFAULT_CELL_LAYER: LayersNames.CELLS,
-
-    // Update flags
     FLAG_INSERT: 1<<30,
     FLAG_REMOVE: 1<<29,
     FLAG_INIT: 1<<28,
+
+    // Layers that are always present on the paper (e.g. grid, back, front, tools)
+    implicitLayers,
+
+    // Reference layer for inserting new graph layers.
+    graphLayerRefId: paperLayers.LABELS,
 
     init: function() {
 
@@ -411,6 +642,14 @@ export const Paper = View.extend({
             /* eslint-enable no-undef */
         }
 
+        const defaultLayerViewNamespace = {
+            LayerView,
+            GraphLayerView,
+            GridLayerView,
+        };
+
+        this.layerViewNamespace = defaultsDeep({}, options.layerViewNamespace || {}, defaultLayerViewNamespace);
+
         const model = this.model = options.model || new Graph;
 
         // This property tells us if we need to keep the compatibility
@@ -420,19 +659,18 @@ export const Paper = View.extend({
         // Layers (SVGGroups)
         this._layers = {
             viewsMap: {},
-            namesMap: {},
             order: [],
         };
-
-        this.cloneOptions();
-        this.render();
-        this._setDimensions();
-        this.startListening();
 
         // Hash of all cell views.
         this._views = {};
         this._viewPlaceholders = {};
         this._idToCid = {};
+
+        this.cloneOptions();
+        this.render();
+        this._setDimensions();
+        this.startListening();
 
         // Mouse wheel events buffer
         this._mw_evt_buffer = {
@@ -441,7 +679,7 @@ export const Paper = View.extend({
         };
 
         // Render existing cells in the graph
-        this.resetViews(model.attributes.cells.models);
+        this.resetViews(model.getCells());
     },
 
     _resetUpdates: function() {
@@ -466,10 +704,13 @@ export const Paper = View.extend({
         var model = this.model;
         this.listenTo(model, 'add', this.onCellAdded)
             .listenTo(model, 'remove', this.onCellRemoved)
-            .listenTo(model, 'change', this.onCellChange)
             .listenTo(model, 'reset', this.onGraphReset)
-            .listenTo(model, 'sort', this.onGraphSort)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
+
+        this.listenTo(model, 'layer:add', this.onGraphLayerAdd)
+            .listenTo(model, 'layer:remove', this.onGraphLayerRemove)
+            .listenTo(model, 'layers:sort', this.onGraphLayerCollectionSort);
+
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
             .on('transform', this.update);
@@ -490,33 +731,24 @@ export const Paper = View.extend({
         const viewLike = this._getCellViewLike(cell);
         if (!viewLike) return;
         if (viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) {
+            // It's a cell placeholder, it must be in the unmounted list.
+            // Remove it from there and unregister.
+            this._updates.unmountedList.delete(viewLike.cid);
             this._unregisterCellViewPlaceholder(viewLike);
         } else {
             this.requestViewUpdate(viewLike, this.FLAG_REMOVE, viewLike.UPDATE_PRIORITY, opt);
         }
     },
 
-    onCellChange: function(cell, opt) {
-        if (cell === this.model.attributes.cells) return;
-        if (
-            cell.hasChanged('layer') ||
-            (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX)
-        ) {
-            const viewLike = this._getCellViewLike(cell);
-            if (viewLike) {
-                this.requestViewUpdate(viewLike, this.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
-            }
-        }
-    },
-
-    onGraphReset: function(collection, opt) {
-        this.resetLayers();
-        this.resetViews(collection.models, opt);
-    },
-
-    onGraphSort: function() {
-        if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
-        this.sortViews();
+    onGraphReset: function(_collection, opt) {
+        // Re-render all graph layer views
+        // but keep the implicit layer views.
+        this.renderGraphLayerViews();
+        this.resetLayerViews();
+        // Backward compatibility: reassign the `cells` property
+        // with the default layer view.
+        this.assertLayerViews();
+        this.resetViews(this.model.getCells(), opt);
     },
 
     onGraphBatchStop: function(data) {
@@ -529,10 +761,95 @@ export const Paper = View.extend({
                 this.updateViews(data);
             }
         }
-        var sortDelayingBatches = this.SORT_DELAYING_BATCHES;
-        if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
-            this.sortViews();
+    },
+
+    /**
+    * @protected
+    * @description When a new layer is added to the graph, we create a new layer view
+    **/
+    onGraphLayerAdd: function(layer, _, opt) {
+        if (this.hasLayerView(layer.id)) return;
+
+        const layerView = this.createLayerView({
+            id: layer.id,
+            model: layer
+        });
+
+        const layers = this.model.getLayers();
+        let before;
+        // Note: There is always at least one graph layer.
+        if (layers[layers.length - 1] === layer) {
+            // This is the last layer, so insert before the labels layer
+            before = paperLayers.LABELS;
+        } else {
+            // There is a layer after the current one, so insert before that one
+            const index = layers.indexOf(layer);
+            before = layers[index + 1].id;
         }
+
+        this.addLayerView(layerView, { before });
+    },
+
+    /**
+     * @protected
+     * @description When a layer is removed from the graph, we remove the corresponding layer view
+     **/
+    onGraphLayerRemove: function(layer, _, opt) {
+        if (!this.hasLayerView(layer)) return;
+
+        // Request layer removal. Since the UPDATE_PRIORITY is lower
+        // than cells update priority, the cell views will be removed first.
+        this.requestLayerViewRemoval(layer);
+    },
+
+    /**
+     * @protected
+     * @description When the graph layer collection is sorted,
+     * we reorder all graph layer views.
+     **/
+    onGraphLayerCollectionSort: function(layerCollection) {
+        layerCollection.each(layer => {
+            if (!this.hasLayerView(layer)) return;
+
+            this.moveLayerView(layer, { before: this.graphLayerRefId });
+        });
+    },
+
+    /**
+     * @protected
+     * @description Resets all graph layer views.
+     */
+    renderGraphLayerViews: function() {
+        // Remove all existing graph layer views
+        // Note: we don't use `getGraphLayerViews()` here because
+        // rendered graph layer views could be different from the ones
+        // in the graph layer collection (`onResetGraphLayerCollectionReset`).
+        this.getLayerViews().forEach(layerView => {
+            if (!layerView[GRAPH_LAYER_VIEW_MARKER]) return;
+            this._removeLayerView(layerView);
+        });
+        // Create and insert new graph layer views
+        this.model.getLayers().forEach(layer => {
+            const layerView = this.createLayerView({
+                id: layer.id,
+                model: layer
+            });
+            // Insert the layer view into the paper layers, just before the labels layer.
+            // All cell layers are positioned between the "back" and "labels" layers,
+            // with the default "cells" layer originally occupying this position.
+            this.addLayerView(layerView, { before: this.graphLayerRefId });
+        });
+    },
+
+    /**
+     * @protected
+     * @description Renders all implicit layer views.
+     */
+    renderImplicitLayerViews: function() {
+        this.implicitLayers.forEach(layerInit => {
+            const layerView = this.createLayerView(layerInit);
+            this.addLayerView(layerView);
+        });
     },
 
     cloneOptions: function() {
@@ -628,121 +945,301 @@ export const Paper = View.extend({
         }];
     },
 
-    hasLayerView(layerName) {
-        return  (layerName in this._layers.viewsMap);
-    },
-
-    getLayerView(layerName) {
-        const { _layers: { viewsMap }} = this;
-        if (layerName in viewsMap) return viewsMap[layerName];
-        throw new Error(`dia.Paper: Unknown layer "${layerName}".`);
-    },
-
-    getLayerNode(layerName) {
-        return this.getLayerView(layerName).el;
-    },
-
-    _removeLayer(layerView) {
-        this._unregisterLayer(layerView);
-        layerView.remove();
-    },
-
-    _unregisterLayer(layerView) {
-        const { _layers: { viewsMap, namesMap, order }} = this;
-        const layerName = this._getLayerName(layerView);
-        order.splice(order.indexOf(layerName), 1);
-        delete namesMap[layerView.cid];
-        delete viewsMap[layerName];
-    },
-
-    _registerLayer(layerName, layerView, beforeLayerView) {
-        const { _layers: { viewsMap, namesMap, order }} = this;
-        if (beforeLayerView) {
-            const beforeLayerName = this._getLayerName(beforeLayerView);
-            order.splice(order.indexOf(beforeLayerName), 0, layerName);
+    /**
+     * @public
+     * @description Checks whether the layer view exists by the given layer id or layer model.
+     * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
+     * @return {boolean} True if the layer view exists, false otherwise.
+     */
+    hasLayerView(layerRef) {
+        let layerId;
+        if (isString(layerRef)) {
+            layerId = layerRef;
+        } else if (layerRef) {
+            layerId = layerRef.id;
         } else {
-            order.push(layerName);
+            return false;
         }
-        viewsMap[layerName] = layerView;
-        namesMap[layerView.cid] = layerName;
+        return (layerId in this._layers.viewsMap);
     },
 
-    _getLayerView(layer) {
-        const { _layers: { namesMap, viewsMap }} = this;
-        if (layer instanceof PaperLayer) {
-            if (layer.cid in namesMap) return layer;
-            return null;
+    /**
+     * @public
+     * @description Returns the layer view by the given layer id or layer model.
+     * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
+     * @return {dia.LayerView} The layer view.
+     * @throws {Error} if the layer view is not found
+     */
+    getLayerView(layerRef) {
+
+        let layerId;
+        if (isString(layerRef)) {
+            layerId = layerRef;
+        } else if (layerRef) {
+            layerId = layerRef.id;
+        } else {
+            throw new Error('dia.Paper: No layer provided.');
         }
-        if (layer in viewsMap) return viewsMap[layer];
-        return null;
-    },
 
-    _getLayerName(layerView) {
-        const { _layers: { namesMap }} = this;
-        return namesMap[layerView.cid];
-    },
-
-    _requireLayerView(layer) {
-        const layerView = this._getLayerView(layer);
+        const layerView = this._layers.viewsMap[layerId];
         if (!layerView) {
-            if (layer instanceof PaperLayer) {
-                throw new Error('dia.Paper: The layer is not registered.');
-            } else {
-                throw new Error(`dia.Paper: Unknown layer "${layer}".`);
-            }
+            throw new Error(`dia.Paper: Unknown layer view "${layerId}".`);
         }
+
         return layerView;
     },
 
-    hasLayer(layer) {
-        return this._getLayerView(layer) !== null;
+    /**
+     * @deprecated use `getLayerView(layerId).el` instead
+     */
+    getLayerNode(layerId) {
+        return this.getLayerView(layerId).el;
     },
 
-    removeLayer(layer) {
-        const layerView = this._requireLayerView(layer);
+    /**
+     * @protected
+     * @description Removes the given layer view from the paper.
+     * It does not check whether the layer view is empty.
+     * @param {dia.LayerView} layerView - The layer view to remove.
+     */
+    _removeLayerView(layerView) {
+        this._unregisterLayerView(layerView);
+        layerView.remove();
+    },
+
+
+    /**
+     * @protected
+     * @description Removes all layer views from the paper.
+     * It does not check whether the layer views are empty.
+     */
+    _removeLayerViews: function() {
+        Object.values(this._layers.viewsMap).forEach(layerView => {
+            this._removeLayerView(layerView);
+        });
+    },
+
+    /**
+     * @protected
+     * @description Unregisters the given layer view from the paper.
+     * @param {dia.LayerView} layerView - The layer view to unregister.
+     */
+    _unregisterLayerView(layerView) {
+        const { _layers: { viewsMap, order }} = this;
+        const layerId = layerView.id;
+        // Remove the layer id from the order list.
+        const layerIndex = order.indexOf(layerId);
+        if (layerIndex !== -1) {
+            order.splice(layerIndex, 1);
+        }
+        // Unlink the layer view from the paper.
+        layerView.unsetPaperReference();
+        // Remove the layer view from the paper's registry.
+        delete viewsMap[layerId];
+    },
+
+    /**
+     * @protected
+     * @description Registers the given layer view in the paper.
+     * @param {dia.LayerView} layerView - The layer view to register.
+     * @throws {Error} if the layer view is not an instance of dia.LayerView
+     * @throws {Error} if the layer view already exists in the paper
+     */
+    _registerLayerView(layerView) {
+        if (!layerView || !layerView[LAYER_VIEW_MARKER]) {
+            throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
+        }
+
+        if (this.hasLayerView(layerView.id)) {
+            throw new Error(`dia.Paper: The layer view "${layerView.id}" already exists.`);
+        }
+        // Link the layer view back to the paper.
+        layerView.setPaperReference(this);
+        // Store the layer view in the paper's registry.
+        this._layers.viewsMap[layerView.id] = layerView;
+    },
+
+    /**
+     * @public
+     * @description Removes the layer view by the given layer id or layer model.
+     * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
+     * @throws {Error} if the layer view is not empty
+     */
+    removeLayerView(layerRef) {
+        const layerView = this.getLayerView(layerRef);
         if (!layerView.isEmpty()) {
-            throw new Error('dia.Paper: The layer is not empty.');
+            throw new Error('dia.Paper: The layer view is not empty.');
         }
-        this._removeLayer(layerView);
+
+        this._removeLayerView(layerView);
     },
 
-    addLayer(layerName, layerView, options = {}) {
-        if (!layerName || typeof layerName !== 'string') {
-            throw new Error('dia.Paper: The layer name must be provided.');
+    /**
+     * @protected
+     * @description Schedules the layer view removal by the given layer id or layer model.
+     * The actual removal will be performed during the paper update cycle.
+     * @param {string|dia.GraphLayer} layerRef - Layer id or layer model.
+     * @param {Object} [opt] - Update options.
+     */
+    requestLayerViewRemoval(layerRef, opt) {
+        const layerView = this.getLayerView(layerRef);
+        const { FLAG_REMOVE } = this;
+        const { UPDATE_PRIORITY } = layerView;
+
+        this.requestViewUpdate(layerView, FLAG_REMOVE, UPDATE_PRIORITY, opt);
+    },
+
+    /**
+     * @public
+     * @internal not documented
+     * @description Schedules the cell view insertion into the appropriate layer view.
+     * The actual insertion will be performed during the paper update cycle.
+     * @param {dia.Cell} cell - The cell model whose view should be inserted.
+     * @param {Object} [opt] - Update options.
+     */
+    requestCellViewInsertion(cell, opt) {
+        const viewLike = this._getCellViewLike(cell);
+        if (!viewLike) return;
+        this.requestViewUpdate(viewLike, this.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
+    },
+
+    /**
+     * @private
+     * Helper method for addLayerView and moveLayerView methods
+     */
+    _getBeforeLayerViewFromOptions(layerView, options) {
+        let { before = null, index } = options;
+
+        if (before && index !== undefined) {
+            throw new Error('dia.Paper: Options "before" and "index" are mutually exclusive.');
         }
-        if (this._getLayerView(layerName)) {
-            throw new Error(`dia.Paper: The layer "${layerName}" already exists.`);
-        }
-        if (!(layerView instanceof PaperLayer)) {
-            throw new Error('dia.Paper: The layer view is not an instance of dia.PaperLayer.');
-        }
-        const { insertBefore } = options;
-        if (!insertBefore) {
-            this._registerLayer(layerName, layerView, null);
-            this.layers.appendChild(layerView.el);
+
+        let computedBefore;
+        if (index !== undefined) {
+            const { _layers: { order }} = this;
+            if (index >= order.length) {
+                // If index is greater than the number of layers,
+                // return before as null (move to the end).
+                computedBefore = null;
+            } else if (index < 0) {
+                // If index is negative, move to the beginning.
+                computedBefore = order[0];
+            } else {
+                const originalIndex = order.indexOf(layerView.id);
+                if (originalIndex !== -1 && index > originalIndex) {
+                    // If moving a layer upwards in the stack, we need to adjust the index
+                    // to account for the layer being removed from its original position.
+                    index += 1;
+                }
+                // Otherwise, get the layer ID at the specified index.
+                computedBefore = order[index] || null;
+            }
         } else {
-            const beforeLayerView = this._requireLayerView(insertBefore);
-            this._registerLayer(layerName, layerView, beforeLayerView);
-            this.layers.insertBefore(layerView.el, beforeLayerView.el);
+            computedBefore = before;
         }
+
+        return computedBefore ? this.getLayerView(computedBefore) : null;
     },
 
-    moveLayer(layer, insertBefore) {
-        const layerView = this._requireLayerView(layer);
-        if (layerView === this._getLayerView(insertBefore)) return;
-        const layerName = this._getLayerName(layerView);
-        this._unregisterLayer(layerView);
-        this.addLayer(layerName, layerView, { insertBefore });
+    /**
+     * @public
+     * @description Adds the layer view to the paper.
+     * @param {dia.LayerView} layerView - The layer view to add.
+     * @param {Object} [options] - Adding options.
+     * @param {string|dia.GraphLayer} [options.before] - Layer id or layer model before
+     */
+    addLayerView(layerView, options = {}) {
+        this._registerLayerView(layerView);
+
+        const beforeLayerView = this._getBeforeLayerViewFromOptions(layerView, options);
+        this.insertLayerView(layerView, beforeLayerView);
     },
 
-    getLayerNames() {
-        // Returns a sorted array of layer names.
+    /**
+     * @public
+     * @description Moves the layer view.
+     * @param {Paper.LayerRef} layerRef - The layer view reference to move.
+     * @param {Object} [options] - Moving options.
+     * @param {Paper.LayerRef} [options.before] - Layer id or layer model before
+     * @param {number} [options.index] - Zero-based index to which to move the layer view.
+     */
+    moveLayerView(layerRef, options = {}) {
+        const layerView = this.getLayerView(layerRef);
+
+        const beforeLayerView = this._getBeforeLayerViewFromOptions(layerView, options);
+        this.insertLayerView(layerView, beforeLayerView);
+    },
+
+    /**
+     * @protected
+     * @description Inserts the layer view into the paper.
+     * If the layer view already exists in the paper, it is moved to the new position.
+     * @param {dia.LayerView} layerView - The layer view to insert.
+     * @param {dia.LayerView} [before] - Layer view before
+     * which the layer view should be inserted.
+     */
+    insertLayerView(layerView, beforeLayerView) {
+        const layerId = layerView.id;
+
+        const { _layers: { order }} = this;
+        const currentLayerIndex = order.indexOf(layerId);
+
+        // Should the layer view be inserted before another layer view?
+        if (beforeLayerView) {
+            const beforeLayerViewId = beforeLayerView.id;
+            if (layerId === beforeLayerViewId) {
+                // The layer view is already in the right place.
+                return;
+            }
+
+            let beforeLayerPosition = order.indexOf(beforeLayerViewId);
+            // Remove from the `order` list if the layer view is already in the order.
+            if (currentLayerIndex !== -1) {
+                if (currentLayerIndex < beforeLayerPosition) {
+                    beforeLayerPosition -= 1;
+                }
+                order.splice(currentLayerIndex, 1);
+            }
+            order.splice(beforeLayerPosition, 0, layerId);
+            this.layers.insertBefore(layerView.el, beforeLayerView.el);
+            return;
+        }
+
+        // Remove from the `order` list if the layer view is already in the order.
+        // This is needed for the case when the layer view is inserted in the new position.
+        if (currentLayerIndex !== -1) {
+            order.splice(currentLayerIndex, 1);
+        }
+        order.push(layerId);
+        this.layers.appendChild(layerView.el);
+    },
+
+    /**
+     * @protected
+     * @description Returns an array of layer view ids in the order they are rendered.
+     * @returns {string[]} An array of layer view ids.
+     */
+    getLayerViewOrder() {
         return this._layers.order.slice();
     },
 
-    getLayers() {
-        // Returns a sorted array of layer views.
-        return this.getLayerNames().map(name => this.getLayerView(name));
+    /**
+     * @public
+     * @description Returns an array of layer views in the order they are rendered.
+     * @returns {dia.LayerView[]} An array of layer views.
+     */
+    getLayerViews() {
+        return this.getLayerViewOrder().map(id => this.getLayerView(id));
+    },
+
+    /**
+     * @public
+     * @description Returns an array of graph layer views in the order they are rendered.
+     * @returns {dia.GraphLayerView[]} An array of graph layer views.
+     */
+    getGraphLayerViews() {
+        const { _layers: { viewsMap }} = this;
+        return this.model.getLayers().map(layer => viewsMap[layer.id]);
     },
 
     render: function() {
@@ -758,7 +1255,7 @@ export const Paper = View.extend({
         this.defs = defs;
         this.layers = layers;
 
-        this.renderLayers();
+        this.renderLayerViews();
 
         V.ensureId(svg);
 
@@ -780,48 +1277,86 @@ export const Paper = View.extend({
         V(this.svg).prepend(V.createSVGStyle(css));
     },
 
-    createLayer(name) {
-        switch (name) {
-            case LayersNames.GRID:
-                return new GridLayer({ name, paper: this, patterns: this.constructor.gridPatterns });
-            default:
-                return new PaperLayer({ name });
+    /**
+     * @protected
+     * @description Creates a layer view instance based on the provided options.
+     * It finds the appropriate layer view constructor from the paper's
+     * `layerViewNamespace` and instantiates it.
+     * @param {*} options See `dia.LayerView` options.
+     * @returns {dia.LayerView}
+     */
+    createLayerView(options) {
+        if (options == null) {
+            throw new Error('dia.Paper: Layer view options are required.');
         }
+
+        if (options.id == null) {
+            throw new Error('dia.Paper: Layer view id is required.');
+        }
+
+        const viewOptions = clone(options);
+
+        let viewConstructor;
+        if (viewOptions.model) {
+            const modelType = viewOptions.model.get('type') || viewOptions.model.constructor.name;
+            const type = modelType + 'View';
+
+            // For backward compatibility we use the LegacyGraphLayerView for the default `cells` layer.
+            if (this.model.legacyMode) {
+                viewConstructor = LegacyGraphLayerView;
+            } else {
+                viewConstructor = this.layerViewNamespace[type] || LayerView;
+            }
+        } else {
+            // Paper layers
+            const type = viewOptions.type;
+            viewConstructor = this.layerViewNamespace[type] || LayerView;
+        }
+
+        return new viewConstructor(viewOptions);
     },
 
-    renderLayer: function(name) {
-        const layerView = this.createLayer(name);
-        this.addLayer(name, layerView);
-        return layerView;
+    /**
+     * @protected
+     * @description Renders all paper layer views and graph layer views.
+     */
+    renderLayerViews: function() {
+        this._removeLayerViews();
+        // Render the paper layers.
+        this.renderImplicitLayerViews();
+        // Render the layers.
+        this.renderGraphLayerViews();
+        // Ensure that essential layer views are present.
+        this.assertLayerViews();
     },
 
-    renderLayers: function(layers = defaultLayers) {
-        this.removeLayers();
-        layers.forEach(({ name }) => this.renderLayer(name));
-        // Throws an exception if doesn't exist
-        const cellsLayerView = this.getLayerView(LayersNames.CELLS);
-        const toolsLayerView = this.getLayerView(LayersNames.TOOLS);
-        const labelsLayerView = this.getLayerView(LayersNames.LABELS);
+    /**
+     * @protected
+     * @description Ensures that essential layer views are present on the paper.
+     * @throws {Error} if any of the essential layer views is missing
+     */
+    assertLayerViews: function() {
+        // Throws an exception if essential layer views are missing.
+        const cellsLayerView = this.getLayerView(this.model.getDefaultLayer().id);
+        const toolsLayerView = this.getLayerView(paperLayers.TOOLS);
+        const labelsLayerView = this.getLayerView(paperLayers.LABELS);
+
         // backwards compatibility
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
-        // user-select: none;
-        cellsLayerView.vel.addClass(addClassNamePrefix('viewport'));
+        // Backwards compatibility: same as `LegacyGraphLayerView` we keep
+        // the `viewport` class on the labels layer.
         labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
-        cellsLayerView.el.style.webkitUserSelect = 'none';
-        cellsLayerView.el.style.userSelect = 'none';
         labelsLayerView.el.style.webkitUserSelect = 'none';
         labelsLayerView.el.style.userSelect = 'none';
     },
 
-    removeLayers: function() {
-        const { _layers: { viewsMap }} = this;
-        Object.values(viewsMap).forEach(layerView => this._removeLayer(layerView));
-    },
-
-    resetLayers: function() {
-        const { _layers: { viewsMap }} = this;
-        Object.values(viewsMap).forEach(layerView => layerView.removePivots());
+    /**
+     * @protected
+     * @description Resets all layer views.
+     */
+    resetLayerViews: function() {
+        this.getLayerViews().forEach(layerView => layerView.reset());
     },
 
     update: function() {
@@ -947,28 +1482,31 @@ export const Paper = View.extend({
 
     clientMatrix: function() {
 
-        return V.createSVGMatrix(this.cells.getScreenCTM());
+        return V.createSVGMatrix(this.layers.getScreenCTM());
     },
 
     requestConnectedLinksUpdate: function(view, priority, opt) {
-        if (view instanceof CellView) {
-            var model = view.model;
-            var links = this.model.getConnectedLinks(model);
-            for (var j = 0, n = links.length; j < n; j++) {
-                var link = links[j];
-                var linkView = this._getCellViewLike(link);
-                if (!linkView) continue;
-                // We do not have to update placeholder views.
-                // They will be updated on initial render.
-                if (linkView[CELL_VIEW_PLACEHOLDER_MARKER]) continue;
-                var nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
-                this.scheduleViewUpdate(linkView, linkView.getFlag(LinkView.Flags.UPDATE), nextPriority, opt);
-            }
+        if (!view || !view[CELL_VIEW_MARKER]) return;
+        const model = view.model;
+        const links = this.model.getConnectedLinks(model);
+        for (let j = 0, n = links.length; j < n; j++) {
+            const link = links[j];
+            const linkView = this._getCellViewLike(link);
+            if (!linkView) continue;
+            // We do not have to update placeholder views.
+            // They will be updated on initial render.
+            if (linkView[CELL_VIEW_PLACEHOLDER_MARKER]) continue;
+            const flagLabels = [LinkView.Flags.UPDATE];
+            // We need to tell the link view which end requested this update.
+            if (link.getTargetCell() === model) flagLabels.push(LinkView.Flags.TARGET);
+            if (link.getSourceCell() === model) flagLabels.push(LinkView.Flags.SOURCE);
+            const nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
+            this.scheduleViewUpdate(linkView, linkView.getFlag(flagLabels), nextPriority, opt);
         }
     },
 
     forcePostponedViewUpdate: function(view, flag) {
-        if (!view || !(view instanceof CellView)) return false;
+        if (!view || !view[CELL_VIEW_MARKER]) return false;
         const model = view.model;
         if (model.isElement()) return false;
         const dumpOptions = { silent: true };
@@ -1070,6 +1608,12 @@ export const Paper = View.extend({
         if (!view) return 0;
         const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT } = this;
         const { model } = view;
+        if (view[GRAPH_LAYER_VIEW_MARKER]) {
+            if (flag & FLAG_REMOVE) {
+                this.removeLayerView(view);
+                return 0;
+            }
+        }
         if (view[CELL_VIEW_MARKER]) {
             if (flag & FLAG_REMOVE) {
                 this.removeView(model);
@@ -1490,6 +2034,8 @@ export const Paper = View.extend({
             let view = viewsRegistry[cid] || this._viewPlaceholders[cid];
             if (!view) {
                 // This should not occur
+                // Prevent looping over this invalid cid
+                unmountedList.popHead();
                 continue;
             }
             if (!this._evalCellVisibility(view, false, visibilityCb)) {
@@ -1669,7 +2215,7 @@ export const Paper = View.extend({
         }
         this.options.frozen = updates.keyFrozen = false;
         if (updates.sort) {
-            this.sortViews();
+            this.sortLayerViews();
             updates.sort = false;
         }
     },
@@ -1704,8 +2250,8 @@ export const Paper = View.extend({
         this.freeze();
         this._updates.disabled = true;
         //clean up all DOM elements/views to prevent memory leaks
-        this.removeLayers();
         this.removeViews();
+        this._removeLayerViews();
     },
 
     getComputedSize: function() {
@@ -1953,7 +2499,17 @@ export const Paper = View.extend({
             return this.model.getBBox() || new Rect();
         }
 
-        return V(this.cells).getBBox();
+        const graphLayerViews = this.getGraphLayerViews();
+        // Return an empty rectangle if there are no layers
+        // should not happen in practice
+        if (graphLayerViews.length === 0) {
+            return new Rect();
+        }
+
+        // Combine content area rectangles from all layers,
+        // considering only graph layer views to exclude non-cell elements (e.g., grid, tools)
+        const bbox = g.Rect.fromRectUnion(...graphLayerViews.map(view => view.vel.getBBox()));
+        return bbox;
     },
 
     // Return the dimensions of the content bbox in the paper units (as it appears on screen).
@@ -2031,7 +2587,7 @@ export const Paper = View.extend({
             cid,
             model: cell,
             interactive,
-            labelsLayer: labelsLayer === true ? LayersNames.LABELS : labelsLayer
+            labelsLayer: labelsLayer === true ? paperLayers.LABELS : labelsLayer
         });
     },
 
@@ -2184,7 +2740,7 @@ export const Paper = View.extend({
             this.renderView(cells[i], opt);
         }
         this.unfreeze({ key });
-        this.sortViews();
+        this.sortLayerViews();
     },
 
     removeViews: function() {
@@ -2200,8 +2756,7 @@ export const Paper = View.extend({
         this._idToCid = {};
     },
 
-    sortViews: function() {
-
+    sortLayerViews: function() {
         if (!this.isExactSorting()) {
             // noop
             return;
@@ -2211,41 +2766,21 @@ export const Paper = View.extend({
             this._updates.sort = true;
             return;
         }
-        this.sortViewsExact();
+        this.sortLayerViewsExact();
     },
 
-    sortViewsExact: function() {
-
-        // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
-        // associated model `z` attribute.
-
-        var cellNodes = Array.from(this.cells.childNodes).filter(node => node.getAttribute('model-id'));
-        var cells = this.model.get('cells');
-
-        sortElements(cellNodes, function(a, b) {
-            var cellA = cells.get(a.getAttribute('model-id'));
-            var cellB = cells.get(b.getAttribute('model-id'));
-            var zA = cellA.attributes.z || 0;
-            var zB = cellB.attributes.z || 0;
-            return (zA === zB) ? 0 : (zA < zB) ? -1 : 1;
-        });
+    sortLayerViewsExact: function() {
+        this.getGraphLayerViews().forEach(view => view.sortExact());
     },
 
     insertView: function(view, isInitialInsert) {
-        const { el, model } = view;
 
-        const layerName = model.get('layer') || this.DEFAULT_CELL_LAYER;
-        const layerView = this.getLayerView(layerName);
+        // layer can be null if it is added to the graph with 'dry' option
+        const layerId = this.model.getCellLayerId(view.model);
+        const layerView = this.getLayerView(layerId);
 
-        switch (this.options.sorting) {
-            case sortingTypes.APPROX:
-                layerView.insertSortedNode(el, model.get('z'));
-                break;
-            case sortingTypes.EXACT:
-            default:
-                layerView.insertNode(el);
-                break;
-        }
+        layerView.insertCellView(view);
+
         view.onMount(isInitialInsert);
     },
 
@@ -2308,7 +2843,7 @@ export const Paper = View.extend({
     findView: function($el) {
 
         var el = isString($el)
-            ? this.cells.querySelector($el)
+            ? this.layers.querySelector($el)
             : $el instanceof $ ? $el[0] : $el;
 
         var id = this.findAttribute('model-id', el);
@@ -2354,7 +2889,7 @@ export const Paper = View.extend({
         var views = this.model.getElements().map(this.findViewByModel, this);
 
         return views.filter(function(view) {
-            return view && view.vel.getBBox({ target: this.cells }).containsPoint(p);
+            return view && view.vel.getBBox({ target: this.layers }).containsPoint(p);
         }, this);
     },
 
@@ -2368,7 +2903,7 @@ export const Paper = View.extend({
         var method = opt.strict ? 'containsRect' : 'intersect';
 
         return views.filter(function(view) {
-            return view && rect[method](view.vel.getBBox({ target: this.cells }));
+            return view && rect[method](view.vel.getBBox({ target: this.layers }));
         }, this);
     },
 
@@ -3286,7 +3821,7 @@ export const Paper = View.extend({
             return true;
         }
 
-        if (view && view.model && (view.model instanceof Cell)) {
+        if (view && view.model && (view.model[CELL_MARKER])) {
             return false;
         }
 
@@ -3302,13 +3837,13 @@ export const Paper = View.extend({
         options.gridSize = gridSize;
         if (options.drawGrid && !options.drawGridSize) {
             // Do not redraw the grid if the `drawGridSize` is set.
-            this.getLayerView(LayersNames.GRID).renderGrid();
+            this.getLayerView(paperLayers.GRID).renderGrid();
         }
         return this;
     },
 
     setGrid: function(drawGrid) {
-        this.getLayerView(LayersNames.GRID).setGrid(drawGrid);
+        this.getLayerView(paperLayers.GRID).setGrid(drawGrid);
         return this;
     },
 
@@ -3657,201 +4192,8 @@ export const Paper = View.extend({
 
     sorting: sortingTypes,
 
-    Layers: LayersNames,
+    Layers: paperLayers,
 
-    backgroundPatterns: {
-
-        flipXy: function(img) {
-            // d b
-            // q p
-
-            var canvas = document.createElement('canvas');
-            var imgWidth = img.width;
-            var imgHeight = img.height;
-
-            canvas.width = 2 * imgWidth;
-            canvas.height = 2 * imgHeight;
-
-            var ctx = canvas.getContext('2d');
-            // top-left image
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // xy-flipped bottom-right image
-            ctx.setTransform(-1, 0, 0, -1, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // x-flipped top-right image
-            ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // y-flipped bottom-left image
-            ctx.setTransform(1, 0, 0, -1, 0, canvas.height);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-
-            return canvas;
-        },
-
-        flipX: function(img) {
-            // d b
-            // d b
-
-            var canvas = document.createElement('canvas');
-            var imgWidth = img.width;
-            var imgHeight = img.height;
-
-            canvas.width = imgWidth * 2;
-            canvas.height = imgHeight;
-
-            var ctx = canvas.getContext('2d');
-            // left image
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // flipped right image
-            ctx.translate(2 * imgWidth, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-
-            return canvas;
-        },
-
-        flipY: function(img) {
-            // d d
-            // q q
-
-            var canvas = document.createElement('canvas');
-            var imgWidth = img.width;
-            var imgHeight = img.height;
-
-            canvas.width = imgWidth;
-            canvas.height = imgHeight * 2;
-
-            var ctx = canvas.getContext('2d');
-            // top image
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-            // flipped bottom image
-            ctx.translate(0, 2 * imgHeight);
-            ctx.scale(1, -1);
-            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-
-            return canvas;
-        },
-
-        watermark: function(img, opt) {
-            //   d
-            // d
-
-            opt = opt || {};
-
-            var imgWidth = img.width;
-            var imgHeight = img.height;
-
-            var canvas = document.createElement('canvas');
-            canvas.width = imgWidth * 3;
-            canvas.height = imgHeight * 3;
-
-            var ctx = canvas.getContext('2d');
-            var angle = isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
-            var radians = toRad(angle);
-            var stepX = canvas.width / 4;
-            var stepY = canvas.height / 4;
-
-            for (var i = 0; i < 4; i++) {
-                for (var j = 0; j < 4; j++) {
-                    if ((i + j) % 2 > 0) {
-                        // reset the current transformations
-                        ctx.setTransform(1, 0, 0, 1, (2 * i - 1) * stepX, (2 * j - 1) * stepY);
-                        ctx.rotate(radians);
-                        ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
-                    }
-                }
-            }
-
-            return canvas;
-        }
-    },
-
-    gridPatterns: {
-        dot: [{
-            color: '#AAAAAA',
-            thickness: 1,
-            markup: 'rect',
-            render: function(el, opt) {
-                V(el).attr({
-                    width: opt.thickness,
-                    height: opt.thickness,
-                    fill: opt.color
-                });
-            }
-        }],
-        fixedDot: [{
-            color: '#AAAAAA',
-            thickness: 1,
-            markup: 'rect',
-            render: function(el, opt) {
-                V(el).attr({ fill: opt.color });
-            },
-            update: function(el, opt, paper) {
-                const { sx, sy } = paper.scale();
-                const width = sx <= 1 ? opt.thickness : opt.thickness / sx;
-                const height = sy <= 1 ? opt.thickness : opt.thickness / sy;
-                V(el).attr({ width, height });
-            }
-        }],
-        mesh: [{
-            color: '#AAAAAA',
-            thickness: 1,
-            markup: 'path',
-            render: function(el, opt) {
-
-                var d;
-                var width = opt.width;
-                var height = opt.height;
-                var thickness = opt.thickness;
-
-                if (width - thickness >= 0 && height - thickness >= 0) {
-                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
-                } else {
-                    d = 'M 0 0 0 0';
-                }
-
-                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
-            }
-        }],
-        doubleMesh: [{
-            color: '#AAAAAA',
-            thickness: 1,
-            markup: 'path',
-            render: function(el, opt) {
-
-                var d;
-                var width = opt.width;
-                var height = opt.height;
-                var thickness = opt.thickness;
-
-                if (width - thickness >= 0 && height - thickness >= 0) {
-                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
-                } else {
-                    d = 'M 0 0 0 0';
-                }
-
-                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
-            }
-        }, {
-            color: '#000000',
-            thickness: 3,
-            scaleFactor: 4,
-            markup: 'path',
-            render: function(el, opt) {
-
-                var d;
-                var width = opt.width;
-                var height = opt.height;
-                var thickness = opt.thickness;
-
-                if (width - thickness >= 0 && height - thickness >= 0) {
-                    d = ['M', width, 0, 'H0 M0 0 V0', height].join(' ');
-                } else {
-                    d = 'M 0 0 0 0';
-                }
-
-                V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
-            }
-        }]
-    }
+    backgroundPatterns,
+    gridPatterns,
 });

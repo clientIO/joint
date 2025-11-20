@@ -1,6 +1,6 @@
 const USE_NO_BREAK_SPACE_LABEL_ATTRS = {
     useNoBreakSpace: true
-}
+};
 
 QUnit.module('basic', function(hooks) {
 
@@ -812,7 +812,7 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(r1);
         this.graph.addCell(r2);
 
-        var spy = sinon.spy(this.paper, 'sortViews');
+        var spy = sinon.spy(this.paper.getLayerView('cells'), 'sort');
 
         var r1View = this.paper.findViewByModel(r1);
         var r2View = this.paper.findViewByModel(r2);
@@ -1506,7 +1506,7 @@ QUnit.module('basic', function(hooks) {
                     assert.equal(translateX, 10, '`position.args.dx: 10` has priority over `args.dx: 20` = translation of 10px');
                     break;
             }
-        })
+        });
     });
 
     QUnit.test('ref-x, ref-y, ref', function(assert) {
@@ -2151,8 +2151,8 @@ QUnit.module('basic', function(hooks) {
         var el = new joint.shapes.standard.Rectangle({
             ports: {
                 items: [
-                    { attrs: { first: { r: 5 } } },
-                    { attrs: { first: { r: 3 } } }
+                    { attrs: { first: { r: 5 }}},
+                    { attrs: { first: { r: 3 }}}
                 ]
             }
         });
@@ -2177,9 +2177,9 @@ QUnit.module('basic', function(hooks) {
     QUnit.test('transition: array path stopTransitions', function(assert) {
         assert.expect(6);
         var done = assert.async();
-        var el = new joint.shapes.standard.Rectangle({ 
-            test1: 0, 
-            test2: 0, 
+        var el = new joint.shapes.standard.Rectangle({
+            test1: 0,
+            test2: 0,
             nested: { test3: 0 }
         });
         this.graph.addCell(el);
@@ -2202,9 +2202,9 @@ QUnit.module('basic', function(hooks) {
     QUnit.test('transition: array path prefix stopping', function(assert) {
         assert.expect(4);
         var done = assert.async();
-        var el = new joint.shapes.standard.Rectangle({ 
-            attrs: { 
-                label: { 
+        var el = new joint.shapes.standard.Rectangle({
+            attrs: {
+                label: {
                     fontSize: 12,
                     x: 0
                 }

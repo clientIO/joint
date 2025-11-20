@@ -193,7 +193,7 @@ assign(Collection.prototype, Events, {
             for (i = 0; i < toAdd.length; i++) {
                 if (at != null) options.index = at + i;
                 model = toAdd[i];
-                model.trigger('add', model, this, options);
+                model.trigger(model.eventPrefix + 'add', model, this, options);
             }
             if (sort || orderChanged) this.trigger('sort', this, options);
             if (toAdd.length || toRemove.length || toMerge.length) {
@@ -257,9 +257,9 @@ assign(Collection.prototype, Events, {
     // properties, or an attributes object that is transformed through modelId.
     get: function(obj) {
         if (obj == null) return void 0;
-        return this._byId[obj] ||
-        this._byId[this.modelId(this._isModel(obj) ? obj.attributes : obj, obj.idAttribute)] ||
-        obj.cid && this._byId[obj.cid];
+        return this._byId.get(obj) ||
+            this._byId.get(this.modelId(this._isModel(obj) ? obj.attributes : obj, obj.idAttribute)) ||
+            obj.cid && this._byId.get(obj.cid);
     },
 
     // Returns `true` if the model is in the collection.
@@ -304,7 +304,7 @@ assign(Collection.prototype, Events, {
 
     // Define how to uniquely identify models in the collection.
     modelId: function(attrs, idAttribute) {
-        return attrs[idAttribute || this.model.prototype.idAttribute || 'id'];
+        return attrs[idAttribute || this.model.prototype?.idAttribute || 'id'];
     },
 
     // Get an iterator of all models in this collection.
@@ -375,18 +375,18 @@ assign(Collection.prototype, Events, {
     _reset: function() {
         this.length = 0;
         this.models = [];
-        this._byId  = {};
+        this._byId  = new Map();
     },
 
     // Prepare a hash of attributes (or other model) to be added to this
     // collection.
     _prepareModel: function(attrs, options) {
         if (this._isModel(attrs)) {
-            if (!attrs.collection) attrs.collection = this;
+            if (!options.dry && !attrs.collection) attrs.collection = this;
             return attrs;
         }
         options = options ? clone(options) : {};
-        options.collection = this;
+        if (!options.dry) options.collection = this;
 
         var model;
         if (this.model.prototype) {
@@ -414,13 +414,13 @@ assign(Collection.prototype, Events, {
 
             // Remove references before triggering 'remove' event to prevent an
             // infinite loop. #3693
-            delete this._byId[model.cid];
+            this._byId.delete(model.cid);
             var id = this.modelId(model.attributes, model.idAttribute);
-            if (id != null) delete this._byId[id];
+            if (id != null)this._byId.delete(id);
 
             if (!options.silent) {
                 options.index = index;
-                model.trigger('remove', model, this, options);
+                model.trigger(model.eventPrefix + 'remove', model, this, options);
             }
 
             removed.push(model);
@@ -438,18 +438,18 @@ assign(Collection.prototype, Events, {
 
     // Internal method to create a model's ties to a collection.
     _addReference: function(model, options) {
-        this._byId[model.cid] = model;
+        this._byId.set(model.cid, model);
         var id = this.modelId(model.attributes, model.idAttribute);
-        if (id != null) this._byId[id] = model;
+        if (id != null) this._byId.set(id, model);
         model.on('all', this._onModelEvent, this);
     },
 
     // Internal method to sever a model's ties to a collection.
     _removeReference: function(model, options) {
-        delete this._byId[model.cid];
+        this._byId.delete(model.cid);
         var id = this.modelId(model.attributes, model.idAttribute);
-        if (id != null) delete this._byId[id];
-        if (this === model.collection) delete model.collection;
+        if (id != null) this._byId.delete(id);
+        if (!options.dry && this === model.collection) delete model.collection;
         model.off('all', this._onModelEvent, this);
     },
 
@@ -459,12 +459,12 @@ assign(Collection.prototype, Events, {
     // in other collections are ignored.
     _onModelEvent: function(event, model, collection, options) {
         if (model) {
-            if ((event === 'add' || event === 'remove') && collection !== this) return;
+            if ((event === model.eventPrefix + 'add' || event === model.eventPrefix + 'remove') && collection !== this) return;
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
                 var id = this.modelId(model.attributes, model.idAttribute);
-                if (prevId != null) delete this._byId[prevId];
-                if (id != null) this._byId[id] = model;
+                if (prevId != null) this._byId.delete(prevId);
+                if (id != null) this._byId.set(id, model);
             }
         }
         this.trigger.apply(this, arguments);
