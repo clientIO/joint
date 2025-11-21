@@ -22,6 +22,8 @@ export interface MeasureNodeOptions {
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
+// Epsilon value to avoid jitter due to sub-pixel rendering
+const EPSILON = 0.5;
 
 /**
  * Custom hook to measure the size of a node and update its size in the graph.
@@ -55,22 +57,38 @@ export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVG
 
     const clean = setMeasuredNode(id);
 
-    // Create the observer that calls back on measurement changes
     const stop = createElementSizeObserver(element, ({ width, height }) => {
-      // Only update when dimensions actually change
-      if (previous.width === width && previous.height === height) return;
-      previous.width = width;
-      previous.height = height;
+      // normalize to avoid float jitter in Safari
+      const nextWidth = Math.round(width);
+      const nextHeight = Math.round(height);
 
-      // Always update the size (whether via the user-defined setSize or the default)
+      if (
+        Math.abs(previous.width - nextWidth) < EPSILON &&
+        Math.abs(previous.height - nextHeight) < EPSILON
+      ) {
+        return;
+      }
+
+      // Only update when dimensions actually change meaningfully
+      if (previous.width === nextWidth && previous.height === nextHeight) {
+        return;
+      }
+
+      previous.width = nextWidth;
+      previous.height = nextHeight;
+
       if (onSetSizeRef.current) {
-        onSetSizeRef.current({ element: cell, size: { width, height } });
+        onSetSizeRef.current({
+          element: cell,
+          size: { width: nextWidth, height: nextHeight },
+        });
       } else {
-        cell.set('size', { width, height }, { async: false });
+        cell.set('size', { width: nextWidth, height: nextHeight }, { async: false });
       }
     });
 
     // Cleanup on unmount or when dependencies change.
+
     return () => {
       clean();
       stop();
