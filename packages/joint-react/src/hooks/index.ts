@@ -12,3 +12,4 @@ export * from './use-cell-actions';
 export * from './use-graph-store';
 export * from './use-paper-context';
 export * from './use-element-views';
+export * from './use-combined-ref';
