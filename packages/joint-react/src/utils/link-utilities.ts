@@ -5,7 +5,7 @@ import type { dia } from '@joint/core';
  * @param id - The id to get the link id from.
  * @returns The link id or undefined if not found.
  */
-export function getLinkId(id: dia.Cell.ID | dia.Link.EndJSON): dia.Cell.ID | undefined {
+export function getCellId(id: dia.Cell.ID | dia.Link.EndJSON): dia.Cell.ID | undefined {
   if (typeof id === 'object') {
     return id.id;
   }

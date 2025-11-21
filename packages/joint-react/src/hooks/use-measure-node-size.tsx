@@ -22,6 +22,8 @@ export interface MeasureNodeOptions {
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
+// Epsilon value to avoid jitter due to sub-pixel rendering
+const EPSILON = 0.5;
 
 /**
  * Custom hook to measure the size of a node and update its size in the graph.
@@ -33,6 +35,7 @@ export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVG
   elementRef: RefObject<AnyHTMLOrSVGElement | null>,
   options?: MeasureNodeOptions
 ) {
+  // TODO - add exception for using multiple measured node for single element
   const { setSize } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
   const id = useCellId();
@@ -52,31 +55,40 @@ export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVG
 
     const previous = { width: 0, height: 0 };
 
-    // Check if the element is already measured
-    if (hasMeasuredNode(id)) {
-      // If it is already measured, we don't need to set the size again
-      throw new Error(
-        `Multiple measurements used. Element with id ${id} is already measured, only one element inside the graph can be measured at a time`
-      );
-    }
     const clean = setMeasuredNode(id);
 
-    // Create the observer that calls back on measurement changes
     const stop = createElementSizeObserver(element, ({ width, height }) => {
-      // Only update when dimensions actually change
-      if (previous.width === width && previous.height === height) return;
-      previous.width = width;
-      previous.height = height;
+      // normalize to avoid float jitter in Safari
+      const nextWidth = Math.round(width);
+      const nextHeight = Math.round(height);
 
-      // Always update the size (whether via the user-defined setSize or the default)
+      if (
+        Math.abs(previous.width - nextWidth) < EPSILON &&
+        Math.abs(previous.height - nextHeight) < EPSILON
+      ) {
+        return;
+      }
+
+      // Only update when dimensions actually change meaningfully
+      if (previous.width === nextWidth && previous.height === nextHeight) {
+        return;
+      }
+
+      previous.width = nextWidth;
+      previous.height = nextHeight;
+
       if (onSetSizeRef.current) {
-        onSetSizeRef.current({ element: cell, size: { width, height } });
+        onSetSizeRef.current({
+          element: cell,
+          size: { width: nextWidth, height: nextHeight },
+        });
       } else {
-        cell.set('size', { width, height }, { async: false });
+        cell.set('size', { width: nextWidth, height: nextHeight }, { async: false });
       }
     });
 
     // Cleanup on unmount or when dependencies change.
+
     return () => {
       clean();
       stop();

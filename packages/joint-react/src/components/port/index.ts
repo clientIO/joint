@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
+export * from './port.types';
 import { PortGroup } from './port-group';
 import { PortItem } from './port-item';
 export type { PortItemProps as PortProps } from './port-item';
 export type { PortGroupProps } from './port-group';
-
 const Component = {
   PortGroup,
   PortItem,

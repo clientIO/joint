@@ -2,9 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useCellId } from './use-cell-id'; // Adjust path accordingly
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { HTMLNode, SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
-import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../stories/examples/index.css';
+import { getAPILink } from '../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation } from '../stories/utils/make-story';
 
 function Hook(_: SimpleElement) {
   const cellId = useCellId(); // Using the hook inside a component

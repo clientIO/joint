@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable no-shadow */
 import type { StorybookConfig } from '@storybook/react-vite';
+import path from 'node:path';
 import { configureSort } from 'storybook-multilevel-sort';
 
 configureSort({
@@ -23,8 +26,6 @@ const config: StorybookConfig = {
     '@storybook/addon-interactions',
     '@storybook/addon-docs',
     '@storybook/addon-a11y',
-    // TODO: this library is not compatible with Vite storybook, so we will wait to fix it and then we can again enable.
-    // '@storybook/addon-storysource',
     '@storybook/addon-links',
     'storybook-addon-performance',
     '@codesandbox/storybook-addon',
@@ -36,6 +37,17 @@ const config: StorybookConfig = {
   },
   docs: {
     autodocs: true,
+  },
+
+  // 👇 extend Vite config here to resolve libraries properly (in storybook)
+  viteFinal: async (config) => {
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@joint/react': path.resolve(__dirname, '../src/index.ts'),
+      '@joint/react/src/*': path.resolve(__dirname, '../src/*'),
+    };
+    return config;
   },
 };
 export default config;

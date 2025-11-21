@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { waitFor } from '@testing-library/react';
 import { createElementSizeObserver } from '../create-element-size-observer';
 
 describe('createElementSizeObserver', () => {
@@ -35,10 +36,12 @@ describe('createElementSizeObserver', () => {
     jest.clearAllMocks();
   });
 
-  it('should call onResize immediately with element size', () => {
+  it('should call onResize immediately with element size', async () => {
     const onResize = jest.fn();
     createElementSizeObserver(mockElement, onResize);
-    expect(onResize).toHaveBeenCalledWith({ width: 123, height: 456 });
+    await waitFor(() => {
+      expect(onResize).toHaveBeenCalledWith({ width: 123, height: 456 });
+    });
   });
 
   it('should observe the element with border-box', () => {
@@ -62,7 +65,7 @@ describe('createElementSizeObserver', () => {
     expect(onResize).toHaveBeenCalledWith({ width: 200, height: 100 });
   });
 
-  it('should ignore entries with missing or empty borderBoxSize', () => {
+  it('should ignore entries with missing or empty borderBoxSize', async () => {
     const onResize = jest.fn();
     createElementSizeObserver(mockElement, onResize);
 
@@ -72,7 +75,9 @@ describe('createElementSizeObserver', () => {
     cb([{ borderBoxSize: undefined }]);
     cb([{ borderBoxSize: [] }]);
     // Only the initial call should be present
-    expect(onResize).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(onResize).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('should cleanup and disconnect observer', () => {

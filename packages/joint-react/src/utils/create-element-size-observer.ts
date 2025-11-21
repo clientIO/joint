@@ -24,6 +24,7 @@ export function createElementSizeObserver<AnyHTMLOrSVGElement extends HTMLElemen
   onResize: (position: SizeObserver) => void
 ) {
   // Create a ResizeObserver to observe changes in the size of the HTML element.
+  // TODO not optimal - maybe debounce, maybe change to something else.
   const observer = new ResizeObserver((entries) => {
     for (const entry of entries) {
       const { borderBoxSize } = entry;
@@ -35,12 +36,15 @@ export function createElementSizeObserver<AnyHTMLOrSVGElement extends HTMLElemen
       const { inlineSize, blockSize } = size;
       // Update the size of the cell in the graph.
       onResize({ width: inlineSize, height: blockSize });
+      break; // We only care about the first entry
     }
   });
 
   // trigger the observer immediately
-  const { width, height } = element.getBoundingClientRect();
-  onResize({ width, height });
+  requestAnimationFrame(() => {
+    const { width, height } = element.getBoundingClientRect();
+    if (width > 0 && height > 0) onResize({ width, height });
+  });
 
   // Start observing the HTML element.
   observer.observe(element, { box: 'border-box' });

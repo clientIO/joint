@@ -1,5 +1,4 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
   createElements,
@@ -48,7 +47,7 @@ function Main() {
 
 export default function App(props: Readonly<GraphProps>) {
   return (
-    <GraphProvider {...props} initialLinks={initialEdges} initialElements={initialElements}>
+    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
       <Main />
     </GraphProvider>
   );
