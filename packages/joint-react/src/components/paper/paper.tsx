@@ -1,4 +1,5 @@
-import { dia, mvc, shapes } from '@joint/core';
+/* eslint-disable prefer-destructuring */
+import { dia, mvc, shapes, util } from '@joint/core';
 import { useElementViews } from '../../hooks/use-element-views';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import {
@@ -72,6 +73,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     useHTMLOverlay,
     children,
     scale,
+    width,
+    height,
     ...paperOptions
   } = props;
 
@@ -209,30 +212,43 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
         if (instance.id !== id) {
           reset();
         }
+
         const { paper } = instance;
         assignOptions(paper.options, {
           defaultLink: defaultLinkJointJS,
           ...paperOptions,
         });
-        const { drawGrid, height, width, theme, gridSize } = paperOptions;
-        if (width !== undefined && height !== undefined) {
+        const { drawGrid, theme, gridSize } = paperOptions;
+        const {
+          width: paperWidth,
+          height: paperHeight,
+          drawGrid: paperDrawGrid,
+          theme: paperTheme,
+          gridSize: paperGridSize,
+        } = paper.options;
+
+        if (
+          width !== undefined &&
+          height !== undefined &&
+          (width !== paperWidth || height !== paperHeight)
+        ) {
           paper.setDimensions(width, height);
         }
-        if (drawGrid) {
+        if (drawGrid !== undefined && !util.isEqual(drawGrid, paperDrawGrid)) {
           paper.setGrid(drawGrid);
         }
-        if (gridSize !== undefined) {
+        if (gridSize !== undefined && !util.isEqual(gridSize, paperGridSize)) {
           paper.setGridSize(gridSize);
         }
-        if (theme) {
+        if (theme !== undefined && !util.isEqual(theme, paperTheme)) {
           paper.setTheme(theme);
         }
-        if (scale !== undefined) {
+        if (scale !== undefined && scale !== paper.options.scale) {
           paper.scale(scale);
         }
       },
     },
-    [defaultLinkJointJS, id, scale, isReactId, ...dependencyExtract(paperOptions)]
+    [defaultLinkJointJS, id, scale, isReactId, height, width, ...dependencyExtract(paperOptions)]
   );
 
   useEffect(() => {
@@ -269,8 +285,11 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     const { paper } = ref.current ?? {};
     if (!paper) return;
 
-    // Build current list of [width, height]
-    const currentSizes = elements.map(({ width = 0, height = 0 }) => [width, height]);
+    // Build current list of [currWidth, currHeight] to avoid shadowing outer scope variables
+    const currentSizes = elements.map(({ width: elementWidth = 0, height: elementHeight = 0 }) => [
+      elementWidth,
+      elementHeight,
+    ]);
     const previousSizes = previousSizesRef.current;
     let changed = false;
 
@@ -373,10 +392,10 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
       return style;
     }
     return {
-      width: paperOptions.width ?? '100%',
-      height: paperOptions.height ?? '100%',
+      width: width ?? '100%',
+      height: height ?? '100%',
     };
-  }, [paperOptions.height, paperOptions.width, style]);
+  }, [height, width, style]);
 
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({

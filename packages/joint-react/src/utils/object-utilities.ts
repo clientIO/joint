@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { util } from '@joint/core';
+
 /**
  * Make options and avoid to generate undefined values.
  * @param options - An object containing options where keys are strings and values can be of any type.
@@ -16,20 +19,27 @@ export function makeOptions<T extends Record<string, any>>(options: T): T {
 
 /**
  * Assign new properties to an instance, ignoring undefined values.
- * @param instance - The instance to which new properties will be assigned.
- * @param newProperties - An object containing new properties to assign to the instance.
+ * @param props - The instance to which new properties will be assigned.
+ * @param newProps - An object containing new properties to assign to the instance.
  * @returns - The updated instance with the new properties assigned, excluding any properties that were undefined.
  */
-export function assignOptions<T extends Record<string, any>>(
-  instance: T,
-  newProperties: Partial<T>
-): T {
-  for (const key in newProperties) {
-    if (newProperties[key] !== undefined) {
-      instance[key] = newProperties[key] as T[Extract<keyof T, string>];
+export function assignOptions<T extends Record<string, any>>(props: T, newProps: Partial<T>): T {
+  for (const key in newProps) {
+    // in jointjs settings property as undefined make it as property. So we avoid to set undefined at all.
+    if (newProps[key] === undefined) {
+      continue;
     }
+    // now we have to check if the properties are equal, if not we assign the new value with fast ref path
+    if (props[key] === newProps[key]) {
+      continue;
+    }
+    // now we check same as well for objects and shallow objects
+    if (util.isEqual(props[key], newProps[key])) {
+      continue;
+    }
+    props[key] = newProps[key] as T[Extract<keyof T, string>];
   }
-  return instance;
+  return props;
 }
 
 /**

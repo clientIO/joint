@@ -25,6 +25,7 @@ export interface UseImperativeApiOptions<Instance> {
    */
   // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   readonly onUpdate?: (instance: Instance, reset: () => void) => void | (() => void);
+  readonly onReadyChange?: (isReady: boolean, instance: Instance | null) => void;
   readonly isDisabled?: boolean;
   readonly forwardedRef?: React.Ref<Instance>;
 }
@@ -61,7 +62,7 @@ export function useImperativeApi<Instance>(
   options: UseImperativeApiOptions<Instance>,
   dependencies: DependencyList
 ): ImperativeStateResult<Instance> {
-  const { onLoad, onUpdate, isDisabled, forwardedRef } = options;
+  const { onLoad, onUpdate, onReadyChange, isDisabled, forwardedRef } = options;
   const [isReady, setIsReady] = useState(false);
   const instanceRef = useRef<Instance | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -77,12 +78,14 @@ export function useImperativeApi<Instance>(
         instanceRef.current = null;
       }
       setIsReady(false); // Explicitly set isReady to false
+      onReadyChange?.(false, null);
       return;
     }
     const { instance, cleanup } = onLoad();
     instanceRef.current = instance;
     cleanupRef.current = cleanup;
     setIsReady(true);
+    onReadyChange?.(true, instance);
     return () => {
       cleanup();
     };

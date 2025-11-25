@@ -104,6 +104,13 @@ export const WithAutoFitContent: Story = {
   },
 };
 
+export const WithAutomaticLayoutSize: Story = {
+  args: {
+    renderElement: RenderHTMLElement as never,
+    className: PAPER_CLASSNAME,
+  },
+};
+
 export const WithEvent: Story = {
   args: {
     renderElement: RenderHTMLElement as never,

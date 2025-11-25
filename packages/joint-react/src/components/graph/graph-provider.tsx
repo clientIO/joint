@@ -3,6 +3,7 @@ import type { GraphLink } from '../../types/link-types';
 import {
   forwardRef,
   useLayoutEffect,
+  useRef,
   type Dispatch,
   type PropsWithChildren,
   type SetStateAction,
@@ -63,7 +64,9 @@ export function GraphProviderHandler<
   Link extends dia.Link | GraphLink = dia.Link,
 >(props: PropsWithChildren<GraphProviderBaseProps<Element, Link>>) {
   const { elements, links, onElementsChange, onLinksChange, children } = props;
+  const alreadyMeasured = useRef(false);
   const areElementsMeasured = useElements((items) => {
+    if (alreadyMeasured.current) return true;
     let areMeasured = true;
     for (const { width = 0, height = 0 } of items) {
       if (width <= 1 || height <= 1) {
@@ -71,6 +74,7 @@ export function GraphProviderHandler<
         break;
       }
     }
+    alreadyMeasured.current = areMeasured;
     return areMeasured;
   });
 
