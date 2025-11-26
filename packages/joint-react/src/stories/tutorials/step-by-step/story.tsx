@@ -3,6 +3,7 @@ import '../../examples/index.css';
 import CodeSVG from './code-svg';
 import CodeHTML from './code-html';
 import CodeHTMLPortal from './code-html-renderer';
+import CodeControlledMode from './code-controlled-mode';
 
 export type Story = StoryObj<typeof CodeSVG>;
 
@@ -19,4 +20,8 @@ export const HTML: Story = {
 
 export const HTMLRenderer: Story = {
   render: CodeHTMLPortal as never,
+};
+
+export const ControlledMode: Story = {
+  render: CodeControlledMode as never,
 };

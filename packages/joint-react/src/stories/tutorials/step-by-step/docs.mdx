@@ -3,6 +3,7 @@ import * as Stories from './story';
 import CodeSVG from './code-svg?raw';
 import CodeHTML from './code-html?raw';
 import CodeHTMLRenderer from './code-html-renderer?raw';
+import CodeControlledMode from './code-controlled-mode?raw';
 import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-documentation-link';
 
 <Meta of={Stories} />
@@ -204,6 +205,37 @@ ${CodeHTML}
 ${CodeHTMLRenderer}
 \`\`\``}
 </Markdown>
+
+### Controlled Mode with useState
+
+This example demonstrates how to use `@joint/react` in controlled mode with React's `useState` hook. In controlled mode, the graph state is managed in React state, and changes to the graph are synchronized back to your state.
+
+<Canvas of={Stories.ControlledMode} />
+<Markdown>
+{`\`\`\`tsx
+${CodeControlledMode}
+\`\`\``}
+</Markdown>
+
+#### Key Points:
+
+1. **State Management**: Use `useState` to manage elements and links:
+   ```tsx
+   const [elements, setElements] = useState<readonly CustomElement[]>(defaultElements);
+   const [links, setLinks] = useState<readonly CustomLink[]>(defaultLinks);
+   ```
+
+2. **Controlled Mode**: Pass state and change handlers to `GraphProvider`:
+   ```tsx
+   <GraphProvider
+     elements={elements}
+     links={links}
+     onElementsChange={handleElementsChange}
+     onLinksChange={handleLinksChange}
+   >
+   ```
+
+3. **Bidirectional Sync**: Changes made via graph methods (like dragging nodes) automatically sync back to React state through the callbacks.
 
 ---
 

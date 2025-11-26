@@ -8,7 +8,6 @@ import type { GraphLink } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
 import { createStoreData, type UpdateResult } from './create-store-data';
 import type { Dispatch, SetStateAction } from 'react';
-import { CONTROLLED_MODE_BATCH_NAME } from '../utils/graph/update-graph';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = { ...shapes, ReactElement };
 
@@ -119,8 +118,21 @@ export interface GraphStore<Graph extends dia.Graph = dia.Graph> {
   /**
    * Force update the graph store.
    * This will trigger a re-render of all components that are subscribed to the store.
+   * @param batchName - The name of the batch (unused in new implementation, kept for compatibility).
+   * @param skipGraphUpdate - If true, skip updating from graph (used when store was already updated from external data).
    */
-  readonly forceUpdateStore: () => UpdateResult;
+  readonly forceUpdateStore: (batchName?: string, skipGraphUpdate?: boolean) => UpdateResult;
+
+  /**
+   * Update store from external data (React state) in controlled mode.
+   * @param elements - The elements from React state.
+   * @param links - The links from React state.
+   * @returns The update result.
+   */
+  readonly updateStoreFromExternalData: (
+    elements: GraphElement[],
+    links: GraphLink[]
+  ) => UpdateResult;
 }
 
 /**
@@ -155,11 +167,6 @@ function createGraph<
       }
     );
   return newGraph as Graph;
-}
-
-// eslint-disable-next-line jsdoc/require-jsdoc
-function isBatchNameObject(value: unknown): value is { batchName: string } {
-  return typeof value === 'object' && value !== null && 'batchName' in value;
 }
 
 /**
@@ -198,6 +205,15 @@ export function createStoreWithGraph<
     // Create a new graph instance or use the provided one
     throw new Error('Graph instance is required');
   }
+
+  // Detect controlled mode
+  const isControlled = !!(onElementsChange || onLinksChange);
+  const isElementsControlled = !!onElementsChange;
+  const isLinksControlled = !!onLinksChange;
+
+  // Track if we're currently syncing from React state to graph (to prevent circular updates)
+  let isSyncingFromReactState = false;
+
   // set elements to the graph
   setElements({
     graph,
@@ -217,6 +233,7 @@ export function createStoreWithGraph<
   const elementsEvents = subscribeHandler(forceUpdateStore);
 
   // Notify subscribers of initial elements
+  // In both controlled and uncontrolled modes, initial store is populated from graph
   graphData.updateStore(graph);
 
   // add method to handle batch stop, so then we can also notify all react components
@@ -224,51 +241,109 @@ export function createStoreWithGraph<
 
   const measuredNodes = new Set<dia.Cell.ID>();
   const { dataRef } = graphData;
+
+  // Store the last UpdateResult from external data updates for controlled mode
+  let lastExternalUpdateResult: UpdateResult | undefined;
   /**
    * Force update the graph.
    * This function is called when the graph is updated.
-   * It checks if there are any unsized links and processes them.
+   * In controlled mode, only syncs graph → React state when changes come from user interaction.
+   * In uncontrolled mode, updates store from graph.
    * @returns changed ids
-   * @param batchName - The name of the batch.
+   * @param batchName - The name of the batch (unused in new implementation, kept for compatibility).
+   * @param skipGraphUpdate - If true, skip updating from graph (used when store was already updated from external data).
    */
-  function forceUpdateStore(batchName?: string): UpdateResult {
+  function forceUpdateStore(batchName?: string, skipGraphUpdate = false): UpdateResult {
     if (!graph) {
       // Create a new graph instance or use the provided one
       throw new Error('Graph instance is required');
     }
 
-    const updateResult = graphData.updateStore(graph);
+    let updateResult: UpdateResult;
 
-    // Skip processing changes in controlled mode since they are already handled.
-    // This prevents circular calls to `onElementsChange`.
-    // For example, if a user manages elements via React state and updates the graph using setElements,
-    // this function will be triggered. However, we avoid re-triggering `onElementsChange` to prevent redundant updates.
-    // We call `onElementsChange` and `onLinksChange` explicitly only when direct change on `dia.Graph` occurs.
+    // In controlled mode, if we're syncing from React state, don't update store from graph
+    // The store will be updated directly from React state instead
+    if (isControlled && (isSyncingFromReactState || skipGraphUpdate)) {
+      // Store was already updated from React state, use the stored result
+      updateResult = lastExternalUpdateResult ?? {
+        diffIds: new Set(),
+        areElementsChanged: false,
+        areLinksChanged: false,
+      };
+      // Clear the stored result after using it
+      lastExternalUpdateResult = undefined;
+    } else {
+      // Update store from graph (uncontrolled mode, or controlled mode with user-initiated changes)
+      updateResult = graphData.updateStore(graph);
 
-    if (batchName === CONTROLLED_MODE_BATCH_NAME) {
-      return updateResult;
-    }
-
-    if (onElementsChange && updateResult.areElementsChanged) {
-      const mappedElements = dataRef.elements.map((element) => element);
-      onElementsChange(mappedElements as SetStateAction<Element[]>);
-    }
-    if (onLinksChange && updateResult.areLinksChanged) {
-      const changedLinks = dataRef.links.map((link) => link);
-      onLinksChange(changedLinks as SetStateAction<Link[]>);
+      // In controlled mode, sync graph → React state only when changes come from user interaction
+      // (not when we're syncing from React state)
+      if (isControlled && !isSyncingFromReactState) {
+        if (isElementsControlled && updateResult.areElementsChanged) {
+          const mappedElements = dataRef.elements.map((element) => element);
+          onElementsChange(mappedElements as SetStateAction<Element[]>);
+        }
+        if (isLinksControlled && updateResult.areLinksChanged) {
+          const changedLinks = dataRef.links.map((link) => link);
+          onLinksChange(changedLinks as SetStateAction<Link[]>);
+        }
+      }
     }
 
     return updateResult;
+  }
+
+  /**
+   * Update store from external data (React state) in controlled mode.
+   * This is called when React state changes and we need to update the store cache.
+   * @param newElements - The elements from React state.
+   * @param newLinks - The links from React state.
+   * @returns The update result.
+   */
+  /**
+   * Helper to notify subscribers with a specific UpdateResult (for controlled mode)
+   * @param updateResult - The update result to notify subscribers with.
+   */
+  function notifySubscribersWithResult(updateResult: UpdateResult) {
+    // Store the result so forceUpdateStore can use it when called as beforeSubscribe
+    lastExternalUpdateResult = updateResult;
+    // Trigger notification - this will call forceUpdateStore as beforeSubscribe
+    elementsEvents.notifySubscribers();
+  }
+
+  /**
+   * Update store from external data (React state) in controlled mode.
+   * This is called when React state changes and we need to update the store cache.
+   * @param newElements - The elements from React state.
+   * @param newLinks - The links from React state.
+   * @returns The update result.
+   */
+  function updateStoreFromExternalData(
+    newElements: GraphElement[],
+    newLinks: GraphLink[]
+  ): UpdateResult {
+    const result = graphData.updateFromExternalData(newElements, newLinks);
+    // Notify subscribers with the update result
+    if (result.areElementsChanged || result.areLinksChanged) {
+      notifySubscribersWithResult(result);
+    }
+    return result;
   }
   /**
    * This function is called when a cell changes.
    * It checks if the graph has an active batch and returns if it does.
    * Otherwise, it notifies the subscribers of the elements events.
+   * In controlled mode, only triggers when changes come from user interaction.
    */
   function onCellChange() {
     if (!graph) {
       // Create a new graph instance or use the provided one
       throw new Error('Graph instance is required');
+    }
+
+    // In controlled mode, skip if we're syncing from React state
+    if (isControlled && isSyncingFromReactState) {
+      return;
     }
 
     if (graph.hasActiveBatch()) {
@@ -278,15 +353,13 @@ export function createStoreWithGraph<
     elementsEvents.notifySubscribers();
   }
 
-  // eslint-disable-next-line jsdoc/require-jsdoc, no-shadow, @typescript-eslint/no-shadow
-  function onBatchStop(options?: unknown) {
-    if (!isBatchNameObject(options)) {
-      elementsEvents.notifySubscribers();
+  // eslint-disable-next-line jsdoc/require-jsdoc
+  function onBatchStop(_options?: unknown) {
+    // In controlled mode, skip if we're syncing from React state
+    if (isControlled && isSyncingFromReactState) {
       return;
     }
-    const { batchName } = options;
-
-    elementsEvents.notifySubscribers(batchName);
+    elementsEvents.notifySubscribers();
   }
 
   /**
@@ -319,10 +392,36 @@ export function createStoreWithGraph<
       return dataRef.elements;
     },
     setElements(newElements) {
-      setElements({ graph, elements: newElements });
+      // In controlled mode, mark that we're syncing from React state
+      if (isControlled) {
+        isSyncingFromReactState = true;
+      }
+      try {
+        setElements({ graph, elements: newElements });
+      } finally {
+        if (isControlled) {
+          // Reset flag after a microtask to allow batch operations to complete
+          Promise.resolve().then(() => {
+            isSyncingFromReactState = false;
+          });
+        }
+      }
     },
     setLinks(newLinks) {
-      setLinks({ graph, links: newLinks });
+      // In controlled mode, mark that we're syncing from React state
+      if (isControlled) {
+        isSyncingFromReactState = true;
+      }
+      try {
+        setLinks({ graph, links: newLinks });
+      } finally {
+        if (isControlled) {
+          // Reset flag after a microtask to allow batch operations to complete
+          Promise.resolve().then(() => {
+            isSyncingFromReactState = false;
+          });
+        }
+      }
     },
     getLinks() {
       return dataRef.links;
@@ -351,6 +450,7 @@ export function createStoreWithGraph<
     hasMeasuredNode(id: dia.Cell.ID) {
       return measuredNodes.has(id);
     },
+    updateStoreFromExternalData,
   };
   return store;
 }

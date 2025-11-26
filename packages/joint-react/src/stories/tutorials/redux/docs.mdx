@@ -1,0 +1,75 @@
+import { Meta, Canvas, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+
+<Meta of={Stories} />
+
+# Controlled Mode with Redux
+
+This tutorial demonstrates how to use `@joint/react` in controlled mode with Redux for state management. In controlled mode, the graph state is managed externally (in this case, via Redux), and changes to the graph are synchronized back to your state store.
+
+## Overview
+
+Controlled mode allows you to:
+- Manage graph state in your Redux store
+- Keep graph state synchronized with your application state
+- Use Redux actions to modify the graph
+- Leverage Redux DevTools for debugging
+
+## Demo
+
+<Canvas of={Stories.Default} />
+
+## Key Concepts
+
+### 1. Redux Store Setup
+
+Create Redux slices for managing elements and links:
+
+```tsx
+const elementsSlice = createSlice({
+  name: 'elements',
+  initialState: defaultElements,
+  reducers: {
+    addElement: (state, action) => {
+      state.push(action.payload);
+    },
+    setElements: (_, action) => {
+      return action.payload;
+    },
+    // ... other reducers
+  },
+});
+```
+
+### 2. Controlled Mode Configuration
+
+Use `onElementsChange` and `onLinksChange` callbacks to sync graph changes back to Redux:
+
+```tsx
+<GraphProvider
+  elements={elements}
+  links={links}
+  onElementsChange={(items) => {
+    store.dispatch(setElements(items));
+  }}
+  onLinksChange={(items) => {
+    store.dispatch(setLinks(items));
+  }}
+>
+  <PaperApp />
+</GraphProvider>
+```
+
+### 3. Updating State
+
+You can update the graph state either:
+- **Via Redux actions**: Dispatch actions to update the Redux store, which will sync to the graph
+- **Via graph directly**: Use graph methods, and changes will sync back via the callbacks
+
+## Benefits
+
+- **Single source of truth**: Redux store is the authoritative state
+- **Time-travel debugging**: Use Redux DevTools to inspect and replay state changes
+- **Predictable updates**: All state changes go through Redux reducers
+- **Integration**: Easy to integrate with other Redux-managed application state
+

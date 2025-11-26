@@ -139,17 +139,17 @@ function RenderItem(props: CustomElement) {
   );
 }
 
-// Component to render the Paper and provide a button to add elements via the graph
+// Component to render the Paper and provide controls
 function PaperApp() {
   const graph = useGraph(); // Access the graph instance
 
   const commandManager = useRef(new dia.CommandManager({ graph }));
   return (
-    <div className="flex flex-col ">
+    <div className="flex flex-col gap-4">
       {/* Render the Paper component */}
-      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderItem} />
-      {/* Button to add a new element directly via the graph */}
-      <div className="flex flex-row">
+      <Paper width="100%" className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
+      {/* Control buttons */}
+      <div className="flex flex-wrap gap-2 justify-center">
         <button
           type="button"
           className={BUTTON_CLASSNAME}
@@ -166,7 +166,7 @@ function PaperApp() {
             )
           }
         >
-          Add Element Via redux
+          Add Element
         </button>
         <button
           type="button"
@@ -176,7 +176,7 @@ function PaperApp() {
             store.dispatch(removeLast());
           }}
         >
-          Remove Last via Redux
+          Remove Last
         </button>
         <button
           type="button"
@@ -203,7 +203,7 @@ function PaperApp() {
             });
           }}
         >
-          Reset elements via dia.Graph
+          Reset via Graph
         </button>
         <button
           type="button"
@@ -213,9 +213,8 @@ function PaperApp() {
             store.dispatch(resetLinkToDefault());
           }}
         >
-          Reset elements via Redux
+          Reset via Redux
         </button>
-
         <button
           type="button"
           className={BUTTON_CLASSNAME}
@@ -223,9 +222,8 @@ function PaperApp() {
             store.dispatch(addTwoRandomElements());
           }}
         >
-          Add two random elements Redux
+          Add Two Random
         </button>
-
         <button
           type="button"
           className={BUTTON_CLASSNAME}

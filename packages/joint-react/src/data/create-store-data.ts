@@ -18,6 +18,8 @@ interface StoreData<
 > {
   /** Rebuilds arrays (and internal indices) from the graph, returns a diff summary */
   readonly updateStore: (graph: Graph) => UpdateResult;
+  /** Updates arrays (and internal indices) from external data (React state), returns a diff summary */
+  readonly updateFromExternalData: (elements: Element[], links: GraphLink[]) => UpdateResult;
   /** Clear everything */
   readonly destroy: () => void;
 
@@ -127,11 +129,97 @@ export function createStoreData<
     }
 
     // Deletions: if the new arrays are shorter than old or some ids disappeared,
-    // we’ve already “changed”. To catch pure deletions where values equal but gone:
+    // we've already "changed". To catch pure deletions where values equal but gone:
     if (!areElementsChanged) {
       areElementsChanged = dataRef.elements.length !== nextElements.length;
       if (!areElementsChanged) {
         // Cheap structural check: same length but different ids/order?
+        for (const [i, nextElement] of nextElements.entries()) {
+          const idNow = nextElement?.id as dia.Cell.ID | undefined;
+          const prevIdx = idNow ? eIndex.get(idNow) : undefined;
+          if (prevIdx !== i) {
+            areElementsChanged = true;
+            break;
+          }
+        }
+      }
+    }
+    if (!areLinksChanged) {
+      areLinksChanged = dataRef.links.length !== nextLinks.length;
+      if (!areLinksChanged) {
+        for (const [i, nextLink] of nextLinks.entries()) {
+          const idNow = nextLink?.id as dia.Cell.ID | undefined;
+          const prevIdx = idNow ? lIndex.get(idNow) : undefined;
+          if (prevIdx !== i) {
+            areLinksChanged = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // Swap (immutably) only when changed to preserve referential equality
+    if (areElementsChanged) {
+      dataRef.elements = nextElements;
+      eIndex = nextEIndex;
+    }
+
+    if (areLinksChanged) {
+      dataRef.links = nextLinks;
+      lIndex = nextLIndex;
+    }
+
+    return {
+      diffIds,
+      areElementsChanged,
+      areLinksChanged,
+    };
+  }
+
+  /**
+   * Updates arrays (and internal indices) from external data (React state), returns a diff summary
+   * Used in controlled mode where React state is the source of truth.
+   * @param elements - The elements to update the store from.
+   * @param links - The links to update the store from.
+   * @returns - The update result containing diff information.
+   */
+  function updateFromExternalData(elements: Element[], links: GraphLink[]): UpdateResult {
+    const nextElements: Element[] = [];
+    const nextLinks: GraphLink[] = [];
+    const nextEIndex = new Map<dia.Cell.ID, number>();
+    const nextLIndex = new Map<dia.Cell.ID, number>();
+    const diffIds = new Set<dia.Cell.ID>();
+
+    let areElementsChanged = false;
+    let areLinksChanged = false;
+
+    // Build new arrays and diff per id
+    for (const element of elements) {
+      const id = element.id as dia.Cell.ID;
+      const prev = getElementById(id);
+      if (!prev || !util.isEqual(prev, element)) {
+        diffIds.add(id);
+        areElementsChanged = true;
+      }
+      nextEIndex.set(id, nextElements.length);
+      nextElements.push(element);
+    }
+
+    for (const link of links) {
+      const id = link.id as dia.Cell.ID;
+      const prev = getLinkById(id);
+      if (!prev || !util.isEqual(prev, link)) {
+        diffIds.add(id);
+        areLinksChanged = true;
+      }
+      nextLIndex.set(id, nextLinks.length);
+      nextLinks.push(link);
+    }
+
+    // Check for deletions and structural changes
+    if (!areElementsChanged) {
+      areElementsChanged = dataRef.elements.length !== nextElements.length;
+      if (!areElementsChanged) {
         for (const [i, nextElement] of nextElements.entries()) {
           const idNow = nextElement?.id as dia.Cell.ID | undefined;
           const prevIdx = idNow ? eIndex.get(idNow) : undefined;
@@ -186,6 +274,7 @@ export function createStoreData<
 
   return {
     updateStore,
+    updateFromExternalData,
     destroy,
     getElementById,
     getLinkById,

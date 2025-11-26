@@ -12,7 +12,6 @@ import { createStore, type GraphStore } from '../../data/create-graph-store';
 import { useElements } from '../../hooks/use-elements';
 import { useGraphStore } from '../../hooks';
 import type { GraphElement } from '../../types/element-types';
-import { CONTROLLED_MODE_BATCH_NAME } from '../../utils/graph/update-graph';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphAreElementsMeasuredContext, GraphStoreContext } from '../../context';
 
@@ -76,35 +75,51 @@ export function GraphProviderHandler<
     return areMeasured;
   });
 
-  const { graph, setElements, setLinks } = useGraphStore();
+  const { graph, setElements, setLinks, updateStoreFromExternalData, getElements, getLinks } =
+    useGraphStore();
 
   const areElementsInControlledMode = !!onElementsChange;
   const areLinksInControlledMode = !!onLinksChange;
-  // Controlled mode for elements
+
+  // Controlled mode: update store from React state when elements or links change
   useLayoutEffect(() => {
     if (!areElementsMeasured) return;
     if (!graph) return;
-    if (!areElementsInControlledMode) return;
+    if (!areElementsInControlledMode && !areLinksInControlledMode) return;
 
-    graph.startBatch(CONTROLLED_MODE_BATCH_NAME);
+    // Get current store state to preserve the other type when updating one
+    const currentElements =
+      areElementsInControlledMode && elements !== undefined
+        ? (elements as GraphElement[])
+        : getElements();
+    const currentLinks =
+      areLinksInControlledMode && links !== undefined ? (links as GraphLink[]) : getLinks();
+
+    // Update store cache directly from React state (preserving the other type)
+    if (areElementsInControlledMode || areLinksInControlledMode) {
+      updateStoreFromExternalData(currentElements, currentLinks);
+    }
+
+    // Then sync React state → graph (this will be marked as controlled sync to prevent circular updates)
     if (areElementsInControlledMode && elements !== undefined) {
       setElements(elements as GraphElement[]);
     }
-    graph.stopBatch(CONTROLLED_MODE_BATCH_NAME);
-  }, [areElementsInControlledMode, areElementsMeasured, elements, graph, setElements]);
-
-  // Controlled mode for links
-  useLayoutEffect(() => {
-    if (!areElementsMeasured) return;
-    if (!graph) return;
-    if (!areLinksInControlledMode) return;
-
-    graph.startBatch(CONTROLLED_MODE_BATCH_NAME);
     if (areLinksInControlledMode && links !== undefined) {
       setLinks(links as GraphLink[]);
     }
-    graph.stopBatch(CONTROLLED_MODE_BATCH_NAME);
-  }, [areElementsMeasured, areLinksInControlledMode, graph, links, setLinks]);
+  }, [
+    areElementsInControlledMode,
+    areLinksInControlledMode,
+    areElementsMeasured,
+    elements,
+    links,
+    graph,
+    setElements,
+    setLinks,
+    updateStoreFromExternalData,
+    getElements,
+    getLinks,
+  ]);
 
   return (
     <GraphAreElementsMeasuredContext.Provider value={areElementsMeasured}>

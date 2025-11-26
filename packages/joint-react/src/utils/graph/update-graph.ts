@@ -5,7 +5,6 @@ import type { CellOrJsonCell } from '../cell/cell-utilities';
 import { isCellInstance } from '../is';
 import type { SVGAttributes } from 'react';
 
-export const CONTROLLED_MODE_BATCH_NAME = 'controlled-mode';
 export const GRAPH_UPDATE_BATCH_NAME = 'update-graph';
 
 /**
