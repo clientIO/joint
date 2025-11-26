@@ -9,6 +9,7 @@ import CodeRaw from './code?raw';
 export default {
   title: 'Examples/Link tools',
   component: Code,
+  tags: ['example'],
   parameters: makeRootDocumentation({
     code: CodeRaw,
   }),

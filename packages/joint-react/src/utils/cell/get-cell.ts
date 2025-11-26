@@ -7,8 +7,6 @@ export interface Ports {
   readonly items?: dia.Element.Port[];
 }
 
-export type JointAttributes = Omit<dia.Element.Attributes, 'size' | 'position'>;
-
 export type GraphCell<Element extends GraphElement = GraphElement> = Element | GraphLink;
 
 /**
@@ -27,9 +25,7 @@ export type GraphCell<Element extends GraphElement = GraphElement> = Element | G
  * console.log(element);
  * ```
  */
-export function getElement<Element extends GraphElement = GraphElement>(
-  cell: dia.Cell<JointAttributes>
-): Element {
+export function getElement<Element extends GraphElement = GraphElement>(cell: dia.Cell): Element {
   const { size, position, ...attributes } = cell.attributes;
   return {
     ...attributes,

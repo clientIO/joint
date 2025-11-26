@@ -81,7 +81,7 @@ export interface GraphStore<Graph extends dia.Graph = dia.Graph> {
    * @returns
    */
 
-  readonly setElements: (elements: GraphElement[]) => void;
+  readonly setElements: <Element extends GraphElement>(elements: Element[]) => void;
   /**
    * Get element by id
    */

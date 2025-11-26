@@ -1,5 +1,4 @@
-/* eslint-disable prefer-destructuring */
-import { dia, mvc, shapes, util } from '@joint/core';
+import { dia, mvc, shapes } from '@joint/core';
 import { useElementViews } from '../../hooks/use-element-views';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import {
@@ -146,9 +145,9 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
           ...paperOptions,
           // 👇 override to always allow connection
           validateConnection: () => true,
-
           // 👇 also, allow links to start or end on empty space
           validateMagnet: () => true,
+          viewManagement: props.viewManagement ?? true,
           clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
         });
 
@@ -199,6 +198,9 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
           Object.assign(instance, contextUpdate.contextUpdate);
         }
 
+        if (width !== undefined && height !== undefined) {
+          paper.setDimensions(width, height);
+        }
         return {
           instance,
           cleanup() {
@@ -219,13 +221,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
           ...paperOptions,
         });
         const { drawGrid, theme, gridSize } = paperOptions;
-        const {
-          width: paperWidth,
-          height: paperHeight,
-          drawGrid: paperDrawGrid,
-          theme: paperTheme,
-          gridSize: paperGridSize,
-        } = paper.options;
+        const { width: paperWidth, height: paperHeight } = paper.options;
 
         if (
           width !== undefined &&
@@ -234,16 +230,16 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
         ) {
           paper.setDimensions(width, height);
         }
-        if (drawGrid !== undefined && !util.isEqual(drawGrid, paperDrawGrid)) {
+        if (drawGrid !== undefined) {
           paper.setGrid(drawGrid);
         }
-        if (gridSize !== undefined && !util.isEqual(gridSize, paperGridSize)) {
+        if (gridSize !== undefined) {
           paper.setGridSize(gridSize);
         }
-        if (theme !== undefined && !util.isEqual(theme, paperTheme)) {
+        if (theme !== undefined) {
           paper.setTheme(theme);
         }
-        if (scale !== undefined && scale !== paper.options.scale) {
+        if (scale !== undefined) {
           paper.scale(scale);
         }
       },
@@ -363,9 +359,6 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
             return null;
           }
 
-          if (!elementView) {
-            return null;
-          }
           if (cell.type !== REACT_TYPE) {
             return null;
           }

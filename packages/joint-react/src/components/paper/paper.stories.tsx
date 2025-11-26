@@ -27,16 +27,64 @@ const meta: Meta<typeof Paper> = {
   title: 'Components/Paper',
   component: Paper,
   decorators: [SimpleGraphDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     description: `
-Paper renders nodes and links using the JointJS Paper under the hood. Compose it inside a GraphProvider. Define node UI via the renderElement prop, and use useHTMLOverlay or <foreignObject> for HTML content.
+The **Paper** component is the core rendering component that displays nodes and links on the canvas. It wraps the JointJS Paper and provides a React-friendly interface for rendering interactive diagrams.
+
+**Key Features:**
+- Renders SVG elements and HTML content via \`renderElement\`
+- Supports all JointJS Paper events (click, hover, drag, etc.)
+- Handles zoom, pan, and transform operations
+- Integrates with GraphProvider for state management
+- Supports custom link tools and interactions
+    `,
+    usage: `
+\`\`\`tsx
+import { GraphProvider, Paper } from '@joint/react';
+
+function MyDiagram() {
+  return (
+    <GraphProvider elements={elements} links={links}>
+      <Paper 
+        renderElement={({ width, height }) => (
+          <rect 
+            rx={10} 
+            ry={10} 
+            width={width} 
+            height={height} 
+            fill="blue" 
+          />
+        )}
+        width="100%"
+        height={600}
+      />
+    </GraphProvider>
+  );
+}
+\`\`\`
+    `,
+    props: `
+- **renderElement**: Function that receives element props and returns SVG/HTML content
+- **width/height**: Paper dimensions (supports numbers or CSS strings)
+- **scale**: Zoom level (default: 1)
+- **className**: CSS class for styling
+- **onElementPointerClick**: Handler for element clicks
+- **onLinkMouseEnter**: Handler for link hover
+- **drawGrid**: Grid configuration for visual guides
+- And many more event handlers for full interactivity
     `,
     apiURL: API_URL,
-    code: `import { GraphProvider } from '@joint/react'
-<GraphProvider>
-  <Paper renderElement={({ width, height }) => (
-    <rect rx={10} ry={10} width={width} height={height} fill={"blue"} />
-  )} />
+    code: `import { GraphProvider, Paper } from '@joint/react'
+
+<GraphProvider elements={elements} links={links}>
+  <Paper 
+    renderElement={({ width, height }) => (
+      <rect rx={10} ry={10} width={width} height={height} fill="blue" />
+    )}
+    width="100%"
+    height={600}
+  />
 </GraphProvider>
     `,
   }),
@@ -77,6 +125,14 @@ export const WithRectElement: Story = {
     width: '100%',
     className: PAPER_CLASSNAME,
   },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Renders a simple SVG rectangle element. This is the most basic usage of the Paper component with SVG content.',
+      },
+    },
+  },
 };
 
 export const WithHTMLElement: Story = {
@@ -84,6 +140,14 @@ export const WithHTMLElement: Story = {
     renderElement: RenderHTMLElement as never,
     width: '100%',
     className: PAPER_CLASSNAME,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Renders HTML content using `<foreignObject>`. Use `MeasuredNode` to automatically calculate and update element sizes based on HTML content dimensions.',
+      },
+    },
   },
 };
 
@@ -93,6 +157,14 @@ export const WithScaleDown: Story = {
     renderElement: RenderHTMLElement as never,
     width: '100%',
     className: PAPER_CLASSNAME,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates zoom/scale functionality. The `scale` prop controls the zoom level of the paper (0.7 = 70% zoom).',
+      },
+    },
   },
 };
 
@@ -218,6 +290,14 @@ export const WithLinkTools: Story = {
     width: '100%',
     className: PAPER_CLASSNAME,
   },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Shows how to add interactive tools to links. Hover over a link to see the custom button tool appear. Tools are added/removed dynamically using event handlers.',
+      },
+    },
+  },
 };
 
 export const WithCustomEvent: Story = {
@@ -241,12 +321,28 @@ export const WithDrawGrid: Story = {
     drawGrid: { name: 'dot', thickness: 2, color: 'white' },
     drawGridSize: 10,
   },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Displays a visual grid overlay on the paper. Useful for alignment and design purposes. The grid can be customized with different patterns (dot, mesh, etc.) and colors.',
+      },
+    },
+  },
 };
 
 export const WithOnClickColorChange: Story = {
   args: {},
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates interactive element updates using `useCellActions`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
+      },
+    },
+  },
   render: () => {
-    const renderElement: RenderElement = ({ width, height, hoverColor, id }) => {
+    const renderElement: RenderElement<SimpleElement> = ({ width, height, hoverColor, id }) => {
       const { set } = useCellActions();
       return (
         <div

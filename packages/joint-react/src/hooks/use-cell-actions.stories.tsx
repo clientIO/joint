@@ -17,15 +17,81 @@ const meta: Meta<typeof Hook> = {
   title: 'Hooks/useCellActions',
   component: Hook,
   render: () => <RenderItemDecorator renderElement={Hook} />,
+  tags: ['hook'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description: `\`useCellActions\` is a hook to set / insert / remove elements and links in the graph. It returns functions to update cells. Use it under \`GraphProvider\` (graph context).
+    description: `
+The **useCellActions** hook provides functions to modify the graph state. It allows you to add, update, and remove elements and links programmatically.
+
+**Key Features:**
+- Update element/link properties with \`set\`
+- Insert new elements/links with \`insert\`
+- Remove elements/links with \`remove\`
+- Type-safe updates with TypeScript
+- Must be used within GraphProvider context
+    `,
+    usage: `
+\`\`\`tsx
+import { useCellActions } from '@joint/react';
+
+function Component() {
+  const { set, insert, remove } = useCellActions();
+  
+  // Update an element
+  const updateElement = () => {
+    set('element-id', (previous) => ({ 
+      ...previous, 
+      label: 'Updated' 
+    }));
+  };
+  
+  // Insert a new element
+  const addElement = () => {
+    insert('elements', {
+      id: 'new-element',
+      x: 100,
+      y: 100,
+      width: 100,
+      height: 50,
+    });
+  };
+  
+  // Remove an element
+  const deleteElement = () => {
+    remove('element-id');
+  };
+  
+  return (
+    <div>
+      <button onClick={updateElement}>Update</button>
+      <button onClick={addElement}>Add</button>
+      <button onClick={deleteElement}>Delete</button>
+    </div>
+  );
+}
+\`\`\`
+    `,
+    props: `
+- **set(id, updater)**: Updates a cell (element or link) by ID
+  - \`id\`: Cell ID to update
+  - \`updater\`: Function that receives previous state and returns new state
+- **insert(collection, item)**: Inserts a new element or link
+  - \`collection\`: 'elements' or 'links'
+  - \`item\`: Element or link object to insert
+- **remove(id)**: Removes a cell by ID
     `,
     code: `import { useCellActions } from '@joint/react'
 
 function Component() {
-    const { set } = useCellActions();
-    return <button onClick={() => set("element-id", (previous) => ({ ...previous, label: 'Hello' }))}>Set label</button>;
+  const { set, insert, remove } = useCellActions();
+  
+  return (
+    <button onClick={() => 
+      set('element-id', (prev) => ({ ...prev, label: 'Hello' }))
+    }>
+      Update Element
+    </button>
+  );
 }`,
   }),
 };
@@ -153,14 +219,18 @@ function HookSetSize({  label , id }: SimpleElement) {
 });
 
 function HookSetAngle({ label, id }: SimpleElement) {
-  const { set } = useCellActions();
+  const { set } = useCellActions<SimpleElement>();
 
   return (
     <HTMLNode className="node">
       <button
         className={BUTTON_CLASSNAME}
         onClick={() => {
-          set(id, (previous) => ({ ...previous, angle: ((previous?.angle ?? 0) + 45) % 360 }));
+          set(id, (previous) => {
+            const { angle = 0 } = previous;
+            const newAngle = angle + 45;
+            return { ...previous, angle: newAngle % 360 };
+          });
         }}
       >
         Set Angle

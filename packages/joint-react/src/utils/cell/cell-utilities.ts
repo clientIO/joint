@@ -17,6 +17,13 @@ export type CellOrJsonCell = dia.Cell | dia.Cell.JSON;
  * It also converts the source and target of the link to a standard format.
  * @returns
  * A standard JointJS link or a JSON representation of the link.
+ * @example
+ * ```ts
+ * import { processLink } from '@joint/react';
+ *
+ * const link = { id: '1', source: 'a', target: 'b', type: 'standard.Link' };
+ * const processed = processLink(link);
+ * ```
  */
 export function processLink(link: dia.Link | GraphLink): CellOrJsonCell {
   if (isLinkInstance(link)) {
@@ -55,6 +62,18 @@ export interface SetLinksOptions {
  * This function is used to set links to the graph.
  * It processes the links and adds them to the graph.
  * It also converts the source and target of the links to a standard format.
+ * @example
+ * ```ts
+ * import { setLinks } from '@joint/react';
+ * import type { dia } from '@joint/core';
+ *
+ * const graph = new dia.Graph();
+ * const links = [
+ *   { id: '1', source: 'a', target: 'b' },
+ *   { id: '2', source: 'b', target: 'c' },
+ * ];
+ * setLinks({ graph, links });
+ * ```
  */
 export function setLinks(options: SetLinksOptions) {
   const { graph, links } = options;
@@ -86,6 +105,14 @@ export function setLinks(options: SetLinksOptions) {
  * It also checks if the element is a ReactElement and if it has a size.
  * If the element is a ReactElement and has no size, it adds its ID to the unsizedIds set.
  * @private
+ * @example
+ * ```ts
+ * import { processElement } from '@joint/react';
+ *
+ * const element = { id: '1', x: 10, y: 20, width: 100, height: 50 };
+ * const unsizedIds = new Set<string>();
+ * const processed = processElement(element, unsizedIds);
+ * ```
  */
 export function processElement<T extends dia.Element | GraphElement>(
   element: T,
@@ -126,6 +153,18 @@ export interface SetElementsOptions {
  * @returns A set of unsized element IDs.
  * It processes the elements and adds them to the graph.
  * It also checks for unsized elements and returns their IDs.
+ * @example
+ * ```ts
+ * import { setElements } from '@joint/react';
+ * import type { dia } from '@joint/core';
+ *
+ * const graph = new dia.Graph();
+ * const elements = [
+ *   { id: '1', x: 10, y: 20, width: 100, height: 50 },
+ *   { id: '2', x: 150, y: 20, width: 100, height: 50 },
+ * ];
+ * const unsizedIds = setElements({ graph, elements });
+ * ```
  */
 export function setElements(options: SetElementsOptions) {
   const { graph, elements } = options;

@@ -25,17 +25,48 @@ const meta: Meta<typeof MeasuredNode> = {
   title: 'Components/MeasuredNode',
   component: MeasuredNode,
   decorators: [ForeignObjectDecorator, SimpleRenderItemDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    code: `import { MeasuredNode } from '@joint/react'
-// This will automatically measure component size and update the parent node size
-<MeasuredNode>
-  <div style={{ width: 100, height: 50 }}>Content</div>
-</MeasuredNode>
-    `,
     description: `
-Measured node component automatically detects the size of its \`children\` and updates the graph element (node) width and height automatically when elements resize.
-It must be used inside \`renderElement\` context. 
+The **MeasuredNode** component automatically measures the size of its children and updates the parent element's dimensions in the graph. This is essential for HTML content where the size is determined by the content itself.
+
+**Key Features:**
+- Automatically measures child component dimensions
+- Updates element size in the graph when content changes
+- Supports custom size calculation via \`setSize\` prop
+- Must be used inside \`renderElement\` within a \`<foreignObject>\`
+    `,
+    usage: `
+\`\`\`tsx
+import { MeasuredNode } from '@joint/react';
+
+function RenderElement({ width, height }) {
+  return (
+    <foreignObject width={width} height={height}>
+      <MeasuredNode>
+        <div style={{ padding: 10 }}>
+          Dynamic content that determines size
+        </div>
+      </MeasuredNode>
+    </foreignObject>
+  );
+}
+\`\`\`
+    `,
+    props: `
+- **children**: React node to measure (required)
+- **setSize**: Optional callback to customize size calculation
+  - Receives: \`{ element, size }\` where size is the measured dimensions
+  - Can modify the size before it's applied to the element
+    `,
+    code: `import { MeasuredNode } from '@joint/react'
+
+<foreignObject width={width} height={height}>
+  <MeasuredNode>
+    <div style={{ padding: 10 }}>Content</div>
+  </MeasuredNode>
+</foreignObject>
     `,
   }),
 };

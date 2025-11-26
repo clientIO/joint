@@ -20,7 +20,7 @@ function setLinkAttributesSafely(
 ) {
   if (!attributes) return;
   // Deep-merge into existing attrs; do NOT replace the whole 'attrs' object.
-  link.attr(attributes as dia.Link.LinkSelectors); // <- this merges at any depth (e.g., { line: { stroke: '#ED2637' } })
+  link.attr(attributes as dia.Cell.Selectors);
 }
 
 interface UpdateCellOptions {

@@ -9,6 +9,7 @@ import {
   type GraphProps,
   type InferElement,
 } from '@joint/react';
+import type { dia } from '@joint/core';
 
 // define initial elements
 const initialElements = createElements([
@@ -34,6 +35,7 @@ const initialEdges = createLinks([
 
 // infer element type from the initial elements (this type can be used for later usage like RenderItem props)
 type CustomElement = InferElement<typeof initialElements>;
+type CustomLink = (typeof initialEdges)[number];
 
 function RenderItem({ width, height, color }: CustomElement) {
   return <rect rx={10} ry={10} width={width} height={height} fill={color} />;
@@ -47,7 +49,7 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App(props: Readonly<GraphProps<dia.Graph, CustomElement, CustomLink>>) {
   return (
     <GraphProvider {...props} links={initialEdges} elements={initialElements}>
       <Main />

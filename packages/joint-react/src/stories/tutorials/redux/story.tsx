@@ -7,6 +7,7 @@ export type Story = StoryObj<typeof Code>;
 export default {
   title: 'Tutorials/Redux',
   component: Code,
+  tags: ['tutorial'],
 } satisfies Meta<typeof Code>;
 
 export const Default: Story = {};

@@ -1,8 +1,14 @@
 import { useLayoutEffect, type DependencyList } from 'react';
-import { usePaper } from './use-paper';
 import type { PaperEvents } from '../types/event.types';
 import { handlePaperEvents } from '../utils/handle-paper-events';
 import { useGraph } from './use-graph';
+import type { PaperContext } from '../context';
+import { usePaperContext } from './use-paper-context';
+import { useRefValue } from './use-ref-value';
+
+interface Options extends PaperEvents {
+  readonly paperRef?: React.RefObject<PaperContext | null>;
+}
 
 /**
  * A hook that listens to view (Paper) events and triggers the corresponding callbacks.
@@ -18,8 +24,14 @@ import { useGraph } from './use-graph';
  * });
  * ```
  */
-export function usePaperEvents(events: PaperEvents, dependencies: DependencyList = []) {
-  const paper = usePaper();
+export function usePaperEvents(events: Options, dependencies: DependencyList = []) {
+  const { paperRef } = events;
+  const paperCtxMaybe = usePaperContext(true);
+  const paperRefMaybe = useRefValue(paperRef);
+  const paper = paperCtxMaybe?.paper ?? paperRefMaybe?.paper;
+  if (!paper) {
+    throw new Error('Paper is not available, either use usePaperContext or provide a paperRef');
+  }
   const graph = useGraph();
   useLayoutEffect(() => {
     if (!paper || !graph) {

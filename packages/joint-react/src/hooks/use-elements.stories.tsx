@@ -14,14 +14,55 @@ const meta: Meta<typeof HookTester> = {
   title: 'Hooks/useElements useLinks',
   component: HookTester,
   decorators: [SimpleGraphDecorator],
+  tags: ['hook'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description: `\`useElements\` is a hook that returns the elements of the current graph. It supports selector functions to get specific properties of the elements and re-renders the component only when selected properties are changed.`,
+    description: `
+The **useElements** hook provides access to all elements in the graph. It supports selector functions for optimized re-renders, only updating when selected element properties change.
+
+**Key Features:**
+- Returns all elements in the graph
+- Supports selector functions for performance optimization
+- Only re-renders when selected properties change
+- Can be used anywhere within GraphProvider context
+    `,
+    usage: `
+\`\`\`tsx
+import { useElements } from '@joint/react';
+
+// Get all elements
+function Component() {
+  const elements = useElements();
+  return <div>Total elements: {elements.length}</div>;
+}
+
+// Get specific properties (optimized)
+function OptimizedComponent() {
+  const elementIds = useElements((elements) => 
+    elements.map(element => element.id)
+  );
+  return <div>Element IDs: {elementIds.join(', ')}</div>;
+}
+\`\`\`
+    `,
+    props: `
+- **selector** (optional): Function that transforms the elements array
+  - Returns: Transformed elements data or full elements array if no selector provided
+  - Re-renders only when selected properties change
+    `,
     code: `import { useElements } from '@joint/react'
 
 function Component() {
   const elements = useElements();
-  return <div>elements are: {JSON.stringify(elements)}</div>;
+  return <div>Total elements: {elements.length}</div>;
+}
+
+// With selector for optimization
+function OptimizedComponent() {
+  const elementIds = useElements((elements) => 
+    elements.map(element => element.id)
+  );
+  return <div>Element IDs: {elementIds.join(', ')}</div>;
 }`,
   }),
 };
@@ -187,10 +228,7 @@ function Component() {
 export const WithAdditionalData = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [
-      (elements) =>
-        elements.map((element) => ({ id: element.id, data: element.data, other: 'something' })),
-    ],
+    hookArgs: [(elements) => elements.map((element) => ({ id: element.id, other: 'something' }))],
     render: (result) => (
       <div>
         <Paper

@@ -106,7 +106,6 @@ const elements = createElements<Element>([
       ['Row 4', 'Row 5', 'Row 6'],
       ['Row 7', 'Row 8', 'Row 9'],
     ],
-    inputText: '',
     width: 400,
     height: 200,
     attrs: {

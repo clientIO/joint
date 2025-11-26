@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { shapes, util } from '@joint/core';
+import { shapes, util, type dia } from '@joint/core';
 import {
   createElements,
   GraphProvider,
@@ -54,19 +54,24 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+const links = [
+  {
+    source: '1',
+    target: '2',
+    type: 'LinkModel',
+    id: '1123',
+    attrs: { line: { stroke: PRIMARY } },
+  },
+];
+type CustomLink = (typeof links)[number];
+
+export default function App(
+  props: Readonly<GraphProps<dia.Graph, BaseElementWithData, CustomLink>>
+) {
   return (
     <GraphProvider
       {...props}
-      links={[
-        {
-          source: '1',
-          target: '2',
-          type: 'LinkModel',
-          id: '1123',
-          attrs: { line: { stroke: PRIMARY } },
-        },
-      ]}
+      links={links}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
     >

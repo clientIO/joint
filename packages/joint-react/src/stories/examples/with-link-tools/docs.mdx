@@ -4,27 +4,77 @@ import Code from './code?raw';
 
 <Meta of={Stories} />
 
-# Link Tools Example
+# Link Tools
 
-This example shows how to use link tools in your project. Link tools are interactive features that let you edit and manipulate links in a graph. They make it easy to customize and work with links visually. For more information, check out the [Link Tools documentation](https://resources.jointjs.com/tutorial/link-tools).
+This example demonstrates how to add interactive tools to links in your diagram. Link tools provide visual controls for editing and manipulating links, such as removing connections, adding waypoints, or triggering custom actions.
 
-You can also use the `jsx` utility provided by JointJS to convert JSX into JointJS markup. This makes it simpler to define custom elements and tools.
+## Overview
 
-### Demo
+Link tools are interactive UI elements that appear on links when certain conditions are met (e.g., on hover). They enable users to:
+- Remove links with delete buttons
+- Add waypoints to links
+- Trigger custom actions
+- Edit link properties
 
-Here is a live demo of the link tools in action:
+## Demo
 
 <Canvas of={Stories.Default} />
 
-### Code
-
-Below is the code used in this example. You can copy and modify it to fit your needs:
+## Implementation
 
 <Markdown>
 {`\`\`\`tsx
 ${Code}
 \`\`\``}
 </Markdown>
+
+## How It Works
+
+1. **Define Tools**: Create link tools using JointJS's `linkTools` API
+2. **Use JSX Utility**: The `jsx` utility converts JSX into JointJS markup for tool definitions
+3. **Event Handlers**: Use `onLinkMouseEnter` and `onLinkMouseLeave` to show/hide tools
+4. **Tool Actions**: Define what happens when tools are clicked
+
+## Key Concepts
+
+### Creating Link Tools
+
+```tsx
+import { linkTools } from '@joint/core';
+import { jsx } from '@joint/react';
+
+const removeButton = new linkTools.Button({
+  markup: jsx(
+    <circle r={7} fill="#FF0000" cursor="pointer" />
+  ),
+  distance: 60,
+  action: (evt, linkView) => {
+    linkView.model.remove();
+  },
+});
+```
+
+### Showing/Hiding Tools
+
+```tsx
+<Paper
+  onLinkMouseEnter={({ linkView }) => {
+    linkView.addTools(toolsView);
+  }}
+  onLinkMouseLeave={({ linkView }) => {
+    linkView.removeTools();
+  }}
+/>
+```
+
+## Best Practices
+
+1. **Show on hover**: Display tools when users hover over links for better UX
+2. **Use JSX utility**: Leverage the `jsx` utility for cleaner tool definitions
+3. **Customize appearance**: Style tools to match your design system
+4. **Handle actions**: Implement proper cleanup and state updates in tool actions
+
+For more information, see the [Link Tools documentation](https://resources.jointjs.com/tutorial/link-tools).
 
 
 

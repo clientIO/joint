@@ -4,25 +4,53 @@ import Code from './code?raw';
 
 <Meta of={Stories} />
 
-# Example: Card with Custom Children Rendering
+# Card Component with Custom Size Calculation
 
-This example demonstrates how to use a card component with a custom `onSetSize` method. The `onSetSize` method overrides the default behavior of the `MeasuredNode` component.
+This example demonstrates how to create a card component with custom size calculation using the `setSize` prop of `MeasuredNode`. This allows you to override the default size calculation behavior.
 
-When using a `measured node`, it is recommended **not** to define `width` and `height` directly in the node's data. This ensures that the node's size is dynamically calculated based on its content.
+## Overview
 
-### Demo
-Below is a live demo of the card component in action:
+When building card-like components with HTML content, you often need to:
+- Measure the content size dynamically
+- Add padding or margins to the calculated size
+- Customize how the size is applied to the graph element
+
+## Key Concept: Custom Size Calculation
+
+The `setSize` prop in `MeasuredNode` gives you full control over how the measured size is applied to the element. This is useful when you need to:
+- Add padding around content
+- Set minimum/maximum sizes
+- Apply custom size transformations
+
+## Important Note
+
+When using `MeasuredNode`, it's recommended **not** to define `width` and `height` directly in the node's data. This ensures that the node's size is dynamically calculated based on its content, allowing for responsive and flexible layouts.
+
+## Demo
 
 <Canvas of={Stories.Default} />
 
-### Code
-Here is the code used in this example:
+## Implementation
 
 <Markdown>
 {`\`\`\`tsx
 ${Code}
 \`\`\``}
 </Markdown>
+
+## How It Works
+
+1. **Content Rendering**: The card content is rendered inside `MeasuredNode`
+2. **Size Measurement**: `MeasuredNode` measures the actual content dimensions
+3. **Custom Calculation**: The `setSize` callback receives the measured size and can modify it
+4. **Element Update**: The modified size is applied to the graph element
+
+## Best Practices
+
+- **Avoid fixed sizes**: Let content determine the size
+- **Use setSize for padding**: Add padding in `setSize` rather than in element data
+- **Handle edge cases**: Consider minimum/maximum size constraints
+- **Test with dynamic content**: Ensure your size calculation works with varying content lengths
 
 
 

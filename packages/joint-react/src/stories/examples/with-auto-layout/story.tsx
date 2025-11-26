@@ -12,6 +12,7 @@ import CodeWithBuildInShapesRaw from './code-with-build-in-shapes?raw';
 export default {
   title: 'Examples/Automatic layout',
   component: Code,
+  tags: ['example'],
   parameters: makeRootDocumentation({
     code: CodeRaw,
   }),

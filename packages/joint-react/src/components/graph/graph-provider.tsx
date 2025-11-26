@@ -17,10 +17,8 @@ import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphAreElementsMeasuredContext, GraphStoreContext } from '../../context';
 
 interface GraphProviderBaseProps<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Element extends dia.Element | GraphElement = any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Link extends dia.Link | GraphLink = any,
+  Element extends dia.Element | GraphElement,
+  Link extends dia.Link | GraphLink,
 > {
   /**
    * Elements (nodes) to be added to graph.
@@ -90,7 +88,7 @@ export function GraphProviderHandler<
 
     graph.startBatch(CONTROLLED_MODE_BATCH_NAME);
     if (areElementsInControlledMode && elements !== undefined) {
-      setElements(elements);
+      setElements(elements as GraphElement[]);
     }
     graph.stopBatch(CONTROLLED_MODE_BATCH_NAME);
   }, [areElementsInControlledMode, areElementsMeasured, elements, graph, setElements]);
@@ -117,10 +115,8 @@ export function GraphProviderHandler<
 
 export interface GraphProps<
   Graph extends dia.Graph = dia.Graph,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Element extends dia.Element | GraphElement = any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Link extends dia.Link | GraphLink = any,
+  Element extends dia.Element | GraphElement = GraphElement,
+  Link extends dia.Link | GraphLink = GraphLink,
 > extends GraphProviderBaseProps<Element, Link> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
@@ -235,8 +231,8 @@ function GraphBase<Element extends dia.Element | GraphElement, Link extends dia.
  * @private
  */
 export const GraphProvider = forwardRef(GraphBase) as <
-  Element extends dia.Element | GraphElement = dia.Element,
-  Link extends dia.Link | GraphLink = dia.Link,
+  Element extends dia.Element | GraphElement,
+  Link extends dia.Link | GraphLink,
 >(
   props: Readonly<GraphProps<dia.Graph, Element, Link>> & {
     ref?: React.Ref<GraphStore>;

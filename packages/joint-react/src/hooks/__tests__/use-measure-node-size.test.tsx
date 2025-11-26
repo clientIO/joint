@@ -6,6 +6,9 @@ import { useMeasureNodeSize } from '../use-measure-node-size';
 // Mocks for @joint/core and useGraphStore
 
 // This is a mock for a hook, but the linter wants no 'use' prefix if not a real hook
+const mockHasMeasuredNode = jest.fn(() => false);
+const mockSetMeasuredNode = jest.fn(() => jest.fn());
+
 jest.mock('../use-graph-store', () => {
   const graph = {
     getCell: jest.fn((_id: string) => ({
@@ -16,8 +19,8 @@ jest.mock('../use-graph-store', () => {
   return {
     useGraphStore: () => ({
       graph,
-      setMeasuredNode: jest.fn(() => jest.fn()),
-      hasMeasuredNode: jest.fn(),
+      setMeasuredNode: mockSetMeasuredNode,
+      hasMeasuredNode: mockHasMeasuredNode,
     }),
   };
 });
@@ -42,6 +45,12 @@ jest.mock('../../utils/create-element-size-observer', () => ({
 }));
 
 describe('useMeasureNodeSize', () => {
+  beforeEach(() => {
+    // Reset mocks before each test
+    mockHasMeasuredNode.mockReturnValue(false);
+    mockSetMeasuredNode.mockReturnValue(jest.fn());
+  });
+
   interface TestComponentProps {
     readonly style: React.CSSProperties;
     readonly children?: React.ReactNode;
@@ -119,5 +128,123 @@ describe('useMeasureNodeSize', () => {
     const [[call]] = setSize.mock.calls;
     expect(call.size.width).toBeGreaterThan(0);
     expect(call.size.height).toBeGreaterThan(0);
+  });
+
+  describe('multiple MeasuredNode error', () => {
+    it('should throw error when multiple MeasuredNode components are used for the same element', () => {
+      // Mock that a measured node already exists
+      mockHasMeasuredNode.mockReturnValue(true);
+
+      const setSize = jest.fn();
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      // The error will be thrown during render, so we need to catch it
+      let caughtError: Error | undefined;
+      try {
+        render(<TestComponent style={explicitStyle} setSize={setSize} />);
+      } catch (error) {
+        caughtError = error as Error;
+      }
+
+      // Verify error was thrown
+      expect(caughtError).toBeDefined();
+      expect(caughtError).toBeInstanceOf(Error);
+      expect(caughtError?.message).toContain('Multiple MeasuredNode components detected');
+
+      consoleError.mockRestore();
+    });
+
+    it('should throw detailed error message in development mode', () => {
+      // Mock that a measured node already exists
+      mockHasMeasuredNode.mockReturnValue(true);
+
+      const setSize = jest.fn();
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Save original NODE_ENV
+      const originalEnv = process.env.NODE_ENV;
+      // Set to development mode
+      process.env.NODE_ENV = 'development';
+
+      let caughtError: Error | undefined;
+      try {
+        render(<TestComponent style={explicitStyle} setSize={setSize} />);
+      } catch (error) {
+        caughtError = error as Error;
+      }
+
+      // Verify error was thrown with detailed message
+      expect(caughtError).toBeDefined();
+      expect(caughtError).toBeInstanceOf(Error);
+      const errorMessage = caughtError?.message ?? '';
+      expect(errorMessage).toContain(
+        'Multiple MeasuredNode components detected for element with id "cell-1"'
+      );
+      expect(errorMessage).toContain('Only one MeasuredNode can be used per element');
+      expect(errorMessage).toContain('Solution:');
+      expect(errorMessage).toContain('Use only one MeasuredNode per element');
+      expect(errorMessage).toContain('custom `setSize` handler');
+      expect(errorMessage).toContain('Check your renderElement function');
+
+      // Restore original NODE_ENV
+      process.env.NODE_ENV = originalEnv;
+      consoleError.mockRestore();
+    });
+
+    it('should throw concise error message in production mode', () => {
+      // Mock that a measured node already exists
+      mockHasMeasuredNode.mockReturnValue(true);
+
+      const setSize = jest.fn();
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Save original NODE_ENV
+      const originalEnv = process.env.NODE_ENV;
+      // Set to production mode
+      process.env.NODE_ENV = 'production';
+
+      let caughtError: Error | undefined;
+      try {
+        render(<TestComponent style={explicitStyle} setSize={setSize} />);
+      } catch (error) {
+        caughtError = error as Error;
+      }
+
+      // Verify error was thrown with concise message
+      expect(caughtError).toBeDefined();
+      expect(caughtError).toBeInstanceOf(Error);
+      const errorMessage = caughtError?.message ?? '';
+      expect(errorMessage).toBe(
+        'Multiple MeasuredNode components detected for element "cell-1". Only one MeasuredNode can be used per element.'
+      );
+      // Should not contain detailed solution in production
+      expect(errorMessage).not.toContain('Solution:');
+      expect(errorMessage).not.toContain('Check your renderElement function');
+
+      // Restore original NODE_ENV
+      process.env.NODE_ENV = originalEnv;
+      consoleError.mockRestore();
+    });
+
+    it('should not throw error when no MeasuredNode exists for the element', () => {
+      // Mock that no measured node exists
+      mockHasMeasuredNode.mockReturnValue(false);
+
+      const setSize = jest.fn();
+      const getBoundingClientRect = jest.fn(() => ({ width: 123, height: 45 }));
+
+      const { getByTestId } = render(
+        <TestComponent style={explicitStyle} setSize={setSize}>
+          Test
+        </TestComponent>
+      );
+
+      const element = getByTestId('measured');
+      // @ts-expect-error assigning mock getBoundingClientRect to element for test
+      element.getBoundingClientRect = getBoundingClientRect;
+
+      // Should not throw and should call setMeasuredNode
+      expect(mockSetMeasuredNode).toHaveBeenCalledWith('cell-1');
+    });
   });
 });

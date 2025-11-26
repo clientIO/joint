@@ -9,7 +9,7 @@ export type Story = StoryObj<typeof Code>;
 export default {
   title: 'Demos/Introduction demo',
   component: Code,
-
+  tags: ['demo'],
   parameters: {
     docs: {
       description: {

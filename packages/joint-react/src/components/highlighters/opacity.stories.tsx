@@ -14,14 +14,45 @@ const meta: Meta<typeof Opacity> = {
   title: 'Components/Highlighter/Opacity',
   component: Opacity,
   decorators: [SimpleRenderItemDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     description: `
-Opacity is a component that changes the opacity of the children. It is used to highlight the children.
+The **Highlighter.Opacity** component changes the opacity of its children, creating a dimming or highlighting effect.
+
+**Key Features:**
+- Adjusts element opacity for visual feedback
+- Perfect for hover states and disabled states
+- Works with any SVG element that forwards refs
+- Can be shown/hidden dynamically
+    `,
+    usage: `
+\`\`\`tsx
+import { Highlighter } from '@joint/react';
+import { forwardRef } from 'react';
+
+const RectElement = forwardRef((props, ref) => (
+  <rect ref={ref} width={100} height={50} fill="blue" />
+));
+
+<Highlighter.Opacity alphaValue={0.5}>
+  <RectElement />
+</Highlighter.Opacity>
+\`\`\`
+    `,
+    props: `
+- **children**: SVG element that forwards a ref (required)
+- **alphaValue**: Opacity value (0-1, where 0 is transparent, 1 is opaque)
     `,
     apiURL: API_URL,
     code: `import { Highlighter } from '@joint/react'
-<Highlighter.Opacity>
-  <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />
+import { forwardRef } from 'react';
+
+const RectElement = forwardRef((props, ref) => (
+  <rect ref={ref} width={100} height={50} fill="blue" />
+));
+
+<Highlighter.Opacity alphaValue={0.5}>
+  <RectElement />
 </Highlighter.Opacity>
     `,
   }),

@@ -125,6 +125,7 @@ type RootState = ReturnType<typeof store.getState>;
 
 // Infer the type of a custom element from the elements state
 type CustomElement = InferElement<RootState['elements']>;
+type CustomLink = RootState['links'][number];
 
 // Component to render a custom node (element)
 function RenderItem(props: CustomElement) {
@@ -249,7 +250,7 @@ function PaperApp() {
 }
 
 // Main component that connects the Redux store to the GraphProvider
-function Main(props: Readonly<GraphProps>) {
+function Main(props: Readonly<GraphProps<dia.Graph, CustomElement, CustomLink>>) {
   // Select links and elements from the Redux store
   const links = useSelector((state: RootState) => state.links);
   const elements = useSelector((state: RootState) => state.elements);

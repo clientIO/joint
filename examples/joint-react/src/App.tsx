@@ -11,7 +11,7 @@ import {
     useCellId,
     useGraph,
     usePaper,
-    useUpdateElement,
+    useCellActions,
     type GraphElement,
     type PaperProps,
     type RenderElement,
@@ -142,6 +142,7 @@ function MessageComponent({
     width,
     height,
     isSelected,
+    id,
 }: ElementWithSelected<MessageElement>) {
     let iconContent;
     let titleText;
@@ -159,8 +160,8 @@ function MessageComponent({
             break;
         }
     }
-    const id = useCellId();
-    const setMessage = useUpdateElement<MessageElement>(id, 'inputText');
+    const { set } = useCellActions<MessageElement>();
+    // const setMessage = useUpdateElement<MessageElement>(id, 'inputText');
     return (
         <Highlighter.Stroke
             padding={10}
@@ -189,7 +190,7 @@ function MessageComponent({
                                 className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
                                 placeholder="Type here..."
                                 onChange={({ target: { value }}) => {
-                                    setMessage(value);
+                                    set(id, (previous: MessageElement) => ({ ...previous, inputText: value }));
                                 }}
                             />
                         </div>
@@ -472,7 +473,7 @@ function Main() {
 
 export default function App() {
     return (
-        <GraphProvider initialElements={elements} initialLinks={links}>
+        <GraphProvider elements={elements} links={links}>
             <Main />
         </GraphProvider>
     );

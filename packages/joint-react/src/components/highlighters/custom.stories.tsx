@@ -15,6 +15,7 @@ const meta: Meta<typeof Custom> = {
   title: 'Components/Highlighter/Custom',
   component: Custom,
   decorators: [SimpleRenderItemDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     description: `
 Custom is a component that allows you to use a custom highlighter. You must provide the \`onAdd\` which must return jointjs highlighter.

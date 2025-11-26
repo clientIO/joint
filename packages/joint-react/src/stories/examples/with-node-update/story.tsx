@@ -18,6 +18,7 @@ import CodeWithAddRemoveNodeRaw from './code-add-remove-node?raw';
 
 export default {
   title: 'Examples/Update',
+  tags: ['example'],
   component: Code,
   parameters: makeRootDocumentation({
     code: CodeRaw,

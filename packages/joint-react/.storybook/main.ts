@@ -38,6 +38,15 @@ const config: StorybookConfig = {
   docs: {
     autodocs: true,
   },
+  tags: {
+    // Custom tags for organizing stories
+    component: {},
+    hook: {},
+    example: {},
+    demo: {},
+    tutorial: {},
+    utils: {},
+  },
 
   // 👇 extend Vite config here to resolve libraries properly (in storybook)
   viteFinal: async (config) => {

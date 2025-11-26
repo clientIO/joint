@@ -9,6 +9,7 @@ import CodeRaw from './code?raw';
 export default {
   title: 'Examples/Proximity link',
   component: Code,
+  tags: ['example'],
   parameters: makeRootDocumentation({
     code: CodeRaw,
   }),

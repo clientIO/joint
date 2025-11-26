@@ -9,13 +9,14 @@ export type Story = StoryObj<typeof CodeSVG>;
 export default {
   title: 'Tutorials/Step by Step',
   component: CodeSVG,
+  tags: ['tutorial'],
 } satisfies Meta<typeof CodeSVG>;
 
 export const SVG: Story = {};
 export const HTML: Story = {
-  render: CodeHTML,
+  render: CodeHTML as never,
 };
 
 export const HTMLRenderer: Story = {
-  render: CodeHTMLPortal,
+  render: CodeHTMLPortal as never,
 };

@@ -7,7 +7,7 @@ export type Story = StoryObj<typeof Code>;
 export default {
   title: 'Demos/Flowchart',
   component: Code,
-
+  tags: ['demo'],
   parameters: {
     docs: {
       description: {

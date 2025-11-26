@@ -11,6 +11,7 @@ import {
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import type { dia } from '@joint/core';
 // define initial elements
 const initialElements = createElements([
   { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
@@ -35,7 +36,7 @@ const initialEdges = createLinks([
 
 // infer element type from the initial elements (this type can be used for later usage like RenderItem props)
 type CustomElement = InferElement<typeof initialElements>;
-
+type CustomLink = (typeof initialEdges)[number];
 function RenderItem(props: CustomElement) {
   const { label, width, height } = props;
   return (
@@ -55,7 +56,7 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App(props: Readonly<GraphProps<dia.Graph, CustomElement, CustomLink>>) {
   return (
     <GraphProvider {...props} links={initialEdges} elements={initialElements}>
       <Main />

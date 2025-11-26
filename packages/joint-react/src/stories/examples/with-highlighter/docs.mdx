@@ -4,48 +4,98 @@ import Code from './code?raw';
 
 <Meta of={Stories} />
 
-# Render Nodes with Highlighter
+# Using Highlighters
 
-This example demonstrates how to render elements with [highlighters](https://docs.jointjs.com/api/highlighters) applied around them. Highlighters are visual effects that can be used to emphasize specific elements in your graph.
+This example demonstrates how to use highlighters to create visual emphasis on elements in your diagram. Highlighters are React components that wrap your element content and add visual effects like borders, opacity changes, or custom styling.
 
-### Demo
-Below is a live demo showcasing the default highlighter in action:
+## Overview
+
+Highlighters are useful for:
+- **Hover effects**: Show visual feedback when users interact with elements
+- **Selection states**: Indicate which elements are currently selected
+- **Focus indicators**: Highlight elements that have focus or are being edited
+- **Status indicators**: Show different states (active, disabled, error, etc.)
+
+## Demo
+
 <Canvas of={Stories.Default} />
 
-### Code
-The highlighter is configured using the `highlighters` property of the `GraphProvider` component. Here is the code used in this example:
+## Implementation
+
 <Markdown>
 {`\`\`\`tsx
 ${Code}
 \`\`\``}
 </Markdown>
 
-### Available Highlighters
-Here are the different types of highlighters you can use. Each highlighter provides a unique way to emphasize elements:
+## Available Highlighter Types
 
-#### Mask Highlighter
+### Mask Highlighter
+Creates a border/mask around the element. Perfect for selection indicators.
+
 ```tsx
 import { Highlighter } from '@joint/react';
-return <Highlighter.Mask />;
+
+<Highlighter.Mask 
+  stroke="blue" 
+  strokeWidth={2} 
+  padding={5}
+>
+  <YourElement />
+</Highlighter.Mask>
 ```
 
-#### Opacity Highlighter
+### Opacity Highlighter
+Changes the opacity of the element. Great for hover effects.
+
 ```tsx
 import { Highlighter } from '@joint/react';
-return <Highlighter.Opacity />;
+
+<Highlighter.Opacity opacity={0.5}>
+  <YourElement />
+</Highlighter.Opacity>
 ```
 
-#### Stroke Highlighter
+### Stroke Highlighter
+Adds a stroke outline around the element.
+
 ```tsx
 import { Highlighter } from '@joint/react';
-return <Highlighter.Stroke />;
+
+<Highlighter.Stroke 
+  stroke="red" 
+  strokeWidth={3}
+>
+  <YourElement />
+</Highlighter.Stroke>
 ```
 
-#### Custom Highlighter
+### Custom Highlighter
+Create your own custom highlighting effect.
+
 ```tsx
 import { Highlighter } from '@joint/react';
-return <Highlighter.Custom />;
+import { highlighters } from '@joint/core';
+
+<Highlighter.Custom 
+  onAdd={(elementView) => {
+    return highlighters.mask.add(elementView, {
+      padding: 10,
+      rx: 5,
+      ry: 5,
+    });
+  }}
+>
+  <YourElement />
+</Highlighter.Custom>
 ```
+
+## Best Practices
+
+1. **Use forwardRef**: Child elements must forward refs for highlighters to work
+2. **Conditional rendering**: Use `isHidden` prop to show/hide highlighters dynamically
+3. **Performance**: Highlighters are lightweight and don't impact rendering performance
+4. **Accessibility**: Consider color contrast and visual indicators for accessibility
 
 
 

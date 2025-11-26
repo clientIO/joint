@@ -6,6 +6,16 @@ const elementMarkup = jsx(<rect joint-selector="placeholder" />);
 /**
  * A custom JointJS element that can render React components.
  * @group Models
+ * @example
+ * ```ts
+ * import { ReactElement } from '@joint/react';
+ *
+ * const element = new ReactElement({
+ *   id: '1',
+ *   position: { x: 10, y: 20 },
+ *   size: { width: 100, height: 50 },
+ * });
+ * ```
  */
 export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Element<
   dia.Element.Attributes & Attributes
@@ -41,6 +51,16 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
  * @param options - The attributes for the ReactElement.
  * @returns A new ReactElement instance.
  * @group Models
+ * @example
+ * ```ts
+ * import { createElement } from '@joint/react';
+ *
+ * const element = createElement({
+ *   id: '1',
+ *   position: { x: 10, y: 20 },
+ *   size: { width: 100, height: 50 },
+ * });
+ * ```
  */
 export function createElement<Attributes = dia.Element.Attributes>(
   options?: Attributes & dia.Element.Attributes

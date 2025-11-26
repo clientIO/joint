@@ -28,14 +28,49 @@ const EPSILON = 0.5;
 /**
  * Custom hook to measure the size of a node and update its size in the graph.
  * It uses the `createElementSizeObserver` utility to observe size changes.
+ *
+ * **Important:** Only one `MeasuredNode` (or `useMeasureNodeSize` hook) can be used per element.
+ * Using multiple `MeasuredNode` components for the same element will throw an error in development
+ * and cause unexpected behavior. If you need multiple measurements, use a single `MeasuredNode`
+ * with a custom `setSize` handler.
  * @param elementRef - A reference to the HTML or SVG element to measure.
  * @param options - Options for measuring the node size.
+ * @throws {Error} If multiple `MeasuredNode` components are used for the same element.
+ * @group Hooks
+ * @example
+ * ```tsx
+ * import { useMeasureNodeSize } from '@joint/react';
+ * import { useRef } from 'react';
+ *
+ * function RenderElement() {
+ *   const elementRef = useRef<HTMLDivElement>(null);
+ *   useMeasureNodeSize(elementRef);
+ *   return <div ref={elementRef}>Content</div>;
+ * }
+ * ```
+ * @example
+ * With custom size handler:
+ * ```tsx
+ * import { useMeasureNodeSize } from '@joint/react';
+ * import { useRef } from 'react';
+ * import type { dia } from '@joint/core';
+ *
+ * function RenderElement() {
+ *   const elementRef = useRef<HTMLDivElement>(null);
+ *   useMeasureNodeSize(elementRef, {
+ *     setSize: ({ element, size }) => {
+ *       // Custom size handling
+ *       element.set('size', { width: size.width + 10, height: size.height + 10 });
+ *     },
+ *   });
+ *   return <div ref={elementRef}>Content</div>;
+ * }
+ * ```
  */
 export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVGElement>(
   elementRef: RefObject<AnyHTMLOrSVGElement | null>,
   options?: MeasureNodeOptions
 ) {
-  // TODO - add exception for using multiple measured node for single element
   const { setSize } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
   const id = useCellId();
@@ -52,6 +87,22 @@ export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVG
 
     const cell = graph.getCell(id);
     if (!cell?.isElement()) throw new Error('Cell not valid');
+
+    // Check if another MeasuredNode is already measuring this element
+    if (hasMeasuredNode(id)) {
+      const errorMessage =
+        process.env.NODE_ENV === 'production'
+          ? `Multiple MeasuredNode components detected for element "${id}". Only one MeasuredNode can be used per element.`
+          : `Multiple MeasuredNode components detected for element with id "${id}".\n\n` +
+            `Only one MeasuredNode can be used per element. Multiple MeasuredNode components ` +
+            `trying to set the size for the same element will cause conflicts and unexpected behavior.\n\n` +
+            `Solution:\n` +
+            `- Use only one MeasuredNode per element\n` +
+            `- If you need multiple measurements, use a single MeasuredNode with a custom \`setSize\` handler\n` +
+            `- Check your renderElement function to ensure you're not rendering multiple MeasuredNode components for the same element`;
+
+      throw new Error(errorMessage);
+    }
 
     const previous = { width: 0, height: 0 };
 

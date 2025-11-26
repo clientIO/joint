@@ -9,6 +9,7 @@ import CodeRaw from './code?raw';
 export default {
   title: 'Examples/Intersection',
   component: Code,
+  tags: ['example'],
   parameters: makeRootDocumentation({
     code: CodeRaw,
   }),

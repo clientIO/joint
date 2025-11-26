@@ -28,6 +28,8 @@ export const testElements = createElements([
     y: 20,
     width: 150,
     height: 50,
+    hoverColor: 'red',
+    angle: 0,
   },
   {
     id: '2',
@@ -37,6 +39,8 @@ export const testElements = createElements([
     y: 250,
     width: 150,
     height: 50,
+    hoverColor: 'blue',
+    angle: 0,
   },
 ]);
 

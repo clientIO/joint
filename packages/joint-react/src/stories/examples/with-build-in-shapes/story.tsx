@@ -56,6 +56,7 @@ export type Story = StoryObj<typeof Rectangle>;
 export default {
   title: 'Examples/Built-in shapes',
   component: Rectangle,
+  tags: ['example'],
   parameters: {
     docs: {
       description: {

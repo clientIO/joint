@@ -1,5 +1,5 @@
 import type { attributes, dia, shapes } from '@joint/core';
-import type { JointAttributes, Ports } from '../utils/cell/get-cell';
+import type { Ports } from '../utils/cell/get-cell';
 
 export interface ReactElementAttributes {
   root?: attributes.SVGAttributes;
@@ -24,7 +24,7 @@ export interface StandardShapesTypeMapper {
 
 export type StandardShapesType = keyof StandardShapesTypeMapper;
 
-export interface GraphElement extends JointAttributes {
+export interface GraphElement {
   /**
    * Unique identifier of the element.
    */
@@ -54,10 +54,12 @@ export interface GraphElement extends JointAttributes {
    * Optional height of the element.
    */
   readonly height?: number;
-
+  /**
+   * Optional markup of the element.
+   */
   readonly markup?: string | dia.MarkupJSON;
   /**
-   * Attributes of the element.
+   * Optional angle of the element.
    */
-  readonly attrs?: unknown;
+  readonly angle?: number;
 }

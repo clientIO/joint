@@ -5,13 +5,19 @@ import { usePaperContext } from './use-paper-context';
  * Return JointJS `dia.Paper` instance from the current `Paper` context.
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
+ * @returns - The jointjs paper instance.
+ * @example
  * ```tsx
  * import { usePaper } from '@joint/react';
- * const paper = usePaper();
+ *
+ * function MyComponent() {
+ *   const paper = usePaper();
+ *   // Use paper instance to interact with the JointJS paper
+ *   return null;
+ * }
  * ```
- * @returns - The jointjs paper instance.
  */
-export function usePaper(): dia.Paper | undefined {
+export function usePaper(): dia.Paper {
   const viewConfig = usePaperContext();
-  return viewConfig?.paper;
+  return viewConfig.paper;
 }

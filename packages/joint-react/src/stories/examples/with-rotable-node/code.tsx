@@ -94,7 +94,7 @@ function RotatableNode({ label, id, width, height }: Readonly<BaseElementWithDat
 
 function Main() {
   const elementRotation = useElements((items) =>
-    items.map(({ angle }) => `${angle.toString().padStart(3, '0')} deg`)
+    items.map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
   );
 
   return (

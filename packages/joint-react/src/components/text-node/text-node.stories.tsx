@@ -40,17 +40,55 @@ const meta: Meta<typeof TextNode> = {
   title: 'Components/TextNode',
   component: TextNode,
   decorators: [SVGDecorator, SimpleRenderItemDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    code: `
-    import { TextNode } from '@joint/react'
-    <TextNode
-      fill="white"
-      width={19}
-      textWrap
-      >
-      Hello world
-    </TextNode>
+    description: `
+The **TextNode** component renders SVG text with automatic sizing and wrapping capabilities. It's designed to work seamlessly with MeasuredNode for dynamic text content.
+
+**Key Features:**
+- Renders SVG text elements
+- Supports automatic text wrapping
+- Integrates with MeasuredNode for dynamic sizing
+- Supports all standard SVG text properties
+    `,
+    usage: `
+\`\`\`tsx
+import { TextNode, MeasuredNode } from '@joint/react';
+import { useElement } from '@joint/react';
+
+function RenderElement() {
+  const { width, height } = useElement();
+  return (
+    <>
+      <rect width={width} height={height} fill="blue" />
+      <MeasuredNode>
+        <g transform="translate(10, 10)">
+          <TextNode fill="white" width={width - 20} textWrap>
+            Your text content here
+          </TextNode>
+        </g>
+      </MeasuredNode>
+    </>
+  );
+}
+\`\`\`
+    `,
+    props: `
+- **children**: Text content to render
+- **fill**: Text color
+- **width**: Maximum width before wrapping
+- **textWrap**: Enable automatic text wrapping
+- **fontSize**: Text size (default: 14)
+- And other standard SVG text properties
+    `,
+    code: `import { TextNode, MeasuredNode } from '@joint/react'
+
+<MeasuredNode>
+  <TextNode fill="white" width={100} textWrap>
+    Hello world
+  </TextNode>
+</MeasuredNode>
     `,
   }),
 };

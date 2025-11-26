@@ -14,14 +14,54 @@ const meta: Meta<typeof Mask> = {
   title: 'Components/Highlighter/Mask',
   component: Mask,
   decorators: [SimpleRenderItemDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     description: `
-Mask is a component that creates a mask around the children. It is used to highlight the children.
+The **Highlighter.Mask** component creates a visual mask/border around its children, useful for highlighting elements on hover or selection.
+
+**Key Features:**
+- Creates a mask border around child elements
+- Supports customizable padding and stroke properties
+- Works with SVG elements that forward refs
+- Can be shown/hidden dynamically via \`isHidden\` prop
+    `,
+    usage: `
+\`\`\`tsx
+import { Highlighter } from '@joint/react';
+import { forwardRef } from 'react';
+
+const RectElement = forwardRef((props, ref) => (
+  <rect ref={ref} width={100} height={50} fill="blue" />
+));
+
+<Highlighter.Mask 
+  stroke="red" 
+  strokeWidth={2} 
+  padding={5}
+  isHidden={false}
+>
+  <RectElement />
+</Highlighter.Mask>
+\`\`\`
+    `,
+    props: `
+- **children**: SVG element that forwards a ref (required)
+- **stroke**: Border color
+- **strokeWidth**: Border thickness
+- **padding**: Space between element and mask border
+- **isHidden**: Controls visibility of the mask
+- **strokeLinejoin**: SVG line join style (miter, round, bevel)
     `,
     apiURL: API_URL,
     code: `import { Highlighter } from '@joint/react'
-<Highlighter.Mask>
-  <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />
+import { forwardRef } from 'react';
+
+const RectElement = forwardRef((props, ref) => (
+  <rect ref={ref} width={100} height={50} fill="blue" />
+));
+
+<Highlighter.Mask stroke="red" padding={5}>
+  <RectElement />
 </Highlighter.Mask>
     `,
   }),

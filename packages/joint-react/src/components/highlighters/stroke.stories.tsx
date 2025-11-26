@@ -22,14 +22,55 @@ const meta: Meta<typeof Stroke> = {
   title: 'Components/Highlighter/Stroke',
   component: Stroke,
   decorators: [SimpleRenderItemDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     description: `
-Stroke is a component that adds a stroke around the children. It is used to highlight the children.
+The **Highlighter.Stroke** component adds a stroke outline around its children, creating a border effect for highlighting elements.
+
+**Key Features:**
+- Adds a customizable stroke border around elements
+- Supports padding to control border distance from element
+- Works with any SVG element that forwards refs
+- Can be shown/hidden dynamically
+    `,
+    usage: `
+\`\`\`tsx
+import { Highlighter } from '@joint/react';
+import { forwardRef } from 'react';
+
+const RectElement = forwardRef((props, ref) => (
+  <rect ref={ref} width={100} height={50} fill="blue" />
+));
+
+<Highlighter.Stroke 
+  stroke="red" 
+  strokeWidth={3} 
+  padding={5}
+  rx={5}
+  ry={5}
+>
+  <RectElement />
+</Highlighter.Stroke>
+\`\`\`
+    `,
+    props: `
+- **children**: SVG element that forwards a ref (required)
+- **stroke**: Border color
+- **strokeWidth**: Border thickness
+- **padding**: Space between element and stroke border
+- **rx/ry**: Border corner radius
+- **useFirstSubpath**: Use first subpath for complex shapes
     `,
     apiURL: API_URL,
     code: `import { Highlighter } from '@joint/react'
-<Highlighter.Stroke>
-  <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />
+import { forwardRef } from 'react';
+
+const RectElement = forwardRef((props, ref) => (
+  <rect ref={ref} width={100} height={50} fill="blue" />
+));
+
+<Highlighter.Stroke stroke="red" strokeWidth={3} padding={5}>
+  <RectElement />
 </Highlighter.Stroke>
     `,
   }),

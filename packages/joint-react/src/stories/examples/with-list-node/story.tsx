@@ -10,6 +10,7 @@ export type Story = StoryObj<typeof Code>;
 export default {
   title: 'Examples/List node',
   component: Code,
+  tags: ['example'],
   parameters: makeRootDocumentation({
     code: CodeRaw,
   }),

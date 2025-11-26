@@ -15,6 +15,7 @@ export type Story = StoryObj<typeof CodeWithCreateLinks>;
 export default {
   title: 'Examples/Custom link',
   component: CodeWithCreateLinks,
+  tags: ['example'],
   parameters: makeRootDocumentation({
     apiURL: 'https://resources.jointjs.com/tutorial/links',
     code: CodeWithCreateLinksCode,

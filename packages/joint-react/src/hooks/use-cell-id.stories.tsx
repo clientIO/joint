@@ -16,6 +16,7 @@ const meta: Meta<typeof Hook> = {
   title: 'Hooks/useCellId',
   component: Hook,
   decorators: [SimpleRenderItemDecorator],
+  tags: ['hook'],
   parameters: makeRootDocumentation({
     description:
       '`useCellId` is a hook that returns the cellId of the current cell. It is used to get the cellId of the current cell. It must be used inside `renderElement`',

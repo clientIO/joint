@@ -1,5 +1,8 @@
 import { useCallback } from 'react';
 import { GraphProvider, Paper, type GraphProps, type PaperProps } from '../components';
+import type { dia } from '@joint/core';
+import type { GraphElement } from '../types/element-types';
+import type { GraphLink } from '../types/link-types';
 
 /**
  * Testing helper to render a `GraphProvider` provider.
@@ -8,7 +11,9 @@ import { GraphProvider, Paper, type GraphProps, type PaperProps } from '../compo
  * @internal
  * @group utils
  */
-export function graphProviderWrapper(props: GraphProps): React.JSXElementConstructor<{
+export function graphProviderWrapper(
+  props: GraphProps<dia.Graph, GraphElement, GraphLink>
+): React.JSXElementConstructor<{
   children: React.ReactNode;
 }> {
   return function GraphProviderWrapper({ children }) {
@@ -18,7 +23,7 @@ export function graphProviderWrapper(props: GraphProps): React.JSXElementConstru
 
 interface Options {
   paperProps?: PaperProps;
-  graphProviderProps?: GraphProps;
+  graphProviderProps?: GraphProps<dia.Graph, GraphElement, GraphLink>;
 }
 /**
  * Testing helper to render a `Paper` inside a `GraphProvider` provider.

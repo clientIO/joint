@@ -88,6 +88,7 @@ const meta: Meta<typeof PortGroup> = {
   title: 'Components/Port/Group',
   component: PortGroup,
   decorators: [PaperDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
     code: `

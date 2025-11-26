@@ -63,6 +63,7 @@ const meta: Meta<typeof App> = {
   title: 'Utils/JSX',
   component: App,
   decorators: [SimpleGraphDecorator],
+  tags: ['utils'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
     code: `import { dia } from '@joint/core';

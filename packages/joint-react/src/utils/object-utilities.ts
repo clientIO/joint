@@ -6,6 +6,17 @@ import { util } from '@joint/core';
  * Make options and avoid to generate undefined values.
  * @param options - An object containing options where keys are strings and values can be of any type.
  * @returns - A new object with the same properties as the input options, but without any properties that have undefined
+ * @example
+ * ```ts
+ * import { makeOptions } from '@joint/react';
+ *
+ * const options = makeOptions({
+ *   width: 100,
+ *   height: 50,
+ *   color: undefined, // This will be removed
+ * });
+ * // Result: { width: 100, height: 50 }
+ * ```
  */
 export function makeOptions<T extends Record<string, any>>(options: T): T {
   const result: T = {} as T;
@@ -22,6 +33,17 @@ export function makeOptions<T extends Record<string, any>>(options: T): T {
  * @param props - The instance to which new properties will be assigned.
  * @param newProps - An object containing new properties to assign to the instance.
  * @returns - The updated instance with the new properties assigned, excluding any properties that were undefined.
+ * @example
+ * ```ts
+ * import { assignOptions } from '@joint/react';
+ *
+ * const props = { width: 100, height: 50 };
+ * const updated = assignOptions(props, {
+ *   width: 200,
+ *   color: undefined, // This will be ignored
+ * });
+ * // Result: { width: 200, height: 50 }
+ * ```
  */
 export function assignOptions<T extends Record<string, any>>(props: T, newProps: Partial<T>): T {
   for (const key in newProps) {
@@ -47,6 +69,14 @@ export function assignOptions<T extends Record<string, any>>(props: T, newProps:
  * @param object - The source object from which to extract values.
  * @param picked - An array of keys whose corresponding values need to be extracted from the object.
  * @returns - An array containing the values associated with the specified keys in the same order as the keys array.
+ * @example
+ * ```ts
+ * import { dependencyExtract } from '@joint/react';
+ *
+ * const obj = { width: 100, height: 50, color: 'red' };
+ * const values = dependencyExtract(obj, new Set(['width', 'height']));
+ * // Result: [100, 50]
+ * ```
  */
 export function dependencyExtract<T extends Record<string, any>, K extends keyof T = keyof T>(
   object: T,

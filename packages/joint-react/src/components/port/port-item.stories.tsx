@@ -95,16 +95,50 @@ const meta: Meta<typeof Port.Item> = {
   title: 'Components/Port/Item',
   component: Port.Item,
   decorators: [PaperDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    code: `
-      import { Port } from '@joint/react';
-      <Port.Item id="port-one" x={0} y={0}>
-        <foreignObject  />
-      </Port.Item>
+    description: `
+The **Port.Item** component represents a connection point on an element. Ports are used to define where links can connect to elements, enabling precise control over connection points.
+
+**Key Features:**
+- Defines connection points for links
+- Supports custom positioning and styling
+- Can contain custom content (icons, labels, etc.)
+- Works with Port.Group for relative positioning
+- Must be used inside renderElement context
     `,
-    description:
-      'Port item is a component that represents a port in the graph. It is used to connect elements in the graph. Its appended outside the node elements, so when using positions, you can use group component for that `<Port.Group />`',
+    usage: `
+\`\`\`tsx
+import { Port } from '@joint/react';
+
+function RenderElement({ width, height }) {
+  return (
+    <>
+      <rect width={width} height={height} fill="blue" />
+      <Port.Item id="top" x={width / 2} y={0}>
+        <circle r={5} fill="red" />
+      </Port.Item>
+      <Port.Item id="bottom" x={width / 2} y={height}>
+        <circle r={5} fill="green" />
+      </Port.Item>
+    </>
+  );
+}
+\`\`\`
+    `,
+    props: `
+- **id**: Unique identifier for the port (required)
+- **x/y**: Absolute position coordinates
+- **children**: SVG content to render at the port location
+- **group**: Port group ID for relative positioning (use with Port.Group)
+    `,
+    code: `import { Port } from '@joint/react';
+
+<Port.Item id="port-one" x={50} y={25}>
+  <circle r={5} fill="blue" />
+</Port.Item>
+    `,
   }),
 };
 
