@@ -551,7 +551,7 @@ export namespace dia {
         }
 
         interface ExportOptions {
-            ignoreDefault?: boolean | string[];
+            ignoreDefaults?: boolean | string[];
             ignoreEmptyAttributes?: boolean;
         }
 
