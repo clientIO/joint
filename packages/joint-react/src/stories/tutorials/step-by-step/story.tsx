@@ -1,21 +1,27 @@
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import '../../examples/index.css';
 import CodeSVG from './code-svg';
 import CodeHTML from './code-html';
 import CodeHTMLPortal from './code-html-renderer';
+import CodeControlledMode from './code-controlled-mode';
 
 export type Story = StoryObj<typeof CodeSVG>;
 
 export default {
   title: 'Tutorials/Step by Step',
   component: CodeSVG,
+  tags: ['tutorial'],
 } satisfies Meta<typeof CodeSVG>;
 
 export const SVG: Story = {};
 export const HTML: Story = {
-  render: CodeHTML,
+  render: CodeHTML as never,
 };
 
 export const HTMLRenderer: Story = {
-  render: CodeHTMLPortal,
+  render: CodeHTMLPortal as never,
+};
+
+export const ControlledMode: Story = {
+  render: CodeControlledMode as never,
 };

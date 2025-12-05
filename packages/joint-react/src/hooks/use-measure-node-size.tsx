@@ -1,17 +1,8 @@
-import { useEffect, useRef, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, type RefObject } from 'react';
 import { useCellId } from './use-cell-id';
-import {
-  createElementSizeObserver,
-  type SizeObserver,
-} from '../utils/create-element-size-observer';
-import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
+import type { OnSetSize } from '../data/create-elements-size-observer';
 
-export interface OnSetOptions {
-  readonly element: dia.Element;
-  readonly size: SizeObserver;
-}
-export type OnSetSize = (options: OnSetOptions) => void;
 export interface MeasureNodeOptions {
   /**
    * Overwrite default node set function with custom handling.
@@ -26,62 +17,83 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
 /**
  * Custom hook to measure the size of a node and update its size in the graph.
  * It uses the `createElementSizeObserver` utility to observe size changes.
+ *
+ * **Important:** Only one `MeasuredNode` (or `useMeasureNodeSize` hook) can be used per element.
+ * Using multiple `MeasuredNode` components for the same element will throw an error in development
+ * and cause unexpected behavior. If you need multiple measurements, use a single `MeasuredNode`
+ * with a custom `setSize` handler.
  * @param elementRef - A reference to the HTML or SVG element to measure.
  * @param options - Options for measuring the node size.
+ * @throws {Error} If multiple `MeasuredNode` components are used for the same element.
+ * @group Hooks
+ * @example
+ * ```tsx
+ * import { useMeasureNodeSize } from '@joint/react';
+ * import { useRef } from 'react';
+ *
+ * function RenderElement() {
+ *   const elementRef = useRef<HTMLDivElement>(null);
+ *   useMeasureNodeSize(elementRef);
+ *   return <div ref={elementRef}>Content</div>;
+ * }
+ * ```
+ * @example
+ * With custom size handler:
+ * ```tsx
+ * import { useMeasureNodeSize } from '@joint/react';
+ * import { useRef } from 'react';
+ * import type { dia } from '@joint/core';
+ *
+ * function RenderElement() {
+ *   const elementRef = useRef<HTMLDivElement>(null);
+ *   useMeasureNodeSize(elementRef, {
+ *     setSize: ({ element, size }) => {
+ *       // Custom size handling
+ *       element.set('size', { width: size.width + 10, height: size.height + 10 });
+ *     },
+ *   });
+ *   return <div ref={elementRef}>Content</div>;
+ * }
+ * ```
  */
-export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVGElement>(
-  elementRef: RefObject<AnyHTMLOrSVGElement | null>,
+export function useMeasureNodeSize(
+  elementRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
 ) {
   const { setSize } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
   const id = useCellId();
 
-  const onSetSizeRef = useRef(setSize);
-
-  useEffect(() => {
-    onSetSizeRef.current = setSize;
-  }, [setSize]);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = elementRef.current;
     if (!element) throw new Error('MeasuredNode must have a child element');
 
     const cell = graph.getCell(id);
     if (!cell?.isElement()) throw new Error('Cell not valid');
-
-    const previous = { width: 0, height: 0 };
-
-    // Check if the element is already measured
+    // Check if another MeasuredNode is already measuring this element
     if (hasMeasuredNode(id)) {
-      // If it is already measured, we don't need to set the size again
-      throw new Error(
-        `Multiple measurements used. Element with id ${id} is already measured, only one element inside the graph can be measured at a time`
-      );
+      const errorMessage =
+        process.env.NODE_ENV === 'production'
+          ? `Multiple MeasuredNode components detected for element "${id}". Only one MeasuredNode can be used per element.`
+          : `Multiple MeasuredNode components detected for element with id "${id}".\n\n` +
+            `Only one MeasuredNode can be used per element. Multiple MeasuredNode components ` +
+            `trying to set the size for the same element will cause conflicts and unexpected behavior.\n\n` +
+            `Solution:\n` +
+            `- Use only one MeasuredNode per element\n` +
+            `- If you need multiple measurements, use a single MeasuredNode with a custom \`setSize\` handler\n` +
+            `- Check your renderElement function to ensure you're not rendering multiple MeasuredNode components for the same element`;
+
+      throw new Error(errorMessage);
     }
-    const clean = setMeasuredNode(id);
-
-    // Create the observer that calls back on measurement changes
-    const stop = createElementSizeObserver(element, ({ width, height }) => {
-      // Only update when dimensions actually change
-      if (previous.width === width && previous.height === height) return;
-      previous.width = width;
-      previous.height = height;
-
-      // Always update the size (whether via the user-defined setSize or the default)
-      if (onSetSizeRef.current) {
-        onSetSizeRef.current({ element: cell, size: { width, height } });
-      } else {
-        cell.set('size', { width, height }, { async: false });
-      }
-    });
-
-    // Cleanup on unmount or when dependencies change.
+    if (!elementRef.current) {
+      return;
+    }
+    const clean = setMeasuredNode({ id, element: elementRef.current, setSize });
     return () => {
       clean();
       stop();
     };
-  }, [id, elementRef, graph, hasMeasuredNode, setMeasuredNode]);
+  }, [elementRef, graph, hasMeasuredNode, id, setMeasuredNode, setSize]);
 
   // This hook itself does not return anything.
 }

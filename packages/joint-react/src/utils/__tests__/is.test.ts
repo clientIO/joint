@@ -42,16 +42,6 @@ describe('is.ts utility functions', () => {
     expect(is.isGraphCell(null)).toBe(false);
   });
 
-  test('isGraphElement', () => {
-    expect(is.isGraphElement({ isElement: true, isLink: false })).toBe(true);
-    expect(is.isGraphElement({ isElement: false, isLink: true })).toBe(false);
-  });
-
-  test('isGraphLink', () => {
-    expect(is.isGraphLink({ isElement: false, isLink: true })).toBe(true);
-    expect(is.isGraphLink({ isElement: true, isLink: false })).toBe(false);
-  });
-
   test('isLinkInstance', () => {
     const link = new dia.Link();
     expect(is.isLinkInstance(link)).toBe(true);
@@ -62,12 +52,6 @@ describe('is.ts utility functions', () => {
     const cell = new dia.Cell();
     expect(is.isCellInstance(cell)).toBe(true);
     expect(is.isCellInstance({})).toBe(false);
-  });
-
-  test('isUnsized', () => {
-    expect(is.isUnsized(undefined, 10)).toBe(true);
-    expect(is.isUnsized(10, undefined)).toBe(true);
-    expect(is.isUnsized(10, 10)).toBe(false);
   });
 
   test('hasChildren', () => {

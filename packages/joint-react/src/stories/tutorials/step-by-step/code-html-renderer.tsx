@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useCallback, useState } from 'react';
 import {
   createElements,
@@ -12,6 +11,7 @@ import {
 } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME } from 'storybook-config/theme';
+import type { dia } from '@joint/core';
 // Define initial elements
 const initialElements = createElements([
   { id: '1', data: { label: 'Hello' }, x: 100, y: 0, width: 100, height: 25 },
@@ -34,6 +34,9 @@ const initialEdges = createLinks([
   },
 ]);
 
+type CustomElement = InferElement<typeof initialElements>;
+type CustomLink = (typeof initialEdges)[number];
+
 let zoomLevel = 1;
 
 function Controls() {
@@ -44,9 +47,10 @@ function Controls() {
         type="button"
         // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
         onClick={() => {
-          const center = paper.getArea().center();
+          const center = paper?.getArea().center();
+          if (!center) return;
           zoomLevel = Math.min(3, zoomLevel + 0.2);
-          paper.scaleUniformAtPoint(zoomLevel, center);
+          paper?.scaleUniformAtPoint(zoomLevel, center);
         }}
         className={BUTTON_CLASSNAME}
       >
@@ -56,9 +60,10 @@ function Controls() {
         type="button"
         // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
         onClick={() => {
-          const center = paper.getArea().center();
+          const center = paper?.getArea().center();
+          if (!center) return;
           zoomLevel = Math.max(0.2, zoomLevel - 0.2);
-          paper.scaleUniformAtPoint(zoomLevel, center);
+          paper?.scaleUniformAtPoint(zoomLevel, center);
         }}
         className={`${BUTTON_CLASSNAME} ml-2`}
       >
@@ -71,7 +76,6 @@ function Main() {
   const [isHTMLEnabled, setHTMLEnabled] = useState(true);
 
   // Infer element type from the initial elements
-  type CustomElement = InferElement<typeof initialElements>;
 
   const renderItem = useCallback(
     ({ data: { label }, width, height }: CustomElement) => {
@@ -106,9 +110,9 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App(props: Readonly<GraphProps<dia.Graph, CustomElement, CustomLink>>) {
   return (
-    <GraphProvider {...props} initialLinks={initialEdges} initialElements={initialElements}>
+    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
       <Main />
     </GraphProvider>
   );
