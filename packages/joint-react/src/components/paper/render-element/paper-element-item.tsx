@@ -1,8 +1,7 @@
 import { useMemo, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { CellWithId } from '../../../types/cell.types';
-import typedMemo from '../../../utils/typed-memo';
-import { useElement } from '../../../hooks';
+import typedMemo from '../../../utils/typed-react';
 import type { GraphElement } from '../../../types/element-types';
 
 export interface ElementItemProps<Data extends CellWithId = GraphElement> {
@@ -17,14 +16,16 @@ export interface ElementItemProps<Data extends CellWithId = GraphElement> {
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function SVGElementItemComponent<Data extends CellWithId = GraphElement>(
+function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
   props: ElementItemProps<Data>
 ) {
   const { renderElement, portalElement, ...rest } = props;
+  const cell = rest as Data;
+
   if (!portalElement) {
     return null;
   }
-  const cell = rest as Data;
+
   const element = renderElement(cell);
 
   return createPortal(element, portalElement);
@@ -56,14 +57,16 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
  * @returns The rendered element inside the portal.
  * @internal
  */
-function HTMLElementItemComponent<Data extends CellWithId = GraphElement>(
+function HTMLElementItemComponent<Data extends GraphElement = GraphElement>(
   props: ElementItemProps<Data>
 ) {
   const { renderElement, portalElement, ...rest } = props;
   const cell = rest as Data;
   // we must use renderElement and not cell data, because user can select different data, so then, the width and height do not have to be inside the cell data.
   const element = renderElement(cell);
-  const { width, height, x, y, id } = useElement();
+  const { width, height, x, y, id } = cell;
+
+  // WE NEED TO COMPARE WHAT IS CHANGED HERE...
 
   const style = useMemo(
     (): CSSProperties => ({

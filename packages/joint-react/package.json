@@ -73,9 +73,9 @@
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
     "@types/react-test-renderer": "19.1.0",
+    "@types/scheduler": "^0",
     "@types/use-sync-external-store": "1.5.0",
     "@vitejs/plugin-react": "^5.0.2",
-    "@welldone-software/why-did-you-render": "10.0.1",
     "canvas": "^3.1.0",
     "eslint": "9.33.0",
     "glob": "^11.0.1",
@@ -88,6 +88,7 @@
     "react-docgen-typescript-plugin": "^1.0.8",
     "react-dom": "^19.1.1",
     "react-redux": "^9.2.0",
+    "react-scan": "^0.4.3",
     "react-test-renderer": "^19.1.1",
     "redux": "^5.0.1",
     "storybook": "^8.6.14",
@@ -108,6 +109,7 @@
   },
   "dependencies": {
     "@joint/core": "workspace:*",
+    "scheduler": "^0.27.0",
     "use-sync-external-store": "^1.4.0"
   },
   "peerDependencies": {

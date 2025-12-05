@@ -14,4 +14,3 @@ export * from './use-paper-context';
 export * from './use-element-views';
 export * from './use-combined-ref';
 export * from './use-ref-value';
-export * from './use-layout-size';

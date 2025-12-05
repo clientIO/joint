@@ -2,12 +2,13 @@ import { useLayoutEffect, type DependencyList } from 'react';
 import type { PaperEvents } from '../types/event.types';
 import { handlePaperEvents } from '../utils/handle-paper-events';
 import { useGraph } from './use-graph';
-import type { PaperContext } from '../context';
-import { usePaperContext } from './use-paper-context';
+import type { PaperStoreContext } from '../context';
 import { useRefValue } from './use-ref-value';
+import type { PaperStore } from '../store';
+import { usePaperStore } from './use-paper-context';
 
 interface Options extends PaperEvents {
-  readonly paperRef?: React.RefObject<PaperContext | null>;
+  readonly paperRef?: React.RefObject<PaperStore | null>;
 }
 
 /**
@@ -26,7 +27,7 @@ interface Options extends PaperEvents {
  */
 export function usePaperEvents(events: Options, dependencies: DependencyList = []) {
   const { paperRef } = events;
-  const paperCtxMaybe = usePaperContext(true);
+  const paperCtxMaybe = usePaperStore(true);
   const paperRefMaybe = useRefValue(paperRef);
   const paper = paperCtxMaybe?.paper ?? paperRefMaybe?.paper;
   if (!paper) {

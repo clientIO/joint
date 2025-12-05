@@ -2,66 +2,64 @@ import type { dia } from '@joint/core';
 import type { GraphLink } from '../../types/link-types';
 import {
   forwardRef,
-  useLayoutEffect,
   useRef,
   type Dispatch,
   type PropsWithChildren,
   type SetStateAction,
 } from 'react';
-import { createStore, type GraphStore } from '../../data/create-graph-store';
 import { useElements } from '../../hooks/use-elements';
-import { useGraphStore } from '../../hooks';
 import type { GraphElement } from '../../types/element-types';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphAreElementsMeasuredContext, GraphStoreContext } from '../../context';
+import { GraphStore, type ExternalGraphStore } from '../../store';
+import { useStateToExternalStore } from '../../hooks/use-state-to-external-store';
+import typedMemo from '../../utils/typed-react';
 
-interface GraphProviderBaseProps<
+interface GraphProviderProps<
   Element extends dia.Element | GraphElement,
   Link extends dia.Link | GraphLink,
 > {
   /**
    * Elements (nodes) to be added to graph.
-   * When `onElementsChange`, it enabled controlled mode.
-   * If there is no `onElementsChange` provided, it will be used just on onload (initial)
+   * When `onElementsChange` is provided, it enables controlled mode.
+   * If there is no `onElementsChange` provided, it will be used just on onload (initial).
    */
   readonly elements?: Element[];
 
   /**
    * Links (edges) to be added to graph.
-   * When `onLinksChange`, it enabled controlled mode.
-   * If there is no `onLinksChange` provided, it will be used just on onload (initial)
+   * When `onLinksChange` is provided, it enables controlled mode.
+   * If there is no `onLinksChange` provided, it will be used just on onload (initial).
    */
   readonly links?: Link[];
 
   /**
-   * Callback triggered when eleme§nts (nodes) change.
+   * Callback triggered when elements (nodes) change.
    * Providing this prop enables controlled mode for elements.
-   * If specified, this function will override the default behavior, allowing you to manage all element changes manually instead of relying on `graph.change`.
+   * If specified, this function will override the default behavior,
+   * allowing you to manage all element changes manually instead of relying on `graph.change`.
    */
   readonly onElementsChange?: Dispatch<SetStateAction<Element[]>>;
 
   /**
    * Callback triggered when links (edges) change.
    * Providing this prop enables controlled mode for links.
-   * If specified, this function will override the default behavior, allowing you to manage all link changes manually instead of relying on `graph.change`.
+   * If specified, this function will override the default behavior,
+   * allowing you to manage all link changes manually instead of relying on `graph.change`.
    */
   readonly onLinksChange?: Dispatch<SetStateAction<Link[]>>;
 }
 
-/**
- * Internal handler coordinating initial population and controlled-mode mirroring
- * for elements and links. Also delays link creation until elements are measured
- * in uncontrolled mode to avoid flicker.
- * @param props - The properties for the GraphProviderHandler, including elements, links, and callbacks.
- * @returns A context provider for the measured state of elements.
- * @private
- */
-export function GraphProviderHandler<
+export function GraphProviderHandlerBase<
   Element extends dia.Element | GraphElement = dia.Element,
   Link extends dia.Link | GraphLink = dia.Link,
->(props: PropsWithChildren<GraphProviderBaseProps<Element, Link>>) {
-  const { elements, links, onElementsChange, onLinksChange, children } = props;
+>(props: PropsWithChildren<GraphProviderProps<Element, Link>>) {
+  const { children } = props;
+
   const alreadyMeasured = useRef(false);
+
+  // We still compute "areElementsMeasured" for the context,
+  // but we don't block syncing on it anymore.
   const areElementsMeasured = useElements((items) => {
     if (alreadyMeasured.current) return true;
     let areMeasured = true;
@@ -75,52 +73,6 @@ export function GraphProviderHandler<
     return areMeasured;
   });
 
-  const { graph, setElements, setLinks, updateStoreFromExternalData, getElements, getLinks } =
-    useGraphStore();
-
-  const areElementsInControlledMode = !!onElementsChange;
-  const areLinksInControlledMode = !!onLinksChange;
-
-  // Controlled mode: update store from React state when elements or links change
-  useLayoutEffect(() => {
-    if (!areElementsMeasured) return;
-    if (!graph) return;
-    if (!areElementsInControlledMode && !areLinksInControlledMode) return;
-
-    // Get current store state to preserve the other type when updating one
-    const currentElements =
-      areElementsInControlledMode && elements !== undefined
-        ? (elements as GraphElement[])
-        : getElements();
-    const currentLinks =
-      areLinksInControlledMode && links !== undefined ? (links as GraphLink[]) : getLinks();
-
-    // Update store cache directly from React state (preserving the other type)
-    if (areElementsInControlledMode || areLinksInControlledMode) {
-      updateStoreFromExternalData(currentElements, currentLinks);
-    }
-
-    // Then sync React state → graph (this will be marked as controlled sync to prevent circular updates)
-    if (areElementsInControlledMode && elements !== undefined) {
-      setElements(elements as GraphElement[]);
-    }
-    if (areLinksInControlledMode && links !== undefined) {
-      setLinks(links as GraphLink[]);
-    }
-  }, [
-    areElementsInControlledMode,
-    areLinksInControlledMode,
-    areElementsMeasured,
-    elements,
-    links,
-    graph,
-    setElements,
-    setLinks,
-    updateStoreFromExternalData,
-    getElements,
-    getLinks,
-  ]);
-
   return (
     <GraphAreElementsMeasuredContext.Provider value={areElementsMeasured}>
       {children}
@@ -128,11 +80,13 @@ export function GraphProviderHandler<
   );
 }
 
+const GraphProviderHandler = typedMemo(GraphProviderHandlerBase);
+
 export interface GraphProps<
   Graph extends dia.Graph = dia.Graph,
-  Element extends dia.Element | GraphElement = GraphElement,
-  Link extends dia.Link | GraphLink = GraphLink,
-> extends GraphProviderBaseProps<Element, Link> {
+  Element extends GraphElement = GraphElement,
+  Link extends GraphLink = GraphLink,
+> extends GraphProviderProps<Element, Link> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph
@@ -160,67 +114,69 @@ export interface GraphProps<
   readonly cellModel?: typeof dia.Cell;
 
   /**
-   * Store is build around graph, it handles react updates and states, it can be created separately and passed to the provider via `createStore` function.
-   * @see `createStore`
+   * Store is built around graph, it handles React updates and state.
+   * It can be created separately and passed to the provider via `store`.
    */
-  readonly store?: GraphStore<Graph>;
+  readonly store?: GraphStore<Graph, Element, Link>;
+
+  /**
+   * Optional external state (Redux / Zustand / etc.) controlling elements + links.
+   * When provided, GraphStore will treat this as the source of truth for those fields.
+   */
+  readonly externalStore?: ExternalGraphStore<Element, Link>;
 }
 
 /**
- * Graph component creates a graph instance and provides `dia.graph` to its children.
- * This component is essential for the library to function correctly. It manages the graph instance and supports controlled and uncontrolled modes for elements and links.
- * @param props - The properties for the Graph component.
- * @param forwardedRef - A reference to the GraphStore instance.
- * @returns The Graph component.
- * @example
- * Using the Graph component:
- * ```tsx
- * import { Graph } from '@joint/react';
- * function App() {
- *   return (
- *     <Graph>
- *       <MyApp />
- *     </Graph>
- *   );
- * }
- * ```
- * @example
- * Using the Graph component with default elements and links:
- * ```tsx
- * import { Graph } from '@joint/react';
- * function App() {
- *   return (
- *     <Graph elements={[]} links={[]}>
- *       <MyApp />
- *     </Graph>
- *   );
- * }
- * ```
+ * Graph component creates a graph instance and provides `dia.Graph` to its children.
+ * It manages the graph instance and supports:
+ * - uncontrolled mode (no onElementsChange/onLinksChange/externalStore)
+ * - React-controlled mode (onElementsChange/onLinksChange)
+ * - external-store-controlled mode (externalStore).
  */
-function GraphBase<Element extends dia.Element | GraphElement, Link extends dia.Link | GraphLink>(
-  props: Readonly<GraphProps<dia.Graph, Element, Link>>,
-  forwardedRef: React.Ref<GraphStore>
+function GraphBase<
+  Graph extends dia.Graph = dia.Graph,
+  Element extends GraphElement = GraphElement,
+  Link extends GraphLink = GraphLink,
+>(
+  props: Readonly<GraphProps<Graph, Element, Link>>,
+  forwardedRef: React.Ref<GraphStore<Graph, Element, Link>>
 ) {
-  const { children, store, ...rest } = props;
-  /**
-   * Graph store instance.
-   * @returns - The graph store instance.
-   */
+  const {
+    children,
+    store,
+    onElementsChange,
+    onLinksChange,
+    elements,
+    links,
+    externalStore,
+    ...rest
+  } = props;
+  const isReactControlled = !!onElementsChange || !!onLinksChange;
+  const hasExternalState = !!externalStore;
+  const isControlled = isReactControlled || hasExternalState;
 
-  const { isReady, ref } = useImperativeApi<GraphStore>(
+  const externalStoreLike = useStateToExternalStore({
+    elements,
+    links,
+    onElementsChange,
+    onLinksChange,
+  });
+
+  const { isReady, ref } = useImperativeApi<GraphStore<Graph, Element, Link>>(
     {
       forwardedRef,
       onLoad() {
-        const newStore = store ?? createStore({ ...rest });
-        // We must use state initialization for the store, because it can be used in the same component.
+        const graphStore =
+          store ?? new GraphStore({ ...rest, elements, links, externalState: externalStoreLike });
 
         return {
           cleanup() {
-            if (newStore) {
-              newStore.destroy(!!rest.graph || !!store?.graph);
+            if (graphStore) {
+              // If graph or store.graph was provided externally, we don't clear it.
+              graphStore.destroy(!!rest.graph || !!store?.graph);
             }
           },
-          instance: newStore,
+          instance: graphStore,
         };
       },
     },
@@ -233,23 +189,49 @@ function GraphBase<Element extends dia.Element | GraphElement, Link extends dia.
 
   return (
     <GraphStoreContext.Provider value={ref.current}>
-      <GraphProviderHandler {...props}>{children}</GraphProviderHandler>
+      <GraphProviderHandler<Element, Link>>{children}</GraphProviderHandler>
     </GraphStoreContext.Provider>
   );
 }
 
 /**
- * GraphProviderHandler component is used to handle the graph instance and provide it to the children.
- * It also handles the default elements and links.
- * @returns GraphProviderHandler component
- * @param props - {GraphProviderHandler} props
- * @private
+ * GraphProvider is the main exported component.
+ * Examples:
+ *
+ * Uncontrolled:
+ * ```tsx
+ * <GraphProvider elements={initialElements} links={initialLinks}>
+ *   <App />
+ * </GraphProvider>
+ * ```
+ *
+ * React controlled:
+ * ```tsx
+ * const [elements, setElements] = useState<GraphElement[]>([]);
+ * const [links, setLinks] = useState<GraphLink[]>([]);
+ *
+ * <GraphProvider
+ *   elements={elements}
+ *   links={links}
+ *   onElementsChange={setElements}
+ *   onLinksChange={setLinks}
+ * >
+ *   <App />
+ * </GraphProvider>
+ * ```
+ *
+ * External store:
+ * ```tsx
+ * <GraphProvider externalStore={graphExternalState}>
+ *   <App />
+ * </GraphProvider>
+ * ```
  */
 export const GraphProvider = forwardRef(GraphBase) as <
-  Element extends dia.Element | GraphElement,
-  Link extends dia.Link | GraphLink,
+  Element extends GraphElement,
+  Link extends GraphLink,
 >(
   props: Readonly<GraphProps<dia.Graph, Element, Link>> & {
-    ref?: React.Ref<GraphStore>;
+    ref?: React.Ref<GraphStore<dia.Graph, Element, Link>>;
   }
 ) => ReturnType<typeof GraphBase>;

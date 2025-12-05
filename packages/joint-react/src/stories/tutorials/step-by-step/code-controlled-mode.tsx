@@ -13,7 +13,7 @@ import {
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { dia } from '@joint/plus';
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, type Dispatch, type SetStateAction } from 'react';
 
 const defaultElements = createElements([
   { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
@@ -46,13 +46,11 @@ function RenderItem(props: CustomElement) {
 }
 
 interface PaperAppProps {
-  readonly elements: readonly CustomElement[];
-  readonly links: readonly CustomLink[];
-  readonly onElementsChange: (items: readonly CustomElement[]) => void;
-  readonly onLinksChange: (items: readonly CustomLink[]) => void;
+  readonly onElementsChange: Dispatch<SetStateAction<CustomElement[]>>;
+  readonly onLinksChange: Dispatch<SetStateAction<CustomLink[]>>;
 }
 
-function PaperApp({ elements, links, onElementsChange, onLinksChange }: PaperAppProps) {
+function PaperApp({ onElementsChange, onLinksChange }: PaperAppProps) {
   const graph = useGraph();
   const commandManager = useRef(new dia.CommandManager({ graph }));
 
@@ -72,7 +70,7 @@ function PaperApp({ elements, links, onElementsChange, onLinksChange }: PaperApp
               width: 100,
               height: 50,
             } as CustomElement;
-            onElementsChange([...elements, newElement]);
+            onElementsChange((elements) => [...elements, newElement]);
           }}
         >
           Add Element
@@ -81,23 +79,18 @@ function PaperApp({ elements, links, onElementsChange, onLinksChange }: PaperApp
           type="button"
           className={BUTTON_CLASSNAME}
           onClick={() => {
-            if (elements.length > 0) {
-              onElementsChange(elements.slice(0, -1));
-              onLinksChange([]);
+            if (onElementsChange) {
+              onElementsChange((elements) => {
+                const newElements = elements.slice(0, -1);
+                if (newElements.length === 0) {
+                  onLinksChange([]);
+                }
+                return newElements;
+              });
             }
           }}
         >
           Remove Last
-        </button>
-        <button
-          type="button"
-          className={BUTTON_CLASSNAME}
-          onClick={() => {
-            onElementsChange(defaultElements);
-            onLinksChange(defaultLinks);
-          }}
-        >
-          Reset
         </button>
         <button
           type="button"
@@ -123,31 +116,18 @@ function PaperApp({ elements, links, onElementsChange, onLinksChange }: PaperApp
 }
 
 function Main(props: Readonly<GraphProps<dia.Graph, CustomElement, CustomLink>>) {
-  const [elements, setElements] = useState<readonly CustomElement[]>(defaultElements);
-  const [links, setLinks] = useState<readonly CustomLink[]>(defaultLinks);
-
-  const handleElementsChange = useCallback((items: readonly CustomElement[]) => {
-    setElements(items);
-  }, []);
-
-  const handleLinksChange = useCallback((items: readonly CustomLink[]) => {
-    setLinks(items);
-  }, []);
+  const [elements, setElements] = useState<CustomElement[]>(defaultElements);
+  const [links, setLinks] = useState<CustomLink[]>(defaultLinks);
 
   return (
     <GraphProvider
       {...props}
       elements={elements}
       links={links}
-      onElementsChange={handleElementsChange}
-      onLinksChange={handleLinksChange}
+      onElementsChange={setElements}
+      onLinksChange={setLinks}
     >
-      <PaperApp
-        elements={elements}
-        links={links}
-        onElementsChange={handleElementsChange}
-        onLinksChange={handleLinksChange}
-      />
+      <PaperApp onElementsChange={setElements} onLinksChange={setLinks} />
     </GraphProvider>
   );
 }
@@ -155,4 +135,3 @@ function Main(props: Readonly<GraphProps<dia.Graph, CustomElement, CustomLink>>)
 export default function App(props: Readonly<GraphProps<dia.Graph, CustomElement, CustomLink>>) {
   return <Main {...props} />;
 }
-

@@ -1,5 +1,5 @@
 import type { attributes, dia, shapes } from '@joint/core';
-import type { Ports } from '../utils/cell/get-cell';
+import type { Ports } from '../components';
 
 export interface ReactElementAttributes {
   root?: attributes.SVGAttributes;
@@ -28,38 +28,38 @@ export interface GraphElement {
   /**
    * Unique identifier of the element.
    */
-  readonly id: dia.Cell.ID;
+  id: dia.Cell.ID;
   /**
    * Optional element type.
    * @default `REACT_TYPE`
    */
-  readonly type?: string | keyof StandardShapesTypeMapper;
+  type?: string | keyof StandardShapesTypeMapper;
   /**
    * Ports of the element.
    */
-  readonly ports?: Ports;
+  ports?: Ports;
   /**
    * X position of the element.
    */
-  readonly x?: number;
+  x?: number;
   /**
    * Y position of the element.
    */
-  readonly y?: number;
+  y?: number;
   /**
    * Optional width of the element.
    */
-  readonly width?: number;
+  width?: number;
   /**
    * Optional height of the element.
    */
-  readonly height?: number;
+  height?: number;
   /**
    * Optional markup of the element.
    */
-  readonly markup?: string | dia.MarkupJSON;
+  markup?: string | dia.MarkupJSON;
   /**
    * Optional angle of the element.
    */
-  readonly angle?: number;
+  angle?: number;
 }

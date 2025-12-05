@@ -1,7 +1,6 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { useMemo } from 'react';
 import { dia } from '@joint/core';
-import { processElement, processLink } from '../utils/cell/cell-utilities';
-import { updateCell } from '../utils/graph/update-graph';
 import type { GraphElement } from '../types/element-types';
 import type { CellWithId } from '../types/cell.types';
 import type { GraphLink } from '../types/link-types';
@@ -44,7 +43,7 @@ function isLink(cell: CellWithId): cell is GraphLink<'standard.Link'> {
 export function useCellActions<
   Attributes extends GraphElement | GraphLink<'standard.Link'>,
 >(): CellActions<Attributes> {
-  const { graph, getElement, getLink } = useGraphStore();
+  const { graph, publicState } = useGraphStore();
 
   return useMemo(
     (): CellActions<Attributes> => ({
@@ -53,20 +52,16 @@ export function useCellActions<
         maybeUpdater?: (previousAttributes: Attributes) => Attributes
       ) {
         let attributes: Attributes;
-
+        const { elements, links } = publicState.getSnapshot();
         if (
           typeof attributesOrId !== 'object' &&
           maybeUpdater &&
           typeof maybeUpdater === 'function'
         ) {
-          //   let   cell: Attributes extends GraphElement | GraphLink<"standard.Link">
+          const cell: GraphElement | GraphLink | undefined =
+            elements.find((element) => element.id === attributesOrId) ||
+            links.find((link) => link.id === attributesOrId);
 
-          let cell: GraphElement | GraphLink | undefined;
-          try {
-            cell = getElement(attributesOrId);
-          } catch {
-            cell = getLink(attributesOrId);
-          }
           if (!cell) throw new Error(`Cell with id "${attributesOrId}" not found.`);
           attributes = maybeUpdater(cell as Attributes);
         } else if (typeof attributesOrId === 'object') {
@@ -74,20 +69,49 @@ export function useCellActions<
         } else {
           throw new TypeError('Invalid arguments for set().');
         }
+
         const areAttributesLink = isLink(attributes);
-        const cell = areAttributesLink
-          ? processLink(attributes as dia.Link | GraphLink<'standard.Link'>)
-          : processElement(attributes);
-        updateCell({
-          graph,
-          newCell: cell,
-        });
+
+        let hasElement = false;
+        let hasLink = false;
+        const newLinks = [...links];
+        const newElements = [...elements];
+
+        for (let index = 0; index < newElements.length; index++) {
+          if (newElements[index].id === attributesOrId) {
+            newElements[index] = attributes;
+            hasElement = true;
+            break;
+          }
+        }
+        if (!hasElement) {
+          for (let index = 0; index < newLinks.length; index++) {
+            if (newLinks[index].id === attributesOrId) {
+              newLinks[index] = attributes as GraphLink<'standard.Link'>;
+              hasLink = true;
+              break;
+            }
+          }
+        }
+        const isFound = hasElement || hasLink;
+        if (!isFound) {
+          if (areAttributesLink) {
+            newLinks.push(attributes as GraphLink<'standard.Link'>);
+          } else {
+            newElements.push(attributes);
+          }
+        }
+        publicState.setState((previous) => ({
+          ...previous,
+          elements: newElements,
+          links: newLinks,
+        }));
       },
 
       remove(id) {
         graph.getCell(id)?.remove();
       },
     }),
-    [getElement, getLink, graph]
+    [graph, publicState]
   );
 }

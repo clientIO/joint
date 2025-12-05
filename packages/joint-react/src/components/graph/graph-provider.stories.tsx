@@ -121,11 +121,7 @@ function Component() {
       setIsReady(true);
     }, 1000);
   }, []);
-  return (
-    isReady && (
-      <Paper interactive={false} className={PAPER_CLASSNAME} renderElement={RenderHTMLElement} />
-    )
-  );
+  return isReady && <Paper className={PAPER_CLASSNAME} renderElement={RenderHTMLElement} />;
 }
 
 export const ConditionalRender: Story = {

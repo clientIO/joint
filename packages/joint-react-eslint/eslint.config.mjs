@@ -170,6 +170,7 @@ const config = [
         "error",
         {
           replacements: {
+            dev: false,
             doc: false,
             Props: false,
             props: false,

@@ -106,7 +106,7 @@ export function useImperativeApi<Instance>(
   }, [isDisabled]);
 
   // Update
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!onUpdate || !hasMounted.current) {
       hasMounted.current = true; // Skip first render
       return;

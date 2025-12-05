@@ -54,12 +54,6 @@ describe('is.ts utility functions', () => {
     expect(is.isCellInstance({})).toBe(false);
   });
 
-  test('isUnsized', () => {
-    expect(is.isUnsized(undefined, 10)).toBe(true);
-    expect(is.isUnsized(10, undefined)).toBe(true);
-    expect(is.isUnsized(10, 10)).toBe(false);
-  });
-
   test('hasChildren', () => {
     expect(is.hasChildren({ children: [] })).toBe(true);
     expect(is.hasChildren({})).toBe(false);

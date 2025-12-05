@@ -19,4 +19,3 @@ export * from './types/cell.types';
 export * from './types/event.types';
 
 export * from './context';
-export * from './data';

@@ -20,7 +20,7 @@ import {
   useGraph,
   useLinks,
   type GraphElement,
-  type PaperContext,
+  type PaperStoreContext,
   type PaperProps,
   type RenderElement,
 } from '@joint/react';

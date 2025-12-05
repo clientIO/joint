@@ -7,7 +7,7 @@ import '@testing-library/jest-dom';
 import { createElements, type InferElement } from '../../../utils/create';
 import { MeasuredNode } from '../../measured-node/measured-node';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
-import type { PaperContext } from '../../../context';
+import type { PaperStoreContext } from '../../../context';
 import { useGraph, usePaperContext } from '../../../hooks';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
@@ -173,26 +173,6 @@ describe('Paper Component', () => {
     await waitFor(() => {
       const layersGroup = document.querySelector('.joint-layers');
       expect(layersGroup).toHaveAttribute('transform', 'matrix(2,0,0,2,0,0)');
-    });
-  });
-
-  it('uses default elementSelector and custom elementSelector', async () => {
-    const customSelector = jest.fn((item) => ({ ...item, custom: true }));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function RenderElement({ custom }: any) {
-      return <rect id={custom ? 'isCustom' : 'nope'} width={50} height={50} fill="blue" />;
-    }
-    render(
-      <GraphProvider elements={elements}>
-        <Paper<Element> elementSelector={customSelector} renderElement={RenderElement} />
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      // Validate that the elements are rendered correctly
-      const element = document.querySelector('#isCustom');
-      expect(element).toBeInTheDocument();
-      expect(element).toHaveAttribute('width', '50');
     });
   });
 

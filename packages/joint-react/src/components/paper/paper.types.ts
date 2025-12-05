@@ -84,14 +84,6 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
    * Class name of the paper element.
    */
   readonly className?: string;
-
-  /**
-   * A function that selects the elements to be rendered.
-   * It defaults to the `GraphElement` elements because `dia.Element` is not a valid React element (it do not change reference after update).
-   * @default (item: dia.Cell) => `BaseElement`
-   * @see GraphElement
-   */
-  readonly elementSelector?: (item: GraphElement) => ElementItem;
   /**
    * The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
    */
