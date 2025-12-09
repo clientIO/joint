@@ -1,37 +1,42 @@
+/**
+ * In current architecture we use elementView to getHtmlElement, then we store those elements in react state and create portals for them.
+ * As this is not a recommended approach, we are going to use react portals to render the elements directly.
+ * This is a temporary solution until we have a better approach to render the elements.
+ * So as expected there are 3 re-renders at the component call.
+ * 1. Is mount
+ * 2. Is setup of paper
+ * 3. Is render of elements
+ */
 import { dia, mvc, shapes } from '@joint/core';
-import { useElementViews } from '../../hooks/use-element-views';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import {
   forwardRef,
   useCallback,
   useContext,
+  useDebugValue,
   useEffect,
   useId,
+  useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
 } from 'react';
-import { useAreElementMeasured, useElements, useImperativeApi } from '../../hooks';
-import { createPortsStore } from '../../data/create-ports-store';
-import type { PortElementsCacheEntry } from '../../data/create-ports-data';
+import { useElements } from '../../hooks';
 import type { GraphElement } from '../../types/element-types';
-import type { PaperProps } from './paper.types';
+import type { PaperProps, RenderElement } from './paper.types';
 import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
-import { noopSelector } from '../../utils/noop-selector';
 import { PaperHTMLContainer } from './render-element/paper-html-container';
-import {
-  CellIdContext,
-  PaperConfigContext,
-  PaperContext,
-  type OverWriteResult,
-} from '../../context';
+import { CellIdContext, PaperConfigContext, PaperStoreContext } from '../../context';
 import { HTMLElementItem, SVGElementItem } from './render-element/paper-element-item';
-import { REACT_TYPE } from '../../models/react-element';
 import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/handle-paper-events';
-
-const DEFAULT_CLICK_THRESHOLD = 10;
+import { REACT_TYPE, ReactElement } from '../../models/react-element';
+import type { PaperStore } from '../../store';
+import {
+  useDerivedGraphStoreSelector,
+  useGraphInternalStoreSelector,
+} from '../../hooks/use-graph-store-selector';
 
 const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
 
@@ -39,7 +44,7 @@ const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
  * Paper component renders the visual representation of the graph using JointJS Paper.
  * This component is responsible for managing the rendering of elements and links, handling events, and providing customization options for the graph view.
  * @param props - The properties for the Paper component.
- * @param forwardedRef - A reference to the PaperContext instance.
+ * @param forwardedRef - A reference to the PaperStore instance.
  * @returns The Paper component.
  * @example
  * Using the Paper component:
@@ -58,15 +63,14 @@ const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
  * ```
  */
 function PaperBase<ElementItem extends GraphElement = GraphElement>(
-  props: PaperProps<GraphElement>,
-  forwardedRef: React.ForwardedRef<PaperContext>
+  props: PaperProps<ElementItem>,
+  forwardedRef: React.ForwardedRef<PaperStore | null>
 ) {
   const {
     renderElement,
     defaultLink,
     style,
     className,
-    elementSelector = noopSelector as (item: GraphElement) => ElementItem,
     onElementsSizeReady,
     onElementsSizeChange,
     useHTMLOverlay,
@@ -77,20 +81,29 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     ...paperOptions
   } = props;
 
-  const { graph } = useGraphStore();
-  const areElementsMeasured = useAreElementMeasured();
-  const { onRenderElement, elementViews } = useElementViews();
-  const elements = useElements((items) => items.map(elementSelector));
+  const areElementsMeasured = useDerivedGraphStoreSelector((state) => state.areElementsMeasured);
+  const elements = useElements();
+  useDebugValue(elements);
   const reactId = useId();
+  const id = props.id ?? `paper-${reactId}`;
   const { overWrite } = useContext(PaperConfigContext) ?? {};
 
+  const paperElementViews = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.paperElementViews ?? EMPTY_OBJECT
+  );
+
+  const { addPaper, graph, getPaperStore } = useGraphStore();
+  const paperStore = getPaperStore(id) ?? null;
+  const { paper } = paperStore ?? {};
   const paperHTMLElement = useRef<HTMLDivElement | null>(null);
   const measured = useRef(false);
   const previousSizesRef = useRef<number[][]>([]);
 
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
-  const id = props.id ?? `paper-${reactId}`;
+
   const hasRenderElement = !!renderElement;
+
+  useImperativeHandle(forwardedRef, () => paperStore as PaperStore, [paperStore]);
 
   const defaultLinkJointJS = useCallback(
     (cellView: dia.CellView, magnet: SVGElement) => {
@@ -105,152 +118,68 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     },
     [defaultLink]
   );
-  const isReactId = !props.id;
 
-  const { ref, isReady } = useImperativeApi(
-    {
-      forwardedRef,
-      onLoad() {
-        const portsStore = createPortsStore();
-        const elementView = dia.ElementView.extend({
-          // Render element using react, `elementView.el` is used as portal gate for react (createPortal)
-          onRender() {
-            // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
-            const elementView: dia.ElementView = this;
-            onRenderElement(elementView);
-          },
-          // Render port using react, `portData.portElement.node` is used as portal gate for react (createPortal)
-          _renderPorts() {
-            // This is firing when the ports are rendered (updated, inserted, removed)
-            // @ts-expect-error we use private jointjs api method, it throw error here.
-            dia.ElementView.prototype._renderPorts.call(this);
-            // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
-            const elementView: dia.ElementView = this;
+  const isReady = !!paper && !!paperHTMLElement.current;
 
-            const portElementsCache: Record<string, PortElementsCacheEntry> =
-              this._portElementsCache;
-            portsStore.onRenderPorts(elementView.model.id, portElementsCache);
-          },
-        });
-        // Create a new JointJS Paper with the provided options
-        const paper = new dia.Paper({
-          async: true,
-          sorting: dia.Paper.sorting.APPROX,
-          preventDefaultBlankAction: false,
-          frozen: true,
-          defaultLink: defaultLinkJointJS,
-
-          model: graph,
-          elementView,
-          ...paperOptions,
-          // 👇 override to always allow connection
-          validateConnection: () => true,
-          // 👇 also, allow links to start or end on empty space
-          validateMagnet: () => true,
-          viewManagement: props.viewManagement ?? true,
-          clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
-        });
-
-        /**
-         * Render paper utility - is called when html element is bind to the react paper component
-         * @param element - The HTML element to render the paper into
-         * @returns - Context update if any
-         */
-        function renderPaper(element: HTMLElement | SVGElement): OverWriteResult | undefined {
-          if (!paper) {
-            throw new Error('Paper is not created');
-          }
-
-          let elementToRender: HTMLElement | SVGElement = paper.el;
-          let overWriteResult: OverWriteResult | undefined = undefined;
-          if (overWrite) {
-            overWriteResult = overWrite(instance);
-            elementToRender = overWriteResult.element;
-          }
-
-          if (!elementToRender) {
-            throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
-          }
-
-          element.replaceChildren(elementToRender);
-          paper.unfreeze();
-          return overWriteResult;
-        }
-        if (!paperHTMLElement.current) {
-          throw new Error('Paper HTML element is not available');
-        }
-
-        if (scale !== undefined) {
-          paper.scale(scale);
-        }
-
-        const instance: PaperContext = {
-          paper,
-          portsStore,
-          elementViews: EMPTY_OBJECT,
-          id,
-          isReactId,
-          renderElement,
-        };
-
-        const contextUpdate = renderPaper(paperHTMLElement.current);
-        if (contextUpdate) {
-          Object.assign(instance, contextUpdate.contextUpdate);
-        }
-
-        if (width !== undefined && height !== undefined) {
-          paper.setDimensions(width, height);
-        }
-        return {
-          instance,
-          cleanup() {
-            paper.remove();
-            portsStore.destroy();
-            contextUpdate?.cleanup?.();
-          },
-        };
+  useLayoutEffect(() => {
+    if (!paperHTMLElement.current) {
+      return;
+    }
+    const remove = addPaper(id, {
+      paperElement: paperHTMLElement.current,
+      paperOptions: {
+        ...paperOptions,
+        defaultLink: defaultLinkJointJS,
       },
-      onUpdate(instance, reset) {
-        if (instance.id !== id) {
-          reset();
-        }
+      overWrite,
+      renderElement: renderElement as RenderElement<GraphElement>,
+      scale,
+    });
+    return () => {
+      remove();
+    };
+    // just once on load create paper instance
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-        const { paper } = instance;
-        assignOptions(paper.options, {
-          defaultLink: defaultLinkJointJS,
-          ...paperOptions,
-        });
-        const { drawGrid, theme, gridSize } = paperOptions;
-        const { width: paperWidth, height: paperHeight } = paper.options;
+  useEffect(() => {
+    if (!paperStore) return;
+    if (!paper) return;
+    const { overWriteResultRef } = paperStore;
+    assignOptions(paper.options, {
+      defaultLink: defaultLinkJointJS,
+      ...paperOptions,
+    });
+    const { drawGrid, theme, gridSize } = paperOptions;
+    const { width: paperWidth, height: paperHeight } = paper.options;
 
-        if (
-          width !== undefined &&
-          height !== undefined &&
-          (width !== paperWidth || height !== paperHeight)
-        ) {
-          paper.setDimensions(width, height);
-        }
-        if (drawGrid !== undefined) {
-          paper.setGrid(drawGrid);
-        }
-        if (gridSize !== undefined) {
-          paper.setGridSize(gridSize);
-        }
-        if (theme !== undefined) {
-          paper.setTheme(theme);
-        }
-        if (scale !== undefined) {
-          paper.scale(scale);
-        }
-      },
-    },
-    [defaultLinkJointJS, id, scale, isReactId, height, width, ...dependencyExtract(paperOptions)]
-  );
+    if (drawGrid !== undefined) {
+      paper.setGrid(drawGrid);
+    }
+    if (gridSize !== undefined) {
+      paper.setGridSize(gridSize);
+    }
+    if (theme !== undefined) {
+      paper.setTheme(theme);
+    }
+    if (scale !== undefined) {
+      paper.scale(scale);
+    }
+
+    const { shouldIgnoreWidthAndHeightUpdates } = overWriteResultRef ?? {};
+    if (
+      !shouldIgnoreWidthAndHeightUpdates &&
+      width !== undefined &&
+      height !== undefined &&
+      (width !== paperWidth || height !== paperHeight)
+    ) {
+      paper.setDimensions(width, height);
+    }
+  }, [defaultLinkJointJS, height, paper, paperOptions, paperStore, scale, width]);
 
   useEffect(() => {
     if (!isReady) return;
     if (measured.current) return;
-    const { paper } = ref.current ?? {};
     if (!paper) return;
     if (areElementsMeasured) {
       measured.current = true;
@@ -271,14 +200,13 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
         clearTimeout(timeout);
       };
     }
-  }, [areElementsMeasured, isReady, onElementsSizeReady, ref]);
+  }, [areElementsMeasured, isReady, onElementsSizeReady, paper]);
 
   // Whenever elements change (or we’ve just become measured) compare old ↔ new
   useEffect(() => {
     if (!isReady) return;
     if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
-    const { paper } = ref.current ?? {};
     if (!paper) return;
 
     // Build current list of [currWidth, currHeight] to avoid shadowing outer scope variables
@@ -311,10 +239,9 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     // store for next time
     previousSizesRef.current = currentSizes;
     onElementsSizeChange({ paper, graph: paper.model });
-  }, [areElementsMeasured, elements, isReady, onElementsSizeChange, ref]);
+  }, [areElementsMeasured, elements, isReady, onElementsSizeChange, paper]);
 
   useLayoutEffect(() => {
-    const { paper } = ref.current ?? {};
     if (!paper) {
       return;
     }
@@ -337,7 +264,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
       stopListening();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graph, isReady, ref, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
+  }, [graph, isReady, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
 
   const content = (
     <>
@@ -345,11 +272,11 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
         <PaperHTMLContainer onSetElement={setHTMLRendererContainer} />
       )}
       {hasRenderElement &&
-        elements.map((cell) => {
-          if (!cell.id) {
+        elements.map((element) => {
+          if (!element.id) {
             return null;
           }
-          const elementView = elementViews[cell.id];
+          const elementView = paperElementViews[element.id];
           if (!elementView) {
             return null;
           }
@@ -358,21 +285,28 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
           if (!SVG) {
             return null;
           }
-
-          if (cell.type !== REACT_TYPE) {
+          const isReactElement =
+            element.type === undefined ||
+            element.type === REACT_TYPE ||
+            element instanceof ReactElement;
+          if (!isReactElement) {
             return null;
           }
 
           return (
-            <CellIdContext.Provider key={cell.id} value={cell.id}>
+            <CellIdContext.Provider key={element.id} value={element.id}>
               {useHTMLOverlay && HTMLRendererContainer ? (
                 <HTMLElementItem
-                  {...cell}
+                  {...element}
                   portalElement={HTMLRendererContainer}
                   renderElement={renderElement}
                 />
               ) : (
-                <SVGElementItem {...cell} portalElement={SVG} renderElement={renderElement} />
+                <SVGElementItem
+                  {...element}
+                  portalElement={SVG as SVGAElement}
+                  renderElement={renderElement}
+                />
               )}
             </CellIdContext.Provider>
           );
@@ -392,20 +326,20 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({
-      opacity: areElementsMeasured ? 1 : 0,
+      opacity: 1,
       position: 'relative',
       ...defaultStyle,
     }),
-    [areElementsMeasured, defaultStyle]
+    [defaultStyle]
   );
 
   return (
-    <PaperContext.Provider value={ref.current}>
+    <PaperStoreContext.Provider value={paperStore ?? null}>
       <div className={className} ref={paperHTMLElement} style={paperContainerStyle}>
         {isReady && content}
       </div>
       {isReady && children}
-    </PaperContext.Provider>
+    </PaperStoreContext.Provider>
   );
 }
 
@@ -413,7 +347,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
  * Paper component renders the visual representation of the graph using JointJS Paper.
  * This component is responsible for managing the rendering of elements and links, handling events, and providing customization options for the graph view.
  * @param props - The properties for the Paper component.
- * @param forwardedRef - A reference to the PaperContext instance.
+ * @param forwardedRef - A reference to the PaperStore instance.
  * @returns The Paper component.
  * @example
  * Using the Paper component:
@@ -433,6 +367,6 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
  */
 export const Paper = forwardRef(PaperBase) as <ElementItem extends GraphElement = GraphElement>(
   props: Readonly<PaperProps<ElementItem>> & {
-    ref?: React.Ref<PaperContext>;
+    ref?: React.Ref<PaperStore>;
   }
 ) => ReturnType<typeof PaperBase>;

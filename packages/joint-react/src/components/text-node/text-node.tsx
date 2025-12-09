@@ -54,7 +54,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
         if (!element.isElement()) {
           throw new TypeError('TextNode must be used inside a MeasuredNode');
         }
-        breakTextWidth = element.size().width;
+        breakTextWidth = element.size().width ?? 0;
       }
 
       const options: util.BreakTextOptions = typeof textWrap === 'object' ? textWrap : {};

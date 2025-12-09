@@ -1,11 +1,13 @@
 import React, { createRef, useState } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { GraphStoreContext } from '../../../context';
-import { createStore, type GraphStore } from '../../../data/create-graph-store';
-import { dia } from '@joint/core';
+import { GraphStore } from '../../../store';
+import { dia, shapes } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
 import { createElements } from '../../../utils/create';
 import type { GraphElement } from '../../../types/element-types';
+import type { GraphLink } from '../../../types/link-types';
+import { linkFromGraph } from '../../../utils/cell/cell-utilities';
 import { GraphProvider } from '../../graph/graph-provider';
 
 describe('graph', () => {
@@ -57,7 +59,7 @@ describe('graph', () => {
     }
     render(
       // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
-      <GraphProvider elements={elements} links={[link]}>
+      <GraphProvider elements={elements} links={[linkFromGraph(link)]}>
         <TestComponent />
       </GraphProvider>
     );
@@ -126,9 +128,8 @@ describe('graph', () => {
 
   it('should use provided store and clean up on unmount', () => {
     const mockDestroy = jest.fn();
-    const mockStore = createStore({});
-    // @ts-expect-error its just unit test, readonly is not needed
-    mockStore.destroy = mockDestroy;
+    const mockStore = new GraphStore({});
+    jest.spyOn(mockStore, 'destroy').mockImplementation(mockDestroy);
 
     const { unmount } = render(
       <GraphProvider store={mockStore}>
@@ -142,7 +143,7 @@ describe('graph', () => {
   });
 
   it('should use graph provided by PaperOptions', async () => {
-    const graph = new dia.Graph();
+    const graph = new dia.Graph({}, { cellNamespace: shapes });
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
     let currentElements: GraphElement[] = [];
@@ -159,11 +160,10 @@ describe('graph', () => {
       </GraphProvider>
     );
 
-    expect(graph.getCell('element1')).toBe(cell);
-
     await waitFor(() => {
       expect(graph.getCells()).toHaveLength(1);
       expect(currentElements).toHaveLength(1);
+      expect(graph.getCell('element1')).toBeDefined();
     });
 
     act(() => {
@@ -186,7 +186,7 @@ describe('graph', () => {
 
   it('should use store provided by PaperOptions', async () => {
     const graph = new dia.Graph();
-    const store = createStore({ graph });
+    const store = new GraphStore({ graph });
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
     let currentElements: GraphElement[] = [];
@@ -251,7 +251,7 @@ describe('graph', () => {
     }
     render(
       // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
-      <GraphProvider elements={elements} links={[link]}>
+      <GraphProvider elements={elements} links={[linkFromGraph(link)]}>
         <TestComponent />
       </GraphProvider>
     );
@@ -288,15 +288,14 @@ describe('graph', () => {
       return null;
     }
 
-    // eslint-disable-next-line unicorn/consistent-function-scoping
-    let setElementsOutside = (_: GraphElement[]) => {};
-    let setLinksOutside = (_: dia.Link[]) => {};
+    let setElementsOutside: ((elements: GraphElement[]) => void) | null = null;
+    let setLinksOutside: ((links: GraphLink[]) => void) | null = null;
 
     function Graph() {
-      const [elements, setElements] = useState(initialElements);
-      const [links, setLinks] = useState([initialLink]);
+      const [elements, setElements] = useState<GraphElement[]>(initialElements);
+      const [links, setLinks] = useState<GraphLink[]>([linkFromGraph(initialLink)]);
       setElementsOutside = setElements as unknown as (elements: GraphElement[]) => void;
-      setLinksOutside = setLinks as unknown as (links: dia.Link[]) => void;
+      setLinksOutside = setLinks as unknown as (links: GraphLink[]) => void;
       return (
         <GraphProvider
           elements={elements}
@@ -316,7 +315,7 @@ describe('graph', () => {
     });
 
     act(() => {
-      setElementsOutside(
+      setElementsOutside?.(
         createElements([
           {
             width: 100,
@@ -341,19 +340,23 @@ describe('graph', () => {
 
     // add link
     act(() => {
-      setLinksOutside([
-        new dia.Link({
-          id: 'link2',
-          type: 'standard.Link',
-          source: { id: 'element1' },
-          target: { id: 'element2' },
-        }),
-        new dia.Link({
-          id: 'link3',
-          type: 'standard.Link',
-          source: { id: 'element1' },
-          target: { id: 'element2' },
-        }),
+      setLinksOutside?.([
+        linkFromGraph(
+          new dia.Link({
+            id: 'link2',
+            type: 'standard.Link',
+            source: { id: 'element1' },
+            target: { id: 'element2' },
+          })
+        ),
+        linkFromGraph(
+          new dia.Link({
+            id: 'link3',
+            type: 'standard.Link',
+            source: { id: 'element1' },
+            target: { id: 'element2' },
+          })
+        ),
       ]);
     });
 

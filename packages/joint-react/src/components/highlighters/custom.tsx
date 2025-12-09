@@ -4,7 +4,7 @@ import { useCellId } from '../../hooks/use-cell-id';
 import { usePaper } from '../../hooks/use-paper';
 import type { dia } from '@joint/core';
 import { useChildrenRef } from '../../hooks/use-children-ref';
-import typedMemo from '../../utils/typed-memo';
+import typedMemo from '../../utils/typed-react';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
 
@@ -72,6 +72,7 @@ function RawComponent<
           highlighterId,
           options
         );
+
         return {
           instance,
           cleanup() {

@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+ 
 
 import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
@@ -14,21 +14,21 @@ export type Story = StoryObj<typeof TextNode>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SVGDecorator(Story: any) {
-  const { width, height } = useElement();
+  const { width = 0, height = 0 } = useElement();
 
+  const PADDING = 10;
   return (
     <>
-      <rect width={width} height={height} fill={PRIMARY} rx={10} ry={10} />
-      <MeasuredNode
-        setSize={({ element, size }) => {
-          const padding = 20;
-          element.set('size', {
-            width: size.width + padding,
-            height: size.height + padding,
-          });
-        }}
-      >
-        <g transform="translate(10, 10)">
+      <rect
+        width={width + PADDING * 2}
+        height={height + PADDING * 2}
+        fill={PRIMARY}
+        rx={PADDING}
+        ry={PADDING}
+        transform={`translate(-${PADDING}, -${PADDING})`}
+      />
+      <MeasuredNode>
+        <g>
           <Story />
         </g>
       </MeasuredNode>

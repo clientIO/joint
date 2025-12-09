@@ -1,6 +1,6 @@
 import { render, renderHook, waitFor } from '@testing-library/react';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
-import { usePaperContext } from '../use-paper-context';
+import { usePaperStoreContext } from '../use-paper-context';
 
 describe('use-paper-context', () => {
   const wrapper = paperRenderElementWrapper({
@@ -19,9 +19,9 @@ describe('use-paper-context', () => {
   });
 
   it('should return paper context when used inside Paper', async () => {
-    let capturedContext: ReturnType<typeof usePaperContext> | null = null;
+    let capturedContext: ReturnType<typeof usePaperStoreContext> | null = null;
     const TestComponent = () => {
-      const context = usePaperContext();
+      const context = usePaperStoreContext();
       capturedContext = context;
       return null;
     };
@@ -34,23 +34,23 @@ describe('use-paper-context', () => {
     });
 
     expect(capturedContext).toHaveProperty('paper');
-    expect(capturedContext).toHaveProperty('id');
-    expect(capturedContext).toHaveProperty('portsStore');
-    expect(capturedContext).toHaveProperty('elementViews');
+    expect(capturedContext).toHaveProperty('paperId');
+    expect(capturedContext).toHaveProperty('renderPaper');
+    expect(capturedContext).toHaveProperty('getNewPorts');
   });
 
   it('should throw error when used outside Paper and isNullable is false', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => {
-      renderHook(() => usePaperContext(false), {
+      renderHook(() => usePaperStoreContext(false), {
         wrapper: ({ children }) => <>{children}</>,
       });
-    }).toThrow('usePaperContext must be used within a Paper or RenderElement');
+    }).toThrow('usePaperStoreContext must be used within a Paper or RenderElement');
     consoleError.mockRestore();
   });
 
   it('should return null when used outside Paper and isNullable is true', () => {
-    const { result } = renderHook(() => usePaperContext(true));
+    const { result } = renderHook(() => usePaperStoreContext(true));
 
     expect(result.current).toBeNull();
   });

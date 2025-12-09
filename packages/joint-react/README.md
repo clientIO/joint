@@ -160,6 +160,8 @@ Subscribe to pointer events on elements/links.
 ### 4) Controlled updates (React state drives the graph)
 Pass `elements/links` + `onElementsChange/onLinksChange` to keep React in charge.
 
+**React-controlled mode** gives you full control over graph state, enabling features like undo/redo, persistence, and integration with other React state management.
+
 ```tsx
 import React, { useState } from 'react'
 import { GraphProvider } from '@joint/react'
@@ -187,7 +189,78 @@ export function Controlled() {
 }
 ```
 
-### 5) Imperative access (ref) for one‑off actions
+### 5) External store integration (Redux, Zustand, etc.)
+Use `externalStore` prop to integrate with external state management libraries.
+
+```tsx
+import { GraphProvider } from '@joint/react'
+import { createStore } from 'zustand'
+
+// Create a store compatible with ExternalStoreLike interface
+const useGraphStore = createStore((set) => ({
+  elements: [],
+  links: [],
+  setState: (updater) => set(updater),
+  getSnapshot: () => useGraphStore.getState(),
+  subscribe: (listener) => {
+    const unsubscribe = useGraphStore.subscribe(listener)
+    return unsubscribe
+  }
+}))
+
+export function ExternalStoreExample() {
+  const store = useGraphStore()
+  
+  return (
+    <GraphProvider externalStore={store}>
+      <Paper height={320} />
+    </GraphProvider>
+  )
+}
+```
+
+### 6) Programmatic cell manipulation
+Use the `useCellActions` hook to programmatically add, update, and remove cells.
+
+```tsx
+import { useCellActions } from '@joint/react'
+
+function MyComponent() {
+  const { set, remove } = useCellActions()
+
+  const addNode = () => {
+    set({
+      id: 'new-node',
+      x: 100,
+      y: 100,
+      width: 120,
+      height: 60,
+      label: 'New Node'
+    })
+  }
+
+  const updateNode = () => {
+    set('new-node', (prev) => ({
+      ...prev,
+      label: 'Updated'
+    }))
+  }
+
+  const deleteNode = () => {
+    remove('new-node')
+  }
+
+  return (
+    <div>
+      <button onClick={addNode}>Add</button>
+      <button onClick={updateNode}>Update</button>
+      <button onClick={deleteNode}>Delete</button>
+    </div>
+  )
+}
+```
+
+### 7) Imperative access (ref) for one‑off actions
 Useful for `fitToContent`, scaling, exporting.
 
 ```tsx
@@ -221,24 +294,36 @@ export function FitOnMount() {
 - **Prefer declarative first**: Reach for hooks/props; use imperative APIs (refs/graph methods) for targeted operations only.
 - **Test in Safari early** when using `<foreignObject>`; fall back to `useHTMLOverlay` if needed.
 - **Accessing component instances via refs**: Any component that accepts a `ref` (such as `Paper` or `GraphProvider`) exposes its instance/context via the ref. For `Paper`, the instance (including the underlying JointJS Paper) can be accessed via the `paperCtx` property on the ref object.
+- **Choose the right mode**: Use uncontrolled mode for simple cases, React-controlled for full state control, and external-store for integration with Redux/Zustand.
+- **Use selectors efficiently**: When using `useElements` or `useLinks`, provide custom selectors and equality functions to minimize re-renders.
+- **Batch updates**: The library automatically batches updates, but be mindful of rapid state changes in controlled mode.
 
 ---
 
 ## ⚙️ API Surface (at a glance)
 
 - **Components**
-  - `GraphProvider` — provides the shared graph
-  - `Paper` — renders the graph (Paper)
+  - `GraphProvider` — provides the shared graph context
+  - `Paper` — renders the graph (Paper view)
 
 - **Hooks**
-  - `useElements()` / `useLinks()` — subscribe to data
-  - `useGraph()` — low-level graph access
-  - `usePaper()` — access the underlying Paper (from within a view)
+  - `useElements()` / `useLinks()` — subscribe to elements/links with optional selectors
+  - `useGraph()` — access the underlying JointJS graph instance
+  - `usePaper()` — access the underlying Paper instance (from within a Paper view)
+  - `useCellActions()` — programmatically add, update, and remove cells
 
-- **Controlled mode props**
-  - `elements`, `links`, `onElementsChange`, `onLinksChange`
+- **Controlled mode props** (React-controlled)
+  - `elements`, `links` — current state
+  - `onElementsChange`, `onLinksChange` — state update callbacks
 
-> Tip: You can pass an existing JointJS `dia.Graph` into `GraphProvider` if you need to integrate with external data lifecycles.
+- **External store mode**
+  - `externalStore` — external state management store (Redux, Zustand, etc.)
+
+- **Uncontrolled mode** (default)
+  - `initialElements`, `initialLinks` — initial values only
+  - Graph manages its own state internally
+
+> **Tip:** You can pass an existing JointJS `dia.Graph` into `GraphProvider` if you need to integrate with external data lifecycles or share a graph across multiple providers.
 
 ---
 

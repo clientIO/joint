@@ -20,7 +20,7 @@ import {
   useGraph,
   useLinks,
   type GraphElement,
-  type PaperContext,
+  type PaperStore,
   type PaperProps,
   type RenderElement,
 } from '@joint/react';
@@ -324,7 +324,7 @@ interface ToolbarProps {
   readonly setSelectedId: (id: dia.Cell.ID | null) => void;
   readonly showElementsInfo: boolean;
   readonly setShowElementsInfo: (show: boolean) => void;
-  readonly paperCtxRef: React.RefObject<PaperContext | null>;
+  readonly paperCtxRef: React.RefObject<PaperStore | null>;
 }
 // Toolbar component with some actions
 function ToolBar(props: Readonly<ToolbarProps>) {
@@ -456,7 +456,7 @@ function Main() {
   const [isMinimapVisible, setIsMinimapVisible] = useState(false);
   const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(null);
   const [showElementsInfo, setShowElementsInfo] = useState(false);
-  const paperCtxRef = useRef<PaperContext | null>(null);
+  const paperCtxRef = useRef<PaperStore | null>(null);
 
   const renderElement = useCallback(
     (element: Element) => {

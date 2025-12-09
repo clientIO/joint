@@ -11,7 +11,7 @@ import {
 } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME } from 'storybook-config/theme';
-import type { dia } from '@joint/core';
+
 // Define initial elements
 const initialElements = createElements([
   { id: '1', data: { label: 'Hello' }, x: 100, y: 0, width: 100, height: 25 },
@@ -35,7 +35,6 @@ const initialEdges = createLinks([
 ]);
 
 type CustomElement = InferElement<typeof initialElements>;
-type CustomLink = (typeof initialEdges)[number];
 
 let zoomLevel = 1;
 
@@ -110,7 +109,7 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps<dia.Graph, CustomElement, CustomLink>>) {
+export default function App(props: Readonly<GraphProps>) {
   return (
     <GraphProvider {...props} links={initialEdges} elements={initialElements}>
       <Main />

@@ -1,6 +1,5 @@
 import {
   useCallback,
-  useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useRef,
@@ -9,24 +8,51 @@ import {
   type RefObject,
 } from 'react';
 
+/**
+ * Return value from the onLoad callback.
+ * @template Instance - The type of the instance being created
+ */
 interface OnLoadReturn<Instance> {
+  /** The created instance */
   readonly instance: Instance;
+  /** Cleanup function to call when the instance is destroyed */
   readonly cleanup: () => void;
 }
 
+/**
+ * Options for the useImperativeApi hook.
+ * @template Instance - The type of the instance being managed
+ */
 export interface UseImperativeApiOptions<Instance> {
+  /**
+   * Function called to create the instance.
+   * Should return the instance and a cleanup function.
+   */
   readonly onLoad: () => OnLoadReturn<Instance>;
 
   /**
-   *
-   * @param instance
-   * @param reset - reset will call the onLoad function again to reset the instance
-   * @returns
+   * Optional function called when dependencies change.
+   * Can return a cleanup function that will be called before the next update.
+   * @param instance - The current instance
+   * @param reset - Function to reset the instance by calling onLoad again
+   * @returns Optional cleanup function
    */
   // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   readonly onUpdate?: (instance: Instance, reset: () => void) => void | (() => void);
+  /**
+   * Optional callback called when the ready state changes.
+   * @param isReady - Whether the instance is ready
+   * @param instance - The instance (null if not ready)
+   */
   readonly onReadyChange?: (isReady: boolean, instance: Instance | null) => void;
+  /**
+   * Whether the instance creation is disabled.
+   * When true, the instance will be cleaned up and not created.
+   */
   readonly isDisabled?: boolean;
+  /**
+   * Optional ref to forward the instance to.
+   */
   readonly forwardedRef?: React.Ref<Instance>;
 }
 
@@ -48,13 +74,20 @@ interface ResultNotReady<Instance> extends ResultBase<Instance> {
 export type ImperativeStateResult<Instance> = ResultReady<Instance> | ResultNotReady<Instance>;
 
 /**
- * A hook that provides an imperative API for managing an instance of anything.
- * It supports two modes: 'ref' and 'state'.
- * In 'ref' mode, it returns a ref object that holds the instance.
- * In 'state' mode, it returns the instance as state.
- * @param options - The options for the hook, including onLoad, onUpdate, and type.
- * @param dependencies - The dependencies array for the onUpdate effect. Only applied for `onUpdate`.
- * @returns An object containing either a ref or state instance and a readiness flag.
+ * A hook that provides an imperative API for managing an instance lifecycle.
+ *
+ * This hook handles:
+ * - Creating instances via onLoad callback
+ * - Updating instances when dependencies change
+ * - Cleaning up instances when unmounted or disabled
+ * - Exposing instances via refs
+ * - Tracking ready state
+ *
+ * Used internally by components like GraphProvider and Paper to manage their instances.
+ * @template Instance - The type of the instance being managed
+ * @param options - Configuration options including onLoad, onUpdate, and callbacks
+ * @param dependencies - Dependencies array that triggers onUpdate when changed
+ * @returns An object containing a ref to the instance and a readiness flag
  * @private
  * @group Hooks
  */
@@ -106,7 +139,7 @@ export function useImperativeApi<Instance>(
   }, [isDisabled]);
 
   // Update
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!onUpdate || !hasMounted.current) {
       hasMounted.current = true; // Skip first render
       return;

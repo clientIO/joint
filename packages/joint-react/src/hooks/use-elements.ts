@@ -1,7 +1,6 @@
-import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { GraphElement } from '../types/element-types';
+import { useGraphStoreSelector } from './use-graph-store-selector';
 
 /**
  * Default selector function to return all elements.
@@ -11,8 +10,9 @@ import type { GraphElement } from '../types/element-types';
 function defaultSelector<Elements extends GraphElement = GraphElement>(
   items: Elements[]
 ): Elements[] {
-  return items.map((item) => item) as Elements[];
+  return items;
 }
+
 /**
  * A hook to access `dia.graph` elements
  *
@@ -60,16 +60,12 @@ export function useElements<
   SelectorReturnType = Elements[],
 >(
   selector: (items: Elements[]) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual as (
+    a: SelectorReturnType,
+    b: SelectorReturnType
+  ) => boolean
 ): SelectorReturnType {
-  const { subscribe, getElements } = useGraphStore();
-  const typedGetElements = getElements as () => Elements[];
-  const elements = useSyncExternalStoreWithSelector(
-    subscribe,
-    typedGetElements,
-    typedGetElements,
-    selector,
-    isEqual
-  );
-  return elements;
+  return useGraphStoreSelector((snapshot) => {
+    return selector(snapshot.elements as Elements[]);
+  }, isEqual);
 }

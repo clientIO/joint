@@ -1,17 +1,8 @@
-import { useEffect, useRef, type RefObject } from 'react';
+import { useLayoutEffect, type RefObject } from 'react';
 import { useCellId } from './use-cell-id';
-import {
-  createElementSizeObserver,
-  type SizeObserver,
-} from '../utils/create-element-size-observer';
-import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
+import type { OnSetSize } from '../store/create-elements-size-observer';
 
-export interface OnSetOptions {
-  readonly element: dia.Element;
-  readonly size: SizeObserver;
-}
-export type OnSetSize = (options: OnSetOptions) => void;
 export interface MeasureNodeOptions {
   /**
    * Overwrite default node set function with custom handling.
@@ -22,8 +13,6 @@ export interface MeasureNodeOptions {
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
-// Epsilon value to avoid jitter due to sub-pixel rendering
-const EPSILON = 0.5;
 
 /**
  * Custom hook to measure the size of a node and update its size in the graph.
@@ -67,27 +56,20 @@ const EPSILON = 0.5;
  * }
  * ```
  */
-export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVGElement>(
-  elementRef: RefObject<AnyHTMLOrSVGElement | null>,
+export function useMeasureNodeSize(
+  elementRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
 ) {
   const { setSize } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
   const id = useCellId();
 
-  const onSetSizeRef = useRef(setSize);
-
-  useEffect(() => {
-    onSetSizeRef.current = setSize;
-  }, [setSize]);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = elementRef.current;
     if (!element) throw new Error('MeasuredNode must have a child element');
 
     const cell = graph.getCell(id);
     if (!cell?.isElement()) throw new Error('Cell not valid');
-
     // Check if another MeasuredNode is already measuring this element
     if (hasMeasuredNode(id)) {
       const errorMessage =
@@ -103,48 +85,12 @@ export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVG
 
       throw new Error(errorMessage);
     }
-
-    const previous = { width: 0, height: 0 };
-
-    const clean = setMeasuredNode(id);
-
-    const stop = createElementSizeObserver(element, ({ width, height }) => {
-      // normalize to avoid float jitter in Safari
-      const nextWidth = Math.round(width);
-      const nextHeight = Math.round(height);
-
-      if (
-        Math.abs(previous.width - nextWidth) < EPSILON &&
-        Math.abs(previous.height - nextHeight) < EPSILON
-      ) {
-        return;
-      }
-
-      // Only update when dimensions actually change meaningfully
-      if (previous.width === nextWidth && previous.height === nextHeight) {
-        return;
-      }
-
-      previous.width = nextWidth;
-      previous.height = nextHeight;
-
-      if (onSetSizeRef.current) {
-        onSetSizeRef.current({
-          element: cell,
-          size: { width: nextWidth, height: nextHeight },
-        });
-      } else {
-        cell.set('size', { width: nextWidth, height: nextHeight }, { async: false });
-      }
-    });
-
-    // Cleanup on unmount or when dependencies change.
-
-    return () => {
-      clean();
-      stop();
-    };
-  }, [id, elementRef, graph, hasMeasuredNode, setMeasuredNode]);
+    if (!elementRef.current) {
+      return;
+    }
+    const clean = setMeasuredNode({ id, element: elementRef.current, setSize });
+    return clean;
+  }, [elementRef, graph, hasMeasuredNode, id, setMeasuredNode, setSize]);
 
   // This hook itself does not return anything.
 }

@@ -1,8 +1,7 @@
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { shapes, util, type dia } from '@joint/core';
+import { shapes, util } from '@joint/core';
 import {
   createElements,
   GraphProvider,
@@ -63,11 +62,8 @@ const links = [
     attrs: { line: { stroke: PRIMARY } },
   },
 ];
-type CustomLink = (typeof links)[number];
 
-export default function App(
-  props: Readonly<GraphProps<dia.Graph, BaseElementWithData, CustomLink>>
-) {
+export default function App(props: Readonly<GraphProps>) {
   return (
     <GraphProvider
       {...props}

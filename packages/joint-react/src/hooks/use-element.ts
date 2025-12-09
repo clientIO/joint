@@ -1,9 +1,7 @@
 import { util } from '@joint/core';
 import { useCellId } from './use-cell-id';
-import { useGraphStore } from './use-graph-store';
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { GraphElement } from '../types/element-types';
-import { useCallback } from 'react';
+import { useGraphStoreSelector, useDerivedGraphStoreSelector } from './use-graph-store-selector';
 
 /**
  * A hook to access a specific graph element from the current `Paper` context.
@@ -38,25 +36,17 @@ export function useElement<Element extends GraphElement, ReturnedElements = Elem
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {
   const id = useCellId();
-  const { subscribe, getElement } = useGraphStore();
 
-  const subscribeForElement = useCallback(
-    (subscribeCallback: () => void) => {
-      return subscribe((update) => {
-        if (update?.diffIds.has(id)) {
-          subscribeCallback();
-        }
-      });
-    },
-    [id, subscribe]
-  );
+  const index = useDerivedGraphStoreSelector((store) => store.elementIds[id]);
 
-  const element = useSyncExternalStoreWithSelector(
-    subscribeForElement,
-    () => getElement<Element>(id),
-    () => getElement<Element>(id),
-    selector,
-    isEqual
-  );
-  return element;
+  return useGraphStoreSelector<ReturnedElements>((store) => {
+    if (index == undefined) {
+      return undefined as ReturnedElements;
+    }
+    const element = store.elements[index] as Element;
+    if (!element) {
+      return undefined as ReturnedElements;
+    }
+    return selector(element);
+  }, isEqual);
 }

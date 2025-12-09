@@ -13,7 +13,6 @@ import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import './code-with-create-links-classname.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import type { dia } from '@joint/core';
 
 const initialElements = createElements([
   { id: '1', label: 'Node 1', x: 100, y: 0 },
@@ -34,7 +33,6 @@ const initialEdges = createLinks([
 ]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
-type CustomLink = (typeof initialEdges)[number];
 
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
@@ -48,9 +46,7 @@ function Main() {
   );
 }
 
-export default function App(
-  props: Readonly<GraphProps<dia.Graph, BaseElementWithData, CustomLink>>
-) {
+export default function App(props: Readonly<GraphProps>) {
   return (
     <GraphProvider {...props} links={initialEdges} elements={initialElements}>
       <Main />

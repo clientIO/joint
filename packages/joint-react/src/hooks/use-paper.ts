@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { usePaperContext } from './use-paper-context';
+import { usePaperStoreContext } from './use-paper-context';
 
 /**
  * Return JointJS `dia.Paper` instance from the current `Paper` context.
@@ -18,6 +18,6 @@ import { usePaperContext } from './use-paper-context';
  * ```
  */
 export function usePaper(): dia.Paper {
-  const viewConfig = usePaperContext();
-  return viewConfig.paper;
+  const paperStore = usePaperStoreContext();
+  return paperStore.paper;
 }

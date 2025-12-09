@@ -18,6 +18,7 @@ import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 import { useCellActions } from '../../hooks/use-cell-actions';
 import { Paper } from './paper';
 import type { RenderElement } from './paper.types';
+import type { GraphElement } from '../../types/element-types';
 import { GraphProvider } from '../graph/graph-provider';
 
 export type Story = StoryObj<typeof Paper>;
@@ -357,7 +358,7 @@ export const WithOnClickColorChange: Story = {
     return (
       <GraphProvider
         elements={[
-          { width: 100, height: 40, id: '1', label: 'Element 1', x: 50, y: 50, hoverColor: 'red' },
+          { width: 100, height: 40, id: '1', label: 'Element 1', x: 50, y: 50, hoverColor: 'red' } as GraphElement & { label: string; hoverColor: string },
           {
             width: 100,
             height: 40,
@@ -366,7 +367,7 @@ export const WithOnClickColorChange: Story = {
             x: 100,
             y: 250,
             hoverColor: 'red',
-          },
+          } as GraphElement & { label: string; hoverColor: string },
         ]}
         links={[
           {

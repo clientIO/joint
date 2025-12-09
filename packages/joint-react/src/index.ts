@@ -6,7 +6,13 @@ export * from './components';
 export * from './hooks';
 
 export * from './utils/create';
-export * from './utils/cell/cell-utilities';
+export {
+  elementFromGraph,
+  linkFromGraph,
+  linkToGraph,
+  syncGraph,
+  type CellOrJsonCell,
+} from './utils/cell/cell-utilities';
 export * from './utils/joint-jsx/jsx-to-markup';
 export * from './utils/link-utilities';
 export * from './utils/object-utilities';
@@ -19,4 +25,4 @@ export * from './types/cell.types';
 export * from './types/event.types';
 
 export * from './context';
-export * from './data';
+export * from './store';

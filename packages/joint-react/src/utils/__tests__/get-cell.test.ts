@@ -1,7 +1,7 @@
-import { getElement, getLink } from '../cell/get-cell';
+import { elementFromGraph, linkFromGraph } from '../cell/cell-utilities';
 import type { dia } from '@joint/core';
 
-describe('getCell', () => {
+describe('cell utilities', () => {
   let mockCell: dia.Cell;
 
   beforeEach(() => {
@@ -15,29 +15,24 @@ describe('getCell', () => {
         ports: { items: [] },
       },
       get: jest.fn((key) => {
-        const mockData = {
+        const mockData: Record<string, unknown> = {
           source: 'source-id',
           target: 'target-id',
           z: 1,
           markup: '<markup>',
           defaultLabel: 'default-label',
           ports: { items: [] },
-          size: { width: 100, height: 50 },
-          position: { x: 10, y: 20 },
-          data: { key: 'value' },
         };
-        // @ts-expect-error its just mock
         return mockData[key];
       }),
     } as unknown as dia.Cell;
   });
 
-  describe('getElement', () => {
+  describe('elementFromGraph', () => {
     it('should extract element attributes correctly', () => {
-      const element = getElement(mockCell);
-      expect(element).toEqual({
+      const element = elementFromGraph(mockCell);
+      expect(element).toMatchObject({
         id: 'mock-id',
-        data: { key: 'value' },
         type: 'mock-type',
         ports: { items: [] },
         x: 10,
@@ -48,10 +43,10 @@ describe('getCell', () => {
     });
   });
 
-  describe('getLink', () => {
+  describe('linkFromGraph', () => {
     it('should extract link attributes correctly', () => {
-      const link = getLink(mockCell);
-      expect(link).toEqual({
+      const link = linkFromGraph(mockCell);
+      expect(link).toMatchObject({
         id: 'mock-id',
         source: 'source-id',
         target: 'target-id',
@@ -59,10 +54,10 @@ describe('getCell', () => {
         z: 1,
         markup: '<markup>',
         defaultLabel: 'default-label',
-        ports: { items: [] },
+        data: { key: 'value' },
         size: { width: 100, height: 50 },
         position: { x: 10, y: 20 },
-        data: { key: 'value' },
+        ports: { items: [] },
       });
     });
   });

@@ -4,6 +4,10 @@ import CodeSVG from './code-svg?raw';
 import CodeHTML from './code-html?raw';
 import CodeHTMLRenderer from './code-html-renderer?raw';
 import CodeControlledMode from './code-controlled-mode?raw';
+import CodeControlledModeRedux from './code-controlled-mode-redux?raw';
+import CodeControlledModeZustand from './code-controlled-mode-zustand?raw';
+import CodeControlledModeJotai from './code-controlled-mode-jotai?raw';
+import CodeControlledModePeerJS from './code-controlled-mode-peerjs?raw';
 import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-documentation-link';
 
 <Meta of={Stories} />
@@ -208,7 +212,7 @@ ${CodeHTMLRenderer}
 
 ### Controlled Mode with useState
 
-This example demonstrates how to use `@joint/react` in controlled mode with React's `useState` hook. In controlled mode, the graph state is managed in React state, and changes to the graph are synchronized back to your state.
+This example demonstrates how to use `@joint/react` in **React-controlled mode** with React's `useState` hook. In controlled mode, React state is the single source of truth for the graph, and all changes flow through React state.
 
 <Canvas of={Stories.ControlledMode} />
 <Markdown>
@@ -217,12 +221,12 @@ ${CodeControlledMode}
 \`\`\``}
 </Markdown>
 
-#### Key Points:
+#### How It Works:
 
 1. **State Management**: Use `useState` to manage elements and links:
    ```tsx
-   const [elements, setElements] = useState<readonly CustomElement[]>(defaultElements);
-   const [links, setLinks] = useState<readonly CustomLink[]>(defaultLinks);
+   const [elements, setElements] = useState<GraphElement[]>(defaultElements);
+   const [links, setLinks] = useState<GraphLink[]>(defaultLinks);
    ```
 
 2. **Controlled Mode**: Pass state and change handlers to `GraphProvider`:
@@ -230,28 +234,266 @@ ${CodeControlledMode}
    <GraphProvider
      elements={elements}
      links={links}
-     onElementsChange={handleElementsChange}
-     onLinksChange={handleLinksChange}
+     onElementsChange={setElements}
+     onLinksChange={setLinks}
    >
    ```
 
-3. **Bidirectional Sync**: Changes made via graph methods (like dragging nodes) automatically sync back to React state through the callbacks.
+3. **Bidirectional Sync**: 
+   - **React → Graph**: When you update React state, GraphProvider syncs to JointJS graph
+   - **Graph → React**: When user interacts (drags nodes), GraphProvider calls `onElementsChange`/`onLinksChange` to update React state
+
+4. **State Flow**: User drags node → GraphProvider detects change → Calls `onElementsChange` → Updates React state → Component re-renders → GraphProvider syncs new state to graph
+
+#### When to Use:
+- ✅ You need full control over graph state
+- ✅ You want to implement undo/redo (save state history)
+- ✅ You need to persist state (localStorage, server, etc.)
+- ✅ You're integrating with other React state management
 
 ---
 
-## 9. Key terms
+### External Store Integration: Redux
 
-- **GraphProvider:** React context for graph data.
-- **Paper:** Renders the graph visually.
-- **Element:** Node in the graph.
-- **Link:** Edge between nodes.
-- **Port:** Named connection point on an element.
-- **MeasuredNode:** Auto-measures and updates node size.
+This example demonstrates how to integrate `@joint/react` with **Redux** using the `ExternalGraphStore` interface. Redux provides centralized state management with time-travel debugging via Redux DevTools.
+
+<Canvas of={Stories.ControlledModeRedux} />
+<Markdown>
+{`\`\`\`tsx
+${CodeControlledModeRedux}
+\`\`\``}
+</Markdown>
+
+#### How It Works:
+
+1. **Redux Store**: Create a Redux store with a slice for graph state (elements and links)
+2. **Undo/Redo**: Use `redux-undo` library to automatically handle undo/redo functionality
+3. **Adapter Hook**: Use `useReduxAdapter()` hook to convert Redux store to `ExternalGraphStore`
+4. **GraphProvider**: Pass the `externalStore` prop to `GraphProvider` instead of `elements`/`links`/`onElementsChange`
+
+#### Key Benefits:
+- ✅ **Centralized State**: All graph state lives in Redux store
+- ✅ **Time-Travel Debugging**: Redux DevTools for inspecting and replaying state changes
+- ✅ **Undo/Redo**: Easy undo/redo with `redux-undo` library
+- ✅ **Predictable Updates**: All changes go through Redux actions
+- ✅ **Integration**: Easy to integrate with other Redux features
+
+#### The Adapter Pattern:
+The `useReduxAdapter()` hook creates an adapter that implements the `ExternalGraphStore` interface:
+- `getSnapshot()`: Reads current state from Redux
+- `subscribe()`: Subscribes to Redux store changes
+- `setState()`: Dispatches Redux actions to update state
+
+**Important**: When using `externalStore`, GraphProvider captures **ALL** state changes, including position changes from dragging nodes. This is the key advantage over React-controlled mode!
+
+---
+
+### External Store Integration: Zustand
+
+This example demonstrates how to integrate `@joint/react` with **Zustand**, a lightweight state management library. Zustand has a simple API with minimal boilerplate.
+
+<Canvas of={Stories.ControlledModeZustand} />
+<Markdown>
+{`\`\`\`tsx
+${CodeControlledModeZustand}
+\`\`\``}
+</Markdown>
+
+#### How It Works:
+
+1. **Zustand Store**: Create a store with `create()` containing state and actions
+2. **Adapter Hook**: Use `useZustandAdapter()` hook to convert Zustand store to `ExternalGraphStore`
+3. **GraphProvider**: Pass the `externalStore` prop to `GraphProvider`
+4. **Actions**: Use Zustand hooks to access actions in components
+
+#### Key Benefits:
+- ✅ **Simple API**: Minimal boilerplate, no actions/reducers needed
+- ✅ **TypeScript Support**: Full type safety out of the box
+- ✅ **Lightweight**: Small bundle size
+- ✅ **Easy Hooks**: Simple hooks for accessing state and actions
+- ✅ **All Changes Synced**: Position changes from dragging are automatically captured
+
+---
+
+### External Store Integration: Jotai
+
+This example demonstrates how to integrate `@joint/react` with **Jotai**, an atomic state management library. Jotai uses atoms as building blocks for state.
+
+<Canvas of={Stories.ControlledModeJotai} />
+<Markdown>
+{`\`\`\`tsx
+${CodeControlledModeJotai}
+\`\`\``}
+</Markdown>
+
+#### How It Works:
+
+1. **Atoms**: Create atoms for elements and links using `atom()`
+2. **Store**: Create a Jotai store to manage atom subscriptions
+3. **Adapter Hook**: Use `useJotaiAdapter()` hook to convert atoms to `ExternalGraphStore`
+4. **GraphProvider**: Pass the `externalStore` prop to `GraphProvider`
+5. **Hooks**: Use `useAtom()` hooks to access and update atoms in components
+
+#### Key Benefits:
+- ✅ **Atomic State**: Split state into small, independent pieces
+- ✅ **No Providers**: Atoms work globally without providers
+- ✅ **TypeScript Support**: Full type safety
+- ✅ **Simple API**: Just atoms and hooks
+- ✅ **All Changes Synced**: Position changes from dragging are automatically captured
+
+---
+
+### External Store Integration: PeerJS (Collaborative Mode)
+
+This example demonstrates how to share graph state between multiple peers using **PeerJS** for real-time collaboration. Multiple users can connect and see each other's changes in real-time.
+
+<Canvas of={Stories.ControlledModePeerJS} />
+<Markdown>
+{`\`\`\`tsx
+${CodeControlledModePeerJS}
+\`\`\``}
+</Markdown>
+
+#### How It Works:
+
+1. **PeerJS Store**: Create a custom store that implements `ExternalGraphStore` and syncs via PeerJS
+2. **Peer Connection**: Each peer gets a unique ID and can connect to other peers
+3. **State Sync**: When one peer updates the graph, changes are sent to all connected peers via WebRTC
+4. **Bidirectional**: Changes sync in both directions - all peers see each other's updates
+
+#### Key Features:
+- ✅ **Real-Time Collaboration**: Multiple users can edit the same graph simultaneously
+- ✅ **Peer-to-Peer**: Direct browser-to-browser communication (no server needed except signaling)
+- ✅ **All Changes Synced**: Position changes, additions, removals - everything syncs automatically
+- ✅ **Copy ID Button**: Easy way to copy your peer ID to share with others
+- ✅ **Connection Status**: Visual feedback showing connection state
+
+#### Usage:
+1. Open this page in two browser windows/tabs
+2. Each window gets a unique peer ID
+3. Copy the ID from one window
+4. Paste it into the "Enter peer ID to connect" field in the other window
+5. Click "Connect"
+6. Both peers are now connected and will see each other's changes in real-time!
+
+---
+
+## Understanding State Management Modes
+
+`@joint/react` supports three modes of operation:
+
+### 1. Uncontrolled Mode (Default)
+The graph manages its own state internally. Use this for simple, read-only diagrams.
+
+```tsx
+<GraphProvider elements={initialElements} links={initialLinks}>
+  <Paper />
+</GraphProvider>
+```
+
+### 2. React-Controlled Mode
+React state controls the graph. Use `onElementsChange` and `onLinksChange` props.
+
+```tsx
+const [elements, setElements] = useState(initialElements);
+const [links, setLinks] = useState(initialLinks);
+
+<GraphProvider
+  elements={elements}
+  links={links}
+  onElementsChange={setElements}
+  onLinksChange={setLinks}
+>
+  <Paper />
+</GraphProvider>
+```
+
+**Note**: This mode captures changes from user interactions, but you need to ensure all updates go through React state.
+
+### 3. External Store Mode (Recommended for Complex Apps)
+An external store (Redux, Zustand, Jotai, etc.) controls the graph. Use the `externalStore` prop.
+
+```tsx
+const store = createExternalStore(); // Redux, Zustand, Jotai, etc.
+
+<GraphProvider externalStore={store}>
+  <Paper />
+</GraphProvider>
+```
+
+**Why External Store Mode?**
+- ✅ **Captures ALL changes**: Position changes from dragging are automatically captured
+- ✅ **Better integration**: Works seamlessly with your existing state management
+- ✅ **More control**: Full control over when and how state updates
+- ✅ **Easier debugging**: Use your state management's dev tools
+
+#### The ExternalGraphStore Interface
+
+All external stores must implement this interface:
+
+```tsx
+interface ExternalGraphStore {
+  getSnapshot(): GraphStoreSnapshot;  // Returns current state
+  subscribe(listener: () => void): () => void;  // Subscribe to changes
+  setState(updater: Update<GraphStoreSnapshot>): void;  // Update state
+}
+```
+
+This interface is compatible with:
+- Redux (via adapter)
+- Zustand (via adapter)
+- Jotai (via adapter)
+- PeerJS (custom implementation)
+- Any other store that implements these three methods
+
+---
+
+## 9. Key Terms and Concepts
+
+### Core Components
+- **GraphProvider:** React context provider for managing graph state. Supports three modes: uncontrolled, React-controlled, and external-store-controlled.
+- **Paper:** The main rendering component that displays the graph visually. Can be used multiple times in one GraphProvider for features like minimaps.
+- **Element (Node):** A visual item in your diagram (e.g., a rectangle, circle, or custom shape).
+- **Link (Edge):** A connection between two elements.
+
+### State Management
+- **Uncontrolled Mode:** Graph manages its own state internally. Best for simple, read-only diagrams.
+- **React-Controlled Mode:** React state controls the graph via `onElementsChange`/`onLinksChange` props. Good for basic state management needs.
+- **External Store Mode:** External state management (Redux, Zustand, Jotai, etc.) controls the graph via `externalStore` prop. **Recommended for complex apps** as it captures ALL changes including position updates.
+
+### Advanced Features
+- **Port:** Named connection point on an element for precise linking.
+- **MeasuredNode:** Utility component that auto-measures and updates node size based on content.
 - **useHTMLOverlay:** Renders HTML nodes outside SVG for full HTML support.
+- **ExternalGraphStore:** Interface that allows any state management library to work with GraphProvider. Requires `getSnapshot()`, `subscribe()`, and `setState()` methods.
 
 ---
 
-## 10. More resources
+## 10. Choosing the Right Mode
+
+### Use Uncontrolled Mode When:
+- ✅ Simple, read-only diagrams
+- ✅ No need to track state changes
+- ✅ Performance is critical (fastest mode)
+
+### Use React-Controlled Mode When:
+- ✅ You need basic state control
+- ✅ You want to implement simple undo/redo
+- ✅ You need to persist state to localStorage
+- ⚠️ **Note**: Make sure all updates go through React state setters
+
+### Use External Store Mode When:
+- ✅ **You need to capture ALL changes** (including position changes from dragging)
+- ✅ You're already using Redux, Zustand, Jotai, or another state management library
+- ✅ You need advanced features (undo/redo, persistence, collaboration)
+- ✅ You want better integration with your app's state management
+- ✅ You need time-travel debugging (Redux DevTools, etc.)
+
+**Recommendation**: For production apps, prefer External Store Mode as it provides the most reliable state synchronization.
+
+---
+
+## 11. More Resources
 
 - [@joint/react API Reference](https://github.com/clientIO/joint-plus/tree/main/packages/joint-react)
 - [JointJS Documentation](https://docs.jointjs.com/)

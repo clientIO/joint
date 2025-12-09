@@ -1,4 +1,3 @@
-import type { dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 
 /**
@@ -13,7 +12,7 @@ import { useGraphStore } from './use-graph-store';
  * const graph = useGraph()
  * ```
  */
-export function useGraph<Graph extends dia.Graph = dia.Graph>() {
-  const { graph } = useGraphStore<Graph>();
+export function useGraph() {
+  const { graph } = useGraphStore();
   return graph;
 }

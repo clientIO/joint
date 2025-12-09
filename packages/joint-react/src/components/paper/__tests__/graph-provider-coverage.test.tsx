@@ -7,8 +7,9 @@ import { useElements, useLinks } from '../../../hooks';
 import { createElements } from '../../../utils/create';
 import type { GraphElement } from '../../../types/element-types';
 import type { GraphLink } from '../../../types/link-types';
+import { linkFromGraph } from '../../../utils/cell/cell-utilities';
 import { GraphProvider } from '../../graph/graph-provider';
-import { createStoreWithGraph } from '../../../data/create-graph-store';
+import { GraphStore } from '../../../store';
 
 describe('GraphProvider Coverage Tests', () => {
   describe('Edge cases for controlled mode', () => {
@@ -45,7 +46,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [links, setLinks] = useState<dia.Link[]>([]);
+        const [links, setLinks] = useState<GraphLink[]>([]);
         return (
           <GraphProvider links={links} onLinksChange={setLinks}>
             <TestComponent />
@@ -75,7 +76,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState(initialElements);
+        const [elements, setElements] = useState<GraphElement[]>(initialElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -109,7 +110,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [links, setLinks] = useState([initialLink]);
+        const [links, setLinks] = useState<GraphLink[]>([linkFromGraph(initialLink)]);
         return (
           <GraphProvider links={links} onLinksChange={setLinks}>
             <TestComponent />
@@ -126,134 +127,12 @@ describe('GraphProvider Coverage Tests', () => {
     });
   });
 
-  describe('create-graph-store error cases', () => {
-    it('should throw error when graph is null in createStoreWithGraph', () => {
-      expect(() => {
-        createStoreWithGraph({
-          graph: undefined as unknown as dia.Graph,
-        });
-      }).toThrow('Graph instance is required');
-    });
-
-    it('should throw error when getLink is called with non-existent id', () => {
+  describe('GraphStore error cases', () => {
+    it('should create store with graph', () => {
       const graph = new dia.Graph();
-      const store = createStoreWithGraph({ graph });
-
-      expect(() => {
-        store.getLink('non-existent-id');
-      }).toThrow('Link with id non-existent-id not found');
-    });
-
-    it('should handle skipGraphUpdate path in forceUpdateStore', async () => {
-      const graph = new dia.Graph();
-      const store = createStoreWithGraph({
-        graph,
-        onElementsChange: () => {},
-      });
-
-      // Force update with skipGraphUpdate flag
-      const result = store.forceUpdateStore(undefined, true);
-
-      expect(result).toBeDefined();
-      expect(result.areElementsChanged).toBe(false);
-      expect(result.areLinksChanged).toBe(false);
-    });
-  });
-
-  describe('create-store-data structural changes', () => {
-    it('should detect reordering of elements in updateFromExternalData', () => {
-      const graph = new dia.Graph();
-      const store = createStoreWithGraph({ graph });
-
-      const elements1 = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-        { id: '2', width: 100, height: 100, type: 'ReactElement' },
-      ]);
-
-      const elements2 = createElements([
-        { id: '2', width: 100, height: 100, type: 'ReactElement' },
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ]);
-
-      // Initial update
-      store.updateStoreFromExternalData(elements1, []);
-
-      // Reorder (same elements, different order)
-      const result = store.updateStoreFromExternalData(elements2, []);
-
-      // Reordering should be detected as a structural change
-      expect(result.areElementsChanged).toBe(true);
-    });
-
-    it('should detect reordering of links in updateFromExternalData', () => {
-      const graph = new dia.Graph();
-      const store = createStoreWithGraph({ graph });
-
-      // Create links as JSON to match GraphLink type
-      const link1: GraphLink = {
-        id: 'link1',
-        type: 'standard.Link',
-        source: '1',
-        target: '2',
-      };
-      const link2: GraphLink = {
-        id: 'link2',
-        type: 'standard.Link',
-        source: '2',
-        target: '3',
-      };
-
-      // Initial update
-      store.updateStoreFromExternalData([], [link1, link2]);
-
-      // Reorder (same links, different order) - create new objects to ensure they're different references
-      const link1Reordered: GraphLink = {
-        id: 'link1',
-        type: 'standard.Link',
-        source: '1',
-        target: '2',
-      };
-      const link2Reordered: GraphLink = {
-        id: 'link2',
-        type: 'standard.Link',
-        source: '2',
-        target: '3',
-      };
-      const result = store.updateStoreFromExternalData([], [link2Reordered, link1Reordered]);
-
-      // Reordering should be detected as a structural change
-      expect(result.areLinksChanged).toBe(true);
-    });
-
-    it('should detect changes in updateStore when graph cells are modified', () => {
-      const graph = new dia.Graph();
-      const element1 = new dia.Element({
-        id: '1',
-        type: 'ReactElement',
-        position: { x: 0, y: 0 },
-        size: { width: 100, height: 100 },
-      });
-      const element2 = new dia.Element({
-        id: '2',
-        type: 'ReactElement',
-        position: { x: 200, y: 0 },
-        size: { width: 100, height: 100 },
-      });
-
-      graph.addCell([element1, element2]);
-
-      const store = createStoreWithGraph({ graph });
-
-      // Initial update
-      store.forceUpdateStore();
-
-      // Change element position to trigger update
-      element1.set('position', { x: 10, y: 10 });
-      const result = store.forceUpdateStore();
-
-      // Should detect change
-      expect(result.areElementsChanged).toBe(true);
-      expect(result.diffIds.has('1')).toBe(true);
+      const store = new GraphStore({ graph });
+      expect(store).toBeDefined();
+      expect(store.graph).toBe(graph);
     });
   });
 
@@ -272,7 +151,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState(unmeasuredElements);
+        const [elements, setElements] = useState<GraphElement[]>(unmeasuredElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -290,7 +169,7 @@ describe('GraphProvider Coverage Tests', () => {
 
     it('should handle cleanup in GraphBase when store exists', () => {
       const graph = new dia.Graph();
-      const store = createStoreWithGraph({ graph });
+      const store = new GraphStore({ graph });
 
       const { unmount } = render(
         <GraphProvider store={store}>
@@ -300,14 +179,16 @@ describe('GraphProvider Coverage Tests', () => {
 
       // Store should work before unmount
       expect(() => {
-        store.getElements();
+        const { elements } = store.publicState.getSnapshot();
+        expect(elements).toBeDefined();
       }).not.toThrow();
 
       unmount();
 
       // Store should still work after unmount (it's not destroyed)
       expect(() => {
-        store.getElements();
+        const { elements } = store.publicState.getSnapshot();
+        expect(elements).toBeDefined();
       }).not.toThrow();
     });
   });

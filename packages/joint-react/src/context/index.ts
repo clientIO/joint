@@ -1,28 +1,18 @@
 export * from './port-group-context';
 import { createContext } from 'react';
-import type { GraphStore } from '../data/create-graph-store';
 import type { dia } from '@joint/core';
-import type { GraphElement } from '../types/element-types';
-import type { PortsStore } from '../data/create-ports-store';
-import type { RenderElement } from '../components/paper/paper.types';
-export interface PaperContext {
-  readonly id: string;
-  readonly paper: dia.Paper;
-  readonly portsStore: PortsStore;
-  readonly elementViews: Record<dia.Cell.ID, dia.ElementView>;
-  renderElement?: RenderElement<GraphElement>;
-  readonly isReactId: boolean;
-}
+import type { GraphStore, PaperStore } from '../store';
 
-export type StoreContext<Graph extends dia.Graph = dia.Graph> = GraphStore<Graph>;
+export type StoreContext = GraphStore;
 export const GraphStoreContext = createContext<GraphStore | null>(null);
-export const GraphAreElementsMeasuredContext = createContext<boolean>(false);
-export const PaperContext = createContext<PaperContext | null>(null);
+export const PaperStoreContext = createContext<PaperStore | null>(null);
 export const CellIdContext = createContext<dia.Cell.ID | undefined>(undefined);
+export const CellIndexContext = createContext<number | undefined>(undefined);
 
 export interface OverWriteResult {
   readonly element: HTMLElement | SVGElement;
-  readonly contextUpdate: Record<string, unknown>;
+  readonly contextUpdate: unknown;
+  readonly shouldIgnoreWidthAndHeightUpdates: boolean;
   readonly cleanup: () => void;
 }
 export interface PaperConfigContext {
@@ -34,7 +24,7 @@ export interface PaperConfigContext {
    * @param ctx - The paper context
    * @returns
    */
-  overWrite?: (ctx: PaperContext) => OverWriteResult;
+  overWrite?: (ctx: PaperStore) => OverWriteResult;
 }
 
 export const PaperConfigContext = createContext<PaperConfigContext | null>(null);

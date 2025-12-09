@@ -20,15 +20,15 @@ import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
 const initialElements = createElements([
-  { id: '1', label: 'Node 1' },
-  { id: '2', label: 'Node 2' },
-  { id: '3', label: 'Node 3' },
-  { id: '4', label: 'Node 4' },
-  { id: '5', label: 'Node 5' },
-  { id: '6', label: 'Node 6' },
-  { id: '7', label: 'Node 7' },
-  { id: '8', label: 'Node 8' },
-  { id: '9', label: 'Node 9' },
+  { id: '1', label: 'Node 1', width: 100, height: 50 },
+  { id: '2', label: 'Node 2', width: 100, height: 50 },
+  { id: '3', label: 'Node 3', width: 100, height: 50 },
+  { id: '4', label: 'Node 4', width: 100, height: 50 },
+  { id: '5', label: 'Node 5', width: 100, height: 50 },
+  { id: '6', label: 'Node 6', width: 100, height: 50 },
+  { id: '7', label: 'Node 7', width: 100, height: 50 },
+  { id: '8', label: 'Node 8', width: 100, height: 50 },
+  { id: '9', label: 'Node 9', width: 100, height: 50 },
 ]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
@@ -109,11 +109,9 @@ function Main() {
             set({
               id: `${Math.random()}`,
               label: `Node ${elementsLength + 1}`,
-              height: 40,
-              width: 100,
+              height: 0, // we recompute the size after the element is added
+              width: 0, // we recompute the size after the element is added
             });
-            // Layout again with the new element
-            makeLayoutWithGrid({ graph, gridXSize });
           }}
           type="button"
           className="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

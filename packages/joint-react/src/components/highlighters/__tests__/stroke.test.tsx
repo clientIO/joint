@@ -77,3 +77,12 @@ describe('Stroke highlighter', () => {
     expect(container).toBeDefined();
   });
 });
+
+
+
+
+
+
+
+
+

@@ -4,6 +4,7 @@ import type { Meta } from '@storybook/react';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
+import type { GraphElement } from '../types/element-types';
 
 const API_URL = getAPILink('useElement');
 
@@ -67,7 +68,7 @@ type Story = TesterHookStory<typeof useElement>;
 export const WithId = makeStory<Story>({
   args: {
     useHook: useElement,
-    hookArgs: [(element) => element.id],
+    hookArgs: [(element: GraphElement) => element.id] as never,
   },
   apiURL: API_URL,
   code: `import { useElement } from '@joint/react'
@@ -85,7 +86,7 @@ function Component() {
 export const WithCoordinates = makeStory<Story>({
   args: {
     useHook: useElement,
-    hookArgs: [(element) => ({ x: element.x, y: element.y })],
+    hookArgs: [(element: GraphElement) => ({ x: element.x, y: element.y })] as never,
   },
   apiURL: API_URL,
   code: `import { useElement } from '@joint/react'
