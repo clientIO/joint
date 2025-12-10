@@ -2578,6 +2578,22 @@ QUnit.module('graph', function(hooks) {
         );
     });
 
+    QUnit.test('graph.options: ignoreLayers', function(assert) {
+        const graph = new joint.dia.Graph({}, { ignoreLayers: true });
+        const elementId = 'element-1';
+        const layerId = 'test-layer';
+        const element = new joint.shapes.standard.Rectangle({
+            id: elementId,
+            layer: layerId,
+        });
+        graph.addCell(element);
+
+        assert.notEqual(graph.getDefaultLayer().id, layerId);
+        assert.notOk(graph.hasLayer(layerId));
+        assert.equal(graph.getCellLayerId(elementId), graph.getDefaultLayer().id);
+        assert.ok(graph.getCell(elementId));
+    });
+
     QUnit.module('graph.getNeighbors(), graph.isNeighbor()', function() {
         var Element = joint.shapes.standard.Rectangle;
         var Link = joint.shapes.standard.Link;

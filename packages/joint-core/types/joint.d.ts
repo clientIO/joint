@@ -323,6 +323,7 @@ export namespace dia {
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
             layerNamespace?: any,
+            ignoreLayers?: boolean,
             /** @deprecated use cellNamespace instead */
             cellModel?: typeof Cell
         });
