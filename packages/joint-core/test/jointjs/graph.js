@@ -2578,20 +2578,51 @@ QUnit.module('graph', function(hooks) {
         );
     });
 
-    QUnit.test('graph.options: ignoreLayers', function(assert) {
-        const graph = new joint.dia.Graph({}, { ignoreLayers: true });
-        const elementId = 'element-1';
-        const layerId = 'test-layer';
-        const element = new joint.shapes.standard.Rectangle({
-            id: elementId,
-            layer: layerId,
-        });
-        graph.addCell(element);
+    QUnit.module('graph.options: ignoreLayers', function(assert) {
 
-        assert.notEqual(graph.getDefaultLayer().id, layerId);
-        assert.notOk(graph.hasLayer(layerId));
-        assert.equal(graph.getCellLayerId(elementId), graph.getDefaultLayer().id);
-        assert.ok(graph.getCell(elementId));
+        QUnit.test('addCell()', function(assert) {
+            const graph = new joint.dia.Graph({}, { ignoreLayers: true });
+            const elementId = 'element-1';
+            const layerId = 'test-layer';
+            const element = new joint.shapes.standard.Rectangle({
+                id: elementId,
+                layer: layerId,
+            });
+            graph.addCell(element);
+
+            assert.notEqual(graph.getDefaultLayer().id, layerId);
+            assert.notOk(graph.hasLayer(layerId));
+            assert.equal(graph.getCellLayerId(elementId), graph.getDefaultLayer().id);
+            assert.ok(graph.getCell(elementId));
+        });
+
+        QUnit.test('resetCells()', function(assert) {
+            const graph = new joint.dia.Graph({}, { ignoreLayers: true });
+            const element1Id = 'element-1';
+            const element2Id = 'element-2';
+            const layer1Id = 'test-layer-1';
+            const layer2Id = 'test-layer-2';
+            const element1 = new joint.shapes.standard.Rectangle({
+                id: element1Id,
+                layer: layer1Id,
+            });
+            const element2 = {
+                id: element2Id,
+                type: 'standard.Rectangle',
+                layer: layer2Id,
+            };
+            graph.resetCells([element1, element2]);
+
+            assert.notEqual(graph.getDefaultLayer().id, layer1Id);
+            assert.notEqual(graph.getDefaultLayer().id, layer2Id);
+            assert.notOk(graph.hasLayer(layer1Id));
+            assert.notOk(graph.hasLayer(layer2Id));
+            assert.equal(graph.getCellLayerId(element1Id), graph.getDefaultLayer().id);
+            assert.equal(graph.getCellLayerId(element2Id), graph.getDefaultLayer().id);
+            assert.ok(graph.getCell(element1Id));
+            assert.ok(graph.getCell(element2Id));
+            assert.equal(graph.getCells().length, 2);
+        });
     });
 
     QUnit.module('graph.getNeighbors(), graph.isNeighbor()', function() {
