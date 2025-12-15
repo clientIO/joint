@@ -21,7 +21,9 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     if (graphOrCells instanceof dia.Graph) {
         graph = graphOrCells;
     } else {
-        graph = new dia.Graph();
+        // Create a temporary graph to layout the given cells.
+        // Layers has no significance to the layout process.
+        graph = new dia.Graph({}, { ignoreLayers: true });
         // Reset cells in dry mode so the graph reference is not stored on the cells.
         // `sort: false` to prevent elements to change their order based on the z-index
         graph.resetCells(graphOrCells, { dry: true, sort: false });
