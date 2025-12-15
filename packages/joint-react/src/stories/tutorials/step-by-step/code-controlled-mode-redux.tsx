@@ -493,3 +493,4 @@ function ReduxConnectedPaperApp() {
 export default function App(props: Readonly<GraphProps>) {
   return <Main {...props} />;
 }
+
