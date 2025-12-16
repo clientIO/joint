@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-libavoid-js",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "main": "src/index.js",
   "homepage": "https://jointjs.com",
   "author": {
