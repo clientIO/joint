@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-layout-msagl",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "description": "JointJS - MSAGL Demo",
   "main": "dist/bundle.js",
   "homepage": "https://jointjs.com",

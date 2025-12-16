@@ -1,3 +1,14 @@
+16-12-2025 (v4.2.2)
+
+  @joint/core
+  * dia.Graph - fix types
+
+  @joint/layout-directed-graph
+  * layout.DirectedGraph - ignore cell layers in the layout
+
+  @joint/layout-msagl
+  * layout.MSAGL - ignore cell layers in the layout
+
 20-11-2025 (v4.2.1)
 
   @joint/core
