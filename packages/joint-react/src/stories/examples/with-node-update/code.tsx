@@ -4,14 +4,15 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
   useElements,
-  useUpdateElement,
+  useNodeSize,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
+import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { useCellActions } from '../../../hooks/use-cell-actions';
 
 const initialElements = createElements([
   { id: '1', label: 'Node 1', color: '#ffffff', x: 100, y: 0 },
@@ -33,23 +34,25 @@ const initialEdges = createLinks([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function ElementInput({ id, label }: BaseElementWithData) {
-  const setLabel = useUpdateElement<BaseElementWithData>(id, 'label');
+  const { set } = useCellActions<BaseElementWithData>();
   return (
     <input
       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
       style={{ padding: 5, marginTop: 4 }}
       value={label}
-      onChange={(event) => setLabel(event.target.value)}
+      onChange={(event) => set(id, (previous) => ({ ...previous, label: event.target.value }))}
     />
   );
 }
 
 function RenderElement({ label, width, height }: BaseElementWithData) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="node">{label}</div>
-      </MeasuredNode>
+      <div ref={elementRef} className="node">
+        {label}
+      </div>
     </foreignObject>
   );
 }
@@ -70,7 +73,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

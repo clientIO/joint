@@ -2,67 +2,71 @@ import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { GraphLink } from '../types/link-types';
-import type { CellMap } from '../utils/cell/cell-map';
 
 /**
- * Default selector function to return all links.
- * This function is used when no selector is provided.
- * It simply returns the items passed to it.
- * @param items - The items to select from.
- * @returns - The selected items.
- * @group utils
- * @description
+ * Default selector function that returns all links unchanged.
+ * Used when no custom selector is provided to useLinks.
+ * @template Link - The type of links
+ * @param items - The links array to select from
+ * @returns The same links array
+ * @internal
  */
-function defaultSelector<Link extends GraphLink = GraphLink>(items: CellMap<Link>): Link[] {
+function defaultSelector<Link extends GraphLink = GraphLink>(items: Link[]): Link[] {
   return items.map((item) => item) as Link[];
 }
 /**
- * A hook to access the graph store's links.
+ * Hook to access and subscribe to links (edges) from the graph store.
  *
- * This hook returns the selected links from the graph store. It accepts:
- * - a selector function, which extracts the desired portion from the links map.
- * (By default, it returns all links.)
- * - an optional `isEqual` function, used to compare previous and new values to prevent unnecessary re-renders.
+ * This hook provides reactive access to links with optional selection and custom equality comparison.
+ * It uses React's useSyncExternalStore internally for optimal performance.
  *
- * How it works:
- * 1. The hook subscribes to the links of the graph store.
- * 2. It retrieves the links and then applies the selector.
- * 3. The `isEqual` comparator (defaulting to a deep comparison) checks if the selected value has really changed.
+ * **Features:**
+ * - Subscribes to link changes in the graph store
+ * - Supports custom selectors to extract specific data
+ * - Custom equality comparison to prevent unnecessary re-renders
+ * - Type-safe with TypeScript generics
+ *
+ * **How it works:**
+ * 1. Subscribes to the links in the graph store
+ * 2. Retrieves the current links snapshot
+ * 3. Applies the selector function (if provided)
+ * 4. Compares the result with the previous value using isEqual
+ * 5. Only triggers re-render if the selected value actually changed
+ * @template Link - The type of links in the graph
+ * @template SelectorReturnType - The return type of the selector function
+ * @param selector - Optional function to select/extract a portion of the links. Defaults to returning all links.
+ * @param isEqual - Optional function to compare previous and new values. Defaults to deep equality.
+ * @returns The selected links data (or all links if no selector provided)
+ * @group Hooks
  * @example
  * ```ts
- * // Using without a selector (returns all links):
+ * // Get all links
  * const links = useLinks();
  * ```
  * @example
  * ```ts
- * // Using with a selector (extract part of the links data):
+ * // Extract only link IDs
  * const linkIds = useLinks((links) => links.map(link => link.id));
  * ```
  * @example
- * // Using with a custom isEqual function:
  * ```ts
- * const filteredLinks = useLinks(
- *   (links) => links,
- *   (prev, next) => prev.length === next.length
+ * // Custom equality check (only re-render if count changes)
+ * const linkCount = useLinks(
+ *   (links) => links.length,
+ *   (prev, next) => prev === next
  * );
  * ```
- * @group Hooks
- * @param selector - A function to select a portion of the links.
- * @param isEqual - A function to compare the previous and new values.
- * @returns - The selected links.
  */
 export function useLinks<Link extends GraphLink = GraphLink, SelectorReturnType = Link[]>(
-  selector: (
-    items: CellMap<Link>
-  ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+  selector: (items: Link[]) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
 ): SelectorReturnType {
-  const { subscribe, getLinks } = useGraphStore();
-  const typedGetLinks = getLinks as () => CellMap<Link>;
+  const { publicState } = useGraphStore();
+  const getLinks = () => publicState.getSnapshot().links as Link[];
   const elements = useSyncExternalStoreWithSelector(
-    subscribe,
-    typedGetLinks,
-    typedGetLinks,
+    publicState.subscribe,
+    getLinks,
+    getLinks,
     selector,
     isEqual
   );

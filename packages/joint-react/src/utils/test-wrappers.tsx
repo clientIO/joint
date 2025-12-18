@@ -2,14 +2,11 @@ import { useCallback } from 'react';
 import { GraphProvider, Paper, type GraphProps, type PaperProps } from '../components';
 
 /**
- * This wrapper is used to render a graph provider.
- * It is used in the tests to render a graph provider.
- * @param props - The props for the graph provider.
- * @returns - The wrapper.
+ * Testing helper to render a `GraphProvider` provider.
+ * @param props - Props forwarded to the `GraphProvider` root component.
+ * @returns A component that wraps children with `GraphProvider`.
  * @internal
  * @group utils
- * @description
- * This wrapper is used to render a graph provider.
  */
 export function graphProviderWrapper(props: GraphProps): React.JSXElementConstructor<{
   children: React.ReactNode;
@@ -21,41 +18,47 @@ export function graphProviderWrapper(props: GraphProps): React.JSXElementConstru
 
 interface Options {
   paperProps?: PaperProps;
-  graphProps?: GraphProps;
+  graphProviderProps?: GraphProps;
 }
 /**
- * This wrapper is used to render a paper with a graph provider.
- * It is used in the tests to render a paper with a graph provider.
- * @param options - The options for the wrapper.
- * @param options.paperProps - The props for the paper.
- * @param options.graphProps - The props for the graph provider.
- * @returns - The wrapper.
+ * Testing helper to render a `Paper` inside a `GraphProvider` provider.
+ * @param options - Wrapper options.
+ * @param options.paperProps - Props for `Paper`.
+ * @param options.graphProps - Props for the `GraphProvider` root.
+ * @returns A component that wraps children inside `GraphProvider` + `Paper`.
  * @internal
  * @group utils
  */
 export function paperRenderElementWrapper(options: Options): React.JSXElementConstructor<{
   children: React.ReactNode;
 }> {
-  const { paperProps, graphProps } = options;
+  const { paperProps, graphProviderProps } = options;
   return function GraphProviderWrapper({ children }) {
     const renderElement = useCallback(() => {
       return children;
     }, [children]);
     return (
-      <GraphProvider {...graphProps}>
-        <Paper {...paperProps} renderElement={renderElement}></Paper>
+      <GraphProvider {...graphProviderProps}>
+        <Paper {...paperProps} width={100} height={100} renderElement={renderElement}></Paper>
       </GraphProvider>
     );
   };
 }
 
 export const simpleRenderElementWrapper = paperRenderElementWrapper({
-  graphProps: {
-    initialElements: [
+  graphProviderProps: {
+    elements: [
       {
         id: '1',
         width: 97,
         height: 99,
+      },
+    ],
+    links: [
+      {
+        id: '3',
+        source: '1',
+        target: '2',
       },
     ],
   },

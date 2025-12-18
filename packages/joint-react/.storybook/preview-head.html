@@ -1,3 +1,58 @@
 <!-- Loads a font from a CDN -->
+<!-- react-scan: Load with delay to avoid freezing Storybook -->
+<script>
+    // Load react-scan UI overlay after Storybook initializes
+    (function () {
+        if (typeof window === 'undefined') return;
+
+        // Wait for DOM and React to be ready
+        function loadReactScan() {
+            if (window.__REACT_SCAN_LOADED) return;
+
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/react-scan@latest/dist/auto.global.js';
+            script.async = true;
+            script.onload = function () {
+                window.__REACT_SCAN_LOADED = true;
+
+
+                // Wait a bit for react-scan to initialize, then configure it for iframe
+                setTimeout(function () {
+                    // Access react-scan global API
+                    const reactScan = window.reactScan;
+
+                    if (reactScan && typeof reactScan === 'function') {
+                        // Configure react-scan to work in iframe (Storybook uses iframes)
+                        try {
+                            reactScan({
+                                enabled: false, // Disabled by default - user can enable via toolbar
+                                allowInIframe: true,
+                                showToolbar: true, // Show toolbar so user can toggle it on/off
+                            });
+
+                        } catch (error) {
+                            console.error('❌ Error configuring react-scan:', error);
+                        }
+                    } else {
+                        console.warn('⚠️ react-scan function not found');
+                    }
+                }, 500);
+            };
+            script.onerror = function () {
+                console.error('❌ Failed to load react-scan');
+            };
+            document.head.appendChild(script);
+        }
+
+        // Try loading after a delay
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                setTimeout(loadReactScan, 3000);
+            });
+        } else {
+            setTimeout(loadReactScan, 3000);
+        }
+    })();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

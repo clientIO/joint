@@ -1,12 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
+  useNodeSize,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
@@ -42,6 +42,7 @@ function MiniMap() {
   return (
     <div className="absolute bottom-4 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
       <Paper
+        id="minimap"
         interactive={false}
         scale={0.4}
         width="100%"
@@ -54,21 +55,31 @@ function MiniMap() {
 }
 
 function RenderElement({ width, height, label, color }: Readonly<BaseElementWithData>) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="flex flex-col items-center rounded-sm" style={{ background: color }}>
-          Example
-          <div>{label}</div>
-        </div>
-      </MeasuredNode>
+      <div
+        ref={elementRef}
+        className="flex flex-col items-center rounded-sm"
+        style={{ background: color }}
+      >
+        Example
+        <div>{label}</div>
+      </div>
     </foreignObject>
   );
 }
 function Main() {
   return (
     <div className="flex flex-row relative">
-      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
+      <Paper
+        id="main-view"
+        width="100%"
+        className={PAPER_CLASSNAME}
+        height={280}
+        renderElement={RenderElement}
+      />
       <MiniMap />
     </div>
   );
@@ -76,7 +87,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

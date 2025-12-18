@@ -4,6 +4,7 @@
 /* eslint-disable sonarjs/no-small-switch */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import React from 'react';
 import { dia, linkTools, shapes } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
 import './index.css';
@@ -12,22 +13,21 @@ import {
   createLinks,
   GraphProvider,
   Highlighter,
-  MeasuredNode,
   Paper,
   Port,
   useCellId,
   useElements,
   useGraph,
+  useNodeSize,
   useLinks,
-  usePaper,
-  useUpdateElement,
   type GraphElement,
+  type PaperStore,
   type PaperProps,
   type RenderElement,
 } from '@joint/react';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
-import { PaperProvider } from '../../../components/paper-provider/paper-provider';
+import { useCellActions } from '../../../hooks/use-cell-actions';
 
 // Define types for the elements
 interface ElementBase extends GraphElement {
@@ -54,7 +54,7 @@ type ElementWithSelected<T> = { readonly isSelected: boolean } & T;
 const BUTTON_CLASSNAME =
   'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm flex items-center';
 
-// Define static properties for the paper - used by minimap and main paper
+// Define static properties for the view's Paper - used by minimap and main view
 const PAPER_PROPS: PaperProps<Element> = {
   defaultRouter: {
     name: 'rightAngle',
@@ -107,7 +107,6 @@ const elements = createElements<Element>([
       ['Row 4', 'Row 5', 'Row 6'],
       ['Row 7', 'Row 8', 'Row 9'],
     ],
-    inputText: '',
     width: 400,
     height: 200,
     attrs: {
@@ -165,7 +164,9 @@ function MessageComponent({
     }
   }
   const id = useCellId();
-  const setMessage = useUpdateElement<MessageElement>(id, 'inputText');
+  const { set } = useCellActions<MessageElement>();
+  const elementRef = React.useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <Highlighter.Stroke
       padding={10}
@@ -176,30 +177,31 @@ function MessageComponent({
       isHidden={!isSelected}
     >
       <foreignObject width={width} height={height} overflow="visible">
-        <MeasuredNode>
-          <div className="flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-row gap-2 items-start">
-                <div className="text-2xl">{iconContent}</div>
-                <div className="text-lg ml-2">
-                  {titleText}
-                  <div className="text-sm mt-1">{description}</div>
-                </div>
+        <div
+          ref={elementRef}
+          className="flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm"
+        >
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row gap-2 items-start">
+              <div className="text-2xl">{iconContent}</div>
+              <div className="text-lg ml-2">
+                {titleText}
+                <div className="text-sm mt-1">{description}</div>
               </div>
-              {/* Divider */}
-              <div className="border-1 border-dashed border-rose-white mt-2 opacity-10" />
-              <input
-                type="text"
-                value={inputText}
-                className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
-                placeholder="Type here..."
-                onChange={({ target: { value } }) => {
-                  setMessage(value);
-                }}
-              />
             </div>
+            {/* Divider */}
+            <div className="border-1 border-dashed border-rose-white mt-2 opacity-10" />
+            <input
+              type="text"
+              value={inputText}
+              className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
+              placeholder="Type here..."
+              onChange={({ target: { value } }) => {
+                set(id, (previous) => ({ ...previous, inputText: value }));
+              }}
+            />
           </div>
-        </MeasuredNode>
+        </div>
       </foreignObject>
     </Highlighter.Stroke>
   );
@@ -326,6 +328,7 @@ interface ToolbarProps {
   readonly setSelectedId: (id: dia.Cell.ID | null) => void;
   readonly showElementsInfo: boolean;
   readonly setShowElementsInfo: (show: boolean) => void;
+  readonly paperCtxRef: React.RefObject<PaperStore | null>;
 }
 // Toolbar component with some actions
 function ToolBar(props: Readonly<ToolbarProps>) {
@@ -336,9 +339,10 @@ function ToolBar(props: Readonly<ToolbarProps>) {
     setSelectedId,
     setShowElementsInfo,
     showElementsInfo,
+    paperCtxRef,
   } = props;
   const graph = useGraph();
-  const paper = usePaper();
+  const { paper } = paperCtxRef.current ?? {};
   return (
     <div className="flex flex-row absolute top-2 left-2 z-10 bg-gray-900  rounded-lg p-2 shadow-md gap-2">
       <button
@@ -405,7 +409,7 @@ function ToolBar(props: Readonly<ToolbarProps>) {
         type="button"
         className={BUTTON_CLASSNAME}
         onClick={() => {
-          paper.transformToFitContent({
+          paper?.transformToFitContent({
             verticalAlign: 'middle',
             horizontalAlign: 'middle',
             padding: 20,
@@ -451,11 +455,12 @@ function ElementsInfo() {
   );
 }
 
-// Define main paper component and render elements
+// Define main view component and render elements
 function Main() {
   const [isMinimapVisible, setIsMinimapVisible] = useState(false);
   const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(null);
   const [showElementsInfo, setShowElementsInfo] = useState(false);
+  const paperCtxRef = useRef<PaperStore | null>(null);
 
   const renderElement = useCallback(
     (element: Element) => {
@@ -474,37 +479,38 @@ function Main() {
     },
     [selectedElement]
   );
+
   return (
     <div className="flex flex-col relative">
       <div className="flex flex-col relative">
-        <PaperProvider
+        <ToolBar
+          onToggleMinimap={setIsMinimapVisible}
+          isMinimapVisible={isMinimapVisible}
+          selectedId={selectedElement}
+          setSelectedId={setSelectedElement}
+          showElementsInfo={showElementsInfo}
+          setShowElementsInfo={setShowElementsInfo}
+          paperCtxRef={paperCtxRef}
+        />
+        <Paper
+          ref={paperCtxRef}
           {...PAPER_PROPS}
           defaultLink={new shapes.standard.Link(links[0])}
           width="100%"
-        >
-          <ToolBar
-            onToggleMinimap={setIsMinimapVisible}
-            isMinimapVisible={isMinimapVisible}
-            selectedId={selectedElement}
-            setSelectedId={setSelectedElement}
-            showElementsInfo={showElementsInfo}
-            setShowElementsInfo={setShowElementsInfo}
-          />
-          <Paper
-            renderElement={renderElement}
-            className={PAPER_CLASSNAME}
-            onCellPointerClick={({ cellView }) => {
-              const cell = cellView.model;
-              setSelectedElement(cell.id ?? null);
-            }}
-            onLinkPointerClick={() => {
-              setSelectedElement(null);
-            }}
-            onBlankPointerClick={() => {
-              setSelectedElement(null);
-            }}
-          />
-        </PaperProvider>
+          renderElement={renderElement}
+          className={PAPER_CLASSNAME}
+          onCellPointerClick={({ cellView }) => {
+            const cell = cellView.model;
+            setSelectedElement(cell.id ?? null);
+          }}
+          onLinkPointerClick={() => {
+            setSelectedElement(null);
+          }}
+          onBlankPointerClick={() => {
+            setSelectedElement(null);
+          }}
+        />
+
         {isMinimapVisible && <MiniMap />}
       </div>
       {showElementsInfo && <ElementsInfo />}
@@ -514,7 +520,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={elements} initialLinks={links}>
+    <GraphProvider elements={elements} links={links}>
       <Main />
     </GraphProvider>
   );

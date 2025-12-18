@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -6,13 +5,13 @@ import { shapes, util } from '@joint/core';
 import {
   createElements,
   GraphProvider,
-  Paper,
   type GraphProps,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
+import { Paper } from '../../../components/paper/paper';
 
 const initialElements = createElements([
   { id: '1', label: 'Node 1', x: 100, y: 0 },
@@ -54,12 +53,22 @@ function Main() {
   );
 }
 
+const links = [
+  {
+    source: '1',
+    target: '2',
+    type: 'LinkModel',
+    id: '1123',
+    attrs: { line: { stroke: PRIMARY } },
+  },
+];
+
 export default function App(props: Readonly<GraphProps>) {
   return (
     <GraphProvider
       {...props}
-      initialLinks={[{ source: '1', target: '2', type: 'LinkModel', id: '1123' }]}
-      initialElements={initialElements}
+      links={links}
+      elements={initialElements}
       cellNamespace={{ LinkModel }}
     >
       <Main />
