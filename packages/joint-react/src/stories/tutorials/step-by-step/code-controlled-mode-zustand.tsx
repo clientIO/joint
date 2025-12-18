@@ -165,9 +165,7 @@ const useGraphStore = create<GraphStore>((set) => ({
  *
  * The adapter automatically reads from the Zustand store, so no parameters
  * are needed. Just call this hook inside a component.
- *
  * @returns An ExternalGraphStore compatible with GraphProvider
- *
  * @example
  * ```tsx
  * <GraphProvider externalStore={useZustandAdapter()}>
@@ -196,7 +194,6 @@ function useZustandAdapter(): ExternalGraphStore {
        * Subscribes to Zustand store changes.
        * When the Zustand state changes, the listener is called, which notifies
        * GraphStore to re-read the state and sync with JointJS.
-       *
        * @param listener - Callback function to call when state changes
        * @returns Unsubscribe function to remove the listener
        */
@@ -212,7 +209,6 @@ function useZustandAdapter(): ExternalGraphStore {
        * The updater can be:
        * - A direct value: { elements: [...], links: [...] }
        * - A function: (previous) => ({ elements: [...], links: [...] })
-       *
        * @param updater - The new state or a function to compute new state
        */
       setState: (updater: Update<GraphStoreSnapshot>) => {
@@ -322,4 +318,3 @@ function Main(props: Readonly<GraphProps>) {
 export default function App(props: Readonly<GraphProps>) {
   return <Main {...props} />;
 }
-

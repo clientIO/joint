@@ -124,9 +124,7 @@ const linksAtom = atom<GraphLink[]>(defaultLinks as GraphLink[]);
  *
  * The adapter automatically reads from the Jotai atoms, so no parameters
  * are needed. Just call this hook inside a component.
- *
  * @returns An ExternalGraphStore compatible with GraphProvider
- *
  * @example
  * ```tsx
  * <GraphProvider externalStore={useJotaiAdapter()}>
@@ -159,7 +157,6 @@ function useJotaiAdapter(): ExternalGraphStore {
        * Subscribes to Jotai atom changes.
        * When the atoms change, the listener is called, which notifies
        * GraphStore to re-read the state and sync with JointJS.
-       *
        * @param listener - Callback function to call when state changes
        * @returns Unsubscribe function to remove the listener
        */
@@ -190,7 +187,6 @@ function useJotaiAdapter(): ExternalGraphStore {
        * The updater can be:
        * - A direct value: { elements: [...], links: [...] }
        * - A function: (previous) => ({ elements: [...], links: [...] })
-       *
        * @param updater - The new state or a function to compute new state
        */
       setState: (updater: Update<GraphStoreSnapshot>) => {
@@ -331,4 +327,3 @@ function Main(props: Readonly<GraphProps>) {
 export default function App(props: Readonly<GraphProps>) {
   return <Main {...props} />;
 }
-

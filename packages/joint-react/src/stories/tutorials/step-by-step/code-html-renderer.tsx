@@ -1,11 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
   usePaper,
+  useNodeSize,
   type GraphProps,
   type InferElement,
 } from '@joint/react';
@@ -79,12 +79,14 @@ function Main() {
   const renderItem = useCallback(
     ({ data: { label }, width, height }: CustomElement) => {
       if (isHTMLEnabled) {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const elementRef = useRef<HTMLDivElement>(null);
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useNodeSize(elementRef);
         return (
-          <MeasuredNode>
-            <div className="node">
-              <div>{label}</div>
-            </div>
-          </MeasuredNode>
+          <div ref={elementRef} className="node">
+            <div>{label}</div>
+          </div>
         );
       }
       return <rect rx={10} ry={10} width={width} height={height} fill="blue" />;

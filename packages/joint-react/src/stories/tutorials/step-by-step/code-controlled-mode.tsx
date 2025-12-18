@@ -122,7 +122,6 @@ type CustomLink = (typeof defaultLinks)[number];
  *
  * In this example, we use SVG's <foreignObject> to embed HTML content,
  * allowing us to use regular HTML/CSS for styling instead of SVG attributes.
- *
  * @param props - The element properties (includes id, label, x, y, width, height, etc.)
  * @returns JSX to render inside the element
  */

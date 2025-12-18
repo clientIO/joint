@@ -5,12 +5,13 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
+  useNodeSize,
   type InferElement,
+  type OnSetSize,
   type RenderElement,
 } from '@joint/react';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 const initialEdges = createLinks([
   {
@@ -35,28 +36,32 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 function RenderedRect({ width, height, label }: BaseElementWithData) {
   const textMargin = 20;
   const cornerRadius = 5;
+  const textRef = useRef<SVGTextElement>(null);
+
+  const setSize: OnSetSize = useCallback(
+    ({ element, size: { width: sizeWidth, height: sizeHeight } }) => {
+      element.size(sizeWidth + textMargin, sizeHeight + textMargin);
+    },
+    [textMargin]
+  );
+
+  useNodeSize(textRef, { setSize });
 
   return (
     <>
       <rect rx={cornerRadius} ry={cornerRadius} width={width} height={height} fill={PRIMARY} />
-      <MeasuredNode
-        // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop, no-shadow, @typescript-eslint/no-shadow
-        setSize={({ element, size: { width, height } }) => {
-          element.size(width + textMargin, height + textMargin);
-        }}
+      <text
+        ref={textRef}
+        x={width / 2}
+        y={height / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill={TEXT}
+        fontSize={14}
+        fontWeight="bold"
       >
-        <text
-          x={width / 2}
-          y={height / 2}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill={TEXT}
-          fontSize={14}
-          fontWeight="bold"
-        >
-          {label}
-        </text>
-      </MeasuredNode>
+        {label}
+      </text>
     </>
   );
 }

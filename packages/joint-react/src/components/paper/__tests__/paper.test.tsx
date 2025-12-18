@@ -5,7 +5,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { createElements, type InferElement } from '../../../utils/create';
-import { MeasuredNode } from '../../measured-node/measured-node';
+import React from 'react';
+import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import type { PaperStore } from '../../../store';
 import { useGraph, usePaperStoreContext } from '../../../hooks';
@@ -47,11 +48,15 @@ describe('Paper Component', () => {
 
     const renderElement = ({ label, width, height }: Element) => {
       size = { width, height };
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const elementRef = React.useRef<HTMLDivElement>(null);
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      useNodeSize(elementRef);
       return (
         <foreignObject width={width} height={height}>
-          <MeasuredNode>
-            <div className="node">{label}</div>
-          </MeasuredNode>
+          <div ref={elementRef} className="node">
+            {label}
+          </div>
         </foreignObject>
       );
     };

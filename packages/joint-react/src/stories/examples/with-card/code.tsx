@@ -1,15 +1,12 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
-import { useCallback, type PropsWithChildren } from 'react';
+import React, { useCallback, type PropsWithChildren } from 'react';
 import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
   type InferElement,
-  type OnSetSize,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -41,30 +38,22 @@ function Card({ children, width, height }: PropsWithChildren<BaseElementWithData
   const foWidth = width - 2 * gap - imageWidth - gap;
   const foHeight = height - 2 * gap;
 
-  const setCardSize: OnSetSize = ({ element, size }) => {
-    const w = gap + imageWidth + gap + size.width + gap;
-    const h = gap + Math.max(size.height, imageWidth) + gap;
-    element.size(w, h);
-  };
-
   return (
     <>
       <rect width={width} height={height} fill="#333" stroke="#eee" strokeWidth="2"></rect>
       <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />
       <foreignObject x={gap + imageWidth + gap} y={gap} width={foWidth} height={foHeight}>
-        <MeasuredNode setSize={setCardSize}>
-          <div
-            style={{
-              position: 'absolute',
-              color: '#eee',
-              maxWidth: '100px',
-              overflow: 'hidden',
-              overflowWrap: 'break-word',
-            }}
-          >
-            {children}
-          </div>
-        </MeasuredNode>
+        <div
+          style={{
+            position: 'absolute',
+            color: '#eee',
+            maxWidth: '100px',
+            overflow: 'hidden',
+            overflowWrap: 'break-word',
+          }}
+        >
+          {children}
+        </div>
       </foreignObject>
     </>
   );

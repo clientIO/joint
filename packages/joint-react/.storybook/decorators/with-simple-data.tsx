@@ -3,13 +3,13 @@
 
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
-import { useCallback, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
+import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
 import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   useElement,
+  useNodeSize,
   type InferElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
@@ -126,11 +126,11 @@ export function SimpleRenderItemDecorator(Story: StoryFunction, { args }: StoryC
 
 export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   const { width, height } = useElement();
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <MeasuredNode>
-        <div {...props} />
-      </MeasuredNode>
+      <div ref={elementRef} {...props} />
     </foreignObject>
   );
 }

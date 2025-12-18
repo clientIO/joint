@@ -7,7 +7,7 @@ import { useElements, useLinks, useGraph } from '../../../hooks';
 import { createElements } from '../../../utils/create';
 import type { GraphElement } from '../../../types/element-types';
 import type { GraphLink } from '../../../types/link-types';
-import { linkFromGraph } from '../../../utils/cell/cell-utilities';
+import { mapLinkFromGraph } from '../../../utils/cell/cell-utilities';
 import { GraphProvider } from '../../graph/graph-provider';
 
 describe('GraphProvider Controlled Mode', () => {
@@ -29,7 +29,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -63,7 +63,7 @@ describe('GraphProvider Controlled Mode', () => {
       let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
         setElementsExternal = setElements as (elements: GraphElement[]) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
@@ -119,8 +119,8 @@ describe('GraphProvider Controlled Mode', () => {
       let setLinksExternal: ((links: GraphLink[]) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
-        const [links, setLinks] = useState<GraphLink[]>([linkFromGraph(initialLink)]);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
+        const [links, setLinks] = useState<GraphLink[]>(() => [mapLinkFromGraph(initialLink)]);
         setElementsExternal = setElements as (elements: GraphElement[]) => void;
         setLinksExternal = setLinks as (links: GraphLink[]) => void;
         return (
@@ -160,7 +160,7 @@ describe('GraphProvider Controlled Mode', () => {
       // Update links only
       act(() => {
         setLinksExternal?.([
-          linkFromGraph(
+          mapLinkFromGraph(
             new dia.Link({
               id: 'link1',
               type: 'standard.Link',
@@ -168,7 +168,7 @@ describe('GraphProvider Controlled Mode', () => {
               target: { id: '2' },
             })
           ),
-          linkFromGraph(
+          mapLinkFromGraph(
             new dia.Link({
               id: 'link2',
               type: 'standard.Link',
@@ -203,7 +203,7 @@ describe('GraphProvider Controlled Mode', () => {
       let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
         setElementsExternal = setElements as (elements: GraphElement[]) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
@@ -266,7 +266,7 @@ describe('GraphProvider Controlled Mode', () => {
       let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
         setElementsExternal = setElements as (elements: GraphElement[]) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
@@ -331,8 +331,8 @@ describe('GraphProvider Controlled Mode', () => {
       let setLinksExternal: ((links: GraphLink[]) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
-        const [links, setLinks] = useState<GraphLink[]>([linkFromGraph(initialLink)]);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
+        const [links, setLinks] = useState<GraphLink[]>(() => [mapLinkFromGraph(initialLink)]);
         setElementsExternal = setElements as (elements: GraphElement[]) => void;
         setLinksExternal = setLinks as (links: GraphLink[]) => void;
         return (
@@ -363,7 +363,7 @@ describe('GraphProvider Controlled Mode', () => {
           ])
         );
         setLinksExternal?.([
-          linkFromGraph(
+          mapLinkFromGraph(
             new dia.Link({
               id: 'link1',
               type: 'standard.Link',
@@ -371,7 +371,7 @@ describe('GraphProvider Controlled Mode', () => {
               target: { id: '2' },
             })
           ),
-          linkFromGraph(
+          mapLinkFromGraph(
             new dia.Link({
               id: 'link2',
               type: 'standard.Link',
@@ -405,7 +405,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
 
         const handleAddElement = useCallback(() => {
           setElements((previous) => [
@@ -467,7 +467,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
         reactStateElements = elements;
 
         return (
@@ -532,7 +532,7 @@ describe('GraphProvider Controlled Mode', () => {
       let reactStateElements: GraphElement[] = [];
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
         reactStateElements = elements;
 
         return (
@@ -601,7 +601,7 @@ describe('GraphProvider Controlled Mode', () => {
       let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
+        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
         setElementsExternal = setElements as (elements: GraphElement[]) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>

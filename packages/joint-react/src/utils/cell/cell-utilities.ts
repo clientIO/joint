@@ -2,7 +2,6 @@ import { util, type dia } from '@joint/core';
 import { REACT_TYPE } from '../../models/react-element';
 import type { GraphLink } from '../../types/link-types';
 import type { GraphElement } from '../../types/element-types';
-import { isCellInstance, isLinkInstance } from '../is';
 import { getTargetOrSource } from './get-link-targe-and-source-ids';
 
 export type CellOrJsonCell = dia.Cell | dia.Cell.JSON;
@@ -13,19 +12,7 @@ export type CellOrJsonCell = dia.Cell | dia.Cell.JSON;
  * @param graph - The graph instance.
  * @returns The cell or JSON cell representation.
  */
-export function linkToGraph(link: dia.Link | GraphLink, graph: dia.Graph): CellOrJsonCell {
-  if (isLinkInstance(link)) {
-    const json = link.toJSON();
-
-    const source = getTargetOrSource(json.source);
-    const target = getTargetOrSource(json.target);
-    return {
-      ...json,
-      source,
-      target,
-    };
-  }
-
+export function mapLinkToGraph(link: GraphLink, graph: dia.Graph): CellOrJsonCell {
   const source = getTargetOrSource(link.source);
   const target = getTargetOrSource(link.target);
   const { attrs, type = 'standard.Link', ...rest } = link;
@@ -52,29 +39,23 @@ export function linkToGraph(link: dia.Link | GraphLink, graph: dia.Graph): CellO
 }
 
 /**
- * Process an element: create a ReactElement if applicable, otherwise a standard Cell.
+ * Maps a GraphElement to a JointJS Cell or JSON representation.
  * @param element - The element to process.
- * @param unsizedIds - A set of unsized element IDs.
  * @returns A standard JointJS element or a JSON representation of the element.
  * @group utils
  * @description
  * This function is used to process an element and convert it to a standard JointJS element if needed.
- * It also checks if the element is a ReactElement and if it has a size.
- * If the element is a ReactElement and has no size, it adds its ID to the unsizedIds set.
+ * It extracts position and size information from the element and creates the appropriate cell representation.
  * @private
  * @example
  * ```ts
- * import { processElement } from '@joint/react';
+ * import { mapElementToGraph } from '@joint/react';
  *
  * const element = { id: '1', x: 10, y: 20, width: 100, height: 50 };
- * const unsizedIds = new Set<string>();
- * const processed = processElement(element, unsizedIds);
+ * const processed = mapElementToGraph(element);
  * ```
  */
-export function elementToGraph<T extends dia.Element | GraphElement>(element: T): CellOrJsonCell {
-  if (isCellInstance(element)) {
-    return element;
-  }
+export function mapElementToGraph<T extends GraphElement>(element: T): CellOrJsonCell {
   const { type = REACT_TYPE, x, y, width, height } = element;
 
   return {
@@ -108,7 +89,7 @@ export type GraphCell<Element extends GraphElement = GraphElement> = Element | G
  * console.log(element);
  * ```
  */
-export function elementFromGraph<Element extends dia.Element | GraphElement = GraphElement>(
+export function mapElementFromGraph<Element extends GraphElement = GraphElement>(
   cell: dia.Cell
 ): Element {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -143,7 +124,7 @@ export function elementFromGraph<Element extends dia.Element | GraphElement = Gr
  * console.log(link);
  * ```
  */
-export function linkFromGraph<Link extends dia.Link | GraphLink = GraphLink>(
+export function mapLinkFromGraph<Link extends dia.Link | GraphLink = GraphLink>(
   cell: dia.Cell<dia.Cell.Attributes>
 ): Link {
   return {
@@ -160,8 +141,8 @@ export function linkFromGraph<Link extends dia.Link | GraphLink = GraphLink>(
 
 export interface SyncGraphOptions {
   readonly graph: dia.Graph;
-  readonly elements?: Array<dia.Element | GraphElement>;
-  readonly links?: Array<dia.Link | GraphLink>;
+  readonly elements?: GraphElement[];
+  readonly links?: GraphLink[];
 }
 
 /**
@@ -171,8 +152,8 @@ export interface SyncGraphOptions {
 export function syncGraph(options: SyncGraphOptions) {
   const { graph, elements = [], links = [] } = options;
   const items = [
-    ...elements.map((element) => elementToGraph(element)),
-    ...links.map((link) => linkToGraph(link, graph)),
+    ...elements.map((element) => mapElementToGraph(element)),
+    ...links.map((link) => mapLinkToGraph(link, graph)),
   ];
 
   // syncCells already wraps itself in a batch internally (see joint-core Graph.mjs:428-459)

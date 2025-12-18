@@ -1,4 +1,4 @@
-import { elementFromGraph, linkFromGraph } from '../cell/cell-utilities';
+import { mapElementFromGraph, mapLinkFromGraph } from '../cell/cell-utilities';
 import type { dia } from '@joint/core';
 
 describe('cell utilities', () => {
@@ -30,7 +30,7 @@ describe('cell utilities', () => {
 
   describe('elementFromGraph', () => {
     it('should extract element attributes correctly', () => {
-      const element = elementFromGraph(mockCell);
+      const element = mapElementFromGraph(mockCell);
       expect(element).toMatchObject({
         id: 'mock-id',
         type: 'mock-type',
@@ -45,7 +45,7 @@ describe('cell utilities', () => {
 
   describe('linkFromGraph', () => {
     it('should extract link attributes correctly', () => {
-      const link = linkFromGraph(mockCell);
+      const link = mapLinkFromGraph(mockCell);
       expect(link).toMatchObject({
         id: 'mock-id',
         source: 'source-id',

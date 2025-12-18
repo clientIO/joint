@@ -40,10 +40,7 @@ interface Options<Element extends dia.Element | GraphElement, Link extends dia.L
  * @param options - The options containing elements, links, and their change handlers
  * @returns An external store-like interface compatible with GraphStore, or undefined if uncontrolled
  */
-export function useStateToExternalStore<
-  Element extends dia.Element | GraphElement,
-  Link extends dia.Link | GraphLink,
->(
+export function useStateToExternalStore<Element extends GraphElement, Link extends GraphLink>(
   options: Options<Element, Link>
 ): ExternalStoreLike<GraphStoreSnapshot<Element, Link>> | undefined {
   const { elements = [], links = [], onElementsChange, onLinksChange } = options;
@@ -73,9 +70,7 @@ export function useStateToExternalStore<
     notifySubscribers.current();
   }, [elements, hasOnChange, links]);
 
-  const store = useMemo(():
-    | ExternalStoreLike<GraphStoreSnapshot<Element, Link>>
-    | undefined => {
+  const store = useMemo((): ExternalStoreLike<GraphStoreSnapshot<Element, Link>> | undefined => {
     if (!hasOnChange) {
       return undefined;
     }

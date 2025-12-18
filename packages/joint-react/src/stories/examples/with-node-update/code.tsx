@@ -4,12 +4,13 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
   useElements,
+  useNodeSize,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
+import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
@@ -45,11 +46,13 @@ function ElementInput({ id, label }: BaseElementWithData) {
 }
 
 function RenderElement({ label, width, height }: BaseElementWithData) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="node">{label}</div>
-      </MeasuredNode>
+      <div ref={elementRef} className="node">
+        {label}
+      </div>
     </foreignObject>
   );
 }

@@ -4,6 +4,7 @@
 /* eslint-disable sonarjs/no-small-switch */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import React from 'react';
 import { dia, linkTools, shapes } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
 import './index.css';
@@ -12,12 +13,12 @@ import {
   createLinks,
   GraphProvider,
   Highlighter,
-  MeasuredNode,
   Paper,
   Port,
   useCellId,
   useElements,
   useGraph,
+  useNodeSize,
   useLinks,
   type GraphElement,
   type PaperStore,
@@ -164,6 +165,8 @@ function MessageComponent({
   }
   const id = useCellId();
   const { set } = useCellActions<MessageElement>();
+  const elementRef = React.useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <Highlighter.Stroke
       padding={10}
@@ -174,30 +177,31 @@ function MessageComponent({
       isHidden={!isSelected}
     >
       <foreignObject width={width} height={height} overflow="visible">
-        <MeasuredNode>
-          <div className="flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-row gap-2 items-start">
-                <div className="text-2xl">{iconContent}</div>
-                <div className="text-lg ml-2">
-                  {titleText}
-                  <div className="text-sm mt-1">{description}</div>
-                </div>
+        <div
+          ref={elementRef}
+          className="flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm"
+        >
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row gap-2 items-start">
+              <div className="text-2xl">{iconContent}</div>
+              <div className="text-lg ml-2">
+                {titleText}
+                <div className="text-sm mt-1">{description}</div>
               </div>
-              {/* Divider */}
-              <div className="border-1 border-dashed border-rose-white mt-2 opacity-10" />
-              <input
-                type="text"
-                value={inputText}
-                className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
-                placeholder="Type here..."
-                onChange={({ target: { value } }) => {
-                  set(id, (previous) => ({ ...previous, inputText: value }));
-                }}
-              />
             </div>
+            {/* Divider */}
+            <div className="border-1 border-dashed border-rose-white mt-2 opacity-10" />
+            <input
+              type="text"
+              value={inputText}
+              className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
+              placeholder="Type here..."
+              onChange={({ target: { value } }) => {
+                set(id, (previous) => ({ ...previous, inputText: value }));
+              }}
+            />
           </div>
-        </MeasuredNode>
+        </div>
       </foreignObject>
     </Highlighter.Stroke>
   );

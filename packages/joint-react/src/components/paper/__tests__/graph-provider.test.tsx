@@ -7,7 +7,7 @@ import { useElements, useLinks } from '../../../hooks';
 import { createElements } from '../../../utils/create';
 import type { GraphElement } from '../../../types/element-types';
 import type { GraphLink } from '../../../types/link-types';
-import { linkFromGraph } from '../../../utils/cell/cell-utilities';
+import { mapLinkFromGraph } from '../../../utils/cell/cell-utilities';
 import { GraphProvider } from '../../graph/graph-provider';
 
 describe('graph', () => {
@@ -59,7 +59,7 @@ describe('graph', () => {
     }
     render(
       // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
-      <GraphProvider elements={elements} links={[linkFromGraph(link)]}>
+      <GraphProvider elements={elements} links={[mapLinkFromGraph(link)]}>
         <TestComponent />
       </GraphProvider>
     );
@@ -251,7 +251,7 @@ describe('graph', () => {
     }
     render(
       // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
-      <GraphProvider elements={elements} links={[linkFromGraph(link)]}>
+      <GraphProvider elements={elements} links={[mapLinkFromGraph(link)]}>
         <TestComponent />
       </GraphProvider>
     );
@@ -292,8 +292,8 @@ describe('graph', () => {
     let setLinksOutside: ((links: GraphLink[]) => void) | null = null;
 
     function Graph() {
-      const [elements, setElements] = useState<GraphElement[]>(initialElements);
-      const [links, setLinks] = useState<GraphLink[]>([linkFromGraph(initialLink)]);
+      const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
+      const [links, setLinks] = useState<GraphLink[]>(() => [mapLinkFromGraph(initialLink)]);
       setElementsOutside = setElements as unknown as (elements: GraphElement[]) => void;
       setLinksOutside = setLinks as unknown as (links: GraphLink[]) => void;
       return (
@@ -341,7 +341,7 @@ describe('graph', () => {
     // add link
     act(() => {
       setLinksOutside?.([
-        linkFromGraph(
+        mapLinkFromGraph(
           new dia.Link({
             id: 'link2',
             type: 'standard.Link',
@@ -349,7 +349,7 @@ describe('graph', () => {
             target: { id: 'element2' },
           })
         ),
-        linkFromGraph(
+        mapLinkFromGraph(
           new dia.Link({
             id: 'link3',
             type: 'standard.Link',

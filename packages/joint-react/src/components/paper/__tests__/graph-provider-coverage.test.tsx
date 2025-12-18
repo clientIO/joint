@@ -7,7 +7,7 @@ import { useElements, useLinks } from '../../../hooks';
 import { createElements } from '../../../utils/create';
 import type { GraphElement } from '../../../types/element-types';
 import type { GraphLink } from '../../../types/link-types';
-import { linkFromGraph } from '../../../utils/cell/cell-utilities';
+import { mapLinkFromGraph } from '../../../utils/cell/cell-utilities';
 import { GraphProvider } from '../../graph/graph-provider';
 import { GraphStore } from '../../../store';
 
@@ -110,7 +110,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [links, setLinks] = useState<GraphLink[]>([linkFromGraph(initialLink)]);
+        const [links, setLinks] = useState<GraphLink[]>(() => [mapLinkFromGraph(initialLink)]);
         return (
           <GraphProvider links={links} onLinksChange={setLinks}>
             <TestComponent />

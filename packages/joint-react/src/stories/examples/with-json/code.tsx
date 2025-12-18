@@ -4,13 +4,13 @@ import '../index.css';
 import {
   createElements,
   GraphProvider,
-  MeasuredNode,
   Paper,
   useGraph,
+  useNodeSize,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -22,14 +22,18 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderElement(props: Readonly<BaseElementWithData>) {
   const { width, height, label, color } = props;
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="flex flex-col items-center rounded-sm" style={{ background: color }}>
-          Example
-          <div>{label}</div>
-        </div>
-      </MeasuredNode>
+      <div
+        ref={elementRef}
+        className="flex flex-col items-center rounded-sm"
+        style={{ background: color }}
+      >
+        Example
+        <div>{label}</div>
+      </div>
     </foreignObject>
   );
 }

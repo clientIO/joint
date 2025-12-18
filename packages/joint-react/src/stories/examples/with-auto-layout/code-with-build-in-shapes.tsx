@@ -2,13 +2,13 @@ import '../index.css';
 import {
   createElements,
   GraphProvider,
-  MeasuredNode,
   Paper,
+  useNodeSize,
   type InferElement,
   type OnLoadOptions,
   type RenderElement,
 } from '@joint/react';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 const shape = {
   type: 'standard.Rectangle',
@@ -76,11 +76,13 @@ const initialElements = createElements([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderedRect({ width, height, label }: BaseElementWithData) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="node">{label}</div>
-      </MeasuredNode>
+      <div ref={elementRef} className="node">
+        {label}
+      </div>
     </foreignObject>
   );
 }

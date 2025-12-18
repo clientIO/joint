@@ -2,10 +2,10 @@
 import {
   createElements,
   GraphProvider,
-  MeasuredNode,
   useElements,
   useGraph,
   Paper,
+  useNodeSize,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
@@ -31,13 +31,13 @@ function ResizableNode({ id, label, width, height }: Readonly<BaseElementWithDat
     return graph.findElementsUnderElement(element).length > 0;
   });
 
+  useNodeSize(nodeRef);
+
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div ref={nodeRef} className={`node ${isIntersected ? 'intersected' : ''}`}>
-          {label}
-        </div>
-      </MeasuredNode>
+      <div ref={nodeRef} className={`node ${isIntersected ? 'intersected' : ''}`}>
+        {label}
+      </div>
     </foreignObject>
   );
 }

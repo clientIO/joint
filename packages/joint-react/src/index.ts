@@ -7,9 +7,9 @@ export * from './hooks';
 
 export * from './utils/create';
 export {
-  elementFromGraph,
-  linkFromGraph,
-  linkToGraph,
+  mapElementFromGraph as elementFromGraph,
+  mapLinkFromGraph as linkFromGraph,
+  mapLinkToGraph as linkToGraph,
   syncGraph,
   type CellOrJsonCell,
 } from './utils/cell/cell-utilities';

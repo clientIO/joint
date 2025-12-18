@@ -192,7 +192,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
         if (!areElementsMeasured) {
           // eslint-disable-next-line no-console
           console.error(
-            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `MeasuredNode` component.'
+            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
           );
         }
       }, 1000);

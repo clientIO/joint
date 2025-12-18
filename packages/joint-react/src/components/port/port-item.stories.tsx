@@ -1,14 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable sonarjs/prefer-read-only-props */
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import '../../stories/examples/index.css';
 import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Port,
   useElement,
+  useNodeSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
@@ -65,13 +66,15 @@ export type Story = StoryObj<typeof Port.Item>;
 const API_URL = getAPILink('Port.Item', 'variables');
 function RenderItem(Story: React.FC) {
   const { width, height } = useElement();
+  const elementRef = React.useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <>
       <Story />
       <foreignObject width={width} height={height}>
-        <MeasuredNode>
-          <div className="node flex flex-col">Test</div>
-        </MeasuredNode>
+        <div ref={elementRef} className="node flex flex-col">
+          Test
+        </div>
       </foreignObject>
     </>
   );

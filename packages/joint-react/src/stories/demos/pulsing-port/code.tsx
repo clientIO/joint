@@ -1,5 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import { shapes } from '@joint/core';
 import { createElements, type InferElement } from '../../../utils/create';
@@ -8,11 +9,11 @@ import {
   getCellId,
   GraphProvider,
   jsx,
-  MeasuredNode,
   Paper,
   Port,
   TextNode,
   useLinks,
+  useNodeSize,
 } from '@joint/react';
 
 const NODE_WIDTH = 150;
@@ -95,6 +96,9 @@ const elements = createElements([
 type Element = InferElement<typeof elements>;
 
 function NodeElement({ width, height, id }: Element) {
+  const rectRef = useRef<SVGRectElement>(null);
+  useNodeSize(rectRef);
+
   const isConnected = useLinks((links) =>
     links
       .map((link) => {
@@ -107,18 +111,17 @@ function NodeElement({ width, height, id }: Element) {
 
   return (
     <>
-      <MeasuredNode>
-        <rect
-          width={NODE_WIDTH}
-          height={NODE_HEIGHT}
-          stroke={PRIMARY}
-          strokeWidth={2}
-          strokeDasharray={isConnected ? '0' : '5,5'}
-          fill={isConnected ? PRIMARY : BG}
-          rx={NODE_BORDER_RADIUS}
-          ry={NODE_BORDER_RADIUS}
-        />
-      </MeasuredNode>
+      <rect
+        ref={rectRef}
+        width={NODE_WIDTH}
+        height={NODE_HEIGHT}
+        stroke={PRIMARY}
+        strokeWidth={2}
+        strokeDasharray={isConnected ? '0' : '5,5'}
+        fill={isConnected ? PRIMARY : BG}
+        rx={NODE_BORDER_RADIUS}
+        ry={NODE_BORDER_RADIUS}
+      />
       <TextNode fill="white" x={width / 2} y={height / 2 + 4} textAnchor="middle" fontSize={16}>
         {id}
       </TextNode>

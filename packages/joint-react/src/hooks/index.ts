@@ -3,7 +3,7 @@ export * from './use-paper';
 export * from './use-links';
 export * from './use-elements';
 export * from './use-element';
-export * from './use-measure-node-size';
+export * from './use-node-size';
 export * from './use-cell-id';
 export * from './use-paper-events';
 export * from './use-imperative-api';

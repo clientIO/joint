@@ -3,14 +3,14 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
   useElements,
   usePaper,
+  useNodeSize,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
@@ -76,18 +76,18 @@ function RotatableNode({ label, id, width, height }: Readonly<BaseElementWithDat
     [dragHandle]
   );
 
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <MeasuredNode>
-        <div className="node">
-          <div
-            className="rotatable-node__handle"
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-          />
-          {label}
-        </div>
-      </MeasuredNode>
+      <div ref={elementRef} className="node">
+        <div
+          className="rotatable-node__handle"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+        />
+        {label}
+      </div>
     </foreignObject>
   );
 }

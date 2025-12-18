@@ -6,15 +6,15 @@ import '../index.css';
 import {
   createElements,
   GraphProvider,
-  MeasuredNode,
   Paper,
   useElements,
   useGraph,
+  useNodeSize,
   type InferElement,
   type OnLoadOptions,
   type RenderElement,
 } from '@joint/react';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
@@ -36,11 +36,13 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 function RenderedRect({ width, height, label }: BaseElementWithData) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="node">{label}</div>
-      </MeasuredNode>
+      <div ref={elementRef} className="node">
+        {label}
+      </div>
     </foreignObject>
   );
 }

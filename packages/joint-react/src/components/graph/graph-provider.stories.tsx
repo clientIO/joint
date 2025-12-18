@@ -7,8 +7,8 @@ import {
   type SimpleElement,
 } from '../../../.storybook/decorators/with-simple-data';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { MeasuredNode } from '../measured-node/measured-node';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useNodeSize } from '../../hooks/use-node-size';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { GraphProvider } from './graph-provider';
@@ -76,24 +76,25 @@ function MyDiagram() {
 export default meta;
 
 function RenderHTMLElement({ width, height }: SimpleElement) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div
-          style={{
-            width,
-            height,
-            boxShadow: '0 0 10px rgba(0,0,0,0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: PRIMARY,
-            borderRadius: 10,
-          }}
-        >
-          Hello
-        </div>
-      </MeasuredNode>
+      <div
+        ref={elementRef}
+        style={{
+          width,
+          height,
+          boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: PRIMARY,
+          borderRadius: 10,
+        }}
+      >
+        Hello
+      </div>
     </foreignObject>
   );
 }

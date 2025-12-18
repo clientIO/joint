@@ -3,6 +3,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import {
   SimpleGraphDecorator,
@@ -11,7 +12,7 @@ import {
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { MeasuredNode } from '../measured-node/measured-node';
+import { useNodeSize } from '../../hooks/use-node-size';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
@@ -98,24 +99,25 @@ function RenderRectElement({ width, height }: SimpleElement) {
 }
 
 function RenderHTMLElement({ width, height }: SimpleElement) {
+  const elementRef = React.useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div
-          style={{
-            width,
-            height,
-            boxShadow: '0 0 10px rgba(0,0,0,0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: PRIMARY,
-            borderRadius: 10,
-          }}
-        >
-          Hello
-        </div>
-      </MeasuredNode>
+      <div
+        ref={elementRef}
+        style={{
+          width,
+          height,
+          boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: PRIMARY,
+          borderRadius: 10,
+        }}
+      >
+        Hello
+      </div>
     </foreignObject>
   );
 }
@@ -358,7 +360,15 @@ export const WithOnClickColorChange: Story = {
     return (
       <GraphProvider
         elements={[
-          { width: 100, height: 40, id: '1', label: 'Element 1', x: 50, y: 50, hoverColor: 'red' } as GraphElement & { label: string; hoverColor: string },
+          {
+            width: 100,
+            height: 40,
+            id: '1',
+            label: 'Element 1',
+            x: 50,
+            y: 50,
+            hoverColor: 'red',
+          } as GraphElement & { label: string; hoverColor: string },
           {
             width: 100,
             height: 40,

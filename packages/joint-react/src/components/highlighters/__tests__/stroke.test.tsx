@@ -87,3 +87,5 @@ describe('Stroke highlighter', () => {
 
 
 
+
+

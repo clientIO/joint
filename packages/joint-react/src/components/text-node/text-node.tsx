@@ -52,7 +52,9 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
       } else if (breakTextWidth == undefined) {
         const element = graph.getCell(cellId);
         if (!element.isElement()) {
-          throw new TypeError('TextNode must be used inside a MeasuredNode');
+          throw new TypeError(
+            'TextNode must be used with useNodeSize hook to measure the element size'
+          );
         }
         breakTextWidth = element.size().width ?? 0;
       }

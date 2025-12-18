@@ -18,35 +18,35 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * Custom hook to measure the size of a node and update its size in the graph.
  * It uses the `createElementSizeObserver` utility to observe size changes.
  *
- * **Important:** Only one `MeasuredNode` (or `useMeasureNodeSize` hook) can be used per element.
- * Using multiple `MeasuredNode` components for the same element will throw an error in development
- * and cause unexpected behavior. If you need multiple measurements, use a single `MeasuredNode`
- * with a custom `setSize` handler.
+ * **Important:** Only one `useNodeSize` hook can be used per element.
+ * Using multiple `useNodeSize` hooks for the same element will throw an error in development
+ * and cause unexpected behavior. If you need multiple measurements, use a single `useNodeSize`
+ * hook with a custom `setSize` handler.
  * @param elementRef - A reference to the HTML or SVG element to measure.
  * @param options - Options for measuring the node size.
- * @throws {Error} If multiple `MeasuredNode` components are used for the same element.
+ * @throws {Error} If multiple `useNodeSize` hooks are used for the same element.
  * @group Hooks
  * @example
  * ```tsx
- * import { useMeasureNodeSize } from '@joint/react';
+ * import { useNodeSize } from '@joint/react';
  * import { useRef } from 'react';
  *
  * function RenderElement() {
  *   const elementRef = useRef<HTMLDivElement>(null);
- *   useMeasureNodeSize(elementRef);
+ *   useNodeSize(elementRef);
  *   return <div ref={elementRef}>Content</div>;
  * }
  * ```
  * @example
  * With custom size handler:
  * ```tsx
- * import { useMeasureNodeSize } from '@joint/react';
+ * import { useNodeSize } from '@joint/react';
  * import { useRef } from 'react';
  * import type { dia } from '@joint/core';
  *
  * function RenderElement() {
  *   const elementRef = useRef<HTMLDivElement>(null);
- *   useMeasureNodeSize(elementRef, {
+ *   useNodeSize(elementRef, {
  *     setSize: ({ element, size }) => {
  *       // Custom size handling
  *       element.set('size', { width: size.width + 10, height: size.height + 10 });
@@ -56,7 +56,7 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * }
  * ```
  */
-export function useMeasureNodeSize(
+export function useNodeSize(
   elementRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
 ) {
@@ -66,22 +66,22 @@ export function useMeasureNodeSize(
 
   useLayoutEffect(() => {
     const element = elementRef.current;
-    if (!element) throw new Error('MeasuredNode must have a child element');
+    if (!element) throw new Error('useNodeSize: elementRef.current must not be null');
 
     const cell = graph.getCell(id);
     if (!cell?.isElement()) throw new Error('Cell not valid');
-    // Check if another MeasuredNode is already measuring this element
+    // Check if another useNodeSize hook is already measuring this element
     if (hasMeasuredNode(id)) {
       const errorMessage =
         process.env.NODE_ENV === 'production'
-          ? `Multiple MeasuredNode components detected for element "${id}". Only one MeasuredNode can be used per element.`
-          : `Multiple MeasuredNode components detected for element with id "${id}".\n\n` +
-            `Only one MeasuredNode can be used per element. Multiple MeasuredNode components ` +
+          ? `Multiple useNodeSize hooks detected for element "${id}". Only one useNodeSize hook can be used per element.`
+          : `Multiple useNodeSize hooks detected for element with id "${id}".\n\n` +
+            `Only one useNodeSize hook can be used per element. Multiple useNodeSize hooks ` +
             `trying to set the size for the same element will cause conflicts and unexpected behavior.\n\n` +
             `Solution:\n` +
-            `- Use only one MeasuredNode per element\n` +
-            `- If you need multiple measurements, use a single MeasuredNode with a custom \`setSize\` handler\n` +
-            `- Check your renderElement function to ensure you're not rendering multiple MeasuredNode components for the same element`;
+            `- Use only one useNodeSize hook per element\n` +
+            `- If you need multiple measurements, use a single useNodeSize hook with a custom \`setSize\` handler\n` +
+            `- Check your renderElement function to ensure you're not using multiple useNodeSize hooks for the same element`;
 
       throw new Error(errorMessage);
     }

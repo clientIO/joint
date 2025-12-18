@@ -1,13 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-
+import React from 'react';
 import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
   type GraphProps,
   type InferElement,
+  useNodeSize,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -37,11 +37,13 @@ const initialEdges = createLinks([
 type CustomElement = InferElement<typeof initialElements>;
 function RenderItem(props: CustomElement) {
   const { label, width, height } = props;
+  const elementRef = React.useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="node">{label}</div>
-      </MeasuredNode>
+      <div ref={elementRef} className="node">
+        {label}
+      </div>
     </foreignObject>
   );
 }

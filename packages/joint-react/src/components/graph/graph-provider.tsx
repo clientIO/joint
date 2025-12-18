@@ -6,6 +6,7 @@ import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore, type ExternalGraphStore } from '../../store';
 import { useStateToExternalStore } from '../../hooks/use-state-to-external-store';
+import type { GraphStateSelectors } from '../../state/graph-state-selectors';
 
 /**
  * Props for GraphProvider component.
@@ -61,13 +62,28 @@ interface GraphProviderProps {
    * - Integration with other React state management
    */
   readonly onLinksChange?: Dispatch<SetStateAction<GraphLink[]>>;
+
+  // readonly linkMapper: {
+  //   toStateSelector: (link: GraphLink) => dia.Link.JSON;
+  //   toDiaGraphSelector: (link: dia.Link.JSON) => GraphLink;
+  // };
+  // readonly elementMapper: {
+  //   toStateSelector: (element: GraphElement) => dia.Element.JSON;
+  //   toDiaGraphSelector: (element: dia.Element.JSON) => GraphElement;
+  // };
 }
 
 /**
  * Props for the GraphProvider component.
  * Extends GraphProviderProps with additional configuration options.
+ * @template Element - The type of elements in the graph
+ * @template Link - The type of links in the graph
  */
-export interface GraphProps extends GraphProviderProps {
+export interface GraphProps<
+  Element extends GraphElement = GraphElement,
+  Link extends GraphLink = GraphLink,
+> extends GraphProviderProps,
+    GraphStateSelectors<Element, Link> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    *
@@ -126,6 +142,13 @@ export interface GraphProps extends GraphProviderProps {
    * with most state management libraries.
    */
   readonly externalStore?: ExternalGraphStore;
+
+  /**
+   * If true, batch updates are disabled and synchronization will be real-time.
+   * If false (default), batch updates are enabled for better performance.
+   * @default false
+   */
+  readonly areBatchUpdatesDisabled?: boolean;
 }
 
 /**

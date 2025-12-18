@@ -1,26 +1,48 @@
 import { dia } from '@joint/core';
-import { DEFAULT_CELL_NAMESPACE, type GraphStoreSnapshot } from '../graph-store';
-import { graphSync } from '../graph-sync';
+import {
+  DEFAULT_CELL_NAMESPACE,
+  type GraphStoreSnapshot,
+  type GraphStoreDerivedSnapshot,
+} from '../../store/graph-store';
+import { stateSync } from '../state-sync';
 import { createState } from '../../utils/create-state';
 import { createElements } from '../../utils/create';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
-import { syncGraph } from '../../utils/cell/cell-utilities';
+import {
+  defaultElementToGraphSelector,
+  defaultLinkToGraphSelector,
+} from '../graph-state-selectors';
 
-jest.mock('../../utils/cell/cell-utilities', () => {
-  const actual = jest.requireActual('../../utils/cell/cell-utilities');
-  return {
-    ...actual,
-    syncGraph: jest.fn().mockImplementation(actual.syncGraph),
+// Helper to create getIdsSnapshot function
+function createGetIdsSnapshot(
+  state: ReturnType<typeof createState<GraphStoreSnapshot<GraphElement, GraphLink>>>
+): () => GraphStoreDerivedSnapshot {
+  return () => {
+    const snapshot = state.getSnapshot();
+    const elementIds: Record<dia.Cell.ID, number> = {};
+    const linkIds: Record<dia.Cell.ID, number> = {};
+    let areElementsMeasured = true;
+
+    for (const [index, element] of snapshot.elements.entries()) {
+      elementIds[element.id] = index;
+    }
+    for (const element of snapshot.elements) {
+      const { width = 0, height = 0 } = element;
+      if (width <= 1 || height <= 1) {
+        areElementsMeasured = false;
+        break;
+      }
+    }
+    for (const [index, link] of snapshot.links.entries()) {
+      linkIds[link.id] = index;
+    }
+
+    return { elementIds, linkIds, areElementsMeasured };
   };
-});
+}
 
-const mockedSyncGraph = syncGraph as jest.Mock;
-describe('graphSync', () => {
-  beforeEach(() => {
-    mockedSyncGraph.mockClear();
-  });
-
+describe('stateSync', () => {
   it('should sync dia.graph <-> state effectively', () => {
     const graph = new dia.Graph(
       {},
@@ -53,12 +75,13 @@ describe('graphSync', () => {
     const mockedSetState = jest.fn().mockImplementation(state.setState);
     state.setState = mockedSetState;
 
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+
     // Here we initially sync the graph with the state.
     // State should not be updated yet.
-    graphSync({ graph, store: state });
+    stateSync({ graph, store: state, getIdsSnapshot });
     expect(graph.getElements()).toHaveLength(2);
     expect(state.getSnapshot().elements).toHaveLength(2);
-    expect(mockedSyncGraph).toHaveBeenCalledTimes(1);
     expect(mockedSetState).toHaveBeenCalledTimes(0);
     // Here we update state via state API.
     // State should not be updated yet.
@@ -68,23 +91,23 @@ describe('graphSync', () => {
     }));
     expect(graph.getElements()).toHaveLength(3);
     expect(state.getSnapshot().elements).toHaveLength(3);
-    expect(mockedSyncGraph).toHaveBeenCalledTimes(2);
     expect(mockedSetState).toHaveBeenCalledTimes(1);
 
-    // Here we update dia.graph itself via dia.graph API.
+    // Here we update dia.graph itself via graph.syncCells.
     // State should be updated now with 1 update call.
     const newElements = [
       ...state.getSnapshot().elements,
       { id: '4', width: 100, height: 100, type: 'ReactElement' },
     ];
-    syncGraph({
-      graph,
-      elements: newElements as Array<dia.Element | GraphElement>,
-      links: [],
-    });
+    const elementItems = newElements.map((element) =>
+      defaultElementToGraphSelector({
+        element,
+        graph,
+      })
+    );
+    graph.syncCells(elementItems, { remove: true });
     expect(graph.getElements()).toHaveLength(4);
     expect(state.getSnapshot().elements).toHaveLength(4);
-    expect(mockedSyncGraph).toHaveBeenCalledTimes(3);
     expect(mockedSetState).toHaveBeenCalledTimes(2);
   });
 
@@ -120,9 +143,11 @@ describe('graphSync', () => {
     const mockedSetState = jest.fn().mockImplementation(state.setState);
     state.setState = mockedSetState;
 
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+
     // Here we initially sync the graph with the state.
     // State should not be updated yet.
-    graphSync({ graph, store: state });
+    stateSync({ graph, store: state, getIdsSnapshot });
     expect(graph.getElements()).toHaveLength(2);
     expect(state.getSnapshot().elements).toHaveLength(2);
     expect(mockedSetState).toHaveBeenCalledTimes(0);
@@ -177,12 +202,14 @@ describe('graphSync', () => {
       },
     ]);
 
-    // Add elements to graph using syncGraph
-    syncGraph({
-      graph,
-      elements: existingElements as Array<dia.Element | GraphElement>,
-      links: [],
-    });
+    // Add elements to graph using syncCells
+    const elementItems = existingElements.map((element) =>
+      defaultElementToGraphSelector({
+        element,
+        graph,
+      })
+    );
+    graph.syncCells(elementItems, { remove: true });
 
     // Create empty store
     const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
@@ -194,12 +221,14 @@ describe('graphSync', () => {
     const mockedSetState = jest.fn().mockImplementation(state.setState);
     state.setState = mockedSetState;
 
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+
     // Graph has 2 elements, store is empty
     expect(graph.getElements()).toHaveLength(2);
     expect(state.getSnapshot().elements).toHaveLength(0);
 
-    // Initialize graphSync - it should sync existing graph cells to store
-    graphSync({ graph, store: state });
+    // Initialize stateSync - it should sync existing graph cells to store
+    stateSync({ graph, store: state, getIdsSnapshot });
 
     // Store should now have the 2 elements from the graph
     expect(state.getSnapshot().elements).toHaveLength(2);
@@ -231,11 +260,13 @@ describe('graphSync', () => {
       },
     ]);
 
-    syncGraph({
-      graph,
-      elements: graphElements as Array<dia.Element | GraphElement>,
-      links: [],
-    });
+    const elementItems = graphElements.map((element) =>
+      defaultElementToGraphSelector({
+        element,
+        graph,
+      })
+    );
+    graph.syncCells(elementItems, { remove: true });
 
     // Create store with different elements
     const storeElements = createElements([
@@ -256,13 +287,15 @@ describe('graphSync', () => {
     const mockedSetState = jest.fn().mockImplementation(state.setState);
     state.setState = mockedSetState;
 
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+
     // Graph has 1 element, store has 1 different element
     expect(graph.getElements()).toHaveLength(1);
     expect(state.getSnapshot().elements).toHaveLength(1);
     expect(state.getSnapshot().elements[0].id).toBe('2');
 
-    // Initialize graphSync - it should NOT sync graph cells to store since store is not empty
-    graphSync({ graph, store: state });
+    // Initialize stateSync - it should NOT sync graph cells to store since store is not empty
+    stateSync({ graph, store: state, getIdsSnapshot });
 
     // Store should still have its original element
     expect(state.getSnapshot().elements).toHaveLength(1);
@@ -301,17 +334,23 @@ describe('graphSync', () => {
       },
     ]);
 
-    syncGraph({
-      graph,
-      elements: existingElements as Array<dia.Element | GraphElement>,
-      links: [
-        {
+    const elementItems = existingElements.map((element) =>
+      defaultElementToGraphSelector({
+        element,
+        graph,
+      })
+    );
+    const linkItems = [
+      defaultLinkToGraphSelector({
+        link: {
           id: 'link1',
           source: '1',
           target: '2',
         },
-      ],
-    });
+        graph,
+      }),
+    ];
+    graph.syncCells([...elementItems, ...linkItems], { remove: true });
 
     // Create empty store
     const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
@@ -323,14 +362,16 @@ describe('graphSync', () => {
     const mockedSetState = jest.fn().mockImplementation(state.setState);
     state.setState = mockedSetState;
 
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+
     // Graph has 2 elements and 1 link, store is empty
     expect(graph.getElements()).toHaveLength(2);
     expect(graph.getLinks()).toHaveLength(1);
     expect(state.getSnapshot().elements).toHaveLength(0);
     expect(state.getSnapshot().links).toHaveLength(0);
 
-    // Initialize graphSync - it should sync existing graph cells (elements and links) to store
-    graphSync({ graph, store: state });
+    // Initialize stateSync - it should sync existing graph cells (elements and links) to store
+    stateSync({ graph, store: state, getIdsSnapshot });
 
     // Store should now have the 2 elements and 1 link from the graph
     expect(state.getSnapshot().elements).toHaveLength(2);
@@ -360,7 +401,8 @@ describe('graphSync', () => {
     const unsubscribeSpy = jest.fn();
     state.subscribe = jest.fn(() => unsubscribeSpy);
 
-    const sync = graphSync({ graph, store: state });
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+    const sync = stateSync({ graph, store: state, getIdsSnapshot });
 
     // Verify subscription was set up
     expect(state.subscribe).toHaveBeenCalledTimes(1);
@@ -386,7 +428,8 @@ describe('graphSync', () => {
       name: 'elements',
     });
 
-    const sync = graphSync({ graph, store: state });
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+    const sync = stateSync({ graph, store: state, getIdsSnapshot });
 
     // eslint-disable-next-line unicorn/consistent-function-scoping
     const cellChangeCallback = jest.fn(() => () => {});
@@ -433,11 +476,13 @@ describe('graphSync', () => {
       },
     ]);
 
-    syncGraph({
-      graph,
-      elements: existingElements as Array<dia.Element | GraphElement>,
-      links: [],
-    });
+    const elementItems = existingElements.map((element) =>
+      defaultElementToGraphSelector({
+        element,
+        graph,
+      })
+    );
+    graph.syncCells(elementItems, { remove: true });
 
     // Create store without setState
     const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
@@ -450,13 +495,15 @@ describe('graphSync', () => {
     // @ts-expect-error Testing edge case where setState might be undefined
     state.setState = undefined;
 
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+
     // Graph has 1 element, store is empty
     expect(graph.getElements()).toHaveLength(1);
     expect(state.getSnapshot().elements).toHaveLength(0);
 
-    // Initialize graphSync - it should not crash and should not sync since setState is undefined
+    // Initialize stateSync - it should not crash and should not sync since setState is undefined
     expect(() => {
-      graphSync({ graph, store: state });
+      stateSync({ graph, store: state, getIdsSnapshot });
     }).not.toThrow();
 
     // Store should still be empty since setState was undefined
@@ -486,11 +533,13 @@ describe('graphSync', () => {
       },
     ]);
 
-    syncGraph({
-      graph,
-      elements: graphElements as Array<dia.Element | GraphElement>,
-      links: [],
-    });
+    const elementItems = graphElements.map((element) =>
+      defaultElementToGraphSelector({
+        element,
+        graph,
+      })
+    );
+    graph.syncCells(elementItems, { remove: true });
 
     // Create store with initial elements (different from graph)
     const initialElements = createElements([
@@ -511,13 +560,15 @@ describe('graphSync', () => {
     const mockedSetState = jest.fn().mockImplementation(state.setState);
     state.setState = mockedSetState;
 
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+
     // Graph has 1 element, store has 1 different element
     expect(graph.getElements()).toHaveLength(1);
     expect(state.getSnapshot().elements).toHaveLength(1);
     expect(state.getSnapshot().elements[0].id).toBe('initial-element');
 
-    // Initialize graphSync
-    graphSync({ graph, store: state });
+    // Initialize stateSync
+    stateSync({ graph, store: state, getIdsSnapshot });
 
     // Since store has initial elements, they should take precedence
     // The graph should be synced to match the store (initial elements)
@@ -546,11 +597,13 @@ describe('graphSync', () => {
       },
     ]);
 
-    syncGraph({
-      graph,
-      elements: graphElements as Array<dia.Element | GraphElement>,
-      links: [],
-    });
+    const elementItems = graphElements.map((element) =>
+      defaultElementToGraphSelector({
+        element,
+        graph,
+      })
+    );
+    graph.syncCells(elementItems, { remove: true });
 
     // Create external store with different elements
     const externalElements = createElements([
@@ -571,13 +624,15 @@ describe('graphSync', () => {
     const mockedSetState = jest.fn().mockImplementation(externalStore.setState);
     externalStore.setState = mockedSetState;
 
+    const getIdsSnapshot = createGetIdsSnapshot(externalStore);
+
     // Graph has 1 element, external store has 1 different element
     expect(graph.getElements()).toHaveLength(1);
     expect(externalStore.getSnapshot().elements).toHaveLength(1);
     expect(externalStore.getSnapshot().elements[0].id).toBe('external-element');
 
-    // Initialize graphSync with external store
-    graphSync({ graph, store: externalStore });
+    // Initialize stateSync with external store
+    stateSync({ graph, store: externalStore, getIdsSnapshot });
 
     // External store should take precedence - graph should be synced to match external store
     expect(graph.getElements()).toHaveLength(1);
@@ -613,8 +668,10 @@ describe('graphSync', () => {
       name: 'elements',
     });
 
-    // Initialize graphSync first
-    graphSync({ graph, store: state });
+    const getIdsSnapshot = createGetIdsSnapshot(state);
+
+    // Initialize stateSync first
+    stateSync({ graph, store: state, getIdsSnapshot });
 
     // Verify initial state
     expect(graph.getElements()).toHaveLength(1);

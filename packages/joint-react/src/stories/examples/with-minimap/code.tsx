@@ -1,12 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
+  useNodeSize,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
@@ -55,14 +55,18 @@ function MiniMap() {
 }
 
 function RenderElement({ width, height, label, color }: Readonly<BaseElementWithData>) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="flex flex-col items-center rounded-sm" style={{ background: color }}>
-          Example
-          <div>{label}</div>
-        </div>
-      </MeasuredNode>
+      <div
+        ref={elementRef}
+        className="flex flex-col items-center rounded-sm"
+        style={{ background: color }}
+      >
+        Example
+        <div>{label}</div>
+      </div>
     </foreignObject>
   );
 }

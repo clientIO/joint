@@ -1,7 +1,7 @@
 /* eslint-disable @eslint-react/hooks-extra/no-unnecessary-use-prefix */
 import React, { useRef } from 'react';
 import { render, act } from '@testing-library/react';
-import { useMeasureNodeSize } from '../use-measure-node-size';
+import { useNodeSize } from '../use-node-size';
 
 // Mocks for @joint/core and useGraphStore
 
@@ -44,7 +44,7 @@ jest.mock('../../store/create-elements-size-observer', () => ({
   },
 }));
 
-describe('useMeasureNodeSize', () => {
+describe('useNodeSize', () => {
   beforeEach(() => {
     // Reset mocks before each test
     mockHasMeasuredNode.mockReturnValue(false);
@@ -61,7 +61,7 @@ describe('useMeasureNodeSize', () => {
   }
   function TestComponent({ style, children, setSize }: TestComponentProps) {
     const ref = useRef<HTMLDivElement>(null);
-    useMeasureNodeSize(ref, { setSize });
+    useNodeSize(ref, { setSize });
     return (
       <div ref={ref} data-testid="measured" style={style}>
         {children}
@@ -118,8 +118,8 @@ describe('useMeasureNodeSize', () => {
     expect(mockSetMeasuredNode).toHaveBeenCalled();
   });
 
-  describe('multiple MeasuredNode error', () => {
-    it('should throw error when multiple MeasuredNode components are used for the same element', () => {
+  describe('multiple useNodeSize hook error', () => {
+    it('should throw error when multiple useNodeSize hooks are used for the same element', () => {
       // Mock that a measured node already exists
       mockHasMeasuredNode.mockReturnValue(true);
 
@@ -137,7 +137,7 @@ describe('useMeasureNodeSize', () => {
       // Verify error was thrown
       expect(caughtError).toBeDefined();
       expect(caughtError).toBeInstanceOf(Error);
-      expect(caughtError?.message).toContain('Multiple MeasuredNode components detected');
+      expect(caughtError?.message).toContain('Multiple useNodeSize hooks detected');
 
       consoleError.mockRestore();
     });
@@ -166,11 +166,11 @@ describe('useMeasureNodeSize', () => {
       expect(caughtError).toBeInstanceOf(Error);
       const errorMessage = caughtError?.message ?? '';
       expect(errorMessage).toContain(
-        'Multiple MeasuredNode components detected for element with id "cell-1"'
+        'Multiple useNodeSize hooks detected for element with id "cell-1"'
       );
-      expect(errorMessage).toContain('Only one MeasuredNode can be used per element');
+      expect(errorMessage).toContain('Only one useNodeSize hook can be used per element');
       expect(errorMessage).toContain('Solution:');
-      expect(errorMessage).toContain('Use only one MeasuredNode per element');
+      expect(errorMessage).toContain('Use only one useNodeSize hook per element');
       expect(errorMessage).toContain('custom `setSize` handler');
       expect(errorMessage).toContain('Check your renderElement function');
 
@@ -203,7 +203,7 @@ describe('useMeasureNodeSize', () => {
       expect(caughtError).toBeInstanceOf(Error);
       const errorMessage = caughtError?.message ?? '';
       expect(errorMessage).toBe(
-        'Multiple MeasuredNode components detected for element "cell-1". Only one MeasuredNode can be used per element.'
+        'Multiple useNodeSize hooks detected for element "cell-1". Only one useNodeSize hook can be used per element.'
       );
       // Should not contain detailed solution in production
       expect(errorMessage).not.toContain('Solution:');
@@ -214,7 +214,7 @@ describe('useMeasureNodeSize', () => {
       consoleError.mockRestore();
     });
 
-    it('should not throw error when no MeasuredNode exists for the element', () => {
+    it('should not throw error when no useNodeSize hook exists for the element', () => {
       // Mock that no measured node exists
       mockHasMeasuredNode.mockReturnValue(false);
 

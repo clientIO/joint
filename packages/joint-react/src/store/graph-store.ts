@@ -12,8 +12,9 @@ import {
 import { ReactElement } from '../models/react-element';
 import type { ExternalStoreLike, State } from '../utils/create-state';
 import { createState, derivedState, getValue } from '../utils/create-state';
-import { graphSync, type GraphSync } from './graph-sync';
+import { stateSync, type StateSync } from '../state/state-sync';
 import type { OnChangeOptions } from '../utils/cell/listen-to-cell-change';
+import type { GraphStateSelectors } from '../state/graph-state-selectors';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = { ...shapes, ReactElement };
 
@@ -36,8 +37,8 @@ export type GraphState = State<GraphStoreInternalSnapshot>;
  * @template Link - The type of links in the graph
  */
 export interface GraphStoreSnapshot<
-  Element extends dia.Element | GraphElement = GraphElement,
-  Link extends dia.Link | GraphLink = GraphLink,
+  Element extends GraphElement = GraphElement,
+  Link extends GraphLink = GraphLink,
 > {
   /** Array of all elements (nodes) in the graph */
   readonly elements: Element[];
@@ -68,8 +69,13 @@ export interface GraphStoreInternalSnapshot {
 
 /**
  * Configuration options for creating a GraphStore instance.
+ * @template Element - The type of elements in the graph
+ * @template Link - The type of links in the graph
  */
-export interface GraphStoreOptions {
+export interface GraphStoreOptions<
+  Element extends GraphElement = GraphElement,
+  Link extends GraphLink = GraphLink,
+> extends GraphStateSelectors<Element, Link> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * Useful when you need to share a graph instance across multiple stores or integrate with existing JointJS code.
@@ -112,6 +118,13 @@ export interface GraphStoreOptions {
    * Takes precedence over React-controlled mode (onElementsChange/onLinksChange).
    */
   readonly externalStore?: ExternalGraphStore;
+
+  /**
+   * If true, batch updates are disabled and synchronization will be real-time.
+   * If false (default), batch updates are enabled for better performance.
+   * @default false
+   */
+  readonly areBatchUpdatesDisabled?: boolean;
 }
 
 /**
@@ -148,7 +161,7 @@ export class GraphStore {
 
   private papers = new Map<string, PaperStore>();
   private observer: GraphStoreObserver;
-  private graphSync: GraphSync;
+  private stateSync: StateSync;
   private isControlled: boolean;
 
   constructor(config: GraphStoreOptions) {
@@ -230,9 +243,14 @@ export class GraphStore {
       isEqual: util.isEqual,
     });
 
-    this.graphSync = graphSync({
-      useRealtimeUpdated: true,
+    this.stateSync = stateSync({
+      areBatchUpdatesDisabled: config.areBatchUpdatesDisabled ?? false,
       graph: this.graph,
+      getIdsSnapshot: () => this.derivedStore.getSnapshot(),
+      elementToGraphSelector: config.elementToGraphSelector,
+      elementFromGraphSelector: config.elementFromGraphSelector,
+      linkToGraphSelector: config.linkToGraphSelector,
+      linkFromGraphSelector: config.linkFromGraphSelector,
       store: {
         getSnapshot: this.publicState.getSnapshot,
         subscribe: this.publicState.subscribe,
@@ -270,7 +288,7 @@ export class GraphStore {
 
     // Initial sync: either from external store or from constructor elements/links
     // Only set initial elements/links if graph doesn't have existing cells
-    // (if graph has cells, syncExistingGraphCellsToStore in graphSync will handle it)
+    // (if graph has cells, syncExistingGraphCellsToStore in stateSync will handle it)
     const graphHasCells = this.graph.getElements().length > 0 || this.graph.getLinks().length > 0;
     if (!graphHasCells || initialElements.length > 0 || initialLinks.length > 0) {
       this.publicState.setState((previous) => ({
@@ -290,7 +308,7 @@ export class GraphStore {
     this.internalState.clean();
     this.observer.clean();
     this.unsubscribeFromExternal?.();
-    this.graphSync.cleanup();
+    this.stateSync.cleanup();
     if (!isGraphExternal) {
       this.graph.clear();
     }
@@ -415,7 +433,7 @@ export class GraphStore {
    * @returns Unsubscribe function
    */
   public subscribeToCellChange = (callback: (change: OnChangeOptions) => () => void) => {
-    return this.graphSync.subscribeToCellChange(callback);
+    return this.stateSync.subscribeToCellChange(callback);
   };
 
   /**

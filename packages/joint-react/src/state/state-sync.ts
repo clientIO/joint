@@ -1,32 +1,37 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import type { GraphStoreSnapshot } from './graph-store';
+import type { GraphStoreDerivedSnapshot, GraphStoreSnapshot } from '../store/graph-store';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
-import { elementFromGraph, linkFromGraph, syncGraph } from '../utils/cell/cell-utilities';
 import { removeDeepReadOnly, type ExternalStoreLike } from '../utils/create-state';
 import { util, type dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
+import type { GraphStateSelectors } from './graph-state-selectors';
+import {
+  defaultElementToGraphSelector,
+  defaultElementFromGraphSelector,
+  defaultLinkToGraphSelector,
+  defaultLinkFromGraphSelector,
+} from './graph-state-selectors';
 
 /**
- * Configuration options for graph synchronization.
+ * Configuration options for state synchronization.
  * @template Graph - The type of JointJS graph instance
  * @template Element - The type of elements in the graph
  * @template Link - The type of links in the graph
  */
-interface Options<
-  Graph extends dia.Graph,
-  Element extends dia.Element | GraphElement,
-  Link extends dia.Link | GraphLink,
-> {
+interface Options<Graph extends dia.Graph, Element extends GraphElement, Link extends GraphLink>
+  extends GraphStateSelectors<Element, Link> {
   /** The JointJS graph instance to synchronize */
   readonly graph: Graph;
   /** The external store containing elements and links to sync with */
   readonly store: ExternalStoreLike<GraphStoreSnapshot<Element, Link>>;
+  readonly getIdsSnapshot: () => GraphStoreDerivedSnapshot;
   /**
-   * If true, the synchronization will be real-time. Otherwise, it will be based on batches.
+   * If true, batch updates are disabled and synchronization will be real-time.
+   * If false (default), batch updates are enabled for better performance.
    * @default false
    */
-  readonly useRealtimeUpdated?: boolean;
+  readonly areBatchUpdatesDisabled?: boolean;
 }
 const BATCH_START_EVENT_NAME = 'batch:start';
 const BATCH_STOP_EVENT_NAME = 'batch:stop';
@@ -48,15 +53,22 @@ const BATCH_STOP_EVENT_NAME = 'batch:stop';
  * @template Graph - The type of JointJS graph instance
  * @template Element - The type of elements in the graph
  * @template Link - The type of links in the graph
- * @param options - Configuration options for graph synchronization
- * @returns GraphSync instance with subscription and cleanup methods
+ * @param options - Configuration options for state synchronization
+ * @returns StateSync instance with subscription and cleanup methods
  */
-export function graphSync<
+export function stateSync<
   Graph extends dia.Graph,
-  Element extends dia.Element | GraphElement,
-  Link extends dia.Link | GraphLink,
->(options: Options<Graph, Element, Link>): GraphSync {
-  const { graph, store, useRealtimeUpdated = false } = options;
+  Element extends GraphElement,
+  Link extends GraphLink,
+>(options: Options<Graph, Element, Link>): StateSync {
+  const { graph, store, areBatchUpdatesDisabled = false, getIdsSnapshot } = options;
+
+  // Use provided selectors or fall back to defaults
+  const elementToGraph = options.elementToGraphSelector ?? defaultElementToGraphSelector;
+  const elementFromGraph = options.elementFromGraphSelector ?? defaultElementFromGraphSelector;
+  const linkToGraph = options.linkToGraphSelector ?? defaultLinkToGraphSelector;
+  const linkFromGraph = options.linkFromGraphSelector ?? defaultLinkFromGraphSelector;
+
   // We need to ensure several things:
   // 1. Graph can update itself, via onCellChange or via onBatchStop - this change is internal and must update the external store - but only if the external store do not trigger the same change.
   // 2. External store can update the graph via new elements or links - this change is external and must update the internal graph
@@ -90,8 +102,18 @@ export function graphSync<
 
     if (isReset) {
       // unfortunately this will create always new object references, so we need to compare them with more deeply
-      const graphElements = graph.getElements().map((element) => elementFromGraph(element));
-      const graphLinks = graph.getLinks().map((link) => linkFromGraph(link));
+      const graphElements = graph.getElements().map((element) =>
+        elementFromGraph({
+          cell: element,
+          graph,
+        })
+      );
+      const graphLinks = graph.getLinks().map((link) =>
+        linkFromGraph({
+          cell: link,
+          graph,
+        })
+      );
       const snapshot = store.getSnapshot();
       const elements = removeDeepReadOnly(snapshot.elements);
       const links = removeDeepReadOnly(snapshot.links);
@@ -108,17 +130,45 @@ export function graphSync<
     // Set flag to prevent this state update from triggering another graph sync
     updatingStateFromGraphCounter++;
     isUpdatingStateFromGraph = true;
+
+    // Get IDs snapshot for O(1) lookups
+    const idsSnapshot = getIdsSnapshot();
+
     store.setState((previous: GraphStoreSnapshot<Element, Link>) => {
-      const updates = new Map<string, { type: 'link' | 'element'; data: never }>();
+      const updates = new Map<string, { type: 'link' | 'element'; data: Element | Link }>();
       const removals = new Set<string>();
 
       for (const id of ids) {
         const cell = graph.getCell(id);
         if (cell) {
           if (cell.isLink()) {
-            updates.set(id, { type: 'link', data: linkFromGraph(cell) });
+            // Get previous link using O(1) lookup
+            const linkIndex = idsSnapshot.linkIds[id];
+            const previousLink =
+              linkIndex != null && linkIndex >= 0 && linkIndex < previous.links.length
+                ? previous.links[linkIndex]
+                : undefined;
+
+            const updatedLink = linkFromGraph({
+              cell: cell as dia.Link,
+              graph,
+              previous: previousLink,
+            });
+            updates.set(id, { type: 'link', data: updatedLink as Link });
           } else {
-            updates.set(id, { type: 'element', data: elementFromGraph(cell) });
+            // Get previous element using O(1) lookup
+            const elementIndex = idsSnapshot.elementIds[id];
+            const previousElement =
+              elementIndex != null && elementIndex >= 0 && elementIndex < previous.elements.length
+                ? previous.elements[elementIndex]
+                : undefined;
+
+            const updatedElement = elementFromGraph({
+              cell: cell as dia.Element,
+              graph,
+              previous: previousElement,
+            });
+            updates.set(id, { type: 'element', data: updatedElement as Element });
           }
         } else {
           removals.add(id);
@@ -141,7 +191,7 @@ export function graphSync<
             if (util.isEqual(cellElement, update.data)) {
               nextElements.push(cellElement);
             } else {
-              nextElements.push(update.data);
+              nextElements.push(update.data as Element);
               elementsChanged = true;
             }
             updates.delete(id);
@@ -156,7 +206,7 @@ export function graphSync<
       // Add new elements
       for (const [id, update] of updates) {
         if (update.type === 'element') {
-          nextElements.push(update.data);
+          nextElements.push(update.data as Element);
           elementsChanged = true;
           updates.delete(id);
         }
@@ -178,7 +228,7 @@ export function graphSync<
             if (util.isEqual(link, update.data)) {
               nextLinks.push(link);
             } else {
-              nextLinks.push(update.data);
+              nextLinks.push(update.data as Link);
               linksChanged = true;
             }
             updates.delete(id);
@@ -193,7 +243,7 @@ export function graphSync<
       // Add new links
       for (const [, update] of updates) {
         if (update.type === 'link') {
-          nextLinks.push(update.data);
+          nextLinks.push(update.data as Link);
           linksChanged = true;
         }
       }
@@ -233,7 +283,7 @@ export function graphSync<
 
     // Skip if we're syncing from state to prevent circular updates
     if (isSyncingFromState) return;
-    if (!useRealtimeUpdated && graph.hasActiveBatch()) return;
+    if (!areBatchUpdatesDisabled && graph.hasActiveBatch()) return;
     onIncrementalChange();
   });
 
@@ -250,7 +300,7 @@ export function graphSync<
   const onBatchStop = (_event: { batchName?: string }) => {
     batchCounter--;
     if (batchCounter > 0) return; // Still in a nested batch
-    if (!useRealtimeUpdated && graph.hasActiveBatch()) return;
+    if (!areBatchUpdatesDisabled && graph.hasActiveBatch()) return;
 
     // Reset the flag after batch completes
     const wasSyncingFromState = isSyncingFromState;
@@ -286,8 +336,18 @@ export function graphSync<
 
     // Only sync if store is empty and graph has cells
     if (storeElements.length === 0 && storeLinks.length === 0) {
-      const existingElements = graph.getElements().map((element) => elementFromGraph(element));
-      const existingLinks = graph.getLinks().map((link) => linkFromGraph(link));
+      const existingElements = graph.getElements().map((element) =>
+        elementFromGraph({
+          cell: element,
+          graph,
+        })
+      ) as Element[];
+      const existingLinks = graph.getLinks().map((link) =>
+        linkFromGraph({
+          cell: link,
+          graph,
+        })
+      ) as Link[];
 
       if (existingElements.length > 0 || existingLinks.length > 0) {
         // Set flag to prevent syncing graph changes back to React during initialization
@@ -296,8 +356,8 @@ export function graphSync<
 
         store.setState((previous) => ({
           ...previous,
-          elements: existingElements as Element[],
-          links: existingLinks as Link[],
+          elements: existingElements,
+          links: existingLinks,
         }));
 
         updatingStateFromGraphCounter--;
@@ -322,8 +382,18 @@ export function graphSync<
 
     // Compare current graph state with store state to avoid unnecessary syncs
     // This prevents syncing when graph and store are already in sync
-    const graphElements = graph.getElements().map((element) => elementFromGraph(element));
-    const graphLinks = graph.getLinks().map((link) => linkFromGraph(link));
+    const graphElements = graph.getElements().map((element) =>
+      elementFromGraph({
+        cell: element,
+        graph,
+      })
+    );
+    const graphLinks = graph.getLinks().map((link) =>
+      linkFromGraph({
+        cell: link,
+        graph,
+      })
+    );
 
     // Check if graph is already in sync with store
     if (util.isEqual(elements, graphElements) && util.isEqual(links, graphLinks)) {
@@ -335,15 +405,26 @@ export function graphSync<
     syncFromStateCounter++;
     isSyncingFromState = true;
 
-    syncGraph({
-      graph,
-      elements: elements as Array<dia.Element | GraphElement>,
-      links: links as Array<dia.Link | GraphLink>,
-    });
+    // Build items array using selectors
+    const elementItems = elements.map((element) =>
+      elementToGraph({
+        element: element as Element,
+        graph,
+      })
+    );
+    const linkItems = links.map((link) =>
+      linkToGraph({
+        link: link as Link,
+        graph,
+      })
+    );
+
+    // Use graph.syncCells directly instead of syncGraph
+    graph.syncCells([...elementItems, ...linkItems], { remove: true });
 
     // Only reset the flag if there's no batch (events were processed synchronously)
     // If there's a batch, onBatchStop will handle resetting it
-    // We need to check after syncGraph because it might have started a batch
+    // We need to check after syncCells because it might have started a batch
     if (batchCounter === 0 && !graph.hasActiveBatch()) {
       // Decrement counter and reset flag if counter reaches 0
       syncFromStateCounter--;
@@ -394,10 +475,10 @@ export function graphSync<
 }
 
 /**
- * Interface for graph synchronization instance.
+ * Interface for state synchronization instance.
  * Provides methods to subscribe to cell changes and clean up resources.
  */
-export interface GraphSync {
+export interface StateSync {
   /**
    * Subscribes to cell change events in the graph.
    * The callback receives change information and should return a cleanup function.

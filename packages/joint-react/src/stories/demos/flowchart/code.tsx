@@ -9,13 +9,13 @@ import {
   createLinks,
   GraphProvider,
   Highlighter,
-  MeasuredNode,
   Paper,
   type InferElement,
+  useNodeSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { dia, linkTools } from '@joint/core';
-import { forwardRef, useState, type FC } from 'react';
+import { forwardRef, useRef, useState, type FC } from 'react';
 
 const unit = 4;
 
@@ -210,6 +210,9 @@ function DecisionNodeRaw(
     });
   };
 
+  const textRef = useRef<SVGTextElement>(null);
+  useNodeSize(textRef, { setSize });
+
   return (
     <>
       <polygon
@@ -222,20 +225,19 @@ function DecisionNodeRaw(
         strokeWidth="2"
       />
 
-      <MeasuredNode setSize={setSize}>
-        <text
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          x={half}
-          y={half}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="10"
-          fill={'white'}
-        >
-          {label}
-        </text>
-      </MeasuredNode>
+      <text
+        ref={textRef}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        x={half}
+        y={half}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="10"
+        fill={'white'}
+      >
+        {label}
+      </text>
     </>
   );
 }
@@ -254,6 +256,9 @@ function StepNodeRaw(
       position: { x: cx - w / 2, y: cy - h / 2 },
     });
   };
+
+  const textRef = useRef<SVGTextElement>(null);
+  useNodeSize(textRef, { setSize });
 
   // discuss
   if (!width || !height) {
@@ -275,20 +280,19 @@ function StepNodeRaw(
         rx={unit}
         ry={unit}
       />
-      <MeasuredNode setSize={setSize}>
-        <text
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          x={width / 2}
-          y={height / 2}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="10"
-          fill={'white'}
-        >
-          {label}
-        </text>
-      </MeasuredNode>
+      <text
+        ref={textRef}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        x={width / 2}
+        y={height / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="10"
+        fill={'white'}
+      >
+        {label}
+      </text>
     </>
   );
 }

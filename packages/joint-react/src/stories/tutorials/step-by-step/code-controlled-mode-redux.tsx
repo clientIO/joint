@@ -1,3 +1,4 @@
+/* eslint-disable @eslint-react/hooks-extra/no-direct-set-state-in-use-effect */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
@@ -219,9 +220,7 @@ type UndoableGraphState = {
  *
  * The adapter automatically reads from the Redux store context, so no parameters
  * are needed. Just call this hook inside a component wrapped with Redux Provider.
- *
  * @returns An ExternalGraphStore compatible with GraphProvider
- *
  * @example
  * ```tsx
  * <Provider store={store}>
@@ -255,7 +254,6 @@ function useReduxAdapter(): ExternalGraphStore {
        * Subscribes to Redux store changes.
        * When the Redux state changes, the listener is called, which notifies
        * GraphStore to re-read the state and sync with JointJS.
-       *
        * @param listener - Callback function to call when state changes
        * @returns Unsubscribe function to remove the listener
        */
@@ -284,7 +282,6 @@ function useReduxAdapter(): ExternalGraphStore {
        * The updater can be:
        * - A direct value: { elements: [...], links: [...] }
        * - A function: (previous) => ({ elements: [...], links: [...] })
-       *
        * @param updater - The new state or a function to compute new state
        */
       setState: (updater: Update<GraphStoreSnapshot>) => {
@@ -388,8 +385,19 @@ function ReduxConnectedPaperApp() {
       const graphState = currentState.graph as UndoableGraphState;
       const newCanUndo = graphState.past.length > 0;
       const newCanRedo = graphState.future.length > 0;
-      setCanUndo(newCanUndo);
-      setCanRedo(newCanRedo);
+      // Update state only if values changed
+      setCanUndo((previous) => {
+        if (previous === newCanUndo) {
+          return previous;
+        }
+        return newCanUndo;
+      });
+      setCanRedo((previous) => {
+        if (previous === newCanRedo) {
+          return previous;
+        }
+        return newCanRedo;
+      });
     };
 
     // Subscribe to store changes
@@ -493,4 +501,3 @@ function ReduxConnectedPaperApp() {
 export default function App(props: Readonly<GraphProps>) {
   return <Main {...props} />;
 }
-

@@ -1,4 +1,3 @@
-import type { dia } from '@joint/core';
 import type {
   GraphStoreDerivedSnapshot,
   GraphStoreSnapshot,
@@ -39,8 +38,8 @@ export function useStoreSelector<Snapshot, Selection>(
  */
 export function useGraphStoreSelector<
   Selection,
-  Element extends dia.Element | GraphElement = GraphElement,
-  Link extends dia.Link | GraphLink = GraphLink,
+  Element extends GraphElement = GraphElement,
+  Link extends GraphLink = GraphLink,
 >(
   selector: (snapshot: MarkDeepReadOnly<GraphStoreSnapshot<Element, Link>>) => Selection,
   isEqual?: (a: Selection, b: Selection) => boolean

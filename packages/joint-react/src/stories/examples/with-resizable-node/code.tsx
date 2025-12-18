@@ -3,9 +3,9 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
   useElements,
+  useNodeSize,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
@@ -53,16 +53,16 @@ function ResizableNode({ width, height, label }: Readonly<BaseElementWithData>) 
     }
   }, []);
 
+  useNodeSize(nodeRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <MeasuredNode ref={nodeRef}>
-        <div
-          className="resizable-node"
-          onMouseDown={handleMouseDown} // prevent drag events from propagating
-        >
-          {label}
-        </div>
-      </MeasuredNode>
+      <div
+        ref={nodeRef}
+        className="resizable-node"
+        onMouseDown={handleMouseDown} // prevent drag events from propagating
+      >
+        {label}
+      </div>
     </foreignObject>
   );
 }
