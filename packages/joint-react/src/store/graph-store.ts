@@ -1,7 +1,6 @@
 import { dia, shapes, util } from '@joint/core';
 import type { GraphLink } from '../types/link-types';
 import type { GraphElement } from '../types/element-types';
-import type { Dispatch, SetStateAction } from 'react';
 import type { AddPaperOptions, PaperStoreSnapshot } from './paper-store';
 import { PaperStore } from './paper-store';
 import {
@@ -156,13 +155,9 @@ export class GraphStore {
 
   private unsubscribeFromExternal?: () => void;
 
-  private onElementsChange?: Dispatch<SetStateAction<GraphElement[]>>;
-  private onLinksChange?: Dispatch<SetStateAction<GraphLink[]>>;
-
   private papers = new Map<string, PaperStore>();
   private observer: GraphStoreObserver;
   private stateSync: StateSync;
-  private isControlled: boolean;
 
   constructor(config: GraphStoreOptions) {
     const {
@@ -172,10 +167,11 @@ export class GraphStore {
       cellNamespace = DEFAULT_CELL_NAMESPACE,
       graph,
       externalStore: externalState,
+      elementFromGraphSelector,
+      elementToGraphSelector,
+      linkFromGraphSelector,
+      linkToGraphSelector,
     } = config;
-
-    const hasExternalState = typeof externalState === 'object';
-    this.isControlled = hasExternalState;
 
     this.graph =
       graph ??
@@ -247,10 +243,10 @@ export class GraphStore {
       areBatchUpdatesDisabled: config.areBatchUpdatesDisabled ?? false,
       graph: this.graph,
       getIdsSnapshot: () => this.derivedStore.getSnapshot(),
-      elementToGraphSelector: config.elementToGraphSelector,
-      elementFromGraphSelector: config.elementFromGraphSelector,
-      linkToGraphSelector: config.linkToGraphSelector,
-      linkFromGraphSelector: config.linkFromGraphSelector,
+      elementToGraphSelector,
+      elementFromGraphSelector,
+      linkToGraphSelector,
+      linkFromGraphSelector,
       store: {
         getSnapshot: this.publicState.getSnapshot,
         subscribe: this.publicState.subscribe,

@@ -61,13 +61,16 @@ export function stateSync<
   Element extends GraphElement,
   Link extends GraphLink,
 >(options: Options<Graph, Element, Link>): StateSync {
-  const { graph, store, areBatchUpdatesDisabled = false, getIdsSnapshot } = options;
-
-  // Use provided selectors or fall back to defaults
-  const elementToGraph = options.elementToGraphSelector ?? defaultElementToGraphSelector;
-  const elementFromGraph = options.elementFromGraphSelector ?? defaultElementFromGraphSelector;
-  const linkToGraph = options.linkToGraphSelector ?? defaultLinkToGraphSelector;
-  const linkFromGraph = options.linkFromGraphSelector ?? defaultLinkFromGraphSelector;
+  const {
+    graph,
+    store,
+    areBatchUpdatesDisabled = false,
+    getIdsSnapshot,
+    elementFromGraphSelector = defaultElementFromGraphSelector,
+    linkFromGraphSelector = defaultLinkFromGraphSelector,
+    elementToGraphSelector = defaultElementToGraphSelector,
+    linkToGraphSelector = defaultLinkToGraphSelector,
+  } = options;
 
   // We need to ensure several things:
   // 1. Graph can update itself, via onCellChange or via onBatchStop - this change is internal and must update the external store - but only if the external store do not trigger the same change.
@@ -103,13 +106,13 @@ export function stateSync<
     if (isReset) {
       // unfortunately this will create always new object references, so we need to compare them with more deeply
       const graphElements = graph.getElements().map((element) =>
-        elementFromGraph({
+        elementFromGraphSelector({
           cell: element,
           graph,
         })
       );
       const graphLinks = graph.getLinks().map((link) =>
-        linkFromGraph({
+        linkFromGraphSelector({
           cell: link,
           graph,
         })
@@ -149,7 +152,7 @@ export function stateSync<
                 ? previous.links[linkIndex]
                 : undefined;
 
-            const updatedLink = linkFromGraph({
+            const updatedLink = linkFromGraphSelector({
               cell: cell as dia.Link,
               graph,
               previous: previousLink,
@@ -163,7 +166,7 @@ export function stateSync<
                 ? previous.elements[elementIndex]
                 : undefined;
 
-            const updatedElement = elementFromGraph({
+            const updatedElement = elementFromGraphSelector({
               cell: cell as dia.Element,
               graph,
               previous: previousElement,
@@ -337,13 +340,13 @@ export function stateSync<
     // Only sync if store is empty and graph has cells
     if (storeElements.length === 0 && storeLinks.length === 0) {
       const existingElements = graph.getElements().map((element) =>
-        elementFromGraph({
+        elementFromGraphSelector({
           cell: element,
           graph,
         })
       ) as Element[];
       const existingLinks = graph.getLinks().map((link) =>
-        linkFromGraph({
+        linkFromGraphSelector({
           cell: link,
           graph,
         })
@@ -383,13 +386,13 @@ export function stateSync<
     // Compare current graph state with store state to avoid unnecessary syncs
     // This prevents syncing when graph and store are already in sync
     const graphElements = graph.getElements().map((element) =>
-      elementFromGraph({
+      elementFromGraphSelector({
         cell: element,
         graph,
       })
     );
     const graphLinks = graph.getLinks().map((link) =>
-      linkFromGraph({
+      linkFromGraphSelector({
         cell: link,
         graph,
       })
@@ -407,13 +410,13 @@ export function stateSync<
 
     // Build items array using selectors
     const elementItems = elements.map((element) =>
-      elementToGraph({
+      elementToGraphSelector({
         element: element as Element,
         graph,
       })
     );
     const linkItems = links.map((link) =>
-      linkToGraph({
+      linkToGraphSelector({
         link: link as Link,
         graph,
       })
