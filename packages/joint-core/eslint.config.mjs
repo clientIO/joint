@@ -1,11 +1,10 @@
-import { jsConfig, tsConfig } from '@joint/eslint-config';
+import { jsConfig, tsConfig, testingConfig } from '@joint/eslint-config';
 import { defineConfig } from 'eslint/config';
-
 
 export default defineConfig([
     ...jsConfig,
     ...tsConfig,
-
+    ...testingConfig,
     {
         // Disable some rules
         files: ['**/*.d.ts'],
@@ -14,9 +13,8 @@ export default defineConfig([
         },
     },
     // add globals for all files
-    {
+    {   
         // test global in test files and test folders and demo files
-       
         languageOptions: {
             globals: {
                 joint: 'readonly',

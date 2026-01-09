@@ -6,3 +6,5 @@ export { tsConfig, } from './eslint.config.ts.mjs';
 export { reactTsConfig } from './eslint.config.react.mjs';
 // Export Rollup config
 export { rollupConfig } from './eslint.config.rollup.mjs';
+// Export Testing config
+export { testingConfig } from './eslint.config.testing.mjs';
