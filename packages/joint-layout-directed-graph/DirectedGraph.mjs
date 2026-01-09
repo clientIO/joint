@@ -199,7 +199,7 @@ export const DirectedGraph = {
             graph,
         });
 
-        if (opt.resizeClusters && (typeof opt.clusterPadding === 'number')) {
+        if (opt.resizeClusters && (opt.clusterPadding !== 'default')) {
             // Resize and reposition cluster elements
             // Filter out top-level clusters (nodes without a parent and with children) and map them to cells
             const topLevelClusters = glGraph.nodes()
