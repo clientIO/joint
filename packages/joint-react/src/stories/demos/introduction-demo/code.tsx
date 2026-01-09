@@ -495,7 +495,8 @@ function Main() {
         <Paper
           ref={paperCtxRef}
           {...PAPER_PROPS}
-          defaultLink={new shapes.standard.Link(links[0])}
+          // eslint-disable-next-line sonarjs/pseudo-random
+          defaultLink={() => new shapes.standard.Link({ ...links[0], id: Math.random() })}
           width="100%"
           renderElement={renderElement}
           className={PAPER_CLASSNAME}

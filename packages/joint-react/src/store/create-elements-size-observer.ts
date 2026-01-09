@@ -4,9 +4,9 @@ import type { GraphStoreDerivedSnapshot, GraphStoreSnapshot } from './graph-stor
 import type { MarkDeepReadOnly } from '../utils/create-state';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
-
-// Epsilon value to avoid jitter due to sub-pixel rendering (especially Safari)
-const EPSILON = 0.9;
+// Epsilon value to avoid jitter due to sub-pixel rendering
+// especially on Safari
+const EPSILON = 0.5;
 
 /**
  * Size information for an observed element.
@@ -56,11 +56,9 @@ function defaultTransform(options: TransformOptions) {
   const { width, height, x, y } = options;
   return { width, height, x, y };
 }
-
 const DEFAULT_OBJECT: Partial<ElementItem> = {
   transform: defaultTransform,
 };
-
 /**
  * Options for creating an elements size observer.
  */
@@ -101,69 +99,20 @@ export interface GraphStoreObserver {
   readonly has: (id: dia.Cell.ID) => boolean;
 }
 
-function readEntrySize(entry: ResizeObserverEntry): { width: number; height: number } | null {
-  // Prefer devicePixelContentBoxSize when available; it tends to be more stable.
-  const dpr = window.devicePixelRatio || 1;
-
-  const devicePixel = (
-    entry as unknown as {
-      devicePixelContentBoxSize?: Array<{ inlineSize: number; blockSize: number }>;
-    }
-  ).devicePixelContentBoxSize?.[0];
-
-  if (devicePixel) {
-    return { width: devicePixel.inlineSize / dpr, height: devicePixel.blockSize / dpr };
-  }
-
-  const border = (
-    entry as unknown as { borderBoxSize?: Array<{ inlineSize: number; blockSize: number }> }
-  ).borderBoxSize?.[0];
-
-  if (border) {
-    return { width: border.inlineSize, height: border.blockSize };
-  }
-
-  const content = (
-    entry as unknown as { contentBoxSize?: Array<{ inlineSize: number; blockSize: number }> }
-  ).contentBoxSize?.[0];
-
-  if (content) {
-    return { width: content.inlineSize, height: content.blockSize };
-  }
-
-  // Legacy fallback
-  if (entry.contentRect) {
-    return { width: entry.contentRect.width, height: entry.contentRect.height };
-  }
-
-  return null;
-}
-
-function snapToDevicePixel(px: number): number {
-  const dpr = window.devicePixelRatio || 1;
-  return Math.round(px * dpr) / dpr;
-}
-
 /**
  * Creates an observer for element size changes using the ResizeObserver API.
  *
- * Safari can throw/print "ResizeObserver loop completed with undelivered notifications"
- * when the observer callback causes synchronous layout changes which trigger more resize
- * notifications in the same frame. To prevent this we:
- * - batch updates
- * - apply them in requestAnimationFrame
- * - guard against re-entrancy
- * - snap sizes to device pixels to reduce sub-pixel jitter
- * @param options - Options for the observer
- * @returns GraphStoreObserver instance
- * @example
- * ```ts
- * const observer = createElementsSizeObserver({
- *   getCellTransform: (id) => {
- *     return { width: 100, height: 100 };
- *   },
- * });
- * ```
+ * This function sets up automatic size tracking for DOM elements that correspond to graph elements.
+ * When a DOM element's size changes (e.g., due to content changes or CSS updates), the observer
+ * automatically updates the corresponding graph element's size.
+ *
+ * **Features:**
+ * - Uses ResizeObserver for efficient size tracking
+ * - Batches multiple size changes together for performance
+ * - Compares sizes with epsilon to avoid jitter from sub-pixel rendering
+ * - Supports custom size update handlers
+ * @param options - The options for creating the size observer
+ * @returns A GraphStoreObserver instance with methods to add/remove observers
  */
 export function createElementsSizeObserver(options: Options): GraphStoreObserver {
   const {
@@ -173,110 +122,73 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     onBatchUpdate,
     getPublicSnapshot,
   } = options;
-
   const elements = new Map<dia.Cell.ID, ElementItem>();
   const invertedIndex = new Map<HTMLElement | SVGElement, dia.Cell.ID>();
-
-  // Pending measured sizes to apply (batched).
-  const pending = new Map<dia.Cell.ID, { width: number; height: number }>();
-
-  // Remembers last size we applied, so we can ignore immediate echoes.
-  const lastApplied = new Map<dia.Cell.ID, { width: number; height: number }>();
-
-  let rafScheduled = false;
-  let suppress = false;
-
-  const flush = () => {
-    rafScheduled = false;
-    if (pending.size === 0) return;
-
+  const observer = new ResizeObserver((entries) => {
+    // we can consider this as single batch of
+    let hasChange = false;
     const idsSnapshot = getIdsSnapshot();
     const publicSnapshot = getPublicSnapshot();
     const newElements: GraphElement[] = [...publicSnapshot.elements] as GraphElement[];
+    for (const entry of entries) {
+      // We must be careful to not mutate the snapshot data.
+      const { target, borderBoxSize } = entry;
 
-    let hasChange = false;
-
-    for (const [id, measured] of pending) {
-      pending.delete(id);
-
-      const elementIndex = idsSnapshot.elementIds[id];
-      if (elementIndex == null) {
-        continue;
+      const id = invertedIndex.get(target as HTMLElement | SVGElement);
+      if (!id) {
+        throw new Error(`Element with id ${id} not found in resize observer`);
       }
 
+      // If borderBoxSize is not available or empty, continue to the next entry.
+      if (!borderBoxSize || borderBoxSize.length === 0) continue;
+
+      const [size] = borderBoxSize;
+      const { inlineSize, blockSize } = size;
+
+      const width = inlineSize;
+      const height = blockSize;
       const cellTransform = getCellTransform(id);
-
+      // Here we compare the actual size with the border box size
       const isChanged =
-        Math.abs(cellTransform.width - measured.width) > EPSILON ||
-        Math.abs(cellTransform.height - measured.height) > EPSILON;
+        Math.abs(cellTransform.width - width) > EPSILON ||
+        Math.abs(cellTransform.height - height) > EPSILON;
 
-      if (!isChanged) continue;
+      if (!isChanged) {
+        return;
+      }
+      // we observe just width and height, not x and y
+      if (cellTransform.width === width && cellTransform.height === height) {
+        return;
+      }
 
+      const elementIndex = idsSnapshot.elementIds[id];
+      if (elementIndex == undefined) {
+        throw new Error(`Element with id ${id} not found in graph data ref`);
+      }
       const element = newElements[elementIndex];
-      if (!element) continue;
-
       const { transform = defaultTransform } = elements.get(id) ?? DEFAULT_OBJECT;
+      if (!element) {
+        throw new Error(`Element with id ${id} not found in graph data ref`);
+      }
       const { x, y, element: cell } = cellTransform;
-
       newElements[elementIndex] = {
         ...element,
         ...transform({
           x,
           y,
           element: cell,
-          width: measured.width,
-          height: measured.height,
+          width,
+          height,
         }),
       };
-
-      lastApplied.set(id, measured);
       hasChange = true;
     }
 
-    if (!hasChange) return;
-
-    suppress = true;
-    try {
-      onBatchUpdate(newElements);
-    } finally {
-      suppress = false;
-    }
-  };
-
-  const scheduleFlush = () => {
-    if (rafScheduled) return;
-    rafScheduled = true;
-    requestAnimationFrame(flush);
-  };
-
-  const observer = new ResizeObserver((entries) => {
-    if (suppress) return;
-
-    for (const entry of entries) {
-      const target = entry.target as HTMLElement | SVGElement;
-      const id = invertedIndex.get(target);
-      if (!id) continue;
-
-      const size = readEntrySize(entry);
-      if (!size) continue;
-
-      const width = snapToDevicePixel(size.width);
-      const height = snapToDevicePixel(size.height);
-
-      // Ignore the "echo" right after we applied the same size.
-      const previous = lastApplied.get(id);
-      if (
-        previous &&
-        Math.abs(previous.width - width) <= EPSILON &&
-        Math.abs(previous.height - height) <= EPSILON
-      ) {
-        continue;
-      }
-
-      pending.set(id, { width, height });
+    if (!hasChange) {
+      return;
     }
 
-    if (pending.size > 0) scheduleFlush();
+    onBatchUpdate(newElements);
   });
 
   return {
@@ -284,27 +196,20 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       observer.observe(element, resizeObserverOptions);
       elements.set(id, { element, transform });
       invertedIndex.set(element, id);
-
       return () => {
         observer.unobserve(element);
         elements.delete(id);
         invertedIndex.delete(element);
-        pending.delete(id);
-        lastApplied.delete(id);
       };
     },
-
     clean() {
       for (const [, { element }] of elements.entries()) {
         observer.unobserve(element);
       }
       elements.clear();
       invertedIndex.clear();
-      pending.clear();
-      lastApplied.clear();
       observer.disconnect();
     },
-
     has(id: dia.Cell.ID) {
       return elements.has(id);
     },
