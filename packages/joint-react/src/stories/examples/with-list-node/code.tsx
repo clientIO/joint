@@ -10,7 +10,7 @@ import {
   Paper,
   useNodeSize,
   type InferElement,
-  type OnSetSize,
+  type OnTransformElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
@@ -41,24 +41,24 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ListElement({
-  id,
-  children,
-  width,
-  height,
-  inputs,
-}: PropsWithChildren<BaseElementWithData>) {
+function ListElement({ id, children, inputs }: PropsWithChildren<BaseElementWithData>) {
   const padding = 10;
   const headerHeight = 50;
   const elementRef = useRef<HTMLDivElement>(null);
 
-  const setListSize: OnSetSize = useCallback(({ element, size }) => {
-    const w = padding + size.width + padding;
-    const h = headerHeight + size.height + padding;
-    element.size(w, h, { async: false });
-  }, []);
+  const transform: OnTransformElement = useCallback(
+    ({ width: measuredWidth, height: measuredHeight }) => {
+      const w = padding + measuredWidth + padding;
+      const h = headerHeight + measuredHeight + padding;
+      return {
+        width: w,
+        height: h,
+      };
+    },
+    []
+  );
 
-  useNodeSize(elementRef, { setSize: setListSize });
+  const { width, height } = useNodeSize(elementRef, { transform });
 
   const { set } = useCellActions<BaseElementWithData>();
 

@@ -1,11 +1,11 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
-import React, { useCallback, type PropsWithChildren } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   createElements,
   createLinks,
   GraphProvider,
   Paper,
+  useNodeSize,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
@@ -30,37 +30,34 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function Card({ children, width, height }: PropsWithChildren<BaseElementWithData>) {
+function Card() {
+  const frameRef = useRef<SVGRectElement>(null);
+  const { width, height } = useNodeSize(frameRef);
   const gap = 10;
-  const imageWidth = 50;
-  const imageHeight = height - 2 * gap;
+  // avoid negative width and height
+  const imageWidth = Math.max(width - gap * 2, 0);
+  const imageHeight = Math.max(height - gap * 2, 0);
   const iconURL = `https://placehold.co/${imageWidth}x${imageHeight}`;
-  const foWidth = width - 2 * gap - imageWidth - gap;
-  const foHeight = height - 2 * gap;
+  const frameWidth = 80;
+  const frameHeight = 120;
 
   return (
     <>
-      <rect width={width} height={height} fill="#333" stroke="#eee" strokeWidth="2"></rect>
+      <rect
+        ref={frameRef}
+        width={frameWidth}
+        height={frameHeight}
+        fill="#333"
+        stroke="#eee"
+        strokeWidth="2"
+      />
       <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />
-      <foreignObject x={gap + imageWidth + gap} y={gap} width={foWidth} height={foHeight}>
-        <div
-          style={{
-            position: 'absolute',
-            color: '#eee',
-            maxWidth: '100px',
-            overflow: 'hidden',
-            overflowWrap: 'break-word',
-          }}
-        >
-          {children}
-        </div>
-      </foreignObject>
     </>
   );
 }
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback((element) => {
-    return <Card {...element}>{element.label}</Card>;
+  const renderElement: RenderElement<BaseElementWithData> = useCallback(() => {
+    return <Card />;
   }, []);
   return (
     <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />

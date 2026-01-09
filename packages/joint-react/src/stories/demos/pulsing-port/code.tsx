@@ -95,9 +95,9 @@ const elements = createElements([
 
 type Element = InferElement<typeof elements>;
 
-function NodeElement({ width, height, id }: Element) {
+function NodeElement({ id }: Element) {
   const rectRef = useRef<SVGRectElement>(null);
-  useNodeSize(rectRef);
+  const { width, height } = useNodeSize(rectRef);
 
   const isConnected = useLinks((links) =>
     links

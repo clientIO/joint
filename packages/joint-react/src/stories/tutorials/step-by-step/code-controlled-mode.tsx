@@ -162,7 +162,7 @@ interface PaperAppProps {
  * through JointJS APIs. Instead, always update React state, and GraphProvider
  * will automatically sync the changes to the graph.
  */
-function PaperApp({ onElementsChange, onLinksChange }: PaperAppProps) {
+function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) {
   return (
     <div className="flex flex-col gap-4">
       {/* 

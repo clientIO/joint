@@ -2,8 +2,8 @@ import type { GraphElement, StandardShapesTypeMapper } from '../types/element-ty
 import type { GraphLink, StandardLinkShapesType } from '../types/link-types';
 
 type RequiredElementProps = {
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
 };
 
 type ElementWithAttributes<T extends string | undefined = undefined> =

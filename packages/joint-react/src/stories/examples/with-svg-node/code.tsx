@@ -8,7 +8,7 @@ import {
   Paper,
   useNodeSize,
   type InferElement,
-  type OnSetSize,
+  type OnTransformElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
@@ -33,19 +33,22 @@ const initialElements = createElements([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RenderedRect({ width, height, label }: BaseElementWithData) {
+function RenderedRect({ label }: BaseElementWithData) {
   const textMargin = 20;
   const cornerRadius = 5;
   const textRef = useRef<SVGTextElement>(null);
 
-  const setSize: OnSetSize = useCallback(
-    ({ element, size: { width: sizeWidth, height: sizeHeight } }) => {
-      element.size(sizeWidth + textMargin, sizeHeight + textMargin);
+  const transform: OnTransformElement = useCallback(
+    ({ width: measuredWidth, height: measuredHeight }) => {
+      return {
+        width: measuredWidth + textMargin,
+        height: measuredHeight + textMargin,
+      };
     },
     [textMargin]
   );
 
-  useNodeSize(textRef, { setSize });
+  const { width, height } = useNodeSize(textRef, { transform });
 
   return (
     <>

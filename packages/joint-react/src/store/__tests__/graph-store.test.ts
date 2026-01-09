@@ -416,7 +416,7 @@ describe('GraphStore', () => {
       const cleanup = store.setMeasuredNode({
         id: 'measured-element',
         element: domElement,
-        setSize,
+        transform: setSize,
       });
 
       expect(typeof cleanup).toBe('function');

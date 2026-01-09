@@ -3,7 +3,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { GraphLink, OnSetSize } from '@joint/react';
+import type { GraphLink, OnTransformElement } from '@joint/react';
 import {
   createElements,
   createLinks,
@@ -194,25 +194,26 @@ interface PropsWithClick {
 type FlowchartNodeProps = InferElement<typeof flowchartNodes> & PropsWithClick;
 
 function DecisionNodeRaw(
-  { label, width, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+  { label, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
   ref: React.ForwardedRef<SVGPolygonElement>
 ) {
   // If we define custom size, not defined in initial nodes, we have to use measure node
-  const size = width;
-  const half = size / 2;
-  const padding = 20;
 
-  const setSize: OnSetSize = ({ element, size }) => {
-    const dimension = Math.max(size.width, size.height) + 2 * padding;
-    element.set({
-      size: { width: dimension, height: dimension },
-      position: { x: cx - dimension / 2, y: cy - dimension / 2 },
-    });
+  const transform: OnTransformElement = ({ width, height }) => {
+    const dimension = Math.max(width, height) + 2 * padding;
+    return {
+      width: dimension,
+      height: dimension,
+      x: cx,
+      y: cy,
+    };
   };
 
   const textRef = useRef<SVGTextElement>(null);
-  useNodeSize(textRef, { setSize });
-
+  const { width } = useNodeSize(textRef, { transform });
+  const size = width;
+  const half = size / 2;
+  const padding = 20;
   return (
     <>
       <polygon
@@ -243,27 +244,22 @@ function DecisionNodeRaw(
 }
 
 function StepNodeRaw(
-  { label, width, height, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+  { label, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
   ref: React.ForwardedRef<SVGRectElement>
 ) {
   const padding = 20;
 
-  const setSize: OnSetSize = ({ element, size }) => {
-    const w = size.width + 2 * padding;
-    const h = size.height + 2 * padding;
-    element.set({
-      size: { width: w, height: h },
-      position: { x: cx - w / 2, y: cy - h / 2 },
-    });
+  const transform: OnTransformElement = ({ width, height }) => {
+    return {
+      width: width + 2 * padding,
+      height: height + 2 * padding,
+      x: cx,
+      y: cy,
+    };
   };
 
   const textRef = useRef<SVGTextElement>(null);
-  useNodeSize(textRef, { setSize });
-
-  // discuss
-  if (!width || !height) {
-    return null;
-  }
+  const { width, height } = useNodeSize(textRef, { transform });
 
   return (
     <>

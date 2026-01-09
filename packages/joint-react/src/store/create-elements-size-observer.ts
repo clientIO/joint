@@ -11,28 +11,28 @@ const EPSILON = 0.5;
 /**
  * Size information for an observed element.
  */
-export interface SizeObserver {
+export interface TransformResult {
   /** Width of the element in pixels */
   readonly width: number;
   /** Height of the element in pixels */
   readonly height: number;
+  readonly x?: number;
+  readonly y?: number;
 }
 
 /**
  * Options passed to the setSize callback when an element's size changes.
  */
-export interface OnSetOptions {
+export interface TransformOptions extends TransformResult {
   /** The JointJS element instance */
   readonly element: dia.Element;
-  /** The new size of the element */
-  readonly size: SizeObserver;
 }
 
 /**
  * Callback function called when an element's size is measured.
  * Allows custom handling of size updates before they're applied to the graph.
  */
-export type OnSetSize = (options: OnSetOptions) => void;
+export type OnTransformElement = (options: TransformOptions) => TransformResult;
 
 /**
  * Options for registering an element to be measured for size changes.
@@ -41,16 +41,24 @@ export interface SetMeasuredNodeOptions {
   /** The DOM element (HTML or SVG) to observe for size changes */
   readonly element: HTMLElement | SVGElement;
   /** Optional callback to handle size updates before they're applied */
-  readonly setSize?: OnSetSize;
+  readonly transform?: OnTransformElement;
   /** The ID of the cell in the graph that corresponds to this DOM element */
   readonly id: dia.Cell.ID;
 }
 
 interface ElementItem {
   readonly element: HTMLElement | SVGElement;
-  readonly setSize?: OnSetSize;
+  readonly transform?: OnTransformElement;
 }
 
+// eslint-disable-next-line jsdoc/require-jsdoc
+function defaultTransform(options: TransformOptions) {
+  const { width, height, x, y } = options;
+  return { width, height, x, y };
+}
+const DEFAULT_OBJECT: Partial<ElementItem> = {
+  transform: defaultTransform,
+};
 /**
  * Options for creating an elements size observer.
  */
@@ -58,7 +66,7 @@ interface Options {
   /** Options to pass to the ResizeObserver constructor */
   readonly resizeObserverOptions?: ResizeObserverOptions;
   /** Function to get the current size of a cell from the graph */
-  readonly getCellSize: (id: dia.Cell.ID) => SizeObserver;
+  readonly getCellTransform: (id: dia.Cell.ID) => TransformResult & { element: dia.Element };
   /** Function to get the current IDs snapshot for efficient lookups */
   readonly getIdsSnapshot: () => MarkDeepReadOnly<GraphStoreDerivedSnapshot>;
   /** Function to get the current public snapshot containing all elements */
@@ -109,7 +117,7 @@ export interface GraphStoreObserver {
 export function createElementsSizeObserver(options: Options): GraphStoreObserver {
   const {
     resizeObserverOptions = DEFAULT_OBSERVER_OPTIONS,
-    getCellSize,
+    getCellTransform,
     getIdsSnapshot,
     onBatchUpdate,
     getPublicSnapshot,
@@ -139,13 +147,17 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
 
       const width = inlineSize;
       const height = blockSize;
-      const actualSize = getCellSize(id);
+      const cellTransform = getCellTransform(id);
       // Here we compare the actual size with the border box size
       const isChanged =
-        Math.abs(actualSize.width - width) > EPSILON ||
-        Math.abs(actualSize.height - height) > EPSILON;
+        Math.abs(cellTransform.width - width) > EPSILON ||
+        Math.abs(cellTransform.height - height) > EPSILON;
 
       if (!isChanged) {
+        return;
+      }
+      // we observe just width and height, not x and y
+      if (cellTransform.width === width && cellTransform.height === height) {
         return;
       }
 
@@ -154,10 +166,21 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         throw new Error(`Element with id ${id} not found in graph data ref`);
       }
       const element = newElements[elementIndex];
+      const { transform = defaultTransform } = elements.get(id) ?? DEFAULT_OBJECT;
       if (!element) {
         throw new Error(`Element with id ${id} not found in graph data ref`);
       }
-      newElements[elementIndex] = { ...element, width, height };
+      const { x, y, element: cell } = cellTransform;
+      newElements[elementIndex] = {
+        ...element,
+        ...transform({
+          x,
+          y,
+          element: cell,
+          width,
+          height,
+        }),
+      };
       hasChange = true;
     }
 
@@ -169,9 +192,9 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
   });
 
   return {
-    add({ id, element, setSize }: SetMeasuredNodeOptions) {
+    add({ id, element, transform }: SetMeasuredNodeOptions) {
       observer.observe(element, resizeObserverOptions);
-      elements.set(id, { element, setSize });
+      elements.set(id, { element, transform });
       invertedIndex.set(element, id);
       return () => {
         observer.unobserve(element);

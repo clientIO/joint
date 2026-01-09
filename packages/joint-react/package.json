@@ -94,6 +94,7 @@
     "react-test-renderer": "^19.1.1",
     "redux": "^5.0.1",
     "redux-undo": "1.1.0",
+    "resize-observer-polyfill": "^1.5.1",
     "storybook": "^8.6.14",
     "storybook-addon-performance": "0.17.3",
     "storybook-multilevel-sort": "2.1.0",

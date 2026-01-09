@@ -1,5 +1,11 @@
-import { ReactElement, createElement, REACT_TYPE } from '../react-element';
+import { ReactElement, REACT_TYPE } from '../react-element';
 import { dia } from '@joint/core';
+
+function createElement<Attributes = dia.Element.Attributes>(
+  options?: Attributes & dia.Element.Attributes
+) {
+  return new ReactElement(options);
+}
 
 describe('react-element', () => {
   describe('ReactElement', () => {
@@ -102,18 +108,3 @@ describe('react-element', () => {
     });
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -12,8 +12,8 @@ import { ReactElement } from '../models/react-element';
 import type { ExternalStoreLike, State } from '../utils/create-state';
 import { createState, derivedState, getValue } from '../utils/create-state';
 import { stateSync, type StateSync } from '../state/state-sync';
-import type { OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import type { GraphStateSelectors } from '../state/graph-state-selectors';
+import type { OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = { ...shapes, ReactElement };
 
@@ -207,6 +207,7 @@ export class GraphStore {
       isEqual: util.isEqual,
     });
 
+    this.wasElementsMeasuredBefore = false;
     this.derivedStore = derivedState({
       name: 'Jointjs/Derived',
       state: this.publicState,
@@ -214,7 +215,7 @@ export class GraphStore {
         const elementIds: Record<dia.Cell.ID, number> = {};
         const linkIds: Record<dia.Cell.ID, number> = {};
 
-        let areElementsMeasured = true;
+        let areElementsMeasured = snapshot.elements.length > 0;
         for (const [index, element] of snapshot.elements.entries()) {
           elementIds[element.id] = index;
         }
@@ -231,6 +232,7 @@ export class GraphStore {
         if (areElementsMeasured) {
           this.wasElementsMeasuredBefore = true;
         }
+
         if (this.wasElementsMeasuredBefore) {
           areElementsMeasured = true;
         }
@@ -270,14 +272,17 @@ export class GraphStore {
           elements: newElements,
         }));
       },
-      getCellSize: (id) => {
+      getCellTransform: (id) => {
         const cell = this.graph.getCell(id);
         if (!cell?.isElement()) throw new Error('Cell not valid');
         const size = cell.get('size');
+        const position = cell.get('position');
         if (!size) throw new Error('Size not found');
         return {
           width: size.width,
           height: size.height,
+          element: cell,
+          ...position,
         };
       },
     });

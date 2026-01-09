@@ -216,7 +216,7 @@ interface PaperAppProps {
   readonly store: ExternalGraphStore;
 }
 
-function PaperApp({ store }: PaperAppProps) {
+function PaperApp({ store }: Readonly<PaperAppProps>) {
   return (
     <div className="flex flex-col gap-4">
       <Paper width="100%" className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
@@ -327,6 +327,3 @@ function Main(props: Readonly<GraphProps>) {
 export default function App(props: Readonly<GraphProps>) {
   return <Main {...props} />;
 }
-
-
-
