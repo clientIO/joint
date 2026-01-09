@@ -85,8 +85,6 @@ export const jsConfig = defineConfig([
             globals: {
                 ...globals.browser,
                 ...globals.node,
-                ...globals.mocha,
-                ...globals.jest,
             },
         },
     },

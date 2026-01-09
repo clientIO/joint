@@ -3245,7 +3245,6 @@ export const Paper = View.extend({
         let { highlighter: highlighterDef } = opt;
         const { type } = opt;
         const { highlighting,highlighterNamespace  } = this.options;
-
         /*
             Expecting opt.highlighter to have the following structure:
             {

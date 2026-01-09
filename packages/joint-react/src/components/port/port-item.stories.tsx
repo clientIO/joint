@@ -1,5 +1,4 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
- 
 /* eslint-disable sonarjs/prefer-read-only-props */
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';

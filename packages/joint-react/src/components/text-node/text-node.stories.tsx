@@ -1,5 +1,4 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
- 
 
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';

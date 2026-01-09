@@ -1,10 +1,11 @@
-import { tsConfig, jsConfig, rollupConfig } from '@joint/eslint-config';
+import { tsConfig, jsConfig, rollupConfig, testingConfig } from '@joint/eslint-config';
 import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
     ...jsConfig,
     ...tsConfig,
     ...rollupConfig,
+    ...testingConfig,
     // define globals
     {
         languageOptions: {

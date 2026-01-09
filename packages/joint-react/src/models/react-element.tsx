@@ -1,4 +1,3 @@
- 
 import { dia } from '@joint/core';
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 export const REACT_TYPE = 'ReactElement';
