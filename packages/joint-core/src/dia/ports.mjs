@@ -98,7 +98,7 @@ PortData.prototype = {
             groupPortTransformations = this._getGroupPortTransformations(group, portsArgs, elBBox);
         }
 
-        let accumulator = {
+        const accumulator = {
             ports: ports,
             result: {}
         };

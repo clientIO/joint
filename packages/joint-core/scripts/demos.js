@@ -13,7 +13,7 @@ async function readFolder(location) {
             const file = path.parse(item);
             if (!file.ext && !exclude.includes(item)) {
 
-                let items1 = await readFolder(path.join(location, item));
+                const items1 = await readFolder(path.join(location, item));
                 res = res.concat(items1);
             }
 

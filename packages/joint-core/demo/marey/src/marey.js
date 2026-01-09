@@ -17,7 +17,7 @@ function timeToNumber(time) {
 
 function numberToTime(number) {
     let hours = Math.floor(number / 60);
-    let minutes = number % 60;
+    const minutes = number % 60;
     const ap = hours >= 12 ? 'PM' : 'AM';
     hours %= 12;
     hours = hours || 12;
@@ -40,7 +40,7 @@ function readTrain(stations, train) {
 function readStations(parsed) {
     const stations = [];
     const [d] = parsed;
-    for (let k of Object.keys(d)) {
+    for (const k of Object.keys(d)) {
         if (/^stop\|/.test(k)) {
             const p = k.split('|');
             stations.push({ key: k, name: p[1], distance: +p[2], zone: +p[3] });

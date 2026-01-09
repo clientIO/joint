@@ -6,7 +6,7 @@ import resolve from 'rollup-plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 import modules from './grunt/resources/esm.js';
 
-let plugins = [
+const plugins = [
     resolve(),
     commonjs(),
     babel({
@@ -30,14 +30,14 @@ let plugins = [
     })
 ];
 
-let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V, Vectorizer = joint.V; }';
+const JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V, Vectorizer = joint.V; }';
 
 // for the ES5 transpiling
 // prevent Rollup to include the local references into the partial ES5 file
 // e.g. joint.shapes.fsa shapes depends on `basic` shapes, but `basic` shapes shouldn't be
 // included in the resulting joint.shapes.fsa.js file.
 const readNamespace = function(namespace, global) {
-    let location = './src/' + namespace;
+    const location = './src/' + namespace;
     const list = fs.readdirSync(path.resolve(location));
     return list.reduce((res, item) => {
         res[path.resolve(location, item)] = global || 'joint.' + namespace;

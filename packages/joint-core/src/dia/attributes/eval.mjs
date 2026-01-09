@@ -45,7 +45,7 @@ const positiveValueAttributes = positiveValueList.reduce((acc, attrName) => {
 
 export function evalAttributes(attrs, refBBox) {
     const evalAttrs = {};
-    for (let attrName in attrs) {
+    for (const attrName in attrs) {
         if (!attrs.hasOwnProperty(attrName)) continue;
         evalAttrs[attrName] = evalAttribute(attrName, attrs[attrName], refBBox);
     }

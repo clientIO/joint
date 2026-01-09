@@ -52,7 +52,6 @@
     "test-e2e": "grunt test:e2e",
     "test-e2e-all": "grunt test:e2e:all",
     "lint": "eslint .",
-    "lint-fix": "yarn run lint --fix",
     "dist": "grunt dist"
   },
   "files": [

@@ -542,8 +542,8 @@ export const Graph = Model.extend({
      * Helper method for addLayer and moveLayer methods
      */
     _getBeforeLayerIdFromOptions(options, layer = null) {
-        let { before = null, index } = options;
-
+        let { index } = options;
+        const { before = null } = options;
         if (before && index !== undefined) {
             throw new Error('dia.Graph: Options "before" and "index" are mutually exclusive.');
         }

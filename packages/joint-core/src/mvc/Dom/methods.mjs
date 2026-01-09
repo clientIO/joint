@@ -158,7 +158,7 @@ export function css(name, value) {
     } else {
         styles = name;
     }
-    for (let style in styles) {
+    for (const style in styles) {
         if (styles.hasOwnProperty(style)) {
             for (let i = 0; i < this.length; i++) {
                 setCSSProperty(this[i], style, styles[style]);
@@ -274,7 +274,7 @@ export function off(types, selector, fn) {
     }
     if (typeof types === 'object') {
         // ( types-object [, selector] )
-        for (let type in types) {
+        for (const type in types) {
             this.off(type, selector, types[type]);
         }
         return this;
@@ -321,7 +321,7 @@ export function height() {
 export function position() {
     const [el] = this;
     if (!el) return;
-    let $el = $(el);
+    const $el = $(el);
     let offsetParent;
     let offset;
     let doc;

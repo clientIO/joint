@@ -108,7 +108,7 @@ const LINK_OPTIONS: Partial<GraphLink> = {
       stroke: PRIMARY,
       strokeWidth: 2,
       targetMarker: {
-        d: `M 0 0 L 8 4 L 8 -4 Z`, // Larger arrowhead
+        d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
       },
     },
   },

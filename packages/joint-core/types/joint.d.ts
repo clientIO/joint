@@ -1,5 +1,5 @@
-import { g } from './geometry';
-import { Vectorizer } from './vectorizer';
+import type { g } from './geometry';
+import type { Vectorizer } from './vectorizer';
 
 export const version: string;
 
@@ -3241,6 +3241,7 @@ export namespace util {
 
     export function toArray(value: any): any[];
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     export function debounce<T extends Function>(func: T, wait?: number, options?: { leading?: boolean, maxWait?: number, trailing?: boolean }): T & Cancelable;
 
     export function groupBy(collection: Collection, iteratee?: IterateeFunction<any>): object;

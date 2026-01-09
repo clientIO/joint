@@ -50,8 +50,8 @@
   "devDependencies": {
     "@andypf/json-viewer": "^2.1.10",
     "@chromatic-com/storybook": "^3.2.5",
+    "@joint/eslint-config": "workspace:*",
     "@joint/layout-directed-graph": "workspace:*",
-    "@joint/react-eslint": "*",
     "@storybook/addon-a11y": "^8.6.12",
     "@storybook/addon-docs": "8.6.12",
     "@storybook/addon-essentials": "8.6.12",
@@ -74,7 +74,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "@welldone-software/why-did-you-render": "8",
     "canvas": "^3.1.0",
-    "eslint": "9.19.0",
+    "eslint": "9.39.2",
     "glob": "^11.0.1",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",

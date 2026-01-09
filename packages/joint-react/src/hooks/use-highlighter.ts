@@ -1,4 +1,4 @@
-/* eslint-disable no-shadow */
+ 
 import type { dia } from '@joint/core';
 import { util } from '@joint/core';
 import { useEffect, useRef } from 'react';

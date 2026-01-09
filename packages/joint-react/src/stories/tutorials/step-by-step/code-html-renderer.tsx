@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 import { useCallback, useState } from 'react';
 import {
   createElements,

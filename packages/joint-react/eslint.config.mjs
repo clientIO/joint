@@ -1,2 +1,8 @@
-/** @type {import('eslint').Linter.Config[]} */
-export { default } from '@joint/react-eslint';
+import { tsConfig, jsConfig , reactTsConfig} from '@joint/eslint-config';
+import { defineConfig } from 'eslint/config';
+
+export default defineConfig([
+    ...jsConfig,
+    ...tsConfig,
+    ...reactTsConfig,
+]);

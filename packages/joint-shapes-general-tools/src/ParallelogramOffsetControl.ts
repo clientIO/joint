@@ -1,5 +1,6 @@
-import { dia, elementTools, g } from '@joint/core';
-import { Parallelogram } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools, g } from '@joint/core';
+import type { Parallelogram } from '@joint/shapes-general';
 
 export interface ParallelogramOffsetControlOptions extends elementTools.Control.Options {
 

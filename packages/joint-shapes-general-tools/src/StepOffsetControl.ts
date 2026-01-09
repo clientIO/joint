@@ -1,5 +1,6 @@
-import { dia, elementTools, g } from '@joint/core';
-import { Step } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools, g } from '@joint/core';
+import type { Step } from '@joint/shapes-general';
 
 export interface StepOffsetControlOptions extends elementTools.Control.Options {
 

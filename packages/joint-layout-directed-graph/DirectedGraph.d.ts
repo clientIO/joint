@@ -1,6 +1,7 @@
-import { dia, g } from '@joint/core';
-import { Graph as GLibGraph} from '@dagrejs/graphlib';
-import { graphlib, configUnion } from '@dagrejs/dagre';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { dia, g } from '@joint/core';
+import type { Graph as GLibGraph } from '@dagrejs/graphlib';
+import type { graphlib, configUnion } from '@dagrejs/dagre';
 
 export namespace DirectedGraph {
 

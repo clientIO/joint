@@ -25,10 +25,9 @@ function animateNode(el, properties, opt = {}) {
 
     let {
         duration = 400,
-        easing = 'ease-in-out',
         delay = 0,
-        complete
     } = opt;
+    const { easing = 'ease-in-out', complete } = opt;
 
     const delayId = setTimeout(function() {
 

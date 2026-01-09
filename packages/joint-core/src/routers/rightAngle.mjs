@@ -776,8 +776,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         let x;
-        let y1 = Math.min((sy1 + ty0) / 2, toy);
-        let y2 = Math.min((sy0 + ty1) / 2, soy);
+        const y1 = Math.min((sy1 + ty0) / 2, toy);
+        const y2 = Math.min((sy0 + ty1) / 2, soy);
 
         if (toy < soy) {
             // Use the shortest path along the connections on horizontal sides
@@ -816,8 +816,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         let x;
-        let y1 = Math.max((sy0 + ty1) / 2, toy);
-        let y2 = Math.max((sy1 + ty0) / 2, soy);
+        const y1 = Math.max((sy0 + ty1) / 2, toy);
+        const y2 = Math.max((sy1 + ty0) / 2, soy);
 
         if (toy > soy) {
             // Use the shortest path along the connections on horizontal sides
@@ -856,8 +856,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         let y;
-        let x1 = Math.min((sx1 + tx0) / 2, tox);
-        let x2 = Math.min((sx0 + tx1) / 2, sox);
+        const x1 = Math.min((sx1 + tx0) / 2, tox);
+        const x2 = Math.min((sx0 + tx1) / 2, sox);
 
         if (tox > sox) {
             if (topD <= bottomD) {
@@ -895,8 +895,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         }
 
         let y;
-        let x1 = Math.max((sx0 + tx1) / 2, tox);
-        let x2 = Math.max((sx1 + tx0) / 2, sox);
+        const x1 = Math.max((sx0 + tx1) / 2, tox);
+        const x2 = Math.max((sx1 + tx0) / 2, sox);
 
         if (tox <= sox) {
             if (topD <= bottomD) {
@@ -1518,7 +1518,7 @@ function rightAngleRouter(vertices, opt, linkView) {
     const isTargetPort = !!linkView.model.target().port;
     const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor, margin);
 
-    let resultVertices = [];
+    const resultVertices = [];
 
     if (!useVertices || vertices.length === 0) {
         return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint));

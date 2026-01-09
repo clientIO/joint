@@ -97,11 +97,9 @@ export const parseDOMJSON = function(json, namespace) {
             if (!nodeDef.hasOwnProperty('tagName')) throw new Error('json-dom-parser: missing tagName');
             const tagName = nodeDef.tagName;
 
-            let node;
-
             // Namespace URI
             const ns = (nodeDef.hasOwnProperty('namespaceURI')) ? nodeDef.namespaceURI : parentNS;
-            node = document.createElementNS(ns, tagName);
+            const node = document.createElementNS(ns, tagName);
             const svg = (ns === svgNamespace);
 
             const wrapperNode = (svg) ? V(node) : $(node);
@@ -316,7 +314,7 @@ export const normalizeEvent = function(evt) {
     // If the event is a touch event, normalize it to a mouse event.
     const touch = originalEvent && originalEvent.changedTouches && originalEvent.changedTouches[0];
     if (touch) {
-        for (let property in touch) {
+        for (const property in touch) {
             // copy all the properties from the first touch that are not
             // defined on TouchEvent (clientX, clientY, pageX, pageY, screenX, screenY, identifier, ...)
             if (evt[property] === undefined) {

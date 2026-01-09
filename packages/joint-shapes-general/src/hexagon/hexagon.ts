@@ -30,7 +30,7 @@ export class Hexagon extends dia.Element<HexagonAttributes> {
             L calc(w-${offset}) 0
             L ${offset} 0
             Z
-        `
+        `;
     }
 
     set offset(value: number) {

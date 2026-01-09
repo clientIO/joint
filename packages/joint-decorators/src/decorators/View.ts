@@ -1,4 +1,5 @@
-import { dia } from '@joint/core';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { dia } from '@joint/core';
 
 export interface ViewOptions {
     namespace?: any;
@@ -17,5 +18,5 @@ export function View(options: ViewOptions) {
             }
         }
         return target;
-    }
+    };
 }

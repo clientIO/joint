@@ -26,7 +26,8 @@
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn run dist",
     "build": "tsc",
-    "dist": "tsc"
+    "dist": "tsc",
+    "lint": "eslint ."
   },
   "files": [
     "build/",
@@ -41,6 +42,8 @@
     "@joint/shapes-general": "workspace:~"
   },
   "devDependencies": {
+    "@joint/eslint-config": "workspace:*",
+    "eslint": "9.39.2",
     "typescript": "5.8.2"
   },
   "volta": {

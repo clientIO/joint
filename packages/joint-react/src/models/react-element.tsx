@@ -1,4 +1,4 @@
-/* eslint-disable @eslint-react/dom/no-unknown-property */
+ 
 import { dia } from '@joint/core';
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 export const REACT_TYPE = 'ReactElement';

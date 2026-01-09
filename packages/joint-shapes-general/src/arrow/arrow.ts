@@ -1,4 +1,4 @@
-//@ts-nocheck
+
 import { dia } from '@joint/core';
 import { Model, Function } from '@joint/decorators';
 import svg from './Arrow.svg';
