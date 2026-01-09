@@ -264,7 +264,7 @@ PortData.prototype = {
         evaluated.position = this._evaluatePortPositionProperty(group, evaluated);
         evaluated.label = this._evaluatePortLabelProperty(group, evaluated);
         evaluated.z = this._evaluatePortZProperty(group, evaluated);
-        evaluated.size = util.assign({}, group.size, evaluated.size);
+        evaluated.size = util.assign({ width: 0, height: 0 }, group.size, evaluated.size);
         return evaluated;
     },
 
