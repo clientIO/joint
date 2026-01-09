@@ -637,9 +637,7 @@ export const Paper = View.extend({
 
         const { options } = this;
         if (!options.cellViewNamespace) {
-             
             options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
-             
         }
 
         const defaultLayerViewNamespace = {

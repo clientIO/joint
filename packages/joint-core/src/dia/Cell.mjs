@@ -977,11 +977,9 @@ export const Cell = Model.extend({
 
         var Cell = this.extend(protoProps, staticProps);
         // es5 backward compatibility
-         
         if (typeof joint !== 'undefined' && has(joint, 'shapes')) {
             setByPath(joint.shapes, type, Cell, '.');
         }
-         
         return Cell;
     }
 });
