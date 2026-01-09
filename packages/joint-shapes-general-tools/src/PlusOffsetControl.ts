@@ -1,5 +1,6 @@
-import { dia, elementTools } from '@joint/core';
-import { Plus } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools } from '@joint/core';
+import type { Plus } from '@joint/shapes-general';
 
 export interface PlusOffsetControlOptions extends elementTools.Control.Options {
     /** The value of the Plus offset after reset.

@@ -52,7 +52,8 @@ export const RotateLabel = Control.extend({
         const label = this.getLabel();
         const labelPosition = this.getLabelPosition(label);
         const coords = view.getLabelCoordinates(labelPosition);
-        let { angle = 0, args = {}} = labelPosition;
+        let { angle = 0 } = labelPosition;
+        const { args = {}} = labelPosition;
         const keepGradient = args.keepGradient;
         if (keepGradient) {
             const tangent = view.getTangentAtRatio(

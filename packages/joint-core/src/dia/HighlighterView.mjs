@@ -244,7 +244,7 @@ export const HighlighterView = mvc.View.extend({
             // all highlighters
             const views = [];
             if (!refs) return views;
-            for (let hid in refs) {
+            for (const hid in refs) {
                 const ref = refs[hid];
                 if (ref instanceof this) {
                     views.push(ref);
@@ -271,7 +271,7 @@ export const HighlighterView = mvc.View.extend({
         if (!refs) return false;
         if (id === null) {
             // any highlighter
-            for (let hid in refs) {
+            for (const hid in refs) {
                 if (refs[hid] instanceof this) return true;
             }
             return false;
@@ -311,7 +311,7 @@ export const HighlighterView = mvc.View.extend({
         const refs = _views[cid];
         if (!refs) return;
         if (id) delete refs[id];
-        for (let _ in refs) return;
+        for (const _ in refs) return;
         delete _views[cid];
     },
 
@@ -324,8 +324,8 @@ export const HighlighterView = mvc.View.extend({
     getAll(paper, id = null) {
         const views = [];
         const { _views } = this;
-        for (let cid in _views) {
-            for (let hid in _views[cid]) {
+        for (const cid in _views) {
+            for (const hid in _views[cid]) {
                 const view = _views[cid][hid];
                 if (view.cellView.paper === paper && view instanceof this && (id === null || hid === id)) {
                     views.push(view);

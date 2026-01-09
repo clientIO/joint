@@ -37,7 +37,7 @@ export class Mark extends dia.Element {
                     fill: '#333333'
                 }
             }
-        }
+        };
     }
 
     markup = [{

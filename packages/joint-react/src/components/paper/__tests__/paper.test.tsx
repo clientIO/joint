@@ -24,6 +24,7 @@ jest.mock('../../../utils/create-element-size-observer', () => ({
     // Simulate a resize event with specific width and height
     onResize({ width: 50, height: 50 });
     // Return a cleanup function that just calls `disconnect` (this is just a placeholder)
+    // eslint-disable-next-line unicorn/consistent-function-scoping
     return () => {};
   }),
 }));

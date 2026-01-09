@@ -99,7 +99,7 @@ export const LayerView = View.extend({
 
     removePivots: function() {
         const { el, pivotNodes } = this;
-        for (let z in pivotNodes) el.removeChild(pivotNodes[z]);
+        for (const z in pivotNodes) el.removeChild(pivotNodes[z]);
         this.pivotNodes = {};
     },
 

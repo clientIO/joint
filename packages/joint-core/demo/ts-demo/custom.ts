@@ -38,11 +38,11 @@ const CustomRect = joint.shapes.standard.Rectangle.define('app.CustomRect', {
         }
     }
 }, {
-    test: function () {
+    test: function() {
         console.log('test');
     }
 }, {
-    staticTest: function () {
+    staticTest: function() {
         console.log('staticTest');
     }
 });
@@ -50,6 +50,7 @@ const CustomRect = joint.shapes.standard.Rectangle.define('app.CustomRect', {
 class CustomRectView extends joint.dia.ElementView {
 
     initialize() {
+        // eslint-disable-next-line prefer-rest-params
         super.initialize.apply(this, arguments);
         console.log('CustomRectView called !!!');
     }

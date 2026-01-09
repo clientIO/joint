@@ -44,7 +44,7 @@ function attr(name, value) {
     } else {
         attributes = name;
     }
-    for (let attr in attributes) {
+    for (const attr in attributes) {
         if (attributes.hasOwnProperty(attr)) {
             const value = attributes[attr];
             if (propertiesMap[attr]) {

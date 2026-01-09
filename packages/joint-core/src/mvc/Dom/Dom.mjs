@@ -44,7 +44,7 @@ $.guid = 1;
 $.data = dataUser;
 
 $.merge = function(first, second) {
-    let len = +second.length;
+    const len = +second.length;
     let i = first.length;
     for (let j = 0; j < len; j++) {
         first[i++] = second[j];
@@ -227,7 +227,7 @@ $.event.on = function(elem, types, selector, data, fn, one) {
             data = data || selector;
             selector = undefined;
         }
-        for (let type in types) {
+        for (const type in types) {
             $.event.on(elem, type, selector, data, types[type], one);
         }
         return elem;

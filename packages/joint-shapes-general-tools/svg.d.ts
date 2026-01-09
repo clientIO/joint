@@ -1,4 +1,4 @@
-declare module "*.svg" {
-    const value: any;
+declare module '*.svg' {
+    const value: never;
     export default value;
 }

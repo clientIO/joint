@@ -315,7 +315,7 @@ const isSymbol = (value) => {
 
 const initCloneArray = (array) => {
     const length = array.length;
-    let result = new array.constructor(length);
+    const result = new array.constructor(length);
 
     if (length && typeof array[0] == 'string' && hasOwnProperty.call(array, 'index')) {
         result.index = array.index;
@@ -538,7 +538,7 @@ const baseIsEqual = (value, other, stack) => {
 };
 
 const baseIsEqualDeep = (object, other, equalFunc, stack) => {
-    let objIsArr = Array.isArray(object);
+    const objIsArr = Array.isArray(object);
     const othIsArr = Array.isArray(other);
     let objTag = objIsArr ? arrayTag : getTag(object);
     let othTag = othIsArr ? arrayTag : getTag(other);
@@ -546,7 +546,7 @@ const baseIsEqualDeep = (object, other, equalFunc, stack) => {
     objTag = objTag == argsTag ? objectTag : objTag;
     othTag = othTag == argsTag ? objectTag : othTag;
 
-    let objIsObj = objTag == objectTag;
+    const objIsObj = objTag == objectTag;
     const othIsObj = othTag == objectTag;
     const isSameTag = objTag == othTag;
 
@@ -710,7 +710,7 @@ const equalByTag = (object, other, tag, equalFunc, stack) => {
 
 const mapToArray = (map) => {
     let index = -1;
-    let result = Array(map.size);
+    const result = Array(map.size);
 
     map.forEach((value, key) => {
         result[++index] = [key, value];
@@ -852,7 +852,7 @@ const diff = (array, values) => {
     }
 
     outer:
-    for (let key in array) {
+    for (const key in array) {
         let value = array[key];
         const computed = value;
 

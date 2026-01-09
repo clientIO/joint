@@ -172,12 +172,11 @@ QUnit.module('connectionPoints', function(hooks) {
 
                 QUnit.test('uses model metrics when connected to an element', function(assert) {
                     const connectionPointFn = joint.connectionPoints.bbox;
-                    let cp, line;
+                    let cp;
+                    const line = new g.Line(new g.Point(100, 37), new g.Point(26, 37));
 
                     r1.position(0, 0);
                     r1.resize(52, 74);
-
-                    line = new g.Line(new g.Point(100, 37), new g.Point(26, 37));
                     cp = connectionPointFn.call(lv1, line, rv1, fullNode, { useModelGeometry: true });
                     assert.ok(cp.round().equals(r1.getBBox().rightMiddle().round()));
                     cp = connectionPointFn.call(lv1, line, rv1, quarterNode, { useModelGeometry: true });
@@ -297,12 +296,11 @@ QUnit.module('connectionPoints', function(hooks) {
 
                 QUnit.test('uses model metrics when connected to an element', function(assert) {
                     const connectionPointFn = joint.connectionPoints.rectangle;
-                    let cp, line;
+                    let cp;
+                    const line = new g.Line(new g.Point(100, 37), new g.Point(26, 37));
 
                     r1.position(0, 0);
                     r1.resize(52, 74);
-
-                    line = new g.Line(new g.Point(100, 37), new g.Point(26, 37));
                     cp = connectionPointFn.call(lv1, line, rv1, fullNode, { useModelGeometry: true });
                     assert.ok(cp.round().equals(r1.getBBox().rightMiddle().round()));
                     cp = connectionPointFn.call(lv1, line, rv1, quarterNode, { useModelGeometry: true });

@@ -19,6 +19,7 @@ export class Listener {
         }
         // signature 2 - (object, event, callback, context)
         else if (typeof evt === 'string' && typeof args[0] === 'function') {
+            // eslint-disable-next-line prefer-const
             let [cb, context = null] = args;
             // Invoke the callback with callbackArguments passed first
             if (context || callbackArguments.length > 0) cb = cb.bind(context, ...callbackArguments);

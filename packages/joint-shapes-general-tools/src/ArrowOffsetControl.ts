@@ -1,5 +1,6 @@
-import { dia, elementTools } from '@joint/core';
-import { Arrow } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools } from '@joint/core';
+import type { Arrow } from '@joint/shapes-general';
 
 export interface ArrowOffsetControlOptions
     extends elementTools.Control.Options {
@@ -32,7 +33,7 @@ export class ArrowOffsetControl extends elementTools.Control<ArrowOffsetControlO
     }
 
     protected getPosition() {
-        let { arrowHeight, thickness } = this.element;
+        const { arrowHeight, thickness } = this.element;
         const { width, height } = this.element.size();
         return { x: width - arrowHeight, y: height / 2 - thickness / 2 };
     }

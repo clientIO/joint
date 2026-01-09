@@ -378,13 +378,13 @@ QUnit.module('util', function(hooks) {
             const size = { width: 50, height: 50 };
             const text = 'This is very very very very very very very very very very very very very very very very very very very very very very long text';
 
-            let emVal = 2;
-            let correctLineHeightPerEm = 14;
+            const emVal = 2;
+            const correctLineHeightPerEm = 14;
 
             let r = joint.util.breakText(text, size, { ...styles, lineHeight: `${emVal}em` });
             assert.ok(r.split('\n').length * correctLineHeightPerEm * emVal <= size.height, 'lineHeight in em');
 
-            let correctLineHeightInPx = 25;
+            const correctLineHeightInPx = 25;
 
             r = joint.util.breakText(text, size, { ...styles, lineHeight: correctLineHeightInPx });
             assert.ok(r.split('\n').length * correctLineHeightInPx <= size.height, 'lineHeight in px without unit');

@@ -28,7 +28,7 @@ export class Trapezoid extends dia.Element<TrapezoidAttributes> {
             L calc(w - ${offset}) 0
             L ${offset} 0
             Z
-        `
+        `;
     }
 
     set offset(value: number) {

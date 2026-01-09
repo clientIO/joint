@@ -1,4 +1,5 @@
-import { dia, elementTools, shapes } from '@joint/core';
+import type { dia, shapes } from '@joint/core';
+import { elementTools } from '@joint/core';
 
 export interface CylinderTiltControlOptions extends elementTools.Control.Options {
 

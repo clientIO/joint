@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { util } from '@joint/core';
 
 export enum SVGAttributeTypes {
@@ -23,7 +24,7 @@ export function SVGAttribute(attributeName: string, type: SVGAttributeTypes = SV
         }
         attribute[type] = (...args: any[]) => {
             return target[name](...args);
-        }
+        };
         return descriptor;
-    }
+    };
 }

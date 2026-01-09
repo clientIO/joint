@@ -100,7 +100,7 @@ export const Cell = Model.extend({
         }
 
         let defaultAttributes = {};
-        let attributes = cloneDeep(this.attributes);
+        const attributes = cloneDeep(this.attributes);
 
         if (ignoreDefaults === true) {
             // Compare all attributes with the defaults
@@ -747,6 +747,8 @@ export const Cell = Model.extend({
         }.bind(this);
 
         const { _scheduledTransitionIds } = this;
+        // Disable rule, as sometimes in more complex code, it will not detect proper let value.
+        // eslint-disable-next-line prefer-const
         let initialId;
 
         var initiator = (callback) => {
@@ -975,11 +977,11 @@ export const Cell = Model.extend({
 
         var Cell = this.extend(protoProps, staticProps);
         // es5 backward compatibility
-        /* eslint-disable no-undef */
+         
         if (typeof joint !== 'undefined' && has(joint, 'shapes')) {
             setByPath(joint.shapes, type, Cell, '.');
         }
-        /* eslint-enable no-undef */
+         
         return Cell;
     }
 });

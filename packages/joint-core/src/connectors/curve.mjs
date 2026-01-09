@@ -490,17 +490,15 @@ function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
         const vAngle = angleBetweenVectors(v1, v2);
 
         let rot = (Math.PI - vAngle) / 2;
-        let t;
         const vectorDeterminant = determinant(v1, v2);
-        let pointsDeterminant;
-        pointsDeterminant = determinant(points[i].difference(points[i + 1]), points[i].difference(points[i - 1]));
+        const pointsDeterminant = determinant(points[i].difference(points[i + 1]), points[i].difference(points[i - 1]));
         if (vectorDeterminant < 0) {
             rot = -rot;
         }
         if ((vAngle < Math.PI / 2) && ((rot < 0 && pointsDeterminant < 0) || (rot > 0 && pointsDeterminant > 0))) {
             rot = rot - Math.PI;
         }
-        t = v2.clone();
+        const t = v2.clone();
         rotateVector(t, rot);
 
         const t1 = t.clone();

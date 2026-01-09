@@ -1,5 +1,6 @@
-import { dia, elementTools, g } from '@joint/core';
-import { Document } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools, g } from '@joint/core';
+import type { Document } from '@joint/shapes-general';
 
 export interface DocumentOffsetControlOptions extends elementTools.Control.Options {
 

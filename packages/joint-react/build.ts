@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable unicorn/prevent-abbreviations */
 import esbuild from 'esbuild';
 import path from 'node:path';

@@ -235,7 +235,7 @@ export const Segments = ToolView.extend({
                 const isSingleVertex = data.originalVertices.length === 1;
                 const origVIndex = isSingleVertex ? 0 : handleIndex;
                 const additionalOffset = data.firstHandleShifted && !isSingleVertex ? 1 : 0;
-                let nextVIndex = 1 + indexOffset;
+                const nextVIndex = 1 + indexOffset;
                 vertices.splice(handleIndex + nextVIndex, 0, data.originalVertices[origVIndex - additionalOffset]);
             }
         }

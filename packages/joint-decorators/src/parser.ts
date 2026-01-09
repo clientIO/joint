@@ -1,4 +1,6 @@
-import { util, dia, attributes } from '@joint/core';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { dia, attributes } from '@joint/core';
+import { util } from '@joint/core';
 
 // type SVGParserBindings = Record<string, Array<SVGParserBinding>>;
 
@@ -48,6 +50,7 @@ const spaceRegex = /[^\S\r\n]+/g;
 
 // regex to identify binding expressions:
 // ReDoS mitigation: Avoid overlapping backtracking (x2)
+// eslint-disable-next-line no-useless-escape
 const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[([-\w. ]+(?:,[-\w. ]+)*)]\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\))}}/g;
 
 // regex to identify binding expression functions:
@@ -102,7 +105,7 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
             // noop
         } else if (name.startsWith(':')) {
             const parseExpression = (id: string, attribute: string, context: string) => {
-                let path = attribute;
+                const path = attribute;
 
 
                 const [triggers, pathToBinding] = parsePathToBinding(path);
@@ -113,10 +116,10 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
                     path: [`${selector}`, name.slice(1)],
                     expression: context,
                     triggers
-                }
+                };
 
                 bindings.push(binding);
-            }
+            };
 
             if (cbRegex.test(value)) {
                 const matches: any[] = [];
@@ -157,7 +160,7 @@ function parsePathToBinding(path: string): [string[], PathToBinding] {
     if (fnRegex.test(path)) {
         const [, name, triggersMatch, ...rawArgs] = path.match(fnRegex);
 
-        let triggersString = (triggersMatch.startsWith('['))
+        const triggersString = (triggersMatch.startsWith('['))
             ? triggersMatch.substring(1, triggersMatch.length - 1)
             : triggersMatch;
 
@@ -169,7 +172,7 @@ function parsePathToBinding(path: string): [string[], PathToBinding] {
                 try {
                     args.push(JSON.parse(arg));
                 } catch (e) {
-                    throw new Error(`Invalid argument ${arg} in function call.`)
+                    throw new Error(`Invalid argument ${arg} in function call.`);
                 }
             });
         }
@@ -177,5 +180,5 @@ function parsePathToBinding(path: string): [string[], PathToBinding] {
         return [triggers, { name, isFunction: true, args }];
     }
 
-    return [[path], { name: path, isFunction: false, args: [] }]
+    return [[path], { name: path, isFunction: false, args: [] }];
 }

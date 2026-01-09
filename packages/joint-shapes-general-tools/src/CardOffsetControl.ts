@@ -1,5 +1,6 @@
-import { dia, elementTools } from '@joint/core';
-import { Card } from "@joint/shapes-general";
+import type { dia } from '@joint/core';
+import { elementTools } from '@joint/core';
+import type { Card } from '@joint/shapes-general';
 
 
 export interface CardOffsetControlOptions extends elementTools.Control.Options {

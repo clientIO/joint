@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/no-unused-vars */
 /* eslint-disable sonarjs/pseudo-random */
-/* eslint-disable @eslint-react/dom/no-missing-button-type */
+ 
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import type { Meta, StoryObj } from '@storybook/react/*';

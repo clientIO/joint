@@ -1,5 +1,6 @@
-import { dia, elementTools } from '@joint/core';
-import { Note } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools } from '@joint/core';
+import type { Note } from '@joint/shapes-general';
 
 export interface NoteOffsetControlOptions extends elementTools.Control.Options {
     /** The value of the Note offset after reset.

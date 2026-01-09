@@ -50,7 +50,7 @@ export class LinkedProcess extends dia.Element {
                     d: 'M calc(w-10) 0 v calc(h)',
                 }
             }
-        }
+        };
     }
 
     markup = [{
