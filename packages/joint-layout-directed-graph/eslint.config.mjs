@@ -14,6 +14,6 @@ export default defineConfig([
                 graphlib: 'readonly',
                 should: 'readonly',
             },
-        },
+        }
     },
 ]);
