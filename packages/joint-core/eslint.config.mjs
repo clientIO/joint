@@ -46,7 +46,6 @@ export default defineConfig([
         files: ['**/demo/**'],
         languageOptions: {
             globals: {
-                createPaper:'readonly',
                 d3:'readonly',
                 rough:'readonly',
                 paper:'readonly',

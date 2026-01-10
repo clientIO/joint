@@ -1,4 +1,4 @@
-var paper4 = createPaper();
+var paper4 = window.createPaper();
 paper4.options.validateMagnet = function() {
     return false;
 };
