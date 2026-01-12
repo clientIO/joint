@@ -130,7 +130,7 @@
     "yarn": "4.7.0"
   },
   "resolutions": {
-    "globals": "16.0.0"
+    "globals": "17.0.0"
   },
   "keywords": [
     "joint",
