@@ -22,7 +22,6 @@
     "test-e2e": "yarn workspaces foreach --all -tvv run test-e2e",
     "test-e2e-all": "yarn workspaces foreach --all -tvv run test-e2e-all",
     "lint": "yarn workspaces foreach --all -tvv run lint",
-    "lint-fix": "yarn workspaces foreach --all -tvv run lint-fix",
     "dist": "yarn workspaces foreach --all -tvv run dist",
     "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/layout-directed-graph\" --include \"@joint/core\" pack --out %s-%v.tgz"
   },

@@ -747,11 +747,8 @@ export const Cell = Model.extend({
         }.bind(this);
 
         const { _scheduledTransitionIds } = this;
-        // Disable rule, as sometimes in more complex code, it will not detect proper let value.
-        // eslint-disable-next-line prefer-const
-        let initialId;
 
-        var initiator = (callback) => {
+        const initiator = (callback) => {
 
             if (_scheduledTransitionIds[transitionKey]) {
                 _scheduledTransitionIds[transitionKey] = without(_scheduledTransitionIds[transitionKey], initialId);
@@ -770,7 +767,7 @@ export const Cell = Model.extend({
 
         };
 
-        initialId = setTimeout(initiator, opt.delay, setter);
+        const initialId = setTimeout(initiator, opt.delay, setter);
 
         _scheduledTransitionIds[transitionKey] || (_scheduledTransitionIds[transitionKey] = []);
         _scheduledTransitionIds[transitionKey].push(initialId);

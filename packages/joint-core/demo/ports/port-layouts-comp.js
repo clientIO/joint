@@ -21,7 +21,9 @@ var g6 = new joint.shapes.standard.Ellipse({
                     args: { startAngle: 0, dr: 0, compensateRotation: true }
                 },
                 label: {
-                    position: 'radial'
+                    position: {
+                        name: 'radial'
+                    }
                 },
                 attrs: {
                     rect: {
@@ -120,4 +122,3 @@ document.body.appendChild(b3);
 var div = document.createElement('div');
 div.innerHTML = '&nbsp;';
 document.body.appendChild(div);
-

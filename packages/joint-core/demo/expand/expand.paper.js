@@ -34,7 +34,7 @@ joint.dia.ExpandPaper = joint.dia.Paper.extend({
     },
 
     onHiddenChanged: function(cell, hidden) {
-        var cellView = cell.findView(paper);
+        var cellView = cell.findView(this);
         var graph = this.model;
 
         if (cell.isLink()) {
