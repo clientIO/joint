@@ -13,19 +13,12 @@ export default defineConfig([
         },
     },
     // add globals for all files
-    {   
-        // test global in test files and test folders and demo files
-        languageOptions: {
-            globals: {
-                joint: 'readonly',
-            },
-        },
-    },
     {
         // test global in test files and test folders and demo files
         files: ['**/test/**', '**/demo/**'],
         languageOptions: {
             globals: {
+                joint: 'readonly',
                 V: 'readonly',
                 g: 'readonly',
                 $: 'readonly',

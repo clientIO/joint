@@ -28,6 +28,7 @@ export const GraphLayerCollection = Collection.extend({
         if (cellNamespace) {
             this.cellNamespace = cellNamespace;
         } else {
+            // eslint-disable-next-line no-undef
             this.cellNamespace = typeof joint !== 'undefined' && util.has(joint, 'shapes') ? joint.shapes : null;
         }
         this.graph = graph;

@@ -637,6 +637,7 @@ export const Paper = View.extend({
 
         const { options } = this;
         if (!options.cellViewNamespace) {
+            // eslint-disable-next-line no-undef
             options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
         }
 
@@ -863,10 +864,10 @@ export const Paper = View.extend({
             cellViewNamespace,
             interactive
         } = options;
-
-        // Default cellView namespace for ES5
-         
+        // Default cellView namespace for ES5 
+        // eslint-disable-next-line no-undef
         if (!cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
+            // eslint-disable-next-line no-undef
             options.cellViewNamespace = joint.shapes;
         }
          

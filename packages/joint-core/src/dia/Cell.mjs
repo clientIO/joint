@@ -977,7 +977,9 @@ export const Cell = Model.extend({
 
         var Cell = this.extend(protoProps, staticProps);
         // es5 backward compatibility
+        // eslint-disable-next-line no-undef
         if (typeof joint !== 'undefined' && has(joint, 'shapes')) {
+            // eslint-disable-next-line no-undef
             setByPath(joint.shapes, type, Cell, '.');
         }
         return Cell;
