@@ -18,8 +18,7 @@ const meta: Meta<typeof Hook> = {
   render: () => <RenderItemDecorator renderElement={Hook} />,
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description: `\`useUpdateElement\` is a hook to set element attributes. It returns a function to set the element attribute. It must be used inside the GraphProvider.
-    `,
+    description: '`useUpdateElement` is a hook to set element attributes. It returns a function to set the element attribute. It must be used inside the GraphProvider.',
     code: `import { useUpdateElement } from '@joint/react'
 
 function Component() {
@@ -52,13 +51,12 @@ export const Default: Story = makeStory<Story>({
   apiURL: API_URL,
   code: `import { useUpdateElement } from '@joint/react'
 
-
-  function Hook({  label , id }: SimpleElement) {
+  function Hook({ label, id }: SimpleElement) {
     const setLabel = useUpdateElement(id, 'label');
 
     return (
       <HTMLNode className="node">
-        <button onClick={() => setLabel("Hello")>Set label</button>
+        <button onClick={() => setLabel("Hello")}>Set label</button>
         label: {label}
       </HTMLNode>
     );

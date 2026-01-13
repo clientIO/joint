@@ -32,7 +32,7 @@ export const reactTsConfig = defineConfig([
     reactPerfPlugin.configs.flat.recommended,
     sonarjsPlugin.configs.recommended,
     {
-        rules:{
+        rules: {
             'indent': 'off',
             'object-curly-spacing': 'off',
             'space-before-function-paren': 'off',
