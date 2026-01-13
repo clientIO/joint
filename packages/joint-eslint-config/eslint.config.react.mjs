@@ -128,12 +128,7 @@ export const reactTsConfig = defineConfig([
 
             // React Hooks rules
             'react-hooks/rules-of-hooks': 'error',
-            'react-hooks/exhaustive-deps': [
-                'error',
-                {
-                    additionalHooks: '',
-                },
-            ],
+            'react-hooks/exhaustive-deps': 'error',
 
             // ESLint React rules
             // `@eslint-react` plugin is defined in `eslintReactPlugin.configs.recommended`
