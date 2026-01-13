@@ -37,7 +37,8 @@
     "dist": "rollup --config",
     "build": "rollup --config",
     "test": "mocha test/nodejs/nodejs.js && karma start karma.conf.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint-fix": "yarn run lint --fix"
   },
   "files": [
     "./DirectedGraph.d.ts",

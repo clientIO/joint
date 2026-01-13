@@ -26,7 +26,6 @@
   },
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
-    "test": "vitest run",
     "dist": "yarn run build",
     "build": "yarn run build:core && yarn run build:mocks && yarn run build:types",
     "build:core": "vite build",
@@ -34,7 +33,9 @@
     "build:types": "yarn run typecheck",
     "typecheck": "yarn run typecheck:core",
     "typecheck:core": "yarn run tsc",
-    "lint": "eslint ."
+    "test": "vitest run",
+    "lint": "eslint .",
+    "lint-fix": "yarn run lint --fix"
   },
   "files": [
     "dist/",

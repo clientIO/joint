@@ -130,6 +130,11 @@ To check for linting errors in `src` and `types` directories:
 yarn run lint
 ```
 
+To auto fix errors, run eslint for `src` and `types` directories:
+```bash
+yarn run lint-fix
+```
+
 ### Code Coverage Reports
 
 To output a code coverage report in HTML:

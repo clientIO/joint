@@ -40,7 +40,9 @@
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn run dist",
+    "dist": "grunt dist",
     "build": "grunt install",
+    "build-bundles": "grunt build:bundles",
     "test": "grunt test",
     "test-server": "grunt test:server",
     "test-client": "grunt test:client",
@@ -48,11 +50,10 @@
     "test-coverage": "grunt test:coverage",
     "test-coverage-lcov": "yarn run test-coverage --reporter=lcov",
     "test-bundles": "grunt test:bundles",
-    "build-bundles": "grunt build:bundles",
     "test-e2e": "grunt test:e2e",
     "test-e2e-all": "grunt test:e2e:all",
     "lint": "eslint .",
-    "dist": "grunt dist"
+    "lint-fix": "yarn run lint --fix"
   },
   "files": [
     "dist/",

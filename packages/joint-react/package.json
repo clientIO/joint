@@ -36,16 +36,17 @@
     "Samuel <samuel@jointjs.com> (https://github.com/samuelgja)"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "lint": "yarn eslint \"**/*.{ts,tsx}\"",
-    "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
-    "test": "yarn run typecheck && yarn run lint && yarn jest",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "build": "node --experimental-json-modules --loader ts-node/esm build.ts",
-    "docs:typedoc": "typedoc --out docs/api src",
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
-    "prepack": "yarn test && yarn build"
+    "prepack": "yarn test && yarn build",
+    "build": "node --experimental-json-modules --loader ts-node/esm build.ts",
+    "build-storybook": "storybook build",
+    "storybook": "storybook dev -p 6006",
+    "test": "yarn run typecheck && yarn run lint && yarn jest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"**/*.{ts,tsx}\"",
+    "lint-fix": "yarn run lint --fix",
+    "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
+    "docs:typedoc": "typedoc --out docs/api src"
   },
   "devDependencies": {
     "@andypf/json-viewer": "^2.1.10",

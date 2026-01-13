@@ -1,3 +1,4 @@
+/* global rough:readonly */
 (function(joint, V, g, Rough) {
 
     var WIDTH = 800;
@@ -444,10 +445,4 @@
 
     graph.resetCells([r1, r2, r3, r4, r5, rl1, rl2, rl3, rl4]);
 
-})(
-    joint,
-    V,
-    g,
-    // eslint-disable-next-line no-undef
-    rough
-);
+})(joint, V, g, rough);

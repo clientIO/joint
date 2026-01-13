@@ -24,9 +24,10 @@
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn run dist",
-    "build": "tsc",
     "dist": "tsc",
-    "lint": "eslint ."
+    "build": "tsc",
+    "lint": "eslint .",
+    "lint-fix": "yarn run lint --fix"
   },
   "files": [
     "build/",

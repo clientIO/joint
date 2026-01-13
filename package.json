@@ -10,7 +10,9 @@
   "license": "MPL-2.0",
   "private": true,
   "scripts": {
+    "dist": "yarn workspaces foreach --all -tvv run dist",
     "build": "yarn workspaces foreach --all -tvv run build",
+    "build-bundles": "yarn workspaces foreach --all -tvv run build-bundles",
     "test": "yarn workspaces foreach --all -tvv run test",
     "test-server": "yarn workspaces foreach --all -tvv run test-server",
     "test-client": "yarn workspaces foreach --all -tvv run test-client",
@@ -18,11 +20,10 @@
     "test-coverage": "yarn workspaces foreach --all -tvv run test-coverage",
     "test-coverage-lcov": "yarn workspaces foreach --all -tvv run test-coverage-lcov",
     "test-bundles": "yarn workspaces foreach --all -tvv run test-bundles",
-    "build-bundles": "yarn workspaces foreach --all -tvv run build-bundles",
     "test-e2e": "yarn workspaces foreach --all -tvv run test-e2e",
     "test-e2e-all": "yarn workspaces foreach --all -tvv run test-e2e-all",
     "lint": "yarn workspaces foreach --all -tvv run lint",
-    "dist": "yarn workspaces foreach --all -tvv run dist",
+    "lint-fix": "yarn workspaces foreach --all -tvv run lint-fix",
     "pack-all": "yarn workspaces foreach --all -tvv --include \"@joint/layout-directed-graph\" --include \"@joint/core\" pack --out %s-%v.tgz"
   },
   "workspaces": [

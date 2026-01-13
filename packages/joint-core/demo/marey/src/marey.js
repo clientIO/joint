@@ -1,5 +1,5 @@
+/* global d3:readonly */
 const { dia, shapes, linkTools, mvc } = joint;
-// eslint-disable-next-line no-undef
 const { tsvParse } = d3;
 
 const BG_COLOR = '#F3F7F6';
