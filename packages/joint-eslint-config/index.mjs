@@ -1,10 +1,10 @@
-// Export JavaScript base config
+// Export JavaScript config
 export { jsConfig } from './eslint.config.js.mjs';
 // Export TypeScript config
-export { tsConfig, } from './eslint.config.ts.mjs';
+export { tsConfig } from './eslint.config.ts.mjs';
 // Export React TypeScript config
 export { reactTsConfig } from './eslint.config.react.mjs';
 // Export Rollup config
 export { rollupConfig } from './eslint.config.rollup.mjs';
-// Export Testing config
+// Export testing config
 export { testingConfig } from './eslint.config.testing.mjs';

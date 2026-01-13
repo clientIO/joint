@@ -16,8 +16,7 @@ const meta: Meta<typeof HookTester> = {
   decorators: [SimpleGraphDecorator],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description:
-      '`useElements` is a hook that returns the elements of the current graph. It supports selector functions to get specific properties of the elements and re-renders the component only when selected properties are changed.',
+    description: '`useElements` is a hook that returns the elements of the current graph. It supports selector functions to get specific properties of the elements and re-renders the component only when selected properties are changed.',
     code: `import { useElements } from '@joint/react'
 
 function Component() {

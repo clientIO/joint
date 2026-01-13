@@ -55,7 +55,7 @@ export const Default: Story = makeStory<Story>({
 
   function Hook({  label , id }: SimpleElement) {
     const setLabel = useUpdateElement(id, 'label');
-  
+
     return (
       <HTMLNode className="node">
         <button onClick={() => setLabel("Hello")>Set label</button>
@@ -96,7 +96,7 @@ export const SetPosition: Story = makeStory<Story>({
 
   function HookSetPosition({ label, id }: SimpleElement) {
     const set = useUpdateElement(id, 'position');
-  
+
     return (
       <HTMLNode className="node">
         <button

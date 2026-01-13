@@ -1,7 +1,6 @@
 import type { dia } from '@joint/core';
 import { util, g } from '@joint/core';
-import type {
-    BezierSeg } from '@msagl/core';
+import type { BezierSeg } from '@msagl/core';
 import {
     Graph,
     GeomGraph,

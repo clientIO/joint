@@ -12,12 +12,14 @@ export interface ParallelogramOffsetControlOptions extends elementTools.Control.
      *
      */
     defaultOffset?: boolean | number;
+
 }
 
 /**
  * @category Shape-Specific
  */
 export class ParallelogramOffsetControl extends elementTools.Control<ParallelogramOffsetControlOptions> {
+
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
@@ -52,4 +54,5 @@ export class ParallelogramOffsetControl extends elementTools.Control<Parallelogr
         const offset = (defaultOffset === true) ? 0 : defaultOffset;
         this.element.offset = offset;
     }
+
 }

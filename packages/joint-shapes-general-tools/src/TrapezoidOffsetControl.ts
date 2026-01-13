@@ -12,12 +12,14 @@ export interface TrapezoidOffsetControlOptions extends elementTools.Control.Opti
      *
      */
     defaultOffset?: boolean | number;
+
 }
 
 /**
  * @category Shape-Specific
  */
 export class TrapezoidOffsetControl extends elementTools.Control<TrapezoidOffsetControlOptions> {
+
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
@@ -51,4 +53,5 @@ export class TrapezoidOffsetControl extends elementTools.Control<TrapezoidOffset
         const offset = (defaultOffset === true) ? 0 : defaultOffset;
         this.element.offset = offset;
     }
+
 }

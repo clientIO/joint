@@ -16,6 +16,7 @@ export interface RadiusControlOptions extends elementTools.Control.Options {
      *
      */
     defaultRadius?: boolean | number;
+
 }
 
 /**
@@ -117,4 +118,5 @@ export class RadiusControl extends elementTools.Control<RadiusControlOptions> {
         const radius = (defaultRadius === true) ? 0 : defaultRadius;
         this.setRadius(radius);
     }
+
 }

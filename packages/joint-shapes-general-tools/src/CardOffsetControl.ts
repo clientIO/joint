@@ -2,7 +2,6 @@ import type { dia } from '@joint/core';
 import { elementTools } from '@joint/core';
 import type { Card } from '@joint/shapes-general';
 
-
 export interface CardOffsetControlOptions extends elementTools.Control.Options {
 
     defaultOffset?: boolean | number; // use false to disable the reset function

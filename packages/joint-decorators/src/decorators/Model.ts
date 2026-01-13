@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { dia } from '@joint/core';
 import { util } from '@joint/core';
 import { parseFromSVGString } from '../parser';
@@ -6,11 +5,13 @@ import { parseFromSVGString } from '../parser';
 export interface ModelOptions {
     attributes?: dia.Cell.Attributes;
     template?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     namespace?: any;
 }
 
 export function Model(options: ModelOptions) {
     const { attributes = {}, template, namespace } = options;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return function Entity<Ctor extends { new(...args: any[]): dia.Cell }>(target: Ctor): Ctor {
 
         const { markup, attrs, bindings } = parseFromSVGString(template);
@@ -49,6 +50,7 @@ export function Model(options: ModelOptions) {
             }
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         function __updateBindings(cell: dia.Cell, changed: any, opt: dia.Cell.Options = {}) {
             const attrs = {};
 

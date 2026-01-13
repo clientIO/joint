@@ -11,6 +11,7 @@ export interface CylinderTiltControlOptions extends elementTools.Control.Options
      *
      */
     defaultTilt?: boolean | number;
+
 }
 
 /**
@@ -53,4 +54,5 @@ export class CylinderTiltControl extends elementTools.Control<CylinderTiltContro
         const tilt = (defaultTilt === true) ? 0 : defaultTilt;
         this.setTilt(tilt);
     }
+
 }

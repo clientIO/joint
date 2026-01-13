@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { dia, attributes } from '@joint/core';
 import { util } from '@joint/core';
 
@@ -11,6 +10,7 @@ interface SVGParserBinding {
     expression: string,
     triggers: string[],
     isFunction: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: any[]
 }
 interface SVGParserResult {
@@ -50,8 +50,7 @@ const spaceRegex = /[^\S\r\n]+/g;
 
 // regex to identify binding expressions:
 // ReDoS mitigation: Avoid overlapping backtracking (x2)
-// eslint-disable-next-line no-useless-escape
-const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[([-\w. ]+(?:,[-\w. ]+)*)]\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\))}}/g;
+const cbRegex = /{{(?:[\w|(),:\s]+|(\w+)\(\[([-\w. ]+(?:,[-\w. ]+)*)]\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\))}}/g;
 
 // regex to identify binding expression functions:
 // ReDoS mitigation: Avoid overlapping backtracking
@@ -107,7 +106,6 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
             const parseExpression = (id: string, attribute: string, context: string) => {
                 const path = attribute;
 
-
                 const [triggers, pathToBinding] = parsePathToBinding(path);
 
                 const binding: SVGParserBinding = {
@@ -122,6 +120,7 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
             };
 
             if (cbRegex.test(value)) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const matches: any[] = [];
                 const substitutedExpression = value.replace(cbRegex, match => {
                     const id = `$${idCounter++}`;
@@ -153,6 +152,7 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
 interface PathToBinding {
     name: string,
     isFunction: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: any[]
 }
 
@@ -165,6 +165,7 @@ function parsePathToBinding(path: string): [string[], PathToBinding] {
             : triggersMatch;
 
         const triggers = triggersString.split(',').map(trigger => trigger.trim());
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const args: any[] = [];
 
         if (rawArgs[0] !== undefined) {

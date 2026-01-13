@@ -638,7 +638,7 @@ export const Paper = View.extend({
         const { options } = this;
         if (!options.cellViewNamespace) {
             // eslint-disable-next-line no-undef
-            options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
+            options.cellViewNamespace = (((typeof joint !== 'undefined') && has(joint, 'shapes')) ? joint.shapes : null);
         }
 
         const defaultLayerViewNamespace = {
@@ -864,13 +864,13 @@ export const Paper = View.extend({
             cellViewNamespace,
             interactive
         } = options;
-        // Default cellView namespace for ES5 
+
+        // Default cellView namespace for ES5
         // eslint-disable-next-line no-undef
-        if (!cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
+        if (!cellViewNamespace && (typeof joint !== 'undefined') && has(joint, 'shapes')) {
             // eslint-disable-next-line no-undef
             options.cellViewNamespace = joint.shapes;
         }
-         
 
         // Here if a function was provided, we can not clone it, as this would result in loosing the function.
         // If the default is used, the cloning is necessary in order to prevent modifying the options on prototype.
@@ -3246,6 +3246,7 @@ export const Paper = View.extend({
         let { highlighter: highlighterDef } = opt;
         const { type } = opt;
         const { highlighting,highlighterNamespace  } = this.options;
+
         /*
             Expecting opt.highlighter to have the following structure:
             {

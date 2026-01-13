@@ -1,43 +1,43 @@
-import jsdoc from 'eslint-plugin-jsdoc';
-import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import tsParser from '@typescript-eslint/parser';
-import stylistic from '@stylistic/eslint-plugin';
-import unicorn from 'eslint-plugin-unicorn';
-import jest from 'eslint-plugin-jest';
-import sonarjs from 'eslint-plugin-sonarjs';
-import * as depend from 'eslint-plugin-depend';
-import reactHooks from 'eslint-plugin-react-hooks';
-import reactPerfPlugin from 'eslint-plugin-react-perf';
-import eslintReact from '@eslint-react/eslint-plugin';
 import { fixupPluginRules } from '@eslint/compat';
-import path from 'node:path';
+import js from '@eslint/js';
+import eslintReactPlugin from '@eslint-react/eslint-plugin';
+import stylisticPlugin from '@stylistic/eslint-plugin';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 import { defineConfig } from 'eslint/config';
+import * as dependPlugin from 'eslint-plugin-depend';
+import jsdocPlugin from 'eslint-plugin-jsdoc';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import reactPerfPlugin from 'eslint-plugin-react-perf';
+import sonarjsPlugin from 'eslint-plugin-sonarjs';
+import unicornPlugin from 'eslint-plugin-unicorn';
+import tsEslint from 'typescript-eslint';
+
+import path from 'node:path';
 
 const tsConfigPath = path.resolve('./', 'tsconfig.json');
 
-
+/**
+ * ESLint config to support all React files with .ts, .tsx extensions
+ */
 export const reactTsConfig = defineConfig([
-    // Global ignores
-    {
-        ignores: ['node_modules', 'dist', 'bundle-dist', 'tsconfig.json'],
-        rules:{
-            // TODO: Enable all later
-            'indent':'off',
-            'object-curly-spacing':'off',
-            'space-before-function-paren':'off',
-        }
-    },
-
     // Base recommended configs
     js.configs.recommended,
-    jsdoc.configs['flat/recommended-typescript'],
-    ...tseslint.configs.strict,
-    depend.configs['flat/recommended'],
-    eslintReact.configs.recommended,
-    unicorn.configs['flat/recommended'],
+    jsdocPlugin.configs['flat/recommended-typescript'],
+    ...tsEslint.configs.strict,
+    dependPlugin.configs['flat/recommended'],
+    eslintReactPlugin.configs.recommended,
+    unicornPlugin.configs.recommended,
     reactPerfPlugin.configs.flat.recommended,
-    sonarjs.configs.recommended,
+    sonarjsPlugin.configs.recommended,
+    {
+        rules:{
+            'indent': 'off',
+            'object-curly-spacing': 'off',
+            'space-before-function-paren': 'off',
+        }
+    },
     {
         files: [
             '**/*.stories.*',
@@ -45,6 +45,9 @@ export const reactTsConfig = defineConfig([
             '**/stories/**/*.{ts,tsx}',
             '.storybook/**/*.{ts,tsx}',
         ],
+        plugins: {
+            'jsdoc': jsdocPlugin,
+        },
         rules: {
             'jsdoc/require-jsdoc': 'off',
             'jsdoc/check-alignment': 'off',
@@ -80,10 +83,11 @@ export const reactTsConfig = defineConfig([
             },
         },
         plugins: {
-            jest,
-            ts: tseslint,
-            '@stylistic': stylistic,
-            'react-hooks': fixupPluginRules(reactHooks),
+            '@typescript-eslint': tsPlugin,
+            '@stylistic': stylisticPlugin,
+            'jsdoc': jsdocPlugin,
+            'react': reactPlugin,
+            'react-hooks': fixupPluginRules(reactHooksPlugin),
         },
         rules: {
             // General JS rules
@@ -92,11 +96,11 @@ export const reactTsConfig = defineConfig([
             'no-shadow': 'error',
             'no-unused-vars': 'off',
             'prefer-destructuring': 'error',
-            camelcase: 'error',
+            'camelcase': 'error',
             'object-shorthand': 'error',
             'no-unneeded-ternary': 'error',
 
-            // TypeScript-specific rules
+            // TypeScript rules
             '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/no-non-null-assertion': 'off',
@@ -119,10 +123,10 @@ export const reactTsConfig = defineConfig([
             '@stylistic/comma-dangle': 'off',
             '@stylistic/indent': 'off',
 
-            // React
+            // React rules
             'react/react-in-jsx-scope': 'off',
 
-            // React Hooks
+            // React Hooks rules
             'react-hooks/rules-of-hooks': 'error',
             'react-hooks/exhaustive-deps': [
                 'error',
@@ -131,10 +135,15 @@ export const reactTsConfig = defineConfig([
                 },
             ],
 
-            // ESLint React Plugin
+            // ESLint React rules
+            // `@eslint-react` plugin is defined in `eslintReactPlugin.configs.recommended`
             '@eslint-react/no-context-provider': 'off',
+            // We have not switched to 19 yet! Remove in a major React upgrade (when we no longer support React <19)
+            '@eslint-react/no-use-context': 'off',
+            '@eslint-react/no-forward-ref': 'off',
 
-            // SonarJS
+            // SonarJS rules
+            // `sonarjs` plugin is defined in `sonarjsPlugin.configs.recommended`
             'sonarjs/new-cap': 'off',
             'sonarjs/deprecation': 'warn',
             'sonarjs/function-return-type': 'off',
@@ -142,11 +151,8 @@ export const reactTsConfig = defineConfig([
             'sonarjs/cognitive-complexity': 'error',
             'sonarjs/prefer-immediate-return': 'off',
             'sonarjs/todo-tag': 'warn',
-            // We do not switch to 19 yet! Remove in major React upgrade (with not support for lower version than react 19!)
-            '@eslint-react/no-use-context': 'off',
-            '@eslint-react/no-forward-ref': 'off',
 
-            // JSDoc
+            // JSDoc rules
             'jsdoc/require-description': 'error',
             'jsdoc/check-tag-names': [
                 'error',
@@ -157,12 +163,12 @@ export const reactTsConfig = defineConfig([
                         'remarks',
                         'example',
                         'experimental',
-                        // add other TypeDoc-specific tags you use
                     ],
                 },
             ],
 
-            // Unicorn
+            // Unicorn rules
+            // `unicorn` plugin is defined in `unicornPlugin.configs.recommended`
             'unicorn/no-array-callback-reference': 'off',
             'unicorn/prefer-module': 'off',
             'unicorn/no-null': 'off',
@@ -194,4 +200,3 @@ export const reactTsConfig = defineConfig([
         },
     },
 ]);
-

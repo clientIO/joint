@@ -13,6 +13,7 @@ export default defineConfig([
         // Typescript definition files
         files: ['**/*.d.ts'],
         rules: {
+            // `@typescript-eslint` plugin is defined in `tsConfig`
             '@typescript-eslint/no-explicit-any': ['off'],
         },
     },
@@ -44,13 +45,14 @@ export default defineConfig([
             },
         },
         rules: {
-            '@typescript-eslint/no-namespace':'off',
-            '@typescript-eslint/no-explicit-any':'off',
-            'no-unused-vars':'off',
-            'no-var': 'off',
-            'no-redeclare':'off',
             'no-console': 'off',
-            'import/no-unresolved':'off',
+            'no-redeclare': 'off',
+            'no-unused-vars': 'off',
+            'no-var': 'off',
+
+            // `@typescript-eslint` plugin is defined in `tsConfig`
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-namespace': 'off',
         },
     },
 ]);

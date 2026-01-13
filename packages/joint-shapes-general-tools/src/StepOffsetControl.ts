@@ -12,12 +12,14 @@ export interface StepOffsetControlOptions extends elementTools.Control.Options {
      *
      */
     defaultOffset?: boolean | number;
+
 }
 
 /**
  * @category Shape-Specific
  */
 export class StepOffsetControl extends elementTools.Control<StepOffsetControlOptions> {
+
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
@@ -50,4 +52,5 @@ export class StepOffsetControl extends elementTools.Control<StepOffsetControlOpt
         const offset = (defaultOffset === true) ? 0 : defaultOffset;
         this.element.offset = offset;
     }
+
 }
