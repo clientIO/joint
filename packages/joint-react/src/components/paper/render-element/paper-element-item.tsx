@@ -27,7 +27,6 @@ function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
   }
 
   const element = renderElement(cell);
-
   return createPortal(element, portalElement);
 }
 

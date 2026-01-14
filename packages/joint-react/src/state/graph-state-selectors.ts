@@ -94,13 +94,17 @@ export function defaultElementToGraphSelector<Element extends GraphElement>(
 ): dia.Cell.JSON {
   const { element } = options;
   const { type = REACT_TYPE, x, y, width, height } = element;
-
-  return {
+  const model :dia.Cell.JSON=  {
     type,
-    position: { x, y },
-    size: { width, height },
     ...element,
-  } as dia.Cell.JSON;
+  }
+  if (x !== undefined && y !== undefined) {
+    model.position = { x , y };
+  }
+  if (width !== undefined && height !== undefined) {
+    model.size = { width, height };
+  }
+  return model
 }
 
 /**

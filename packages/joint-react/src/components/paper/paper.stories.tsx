@@ -1,9 +1,10 @@
+/* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import {
   SimpleGraphDecorator,
@@ -359,6 +360,7 @@ export const WithOnClickColorChange: Story = {
     };
     return (
       <GraphProvider
+        areBatchUpdatesDisabled
         elements={[
           {
             width: 100,
@@ -395,6 +397,81 @@ export const WithOnClickColorChange: Story = {
         <Paper
           id="main"
           useHTMLOverlay
+          className={PAPER_CLASSNAME}
+          width="100%"
+          height={400}
+          renderElement={renderElement}
+        />
+      </GraphProvider>
+    );
+  },
+};
+
+export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
+  args: {},
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates interactive element updates using `useCellActions`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
+      },
+    },
+  },
+  render: () => {
+    const renderElement: RenderElement<SimpleElement> = ({ hoverColor }) => {
+      const ref = useRef<SVGRectElement>(null);
+      useNodeSize(ref, {
+        transform: ({ x, y, width, height, id }) => {
+          if (id === '1') {
+            return {
+              width,
+              height,
+              x: x + 200,
+              y: y + 200,
+            };
+          }
+          return {
+            width,
+            height,
+          };
+        },
+      });
+      return (
+        <>
+          <div></div>
+          <rect ref={ref} width={150} height={30} fill={hoverColor} rx={10} ry={10} />;
+        </>
+      );
+    };
+    return (
+      <GraphProvider
+        areBatchUpdatesDisabled
+        elements={[
+          {
+            id: '1',
+            label: 'Element 1',
+            hoverColor: 'red',
+          } as GraphElement & { label: string; hoverColor: string },
+          { id: '2', label: 'Element 1', hoverColor: 'red' } as GraphElement & {
+            label: string;
+            hoverColor: string;
+          },
+        ]}
+        links={[
+          {
+            id: 'l1',
+            source: '1',
+            target: '2',
+            attrs: {
+              line: {
+                stroke: PRIMARY,
+              },
+            },
+          },
+        ]}
+      >
+        <Paper
+          id="main"
           className={PAPER_CLASSNAME}
           width="100%"
           height={400}

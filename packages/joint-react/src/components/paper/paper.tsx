@@ -326,11 +326,11 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({
-      opacity: 1,
+      opacity: areElementsMeasured ? 1 : 0,
       position: 'relative',
       ...defaultStyle,
     }),
-    [defaultStyle]
+    [areElementsMeasured, defaultStyle]
   );
 
   return (

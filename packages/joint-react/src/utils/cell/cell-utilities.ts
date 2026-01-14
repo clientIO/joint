@@ -66,10 +66,6 @@ export function mapElementToGraph<T extends GraphElement>(element: T): CellOrJso
   } as dia.Cell.JSON;
 }
 
-export interface Ports {
-  readonly groups?: Record<string, dia.Element.PortGroup>;
-  readonly items?: dia.Element.Port[];
-}
 
 export type GraphCell<Element extends GraphElement = GraphElement> = Element | GraphLink;
 

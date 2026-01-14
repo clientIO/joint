@@ -3,7 +3,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { GraphLink, OnTransformElement } from '@joint/react';
+import type { GraphLink, TransformOptions } from '@joint/react';
 import {
   createElements,
   createLinks,
@@ -193,34 +193,36 @@ interface PropsWithClick {
 }
 type FlowchartNodeProps = InferElement<typeof flowchartNodes> & PropsWithClick;
 
+function transform(options: TransformOptions & { padding: number; cx: number; cy: number }) {
+  const { width: nodeWidth, height: nodeHeight, padding, cx, cy } = options;
+  const modelWidth = nodeWidth + 2 * padding;
+  const modelHeight = nodeHeight + 2 * padding;
+  return {
+    width: modelWidth,
+    height: modelHeight,
+    x: cx - modelWidth / 2,
+    y: cy - modelHeight / 2,
+  };
+}
 function DecisionNodeRaw(
   { label, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
   ref: React.ForwardedRef<SVGPolygonElement>
 ) {
   // If we define custom size, not defined in initial nodes, we have to use measure node
-
-  const transform: OnTransformElement = ({ width, height }) => {
-    const dimension = Math.max(width, height) + 2 * padding;
-    return {
-      width: dimension,
-      height: dimension,
-      x: cx,
-      y: cy,
-    };
-  };
+  const padding = 30;
 
   const textRef = useRef<SVGTextElement>(null);
-  const { width } = useNodeSize(textRef, { transform });
-  const size = width;
-  const half = size / 2;
-  const padding = 20;
+  const { width, height } = useNodeSize(textRef, {
+    transform: (options) => transform({ ...options, padding, cx, cy }),
+  });
+
   return (
     <>
       <polygon
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         ref={ref}
-        points={`${half},0 ${size},${half} ${half},${size} 0,${half}`}
+        points={`${width / 2},0 ${width},${height / 2} ${width / 2},${height} 0,${height / 2}`}
         fill="transparent"
         stroke={PRIMARY}
         strokeWidth="2"
@@ -230,8 +232,8 @@ function DecisionNodeRaw(
         ref={textRef}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        x={half}
-        y={half}
+        x={width / 2}
+        y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
         fontSize="10"
@@ -249,17 +251,10 @@ function StepNodeRaw(
 ) {
   const padding = 20;
 
-  const transform: OnTransformElement = ({ width, height }) => {
-    return {
-      width: width + 2 * padding,
-      height: height + 2 * padding,
-      x: cx,
-      y: cy,
-    };
-  };
-
   const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useNodeSize(textRef, { transform });
+  const { width, height } = useNodeSize(textRef, {
+    transform: (options) => transform({ ...options, padding, cx, cy }),
+  });
 
   return (
     <>

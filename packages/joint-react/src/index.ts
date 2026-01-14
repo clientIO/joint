@@ -6,13 +6,7 @@ export * from './components';
 export * from './hooks';
 
 export * from './utils/create';
-export {
-  mapElementFromGraph as elementFromGraph,
-  mapLinkFromGraph as linkFromGraph,
-  mapLinkToGraph as linkToGraph,
-  syncGraph,
-  type CellOrJsonCell,
-} from './utils/cell/cell-utilities';
+export * from './utils/cell/cell-utilities';
 export * from './utils/joint-jsx/jsx-to-markup';
 export * from './utils/link-utilities';
 export * from './utils/object-utilities';

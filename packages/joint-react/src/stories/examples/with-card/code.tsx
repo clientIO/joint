@@ -1,5 +1,7 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
+import type { OnTransformElement } from '@joint/react';
 import {
   createElements,
   createLinks,
@@ -30,34 +32,53 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function Card() {
-  const frameRef = useRef<SVGRectElement>(null);
-  const { width, height } = useNodeSize(frameRef);
+function Card({ label }: Readonly<Partial<BaseElementWithData>>) {
+  const contentRef = useRef<HTMLDivElement>(null);
   const gap = 10;
-  // avoid negative width and height
-  const imageWidth = Math.max(width - gap * 2, 0);
-  const imageHeight = Math.max(height - gap * 2, 0);
+  const imageWidth = 50;
+  const transformSize: OnTransformElement = useCallback(
+    ({ width: measuredWidth, height: measuredHeight }) => {
+      return {
+        width: gap + imageWidth + gap + measuredWidth + gap,
+        height: gap + Math.max(measuredHeight, imageWidth) + gap,
+      };
+    },
+    []
+  );
+  const { width, height } = useNodeSize(contentRef, {
+    transform: transformSize,
+  });
+
+  const imageHeight = height - 2 * gap;
   const iconURL = `https://placehold.co/${imageWidth}x${imageHeight}`;
-  const frameWidth = 80;
-  const frameHeight = 120;
+  const foWidth = width - 2 * gap - imageWidth - gap;
+  const foHeight = height - 2 * gap;
 
   return (
     <>
-      <rect
-        ref={frameRef}
-        width={frameWidth}
-        height={frameHeight}
-        fill="#333"
-        stroke="#eee"
-        strokeWidth="2"
-      />
+      <rect width={width} height={height} fill="#333" stroke="#eee" strokeWidth="2"></rect>
       <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />
+      <foreignObject x={gap + imageWidth + gap} y={gap} width={foWidth} height={foHeight}>
+        <div
+          ref={contentRef}
+          style={{
+            position: 'absolute',
+            color: '#eee',
+            maxWidth: '100px',
+            overflow: 'hidden',
+            overflowWrap: 'break-word',
+          }}
+        >
+          {label}
+        </div>
+      </foreignObject>
     </>
   );
 }
+
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(() => {
-    return <Card />;
+  const renderElement: RenderElement<BaseElementWithData> = useCallback((data) => {
+    return <Card label={data.label} />;
   }, []);
   return (
     <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
