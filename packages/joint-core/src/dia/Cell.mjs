@@ -100,7 +100,7 @@ export const Cell = Model.extend({
         }
 
         let defaultAttributes = {};
-        let attributes = cloneDeep(this.attributes);
+        const attributes = cloneDeep(this.attributes);
 
         if (ignoreDefaults === true) {
             // Compare all attributes with the defaults
@@ -747,9 +747,8 @@ export const Cell = Model.extend({
         }.bind(this);
 
         const { _scheduledTransitionIds } = this;
-        let initialId;
 
-        var initiator = (callback) => {
+        const initiator = (callback) => {
 
             if (_scheduledTransitionIds[transitionKey]) {
                 _scheduledTransitionIds[transitionKey] = without(_scheduledTransitionIds[transitionKey], initialId);
@@ -768,7 +767,7 @@ export const Cell = Model.extend({
 
         };
 
-        initialId = setTimeout(initiator, opt.delay, setter);
+        const initialId = setTimeout(initiator, opt.delay, setter);
 
         _scheduledTransitionIds[transitionKey] || (_scheduledTransitionIds[transitionKey] = []);
         _scheduledTransitionIds[transitionKey].push(initialId);
@@ -975,11 +974,11 @@ export const Cell = Model.extend({
 
         var Cell = this.extend(protoProps, staticProps);
         // es5 backward compatibility
-        /* eslint-disable no-undef */
+        // eslint-disable-next-line no-undef
         if (typeof joint !== 'undefined' && has(joint, 'shapes')) {
+            // eslint-disable-next-line no-undef
             setByPath(joint.shapes, type, Cell, '.');
         }
-        /* eslint-enable no-undef */
         return Cell;
     }
 });

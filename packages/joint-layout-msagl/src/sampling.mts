@@ -1,5 +1,5 @@
-import { dia } from '@joint/core';
-import { BezierSeg, Ellipse } from '@msagl/core';
+import type { dia } from '@joint/core';
+import type { BezierSeg, Ellipse } from '@msagl/core';
 
 export function sampleBezierSeg(bezierSeg: BezierSeg): dia.Point[] {
     const vertices = [];

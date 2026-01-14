@@ -71,7 +71,7 @@ function alignLine(line, type, offset = 0) {
 // Connection Points
 
 function anchorConnectionPoint(line, _view, _magnet, opt) {
-    let { offset, alignOffset, align } = opt;
+    const { offset, alignOffset, align } = opt;
     if (align) alignLine(line, align, alignOffset);
     return offsetPoint(line.end, line.start, offset);
 }

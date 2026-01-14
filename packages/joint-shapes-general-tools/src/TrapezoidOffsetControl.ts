@@ -1,5 +1,6 @@
-import { dia, elementTools, g } from '@joint/core';
-import { Trapezoid } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools, g } from '@joint/core';
+import type { Trapezoid } from '@joint/shapes-general';
 
 export interface TrapezoidOffsetControlOptions extends elementTools.Control.Options {
 
@@ -11,12 +12,14 @@ export interface TrapezoidOffsetControlOptions extends elementTools.Control.Opti
      *
      */
     defaultOffset?: boolean | number;
+
 }
 
 /**
  * @category Shape-Specific
  */
 export class TrapezoidOffsetControl extends elementTools.Control<TrapezoidOffsetControlOptions> {
+
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
@@ -50,4 +53,5 @@ export class TrapezoidOffsetControl extends elementTools.Control<TrapezoidOffset
         const offset = (defaultOffset === true) ? 0 : defaultOffset;
         this.element.offset = offset;
     }
+
 }

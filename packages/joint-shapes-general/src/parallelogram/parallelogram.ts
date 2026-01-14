@@ -19,7 +19,7 @@ interface ParallelogramAttributes extends dia.Element.Attributes {
 export class Parallelogram extends dia.Element<ParallelogramAttributes> {
     @Function()
     data(): string {
-        const { offset } = this
+        const { offset } = this;
 
         return `
             M 0 calc(h)
@@ -27,7 +27,7 @@ export class Parallelogram extends dia.Element<ParallelogramAttributes> {
             L calc(w) 0
             L calc(w-${offset}) calc(h)
             Z
-        `
+        `;
     }
 
     set offset(value: number) {

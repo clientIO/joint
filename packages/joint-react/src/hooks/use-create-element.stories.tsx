@@ -54,7 +54,7 @@ const meta: Meta<typeof Hook> = {
   },
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description: `\`useCreateElement\` is a hook to add elements to the graph. It returns a function to add an element. It must be used inside the GraphProvider.`,
+    description: '`useCreateElement` is a hook to add elements to the graph. It returns a function to add an element. It must be used inside the GraphProvider.',
     code: `import { useCreateElement } from '@joint/react'
 
 function Component() {

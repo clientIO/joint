@@ -8,11 +8,12 @@ export const HoverConnect = LinkHoverConnect.extend({
 
     getTrackPath() {
         const { relatedView: view } = this;
-        let {
+        const {
             useModelGeometry,
             relative,
-            trackPath = 'M 0 0 H calc(w) V calc(h) H 0 Z'
+            trackPath: initialTrackPath = 'M 0 0 H calc(w) V calc(h) H 0 Z'
         } = getToolOptions(this);
+        let trackPath = initialTrackPath;
         if (typeof trackPath === 'function') {
             trackPath = trackPath.call(this, view);
         }
@@ -30,7 +31,7 @@ export const HoverConnect = LinkHoverConnect.extend({
 
     getTrackMatrixAbsolute() {
         const { relatedView: view } = this;
-        let { useModelGeometry, rotate } = getToolOptions(this);
+        const { useModelGeometry, rotate } = getToolOptions(this);
         let bbox = getViewBBox(view, { useModelGeometry });
         const angle = view.model.angle();
         if (!rotate) bbox = bbox.bbox(angle);

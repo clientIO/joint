@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import { useEffect } from 'react';
 import type { GraphElement } from '../../types/element-types';
 import type { PaperProps } from './paper';
@@ -80,7 +79,6 @@ export function PaperCheck<ElementItem extends GraphElement = GraphElement>(
     if (warnings.length === 0) {
       return;
     }
-    // eslint-disable-next-line no-console
     console.warn(
       `[Paper] The following props were set directly on \n"<Paper>": "${warnings.join(', ')}".
 If you're using <PaperProvider>, these options should be defined there instead.

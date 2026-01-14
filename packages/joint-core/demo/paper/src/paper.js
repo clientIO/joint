@@ -1,3 +1,4 @@
+/* global $:readonly */
 var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 var paper = new joint.dia.Paper({
     el: $('#paper'),
@@ -561,4 +562,3 @@ $('#grid-type').on('change input', function() {
 });
 
 renderer.renderSettings($('#grid-type').val());
-

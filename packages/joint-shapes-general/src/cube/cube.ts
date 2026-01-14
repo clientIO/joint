@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
-import { Function, Model } from "@joint/decorators";
-import svg from "./cube.svg";
+import { Function, Model } from '@joint/decorators';
+import svg from './cube.svg';
 
 interface CubeAttributes extends dia.Element.Attributes {
     cornerX: number;

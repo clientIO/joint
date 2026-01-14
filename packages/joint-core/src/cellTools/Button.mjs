@@ -33,7 +33,9 @@ export const Button = ToolView.extend({
     },
     getElementMatrix() {
         const { relatedView: view } = this;
-        let { x = 0, y = 0, offset = {}, useModelGeometry, rotate, scale, relative } = getToolOptions(this);
+        const toolOptions = getToolOptions(this);
+        let { x = 0, y = 0 } = toolOptions;
+        const { useModelGeometry, offset = {}, rotate, scale, relative } = toolOptions;
         let bbox = getViewBBox(view, { useModelGeometry, relative });
         const angle = view.model.angle();
         if (!rotate) bbox = bbox.bbox(angle);

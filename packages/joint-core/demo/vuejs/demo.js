@@ -1,3 +1,4 @@
+/* global Vue:readonly */
 var DATA = {
     scale: 1,
     tasks: {

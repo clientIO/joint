@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { Meta, StoryObj } from '@storybook/react';
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useLinks } from './use-links';
@@ -16,7 +15,7 @@ const meta: Meta<typeof HookTester> = {
   decorators: [SimpleGraphDecorator],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description: `\`useLinks\` is a hook that returns the links of the current graph. It supports selector functions to get specific properties of the links and re-renders the component only when selected properties are changed.`,
+    description: '`useLinks` is a hook that returns the links of the current graph. It supports selector functions to get specific properties of the links and re-renders the component only when selected properties are changed.',
     code: `import { useLinks } from '@joint/react'
 
 function Component() {
@@ -60,4 +59,3 @@ function Component() {
 }`,
   description: 'Get all link IDs.',
 });
-/* eslint-enable react-perf/jsx-no-new-object-as-prop */

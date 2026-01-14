@@ -62,15 +62,12 @@
     "@msagl/core": "^1.1.23"
   },
   "devDependencies": {
-    "@eslint/js": "9.38.0",
+    "@joint/eslint-config": "workspace:*",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.1",
-    "@typescript-eslint/eslint-plugin": "8.46.2",
-    "@typescript-eslint/parser": "8.46.2",
     "concurrently": "^9.2.0",
-    "eslint": "9.38.0",
-    "globals": "16.0.0",
+    "eslint": "9.39.2",
     "karma": "^6.4.2",
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",

@@ -1,5 +1,6 @@
 import type { dia } from '@joint/core';
-import { Edge, GeomEdge } from '@msagl/core';
+import type { Edge } from '@msagl/core';
+import { GeomEdge } from '@msagl/core';
 
 /**
  * Extends the MSAGL GeomEdge class to add an ID property, which is used to identify the edge in the layout.

@@ -30,7 +30,7 @@ export class Step extends dia.Element<StepAttributes> {
             L calc(w) calc(0.5 * h)
             L calc(w - ${offset}) 0
             Z
-        `
+        `;
     }
 
     set offset(value: number) {

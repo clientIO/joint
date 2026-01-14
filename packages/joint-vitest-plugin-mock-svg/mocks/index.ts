@@ -167,7 +167,7 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'getBBox', {
  */
 Object.defineProperty(globalThis.SVGElement.prototype, 'checkVisibility', {
     writable: true,
-    value: function () {
+    value: function() {
         const bbox = this.getBBox();
         return bbox.width > 0 && bbox.height > 0;
     }

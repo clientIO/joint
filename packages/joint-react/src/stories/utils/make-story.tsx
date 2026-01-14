@@ -62,7 +62,6 @@ interface MakeRootDocsOptions {
  * @returns
  * An object containing the docs and source code.
  */
-// eslint-disable-next-line unicorn/prevent-abbreviations
 export function makeRootDocumentation(options: MakeRootDocsOptions) {
   const { code, apiURL, description = '' } = options;
 

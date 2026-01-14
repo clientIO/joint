@@ -1,4 +1,3 @@
-/* eslint-disable @eslint-react/dom/no-missing-button-type */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
@@ -19,8 +18,7 @@ const meta: Meta<typeof Hook> = {
   render: () => <RenderItemDecorator renderElement={Hook} />,
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description: `\`useUpdateElement\` is a hook to set element attributes. It returns a function to set the element attribute. It must be used inside the GraphProvider.
-    `,
+    description: '`useUpdateElement` is a hook to set element attributes. It returns a function to set the element attribute. It must be used inside the GraphProvider.',
     code: `import { useUpdateElement } from '@joint/react'
 
 function Component() {
@@ -53,13 +51,12 @@ export const Default: Story = makeStory<Story>({
   apiURL: API_URL,
   code: `import { useUpdateElement } from '@joint/react'
 
-
-  function Hook({  label , id }: SimpleElement) {
+  function Hook({ label, id }: SimpleElement) {
     const setLabel = useUpdateElement(id, 'label');
-  
+
     return (
       <HTMLNode className="node">
-        <button onClick={() => setLabel("Hello")>Set label</button>
+        <button onClick={() => setLabel("Hello")}>Set label</button>
         label: {label}
       </HTMLNode>
     );
@@ -97,7 +94,7 @@ export const SetPosition: Story = makeStory<Story>({
 
   function HookSetPosition({ label, id }: SimpleElement) {
     const set = useUpdateElement(id, 'position');
-  
+
     return (
       <HTMLNode className="node">
         <button

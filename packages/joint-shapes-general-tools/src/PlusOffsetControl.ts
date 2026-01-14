@@ -1,7 +1,9 @@
-import { dia, elementTools } from '@joint/core';
-import { Plus } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools } from '@joint/core';
+import type { Plus } from '@joint/shapes-general';
 
 export interface PlusOffsetControlOptions extends elementTools.Control.Options {
+
     /** The value of the Plus offset after reset.
      *
      * `Boolean` - When set to `false` the reset feature is disabled.
@@ -10,12 +12,14 @@ export interface PlusOffsetControlOptions extends elementTools.Control.Options {
      *
      */
     defaultOffset?: boolean | number;
+
 }
 
 /**
  * @category Shape-Specific
  */
 export class PlusOffsetControl extends elementTools.Control<PlusOffsetControlOptions> {
+
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
@@ -44,4 +48,5 @@ export class PlusOffsetControl extends elementTools.Control<PlusOffsetControlOpt
         const offset = defaultOffset === true ? 0 : defaultOffset;
         this.element.offset = offset;
     }
+
 }

@@ -131,7 +131,7 @@ const links = createLinks([
         strokeWidth: 2,
         strokeDasharray: '5,5',
         targetMarker: {
-          d: `M 0 0 L 8 4 L 8 -4 Z`, // Larger arrowhead
+          d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
         },
       },
     },
