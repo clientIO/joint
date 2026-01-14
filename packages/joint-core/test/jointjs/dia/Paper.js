@@ -3794,6 +3794,48 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 });
             });
         });
+
+        QUnit.module('requireView()', function() {
+
+            QUnit.test('inside of onViewUpdate() callback during async visibility check.', function(assert) {
+                // This is an edge case
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    async: true,
+                    viewManagement: {
+                        disposeHidden: true,
+                        initializeUnmounted: true
+                    },
+                    onViewUpdate: (view) => {
+                        paper.requireView(rect2);
+                    },
+                    cellVisibility: (cell) => {
+                        return cell.id === 'rect1';
+                    }
+                });
+
+                const rect1 = new joint.shapes.standard.Rectangle({
+                    id: 'rect1'
+                });
+
+                const rect2 = new joint.shapes.standard.Rectangle({
+                    id: 'rect2'
+                });
+
+                graph.addCells([rect1, rect2]);
+
+                paper.updateCellsVisibility();
+
+                assert.ok(paper.isCellVisible(rect1));
+                // The view for rect2 is required inside of onViewUpdate callback
+                assert.ok(paper.isCellVisible(rect2));
+
+                paper.remove();
+            });
+        });
     });
 
     QUnit.module('updateCellVisibility()', function(hooks) {
