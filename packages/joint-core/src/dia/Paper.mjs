@@ -719,6 +719,9 @@ export const Paper = View.extend({
         var position = opt.position;
         if (this.isAsync() || !isNumber(position)) {
             this.renderView(cell, opt);
+            // Wake up the paper in case it was idle
+            // When using initializeUnmounted: true the paper won't wake up by itself
+            this.wakeUp();
         } else {
             if (opt.maxPosition === position) this.freeze({ key: 'addCells' });
             this.renderView(cell, opt);

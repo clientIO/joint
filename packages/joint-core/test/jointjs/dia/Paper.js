@@ -2101,7 +2101,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             done();
         });
 
-
         [true, false].forEach((initializeUnmounted) => {
             QUnit.test(`all events are triggered on reset (initializeUnmounted: ${initializeUnmounted})`, async function(assert) {
                 const done = assert.async();
@@ -2171,6 +2170,48 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 done();
                 testPaper.remove();
             });
+        });
+
+        QUnit.test('wakeUp() after adding new cell to the graph with initializeUnmounted: true', async function(assert) {
+            const done = assert.async();
+            const testPaper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                viewManagement: {
+                    initializeUnmounted: true
+                },
+                sorting: Paper.sorting.APPROX
+            });
+
+            await onIdle(testPaper);
+
+            const rect = new joint.shapes.standard.Rectangle();
+
+            graph.addCell(rect);
+
+            // The paper should be woken up after adding the cell
+            assert.notOk(testPaper.isIdle(), 'is not idle after adding a cell');
+            if (testPaper.isIdle()) {
+                // Avoid timeout in case of failure
+                done();
+                testPaper.remove();
+                return;
+            }
+
+            assert.equal(cellNodesCount(testPaper), 0, 'cell is not rendered');
+            // Updates will be processed in the next animation frame due to initializeUnmounted: true
+            assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after adding a cell');
+
+            await onIdle(testPaper);
+
+            assert.ok(testPaper.isIdle(), 'is idle after wakeUp() and idle');
+            assert.equal(cellNodesCount(testPaper), 1, 'cell rendered after wakeUp() and idle');
+            assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after wakeUp() and idle');
+
+            done();
+            testPaper.remove();
         });
 
     });
