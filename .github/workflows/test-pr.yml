@@ -1,4 +1,4 @@
-# This GitHub Actions workflow runs tests for the `joint` repositoty.
+# This GitHub Actions workflow runs tests for the `joint` repository.
 name: Test PR
 
 # Trigger this workflow on:
@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Job to run tests on different platforms
+  # Job to run tests
   test:
     if: ${{ github.repository == 'clientIO/joint' }}
     runs-on: ubuntu-latest
@@ -57,3 +57,8 @@ jobs:
         id: test-joint
         continue-on-error: ${{ vars.ALLOW_FAILED_TESTS || false }}
         run: yarn run test
+
+      # Lint the joint project
+      - name: 'Lint joint'
+        id: lint-joint
+        run: yarn run lint
