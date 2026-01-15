@@ -26,6 +26,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Install dependencies for testing
+      # Fonts - util.breakText - international characters
+      - name: Install dependencies
+      run: |
+        sudo apt-get install -y \
+          fonts-arphic-ukai \
+          fonts-arphic-uming \
+          fonts-ipafont-mincho \
+          fonts-ipafont-gothic \
+          fonts-unfonts-core \
+          fonts-noto-core
+
       # Set up Node.js version for building
       - name: Setup Node.js v22
         id: setup-node
