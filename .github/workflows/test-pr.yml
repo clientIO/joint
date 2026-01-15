@@ -4,7 +4,7 @@ name: Test PR
 # Trigger this workflow on:
 on:
   push:
-    branches: [ "master", "github-action-test-pr" ]
+    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
@@ -16,11 +16,8 @@ concurrency:
 jobs:
   # Job to run tests on different platforms
   test:
-    strategy:
-      matrix:
-        runner-platform:
-          - ubuntu-latest
-    runs-on: ${{ matrix.runner-platform }}
+    if: ${{ github.repository == 'clientIO/joint' }}
+    runs-on: ubuntu-latest
     steps:
       # Checkout contents of joint repo
       - name: Checkout joint
