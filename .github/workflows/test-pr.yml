@@ -1,0 +1,78 @@
+# This GitHub Actions workflow runs tests for the `joint` repository.
+name: Test PR
+
+# Trigger this workflow on:
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+# Cancel in-progress runs on new commits
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job to run tests
+  test:
+    if: ${{ github.repository == 'clientIO/joint' }}
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout contents of joint repo
+      - name: Checkout joint
+        id: checkout-joint
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Install environment packages
+      # Fonts - util.breakText - international characters
+      - name: Install environment packages
+        id: install-environment-packages
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: |
+            fonts-arphic-ukai \
+            fonts-arphic-uming \
+            fonts-ipafont-mincho \
+            fonts-ipafont-gothic \
+            fonts-unfonts-core \
+            fonts-noto-core
+          version: 1.0
+
+      # Set up Node.js version for building
+      - name: Setup Node.js v22
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+
+      # Cache Yarn packages to speed up CI
+      - name: Cache Yarn
+        id: cache-yarn
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      # Install all dependencies from the joint repo
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install --immutable
+
+      # Build the joint project
+      - name: Prepare joint
+        id: prepare-joint
+        run: yarn run dist
+
+      # Test the joint project
+      - name: 'Test joint'
+        id: test-joint
+        run: yarn run test
+
+      # Lint the joint project
+      - name: 'Lint joint'
+        id: lint-joint
+        run: yarn run lint
