@@ -1,9 +1,10 @@
 {
   "name": "@joint/eslint-config",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "type": "module",
   "main": "./index.mjs",
   "module": "./index.mjs",
+  "private": true,
   "sideEffects": false,
   "devDependencies": {
     "@eslint-react/eslint-plugin": "2.5.5",
