@@ -26,17 +26,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Install dependencies for testing
+      # Install environment packages
       # Fonts - util.breakText - international characters
-      - name: Install dependencies
-        run: |
-          sudo apt-get install -y \
+      - name: Install environment packages
+        id: install-environment-packages
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: |
             fonts-arphic-ukai \
             fonts-arphic-uming \
             fonts-ipafont-mincho \
             fonts-ipafont-gothic \
             fonts-unfonts-core \
             fonts-noto-core
+          version: 1.0
 
       # Set up Node.js version for building
       - name: Setup Node.js v22
@@ -65,9 +68,8 @@ jobs:
         run: yarn run dist
 
       # Test the joint project
-      - name: 'Test joint (Allow failed tests: ${{ vars.ALLOW_FAILED_TESTS || false }})'
+      - name: 'Test joint'
         id: test-joint
-        continue-on-error: ${{ vars.ALLOW_FAILED_TESTS || false }}
         run: yarn run test
 
       # Lint the joint project
