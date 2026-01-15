@@ -3055,23 +3055,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-elk-ts@workspace:examples/layout-elk-ts":
-  version: 0.0.0-use.local
-  resolution: "@joint/demo-elk-ts@workspace:examples/layout-elk-ts"
-  dependencies:
-    "@joint/core": "workspace:^"
-    css-loader: "npm:3.5.3"
-    elkjs: "npm:^0.11.0"
-    sass-loader: "npm:8.0.2"
-    style-loader: "npm:1.2.1"
-    ts-loader: "npm:^9.2.5"
-    typescript: "npm:5.8.2"
-    webpack: "npm:5.98.0"
-    webpack-cli: "npm:6.0.1"
-    webpack-dev-server: "npm:5.2.0"
-  languageName: unknown
-  linkType: soft
-
 "@joint/demo-fta-js@workspace:examples/fta-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-fta-js@workspace:examples/fta-js"
@@ -3103,6 +3086,27 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-joint-react@workspace:examples/joint-react":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-joint-react@workspace:examples/joint-react"
+  dependencies:
+    "@eslint/js": "npm:9.39.2"
+    "@joint/react": "workspace:^"
+    "@types/react": "npm:^19.1.2"
+    "@types/react-dom": "npm:^19.1.2"
+    "@vitejs/plugin-react": "npm:^4.4.1"
+    eslint: "npm:9.39.2"
+    eslint-plugin-react-hooks: "npm:7.0.1"
+    eslint-plugin-react-refresh: "npm:0.4.26"
+    globals: "npm:17.0.0"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
+    typescript: "npm:~5.8.3"
+    typescript-eslint: "npm:8.53.0"
+    vite: "npm:^6.3.5"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-layout-directed-graph@workspace:examples/layout-directed-graph":
   version: 0.0.0-use.local
   resolution: "@joint/demo-layout-directed-graph@workspace:examples/layout-directed-graph"
@@ -3128,6 +3132,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-layout-elk-ts@workspace:examples/layout-elk-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-layout-elk-ts@workspace:examples/layout-elk-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    css-loader: "npm:3.5.3"
+    elkjs: "npm:^0.11.0"
+    sass-loader: "npm:8.0.2"
+    style-loader: "npm:1.2.1"
+    ts-loader: "npm:^9.2.5"
+    typescript: "npm:5.8.2"
+    webpack: "npm:5.98.0"
+    webpack-cli: "npm:6.0.1"
+    webpack-dev-server: "npm:5.2.0"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-layout-msagl@workspace:examples/layout-msagl":
   version: 0.0.0-use.local
   resolution: "@joint/demo-layout-msagl@workspace:examples/layout-msagl"
@@ -3144,9 +3165,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-libavoid-js@workspace:examples/libavoid":
+"@joint/demo-libavoid@workspace:examples/libavoid":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-libavoid-js@workspace:examples/libavoid"
+  resolution: "@joint/demo-libavoid@workspace:examples/libavoid"
   dependencies:
     "@joint/core": "workspace:^"
     copy-webpack-plugin: "npm:5.1.1"
@@ -3192,9 +3213,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-offscreen-rendering-ts@workspace:examples/offscreen-rendering":
+"@joint/demo-offscreen-rendering@workspace:examples/offscreen-rendering":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-offscreen-rendering-ts@workspace:examples/offscreen-rendering"
+  resolution: "@joint/demo-offscreen-rendering@workspace:examples/offscreen-rendering"
   dependencies:
     "@joint/core": "workspace:^"
     css-loader: "npm:3.5.3"
@@ -15860,27 +15881,6 @@ __metadata:
   checksum: 10/1067ff8ce02221faac5a842116ed0ec79a53312a111d0bf8342a80bd02c0a3fdf0b8449694a65947db0a3e8420e8b326dffb489c7dd5866efc380c0d1708a707
   languageName: node
   linkType: hard
-
-"joint-react@workspace:examples/joint-react":
-  version: 0.0.0-use.local
-  resolution: "joint-react@workspace:examples/joint-react"
-  dependencies:
-    "@eslint/js": "npm:9.39.2"
-    "@joint/react": "workspace:^"
-    "@types/react": "npm:^19.1.2"
-    "@types/react-dom": "npm:^19.1.2"
-    "@vitejs/plugin-react": "npm:^4.4.1"
-    eslint: "npm:9.39.2"
-    eslint-plugin-react-hooks: "npm:7.0.1"
-    eslint-plugin-react-refresh: "npm:0.4.26"
-    globals: "npm:17.0.0"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
-    typescript: "npm:~5.8.3"
-    typescript-eslint: "npm:8.53.0"
-    vite: "npm:^6.3.5"
-  languageName: unknown
-  linkType: soft
 
 "joint@workspace:.":
   version: 0.0.0-use.local
