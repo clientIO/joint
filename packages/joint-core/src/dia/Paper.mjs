@@ -2033,6 +2033,10 @@ export const Paper = View.extend({
         var updates = this._updates;
         var unmountedList = updates.unmountedList;
         for (var i = 0, n = Math.min(unmountedList.length, batchSize); i < n; i++) {
+            // stop if there are no more unmounted views
+            // this can happen when another view was mounted in the onViewUpdate() callback
+            if (unmountedList.length === 0) break;
+
             const { key: cid } = unmountedList.peekHead();
             const view = viewsRegistry[cid] || this._viewPlaceholders[cid];
             if (!view) {
