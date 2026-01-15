@@ -159,4 +159,4 @@ The output for all unit tests will be saved in the `packages/joint-core/coverage
 
 The *JointJS* library is licensed under the [Mozilla Public License 2.0](https://github.com/clientIO/joint/blob/master/LICENSE).
 
-Copyright © 2013-2025 client IO
+Copyright © 2013-2026 client IO
