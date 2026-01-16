@@ -1,4 +1,11 @@
-import { useLayoutEffect, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  startTransition,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import type { ExternalStoreLike } from '../utils/create-state';
@@ -98,12 +105,16 @@ export function useStateToExternalStore<Element extends GraphElement, Link exten
         });
         snapshot.current = updatedSnapshot;
         // Notify subscribers immediately (synchronous, like createState)
+        notifySubscribers.current();
 
-        // Then trigger React state updates which will cause re-render
+        // Then trigger React state updates wrapped in startTransition for better performance
+        // This keeps the UI responsive during large updates (e.g., 450 nodes)
         // When new props come in, useLayoutEffect will see they match snapshot.current
         // and won't notify again (avoiding double notifications)
-        onElementsChange?.(updatedSnapshot.elements);
-        onLinksChange?.(updatedSnapshot.links);
+        startTransition(() => {
+          onElementsChange?.(updatedSnapshot.elements);
+          onLinksChange?.(updatedSnapshot.links);
+        });
       },
     };
   }, [hasOnChange, onElementsChange, onLinksChange]);

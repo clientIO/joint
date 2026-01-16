@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { Mask } from './mask';
 import { PRIMARY, SECONDARY } from 'storybook-config/theme';
-import { forwardRef, type PropsWithChildren } from 'react';
 import { useElement } from '../../hooks';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
@@ -68,11 +67,10 @@ const RectElement = forwardRef((props, ref) => (
 };
 
 // we need to use forwardRef to pass the ref to the rect element, so highlighter can use it
-function RectRenderComponent(_: PropsWithChildren, ref: React.Ref<SVGRectElement>) {
+function RectRender() {
   const { width, height } = useElement();
-  return <rect ref={ref} rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
+  return <rect rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
 }
-const RectRender = forwardRef(RectRenderComponent);
 
 export default meta;
 
@@ -112,6 +110,24 @@ export const WithSVGProps = makeStory<Story>({
     strokeWidth: 5,
     strokeLinejoin: 'bevel',
     children: <RectRender />,
+    isHidden: false,
+  },
+
+  apiURL: API_URL,
+  description: 'Mask highlighter with SVG Element props.',
+  code: `<Highlighter.Mask padding={10} stroke={SECONDARY} strokeWidth={5} strokeLinejoin="bevel">
+  <rect rx={10} ry={10}  width={width} height={height}fill={"blue"} />
+</Highlighter.Mask>`,
+});
+
+export const WithPolygonChildren = makeStory<Story>({
+  args: {
+    padding: 10,
+    stroke: SECONDARY,
+    strokeWidth: 5,
+    // start at 0,0 and go to 100,0 and then 100,100 and then 0,100
+    // <> shape
+    children: <polygon points="150,15 258,77 258,202 150,265 42,202 42,77" fill={PRIMARY} />,
     isHidden: false,
   },
 

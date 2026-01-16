@@ -34,7 +34,7 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RotatableNode({ label, id, width, height }: Readonly<BaseElementWithData>) {
+function RotatableNode({ label, id }: Readonly<BaseElementWithData>) {
   const paper = usePaper();
   const { set } = useCellActions();
 
@@ -77,7 +77,7 @@ function RotatableNode({ label, id, width, height }: Readonly<BaseElementWithDat
   );
 
   const elementRef = useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  const { width, height } = useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div ref={elementRef} className="node">

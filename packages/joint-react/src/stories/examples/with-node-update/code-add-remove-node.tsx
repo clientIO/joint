@@ -48,11 +48,11 @@ function ElementInput({ id, label }: BaseElementWithData) {
   );
 }
 
-function RenderElement({ label, width, height }: BaseElementWithData) {
+function RenderElement({ label }: BaseElementWithData) {
   const graph = useGraph();
   const id = useCellId();
   const elementRef = useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  const { width, height } = useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
       <div ref={elementRef} className="node flex flex-1 justify-center items-center w-30">

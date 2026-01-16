@@ -1,3 +1,4 @@
+/* eslint-disable prefer-destructuring */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-shadow */
 /* eslint-disable @eslint-react/no-array-index-key */
@@ -143,9 +144,6 @@ function MessageComponent({
   title,
   description,
   inputText,
-  width,
-  height,
-  isSelected,
 }: ElementWithSelected<MessageElement>) {
   let iconContent;
   let titleText;
@@ -166,44 +164,35 @@ function MessageComponent({
   const id = useCellId();
   const { set } = useCellActions<MessageElement>();
   const elementRef = React.useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  const { width, height } = useNodeSize(elementRef);
   return (
-    <Highlighter.Stroke
-      padding={10}
-      rx={5}
-      ry={5}
-      strokeWidth={3}
-      stroke={LIGHT}
-      isHidden={!isSelected}
-    >
-      <foreignObject width={width} height={height} overflow="visible">
-        <div
-          ref={elementRef}
-          className="flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm"
-        >
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-row gap-2 items-start">
-              <div className="text-2xl">{iconContent}</div>
-              <div className="text-lg ml-2">
-                {titleText}
-                <div className="text-sm mt-1">{description}</div>
-              </div>
+    <foreignObject width={width} height={height} overflow="visible" magnet="passive">
+      <div
+        ref={elementRef}
+        className="flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm"
+      >
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row gap-2 items-start">
+            <div className="text-2xl">{iconContent}</div>
+            <div className="text-lg ml-2">
+              {titleText}
+              <div className="text-sm mt-1">{description}</div>
             </div>
-            {/* Divider */}
-            <div className="border-1 border-dashed border-rose-white mt-2 opacity-10" />
-            <input
-              type="text"
-              value={inputText}
-              className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
-              placeholder="Type here..."
-              onChange={({ target: { value } }) => {
-                set(id, (previous) => ({ ...previous, inputText: value }));
-              }}
-            />
           </div>
+          {/* Divider */}
+          <div className="border-1 border-dashed border-rose-white mt-2 opacity-10" />
+          <input
+            type="text"
+            value={inputText}
+            className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
+            placeholder="Type here..."
+            onChange={({ target: { value } }) => {
+              set(id, (previous) => ({ ...previous, inputText: value }));
+            }}
+          />
         </div>
-      </foreignObject>
-    </Highlighter.Stroke>
+      </div>
+    </foreignObject>
   );
 }
 
@@ -495,8 +484,11 @@ function Main() {
         <Paper
           ref={paperCtxRef}
           {...PAPER_PROPS}
-          // eslint-disable-next-line sonarjs/pseudo-random
-          defaultLink={() => new shapes.standard.Link({ ...links[0], id: Math.random() })}
+          defaultLink={() => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id, ...rest } = links[0];
+            return new shapes.standard.Link(rest);
+          }}
           width="100%"
           renderElement={renderElement}
           className={PAPER_CLASSNAME}

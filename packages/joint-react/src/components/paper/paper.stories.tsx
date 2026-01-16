@@ -1,4 +1,3 @@
- 
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
@@ -483,4 +482,3 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
     );
   },
 };
-

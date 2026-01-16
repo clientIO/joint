@@ -12,12 +12,21 @@ import {
   defaultLinkToGraphSelector,
   defaultLinkFromGraphSelector,
 } from './graph-state-selectors';
+import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equality';
 
 /**
  * Interface for state synchronization instance.
  * Provides methods to subscribe to cell changes and clean up resources.
  */
 export interface StateSync {
+  /**
+   * Subscribes to cell change events in the graph - but this happened only when the graph is updated from the external store.
+   * The callback receives change information and should return a cleanup function.
+   * @param callback - Function that receives change options and returns a cleanup function
+   * @returns Unsubscribe function to remove the listener
+   */
+  subscribeToGraphChange: (callback: (change: OnChangeOptions) => () => void) => () => void;
+
   /**
    * Subscribes to cell change events in the graph.
    * The callback receives change information and should return a cleanup function.
@@ -138,9 +147,25 @@ export function updateGraph<
     })
   );
 
-  // Check if graph is already in sync with provided state
-  if (util.isEqual(elements, graphElements) && util.isEqual(links, graphLinks)) {
-    return false;
+  // Fast path: Check if arrays have same length first
+  if (elements.length !== graphElements.length || links.length !== graphLinks.length) {
+    // Length mismatch, need to sync
+  } else if (isPositionOnlyUpdate(graphElements as Element[], elements as Element[])) {
+    // Position-only update: use fast equality check
+    if (
+      fastElementArrayEqual(elements as Element[], graphElements as Element[]) &&
+      fastElementArrayEqual(links as Link[], graphLinks as Link[])
+    ) {
+      return false;
+    }
+  } else {
+    // Check if graph is already in sync with provided state using fast equality
+    if (
+      fastElementArrayEqual(elements as Element[], graphElements as Element[]) &&
+      fastElementArrayEqual(links as Link[], graphLinks as Link[])
+    ) {
+      return false;
+    }
   }
 
   // Build items array using selectors
@@ -236,7 +261,7 @@ export function stateSync<
         type: 'reset',
         cells: allCells,
       };
-      for (const listener of cellChangeListeners) {
+      for (const listener of graphChangeListeners) {
         listener(resetChange);
       }
     } else {
@@ -244,7 +269,7 @@ export function stateSync<
       for (const id of ids) {
         const change = pendingChanges.get(id);
         if (change) {
-          for (const listener of cellChangeListeners) {
+          for (const listener of graphChangeListeners) {
             listener(change);
           }
         }
@@ -270,7 +295,10 @@ export function stateSync<
       const snapshot = store.getSnapshot();
       const elements = removeDeepReadOnly(snapshot.elements);
       const links = removeDeepReadOnly(snapshot.links);
-      const isEqual = util.isEqual(elements, graphElements) && util.isEqual(links, graphLinks);
+      // Use fast equality check for better performance
+      const isEqual =
+        fastElementArrayEqual(elements as Element[], graphElements as Element[]) &&
+        fastElementArrayEqual(links as Link[], graphLinks as Link[]);
       if (isEqual) return;
 
       return;
@@ -420,6 +448,7 @@ export function stateSync<
     }
   };
 
+  const graphChangeListeners = new Set<(change: OnChangeOptions) => () => void>();
   const cellChangeListeners = new Set<(change: OnChangeOptions) => () => void>();
 
   /**
@@ -430,6 +459,13 @@ export function stateSync<
    * @param callback - The callback function that receives change options and returns a cleanup function
    * @returns A function to unsubscribe from cell changes
    */
+  function subscribeToGraphChange(callback: (change: OnChangeOptions) => () => void) {
+    graphChangeListeners.add(callback);
+    return () => {
+      graphChangeListeners.delete(callback);
+    };
+  }
+
   function subscribeToCellChange(callback: (change: OnChangeOptions) => () => void) {
     cellChangeListeners.add(callback);
     return () => {
@@ -438,6 +474,9 @@ export function stateSync<
   }
   // Here we handle graph internal changes, it's skipped when there is an active batch
   const destroy = listenToCellChange(graph, (change) => {
+    for (const listener of cellChangeListeners) {
+      listener(change);
+    }
     // Store change for later processing in onIncrementalChange
     if (change.type === 'reset') {
       hasReset = true;
@@ -498,7 +537,7 @@ export function stateSync<
           type: 'reset',
           cells: allCells,
         };
-        for (const listener of cellChangeListeners) {
+        for (const listener of graphChangeListeners) {
           listener(resetChange);
         }
         hasReset = false;
@@ -508,7 +547,7 @@ export function stateSync<
         for (const id of currentIds) {
           const change = pendingChanges.get(id);
           if (change) {
-            for (const listener of cellChangeListeners) {
+            for (const listener of graphChangeListeners) {
               listener(change);
             }
           }
@@ -626,7 +665,7 @@ export function stateSync<
   graph.on(BATCH_START_EVENT_NAME, onBatchStart);
   graph.on(BATCH_STOP_EVENT_NAME, onBatchStop);
   const cleanup = () => {
-    cellChangeListeners.clear();
+    graphChangeListeners.clear();
     destroy();
     clean();
     graph.off(BATCH_START_EVENT_NAME, onBatchStart);
@@ -638,6 +677,7 @@ export function stateSync<
   // Then, sync store to graph
   updateGraphInternal();
   return {
+    subscribeToGraphChange,
     subscribeToCellChange,
     cleanup,
   };

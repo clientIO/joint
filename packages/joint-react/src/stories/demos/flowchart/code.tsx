@@ -375,30 +375,30 @@ function Main() {
       className={PAPER_CLASSNAME}
       renderElement={RenderFlowchartNode}
       interactive={{ linkMove: false }}
-      defaultConnectionPoint={{
-        name: 'anchor',
-        args: {
-          offset: unit * 2,
-          extrapolate: true,
-          useModelGeometry: true,
-        },
-      }}
-      defaultAnchor={{
-        name: 'midSide',
-        args: {
-          useModelGeometry: true,
-        },
-      }}
-      defaultRouter={{
-        name: 'rightAngle',
-        args: {
-          margin: unit * 7,
-        },
-      }}
-      defaultConnector={{
-        name: 'straight',
-        args: { cornerType: 'line', cornerPreserveAspectRatio: true },
-      }}
+      // defaultConnectionPoint={{
+      //   name: 'anchor',
+      //   args: {
+      //     offset: unit * 2,
+      //     extrapolate: true,
+      //     useModelGeometry: true,
+      //   },
+      // }}
+      // defaultAnchor={{
+      //   name: 'midSide',
+      //   args: {
+      //     useModelGeometry: true,
+      //   },
+      // }}
+      // defaultRouter={{
+      //   name: 'rightAngle',
+      //   args: {
+      //     margin: unit * 7,
+      //   },
+      // }}
+      // defaultConnector={{
+      //   name: 'straight',
+      //   args: { cornerType: 'line', cornerPreserveAspectRatio: true },
+      // }}
     />
   );
 }

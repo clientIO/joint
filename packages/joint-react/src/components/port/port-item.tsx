@@ -9,6 +9,7 @@ import { createElements } from '../../utils/create';
 import { PaperStoreContext } from '../../context';
 import { useGraphInternalStoreSelector } from '../../hooks/use-graph-store-selector';
 import { PORTAL_SELECTOR } from '../../store';
+import { clearView } from '../../utils/clear-view';
 
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
 
@@ -21,7 +22,7 @@ export interface PortItemProps {
    * Magnet - define if the port is passive or not. It can be set to any value inside the paper.
    * @default true
    */
-  readonly magnet?: string;
+  readonly magnet?: 'passive' | 'true' | 'false';
   /**
    * The id of the port. It must be unique within the cell.
    */
@@ -80,7 +81,7 @@ function Component(props: PortItemProps) {
     if (!id) {
       throw new Error(`Port id is required`);
     }
-  
+
     const alreadyExists = cell.hasPort(id);
     if (alreadyExists) {
       throw new Error(`Port with id ${id} already exists in cell ${cellId}`);
@@ -121,31 +122,17 @@ function Component(props: PortItemProps) {
       return;
     }
 
-    const elementView = paper.findViewByModel(cellId);
-
-    elementView.cleanNodesCache();
-
-    for (const link of graph.getConnectedLinks(elementView.model)) {
-      const target = link.target();
-      const source = link.source();
-      const isElementLink = target.id === cellId || source.id === cellId;
-      if (!isElementLink) {
-        continue;
-      }
-
-      const isPortLink = target.port === id || source.port === id;
-      if (!isPortLink) {
-        continue;
-      }
-
-      const linkView = link.findView(paper);
-      // @ts-expect-error we use private jointjs api method, it throw error here.
-      linkView._sourceMagnet = null;
-      // @ts-expect-error we use private jointjs api method, it throw error here.
-      linkView._targetMagnet = null;
-      // @ts-expect-error we use private jointjs api method, it throw error here.
-      linkView.requestConnectionUpdate({ async: false });
-    }
+    clearView({
+      cellId,
+      graph,
+      paper,
+      onValidateLink: (link) => {
+        const target = link.target();
+        const source = link.source();
+        const isPortLink = target.port === id || source.port === id;
+        return isPortLink;
+      },
+    });
   }, [cellId, graph, id, paper, portalNode]);
 
   if (!portalNode) {

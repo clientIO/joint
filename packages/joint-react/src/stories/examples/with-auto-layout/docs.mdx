@@ -1,7 +1,6 @@
 import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
-import CodeWithBuildInShapes from './code-with-build-in-shapes?raw';
 import {getAPIPropsLink} from '../../utils/get-api-documentation-link'
 
 <Meta of={Stories} />
@@ -43,19 +42,7 @@ ${Code}
 - **Layout Algorithm**: Uses \`@joint/layout-directed-graph\` to position elements
 - **Async Layout**: Layout runs after React rendering completes
 
-## Demo with Built-in Shapes
 
-This variant shows how automatic layout works with JointJS built-in shapes:
-
-<Canvas of={Stories.WithBuildInShapes} />
-
-## Code with Built-in Shapes
-
-<Markdown>
-{`\`\`\`tsx
-${CodeWithBuildInShapes}
-\`\`\``}
-</Markdown>
 
 ## Best Practices
 

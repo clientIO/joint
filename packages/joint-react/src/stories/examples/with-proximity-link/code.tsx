@@ -106,7 +106,7 @@ function createProximityLinks(
   }
 }
 
-function ResizableNode({ id, label, width, height }: Readonly<BaseElementWithData>) {
+function ResizableNode({ id, label }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const managedLinksRef = useRef<Set<string>>(new Set());
 
@@ -147,7 +147,7 @@ function ResizableNode({ id, label, width, height }: Readonly<BaseElementWithDat
     [id]
   );
 
-  useNodeSize(nodeRef);
+  const { width, height } = useNodeSize(nodeRef);
   return (
     <foreignObject width={width} height={height}>
       <div ref={nodeRef} className="node">

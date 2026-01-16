@@ -22,7 +22,7 @@ const initialElements = createElements([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ResizableNode({ id, label, width, height }: Readonly<BaseElementWithData>) {
+function ResizableNode({ id, label }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const graph = useGraph();
   const element = graph.getCell(id) as dia.Element;
@@ -31,7 +31,7 @@ function ResizableNode({ id, label, width, height }: Readonly<BaseElementWithDat
     return graph.findElementsUnderElement(element).length > 0;
   });
 
-  useNodeSize(nodeRef);
+  const { width, height } = useNodeSize(nodeRef);
 
   return (
     <foreignObject width={width} height={height}>

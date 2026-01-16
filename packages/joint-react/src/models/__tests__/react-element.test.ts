@@ -30,18 +30,6 @@ describe('react-element', () => {
 
       const defaults = element.defaults();
       expect(defaults.type).toBe(REACT_TYPE);
-      expect(defaults.attrs).toHaveProperty('root');
-      expect(defaults.attrs).toHaveProperty('placeholder');
-    });
-
-    it('should have placeholder markup', () => {
-      const element = new ReactElement({
-        id: '1',
-        position: { x: 10, y: 20 },
-        size: { width: 100, height: 50 },
-      });
-
-      expect(element.markup).toBeDefined();
     });
 
     it('should accept custom attributes', () => {

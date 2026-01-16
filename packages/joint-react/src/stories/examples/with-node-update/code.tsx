@@ -45,9 +45,9 @@ function ElementInput({ id, label }: BaseElementWithData) {
   );
 }
 
-function RenderElement({ label, width, height }: BaseElementWithData) {
+function RenderElement({ label }: BaseElementWithData) {
   const elementRef = useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  const { width, height } = useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
       <div ref={elementRef} className="node">

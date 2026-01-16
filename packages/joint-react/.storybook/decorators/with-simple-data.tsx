@@ -8,7 +8,6 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  useElement,
   useNodeSize,
   type InferElement,
 } from '@joint/react';
@@ -125,9 +124,9 @@ export function SimpleRenderItemDecorator(Story: StoryFunction, { args }: StoryC
 }
 
 export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
-  const { width, height } = useElement();
   const elementRef = useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  const { width, height } = useNodeSize(elementRef);
+
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div ref={elementRef} {...props} />

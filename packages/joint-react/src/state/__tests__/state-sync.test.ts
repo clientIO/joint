@@ -427,7 +427,7 @@ describe('stateSync', () => {
 
     // eslint-disable-next-line unicorn/consistent-function-scoping
     const cellChangeCallback = jest.fn(() => () => {});
-    const unsubscribe = sync.subscribeToCellChange(cellChangeCallback);
+    const unsubscribe = sync.subscribeToGraphChange(cellChangeCallback);
 
     // Add a cell to trigger change
     const element = new dia.Element({
@@ -734,7 +734,7 @@ describe('stateSync', () => {
         return () => {};
       });
 
-      sync.subscribeToCellChange(cellChangeCallback);
+      sync.subscribeToGraphChange(cellChangeCallback);
 
       // Add multiple cells in quick succession
       const element1 = new dia.Element({
@@ -805,7 +805,7 @@ describe('stateSync', () => {
         return () => {};
       });
 
-      sync.subscribeToCellChange(cellChangeCallback);
+      sync.subscribeToGraphChange(cellChangeCallback);
 
       // Modify a cell in the graph
       const cell = graph.getCell('1');
@@ -846,7 +846,7 @@ describe('stateSync', () => {
         return () => {};
       });
 
-      sync.subscribeToCellChange(cellChangeCallback);
+      sync.subscribeToGraphChange(cellChangeCallback);
 
       // Update state - this triggers sync from state to graph
       // The sync happens in a batch, and listeners should be called in onBatchStop
@@ -910,7 +910,7 @@ describe('stateSync', () => {
         return () => {};
       });
 
-      sync.subscribeToCellChange(cellChangeCallback);
+      sync.subscribeToGraphChange(cellChangeCallback);
 
       // Wait for initial sync to complete
       expect(graph.getElements()).toHaveLength(1);
@@ -966,7 +966,7 @@ describe('stateSync', () => {
         return () => {};
       });
 
-      sync.subscribeToCellChange(cellChangeCallback);
+      sync.subscribeToGraphChange(cellChangeCallback);
 
       // Add a cell
       const element = new dia.Element({

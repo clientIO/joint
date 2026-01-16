@@ -31,7 +31,6 @@ import { PaperHTMLContainer } from './render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext, PaperStoreContext } from '../../context';
 import { HTMLElementItem, SVGElementItem } from './render-element/paper-element-item';
 import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/handle-paper-events';
-import { REACT_TYPE, ReactElement } from '../../models/react-element';
 import type { PaperStore } from '../../store';
 import {
   useAreElementsMeasured,
@@ -82,8 +81,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   } = props;
 
   const areElementsMeasured = useAreElementsMeasured();
-  const elements = useElements();
-  useDebugValue(elements);
+  const elementsState = useElements();
+  useDebugValue(elementsState);
   const reactId = useId();
   const id = props.id ?? `paper-${reactId}`;
   const { overWrite } = useContext(PaperConfigContext) ?? {};
@@ -93,8 +92,9 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   );
 
   const { addPaper, graph, getPaperStore } = useGraphStore();
+
   const paperStore = getPaperStore(id) ?? null;
-  const { paper } = paperStore ?? {};
+  const { paper, ReactElementView } = paperStore ?? {};
   const paperHTMLElement = useRef<HTMLDivElement | null>(null);
   const measured = useRef(false);
   const previousSizesRef = useRef<number[][]>([]);
@@ -210,10 +210,9 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     if (!paper) return;
 
     // Build current list of [currWidth, currHeight] to avoid shadowing outer scope variables
-    const currentSizes = elements.map(({ width: elementWidth = 0, height: elementHeight = 0 }) => [
-      elementWidth,
-      elementHeight,
-    ]);
+    const currentSizes = elementsState.map(
+      ({ width: elementWidth = 0, height: elementHeight = 0 }) => [elementWidth, elementHeight]
+    );
     const previousSizes = previousSizesRef.current;
     let changed = false;
 
@@ -239,7 +238,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     // store for next time
     previousSizesRef.current = currentSizes;
     onElementsSizeChange({ paper, graph: paper.model });
-  }, [areElementsMeasured, elements, isReady, onElementsSizeChange, paper]);
+  }, [areElementsMeasured, elementsState, isReady, onElementsSizeChange, paper]);
 
   useLayoutEffect(() => {
     if (!paper) {
@@ -266,51 +265,67 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph, isReady, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
 
+  const renderedElements = useMemo(() => {
+    if (!ReactElementView) {
+      return null;
+    }
+
+    if (!hasRenderElement) {
+      return null;
+    }
+    return elementsState.map((elementState) => {
+      if (!elementState.id) {
+        return null;
+      }
+      const elementView = paperElementViews[elementState.id];
+      if (!elementView) {
+        return null;
+      }
+
+      const SVG = elementView.el;
+      if (!SVG) {
+        return null;
+      }
+
+      const isReactElement = elementView instanceof ReactElementView;
+      if (!isReactElement) {
+        return null;
+      }
+
+      return (
+        <CellIdContext.Provider key={elementState.id} value={elementState.id}>
+          {useHTMLOverlay && HTMLRendererContainer ? (
+            <HTMLElementItem
+              {...elementState}
+              portalElement={HTMLRendererContainer}
+              renderElement={renderElement}
+            />
+          ) : (
+            <SVGElementItem
+              {...elementState}
+              portalElement={SVG as SVGAElement}
+              renderElement={renderElement}
+            />
+          )}
+        </CellIdContext.Provider>
+      );
+    });
+  }, [
+    hasRenderElement,
+    elementsState,
+    paperElementViews,
+    ReactElementView,
+    useHTMLOverlay,
+    HTMLRendererContainer,
+    renderElement,
+  ]);
+
   const content = (
     <>
       {hasRenderElement && useHTMLOverlay && (
         <PaperHTMLContainer onSetElement={setHTMLRendererContainer} />
       )}
-      {hasRenderElement &&
-        elements.map((element) => {
-          if (!element.id) {
-            return null;
-          }
-          const elementView = paperElementViews[element.id];
-          if (!elementView) {
-            return null;
-          }
-
-          const SVG = elementView.el;
-          if (!SVG) {
-            return null;
-          }
-          const isReactElement =
-            element.type === undefined ||
-            element.type === REACT_TYPE ||
-            element instanceof ReactElement;
-          if (!isReactElement) {
-            return null;
-          }
-
-          return (
-            <CellIdContext.Provider key={element.id} value={element.id}>
-              {useHTMLOverlay && HTMLRendererContainer ? (
-                <HTMLElementItem
-                  {...element}
-                  portalElement={HTMLRendererContainer}
-                  renderElement={renderElement}
-                />
-              ) : (
-                <SVGElementItem
-                  {...element}
-                  portalElement={SVG as SVGAElement}
-                  renderElement={renderElement}
-                />
-              )}
-            </CellIdContext.Provider>
-          );
-        })}
+      {renderedElements}
     </>
   );
 

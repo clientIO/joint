@@ -79,7 +79,7 @@ function RenderHTMLElement({ width, height }: SimpleElement) {
   const elementRef = useRef<HTMLDivElement>(null);
   useNodeSize(elementRef);
   return (
-    <foreignObject width={width} height={height}>
+    <foreignObject joint-selector="placeholder" width={width} height={height}>
       <div
         ref={elementRef}
         style={{

@@ -1,4 +1,5 @@
 import ReactDOM from 'react-dom';
+import { startTransition } from 'react';
 import { sendToDevTool } from './dev-tools';
 import { util } from '@joint/core';
 import { isUpdater } from './is';
@@ -92,6 +93,12 @@ export interface State<T> extends ExternalStoreLike<T> {
    * Subscribers will be notified if the state actually changed.
    */
   setState: (updater: Update<T>) => void;
+  /**
+   * Updates the state with a new value or updater function wrapped in startTransition.
+   * Use this for non-urgent updates that can be deferred to keep the UI responsive.
+   * Subscribers will be notified if the state actually changed.
+   */
+  setStateTransition: (updater: Update<T>) => void;
 }
 /**
  * Options for creating a new state instance.
@@ -151,6 +158,12 @@ export function createState<T>(options: Options<T>): State<T> {
       stateRef.current = updatedState;
       sendToDevTool({ name, type: 'set', value: updatedState });
       notifySubscribers();
+    },
+
+    setStateTransition: (updater: Update<T>) => {
+      startTransition(() => {
+        state.setState(updater);
+      });
     },
 
     select: <S>(

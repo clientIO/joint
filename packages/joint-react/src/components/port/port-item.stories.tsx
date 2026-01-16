@@ -3,14 +3,7 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import '../../stories/examples/index.css';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  Port,
-  useElement,
-  useNodeSize,
-} from '@joint/react';
+import { createElements, createLinks, GraphProvider, Port, useNodeSize } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
@@ -21,25 +14,11 @@ const initialElements = createElements([
     id: '1',
     x: 100,
     y: 20,
-    width: 100,
-    height: 50,
-    attrs: {
-      root: {
-        magnet: false,
-      },
-    },
   },
   {
     id: '2',
     x: 200,
     y: 250,
-    width: 100,
-    height: 50,
-    attrs: {
-      root: {
-        magnet: false,
-      },
-    },
   },
 ]);
 
@@ -65,9 +44,8 @@ const initialLinks = createLinks([
 export type Story = StoryObj<typeof Port.Item>;
 const API_URL = getAPILink('Port.Item', 'variables');
 function RenderItem(Story: React.FC) {
-  const { width, height } = useElement();
   const elementRef = React.useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  const { width, height } = useNodeSize(elementRef);
   return (
     <>
       <Story />

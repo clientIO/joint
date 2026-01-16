@@ -4,6 +4,7 @@ import type { RenderElement } from '../components';
 import type { GraphElement } from '../types/element-types';
 import type { GraphState, GraphStore } from './graph-store';
 import { createScheduler } from '../utils/scheduler';
+import { REACT_TYPE } from '../models/react-element';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 export const PORTAL_SELECTOR = 'react-port-portal';
@@ -67,7 +68,7 @@ export interface PaperStoreSnapshot {
 
 /**
  * Store for managing a single Paper instance and its associated state.
- * 
+ *
  * Each Paper component creates a PaperStore instance that:
  * - Manages the JointJS Paper instance
  * - Tracks element views for rendering
@@ -83,6 +84,8 @@ export class PaperStore {
   public overWriteResultRef?: OverWriteResult;
   /** Optional custom element renderer */
   private renderElement?: RenderElement<GraphElement>;
+
+  public ReactElementView: typeof dia.ElementView;
 
   constructor(options: PaperStoreOptions) {
     const {
@@ -116,7 +119,13 @@ export class PaperStore {
     });
     // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
     const store = this;
-    const elementView = dia.ElementView.extend({
+
+    this.ReactElementView = dia.ElementView.extend({
+      renderMarkup() {
+        const ele: HTMLElement = this.vel;
+        // add magnet false to the element
+        ele.setAttribute('magnet', 'false');
+      },
       onRender() {
         // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
         const view: dia.ElementView = this;
@@ -145,13 +154,20 @@ export class PaperStore {
       },
     });
     // Create a new JointJS Paper with the provided options
+
+    const { ReactElementView } = this;
     this.paper = new dia.Paper({
       async: true,
       sorting: dia.Paper.sorting.APPROX,
       preventDefaultBlankAction: false,
       frozen: true,
       model: graph,
-      elementView,
+      elementView: (element) => {
+        if (element.get('type') === REACT_TYPE) {
+          return ReactElementView;
+        }
+        return undefined as unknown as typeof dia.ElementView;
+      },
       // 👇 override to always allow connection
       validateConnection: () => true,
       // 👇 also, allow links to start or end on empty space

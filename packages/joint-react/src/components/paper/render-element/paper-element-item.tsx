@@ -1,8 +1,10 @@
-import { useMemo, type CSSProperties, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { CellWithId } from '../../../types/cell.types';
 import typedMemo from '../../../utils/typed-react';
 import type { GraphElement } from '../../../types/element-types';
+import { useGraphStore, usePaper } from '../../../hooks';
+import { clearView } from '../../../utils/clear-view';
 
 export interface ElementItemProps<Data extends CellWithId = GraphElement> {
   /**
@@ -21,7 +23,18 @@ function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
 ) {
   const { renderElement, portalElement, ...rest } = props;
   const cell = rest as Data;
+  const { graph } = useGraphStore();
+  const paper = usePaper();
 
+  useLayoutEffect(() => {
+    clearView({
+      cellId: cell.id,
+      graph,
+      paper,
+    });
+
+    // element.
+  }, [cell.id, graph, paper]);
   if (!portalElement) {
     return null;
   }
@@ -29,7 +42,6 @@ function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
   const element = renderElement(cell);
   return createPortal(element, portalElement);
 }
-
 
 /**
  * Helper paper render component wrapped in a portal to render SVGElement.

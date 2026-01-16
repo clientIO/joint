@@ -32,7 +32,7 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ResizableNode({ width, height, label }: Readonly<BaseElementWithData>) {
+function ResizableNode({ label }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     const node = nodeRef.current;
@@ -53,7 +53,7 @@ function ResizableNode({ width, height, label }: Readonly<BaseElementWithData>) 
     }
   }, []);
 
-  useNodeSize(nodeRef);
+  const { width, height } = useNodeSize(nodeRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div

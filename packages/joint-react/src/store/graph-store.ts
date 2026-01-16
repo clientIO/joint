@@ -1,4 +1,5 @@
 import { dia, shapes, util } from '@joint/core';
+import { startTransition } from 'react';
 import type { GraphLink } from '../types/link-types';
 import type { GraphElement } from '../types/element-types';
 import type { AddPaperOptions, PaperStoreSnapshot } from './paper-store';
@@ -20,6 +21,7 @@ import {
   defaultLinkToGraphSelector,
 } from '../state/graph-state-selectors';
 import type { OnChangeOptions } from '../utils/cell/listen-to-cell-change';
+import { createScheduler } from '../utils/scheduler';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = { ...shapes, ReactElement };
 
@@ -360,21 +362,38 @@ export class GraphStore {
     });
 
     // Function to update layout state from graph
+    // Optimized to only update changed elements and use startTransition for better performance
     const updateLayoutState = () => {
       const layouts: Record<dia.Cell.ID, NodeLayout> = {};
       const elements = this.graph.getElements();
+      const previousLayouts = this.layoutState.getSnapshot().layouts;
 
       for (const element of elements) {
         const size = element.get('size');
         const position = element.get('position') ?? { x: 0, y: 0 };
         // Only track elements that have size (position defaults to 0,0 if not set)
         if (size) {
-          layouts[element.id] = {
+          const newLayout: NodeLayout = {
             x: position.x ?? 0,
             y: position.y ?? 0,
             width: size.width ?? 0,
             height: size.height ?? 0,
           };
+
+          // Only update if layout actually changed (optimization)
+          const previousLayout = previousLayouts[element.id];
+          if (
+            !previousLayout ||
+            previousLayout.x !== newLayout.x ||
+            previousLayout.y !== newLayout.y ||
+            previousLayout.width !== newLayout.width ||
+            previousLayout.height !== newLayout.height
+          ) {
+            layouts[element.id] = newLayout;
+          } else {
+            // Reuse previous layout to avoid unnecessary updates
+            layouts[element.id] = previousLayout;
+          }
         }
       }
 
@@ -388,17 +407,23 @@ export class GraphStore {
         }
       }
 
-      this.layoutState.setState((previous) => ({
-        layouts,
-        wasEverMeasured: previous.wasEverMeasured || areAllMeasured,
-      }));
+      // Use startTransition for layout state updates to keep UI responsive
+      startTransition(() => {
+        this.layoutState.setState((previous) => ({
+          layouts,
+          wasEverMeasured: previous.wasEverMeasured || areAllMeasured,
+        }));
+      });
     };
+
+    // Debounce layout state updates using scheduler to batch multiple changes
+    const scheduleLayoutUpdate = createScheduler(updateLayoutState);
 
     // Subscribe to cell changes to update layout state
     // areElementsMeasured will be automatically derived from layout state
-    this.stateSync.subscribeToCellChange(() => {
-      // Update layout state (includes wasEverMeasured computation)
-      updateLayoutState();
+    this.stateSync.subscribeToGraphChange(() => {
+      // Schedule layout state update (batched for performance)
+      scheduleLayoutUpdate();
 
       // Return cleanup function (no-op since we don't need per-cell cleanup)
       return () => {
