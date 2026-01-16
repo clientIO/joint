@@ -433,6 +433,8 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
           return {
             width,
             height,
+            x,
+            y,
           };
         },
       });
@@ -482,8 +484,3 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
   },
 };
 
-
-
-function RenderElement0() {
-  return <div>Hello</div>
-}

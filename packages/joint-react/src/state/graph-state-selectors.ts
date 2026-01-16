@@ -200,8 +200,6 @@ export function defaultElementFromGraphSelector<Element extends GraphElement>(
       }
     }
 
-    if ('width' in cellData) filtered.width = cellData.width;
-    if ('height' in cellData) filtered.height = cellData.height;
     // Always include id as it's the identifier
     if ('id' in cellData) filtered.id = cellData.id;
     return filtered as Element;

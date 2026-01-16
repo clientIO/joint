@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
-import type { GraphStoreDerivedSnapshot, GraphStoreSnapshot } from './graph-store';
+import type { GraphStoreDerivedSnapshot, GraphStoreSnapshot, NodeLayout } from './graph-store';
 import type { MarkDeepReadOnly } from '../utils/create-state';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
@@ -9,22 +9,21 @@ const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // especially on Safari
 const EPSILON = 0.5;
 
-/**
- * Size information for an observed element.
- */
-export interface TransformResult {
-  /** Width of the element in pixels */
-  readonly width: number;
-  /** Height of the element in pixels */
-  readonly height: number;
+export interface NodeLayoutOptionalXY {
+  /** X position of the node */
   readonly x?: number;
+  /** Y position of the node */
   readonly y?: number;
+  /** Width of the node */
+  readonly width: number;
+  /** Height of the node */
+  readonly height: number;
 }
 
 /**
  * Options passed to the setSize callback when an element's size changes.
  */
-export interface TransformOptions extends Required<TransformResult> {
+export interface TransformOptions extends Required<NodeLayout> {
   /** The JointJS element instance */
   readonly element: dia.Element;
   readonly id: dia.Cell.ID;
@@ -34,7 +33,7 @@ export interface TransformOptions extends Required<TransformResult> {
  * Callback function called when an element's size is measured.
  * Allows custom handling of size updates before they're applied to the graph.
  */
-export type OnTransformElement = (options: TransformOptions) => TransformResult;
+export type OnTransformElement = (options: TransformOptions) => NodeLayoutOptionalXY;
 
 /**
  * Options for registering an element to be measured for size changes.
@@ -70,7 +69,7 @@ interface Options {
   /** Options to pass to the ResizeObserver constructor */
   readonly resizeObserverOptions?: ResizeObserverOptions;
   /** Function to get the current size of a cell from the graph */
-  readonly getCellTransform: (id: dia.Cell.ID) => TransformResult & { element: dia.Element };
+  readonly getCellTransform: (id: dia.Cell.ID) => NodeLayoutOptionalXY & { element: dia.Element };
   /** Function to get the current IDs snapshot for efficient lookups */
   readonly getIdsSnapshot: () => MarkDeepReadOnly<GraphStoreDerivedSnapshot>;
   /** Function to get the current public snapshot containing all elements */
@@ -189,9 +188,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
 
       const graphElement = updatedElements[elementArrayIndex];
       const observedElement = observedElementsByCellId.get(cellId) ?? DEFAULT_OBSERVED_ELEMENT;
-      const {
-        transform: sizeTransformFunction = defaultTransform,
-      } = observedElement;
+      const { transform: sizeTransformFunction = defaultTransform } = observedElement;
 
       const lastWidth = roundToTwoDecimals(observedElement.lastWidth ?? 0);
       const lastHeight = roundToTwoDecimals(observedElement.lastHeight ?? 0);

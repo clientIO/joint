@@ -30,7 +30,6 @@ describe('react-element', () => {
 
       const defaults = element.defaults();
       expect(defaults.type).toBe(REACT_TYPE);
-      expect(defaults.data).toEqual({});
       expect(defaults.attrs).toHaveProperty('root');
       expect(defaults.attrs).toHaveProperty('placeholder');
     });

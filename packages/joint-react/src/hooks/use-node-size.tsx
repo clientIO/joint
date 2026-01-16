@@ -1,8 +1,9 @@
 import { useLayoutEffect, type RefObject } from 'react';
 import { useCellId } from './use-cell-id';
 import { useGraphStore } from './use-graph-store';
-import type { OnTransformElement, TransformResult } from '../store/create-elements-size-observer';
-import { useElement } from './use-element';
+import type { OnTransformElement } from '../store/create-elements-size-observer';
+import { useNodeLayout } from './use-node-layout';
+import type { NodeLayout } from '../store/graph-store';
 
 /**
  * Options for configuring how the node size is measured and applied.
@@ -34,6 +35,7 @@ export interface MeasureNodeOptions {
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
+const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0 };
 
 /**
  * Custom hook to automatically measure the size of a DOM element and synchronize it with the graph element's size.
@@ -50,10 +52,9 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  *
  * **Important constraints:**
  * - Only one `useNodeSize` hook can be used per element. Using multiple hooks for the same element
- *   will throw an error and cause unexpected behavior.
+ * will throw an error and cause unexpected behavior.
  * - Must be used within a `renderElement` function or a component rendered from within it.
  * - The returned values are always defined (width and height default to 0 if not set).
- *
  * @param elementRef - A reference to the HTML or SVG element to measure. The element must be rendered
  *                     in the DOM when the hook runs.
  * @param options - Optional configuration for measuring and transforming the node size.
@@ -80,7 +81,6 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  *   );
  * }
  * ```
- *
  * @example
  * Using returned values for calculations:
  * ```tsx
@@ -99,7 +99,6 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  *   );
  * }
  * ```
- *
  * @example
  * With custom transform to add padding:
  * ```tsx
@@ -137,12 +136,11 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
 export function useNodeSize(
   elementRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
-): TransformResult {
+): NodeLayout {
   const { transform } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
   const id = useCellId();
-
-  const { x, y, width = 0, height = 0 } = useElement();
+  const layout = useNodeLayout(id) ?? EMPTY_NODE_LAYOUT;
 
   useLayoutEffect(() => {
     const element = elementRef.current;
@@ -177,5 +175,5 @@ export function useNodeSize(
   }, [elementRef, graph, hasMeasuredNode, id, setMeasuredNode]);
 
   // This hook itself does not return anything.
-  return { x, y, width, height };
+  return layout
 }

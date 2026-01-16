@@ -14,6 +14,26 @@ import {
 } from './graph-state-selectors';
 
 /**
+ * Interface for state synchronization instance.
+ * Provides methods to subscribe to cell changes and clean up resources.
+ */
+export interface StateSync {
+  /**
+   * Subscribes to cell change events in the graph.
+   * The callback receives change information and should return a cleanup function.
+   * @param callback - Function that receives change options and returns a cleanup function
+   * @returns Unsubscribe function to remove the listener
+   */
+  subscribeToCellChange: (callback: (change: OnChangeOptions) => () => void) => () => void;
+
+  /**
+   * Cleans up all subscriptions and event listeners.
+   * Should be called when the synchronization is no longer needed.
+   */
+  cleanup: () => void;
+}
+
+/**
  * Configuration options for state synchronization.
  * @template Graph - The type of JointJS graph instance
  * @template Element - The type of elements in the graph
@@ -183,6 +203,7 @@ export function stateSync<
   // But issue in the 2. is that the change of graph will re-run internal updates, so it will trigger onCellChange or onBatchStop.
 
   const changedCellIds = new Set<string>();
+  const pendingChanges = new Map<string, OnChangeOptions>();
   let hasReset = false;
   let isSyncingFromState = false;
   let syncFromStateCounter = 0;
@@ -208,6 +229,30 @@ export function stateSync<
     hasReset = false;
     changedCellIds.clear();
 
+    // Call listeners before isEqual check (layout data might not be in state)
+    if (isReset) {
+      const allCells = graph.getCells();
+      const resetChange: OnChangeOptions = {
+        type: 'reset',
+        cells: allCells,
+      };
+      for (const listener of cellChangeListeners) {
+        listener(resetChange);
+      }
+    } else {
+      // Call listeners for each changed cell
+      for (const id of ids) {
+        const change = pendingChanges.get(id);
+        if (change) {
+          for (const listener of cellChangeListeners) {
+            listener(change);
+          }
+        }
+      }
+    }
+    // Clear pending changes after calling listeners
+    pendingChanges.clear();
+
     if (isReset) {
       // unfortunately this will create always new object references, so we need to compare them with more deeply
       const graphElements = graph.getElements().map((element) =>
@@ -225,7 +270,6 @@ export function stateSync<
       const snapshot = store.getSnapshot();
       const elements = removeDeepReadOnly(snapshot.elements);
       const links = removeDeepReadOnly(snapshot.links);
-
       const isEqual = util.isEqual(elements, graphElements) && util.isEqual(links, graphLinks);
       if (isEqual) return;
 
@@ -377,16 +421,32 @@ export function stateSync<
   };
 
   const cellChangeListeners = new Set<(change: OnChangeOptions) => () => void>();
+
+  /**
+   * Subscribes to cell changes in the graph.
+   * Allows external code to react to changes that occur in the graph.
+   * The callback receives change information and should return a cleanup function that will be called
+   * when the cell is removed or the subscription is cancelled.
+   * @param callback - The callback function that receives change options and returns a cleanup function
+   * @returns A function to unsubscribe from cell changes
+   */
+  function subscribeToCellChange(callback: (change: OnChangeOptions) => () => void) {
+    cellChangeListeners.add(callback);
+    return () => {
+      cellChangeListeners.delete(callback);
+    };
+  }
   // Here we handle graph internal changes, it's skipped when there is an active batch
   const destroy = listenToCellChange(graph, (change) => {
-    for (const listener of cellChangeListeners) {
-      listener(change);
-    }
+    // Store change for later processing in onIncrementalChange
     if (change.type === 'reset') {
       hasReset = true;
       changedCellIds.clear();
+      pendingChanges.clear();
     } else {
-      changedCellIds.add(change.cell.id.toString());
+      const id = change.cell.id.toString();
+      changedCellIds.add(id);
+      pendingChanges.set(id, change);
     }
 
     // Skip if we're syncing from state to prevent circular updates
@@ -428,7 +488,36 @@ export function stateSync<
 
     // Skip syncing back to React if we were syncing from React
     // This prevents circular updates: React → Graph (via syncCells) → batch:stop → React
-    if (wasSyncingFromState) return;
+    if (wasSyncingFromState) {
+      // Still need to call listeners (e.g., for layout state updates) even when syncing from state
+      // Get current changed cells to notify listeners
+      const currentIds = [...changedCellIds];
+      if (hasReset) {
+        const allCells = graph.getCells();
+        const resetChange: OnChangeOptions = {
+          type: 'reset',
+          cells: allCells,
+        };
+        for (const listener of cellChangeListeners) {
+          listener(resetChange);
+        }
+        hasReset = false;
+        changedCellIds.clear();
+        pendingChanges.clear();
+      } else if (currentIds.length > 0) {
+        for (const id of currentIds) {
+          const change = pendingChanges.get(id);
+          if (change) {
+            for (const listener of cellChangeListeners) {
+              listener(change);
+            }
+          }
+        }
+        changedCellIds.clear();
+        pendingChanges.clear();
+      }
+      return;
+    }
     onIncrementalChange();
   };
 
@@ -544,20 +633,6 @@ export function stateSync<
     graph.off(BATCH_STOP_EVENT_NAME, onBatchStop);
   };
 
-  /**
-   * Subscribes to cell changes in the graph.
-   * Allows external code to react to changes that occur in the graph.
-   * The callback receives change information and should return a cleanup function that will be called
-   * when the cell is removed or the subscription is cancelled.
-   * @param callback - The callback function that receives change options and returns a cleanup function
-   * @returns A function to unsubscribe from cell changes
-   */
-  function subscribeToCellChange(callback: (change: OnChangeOptions) => () => void) {
-    cellChangeListeners.add(callback);
-    return () => {
-      cellChangeListeners.delete(callback);
-    };
-  }
   // First, sync existing graph cells to store if store is empty
   syncExistingGraphCellsToStore();
   // Then, sync store to graph
@@ -566,23 +641,4 @@ export function stateSync<
     subscribeToCellChange,
     cleanup,
   };
-}
-
-/**
- * Interface for state synchronization instance.
- * Provides methods to subscribe to cell changes and clean up resources.
- */
-export interface StateSync {
-  /**
-   * Subscribes to cell change events in the graph.
-   * The callback receives change information and should return a cleanup function.
-   * @param callback - Function that receives change options and returns a cleanup function
-   * @returns Unsubscribe function to remove the listener
-   */
-  subscribeToCellChange: (callback: (change: OnChangeOptions) => () => void) => () => void;
-  /**
-   * Cleans up all subscriptions and event listeners.
-   * Should be called when the synchronization is no longer needed.
-   */
-  cleanup: () => void;
 }

@@ -37,10 +37,12 @@ function Card({ label }: Readonly<Partial<BaseElementWithData>>) {
   const gap = 10;
   const imageWidth = 50;
   const transformSize: OnTransformElement = useCallback(
-    ({ width: measuredWidth, height: measuredHeight }) => {
+    ({ x, y, width: measuredWidth, height: measuredHeight }) => {
       return {
         width: gap + imageWidth + gap + measuredWidth + gap,
         height: gap + Math.max(measuredHeight, imageWidth) + gap,
+        x,
+        y,
       };
     },
     []

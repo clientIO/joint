@@ -4,6 +4,7 @@ export * from './use-links';
 export * from './use-elements';
 export * from './use-element';
 export * from './use-node-size';
+export * from './use-node-layout';
 export * from './use-cell-id';
 export * from './use-paper-events';
 export * from './use-imperative-api';

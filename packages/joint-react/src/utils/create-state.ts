@@ -226,9 +226,11 @@ export function derivedState<T, S>(options: DerivedOptions<T, S>): State<S> {
   const unsubscribe = state.subscribe(() => {
     stateValue.setState(getSnapshot());
   });
+  // Store original clean function before overwriting
+  const originalClean = stateValue.clean;
   stateValue.clean = () => {
     unsubscribe();
-    stateValue.clean();
+    originalClean();
   };
   return stateValue;
 }

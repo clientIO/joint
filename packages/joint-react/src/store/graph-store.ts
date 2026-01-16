@@ -63,6 +63,31 @@ export interface GraphStoreDerivedSnapshot {
 }
 
 /**
+ * Layout data for a single node (element).
+ */
+export interface NodeLayout {
+  /** X position of the node */
+  readonly x: number;
+  /** Y position of the node */
+  readonly y: number;
+  /** Width of the node */
+  readonly width: number;
+  /** Height of the node */
+  readonly height: number;
+}
+
+/**
+ * Snapshot containing layout data (geometry) for all nodes by their IDs.
+ * Computed from actual graph cell sizes and positions.
+ */
+export interface GraphStoreLayoutSnapshot {
+  /** Map of element IDs to their layout data (x, y, width, height) */
+  readonly layouts: Record<dia.Cell.ID, NodeLayout>;
+  /** Flag indicating if elements have ever been measured (sticky behavior) */
+  readonly wasEverMeasured: boolean;
+}
+
+/**
  * Full internal snapshot of the graph store.
  * Contains paper-specific data and is not directly exposed to consumers.
  */
@@ -159,7 +184,12 @@ export class GraphStore {
    * @internal
    */
   public readonly areElementsMeasuredState: State<boolean>;
-  private wasElementsMeasuredBefore = false;
+  /**
+   * State containing layout data (geometry) for all nodes by their IDs.
+   * Computed from actual graph cell sizes and positions.
+   * @internal
+   */
+  public readonly layoutState: State<GraphStoreLayoutSnapshot>;
 
   /** The underlying JointJS graph instance */
   public readonly graph: dia.Graph;
@@ -240,7 +270,7 @@ export class GraphStore {
       this.publicState = externalState;
     } else {
       this.publicState = createState<GraphStoreSnapshot>({
-        name: 'JointJs/Cells',
+        name: 'JointJs/Data',
         newState: () => ({
           elements: [],
           links: [],
@@ -256,9 +286,8 @@ export class GraphStore {
       isEqual: util.isEqual,
     });
 
-    this.wasElementsMeasuredBefore = false;
     this.derivedStore = derivedState({
-      name: 'Jointjs/Derived',
+      name: 'Jointjs/DataIds',
       state: this.publicState,
       selector: (snapshot) => {
         const elementIds: Record<dia.Cell.ID, number> = {};
@@ -295,37 +324,90 @@ export class GraphStore {
       },
     });
 
-    // Create state for tracking whether elements are measured
-    this.areElementsMeasuredState = createState<boolean>({
-      name: 'Jointjs/AreElementsMeasured',
-      newState: () => false,
+    // Create state for tracking node layouts
+    this.layoutState = createState<GraphStoreLayoutSnapshot>({
+      name: 'Jointjs/Layout',
+      newState: () => ({ layouts: {}, wasEverMeasured: false }),
       isEqual: util.isEqual,
     });
 
-    // Subscribe to cell changes to update areElementsMeasured
-    this.stateSync.subscribeToCellChange(() => {
-      // On any cell change, check all elements
-      const areMeasured = this.computeAreElementsMeasured();
-      if (areMeasured) {
-        this.wasElementsMeasuredBefore = true;
+    // Derive areElementsMeasured from layout state
+    this.areElementsMeasuredState = derivedState({
+      name: 'Jointjs/AreElementsMeasured',
+      state: this.layoutState,
+      selector: (snapshot) => {
+        // If we've ever been measured, always return true (sticky behavior)
+        if (snapshot.wasEverMeasured) {
+          return true;
+        }
+
+        const { layouts } = snapshot;
+        const layoutEntries = Object.values(layouts);
+
+        if (layoutEntries.length === 0) {
+          return false;
+        }
+
+        for (const layout of layoutEntries) {
+          if (layout.width <= 1 || layout.height <= 1) {
+            return false;
+          }
+        }
+
+        return true;
+      },
+      isEqual: util.isEqual,
+    });
+
+    // Function to update layout state from graph
+    const updateLayoutState = () => {
+      const layouts: Record<dia.Cell.ID, NodeLayout> = {};
+      const elements = this.graph.getElements();
+
+      for (const element of elements) {
+        const size = element.get('size');
+        const position = element.get('position') ?? { x: 0, y: 0 };
+        // Only track elements that have size (position defaults to 0,0 if not set)
+        if (size) {
+          layouts[element.id] = {
+            x: position.x ?? 0,
+            y: position.y ?? 0,
+            width: size.width ?? 0,
+            height: size.height ?? 0,
+          };
+        }
       }
-      this.areElementsMeasuredState.setState(() =>
-        this.wasElementsMeasuredBefore ? true : areMeasured
-      );
+
+      // Compute if all elements are measured
+      const layoutEntries = Object.values(layouts);
+      let areAllMeasured = layoutEntries.length > 0;
+      for (const layout of layoutEntries) {
+        if (layout.width <= 1 || layout.height <= 1) {
+          areAllMeasured = false;
+          break;
+        }
+      }
+
+      this.layoutState.setState((previous) => ({
+        layouts,
+        wasEverMeasured: previous.wasEverMeasured || areAllMeasured,
+      }));
+    };
+
+    // Subscribe to cell changes to update layout state
+    // areElementsMeasured will be automatically derived from layout state
+    this.stateSync.subscribeToCellChange(() => {
+      // Update layout state (includes wasEverMeasured computation)
+      updateLayoutState();
+
       // Return cleanup function (no-op since we don't need per-cell cleanup)
       return () => {
         // No cleanup needed
       };
     });
 
-    // Initial computation
-    const initialAreMeasured = this.computeAreElementsMeasured();
-    if (initialAreMeasured) {
-      this.wasElementsMeasuredBefore = true;
-    }
-    this.areElementsMeasuredState.setState(() =>
-      this.wasElementsMeasuredBefore ? true : initialAreMeasured
-    );
+    // Initial layout state computation
+    updateLayoutState();
 
     // Observer for element sizes (uses state.getSnapshot)
 
@@ -377,36 +459,19 @@ export class GraphStore {
   }
 
   /**
-   * Computes whether all elements have been measured based on actual graph cell sizes.
-   * @returns true if all elements have width and height > 1, false otherwise
-   */
-  private computeAreElementsMeasured(): boolean {
-    const elements = this.graph.getElements();
-    if (elements.length === 0) {
-      return false;
-    }
-
-    for (const element of elements) {
-      const size = element.get('size');
-      if (!size) {
-        return false;
-      }
-      const { width = 0, height = 0 } = size;
-      if (width <= 1 || height <= 1) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /**
    * Cleans up all resources and subscriptions.
    * Should be called when the GraphStore is no longer needed.
    * @param isGraphExternal - Whether the graph instance was provided externally (should not be cleared)
    */
   public destroy = (isGraphExternal: boolean) => {
     this.internalState.clean();
+    this.derivedStore.clean();
+    this.layoutState.clean();
+    this.areElementsMeasuredState.clean();
+    // Only clean publicState if it's not an external store (external stores don't have clean method)
+    if ('clean' in this.publicState && typeof this.publicState.clean === 'function') {
+      this.publicState.clean();
+    }
     this.observer.clean();
     this.unsubscribeFromExternal?.();
     this.stateSync.cleanup();

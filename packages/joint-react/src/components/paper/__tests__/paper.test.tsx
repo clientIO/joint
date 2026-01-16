@@ -316,6 +316,11 @@ describe('Paper Component', () => {
   });
 
   it('should set elements and positions via react state, when change it via paper api', async () => {
+    // Create elements with initial x/y so they can be synced back
+    const elementsWithPosition = createElements([
+      { id: '1', label: 'Node 1', x: 0, y: 0, width: 10, height: 10 },
+      { id: '2', label: 'Node 2', x: 0, y: 0, width: 10, height: 10 },
+    ]);
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function UpdatePosition() {
       const graph = useGraph();
@@ -329,7 +334,7 @@ describe('Paper Component', () => {
     }
     let currentOutsideElements: Element[] = [];
     function Content() {
-      const [currentElements, setCurrentElements] = useState<GraphElement[]>(elements);
+      const [currentElements, setCurrentElements] = useState<GraphElement[]>(elementsWithPosition);
       currentOutsideElements = currentElements as Element[];
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
