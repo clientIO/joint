@@ -34,7 +34,7 @@ import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/handle-paper-ev
 import { REACT_TYPE, ReactElement } from '../../models/react-element';
 import type { PaperStore } from '../../store';
 import {
-  useDerivedGraphStoreSelector,
+  useAreElementsMeasured,
   useGraphInternalStoreSelector,
 } from '../../hooks/use-graph-store-selector';
 
@@ -81,7 +81,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     ...paperOptions
   } = props;
 
-  const areElementsMeasured = useDerivedGraphStoreSelector((state) => state.areElementsMeasured);
+  const areElementsMeasured = useAreElementsMeasured();
   const elements = useElements();
   useDebugValue(elements);
   const reactId = useId();

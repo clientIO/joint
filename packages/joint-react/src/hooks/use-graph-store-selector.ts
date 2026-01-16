@@ -79,3 +79,13 @@ export function useDerivedGraphStoreSelector<Selection>(
   const { derivedStore } = useGraphStore();
   return useStoreSelector(derivedStore, selector, isEqual);
 }
+
+/**
+ * Hook to access whether all elements have been measured (have width and height).
+ * Computed based on actual graph cell sizes, not state data.
+ * @returns true if all elements have been measured, false otherwise.
+ */
+export function useAreElementsMeasured(): boolean {
+  const { areElementsMeasuredState } = useGraphStore();
+  return useStoreSelector(areElementsMeasuredState, (value) => value);
+}

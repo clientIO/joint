@@ -104,6 +104,10 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
    * @default false
    */
   readonly useHTMLOverlay?: boolean;
+  /**
+   *
+   */
+  readonly useSVGElements?: boolean;
 
   /**
    * A function that is called when the paper is ready.

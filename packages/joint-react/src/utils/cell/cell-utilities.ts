@@ -66,7 +66,6 @@ export function mapElementToGraph<T extends GraphElement>(element: T): CellOrJso
   } as dia.Cell.JSON;
 }
 
-
 export type GraphCell<Element extends GraphElement = GraphElement> = Element | GraphLink;
 
 /**
@@ -133,26 +132,4 @@ export function mapLinkFromGraph<Link extends dia.Link | GraphLink = GraphLink>(
     markup: cell.get('markup'),
     defaultLabel: cell.get('defaultLabel'),
   } as Link;
-}
-
-export interface SyncGraphOptions {
-  readonly graph: dia.Graph;
-  readonly elements?: GraphElement[];
-  readonly links?: GraphLink[];
-}
-
-/**
- * Synchronizes elements and links with the graph.
- * @param options - The options containing graph, elements, and links.
- */
-export function syncGraph(options: SyncGraphOptions) {
-  const { graph, elements = [], links = [] } = options;
-  const items = [
-    ...elements.map((element) => mapElementToGraph(element)),
-    ...links.map((link) => mapLinkToGraph(link, graph)),
-  ];
-
-  // syncCells already wraps itself in a batch internally (see joint-core Graph.mjs:428-459)
-  // So we don't need to wrap it again - it will trigger batch:start and batch:stop events
-  graph.syncCells(items, { remove: true });
 }

@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-identical-functions */
+ 
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
@@ -481,3 +481,9 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
     );
   },
 };
+
+
+
+function RenderElement0() {
+  return <div>Hello</div>
+}

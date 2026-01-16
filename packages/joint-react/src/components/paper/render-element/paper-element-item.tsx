@@ -30,6 +30,7 @@ function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
   return createPortal(element, portalElement);
 }
 
+
 /**
  * Helper paper render component wrapped in a portal to render SVGElement.
  * This component is used to render a paper element inside a portal.

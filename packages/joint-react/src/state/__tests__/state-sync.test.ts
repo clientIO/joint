@@ -22,23 +22,15 @@ function createGetIdsSnapshot(
     const snapshot = state.getSnapshot();
     const elementIds: Record<dia.Cell.ID, number> = {};
     const linkIds: Record<dia.Cell.ID, number> = {};
-    let areElementsMeasured = true;
 
     for (const [index, element] of snapshot.elements.entries()) {
       elementIds[element.id] = index;
-    }
-    for (const element of snapshot.elements) {
-      const { width = 0, height = 0 } = element;
-      if (width <= 1 || height <= 1) {
-        areElementsMeasured = false;
-        break;
-      }
     }
     for (const [index, link] of snapshot.links.entries()) {
       linkIds[link.id] = index;
     }
 
-    return { elementIds, linkIds, areElementsMeasured };
+    return { elementIds, linkIds };
   };
 }
 

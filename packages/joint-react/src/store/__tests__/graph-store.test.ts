@@ -524,34 +524,30 @@ describe('GraphStore', () => {
     it('should track areElementsMeasured correctly', () => {
       const store = new GraphStore({});
 
-      // Test with measured elements
-      const measuredElements: GraphElement[] = [
-        { id: 'element-1', x: 10, y: 20, width: 100, height: 50, type: 'ReactElement' },
-      ];
+      // Initially, no elements, so should be false
+      expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
 
-      store.publicState.setState((previous) => ({
-        ...previous,
-        elements: measuredElements,
-      }));
+      // Test with measured elements - add to graph
+      const measuredElement = new ReactElement({
+        id: 'element-1',
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
+      });
+      store.graph.addCell(measuredElement);
 
-      let derived = store.derivedStore.getSnapshot();
-      // After setting measured elements, should be true
-      expect(derived.areElementsMeasured).toBe(true);
+      // After adding measured element to graph, should be true
+      expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
 
       // Once measured, it stays true even if we add unmeasured elements
-      const mixedElements: GraphElement[] = [
-        { id: 'element-1', x: 10, y: 20, width: 100, height: 50, type: 'ReactElement' },
-        { id: 'element-2', x: 30, y: 40, width: 0, height: 0, type: 'ReactElement' },
-      ];
+      const unmeasuredElement = new ReactElement({
+        id: 'element-2',
+        position: { x: 30, y: 40 },
+        size: { width: 0, height: 0 },
+      });
+      store.graph.addCell(unmeasuredElement);
 
-      store.publicState.setState((previous) => ({
-        ...previous,
-        elements: mixedElements,
-      }));
-
-      derived = store.derivedStore.getSnapshot();
       // Should remain true because wasElementsMeasuredBefore is true
-      expect(derived.areElementsMeasured).toBe(true);
+      expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
     });
   });
 

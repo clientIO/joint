@@ -11,8 +11,14 @@ import {
 import { ReactElement } from '../models/react-element';
 import type { ExternalStoreLike, State } from '../utils/create-state';
 import { createState, derivedState, getValue } from '../utils/create-state';
-import { stateSync, type StateSync } from '../state/state-sync';
+import { stateSync, type StateSync, updateGraph } from '../state/state-sync';
 import type { GraphStateSelectors } from '../state/graph-state-selectors';
+import {
+  defaultElementFromGraphSelector,
+  defaultElementToGraphSelector,
+  defaultLinkFromGraphSelector,
+  defaultLinkToGraphSelector,
+} from '../state/graph-state-selectors';
 import type { OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = { ...shapes, ReactElement };
@@ -54,7 +60,6 @@ export interface GraphStoreDerivedSnapshot {
   readonly elementIds: Record<dia.Cell.ID, number>;
   /** Map of link IDs to their index in the links array */
   readonly linkIds: Record<dia.Cell.ID, number>;
-  readonly areElementsMeasured: boolean;
 }
 
 /**
@@ -148,6 +153,12 @@ export class GraphStore {
    * @internal
    */
   public readonly derivedStore: State<GraphStoreDerivedSnapshot>;
+  /**
+   * State tracking whether all elements have been measured (have width and height).
+   * Computed based on actual graph cell sizes, not state data.
+   * @internal
+   */
+  public readonly areElementsMeasuredState: State<boolean>;
   private wasElementsMeasuredBefore = false;
 
   /** The underlying JointJS graph instance */
@@ -158,6 +169,24 @@ export class GraphStore {
   private papers = new Map<string, PaperStore>();
   private observer: GraphStoreObserver;
   private stateSync: StateSync;
+  private readonly elementFromGraphSelector: (
+    options: { readonly cell: dia.Element; readonly graph: dia.Graph } & {
+      readonly previous?: GraphElement;
+    }
+  ) => GraphElement;
+  private readonly linkFromGraphSelector: (
+    options: { readonly cell: dia.Link; readonly graph: dia.Graph } & {
+      readonly previous?: GraphLink;
+    }
+  ) => GraphLink;
+  private readonly elementToGraphSelector: (options: {
+    readonly element: GraphElement;
+    readonly graph: dia.Graph;
+  }) => dia.Cell.JSON;
+  private readonly linkToGraphSelector: (options: {
+    readonly link: GraphLink;
+    readonly graph: dia.Graph;
+  }) => dia.Cell.JSON;
 
   constructor(config: GraphStoreOptions) {
     const {
@@ -167,11 +196,31 @@ export class GraphStore {
       cellNamespace = DEFAULT_CELL_NAMESPACE,
       graph,
       externalStore: externalState,
-      elementFromGraphSelector,
-      elementToGraphSelector,
-      linkFromGraphSelector,
-      linkToGraphSelector,
+      elementFromGraphSelector = defaultElementFromGraphSelector,
+      elementToGraphSelector = defaultElementToGraphSelector,
+      linkFromGraphSelector = defaultLinkFromGraphSelector,
+      linkToGraphSelector = defaultLinkToGraphSelector,
     } = config;
+
+    // Store selectors as instance variables for use in onBatchUpdate
+    this.elementFromGraphSelector = elementFromGraphSelector as (
+      options: { readonly cell: dia.Element; readonly graph: dia.Graph } & {
+        readonly previous?: GraphElement;
+      }
+    ) => GraphElement;
+    this.linkFromGraphSelector = linkFromGraphSelector as (
+      options: { readonly cell: dia.Link; readonly graph: dia.Graph } & {
+        readonly previous?: GraphLink;
+      }
+    ) => GraphLink;
+    this.elementToGraphSelector = elementToGraphSelector as (options: {
+      readonly element: GraphElement;
+      readonly graph: dia.Graph;
+    }) => dia.Cell.JSON;
+    this.linkToGraphSelector = linkToGraphSelector as (options: {
+      readonly link: GraphLink;
+      readonly graph: dia.Graph;
+    }) => dia.Cell.JSON;
 
     this.graph =
       graph ??
@@ -215,28 +264,13 @@ export class GraphStore {
         const elementIds: Record<dia.Cell.ID, number> = {};
         const linkIds: Record<dia.Cell.ID, number> = {};
 
-        let areElementsMeasured = snapshot.elements.length > 0;
         for (const [index, element] of snapshot.elements.entries()) {
           elementIds[element.id] = index;
-        }
-        for (const element of snapshot.elements) {
-          const { width = 0, height = 0 } = element;
-          if (width <= 1 || height <= 1) {
-            areElementsMeasured = false;
-            break;
-          }
         }
         for (const [index, link] of snapshot.links.entries()) {
           linkIds[link.id] = index;
         }
-        if (areElementsMeasured) {
-          this.wasElementsMeasuredBefore = true;
-        }
-
-        if (this.wasElementsMeasuredBefore) {
-          areElementsMeasured = true;
-        }
-        return { elementIds, linkIds, areElementsMeasured };
+        return { elementIds, linkIds };
       },
       isEqual: util.isEqual,
     });
@@ -261,16 +295,58 @@ export class GraphStore {
       },
     });
 
+    // Create state for tracking whether elements are measured
+    this.areElementsMeasuredState = createState<boolean>({
+      name: 'Jointjs/AreElementsMeasured',
+      newState: () => false,
+      isEqual: util.isEqual,
+    });
+
+    // Subscribe to cell changes to update areElementsMeasured
+    this.stateSync.subscribeToCellChange(() => {
+      // On any cell change, check all elements
+      const areMeasured = this.computeAreElementsMeasured();
+      if (areMeasured) {
+        this.wasElementsMeasuredBefore = true;
+      }
+      this.areElementsMeasuredState.setState(() =>
+        this.wasElementsMeasuredBefore ? true : areMeasured
+      );
+      // Return cleanup function (no-op since we don't need per-cell cleanup)
+      return () => {
+        // No cleanup needed
+      };
+    });
+
+    // Initial computation
+    const initialAreMeasured = this.computeAreElementsMeasured();
+    if (initialAreMeasured) {
+      this.wasElementsMeasuredBefore = true;
+    }
+    this.areElementsMeasuredState.setState(() =>
+      this.wasElementsMeasuredBefore ? true : initialAreMeasured
+    );
+
     // Observer for element sizes (uses state.getSnapshot)
 
     this.observer = createElementsSizeObserver({
       getIdsSnapshot: this.derivedStore.getSnapshot,
       getPublicSnapshot: this.publicState.getSnapshot,
       onBatchUpdate: (newElements) => {
-        this.publicState.setState((previous) => ({
-          ...previous,
+        // Get current links from state
+        const snapshot = this.publicState.getSnapshot();
+        const currentLinks = snapshot.links;
+
+        // Update graph directly - this will trigger automatic state sync
+        updateGraph({
+          graph: this.graph,
           elements: newElements,
-        }));
+          links: currentLinks,
+          elementFromGraphSelector: this.elementFromGraphSelector,
+          linkFromGraphSelector: this.linkFromGraphSelector,
+          elementToGraphSelector: this.elementToGraphSelector,
+          linkToGraphSelector: this.linkToGraphSelector,
+        });
       },
       getCellTransform: (id) => {
         const cell = this.graph.getCell(id);
@@ -298,6 +374,30 @@ export class GraphStore {
         links: initialLinks,
       }));
     }
+  }
+
+  /**
+   * Computes whether all elements have been measured based on actual graph cell sizes.
+   * @returns true if all elements have width and height > 1, false otherwise
+   */
+  private computeAreElementsMeasured(): boolean {
+    const elements = this.graph.getElements();
+    if (elements.length === 0) {
+      return false;
+    }
+
+    for (const element of elements) {
+      const size = element.get('size');
+      if (!size) {
+        return false;
+      }
+      const { width = 0, height = 0 } = size;
+      if (width <= 1 || height <= 1) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**

@@ -94,17 +94,17 @@ export function defaultElementToGraphSelector<Element extends GraphElement>(
 ): dia.Cell.JSON {
   const { element } = options;
   const { type = REACT_TYPE, x, y, width, height } = element;
-  const model :dia.Cell.JSON=  {
+  const model: dia.Cell.JSON = {
     type,
     ...element,
-  }
+  };
   if (x !== undefined && y !== undefined) {
-    model.position = { x , y };
+    model.position = { x, y };
   }
   if (width !== undefined && height !== undefined) {
     model.size = { width, height };
   }
-  return model
+  return model;
 }
 
 /**
@@ -188,7 +188,7 @@ export function defaultElementFromGraphSelector<Element extends GraphElement>(
 
   // If previous state exists, filter to only include properties that exist in previous state
   // This ensures state shape is the source of truth
-  // However, we always include core properties (x, y, width, height, id) from cellData
+  // Properties (including x, y, width, height) are only included if they were defined in previous state
   if (previous !== undefined) {
     const filtered: Record<string, unknown> = {};
     const previousRecord = previous as Record<string, unknown>;
@@ -199,12 +199,10 @@ export function defaultElementFromGraphSelector<Element extends GraphElement>(
         filtered[key] = key in cellData ? cellData[key] : previousRecord[key];
       }
     }
-    // Always include core properties from cellData, even if they weren't in previous state
-    // This ensures position and size changes are always reflected
-    if ('x' in cellData) filtered.x = cellData.x;
-    if ('y' in cellData) filtered.y = cellData.y;
+
     if ('width' in cellData) filtered.width = cellData.width;
     if ('height' in cellData) filtered.height = cellData.height;
+    // Always include id as it's the identifier
     if ('id' in cellData) filtered.id = cellData.id;
     return filtered as Element;
   }

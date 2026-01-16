@@ -37,6 +37,111 @@ const BATCH_START_EVENT_NAME = 'batch:start';
 const BATCH_STOP_EVENT_NAME = 'batch:stop';
 
 /**
+ * Configuration options for updating a JointJS graph.
+ * @template Graph - The type of JointJS graph instance
+ * @template Element - The type of elements in the graph
+ * @template Link - The type of links in the graph
+ */
+export interface UpdateGraphOptions<
+  Graph extends dia.Graph,
+  Element extends GraphElement,
+  Link extends GraphLink,
+> {
+  /** The JointJS graph instance to update */
+  readonly graph: Graph;
+  /** The elements to sync to the graph */
+  readonly elements: readonly Element[];
+  /** The links to sync to the graph */
+  readonly links: readonly Link[];
+  /** Selector to convert graph elements to Element format for comparison */
+  readonly elementFromGraphSelector: (options: {
+    readonly cell: dia.Element;
+    readonly graph: Graph;
+  }) => Element;
+  /** Selector to convert graph links to Link format for comparison */
+  readonly linkFromGraphSelector: (options: {
+    readonly cell: dia.Link;
+    readonly graph: Graph;
+  }) => Link;
+  /** Selector to convert Element to JointJS Cell JSON format */
+  readonly elementToGraphSelector: (options: {
+    readonly element: Element;
+    readonly graph: Graph;
+  }) => dia.Cell.JSON;
+  /** Selector to convert Link to JointJS Cell JSON format */
+  readonly linkToGraphSelector: (options: {
+    readonly link: Link;
+    readonly graph: Graph;
+  }) => dia.Cell.JSON;
+}
+
+/**
+ * Updates a JointJS graph with the provided elements and links.
+ * Compares the current graph state with the provided state and only syncs if they differ.
+ * @template Graph - The type of JointJS graph instance
+ * @template Element - The type of elements in the graph
+ * @template Link - The type of links in the graph
+ * @param options - Configuration options for updating the graph
+ * @returns true if the graph was synced, false if it was already in sync or skipped due to active batch
+ */
+export function updateGraph<
+  Graph extends dia.Graph,
+  Element extends GraphElement,
+  Link extends GraphLink,
+>(options: UpdateGraphOptions<Graph, Element, Link>): boolean {
+  const {
+    graph,
+    elements,
+    links,
+    elementFromGraphSelector,
+    linkFromGraphSelector,
+    elementToGraphSelector,
+    linkToGraphSelector,
+  } = options;
+
+  if (graph.hasActiveBatch()) {
+    return false;
+  }
+
+  // Compare current graph state with provided state to avoid unnecessary syncs
+  // This prevents syncing when graph and provided state are already in sync
+  const graphElements = graph.getElements().map((element) =>
+    elementFromGraphSelector({
+      cell: element,
+      graph,
+    })
+  );
+  const graphLinks = graph.getLinks().map((link) =>
+    linkFromGraphSelector({
+      cell: link,
+      graph,
+    })
+  );
+
+  // Check if graph is already in sync with provided state
+  if (util.isEqual(elements, graphElements) && util.isEqual(links, graphLinks)) {
+    return false;
+  }
+
+  // Build items array using selectors
+  const elementItems = elements.map((element) =>
+    elementToGraphSelector({
+      element: element as Element,
+      graph,
+    })
+  );
+  const linkItems = links.map((link) =>
+    linkToGraphSelector({
+      link: link as Link,
+      graph,
+    })
+  );
+
+  graph.syncCells([...elementItems, ...linkItems], { remove: true });
+  return true;
+}
+
+/**
  * Creates a bidirectional synchronization system between a JointJS graph and an external store.
  *
  * This function handles:
@@ -371,8 +476,7 @@ export function stateSync<
     }
   };
 
-  const updateGraph = () => {
-    if (graph.hasActiveBatch()) return;
+  const updateGraphInternal = () => {
     // Skip if we're updating state from graph changes
     // This prevents circular updates: Graph → State → Graph
     if (isUpdatingStateFromGraph) {
@@ -380,59 +484,46 @@ export function stateSync<
     }
 
     const snapshot = store.getSnapshot();
-    const elements = removeDeepReadOnly(snapshot.elements);
-    const links = removeDeepReadOnly(snapshot.links);
-
-    // Compare current graph state with store state to avoid unnecessary syncs
-    // This prevents syncing when graph and store are already in sync
-    const graphElements = graph.getElements().map((element) =>
-      elementFromGraphSelector({
-        cell: element,
-        graph,
-      })
-    );
-    const graphLinks = graph.getLinks().map((link) =>
-      linkFromGraphSelector({
-        cell: link,
-        graph,
-      })
-    );
-
-    // Check if graph is already in sync with store
-    if (util.isEqual(elements, graphElements) && util.isEqual(links, graphLinks)) {
-      return;
-    }
+    const elements = removeDeepReadOnly(snapshot.elements) as Element[];
+    const links = removeDeepReadOnly(snapshot.links) as Link[];
 
     // Set flag to prevent syncing graph changes back to React
     // This prevents circular updates: React → Graph → React
     syncFromStateCounter++;
     isSyncingFromState = true;
 
-    // Build items array using selectors
-    const elementItems = elements.map((element) =>
-      elementToGraphSelector({
-        element: element as Element,
-        graph,
-      })
-    );
-    const linkItems = links.map((link) =>
-      linkToGraphSelector({
-        link: link as Link,
-        graph,
-      })
-    );
-
-    // Use graph.syncCells directly instead of syncGraph
-    graph.syncCells([...elementItems, ...linkItems], { remove: true });
+    const wasSynced = updateGraph({
+      graph,
+      elements,
+      links,
+      elementFromGraphSelector: elementFromGraphSelector as (options: {
+        readonly cell: dia.Element;
+        readonly graph: Graph;
+      }) => Element,
+      linkFromGraphSelector: linkFromGraphSelector as (options: {
+        readonly cell: dia.Link;
+        readonly graph: Graph;
+      }) => Link,
+      elementToGraphSelector: elementToGraphSelector as (options: {
+        readonly element: Element;
+        readonly graph: Graph;
+      }) => dia.Cell.JSON,
+      linkToGraphSelector: linkToGraphSelector as (options: {
+        readonly link: Link;
+        readonly graph: Graph;
+      }) => dia.Cell.JSON,
+    });
 
     // Only reset the flag if there's no batch (events were processed synchronously)
     // If there's a batch, onBatchStop will handle resetting it
     // We need to check after syncCells because it might have started a batch
-    if (batchCounter === 0 && !graph.hasActiveBatch()) {
-      // Decrement counter and reset flag if counter reaches 0
+    const shouldResetImmediately =
+      !wasSynced || (wasSynced && batchCounter === 0 && !graph.hasActiveBatch());
+    if (shouldResetImmediately) {
       syncFromStateCounter--;
       isSyncingFromState = syncFromStateCounter > 0;
     }
+    // If wasSynced is true but batch is active, onBatchStop will handle resetting the flag
   };
   // Here we get the external changes and update the graph
   const clean = store.subscribe(() => {
@@ -440,7 +531,7 @@ export function stateSync<
     if (isUpdatingStateFromGraph) {
       return;
     }
-    updateGraph();
+    updateGraphInternal();
   });
   // listen to batch start and stop events to track batch lifecycle
   graph.on(BATCH_START_EVENT_NAME, onBatchStart);
@@ -470,7 +561,7 @@ export function stateSync<
   // First, sync existing graph cells to store if store is empty
   syncExistingGraphCellsToStore();
   // Then, sync store to graph
-  updateGraph();
+  updateGraphInternal();
   return {
     subscribeToCellChange,
     cleanup,
