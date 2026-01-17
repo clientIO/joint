@@ -69,7 +69,7 @@ interface Options {
   /** Options to pass to the ResizeObserver constructor */
   readonly resizeObserverOptions?: ResizeObserverOptions;
   /** Function to get the current size of a cell from the graph */
-  readonly getCellTransform: (id: dia.Cell.ID) => NodeLayoutOptionalXY & { element: dia.Element };
+  readonly getCellTransform: (id: dia.Cell.ID) => NodeLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the current IDs snapshot for efficient lookups */
   readonly getIdsSnapshot: () => MarkDeepReadOnly<GraphStoreDerivedSnapshot>;
   /** Function to get the current public snapshot containing all elements */
@@ -208,12 +208,13 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         throw new Error(`Element with id ${cellId} not found in graph data ref`);
       }
 
-      const { x, y, element: cell } = currentCellTransform;
+      const { x, y, angle, element: cell } = currentCellTransform;
       updatedElements[elementArrayIndex] = {
         ...graphElement,
         ...sizeTransformFunction({
           x: x ?? 0,
           y: y ?? 0,
+          angle: angle ?? 0,
           element: cell,
           width: measuredWidth,
           height: measuredHeight,

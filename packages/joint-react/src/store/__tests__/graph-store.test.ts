@@ -7,13 +7,9 @@ import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import {
   defaultElementToGraphSelector,
-  defaultElementFromGraphSelector,
   defaultLinkToGraphSelector,
-  defaultLinkFromGraphSelector,
   type ElementToGraphOptions,
-  type ElementFromGraphOptions,
   type LinkToGraphOptions,
-  type LinkFromGraphOptions,
 } from '../../state/graph-state-selectors';
 
 const DEFAULT_TEST_NAMESPACE = { ...shapes, ReactElement };
@@ -101,21 +97,13 @@ describe('GraphStore', () => {
       const customElementToGraph = jest.fn((options: ElementToGraphOptions<GraphElement>) => {
         return defaultElementToGraphSelector(options);
       });
-      const customElementFromGraph = jest.fn((options: ElementFromGraphOptions<GraphElement>) => {
-        return defaultElementFromGraphSelector(options);
-      });
       const customLinkToGraph = jest.fn((options: LinkToGraphOptions<GraphLink>) => {
         return defaultLinkToGraphSelector(options);
-      });
-      const customLinkFromGraph = jest.fn((options: LinkFromGraphOptions<GraphLink>) => {
-        return defaultLinkFromGraphSelector(options);
       });
 
       const store = new GraphStore({
         elementToGraphSelector: customElementToGraph,
-        elementFromGraphSelector: customElementFromGraph,
         linkToGraphSelector: customLinkToGraph,
-        linkFromGraphSelector: customLinkFromGraph,
       });
 
       // Add an element to trigger the selector
@@ -521,7 +509,7 @@ describe('GraphStore', () => {
       expect(derived.linkIds['link-2']).toBe(1);
     });
 
-    it('should track areElementsMeasured correctly', () => {
+    it('should track areElementsMeasured correctly', (done) => {
       const store = new GraphStore({});
 
       // Initially, no elements, so should be false
@@ -535,19 +523,27 @@ describe('GraphStore', () => {
       });
       store.graph.addCell(measuredElement);
 
-      // After adding measured element to graph, should be true
-      expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
+      // Wait for layout state update (uses startTransition which defers updates)
+      setTimeout(() => {
+        // After adding measured element to graph, should be true
+        expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
 
-      // Once measured, it stays true even if we add unmeasured elements
-      const unmeasuredElement = new ReactElement({
-        id: 'element-2',
-        position: { x: 30, y: 40 },
-        size: { width: 0, height: 0 },
-      });
-      store.graph.addCell(unmeasuredElement);
+        // Once measured, it stays true even if we add unmeasured elements
+        const unmeasuredElement = new ReactElement({
+          id: 'element-2',
+          position: { x: 30, y: 40 },
+          size: { width: 0, height: 0 },
+        });
+        store.graph.addCell(unmeasuredElement);
 
-      // Should remain true because wasElementsMeasuredBefore is true
-      expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
+        // Wait for next update and check final state
+        // eslint-disable-next-line sonarjs/no-nested-functions
+        setTimeout(() => {
+          // Should remain true because wasElementsMeasuredBefore is true
+          expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
+          done();
+        }, 50);
+      }, 50);
     });
   });
 

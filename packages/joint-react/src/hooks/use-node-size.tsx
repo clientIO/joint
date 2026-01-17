@@ -35,7 +35,7 @@ export interface MeasureNodeOptions {
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
-const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0 };
+const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 0 };
 
 /**
  * Custom hook to automatically measure the size of a DOM element and synchronize it with the graph element's size.

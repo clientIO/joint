@@ -4,13 +4,14 @@ import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import { getTargetOrSource } from '../utils/cell/get-link-targe-and-source-ids';
 import { REACT_TYPE } from '../models/react-element';
+import { REACT_LINK_TYPE } from '../models/react-link';
 
 export interface ElementToGraphOptions<Element extends GraphElement> {
   readonly element: Element;
   readonly graph: dia.Graph;
 }
 
-export interface ElementFromGraphOptions<Element extends GraphElement> {
+export interface GraphToElementOptions<Element extends GraphElement> {
   readonly cell: dia.Element;
   readonly previous?: Element;
   readonly graph: dia.Graph;
@@ -21,21 +22,19 @@ export interface LinkToGraphOptions<Link extends GraphLink> {
   readonly graph: dia.Graph;
 }
 
-export interface LinkFromGraphOptions<Link extends GraphLink> {
+export interface GraphToLinkOptions<Link extends GraphLink> {
   readonly cell: dia.Link;
   readonly previous?: Link;
   readonly graph: dia.Graph;
 }
 
 export type LinkFromGraphSelector<Link extends GraphLink> = (
-  options: LinkFromGraphOptions<Link>
+  options: GraphToLinkOptions<Link>
 ) => Link;
 
 export interface GraphStateSelectors<Element extends GraphElement, Link extends GraphLink> {
   readonly elementToGraphSelector?: (options: ElementToGraphOptions<Element>) => dia.Cell.JSON;
-  readonly elementFromGraphSelector?: (options: ElementFromGraphOptions<Element>) => Element;
   readonly linkToGraphSelector?: (options: LinkToGraphOptions<Link>) => dia.Cell.JSON;
-  readonly linkFromGraphSelector?: (options: LinkFromGraphOptions<Link>) => Link;
 }
 
 /**
@@ -64,15 +63,29 @@ export function defaultLinkToGraphSelector<Link extends GraphLink>(
     {}
   );
 
+  // Check if link already exists in graph to preserve its current attributes
+  // This is important for attributes set by React components like Link.Base
+  const existingCell = graph.getCell(link.id);
+  const existingAttributes = existingCell?.isLink() ? existingCell.attr() : {};
+
+  // Merge attributes: state attrs (highest priority) -> existing graph attrs (preserve React-set) -> defaults (lowest)
+  // This preserves attributes set by React components (existingAttributes) unless explicitly overridden by state (attrs)
+  const mergedAttributes = util.defaultsDeep(
+    {},
+    attrs as never,
+    existingAttributes,
+    defaults.attrs
+  );
+
   const mergedLink = {
     ...rest,
     type,
-    attrs: util.defaultsDeep({}, attrs as never, defaults.attrs),
+    attrs: mergedAttributes,
   };
 
   return {
     ...mergedLink,
-    type: link.type ?? 'standard.Link',
+    type: link.type ?? REACT_LINK_TYPE,
     source,
     target,
   } as unknown as dia.Cell.JSON;
@@ -120,8 +133,8 @@ export function defaultElementToGraphSelector<Element extends GraphElement>(
  * it filters the result to only include properties that existed in the previous state, ensuring
  * the state shape remains the source of truth.
  */
-export function defaultLinkFromGraphSelector<Link extends GraphLink>(
-  options: LinkFromGraphOptions<Link>
+export function defaultGraphToLinkSelector<Link extends GraphLink>(
+  options: GraphToLinkOptions<Link>
 ): Link {
   const { cell, previous } = options;
 
@@ -168,8 +181,8 @@ export function defaultLinkFromGraphSelector<Link extends GraphLink>(
  * If a previous state is provided, it filters the result to only include properties that existed in the
  * previous state, ensuring the state shape remains the source of truth.
  */
-export function defaultElementFromGraphSelector<Element extends GraphElement>(
-  options: ElementFromGraphOptions<Element>
+export function defaultGraphToElementSelector<Element extends GraphElement>(
+  options: GraphToElementOptions<Element>
 ): GraphElement {
   const { cell, previous } = options;
 
@@ -188,7 +201,6 @@ export function defaultElementFromGraphSelector<Element extends GraphElement>(
 
   // If previous state exists, filter to only include properties that exist in previous state
   // This ensures state shape is the source of truth
-  // Properties (including x, y, width, height) are only included if they were defined in previous state
   if (previous !== undefined) {
     const filtered: Record<string, unknown> = {};
     const previousRecord = previous as Record<string, unknown>;
@@ -199,9 +211,6 @@ export function defaultElementFromGraphSelector<Element extends GraphElement>(
         filtered[key] = key in cellData ? cellData[key] : previousRecord[key];
       }
     }
-
-    // Always include id as it's the identifier
-    if ('id' in cellData) filtered.id = cellData.id;
     return filtered as Element;
   }
 

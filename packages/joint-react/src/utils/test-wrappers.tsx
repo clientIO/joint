@@ -1,6 +1,11 @@
 import { useCallback } from 'react';
 import { GraphProvider, Paper, type GraphProps, type PaperProps } from '../components';
+import { dia } from '@joint/core';
+import { DEFAULT_CELL_NAMESPACE } from '../store/graph-store';
 
+export function getTestGraph() {
+  return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+}
 /**
  * Testing helper to render a `GraphProvider` provider.
  * @param props - Props forwarded to the `GraphProvider` root component.
@@ -63,3 +68,35 @@ export const simpleRenderElementWrapper = paperRenderElementWrapper({
     ],
   },
 });
+
+/**
+ * Testing helper to render a `Paper` inside a `GraphProvider` provider with renderLink support.
+ * @param options - Wrapper options.
+ * @param options.paperProps - Props for `Paper`.
+ * @param options.graphProviderProps - Props for the `GraphProvider` root.
+ * @returns A component that wraps children inside `GraphProvider` + `Paper` with renderLink.
+ * @internal
+ * @group utils
+ */
+export function paperRenderLinkWrapper(options: Options): React.JSXElementConstructor<{
+  children: React.ReactNode;
+}> {
+  const { paperProps, graphProviderProps } = options;
+  return function GraphProviderWrapper({ children }) {
+    const renderLink = useCallback(() => {
+      return children;
+    }, [children]);
+    return (
+      <GraphProvider {...graphProviderProps}>
+        <Paper
+          {...paperProps}
+          width={100}
+          height={100}
+          renderLink={renderLink}
+          // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
+          renderElement={() => <rect width={100} height={100} />}
+        ></Paper>
+      </GraphProvider>
+    );
+  };
+}

@@ -52,7 +52,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements}>
+    <GraphProvider areBatchUpdatesDisabled elements={initialElements}>
       <Main />
     </GraphProvider>
   );

@@ -76,6 +76,7 @@ export function SimpleGraphDecorator(Story: StoryFunction, { args }: StoryCtx) {
 export function RenderItemDecorator(
   properties: Readonly<{
     renderElement: (element: SimpleElement) => JSX.Element;
+    renderLink?: (link: any) => JSX.Element;
   }>
 ) {
   return (
@@ -86,6 +87,7 @@ export function RenderItemDecorator(
           height={450}
           className={PAPER_CLASSNAME}
           renderElement={properties.renderElement}
+          renderLink={properties.renderLink}
           linkPinning={false}
         />
       </SimpleGraphProviderDecorator>
@@ -121,6 +123,20 @@ export function SimpleRenderItemDecorator(Story: StoryFunction, { args }: StoryC
     [Story, args]
   );
   return <RenderItemDecorator renderElement={component} />;
+}
+
+export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryCtx) {
+  const component = useCallback(
+    (element: SimpleElement) => <Story {...element} {...args} />,
+    [Story, args]
+  );
+  return (
+    <RenderItemDecorator
+      renderLink={component}
+      // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
+      renderElement={({ id }) => <HTMLNode className="node">{id}</HTMLNode>}
+    />
+  );
 }
 
 export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {

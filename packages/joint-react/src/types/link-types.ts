@@ -1,6 +1,6 @@
 import type { dia, shapes } from '@joint/core';
 
-interface StandardLinkShapesTypeMapper {
+export interface StandardLinkShapesTypeMapper {
   'standard.DoubleLink': shapes.standard.DoubleLinkSelectors;
   'standard.ShadowLink': shapes.standard.ShadowLinkSelectors;
   'standard.Link': shapes.standard.LinkSelectors;

@@ -452,6 +452,7 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
             id: '1',
             label: 'Element 1',
             hoverColor: 'red',
+            somethingMine: true,
           } as GraphElement & { label: string; hoverColor: string },
           { id: '2', label: 'Element 1', hoverColor: 'red' } as GraphElement & {
             label: string;

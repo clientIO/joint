@@ -5,14 +5,17 @@ import {
   createElements,
   createLinks,
   GraphProvider,
+  Link,
   Paper,
   type InferElement,
   type GraphElement,
   type GraphLink,
+  type RenderLink,
 } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useRef, useState, startTransition, memo } from 'react';
-import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY, LIGHT, SECONDARY } from 'storybook-config/theme';
+import { REACT_LINK_TYPE } from '../../../models/react-link';
 
 function initialElements(xNodes = 15, yNodes = 30) {
   const nodes = [];
@@ -38,15 +41,10 @@ function initialElements(xNodes = 15, yNodes = 30) {
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
         edges.push({
           id: `edge-${edgeId.toString()}`,
+          type: REACT_LINK_TYPE,
           source: `stress-${recentNodeId.toString()}`,
           target: `stress-${nodeId.toString()}`,
           z: -1,
-          attrs: {
-            line: {
-              stroke: LIGHT,
-              strokeWidth: 0.5,
-            },
-          },
         });
         edgeId++;
       }
@@ -92,6 +90,32 @@ function Main({
     (element: BaseElementWithData) => <RenderElement {...element} />,
     []
   );
+
+  const renderLink: RenderLink = useCallback(
+    (link) => (
+      <>
+        <Link.Base stroke={LIGHT} strokeWidth={0.5} />
+        <Link.Label position={{ distance: 0.5 }}>
+          <foreignObject x={-20} y={-8} width={40} height={16}>
+            <div
+              className="flex items-center justify-center rounded text-xs"
+              style={{
+                background: SECONDARY,
+                color: '#ffffff',
+                fontSize: 9,
+                width: 40,
+                height: 16,
+              }}
+            >
+              {link.id.toString().split('-')[1]}
+            </div>
+          </foreignObject>
+        </Link.Label>
+      </>
+    ),
+    []
+  );
+
   const updatePos = useCallback(() => {
     // Use startTransition to mark this as a non-urgent update
     // This allows React to keep the UI responsive during the update
@@ -116,6 +140,7 @@ function Main({
         className={PAPER_CLASSNAME}
         height={600}
         renderElement={renderElement}
+        renderLink={renderLink}
       />
       <div className="absolute top-4 right-4">
         <button

@@ -1,14 +1,15 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { dia, util, type Vectorizer } from '@joint/core';
 import type { OverWriteResult } from '../context';
-import type { RenderElement } from '../components';
+import type { RenderElement, RenderLink } from '../components';
 import type { GraphElement } from '../types/element-types';
+import type { GraphLink } from '../types/link-types';
 import type { GraphState, GraphStore } from './graph-store';
-import { createScheduler } from '../utils/scheduler';
 import { REACT_TYPE } from '../models/react-element';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 export const PORTAL_SELECTOR = 'react-port-portal';
-
+export const LINK_LABEL_PORTAL_SELECTOR = 'react-link-label-portal';
 /**
  * Cache entry for port-related DOM elements and selectors.
  * Used internally to track port rendering state.
@@ -42,6 +43,8 @@ export interface AddPaperOptions {
   readonly scale?: number;
   /** Optional custom renderer for elements */
   readonly renderElement?: RenderElement<GraphElement>;
+  /** Optional custom renderer for links */
+  readonly renderLink?: RenderLink<GraphLink>;
 }
 
 /**
@@ -64,6 +67,10 @@ export interface PaperStoreSnapshot {
   paperElementViews?: Record<dia.Cell.ID, dia.ElementView>;
   /** Map of port IDs to their SVG elements */
   portsData?: Record<string, SVGElement>;
+  /** Map of link IDs to their link views in this paper */
+  linkViews?: Record<dia.Cell.ID, dia.LinkView>;
+  /** Map of link label IDs to their SVG elements */
+  linksData?: Record<string, SVGElement>;
 }
 
 /**
@@ -84,8 +91,17 @@ export class PaperStore {
   public overWriteResultRef?: OverWriteResult;
   /** Optional custom element renderer */
   private renderElement?: RenderElement<GraphElement>;
+  /** Optional custom link renderer */
+  public renderLink?: RenderLink<GraphLink>;
 
   public ReactElementView: typeof dia.ElementView;
+
+  /**
+   * Cleanup function to unregister paper update callback from GraphStore.
+   * @internal
+   */
+  private unregisterPaperUpdate?: () => void;
+  public ReactLinkView: typeof dia.LinkView;
 
   constructor(options: PaperStoreOptions) {
     const {
@@ -95,31 +111,43 @@ export class PaperStore {
       paperElement,
       scale,
       renderElement,
+      renderLink,
       id,
     } = options;
     const { width, height } = paperOptions;
     const { graph } = graphStore;
     this.paperId = id;
     this.renderElement = renderElement;
+    this.renderLink = renderLink;
     const cache: {
       portsData: Record<string, SVGElement>;
       elementViews: Record<dia.Cell.ID, dia.ElementView>;
+      linkViews: Record<dia.Cell.ID, dia.LinkView>;
+      linksData: Record<string, SVGElement>;
     } = {
       portsData: {},
       elementViews: {},
+      linkViews: {},
+      linksData: {},
     };
-    const scheduler = createScheduler(() => {
+    // Register paper update callback with GraphStore's unified scheduler
+    // This ensures paper updates are batched together with link/port updates
+    const paperUpdateCallback = () => {
       graphStore.updatePaperSnapshot(options.id, (current) => {
         return {
           ...current,
           portsData: cache.portsData,
           paperElementViews: cache.elementViews,
+          linkViews: cache.linkViews,
+          linksData: cache.linksData,
         };
       });
-    });
+    };
+    this.unregisterPaperUpdate = graphStore.registerPaperUpdate(paperUpdateCallback);
     // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
     const store = this;
 
+    const hasRenderElement = renderElement !== undefined;
     this.ReactElementView = dia.ElementView.extend({
       renderMarkup() {
         const ele: HTMLElement = this.vel;
@@ -134,7 +162,7 @@ export class PaperStore {
           ...cache.elementViews,
           [cellId]: view,
         };
-        scheduler();
+        graphStore.schedulePaperUpdate();
       },
       _renderPorts() {
         // @ts-expect-error we use private jointjs api
@@ -150,12 +178,114 @@ export class PaperStore {
         });
         cache.portsData = newPorts ?? {};
 
-        scheduler();
+        graphStore.schedulePaperUpdate();
+      },
+    });
+
+    const hasRenderLink = renderLink !== undefined;
+    this.ReactLinkView = dia.LinkView.extend({
+      // renderMarkup() {},
+      onRender() {
+        // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
+        const view: dia.LinkView = this;
+        const linkId = view.model.id as dia.Cell.ID;
+
+        cache.linkViews = {
+          ...cache.linkViews,
+          [linkId]: view,
+        };
+        // Flush pending updates to ensure labels are synced before rendering
+        graphStore.flushPendingUpdates();
+        graphStore.schedulePaperUpdate();
+      },
+      renderLabels() {
+        // Call parent implementation to render labels
+        // @ts-expect-error renderLabels exists on LinkView but not in types
+        dia.LinkView.prototype.renderLabels.call(this);
+
+        // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
+        const view: dia.LinkView = this;
+        const linkId = view.model.id as dia.Cell.ID;
+        const link = view.model;
+        // @ts-expect-error we use private jointjs api
+        const labelCache: Record<number, SVGElement> = view._labelCache;
+        // @ts-expect-error we use private jointjs api
+        const labelSelectors: Record<number, Record<string, SVGElement>> = view._labelSelectors;
+
+        if (!labelCache || !labelSelectors) {
+          return this;
+        }
+
+        const newLinksData = { ...cache.linksData };
+        let isChanged = false;
+
+        // Get all existing label IDs for this link
+        const existingLabelIds = new Set<string>();
+        for (const labelId in cache.linksData) {
+          if (labelId.startsWith(`${linkId}-label-`)) {
+            existingLabelIds.add(labelId);
+          }
+        }
+
+        // Update or add entries for current labels
+        // Get labels from the link model to check for React labels (those with labelId)
+        const linkLabels = link.isLink() ? link.labels() : [];
+        for (const labelIndex in labelCache) {
+          const index = Number.parseInt(labelIndex, 10);
+          const label = linkLabels[index];
+
+          // Only process React labels (those with labelId property)
+          if (!label || !('labelId' in label)) {
+            continue;
+          }
+
+          // Use the label container element directly from labelCache
+          const portalElement = labelCache[index];
+          if (!portalElement) {
+            continue;
+          }
+
+          const linkLabelId = store.getLinkLabelId(linkId, index);
+          existingLabelIds.delete(linkLabelId);
+
+          if (util.isEqual(newLinksData[linkLabelId], portalElement)) {
+            continue;
+          }
+          if (!portalElement.isConnected) {
+            continue;
+          }
+          isChanged = true;
+          // Use the label container element directly as the portal target
+          newLinksData[linkLabelId] = portalElement;
+        }
+
+        // Remove entries for labels that no longer exist
+        // Clean up orphaned entries that are not in the current labelCache
+        // Only skip cleanup if link has labels but cache is empty (labels are still rendering)
+        if (existingLabelIds.size > 0) {
+          const hasRenderedLabels = Object.keys(labelCache).length > 0;
+          const linkHasLabels = link.isLink() && link.labels().length > 0;
+          // Clean up if labels are rendered OR link has no labels (safe to clean up)
+          if (hasRenderedLabels || !linkHasLabels) {
+            for (const removedLabelId of existingLabelIds) {
+              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+              delete newLinksData[removedLabelId];
+            }
+            isChanged = true;
+          }
+        }
+
+        if (isChanged && !util.isEqual(cache.linksData, newLinksData)) {
+          cache.linksData = newLinksData;
+          graphStore.schedulePaperUpdate();
+        }
+
+        return this;
       },
     });
     // Create a new JointJS Paper with the provided options
 
-    const { ReactElementView } = this;
+    const { ReactElementView, ReactLinkView } = this;
     this.paper = new dia.Paper({
       async: true,
       sorting: dia.Paper.sorting.APPROX,
@@ -163,10 +293,16 @@ export class PaperStore {
       frozen: true,
       model: graph,
       elementView: (element) => {
-        if (element.get('type') === REACT_TYPE) {
+        if (hasRenderElement && element.get('type') === REACT_TYPE) {
           return ReactElementView;
         }
         return undefined as unknown as typeof dia.ElementView;
+      },
+      linkView: () => {
+        if (hasRenderLink) {
+          return ReactLinkView;
+        }
+        return undefined as unknown as typeof dia.LinkView;
       },
       // 👇 override to always allow connection
       validateConnection: () => true,
@@ -260,5 +396,15 @@ export class PaperStore {
    */
   public getPortId(cellId: dia.Cell.ID, portId: string) {
     return `${cellId}-${portId}`;
+  }
+
+  /**
+   * Generates a unique link label ID by combining link ID and label index.
+   * @param linkId - The ID of the link containing the label
+   * @param labelIndex - The index of the label in the labels array
+   * @returns A unique identifier for the link label
+   */
+  public getLinkLabelId(linkId: dia.Cell.ID, labelIndex: number) {
+    return `${linkId}-label-${labelIndex}`;
   }
 }

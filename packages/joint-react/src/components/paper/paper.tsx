@@ -21,15 +21,18 @@ import {
   useMemo,
   useRef,
   useState,
+  useDeferredValue,
   type CSSProperties,
 } from 'react';
-import { useElements } from '../../hooks';
+import { useElements, useLinks } from '../../hooks';
 import type { GraphElement } from '../../types/element-types';
-import type { PaperProps, RenderElement } from './paper.types';
+import type { GraphLink } from '../../types/link-types';
+import type { PaperProps, RenderElement, RenderLink } from './paper.types';
 import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
 import { PaperHTMLContainer } from './render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext, PaperStoreContext } from '../../context';
 import { HTMLElementItem, SVGElementItem } from './render-element/paper-element-item';
+import { createPortal } from 'react-dom';
 import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/handle-paper-events';
 import type { PaperStore } from '../../store';
 import {
@@ -38,6 +41,24 @@ import {
 } from '../../hooks/use-graph-store-selector';
 
 const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
+
+// eslint-disable-next-line jsdoc/require-jsdoc
+function LinkItem({
+  link,
+  portalElement,
+  renderLink,
+}: {
+  link: GraphLink;
+  portalElement: SVGAElement;
+  renderLink: RenderLink<GraphLink>;
+}) {
+  if (!portalElement) {
+    return null;
+  }
+
+  const linkContent = renderLink(link);
+  return createPortal(linkContent, portalElement);
+}
 
 /**
  * Paper component renders the visual representation of the graph using JointJS Paper.
@@ -67,6 +88,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 ) {
   const {
     renderElement,
+    renderLink,
     defaultLink,
     style,
     className,
@@ -82,7 +104,17 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 
   const areElementsMeasured = useAreElementsMeasured();
   const elementsState = useElements();
+  const linksState = useLinks();
   useDebugValue(elementsState);
+
+  // Defer rendering for large graphs to improve initial render performance
+  // Threshold: only defer if we have more than 100 elements or links
+  // Always call useDeferredValue (hooks rules), but only use deferred value when threshold is met
+  const deferredElementsStateRaw = useDeferredValue(elementsState);
+  const deferredLinksStateRaw = useDeferredValue(linksState);
+  const shouldDefer = elementsState.length > 100 || linksState.length > 100;
+  const deferredElementsState = shouldDefer ? deferredElementsStateRaw : elementsState;
+  const deferredLinksState = shouldDefer ? deferredLinksStateRaw : linksState;
   const reactId = useId();
   const id = props.id ?? `paper-${reactId}`;
   const { overWrite } = useContext(PaperConfigContext) ?? {};
@@ -91,10 +123,32 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     (snapshot) => snapshot.papers[id]?.paperElementViews ?? EMPTY_OBJECT
   );
 
+  const paperLinkViews = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.linkViews ?? EMPTY_OBJECT
+  );
+
+  // Check if all links have views (or if there are no links)
+  // This prevents the blink where elements appear before links
+  const areLinksReady = useMemo(() => {
+    if (!renderLink) {
+      return true; // No custom link rendering, so links are "ready"
+    }
+    if (deferredLinksState.length === 0) {
+      return true; // No links, so links are "ready"
+    }
+    // Check if all links have views
+    for (const link of deferredLinksState) {
+      if (link.id && !paperLinkViews[link.id]) {
+        return false; // At least one link doesn't have a view yet
+      }
+    }
+    return true;
+  }, [renderLink, deferredLinksState, paperLinkViews]);
+
   const { addPaper, graph, getPaperStore } = useGraphStore();
 
   const paperStore = getPaperStore(id) ?? null;
-  const { paper, ReactElementView } = paperStore ?? {};
+  const { paper, ReactElementView, ReactLinkView } = paperStore ?? {};
   const paperHTMLElement = useRef<HTMLDivElement | null>(null);
   const measured = useRef(false);
   const previousSizesRef = useRef<number[][]>([]);
@@ -102,6 +156,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
 
   const hasRenderElement = !!renderElement;
+  const hasRenderLink = !!renderLink;
 
   useImperativeHandle(forwardedRef, () => paperStore as PaperStore, [paperStore]);
 
@@ -133,6 +188,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
       },
       overWrite,
       renderElement: renderElement as RenderElement<GraphElement>,
+      renderLink: renderLink as RenderLink<GraphLink> | undefined,
       scale,
     });
     return () => {
@@ -210,6 +266,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     if (!paper) return;
 
     // Build current list of [currWidth, currHeight] to avoid shadowing outer scope variables
+    // Use elementsState (not deferred) for accurate size tracking
     const currentSizes = elementsState.map(
       ({ width: elementWidth = 0, height: elementHeight = 0 }) => [elementWidth, elementHeight]
     );
@@ -273,7 +330,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     if (!hasRenderElement) {
       return null;
     }
-    return elementsState.map((elementState) => {
+    return deferredElementsState.map((elementState) => {
       if (!elementState.id) {
         return null;
       }
@@ -312,7 +369,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     });
   }, [
     hasRenderElement,
-    elementsState,
+    deferredElementsState,
     paperElementViews,
     ReactElementView,
     useHTMLOverlay,
@@ -320,11 +377,53 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     renderElement,
   ]);
 
+  const renderedLinks = useMemo(() => {
+    if (!ReactLinkView) {
+      return null;
+    }
+
+    if (!hasRenderLink) {
+      return null;
+    }
+    return deferredLinksState.map((linkState) => {
+      if (!linkState.id) {
+        return null;
+      }
+
+      const linkView = paperLinkViews[linkState.id];
+      if (!linkView) {
+        return null;
+      }
+
+      const SVG = linkView.el;
+      if (!SVG) {
+        return null;
+      }
+
+      const isReactLink = linkView instanceof ReactLinkView;
+
+      if (!isReactLink) {
+        return null;
+      }
+
+      if (!renderLink) {
+        return null;
+      }
+
+      return (
+        <CellIdContext.Provider key={linkState.id} value={linkState.id}>
+          <LinkItem link={linkState} portalElement={SVG as SVGAElement} renderLink={renderLink} />
+        </CellIdContext.Provider>
+      );
+    });
+  }, [hasRenderLink, deferredLinksState, paperLinkViews, ReactLinkView, renderLink]);
+
   const content = (
     <>
       {hasRenderElement && useHTMLOverlay && (
         <PaperHTMLContainer onSetElement={setHTMLRendererContainer} />
       )}
+      {renderedLinks}
       {renderedElements}
     </>
   );
@@ -339,13 +438,17 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     };
   }, [height, width, style]);
 
+  // Only show paper when both elements are measured AND links are ready
+  // This prevents the blink where elements appear before links
+  const isContentReady = areElementsMeasured && areLinksReady;
+
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({
-      opacity: areElementsMeasured ? 1 : 0,
+      opacity: isContentReady ? 1 : 0,
       position: 'relative',
       ...defaultStyle,
     }),
-    [areElementsMeasured, defaultStyle]
+    [isContentReady, defaultStyle]
   );
 
   return (

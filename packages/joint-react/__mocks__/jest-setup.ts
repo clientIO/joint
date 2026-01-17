@@ -83,6 +83,15 @@ beforeEach(() => {
     writable: true,
     value: jest.fn().mockImplementation(() => SVGRect),
   });
+
+  /**
+   * @description Mock checkVisibility method which is not implemented in JSDOM
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/checkVisibility
+   */
+  Object.defineProperty(globalThis.Element.prototype, 'checkVisibility', {
+    writable: true,
+    value: jest.fn().mockImplementation(() => true),
+  });
 });
 
 // Interfaces

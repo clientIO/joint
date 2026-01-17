@@ -14,8 +14,8 @@ describe('GraphProvider Controlled Mode', () => {
   describe('Basic useState integration', () => {
     it('should sync React state to store and graph on initial mount', async () => {
       const initialElements = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-        { id: '2', width: 200, height: 200, type: 'ReactElement' },
+        { id: '1', width: 100, height: 100 },
+        { id: '2', width: 200, height: 200 },
       ]);
 
       let elementCount = 0;
@@ -46,9 +46,7 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should update store when React state changes via useState', async () => {
-      const initialElements = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ]);
+      const initialElements = createElements([{ id: '1', width: 100, height: 100 }]);
 
       let elementCount = 0;
       let elementIds: string[] = [];
@@ -82,9 +80,9 @@ describe('GraphProvider Controlled Mode', () => {
       act(() => {
         setElementsExternal?.(
           createElements([
-            { id: '1', width: 100, height: 100, type: 'ReactElement' },
-            { id: '2', width: 200, height: 200, type: 'ReactElement' },
-            { id: '3', width: 300, height: 300, type: 'ReactElement' },
+            { id: '1', width: 100, height: 100 },
+            { id: '2', width: 200, height: 200 },
+            { id: '3', width: 300, height: 300 },
           ])
         );
       });
@@ -96,9 +94,7 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle both elements and links in controlled mode', async () => {
-      const initialElements = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ]);
+      const initialElements = createElements([{ id: '1', width: 100, height: 100 }]);
       const initialLink = new dia.Link({
         id: 'link1',
         type: 'standard.Link',
@@ -146,8 +142,8 @@ describe('GraphProvider Controlled Mode', () => {
       act(() => {
         setElementsExternal?.(
           createElements([
-            { id: '1', width: 100, height: 100, type: 'ReactElement' },
-            { id: '2', width: 200, height: 200, type: 'ReactElement' },
+            { id: '1', width: 100, height: 100 },
+            { id: '2', width: 200, height: 200 },
           ])
         );
       });
@@ -188,9 +184,7 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Rapid consecutive updates', () => {
     it('should handle rapid consecutive state updates correctly', async () => {
-      const initialElements = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ]);
+      const initialElements = createElements([{ id: '1', width: 100, height: 100 }]);
 
       let elementCount = 0;
 
@@ -222,23 +216,23 @@ describe('GraphProvider Controlled Mode', () => {
       act(() => {
         setElementsExternal?.(
           createElements([
-            { id: '1', width: 100, height: 100, type: 'ReactElement' },
-            { id: '2', width: 200, height: 200, type: 'ReactElement' },
+            { id: '1', width: 100, height: 100 },
+            { id: '2', width: 200, height: 200 },
           ])
         );
         setElementsExternal?.(
           createElements([
-            { id: '1', width: 100, height: 100, type: 'ReactElement' },
-            { id: '2', width: 200, height: 200, type: 'ReactElement' },
-            { id: '3', width: 300, height: 300, type: 'ReactElement' },
+            { id: '1', width: 100, height: 100 },
+            { id: '2', width: 200, height: 200 },
+            { id: '3', width: 300, height: 300 },
           ])
         );
         setElementsExternal?.(
           createElements([
-            { id: '1', width: 100, height: 100, type: 'ReactElement' },
-            { id: '2', width: 200, height: 200, type: 'ReactElement' },
-            { id: '3', width: 300, height: 300, type: 'ReactElement' },
-            { id: '4', width: 400, height: 400, type: 'ReactElement' },
+            { id: '1', width: 100, height: 100 },
+            { id: '2', width: 200, height: 200 },
+            { id: '3', width: 300, height: 300 },
+            { id: '4', width: 400, height: 400 },
           ])
         );
       });
@@ -252,9 +246,7 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle 10 rapid updates without losing state', async () => {
-      const initialElements = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ]);
+      const initialElements = createElements([{ id: '1', width: 100, height: 100 }]);
 
       let elementCount = 0;
 
@@ -290,7 +282,6 @@ describe('GraphProvider Controlled Mode', () => {
                 id: String(elementIndex + 1),
                 width: 100 * (elementIndex + 1),
                 height: 100 * (elementIndex + 1),
-                type: 'ReactElement' as const,
               }))
             )
           );
@@ -308,9 +299,7 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Concurrent updates', () => {
     it('should handle concurrent element and link updates', async () => {
-      const initialElements = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ]);
+      const initialElements = createElements([{ id: '1', width: 100, height: 100 }]);
       const initialLink = new dia.Link({
         id: 'link1',
         type: 'standard.Link',
@@ -358,8 +347,8 @@ describe('GraphProvider Controlled Mode', () => {
       act(() => {
         setElementsExternal?.(
           createElements([
-            { id: '1', width: 100, height: 100, type: 'ReactElement' },
-            { id: '2', width: 200, height: 200, type: 'ReactElement' },
+            { id: '1', width: 100, height: 100 },
+            { id: '2', width: 200, height: 200 },
           ])
         );
         setLinksExternal?.([
@@ -392,9 +381,7 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle multiple rapid updates with callbacks', async () => {
-      const initialElements = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ]);
+      const initialElements = createElements([{ id: '1', width: 100, height: 100 }]);
 
       let elementCount = 0;
 
@@ -414,7 +401,6 @@ describe('GraphProvider Controlled Mode', () => {
               id: String(previous.length + 1),
               width: 100 * (previous.length + 1),
               height: 100 * (previous.length + 1),
-              type: 'ReactElement' as const,
             },
           ]);
         }, []);
@@ -454,9 +440,7 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('User interaction sync back to React state', () => {
     it('should sync graph changes back to React state in controlled mode', async () => {
-      const initialElements = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ]);
+      const initialElements = createElements([{ id: '1', width: 100, height: 100 }]);
 
       let reactStateElements: GraphElement[] = [];
       let storeElements: GraphElement[] = [];
@@ -525,9 +509,7 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle element position changes from user interaction', async () => {
-      const initialElements = createElements([
-        { id: '1', width: 100, height: 100, x: 0, y: 0, type: 'ReactElement' },
-      ]);
+      const initialElements = createElements([{ id: '1', width: 100, height: 100, x: 0, y: 0 }]);
 
       let reactStateElements: GraphElement[] = [];
 
@@ -587,9 +569,7 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Edge cases', () => {
     it('should handle empty arrays correctly', async () => {
-      const initialElements = createElements([
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ]);
+      const initialElements = createElements([{ id: '1', width: 100, height: 100 }]);
 
       let elementCount = 0;
 
@@ -629,8 +609,8 @@ describe('GraphProvider Controlled Mode', () => {
       act(() => {
         setElementsExternal?.(
           createElements([
-            { id: '1', width: 100, height: 100, type: 'ReactElement' },
-            { id: '2', width: 200, height: 200, type: 'ReactElement' },
+            { id: '1', width: 100, height: 100 },
+            { id: '2', width: 200, height: 200 },
           ])
         );
       });

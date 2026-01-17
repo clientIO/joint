@@ -144,7 +144,10 @@ describe('Paper Component', () => {
     const customEvents = { MyCustomEventOnClick: handleCustomEvent };
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> customEvents={customEvents}>
+        <Paper<Element>
+          customEvents={customEvents}
+          renderElement={({ label }) => <div className="node">{label}</div>}
+        >
           <FireEvent />
         </Paper>
       </GraphProvider>
@@ -158,7 +161,7 @@ describe('Paper Component', () => {
   it('applies default clickThreshold and custom clickThreshold', () => {
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> />
+        <Paper<Element> renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
     const PaperElement = document.querySelector('.joint-paper');
@@ -166,7 +169,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> clickThreshold={20} />
+        <Paper<Element> clickThreshold={20} renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
     // Ensure no errors occur when custom clickThreshold is applied
@@ -176,7 +179,7 @@ describe('Paper Component', () => {
   it('applies scale to the Paper', async () => {
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> scale={2} />
+        <Paper<Element> scale={2} renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
 
@@ -190,7 +193,7 @@ describe('Paper Component', () => {
     const onElementsSizeReadyMock = jest.fn();
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> onElementsSizeReady={onElementsSizeReadyMock} />
+        <Paper<Element> onElementsSizeReady={onElementsSizeReadyMock} renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
     await waitFor(() => {
@@ -338,7 +341,7 @@ describe('Paper Component', () => {
       currentOutsideElements = currentElements as Element[];
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
-          <Paper<Element> />
+          <Paper<Element> renderElement={() => <div>Test</div>} />
           <UpdatePosition />
         </GraphProvider>
       );

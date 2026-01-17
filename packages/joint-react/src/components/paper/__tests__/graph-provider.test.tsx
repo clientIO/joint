@@ -1,14 +1,16 @@
-import React, { createRef, useState } from 'react';
+import React, { createRef, useState, useCallback } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { GraphStoreContext } from '../../../context';
 import { GraphStore } from '../../../store';
 import { dia, shapes } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
-import { createElements } from '../../../utils/create';
+import { createElements, createLinks } from '../../../utils/create';
 import type { GraphElement } from '../../../types/element-types';
 import type { GraphLink } from '../../../types/link-types';
 import { mapLinkFromGraph } from '../../../utils/cell/cell-utilities';
 import { GraphProvider } from '../../graph/graph-provider';
+import { Paper } from '../../paper/paper';
+import type { RenderLink } from '../../paper/paper.types';
 
 describe('graph', () => {
   it('should render children and match snapshot', () => {
@@ -372,5 +374,182 @@ describe('graph', () => {
     render(<GraphProvider ref={graphRef} />);
     expect(graphRef.current).not.toBeNull();
     expect(graphRef.current?.destroy).toBeDefined();
+  });
+
+  it('should pass correct link data to renderLink function', async () => {
+    const elements = createElements([
+      {
+        id: 'element-1',
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+      },
+      {
+        id: 'element-2',
+        x: 200,
+        y: 200,
+        width: 100,
+        height: 100,
+      },
+    ]);
+
+    const links = createLinks([
+      {
+        id: 'link-1',
+        source: 'element-1',
+        target: 'element-2',
+        type: 'standard.Link',
+        z: 1,
+      },
+      {
+        id: 'link-2',
+        source: 'element-2',
+        target: 'element-1',
+        type: 'standard.Link',
+        z: 2,
+        customProperty: 'custom-value',
+      },
+    ]);
+
+    const receivedLinks: GraphLink[] = [];
+
+    function TestComponent() {
+      const renderLink: RenderLink = useCallback((link) => {
+        receivedLinks.push(link);
+        return <g data-testid={`link-${link.id}`} />;
+      }, []);
+
+      return (
+        <Paper
+          width={100}
+          height={100}
+          renderLink={renderLink}
+          // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
+          renderElement={() => <rect />}
+        />
+      );
+    }
+
+    render(
+      <GraphProvider elements={elements} links={links}>
+        <TestComponent />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(receivedLinks.length).toBe(2);
+    });
+
+    // Verify first link data
+    const link1 = receivedLinks.find((link) => link.id === 'link-1');
+    expect(link1).toBeDefined();
+    expect(link1?.id).toBe('link-1');
+    expect(link1?.source).toBe('element-1');
+    expect(link1?.target).toBe('element-2');
+    expect(link1?.type).toBe('standard.Link');
+    expect(link1?.z).toBe(1);
+
+    // Verify second link data
+    const link2 = receivedLinks.find((link) => link.id === 'link-2');
+    expect(link2).toBeDefined();
+    expect(link2?.id).toBe('link-2');
+    expect(link2?.source).toBe('element-2');
+    expect(link2?.target).toBe('element-1');
+    expect(link2?.type).toBe('standard.Link');
+    expect(link2?.z).toBe(2);
+    expect(link2?.customProperty).toBe('custom-value');
+  });
+
+  it('should pass updated link data to renderLink when links change', async () => {
+    const elements = createElements([
+      {
+        id: 'element-1',
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+      },
+      {
+        id: 'element-2',
+        x: 200,
+        y: 200,
+        width: 100,
+        height: 100,
+      },
+    ]);
+
+    const initialLinks = createLinks([
+      {
+        id: 'link-1',
+        source: 'element-1',
+        target: 'element-2',
+      },
+    ]);
+
+    const receivedLinks: GraphLink[] = [];
+
+    let setLinksExternal: ((links: GraphLink[]) => void) | null = null;
+
+    function ControlledGraph() {
+      const [links, setLinks] = useState<GraphLink[]>(() => initialLinks);
+      setLinksExternal = setLinks as unknown as (links: GraphLink[]) => void;
+
+      const renderLink: RenderLink = useCallback((link) => {
+        receivedLinks.push(link);
+        return <g data-testid={`link-${link.id}`} />;
+      }, []);
+
+      return (
+        <GraphProvider elements={elements} links={links} onLinksChange={setLinks}>
+          <Paper
+            width={100}
+            height={100}
+            renderLink={renderLink}
+            // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
+            renderElement={() => <rect />}
+          />
+        </GraphProvider>
+      );
+    }
+
+    render(<ControlledGraph />);
+
+    await waitFor(() => {
+      expect(receivedLinks.length).toBeGreaterThanOrEqual(1);
+    });
+
+    const initialLink = receivedLinks.find((link) => link.id === 'link-1');
+    expect(initialLink).toBeDefined();
+    expect(initialLink?.source).toBe('element-1');
+    expect(initialLink?.target).toBe('element-2');
+
+    // Clear received links to track new ones
+    receivedLinks.length = 0;
+
+    // Update links
+    act(() => {
+      setLinksExternal?.(
+        createLinks([
+          {
+            id: 'link-2',
+            source: 'element-2',
+            target: 'element-1',
+            customProperty: 'updated-value',
+          },
+        ])
+      );
+    });
+
+    await waitFor(() => {
+      expect(receivedLinks.length).toBeGreaterThanOrEqual(1);
+    });
+
+    const updatedLink = receivedLinks.find((link) => link.id === 'link-2');
+    expect(updatedLink).toBeDefined();
+    expect(updatedLink?.id).toBe('link-2');
+    expect(updatedLink?.source).toBe('element-2');
+    expect(updatedLink?.target).toBe('element-1');
+    expect(updatedLink?.customProperty).toBe('updated-value');
   });
 });

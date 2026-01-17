@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicated-branches */
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { GraphStoreDerivedSnapshot, GraphStoreSnapshot } from '../store/graph-store';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
@@ -5,12 +6,18 @@ import { removeDeepReadOnly, type ExternalStoreLike } from '../utils/create-stat
 import { util, type dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
-import type { GraphStateSelectors } from './graph-state-selectors';
+import type {
+  ElementToGraphOptions,
+  GraphToElementOptions,
+  GraphToLinkOptions,
+  GraphStateSelectors,
+  LinkToGraphOptions,
+} from './graph-state-selectors';
 import {
   defaultElementToGraphSelector,
-  defaultElementFromGraphSelector,
+  defaultGraphToElementSelector,
   defaultLinkToGraphSelector,
-  defaultLinkFromGraphSelector,
+  defaultGraphToLinkSelector,
 } from './graph-state-selectors';
 import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equality';
 
@@ -83,25 +90,23 @@ export interface UpdateGraphOptions<
   /** The links to sync to the graph */
   readonly links: readonly Link[];
   /** Selector to convert graph elements to Element format for comparison */
-  readonly elementFromGraphSelector: (options: {
-    readonly cell: dia.Element;
-    readonly graph: Graph;
-  }) => Element;
+  readonly graphToElementSelector: (
+    options: GraphToElementOptions<Element> & { readonly graph: Graph }
+  ) => Element;
   /** Selector to convert graph links to Link format for comparison */
-  readonly linkFromGraphSelector: (options: {
-    readonly cell: dia.Link;
-    readonly graph: Graph;
-  }) => Link;
+  readonly graphToLinkSelector: (
+    options: GraphToLinkOptions<Link> & { readonly graph: Graph }
+  ) => Link;
   /** Selector to convert Element to JointJS Cell JSON format */
-  readonly elementToGraphSelector: (options: {
-    readonly element: Element;
-    readonly graph: Graph;
-  }) => dia.Cell.JSON;
+  readonly elementToGraphSelector: (
+    options: ElementToGraphOptions<Element> & { readonly graph: Graph }
+  ) => dia.Cell.JSON;
   /** Selector to convert Link to JointJS Cell JSON format */
-  readonly linkToGraphSelector: (options: {
-    readonly link: Link;
-    readonly graph: Graph;
-  }) => dia.Cell.JSON;
+  readonly linkToGraphSelector: (
+    options: LinkToGraphOptions<Link> & { readonly graph: Graph }
+  ) => dia.Cell.JSON;
+
+  readonly getIdsSnapshot: () => GraphStoreDerivedSnapshot;
 }
 
 /**
@@ -122,30 +127,43 @@ export function updateGraph<
     graph,
     elements,
     links,
-    elementFromGraphSelector,
-    linkFromGraphSelector,
+    graphToElementSelector,
+    graphToLinkSelector,
     elementToGraphSelector,
     linkToGraphSelector,
+    getIdsSnapshot,
   } = options;
 
   if (graph.hasActiveBatch()) {
     return false;
   }
-
-  // Compare current graph state with provided state to avoid unnecessary syncs
+  const { elementIds, linkIds } = getIdsSnapshot();
+  // Compare current graph state with provided state to avoid unnecessary s yncs
   // This prevents syncing when graph and provided state are already in sync
-  const graphElements = graph.getElements().map((element) =>
-    elementFromGraphSelector({
+  const graphElements = graph.getElements().map((element) => {
+    const previousIndex = elementIds[element.id];
+    const previous =
+      previousIndex != null && previousIndex >= 0 && previousIndex < elements.length
+        ? elements[previousIndex]
+        : undefined;
+    return graphToElementSelector({
       cell: element,
       graph,
-    })
-  );
-  const graphLinks = graph.getLinks().map((link) =>
-    linkFromGraphSelector({
+      previous,
+    });
+  });
+  const graphLinks = graph.getLinks().map((link) => {
+    const previousIndex = linkIds[link.id];
+    const previous =
+      previousIndex != null && previousIndex >= 0 && previousIndex < links.length
+        ? links[previousIndex]
+        : undefined;
+    return graphToLinkSelector({
       cell: link,
       graph,
-    })
-  );
+      previous,
+    });
+  });
 
   // Fast path: Check if arrays have same length first
   if (elements.length !== graphElements.length || links.length !== graphLinks.length) {
@@ -216,11 +234,12 @@ export function stateSync<
     store,
     areBatchUpdatesDisabled = false,
     getIdsSnapshot,
-    elementFromGraphSelector = defaultElementFromGraphSelector,
-    linkFromGraphSelector = defaultLinkFromGraphSelector,
+
     elementToGraphSelector = defaultElementToGraphSelector,
     linkToGraphSelector = defaultLinkToGraphSelector,
   } = options;
+  const graphToElementSelector = defaultGraphToElementSelector;
+  const graphToLinkSelector = defaultGraphToLinkSelector;
 
   // We need to ensure several things:
   // 1. Graph can update itself, via onCellChange or via onBatchStop - this change is internal and must update the external store - but only if the external store do not trigger the same change.
@@ -281,13 +300,13 @@ export function stateSync<
     if (isReset) {
       // unfortunately this will create always new object references, so we need to compare them with more deeply
       const graphElements = graph.getElements().map((element) =>
-        elementFromGraphSelector({
+        graphToElementSelector({
           cell: element,
           graph,
         })
       );
       const graphLinks = graph.getLinks().map((link) =>
-        linkFromGraphSelector({
+        graphToLinkSelector({
           cell: link,
           graph,
         })
@@ -329,7 +348,7 @@ export function stateSync<
                 ? previous.links[linkIndex]
                 : undefined;
 
-            const updatedLink = linkFromGraphSelector({
+            const updatedLink = graphToLinkSelector({
               cell: cell as dia.Link,
               graph,
               previous: previousLink,
@@ -343,7 +362,7 @@ export function stateSync<
                 ? previous.elements[elementIndex]
                 : undefined;
 
-            const updatedElement = elementFromGraphSelector({
+            const updatedElement = graphToElementSelector({
               cell: cell as dia.Element,
               graph,
               previous: previousElement,
@@ -466,6 +485,12 @@ export function stateSync<
     };
   }
 
+  /**
+   * Subscribes to cell change events in the graph.
+   * The callback receives change information and should return a cleanup function.
+   * @param callback - Function that receives change options and returns a cleanup function
+   * @returns Unsubscribe function to remove the listener
+   */
   function subscribeToCellChange(callback: (change: OnChangeOptions) => () => void) {
     cellChangeListeners.add(callback);
     return () => {
@@ -573,13 +598,13 @@ export function stateSync<
     // Only sync if store is empty and graph has cells
     if (storeElements.length === 0 && storeLinks.length === 0) {
       const existingElements = graph.getElements().map((element) =>
-        elementFromGraphSelector({
+        graphToElementSelector({
           cell: element,
           graph,
         })
       ) as Element[];
       const existingLinks = graph.getLinks().map((link) =>
-        linkFromGraphSelector({
+        graphToLinkSelector({
           cell: link,
           graph,
         })
@@ -624,22 +649,19 @@ export function stateSync<
       graph,
       elements,
       links,
-      elementFromGraphSelector: elementFromGraphSelector as (options: {
-        readonly cell: dia.Element;
-        readonly graph: Graph;
-      }) => Element,
-      linkFromGraphSelector: linkFromGraphSelector as (options: {
-        readonly cell: dia.Link;
-        readonly graph: Graph;
-      }) => Link,
-      elementToGraphSelector: elementToGraphSelector as (options: {
-        readonly element: Element;
-        readonly graph: Graph;
-      }) => dia.Cell.JSON,
-      linkToGraphSelector: linkToGraphSelector as (options: {
-        readonly link: Link;
-        readonly graph: Graph;
-      }) => dia.Cell.JSON,
+      getIdsSnapshot,
+      graphToElementSelector: graphToElementSelector as unknown as (
+        options: GraphToElementOptions<Element> & { readonly graph: Graph }
+      ) => Element,
+      graphToLinkSelector: graphToLinkSelector as (
+        options: GraphToLinkOptions<Link> & { readonly graph: Graph }
+      ) => Link,
+      elementToGraphSelector: elementToGraphSelector as (
+        options: ElementToGraphOptions<Element> & { readonly graph: Graph }
+      ) => dia.Cell.JSON,
+      linkToGraphSelector: linkToGraphSelector as (
+        options: LinkToGraphOptions<Link> & { readonly graph: Graph }
+      ) => dia.Cell.JSON,
     });
 
     // Only reset the flag if there's no batch (events were processed synchronously)

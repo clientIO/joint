@@ -12,7 +12,6 @@ import type { ExternalStoreLike } from '../utils/create-state';
 import type { GraphStoreSnapshot } from '../store';
 import { isUpdater } from '../utils/is';
 import { util } from '@joint/core';
-import { sendToDevTool } from '../utils/dev-tools';
 
 import type { dia } from '@joint/core';
 
@@ -98,11 +97,6 @@ export function useStateToExternalStore<Element extends GraphElement, Link exten
           return;
         }
 
-        sendToDevTool({
-          name: 'AHA',
-          type: 'set',
-          value: updatedSnapshot,
-        });
         snapshot.current = updatedSnapshot;
         // Notify subscribers immediately (synchronous, like createState)
         notifySubscribers.current();

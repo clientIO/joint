@@ -26,6 +26,10 @@ export type RenderElement<ElementItem extends GraphElement = GraphElement> = (
   element: ElementItem
 ) => ReactNode;
 
+export type RenderLink<LinkItem extends GraphLink = GraphLink> = (
+  link: LinkItem
+) => ReactNode;
+
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
@@ -63,6 +67,44 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
    */
 
   readonly renderElement?: RenderElement<ElementItem>;
+  /**
+   * A function that renders the link.
+   * 
+   * Note: JointJS works with SVG by default, so `renderLink` content is appended inside an SVG node.
+   * To render HTML elements, use an SVG `foreignObject`.
+   * 
+   * This is called when the link data changes.
+   * @example
+   * Example with `global component`:
+   * ```tsx
+   * function RenderLink({ id, ...data }) {
+   *   return (
+   *     <>
+   *       <BaseLink attrs={{ line: { stroke: 'blue' } }} />
+   *       <LinkLabel position={{ distance: 0.5 }}>
+   *         <text>Label</text>
+   *       </LinkLabel>
+   *     </>
+   *   );
+   * }
+   * ```
+   * @example
+   * Example with `local component`:
+   * ```tsx
+   * const renderLink: RenderLink<BaseLinkWithData> = useCallback(
+   *   (link) => (
+   *     <>
+   *       <BaseLink attrs={{ line: { stroke: link.color } }} />
+   *       <LinkLabel position={{ distance: 0.5 }}>
+   *         <text>{link.label}</text>
+   *       </LinkLabel>
+   *     </>
+   *   ),
+   *   []
+   * )
+   * ```
+   */
+  readonly renderLink?: RenderLink<GraphLink>;
   /**
    * Event called when all elements are properly measured (has all elements width and height greater than 1 - default).
    * In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.

@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { memo, useContext, useEffect } from 'react';
+import { memo, useContext, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useCellId } from '../../hooks';
 import { PortGroupContext } from '../../context/port-group-context';
@@ -66,11 +66,12 @@ function Component(props: PortItemProps) {
     throw new Error('PortItem must be used within a Paper context');
   }
   const { paper, paperId } = paperStore;
-  const { graph } = useGraphStore();
+  const graphStore = useGraphStore();
+  const { graph } = graphStore;
 
   const contextGroupId = useContext(PortGroupContext);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const cell = graph.getCell(cellId);
     if (!cell) {
       throw new Error(`Cell with id ${cellId} not found`);
@@ -105,19 +106,22 @@ function Component(props: PortItemProps) {
       markup: elementMarkup,
     };
 
-    cell.addPort(port);
+    // Add port via graphStore for batching
+    graphStore.setPort(cellId, id, port);
+    graphStore.flushPendingUpdates();
 
     return () => {
-      cell.removePort(id);
+      // Remove port via graphStore for batching
+      graphStore.removePort(cellId, id);
     };
-  }, [cellId, contextGroupId, graph, groupId, id, x, y, z, magnet, dx, dy]);
+  }, [cellId, contextGroupId, graph, graphStore, groupId, id, x, y, z, magnet, dx, dy]);
 
   const portalNode = useGraphInternalStoreSelector((state) => {
     const portId = paperStore.getPortId(cellId, id);
     return state.papers[paperId]?.portsData?.[portId];
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!portalNode) {
       return;
     }
