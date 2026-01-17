@@ -356,25 +356,28 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
               {...elementState}
               portalElement={HTMLRendererContainer}
               renderElement={renderElement}
+              areElementsMeasured={areElementsMeasured}
             />
           ) : (
             <SVGElementItem
               {...elementState}
               portalElement={SVG as SVGAElement}
               renderElement={renderElement}
+              areElementsMeasured={areElementsMeasured}
             />
           )}
         </CellIdContext.Provider>
       );
     });
   }, [
+    ReactElementView,
     hasRenderElement,
     deferredElementsState,
     paperElementViews,
-    ReactElementView,
     useHTMLOverlay,
     HTMLRendererContainer,
     renderElement,
+    areElementsMeasured,
   ]);
 
   const renderedLinks = useMemo(() => {

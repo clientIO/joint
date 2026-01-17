@@ -15,18 +15,23 @@ export interface ElementItemProps<Data extends CellWithId = GraphElement> {
    * The cell to render.
    */
   readonly portalElement: SVGElement | HTMLElement | null;
+
+  readonly areElementsMeasured: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
   props: ElementItemProps<Data>
 ) {
-  const { renderElement, portalElement, ...rest } = props;
+  const { renderElement, portalElement, areElementsMeasured, ...rest } = props;
   const cell = rest as Data;
   const { graph } = useGraphStore();
   const paper = usePaper();
 
   useLayoutEffect(() => {
+    if (!areElementsMeasured) {
+      return;
+    }
     clearView({
       cellId: cell.id,
       graph,
@@ -34,7 +39,7 @@ function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
     });
 
     // element.
-  }, [cell.id, graph, paper]);
+  }, [cell.id, graph, paper, areElementsMeasured]);
   if (!portalElement) {
     return null;
   }
@@ -72,11 +77,27 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
 function HTMLElementItemComponent<Data extends GraphElement = GraphElement>(
   props: ElementItemProps<Data>
 ) {
-  const { renderElement, portalElement, ...rest } = props;
+  const { renderElement, portalElement, areElementsMeasured, ...rest } = props;
   const cell = rest as Data;
   // we must use renderElement and not cell data, because user can select different data, so then, the width and height do not have to be inside the cell data.
   const element = renderElement(cell);
   const { width, height, x, y, id } = cell;
+
+  const { graph } = useGraphStore();
+  const paper = usePaper();
+
+  useLayoutEffect(() => {
+    if (!areElementsMeasured) {
+      return;
+    }
+    clearView({
+      cellId: cell.id,
+      graph,
+      paper,
+    });
+
+    // element.
+  }, [cell.id, graph, paper, areElementsMeasured]);
 
   // WE NEED TO COMPARE WHAT IS CHANGED HERE...
 
