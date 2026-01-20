@@ -1668,8 +1668,8 @@ export namespace dia {
             moveThreshold?: number;
             magnetThreshold?: number | string;
             // views
-            elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
-            linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
+            elementView?: typeof ElementView<any> | ((element: Element) => typeof ElementView<any> | null | undefined);
+            linkView?: typeof LinkView<any> | ((link: Link) => typeof LinkView<any> | null | undefined);
             measureNode?: MeasureNodeCallback;
             // embedding
             embeddingMode?: boolean;

@@ -118,10 +118,21 @@ const cylinder = new joint.shapes.standard.Cylinder({ z: 0 });
 cylinder.set({ position: { x: 4, y: 5 }});
 cylinder.set('z', (cylinder.attributes.z || 0) + 1);
 
+class CustomLinkView extends joint.dia.LinkView {
+
+}
+
 const paper = new joint.dia.Paper({
     model: graph,
     frozen: true,
-    findParentBy: (_elementView, _evt, x, y) => graph.findModelsFromPoint({ x, y })
+    findParentBy: (_elementView, _evt, x, y) => graph.findModelsFromPoint({ x, y }),
+    elementView: (element) => {
+        if (element.get('type') === 'standard.Rectangle') {
+            return CustomElementView;
+        }
+        return null;
+    },
+    linkView: CustomLinkView
 });
 
 paper.fitToContent({ padding: { top: 10  }, allowNewOrigin: false });
