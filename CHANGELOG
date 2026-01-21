@@ -1,3 +1,13 @@
+21-01-2026 (v4.2.3)
+
+  @joint/core
+  * dia.Paper - fix to wake up idle `async` paper with `initializeUnmounted: true` when a new cell is added to graph
+  * dia.Paper - fix to prevent an error when a view is synchronously dumped during an asynchronous visibility check
+  * dia.Element - fix `getPortBBox()` to return a valid bbox when port has no size defined
+
+  @joint/layout-directed-graph
+  * layout.DirectedGraph - fix to accept a padding object for `clusterPadding` option of `layout()`
+
 16-12-2025 (v4.2.2)
 
   @joint/core
