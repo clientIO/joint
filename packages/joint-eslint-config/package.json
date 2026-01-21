@@ -1,11 +1,29 @@
 {
   "name": "@joint/eslint-config",
-  "version": "0.0.0",
+  "title": "JointJS ESLintConfig",
+  "version": "4.2.3",
+  "description": "ESLintConfig module for JointJS",
+  "sideEffects": false,
   "type": "module",
   "main": "./index.mjs",
   "module": "./index.mjs",
-  "private": true,
-  "sideEffects": false,
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-eslint-config"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "2.5.5",
     "@eslint/compat": "2.0.1",
@@ -31,5 +49,15 @@
   "peerDependencies": {
     "eslint": "9.39.2",
     "typescript": "^5.0.0"
-  }
+  },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
+  },
+  "keywords": [
+    "jointjs",
+    "eslint",
+    "config"
+  ]
 }
