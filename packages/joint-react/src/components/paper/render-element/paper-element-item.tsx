@@ -3,8 +3,7 @@ import { createPortal } from 'react-dom';
 import type { CellWithId } from '../../../types/cell.types';
 import typedMemo from '../../../utils/typed-react';
 import type { GraphElement } from '../../../types/element-types';
-import { useGraphStore, usePaper } from '../../../hooks';
-import { clearView } from '../../../utils/clear-view';
+import { useGraphStore, useNodeLayout } from '../../../hooks';
 
 export interface ElementItemProps<Data extends CellWithId = GraphElement> {
   /**
@@ -25,21 +24,18 @@ function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
 ) {
   const { renderElement, portalElement, areElementsMeasured, ...rest } = props;
   const cell = rest as Data;
-  const { graph } = useGraphStore();
-  const paper = usePaper();
+  const graphStore = useGraphStore();
 
   useLayoutEffect(() => {
     if (!areElementsMeasured) {
       return;
     }
-    clearView({
+    graphStore.scheduleClearView({
       cellId: cell.id,
-      graph,
-      paper,
     });
+    graphStore.flushPendingUpdates();
+  }, [cell.id, graphStore, areElementsMeasured]);
 
-    // element.
-  }, [cell.id, graph, paper, areElementsMeasured]);
   if (!portalElement) {
     return null;
   }
@@ -83,21 +79,17 @@ function HTMLElementItemComponent<Data extends GraphElement = GraphElement>(
   const element = renderElement(cell);
   const { width, height, x, y, id } = cell;
 
-  const { graph } = useGraphStore();
-  const paper = usePaper();
+  const graphStore = useGraphStore();
 
   useLayoutEffect(() => {
     if (!areElementsMeasured) {
       return;
     }
-    clearView({
+    graphStore.scheduleClearView({
       cellId: cell.id,
-      graph,
-      paper,
     });
-
-    // element.
-  }, [cell.id, graph, paper, areElementsMeasured]);
+    graphStore.flushPendingUpdates();
+  }, [cell.id, graphStore, areElementsMeasured]);
 
   // WE NEED TO COMPARE WHAT IS CHANGED HERE...
 
@@ -138,3 +130,17 @@ function HTMLElementItemComponent<Data extends GraphElement = GraphElement>(
  * This component is used to render a paper element inside a portal.
  */
 export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
+
+/**
+ * Default rectangle element renderer.
+ * Renders a blue rectangle with rounded corners using the node's layout data.
+ * @group Components
+ * @description
+ * This component renders a blue rectangle with rounded corners.
+ * It uses the `useNodeLayout` hook to get the node's layout data (width and height).
+ * @returns The rendered rectangle element.
+ */
+export function DefaultRectElement() {
+  const { width, height } = useNodeLayout();
+  return <rect width={width} height={height} fill="transparent" />;
+}

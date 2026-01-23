@@ -111,6 +111,8 @@ interface Options<T> {
   readonly isEqual?: (a: T, b: T) => boolean;
   /** Name for the state (used for debugging and dev tools) */
   readonly name: string;
+  /** Whether to enable dev tools integration for this state. Defaults to false. */
+  readonly isDevToolEnabled?: boolean;
 }
 
 /**

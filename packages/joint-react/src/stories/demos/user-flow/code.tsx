@@ -1,36 +1,32 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // We have pre-loaded tailwind css
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  Paper,
-  Port,
-  type InferElement,
-} from '@joint/react';
+import { GraphProvider, Paper, Port, type GraphLink } from '@joint/react';
 import type { dia } from '@joint/core';
 import { util } from '@joint/core';
 import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
-type Data = {
+type NodeType = {
   id: string;
   title: string;
   description: string;
   nodeType: 'user-action' | 'entity' | 'confirm' | 'message';
   x: number;
   y: number;
+  attrs?: {
+    root?: {
+      magnet?: boolean;
+    };
+  };
 };
 
-const nodes = createElements<Data>([
+const nodes: NodeType[] = [
   {
     id: '1',
-
     title: 'User Action',
     description: 'Transfer funds',
     nodeType: 'user-action',
-
     x: 50,
     y: 50,
     attrs: {
@@ -41,11 +37,9 @@ const nodes = createElements<Data>([
   },
   {
     id: '2',
-
     title: 'Entity',
     description: 'Transfer funds',
     nodeType: 'entity',
-
     x: 120,
     y: 200,
     attrs: {
@@ -56,11 +50,9 @@ const nodes = createElements<Data>([
   },
   {
     id: '3',
-
     title: 'User Action',
     description: 'Get account balance',
     nodeType: 'user-action',
-
     attrs: {
       root: {
         magnet: false,
@@ -69,8 +61,9 @@ const nodes = createElements<Data>([
     x: 190,
     y: 350,
   },
-]);
-const links = createLinks([
+];
+
+const links: GraphLink[] = [
   {
     id: 'link1',
     source: { id: '1', port: '1' },
@@ -86,9 +79,7 @@ const links = createLinks([
     source: { id: '3', port: '2' },
     target: { id: '1', port: 'in' },
   },
-]);
-
-type NodeType = InferElement<typeof nodes>;
+];
 
 interface PortProps {
   id: string;
@@ -122,7 +113,7 @@ function PortItem({ id, label, onRemove, x }: Readonly<PortProps>) {
     </Port.Item>
   );
 }
-function RenderElement({ title, description, nodeType }: NodeType) {
+function RenderElement({ title, description, nodeType }: Readonly<NodeType>) {
   let icon: string;
   switch (nodeType) {
     case 'user-action': {

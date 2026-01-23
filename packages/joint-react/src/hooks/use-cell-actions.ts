@@ -35,7 +35,7 @@ interface CellActions<Attributes extends dia.Element | GraphElement> {
  * @param cell - The cell to check.
  * @returns True if the cell is a link, false otherwise.
  */
-function isLink(cell: CellWithId): cell is GraphLink<'standard.Link'> {
+function isLink(cell: CellWithId): cell is GraphLink {
   return cell instanceof dia.Link || ('source' in cell && 'target' in cell);
 }
 
@@ -74,7 +74,7 @@ function isLink(cell: CellWithId): cell is GraphLink<'standard.Link'> {
  * ```
  */
 export function useCellActions<
-  Attributes extends GraphElement | GraphLink<'standard.Link'>,
+  Attributes extends GraphElement | GraphLink,
 >(): CellActions<Attributes> {
   const { graph, publicState } = useGraphStore();
 
@@ -121,7 +121,7 @@ export function useCellActions<
         if (!hasElement) {
           for (let index = 0; index < newLinks.length; index++) {
             if (newLinks[index].id === targetId) {
-              newLinks[index] = attributes as GraphLink<'standard.Link'>;
+              newLinks[index] = attributes as GraphLink;
               hasLink = true;
               break;
             }
@@ -130,7 +130,7 @@ export function useCellActions<
         const isFound = hasElement || hasLink;
         if (!isFound) {
           if (areAttributesLink) {
-            newLinks.push(attributes as GraphLink<'standard.Link'>);
+            newLinks.push(attributes as GraphLink);
           } else {
             newElements.push(attributes);
           }

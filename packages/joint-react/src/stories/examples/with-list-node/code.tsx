@@ -3,30 +3,15 @@
 
 import '../index.css';
 import React, { useCallback, useRef, type PropsWithChildren } from 'react';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  Paper,
-  useNodeSize,
-  type InferElement,
-  type OnTransformElement,
-} from '@joint/react';
+import { GraphProvider, Paper, useNodeSize, type OnTransformElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-type Data = {
-  id: string;
-  label: string;
-  inputs: string[];
-  x: number;
-  y: number;
-};
-const initialElements = createElements<Data>([
-  { id: '1', label: 'Node 1', inputs: [], x: 100, y: 0 },
-  { id: '2', label: 'Node 2', inputs: [], x: 500, y: 200 },
-]);
-const initialEdges = createLinks([
+const initialElements = [
+  { id: '1', label: 'Node 1', inputs: [] as string[], x: 100, y: 0 },
+  { id: '2', label: 'Node 2', inputs: [] as string[], x: 500, y: 200 },
+];
+const initialEdges = [
   {
     id: 'e1-2',
     source: '1',
@@ -37,9 +22,9 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
 function ListElement({ id, children, inputs }: PropsWithChildren<BaseElementWithData>) {
   const padding = 10;

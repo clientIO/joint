@@ -5,11 +5,9 @@ import { useCellId } from '../../hooks';
 import { PortGroupContext } from '../../context/port-group-context';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
-import { createElements } from '../../utils/create';
 import { PaperStoreContext } from '../../context';
 import { useGraphInternalStoreSelector } from '../../hooks/use-graph-store-selector';
 import { PORTAL_SELECTOR } from '../../store';
-import { clearView } from '../../utils/clear-view';
 
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
 
@@ -65,7 +63,7 @@ function Component(props: PortItemProps) {
   if (!paperStore) {
     throw new Error('PortItem must be used within a Paper context');
   }
-  const { paper, paperId } = paperStore;
+  const { paperId } = paperStore;
   const graphStore = useGraphStore();
   const { graph } = graphStore;
 
@@ -126,10 +124,8 @@ function Component(props: PortItemProps) {
       return;
     }
 
-    clearView({
+    graphStore.scheduleClearView({
       cellId,
-      graph,
-      paper,
       onValidateLink: (link) => {
         const target = link.target();
         const source = link.source();
@@ -137,7 +133,8 @@ function Component(props: PortItemProps) {
         return isPortLink;
       },
     });
-  }, [cellId, graph, id, paper, portalNode]);
+    graphStore.flushPendingUpdates();
+  }, [cellId, graphStore, id, portalNode]);
 
   if (!portalNode) {
     return null;
@@ -170,9 +167,3 @@ function Component(props: PortItemProps) {
  * ```
  */
 export const PortItem = memo(Component);
-
-createElements([
-  {
-    id: 'port-one',
-  },
-]);

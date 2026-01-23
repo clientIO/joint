@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/no-useless-undefined */
 /* eslint-disable prefer-destructuring */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable no-shadow */
+ 
+ 
 import type { dia } from '@joint/core';
 import { memo, useLayoutEffect } from 'react';
 import { useCellId } from '../../hooks';

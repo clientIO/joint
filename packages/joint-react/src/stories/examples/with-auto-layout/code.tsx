@@ -4,13 +4,11 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
 import {
-  createElements,
   GraphProvider,
   Paper,
   useElements,
   useGraph,
   useNodeSize,
-  type InferElement,
   type OnLoadOptions,
   type RenderElement,
 } from '@joint/react';
@@ -19,7 +17,7 @@ import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', width: 100, height: 50 },
   { id: '2', label: 'Node 2', width: 100, height: 50 },
   { id: '3', label: 'Node 3', width: 100, height: 50 },
@@ -29,13 +27,13 @@ const initialElements = createElements([
   { id: '7', label: 'Node 7', width: 100, height: 50 },
   { id: '8', label: 'Node 8', width: 100, height: 50 },
   { id: '9', label: 'Node 9', width: 100, height: 50 },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
 const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
-function RenderedRect({ width, height, label }: BaseElementWithData) {
+function RenderedRect({ width, height, label }: Readonly<BaseElementWithData>) {
   const elementRef = useRef<HTMLDivElement>(null);
   useNodeSize(elementRef);
   return (

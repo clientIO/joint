@@ -4,13 +4,7 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  useNodeSize,
-  type InferElement,
-} from '@joint/react';
+import { GraphProvider, useNodeSize, type GraphLink } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
@@ -18,7 +12,7 @@ import { Paper } from '../../src/components/paper/paper';
 export type StoryFunction = PartialStoryFn<any, any>;
 export type StoryCtx = StoryContext<any, any>;
 
-export const testElements = createElements([
+export const testElements = [
   {
     id: '1',
     label: 'Node 1',
@@ -41,10 +35,10 @@ export const testElements = createElements([
     hoverColor: 'blue',
     angle: 0,
   },
-]);
+];
 
-export type SimpleElement = InferElement<typeof testElements>;
-export const testLinks = createLinks([
+export type SimpleElement = (typeof testElements)[number];
+export const testLinks: GraphLink[] = [
   {
     id: 'l-1',
     source: '1',
@@ -55,7 +49,7 @@ export const testLinks = createLinks([
       },
     },
   },
-]);
+];
 
 export function SimpleGraphProviderDecorator({ children }: Readonly<PropsWithChildren>) {
   return (
@@ -95,7 +89,7 @@ export function RenderItemDecorator(
   );
 }
 
-function RenderSimpleRectElement(properties: SimpleElement) {
+function RenderSimpleRectElement(properties: Readonly<SimpleElement>) {
   const { width, color, height } = properties;
   return <rect width={width} height={height} fill={color} />;
 }

@@ -1,10 +1,10 @@
+/* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable @eslint-react/web-api/no-leaked-timeout */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { createElements, type InferElement } from '../../../utils/create';
 import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
@@ -14,12 +14,12 @@ import type { GraphElement } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 
-const elements = createElements([
+const elements = [
   { id: '1', label: 'Node 1', width: 10, height: 10 },
   { id: '2', label: 'Node 2', width: 10, height: 10 },
-]);
+];
 
-type Element = InferElement<typeof elements>;
+type Element = (typeof elements)[number];
 const WIDTH = 200;
 
 // we need to mock `new ResizeObserver`, to return the size width 50 and height 50 for test purposes
@@ -100,10 +100,10 @@ describe('Paper Component', () => {
 
   it('calls onElementsSizeChange when element sizes change', async () => {
     const onElementsSizeChangeMock = jest.fn();
-    const updatedElements = createElements([
+    const updatedElements = [
       { id: '1', label: 'Node 1', width: 100, height: 50 },
       { id: '2', label: 'Node 2', width: 150, height: 75 },
-    ]);
+    ];
 
     const { rerender } = render(
       <GraphProvider elements={elements}>
@@ -193,7 +193,10 @@ describe('Paper Component', () => {
     const onElementsSizeReadyMock = jest.fn();
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> onElementsSizeReady={onElementsSizeReadyMock} renderElement={() => <div>Test</div>} />
+        <Paper<Element>
+          onElementsSizeReady={onElementsSizeReadyMock}
+          renderElement={() => <div>Test</div>}
+        />
       </GraphProvider>
     );
     await waitFor(() => {
@@ -320,10 +323,10 @@ describe('Paper Component', () => {
 
   it('should set elements and positions via react state, when change it via paper api', async () => {
     // Create elements with initial x/y so they can be synced back
-    const elementsWithPosition = createElements([
+    const elementsWithPosition = [
       { id: '1', label: 'Node 1', x: 0, y: 0, width: 10, height: 10 },
       { id: '2', label: 'Node 2', x: 0, y: 0, width: 10, height: 10 },
-    ]);
+    ];
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function UpdatePosition() {
       const graph = useGraph();

@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { createElements, GraphProvider, Paper, type InferElement, useNodeSize } from '@joint/react';
+import { GraphProvider, Paper, useNodeSize } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
 import { shapes, util } from '@joint/core';
@@ -7,14 +7,14 @@ import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import type { dia } from '../../../../../joint-core/types';
 import { useCellChangeEffect } from '../../../hooks/use-cell-change-effect';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', x: 100, y: 0 },
   { id: '2', label: 'Node 2', x: 100, y: 200 },
   { id: '3', label: 'Node 3', x: 280, y: 100 },
   { id: '4', label: 'Node 4', x: 0, y: 100 },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
 class DashedLink extends shapes.standard.Link {
   defaults() {

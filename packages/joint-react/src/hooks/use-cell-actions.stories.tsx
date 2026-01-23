@@ -98,7 +98,7 @@ function Component() {
 
 export default meta;
 
-function Hook({ label, id }: SimpleElement) {
+function Hook({ label, id }: Readonly<SimpleElement>) {
   const { set } = useCellActions<SimpleElement>();
 
   return (
@@ -140,7 +140,7 @@ export const SetLabel: Story = makeStory<Story>({
   description: 'Set new data for the element.',
 });
 
-function HookSetPosition({ label, id }: SimpleElement) {
+function HookSetPosition({ label, id }: Readonly<SimpleElement>) {
   const { set } = useCellActions<SimpleElement>();
 
   return (
@@ -180,7 +180,7 @@ function HookSetPosition({  label , id }: SimpleElement) {
   description: 'Set the position of the element.',
 });
 
-function HookSetSize({ label, id }: SimpleElement) {
+function HookSetSize({ label, id }: Readonly<SimpleElement>) {
   const { set } = useCellActions<SimpleElement>();
 
   return (
@@ -218,7 +218,7 @@ function HookSetSize({  label , id }: SimpleElement) {
   description: 'Set the size of the element.',
 });
 
-function HookSetAngle({ label, id }: SimpleElement) {
+function HookSetAngle({ label, id }: Readonly<SimpleElement>) {
   const { set } = useCellActions<SimpleElement>();
 
   return (
@@ -264,7 +264,7 @@ function HookSetAngle({  label , id }: SimpleElement) {
   description: 'Set the angle of the element.',
 });
 
-function HookSetAny({ label, id }: SimpleElement) {
+function HookSetAny({ label, id }: Readonly<SimpleElement>) {
   const { set } = useCellActions();
 
   return (
@@ -274,7 +274,10 @@ function HookSetAny({ label, id }: SimpleElement) {
         onClick={() =>
           set(id, (previous) => ({
             ...previous,
-            position: { x: (previous?.x ?? 0) + 10, y: (previous?.y ?? 0) + 10 },
+            position: {
+              x: ((previous?.x as number) ?? 0) + 10,
+              y: ((previous?.y as number) ?? 0) + 10,
+            },
           }))
         }
       >
@@ -313,7 +316,7 @@ function HookSetAny({  label , id }: SimpleElement) {
         onClick={() =>
           set(id, (previous) => ({
             ...previous,
-            position: { x: (previous?.x ?? 0) + 10, y: (previous?.y ?? 0) + 10 },
+            position: { x: ((previous?.x as number) ?? 0) + 10, y: ((previous?.y as number) ?? 0) + 10 },
           }))
         }
       >
@@ -341,7 +344,7 @@ function HookSetAny({  label , id }: SimpleElement) {
 });
 
 // remove elements
-function HookRemoveElement({ label, id }: SimpleElement) {
+function HookRemoveElement({ label, id }: Readonly<SimpleElement>) {
   const { remove } = useCellActions();
 
   return (
@@ -375,7 +378,7 @@ function HookRemoveElement({  label , id }: SimpleElement) {
 });
 
 // set link example
-function HookSetAndRemoveLink({ label, id }: SimpleElement) {
+function HookSetAndRemoveLink({ label, id }: Readonly<SimpleElement>) {
   const { remove, set } = useCellActions();
 
   return (

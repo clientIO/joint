@@ -3,13 +3,13 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import '../../stories/examples/index.css';
-import { createElements, createLinks, GraphProvider, Port, useNodeSize } from '@joint/react';
+import { GraphProvider, Port, useNodeSize } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 import { Paper } from '../paper/paper';
 
-const initialElements = createElements([
+const initialElements = [
   {
     id: '1',
     x: 100,
@@ -20,9 +20,9 @@ const initialElements = createElements([
     x: 200,
     y: 250,
   },
-]);
+];
 
-const initialLinks = createLinks([
+const initialLinks = [
   {
     id: 'link-1',
     source: {
@@ -39,7 +39,7 @@ const initialLinks = createLinks([
       },
     },
   },
-]);
+];
 
 export type Story = StoryObj<typeof Port.Item>;
 const API_URL = getAPILink('Port.Item', 'variables');

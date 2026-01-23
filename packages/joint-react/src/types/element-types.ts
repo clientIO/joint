@@ -24,16 +24,11 @@ export interface StandardShapesTypeMapper {
 
 export type StandardShapesType = keyof StandardShapesTypeMapper;
 
-export interface GraphElement {
+export interface GraphElement extends Record<string, unknown> {
   /**
    * Unique identifier of the element.
    */
   id: dia.Cell.ID;
-  /**
-   * Optional element type.
-   * @default `REACT_TYPE`
-   */
-  type?: string | keyof StandardShapesTypeMapper;
   /**
    * Ports of the element.
    */
@@ -62,4 +57,16 @@ export interface GraphElement {
    * Optional angle of the element.
    */
   angle?: number;
+  /**
+   * Z-index of the element.
+   */
+  z?: number;
+  /**
+   * Parent element id.
+   */
+  parent?: string;
+  /**
+   * Attributes of the element.
+   */
+  attrs?: dia.Cell.Selectors;
 }

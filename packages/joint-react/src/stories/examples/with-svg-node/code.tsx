@@ -2,18 +2,15 @@
 import { LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import '../index.css';
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   Paper,
   useNodeSize,
-  type InferElement,
   type OnTransformElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
 
-const initialEdges = createLinks([
+const initialEdges = [
   {
     id: 'e1-2',
     source: '1',
@@ -24,16 +21,16 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', x: 100, y: 0 },
   { id: '2', label: 'Node 2', x: 100, y: 200 },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
-function RenderedRect({ label }: BaseElementWithData) {
+function RenderedRect({ label }: Readonly<BaseElementWithData>) {
   const textMargin = 20;
   const cornerRadius = 5;
   const textRef = useRef<SVGTextElement>(null);

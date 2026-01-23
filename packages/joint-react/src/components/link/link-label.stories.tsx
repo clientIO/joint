@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 import type { Meta, StoryObj } from '@storybook/react';
 import '../../stories/examples/index.css';
 import { Link } from '@joint/react';

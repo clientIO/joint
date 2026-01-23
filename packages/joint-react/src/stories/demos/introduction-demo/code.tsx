@@ -10,8 +10,6 @@ import { dia, linkTools, shapes } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
 import './index.css';
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   Highlighter,
   Paper,
@@ -22,9 +20,10 @@ import {
   useNodeSize,
   useLinks,
   type GraphElement,
+  type GraphLink,
   type PaperStore,
   type PaperProps,
-  type RenderElement,
+  useNodeLayout,
 } from '@joint/react';
 import { useCallback, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
@@ -78,7 +77,7 @@ const PAPER_PROPS: PaperProps<Element> = {
 };
 
 // Create initial elements and links with typing support
-const elements = createElements<Element>([
+const elements: Element[] = [
   {
     id: '1',
     x: 50,
@@ -116,10 +115,10 @@ const elements = createElements<Element>([
       },
     },
   },
-]);
+];
 
 // Create initial links from table element port to another element
-const links = createLinks([
+const links: GraphLink[] = [
   {
     id: 'link2',
     source: { id: '3', port: 'out-3-0' }, // Port from table element
@@ -136,7 +135,7 @@ const links = createLinks([
       },
     },
   },
-]);
+];
 
 // Define the message component
 function MessageComponent({
@@ -262,12 +261,12 @@ function TableElement({
   );
 }
 
+function MinimapRenderElement() {
+  const { width, height } = useNodeLayout();
+  return <rect width={width} height={height} fill={'white'} rx={10} ry={10} />;
+}
 // Minimap component
 function MiniMap() {
-  const renderElement: RenderElement<Element> = useCallback(
-    ({ width, height }) => <rect width={width} height={height} fill={'white'} rx={10} ry={10} />,
-    []
-  );
   // On change, the minimap will be resized to fit the content automatically
   const onElementReady = useCallback(({ paper }: { paper: dia.Paper }) => {
     const { model: graph } = paper;
@@ -292,8 +291,8 @@ function MiniMap() {
         width={'100%'}
         className={PAPER_CLASSNAME}
         height={'100%'}
-        renderElement={renderElement}
-        onRenderDone={onElementReady}
+        renderElement={MinimapRenderElement}
+        onElementsSizeReady={onElementReady}
       />
     </div>
   );
@@ -487,7 +486,7 @@ function Main() {
           defaultLink={() => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { id, ...rest } = links[0];
-            return new shapes.standard.Link(rest);
+            return new shapes.standard.Link(rest as shapes.standard.LinkAttributes);
           }}
           width="100%"
           renderElement={renderElement}

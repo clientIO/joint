@@ -94,11 +94,11 @@ function MyDiagram() {
 
 export default meta;
 
-function RenderRectElement({ width, height }: SimpleElement) {
+function RenderRectElement({ width, height }: Readonly<SimpleElement>) {
   return <rect rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
 }
 
-function RenderHTMLElement({ width, height }: SimpleElement) {
+function RenderHTMLElement({ width, height }: Readonly<SimpleElement>) {
   const elementRef = React.useRef<HTMLDivElement>(null);
   useNodeSize(elementRef);
   return (

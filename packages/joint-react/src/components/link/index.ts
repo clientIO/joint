@@ -45,7 +45,7 @@ export namespace Link {
    * @group Components
    * @category Link
    */
-  // eslint-disable-next-line no-shadow, @typescript-eslint/no-shadow
+   
   export const { Base } = Component;
   /**
    * LinkLabel component renders content at a specific position along a link.

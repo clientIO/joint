@@ -3,13 +3,10 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   type GraphProps,
   type GraphElement,
   type GraphLink,
-  type InferElement,
   Paper,
   type ExternalGraphStore,
 } from '@joint/react';
@@ -85,19 +82,22 @@ interface GraphState {
 // ============================================================================
 
 /**
- * Initial elements for the graph.
- * Defined separately to enable type inference for CustomElement.
+ * Custom element type with a label property.
  */
-const defaultElements = createElements([
+type CustomElement = GraphElement & { label: string };
+
+/**
+ * Initial elements for the graph.
+ */
+const defaultElements: CustomElement[] = [
   { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
   { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
-]);
+];
 
 /**
  * Initial links for the graph.
- * Defined separately to enable type inference for CustomLink.
  */
-const defaultLinks = createLinks([
+const defaultLinks: GraphLink[] = [
   {
     id: 'e1-2',
     source: '1',
@@ -108,7 +108,7 @@ const defaultLinks = createLinks([
       },
     },
   },
-]);
+];
 
 /**
  * Redux slice for managing graph state.
@@ -306,12 +306,6 @@ function useReduxAdapter(): ExternalGraphStore {
 // ============================================================================
 // STEP 5: Component Implementation
 // ============================================================================
-
-/**
- * Type inference for custom elements.
- * Uses InferElement to extract the element type from the initial elements array.
- */
-type CustomElement = InferElement<typeof defaultElements>;
 
 /**
  * Custom render function for graph elements.

@@ -1,10 +1,10 @@
+/* eslint-disable react-perf/jsx-no-new-array-as-prop */
 import React, { createRef, useState, useCallback } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { GraphStoreContext } from '../../../context';
 import { GraphStore } from '../../../store';
 import { dia, shapes } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
-import { createElements, createLinks } from '../../../utils/create';
 import type { GraphElement } from '../../../types/element-types';
 import type { GraphLink } from '../../../types/link-types';
 import { mapLinkFromGraph } from '../../../utils/cell/cell-utilities';
@@ -42,13 +42,13 @@ describe('graph', () => {
   });
 
   it('should render graph provider with links and elements', async () => {
-    const elements = createElements([
+    const elements = [
       {
         width: 100,
         height: 100,
         id: 'element1',
       },
-    ]);
+    ];
     const link = new dia.Link({ id: 'link1', type: 'standard.Link', source: { id: 'element1' } });
     let linkCount = 0;
     let elementCount = 0;
@@ -60,7 +60,6 @@ describe('graph', () => {
       return null;
     }
     render(
-      // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
       <GraphProvider elements={elements} links={[mapLinkFromGraph(link)]}>
         <TestComponent />
       </GraphProvider>
@@ -108,10 +107,10 @@ describe('graph', () => {
   });
 
   it('should initialize with default elements', async () => {
-    const elements = createElements([
+    const elements = [
       { width: 100, height: 100, id: 'element1' },
       { width: 200, height: 200, id: 'element2' },
-    ]);
+    ];
     let elementCount = 0;
     function TestComponent() {
       elementCount = useElements((items) => items.length);
@@ -232,14 +231,14 @@ describe('graph', () => {
   });
 
   it('should render graph provider with links and elements - with explicit react type', async () => {
-    const elements = createElements([
+    const elements = [
       {
         width: 100,
         height: 100,
         id: 'element1',
         type: 'ReactElement',
       },
-    ]);
+    ];
     const link = new dia.Link({ id: 'link1', type: 'standard.Link', source: { id: 'element1' } });
     let linkCount = 0;
     let elementCount = 0;
@@ -252,7 +251,6 @@ describe('graph', () => {
       return null;
     }
     render(
-      // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
       <GraphProvider elements={elements} links={[mapLinkFromGraph(link)]}>
         <TestComponent />
       </GraphProvider>
@@ -265,14 +263,14 @@ describe('graph', () => {
   });
 
   it('should update graph in controlled mode', async () => {
-    const initialElements = createElements([
+    const initialElements = [
       {
         width: 100,
         height: 100,
         id: 'element1',
         type: 'ReactElement',
       },
-    ]);
+    ];
     const initialLink = new dia.Link({
       id: 'link1',
       type: 'standard.Link',
@@ -317,22 +315,20 @@ describe('graph', () => {
     });
 
     act(() => {
-      setElementsOutside?.(
-        createElements([
-          {
-            width: 100,
-            height: 100,
-            id: 'element1',
-            type: 'ReactElement',
-          },
-          {
-            width: 10,
-            height: 10,
-            id: 'element2',
-            type: 'ReactElement',
-          },
-        ])
-      );
+      setElementsOutside?.([
+        {
+          width: 100,
+          height: 100,
+          id: 'element1',
+          type: 'ReactElement',
+        },
+        {
+          width: 10,
+          height: 10,
+          id: 'element2',
+          type: 'ReactElement',
+        },
+      ]);
     });
 
     await waitFor(() => {
@@ -377,7 +373,7 @@ describe('graph', () => {
   });
 
   it('should pass correct link data to renderLink function', async () => {
-    const elements = createElements([
+    const elements = [
       {
         id: 'element-1',
         x: 0,
@@ -392,9 +388,9 @@ describe('graph', () => {
         width: 100,
         height: 100,
       },
-    ]);
+    ];
 
-    const links = createLinks([
+    const links = [
       {
         id: 'link-1',
         source: 'element-1',
@@ -410,7 +406,7 @@ describe('graph', () => {
         z: 2,
         customProperty: 'custom-value',
       },
-    ]);
+    ];
 
     const receivedLinks: GraphLink[] = [];
 
@@ -462,7 +458,7 @@ describe('graph', () => {
   });
 
   it('should pass updated link data to renderLink when links change', async () => {
-    const elements = createElements([
+    const elements = [
       {
         id: 'element-1',
         x: 0,
@@ -477,15 +473,15 @@ describe('graph', () => {
         width: 100,
         height: 100,
       },
-    ]);
+    ];
 
-    const initialLinks = createLinks([
+    const initialLinks = [
       {
         id: 'link-1',
         source: 'element-1',
         target: 'element-2',
       },
-    ]);
+    ];
 
     const receivedLinks: GraphLink[] = [];
 
@@ -529,16 +525,14 @@ describe('graph', () => {
 
     // Update links
     act(() => {
-      setLinksExternal?.(
-        createLinks([
-          {
-            id: 'link-2',
-            source: 'element-2',
-            target: 'element-1',
-            customProperty: 'updated-value',
-          },
-        ])
-      );
+      setLinksExternal?.([
+        {
+          id: 'link-2',
+          source: 'element-2',
+          target: 'element-1',
+          customProperty: 'updated-value',
+        },
+      ]);
     });
 
     await waitFor(() => {

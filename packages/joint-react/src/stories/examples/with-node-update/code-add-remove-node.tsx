@@ -1,27 +1,26 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   Paper,
   useCellId,
   useElements,
   useGraph,
   useNodeSize,
-  type InferElement,
+  type GraphLink,
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', color: '#ffffff', x: 40, y: 70 },
   { id: '2', label: 'Node 2', color: '#ffffff', x: 170, y: 120 },
   { id: '3', label: 'Node 2', color: '#ffffff', x: 30, y: 180 },
-]);
-const initialEdges = createLinks([
+];
+
+const initialEdges: GraphLink[] = [
   {
     id: 'e1-1',
     source: '1',
@@ -32,11 +31,11 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
-function ElementInput({ id, label }: BaseElementWithData) {
+function ElementInput({ id, label }: Readonly<BaseElementWithData>) {
   const { set } = useCellActions<BaseElementWithData>();
   return (
     <input
@@ -48,7 +47,7 @@ function ElementInput({ id, label }: BaseElementWithData) {
   );
 }
 
-function RenderElement({ label }: BaseElementWithData) {
+function RenderElement({ label }: Readonly<BaseElementWithData>) {
   const graph = useGraph();
   const id = useCellId();
   const elementRef = useRef<HTMLDivElement>(null);

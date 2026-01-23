@@ -75,7 +75,7 @@ function MyDiagram() {
 
 export default meta;
 
-function RenderHTMLElement({ width, height }: SimpleElement) {
+function RenderHTMLElement({ width, height }: Readonly<SimpleElement>) {
   const elementRef = useRef<HTMLDivElement>(null);
   useNodeSize(elementRef);
   return (

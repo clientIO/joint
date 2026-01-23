@@ -37,13 +37,10 @@
  */
 
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   type GraphProps,
   type GraphElement,
   type GraphLink,
-  type InferElement,
   Paper,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -55,29 +52,39 @@ import { useState, type Dispatch, type SetStateAction } from 'react';
 // ============================================================================
 
 /**
+ * Custom element type with a label property.
+ * Extends GraphElement with our custom 'label' property.
+ */
+type CustomElement = GraphElement & { label: string };
+
+/**
+ * Custom link type.
+ * Uses GraphLink as the base type for our links.
+ */
+type CustomLink = GraphLink;
+
+/**
  * Initial elements (nodes) for the graph.
- * createElements is a helper function that creates properly formatted element
- * objects compatible with JointJS. Each element needs:
+ * Each element needs:
  * - id: unique identifier
  * - label: text to display (custom property)
  * - x, y: position on the canvas
  * - width, height: dimensions
  */
-const defaultElements = createElements([
+const defaultElements: CustomElement[] = [
   { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
   { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
-]);
+];
 
 /**
  * Initial links (edges) for the graph.
- * createLinks is a helper function that creates properly formatted link objects.
  * Each link needs:
  * - id: unique identifier
  * - source: id of the source element
  * - target: id of the target element
  * - attrs: visual attributes (colors, stroke width, etc.)
  */
-const defaultLinks = createLinks([
+const defaultLinks: CustomLink[] = [
   {
     id: 'e1-2',
     source: '1',
@@ -88,26 +95,7 @@ const defaultLinks = createLinks([
       },
     },
   },
-]);
-
-// ============================================================================
-// STEP 2: Type Inference for Custom Elements and Links
-// ============================================================================
-
-/**
- * InferElement extracts the TypeScript type from the elements array.
- * This gives us a CustomElement type that includes all properties from
- * the initial elements, including our custom 'label' property.
- *
- * Example: CustomElement = { id: string, label: string, x: number, ... }
- */
-type CustomElement = InferElement<typeof defaultElements>;
-
-/**
- * Extract the link type from the links array.
- * This gives us proper TypeScript typing for our links.
- */
-type CustomLink = (typeof defaultLinks)[number];
+];
 
 // ============================================================================
 // STEP 3: Custom Element Renderer

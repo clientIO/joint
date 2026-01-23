@@ -42,39 +42,23 @@ Welcome! This guide will help you get started with the new `@joint/react` librar
 
 ### a. Elements (Nodes)
 
-`createElements` is a convenience helper. You can also pass plain objects with at least an `id` and geometry (`x`, `y`, `width`, `height`).
+Elements are plain objects with at least an `id` and geometry properties (`x`, `y`, `width`, `height`).
 
 ```tsx
-// Using createElements (sugar code)
-import { createElements } from '@joint/react';
-
-const elements = createElements([
+const elements = [
   { id: '1', label: 'Node 1', x: 100, y: 0, width: 100, height: 25 },
   { id: '2', label: 'Node 2', x: 100, y: 200, width: 100, height: 25 },
-]);
-
-// Without createElements
-const elements = [
-  { id: 'sta', label: 'Custom Node', x: 50, y: 50, width: 80, height: 40 },
-] as const;
+];
 ```
 
 ### b. Links (Edges)
 
-Similarly, `createLinks` is a helper for defining links. Plain objects with `id`, `source`, and `target` also work.
+Links are plain objects with `id`, `source`, and `target` properties.
 
 ```tsx
-// Using createLinks (sugar code)
-import { createLinks } from '@joint/react';
-
-const links = createLinks([
-  { id: 'l1', source: '1', target: '2' },
-]);
-
-// Without createLinks
 const links = [
-  { id: 'l2', source: 'sta', target: '2' },
-] as const;
+  { id: 'l1', source: '1', target: '2' },
+];
 ```
 
 ---
@@ -505,10 +489,10 @@ You can render multiple `Paper` instances inside one `GraphProvider` to create f
 ```tsx
 import { GraphProvider } from '@joint/react';
 
-const elements = createElements([
+const elements = [
   { id: '1', label: 'A', x: 50, y: 50, width: 80, height: 40 },
   { id: '2', label: 'B', x: 250, y: 180, width: 80, height: 40 },
-]);
+];
 
 export function MultiViews() {
   return (

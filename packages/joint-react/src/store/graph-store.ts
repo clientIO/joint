@@ -20,6 +20,8 @@ import {
   defaultElementToGraphSelector,
   defaultGraphToLinkSelector,
   defaultLinkToGraphSelector,
+  createDefaultGraphToLinkMapper,
+  createDefaultLinkMapper,
 } from '../state/graph-state-selectors';
 import type { OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import { createScheduler } from '../utils/scheduler';
@@ -144,6 +146,15 @@ interface PortUpdateCacheEntry {
 }
 
 /**
+ * Cache entry for batched clearView updates.
+ * @internal
+ */
+interface ClearViewCacheEntry {
+  /** Callback to validate which links should be cleared */
+  onValidateLink?: (link: dia.Link) => boolean;
+}
+
+/**
  * Configuration options for creating a GraphStore instance.
  * @template Element - The type of elements in the graph
  * @template Link - The type of links in the graph
@@ -262,6 +273,14 @@ export class GraphStore {
   private portUpdateCache = new Map<dia.Cell.ID, PortUpdateCacheEntry>();
 
   /**
+   * Cache for batched clearView updates.
+   * Updates are collected here and flushed together.
+   * Key is cellId, value contains optional onValidateLink validator.
+   * @internal
+   */
+  private clearViewCache = new Map<dia.Cell.ID, ClearViewCacheEntry>();
+
+  /**
    * Unified scheduler for batching link, port, and paper snapshot updates.
    * Triggers flushGraphUpdates when scheduled, which processes all batched updates.
    * @internal
@@ -278,20 +297,24 @@ export class GraphStore {
   private readonly graphToElementSelector: (
     options: { readonly cell: dia.Element; readonly graph: dia.Graph } & {
       readonly previous?: GraphElement;
+      readonly defaultMapper: () => GraphElement;
     }
   ) => GraphElement;
   private readonly graphToLinkSelector: (
     options: { readonly cell: dia.Link; readonly graph: dia.Graph } & {
       readonly previous?: GraphLink;
+      readonly defaultMapper: () => GraphLink;
     }
   ) => GraphLink;
   private readonly elementToGraphSelector: (options: {
     readonly element: GraphElement;
     readonly graph: dia.Graph;
+    readonly defaultMapper: () => dia.Cell.JSON;
   }) => dia.Cell.JSON;
   private readonly linkToGraphSelector: (options: {
     readonly link: GraphLink;
     readonly graph: dia.Graph;
+    readonly defaultMapper: () => dia.Cell.JSON;
   }) => dia.Cell.JSON;
 
   constructor(config: GraphStoreOptions) {
@@ -311,20 +334,24 @@ export class GraphStore {
     this.graphToElementSelector = defaultGraphToElementSelector as (
       options: { readonly cell: dia.Element; readonly graph: dia.Graph } & {
         readonly previous?: GraphElement;
+        readonly defaultMapper: () => GraphElement;
       }
     ) => GraphElement;
     this.graphToLinkSelector = defaultGraphToLinkSelector as (
       options: { readonly cell: dia.Link; readonly graph: dia.Graph } & {
         readonly previous?: GraphLink;
+        readonly defaultMapper: () => GraphLink;
       }
     ) => GraphLink;
     this.elementToGraphSelector = elementToGraphSelector as (options: {
       readonly element: GraphElement;
       readonly graph: dia.Graph;
+      readonly defaultMapper: () => dia.Cell.JSON;
     }) => dia.Cell.JSON;
     this.linkToGraphSelector = linkToGraphSelector as (options: {
       readonly link: GraphLink;
       readonly graph: dia.Graph;
+      readonly defaultMapper: () => dia.Cell.JSON;
     }) => dia.Cell.JSON;
 
     this.graph =
@@ -350,7 +377,8 @@ export class GraphStore {
           elements: [],
           links: [],
         }),
-        isEqual: util.isEqual,
+
+        isDevToolEnabled: true,
       });
     }
     this.internalState = createState<GraphStoreInternalSnapshot>({
@@ -358,7 +386,8 @@ export class GraphStore {
       newState: () => ({
         papers: {},
       }),
-      isEqual: util.isEqual,
+
+      isDevToolEnabled: false,
     });
 
     this.derivedStore = derivedState({
@@ -376,7 +405,6 @@ export class GraphStore {
         }
         return { elementIds, linkIds };
       },
-      isEqual: util.isEqual,
     });
 
     this.stateSync = stateSync({
@@ -402,6 +430,7 @@ export class GraphStore {
       name: 'Jointjs/Layout',
       newState: () => ({ layouts: {}, wasEverMeasured: false }),
       isEqual: util.isEqual,
+      isDevToolEnabled: true,
     });
 
     // Derive areElementsMeasured from layout state
@@ -429,7 +458,6 @@ export class GraphStore {
 
         return true;
       },
-      isEqual: util.isEqual,
     });
 
     // Function to update layout state from graph
@@ -628,9 +656,11 @@ export class GraphStore {
       }
 
       // Convert link from graph to GraphLink format (preserves source/target correctly)
+      const defaultGraphToLinkMapper = createDefaultGraphToLinkMapper(link);
       const graphLink = this.graphToLinkSelector({
         cell: link,
         graph: this.graph,
+        defaultMapper: defaultGraphToLinkMapper,
       });
 
       // Merge cached attrs into the link
@@ -646,9 +676,11 @@ export class GraphStore {
         : graphLink;
 
       // Convert back to Cell.JSON using linkToGraphSelector (reuses proper source/target handling)
+      const linkMapper = createDefaultLinkMapper(updatedLink as GraphLink, this.graph);
       const cellJson = this.linkToGraphSelector({
         link: updatedLink as GraphLink,
         graph: this.graph,
+        defaultMapper: linkMapper,
       });
 
       // Handle labels separately (labels are on the cell, not in GraphLink)
@@ -1047,7 +1079,7 @@ export class GraphStore {
   };
 
   /**
-   * Flushes all cached graph updates (links and ports) in a single syncCells call.
+   * Flushes all cached graph updates (links, ports, and clearView) in a single pass.
    * Called automatically by the unified scheduler when updates are batched.
    * @internal
    */
@@ -1061,6 +1093,9 @@ export class GraphStore {
     if (allCells.length > 0) {
       this.graph.syncCells(allCells, { remove: false });
     }
+
+    // Flush clearView after syncCells to ensure ports are applied first
+    this.flushClearViewInternal();
   };
 
   /**
@@ -1073,7 +1108,7 @@ export class GraphStore {
     for (const callback of this.paperUpdateCallbacks) {
       callback();
     }
-    // Then flush graph updates (links and ports)
+    // Then flush graph updates (links, ports, and clearView)
     this.flushGraphUpdates();
   };
 
@@ -1082,7 +1117,11 @@ export class GraphStore {
    * Call this from useLayoutEffect to ensure updates are applied before paint.
    */
   public flushPendingUpdates = () => {
-    if (this.linkUpdateCache.size === 0 && this.portUpdateCache.size === 0) {
+    if (
+      this.linkUpdateCache.size === 0 &&
+      this.portUpdateCache.size === 0 &&
+      this.clearViewCache.size === 0
+    ) {
       return;
     }
     this.flushGraphUpdatesImmediate();
@@ -1171,5 +1210,156 @@ export class GraphStore {
    */
   public schedulePaperUpdate = () => {
     this.graphUpdateScheduler();
+  };
+
+  /**
+   * Schedules a clearView operation to be batched.
+   * Multiple calls for the same cell are deduplicated.
+   * If called multiple times for the same cell, the last onValidateLink wins.
+   * If any call has no onValidateLink (meaning "clear all"), that takes precedence.
+   * @param options - Options for the clearView operation
+   * @param options.cellId - The cell ID to clear
+   * @param options.onValidateLink - Optional callback to determine which links to keep
+   */
+  public scheduleClearView = (options: {
+    readonly cellId: dia.Cell.ID;
+    readonly onValidateLink?: (link: dia.Link) => boolean;
+  }) => {
+    const { cellId, onValidateLink } = options;
+    const existingEntry = this.clearViewCache.get(cellId);
+
+    // If no existing entry, create new one
+    if (!existingEntry) {
+      this.clearViewCache.set(cellId, { onValidateLink });
+      this.graphUpdateScheduler();
+      return;
+    }
+
+    // Merge strategy:
+    // - If new call has no validator (clear all links), remove any existing validator
+    // - If new call has a validator but existing doesn't, keep clearing all
+    // - If both have validators, the new validator should allow more links (union behavior)
+    if (!onValidateLink) {
+      // No validator means clear all links - this takes precedence
+      this.clearViewCache.set(cellId, { onValidateLink: undefined });
+    } else if (existingEntry.onValidateLink) {
+      // Both have validators - create union validator
+      const existingValidator = existingEntry.onValidateLink;
+      const newValidator = onValidateLink;
+      this.clearViewCache.set(cellId, {
+        onValidateLink: (link: dia.Link) => existingValidator(link) || newValidator(link),
+      });
+    }
+    // If existing has no validator but new does, keep existing (clear all)
+
+    this.graphUpdateScheduler();
+  };
+
+  /**
+   * Flushes all pending clearView operations synchronously.
+   * Call this from useLayoutEffect to ensure views are cleared before paint.
+   */
+  public flushClearView = () => {
+    if (this.clearViewCache.size === 0) {
+      return;
+    }
+    this.flushClearViewInternal();
+  };
+
+  /**
+   * Internal method to flush clearView cache.
+   * @internal
+   */
+  private flushClearViewInternal = () => {
+    // Process each cell in the cache
+    for (const [cellId, entry] of this.clearViewCache) {
+      this.executeClearViewForCell(cellId, entry.onValidateLink);
+    }
+
+    // Clear cache after processing
+    this.clearViewCache.clear();
+  };
+
+  /**
+   * Executes clearView for a single cell.
+   * @internal
+   * @param cellId - The cell ID to clear
+   * @param onValidateLink - Optional callback to determine which links to keep
+   */
+  private executeClearViewForCell = (
+    cellId: dia.Cell.ID,
+    onValidateLink?: (link: dia.Link) => boolean
+  ) => {
+    // Get all papers and execute clearView on each
+    for (const paperStore of this.papers.values()) {
+      const { paper } = paperStore;
+      if (!paper) {
+        continue;
+      }
+
+      const elementView = paper.findViewByModel(cellId);
+      if (!elementView) {
+        continue;
+      }
+
+      elementView.cleanNodesCache();
+      this.clearConnectedLinkViews(paper, cellId, onValidateLink);
+    }
+  };
+
+  /**
+   * Clears the connected link views for a cell.
+   * @internal
+   * @param paper - The JointJS Paper instance
+   * @param cellId - The cell ID whose connected links to clear
+   * @param onValidateLink - Optional callback to determine which links to keep
+   */
+  private clearConnectedLinkViews = (
+    paper: dia.Paper,
+    cellId: dia.Cell.ID,
+    onValidateLink?: (link: dia.Link) => boolean
+  ) => {
+    const cell = this.graph.getCell(cellId);
+    if (!cell) {
+      return;
+    }
+
+    for (const link of this.graph.getConnectedLinks(cell)) {
+      if (!this.shouldClearLink(link, cellId, onValidateLink)) {
+        continue;
+      }
+
+      const linkView = link.findView(paper);
+      if (!linkView) {
+        continue;
+      }
+
+      // @ts-expect-error we use private jointjs api method
+      linkView._sourceMagnet = null;
+      // @ts-expect-error we use private jointjs api method
+      linkView._targetMagnet = null;
+      // @ts-expect-error we use private jointjs api method
+      linkView.requestConnectionUpdate({ async: false });
+    }
+  };
+
+  /**
+   * Determines if a link should be cleared.
+   * @internal
+   * @param link - The link to check
+   * @param cellId - The cell ID to check against
+   * @param onValidateLink - Optional callback to determine if link should be cleared
+   * @returns True if the link should be cleared
+   */
+  private shouldClearLink = (
+    link: dia.Link,
+    cellId: dia.Cell.ID,
+    onValidateLink?: (link: dia.Link) => boolean
+  ): boolean => {
+    const target = link.target();
+    const source = link.source();
+    const isElementLink = target.id === cellId || source.id === cellId;
+
+    return isElementLink && (!onValidateLink || onValidateLink(link));
   };
 }

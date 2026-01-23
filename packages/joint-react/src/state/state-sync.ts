@@ -18,6 +18,10 @@ import {
   defaultGraphToElementSelector,
   defaultLinkToGraphSelector,
   defaultGraphToLinkSelector,
+  createDefaultElementMapper,
+  createDefaultGraphToElementMapper,
+  createDefaultLinkMapper,
+  createDefaultGraphToLinkMapper,
 } from './graph-state-selectors';
 import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equality';
 
@@ -138,7 +142,7 @@ export function updateGraph<
     return false;
   }
   const { elementIds, linkIds } = getIdsSnapshot();
-  // Compare current graph state with provided state to avoid unnecessary s yncs
+  // Compare current graph state with provided state to avoid unnecessary syncs
   // This prevents syncing when graph and provided state are already in sync
   const graphElements = graph.getElements().map((element) => {
     const previousIndex = elementIds[element.id];
@@ -146,10 +150,12 @@ export function updateGraph<
       previousIndex != null && previousIndex >= 0 && previousIndex < elements.length
         ? elements[previousIndex]
         : undefined;
+    const defaultMapper = createDefaultGraphToElementMapper(element, previous);
     return graphToElementSelector({
       cell: element,
       graph,
       previous,
+      defaultMapper,
     });
   });
   const graphLinks = graph.getLinks().map((link) => {
@@ -158,10 +164,12 @@ export function updateGraph<
       previousIndex != null && previousIndex >= 0 && previousIndex < links.length
         ? links[previousIndex]
         : undefined;
+    const defaultMapper = createDefaultGraphToLinkMapper(link, previous);
     return graphToLinkSelector({
       cell: link,
       graph,
       previous,
+      defaultMapper,
     });
   });
 
@@ -186,19 +194,23 @@ export function updateGraph<
     }
   }
 
-  // Build items array using selectors
-  const elementItems = elements.map((element) =>
-    elementToGraphSelector({
+  // Build items array using selectors with defaultMapper injected
+  const elementItems = elements.map((element) => {
+    const defaultMapper = createDefaultElementMapper(element);
+    return elementToGraphSelector({
       element: element as Element,
       graph,
-    })
-  );
-  const linkItems = links.map((link) =>
-    linkToGraphSelector({
+      defaultMapper,
+    });
+  });
+  const linkItems = links.map((link) => {
+    const defaultMapper = createDefaultLinkMapper(link, graph);
+    return linkToGraphSelector({
       link: link as Link,
       graph,
-    })
-  );
+      defaultMapper,
+    });
+  });
 
   graph.syncCells([...elementItems, ...linkItems], { remove: true });
   return true;
@@ -298,28 +310,62 @@ export function stateSync<
     pendingChanges.clear();
 
     if (isReset) {
-      // unfortunately this will create always new object references, so we need to compare them with more deeply
-      const graphElements = graph.getElements().map((element) =>
-        graphToElementSelector({
-          cell: element,
-          graph,
-        })
-      );
-      const graphLinks = graph.getLinks().map((link) =>
-        graphToLinkSelector({
-          cell: link,
-          graph,
-        })
-      );
       const snapshot = store.getSnapshot();
       const elements = removeDeepReadOnly(snapshot.elements);
       const links = removeDeepReadOnly(snapshot.links);
+      const idsSnapshot = getIdsSnapshot();
+
+      // Map graph elements with previous state for shape preservation
+      const graphElements = graph.getElements().map((element) => {
+        const previousIndex = idsSnapshot.elementIds[element.id];
+        const previous: Element | undefined =
+          previousIndex != null && previousIndex >= 0 && previousIndex < elements.length
+            ? (elements[previousIndex] as Element)
+            : undefined;
+        const defaultMapper = createDefaultGraphToElementMapper(element, previous);
+        return graphToElementSelector({
+          cell: element,
+          graph,
+          previous,
+          defaultMapper,
+        });
+      });
+
+      // Map graph links with previous state for shape preservation
+      const graphLinks = graph.getLinks().map((link) => {
+        const previousIndex = idsSnapshot.linkIds[link.id];
+        const previous: Link | undefined =
+          previousIndex != null && previousIndex >= 0 && previousIndex < links.length
+            ? (links[previousIndex] as Link)
+            : undefined;
+        const defaultMapper = createDefaultGraphToLinkMapper(link, previous);
+        return graphToLinkSelector({
+          cell: link,
+          graph,
+          previous,
+          defaultMapper,
+        });
+      });
+
       // Use fast equality check for better performance
       const isEqual =
         fastElementArrayEqual(elements as Element[], graphElements as Element[]) &&
         fastElementArrayEqual(links as Link[], graphLinks as Link[]);
       if (isEqual) return;
 
+      // Update state with shape-preserved graph data
+      if (!store.setState) return;
+
+      updatingStateFromGraphCounter++;
+      isUpdatingStateFromGraph = true;
+
+      store.setState(() => ({
+        elements: graphElements as Element[],
+        links: graphLinks as Link[],
+      }));
+
+      isUpdatingStateFromGraph = false;
+      updatingStateFromGraphCounter--;
       return;
     }
     if (!store.setState) {
@@ -348,10 +394,12 @@ export function stateSync<
                 ? previous.links[linkIndex]
                 : undefined;
 
+            const defaultMapper = createDefaultGraphToLinkMapper(cell as dia.Link, previousLink);
             const updatedLink = graphToLinkSelector({
               cell: cell as dia.Link,
               graph,
               previous: previousLink,
+              defaultMapper,
             });
             updates.set(id, { type: 'link', data: updatedLink as Link });
           } else {
@@ -362,10 +410,12 @@ export function stateSync<
                 ? previous.elements[elementIndex]
                 : undefined;
 
+            const defaultMapper = createDefaultGraphToElementMapper(cell as dia.Element, previousElement);
             const updatedElement = graphToElementSelector({
               cell: cell as dia.Element,
               graph,
               previous: previousElement,
+              defaultMapper,
             });
             updates.set(id, { type: 'element', data: updatedElement as Element });
           }
@@ -597,18 +647,22 @@ export function stateSync<
 
     // Only sync if store is empty and graph has cells
     if (storeElements.length === 0 && storeLinks.length === 0) {
-      const existingElements = graph.getElements().map((element) =>
-        graphToElementSelector({
+      const existingElements = graph.getElements().map((element) => {
+        const defaultMapper = createDefaultGraphToElementMapper(element);
+        return graphToElementSelector({
           cell: element,
           graph,
-        })
-      ) as Element[];
-      const existingLinks = graph.getLinks().map((link) =>
-        graphToLinkSelector({
+          defaultMapper,
+        });
+      }) as Element[];
+      const existingLinks = graph.getLinks().map((link) => {
+        const defaultMapper = createDefaultGraphToLinkMapper(link);
+        return graphToLinkSelector({
           cell: link,
           graph,
-        })
-      ) as Link[];
+          defaultMapper,
+        });
+      }) as Link[];
 
       if (existingElements.length > 0 || existingLinks.length > 0) {
         // Set flag to prevent syncing graph changes back to React during initialization

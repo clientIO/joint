@@ -3,21 +3,20 @@ import '../index.css';
 import { useCallback, useRef } from 'react';
 import type { OnTransformElement } from '@joint/react';
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   Paper,
   useNodeSize,
-  type InferElement,
+  type GraphLink,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', x: 100, y: 0 },
   { id: '2', label: 'Node 2 with longer text', x: 250, y: 150 },
-]);
-const initialEdges = createLinks([
+];
+
+const initialEdges: GraphLink[] = [
   {
     id: 'e1-2',
     source: '1',
@@ -28,9 +27,9 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
 function Card({ label }: Readonly<Partial<BaseElementWithData>>) {
   const contentRef = useRef<HTMLDivElement>(null);

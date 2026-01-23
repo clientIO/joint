@@ -17,7 +17,7 @@ export function mapLinkToGraph(link: GraphLink, graph: dia.Graph): CellOrJsonCel
   const target = getTargetOrSource(link.target);
   const { attrs, type = 'standard.Link', ...rest } = link;
 
-  // TODO: this is not optimal solution
+  // Note: Accessing prototype defaults directly. Consider caching defaults for performance.
   const defaults = util.result(
     util.getByPath(graph.layerCollection.cellNamespace, type, '.').prototype,
     'defaults',

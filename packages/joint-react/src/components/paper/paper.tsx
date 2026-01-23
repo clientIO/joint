@@ -31,10 +31,16 @@ import type { PaperProps, RenderElement, RenderLink } from './paper.types';
 import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
 import { PaperHTMLContainer } from './render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext, PaperStoreContext } from '../../context';
-import { HTMLElementItem, SVGElementItem } from './render-element/paper-element-item';
+import {
+  DefaultRectElement,
+  HTMLElementItem,
+  SVGElementItem,
+} from './render-element/paper-element-item';
 import { createPortal } from 'react-dom';
 import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/handle-paper-events';
 import type { PaperStore } from '../../store';
+import { ReactElementView } from '../../models/react-element-view';
+import { ReactLinkView } from '../../models/react-link-view';
 import {
   useAreElementsMeasured,
   useGraphInternalStoreSelector,
@@ -106,6 +112,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   const elementsState = useElements();
   const linksState = useLinks();
   useDebugValue(elementsState);
+  useDebugValue(linksState);
 
   // Defer rendering for large graphs to improve initial render performance
   // Threshold: only defer if we have more than 100 elements or links
@@ -148,7 +155,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   const { addPaper, graph, getPaperStore } = useGraphStore();
 
   const paperStore = getPaperStore(id) ?? null;
-  const { paper, ReactElementView, ReactLinkView } = paperStore ?? {};
+  const { paper } = paperStore ?? {};
   const paperHTMLElement = useRef<HTMLDivElement | null>(null);
   const measured = useRef(false);
   const previousSizesRef = useRef<number[][]>([]);
@@ -323,10 +330,6 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   }, [graph, isReady, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
 
   const renderedElements = useMemo(() => {
-    if (!ReactElementView) {
-      return null;
-    }
-
     if (!hasRenderElement) {
       return null;
     }
@@ -352,12 +355,21 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
       return (
         <CellIdContext.Provider key={elementState.id} value={elementState.id}>
           {useHTMLOverlay && HTMLRendererContainer ? (
-            <HTMLElementItem
-              {...elementState}
-              portalElement={HTMLRendererContainer}
-              renderElement={renderElement}
-              areElementsMeasured={areElementsMeasured}
-            />
+            <>
+              <HTMLElementItem
+                {...elementState}
+                portalElement={HTMLRendererContainer}
+                renderElement={renderElement}
+                areElementsMeasured={areElementsMeasured}
+              />
+              {/* We need to render this element too, its kind of hack - placeholder */}
+              <SVGElementItem
+                {...elementState}
+                portalElement={SVG as SVGAElement}
+                renderElement={DefaultRectElement}
+                areElementsMeasured={areElementsMeasured}
+              />
+            </>
           ) : (
             <SVGElementItem
               {...elementState}
@@ -370,7 +382,6 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
       );
     });
   }, [
-    ReactElementView,
     hasRenderElement,
     deferredElementsState,
     paperElementViews,
@@ -381,10 +392,6 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   ]);
 
   const renderedLinks = useMemo(() => {
-    if (!ReactLinkView) {
-      return null;
-    }
-
     if (!hasRenderLink) {
       return null;
     }
@@ -419,7 +426,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
         </CellIdContext.Provider>
       );
     });
-  }, [hasRenderLink, deferredLinksState, paperLinkViews, ReactLinkView, renderLink]);
+  }, [hasRenderLink, deferredLinksState, paperLinkViews, renderLink]);
 
   const content = (
     <>

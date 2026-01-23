@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import { shapes } from '@joint/core';
-import { createElements, type InferElement } from '../../../utils/create';
+import type { GraphElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
 import {
   getCellId,
@@ -60,7 +60,15 @@ const Pulse = dia.HighlighterView.extend({
     this.el.setAttribute('transform', `translate(${position.x}, ${position.y})`);
   },
 });
-const elements = createElements([
+type Element = GraphElement & {
+  attrs?: {
+    root?: {
+      magnet?: boolean;
+    };
+  };
+};
+
+const elements: Element[] = [
   {
     id: '1',
     x: 50,
@@ -91,9 +99,7 @@ const elements = createElements([
       },
     },
   },
-]);
-
-type Element = InferElement<typeof elements>;
+];
 
 function NodeElement({ id }: Element) {
   const rectRef = useRef<SVGRectElement>(null);

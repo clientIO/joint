@@ -13,25 +13,24 @@ export type StandardLinkShapesType = keyof StandardLinkShapesTypeMapper;
  * @group Graph
  * @see @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
-export interface GraphLink<Type extends StandardLinkShapesType | string = string>
-  extends dia.Link.EndJSON,
-    Record<string, unknown> {
+export interface GraphLink extends Record<string, unknown> {
   /**
    * Unique identifier of the link.
    */
   readonly id: dia.Cell.ID;
   /**
-   * Source element id.
+   * Source element id or endpoint definition.
    */
   readonly source: dia.Cell.ID | dia.Link.EndJSON;
   /**
-   * Target element id.
+   * Target element id or endpoint definition.
    */
   readonly target: dia.Cell.ID | dia.Link.EndJSON;
   /**
    * Optional link type.
+   * @default 'standard.Link'
    */
-  readonly type?: Type;
+  readonly type?: string;
   /**
    * Z index of the link.
    */
@@ -41,14 +40,27 @@ export interface GraphLink<Type extends StandardLinkShapesType | string = string
    */
   readonly markup?: dia.MarkupJSON;
   /**
-   * Optional link attrs.
+   * Default label configuration.
    */
   readonly defaultLabel?: dia.Link.Label;
-
   /**
-   * Attributes of the element.
+   * Link labels.
    */
-  readonly attrs?: Type extends StandardLinkShapesType
-    ? StandardLinkShapesTypeMapper[Type]
-    : unknown;
+  readonly labels?: dia.Link.Label[];
+  /**
+   * Link vertices (waypoints).
+   */
+  readonly vertices?: dia.Link.Vertex[];
+  /**
+   * Link router configuration.
+   */
+  readonly router?: unknown;
+  /**
+   * Link connector configuration.
+   */
+  readonly connector?: unknown;
+  /**
+   * Attributes of the link.
+   */
+  readonly attrs?: dia.Cell.Selectors;
 }

@@ -38,13 +38,10 @@
  */
 
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   type GraphProps,
   type GraphElement,
   type GraphLink,
-  type InferElement,
   Paper,
   type ExternalGraphStore,
 } from '@joint/react';
@@ -59,12 +56,17 @@ import type { Update } from '../../../utils/create-state';
 // STEP 1: Define Initial Graph Data
 // ============================================================================
 
-const defaultElements = createElements([
+/**
+ * Custom element type with a label property.
+ */
+type CustomElement = GraphElement & { label: string };
+
+const defaultElements: CustomElement[] = [
   { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
   { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
-]);
+];
 
-const defaultLinks = createLinks([
+const defaultLinks: GraphLink[] = [
   {
     id: 'e1-2',
     source: '1',
@@ -75,9 +77,7 @@ const defaultLinks = createLinks([
       },
     },
   },
-]);
-
-type CustomElement = InferElement<typeof defaultElements>;
+];
 
 // ============================================================================
 // STEP 2: Custom Element Renderer

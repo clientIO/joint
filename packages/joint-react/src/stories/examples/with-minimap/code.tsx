@@ -1,22 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  Paper,
-  useNodeSize,
-  type InferElement,
-  type RenderElement,
-} from '@joint/react';
+import { GraphProvider, Paper, useNodeSize, type RenderElement } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
   { id: '2', label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
-]);
-const initialEdges = createLinks([
+];
+const initialEdges = [
   {
     id: 'e1-2',
     source: '1',
@@ -27,9 +19,9 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(

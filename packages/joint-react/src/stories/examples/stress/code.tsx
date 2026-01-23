@@ -2,12 +2,9 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   Link,
   Paper,
-  type InferElement,
   type GraphElement,
   type GraphLink,
   type RenderLink,
@@ -54,12 +51,12 @@ function initialElements(xNodes = 15, yNodes = 30) {
     }
   }
 
-  return { nodes: createElements(nodes), edges: createLinks(edges) };
+  return { nodes, edges };
 }
 
 const { nodes: initialNodes, edges: initialEdges } = initialElements(15, 30);
 
-type BaseElementWithData = InferElement<typeof initialNodes>;
+type BaseElementWithData = (typeof initialNodes)[number];
 
 const RenderElement = memo(function RenderElement({
   width,

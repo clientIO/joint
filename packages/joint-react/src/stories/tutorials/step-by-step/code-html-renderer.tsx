@@ -1,25 +1,27 @@
 import { useCallback, useRef, useState } from 'react';
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   Paper,
   usePaper,
   useNodeSize,
   type GraphProps,
-  type InferElement,
+  type GraphElement,
+  type GraphLink,
 } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME } from 'storybook-config/theme';
 
+// Define element type with custom properties
+type CustomElement = GraphElement & { data: { label: string } };
+
 // Define initial elements
-const initialElements = createElements([
+const initialElements: CustomElement[] = [
   { id: '1', data: { label: 'Hello' }, x: 100, y: 0, width: 100, height: 25 },
   { id: '2', data: { label: 'World' }, x: 100, y: 200, width: 100, height: 25 },
-]);
+];
 
 // Define initial edges
-const initialEdges = createLinks([
+const initialEdges: GraphLink[] = [
   {
     id: 'e1-2',
     source: '1',
@@ -32,9 +34,7 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
-
-type CustomElement = InferElement<typeof initialElements>;
+];
 
 let zoomLevel = 1;
 
@@ -113,7 +113,12 @@ function Main() {
 
 export default function App(props: Readonly<GraphProps>) {
   return (
-    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
+    <GraphProvider
+      areBatchUpdatesDisabled
+      {...props}
+      links={initialEdges}
+      elements={initialElements}
+    >
       <Main />
     </GraphProvider>
   );

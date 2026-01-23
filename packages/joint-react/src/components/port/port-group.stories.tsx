@@ -3,28 +3,20 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import '../../stories/examples/index.css';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  Port,
-  useElement,
-  useNodeSize,
-} from '@joint/react';
+import { GraphProvider, Port, useElement, useNodeSize } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { PortGroup } from './port-group';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 import { Paper } from '../paper/paper';
 
-const initialElements = createElements([
+const initialElements = [
   {
     id: '1',
     x: 100,
     y: 20,
     width: 100,
     height: 50,
-    
   },
   {
     id: '2',
@@ -33,9 +25,9 @@ const initialElements = createElements([
     width: 100,
     height: 50,
   },
-]);
+];
 
-const initialLinks = createLinks([
+const initialLinks = [
   {
     id: 'e1-2',
 
@@ -53,7 +45,7 @@ const initialLinks = createLinks([
       },
     },
   },
-]);
+];
 
 export type Story = StoryObj<typeof PortGroup>;
 const API_URL = getAPILink('Port.Group', 'variables');

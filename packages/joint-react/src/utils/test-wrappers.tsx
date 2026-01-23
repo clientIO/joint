@@ -3,6 +3,12 @@ import { GraphProvider, Paper, type GraphProps, type PaperProps } from '../compo
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../store/graph-store';
 
+/**
+ * Testing helper to create a new JointJS graph instance.
+ * @returns A new JointJS graph.
+ * @internal
+ * @group utils
+ */
 export function getTestGraph() {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 }

@@ -3,18 +3,18 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 
-import { createElements, createLinks, GraphProvider, Link, Paper, type RenderLink } from '@joint/react';
+import { GraphProvider, Link, Paper, type RenderLink } from '@joint/react';
 import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { REACT_LINK_TYPE } from '../../../models/react-link';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', x: 100, y: 0 },
   { id: '2', label: 'Node 2', x: 100, y: 200 },
   { id: '3', label: 'Node 3', x: 300, y: 100 },
-]);
+];
 
-const initialLinks = createLinks([
+const initialLinks = [
   {
     id: 'link-1',
     type: REACT_LINK_TYPE,
@@ -27,7 +27,7 @@ const initialLinks = createLinks([
     source: '2',
     target: '3',
   },
-]);
+];
 
 function Main() {
   const renderElement = useCallback(

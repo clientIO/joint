@@ -8,17 +8,44 @@ import {
 } from '../../store/graph-store';
 import { stateSync } from '../state-sync';
 import { createState } from '../../utils/create-state';
-import { createElements } from '../../utils/create';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import {
   defaultElementToGraphSelector,
   defaultLinkToGraphSelector,
+  createDefaultElementMapper,
+  createDefaultLinkMapper,
+  type ElementToGraphOptions,
+  type LinkToGraphOptions,
 } from '../graph-state-selectors';
 
+// Helper to create ElementToGraphOptions
+function createElementToGraphOptions<E extends GraphElement>(
+  element: E,
+  graph: dia.Graph
+): ElementToGraphOptions<E> {
+  return {
+    element,
+    graph,
+    defaultMapper: createDefaultElementMapper(element),
+  };
+}
+
+// Helper to create LinkToGraphOptions
+function createLinkToGraphOptions<L extends GraphLink>(
+  link: L,
+  graph: dia.Graph
+): LinkToGraphOptions<L> {
+  return {
+    link,
+    graph,
+    defaultMapper: createDefaultLinkMapper(link, graph),
+  };
+}
+
 // Helper to create getIdsSnapshot function
-function createGetIdsSnapshot(
-  state: ReturnType<typeof createState<GraphStoreSnapshot<GraphElement, GraphLink>>>
+function createGetIdsSnapshot<E extends GraphElement, L extends GraphLink>(
+  state: ReturnType<typeof createState<GraphStoreSnapshot<E, L>>>
 ): () => GraphStoreDerivedSnapshot {
   return () => {
     const snapshot = state.getSnapshot();
@@ -26,10 +53,10 @@ function createGetIdsSnapshot(
     const linkIds: Record<dia.Cell.ID, number> = {};
 
     for (const [index, element] of snapshot.elements.entries()) {
-      elementIds[element.id] = index;
+      elementIds[element.id as dia.Cell.ID] = index;
     }
     for (const [index, link] of snapshot.links.entries()) {
-      linkIds[link.id] = index;
+      linkIds[link.id as dia.Cell.ID] = index;
     }
 
     return { elementIds, linkIds };
@@ -46,7 +73,7 @@ describe('stateSync', () => {
         },
       }
     );
-    const elements = createElements([
+    const elements = [
       {
         id: '1',
         width: 100,
@@ -59,7 +86,7 @@ describe('stateSync', () => {
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
     const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
       newState: () => ({ elements, links: [] }),
       name: 'elements',
@@ -94,10 +121,7 @@ describe('stateSync', () => {
       { id: '4', width: 100, height: 100, type: 'ReactElement' },
     ];
     const elementItems = newElements.map((element) =>
-      defaultElementToGraphSelector({
-        element,
-        graph,
-      })
+      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
     expect(graph.getElements()).toHaveLength(4);
@@ -114,7 +138,7 @@ describe('stateSync', () => {
         },
       }
     );
-    const elements = createElements([
+    const elements = [
       {
         id: '1',
         width: 100,
@@ -127,7 +151,7 @@ describe('stateSync', () => {
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
     const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
       newState: () => ({ elements, links: [] }),
       name: 'elements',
@@ -181,7 +205,7 @@ describe('stateSync', () => {
     );
 
     // Add elements directly to graph before creating store
-    const existingElements = createElements([
+    const existingElements = [
       {
         id: '1',
         width: 100,
@@ -194,14 +218,11 @@ describe('stateSync', () => {
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     // Add elements to graph using syncCells
     const elementItems = existingElements.map((element) =>
-      defaultElementToGraphSelector({
-        element,
-        graph,
-      })
+      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
@@ -245,32 +266,29 @@ describe('stateSync', () => {
     );
 
     // Add elements directly to graph
-    const graphElements = createElements([
+    const graphElements = [
       {
         id: '1',
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     const elementItems = graphElements.map((element) =>
-      defaultElementToGraphSelector({
-        element,
-        graph,
-      })
+      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
     // Create store with different elements
-    const storeElements = createElements([
+    const storeElements = [
       {
         id: '2',
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
       newState: () => ({ elements: storeElements, links: [] }),
@@ -313,7 +331,7 @@ describe('stateSync', () => {
     );
 
     // Add elements and links directly to graph before creating store
-    const existingElements = createElements([
+    const existingElements = [
       {
         id: '1',
         width: 100,
@@ -326,23 +344,14 @@ describe('stateSync', () => {
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     const elementItems = existingElements.map((element) =>
-      defaultElementToGraphSelector({
-        element,
-        graph,
-      })
+      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
     );
+    const link = { id: 'link1', source: '1', target: '2' };
     const linkItems = [
-      defaultLinkToGraphSelector({
-        link: {
-          id: 'link1',
-          source: '1',
-          target: '2',
-        },
-        graph,
-      }),
+      defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph)),
     ];
     graph.syncCells([...elementItems, ...linkItems], { remove: true });
 
@@ -461,20 +470,17 @@ describe('stateSync', () => {
     );
 
     // Add elements to graph
-    const existingElements = createElements([
+    const existingElements = [
       {
         id: '1',
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     const elementItems = existingElements.map((element) =>
-      defaultElementToGraphSelector({
-        element,
-        graph,
-      })
+      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
@@ -518,32 +524,29 @@ describe('stateSync', () => {
     );
 
     // Add elements to graph
-    const graphElements = createElements([
+    const graphElements = [
       {
         id: 'graph-element',
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     const elementItems = graphElements.map((element) =>
-      defaultElementToGraphSelector({
-        element,
-        graph,
-      })
+      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
     // Create store with initial elements (different from graph)
-    const initialElements = createElements([
+    const initialElements = [
       {
         id: 'initial-element',
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
       newState: () => ({ elements: initialElements, links: [] }),
@@ -582,32 +585,29 @@ describe('stateSync', () => {
     );
 
     // Add elements to graph
-    const graphElements = createElements([
+    const graphElements = [
       {
         id: 'graph-element',
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     const elementItems = graphElements.map((element) =>
-      defaultElementToGraphSelector({
-        element,
-        graph,
-      })
+      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
     // Create external store with different elements
-    const externalElements = createElements([
+    const externalElements = [
       {
         id: 'external-element',
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     const externalStore = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
       newState: () => ({ elements: externalElements, links: [] }),
@@ -648,14 +648,14 @@ describe('stateSync', () => {
       }
     );
 
-    const elements = createElements([
+    const elements = [
       {
         id: '1',
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
-    ]);
+    ];
 
     const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
       newState: () => ({ elements, links: [] }),
@@ -703,6 +703,181 @@ describe('stateSync', () => {
     // This verifies that graph -> state sync works without causing state -> graph -> state loops
     expect(state.getSnapshot().elements).toHaveLength(3);
     expect(state.getSnapshot().elements.find((element) => element.id === '3')).toBeDefined();
+  });
+
+  describe('shape preservation', () => {
+    it('should preserve element shape (only include user-defined properties) after reset', () => {
+      const graph = new dia.Graph(
+        {},
+        {
+          cellNamespace: {
+            ...DEFAULT_CELL_NAMESPACE,
+          },
+        }
+      );
+
+      // User defines elements WITHOUT x/y properties
+      type CustomElement = GraphElement & { label: string };
+      const elements: CustomElement[] = [
+        {
+          id: '1',
+          width: 100,
+          height: 100,
+          type: 'ReactElement',
+          label: 'Element 1',
+        },
+      ];
+
+      const state = createState<GraphStoreSnapshot<CustomElement, GraphLink>>({
+        newState: () => ({ elements, links: [] }),
+        name: 'elements',
+      });
+
+      const getIdsSnapshot = createGetIdsSnapshot(state);
+
+      // Initialize stateSync
+      stateSync({ graph, store: state, getIdsSnapshot });
+
+      // Graph should have the element with position added by JointJS
+      expect(graph.getElements()).toHaveLength(1);
+      const cell = graph.getCell('1');
+      expect(cell?.get('position')).toBeDefined();
+
+      // Trigger a reset by clearing and re-adding
+      graph.resetCells([
+        {
+          id: '1',
+          type: 'ReactElement',
+          position: { x: 150, y: 200 },
+          size: { width: 100, height: 100 },
+          data: { label: 'Element 1' },
+        },
+      ]);
+
+      // State should NOT have x/y because they weren't in original state
+      const snapshot = state.getSnapshot();
+      expect(snapshot.elements).toHaveLength(1);
+      expect(snapshot.elements[0]).not.toHaveProperty('x');
+      expect(snapshot.elements[0]).not.toHaveProperty('y');
+      expect(snapshot.elements[0].label).toBe('Element 1');
+    });
+
+    it('should include x/y in state after reset when user defines them (even as undefined)', () => {
+      const graph = new dia.Graph(
+        {},
+        {
+          cellNamespace: {
+            ...DEFAULT_CELL_NAMESPACE,
+          },
+        }
+      );
+
+      // User defines elements WITH x/y properties (as undefined)
+      type CustomElement = GraphElement & { label: string };
+      const elements: CustomElement[] = [
+        {
+          id: '1',
+          x: undefined,
+          y: undefined,
+          width: 100,
+          height: 100,
+          type: 'ReactElement',
+          label: 'Element 1',
+        },
+      ];
+
+      const state = createState<GraphStoreSnapshot<CustomElement, GraphLink>>({
+        newState: () => ({ elements, links: [] }),
+        name: 'elements',
+      });
+
+      const getIdsSnapshot = createGetIdsSnapshot(state);
+
+      // Initialize stateSync
+      stateSync({ graph, store: state, getIdsSnapshot });
+
+      // Trigger a reset
+      graph.resetCells([
+        {
+          id: '1',
+          type: 'ReactElement',
+          position: { x: 150, y: 200 },
+          size: { width: 100, height: 100 },
+          data: { label: 'Element 1' },
+        },
+      ]);
+
+      // State SHOULD have x/y because they were in original state
+      const snapshot = state.getSnapshot();
+      expect(snapshot.elements).toHaveLength(1);
+      expect(snapshot.elements[0].x).toBe(150);
+      expect(snapshot.elements[0].y).toBe(200);
+      expect(snapshot.elements[0].label).toBe('Element 1');
+    });
+
+    it('should preserve link shape (only include user-defined properties) after reset', () => {
+      const graph = new dia.Graph(
+        {},
+        {
+          cellNamespace: {
+            ...DEFAULT_CELL_NAMESPACE,
+          },
+        }
+      );
+
+      // User defines links WITHOUT attrs property
+      type CustomLink = GraphLink & { label: string };
+      const elements = [
+        { id: '1', width: 100, height: 100, type: 'ReactElement' },
+        { id: '2', width: 100, height: 100, type: 'ReactElement' },
+      ];
+      const links: CustomLink[] = [
+        {
+          id: 'link-1',
+          source: '1',
+          target: '2',
+          label: 'Connection',
+          // Note: attrs is NOT defined
+        },
+      ];
+
+      const state = createState<GraphStoreSnapshot<GraphElement, CustomLink>>({
+        newState: () => ({ elements, links }),
+        name: 'elements',
+      });
+
+      const getIdsSnapshot = createGetIdsSnapshot(state);
+
+      // Initialize stateSync
+      stateSync({ graph, store: state, getIdsSnapshot });
+
+      // Graph should have the link with attrs added by JointJS
+      expect(graph.getLinks()).toHaveLength(1);
+      const linkCell = graph.getCell('link-1') as dia.Link;
+      expect(linkCell.attr()).toBeDefined();
+
+      // Trigger a reset
+      const resetElements = elements.map((element) =>
+        defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
+      );
+      graph.resetCells([
+        ...resetElements,
+        {
+          id: 'link-1',
+          type: 'standard.Link',
+          source: { id: '1' },
+          target: { id: '2' },
+          data: { label: 'Connection' },
+          attrs: { line: { stroke: 'red' } }, // JointJS adds attrs
+        },
+      ]);
+
+      // State should NOT have attrs because it wasn't in original state
+      const snapshot = state.getSnapshot();
+      expect(snapshot.links).toHaveLength(1);
+      expect(snapshot.links[0]).not.toHaveProperty('attrs');
+      expect(snapshot.links[0].label).toBe('Connection');
+    });
   });
 
   describe('cell change listeners optimization', () => {
@@ -774,7 +949,7 @@ describe('stateSync', () => {
         }
       );
 
-      const elements = createElements([
+      const elements = [
         {
           id: '1',
           x: 0,
@@ -783,7 +958,7 @@ describe('stateSync', () => {
           height: 100,
           type: 'ReactElement',
         },
-      ]);
+      ];
 
       const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
         newState: () => ({ elements, links: [] }),
@@ -880,7 +1055,7 @@ describe('stateSync', () => {
         }
       );
 
-      const elements = createElements([
+      const elements = [
         {
           id: '1',
           x: 0,
@@ -889,7 +1064,7 @@ describe('stateSync', () => {
           height: 100,
           type: 'ReactElement',
         },
-      ]);
+      ];
 
       const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
         newState: () => ({ elements, links: [] }),
