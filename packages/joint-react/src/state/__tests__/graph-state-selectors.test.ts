@@ -6,9 +6,9 @@ import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import {
   defaultGraphToElementSelector,
-  defaultElementToGraphSelector,
+  defaultMapDataToElementAttributes,
   defaultGraphToLinkSelector,
-  defaultLinkToGraphSelector,
+  defaultMapDataToLinkAttributes,
   createDefaultElementMapper,
   createDefaultGraphToElementMapper,
   createDefaultLinkMapper,
@@ -21,14 +21,14 @@ import {
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
-// Helper functions to create options with defaultMapper
+// Helper functions to create options with defaultAttributes
 const createElementToGraphOptions = <E extends GraphElement>(
-  element: E,
+  data: E,
   graph: dia.Graph
 ): ElementToGraphOptions<E> => ({
-  element,
+  data,
   graph,
-  defaultMapper: createDefaultElementMapper(element),
+  defaultAttributes: createDefaultElementMapper(data),
 });
 
 const createGraphToElementOptions = <E extends GraphElement>(
@@ -39,16 +39,16 @@ const createGraphToElementOptions = <E extends GraphElement>(
   cell,
   graph,
   previous,
-  defaultMapper: createDefaultGraphToElementMapper(cell, previous),
+  defaultAttributes: createDefaultGraphToElementMapper(cell, previous),
 });
 
 const createLinkToGraphOptions = <L extends GraphLink>(
-  link: L,
+  data: L,
   graph: dia.Graph
 ): LinkToGraphOptions<L> => ({
-  link,
+  data,
   graph,
-  defaultMapper: createDefaultLinkMapper(link, graph),
+  defaultAttributes: createDefaultLinkMapper(data, graph),
 });
 
 const createGraphToLinkOptions = <L extends GraphLink>(
@@ -59,7 +59,7 @@ const createGraphToLinkOptions = <L extends GraphLink>(
   cell,
   graph,
   previous,
-  defaultMapper: createDefaultGraphToLinkMapper(cell, previous),
+  defaultAttributes: createDefaultGraphToLinkMapper(cell, previous),
 });
 
 describe('graph-state-selectors', () => {
@@ -73,9 +73,9 @@ describe('graph-state-selectors', () => {
     graph.clear();
   });
 
-  describe('defaultMapper function', () => {
-    it('should pass defaultMapper in ElementToGraphOptions', () => {
-      const element: GraphElement = {
+  describe('defaultAttributes function', () => {
+    it('should pass defaultAttributes in ElementToGraphOptions', () => {
+      const data: GraphElement = {
         id: 'element-1',
         x: 100,
         y: 50,
@@ -86,20 +86,20 @@ describe('graph-state-selectors', () => {
       let receivedDefaultMapper: (() => dia.Cell.JSON) | undefined;
 
       const customSelector = (options: ElementToGraphOptions<GraphElement>) => {
-        receivedDefaultMapper = options.defaultMapper;
-        return options.defaultMapper();
+        receivedDefaultMapper = options.defaultAttributes;
+        return options.defaultAttributes();
       };
 
-      const options = createElementToGraphOptions(element, graph);
+      const options = createElementToGraphOptions(data, graph);
       customSelector(options);
 
       expect(receivedDefaultMapper).toBeDefined();
     });
   });
 
-  describe('defaultElementToGraphSelector', () => {
+  describe('defaultMapDataToElementAttributes', () => {
     it('should map element to graph cell JSON', () => {
-      const element: GraphElement = {
+      const data: GraphElement = {
         id: 'element-1',
         x: 10,
         y: 20,
@@ -108,9 +108,9 @@ describe('graph-state-selectors', () => {
         type: 'ReactElement',
       };
 
-      const options = createElementToGraphOptions(element, graph);
+      const options = createElementToGraphOptions(data, graph);
 
-      const elementAsGraphJson = defaultElementToGraphSelector(options);
+      const elementAsGraphJson = defaultMapDataToElementAttributes(options);
 
       expect(elementAsGraphJson).toMatchObject({
         id: 'element-1',
@@ -137,7 +137,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should handle element without type (defaults to REACT_TYPE)', () => {
-      const element: GraphElement = {
+      const data: GraphElement = {
         id: 'element-1',
         x: 10,
         y: 20,
@@ -145,9 +145,9 @@ describe('graph-state-selectors', () => {
         height: 50,
       };
 
-      const options = createElementToGraphOptions(element, graph);
+      const options = createElementToGraphOptions(data, graph);
 
-      const elementAsGraphJson = defaultElementToGraphSelector(options);
+      const elementAsGraphJson = defaultMapDataToElementAttributes(options);
 
       expect(elementAsGraphJson.type).toBe('ReactElement');
 
@@ -169,7 +169,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should preserve all element properties', () => {
-      const element: GraphElement = {
+      const data: GraphElement = {
         id: 'element-1',
         x: 10,
         y: 20,
@@ -180,9 +180,9 @@ describe('graph-state-selectors', () => {
         angle: 45,
       };
 
-      const options = createElementToGraphOptions(element, graph);
+      const options = createElementToGraphOptions(data, graph);
 
-      const elementAsGraphJson = defaultElementToGraphSelector(options);
+      const elementAsGraphJson = defaultMapDataToElementAttributes(options);
 
       expect(elementAsGraphJson).toMatchObject({
         id: 'element-1',
@@ -234,7 +234,7 @@ describe('graph-state-selectors', () => {
       });
 
       // Round-trip: element → graph → element
-      const recreatedElementAsGraphJson = defaultElementToGraphSelector(
+      const recreatedElementAsGraphJson = defaultMapDataToElementAttributes(
         createElementToGraphOptions(elementFromGraph, graph)
       );
       graph.clear();
@@ -374,7 +374,7 @@ describe('graph-state-selectors', () => {
     });
   });
 
-  describe('defaultLinkToGraphSelector', () => {
+  describe('defaultMapDataToLinkAttributes', () => {
     it('should map link to graph cell JSON', () => {
       const link: GraphLink = {
         id: 'link-1',
@@ -385,7 +385,7 @@ describe('graph-state-selectors', () => {
 
       const options = createLinkToGraphOptions(link, graph);
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(options);
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson).toMatchObject({
         id: 'link-1',
@@ -418,7 +418,7 @@ describe('graph-state-selectors', () => {
 
       const options = createLinkToGraphOptions(link, graph);
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(options);
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson).toMatchObject({
         id: 'link-1',
@@ -456,7 +456,7 @@ describe('graph-state-selectors', () => {
 
       const options = createLinkToGraphOptions(link, graph);
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(options);
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson.attrs).toBeDefined();
       expect(linkAsGraphJson.attrs?.line?.stroke).toBe('red');
@@ -475,7 +475,7 @@ describe('graph-state-selectors', () => {
 
       const options = createLinkToGraphOptions(link, graph);
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(options);
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson).toMatchObject({
         id: 'link-1',
@@ -736,7 +736,7 @@ describe('graph-state-selectors', () => {
       };
 
       // Convert link to graph JSON
-      const linkAsGraphJson = defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
 
       // Store in graph using syncCells
       graph.syncCells([linkAsGraphJson], { remove: true });
@@ -776,7 +776,7 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -815,7 +815,7 @@ describe('graph-state-selectors', () => {
         anotherProp: 42,
       };
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
 
       // Add extra properties to graph JSON that don't exist in state
       const linkWithExtraProps = {
@@ -885,7 +885,7 @@ describe('graph-state-selectors', () => {
       ];
 
       const linksAsGraphJson = links.map((link) =>
-        defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph))
+        defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph))
       );
 
       graph.syncCells(linksAsGraphJson, { remove: true });
@@ -954,7 +954,7 @@ describe('graph-state-selectors', () => {
         optionalProp: 'has-value',
       };
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -995,7 +995,7 @@ describe('graph-state-selectors', () => {
         weight: 1,
       };
 
-      const initialLinkAsGraphJson = defaultLinkToGraphSelector(
+      const initialLinkAsGraphJson = defaultMapDataToLinkAttributes(
         createLinkToGraphOptions(initialLink, graph)
       );
 
@@ -1012,7 +1012,7 @@ describe('graph-state-selectors', () => {
         newProp: 'should-be-filtered',
       };
 
-      const updatedLinkAsGraphJson = defaultLinkToGraphSelector(
+      const updatedLinkAsGraphJson = defaultMapDataToLinkAttributes(
         createLinkToGraphOptions(updatedLink, graph)
       );
 
@@ -1061,7 +1061,7 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -1098,7 +1098,7 @@ describe('graph-state-selectors', () => {
         anotherNewProperty: 42,
       };
 
-      const elementAsGraphJson = defaultElementToGraphSelector(
+      const elementAsGraphJson = defaultMapDataToElementAttributes(
         createElementToGraphOptions(element, graph)
       );
 
@@ -1144,7 +1144,7 @@ describe('graph-state-selectors', () => {
         metadata: { key: 'value' },
       };
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -1190,7 +1190,7 @@ describe('graph-state-selectors', () => {
         score: 95,
       };
 
-      const elementAsGraphJson = defaultElementToGraphSelector(
+      const elementAsGraphJson = defaultMapDataToElementAttributes(
         createElementToGraphOptions(element, graph)
       );
 
@@ -1250,7 +1250,7 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -1303,7 +1303,7 @@ describe('graph-state-selectors', () => {
         notInPreviousProperty: true,
       };
 
-      const elementAsGraphJson = defaultElementToGraphSelector(
+      const elementAsGraphJson = defaultMapDataToElementAttributes(
         createElementToGraphOptions(element, graph)
       );
 
@@ -1351,7 +1351,7 @@ describe('graph-state-selectors', () => {
         weight: 10, // New property
       };
 
-      const linkAsGraphJson = defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -1392,7 +1392,7 @@ describe('graph-state-selectors', () => {
         height: 50,
       };
 
-      const initialElementAsGraphJson = defaultElementToGraphSelector(
+      const initialElementAsGraphJson = defaultMapDataToElementAttributes(
         createElementToGraphOptions(initialElement, graph)
       );
 
@@ -1409,7 +1409,7 @@ describe('graph-state-selectors', () => {
         lastModified: '2024-01-01',
       };
 
-      const updatedElementAsGraphJson = defaultElementToGraphSelector(
+      const updatedElementAsGraphJson = defaultMapDataToElementAttributes(
         createElementToGraphOptions(updatedElement, graph)
       );
 
@@ -1441,8 +1441,8 @@ describe('graph-state-selectors', () => {
     });
   });
 
-  describe('custom selector with defaultMapper', () => {
-    it('should allow using defaultMapper as-is', () => {
+  describe('custom selector with defaultAttributes', () => {
+    it('should allow using defaultAttributes as-is', () => {
       type CustomElement = GraphElement & { label: string };
       const element: CustomElement = {
         id: 'node1',
@@ -1454,17 +1454,17 @@ describe('graph-state-selectors', () => {
       };
 
       const customSelector = (options: ElementToGraphOptions<CustomElement>) => {
-        return options.defaultMapper();
+        return options.defaultAttributes();
       };
 
-      const defaultMapper = createDefaultElementMapper(element);
-      const result = customSelector({ element, graph, defaultMapper });
+      const defaultAttributes = createDefaultElementMapper(element);
+      const result = customSelector({ data: element, graph, defaultAttributes });
 
       expect(result.data).toEqual({ label: 'Test' });
       expect(result.position).toEqual({ x: 100, y: 50 });
     });
 
-    it('should allow modifying defaultMapper result', () => {
+    it('should allow modifying defaultAttributes result', () => {
       type CustomElement = GraphElement & { label: string };
       const element: CustomElement = {
         id: 'node1',
@@ -1476,19 +1476,19 @@ describe('graph-state-selectors', () => {
       };
 
       const customSelector = (options: ElementToGraphOptions<CustomElement>) => {
-        const base = options.defaultMapper();
+        const base = options.defaultAttributes();
         base.attrs = { root: { fill: 'red' } };
         return base;
       };
 
-      const defaultMapper = createDefaultElementMapper(element);
-      const result = customSelector({ element, graph, defaultMapper });
+      const defaultAttributes = createDefaultElementMapper(element);
+      const result = customSelector({ data: element, graph, defaultAttributes });
 
       expect(result.attrs).toEqual({ root: { fill: 'red' } });
       expect(result.data).toEqual({ label: 'Test' });
     });
 
-    it('should allow custom selector to ignore defaultMapper and return custom result', () => {
+    it('should allow custom selector to ignore defaultAttributes and return custom result', () => {
       type CustomElement = GraphElement & { label: string };
       const element: CustomElement = {
         id: 'node1',
@@ -1500,16 +1500,16 @@ describe('graph-state-selectors', () => {
       };
 
       const customSelector = (options: ElementToGraphOptions<CustomElement>) => {
-        // Ignore defaultMapper and return completely custom result
+        // Ignore defaultAttributes and return completely custom result
         return {
-          id: options.element.id,
+          id: options.data.id,
           type: 'custom.Element',
-          customData: { label: options.element.label },
+          customData: { label: options.data.label },
         };
       };
 
-      const defaultMapper = createDefaultElementMapper(element);
-      const result = customSelector({ element, graph, defaultMapper });
+      const defaultAttributes = createDefaultElementMapper(element);
+      const result = customSelector({ data: element, graph, defaultAttributes });
 
       expect(result.type).toBe('custom.Element');
       expect(result.customData).toEqual({ label: 'Test' });
@@ -1517,9 +1517,9 @@ describe('graph-state-selectors', () => {
       expect(result).not.toHaveProperty('data');
     });
 
-    it('should allow custom link selector to use defaultMapper', () => {
+    it('should allow custom link selector to use defaultAttributes', () => {
       type CustomLink = GraphLink & { weight: number };
-      const link: CustomLink = {
+      const data: CustomLink = {
         id: 'link1',
         source: 'node1',
         target: 'node2',
@@ -1527,20 +1527,20 @@ describe('graph-state-selectors', () => {
       };
 
       const customSelector = (options: LinkToGraphOptions<CustomLink>) => {
-        return options.defaultMapper();
+        return options.defaultAttributes();
       };
 
-      const defaultMapper = createDefaultLinkMapper(link, graph);
-      const result = customSelector({ link, graph, defaultMapper });
+      const defaultAttributes = createDefaultLinkMapper(data, graph);
+      const result = customSelector({ data, graph, defaultAttributes });
 
       expect(result.data).toEqual({ weight: 5 });
       expect(result.source).toEqual({ id: 'node1' });
       expect(result.target).toEqual({ id: 'node2' });
     });
 
-    it('should allow custom link selector to modify defaultMapper result', () => {
+    it('should allow custom link selector to modify defaultAttributes result', () => {
       type CustomLink = GraphLink & { weight: number };
-      const link: CustomLink = {
+      const data: CustomLink = {
         id: 'link1',
         source: 'node1',
         target: 'node2',
@@ -1548,13 +1548,13 @@ describe('graph-state-selectors', () => {
       };
 
       const customSelector = (options: LinkToGraphOptions<CustomLink>) => {
-        const base = options.defaultMapper();
+        const base = options.defaultAttributes();
         base.attrs = { line: { stroke: 'blue', strokeWidth: 2 } };
         return base;
       };
 
-      const defaultMapper = createDefaultLinkMapper(link, graph);
-      const result = customSelector({ link, graph, defaultMapper });
+      const defaultAttributes = createDefaultLinkMapper(data, graph);
+      const result = customSelector({ data, graph, defaultAttributes });
 
       expect(result.attrs).toEqual({ line: { stroke: 'blue', strokeWidth: 2 } });
       expect(result.data).toEqual({ weight: 5 });

@@ -100,7 +100,7 @@ interface GraphStore {
   /** Array of all links (edges) in the graph */
   links: GraphLink[];
   /** Action to add a new element */
-  addElement: (element: GraphElement) => void;
+  addElement: (data: GraphElement) => void;
   /** Action to remove the last element */
   removeLastElement: () => void;
   /** Action to update the graph state (used by adapter) */

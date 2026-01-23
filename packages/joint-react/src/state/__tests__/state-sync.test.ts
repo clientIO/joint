@@ -12,8 +12,8 @@ import { createState } from '../../utils/create-state';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import {
-  defaultElementToGraphSelector,
-  defaultLinkToGraphSelector,
+  defaultMapDataToElementAttributes,
+  defaultMapDataToLinkAttributes,
   createDefaultElementMapper,
   createDefaultLinkMapper,
   type ElementToGraphOptions,
@@ -26,21 +26,21 @@ function createElementToGraphOptions<E extends GraphElement>(
   graph: dia.Graph
 ): ElementToGraphOptions<E> {
   return {
-    element,
+    data: element,
     graph,
-    defaultMapper: createDefaultElementMapper(element),
+    defaultAttributes: createDefaultElementMapper(element),
   };
 }
 
 // Helper to create LinkToGraphOptions
 function createLinkToGraphOptions<L extends GraphLink>(
-  link: L,
+  data: L,
   graph: dia.Graph
 ): LinkToGraphOptions<L> {
   return {
-    link,
+    data,
     graph,
-    defaultMapper: createDefaultLinkMapper(link, graph),
+    defaultAttributes: createDefaultLinkMapper(data, graph),
   };
 }
 
@@ -122,7 +122,7 @@ describe('stateSync', () => {
       { id: '4', width: 100, height: 100, type: 'ReactElement' },
     ];
     const elementItems = newElements.map((element) =>
-      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
+      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
     expect(graph.getElements()).toHaveLength(4);
@@ -223,7 +223,7 @@ describe('stateSync', () => {
 
     // Add elements to graph using syncCells
     const elementItems = existingElements.map((element) =>
-      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
+      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
@@ -277,7 +277,7 @@ describe('stateSync', () => {
     ];
 
     const elementItems = graphElements.map((element) =>
-      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
+      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
@@ -348,10 +348,10 @@ describe('stateSync', () => {
     ];
 
     const elementItems = existingElements.map((element) =>
-      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
+      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
     );
     const link = { id: 'link1', source: '1', target: '2' };
-    const linkItems = [defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph))];
+    const linkItems = [defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph))];
     graph.syncCells([...elementItems, ...linkItems], { remove: true });
 
     // Create empty store
@@ -479,7 +479,7 @@ describe('stateSync', () => {
     ];
 
     const elementItems = existingElements.map((element) =>
-      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
+      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
@@ -533,7 +533,7 @@ describe('stateSync', () => {
     ];
 
     const elementItems = graphElements.map((element) =>
-      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
+      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
@@ -594,7 +594,7 @@ describe('stateSync', () => {
     ];
 
     const elementItems = graphElements.map((element) =>
-      defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
+      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
     );
     graph.syncCells(elementItems, { remove: true });
 
@@ -857,7 +857,7 @@ describe('stateSync', () => {
 
       // Trigger a reset
       const resetElements = elements.map((element) =>
-        defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
+        defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
       );
       graph.resetCells([
         ...resetElements,

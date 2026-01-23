@@ -14,9 +14,9 @@ import type {
   LinkToGraphOptions,
 } from './graph-state-selectors';
 import {
-  defaultElementToGraphSelector,
+  defaultMapDataToElementAttributes,
   defaultGraphToElementSelector,
-  defaultLinkToGraphSelector,
+  defaultMapDataToLinkAttributes,
   defaultGraphToLinkSelector,
   createDefaultElementMapper,
   createDefaultGraphToElementMapper,
@@ -102,11 +102,11 @@ export interface UpdateGraphOptions<
     options: GraphToLinkOptions<Link> & { readonly graph: Graph }
   ) => Link;
   /** Selector to convert Element to JointJS Cell JSON format */
-  readonly elementToGraphSelector: (
+  readonly mapDataToElementAttributes: (
     options: ElementToGraphOptions<Element> & { readonly graph: Graph }
   ) => dia.Cell.JSON;
   /** Selector to convert Link to JointJS Cell JSON format */
-  readonly linkToGraphSelector: (
+  readonly mapDataToLinkAttributes: (
     options: LinkToGraphOptions<Link> & { readonly graph: Graph }
   ) => dia.Cell.JSON;
 
@@ -133,8 +133,8 @@ export function updateGraph<
     links,
     graphToElementSelector,
     graphToLinkSelector,
-    elementToGraphSelector,
-    linkToGraphSelector,
+    mapDataToElementAttributes,
+    mapDataToLinkAttributes,
     getIdsSnapshot,
   } = options;
 
@@ -150,12 +150,12 @@ export function updateGraph<
       previousIndex != null && previousIndex >= 0 && previousIndex < elements.length
         ? elements[previousIndex]
         : undefined;
-    const defaultMapper = createDefaultGraphToElementMapper(element, previous);
+    const defaultAttributes = createDefaultGraphToElementMapper(element, previous);
     return graphToElementSelector({
       cell: element,
       graph,
       previous,
-      defaultMapper,
+      defaultAttributes,
     });
   });
   const graphLinks = graph.getLinks().map((link) => {
@@ -164,12 +164,12 @@ export function updateGraph<
       previousIndex != null && previousIndex >= 0 && previousIndex < links.length
         ? links[previousIndex]
         : undefined;
-    const defaultMapper = createDefaultGraphToLinkMapper(link, previous);
+    const defaultAttributes = createDefaultGraphToLinkMapper(link, previous);
     return graphToLinkSelector({
       cell: link,
       graph,
       previous,
-      defaultMapper,
+      defaultAttributes,
     });
   });
 
@@ -194,21 +194,21 @@ export function updateGraph<
     }
   }
 
-  // Build items array using selectors with defaultMapper injected
-  const elementItems = elements.map((element) => {
-    const defaultMapper = createDefaultElementMapper(element);
-    return elementToGraphSelector({
-      element: element as Element,
+  // Build items array using selectors with defaultAttributes injected
+  const elementItems = elements.map((data) => {
+    const defaultAttributes = createDefaultElementMapper(data);
+    return mapDataToElementAttributes({
+      data,
       graph,
-      defaultMapper,
+      defaultAttributes,
     });
   });
-  const linkItems = links.map((link) => {
-    const defaultMapper = createDefaultLinkMapper(link, graph);
-    return linkToGraphSelector({
-      link: link as Link,
+  const linkItems = links.map((data) => {
+    const defaultAttributes = createDefaultLinkMapper(data, graph);
+    return mapDataToLinkAttributes({
+      data,
       graph,
-      defaultMapper,
+      defaultAttributes,
     });
   });
 
@@ -247,8 +247,8 @@ export function stateSync<
     areBatchUpdatesDisabled = false,
     getIdsSnapshot,
 
-    elementToGraphSelector = defaultElementToGraphSelector,
-    linkToGraphSelector = defaultLinkToGraphSelector,
+    mapDataToElementAttributes = defaultMapDataToElementAttributes,
+    mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
   } = options;
   const graphToElementSelector = defaultGraphToElementSelector;
   const graphToLinkSelector = defaultGraphToLinkSelector;
@@ -322,12 +322,12 @@ export function stateSync<
           previousIndex != null && previousIndex >= 0 && previousIndex < elements.length
             ? (elements[previousIndex] as Element)
             : undefined;
-        const defaultMapper = createDefaultGraphToElementMapper(element, previous);
+        const defaultAttributes = createDefaultGraphToElementMapper(element, previous);
         return graphToElementSelector({
           cell: element,
           graph,
           previous,
-          defaultMapper,
+          defaultAttributes,
         });
       });
 
@@ -338,12 +338,12 @@ export function stateSync<
           previousIndex != null && previousIndex >= 0 && previousIndex < links.length
             ? (links[previousIndex] as Link)
             : undefined;
-        const defaultMapper = createDefaultGraphToLinkMapper(link, previous);
+        const defaultAttributes = createDefaultGraphToLinkMapper(link, previous);
         return graphToLinkSelector({
           cell: link,
           graph,
           previous,
-          defaultMapper,
+          defaultAttributes,
         });
       });
 
@@ -394,12 +394,12 @@ export function stateSync<
                 ? previous.links[linkIndex]
                 : undefined;
 
-            const defaultMapper = createDefaultGraphToLinkMapper(cell as dia.Link, previousLink);
+            const defaultAttributes = createDefaultGraphToLinkMapper(cell as dia.Link, previousLink);
             const updatedLink = graphToLinkSelector({
               cell: cell as dia.Link,
               graph,
               previous: previousLink,
-              defaultMapper,
+              defaultAttributes,
             });
             updates.set(id, { type: 'link', data: updatedLink as Link });
           } else {
@@ -410,12 +410,12 @@ export function stateSync<
                 ? previous.elements[elementIndex]
                 : undefined;
 
-            const defaultMapper = createDefaultGraphToElementMapper(cell as dia.Element, previousElement);
+            const defaultAttributes = createDefaultGraphToElementMapper(cell as dia.Element, previousElement);
             const updatedElement = graphToElementSelector({
               cell: cell as dia.Element,
               graph,
               previous: previousElement,
-              defaultMapper,
+              defaultAttributes,
             });
             updates.set(id, { type: 'element', data: updatedElement as Element });
           }
@@ -648,19 +648,19 @@ export function stateSync<
     // Only sync if store is empty and graph has cells
     if (storeElements.length === 0 && storeLinks.length === 0) {
       const existingElements = graph.getElements().map((element) => {
-        const defaultMapper = createDefaultGraphToElementMapper(element);
+        const defaultAttributes = createDefaultGraphToElementMapper(element);
         return graphToElementSelector({
           cell: element,
           graph,
-          defaultMapper,
+          defaultAttributes,
         });
       }) as Element[];
       const existingLinks = graph.getLinks().map((link) => {
-        const defaultMapper = createDefaultGraphToLinkMapper(link);
+        const defaultAttributes = createDefaultGraphToLinkMapper(link);
         return graphToLinkSelector({
           cell: link,
           graph,
-          defaultMapper,
+          defaultAttributes,
         });
       }) as Link[];
 
@@ -710,10 +710,10 @@ export function stateSync<
       graphToLinkSelector: graphToLinkSelector as (
         options: GraphToLinkOptions<Link> & { readonly graph: Graph }
       ) => Link,
-      elementToGraphSelector: elementToGraphSelector as (
+      mapDataToElementAttributes: mapDataToElementAttributes as (
         options: ElementToGraphOptions<Element> & { readonly graph: Graph }
       ) => dia.Cell.JSON,
-      linkToGraphSelector: linkToGraphSelector as (
+      mapDataToLinkAttributes: mapDataToLinkAttributes as (
         options: LinkToGraphOptions<Link> & { readonly graph: Graph }
       ) => dia.Cell.JSON,
     });

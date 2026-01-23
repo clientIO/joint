@@ -17,9 +17,9 @@ import { stateSync, type StateSync, updateGraph } from '../state/state-sync';
 import type { GraphStateSelectors } from '../state/graph-state-selectors';
 import {
   defaultGraphToElementSelector,
-  defaultElementToGraphSelector,
+  defaultMapDataToElementAttributes,
   defaultGraphToLinkSelector,
-  defaultLinkToGraphSelector,
+  defaultMapDataToLinkAttributes,
   createDefaultGraphToLinkMapper,
   createDefaultLinkMapper,
 } from '../state/graph-state-selectors';
@@ -297,24 +297,24 @@ export class GraphStore {
   private readonly graphToElementSelector: (
     options: { readonly cell: dia.Element; readonly graph: dia.Graph } & {
       readonly previous?: GraphElement;
-      readonly defaultMapper: () => GraphElement;
+      readonly defaultAttributes: () => GraphElement;
     }
   ) => GraphElement;
   private readonly graphToLinkSelector: (
     options: { readonly cell: dia.Link; readonly graph: dia.Graph } & {
       readonly previous?: GraphLink;
-      readonly defaultMapper: () => GraphLink;
+      readonly defaultAttributes: () => GraphLink;
     }
   ) => GraphLink;
-  private readonly elementToGraphSelector: (options: {
-    readonly element: GraphElement;
+  private readonly mapDataToElementAttributes: (options: {
+    readonly data: GraphElement;
     readonly graph: dia.Graph;
-    readonly defaultMapper: () => dia.Cell.JSON;
+    readonly defaultAttributes: () => dia.Cell.JSON;
   }) => dia.Cell.JSON;
-  private readonly linkToGraphSelector: (options: {
-    readonly link: GraphLink;
+  private readonly mapDataToLinkAttributes: (options: {
+    readonly data: GraphLink;
     readonly graph: dia.Graph;
-    readonly defaultMapper: () => dia.Cell.JSON;
+    readonly defaultAttributes: () => dia.Cell.JSON;
   }) => dia.Cell.JSON;
 
   constructor(config: GraphStoreOptions) {
@@ -325,8 +325,8 @@ export class GraphStore {
       cellNamespace = DEFAULT_CELL_NAMESPACE,
       graph,
       externalStore: externalState,
-      elementToGraphSelector = defaultElementToGraphSelector,
-      linkToGraphSelector = defaultLinkToGraphSelector,
+      mapDataToElementAttributes = defaultMapDataToElementAttributes,
+      mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
     } = config;
 
     // Store selectors as instance variables for use in onBatchUpdate
@@ -334,24 +334,24 @@ export class GraphStore {
     this.graphToElementSelector = defaultGraphToElementSelector as (
       options: { readonly cell: dia.Element; readonly graph: dia.Graph } & {
         readonly previous?: GraphElement;
-        readonly defaultMapper: () => GraphElement;
+        readonly defaultAttributes: () => GraphElement;
       }
     ) => GraphElement;
     this.graphToLinkSelector = defaultGraphToLinkSelector as (
       options: { readonly cell: dia.Link; readonly graph: dia.Graph } & {
         readonly previous?: GraphLink;
-        readonly defaultMapper: () => GraphLink;
+        readonly defaultAttributes: () => GraphLink;
       }
     ) => GraphLink;
-    this.elementToGraphSelector = elementToGraphSelector as (options: {
-      readonly element: GraphElement;
+    this.mapDataToElementAttributes = mapDataToElementAttributes as (options: {
+      readonly data: GraphElement;
       readonly graph: dia.Graph;
-      readonly defaultMapper: () => dia.Cell.JSON;
+      readonly defaultAttributes: () => dia.Cell.JSON;
     }) => dia.Cell.JSON;
-    this.linkToGraphSelector = linkToGraphSelector as (options: {
-      readonly link: GraphLink;
+    this.mapDataToLinkAttributes = mapDataToLinkAttributes as (options: {
+      readonly data: GraphLink;
       readonly graph: dia.Graph;
-      readonly defaultMapper: () => dia.Cell.JSON;
+      readonly defaultAttributes: () => dia.Cell.JSON;
     }) => dia.Cell.JSON;
 
     this.graph =
@@ -411,8 +411,8 @@ export class GraphStore {
       areBatchUpdatesDisabled: config.areBatchUpdatesDisabled ?? false,
       graph: this.graph,
       getIdsSnapshot: () => this.derivedStore.getSnapshot(),
-      elementToGraphSelector,
-      linkToGraphSelector,
+      mapDataToElementAttributes,
+      mapDataToLinkAttributes,
       store: {
         getSnapshot: () => this.publicState.getSnapshot(),
         subscribe: this.publicState.subscribe,
@@ -565,8 +565,8 @@ export class GraphStore {
           links: currentLinks,
           graphToElementSelector: this.graphToElementSelector,
           graphToLinkSelector: this.graphToLinkSelector,
-          elementToGraphSelector: this.elementToGraphSelector,
-          linkToGraphSelector: this.linkToGraphSelector,
+          mapDataToElementAttributes: this.mapDataToElementAttributes,
+          mapDataToLinkAttributes: this.mapDataToLinkAttributes,
         });
       },
       getCellTransform: (id) => {
@@ -660,7 +660,7 @@ export class GraphStore {
       const graphLink = this.graphToLinkSelector({
         cell: link,
         graph: this.graph,
-        defaultMapper: defaultGraphToLinkMapper,
+        defaultAttributes: defaultGraphToLinkMapper,
       });
 
       // Merge cached attrs into the link
@@ -675,12 +675,12 @@ export class GraphStore {
           }
         : graphLink;
 
-      // Convert back to Cell.JSON using linkToGraphSelector (reuses proper source/target handling)
+      // Convert back to Cell.JSON using mapDataToLinkAttributes (reuses proper source/target handling)
       const linkMapper = createDefaultLinkMapper(updatedLink as GraphLink, this.graph);
-      const cellJson = this.linkToGraphSelector({
-        link: updatedLink as GraphLink,
+      const cellJson = this.mapDataToLinkAttributes({
+        data: updatedLink as GraphLink,
         graph: this.graph,
-        defaultMapper: linkMapper,
+        defaultAttributes: linkMapper,
       });
 
       // Handle labels separately (labels are on the cell, not in GraphLink)

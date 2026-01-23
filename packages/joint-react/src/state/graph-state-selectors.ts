@@ -6,29 +6,29 @@ import { REACT_TYPE } from '../models/react-element';
 import { REACT_LINK_TYPE } from '../models/react-link';
 
 export interface ElementToGraphOptions<Element extends GraphElement> {
-  readonly element: Element;
+  readonly data: Element;
   readonly graph: dia.Graph;
-  readonly defaultMapper: () => dia.Cell.JSON;
+  readonly defaultAttributes: () => dia.Cell.JSON;
 }
 
 export interface GraphToElementOptions<Element extends GraphElement> {
   readonly cell: dia.Element;
   readonly previous?: Element;
   readonly graph: dia.Graph;
-  readonly defaultMapper: () => Element;
+  readonly defaultAttributes: () => Element;
 }
 
 export interface LinkToGraphOptions<Link extends GraphLink> {
-  readonly link: Link;
+  readonly data: Link;
   readonly graph: dia.Graph;
-  readonly defaultMapper: () => dia.Cell.JSON;
+  readonly defaultAttributes: () => dia.Cell.JSON;
 }
 
 export interface GraphToLinkOptions<Link extends GraphLink> {
   readonly cell: dia.Link;
   readonly previous?: Link;
   readonly graph: dia.Graph;
-  readonly defaultMapper: () => Link;
+  readonly defaultAttributes: () => Link;
 }
 
 export type LinkFromGraphSelector<Link extends GraphLink> = (
@@ -36,23 +36,23 @@ export type LinkFromGraphSelector<Link extends GraphLink> = (
 ) => Link;
 
 export interface GraphStateSelectors<Element extends GraphElement, Link extends GraphLink> {
-  readonly elementToGraphSelector?: (options: ElementToGraphOptions<Element>) => dia.Cell.JSON;
-  readonly linkToGraphSelector?: (options: LinkToGraphOptions<Link>) => dia.Cell.JSON;
+  readonly mapDataToElementAttributes?: (options: ElementToGraphOptions<Element>) => dia.Cell.JSON;
+  readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<Link>) => dia.Cell.JSON;
 }
 
 /**
  * Creates the default mapper function for element to graph conversion.
  * Separates user data into the `data` property.
- * @param element - The element to convert
+ * @param data - The element to convert
  * @returns A function that returns the JointJS Cell JSON representation
  */
 export function createDefaultElementMapper<Element extends GraphElement>(
-  element: Element
+  data: Element
 ): () => dia.Cell.JSON {
   return () => {
     // Extract built-in JointJS element properties: id, x, y, width, height, angle, z, ports
     // Remaining properties are user data
-    const { id, x, y, width, height, angle, z, ports, ...userData } = element as GraphElement & {
+    const { id, x, y, width, height, angle, z, ports, ...userData } = data as GraphElement & {
       z?: number;
       ports?: { groups?: Record<string, dia.Element.PortGroup>; items?: dia.Element.Port[] };
       attrs?: dia.Cell.Selectors;
@@ -60,30 +60,30 @@ export function createDefaultElementMapper<Element extends GraphElement>(
     };
     const { attrs: elementAttributes, markup, ...restUserData } = userData;
 
-    const model: dia.Cell.JSON = {
+    const attributes: dia.Cell.JSON = {
       id,
       type: REACT_TYPE,
     };
 
     if (x !== undefined && y !== undefined) {
-      model.position = { x, y };
+      attributes.position = { x, y };
     }
 
     if (width !== undefined && height !== undefined) {
-      model.size = { width, height };
+      attributes.size = { width, height };
     }
 
-    if (angle !== undefined) model.angle = angle;
-    if (z !== undefined) model.z = z;
-    if (ports !== undefined) model.ports = ports;
-    if (elementAttributes !== undefined) model.attrs = elementAttributes;
-    if (markup !== undefined) model.markup = markup;
+    if (angle !== undefined) attributes.angle = angle;
+    if (z !== undefined) attributes.z = z;
+    if (ports !== undefined) attributes.ports = ports;
+    if (elementAttributes !== undefined) attributes.attrs = elementAttributes;
+    if (markup !== undefined) attributes.markup = markup;
 
     if (Object.keys(restUserData).length > 0) {
-      model.data = restUserData;
+      attributes.data = restUserData;
     }
 
-    return model;
+    return attributes;
   };
 }
 
@@ -173,12 +173,12 @@ export function createDefaultGraphToElementMapper<Element extends GraphElement>(
 /**
  * Creates the default mapper function for link to graph conversion.
  * Separates user data into the `data` property.
- * @param link - The link to convert
+ * @param data - The link to convert
  * @param graph - The JointJS graph instance
  * @returns A function that returns the JointJS Cell JSON representation
  */
 export function createDefaultLinkMapper<Link extends GraphLink>(
-  link: Link,
+  data: Link,
   graph: dia.Graph
 ): () => dia.Cell.JSON {
   return () => {
@@ -197,7 +197,7 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
       router,
       connector,
       ...userData
-    } = link;
+    } = data;
 
     const source = getTargetOrSource(linkSource);
     const target = getTargetOrSource(linkTarget);
@@ -214,7 +214,7 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
 
     const model: dia.Cell.JSON = {
       id,
-      type: link.type ?? REACT_LINK_TYPE,
+      type: data.type ?? REACT_LINK_TYPE,
       source,
       target,
       attrs: mergedAttributes as dia.Cell.Selectors,
@@ -286,64 +286,64 @@ export function createDefaultGraphToLinkMapper<Link extends GraphLink>(
 
 /**
  * Default selector that converts a Link to a JointJS Cell JSON representation.
- * @param options - The options containing the link, graph, and defaultMapper.
+ * @param options - The options containing the link, graph, and defaultAttributes.
  * @returns A JointJS Cell JSON representation of the link.
  * @group state
  * @description
- * This selector uses the defaultMapper to convert the link to a JointJS cell JSON.
- * The defaultMapper handles source/target extraction, attribute merging, and data separation.
+ * This selector uses the defaultAttributes to convert the link to a JointJS cell JSON.
+ * The defaultAttributes handles source/target extraction, attribute merging, and data separation.
  */
-export function defaultLinkToGraphSelector<Link extends GraphLink>(
+export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
   options: LinkToGraphOptions<Link>
 ): dia.Cell.JSON {
-  const { defaultMapper } = options;
-  return defaultMapper();
+  const { defaultAttributes } = options;
+  return defaultAttributes();
 }
 
 /**
  * Default selector that converts an Element to a JointJS Cell JSON representation.
- * @param options - The options containing the element, graph, and defaultMapper.
+ * @param options - The options containing the element, graph, and defaultAttributes.
  * @returns A JointJS Cell JSON representation of the element.
  * @group state
  * @description
- * This selector uses the defaultMapper to convert the element to a JointJS cell JSON.
- * The defaultMapper handles position/size extraction and data separation.
+ * This selector uses the defaultAttributes to convert the element to a JointJS cell JSON.
+ * The defaultAttributes handles position/size extraction and data separation.
  */
-export function defaultElementToGraphSelector<Element extends GraphElement>(
+export function defaultMapDataToElementAttributes<Element extends GraphElement>(
   options: ElementToGraphOptions<Element>
 ): dia.Cell.JSON {
-  const { defaultMapper } = options;
-  return defaultMapper();
+  const { defaultAttributes } = options;
+  return defaultAttributes();
 }
 
 /**
  * Default selector that converts a JointJS Link cell to a Link representation.
- * @param options - The options containing the cell, previous state, graph, and defaultMapper.
+ * @param options - The options containing the cell, previous state, graph, and defaultAttributes.
  * @returns A Link representation extracted from the cell.
  * @group state
  * @description
- * This selector uses the defaultMapper to convert the JointJS link cell to a Link.
- * The defaultMapper handles data extraction and shape preservation.
+ * This selector uses the defaultAttributes to convert the JointJS link cell to a Link.
+ * The defaultAttributes handles data extraction and shape preservation.
  */
 export function defaultGraphToLinkSelector<Link extends GraphLink>(
   options: GraphToLinkOptions<Link>
 ): Link {
-  const { defaultMapper } = options;
-  return defaultMapper();
+  const { defaultAttributes } = options;
+  return defaultAttributes();
 }
 
 /**
  * Default selector that converts a JointJS Element cell to a GraphElement representation.
- * @param options - The options containing the cell, previous state, graph, and defaultMapper.
+ * @param options - The options containing the cell, previous state, graph, and defaultAttributes.
  * @returns A GraphElement representation extracted from the cell.
  * @group state
  * @description
- * This selector uses the defaultMapper to convert the JointJS element cell to a GraphElement.
- * The defaultMapper handles data extraction and shape preservation.
+ * This selector uses the defaultAttributes to convert the JointJS element cell to a GraphElement.
+ * The defaultAttributes handles data extraction and shape preservation.
  */
 export function defaultGraphToElementSelector<Element extends GraphElement>(
   options: GraphToElementOptions<Element>
 ): GraphElement {
-  const { defaultMapper } = options;
-  return defaultMapper();
+  const { defaultAttributes } = options;
+  return defaultAttributes();
 }

@@ -88,8 +88,8 @@ export function mapElementFromGraph<Element extends GraphElement = GraphElement>
   cell: dia.Cell
 ): Element {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { size, position, data, attrs, type, ...attributes } = cell.attributes;
-  const element: GraphElement = {
+  const { size, position, data: userData, attrs, type, ...attributes } = cell.attributes;
+  const data: GraphElement = {
     ...attributes,
     ...position,
     ...size,
@@ -97,10 +97,10 @@ export function mapElementFromGraph<Element extends GraphElement = GraphElement>
     ports: cell.get('ports'),
   };
   if (type !== REACT_TYPE) {
-    element.type = type;
+    data.type = type;
   }
 
-  return element as Element;
+  return data as Element;
 }
 
 /**

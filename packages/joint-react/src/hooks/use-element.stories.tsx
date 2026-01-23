@@ -68,12 +68,12 @@ type Story = TesterHookStory<typeof useElement>;
 export const WithId = makeStory<Story>({
   args: {
     useHook: useElement,
-    hookArgs: [(element: GraphElement) => element.id] as never,
+    hookArgs: [(data: GraphElement) => data.id] as never,
   },
   apiURL: API_URL,
   code: `import { useElement } from '@joint/react'
 
-function Component() {  
+function Component() {
   const elementId = useElement((element) => element.id);
   return <div>Element ID: {elementId}</div>;
 }`,
@@ -86,15 +86,15 @@ function Component() {
 export const WithCoordinates = makeStory<Story>({
   args: {
     useHook: useElement,
-    hookArgs: [(element: GraphElement) => ({ x: element.x, y: element.y })] as never,
+    hookArgs: [(data: GraphElement) => ({ x: data.x, y: data.y })] as never,
   },
   apiURL: API_URL,
   code: `import { useElement } from '@joint/react'
 
 function Component() {
-  const { x, y } = useElement((element) => ({ 
-    x: element.x, 
-    y: element.y 
+  const { x, y } = useElement((element) => ({
+    x: element.x,
+    y: element.y
   }));
   return <div>Position: ({x}, {y})</div>;
 }`,
