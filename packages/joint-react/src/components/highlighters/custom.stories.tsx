@@ -1,12 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { Custom } from './custom';
 import { highlighters } from '@joint/core';
 import { PRIMARY } from 'storybook-config/theme';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { forwardRef, type PropsWithChildren } from 'react';
 import { useElement } from '../../hooks';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 
 const API_URL = getAPILink('Highlighter.Custom', 'variables');
 
@@ -15,6 +15,7 @@ const meta: Meta<typeof Custom> = {
   title: 'Components/Highlighter/Custom',
   component: Custom,
   decorators: [SimpleRenderItemDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     description: `
 Custom is a component that allows you to use a custom highlighter. You must provide the \`onAdd\` which must return jointjs highlighter.

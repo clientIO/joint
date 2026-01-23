@@ -1,10 +1,11 @@
 /* eslint-disable unicorn/no-useless-undefined */
 /* eslint-disable prefer-destructuring */
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable no-shadow */
+ 
+ 
 import type { dia } from '@joint/core';
-import { memo, useEffect } from 'react';
-import { useCellId, useGraph } from '../../hooks';
+import { memo, useLayoutEffect } from 'react';
+import { useCellId } from '../../hooks';
+import { useGraphStore } from '../../hooks/use-graph-store';
 import { PortGroupContext } from '../../context/port-group-context';
 import type { PortLayout, Position } from './port.types';
 
@@ -96,14 +97,13 @@ function Component(props: PortGroupProps) {
     }
   }
   const cellId = useCellId();
-  const graph = useGraph();
+  const graphStore = useGraphStore();
+  const { graph } = graphStore;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const cell = graph.getCell(cellId);
     if (!cell?.isElement()) return;
 
-    const ports = cell.get('ports') || {};
-    const groups = ports.groups || {};
     const newGroup = getGroupBody({
       position,
       width,
@@ -120,23 +120,21 @@ function Component(props: PortGroupProps) {
       step,
       compensateRotation,
     });
-    cell.set('ports', {
-      ...ports,
-      groups: {
-        ...groups,
-        [id]: {
-          ...newGroup,
-          size: { height, width },
-        },
+
+    // Set port group via graphStore for batching
+    const groupData: dia.Element.PortGroup = {
+      ...newGroup,
+      size: {
+        height: typeof height === 'number' ? height : Number(height) || 0,
+        width: typeof width === 'number' ? width : Number(width) || 0,
       },
-    });
+    };
+    graphStore.setPortGroup(cellId, id, groupData);
+    graphStore.flushPendingUpdates();
 
     return () => {
-      const ports = cell.get('ports') || {};
-      const groups = { ...ports.groups };
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete groups[id];
-      cell.set('ports', { ...ports, groups });
+      // Remove port group via graphStore for batching
+      graphStore.removePortGroup(cellId, id);
     };
   }, [
     angle,
@@ -147,6 +145,7 @@ function Component(props: PortGroupProps) {
     dy,
     end,
     graph,
+    graphStore,
     height,
     id,
     position,

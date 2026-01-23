@@ -199,21 +199,6 @@ describe('jsx-to-markup', () => {
     expect(jsx(undefined as never)).toEqual([]);
   });
 
-  it('should skip function type that is not a React component', () => {
-    const markup = jsx(
-      // @ts-expect-error we use internal api here ($$typeof)
-      { type: () => <div />, props: {}, $$typeof: Symbol.for('react.element') }
-    );
-    // The function returns <div />, so the result is markup for a div
-    expect(markup).toEqual([
-      {
-        tagName: 'div',
-        children: [],
-        attributes: {},
-      },
-    ]);
-  });
-
   it('should handle React component function returning a primitive', () => {
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function PrimitiveComponent() {

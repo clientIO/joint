@@ -1,182 +1,282 @@
-import { type dia } from '@joint/core';
+/**
+ * In current architecture we use elementView to getHtmlElement, then we store those elements in react state and create portals for them.
+ * As this is not a recommended approach, we are going to use react portals to render the elements directly.
+ * This is a temporary solution until we have a better approach to render the elements.
+ * So as expected there are 3 re-renders at the component call.
+ * 1. Is mount
+ * 2. Is setup of paper
+ * 3. Is render of elements
+ */
+import { dia, mvc, shapes } from '@joint/core';
+import { useGraphStore } from '../../hooks/use-graph-store';
 import {
+  forwardRef,
+  useCallback,
   useContext,
+  useDebugValue,
   useEffect,
+  useId,
+  useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  useDeferredValue,
   type CSSProperties,
-  type ReactNode,
 } from 'react';
+import { useElements, useLinks } from '../../hooks';
 import type { GraphElement } from '../../types/element-types';
-import { noopSelector } from '../../utils/noop-selector';
-import { useCreatePaper } from '../../hooks/use-create-paper';
-import { useElements } from '../../hooks/use-elements';
-import { CellIdContext } from '../../context/cell-id.context';
-import { HTMLElementItem, SVGElementItem } from './paper-element-item';
-import { type GraphProps } from '../graph-provider/graph-provider';
-import typedMemo from '../../utils/typed-memo';
-import type { PaperEvents } from '../../types/event.types';
-import { REACT_TYPE } from '../../models/react-element';
-import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
-import { PaperHTMLContainer } from './paper-html-container';
-import { useGraph } from '../../hooks';
-import { PaperProvider, type ReactPaperOptions } from '../paper-provider/paper-provider';
-import { PaperContext } from '../../context';
-import { PaperCheck } from './paper-check';
-export interface OnLoadOptions {
-  readonly paper: dia.Paper;
-  readonly graph: dia.Graph;
-}
-export type RenderElement<ElementItem extends GraphElement = GraphElement> = (
-  element: ElementItem
-) => ReactNode;
+import type { GraphLink } from '../../types/link-types';
+import type { PaperProps, RenderElement, RenderLink } from './paper.types';
+import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
+import { PaperHTMLContainer } from './render-element/paper-html-container';
+import { CellIdContext, PaperConfigContext, PaperStoreContext } from '../../context';
+import {
+  DefaultRectElement,
+  HTMLElementItem,
+  SVGElementItem,
+} from './render-element/paper-element-item';
+import { createPortal } from 'react-dom';
+import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/handle-paper-events';
+import type { PaperStore } from '../../store';
+import { ReactElementView } from '../../models/react-element-view';
+import { ReactLinkView } from '../../models/react-link-view';
+import {
+  useAreElementsMeasured,
+  useGraphInternalStoreSelector,
+} from '../../hooks/use-graph-store-selector';
 
-/**
- * The props for the Paper component. Extend the `dia.Paper.Options` interface.
- * For more information, see the JointJS documentation.
- * @see https://docs.jointjs.com/api/dia/Paper
- */
-export interface PaperProps<ElementItem extends GraphElement = GraphElement>
-  extends ReactPaperOptions,
-    GraphProps,
-    PaperEvents {
-  /**
-   * A function that renders the element.
-   * 
-   * Note: Jointjs works by default with SVG's so by default renderElement is append inside the SVGElement node.
-   * To use HTML elements, you need to use the `HTMLNode` component or `foreignObject` element.
-   * 
-   * This is called when the data from `elementSelector` changes.
-   * @example
-   * Example with `global component`:
-   * ```tsx
-   * type BaseElementWithData = InferElement<typeof initialElements>
-   * function RenderElement({ label }: BaseElementWithData) {
-   *  return <HTMLElement className="node">{label}</HTMLElement>
-   * }
-   * ```
-   * @example
-   * Example with `local component`:
-   * ```tsx
-   * 
-  type BaseElementWithData = InferElement<typeof initialElements>
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
-      (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
-      []
-  )
-   * ```
-   */
-  readonly renderElement?: RenderElement<ElementItem>;
-  /**
-   * Event called when all elements are properly measured (has all elements width and height greater than 1 - default).
-   * In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
-   * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
-   */
-  readonly onElementsSizeReady?: (options: OnLoadOptions) => void;
-
-  /**
-   * Event called when the paper is resized.
-   * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
-   */
-  readonly onElementsSizeChange?: (options: OnLoadOptions) => void;
-
-  /**
-   * The style of the paper element.
-   */
-  readonly style?: CSSProperties;
-  /**
-   * Class name of the paper element.
-   */
-  readonly className?: string;
-
-  /**
-   * A function that selects the elements to be rendered.
-   * It defaults to the `GraphElement` elements because `dia.Element` is not a valid React element (it do not change reference after update).
-   * @default (item: dia.Cell) => `BaseElement`
-   * @see GraphElement
-   */
-  readonly elementSelector?: (item: GraphElement) => ElementItem;
-  /**
-   * The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
-   */
-
-  readonly scale?: number;
-  /**
-   * Children to render. Paper automatically wrap the children with the PaperContext, if there is no PaperContext in the parent tree.
-   */
-  readonly children?: ReactNode;
-
-  /**
-   * On load custom element.
-   * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
-   * So it overwrite default paper rendering.
-   * It is used internally for example to render `PaperScroller` from [joint plus](https://www.jointjs.com/jointjs-plus) package.
-   * @param paperCtx - The paper context
-   * @returns
-   */
-  readonly overwriteDefaultPaperElement?: (paperCtx: PaperContext) => HTMLElement | SVGElement;
-
-  /**
-   * The threshold for click events in pixels.
-   * If the mouse moves more than this distance, it will be considered a drag event.
-   * @default 10
-   */
-  readonly clickThreshold?: number;
-
-  /**
-   * Enabled if renderElements is render to pure HTML elements.
-   * By default, `joint/react` renderElements to SVG elements, so for using HTML elements without this prop, you need to use `foreignObject` element.
-   * @default false
-   */
-  readonly useHTMLOverlay?: boolean;
-}
+const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component<ElementItem extends GraphElement = GraphElement>(
-  props: Readonly<PaperProps<ElementItem>>
+function LinkItem({
+  link,
+  portalElement,
+  renderLink,
+}: {
+  link: GraphLink;
+  portalElement: SVGAElement;
+  renderLink: RenderLink<GraphLink>;
+}) {
+  if (!portalElement) {
+    return null;
+  }
+
+  const linkContent = renderLink(link);
+  return createPortal(linkContent, portalElement);
+}
+
+/**
+ * Paper component renders the visual representation of the graph using JointJS Paper.
+ * This component is responsible for managing the rendering of elements and links, handling events, and providing customization options for the graph view.
+ * @param props - The properties for the Paper component.
+ * @param forwardedRef - A reference to the PaperStore instance.
+ * @returns The Paper component.
+ * @example
+ * Using the Paper component:
+ * ```tsx
+ * import { Paper } from '@joint/react';
+ * function App() {
+ *   return (
+ *     <Paper
+ *       renderElement={(element) => <rect width={element.width} height={element.height} />}
+ *       defaultLink={(cellView, magnet) => new dia.Link()}
+ *     >
+ *       <MyGraph />
+ *     </Paper>
+ *   );
+ * }
+ * ```
+ */
+function PaperBase<ElementItem extends GraphElement = GraphElement>(
+  props: PaperProps<ElementItem>,
+  forwardedRef: React.ForwardedRef<PaperStore | null>
 ) {
   const {
     renderElement,
+    renderLink,
+    defaultLink,
     style,
     className,
-    elementSelector = noopSelector as (item: GraphElement) => ElementItem,
-    scale,
-    children,
     onElementsSizeReady,
     onElementsSizeChange,
     useHTMLOverlay,
+    children,
+    scale,
+    width,
+    height,
     ...paperOptions
   } = props;
 
-  const { paperContainerElement, paperCtx } = useCreatePaper({
-    ...paperOptions,
-    scale,
-  });
+  const areElementsMeasured = useAreElementsMeasured();
+  const elementsState = useElements();
+  const linksState = useLinks();
+  useDebugValue(elementsState);
+  useDebugValue(linksState);
 
-  const paperContext = useContext(PaperContext);
-  if (!paperContext) {
-    throw new Error('Paper must be used within a `PaperProvider` or `Paper` component');
-  }
-  const { recordOfSVGElements } = paperContext;
+  // Defer rendering for large graphs to improve initial render performance
+  // Threshold: only defer if we have more than 100 elements or links
+  // Always call useDeferredValue (hooks rules), but only use deferred value when threshold is met
+  const deferredElementsStateRaw = useDeferredValue(elementsState);
+  const deferredLinksStateRaw = useDeferredValue(linksState);
+  const shouldDefer = elementsState.length > 100 || linksState.length > 100;
+  const deferredElementsState = shouldDefer ? deferredElementsStateRaw : elementsState;
+  const deferredLinksState = shouldDefer ? deferredLinksStateRaw : linksState;
+  const reactId = useId();
+  const id = props.id ?? `paper-${reactId}`;
+  const { overWrite } = useContext(PaperConfigContext) ?? {};
 
-  const graph = useGraph();
-  const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
-  const elements = useElements((items) => items.map(elementSelector));
-  const areElementsMeasured = useAreElementMeasured();
-  // Keep previous sizes in a ref
+  const paperElementViews = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.paperElementViews ?? EMPTY_OBJECT
+  );
+
+  const paperLinkViews = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.linkViews ?? EMPTY_OBJECT
+  );
+
+  // Check if all links have views (or if there are no links)
+  // This prevents the blink where elements appear before links
+  const areLinksReady = useMemo(() => {
+    if (!renderLink) {
+      return true; // No custom link rendering, so links are "ready"
+    }
+    if (deferredLinksState.length === 0) {
+      return true; // No links, so links are "ready"
+    }
+    // Check if all links have views
+    for (const link of deferredLinksState) {
+      if (link.id && !paperLinkViews[link.id]) {
+        return false; // At least one link doesn't have a view yet
+      }
+    }
+    return true;
+  }, [renderLink, deferredLinksState, paperLinkViews]);
+
+  const { addPaper, graph, getPaperStore } = useGraphStore();
+
+  const paperStore = getPaperStore(id) ?? null;
+  const { paper } = paperStore ?? {};
+  const paperHTMLElement = useRef<HTMLDivElement | null>(null);
+  const measured = useRef(false);
   const previousSizesRef = useRef<number[][]>([]);
+
+  const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
+
+  const hasRenderElement = !!renderElement;
+  const hasRenderLink = !!renderLink;
+
+  useImperativeHandle(forwardedRef, () => paperStore as PaperStore, [paperStore]);
+
+  const defaultLinkJointJS = useCallback(
+    (cellView: dia.CellView, magnet: SVGElement) => {
+      const link = typeof defaultLink === 'function' ? defaultLink(cellView, magnet) : defaultLink;
+      if (!link) {
+        return new shapes.standard.Link();
+      }
+      if (link instanceof dia.Link) {
+        return link;
+      }
+      return new shapes.standard.Link(link as dia.Link.EndJSON);
+    },
+    [defaultLink]
+  );
+
+  const isReady = !!paper && !!paperHTMLElement.current;
+
+  useLayoutEffect(() => {
+    if (!paperHTMLElement.current) {
+      return;
+    }
+    const remove = addPaper(id, {
+      paperElement: paperHTMLElement.current,
+      paperOptions: {
+        ...paperOptions,
+        defaultLink: defaultLinkJointJS,
+      },
+      overWrite,
+      renderElement: renderElement as RenderElement<GraphElement>,
+      renderLink: renderLink as RenderLink<GraphLink> | undefined,
+      scale,
+    });
+    return () => {
+      remove();
+    };
+    // just once on load create paper instance
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!paperStore) return;
+    if (!paper) return;
+    const { overWriteResultRef } = paperStore;
+    assignOptions(paper.options, {
+      defaultLink: defaultLinkJointJS,
+      ...paperOptions,
+    });
+    const { drawGrid, theme, gridSize } = paperOptions;
+    const { width: paperWidth, height: paperHeight } = paper.options;
+
+    if (drawGrid !== undefined) {
+      paper.setGrid(drawGrid);
+    }
+    if (gridSize !== undefined) {
+      paper.setGridSize(gridSize);
+    }
+    if (theme !== undefined) {
+      paper.setTheme(theme);
+    }
+    if (scale !== undefined) {
+      paper.scale(scale);
+    }
+
+    const { shouldIgnoreWidthAndHeightUpdates } = overWriteResultRef ?? {};
+    if (
+      !shouldIgnoreWidthAndHeightUpdates &&
+      width !== undefined &&
+      height !== undefined &&
+      (width !== paperWidth || height !== paperHeight)
+    ) {
+      paper.setDimensions(width, height);
+    }
+  }, [defaultLinkJointJS, height, paper, paperOptions, paperStore, scale, width]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (measured.current) return;
+    if (!paper) return;
+    if (areElementsMeasured) {
+      measured.current = true;
+      return onElementsSizeReady?.({ paper, graph: paper.model });
+    }
+
+    // Handling dev warning check
+    if (process.env.NODE_ENV !== 'production') {
+      const timeout = setTimeout(() => {
+        if (!areElementsMeasured) {
+          // eslint-disable-next-line no-console
+          console.error(
+            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
+          );
+        }
+      }, 1000);
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [areElementsMeasured, isReady, onElementsSizeReady, paper]);
 
   // Whenever elements change (or we’ve just become measured) compare old ↔ new
   useEffect(() => {
-    if (!paperCtx) return;
+    if (!isReady) return;
     if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
-    const { paper } = paperCtx;
     if (!paper) return;
 
-    // Build current list of [width, height]
-    const currentSizes = elements.map(({ width = 0, height = 0 }) => [width, height]);
+    // Build current list of [currWidth, currHeight] to avoid shadowing outer scope variables
+    // Use elementsState (not deferred) for accurate size tracking
+    const currentSizes = elementsState.map(
+      ({ width: elementWidth = 0, height: elementHeight = 0 }) => [elementWidth, elementHeight]
+    );
     const previousSizes = previousSizesRef.current;
     let changed = false;
 
@@ -202,179 +302,199 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     // store for next time
     previousSizesRef.current = currentSizes;
     onElementsSizeChange({ paper, graph: paper.model });
-  }, [elements, areElementsMeasured, onElementsSizeChange, paperCtx]);
+  }, [areElementsMeasured, elementsState, isReady, onElementsSizeChange, paper]);
 
-  const hasRenderElement = !!renderElement;
-
-  const paperContainerStyle = useMemo(
-    (): CSSProperties => ({
-      opacity: areElementsMeasured ? 1 : 0,
-      pointerEvents: areElementsMeasured ? 'all' : 'none',
-      position: 'relative',
-      overflow: 'hidden',
-      width: '100%',
-      height: '100%',
-      ...style,
-    }),
-    [areElementsMeasured, style]
-  );
-
-  const measured = useRef(false);
-
-  useEffect(() => {
-    if (!paperCtx) {
-      return;
-    }
-    if (measured.current) {
-      // If we already measured, we can skip this effect
-      return;
-    }
-    const { paper } = paperCtx;
+  useLayoutEffect(() => {
     if (!paper) {
       return;
     }
-    if (areElementsMeasured) {
-      measured.current = true;
-      return onElementsSizeReady?.({ paper, graph: paper.model });
+    /**
+     * Resize the paper container element to match the paper size.
+     * @param jointPaper - The paper instance.
+     */
+    function resizePaperContainer(jointPaper: dia.Paper) {
+      if (paperHTMLElement.current && jointPaper.el) {
+        paperHTMLElement.current.style.width = jointPaper.el.style.width;
+        paperHTMLElement.current.style.height = jointPaper.el.style.height;
+      }
     }
+    // An object to keep track of the listeners. It's not exposed, so the users
+    const controller = new mvc.Listener();
+    controller.listenTo(paper, 'resize', resizePaperContainer);
+    const stopListening = handlePaperEvents(graph, paper, paperOptions);
+    return () => {
+      controller.stopListening();
+      stopListening();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graph, isReady, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
 
-    // Handling dev warning check
-    if (process.env.NODE_ENV !== 'production') {
-      const timeout = setTimeout(() => {
-        if (!areElementsMeasured) {
-          // eslint-disable-next-line no-console
-          console.error(
-            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `MeasuredNode` component.'
-          );
-        }
-      }, 1000);
-      return () => {
-        clearTimeout(timeout);
-      };
+  const renderedElements = useMemo(() => {
+    if (!hasRenderElement) {
+      return null;
     }
-  }, [areElementsMeasured, graph, onElementsSizeReady, paperCtx]);
+    return deferredElementsState.map((elementState) => {
+      if (!elementState.id) {
+        return null;
+      }
+      const elementView = paperElementViews[elementState.id];
+      if (!elementView) {
+        return null;
+      }
+
+      const SVG = elementView.el;
+      if (!SVG) {
+        return null;
+      }
+
+      const isReactElement = elementView instanceof ReactElementView;
+      if (!isReactElement) {
+        return null;
+      }
+
+      return (
+        <CellIdContext.Provider key={elementState.id} value={elementState.id}>
+          {useHTMLOverlay && HTMLRendererContainer ? (
+            <>
+              <HTMLElementItem
+                {...elementState}
+                portalElement={HTMLRendererContainer}
+                renderElement={renderElement}
+                areElementsMeasured={areElementsMeasured}
+              />
+              {/* We need to render this element too, its kind of hack - placeholder */}
+              <SVGElementItem
+                {...elementState}
+                portalElement={SVG as SVGAElement}
+                renderElement={DefaultRectElement}
+                areElementsMeasured={areElementsMeasured}
+              />
+            </>
+          ) : (
+            <SVGElementItem
+              {...elementState}
+              portalElement={SVG as SVGAElement}
+              renderElement={renderElement}
+              areElementsMeasured={areElementsMeasured}
+            />
+          )}
+        </CellIdContext.Provider>
+      );
+    });
+  }, [
+    hasRenderElement,
+    deferredElementsState,
+    paperElementViews,
+    useHTMLOverlay,
+    HTMLRendererContainer,
+    renderElement,
+    areElementsMeasured,
+  ]);
+
+  const renderedLinks = useMemo(() => {
+    if (!hasRenderLink) {
+      return null;
+    }
+    return deferredLinksState.map((linkState) => {
+      if (!linkState.id) {
+        return null;
+      }
+
+      const linkView = paperLinkViews[linkState.id];
+      if (!linkView) {
+        return null;
+      }
+
+      const SVG = linkView.el;
+      if (!SVG) {
+        return null;
+      }
+
+      const isReactLink = linkView instanceof ReactLinkView;
+
+      if (!isReactLink) {
+        return null;
+      }
+
+      if (!renderLink) {
+        return null;
+      }
+
+      return (
+        <CellIdContext.Provider key={linkState.id} value={linkState.id}>
+          <LinkItem link={linkState} portalElement={SVG as SVGAElement} renderLink={renderLink} />
+        </CellIdContext.Provider>
+      );
+    });
+  }, [hasRenderLink, deferredLinksState, paperLinkViews, renderLink]);
 
   const content = (
     <>
       {hasRenderElement && useHTMLOverlay && (
         <PaperHTMLContainer onSetElement={setHTMLRendererContainer} />
       )}
-      {hasRenderElement &&
-        elements.map((cell) => {
-          if (!cell.id) {
-            return null;
-          }
-          const portalHTMLElement = recordOfSVGElements[cell.id];
-          if (!portalHTMLElement) {
-            return null;
-          }
-          if (cell.type !== REACT_TYPE) {
-            return null;
-          }
-
-          return (
-            <CellIdContext.Provider key={cell.id} value={cell.id}>
-              {useHTMLOverlay && HTMLRendererContainer ? (
-                <HTMLElementItem
-                  {...cell}
-                  portalElement={HTMLRendererContainer}
-                  renderElement={renderElement}
-                />
-              ) : (
-                <SVGElementItem
-                  {...cell}
-                  portalElement={portalHTMLElement}
-                  renderElement={renderElement}
-                />
-              )}
-            </CellIdContext.Provider>
-          );
-        })}
+      {renderedLinks}
+      {renderedElements}
     </>
   );
 
-  if (paperCtx) {
-    // we need this for shared paper context - joint plus
-    paperCtx.renderElement = renderElement as RenderElement<GraphElement>;
-  }
-  const hasPaper = !!paperCtx?.paper;
+  const defaultStyle = useMemo((): CSSProperties => {
+    if (style) {
+      return style;
+    }
+    return {
+      width: width ?? '100%',
+      height: height ?? '100%',
+    };
+  }, [height, width, style]);
+
+  // Only show paper when both elements are measured AND links are ready
+  // This prevents the blink where elements appear before links
+  const isContentReady = areElementsMeasured && areLinksReady;
+
+  const paperContainerStyle = useMemo(
+    (): CSSProperties => ({
+      opacity: isContentReady ? 1 : 0,
+      position: 'relative',
+      ...defaultStyle,
+    }),
+    [isContentReady, defaultStyle]
+  );
 
   return (
-    <>
-      <div className={className} ref={paperContainerElement} style={paperContainerStyle}>
-        {hasPaper && content}
+    <PaperStoreContext.Provider value={paperStore ?? null}>
+      <div className={className} ref={paperHTMLElement} style={paperContainerStyle}>
+        {isReady && content}
       </div>
-      {hasPaper && children}
-    </>
+      {isReady && children}
+    </PaperStoreContext.Provider>
   );
-}
-// eslint-disable-next-line jsdoc/require-jsdoc
-function PaperWithProviders<ElementItem extends GraphElement = GraphElement>(
-  props: Readonly<PaperProps<ElementItem>>
-) {
-  const hasPaperCtx = !!useContext(PaperContext);
-  const { children, ...rest } = props;
-  const content = <Component {...rest}>{children}</Component>;
-  if (hasPaperCtx) {
-    const verifyProps = process.env.NODE_ENV !== 'production' && <PaperCheck {...rest} />;
-    // If PaperContext is already provided, we don't need to wrap it again
-    return (
-      <>
-        {verifyProps}
-        {content}
-      </>
-    );
-  }
-  return <PaperProvider {...rest}>{content}</PaperProvider>;
 }
 
 /**
- * Paper component that renders the JointJS paper elements inside HTML.
- * It uses `renderElement` to render the elements.
- * It must be used within a `GraphProvider` context.
- * @see GraphProvider
- * @see PaperProps
- * 
- * Props also extends `dia.Paper.Options` interface.
- * @see dia.Paper.Options 
- * @group Components
+ * Paper component renders the visual representation of the graph using JointJS Paper.
+ * This component is responsible for managing the rendering of elements and links, handling events, and providing customization options for the graph view.
+ * @param props - The properties for the Paper component.
+ * @param forwardedRef - A reference to the PaperStore instance.
+ * @returns The Paper component.
  * @example
- * Example with `global renderElement component`:
+ * Using the Paper component:
  * ```tsx
- * import { createElements, InferElement, GraphProvider, Paper } from '@joint/react'
- *
- * const initialElements = createElements([ { id: '1', label: 'Node 1' , x: 100, y: 0, width: 100, height: 50 } ])
- * type BaseElementWithData = InferElement<typeof initialElements>
- *
- * function RenderElement({ label }: BaseElementWithData) {
- *  return <HTMLElement className="node">{label}</HTMLElement>
+ * import { Paper } from '@joint/react';
+ * function App() {
+ *   return (
+ *     <Paper
+ *       renderElement={(element) => <rect width={element.width} height={element.height} />}
+ *       defaultLink={(cellView, magnet) => new dia.Link()}
+ *     >
+ *       <MyGraph />
+ *     </Paper>
+ *   );
  * }
- * function MyApp() {
- *  return <GraphProvider initialElements={initialElements}>
- *    <Paper renderElement={RenderElement} />
- *  </GraphProvider>
- * }
- * ```
- * @example
- * Example with `local renderElement component`:
- * ```tsx
-  const initialElements = createElements([
-    { id: '1', label: 'Node 1', x: 100, y: 0, width: 100, height: 50 },
-  ])
-  type BaseElementWithData = InferElement<typeof initialElements>
- 
-  function MyApp() {
-    const renderElement: RenderElement<BaseElementWithData> = useCallback(
-      (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
-      []
-    )
- 
-    return (
-      <GraphProvider initialElements={initialElements}>
-        <Paper renderElement={renderElement} />
-      </GraphProvider>
-    )
-  }
  * ```
  */
-export const Paper = typedMemo(PaperWithProviders);
+export const Paper = forwardRef(PaperBase) as <ElementItem extends GraphElement = GraphElement>(
+  props: Readonly<PaperProps<ElementItem>> & {
+    ref?: React.Ref<PaperStore>;
+  }
+) => ReturnType<typeof PaperBase>;

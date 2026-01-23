@@ -4,43 +4,43 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
 import {
-  createElements,
   GraphProvider,
-  MeasuredNode,
   Paper,
   useElements,
   useGraph,
-  type InferElement,
+  useNodeSize,
   type OnLoadOptions,
   type RenderElement,
 } from '@joint/react';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
-import { useCreateElement } from '../../../hooks/use-create-element';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = createElements([
-  { id: '1', label: 'Node 1' },
-  { id: '2', label: 'Node 2' },
-  { id: '3', label: 'Node 3' },
-  { id: '4', label: 'Node 4' },
-  { id: '5', label: 'Node 5' },
-  { id: '6', label: 'Node 6' },
-  { id: '7', label: 'Node 7' },
-  { id: '8', label: 'Node 8' },
-  { id: '9', label: 'Node 9' },
-]);
+const initialElements = [
+  { id: '1', label: 'Node 1', width: 100, height: 50 },
+  { id: '2', label: 'Node 2', width: 100, height: 50 },
+  { id: '3', label: 'Node 3', width: 100, height: 50 },
+  { id: '4', label: 'Node 4', width: 100, height: 50 },
+  { id: '5', label: 'Node 5', width: 100, height: 50 },
+  { id: '6', label: 'Node 6', width: 100, height: 50 },
+  { id: '7', label: 'Node 7', width: 100, height: 50 },
+  { id: '8', label: 'Node 8', width: 100, height: 50 },
+  { id: '9', label: 'Node 9', width: 100, height: 50 },
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
 const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
-function RenderedRect({ width, height, label }: BaseElementWithData) {
+function RenderedRect({ width, height, label }: Readonly<BaseElementWithData>) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="node">{label}</div>
-      </MeasuredNode>
+      <div ref={elementRef} className="node">
+        {label}
+      </div>
     </foreignObject>
   );
 }
@@ -51,7 +51,7 @@ function Main() {
     []
   );
   const graph = useGraph();
-  const addElement = useCreateElement<BaseElementWithData>();
+  const { set } = useCellActions<BaseElementWithData>();
 
   // Number of elements per row
   const [gridXSize, setGridXSize] = useState(3);
@@ -84,7 +84,7 @@ function Main() {
     [makeLayoutWithGrid, gridXSize]
   );
 
-  const elementsLength = useElements((items) => items.size);
+  const elementsLength = useElements((items) => items.length);
   return (
     <div className="flex flex-col">
       <div className="mb-8 flex flex-row items-center">
@@ -106,9 +106,11 @@ function Main() {
 
         <button
           onClick={() => {
-            addElement({
+            set({
               id: `${Math.random()}`,
               label: `Node ${elementsLength + 1}`,
+              height: 0, // we recompute the size after the element is added
+              width: 0, // we recompute the size after the element is added
             });
           }}
           type="button"
@@ -130,7 +132,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider elements={initialElements}>
       <Main />
     </GraphProvider>
   );

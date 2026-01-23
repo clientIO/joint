@@ -2,22 +2,24 @@
 
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
-  createElements,
-  createLinks,
   GraphProvider,
   Paper,
   type GraphProps,
-  type InferElement,
+  type GraphElement,
+  type GraphLink,
 } from '@joint/react';
 
+// define element type with custom properties
+type CustomElement = GraphElement & { color: string };
+
 // define initial elements
-const initialElements = createElements([
+const initialElements: CustomElement[] = [
   { id: '1', color: PRIMARY, x: 100, y: 0, width: 100, height: 25 },
   { id: '2', color: PRIMARY, x: 100, y: 200, width: 100, height: 25 },
-]);
+];
 
 // define initial edges
-const initialEdges = createLinks([
+const initialEdges: GraphLink[] = [
   {
     id: 'e1-2',
     source: '1',
@@ -30,10 +32,7 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
-
-// infer element type from the initial elements (this type can be used for later usage like RenderItem props)
-type CustomElement = InferElement<typeof initialElements>;
+];
 
 function RenderItem({ width, height, color }: CustomElement) {
   return <rect rx={10} ry={10} width={width} height={height} fill={color} />;
@@ -49,7 +48,7 @@ function Main() {
 
 export default function App(props: Readonly<GraphProps>) {
   return (
-    <GraphProvider {...props} initialLinks={initialEdges} initialElements={initialElements}>
+    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
       <Main />
     </GraphProvider>
   );

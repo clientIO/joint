@@ -10,6 +10,7 @@ interface Options<StorybookOptions> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   stories: Record<string, any>;
   withRenderElementWrapper?: boolean;
+  withRenderLinkWrapper?: boolean;
 }
 
 function normalizeSnapshot(html: string) {
@@ -26,7 +27,7 @@ function normalizeSnapshot(html: string) {
  * @param options.stories - The stories to test.
  */
 export function runStorybookSnapshot<StorybookOptions>(options: Options<StorybookOptions>) {
-  const { stories, Component, name, withRenderElementWrapper } = options;
+  const { stories, Component, name, withRenderElementWrapper, withRenderLinkWrapper } = options;
   const keys = Object.keys(stories).filter((key) => key !== 'default');
   describe(name, () => {
     it.each(keys)('%p', (key) => {
@@ -44,6 +45,15 @@ export function runStorybookSnapshot<StorybookOptions>(options: Options<Storyboo
           return (
             <GraphProvider>
               <Paper renderElement={children as never} />
+            </GraphProvider>
+          );
+        };
+      }
+      if (withRenderLinkWrapper) {
+        wrapper = function ({ children }: { children: React.ReactNode }) {
+          return (
+            <GraphProvider>
+              <Paper renderLink={children as never} />
             </GraphProvider>
           );
         };

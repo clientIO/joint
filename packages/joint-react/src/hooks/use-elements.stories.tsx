@@ -1,27 +1,68 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
-import type { Meta } from '@storybook/react/*';
+import type { Meta } from '@storybook/react';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
-import { Paper } from '../components/paper/paper';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { getAPILink } from '../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
+import { Paper } from '../components/paper/paper';
 
 const API_URL = getAPILink('useElements');
 
 const meta: Meta<typeof HookTester> = {
-  title: 'Hooks/useElements',
+  title: 'Hooks/useElements useLinks',
   component: HookTester,
   decorators: [SimpleGraphDecorator],
+  tags: ['hook'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description: '`useElements` is a hook that returns the elements of the current graph. It supports selector functions to get specific properties of the elements and re-renders the component only when selected properties are changed.',
+    description: `
+The **useElements** hook provides access to all elements in the graph. It supports selector functions for optimized re-renders, only updating when selected element properties change.
+
+**Key Features:**
+- Returns all elements in the graph
+- Supports selector functions for performance optimization
+- Only re-renders when selected properties change
+- Can be used anywhere within GraphProvider context
+    `,
+    usage: `
+\`\`\`tsx
+import { useElements } from '@joint/react';
+
+// Get all elements
+function Component() {
+  const elements = useElements();
+  return <div>Total elements: {elements.length}</div>;
+}
+
+// Get specific properties (optimized)
+function OptimizedComponent() {
+  const elementIds = useElements((elements) => 
+    elements.map(element => element.id)
+  );
+  return <div>Element IDs: {elementIds.join(', ')}</div>;
+}
+\`\`\`
+    `,
+    props: `
+- **selector** (optional): Function that transforms the elements array
+  - Returns: Transformed elements data or full elements array if no selector provided
+  - Re-renders only when selected properties change
+    `,
     code: `import { useElements } from '@joint/react'
 
 function Component() {
   const elements = useElements();
-  return <div>elements are: {JSON.stringify(elements)}</div>;
+  return <div>Total elements: {elements.length}</div>;
+}
+
+// With selector for optimization
+function OptimizedComponent() {
+  const elementIds = useElements((elements) => 
+    elements.map(element => element.id)
+  );
+  return <div>Element IDs: {elementIds.join(', ')}</div>;
 }`,
   }),
 };
@@ -87,7 +128,7 @@ function Component() {
 export const WithGetJustSize = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements) => elements.size],
+    hookArgs: [(elements) => elements.length],
     render: (result) => (
       <div>
         <Paper
@@ -105,7 +146,7 @@ export const WithGetJustSize = makeStory<Story>({
   code: `import { useElements } from '@joint/react'
 
 function Component() {
-  const size = useElements((elements) => elements.size);
+  const size = useElements((elements) => elements.length);
   return <div>size of elements is: {JSON.stringify(size)}</div>;
 }`,
   description: 'Get the size of the elements.',
@@ -187,10 +228,7 @@ function Component() {
 export const WithAdditionalData = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [
-      (elements) =>
-        elements.map((element) => ({ id: element.id, data: element.data, other: 'something' })),
-    ],
+    hookArgs: [(elements) => elements.map((element) => ({ id: element.id, other: 'something' }))],
     render: (result) => (
       <div>
         <Paper

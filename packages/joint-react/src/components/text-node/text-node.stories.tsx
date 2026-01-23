@@ -1,37 +1,36 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-
-import type { Meta, StoryObj } from '@storybook/react/*';
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { TextNode } from './text-node';
 import { PRIMARY } from 'storybook-config/theme';
 import { useElement } from '../../hooks';
-import { MeasuredNode } from '../measured-node/measured-node';
+import { useNodeSize } from '../../hooks/use-node-size';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 
 const API_URL = getAPILink('TextNode', 'variables');
 export type Story = StoryObj<typeof TextNode>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SVGDecorator(Story: any) {
-  const { width, height } = useElement();
+  const { width = 0, height = 0 } = useElement();
+  const gRef = React.useRef<SVGGElement>(null);
+  useNodeSize(gRef);
 
+  const PADDING = 10;
   return (
     <>
-      <rect width={width} height={height} fill={PRIMARY} rx={10} ry={10} />
-      <MeasuredNode
-        setSize={({ element, size }) => {
-          const padding = 20;
-          element.set('size', {
-            width: size.width + padding,
-            height: size.height + padding,
-          });
-        }}
-      >
-        <g transform="translate(10, 10)">
-          <Story />
-        </g>
-      </MeasuredNode>
+      <rect
+        width={width + PADDING * 2}
+        height={height + PADDING * 2}
+        fill={PRIMARY}
+        rx={PADDING}
+        ry={PADDING}
+        transform={`translate(-${PADDING}, -${PADDING})`}
+      />
+      <g ref={gRef}>
+        <Story />
+      </g>
     </>
   );
 }
@@ -40,17 +39,60 @@ const meta: Meta<typeof TextNode> = {
   title: 'Components/TextNode',
   component: TextNode,
   decorators: [SVGDecorator, SimpleRenderItemDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    code: `
-    import { TextNode } from '@joint/react'
-    <TextNode
-      fill="white"
-      width={19}
-      textWrap
-      >
-      Hello world
-    </TextNode>
+    description: `
+The **TextNode** component renders SVG text with automatic sizing and wrapping capabilities. It's designed to work seamlessly with \`useNodeSize\` hook for dynamic text content.
+
+**Key Features:**
+- Renders SVG text elements
+- Supports automatic text wrapping
+- Integrates with \`useNodeSize\` hook for dynamic sizing
+- Supports all standard SVG text properties
+    `,
+    usage: `
+\`\`\`tsx
+import { TextNode, useNodeSize } from '@joint/react';
+import { useElement } from '@joint/react';
+import { useRef } from 'react';
+
+function RenderElement() {
+  const { width, height } = useElement();
+  const gRef = useRef<SVGGElement>(null);
+  useNodeSize(gRef);
+  return (
+    <>
+      <rect width={width} height={height} fill="blue" />
+      <g ref={gRef} transform="translate(10, 10)">
+        <TextNode fill="white" width={width - 20} textWrap>
+          Your text content here
+        </TextNode>
+      </g>
+    </>
+  );
+}
+\`\`\`
+    `,
+    props: `
+- **children**: Text content to render
+- **fill**: Text color
+- **width**: Maximum width before wrapping
+- **textWrap**: Enable automatic text wrapping
+- **fontSize**: Text size (default: 14)
+- And other standard SVG text properties
+    `,
+    code: `import { TextNode, useNodeSize } from '@joint/react'
+import { useRef } from 'react';
+
+const gRef = useRef<SVGGElement>(null);
+useNodeSize(gRef);
+
+<g ref={gRef}>
+  <TextNode fill="white" width={100} textWrap>
+    Hello world
+  </TextNode>
+</g>
     `,
   }),
 };

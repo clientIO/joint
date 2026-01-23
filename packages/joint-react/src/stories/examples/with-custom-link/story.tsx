@@ -1,23 +1,21 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import type { Meta, StoryObj } from '@storybook/react/*';
+import type { Meta, StoryObj } from '@storybook/react';
 import '../index.css';
 import CodeWithCreateLinks from './code-with-create-links';
 import CodeWithDiaLinksClassName from './code-with-create-links-classname';
 import CodeWithDiaLinks from './code-with-dia-links';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 
-// @ts-expect-error
 import CodeWithCreateLinksCode from './code-with-create-links?raw';
-// @ts-expect-error
 import CodeWithDiaLinksCode from './code-with-dia-links?raw';
-// @ts-expect-error
+
 import CodeWithCreateLinksClassName from './code-with-create-links-classname?raw';
+import { makeRootDocumentation, makeStory } from '../../utils/make-story';
 
 export type Story = StoryObj<typeof CodeWithCreateLinks>;
 
 export default {
   title: 'Examples/Custom link',
   component: CodeWithCreateLinks,
+  tags: ['example'],
   parameters: makeRootDocumentation({
     apiURL: 'https://resources.jointjs.com/tutorial/links',
     code: CodeWithCreateLinksCode,

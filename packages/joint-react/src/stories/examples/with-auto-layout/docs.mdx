@@ -1,19 +1,34 @@
 import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
-import CodeWithBuildInShapes from './code-with-build-in-shapes?raw';
 import {getAPIPropsLink} from '../../utils/get-api-documentation-link'
 
 <Meta of={Stories} />
 
-# Example with Automatic Layout
+# Automatic Layout Example
 
-This example demonstrates how to use automatic layout. The layout is applied once all React elements are rendered and their sizes are calculated.
+This example demonstrates how to use automatic layout algorithms to position elements in your diagram. The layout is applied automatically once all React elements are rendered and their sizes are calculated.
 
-### Demo
+## Overview
+
+Automatic layout algorithms help organize elements in your diagram without manually calculating positions. This is especially useful for:
+- Flowcharts and process diagrams
+- Hierarchical structures (org charts, trees)
+- Network diagrams
+- Any diagram where element relationships determine positioning
+
+## How It Works
+
+1. Elements are initially rendered with their content
+2. `MeasuredNode` calculates the actual size of each element
+3. Once all sizes are known, the layout algorithm positions elements
+4. The graph updates with the calculated positions
+
+## Demo
+
 <Canvas of={Stories.Default} />
 
-### Code
+## Implementation
 
 <Markdown>
 {`\`\`\`tsx
@@ -21,15 +36,20 @@ ${Code}
 \`\`\``}
 </Markdown>
 
-### Demo with Built-in Shapes
-<Canvas of={Stories.WithBuildInShapes} />
+## Key Concepts
 
-### Code with Built-in Shapes
-<Markdown>
-{`\`\`\`tsx
-${CodeWithBuildInShapes}
-\`\`\``}
-</Markdown>
+- **MeasuredNode**: Ensures element sizes are calculated before layout
+- **Layout Algorithm**: Uses \`@joint/layout-directed-graph\` to position elements
+- **Async Layout**: Layout runs after React rendering completes
+
+
+
+## Best Practices
+
+1. **Don't set initial positions**: Let the layout algorithm calculate positions
+2. **Use MeasuredNode**: Ensure accurate size calculations for HTML content
+3. **Wait for layout**: Layout runs asynchronously after rendering
+4. **Handle layout updates**: Re-run layout when elements or links change
 
 
 

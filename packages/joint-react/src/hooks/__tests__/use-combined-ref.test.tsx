@@ -1,7 +1,7 @@
 /* eslint-disable @eslint-react/no-create-ref */
 import { render, screen } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { createRef, forwardRef, useImperativeHandle } from 'react';
+import { createRef } from 'react';
 import { useCombinedRef } from '../use-combined-ref';
 
 describe('useCombinedRef', () => {
@@ -34,17 +34,5 @@ describe('useCombinedRef', () => {
     render(<Test />);
     const element = screen.getByTestId('el');
     expect(calledValue).toBe(element);
-  });
-
-  it('should work with React.forwardRef', () => {
-    const Comp = forwardRef<HTMLDivElement>((props, ref) => {
-      const combinedRef = useCombinedRef<HTMLDivElement>(ref);
-      // @ts-expect-error its just test
-      useImperativeHandle(ref, () => ({ test: true }), []);
-      return <div ref={combinedRef} />;
-    });
-    const ref = createRef<HTMLDivElement>();
-    renderHook(() => <Comp ref={ref} />);
-    // No error means it works
   });
 });

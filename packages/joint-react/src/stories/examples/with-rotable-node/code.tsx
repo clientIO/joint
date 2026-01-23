@@ -1,25 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  MeasuredNode,
-  Paper,
-  useElements,
-  usePaper,
-  useUpdateElement,
-  type InferElement,
-} from '@joint/react';
+import { GraphProvider, Paper, useElements, usePaper, useNodeSize } from '@joint/react';
 import '../index.css';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', x: 20, y: 100 },
   { id: '2', label: 'Node 2', x: 200, y: 100 },
-]);
+];
 
-const initialEdges = createLinks([
+const initialEdges = [
   {
     id: 'e1-2',
     source: '1',
@@ -30,23 +21,24 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
-function RotatableNode({ label, id, width, height }: Readonly<BaseElementWithData>) {
+function RotatableNode({ label, id }: Readonly<BaseElementWithData>) {
   const paper = usePaper();
-  const setRotation = useUpdateElement(id, 'angle');
+  const { set } = useCellActions();
 
   const dragHandle = useCallback(
     (event: PointerEvent) => {
+      if (!paper) return;
       const graph = paper.model;
       const point = paper.clientToLocalPoint(event.clientX, event.clientY);
       const center = graph.getCell(id).getBBox().center();
       const deg = center.angleBetween(point, center.clone().offset(0, -1));
-      setRotation(Math.round(deg));
+      set(id, (previous) => ({ ...previous, angle: Math.round(deg) }));
     },
-    [id, paper, setRotation]
+    [id, paper, set]
   );
 
   const handlePointerDown = useCallback(
@@ -75,25 +67,25 @@ function RotatableNode({ label, id, width, height }: Readonly<BaseElementWithDat
     [dragHandle]
   );
 
+  const elementRef = useRef<HTMLDivElement>(null);
+  const { width, height } = useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <MeasuredNode>
-        <div className="node">
-          <div
-            className="rotatable-node__handle"
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-          />
-          {label}
-        </div>
-      </MeasuredNode>
+      <div ref={elementRef} className="node">
+        <div
+          className="rotatable-node__handle"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+        />
+        {label}
+      </div>
     </foreignObject>
   );
 }
 
 function Main() {
   const elementRotation = useElements((items) =>
-    items.map(({ angle }) => `${angle.toString().padStart(3, '0')} deg`)
+    items.map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
   );
 
   return (
@@ -114,7 +106,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

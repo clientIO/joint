@@ -1,21 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-//@ts-expect-error its js package without types
+
+// @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
-
-import type { HTMLProps, JSX, PropsWithChildren } from 'react';
-import type { InferElement } from '@joint/react';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  MeasuredNode,
-  Paper,
-  useElement,
-} from '@joint/react';
+import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
+import { GraphProvider, useNodeSize, type GraphLink } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
+import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
+import { Paper } from '../../src/components/paper/paper';
 
-const initialElements = createElements([
+export type StoryFunction = PartialStoryFn<any, any>;
+export type StoryCtx = StoryContext<any, any>;
+
+export const testElements = [
   {
     id: '1',
     label: 'Node 1',
@@ -24,6 +21,8 @@ const initialElements = createElements([
     y: 20,
     width: 150,
     height: 50,
+    hoverColor: 'red',
+    angle: 0,
   },
   {
     id: '2',
@@ -33,11 +32,13 @@ const initialElements = createElements([
     y: 250,
     width: 150,
     height: 50,
+    hoverColor: 'blue',
+    angle: 0,
   },
-]);
+];
 
-export type SimpleElement = InferElement<typeof initialElements>;
-const initialLinks = createLinks([
+export type SimpleElement = (typeof testElements)[number];
+export const testLinks: GraphLink[] = [
   {
     id: 'l-1',
     source: '1',
@@ -48,20 +49,20 @@ const initialLinks = createLinks([
       },
     },
   },
-]);
+];
 
 export function SimpleGraphProviderDecorator({ children }: Readonly<PropsWithChildren>) {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider elements={testElements} links={testLinks}>
       {children}
     </GraphProvider>
   );
 }
 
-export function SimpleGraphDecorator(Story: any) {
+export function SimpleGraphDecorator(Story: StoryFunction, { args }: StoryCtx) {
   return (
     <SimpleGraphProviderDecorator>
-      <Story />
+      <Story {...args} />
     </SimpleGraphProviderDecorator>
   );
 }
@@ -69,6 +70,7 @@ export function SimpleGraphDecorator(Story: any) {
 export function RenderItemDecorator(
   properties: Readonly<{
     renderElement: (element: SimpleElement) => JSX.Element;
+    renderLink?: (link: any) => JSX.Element;
   }>
 ) {
   return (
@@ -79,6 +81,7 @@ export function RenderItemDecorator(
           height={450}
           className={PAPER_CLASSNAME}
           renderElement={properties.renderElement}
+          renderLink={properties.renderLink}
           linkPinning={false}
         />
       </SimpleGraphProviderDecorator>
@@ -86,12 +89,12 @@ export function RenderItemDecorator(
   );
 }
 
-function RenderSimpleRectElement(properties: SimpleElement) {
+function RenderSimpleRectElement(properties: Readonly<SimpleElement>) {
   const { width, color, height } = properties;
   return <rect width={width} height={height} fill={color} />;
 }
 
-export function RenderPaperWithChildren(properties: Readonly<{ children: JSX.Element }>) {
+export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX.Element }>) {
   return (
     <div style={{ width: '100%', height: 350 }}>
       <SimpleGraphProviderDecorator>
@@ -108,21 +111,35 @@ export function RenderPaperWithChildren(properties: Readonly<{ children: JSX.Ele
   );
 }
 
-export function SimpleRenderItemDecorator(Story: any) {
-  return <RenderItemDecorator renderElement={Story} />;
+export function SimpleRenderItemDecorator(Story: StoryFunction, { args }: StoryCtx) {
+  const component = useCallback(
+    (element: SimpleElement) => <Story {...element} {...args} />,
+    [Story, args]
+  );
+  return <RenderItemDecorator renderElement={component} />;
 }
 
-export function SimpleRenderPaperDecorator(Story: any) {
-  return <RenderPaperWithChildren>{Story}</RenderPaperWithChildren>;
+export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryCtx) {
+  const component = useCallback(
+    (element: SimpleElement) => <Story {...element} {...args} />,
+    [Story, args]
+  );
+  return (
+    <RenderItemDecorator
+      renderLink={component}
+      // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
+      renderElement={({ id }) => <HTMLNode className="node">{id}</HTMLNode>}
+    />
+  );
 }
 
 export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
-  const { width, height } = useElement();
+  const elementRef = useRef<HTMLDivElement>(null);
+  const { width, height } = useNodeSize(elementRef);
+
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <MeasuredNode>
-        <div {...props} />
-      </MeasuredNode>
+      <div ref={elementRef} {...props} />
     </foreignObject>
   );
 }

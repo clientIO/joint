@@ -1,18 +1,26 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable react-perf/jsx-no-new-array-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import type { Meta, StoryObj } from '@storybook/react/*';
-import { Paper } from './paper';
+import React, { useRef } from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
 import {
   SimpleGraphDecorator,
   type SimpleElement,
 } from '../../../.storybook/decorators/with-simple-data';
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
-import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
-import { MeasuredNode } from '../measured-node/measured-node';
+import { useNodeSize } from '../../hooks/use-node-size';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation } from '../../stories/utils/make-story';
+import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
+import { useCellActions } from '../../hooks/use-cell-actions';
+import { Paper } from './paper';
+import type { RenderElement } from './paper.types';
+import type { GraphElement } from '../../types/element-types';
+import { GraphProvider } from '../graph/graph-provider';
 
 export type Story = StoryObj<typeof Paper>;
 
@@ -21,42 +29,95 @@ const meta: Meta<typeof Paper> = {
   title: 'Components/Paper',
   component: Paper,
   decorators: [SimpleGraphDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     description: `
-Paper is a component that renders graph elements. It is used to display and interact with graph elements.
+The **Paper** component is the core rendering component that displays nodes and links on the canvas. It wraps the JointJS Paper and provides a React-friendly interface for rendering interactive diagrams.
+
+**Key Features:**
+- Renders SVG elements and HTML content via \`renderElement\`
+- Supports all JointJS Paper events (click, hover, drag, etc.)
+- Handles zoom, pan, and transform operations
+- Integrates with GraphProvider for state management
+- Supports custom link tools and interactions
+    `,
+    usage: `
+\`\`\`tsx
+import { GraphProvider, Paper } from '@joint/react';
+
+function MyDiagram() {
+  return (
+    <GraphProvider elements={elements} links={links}>
+      <Paper 
+        renderElement={({ width, height }) => (
+          <rect 
+            rx={10} 
+            ry={10} 
+            width={width} 
+            height={height} 
+            fill="blue" 
+          />
+        )}
+        width="100%"
+        height={600}
+      />
+    </GraphProvider>
+  );
+}
+\`\`\`
+    `,
+    props: `
+- **renderElement**: Function that receives element props and returns SVG/HTML content
+- **width/height**: Paper dimensions (supports numbers or CSS strings)
+- **scale**: Zoom level (default: 1)
+- **className**: CSS class for styling
+- **onElementPointerClick**: Handler for element clicks
+- **onLinkMouseEnter**: Handler for link hover
+- **drawGrid**: Grid configuration for visual guides
+- And many more event handlers for full interactivity
     `,
     apiURL: API_URL,
-    code: `import { Paper } from '@joint/react'
-<Paper renderElement={() => <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />} />
+    code: `import { GraphProvider, Paper } from '@joint/react'
+
+<GraphProvider elements={elements} links={links}>
+  <Paper 
+    renderElement={({ width, height }) => (
+      <rect rx={10} ry={10} width={width} height={height} fill="blue" />
+    )}
+    width="100%"
+    height={600}
+  />
+</GraphProvider>
     `,
   }),
 };
 
 export default meta;
 
-function RenderRectElement({ width, height }: SimpleElement) {
+function RenderRectElement({ width, height }: Readonly<SimpleElement>) {
   return <rect rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
 }
 
-function RenderHTMLElement({ width, height }: SimpleElement) {
+function RenderHTMLElement({ width, height }: Readonly<SimpleElement>) {
+  const elementRef = React.useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div
-          style={{
-            width,
-            height,
-            boxShadow: '0 0 10px rgba(0,0,0,0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: PRIMARY,
-            borderRadius: 10,
-          }}
-        >
-          Hello
-        </div>
-      </MeasuredNode>
+      <div
+        ref={elementRef}
+        style={{
+          width,
+          height,
+          boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: PRIMARY,
+          borderRadius: 10,
+        }}
+      >
+        Hello
+      </div>
     </foreignObject>
   );
 }
@@ -67,6 +128,14 @@ export const WithRectElement: Story = {
     width: '100%',
     className: PAPER_CLASSNAME,
   },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Renders a simple SVG rectangle element. This is the most basic usage of the Paper component with SVG content.',
+      },
+    },
+  },
 };
 
 export const WithHTMLElement: Story = {
@@ -75,15 +144,13 @@ export const WithHTMLElement: Story = {
     width: '100%',
     className: PAPER_CLASSNAME,
   },
-};
-
-export const WithGrid: Story = {
-  args: {
-    drawGrid: true,
-    gridSize: 10,
-    renderElement: RenderHTMLElement as never,
-    width: '100%',
-    className: PAPER_CLASSNAME,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Renders HTML content using `<foreignObject>`. Use `MeasuredNode` to automatically calculate and update element sizes based on HTML content dimensions.',
+      },
+    },
   },
 };
 
@@ -94,12 +161,27 @@ export const WithScaleDown: Story = {
     width: '100%',
     className: PAPER_CLASSNAME,
   },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates zoom/scale functionality. The `scale` prop controls the zoom level of the paper (0.7 = 70% zoom).',
+      },
+    },
+  },
 };
 
 export const WithAutoFitContent: Story = {
   args: {
     renderElement: RenderHTMLElement as never,
     width: '100%',
+    className: PAPER_CLASSNAME,
+  },
+};
+
+export const WithAutomaticLayoutSize: Story = {
+  args: {
+    renderElement: RenderHTMLElement as never,
     className: PAPER_CLASSNAME,
   },
 };
@@ -133,7 +215,6 @@ export const WithEvent: Story = {
     onCellPointerDown: action('onCellPointerDown'),
     onCellPointerMove: action('onCellPointerMove'),
     onCellPointerUp: action('onCellPointerUp'),
-    onCustomEvent: action('onCustomEvent'),
     onElementContextMenu: action('onElementContextMenu'),
     onElementMagnetContextMenu: action('onElementMagnetContextMenu'),
     onElementMagnetPointerClick: action('onElementMagnetPointerClick'),
@@ -212,6 +293,14 @@ export const WithLinkTools: Story = {
     width: '100%',
     className: PAPER_CLASSNAME,
   },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Shows how to add interactive tools to links. Hover over a link to see the custom button tool appear. Tools are added/removed dynamically using event handlers.',
+      },
+    },
+  },
 };
 
 export const WithCustomEvent: Story = {
@@ -220,12 +309,177 @@ export const WithCustomEvent: Story = {
     onElementPointerClick: ({ paper }) => {
       paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
     },
-    onCustomEvent: ({ args, eventName }) => {
-      action('onCustomEvent')(
-        `Custom event triggered: ${eventName} with args: ${JSON.stringify(args)}`
-      );
-    },
     width: '100%',
     className: PAPER_CLASSNAME,
+  },
+};
+
+export const WithDrawGrid: Story = {
+  args: {
+    renderElement: RenderHTMLElement as never,
+    onElementPointerClick: ({ paper }) => {
+      paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
+    },
+    className: PAPER_CLASSNAME,
+    drawGrid: { name: 'dot', thickness: 2, color: 'white' },
+    drawGridSize: 10,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Displays a visual grid overlay on the paper. Useful for alignment and design purposes. The grid can be customized with different patterns (dot, mesh, etc.) and colors.',
+      },
+    },
+  },
+};
+
+export const WithOnClickColorChange: Story = {
+  args: {},
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates interactive element updates using `useCellActions`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
+      },
+    },
+  },
+  render: () => {
+    const renderElement: RenderElement<SimpleElement> = ({ width, height, hoverColor, id }) => {
+      const { set } = useCellActions();
+      return (
+        <div
+          className="node"
+          onClick={() => {
+            set(id, (previous) => ({ ...previous, hoverColor: 'blue' }));
+          }}
+          style={{ width, height, backgroundColor: hoverColor }}
+        ></div>
+      );
+    };
+    return (
+      <GraphProvider
+        areBatchUpdatesDisabled
+        elements={[
+          {
+            width: 100,
+            height: 40,
+            id: '1',
+            label: 'Element 1',
+            x: 50,
+            y: 50,
+            hoverColor: 'red',
+          } as GraphElement & { label: string; hoverColor: string },
+          {
+            width: 100,
+            height: 40,
+            id: '2',
+            label: 'Element 1',
+            x: 100,
+            y: 250,
+            hoverColor: 'red',
+          } as GraphElement & { label: string; hoverColor: string },
+        ]}
+        links={[
+          {
+            id: 'l1',
+            source: '1',
+            target: '2',
+            attrs: {
+              line: {
+                stroke: PRIMARY,
+              },
+            },
+          },
+        ]}
+      >
+        <Paper
+          id="main"
+          useHTMLOverlay
+          className={PAPER_CLASSNAME}
+          width="100%"
+          height={400}
+          renderElement={renderElement}
+        />
+      </GraphProvider>
+    );
+  },
+};
+
+export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
+  args: {},
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates interactive element updates using `useCellActions`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
+      },
+    },
+  },
+  render: () => {
+    const renderElement: RenderElement<SimpleElement> = ({ hoverColor }) => {
+      const ref = useRef<SVGRectElement>(null);
+      useNodeSize(ref, {
+        transform: ({ x, y, width, height, id }) => {
+          if (id === '1') {
+            return {
+              width,
+              height,
+              x: x + 200,
+              y: y + 200,
+            };
+          }
+          return {
+            width,
+            height,
+            x,
+            y,
+          };
+        },
+      });
+      return (
+        <>
+          <div></div>
+          <rect ref={ref} width={150} height={30} fill={hoverColor} rx={10} ry={10} />;
+        </>
+      );
+    };
+    return (
+      <GraphProvider
+        areBatchUpdatesDisabled
+        elements={[
+          {
+            id: '1',
+            label: 'Element 1',
+            hoverColor: 'red',
+            somethingMine: true,
+          } as GraphElement & { label: string; hoverColor: string },
+          { id: '2', label: 'Element 1', hoverColor: 'red' } as GraphElement & {
+            label: string;
+            hoverColor: string;
+          },
+        ]}
+        links={[
+          {
+            id: 'l1',
+            source: '1',
+            target: '2',
+            attrs: {
+              line: {
+                stroke: PRIMARY,
+              },
+            },
+          },
+        ]}
+      >
+        <Paper
+          id="main"
+          className={PAPER_CLASSNAME}
+          width="100%"
+          height={400}
+          renderElement={renderElement}
+        />
+      </GraphProvider>
+    );
   },
 };

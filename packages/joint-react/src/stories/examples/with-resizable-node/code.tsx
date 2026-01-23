@@ -1,23 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  MeasuredNode,
-  Paper,
-  useElements,
-  type InferElement,
-} from '@joint/react';
+import { GraphProvider, Paper, useElements, useNodeSize } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', x: 100, y: 0 },
   { id: '2', label: 'Node 2', x: 100, y: 200 },
-]);
+];
 
-const initialEdges = createLinks([
+const initialEdges = [
   {
     id: 'e1-2',
     source: '1',
@@ -28,11 +20,11 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
-function ResizableNode({ width, height, label }: Readonly<BaseElementWithData>) {
+function ResizableNode({ label }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     const node = nodeRef.current;
@@ -53,16 +45,16 @@ function ResizableNode({ width, height, label }: Readonly<BaseElementWithData>) 
     }
   }, []);
 
+  const { width, height } = useNodeSize(nodeRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <MeasuredNode ref={nodeRef}>
-        <div
-          className="resizable-node"
-          onMouseDown={handleMouseDown} // prevent drag events from propagating
-        >
-          {label}
-        </div>
-      </MeasuredNode>
+      <div
+        ref={nodeRef}
+        className="resizable-node"
+        onMouseDown={handleMouseDown} // prevent drag events from propagating
+      >
+        {label}
+      </div>
     </foreignObject>
   );
 }
@@ -90,7 +82,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

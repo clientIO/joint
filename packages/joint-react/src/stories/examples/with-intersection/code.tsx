@@ -1,28 +1,20 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  createElements,
-  GraphProvider,
-  MeasuredNode,
-  Paper,
-  useElements,
-  useGraph,
-  type InferElement,
-} from '@joint/react';
+import { GraphProvider, useElements, useGraph, Paper, useNodeSize } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', x: 100, y: 0 },
   { id: '2', label: 'Node 2', x: 100, y: 200 },
   { id: '3', label: 'Node 3', x: 200, y: 100 },
   { id: '4', label: 'Node 4', x: 0, y: 100 },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
-function ResizableNode({ id, label, width, height }: Readonly<BaseElementWithData>) {
+function ResizableNode({ id, label }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const graph = useGraph();
   const element = graph.getCell(id) as dia.Element;
@@ -31,13 +23,13 @@ function ResizableNode({ id, label, width, height }: Readonly<BaseElementWithDat
     return graph.findElementsUnderElement(element).length > 0;
   });
 
+  const { width, height } = useNodeSize(nodeRef);
+
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div ref={nodeRef} className={`node ${isIntersected ? 'intersected' : ''}`}>
-          {label}
-        </div>
-      </MeasuredNode>
+      <div ref={nodeRef} className={`node ${isIntersected ? 'intersected' : ''}`}>
+        {label}
+      </div>
     </foreignObject>
   );
 }
@@ -52,7 +44,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements}>
+    <GraphProvider areBatchUpdatesDisabled elements={initialElements}>
       <Main />
     </GraphProvider>
   );

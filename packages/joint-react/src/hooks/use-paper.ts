@@ -1,22 +1,23 @@
-import { useContext } from 'react';
-import { PaperContext } from '../context/paper-context';
 import type { dia } from '@joint/core';
+import { usePaperStoreContext } from './use-paper-context';
 
 /**
- * Return jointjs paper instance from the paper context.
+ * Return JointJS `dia.Paper` instance from the current `Paper` context.
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
+ * @returns - The jointjs paper instance.
+ * @example
  * ```tsx
  * import { usePaper } from '@joint/react';
- * const paper = usePaper();
+ *
+ * function MyComponent() {
+ *   const paper = usePaper();
+ *   // Use paper instance to interact with the JointJS paper
+ *   return null;
+ * }
  * ```
- * @returns - The jointjs paper instance.
- * @throws - If the hook is not used inside the paper context.
  */
 export function usePaper(): dia.Paper {
-  const paperCtx = useContext(PaperContext);
-  if (!paperCtx) {
-    throw new Error('usePaper must be used within a `PaperProvider` or `Paper` component');
-  }
-  return paperCtx.paper;
+  const paperStore = usePaperStoreContext();
+  return paperStore.paper;
 }

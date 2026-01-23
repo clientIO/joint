@@ -2,19 +2,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, linkTools } from '@joint/core';
 import '../index.css';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  Paper,
-  jsx,
-  type InferElement,
-  type RenderElement,
-} from '@joint/react';
+import { GraphProvider, jsx, Paper, type RenderElement } from '@joint/react';
 import { useCallback } from 'react';
 import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialEdges = createLinks([
+const initialEdges = [
   {
     id: 'e1-2',
     source: '1',
@@ -26,12 +18,12 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', x: 100, y: 10, width: 120, height: 30 },
   { id: '2', label: 'Node 2', x: 100, y: 200, width: 120, height: 30 },
-]);
+];
 
 // 1) creating link tools
 const verticesTool = new linkTools.Vertices({
@@ -74,9 +66,9 @@ const toolsView = new dia.ToolsView({
   tools: [boundaryTool, verticesTool, infoButton],
 });
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
-function RectElement({ width, height }: BaseElementWithData) {
+function RectElement({ width, height }: Readonly<BaseElementWithData>) {
   return (
     <rect
       rx={5}
@@ -119,7 +111,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

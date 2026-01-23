@@ -6,25 +6,63 @@ import {getAPIPropsLink} from '../../utils/get-api-documentation-link'
 
 <Meta of={Stories} />
 
-# Example: Using an SVG Element as a Node
+# SVG Node Rendering
 
-This example demonstrates how to use an SVG element as a node in JointJS. By default, JointJS renders nodes using SVG. Here, we show how you can set {getAPIPropsLink('Paper', 'renderElement')} to render any custom SVG element.
+This example demonstrates how to render custom SVG elements as nodes in your diagram. By default, JointJS renders nodes using SVG, and you can customize the appearance by providing a `renderElement` function to the Paper component.
 
-### Demo
+## Overview
 
-Below is a live demo of the example:
+SVG nodes are the foundation of JointJS diagrams. This example shows how to:
+- Create custom SVG shapes and elements
+- Use the `renderElement` prop to define node appearance
+- Access element properties (width, height, position) in your render function
+- Combine multiple SVG elements to create complex node designs
+
+## Demo
 
 <Canvas of={Stories.Default} />
 
-### Code
-
-Here is the source code for this example:
+## Implementation
 
 <Markdown>
 {`\`\`\`tsx
 ${Code}
 \`\`\``}
 </Markdown>
+
+## Key Concepts
+
+### renderElement Function
+
+The {getAPIPropsLink('Paper', 'renderElement')} prop receives element properties and returns SVG content:
+
+```tsx
+function renderElement({ width, height, x, y, id, ...otherProps }) {
+  return (
+    <g>
+      <rect width={width} height={height} fill="blue" />
+      <text x={width/2} y={height/2}>Node</text>
+    </g>
+  );
+}
+```
+
+### Element Properties
+
+The render function receives:
+- **width/height**: Element dimensions
+- **x/y**: Element position (usually handled by Paper)
+- **id**: Unique element identifier
+- **attrs**: Custom attributes from element data
+- Any other properties from your element data
+
+## Best Practices
+
+1. **Use semantic SVG**: Use appropriate SVG elements (rect, circle, path, etc.)
+2. **Leverage element props**: Use width/height from props, not hardcoded values
+3. **Group elements**: Use `<g>` to group related SVG elements
+4. **Performance**: Keep SVG structure simple for better rendering performance
+5. **Reusability**: Extract common SVG patterns into reusable components
 
 
 

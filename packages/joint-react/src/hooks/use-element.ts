@@ -1,13 +1,11 @@
 import { util } from '@joint/core';
 import { useCellId } from './use-cell-id';
-import { useGraphStore } from './use-graph-store';
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { GraphElement } from '../types/element-types';
-import { useCallback } from 'react';
+import { useGraphStoreSelector, useDerivedGraphStoreSelector } from './use-graph-store-selector';
 
 /**
- * A hook to access a specific graph element from the Paper context.
- * It must be used inside a PaperProvider.
+ * A hook to access a specific graph element from the current `Paper` context.
+ * Use it only inside `renderElement` or components rendered from within.
  * This hook returns the selected element based on its cell id. It accepts:
  * - a selector function, which extracts the desired part from the element.
  * (By default, it returns the entire element.)
@@ -29,7 +27,7 @@ import { useCallback } from 'react';
  *   (element) => element,
  *   (prev, next) => prev.width === next.width
  * );
- * @param selector The selector function to pick part of the element. @default initialElementselector
+ * @param selector The selector function to pick part of the element. @default identity
  * @param isEqual The function used to check equality. @default util.isEqual
  * @returns The selected element based on the current cell id.
  */
@@ -38,25 +36,17 @@ export function useElement<Element extends GraphElement, ReturnedElements = Elem
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {
   const id = useCellId();
-  const { subscribe, getElement } = useGraphStore();
 
-  const subscribeForElement = useCallback(
-    (subscribeCallback: () => void) => {
-      return subscribe((changedIds) => {
-        if (changedIds?.has(id)) {
-          subscribeCallback();
-        }
-      });
-    },
-    [id, subscribe]
-  );
+  const index = useDerivedGraphStoreSelector((store) => store.elementIds[id]);
 
-  const element = useSyncExternalStoreWithSelector(
-    subscribeForElement,
-    () => getElement<Element>(id),
-    () => getElement<Element>(id),
-    selector,
-    isEqual
-  );
-  return element;
+  return useGraphStoreSelector<ReturnedElements>((store) => {
+    if (index == undefined) {
+      return undefined as ReturnedElements;
+    }
+    const element = store.elements[index] as Element;
+    if (!element) {
+      return undefined as ReturnedElements;
+    }
+    return selector(element);
+  }, isEqual);
 }

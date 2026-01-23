@@ -1,18 +1,19 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import { shapes } from '@joint/core';
-import { createElements, type InferElement } from '../../../utils/create';
+import type { GraphElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
 import {
-  getLinkId,
+  getCellId,
   GraphProvider,
   jsx,
-  MeasuredNode,
   Paper,
   Port,
   TextNode,
   useLinks,
+  useNodeSize,
 } from '@joint/react';
 
 const NODE_WIDTH = 150;
@@ -59,7 +60,15 @@ const Pulse = dia.HighlighterView.extend({
     this.el.setAttribute('transform', `translate(${position.x}, ${position.y})`);
   },
 });
-const elements = createElements([
+type Element = GraphElement & {
+  attrs?: {
+    root?: {
+      magnet?: boolean;
+    };
+  };
+};
+
+const elements: Element[] = [
   {
     id: '1',
     x: 50,
@@ -90,16 +99,17 @@ const elements = createElements([
       },
     },
   },
-]);
+];
 
-type Element = InferElement<typeof elements>;
+function NodeElement({ id }: Element) {
+  const rectRef = useRef<SVGRectElement>(null);
+  const { width, height } = useNodeSize(rectRef);
 
-function NodeElement({ width, height, id }: Element) {
   const isConnected = useLinks((links) =>
     links
       .map((link) => {
-        const sourceId = getLinkId(link.source);
-        const targetId = getLinkId(link.target);
+        const sourceId = getCellId(link.source);
+        const targetId = getCellId(link.target);
         return sourceId === id || targetId === id;
       })
       .includes(true)
@@ -107,18 +117,17 @@ function NodeElement({ width, height, id }: Element) {
 
   return (
     <>
-      <MeasuredNode>
-        <rect
-          width={NODE_WIDTH}
-          height={NODE_HEIGHT}
-          stroke={PRIMARY}
-          strokeWidth={2}
-          strokeDasharray={isConnected ? '0' : '5,5'}
-          fill={isConnected ? PRIMARY : BG}
-          rx={NODE_BORDER_RADIUS}
-          ry={NODE_BORDER_RADIUS}
-        />
-      </MeasuredNode>
+      <rect
+        ref={rectRef}
+        width={NODE_WIDTH}
+        height={NODE_HEIGHT}
+        stroke={PRIMARY}
+        strokeWidth={2}
+        strokeDasharray={isConnected ? '0' : '5,5'}
+        fill={isConnected ? PRIMARY : BG}
+        rx={NODE_BORDER_RADIUS}
+        ry={NODE_BORDER_RADIUS}
+      />
       <TextNode fill="white" x={width / 2} y={height / 2 + 4} textAnchor="middle" fontSize={16}>
         {id}
       </TextNode>
@@ -207,7 +216,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={elements}>
+    <GraphProvider elements={elements}>
       <Main />
     </GraphProvider>
   );

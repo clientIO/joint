@@ -7,15 +7,22 @@ import CodeNodeRemove from './code-add-remove-node?raw';
 
 <Meta of={Stories} />
 
-# Example: Updating a Node
+# Updating Nodes Dynamically
 
-This guide shows how to update nodes (or elements) using the `useUpdateElement` hook. Each example demonstrates a different way to modify nodes, making it easy to understand and apply.
+This guide demonstrates various ways to update nodes (elements) in your diagram using the `useCellActions` hook. Learn how to modify element properties, add new elements, and remove existing ones.
 
-### Demo: Basic Node Update
-This example demonstrates a simple way to update a node using the `useUpdateElement` hook.
+## Overview
+
+The `useCellActions` hook provides methods to modify the graph state:
+- **set**: Update existing element properties
+- **insert**: Add new elements or links
+- **remove**: Delete elements or links
+
+## Basic Node Update
+
+The simplest way to update a node is using the `set` method with an updater function.
+
 <Canvas of={Stories.Default} />
-
-### Code: Basic Node Update
 
 <Markdown>
 {`\`\`\`tsx
@@ -23,11 +30,11 @@ ${Code}
 \`\`\``}
 </Markdown>
 
-### Demo: Update with Color Picker
-This example shows how to update a node using the `useUpdateElement` hook, combined with a color picker for dynamic color changes.
-<Canvas of={Stories.WithColorPicker} />
+## Update with Color Picker
 
-### Code: Update with Color Picker
+This example shows how to update node properties dynamically based on user input, such as a color picker.
+
+<Canvas of={Stories.WithColorPicker} />
 
 <Markdown>
 {`\`\`\`tsx
@@ -35,11 +42,11 @@ ${CodeWithColorPicker}
 \`\`\``}
 </Markdown>
 
-### Demo: Update with SVG
-This example demonstrates how to update a node using the `useUpdateElement` hook while rendering it as an SVG element.
-<Canvas of={Stories.WithSVG} />
+## Update with SVG Rendering
 
-### Code: Update with SVG
+Demonstrates updating nodes that are rendered as SVG elements, showing how property changes affect the visual representation.
+
+<Canvas of={Stories.WithSVG} />
 
 <Markdown>
 {`\`\`\`tsx
@@ -47,17 +54,65 @@ ${CodeWithSVG}
 \`\`\``}
 </Markdown>
 
-### Demo: Add and Remove Nodes
-This example shows how to dynamically add and remove nodes using the `useUpdateElement` hook. It provides a flexible way to manage nodes in your application.
-<Canvas of={Stories.WithNodeRemove} />
+## Add and Remove Nodes
 
-### Code: Add and Remove Nodes
+This example shows how to dynamically add and remove nodes from the graph, enabling interactive diagram editing.
+
+<Canvas of={Stories.WithNodeRemove} />
 
 <Markdown>
 {`\`\`\`tsx
 ${CodeNodeRemove}
 \`\`\``}
 </Markdown>
+
+## Key Patterns
+
+### Updating Properties
+
+```tsx
+const { set } = useCellActions();
+
+// Update a single property
+set('element-id', (prev) => ({ ...prev, label: 'New Label' }));
+
+// Update multiple properties
+set('element-id', (prev) => ({ 
+  ...prev, 
+  x: 100, 
+  y: 200,
+  color: 'blue' 
+}));
+```
+
+### Adding Elements
+
+```tsx
+const { insert } = useCellActions();
+
+insert('elements', {
+  id: 'new-element',
+  x: 100,
+  y: 100,
+  width: 100,
+  height: 50,
+});
+```
+
+### Removing Elements
+
+```tsx
+const { remove } = useCellActions();
+
+remove('element-id');
+```
+
+## Best Practices
+
+1. **Immutable updates**: Always return new objects in updater functions
+2. **Type safety**: Use TypeScript to ensure correct property types
+3. **Batch updates**: Consider batching multiple updates for performance
+4. **Error handling**: Validate element IDs before updating
 
 
 

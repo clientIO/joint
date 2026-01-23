@@ -52,9 +52,11 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
       } else if (breakTextWidth == undefined) {
         const element = graph.getCell(cellId);
         if (!element.isElement()) {
-          throw new TypeError('TextNode must be used inside a MeasuredNode');
+          throw new TypeError(
+            'TextNode must be used with useNodeSize hook to measure the element size'
+          );
         }
-        breakTextWidth = element.size().width;
+        breakTextWidth = element.size().width ?? 0;
       }
 
       const options: util.BreakTextOptions = typeof textWrap === 'object' ? textWrap : {};
@@ -99,5 +101,50 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
  * @see Vectorizer.TextOptions
  * @group Components
  * @returns The rendered SVG text element with the specified properties.
+ * @example
+ * Basic usage:
+ * ```tsx
+ * import { TextNode } from '@joint/react';
+ *
+ * function RenderElement() {
+ *   return (
+ *     <TextNode x={10} y={20}>
+ *       Hello World
+ *     </TextNode>
+ *   );
+ * }
+ * ```
+ * @example
+ * With text wrapping:
+ * ```tsx
+ * import { TextNode } from '@joint/react';
+ *
+ * function RenderElement() {
+ *   return (
+ *     <TextNode x={10} y={20} width={100} textWrap>
+ *       This is a long text that will wrap to multiple lines
+ *     </TextNode>
+ *   );
+ * }
+ * ```
+ * @example
+ * With custom text options:
+ * ```tsx
+ * import { TextNode } from '@joint/react';
+ *
+ * function RenderElement() {
+ *   return (
+ *     <TextNode
+ *       x={10}
+ *       y={20}
+ *       textVerticalAnchor="middle"
+ *       lineHeight={1.5}
+ *       eol="\n"
+ *     >
+ *       Line 1\nLine 2
+ *     </TextNode>
+ *   );
+ * }
+ * ```
  */
 export const TextNode = forwardRef(Component);

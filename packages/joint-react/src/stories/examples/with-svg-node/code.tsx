@@ -2,17 +2,15 @@
 import { LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import '../index.css';
 import {
-  createElements,
-  createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
-  type InferElement,
+  useNodeSize,
+  type OnTransformElement,
   type RenderElement,
 } from '@joint/react';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
-const initialEdges = createLinks([
+const initialEdges = [
   {
     id: 'e1-2',
     source: '1',
@@ -23,39 +21,47 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', x: 100, y: 0 },
   { id: '2', label: 'Node 2', x: 100, y: 200 },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
-function RenderedRect({ width, height, label }: BaseElementWithData) {
+function RenderedRect({ label }: Readonly<BaseElementWithData>) {
   const textMargin = 20;
   const cornerRadius = 5;
+  const textRef = useRef<SVGTextElement>(null);
+
+  const transform: OnTransformElement = useCallback(
+    ({ width: measuredWidth, height: measuredHeight }) => {
+      return {
+        width: measuredWidth + textMargin,
+        height: measuredHeight + textMargin,
+      };
+    },
+    [textMargin]
+  );
+
+  const { width, height } = useNodeSize(textRef, { transform });
+
   return (
     <>
       <rect rx={cornerRadius} ry={cornerRadius} width={width} height={height} fill={PRIMARY} />
-      <MeasuredNode
-        // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop, no-shadow, @typescript-eslint/no-shadow
-        setSize={({ element, size: { width, height } }) => {
-          element.size(width + textMargin, height + textMargin);
-        }}
+      <text
+        ref={textRef}
+        x={width / 2}
+        y={height / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill={TEXT}
+        fontSize={14}
+        fontWeight="bold"
       >
-        <text
-          x={width / 2}
-          y={height / 2}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill={TEXT}
-          fontSize={14}
-          fontWeight="bold"
-        >
-          {label}
-        </text>
-      </MeasuredNode>
+        {label}
+      </text>
     </>
   );
 }
@@ -81,7 +87,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

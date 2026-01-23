@@ -1,13 +1,13 @@
 import type { dia } from '@joint/core';
-import { memo, useContext, useEffect, useSyncExternalStore } from 'react';
+import { memo, useContext, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useCellId } from '../../hooks';
 import { PortGroupContext } from '../../context/port-group-context';
 import { useGraphStore } from '../../hooks/use-graph-store';
-import { PORTAL_SELECTOR } from '../../data/create-ports-data';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
-import { createElements } from '../../utils/create';
-import { PaperContext } from '../../context';
+import { PaperStoreContext } from '../../context';
+import { useGraphInternalStoreSelector } from '../../hooks/use-graph-store-selector';
+import { PORTAL_SELECTOR } from '../../store';
 
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
 
@@ -20,7 +20,7 @@ export interface PortItemProps {
    * Magnet - define if the port is passive or not. It can be set to any value inside the paper.
    * @default true
    */
-  readonly magnet?: string;
+  readonly magnet?: 'passive' | 'true' | 'false';
   /**
    * The id of the port. It must be unique within the cell.
    */
@@ -59,16 +59,17 @@ export interface PortItemProps {
 function Component(props: PortItemProps) {
   const { magnet, id, children, groupId, z, x, y, dx, dy } = props;
   const cellId = useCellId();
-  const paperCtx = useContext(PaperContext);
-  if (!paperCtx) {
-    throw new Error('PortItem must be used within a `PaperProvider` or `Paper` component');
+  const paperStore = useContext(PaperStoreContext);
+  if (!paperStore) {
+    throw new Error('PortItem must be used within a Paper context');
   }
-  const { portsStore, paper } = paperCtx;
-  const { graph } = useGraphStore();
+  const { paperId } = paperStore;
+  const graphStore = useGraphStore();
+  const { graph } = graphStore;
 
   const contextGroupId = useContext(PortGroupContext);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const cell = graph.getCell(cellId);
     if (!cell) {
       throw new Error(`Cell with id ${cellId} not found`);
@@ -80,9 +81,9 @@ function Component(props: PortItemProps) {
       throw new Error('Port id is required');
     }
 
-    const alreadyExists = cell.getPorts().some((p) => p.id === id);
+    const alreadyExists = cell.hasPort(id);
     if (alreadyExists) {
-      throw new Error(`Port with id ${id} already exists`);
+      throw new Error(`Port with id ${id} already exists in cell ${cellId}`);
     }
 
     const port: dia.Element.Port = {
@@ -103,43 +104,37 @@ function Component(props: PortItemProps) {
       markup: elementMarkup,
     };
 
-    cell.addPort(port);
+    // Add port via graphStore for batching
+    graphStore.setPort(cellId, id, port);
+    graphStore.flushPendingUpdates();
+
     return () => {
-      cell.removePort(id);
+      // Remove port via graphStore for batching
+      graphStore.removePort(cellId, id);
     };
-  }, [cellId, contextGroupId, graph, groupId, id, x, y, z, magnet, dx, dy]);
+  }, [cellId, contextGroupId, graph, graphStore, groupId, id, x, y, z, magnet, dx, dy]);
 
-  const portalNode = useSyncExternalStore(
-    portsStore.subscribe,
-    () => portsStore.getPortElement(cellId, id),
-    () => portsStore.getPortElement(cellId, id)
-  );
+  const portalNode = useGraphInternalStoreSelector((state) => {
+    const portId = paperStore.getPortId(cellId, id);
+    return state.papers[paperId]?.portsData?.[portId];
+  });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!portalNode) {
       return;
     }
 
-    const elementView = paper.findViewByModel(cellId);
-
-    elementView.cleanNodesCache();
-    for (const link of graph.getConnectedLinks(elementView.model)) {
-      const target = link.target();
-      const source = link.source();
-
-      const isElementLink = target.id === cellId || source.id === cellId;
-      if (!isElementLink) {
-        continue;
-      }
-
-      const isPortLink = target.port === id || source.port === id;
-      if (!isPortLink) {
-        continue;
-      }
-      // @ts-expect-error we use private jointjs api method, it throw error here.
-      link.findView(paper).requestConnectionUpdate({ async: false });
-    }
-  }, [cellId, graph, id, paper, portalNode]);
+    graphStore.scheduleClearView({
+      cellId,
+      onValidateLink: (link) => {
+        const target = link.target();
+        const source = link.source();
+        const isPortLink = target.port === id || source.port === id;
+        return isPortLink;
+      },
+    });
+    graphStore.flushPendingUpdates();
+  }, [cellId, graphStore, id, portalNode]);
 
   if (!portalNode) {
     return null;
@@ -172,9 +167,3 @@ function Component(props: PortItemProps) {
  * ```
  */
 export const PortItem = memo(Component);
-
-createElements([
-  {
-    id: 'port-one',
-  },
-]);

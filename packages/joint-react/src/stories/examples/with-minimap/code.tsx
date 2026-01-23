@@ -1,22 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
-import { useCallback } from 'react';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  MeasuredNode,
-  Paper,
-  type InferElement,
-  type RenderElement,
-} from '@joint/react';
+import { useCallback, useRef } from 'react';
+import { GraphProvider, Paper, useNodeSize, type RenderElement } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialElements = createElements([
+const initialElements = [
   { id: '1', label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
   { id: '2', label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
-]);
-const initialEdges = createLinks([
+];
+const initialEdges = [
   {
     id: 'e1-2',
     source: '1',
@@ -27,9 +19,9 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
@@ -42,6 +34,7 @@ function MiniMap() {
   return (
     <div className="absolute bottom-4 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
       <Paper
+        id="minimap"
         interactive={false}
         scale={0.4}
         width="100%"
@@ -54,21 +47,31 @@ function MiniMap() {
 }
 
 function RenderElement({ width, height, label, color }: Readonly<BaseElementWithData>) {
+  const elementRef = useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="flex flex-col items-center rounded-sm" style={{ background: color }}>
-          Example
-          <div>{label}</div>
-        </div>
-      </MeasuredNode>
+      <div
+        ref={elementRef}
+        className="flex flex-col items-center rounded-sm"
+        style={{ background: color }}
+      >
+        Example
+        <div>{label}</div>
+      </div>
     </foreignObject>
   );
 }
 function Main() {
   return (
     <div className="flex flex-row relative">
-      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
+      <Paper
+        id="main-view"
+        width="100%"
+        className={PAPER_CLASSNAME}
+        height={280}
+        renderElement={RenderElement}
+      />
       <MiniMap />
     </div>
   );
@@ -76,7 +79,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

@@ -1,5 +1,5 @@
 import type { attributes, dia, shapes } from '@joint/core';
-import type { JointAttributes, Ports } from '../utils/cell/get-cell';
+import type { Ports } from '../components';
 
 export interface ReactElementAttributes {
   root?: attributes.SVGAttributes;
@@ -19,45 +19,54 @@ export interface StandardShapesTypeMapper {
   'standard.Polygon': shapes.standard.PolygonSelectors;
   'standard.Polyline': shapes.standard.PolylineSelectors;
   'standard.TextBlock': shapes.standard.TextBlockSelectors;
-  react: ReactElementAttributes;
+  ReactElement: ReactElementAttributes;
 }
 
 export type StandardShapesType = keyof StandardShapesTypeMapper;
 
-export interface GraphElement extends JointAttributes {
+export interface GraphElement extends Record<string, unknown> {
   /**
    * Unique identifier of the element.
    */
-  readonly id: dia.Cell.ID;
-  /**
-   * Optional element type.
-   * @default `REACT_TYPE`
-   */
-  readonly type?: string | keyof StandardShapesTypeMapper;
+  id: dia.Cell.ID;
   /**
    * Ports of the element.
    */
-  readonly ports?: Ports;
+  ports?: Ports;
   /**
    * X position of the element.
    */
-  readonly x?: number;
+  x?: number;
   /**
    * Y position of the element.
    */
-  readonly y?: number;
+  y?: number;
   /**
    * Optional width of the element.
    */
-  readonly width?: number;
+  width?: number;
   /**
    * Optional height of the element.
    */
-  readonly height?: number;
-
-  readonly markup?: string | dia.MarkupJSON;
+  height?: number;
+  /**
+   * Optional markup of the element.
+   */
+  markup?: string | dia.MarkupJSON;
+  /**
+   * Optional angle of the element.
+   */
+  angle?: number;
+  /**
+   * Z-index of the element.
+   */
+  z?: number;
+  /**
+   * Parent element id.
+   */
+  parent?: string;
   /**
    * Attributes of the element.
    */
-  readonly attrs?: unknown;
+  attrs?: dia.Cell.Selectors;
 }

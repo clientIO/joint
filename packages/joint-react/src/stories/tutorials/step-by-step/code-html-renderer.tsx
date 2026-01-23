@@ -1,24 +1,27 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
-  createElements,
-  createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
   usePaper,
+  useNodeSize,
   type GraphProps,
-  type InferElement,
+  type GraphElement,
+  type GraphLink,
 } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME } from 'storybook-config/theme';
+
+// Define element type with custom properties
+type CustomElement = GraphElement & { data: { label: string } };
+
 // Define initial elements
-const initialElements = createElements([
+const initialElements: CustomElement[] = [
   { id: '1', data: { label: 'Hello' }, x: 100, y: 0, width: 100, height: 25 },
   { id: '2', data: { label: 'World' }, x: 100, y: 200, width: 100, height: 25 },
-]);
+];
 
 // Define initial edges
-const initialEdges = createLinks([
+const initialEdges: GraphLink[] = [
   {
     id: 'e1-2',
     source: '1',
@@ -31,7 +34,7 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+];
 
 let zoomLevel = 1;
 
@@ -43,9 +46,10 @@ function Controls() {
         type="button"
         // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
         onClick={() => {
-          const center = paper.getArea().center();
+          const center = paper?.getArea().center();
+          if (!center) return;
           zoomLevel = Math.min(3, zoomLevel + 0.2);
-          paper.scaleUniformAtPoint(zoomLevel, center);
+          paper?.scaleUniformAtPoint(zoomLevel, center);
         }}
         className={BUTTON_CLASSNAME}
       >
@@ -55,9 +59,10 @@ function Controls() {
         type="button"
         // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
         onClick={() => {
-          const center = paper.getArea().center();
+          const center = paper?.getArea().center();
+          if (!center) return;
           zoomLevel = Math.max(0.2, zoomLevel - 0.2);
-          paper.scaleUniformAtPoint(zoomLevel, center);
+          paper?.scaleUniformAtPoint(zoomLevel, center);
         }}
         className={`${BUTTON_CLASSNAME} ml-2`}
       >
@@ -70,17 +75,18 @@ function Main() {
   const [isHTMLEnabled, setHTMLEnabled] = useState(true);
 
   // Infer element type from the initial elements
-  type CustomElement = InferElement<typeof initialElements>;
 
   const renderItem = useCallback(
     ({ data: { label }, width, height }: CustomElement) => {
       if (isHTMLEnabled) {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const elementRef = useRef<HTMLDivElement>(null);
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useNodeSize(elementRef);
         return (
-          <MeasuredNode>
-            <div className="node">
-              <div>{label}</div>
-            </div>
-          </MeasuredNode>
+          <div ref={elementRef} className="node">
+            <div>{label}</div>
+          </div>
         );
       }
       return <rect rx={10} ry={10} width={width} height={height} fill="blue" />;
@@ -107,7 +113,12 @@ function Main() {
 
 export default function App(props: Readonly<GraphProps>) {
   return (
-    <GraphProvider {...props} initialLinks={initialEdges} initialElements={initialElements}>
+    <GraphProvider
+      areBatchUpdatesDisabled
+      {...props}
+      links={initialEdges}
+      elements={initialElements}
+    >
       <Main />
     </GraphProvider>
   );

@@ -5,36 +5,40 @@ import { getAPIDocumentationLink, getAPIPropsLink } from './utils/get-api-docume
 
 # Introduction to @joint/react
 
-**@joint/react** is a React wrapper for [JointJS](https://www.jointjs.com/), designed to make creating and managing interactive diagrams and graphs in React applications simple and intuitive. It provides React components, hooks, and utilities to efficiently manage nodes, links, and user interactions.
+**@joint/react** is a modern React wrapper for [JointJS](https://www.jointjs.com/). It simplifies building interactive diagrams and graphs in React apps with idiomatic components, hooks, and utilities to manage nodes, links, and interactions.
 
 ## 📌 Core Components
 
 ### 1. {getAPIDocumentationLink('GraphProvider')}
-The `GraphProvider` component manages a shared [JointJS Graph instance](https://docs.jointjs.com/api/dia/Graph/) to handle the state of your diagram. Wrap it around any components that interact with the graph.
+The `GraphProvider` component provides a shared [JointJS Graph](https://docs.jointjs.com/api/dia/Graph/) context to its descendants. Wrap parts of your app that read or write graph state.
 
 ```tsx
 import { GraphProvider } from '@joint/react';
 
 <GraphProvider>
-  {/* Components like Paper for rendering nodes and edges */}
+  {/* Add Paper or other components here */}
 </GraphProvider>
 ```
 
-### 2. {getAPIDocumentationLink('Paper', 'variables')}
-The `Paper` component wraps [JointJS Paper](https://docs.jointjs.com/learn/quickstart/paper/) to render nodes and links. Use the {getAPIPropsLink('Paper', 'renderElement')} prop to define how nodes are displayed.
+### 2. {getAPIDocumentationLink('Paper')}
+`Paper` renders nodes and links. It wraps the [JointJS Paper](https://docs.jointjs.com/learn/quickstart/paper/) and exposes props like {getAPIPropsLink('Paper', 'renderElement')} to control rendering. You can use multiple views in the same `GraphProvider` (e.g., main canvas + minimap). When using multiple views in development, set a unique `id` for each view to avoid conflicts.
 
 ```tsx
-import { Paper } from '@joint/react';
+import { GraphProvider } from '@joint/react';
 
-const renderElement = (element) => (
-  <rect width={element.size().width} height={element.size().height} fill="cyan" />
+const renderElement = ({ width, height }) => (
+  <rect width={width} height={height} fill="cyan" />
 );
 
-<Paper width={800} height={600} renderElement={renderElement} />
+<GraphProvider>
+  <Paper width={800} height={600} renderElement={renderElement} />
+</GraphProvider>
 ```
 
-### 3. **Embedding HTML in SVG Nodes**
-While JointJS primarily uses SVG, you can embed HTML content inside nodes using SVG's `<foreignObject>`:
+### 3. **Rendering HTML content**
+Because JointJS is SVG‑based, you have two options for HTML:
+- Use SVG `<foreignObject>` (simple, but with Safari caveats)
+- Use the experimental {getAPIPropsLink('Paper', 'useHTMLOverlay')} prop to render real HTML outside the SVG
 
 ```tsx
 const renderElement = ({ width, height }) => (
@@ -44,48 +48,44 @@ const renderElement = ({ width, height }) => (
     </div>
   </foreignObject>
 );
+
+<GraphProvider>
+  <Paper renderElement={renderElement} />
+</GraphProvider>
 ```
 
 ## 🛠️ Core Hooks and Utilities
 
 ### 🔹 Accessing Elements
-- {getAPIDocumentationLink('useElements')}: Retrieve all diagram elements (requires `GraphProvider` context).
+- {getAPIDocumentationLink('useElements')}: Retrieve all graph elements (requires `GraphProvider` context).
 - {getAPIDocumentationLink('useElement')}: Retrieve individual element data, typically used within `renderElement`.
 
 ### 🔹 Modifying Elements
-- {getAPIDocumentationLink('useUpdateElement')}: Update existing elements in the diagram.
+Use the graph APIs to update state. Hooks provide convenient access:
+- {getAPIDocumentationLink('useGraph')}: Read/write the graph (e.g., `graph.setCells()`)
 
 ### 🔹 Graph and Paper Instances
-- {getAPIDocumentationLink('useGraph')}: Access the JointJS [Graph instance](https://docs.jointjs.com/api/dia/Graph/) directly.
-- {getAPIDocumentationLink('usePaper')}: Access the JointJS [Paper instance](https://docs.jointjs.com/learn/quickstart/paper/) directly.
+- {getAPIDocumentationLink('useGraph')}: Access the JointJS [Graph](https://docs.jointjs.com/api/dia/Graph/)
+- {getAPIDocumentationLink('usePaper')}: Access the JointJS [Paper](https://docs.jointjs.com/learn/quickstart/paper/)
 
 ### 🔹 Creating Nodes and Links
-- {getAPIDocumentationLink('createElements')}: Utility for creating nodes.
+Elements and links are plain objects with at least an `id` field and geometry properties.
 
 ```ts
-import { createElements } from '@joint/react';
-
-const initialElements = createElements([
+const initialElements = [
   { id: '1', type: 'rect', x: 10, y: 10, width: 100, height: 100 },
-]);
-```
+];
 
-- {getAPIDocumentationLink('createLinks')}: Utility for creating links between nodes.
-
-```ts
-import { createLinks } from '@joint/react';
-
-const initialLinks = createLinks([
-  { source: '1', target: '2', id: '1-2' },
-]);
+const initialLinks = [
+  { id: '1-2', source: '1', target: '2' },
+];
 ```
 
 ---
 
 ## How It Works
-Under the hood, **@joint/react** listens to changes in the `dia.Graph`, which acts as the single source of truth. When you update the graph—such as adding or modifying cells—the React components automatically observe and react to these changes, keeping the UI in sync.
 
-Hooks like `useUpdateElement` provide a convenient way to update the graph, but you can also directly access the graph using `useGraph()` and call methods like `graph.setCells()`.
+Under the hood, **@joint/react** listens to changes in `dia.Graph`, which acts as the single source of truth. When you update the graph (add/modify cells), React components subscribe and re-render accordingly. Access the graph via `useGraph()` to perform updates like `graph.setCells()`.
 
 ---
 
@@ -111,4 +111,4 @@ If you need to use HTML inside an SVG with cross-browser support:
 React's asynchronous rendering can cause flickering when dynamically adding ports or resizing elements. We are aware of this issue and are working on a fix.
 
 ### Controlled Mode
-Currently, **@joint/react** uses `useSyncExternalStore` to listen to graph changes. The graph is the source of truth, so `initialElements` and `initialLinks` are only used during initialization. To modify the state, update the graph directly using hooks like `useGraph`, `useUpdateElement`, or `useCreateElement`. A fully controlled mode is under development.
+Currently, **@joint/react** uses `useSyncExternalStore` to listen to graph changes. The graph is the source of truth, so `initialElements` and `initialLinks` are only used during initialization. To modify state, update the graph directly via hooks like `useGraph`. A fully controlled mode is under development.

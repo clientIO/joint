@@ -1,9 +1,9 @@
 import { useContext } from 'react';
-import { GraphStoreContext, type StoreContext } from '../context/graph-store-context';
+import { GraphStoreContext, type StoreContext } from '../context';
 
 /**
- * Custom hook to use a JointJS graph store.
- * It retrieves the graph from the GraphContext.
+ * Custom hook to use a JointJS `GraphProvider` graph store.
+ * It must be used inside the `GraphProvider`.
  * @group Hooks
  * @internal
  * @returns The JointJS graph store.

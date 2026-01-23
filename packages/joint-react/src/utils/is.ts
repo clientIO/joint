@@ -1,9 +1,8 @@
 /* eslint-disable jsdoc/require-jsdoc */
 import { dia, util } from '@joint/core';
-import type { GraphCell } from './cell/get-cell';
-import type { GraphLink } from '../types/link-types';
 import type { GraphElement } from '../types/element-types';
 import type { FunctionComponent, JSX } from 'react';
+import type { GraphCell } from './cell/cell-utilities';
 
 export type Setter<Value> = (item: Value) => Value;
 
@@ -33,24 +32,12 @@ export function isGraphCell<Element extends GraphElement = GraphElement>(
   return isRecord(value) && 'isElement' in value && 'isLink' in value;
 }
 
-export function isGraphElement(value: unknown): value is GraphElement {
-  return isGraphCell(value) && value.isElement;
-}
-
-export function isGraphLink(value: unknown): value is GraphLink {
-  return isGraphCell(value) && value.isLink;
-}
-
 export function isLinkInstance(value: unknown): value is dia.Link {
   return value instanceof dia.Link;
 }
 
 export function isCellInstance(value: unknown): value is dia.Cell {
   return value instanceof dia.Cell;
-}
-
-export function isUnsized(width: number | undefined, height: number | undefined) {
-  return width === undefined || height === undefined;
 }
 
 export function hasChildren(props: Record<string, unknown>) {
@@ -77,4 +64,14 @@ export function isReactComponentFunction(value: unknown): value is FunctionCompo
 
 export function isWithChildren(value: unknown): value is { children: JSX.Element[] } {
   return isRecord(value) && hasChildren(value);
+}
+
+export function assertGraph<Graph extends dia.Graph>(graph?: Graph): asserts graph is Graph {
+  if (!graph) {
+    throw new Error('Graph instance is required');
+  }
+}
+
+export function isUpdater<T>(updater: ((previous: T) => T) | T): updater is (previous: T) => T {
+  return typeof updater === 'function' && 'call' in updater;
 }

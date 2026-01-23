@@ -1,22 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable sonarjs/prefer-read-only-props */
-import type { Meta, StoryObj } from '@storybook/react/*';
-import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
-import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
 import '../../stories/examples/index.css';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  MeasuredNode,
-  Paper,
-  Port,
-  useElement,
-} from '@joint/react';
+import { GraphProvider, Port, useElement, useNodeSize } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { PortGroup } from './port-group';
+import { getAPILink } from '../../stories/utils/get-api-documentation-link';
+import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
+import { Paper } from '../paper/paper';
 
-const initialElements = createElements([
+const initialElements = [
   {
     id: '1',
     x: 100,
@@ -31,9 +25,9 @@ const initialElements = createElements([
     width: 100,
     height: 50,
   },
-]);
+];
 
-const initialLinks = createLinks([
+const initialLinks = [
   {
     id: 'e1-2',
 
@@ -51,28 +45,28 @@ const initialLinks = createLinks([
       },
     },
   },
-]);
+];
 
 export type Story = StoryObj<typeof PortGroup>;
 const API_URL = getAPILink('Port.Group', 'variables');
 
 function RenderItem(Story: React.FC) {
   const { width, height } = useElement();
+  const elementRef = React.useRef<HTMLDivElement>(null);
+  useNodeSize(elementRef);
   return (
     <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="node flex flex-col">
-          Test
-          <Story />
-        </div>
-      </MeasuredNode>
+      <div ref={elementRef} className="node flex flex-col">
+        Test
+        <Story />
+      </div>
     </foreignObject>
   );
 }
 function PaperDecorator(Story: React.FC) {
   const renderItem = () => RenderItem(Story);
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Paper
         className={PAPER_CLASSNAME}
         width={'100%'}
@@ -88,6 +82,7 @@ const meta: Meta<typeof PortGroup> = {
   title: 'Components/Port/Group',
   component: PortGroup,
   decorators: [PaperDecorator],
+  tags: ['component'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
     code: `

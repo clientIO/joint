@@ -1,18 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  Highlighter,
-  Paper,
-  type InferElement,
-} from '@joint/react';
+import { GraphProvider, Highlighter, Paper, type GraphElement, type GraphLink } from '@joint/react';
 import '../index.css';
 import { useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
-const initialElements = createElements([
+const initialElements = [
   {
     id: '1',
     label: 'Node 1',
@@ -29,9 +22,9 @@ const initialElements = createElements([
     width: 120,
     height: 25,
   },
-]);
+] satisfies GraphElement[];
 
-const initialEdges = createLinks([
+const initialEdges = [
   {
     id: 'e1-2',
     source: '1',
@@ -42,11 +35,11 @@ const initialEdges = createLinks([
       },
     },
   },
-]);
+] satisfies GraphLink[];
 
-type BaseElementWithData = InferElement<typeof initialElements>;
+type BaseElementWithData = (typeof initialElements)[number];
 
-function RenderItemWithChildren({ height, width, label }: BaseElementWithData) {
+function RenderItemWithChildren({ height, width, label }: Readonly<BaseElementWithData>) {
   const [isHighlighted, setIsHighlighted] = useState(false);
   return (
     <g
@@ -79,7 +72,7 @@ function Main() {
 }
 export default function App() {
   return (
-    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );

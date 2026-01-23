@@ -4,7 +4,7 @@ import { useElements } from '../use-elements';
 
 describe('use-elements', () => {
   const wrapper = graphProviderWrapper({
-    initialElements: [
+    elements: [
       {
         id: '1',
         width: 97,
@@ -16,7 +16,7 @@ describe('use-elements', () => {
         height: 99,
       },
     ],
-    initialLinks: [
+    links: [
       {
         id: '3',
         source: '1',

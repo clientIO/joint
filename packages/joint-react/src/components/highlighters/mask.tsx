@@ -1,4 +1,4 @@
-import type { FC, PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import { forwardRef, useCallback, useMemo } from 'react';
 import type { OnCreateHighlighter } from './custom';
 import { Custom } from './custom';
@@ -36,7 +36,7 @@ const DEFAULT_MASK_HIGHLIGHTER_PROPS: MaskHighlighterProps = {
 };
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
+function Component(props: MaskHighlighterProps, forwardedRef?: React.Ref<SVGElement>) {
   const { layer, children, padding, isHidden, ...svgAttributes } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
     const data: dia.HighlighterView.Options = {
@@ -74,4 +74,5 @@ function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGEleme
  * return <Highlighter.Mask />
  * ```
  */
-export const Mask: FC<MaskHighlighterProps> = forwardRef(Component);
+
+export const Mask = forwardRef<SVGElement, MaskHighlighterProps>(Component);
