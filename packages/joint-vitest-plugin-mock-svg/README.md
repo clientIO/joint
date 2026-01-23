@@ -17,7 +17,7 @@ export default defineConfig({
 
 ## License
 
-Copyright (c) 2013-2025 client IO
+Copyright © 2013-2026 client IO
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

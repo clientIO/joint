@@ -637,9 +637,8 @@ export const Paper = View.extend({
 
         const { options } = this;
         if (!options.cellViewNamespace) {
-            /* eslint-disable no-undef */
-            options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
-            /* eslint-enable no-undef */
+            // eslint-disable-next-line no-undef
+            options.cellViewNamespace = (((typeof joint !== 'undefined') && has(joint, 'shapes')) ? joint.shapes : null);
         }
 
         const defaultLayerViewNamespace = {
@@ -720,6 +719,9 @@ export const Paper = View.extend({
         var position = opt.position;
         if (this.isAsync() || !isNumber(position)) {
             this.renderView(cell, opt);
+            // Wake up the paper in case it was idle
+            // When using initializeUnmounted: true the paper won't wake up by itself
+            this.wakeUp();
         } else {
             if (opt.maxPosition === position) this.freeze({ key: 'addCells' });
             this.renderView(cell, opt);
@@ -867,11 +869,11 @@ export const Paper = View.extend({
         } = options;
 
         // Default cellView namespace for ES5
-        /* eslint-disable no-undef */
-        if (!cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
+        // eslint-disable-next-line no-undef
+        if (!cellViewNamespace && (typeof joint !== 'undefined') && has(joint, 'shapes')) {
+            // eslint-disable-next-line no-undef
             options.cellViewNamespace = joint.shapes;
         }
-        /* eslint-enable no-undef */
 
         // Here if a function was provided, we can not clone it, as this would result in loosing the function.
         // If the default is used, the cloning is necessary in order to prevent modifying the options on prototype.
@@ -1108,7 +1110,8 @@ export const Paper = View.extend({
      * Helper method for addLayerView and moveLayerView methods
      */
     _getBeforeLayerViewFromOptions(layerView, options) {
-        let { before = null, index } = options;
+        const { before = null } = options;
+        let { index } = options;
 
         if (before && index !== undefined) {
             throw new Error('dia.Paper: Options "before" and "index" are mutually exclusive.');
@@ -1568,7 +1571,7 @@ export const Paper = View.extend({
                 delete prevPriorityUpdates[cid];
             }
         }
-        let currentType = priorityUpdates[cid] || 0;
+        const currentType = priorityUpdates[cid] || 0;
         // Prevent cycling
         if ((currentType & type) === type) return;
         if (!currentType) updates.count++;
@@ -1710,7 +1713,7 @@ export const Paper = View.extend({
         let i = priorityIndexes.length;
         while (i > 0 && i--) {
             // a faster way how to check if an object is empty
-            for (let _key in priorities[priorityIndexes[i]]) return true;
+            for (const _key in priorities[priorityIndexes[i]]) return true;
         }
         return false;
     },
@@ -2030,8 +2033,12 @@ export const Paper = View.extend({
         var updates = this._updates;
         var unmountedList = updates.unmountedList;
         for (var i = 0, n = Math.min(unmountedList.length, batchSize); i < n; i++) {
+            // stop if there are no more unmounted views
+            // this can happen when another view was mounted in the onViewUpdate() callback
+            if (unmountedList.length === 0) break;
+
             const { key: cid } = unmountedList.peekHead();
-            let view = viewsRegistry[cid] || this._viewPlaceholders[cid];
+            const view = viewsRegistry[cid] || this._viewPlaceholders[cid];
             if (!view) {
                 // This should not occur
                 // Prevent looping over this invalid cid
@@ -2267,8 +2274,8 @@ export const Paper = View.extend({
     setDimensions: function(width, height, data = {}) {
         const { options } = this;
         const { width: currentWidth, height: currentHeight } = options;
-        let w = (width === undefined) ? currentWidth : width;
-        let h = (height === undefined) ? currentHeight : height;
+        const w = (width === undefined) ? currentWidth : width;
+        const h = (height === undefined) ? currentHeight : height;
         if (currentWidth === w && currentHeight === h) return;
         options.width = w;
         options.height = h;
@@ -3243,7 +3250,8 @@ export const Paper = View.extend({
 
     resolveHighlighter: function(opt = {}) {
 
-        let { highlighter: highlighterDef, type } = opt;
+        let { highlighter: highlighterDef } = opt;
+        const { type } = opt;
         const { highlighting,highlighterNamespace  } = this.options;
 
         /*

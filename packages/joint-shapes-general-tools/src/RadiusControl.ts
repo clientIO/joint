@@ -1,4 +1,5 @@
-import { dia, elementTools, V, Vectorizer } from '@joint/core';
+import type { dia } from '@joint/core';
+import { elementTools, V, Vectorizer } from '@joint/core';
 
 export interface RadiusControlOptions extends elementTools.Control.Options {
 
@@ -15,6 +16,7 @@ export interface RadiusControlOptions extends elementTools.Control.Options {
      *
      */
     defaultRadius?: boolean | number;
+
 }
 
 /**
@@ -24,7 +26,7 @@ export interface RadiusControlOptions extends elementTools.Control.Options {
  *
  * @category Shape-Independent
  */
- export class RadiusControl extends elementTools.Control<RadiusControlOptions> {
+export class RadiusControl extends elementTools.Control<RadiusControlOptions> {
 
     /** @ignore */
     children = [{
@@ -47,7 +49,7 @@ export interface RadiusControlOptions extends elementTools.Control.Options {
             'font-weight': 'bold',
             'font-size': 12
         }
-    }]
+    }];
 
     /**
      * The method converts the value of the `radius` to a string
@@ -116,4 +118,5 @@ export interface RadiusControlOptions extends elementTools.Control.Options {
         const radius = (defaultRadius === true) ? 0 : defaultRadius;
         this.setRadius(radius);
     }
+
 }

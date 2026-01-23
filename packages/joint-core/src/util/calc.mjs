@@ -104,7 +104,7 @@ export function evalCalcExpression(expression, rect) {
     let value = expression;
     let startSearchIndex = 0;
     do {
-        let calcIndex = value.indexOf(calcStart, startSearchIndex);
+        const calcIndex = value.indexOf(calcStart, startSearchIndex);
         if (calcIndex === -1) return value;
         let calcEndIndex = calcIndex + calcStartOffset;
         let brackets = 1;

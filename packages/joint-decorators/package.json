@@ -1,7 +1,7 @@
 {
   "name": "@joint/decorators",
   "title": "JointJS Decorators",
-  "version": "4.2.1",
+  "version": "4.2.3",
   "description": "Decorators module for JointJS",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -25,8 +25,10 @@
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn run dist",
+    "dist": "tsc",
     "build": "tsc",
-    "dist": "tsc"
+    "lint": "eslint .",
+    "lint-fix": "yarn run lint --fix"
   },
   "files": [
     "build/",
@@ -38,6 +40,8 @@
     "@joint/core": "workspace:~"
   },
   "devDependencies": {
+    "@joint/eslint-config": "workspace:*",
+    "eslint": "9.39.2",
     "typescript": "5.8.2"
   },
   "volta": {

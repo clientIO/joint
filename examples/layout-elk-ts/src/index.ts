@@ -263,6 +263,13 @@ function getElkGraph(graph: dia.Graph): ElkGraph {
              */
             'elk.spacing.edgeLabel': '3',
 
+            /**
+             * Enable partitioning i.e., assigning nodes to layers. You need to add
+             * `partitioning.partition` attribute to nodes for this to take effect.
+             * 'true' | 'false'
+             */
+            'elk.partitioning.activate': 'false',
+
             // Does not seem to work as expected:
             // 'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'HEAD_LAYER',
             // 'elk.edgeLabels.placement': 'TAIL'
@@ -298,6 +305,9 @@ function getElkGraph(graph: dia.Graph): ElkGraph {
                 width: label.size?.width || DEFAULT_LABEL_WIDTH,
                 height: label.size?.height || DEFAULT_LABEL_HEIGHT,
                 layoutOptions: {
+                    // Place label directly on the edge.
+                    'edgeLabels.inline': 'true',
+
                     // This works, but does not allocate space for the label
                     // 'edgeLabels.placement': 'HEAD' // 'CENTER' | 'HEAD' | 'TAIL'
                 }

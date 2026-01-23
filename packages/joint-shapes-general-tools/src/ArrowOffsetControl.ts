@@ -1,8 +1,9 @@
-import { dia, elementTools } from '@joint/core';
-import { Arrow } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools } from '@joint/core';
+import type { Arrow } from '@joint/shapes-general';
 
-export interface ArrowOffsetControlOptions
-    extends elementTools.Control.Options {
+export interface ArrowOffsetControlOptions extends elementTools.Control.Options {
+
     /* This prop will set the default value of arrow thickness after the reset
      *
      * `defaultThickness` -  To assign a default thickness for the arrow. If not assigned it will be the 1/3 of the height.
@@ -16,12 +17,14 @@ export interface ArrowOffsetControlOptions
      *
      */
     defaultArrowHeight?: number;
+
 }
 
 /**
  * @category Shape-Specific
  */
 export class ArrowOffsetControl extends elementTools.Control<ArrowOffsetControlOptions> {
+
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
@@ -32,7 +35,7 @@ export class ArrowOffsetControl extends elementTools.Control<ArrowOffsetControlO
     }
 
     protected getPosition() {
-        let { arrowHeight, thickness } = this.element;
+        const { arrowHeight, thickness } = this.element;
         const { width, height } = this.element.size();
         return { x: width - arrowHeight, y: height / 2 - thickness / 2 };
     }
@@ -58,4 +61,5 @@ export class ArrowOffsetControl extends elementTools.Control<ArrowOffsetControlO
         this.element.arrowHeight = defaultArrowHeight;
         this.element.thickness = defaultThickness;
     }
+
 }

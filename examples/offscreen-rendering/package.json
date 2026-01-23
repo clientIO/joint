@@ -1,6 +1,6 @@
 {
-  "name": "@joint/demo-offscreen-rendering-ts",
-  "version": "4.2.1",
+  "name": "@joint/demo-offscreen-rendering",
+  "version": "4.2.3",
   "main": "src/index.ts",
   "homepage": "https://jointjs.com",
   "author": {

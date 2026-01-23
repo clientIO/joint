@@ -26,7 +26,7 @@ export class MyShape extends dia.Element {
                     fill: '#333333'
                 }
             }
-        }
+        };
     }
 
     markup = [{
@@ -35,7 +35,7 @@ export class MyShape extends dia.Element {
     }, {
         tagName: 'text',
         selector: 'label'
-    }]
+    }];
 
     test(): void {
         console.log(`A prototype method test for ${this.get('type')}`);

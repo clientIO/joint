@@ -2683,6 +2683,34 @@ QUnit.module('element ports', function() {
             layoutSpy.restore();
         });
 
+        QUnit.test('returns correct bounding box when port has no size', function(assert) {
+
+            const x = 11;
+            const y = 13;
+            const width = 17;
+            const height = 19;
+
+            const shape = create({
+                groups: {
+                    'a': {
+                        position: 'bottom'
+                        // no size defined
+                    }
+                },
+                items: [
+                    { id: 'one', group: 'a' }
+                ]
+            }).position(x, y).resize(width, height);
+
+            const portBBox = shape.getPortBBox('one');
+            assert.ok(portBBox instanceof g.Rect);
+            assert.equal(portBBox.width, 0);
+            assert.equal(portBBox.height, 0);
+            // Note: Bottom port group layout rounds the coordinates.
+            assert.equal(portBBox.x, Math.round(x + width / 2));
+            assert.equal(portBBox.y, Math.round(y + height));
+        });
+
         QUnit.test('option: rotate', function(assert) {
 
             const width = 17;

@@ -75,7 +75,7 @@ function ellipseLayout(ports, elBBox, startAngle, stepFn) {
 }
 
 function argTransform(bbox, args) {
-    let { x, y, angle } = args;
+    const { x, y, angle } = args;
 
     return {
         x: parseCoordinate('x', 'width', bbox, x),

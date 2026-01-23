@@ -1,4 +1,5 @@
 export function On(eventName: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return function(target: any, name: string, descriptor: PropertyDescriptor) {
         if (!target.events) {
             target.events = {};
@@ -11,5 +12,5 @@ export function On(eventName: string) {
         }
         target.events[eventName] = name;
         return descriptor;
-    }
+    };
 }

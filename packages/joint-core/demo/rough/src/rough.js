@@ -1,4 +1,5 @@
-(function(joint, Rough, g, V) {
+/* global rough:readonly */
+(function(joint, V, g, Rough) {
 
     var WIDTH = 800;
     var HEIGHT = 600;
@@ -444,4 +445,4 @@
 
     graph.resetCells([r1, r2, r3, r4, r5, rl1, rl2, rl3, rl4]);
 
-})(joint, rough, g, V);
+})(joint, V, g, rough);

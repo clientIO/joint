@@ -1,4 +1,6 @@
-import { dia, util, g } from '@joint/core';
+import type { dia } from '@joint/core';
+import { util, g } from '@joint/core';
+import type { BezierSeg } from '@msagl/core';
 import {
     Graph,
     GeomGraph,
@@ -13,7 +15,6 @@ import {
     Label,
     GeomLabel,
     SugiyamaLayoutSettings,
-    BezierSeg,
     LineSegment
 } from '@msagl/core';
 import { IdentifiableGeomEdge } from './IdentifiableGeomEdge.mjs';

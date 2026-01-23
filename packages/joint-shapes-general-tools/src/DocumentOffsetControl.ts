@@ -1,5 +1,6 @@
-import { dia, elementTools, g } from '@joint/core';
-import { Document } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools, g } from '@joint/core';
+import type { Document } from '@joint/shapes-general';
 
 export interface DocumentOffsetControlOptions extends elementTools.Control.Options {
 
@@ -11,9 +12,11 @@ export interface DocumentOffsetControlOptions extends elementTools.Control.Optio
      *
      */
     defaultOffset?: boolean | number;
+
 }
 
 export class DocumentOffsetControl extends elementTools.Control<DocumentOffsetControlOptions> {
+
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
@@ -51,4 +54,5 @@ export class DocumentOffsetControl extends elementTools.Control<DocumentOffsetCo
         const offset = (defaultOffset === true) ? 0 : defaultOffset;
         this.element.offset = offset;
     }
+
 }

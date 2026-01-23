@@ -117,7 +117,7 @@ interface Options {
 
 #### `LayerDirectionEnum`
 - `TB` - Top to Bottom (default)
-- `BT` - Bottom to Top  
+- `BT` - Bottom to Top
 - `LR` - Left to Right
 - `RL` - Right to Left
 
@@ -141,9 +141,9 @@ const paper = new dia.Paper({
 });
 
 // Create elements
-const elements = ['A', 'B', 'C', 'D'].map(id => 
-    new shapes.standard.Rectangle({ 
-        id, 
+const elements = ['A', 'B', 'C', 'D'].map(id =>
+    new shapes.standard.Rectangle({
+        id,
         size: { width: 80, height: 40 },
         attrs: { label: { text: id } }
     })
@@ -181,19 +181,19 @@ const paper = new dia.Paper({
     el: document.getElementById('paper'),
 });
 
-const parent = new shapes.standard.Rectangle({ 
+const parent = new shapes.standard.Rectangle({
     id: 'parent',
     size: { width: 200, height: 150 }
 });
 
-const child1 = new shapes.standard.Rectangle({ 
-    id: 'child1', 
-    size: { width: 60, height: 30 } 
+const child1 = new shapes.standard.Rectangle({
+    id: 'child1',
+    size: { width: 60, height: 30 }
 });
 
-const child2 = new shapes.standard.Rectangle({ 
-    id: 'child2', 
-    size: { width: 60, height: 30 } 
+const child2 = new shapes.standard.Rectangle({
+    id: 'child2',
+    size: { width: 60, height: 30 }
 });
 
 // Embed children in parent
@@ -319,4 +319,4 @@ If `getLabelSize` returns `undefined` for a cell, no space is reserved for its l
 
 [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)
 
-Copyright 2013-2025 client IO
+Copyright © 2013-2026 client IO

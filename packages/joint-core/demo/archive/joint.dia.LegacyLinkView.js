@@ -1119,7 +1119,7 @@
             const { metrics, _labelSelectors } = this;
             const selectors = _labelSelectors[index];
             if (!selectors) return;
-            for (let selector in selectors) {
+            for (const selector in selectors) {
                 const { id } = selectors[selector];
                 if (id && (id in metrics)) delete metrics[id].magnetMatrix;
             }

@@ -48,3 +48,76 @@ QUnit.module('sanity check', () => {
         assert.ok(!overlaps);
     });
 });
+
+QUnit.module('layers support', () => {
+
+    QUnit.test('should work when layout cells have layers', function(assert) {
+
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: '1',
+            layer: 'layer1',
+            position: { x: 0, y: 0 },
+            size: { width: 60, height: 100 },
+        });
+        const el2 = new joint.shapes.standard.Rectangle({
+            id: '2',
+            // default layer
+            position: { x: 0, y: 0 },
+            size: { width: 40, height: 80 },
+        });
+        const link = new joint.shapes.standard.Link({
+            id: 'link',
+            layer: 'layer2',
+            source: { id: el1.id },
+            target: { id: el2.id },
+        });
+
+        joint.layout.MSAGL.layout([el1, el2, link], {
+            x: 1,
+            y: 1,
+            layerDirection: joint.layout.MSAGL.LayerDirectionEnum.LR
+        });
+
+        assert.ok(el1.position().x > 0 && el1.position().y > 0);
+        assert.ok(el2.position().x > 0 && el2.position().y > 0);
+    });
+
+    QUnit.test('should work when the layout graph has layers', function(assert) {
+
+        const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        graph.addLayer({ id: 'layer1' });
+        graph.addLayer({ id: 'layer2' });
+
+        const el1 = new joint.shapes.standard.Rectangle({
+            id: '1',
+            layer: 'layer1',
+            position: { x: 0, y: 0 },
+            size: { width: 40, height: 100 },
+        });
+        const el2 = new joint.shapes.standard.Rectangle({
+            id: '2',
+            // default layer
+            position: { x: 0, y: 0 },
+            size: { width: 40, height: 100 },
+        });
+        const link = new joint.shapes.standard.Link({
+            id: 'link',
+            layer: 'layer2',
+            source: { id: el1.id },
+            target: { id: el2.id },
+        });
+
+        graph.addCells([el1, el2, link]);
+
+        joint.layout.MSAGL.layout(graph, {
+            x: 1,
+            y: 1,
+            layerDirection: joint.layout.MSAGL.LayerDirectionEnum.LR
+        });
+
+        assert.ok(el1.position().x > 0 && el1.position().y > 0);
+        assert.ok(el2.position().x > 0 && el2.position().y > 0);
+        assert.ok(el1.position().x < el2.position().x);
+    });
+
+});

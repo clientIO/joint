@@ -1,5 +1,5 @@
 // I.
-var graph1 = createPaper().model;
+var graph1 = window.createPaper().model;
 
 var h2 = document.createElement('h2');
 h2.textContent = 'Default settings';

@@ -36,7 +36,7 @@ export class Input extends dia.Element {
                     fill: '#333333'
                 }
             }
-        }
+        };
     }
 
     /**

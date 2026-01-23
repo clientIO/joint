@@ -1,14 +1,17 @@
-import { dia, util } from '@joint/core';
+import type { dia } from '@joint/core';
+import { util } from '@joint/core';
 import { parseFromSVGString } from '../parser';
 
 export interface ModelOptions {
     attributes?: dia.Cell.Attributes;
     template?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     namespace?: any;
 }
 
 export function Model(options: ModelOptions) {
     const { attributes = {}, template, namespace } = options;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return function Entity<Ctor extends { new(...args: any[]): dia.Cell }>(target: Ctor): Ctor {
 
         const { markup, attrs, bindings } = parseFromSVGString(template);
@@ -25,31 +28,33 @@ export function Model(options: ModelOptions) {
 
         const targetDefaults = target.prototype.defaults;
         Object.defineProperty(target.prototype, 'defaults', {
-            value: function () {
-                const defaults = (typeof targetDefaults === 'function') ? targetDefaults.call(this) : targetDefaults
+            value: function() {
+                const defaults = (typeof targetDefaults === 'function') ? targetDefaults.call(this) : targetDefaults;
                 return {
                     // can not use `super` here
                     ...defaults,
                     ...attributes,
                     type,
                     attrs: util.defaultsDeep(attrs, attributes.attrs, defaults.attrs),
-                }
+                };
             }
         });
 
         const targetInitialize = target.prototype.initialize;
         Object.defineProperty(target.prototype, 'initialize', {
-            value: function () {
+            value: function() {
+                // eslint-disable-next-line prefer-rest-params
                 targetInitialize.apply(this, arguments);
                 this.on('change', __onChange);
                 __updateBindings(this, this.attributes);
             }
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         function __updateBindings(cell: dia.Cell, changed: any, opt: dia.Cell.Options = {}) {
             const attrs = {};
 
-            let changedBindings = bindings.filter(binding => binding.triggers.some(trigger => Object.keys(changed).includes(trigger)))
+            const changedBindings = bindings.filter(binding => binding.triggers.some(trigger => Object.keys(changed).includes(trigger)));
 
             for (const { id, path, expression, args, isFunction, triggers, name } of changedBindings) {
                 const existingExpression = util.getByPath(attrs, path);
@@ -66,7 +71,7 @@ export function Model(options: ModelOptions) {
 
                 if (isFunction) {
                     const attributeValues = triggers.map(attribute => cell.attributes[attribute]);
-                    // @ts-ignore
+                    // @ts-expect-error - functions is not typed
                     const functions = cell.constructor['functions'] || {};
                     if (name in functions) {
                         value = functions[name].call(cell, ...attributeValues, ...args);
@@ -88,5 +93,5 @@ export function Model(options: ModelOptions) {
         }
 
         return target;
-    }
+    };
 }

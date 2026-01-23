@@ -78,7 +78,7 @@ function Component(props: PortItemProps) {
       return;
     }
     if (!id) {
-      throw new Error(`Port id is required`);
+      throw new Error('Port id is required');
     }
 
     const alreadyExists = cell.hasPort(id);

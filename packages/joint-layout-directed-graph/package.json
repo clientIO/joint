@@ -1,7 +1,7 @@
 {
   "name": "@joint/layout-directed-graph",
   "title": "JointJS LayoutDirectedGraph",
-  "version": "4.2.1",
+  "version": "4.2.3",
   "description": "LayoutDirectedGraph module for JointJS",
   "main": "dist/DirectedGraph.js",
   "module": "./DirectedGraph.mjs",
@@ -54,11 +54,10 @@
     "@joint/core": "workspace:~"
   },
   "devDependencies": {
-    "@eslint/js": "9.38.0",
+    "@joint/eslint-config": "workspace:*",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
-    "eslint": "9.38.0",
-    "globals": "16.0.0",
+    "eslint": "9.39.2",
     "karma": "^6.4.2",
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",

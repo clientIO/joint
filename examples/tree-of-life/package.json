@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-tree-of-life",
-  "version": "4.2.1",
+  "version": "4.2.3",
   "main": "src/index.ts",
   "author": {
     "name": "client IO",

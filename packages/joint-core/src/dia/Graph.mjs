@@ -29,6 +29,13 @@ export const Graph = Model.extend({
      */
     defaultLayerId: DEFAULT_LAYER_ID,
 
+    /**
+     * @protected
+     * @description If `true`, layer functionality is disabled
+     * and all cells are assigned to the default layer.
+     */
+    ignoreLayers: false,
+
     initialize: function(attrs, options = {}) {
 
         const layerCollection = this.layerCollection = new GraphLayerCollection([], {
@@ -51,6 +58,11 @@ export const Graph = Model.extend({
 
         // Controller that manages communication between the graph and its layers.
         this.layersController = new GraphLayersController({ graph: this });
+
+        // Option to ignore layers altogether.
+        if (options.ignoreLayers) {
+            this.ignoreLayers = true;
+        }
 
         // `Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -156,7 +168,7 @@ export const Graph = Model.extend({
         // Backward compatibility: prior v4.2, z-index was not set during reset.
         if (opt && opt.ensureZIndex) {
             if (cellAttributes.z === undefined) {
-                const layerId = cellAttributes[config.layerAttribute] || this.defaultLayerId;
+                const layerId = this.getCellLayerId(cellInit);
                 const zIndex = this.maxZIndex(layerId) + 1;
                 if (cellInit[CELL_MARKER]) {
                     // Set with event in case there is a listener
@@ -267,6 +279,10 @@ export const Graph = Model.extend({
     getCellLayerId: function(cellInit) {
         if (!cellInit) {
             throw new Error('dia.Graph: No cell provided.');
+        }
+        if (this.ignoreLayers) {
+            // When layers are ignored, all cells belong to the default layer.
+            return this.defaultLayerId;
         }
         const cellAttributes = cellInit[CELL_MARKER]
             ? cellInit.attributes
@@ -526,8 +542,8 @@ export const Graph = Model.extend({
      * Helper method for addLayer and moveLayer methods
      */
     _getBeforeLayerIdFromOptions(options, layer = null) {
-        let { before = null, index } = options;
-
+        let { index } = options;
+        const { before = null } = options;
         if (before && index !== undefined) {
             throw new Error('dia.Graph: Options "before" and "index" are mutually exclusive.');
         }

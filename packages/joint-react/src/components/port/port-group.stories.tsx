@@ -98,7 +98,7 @@ const meta: Meta<typeof PortGroup> = {
             </Port.Item>
         </Port.Group>
     `,
-    description: `Port Group is a container for ports. It can be used to group ports together and apply transformations to them. The group can be positioned using the position prop, which can be either 'absolute' or 'relative'.`,
+    description: 'Port Group is a container for ports. It can be used to group ports together and apply transformations to them. The group can be positioned using the position prop, which can be either \'absolute\' or \'relative\'.',
   }),
 };
 

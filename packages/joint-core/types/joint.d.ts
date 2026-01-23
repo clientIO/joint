@@ -1,5 +1,5 @@
-import { g } from './geometry';
-import { Vectorizer } from './vectorizer';
+import type { g } from './geometry';
+import type { Vectorizer } from './vectorizer';
 
 export const version: string;
 
@@ -323,6 +323,7 @@ export namespace dia {
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
             layerNamespace?: any,
+            ignoreLayers?: boolean,
             /** @deprecated use cellNamespace instead */
             cellModel?: typeof Cell
         });
@@ -551,7 +552,7 @@ export namespace dia {
         }
 
         interface ExportOptions {
-            ignoreDefault?: boolean | string[];
+            ignoreDefaults?: boolean | string[];
             ignoreEmptyAttributes?: boolean;
         }
 
@@ -1667,8 +1668,8 @@ export namespace dia {
             moveThreshold?: number;
             magnetThreshold?: number | string;
             // views
-            elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
-            linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
+            elementView?: typeof ElementView<any> | ((element: Element) => typeof ElementView<any> | null | undefined);
+            linkView?: typeof LinkView<any> | ((link: Link) => typeof LinkView<any> | null | undefined);
             measureNode?: MeasureNodeCallback;
             // embedding
             embeddingMode?: boolean;
@@ -3240,6 +3241,7 @@ export namespace util {
 
     export function toArray(value: any): any[];
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     export function debounce<T extends Function>(func: T, wait?: number, options?: { leading?: boolean, maxWait?: number, trailing?: boolean }): T & Cancelable;
 
     export function groupBy(collection: Collection, iteratee?: IterateeFunction<any>): object;

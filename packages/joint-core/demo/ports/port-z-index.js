@@ -1,4 +1,6 @@
-var paper4 = createPaper();
+const $ = joint.mvc.$;
+
+var paper4 = window.createPaper();
 paper4.options.validateMagnet = function() {
     return false;
 };

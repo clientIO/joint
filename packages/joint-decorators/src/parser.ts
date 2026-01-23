@@ -1,4 +1,5 @@
-import { util, dia, attributes } from '@joint/core';
+import type { dia, attributes } from '@joint/core';
+import { util } from '@joint/core';
 
 // type SVGParserBindings = Record<string, Array<SVGParserBinding>>;
 
@@ -9,6 +10,7 @@ interface SVGParserBinding {
     expression: string,
     triggers: string[],
     isFunction: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: any[]
 }
 interface SVGParserResult {
@@ -48,7 +50,7 @@ const spaceRegex = /[^\S\r\n]+/g;
 
 // regex to identify binding expressions:
 // ReDoS mitigation: Avoid overlapping backtracking (x2)
-const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[([-\w. ]+(?:,[-\w. ]+)*)]\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\))}}/g;
+const cbRegex = /{{(?:[\w|(),:\s]+|(\w+)\(\[([-\w. ]+(?:,[-\w. ]+)*)]\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\))}}/g;
 
 // regex to identify binding expression functions:
 // ReDoS mitigation: Avoid overlapping backtracking
@@ -102,8 +104,7 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
             // noop
         } else if (name.startsWith(':')) {
             const parseExpression = (id: string, attribute: string, context: string) => {
-                let path = attribute;
-
+                const path = attribute;
 
                 const [triggers, pathToBinding] = parsePathToBinding(path);
 
@@ -113,12 +114,13 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
                     path: [`${selector}`, name.slice(1)],
                     expression: context,
                     triggers
-                }
+                };
 
                 bindings.push(binding);
-            }
+            };
 
             if (cbRegex.test(value)) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const matches: any[] = [];
                 const substitutedExpression = value.replace(cbRegex, match => {
                     const id = `$${idCounter++}`;
@@ -150,6 +152,7 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
 interface PathToBinding {
     name: string,
     isFunction: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: any[]
 }
 
@@ -157,11 +160,12 @@ function parsePathToBinding(path: string): [string[], PathToBinding] {
     if (fnRegex.test(path)) {
         const [, name, triggersMatch, ...rawArgs] = path.match(fnRegex);
 
-        let triggersString = (triggersMatch.startsWith('['))
+        const triggersString = (triggersMatch.startsWith('['))
             ? triggersMatch.substring(1, triggersMatch.length - 1)
             : triggersMatch;
 
         const triggers = triggersString.split(',').map(trigger => trigger.trim());
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const args: any[] = [];
 
         if (rawArgs[0] !== undefined) {
@@ -169,7 +173,7 @@ function parsePathToBinding(path: string): [string[], PathToBinding] {
                 try {
                     args.push(JSON.parse(arg));
                 } catch (e) {
-                    throw new Error(`Invalid argument ${arg} in function call.`)
+                    throw new Error(`Invalid argument ${arg} in function call.`);
                 }
             });
         }
@@ -177,5 +181,5 @@ function parsePathToBinding(path: string): [string[], PathToBinding] {
         return [triggers, { name, isFunction: true, args }];
     }
 
-    return [[path], { name: path, isFunction: false, args: [] }]
+    return [[path], { name: path, isFunction: false, args: [] }];
 }

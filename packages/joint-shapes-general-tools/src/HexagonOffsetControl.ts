@@ -1,5 +1,6 @@
-import { dia, elementTools, g } from '@joint/core';
-import { Hexagon } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools, g } from '@joint/core';
+import type { Hexagon } from '@joint/shapes-general';
 
 export interface HexagonOffsetControlOptions extends elementTools.Control.Options {
 
@@ -11,9 +12,11 @@ export interface HexagonOffsetControlOptions extends elementTools.Control.Option
      *
      */
     defaultOffset?: boolean | number;
+
 }
 
 export class HexagonOffsetControl extends elementTools.Control<HexagonOffsetControlOptions> {
+
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
@@ -47,4 +50,5 @@ export class HexagonOffsetControl extends elementTools.Control<HexagonOffsetCont
         const offset = (defaultOffset === true) ? 0 : defaultOffset;
         this.element.offset = offset;
     }
+
 }

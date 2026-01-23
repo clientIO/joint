@@ -419,9 +419,7 @@ QUnit.module('HighlighterView', function(hooks) {
             QUnit.test('are not removed when a subelement of element view is missing', function(assert) {
                 ['back', null].forEach(layer => {
                     const id = 'highlighter-id';
-                    let el, elView;
-
-                    el = new joint.shapes.standard.Rectangle({
+                    const el = new joint.shapes.standard.Rectangle({
                         position: { x: 100, y: 100 },
                         size: { width: 100, height: 100 }
                     });
@@ -431,7 +429,7 @@ QUnit.module('HighlighterView', function(hooks) {
                         selector: 'label'
                     }]);
                     graph.resetCells(el);
-                    elView = el.findView(paper);
+                    const elView = el.findView(paper);
                     const invalidHighlightCallback = sinon.spy();
                     paper.on('cell:highlight:invalid', invalidHighlightCallback);
                     const highlighter = joint.dia.HighlighterView.add(elView, 'body', id, { layer });
@@ -475,14 +473,12 @@ QUnit.module('HighlighterView', function(hooks) {
             QUnit.test('are removed when a subelement of element view is removed', function(assert) {
                 ['back', null].forEach(layer => {
                     const id = 'highlighter-id';
-                    let el, elView;
-
-                    el = new joint.shapes.standard.Rectangle({
+                    const el = new joint.shapes.standard.Rectangle({
                         position: { x: 100, y: 100 },
                         size: { width: 100, height: 100 }
                     });
                     graph.resetCells(el);
-                    elView = el.findView(paper);
+                    const elView = el.findView(paper);
                     const highlighter = joint.dia.HighlighterView.add(elView, 'body', id, { layer });
                     const invalidHighlightCallback = sinon.spy();
                     paper.on('cell:highlight:invalid', invalidHighlightCallback);

@@ -1,7 +1,9 @@
-import { dia, elementTools } from '@joint/core';
-import { Note } from '@joint/shapes-general';
+import type { dia } from '@joint/core';
+import { elementTools } from '@joint/core';
+import type { Note } from '@joint/shapes-general';
 
 export interface NoteOffsetControlOptions extends elementTools.Control.Options {
+
     /** The value of the Note offset after reset.
      *
      * `Boolean` - When set to `false` the reset feature is disabled.
@@ -10,12 +12,14 @@ export interface NoteOffsetControlOptions extends elementTools.Control.Options {
      *
      */
     defaultOffset?: boolean | number;
+
 }
 
 /**
  * @category Shape-Specific
  */
 export class NoteOffsetControl extends elementTools.Control<NoteOffsetControlOptions> {
+
     /** @ignore */
     preinitialize() {
         this.options.selector = 'sheet';
@@ -44,4 +48,5 @@ export class NoteOffsetControl extends elementTools.Control<NoteOffsetControlOpt
         const offset = defaultOffset === true ? 0 : defaultOffset;
         this.element.offset = offset;
     }
+
 }

@@ -8,6 +8,7 @@ export enum SVGAttributeTypes {
 }
 
 export function SVGAttribute(attributeName: string, type: SVGAttributeTypes = SVGAttributeTypes.SET) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return function(target: any, name: string, descriptor: PropertyDescriptor) {
         if (!attributeName) {
             throw new Error('The SVGAttribute decorator requires an attributeName argument');
@@ -21,9 +22,10 @@ export function SVGAttribute(attributeName: string, type: SVGAttributeTypes = SV
         if (!attribute) {
             attribute = ctor.attributes[csAttributeName] = {};
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         attribute[type] = (...args: any[]) => {
             return target[name](...args);
-        }
+        };
         return descriptor;
-    }
+    };
 }

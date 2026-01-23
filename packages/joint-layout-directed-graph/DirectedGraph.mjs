@@ -112,9 +112,12 @@ export const DirectedGraph = {
         if (graphOrCells instanceof dia.Graph) {
             graph = graphOrCells;
         } else {
+            // Create a temporary graph to layout the given cells.
+            // Layers has no significance to the layout process.
+            graph = new dia.Graph(null, { ignoreLayers: true });
             // Reset cells in dry mode so the graph reference is not stored on the cells.
             // `sort: false` to prevent elements to change their order based on the z-index
-            graph = (new dia.Graph()).resetCells(graphOrCells, { dry: true, sort: false });
+            graph.resetCells(graphOrCells, { dry: true, sort: false });
         }
 
         // This is not needed anymore.
@@ -196,7 +199,7 @@ export const DirectedGraph = {
             graph,
         });
 
-        if (opt.resizeClusters && (typeof opt.clusterPadding === 'number')) {
+        if (opt.resizeClusters && (opt.clusterPadding !== 'default')) {
             // Resize and reposition cluster elements
             // Filter out top-level clusters (nodes without a parent and with children) and map them to cells
             const topLevelClusters = glGraph.nodes()
@@ -253,20 +256,15 @@ export const DirectedGraph = {
     },
 
     // Create new graphlib graph from existing JointJS graph.
-    toGraphLib: function(graph, opt) {
+    toGraphLib: function(graph, opt = {}) {
 
-        opt = opt || {};
+        const glGraphType = util.pick(opt, 'directed', 'compound', 'multigraph');
+        const glGraph = new graphlibUtil.Graph(glGraphType);
+        const setNodeLabel = opt.setNodeLabel || util.noop;
+        const setEdgeLabel = opt.setEdgeLabel || util.noop;
+        const setEdgeName = opt.setEdgeName || util.noop;
 
-        var glGraphType = util.pick(opt, 'directed', 'compound', 'multigraph');
-        var glGraph = new graphlibUtil.Graph(glGraphType);
-        var setNodeLabel = opt.setNodeLabel || util.noop;
-        var setEdgeLabel = opt.setEdgeLabel || util.noop;
-        var setEdgeName = opt.setEdgeName || util.noop;
-        var collection = graph.get('cells');
-
-        for (var i = 0, n = collection.length; i < n; i++) {
-
-            var cell = collection.at(i);
+        for (const cell of graph.getCells()) {
             if (cell.isLink()) {
 
                 var source = cell.get('source');
@@ -285,8 +283,8 @@ export const DirectedGraph = {
 
                 // For the compound graphs we have to take embeds into account.
                 if (glGraph.isCompound() && cell.has('parent')) {
-                    var parentId = cell.get('parent');
-                    if (collection.has(parentId)) {
+                    const parentId = cell.get('parent');
+                    if (graph.getCell(parentId)) {
                         // Make sure the parent cell is included in the graph (this can
                         // happen when the layout is run on part of the graph only).
                         glGraph.setParent(cell.id, parentId);

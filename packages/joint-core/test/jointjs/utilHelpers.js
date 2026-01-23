@@ -46,7 +46,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should treat sparse array sources as dense', function(assert) {
-            let array = [1];
+            const array = [1];
             array[2] = 3;
 
             assert.deepEqual(joint.util.assign({}, array), { '0': 1, '1': undefined, '2': 3 });
@@ -464,7 +464,7 @@ QUnit.module('Lodash util helpers', function() {
             const customIsNaN = (value) => value !== value;
 
             [Math.ceil(MAX_ARRAY_LENGTH / 2), MAX_ARRAY_LENGTH].forEach((length) => {
-                let array = [];
+                const array = [];
                 const values = [MAX_ARRAY_LENGTH, NaN, undefined];
 
                 array.length = length;
@@ -1822,7 +1822,7 @@ QUnit.module('Lodash util helpers', function() {
 
             let actual;
             let callCount = 0;
-            let object = {};
+            const object = {};
 
             const debounced = joint.util.debounce(function(value) {
                 actual = [this];
@@ -2467,7 +2467,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should treat sparse array sources as dense', function(assert) {
-            let array = [1];
+            const array = [1];
             array[2] = 3;
 
             const actual = joint.util.merge([], array);
