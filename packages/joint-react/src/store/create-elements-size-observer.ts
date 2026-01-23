@@ -149,7 +149,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
 
       const cellId = cellIdByDomElement.get(target as HTMLElement | SVGElement);
       if (!cellId) {
-        throw new Error(`DOM element not found in resize observer`);
+        throw new Error('DOM element not found in resize observer');
       }
 
       // If borderBoxSize is not available or empty, continue to the next entry.

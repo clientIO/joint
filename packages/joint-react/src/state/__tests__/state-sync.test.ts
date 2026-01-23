@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/consistent-function-scoping */
 /* eslint-disable sonarjs/no-element-overwrite */
 /* eslint-disable sonarjs/no-nested-functions */
 import { dia } from '@joint/core';
@@ -350,9 +351,7 @@ describe('stateSync', () => {
       defaultElementToGraphSelector(createElementToGraphOptions(element, graph))
     );
     const link = { id: 'link1', source: '1', target: '2' };
-    const linkItems = [
-      defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph)),
-    ];
+    const linkItems = [defaultLinkToGraphSelector(createLinkToGraphOptions(link, graph))];
     graph.syncCells([...elementItems, ...linkItems], { remove: true });
 
     // Create empty store

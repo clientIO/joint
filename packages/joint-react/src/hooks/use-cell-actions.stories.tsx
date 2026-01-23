@@ -1,4 +1,4 @@
-/* eslint-disable @eslint-react/dom/no-missing-button-type */
+ 
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';

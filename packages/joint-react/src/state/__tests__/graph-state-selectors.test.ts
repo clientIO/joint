@@ -687,8 +687,8 @@ describe('graph-state-selectors', () => {
       // Should only have properties from previous state
       expect(elementFromGraph).not.toHaveProperty('graphOnlyProp');
       expect(elementFromGraph).not.toHaveProperty('anotherGraphProp');
-      expect(Object.keys(elementFromGraph).sort()).toEqual(
-        ['id', 'x', 'y', 'width', 'height'].sort()
+      expect(Object.keys(elementFromGraph).toSorted()).toEqual(
+        ['id', 'x', 'y', 'width', 'height'].toSorted()
       );
     });
 

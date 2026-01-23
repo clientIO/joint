@@ -436,7 +436,7 @@ export function stateSync<
         }
         if (updates.has(id)) {
           const update = updates.get(id);
-          if (update && update.type === 'element') {
+          if (update?.type === 'element') {
             if (util.isEqual(cellElement, update.data)) {
               nextElements.push(cellElement);
             } else {
@@ -473,7 +473,7 @@ export function stateSync<
         }
         if (updates.has(id)) {
           const update = updates.get(id);
-          if (update && update.type === 'link') {
+          if (update?.type === 'link') {
             if (util.isEqual(link, update.data)) {
               nextLinks.push(link);
             } else {

@@ -5,11 +5,11 @@ import path from 'node:path';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
-  // @ts-expect-error - vite defaults
   plugins: [react(), mdPlugin(), tsconfigPaths()],
   assetsInclude: ['**/*.md'],
   build: {
     lib: {
+      // eslint-disable-next-line unicorn/prefer-module
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'JointReact',
       fileName: (format) => `joint-react.${format}.js`,

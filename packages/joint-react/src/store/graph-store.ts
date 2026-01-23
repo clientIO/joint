@@ -484,8 +484,7 @@ export class GraphStore {
           // Only update if layout actually changed (optimization)
           const previousLayout = previousLayouts[element.id];
           if (
-            !previousLayout ||
-            previousLayout.x !== newLayout.x ||
+            previousLayout?.x !== newLayout.x ||
             previousLayout.y !== newLayout.y ||
             previousLayout.width !== newLayout.width ||
             previousLayout.height !== newLayout.height ||
@@ -528,6 +527,7 @@ export class GraphStore {
       scheduleLayoutUpdate();
 
       // Return cleanup function (no-op since we don't need per-cell cleanup)
+      // eslint-disable-next-line unicorn/consistent-function-scoping
       return () => {
         // No cleanup needed
       };

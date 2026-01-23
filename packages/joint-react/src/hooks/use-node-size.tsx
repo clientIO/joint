@@ -154,12 +154,12 @@ export function useNodeSize(
         process.env.NODE_ENV === 'production'
           ? `Multiple useNodeSize hooks detected for element "${id}". Only one useNodeSize hook can be used per element.`
           : `Multiple useNodeSize hooks detected for element with id "${id}".\n\n` +
-            `Only one useNodeSize hook can be used per element. Multiple useNodeSize hooks ` +
-            `trying to set the size for the same element will cause conflicts and unexpected behavior.\n\n` +
-            `Solution:\n` +
-            `- Use only one useNodeSize hook per element\n` +
-            `- If you need multiple measurements, use a single useNodeSize hook with a custom \`transform\` handler\n` +
-            `- Check your renderElement function to ensure you're not using multiple useNodeSize hooks for the same element`;
+            'Only one useNodeSize hook can be used per element. Multiple useNodeSize hooks ' +
+            'trying to set the size for the same element will cause conflicts and unexpected behavior.\n\n' +
+            'Solution:\n' +
+            '- Use only one useNodeSize hook per element\n' +
+            '- If you need multiple measurements, use a single useNodeSize hook with a custom `transform` handler\n' +
+            '- Check your renderElement function to ensure you\'re not using multiple useNodeSize hooks for the same element';
 
       throw new Error(errorMessage);
     }
@@ -175,5 +175,5 @@ export function useNodeSize(
   }, [elementRef, graph, hasMeasuredNode, id, setMeasuredNode]);
 
   // This hook itself does not return anything.
-  return layout
+  return layout;
 }
