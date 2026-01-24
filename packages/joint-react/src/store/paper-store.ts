@@ -76,31 +76,6 @@ export interface PaperStoreSnapshot {
   linksData?: Record<string, SVGElement>;
 }
 
-
-/**
- * Gets the appropriate ElementView class for a given element.
- * @param element - The JointJS element
- * @returns The ElementView class or null if default should be used
- */
-function getElementViewConstructor(element: dia.Element): typeof dia.ElementView | null {
-  if (element.get('type') === REACT_TYPE) {
-    return ReactElementView;
-  }
-  return null;
-}
-
-/**
- * Gets the appropriate LinkView class for a given link.
- * @param link - The JointJS link
- * @returns The LinkView class or null if default should be used
- */
-function getLinkViewConstructor(link: dia.Link): typeof dia.LinkView | null {
-  if (link.get('type') === REACT_LINK_TYPE) {
-    return ReactLinkView;
-  }
-  return null;
-}
-
 /**
  * Store for managing a single Paper instance and its associated state.
  *
