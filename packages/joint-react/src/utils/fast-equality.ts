@@ -40,14 +40,14 @@ export function fastElementArrayEqual<T extends GraphElement>(
 
 /**
  * Extracts all properties except x and y from an element.
- * @param element - The element to extract properties from
+ * @param data - The element to extract properties from
  * @returns Record of properties excluding x and y
  */
-function extractNonPositionProperties(element: GraphElement): Record<string, unknown> {
+function extractNonPositionProperties(data: GraphElement): Record<string, unknown> {
   const rest: Record<string, unknown> = {};
-  for (const key in element) {
+  for (const key in data) {
     if (key !== 'x' && key !== 'y') {
-      rest[key] = element[key as keyof GraphElement];
+      rest[key] = data[key as keyof GraphElement];
     }
   }
   return rest;

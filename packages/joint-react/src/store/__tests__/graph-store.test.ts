@@ -6,8 +6,8 @@ import { ReactElement } from '../../models/react-element';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import {
-  defaultElementToGraphSelector,
-  defaultLinkToGraphSelector,
+  defaultMapDataToElementAttributes,
+  defaultMapDataToLinkAttributes,
   type ElementToGraphOptions,
   type LinkToGraphOptions,
 } from '../../state/graph-state-selectors';
@@ -95,19 +95,19 @@ describe('GraphStore', () => {
 
     it('should use custom selectors when provided', () => {
       const customElementToGraph = jest.fn((options: ElementToGraphOptions<GraphElement>) => {
-        return defaultElementToGraphSelector(options);
+        return defaultMapDataToElementAttributes(options);
       });
       const customLinkToGraph = jest.fn((options: LinkToGraphOptions<GraphLink>) => {
-        return defaultLinkToGraphSelector(options);
+        return defaultMapDataToLinkAttributes(options);
       });
 
       const store = new GraphStore({
-        elementToGraphSelector: customElementToGraph,
-        linkToGraphSelector: customLinkToGraph,
+        mapDataToElementAttributes: customElementToGraph,
+        mapDataToLinkAttributes: customLinkToGraph,
       });
 
       // Add an element to trigger the selector
-      const element: GraphElement = {
+      const data: GraphElement = {
         id: 'test-element',
         x: 10,
         y: 20,
@@ -117,7 +117,7 @@ describe('GraphStore', () => {
       };
       store.publicState.setState((previous) => ({
         ...previous,
-        elements: [...previous.elements, element],
+        elements: [...previous.elements, data],
       }));
 
       // Wait a bit for sync to happen
@@ -358,7 +358,7 @@ describe('GraphStore', () => {
 
     it('should return true for measured nodes', () => {
       const store = new GraphStore({});
-      const element: GraphElement = {
+      const data: GraphElement = {
         id: 'measured-element',
         x: 10,
         y: 20,
@@ -369,7 +369,7 @@ describe('GraphStore', () => {
 
       store.publicState.setState((previous) => ({
         ...previous,
-        elements: [...previous.elements, element],
+        elements: [...previous.elements, data],
       }));
 
       const domElement = document.createElement('div');

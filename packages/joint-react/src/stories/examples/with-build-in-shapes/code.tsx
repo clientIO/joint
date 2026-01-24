@@ -19,22 +19,22 @@ interface NativeLink extends GraphLink {
   readonly type: string;
 }
 
-const elementToGraphSelector = ({
-  element,
-  defaultMapper,
+const mapDataToElementAttributes = ({
+  data,
+  defaultAttributes,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  const result = defaultMapper();
-  const nativeElement = element as NativeElement;
+  const result = defaultAttributes();
+  const nativeElement = data as NativeElement;
   return { ...result, type: nativeElement.type };
 };
 
-const linkToGraphSelector = ({
-  link,
-  defaultMapper,
+const mapDataToLinkAttributes = ({
+  data,
+  defaultAttributes,
 }: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
-  const result = defaultMapper();
-  if (link.type) {
-    return { ...result, type: link.type };
+  const result = defaultAttributes();
+  if (data.type) {
+    return { ...result, type: data.type };
   }
   return result;
 };
@@ -325,8 +325,8 @@ export default function App() {
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      elementToGraphSelector={elementToGraphSelector}
-      linkToGraphSelector={linkToGraphSelector}
+      mapDataToElementAttributes={mapDataToElementAttributes}
+      mapDataToLinkAttributes={mapDataToLinkAttributes}
     >
       <Main />
     </GraphProvider>

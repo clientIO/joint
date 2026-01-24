@@ -64,11 +64,11 @@ interface GraphProviderProps {
   readonly onLinksChange?: Dispatch<SetStateAction<GraphLink[]>>;
 
   // readonly linkMapper: {
-  //   toStateSelector: (link: GraphLink) => dia.Link.JSON;
+  //   toStateSelector: (data: GraphLink) => dia.Link.JSON;
   //   toDiaGraphSelector: (link: dia.Link.JSON) => GraphLink;
   // };
   // readonly elementMapper: {
-  //   toStateSelector: (element: GraphElement) => dia.Element.JSON;
+  //   toStateSelector: (data: GraphElement) => dia.Element.JSON;
   //   toDiaGraphSelector: (element: dia.Element.JSON) => GraphElement;
   // };
 }

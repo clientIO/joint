@@ -137,6 +137,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   // Check if all links have views (or if there are no links)
   // This prevents the blink where elements appear before links
   const areLinksReady = useMemo(() => {
+    // @todo do we need to hide content at all?
+    return true;
     if (!renderLink) {
       return true; // No custom link rendering, so links are "ready"
     }

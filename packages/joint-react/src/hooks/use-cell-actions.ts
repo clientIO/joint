@@ -92,8 +92,8 @@ export function useCellActions<
           typeof maybeUpdater === 'function'
         ) {
           const cell: GraphElement | GraphLink | undefined =
-            elements.find((element: GraphElement) => element.id === attributesOrId) ||
-            links.find((link: GraphLink) => link.id === attributesOrId);
+            elements.find((data: GraphElement) => data.id === attributesOrId) ||
+            links.find((data: GraphLink) => data.id === attributesOrId);
 
           if (!cell) throw new Error(`Cell with id "${attributesOrId}" not found.`);
           attributes = maybeUpdater(cell as Attributes);

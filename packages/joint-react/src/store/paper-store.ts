@@ -8,6 +8,7 @@ import type { GraphState, GraphStore } from './graph-store';
 import { REACT_TYPE } from '../models/react-element';
 import { ReactElementView } from '../models/react-element-view';
 import { ReactLinkView } from '../models/react-link-view';
+import { REACT_LINK_TYPE } from '../models/react-link';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 export const PORTAL_SELECTOR = 'react-port-portal';
@@ -146,8 +147,23 @@ export class PaperStore {
     // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
     const store = this;
 
-    const hasRenderElement = renderElement !== undefined;
-    const hasRenderLink = renderLink !== undefined;
+    const reactCellVieOptions: Partial<dia.Paper.Options> = {};
+    if (renderElement !== undefined) {
+      reactCellVieOptions.elementView = (element) => {
+        if (element.get('type') === REACT_TYPE) {
+          return ReactElementView;
+        }
+        return null;
+      };
+    }
+    if (renderLink !== undefined) {
+      reactCellVieOptions.linkView = (link) => {
+        if (link.get('type') === REACT_LINK_TYPE) {
+          return ReactLinkView;
+        }
+        return null;
+      };
+    }
 
     // Create a new JointJS Paper with the provided options
     const paper = new dia.Paper({
@@ -156,18 +172,7 @@ export class PaperStore {
       preventDefaultBlankAction: false,
       frozen: true,
       model: graph,
-      elementView: (element) => {
-        if (hasRenderElement && element.get('type') === REACT_TYPE) {
-          return ReactElementView;
-        }
-        return undefined as unknown as typeof dia.ElementView;
-      },
-      linkView: () => {
-        if (hasRenderLink) {
-          return ReactLinkView;
-        }
-        return undefined as unknown as typeof dia.LinkView;
-      },
+      ...reactCellVieOptions,
       // 👇 override to always allow connection
       validateConnection: () => true,
       // 👇 also, allow links to start or end on empty space
