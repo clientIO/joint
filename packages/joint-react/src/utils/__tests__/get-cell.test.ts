@@ -1,4 +1,4 @@
-import { mapElementFromGraph, mapLinkFromGraph } from '../cell/cell-utilities';
+import { mapLinkFromGraph } from '../cell/cell-utilities';
 import type { dia } from '@joint/core';
 
 describe('cell utilities', () => {
@@ -26,21 +26,6 @@ describe('cell utilities', () => {
         return mockData[key];
       }),
     } as unknown as dia.Cell;
-  });
-
-  describe('elementFromGraph', () => {
-    it('should extract element attributes correctly', () => {
-      const element = mapElementFromGraph(mockCell);
-      expect(element).toMatchObject({
-        id: 'mock-id',
-        type: 'mock-type',
-        ports: { items: [] },
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
-      });
-    });
   });
 
   describe('linkFromGraph', () => {

@@ -390,19 +390,19 @@ describe('graph', () => {
       },
     ];
 
-    const links = [
+    const links: GraphLink[] = [
       {
         id: 'link-1',
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: 'ReactLink',
         z: 1,
       },
       {
         id: 'link-2',
         source: 'element-2',
         target: 'element-1',
-        type: 'standard.Link',
+        type: 'ReactLink',
         z: 2,
         customProperty: 'custom-value',
       },
@@ -443,7 +443,7 @@ describe('graph', () => {
     expect(link1?.id).toBe('link-1');
     expect(link1?.source).toBe('element-1');
     expect(link1?.target).toBe('element-2');
-    expect(link1?.type).toBe('standard.Link');
+    expect(link1?.type).toBe('ReactLink');
     expect(link1?.z).toBe(1);
 
     // Verify second link data
@@ -452,7 +452,7 @@ describe('graph', () => {
     expect(link2?.id).toBe('link-2');
     expect(link2?.source).toBe('element-2');
     expect(link2?.target).toBe('element-1');
-    expect(link2?.type).toBe('standard.Link');
+    expect(link2?.type).toBe('ReactLink');
     expect(link2?.z).toBe(2);
     expect(link2?.customProperty).toBe('custom-value');
   });
@@ -475,11 +475,12 @@ describe('graph', () => {
       },
     ];
 
-    const initialLinks = [
+    const initialLinks: GraphLink[] = [
       {
         id: 'link-1',
         source: 'element-1',
         target: 'element-2',
+        type: 'ReactLink',
       },
     ];
 
@@ -530,6 +531,7 @@ describe('graph', () => {
           id: 'link-2',
           source: 'element-2',
           target: 'element-1',
+          type: 'ReactLink',
           customProperty: 'updated-value',
         },
       ]);

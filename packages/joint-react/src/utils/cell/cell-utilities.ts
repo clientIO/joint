@@ -69,41 +69,6 @@ export function mapElementToGraph<T extends GraphElement>(element: T): CellOrJso
 export type GraphCell<Element extends GraphElement = GraphElement> = Element | GraphLink;
 
 /**
- * Get element via cell
- * @param cell - The cell to get the element from.
- * @returns - The element.
- * @group utils
- * @private
- * @description
- * This function is used to get an element from a cell.
- * It extracts the size, position, and attributes from the cell and returns them as an element.
- * It also adds the id, isElement, isLink, data, type, and ports to the element.
- * @example
- * ```ts
- * const element = getElement(cell);
- * console.log(element);
- * ```
- */
-export function mapElementFromGraph<Element extends GraphElement = GraphElement>(
-  cell: dia.Cell
-): Element {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { size, position, data: userData, attrs, type, ...attributes } = cell.attributes;
-  const data: GraphElement = {
-    ...attributes,
-    ...position,
-    ...size,
-    id: cell.id,
-    ports: cell.get('ports'),
-  };
-  if (type !== REACT_TYPE) {
-    data.type = type;
-  }
-
-  return data as Element;
-}
-
-/**
  * Get link via cell
  * @param cell - The cell to get the link from.
  * @returns - The link.
