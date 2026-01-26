@@ -704,6 +704,12 @@ export class GraphStore {
    * @param isGraphExternal - Whether the graph instance was provided externally (should not be cleared)
    */
   public destroy = (isGraphExternal: boolean) => {
+    // Destroy all paper instances first
+    for (const paperStore of this.papers.values()) {
+      paperStore.destroy();
+    }
+    this.papers.clear();
+
     this.internalState.clean();
     this.derivedStore.clean();
     this.layoutState.clean();
@@ -797,11 +803,9 @@ export class GraphStore {
 
   private removePaper = (id: string) => {
     const paperStore = this.papers.get(id);
-    // Cleanup paper update callback if it exists
-    if (paperStore && 'unregisterPaperUpdate' in paperStore) {
-      const unregister = (paperStore as unknown as { unregisterPaperUpdate?: () => void })
-        .unregisterPaperUpdate;
-      unregister?.();
+    // Cleanup paper instance and all its resources
+    if (paperStore) {
+      paperStore.destroy();
     }
     this.papers.delete(id);
     this.internalState.setState((previous) => {

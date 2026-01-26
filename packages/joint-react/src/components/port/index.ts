@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-
 export * from './port.types';
 import { PortGroup } from './port-group';
 import { PortItem } from './port-item';
