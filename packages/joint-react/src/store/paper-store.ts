@@ -324,4 +324,20 @@ export class PaperStore {
   public getLinkLabelId(linkId: dia.Cell.ID, labelIndex: number) {
     return `${linkId}-label-${labelIndex}`;
   }
+
+  /**
+   * Cleans up the paper instance and all associated resources.
+   * Should be called when the paper is being removed from the graph store.
+   */
+  public destroy = () => {
+    // Unregister from GraphStore's update scheduler
+    this.unregisterPaperUpdate?.();
+    this.unregisterPaperUpdate = undefined;
+
+    // Remove the JointJS paper instance - this cleans up:
+    // - All event listeners on the paper
+    // - All cell views
+    // - The paper's DOM element
+    this.paper.remove();
+  };
 }
