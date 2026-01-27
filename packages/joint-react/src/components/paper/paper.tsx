@@ -134,26 +134,6 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     (snapshot) => snapshot.papers[id]?.linkViews ?? EMPTY_OBJECT
   );
 
-  // Check if all links have views (or if there are no links)
-  // This prevents the blink where elements appear before links
-  const areLinksReady = useMemo(() => {
-    // @todo do we need to hide content at all?
-    return true;
-    if (!renderLink) {
-      return true; // No custom link rendering, so links are "ready"
-    }
-    if (deferredLinksState.length === 0) {
-      return true; // No links, so links are "ready"
-    }
-    // Check if all links have views
-    for (const link of deferredLinksState) {
-      if (link.id && !paperLinkViews[link.id]) {
-        return false; // At least one link doesn't have a view yet
-      }
-    }
-    return true;
-  }, [renderLink, deferredLinksState, paperLinkViews]);
-
   const { addPaper, graph, getPaperStore } = useGraphStore();
 
   const paperStore = getPaperStore(id) ?? null;
@@ -450,17 +430,11 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     };
   }, [height, width, style]);
 
-  // Only show paper when both elements are measured AND links are ready
-  // This prevents the blink where elements appear before links
-  const isContentReady = areElementsMeasured && areLinksReady;
-
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({
-      opacity: isContentReady ? 1 : 0,
-      position: 'relative',
       ...defaultStyle,
     }),
-    [isContentReady, defaultStyle]
+    [defaultStyle]
   );
 
   return (
