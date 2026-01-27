@@ -1,30 +1,42 @@
-import type { PaperStore} from '@joint/react';
-import { GraphProvider, Paper, useGraph, type GraphElement } from '@joint/react';
+import type { OnLoadOptions } from '@joint/react';
+import { GraphProvider, Paper, type GraphElement } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { dia } from '@joint/core';
 import { elementTools, g } from '@joint/core';
 
 const initialElements = [
   {
     id: '1',
-    label: 'Node 1',
-    x: 100,
-    y: 50,
+    type: 'parallelogram',
+    label: 'Parallelogram',
+    x: 300,
+    y: 250,
     width: 80,
     height: 60,
     offset: 10,
+  },
+  {
+    id: '2',
+    type: 'arrow',
+    label: 'Arrow',
+    x: 500,
+    y: 250,
+    width: 100,
+    height: 60,
+    arrowHeight: 30,
+    thickness: 20,
   }
 ] satisfies GraphElement[];
 
-type BaseElementWithData = (typeof initialElements)[number];
+type ElementData = (typeof initialElements)[number];
 
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function Parallelogram({ width, height, offset }: Readonly<BaseElementWithData>) {
-  const svgPath = useMemo(() => {
+function Parallelogram({ width, height, offset = 0, label }: Readonly<ElementData>) {
+  const parallelogramSvgPath = useMemo(() => {
     return `
       M 0 ${height}
       L ${offset} 0
@@ -37,7 +49,7 @@ function Parallelogram({ width, height, offset }: Readonly<BaseElementWithData>)
   return (
     <g>
       <path
-        d={svgPath}
+        d={parallelogramSvgPath}
         fill={PRIMARY}
         stroke={PRIMARY}
       />
@@ -47,10 +59,47 @@ function Parallelogram({ width, height, offset }: Readonly<BaseElementWithData>)
         fontFamily="sans-serif"
         fontSize="13"
         fill={TEXT}
-        y={height + 10}
         x={width / 2}
+        y={height + 10}
       >
-        Parallelogram
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function Arrow({ width, height, label, arrowHeight = 0, thickness = 0 }: Readonly<ElementData>) {
+  const arrowSvgPath = useMemo(() => {
+    return `
+      M ${width - arrowHeight} 0
+      L ${width} ${height / 2}
+      L ${width - arrowHeight}  ${height}
+      v -${height / 2 - thickness / 2}
+      H 0
+      v -${thickness}
+      H ${width - arrowHeight}
+      z
+    `;
+  }, [width, height, arrowHeight, thickness]);
+
+  return (
+    <g>
+      <path
+        d={arrowSvgPath}
+        fill={PRIMARY}
+        stroke={PRIMARY}
+        strokeWidth="2"
+      />
+      <text
+        textAnchor="middle"
+        dominantBaseline="hanging"
+        fontFamily="sans-serif"
+        fontSize="13"
+        fill={TEXT}
+        x={width / 2}
+        y={height + 10}
+      >
+        {label}
       </text>
     </g>
   );
@@ -59,16 +108,12 @@ function Parallelogram({ width, height, offset }: Readonly<BaseElementWithData>)
 // ----------------------------------------------------------------------------
 // Controls
 // ----------------------------------------------------------------------------
-export class ParallelogramOffsetControl extends elementTools.Control {
-  get element() {
-    return this.relatedView.model;
-  }
-
+class ParallelogramOffsetControl extends elementTools.Control {
   protected getPosition(view: dia.ElementView) {
     const { model } = view;
     const { width, height } = model.size();
     const controlLevel = height * 1 / 3;
-    const offsetSide = new g.Line(new g.Point(this.element.prop('data/offset'), 0), new g.Point(0, height));
+    const offsetSide = new g.Line(new g.Point(model.prop('data/offset'), 0), new g.Point(0, height));
     const levelLine = new g.Line(new g.Point(0, controlLevel), new g.Point(width, controlLevel));
     const controlPoint = offsetSide.intersect(levelLine);
     if (controlPoint) return controlPoint;
@@ -80,7 +125,66 @@ export class ParallelogramOffsetControl extends elementTools.Control {
     const { width } = model.size();
     let offset = coordinates.x * 1.5;
     offset = Math.max(0, Math.min(offset, width));
-    this.element.prop('data/offset', offset);
+    model.prop('data/offset', offset);
+  }
+}
+
+class ArrowOffsetControl extends elementTools.Control {
+  protected getPosition(view: dia.ElementView) {
+    const { model } = view;
+    const { arrowHeight, thickness } = model.prop('data');
+    const { width, height } = model.size();
+    return { x: width - arrowHeight, y: height / 2 - thickness / 2 };
+  }
+
+  protected setPosition(view: dia.ElementView, coordinates: dia.Point) {
+    const { model } = view;
+    const { width, height } = model.size();
+    const arrowHeight = Math.max(0, Math.min(width - coordinates.x, width));
+    const thickness = Math.max(
+      0,
+      Math.min(height - 2 * coordinates.y, height)
+    );
+    model.prop('data/arrowHeight', arrowHeight);
+    model.prop('data/thickness', thickness);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Helper Functions
+// ----------------------------------------------------------------------------
+function renderElement(element: ElementData) {
+  switch (element.type) {
+    case 'parallelogram': {
+      return <Parallelogram {...element} />;
+    }
+    case 'arrow': {
+      return <Arrow {...element} />;
+    }
+    default: {
+      return null;
+    }
+  }
+}
+
+function addElementControls({ paper, graph }: OnLoadOptions) {
+  for (const element of graph.getElements()) {
+    const type = element.prop('data/type');
+    const tools = [];
+
+    switch (type) {
+      case 'parallelogram': {
+        tools.push(new ParallelogramOffsetControl());
+        break;
+      }
+      case 'arrow': {
+        tools.push(new ArrowOffsetControl());
+        break;
+      }
+    }
+
+    const toolsView = new dia.ToolsView({ tools });
+    element.findView(paper).addTools(toolsView);
   }
 }
 
@@ -88,38 +192,22 @@ export class ParallelogramOffsetControl extends elementTools.Control {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
-  const [paperStore, setPaperStore] = useState<PaperStore | null>(null);
-  const graph = useGraph();
-
-  useEffect(() => {
-    if (paperStore) {
-      const { paper } = paperStore;
-      for (const element of graph.getElements()) {
-        const toolsView = new dia.ToolsView({
-          tools: [new ParallelogramOffsetControl()],
-        });
-        element.findView(paper).addTools(toolsView);
-      }
-    }
-
-    return () => {
-      paperStore?.paper.removeTools();
-    };
-  }, [paperStore, graph]);
-
   return (
     <Paper
-      ref={setPaperStore}
       width="100%"
       className={PAPER_CLASSNAME}
-      renderElement={Parallelogram}
+      renderElement={renderElement}
+      onElementsSizeReady={addElementControls}
     />
   );
 }
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements}>
+    <GraphProvider
+      areBatchUpdatesDisabled={true}
+      elements={initialElements}
+    >
       <Main />
     </GraphProvider>
   );
