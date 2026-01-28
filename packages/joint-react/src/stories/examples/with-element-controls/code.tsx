@@ -2,7 +2,6 @@ import type { OnLoadOptions } from '@joint/react';
 import { GraphProvider, Paper, type GraphElement } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
-import { useMemo } from 'react';
 import { dia } from '@joint/core';
 import { elementTools, g } from '@joint/core';
 
@@ -36,20 +35,16 @@ type ElementData = (typeof initialElements)[number];
 // Shapes
 // ----------------------------------------------------------------------------
 function Parallelogram({ width, height, offset = 0, label }: Readonly<ElementData>) {
-  const parallelogramSvgPath = useMemo(() => {
-    return `
-      M 0 ${height}
-      L ${offset} 0
-      L ${width} 0
-      L ${width - offset} ${height}
-      Z
-    `;
-  }, [width, height, offset]);
-
   return (
-    <g>
+    <>
       <path
-        d={parallelogramSvgPath}
+        d={`
+          M 0 ${height}
+          L ${offset} 0
+          L ${width} 0
+          L ${width - offset} ${height}
+          Z
+        `}
         fill={PRIMARY}
         stroke={PRIMARY}
       />
@@ -64,28 +59,24 @@ function Parallelogram({ width, height, offset = 0, label }: Readonly<ElementDat
       >
         {label}
       </text>
-    </g>
+    </>
   );
 }
 
 function Arrow({ width, height, label, arrowHeight = 0, thickness = 0 }: Readonly<ElementData>) {
-  const arrowSvgPath = useMemo(() => {
-    return `
-      M ${width - arrowHeight} 0
-      L ${width} ${height / 2}
-      L ${width - arrowHeight}  ${height}
-      v -${height / 2 - thickness / 2}
-      H 0
-      v -${thickness}
-      H ${width - arrowHeight}
-      z
-    `;
-  }, [width, height, arrowHeight, thickness]);
-
   return (
-    <g>
+    <>
       <path
-        d={arrowSvgPath}
+        d={`
+          M ${width - arrowHeight} 0
+          L ${width} ${height / 2}
+          L ${width - arrowHeight} ${height}
+          v -${height / 2 - thickness / 2}
+          H 0
+          v -${thickness}
+          H ${width - arrowHeight}
+          z`
+        }
         fill={PRIMARY}
         stroke={PRIMARY}
         strokeWidth="2"
@@ -101,7 +92,7 @@ function Arrow({ width, height, label, arrowHeight = 0, thickness = 0 }: Readonl
       >
         {label}
       </text>
-    </g>
+    </>
   );
 }
 
@@ -205,7 +196,7 @@ function Main() {
 export default function App() {
   return (
     <GraphProvider
-      areBatchUpdatesDisabled={true}
+      areBatchUpdatesDisabled
       elements={initialElements}
     >
       <Main />
