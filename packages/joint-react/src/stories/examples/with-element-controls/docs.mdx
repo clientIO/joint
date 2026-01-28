@@ -1,0 +1,27 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+<Meta of={Stories} />
+
+# Custom Element Controls
+
+This example demonstrates how to add custom interactive controls to elements using JointJS's `elementTools.Control` class. Users can drag control handles directly on elements to dynamically adjust shape-specific properties.
+
+## Overview
+
+Interactive element controls enhance user experience by allowing direct manipulation of element properties. This example shows how to:
+- Create custom control classes extending `elementTools.Control`
+- Position controls dynamically based on element geometry
+- Update element properties through control interactions
+
+## Demo
+
+<Canvas of={Stories.Default} />
+
+## How It Works
+
+1. **Custom Control Classes**: Two control classes (`ParallelogramOffsetControl` and `ArrowOffsetControl`) extend `elementTools.Control`
+2. **Position Calculation**: `getPosition()` calculates the control handle's position based on current element properties
+3. **User Interaction**: When users drag the control, `setPosition()` receives the new coordinates
+4. **Property Updates**: The controls update element data properties, triggering re-renders
