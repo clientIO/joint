@@ -12,14 +12,13 @@ import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import './code-with-create-links-classname.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', x: 100, y: 0 },
-  { id: '2', label: 'Node 2', x: 100, y: 200 },
-];
+const initialElements: Record<string, { label: string; x: number; y: number }> = {
+  '1': { label: 'Node 1', x: 100, y: 0 },
+  '2': { label: 'Node 2', x: 100, y: 200 },
+};
 
-const initialEdges: GraphLink[] = [
-  {
-    id: 'e1-2',
+const initialEdges: Record<string, GraphLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -29,9 +28,9 @@ const initialEdges: GraphLink[] = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(

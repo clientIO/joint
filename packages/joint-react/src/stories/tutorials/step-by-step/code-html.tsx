@@ -14,16 +14,15 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 // define element type with custom properties
 type CustomElement = GraphElement & { label: string };
 
-// define initial elements
-const initialElements: CustomElement[] = [
-  { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
-  { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
-];
+// define initial elements as Record
+const initialElements: Record<string, CustomElement> = {
+  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+};
 
-// define initial edges
-const initialEdges: GraphLink[] = [
-  {
-    id: 'e1-2',
+// define initial edges as Record
+const initialEdges: Record<string, GraphLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     type: 'standard.Link', // if define type, it provide intellisense support
@@ -34,7 +33,7 @@ const initialEdges: GraphLink[] = [
       },
     },
   },
-];
+};
 function RenderItem(props: CustomElement) {
   const { label, width, height } = props;
   const elementRef = React.useRef<HTMLDivElement>(null);

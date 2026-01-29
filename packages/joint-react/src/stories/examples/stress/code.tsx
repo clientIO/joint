@@ -1,22 +1,39 @@
-/* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   GraphProvider,
-  Link,
   Paper,
+  useLinkLayout,
   type GraphElement,
   type GraphLink,
   type RenderLink,
 } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useRef, useState, startTransition, memo } from 'react';
-import { PAPER_CLASSNAME, PRIMARY, LIGHT, SECONDARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
 import { REACT_LINK_TYPE } from '../../../models/react-link';
 
 function initialElements(xNodes = 15, yNodes = 30) {
-  const nodes = [];
-  const edges = [];
+  const nodes: Record<
+    string,
+    {
+      width: number;
+      height: number;
+      fontSize: number;
+      label: string;
+      x: number;
+      y: number;
+    }
+  > = {};
+  const edges: Record<
+    string,
+    {
+      type: string;
+      source: string;
+      target: string;
+      z: number;
+    }
+  > = {};
   let nodeId = 1;
   let edgeId = 1;
   let recentNodeId: number | null = null;
@@ -25,24 +42,24 @@ function initialElements(xNodes = 15, yNodes = 30) {
     for (let x = 0; x < xNodes; x++) {
       const position = { x: x * 100, y: y * 50 };
       const data = { label: `Node ${nodeId}` };
+      const id = `stress-${nodeId.toString()}`;
       const node = {
-        id: `stress-${nodeId.toString()}`,
         width: 50,
         height: 20,
         fontSize: 11,
         ...data,
         ...position,
       };
-      nodes.push(node);
+      nodes[id] = node;
 
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
-        edges.push({
-          id: `edge-${edgeId.toString()}`,
+        const edgeIdString = `edge-${edgeId.toString()}`;
+        edges[edgeIdString] = {
           type: REACT_LINK_TYPE,
           source: `stress-${recentNodeId.toString()}`,
           target: `stress-${nodeId.toString()}`,
           z: -1,
-        });
+        };
         edgeId++;
       }
 
@@ -56,7 +73,7 @@ function initialElements(xNodes = 15, yNodes = 30) {
 
 const { nodes: initialNodes, edges: initialEdges } = initialElements(15, 30);
 
-type BaseElementWithData = (typeof initialNodes)[number];
+type BaseElementWithData = (typeof initialNodes)[string];
 
 const RenderElement = memo(function RenderElement({
   width,
@@ -77,10 +94,16 @@ const RenderElement = memo(function RenderElement({
   );
 });
 
+function StressLinkPath() {
+  const layout = useLinkLayout();
+  if (!layout) return null;
+  return <path d={layout.d} stroke={LIGHT} strokeWidth={0.5} fill="none" />;
+}
+
 function Main({
   setElements,
 }: Readonly<{
-  setElements: React.Dispatch<React.SetStateAction<GraphElement[]>>;
+  setElements: React.Dispatch<React.SetStateAction<Record<string, GraphElement>>>;
 }>) {
   // Memoize the renderElement function to prevent unnecessary re-renders
   const renderElement = useCallback(
@@ -88,41 +111,21 @@ function Main({
     []
   );
 
-  const renderLink: RenderLink = useCallback(
-    (link) => (
-      <>
-        <Link.Base stroke={LIGHT} strokeWidth={0.5} />
-        <Link.Label position={{ distance: 0.5 }}>
-          <foreignObject x={-20} y={-8} width={40} height={16}>
-            <div
-              className="flex items-center justify-center rounded text-xs"
-              style={{
-                background: SECONDARY,
-                color: '#ffffff',
-                fontSize: 9,
-                width: 40,
-                height: 16,
-              }}
-            >
-              {link.id.toString().split('-')[1]}
-            </div>
-          </foreignObject>
-        </Link.Label>
-      </>
-    ),
-    []
-  );
+  const renderLink: RenderLink = useCallback(() => <StressLinkPath />, []);
 
   const updatePos = useCallback(() => {
     // Use startTransition to mark this as a non-urgent update
     // This allows React to keep the UI responsive during the update
     startTransition(() => {
       setElements((previousElements) => {
-        const newElements = previousElements.map((node) => ({
-          ...node,
-          x: Math.random() * 1500,
-          y: Math.random() * 1500,
-        }));
+        const newElements: Record<string, GraphElement> = {};
+        for (const [id, node] of Object.entries(previousElements)) {
+          newElements[id] = {
+            ...node,
+            x: Math.random() * 1500,
+            y: Math.random() * 1500,
+          };
+        }
 
         return newElements;
       });
@@ -153,8 +156,8 @@ function Main({
 }
 
 export default function App() {
-  const [elements, setElements] = useState<GraphElement[]>(initialNodes);
-  const [links, setLinks] = useState<GraphLink[]>(initialEdges);
+  const [elements, setElements] = useState<Record<string, GraphElement>>(initialNodes);
+  const [links, setLinks] = useState<Record<string, GraphLink>>(initialEdges);
 
   return (
     <GraphProvider

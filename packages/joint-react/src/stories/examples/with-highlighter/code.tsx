@@ -5,28 +5,25 @@ import '../index.css';
 import { useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
-const initialElements = [
-  {
-    id: '1',
+const initialElements: Record<string, GraphElement & { label: string }> = {
+  '1': {
     label: 'Node 1',
     x: 100,
     y: 50,
     width: 125,
     height: 25,
   },
-  {
-    id: '2',
+  '2': {
     label: 'Node 2',
     x: 100,
     y: 200,
     width: 120,
     height: 25,
   },
-] satisfies GraphElement[];
+};
 
-const initialEdges = [
-  {
-    id: 'e1-2',
+const initialEdges: Record<string, GraphLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -35,11 +32,11 @@ const initialEdges = [
       },
     },
   },
-] satisfies GraphLink[];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
-function RenderItemWithChildren({ height, width, label }: Readonly<BaseElementWithData>) {
+function RenderItemWithChildren({ height = 0, width = 0, label }: Readonly<BaseElementWithData>) {
   const [isHighlighted, setIsHighlighted] = useState(false);
   return (
     <g

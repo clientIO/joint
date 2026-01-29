@@ -5,13 +5,13 @@ import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', x: 20, y: 100 },
-  { id: '2', label: 'Node 2', x: 200, y: 100 },
-];
+const initialElements: Record<string, { id: string; label: string; x: number; y: number }> = {
+  '1': { id: '1', label: 'Node 1', x: 20, y: 100 },
+  '2': { id: '2', label: 'Node 2', x: 200, y: 100 },
+};
 
-const initialEdges = [
-  {
+const initialEdges: Record<string, { id: string; source: string; target: string; attrs: { line: { stroke: string } } }> = {
+  'e1-2': {
     id: 'e1-2',
     source: '1',
     target: '2',
@@ -21,9 +21,9 @@ const initialEdges = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
 function RotatableNode({ label, id }: Readonly<BaseElementWithData>) {
   const paper = usePaper();
@@ -85,7 +85,7 @@ function RotatableNode({ label, id }: Readonly<BaseElementWithData>) {
 
 function Main() {
   const elementRotation = useElements((items) =>
-    items.map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
+    Object.values(items).map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
   );
 
   return (

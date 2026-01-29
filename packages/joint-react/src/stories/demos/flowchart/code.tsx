@@ -2,12 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
 import type { GraphLink, RenderElement, TransformOptions } from '@joint/react';
-import {
-  GraphProvider,
-  Highlighter,
-  Paper,
-  useNodeSize,
-} from '@joint/react';
+import { GraphProvider, Highlighter, Paper, useNodeSize } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { dia, linkTools } from '@joint/core';
 import { forwardRef, useRef, useState, type FC } from 'react';
@@ -15,86 +10,75 @@ import { forwardRef, useRef, useState, type FC } from 'react';
 const unit = 4;
 
 type NodeElement = {
-  id: string;
   label: string;
   type: 'start' | 'step' | 'decision';
   cx: number;
   cy: number;
 };
 
-const flowchartNodes: NodeElement[] = [
-  { id: 'start', label: 'Start', type: 'start', cx: 50, cy: 40 },
-  {
-    id: 'addToCart',
+const flowchartNodes: Record<string, NodeElement> = {
+  start: { label: 'Start', type: 'start', cx: 50, cy: 40 },
+  addToCart: {
     label: 'Add to Cart',
     type: 'step',
     cx: 200,
     cy: 40,
   },
-  {
-    id: 'checkoutItems',
+  checkoutItems: {
     label: 'Checkout Items',
     type: 'step',
     cx: 350,
     cy: 40,
   },
-  {
-    id: 'addShippingInfo',
+  addShippingInfo: {
     label: 'Add Shipping Info',
     type: 'step',
     cx: 500,
     cy: 40,
   },
-  {
-    id: 'addPaymentInfo',
+  addPaymentInfo: {
     label: 'Add Payment Info',
     type: 'step',
     cx: 500,
     cy: 140,
   },
-  {
-    id: 'validPayment',
+  validPayment: {
     label: 'Valid Payment?',
     type: 'decision',
     cx: 500,
     cy: 250,
   },
-  {
-    id: 'presentErrorMessage',
+  presentErrorMessage: {
     label: 'Present Error Message',
     type: 'step',
     cx: 750,
     cy: 350,
   },
-  {
-    id: 'sendOrder',
+  sendOrder: {
     label: 'Send Order to Warehouse',
     type: 'step',
     cx: 200,
     cy: 250,
   },
-  {
-    id: 'packOrder',
+  packOrder: {
     label: 'Pack Order',
     type: 'step',
     cx: 40,
     cy: 350,
   },
-  {
-    id: 'qualityCheck',
+  qualityCheck: {
     label: 'Quality Check?',
     type: 'decision',
     cx: 200,
     cy: 460,
   },
-  {
-    id: 'shipItems',
+  shipItems: {
     label: 'Ship Items to Customer',
     type: 'step',
     cx: 500,
     cy: 460,
   },
-];
+};
 const LINK_OPTIONS: Partial<GraphLink> = {
   z: 2,
   attrs: {
@@ -139,56 +123,51 @@ const LINK_OPTIONS: Partial<GraphLink> = {
 };
 type FlowchartLink = GraphLink & { label?: string };
 
-const flowchartLinks: FlowchartLink[] = [
-  { ...LINK_OPTIONS, id: 'flow1', source: 'start', target: 'addToCart' },
-  { ...LINK_OPTIONS, id: 'flow2', source: 'addToCart', target: 'checkoutItems' },
-  { ...LINK_OPTIONS, id: 'flow3', source: 'checkoutItems', target: 'addShippingInfo' },
-  { ...LINK_OPTIONS, id: 'flow4', source: 'addShippingInfo', target: 'addPaymentInfo' },
-  { ...LINK_OPTIONS, id: 'flow5', source: 'addPaymentInfo', target: 'validPayment' },
-  {
+const flowchartLinks: Record<string, FlowchartLink> = {
+  flow1: { ...LINK_OPTIONS, source: 'start', target: 'addToCart' },
+  flow2: { ...LINK_OPTIONS, source: 'addToCart', target: 'checkoutItems' },
+  flow3: { ...LINK_OPTIONS, source: 'checkoutItems', target: 'addShippingInfo' },
+  flow4: { ...LINK_OPTIONS, source: 'addShippingInfo', target: 'addPaymentInfo' },
+  flow5: { ...LINK_OPTIONS, source: 'addPaymentInfo', target: 'validPayment' },
+  flow6: {
     ...LINK_OPTIONS,
-    id: 'flow6',
     source: 'validPayment',
     target: 'presentErrorMessage',
     label: 'No',
   },
-  {
+  flow7: {
     ...LINK_OPTIONS,
-    id: 'flow7',
     source: 'presentErrorMessage',
     target: 'addPaymentInfo',
   },
-  {
+  flow8: {
     ...LINK_OPTIONS,
-    id: 'flow8',
     source: 'validPayment',
     target: 'sendOrder',
     label: 'Yes',
   },
-  { ...LINK_OPTIONS, id: 'flow9', source: 'sendOrder', target: 'packOrder' },
-  { ...LINK_OPTIONS, id: 'flow10', source: 'packOrder', target: 'qualityCheck' },
-  {
+  flow9: { ...LINK_OPTIONS, source: 'sendOrder', target: 'packOrder' },
+  flow10: { ...LINK_OPTIONS, source: 'packOrder', target: 'qualityCheck' },
+  flow11: {
     ...LINK_OPTIONS,
-    id: 'flow11',
     source: 'qualityCheck',
     target: 'shipItems',
     label: 'Ok',
   },
-  {
+  flow12: {
     ...LINK_OPTIONS,
-    id: 'flow12',
     source: 'qualityCheck',
     target: 'sendOrder',
     label: 'Not Ok',
   },
-];
+};
 
 interface PropsWithClick {
   readonly onMouseEnter?: () => void;
   readonly onMouseLeave?: () => void;
   readonly isToolActive?: boolean;
 }
-type FlowchartNodeProps = (typeof flowchartNodes)[number] & PropsWithClick;
+type FlowchartNodeProps = (typeof flowchartNodes)[string] & PropsWithClick;
 
 function transform(options: TransformOptions & { padding: number; cx: number; cy: number }) {
   const { width: nodeWidth, height: nodeHeight, padding, cx, cy } = options;

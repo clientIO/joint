@@ -4,13 +4,13 @@ import { useGraph } from '../use-graph';
 
 describe('use-graph', () => {
   const wrapper = graphProviderWrapper({
-    elements: [
-      {
+    elements: {
+      '1': {
         id: '1',
         width: 100,
         height: 100,
       },
-    ],
+    },
   });
 
   it('should return graph instance', async () => {

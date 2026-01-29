@@ -15,10 +15,6 @@ export type StandardLinkShapesType = keyof StandardLinkShapesTypeMapper;
  */
 export interface GraphLink extends Record<string, unknown> {
   /**
-   * Unique identifier of the link.
-   */
-  readonly id: dia.Cell.ID;
-  /**
    * Source element id or endpoint definition.
    */
   readonly source: dia.Cell.ID | dia.Link.EndJSON;

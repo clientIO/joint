@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
+ 
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia } from '@joint/core';
 import '../../stories/examples/index.css';
@@ -40,18 +40,23 @@ const CustomRect = dia.Element.define(
   }
 );
 
-const initialElements = [
-  {
+const initialElements: Record<string, {
+  type: string;
+  id: string;
+  x: number;
+  y: number;
+}> = {
+  'rect1': {
     type: 'CustomRect',
     id: 'rect1',
     x: 80,
     y: 80,
   },
-];
+};
 
 function App() {
   return (
-    <GraphProvider cellNamespace={{ CustomRect }} elements={initialElements} links={[]}>
+    <GraphProvider cellNamespace={{ CustomRect }} elements={initialElements} links={{}}>
       <Paper width={320} height={220} className={PAPER_CLASSNAME} />
     </GraphProvider>
   );

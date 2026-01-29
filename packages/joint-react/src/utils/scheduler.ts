@@ -1,7 +1,7 @@
 import {
   unstable_getCurrentPriorityLevel as getCurrentPriorityLevel,
   unstable_scheduleCallback as scheduleCallback,
-} from "scheduler";
+} from 'scheduler';
 
 /**
  * Options for creating a graph updates scheduler.
@@ -28,20 +28,22 @@ export interface GraphUpdatesSchedulerOptions<Data extends object> {
  * @example
  * ```ts
  * interface MyData {
- *   elements?: string[];
- *   links?: string[];
+ *   elementsToUpdate?: Map<string, { id: string; label: string }>;
+ *   elementsToDelete?: Map<string, true>;
  * }
  *
- * const scheduler = new GraphUpdatesScheduler<MyData>({
+ * const scheduler = new Scheduler<MyData>({
  *   onFlush: (data) => {
- *     console.log(data.elements, data.links);
+ *     console.log(data.elementsToUpdate, data.elementsToDelete);
  *   },
  * });
  *
  * // Multiple calls are batched
- * scheduler.scheduleData((prev) => ({ ...prev, elements: ['el1'] }));
- * scheduler.scheduleData((prev) => ({ ...prev, links: ['link1'] }));
- * // onFlush called once with combined result: { elements: ['el1'], links: ['link1'] }
+ * const updateMap = new Map([['el1', { id: 'el1', label: 'Element 1' }]]);
+ * scheduler.scheduleData((prev) => ({ ...prev, elementsToUpdate: updateMap }));
+ * const deleteMap = new Map([['el2', true as const]]);
+ * scheduler.scheduleData((prev) => ({ ...prev, elementsToDelete: deleteMap }));
+ * // onFlush called once with combined result
  * ```
  */
 export class Scheduler<Data extends object> {
@@ -66,10 +68,7 @@ export class Scheduler<Data extends object> {
     this.currentData = updater(this.currentData);
 
     if (this.callbackId === null) {
-      this.callbackId = scheduleCallback(
-        this.effectivePriority,
-        this.flushScheduledWork,
-      );
+      this.callbackId = scheduleCallback(this.effectivePriority, this.flushScheduledWork);
     }
   };
 

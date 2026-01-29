@@ -14,25 +14,25 @@ function getLinkSourceId(link: GraphLink) {
 
 describe('use-links', () => {
   const wrapper = graphProviderWrapper({
-    elements: [
-      {
+    elements: {
+      '1': {
         id: '1',
         width: 97,
         height: 99,
       },
-      {
+      '2': {
         id: '2',
         width: 97,
         height: 99,
       },
-    ],
-    links: [
-      {
+    },
+    links: {
+      '3': {
         id: '3',
         source: '1',
         target: '2',
       },
-    ],
+    },
   });
 
   it('should get links properly without selector', async () => {
@@ -49,8 +49,8 @@ describe('use-links', () => {
 
     await waitFor(() => {
       expect(renders).toHaveBeenCalledTimes(1);
-      expect(result.current.length).toBe(1);
-      expect(result.current[0].id).toBe('3');
+      expect(Object.keys(result.current).length).toBe(1);
+      expect(result.current['3'].id).toBe('3');
     });
   });
 
@@ -59,7 +59,7 @@ describe('use-links', () => {
     const { result } = renderHook(
       () => {
         renders();
-        return useLinks((links) => links.map(getLinkSourceId));
+        return useLinks((links) => Object.values(links).map(getLinkSourceId));
       },
       {
         wrapper,

@@ -1,4 +1,3 @@
- 
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
@@ -182,7 +181,6 @@ function HookSetPosition({  label , id }: SimpleElement) {
 
 function HookSetSize({ label, id }: Readonly<SimpleElement>) {
   const { set } = useCellActions<SimpleElement>();
-
   return (
     <HTMLNode className="node">
       <button
@@ -386,8 +384,7 @@ function HookSetAndRemoveLink({ label, id }: Readonly<SimpleElement>) {
       <button
         className={BUTTON_CLASSNAME}
         onClick={() =>
-          set({
-            id: 'l-1',
+          set('l-1', {
             source: id,
             target: id === '1' ? '2' : '1',
             attrs: {

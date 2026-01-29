@@ -10,9 +10,8 @@ import {
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
 
-const initialEdges = [
-  {
-    id: 'e1-2',
+const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string } } }> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -21,14 +20,14 @@ const initialEdges = [
       },
     },
   },
-];
+};
 
-const initialElements = [
-  { id: '1', label: 'Node 1', x: 100, y: 0 },
-  { id: '2', label: 'Node 2', x: 100, y: 200 },
-];
+const initialElements: Record<string, { label: string; x: number; y: number }> = {
+  '1': { label: 'Node 1', x: 100, y: 0 },
+  '2': { label: 'Node 2', x: 100, y: 200 },
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
 function RenderedRect({ label }: Readonly<BaseElementWithData>) {
   const textMargin = 20;

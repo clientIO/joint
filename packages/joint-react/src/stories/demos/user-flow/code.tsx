@@ -8,12 +8,12 @@ import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
 type NodeType = {
-  id: string;
   title: string;
   description: string;
   nodeType: 'user-action' | 'entity' | 'confirm' | 'message';
   x: number;
   y: number;
+
   attrs?: {
     root?: {
       magnet?: boolean;
@@ -21,35 +21,34 @@ type NodeType = {
   };
 };
 
-const nodes: NodeType[] = [
-  {
-    id: '1',
+const nodes: Record<string, NodeType> = {
+  '1': {
     title: 'User Action',
     description: 'Transfer funds',
     nodeType: 'user-action',
     x: 50,
     y: 50,
+
     attrs: {
       root: {
         magnet: false,
       },
     },
   },
-  {
-    id: '2',
+  '2': {
     title: 'Entity',
     description: 'Transfer funds',
     nodeType: 'entity',
     x: 120,
     y: 200,
+
     attrs: {
       root: {
         magnet: false,
       },
     },
   },
-  {
-    id: '3',
+  '3': {
     title: 'User Action',
     description: 'Get account balance',
     nodeType: 'user-action',
@@ -61,25 +60,22 @@ const nodes: NodeType[] = [
     x: 190,
     y: 350,
   },
-];
+};
 
-const links: GraphLink[] = [
-  {
-    id: 'link1',
+const links: Record<string, GraphLink> = {
+  link1: {
     source: { id: '1', port: '1' },
     target: { id: '2', port: 'in' },
   },
-  {
-    id: 'link2',
+  link2: {
     source: { id: '2', port: '1' },
     target: { id: '3', port: 'in' },
   },
-  {
-    id: 'link3',
+  link3: {
     source: { id: '3', port: '2' },
     target: { id: '1', port: 'in' },
   },
-];
+};
 
 interface PortProps {
   id: string;

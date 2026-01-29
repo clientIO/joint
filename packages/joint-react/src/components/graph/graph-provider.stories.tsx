@@ -35,19 +35,19 @@ The **GraphProvider** component provides a shared Graph context for all its desc
 \`\`\`tsx
 import { GraphProvider, Paper } from '@joint/react';
 
-const elements = [
-  { id: '1', x: 100, y: 100, width: 100, height: 50 },
-  { id: '2', x: 250, y: 200, width: 100, height: 50 },
-];
+const elements = {
+  '1': { id: '1', x: 100, y: 100, width: 100, height: 50 },
+  '2': { id: '2', x: 250, y: 200, width: 100, height: 50 },
+};
 
-const links = [
-  { id: 'l1', source: '1', target: '2' },
-];
+const links = {
+  'l1': { id: 'l1', source: '1', target: '2' },
+};
 
 function MyDiagram() {
   return (
     <GraphProvider elements={elements} links={links}>
-      <Paper 
+      <Paper
         renderElement={({ width, height }) => (
           <rect width={width} height={height} fill="blue" />
         )}
@@ -58,8 +58,8 @@ function MyDiagram() {
 \`\`\`
     `,
     props: `
-- **elements**: Array of element objects (required)
-- **links**: Array of link objects (required)
+- **elements**: Record of element objects keyed by ID (required)
+- **links**: Record of link objects keyed by ID (required)
 - **children**: React nodes (typically Paper components)
 - **onChange**: Callback fired when graph state changes
     `,

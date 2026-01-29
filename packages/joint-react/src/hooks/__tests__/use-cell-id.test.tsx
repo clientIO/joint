@@ -6,13 +6,13 @@ describe('use-cell-id', () => {
   it('should return cell id when used inside renderElement', async () => {
     const wrapper = paperRenderElementWrapper({
       graphProviderProps: {
-        elements: [
-          {
+        elements: {
+          'test-cell-id': {
             id: 'test-cell-id',
             width: 100,
             height: 100,
           },
-        ],
+        },
       },
       paperProps: {
         renderElement: () => <rect />,

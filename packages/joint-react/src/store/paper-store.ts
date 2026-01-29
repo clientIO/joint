@@ -3,12 +3,9 @@ import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
-import type { ReactPaper } from '../types/paper.types';
+import type { ReactPaper as ReactPaperType } from '../types/paper.types';
 import type { GraphState, GraphStore } from './graph-store';
-import { REACT_TYPE } from '../models/react-element';
-import { ReactElementView } from '../models/react-element-view';
-import { ReactLinkView } from '../models/react-link-view';
-import { REACT_LINK_TYPE } from '../models/react-link';
+import { ReactPaper } from '../models/react-paper';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 export const PORTAL_SELECTOR = 'react-port-portal';
@@ -87,7 +84,7 @@ export interface PaperStoreSnapshot {
  */
 export class PaperStore {
   /** The underlying JointJS Paper instance with React-specific properties */
-  public paper: ReactPaper;
+  public paper: ReactPaper & ReactPaperType;
   /** Unique identifier for this paper instance */
   public paperId: string;
   /** Reference to the overwrite result if custom rendering is used */
@@ -147,40 +144,68 @@ export class PaperStore {
     // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
     const store = this;
 
-    const reactCellVieOptions: Partial<dia.Paper.Options> = {};
-    if (renderElement !== undefined) {
-      reactCellVieOptions.elementView = (element) => {
-        if (element.get('type') === REACT_TYPE) {
-          return ReactElementView;
-        }
-        return null;
-      };
-    }
-    if (renderLink !== undefined) {
-      reactCellVieOptions.linkView = (link) => {
-        if (link.get('type') === REACT_LINK_TYPE) {
-          return ReactLinkView;
-        }
-        return null;
-      };
-    }
-
-    // Create a new JointJS Paper with the provided options
-    const paper = new dia.Paper({
+    // Create a new ReactPaper instance
+    // ReactPaper handles view lifecycle internally via insertView/removeView
+    const paper = new ReactPaper({
       async: true,
       sorting: dia.Paper.sorting.APPROX,
       preventDefaultBlankAction: false,
       frozen: true,
       model: graph,
-      ...reactCellVieOptions,
       // 👇 override to always allow connection
       validateConnection: () => true,
       // 👇 also, allow links to start or end on empty space
       validateMagnet: () => true,
+      // 👇 capture port elements after render for React portals
+      afterRender: (() => {
+        // Re-entrancy guard to prevent infinite loops
+        let isProcessing = false;
+        return () => {
+          if (isProcessing) {
+            return;
+          }
+          isProcessing = true;
+          try {
+            // Iterate through all element views and capture port elements
+            let hasPortsChanged = false;
+            for (const view of Object.values(cache.elementViews)) {
+              const portElementsCache = (
+                view as dia.ElementView & {
+                  _portElementsCache?: Record<string, PortElementsCacheEntry>;
+                }
+              )._portElementsCache;
+              if (!portElementsCache) {
+                continue;
+              }
+              const newPorts = store.getNewPorts({
+                state: graphStore.internalState,
+                cellId: view.model.id as dia.Cell.ID,
+                portElementsCache,
+                portsData: cache.portsData,
+              });
+              if (newPorts && newPorts !== cache.portsData) {
+                cache.portsData = newPorts;
+                hasPortsChanged = true;
+              }
+            }
+            // Only schedule update if ports actually changed
+            if (hasPortsChanged) {
+              graphStore.schedulePaperUpdate();
+            }
+          } finally {
+            isProcessing = false;
+          }
+        };
+      })(),
       ...paperOptions,
-      viewManagement: paperOptions.viewManagement ?? true,
       clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
-    }) as ReactPaper;
+      autoFreeze: true,
+      viewManagement: {
+        disposeHidden: true,
+        lazyInitialize: true,
+      },
+      graphStore,
+    }) as ReactPaper & ReactPaperType;
 
     // Attach React-specific properties to the paper for view access
     paper.reactElementCache = {

@@ -1,1169 +1,968 @@
-/* eslint-disable unicorn/consistent-function-scoping */
-/* eslint-disable sonarjs/no-element-overwrite */
 /* eslint-disable sonarjs/no-nested-functions */
 import { dia } from '@joint/core';
-import {
-  DEFAULT_CELL_NAMESPACE,
-  type GraphStoreSnapshot,
-  type GraphStoreDerivedSnapshot,
-} from '../../store/graph-store';
+import { DEFAULT_CELL_NAMESPACE, type GraphStoreSnapshot } from '../../store/graph-store';
 import { stateSync } from '../state-sync';
+import { updateGraph } from '../update-graph';
 import { createState } from '../../utils/create-state';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
+  mapElementAttributesToData,
+  mapLinkAttributesToData,
   createDefaultElementMapper,
   createDefaultLinkMapper,
+  createDefaultGraphToElementMapper,
   type ElementToGraphOptions,
   type LinkToGraphOptions,
 } from '../graph-state-selectors';
+import { Scheduler } from '../../utils/scheduler';
+import type { GraphSchedulerData } from '../../types/scheduler.types';
 
 // Helper to create ElementToGraphOptions
 function createElementToGraphOptions<E extends GraphElement>(
+  id: string,
   element: E,
   graph: dia.Graph
 ): ElementToGraphOptions<E> {
   return {
+    id,
     data: element,
     graph,
-    defaultAttributes: createDefaultElementMapper(element),
+    defaultAttributes: createDefaultElementMapper(id, element),
   };
 }
 
 // Helper to create LinkToGraphOptions
-function createLinkToGraphOptions<L extends GraphLink>(
+function _createLinkToGraphOptions<L extends GraphLink>(
+  id: string,
   data: L,
   graph: dia.Graph
 ): LinkToGraphOptions<L> {
   return {
+    id,
     data,
     graph,
-    defaultAttributes: createDefaultLinkMapper(data, graph),
+    defaultAttributes: createDefaultLinkMapper(id, data, graph),
   };
 }
 
-// Helper to create getIdsSnapshot function
-function createGetIdsSnapshot<E extends GraphElement, L extends GraphLink>(
-  state: ReturnType<typeof createState<GraphStoreSnapshot<E, L>>>
-): () => GraphStoreDerivedSnapshot {
-  return () => {
-    const snapshot = state.getSnapshot();
-    const elementIds: Record<dia.Cell.ID, number> = {};
-    const linkIds: Record<dia.Cell.ID, number> = {};
+// Helper to create a mock scheduler that tracks scheduled data
+function createMockScheduler() {
+  const scheduledData: GraphSchedulerData[] = [];
+  let flushCallback: ((data: GraphSchedulerData) => void) | null = null;
 
-    for (const [index, element] of snapshot.elements.entries()) {
-      elementIds[element.id as dia.Cell.ID] = index;
-    }
-    for (const [index, link] of snapshot.links.entries()) {
-      linkIds[link.id as dia.Cell.ID] = index;
-    }
+  const scheduler = new Scheduler<GraphSchedulerData>({
+    onFlush: (data) => {
+      scheduledData.push(data);
+      if (flushCallback) {
+        flushCallback(data);
+      }
+    },
+  });
 
-    return { elementIds, linkIds };
+  return {
+    scheduler,
+    scheduledData,
+    setFlushCallback: (cb: (data: GraphSchedulerData) => void) => {
+      flushCallback = cb;
+    },
+    // Force flush for testing
+    getScheduledCount: () => scheduledData.length,
   };
+}
+
+// Helper to flush scheduler synchronously for tests
+async function flushScheduler(): Promise<void> {
+  // Use setTimeout to allow React scheduler to flush
+  await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 describe('stateSync', () => {
-  it('should sync dia.graph <-> state effectively', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-    const elements = [
-      {
-        id: '1',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-      {
-        id: '2',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements, links: [] }),
-      name: 'elements',
-    });
-
-    // Mock the setState method to be able to test the state updates.
-    const mockedSetState = jest.fn().mockImplementation(state.setState);
-    state.setState = mockedSetState;
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-
-    // Here we initially sync the graph with the state.
-    // State should not be updated yet.
-    stateSync({ graph, store: state, getIdsSnapshot });
-    expect(graph.getElements()).toHaveLength(2);
-    expect(state.getSnapshot().elements).toHaveLength(2);
-    expect(mockedSetState).toHaveBeenCalledTimes(0);
-    // Here we update state via state API.
-    // State should not be updated yet.
-    state.setState((previous: GraphStoreSnapshot<GraphElement, GraphLink>) => ({
-      ...previous,
-      elements: [...previous.elements, { id: '3', width: 100, height: 100, type: 'ReactElement' }],
-    }));
-    expect(graph.getElements()).toHaveLength(3);
-    expect(state.getSnapshot().elements).toHaveLength(3);
-    expect(mockedSetState).toHaveBeenCalledTimes(1);
-
-    // Here we update dia.graph itself via graph.syncCells.
-    // State should be updated now with 1 update call.
-    const newElements = [
-      ...state.getSnapshot().elements,
-      { id: '4', width: 100, height: 100, type: 'ReactElement' },
-    ];
-    const elementItems = newElements.map((element) =>
-      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
-    );
-    graph.syncCells(elementItems, { remove: true });
-    expect(graph.getElements()).toHaveLength(4);
-    expect(state.getSnapshot().elements).toHaveLength(4);
-    expect(mockedSetState).toHaveBeenCalledTimes(2);
-  });
-
-  it('should sync dia.graph <-> state effectively using normal JointJS API', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-    const elements = [
-      {
-        id: '1',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-      {
-        id: '2',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements, links: [] }),
-      name: 'elements',
-    });
-
-    // Mock the setState method to be able to test the state updates.
-    const mockedSetState = jest.fn().mockImplementation(state.setState);
-    state.setState = mockedSetState;
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-
-    // Here we initially sync the graph with the state.
-    // State should not be updated yet.
-    stateSync({ graph, store: state, getIdsSnapshot });
-    expect(graph.getElements()).toHaveLength(2);
-    expect(state.getSnapshot().elements).toHaveLength(2);
-    expect(mockedSetState).toHaveBeenCalledTimes(0);
-
-    // Here we update state via state API.
-    // State should not be updated yet.
-    state.setState((previous: GraphStoreSnapshot<GraphElement, GraphLink>) => ({
-      ...previous,
-      elements: [...previous.elements, { id: '3', width: 100, height: 100, type: 'ReactElement' }],
-    }));
-    expect(graph.getElements()).toHaveLength(3);
-    expect(state.getSnapshot().elements).toHaveLength(3);
-    expect(mockedSetState).toHaveBeenCalledTimes(1);
-
-    // Here we update dia.graph itself via normal JointJS API (not syncCells/batch).
-    // State should be updated now with 1 update call.
-    const newElement = new dia.Element({
-      id: '4',
-      type: 'ReactElement',
-      position: { x: 0, y: 0 },
-      size: { width: 100, height: 100 },
-    });
-    graph.addCell(newElement);
-    expect(graph.getElements()).toHaveLength(4);
-    expect(state.getSnapshot().elements).toHaveLength(4);
-    expect(mockedSetState).toHaveBeenCalledTimes(2);
-  });
-
-  it('should sync existing graph cells to store when store is empty', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-
-    // Add elements directly to graph before creating store
-    const existingElements = [
-      {
-        id: '1',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-      {
-        id: '2',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    // Add elements to graph using syncCells
-    const elementItems = existingElements.map((element) =>
-      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
-    );
-    graph.syncCells(elementItems, { remove: true });
-
-    // Create empty store
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements: [], links: [] }),
-      name: 'elements',
-    });
-
-    // Mock the setState method to be able to test the state updates.
-    const mockedSetState = jest.fn().mockImplementation(state.setState);
-    state.setState = mockedSetState;
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-
-    // Graph has 2 elements, store is empty
-    expect(graph.getElements()).toHaveLength(2);
-    expect(state.getSnapshot().elements).toHaveLength(0);
-
-    // Initialize stateSync - it should sync existing graph cells to store
-    stateSync({ graph, store: state, getIdsSnapshot });
-
-    // Store should now have the 2 elements from the graph
-    expect(state.getSnapshot().elements).toHaveLength(2);
-    expect(state.getSnapshot().elements[0].id).toBe('1');
-    expect(state.getSnapshot().elements[1].id).toBe('2');
-    expect(mockedSetState).toHaveBeenCalledTimes(1);
-
-    // Graph should still have 2 elements
-    expect(graph.getElements()).toHaveLength(2);
-  });
-
-  it('should not sync existing graph cells to store when store already has elements', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-
-    // Add elements directly to graph
-    const graphElements = [
-      {
-        id: '1',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    const elementItems = graphElements.map((element) =>
-      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
-    );
-    graph.syncCells(elementItems, { remove: true });
-
-    // Create store with different elements
-    const storeElements = [
-      {
-        id: '2',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements: storeElements, links: [] }),
-      name: 'elements',
-    });
-
-    // Mock the setState method to be able to test the state updates.
-    const mockedSetState = jest.fn().mockImplementation(state.setState);
-    state.setState = mockedSetState;
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-
-    // Graph has 1 element, store has 1 different element
-    expect(graph.getElements()).toHaveLength(1);
-    expect(state.getSnapshot().elements).toHaveLength(1);
-    expect(state.getSnapshot().elements[0].id).toBe('2');
-
-    // Initialize stateSync - it should NOT sync graph cells to store since store is not empty
-    stateSync({ graph, store: state, getIdsSnapshot });
-
-    // Store should still have its original element
-    expect(state.getSnapshot().elements).toHaveLength(1);
-    expect(state.getSnapshot().elements[0].id).toBe('2');
-    // setState should be called to sync store to graph, not the other way around
-    expect(mockedSetState).toHaveBeenCalledTimes(0);
-
-    // Graph should now have the element from store (synced from store to graph)
-    expect(graph.getElements()).toHaveLength(1);
-    expect(graph.getCell('2')).toBeDefined();
-  });
-
-  it('should sync existing graph links to store when store is empty', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-
-    // Add elements and links directly to graph before creating store
-    const existingElements = [
-      {
-        id: '1',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-      {
-        id: '2',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    const elementItems = existingElements.map((element) =>
-      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
-    );
-    const link = { id: 'link1', source: '1', target: '2' };
-    const linkItems = [defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph))];
-    graph.syncCells([...elementItems, ...linkItems], { remove: true });
-
-    // Create empty store
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements: [], links: [] }),
-      name: 'elements',
-    });
-
-    // Mock the setState method to be able to test the state updates.
-    const mockedSetState = jest.fn().mockImplementation(state.setState);
-    state.setState = mockedSetState;
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-
-    // Graph has 2 elements and 1 link, store is empty
-    expect(graph.getElements()).toHaveLength(2);
-    expect(graph.getLinks()).toHaveLength(1);
-    expect(state.getSnapshot().elements).toHaveLength(0);
-    expect(state.getSnapshot().links).toHaveLength(0);
-
-    // Initialize stateSync - it should sync existing graph cells (elements and links) to store
-    stateSync({ graph, store: state, getIdsSnapshot });
-
-    // Store should now have the 2 elements and 1 link from the graph
-    expect(state.getSnapshot().elements).toHaveLength(2);
-    expect(state.getSnapshot().links).toHaveLength(1);
-    expect(state.getSnapshot().links[0].id).toBe('link1');
-    expect(mockedSetState).toHaveBeenCalledTimes(1);
-
-    // Graph should still have 2 elements and 1 link
-    expect(graph.getElements()).toHaveLength(2);
-    expect(graph.getLinks()).toHaveLength(1);
-  });
-
-  it('should handle cleanup properly and unsubscribe from all listeners', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements: [], links: [] }),
-      name: 'elements',
-    });
-
-    const unsubscribeSpy = jest.fn();
-    state.subscribe = jest.fn(() => unsubscribeSpy);
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-    const sync = stateSync({ graph, store: state, getIdsSnapshot });
-
-    // Verify subscription was set up
-    expect(state.subscribe).toHaveBeenCalledTimes(1);
-
-    // Cleanup
-    sync.cleanup();
-
-    // Verify unsubscribe was called
-    expect(unsubscribeSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('should subscribe to cell changes and allow unsubscribing', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements: [], links: [] }),
-      name: 'elements',
-    });
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-    const sync = stateSync({ graph, store: state, getIdsSnapshot });
-
-    // eslint-disable-next-line unicorn/consistent-function-scoping
-    const cellChangeCallback = jest.fn(() => () => {});
-    const unsubscribe = sync.subscribeToGraphChange(cellChangeCallback);
-
-    // Add a cell to trigger change
-    const element = new dia.Element({
-      id: 'test',
-      type: 'ReactElement',
-      position: { x: 0, y: 0 },
-      size: { width: 100, height: 100 },
-    });
-    graph.addCell(element);
-
-    // Wait a bit for the change to propagate
-    // The callback should have been called
-    // Note: This is a simplified test - in reality, the callback is called by listenToCellChange
-
-    // Unsubscribe
-    unsubscribe();
-
-    // Add another cell - callback should not be called again (though we can't easily test this without more setup)
-    // The important thing is that unsubscribe doesn't throw
-    expect(() => unsubscribe()).not.toThrow();
-  });
-
-  it('should not sync existing graph cells when store has setState but it is undefined', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-
-    // Add elements to graph
-    const existingElements = [
-      {
-        id: '1',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    const elementItems = existingElements.map((element) =>
-      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
-    );
-    graph.syncCells(elementItems, { remove: true });
-
-    // Create store without setState
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements: [], links: [] }),
-      name: 'elements',
-    });
-
-    // Remove setState to simulate a read-only store
-    const originalSetState = state.setState;
-    // @ts-expect-error Testing edge case where setState might be undefined
-    state.setState = undefined;
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-
-    // Graph has 1 element, store is empty
-    expect(graph.getElements()).toHaveLength(1);
-    expect(state.getSnapshot().elements).toHaveLength(0);
-
-    // Initialize stateSync - it should not crash and should not sync since setState is undefined
-    expect(() => {
-      stateSync({ graph, store: state, getIdsSnapshot });
-    }).not.toThrow();
-
-    // Store should still be empty since setState was undefined
-    expect(state.getSnapshot().elements).toHaveLength(0);
-
-    // Restore setState for cleanup
-    state.setState = originalSetState;
-  });
-
-  it('should handle graph with existing cells and initial elements/links - initial elements take precedence', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-
-    // Add elements to graph
-    const graphElements = [
-      {
-        id: 'graph-element',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    const elementItems = graphElements.map((element) =>
-      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
-    );
-    graph.syncCells(elementItems, { remove: true });
-
-    // Create store with initial elements (different from graph)
-    const initialElements = [
-      {
-        id: 'initial-element',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements: initialElements, links: [] }),
-      name: 'elements',
-    });
-
-    // Mock the setState method
-    const mockedSetState = jest.fn().mockImplementation(state.setState);
-    state.setState = mockedSetState;
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-
-    // Graph has 1 element, store has 1 different element
-    expect(graph.getElements()).toHaveLength(1);
-    expect(state.getSnapshot().elements).toHaveLength(1);
-    expect(state.getSnapshot().elements[0].id).toBe('initial-element');
-
-    // Initialize stateSync
-    stateSync({ graph, store: state, getIdsSnapshot });
-
-    // Since store has initial elements, they should take precedence
-    // The graph should be synced to match the store (initial elements)
-    expect(graph.getElements()).toHaveLength(1);
-    expect(graph.getCell('initial-element')).toBeDefined();
-    expect(graph.getCell('graph-element')).toBeUndefined();
-  });
-
-  it('should handle external store with existing graph cells - store takes precedence', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-
-    // Add elements to graph
-    const graphElements = [
-      {
-        id: 'graph-element',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    const elementItems = graphElements.map((element) =>
-      defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
-    );
-    graph.syncCells(elementItems, { remove: true });
-
-    // Create external store with different elements
-    const externalElements = [
-      {
-        id: 'external-element',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    const externalStore = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements: externalElements, links: [] }),
-      name: 'external',
-    });
-
-    // Mock the setState method
-    const mockedSetState = jest.fn().mockImplementation(externalStore.setState);
-    externalStore.setState = mockedSetState;
-
-    const getIdsSnapshot = createGetIdsSnapshot(externalStore);
-
-    // Graph has 1 element, external store has 1 different element
-    expect(graph.getElements()).toHaveLength(1);
-    expect(externalStore.getSnapshot().elements).toHaveLength(1);
-    expect(externalStore.getSnapshot().elements[0].id).toBe('external-element');
-
-    // Initialize stateSync with external store
-    stateSync({ graph, store: externalStore, getIdsSnapshot });
-
-    // External store should take precedence - graph should be synced to match external store
-    expect(graph.getElements()).toHaveLength(1);
-    expect(graph.getCell('external-element')).toBeDefined();
-    expect(graph.getCell('graph-element')).toBeUndefined();
-
-    // External store should not be modified (it's the source of truth)
-    expect(externalStore.getSnapshot().elements).toHaveLength(1);
-    expect(externalStore.getSnapshot().elements[0].id).toBe('external-element');
-  });
-
-  it('should prevent circular updates when syncing from state to graph', () => {
-    const graph = new dia.Graph(
-      {},
-      {
-        cellNamespace: {
-          ...DEFAULT_CELL_NAMESPACE,
-        },
-      }
-    );
-
-    const elements = [
-      {
-        id: '1',
-        width: 100,
-        height: 100,
-        type: 'ReactElement',
-      },
-    ];
-
-    const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-      newState: () => ({ elements, links: [] }),
-      name: 'elements',
-    });
-
-    const getIdsSnapshot = createGetIdsSnapshot(state);
-
-    // Initialize stateSync first
-    stateSync({ graph, store: state, getIdsSnapshot });
-
-    // Verify initial state
-    expect(graph.getElements()).toHaveLength(1);
-    expect(state.getSnapshot().elements).toHaveLength(1);
-
-    // Update state - this should trigger graph sync, but not cause circular updates
-    // The graph sync should update the graph, but the graph change should not trigger
-    // another state update because of the isSyncingFromState flag
-    state.setState((previous) => ({
-      ...previous,
-      elements: [...previous.elements, { id: '2', width: 100, height: 100, type: 'ReactElement' }],
-    }));
-
-    // Graph should have 2 elements (synced from state)
-    expect(graph.getElements()).toHaveLength(2);
-    expect(graph.getCell('1')).toBeDefined();
-    expect(graph.getCell('2')).toBeDefined();
-
-    // State should still have 2 elements
-    expect(state.getSnapshot().elements).toHaveLength(2);
-
-    // Now update graph directly - this should update state, but not cause circular updates
-    const newElement = new dia.Element({
-      id: '3',
-      type: 'ReactElement',
-      position: { x: 0, y: 0 },
-      size: { width: 100, height: 100 },
-    });
-    graph.addCell(newElement);
-
-    // Graph should have 3 elements
-    expect(graph.getElements()).toHaveLength(3);
-
-    // State should be updated with the new element (from graph)
-    // This verifies that graph -> state sync works without causing state -> graph -> state loops
-    expect(state.getSnapshot().elements).toHaveLength(3);
-    expect(state.getSnapshot().elements.find((element) => element.id === '3')).toBeDefined();
-  });
-
-  describe('shape preservation', () => {
-    it('should preserve element shape (only include user-defined properties) after reset', () => {
-      const graph = new dia.Graph(
-        {},
-        {
-          cellNamespace: {
-            ...DEFAULT_CELL_NAMESPACE,
-          },
-        }
-      );
-
-      // User defines elements WITHOUT x/y properties
-      type CustomElement = GraphElement & { label: string };
-      const elements: CustomElement[] = [
-        {
-          id: '1',
-          width: 100,
-          height: 100,
-          type: 'ReactElement',
-          label: 'Element 1',
-        },
-      ];
-
-      const state = createState<GraphStoreSnapshot<CustomElement, GraphLink>>({
-        newState: () => ({ elements, links: [] }),
-        name: 'elements',
-      });
-
-      const getIdsSnapshot = createGetIdsSnapshot(state);
-
-      // Initialize stateSync
-      stateSync({ graph, store: state, getIdsSnapshot });
-
-      // Graph should have the element with position added by JointJS
-      expect(graph.getElements()).toHaveLength(1);
-      const cell = graph.getCell('1');
-      expect(cell?.get('position')).toBeDefined();
-
-      // Trigger a reset by clearing and re-adding
-      graph.resetCells([
-        {
-          id: '1',
-          type: 'ReactElement',
-          position: { x: 150, y: 200 },
-          size: { width: 100, height: 100 },
-          data: { label: 'Element 1' },
-        },
-      ]);
-
-      // State should NOT have x/y because they weren't in original state
-      const snapshot = state.getSnapshot();
-      expect(snapshot.elements).toHaveLength(1);
-      expect(snapshot.elements[0]).not.toHaveProperty('x');
-      expect(snapshot.elements[0]).not.toHaveProperty('y');
-      expect(snapshot.elements[0].label).toBe('Element 1');
-    });
-
-    it('should include x/y in state after reset when user defines them (even as undefined)', () => {
-      const graph = new dia.Graph(
-        {},
-        {
-          cellNamespace: {
-            ...DEFAULT_CELL_NAMESPACE,
-          },
-        }
-      );
-
-      // User defines elements WITH x/y properties (as undefined)
-      type CustomElement = GraphElement & { label: string };
-      const elements: CustomElement[] = [
-        {
-          id: '1',
-          x: undefined,
-          y: undefined,
-          width: 100,
-          height: 100,
-          type: 'ReactElement',
-          label: 'Element 1',
-        },
-      ];
-
-      const state = createState<GraphStoreSnapshot<CustomElement, GraphLink>>({
-        newState: () => ({ elements, links: [] }),
-        name: 'elements',
-      });
-
-      const getIdsSnapshot = createGetIdsSnapshot(state);
-
-      // Initialize stateSync
-      stateSync({ graph, store: state, getIdsSnapshot });
-
-      // Trigger a reset
-      graph.resetCells([
-        {
-          id: '1',
-          type: 'ReactElement',
-          position: { x: 150, y: 200 },
-          size: { width: 100, height: 100 },
-          data: { label: 'Element 1' },
-        },
-      ]);
-
-      // State SHOULD have x/y because they were in original state
-      const snapshot = state.getSnapshot();
-      expect(snapshot.elements).toHaveLength(1);
-      expect(snapshot.elements[0].x).toBe(150);
-      expect(snapshot.elements[0].y).toBe(200);
-      expect(snapshot.elements[0].label).toBe('Element 1');
-    });
-
-    it('should preserve link shape (only include user-defined properties) after reset', () => {
-      const graph = new dia.Graph(
-        {},
-        {
-          cellNamespace: {
-            ...DEFAULT_CELL_NAMESPACE,
-          },
-        }
-      );
-
-      // User defines links WITHOUT attrs property
-      type CustomLink = GraphLink & { label: string };
-      const elements = [
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-        { id: '2', width: 100, height: 100, type: 'ReactElement' },
-      ];
-      const links: CustomLink[] = [
-        {
-          id: 'link-1',
-          source: '1',
-          target: '2',
-          label: 'Connection',
-          // Note: attrs is NOT defined
-        },
-      ];
-
-      const state = createState<GraphStoreSnapshot<GraphElement, CustomLink>>({
-        newState: () => ({ elements, links }),
-        name: 'elements',
-      });
-
-      const getIdsSnapshot = createGetIdsSnapshot(state);
-
-      // Initialize stateSync
-      stateSync({ graph, store: state, getIdsSnapshot });
-
-      // Graph should have the link with attrs added by JointJS
-      expect(graph.getLinks()).toHaveLength(1);
-      const linkCell = graph.getCell('link-1') as dia.Link;
-      expect(linkCell.attr()).toBeDefined();
-
-      // Trigger a reset
-      const resetElements = elements.map((element) =>
-        defaultMapDataToElementAttributes(createElementToGraphOptions(element, graph))
-      );
-      graph.resetCells([
-        ...resetElements,
-        {
-          id: 'link-1',
-          type: 'standard.Link',
-          source: { id: '1' },
-          target: { id: '2' },
-          data: { label: 'Connection' },
-          attrs: { line: { stroke: 'red' } }, // JointJS adds attrs
-        },
-      ]);
-
-      // State should NOT have attrs because it wasn't in original state
-      const snapshot = state.getSnapshot();
-      expect(snapshot.links).toHaveLength(1);
-      expect(snapshot.links[0]).not.toHaveProperty('attrs');
-      expect(snapshot.links[0].label).toBe('Connection');
-    });
-  });
-
-  describe('cell change listeners optimization', () => {
-    it('should batch listener calls in onIncrementalChange instead of calling immediately', () => {
-      const graph = new dia.Graph(
-        {},
-        {
-          cellNamespace: {
-            ...DEFAULT_CELL_NAMESPACE,
-          },
-        }
-      );
+  describe('basic synchronization', () => {
+    it('should sync elements from state to graph on initialization', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, type: 'ReactElement' },
+        '2': { width: 100, height: 100, type: 'ReactElement' },
+      };
 
       const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-        newState: () => ({ elements: [], links: [] }),
+        newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
 
-      const getIdsSnapshot = createGetIdsSnapshot(state);
-      const sync = stateSync({ graph, store: state, getIdsSnapshot });
+      const { scheduler } = createMockScheduler();
 
-      const listenerCalls: Array<{ type: string; cellId?: string }> = [];
-      const cellChangeCallback = jest.fn((change) => {
-        if (change.type === 'reset') {
-          listenerCalls.push({ type: 'reset' });
-        } else {
-          listenerCalls.push({ type: change.type, cellId: change.cell.id.toString() });
-        }
-        return () => {};
-      });
+      stateSync({ graph, store: state, scheduler });
 
-      sync.subscribeToGraphChange(cellChangeCallback);
-
-      // Add multiple cells in quick succession
-      const element1 = new dia.Element({
-        id: '1',
-        type: 'ReactElement',
-        position: { x: 0, y: 0 },
-        size: { width: 100, height: 100 },
-      });
-      const element2 = new dia.Element({
-        id: '2',
-        type: 'ReactElement',
-        position: { x: 100, y: 100 },
-        size: { width: 100, height: 100 },
-      });
-
-      graph.addCell(element1);
-      graph.addCell(element2);
-
-      // Listeners should be called in batches via onIncrementalChange
-      // Not immediately on each cell change
-      // The exact number depends on batching, but should be called
-      expect(cellChangeCallback).toHaveBeenCalled();
-      expect(listenerCalls.length).toBeGreaterThan(0);
-
-      // Verify we received the correct change types
-      const addCalls = listenerCalls.filter((call) => call.type === 'add');
-      expect(addCalls.length).toBeGreaterThanOrEqual(2);
-    });
-
-    it('should call listeners before isEqual check in onIncrementalChange', () => {
-      const graph = new dia.Graph(
-        {},
-        {
-          cellNamespace: {
-            ...DEFAULT_CELL_NAMESPACE,
-          },
-        }
-      );
-
-      const elements = [
-        {
-          id: '1',
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 100,
-          type: 'ReactElement',
-        },
-      ];
-
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-        newState: () => ({ elements, links: [] }),
-        name: 'elements',
-      });
-
-      const getIdsSnapshot = createGetIdsSnapshot(state);
-      const sync = stateSync({ graph, store: state, getIdsSnapshot });
-
-      let listenerCalledBeforeIsEqual = false;
-      const cellChangeCallback = jest.fn((change) => {
-        // This listener should be called before isEqual check
-        // We can verify this by checking that the graph has the updated cell
-        // even if state doesn't have layout data (x/y/width/height)
-        if (change.type !== 'reset' && change.cell) {
-          const cell = graph.getCell(change.cell.id);
-          listenerCalledBeforeIsEqual = cell != null;
-        }
-        return () => {};
-      });
-
-      sync.subscribeToGraphChange(cellChangeCallback);
-
-      // Modify a cell in the graph
-      const cell = graph.getCell('1');
-      if (cell) {
-        cell.set('position', { x: 50, y: 50 });
-      }
-
-      // Listener should have been called
-      expect(cellChangeCallback).toHaveBeenCalled();
-      expect(listenerCalledBeforeIsEqual).toBe(true);
-    });
-
-    it('should call listeners in onBatchStop when syncing from state', () => {
-      const graph = new dia.Graph(
-        {},
-        {
-          cellNamespace: {
-            ...DEFAULT_CELL_NAMESPACE,
-          },
-        }
-      );
-
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-        newState: () => ({ elements: [], links: [] }),
-        name: 'elements',
-      });
-
-      const getIdsSnapshot = createGetIdsSnapshot(state);
-      const sync = stateSync({ graph, store: state, getIdsSnapshot });
-
-      const listenerCalls: Array<{ type: string; cellId?: string }> = [];
-      const cellChangeCallback = jest.fn((change) => {
-        if (change.type === 'reset') {
-          listenerCalls.push({ type: 'reset' });
-        } else {
-          listenerCalls.push({ type: change.type, cellId: change.cell.id.toString() });
-        }
-        return () => {};
-      });
-
-      sync.subscribeToGraphChange(cellChangeCallback);
-
-      // Update state - this triggers sync from state to graph
-      // The sync happens in a batch, and listeners should be called in onBatchStop
-      state.setState((previous) => ({
-        ...previous,
-        elements: [
-          { id: '1', x: 0, y: 0, width: 100, height: 100, type: 'ReactElement' },
-          { id: '2', x: 100, y: 100, width: 100, height: 100, type: 'ReactElement' },
-        ],
-      }));
-
-      // Graph should have the elements
+      // Graph should have the elements from state
       expect(graph.getElements()).toHaveLength(2);
-
-      // Listeners should have been called (in onBatchStop when syncing from state)
-      expect(cellChangeCallback).toHaveBeenCalled();
-      expect(listenerCalls.length).toBeGreaterThan(0);
-
-      // Verify we received add calls for the new elements
-      const addCalls = listenerCalls.filter((call) => call.type === 'add');
-      expect(addCalls.length).toBeGreaterThanOrEqual(2);
+      expect(graph.getCell('1')).toBeDefined();
+      expect(graph.getCell('2')).toBeDefined();
     });
 
-    it('should handle reset changes correctly in batched listener calls', () => {
-      const graph = new dia.Graph(
-        {},
-        {
-          cellNamespace: {
-            ...DEFAULT_CELL_NAMESPACE,
-          },
-        }
-      );
+    it('should sync links from state to graph on initialization', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const elements = [
-        {
-          id: '1',
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 100,
-          type: 'ReactElement',
-        },
-      ];
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, type: 'ReactElement' },
+        '2': { width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const initialLinks: Record<string, GraphLink> = {
+        link1: { source: '1', target: '2' },
+      };
 
       const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-        newState: () => ({ elements, links: [] }),
+        newState: () => ({ elements: initialElements, links: initialLinks }),
         name: 'elements',
       });
 
-      const getIdsSnapshot = createGetIdsSnapshot(state);
-      const sync = stateSync({ graph, store: state, getIdsSnapshot });
+      const { scheduler } = createMockScheduler();
 
-      const resetCalls: Array<{ type: string; cellsCount?: number }> = [];
-      const cellChangeCallback = jest.fn((change) => {
-        if (change.type === 'reset') {
-          resetCalls.push({
-            type: 'reset',
-            cellsCount: change.cells?.length ?? 0,
-          });
-        }
-        return () => {};
-      });
+      stateSync({ graph, store: state, scheduler });
 
-      sync.subscribeToGraphChange(cellChangeCallback);
-
-      // Wait for initial sync to complete
-      expect(graph.getElements()).toHaveLength(1);
-
-      // Clear the graph to trigger reset
-      // Note: graph.clear() triggers reset event which is stored and called in onIncrementalChange
-      graph.clear();
-
-      // Verify graph is cleared
-      expect(graph.getElements()).toHaveLength(0);
-
-      // The reset event should be stored and listeners called in onIncrementalChange
-      // Verify that the callback was invoked (reset might be batched)
-      expect(cellChangeCallback).toHaveBeenCalled();
-
-      // Verify that reset changes are properly handled by checking the callback structure
-      // Reset changes are batched, so they may not appear immediately
-      // The important thing is that the mechanism exists to handle reset in onIncrementalChange
-      const allCallTypes = cellChangeCallback.mock.calls.map((call) => call[0]?.type);
-
-      // Verify reset can be handled (either was called or mechanism exists)
-      // If reset was called, verify structure
-      if (resetCalls.length > 0) {
-        expect(resetCalls[0]?.type).toBe('reset');
-        expect(resetCalls[0]?.cellsCount).toBeDefined();
-      }
-
-      // Verify the callback receives proper change objects
-      expect(allCallTypes.length).toBeGreaterThan(0);
+      expect(graph.getElements()).toHaveLength(2);
+      expect(graph.getLinks()).toHaveLength(1);
+      expect(graph.getCell('link1')).toBeDefined();
     });
+  });
 
-    it('should clear pending changes after calling listeners', () => {
-      const graph = new dia.Graph(
-        {},
-        {
-          cellNamespace: {
-            ...DEFAULT_CELL_NAMESPACE,
-          },
-        }
-      );
+  describe('graph to state synchronization', () => {
+    it('should schedule element updates when graph element is added', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
       const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
-        newState: () => ({ elements: [], links: [] }),
+        newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
 
-      const getIdsSnapshot = createGetIdsSnapshot(state);
-      const sync = stateSync({ graph, store: state, getIdsSnapshot });
+      const { scheduler, setFlushCallback } = createMockScheduler();
 
-      let callCount = 0;
-      const cellChangeCallback = jest.fn((_change) => {
-        callCount++;
-        return () => {};
+      // Track state updates via scheduler flush
+      setFlushCallback((data) => {
+        if (data.elementsToUpdate) {
+          const newElements: Record<string, GraphElement> = { ...state.getSnapshot().elements };
+          for (const [id, element] of data.elementsToUpdate) {
+            newElements[id] = element;
+          }
+          state.setState(() => ({ ...state.getSnapshot(), elements: newElements }));
+        }
       });
 
-      sync.subscribeToGraphChange(cellChangeCallback);
+      stateSync({ graph, store: state, scheduler });
 
-      // Add a cell
+      // Add element to graph
       const element = new dia.Element({
-        id: '1',
+        id: 'new-element',
         type: 'ReactElement',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
       graph.addCell(element);
 
-      // Modify the same cell multiple times to test batching
-      const cell = graph.getCell('1');
-      if (cell) {
-        // Intentionally modify cell multiple times to test that changes are batched
-        cell.set('position', { x: 10, y: 10 });
-        cell.set('size', { width: 110, height: 110 });
-        cell.set('position', { x: 20, y: 20 });
-      }
+      // Wait for scheduler to flush
+      await flushScheduler();
 
-      // Listener should be called, but changes should be batched
-      // Each change should be tracked, but listener might be called once per batch
-      expect(cellChangeCallback).toHaveBeenCalled();
-      expect(callCount).toBeGreaterThan(0);
+      // State should have the new element
+      expect(state.getSnapshot().elements['new-element']).toBeDefined();
     });
+
+    it('should schedule element deletion when graph element is removed', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: initialElements, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback((data) => {
+        const currentSnapshot = state.getSnapshot();
+        const newElements = { ...currentSnapshot.elements };
+
+        if (data.elementsToDelete) {
+          for (const [id] of data.elementsToDelete) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete newElements[id];
+          }
+        }
+
+        state.setState(() => ({ ...currentSnapshot, elements: newElements }));
+      });
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Verify element was synced to graph
+      expect(graph.getCell('1')).toBeDefined();
+
+      // Remove element from graph
+      graph.removeCells([graph.getCell('1')!]);
+
+      await flushScheduler();
+
+      // State should not have the element
+      expect(state.getSnapshot().elements['1']).toBeUndefined();
+    });
+
+    it('should schedule link updates when graph link is added', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, type: 'ReactElement' },
+        '2': { width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: initialElements, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback((data) => {
+        const currentSnapshot = state.getSnapshot();
+        const newLinks = { ...currentSnapshot.links };
+
+        if (data.linksToUpdate) {
+          for (const [id, link] of data.linksToUpdate) {
+            newLinks[id] = link;
+          }
+        }
+
+        state.setState(() => ({ ...currentSnapshot, links: newLinks }));
+      });
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Add link to graph
+      const link = new dia.Link({
+        id: 'new-link',
+        type: 'ReactLink',
+        source: { id: '1' },
+        target: { id: '2' },
+      });
+      graph.addCell(link);
+
+      await flushScheduler();
+
+      expect(state.getSnapshot().links['new-link']).toBeDefined();
+    });
+  });
+
+  describe('state to graph synchronization', () => {
+    it('should update graph when state elements change', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: initialElements, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler } = createMockScheduler();
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Verify initial state
+      expect(graph.getElements()).toHaveLength(1);
+
+      // Update state with new element
+      state.setState((previous) => ({
+        ...previous,
+        elements: {
+          ...previous.elements,
+          '2': { width: 100, height: 100, type: 'ReactElement' },
+        },
+      }));
+
+      // Graph should have the new element
+      expect(graph.getElements()).toHaveLength(2);
+      expect(graph.getCell('2')).toBeDefined();
+    });
+
+    it('should remove graph elements when state elements are removed', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, type: 'ReactElement' },
+        '2': { width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: initialElements, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler } = createMockScheduler();
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Verify initial state
+      expect(graph.getElements()).toHaveLength(2);
+
+      // Remove element from state
+      state.setState((previous) => {
+        // eslint-disable-next-line sonarjs/no-unused-vars
+        const { '1': _, ...rest } = previous.elements;
+        return { ...previous, elements: rest };
+      });
+
+      // Graph should not have the element
+      expect(graph.getElements()).toHaveLength(1);
+      expect(graph.getCell('1')).toBeUndefined();
+      expect(graph.getCell('2')).toBeDefined();
+    });
+  });
+
+  describe('circular update prevention', () => {
+    it('should not trigger state update when graph is updated from state (isUpdateFromReact flag)', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: {}, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler, scheduledData } = createMockScheduler();
+
+      stateSync({ graph, store: state, scheduler });
+
+      const initialScheduledCount = scheduledData.length;
+
+      // Update state - this should update graph but NOT schedule data back
+      state.setState((previous) => ({
+        ...previous,
+        elements: {
+          '1': { width: 100, height: 100, type: 'ReactElement' },
+        },
+      }));
+
+      await flushScheduler();
+
+      // Graph should have the element
+      expect(graph.getCell('1')).toBeDefined();
+
+      // No new data should have been scheduled (because isUpdateFromReact prevents it)
+      expect(scheduledData.length).toBe(initialScheduledCount);
+    });
+  });
+
+  describe('sync existing graph cells', () => {
+    it('should sync existing graph cells to empty store on initialization', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      // Add elements to graph before creating stateSync
+      const existingElements = [
+        { id: '1', data: { width: 100, height: 100, type: 'ReactElement' } },
+        { id: '2', data: { width: 100, height: 100, type: 'ReactElement' } },
+      ];
+
+      const elementItems = existingElements.map(({ id, data }) =>
+        defaultMapDataToElementAttributes(createElementToGraphOptions(id, data, graph))
+      );
+      graph.syncCells(elementItems, { remove: true });
+
+      // Create empty store
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: {}, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback((data) => {
+        const currentSnapshot = state.getSnapshot();
+        const newElements = { ...currentSnapshot.elements };
+
+        if (data.elementsToUpdate) {
+          for (const [id, element] of data.elementsToUpdate) {
+            newElements[id] = element;
+          }
+        }
+
+        state.setState(() => ({ ...currentSnapshot, elements: newElements }));
+      });
+
+      // Graph has 2 elements, store is empty
+      expect(graph.getElements()).toHaveLength(2);
+      expect(Object.keys(state.getSnapshot().elements)).toHaveLength(0);
+
+      stateSync({ graph, store: state, scheduler });
+
+      await flushScheduler();
+
+      // Store should now have the 2 elements from the graph
+      expect(Object.keys(state.getSnapshot().elements)).toHaveLength(2);
+    });
+
+    it('should NOT sync existing graph cells when store already has elements', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      // Add elements to graph
+      const graphElements = [
+        { id: 'graph-element', data: { width: 100, height: 100, type: 'ReactElement' } },
+      ];
+      const elementItems = graphElements.map(({ id, data }) =>
+        defaultMapDataToElementAttributes(createElementToGraphOptions(id, data, graph))
+      );
+      graph.syncCells(elementItems, { remove: true });
+
+      // Create store with different elements
+      const storeElements: Record<string, GraphElement> = {
+        'store-element': { width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: storeElements, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler } = createMockScheduler();
+
+      // Graph has 1 element, store has 1 different element
+      expect(graph.getElements()).toHaveLength(1);
+      expect(Object.keys(state.getSnapshot().elements)).toHaveLength(1);
+      expect(state.getSnapshot().elements['store-element']).toBeDefined();
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Store should keep its elements (state takes precedence)
+      expect(state.getSnapshot().elements['store-element']).toBeDefined();
+
+      // Graph should be synced to match store
+      expect(graph.getCell('store-element')).toBeDefined();
+      expect(graph.getCell('graph-element')).toBeUndefined();
+    });
+  });
+
+  describe('cleanup', () => {
+    it('should properly cleanup all listeners on cleanup()', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: {}, links: {} }),
+        name: 'elements',
+      });
+
+      const unsubscribeSpy = jest.fn();
+      state.subscribe = jest.fn(() => unsubscribeSpy);
+
+      const { scheduler } = createMockScheduler();
+
+      const sync = stateSync({ graph, store: state, scheduler });
+
+      // Verify subscription was set up
+      expect(state.subscribe).toHaveBeenCalledTimes(1);
+
+      // Cleanup
+      sync.cleanup();
+
+      // Verify unsubscribe was called
+      expect(unsubscribeSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('reset handling', () => {
+    it('should handle graph reset correctly', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, type: 'ReactElement' },
+        '2': { width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: initialElements, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback((data) => {
+        const currentSnapshot = state.getSnapshot();
+        const newElements = { ...currentSnapshot.elements };
+
+        if (data.elementsToUpdate) {
+          for (const [id, element] of data.elementsToUpdate) {
+            newElements[id] = element;
+          }
+        }
+
+        if (data.elementsToDelete) {
+          for (const [id] of data.elementsToDelete) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete newElements[id];
+          }
+        }
+
+        state.setState(() => ({ elements: newElements, links: currentSnapshot.links }));
+      });
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Verify initial state
+      expect(graph.getElements()).toHaveLength(2);
+
+      // Reset graph with new cells
+      graph.resetCells([
+        {
+          id: '3',
+          type: 'ReactElement',
+          position: { x: 0, y: 0 },
+          size: { width: 100, height: 100 },
+        },
+      ]);
+
+      await flushScheduler();
+
+      // State should have only the new element
+      const snapshot = state.getSnapshot();
+      expect(snapshot.elements['3']).toBeDefined();
+      expect(snapshot.elements['1']).toBeUndefined();
+      expect(snapshot.elements['2']).toBeUndefined();
+    });
+  });
+});
+
+describe('stateSync - comprehensive edge cases', () => {
+  describe('batching behavior', () => {
+    it('should batch multiple element updates into single scheduler call', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: {}, links: {} }),
+        name: 'elements',
+      });
+
+      let flushCount = 0;
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback(() => {
+        flushCount++;
+      });
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Add multiple elements rapidly - should be batched
+      graph.addCells([
+        { id: '1', type: 'ReactElement', size: { width: 100, height: 100 } },
+        { id: '2', type: 'ReactElement', size: { width: 100, height: 100 } },
+        { id: '3', type: 'ReactElement', size: { width: 100, height: 100 } },
+      ]);
+
+      await flushScheduler();
+
+      // Should have batched into single flush (or minimal number of flushes)
+      expect(flushCount).toBeLessThanOrEqual(2);
+    });
+
+    it('should handle rapid add/remove cycles', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: {}, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback((data) => {
+        const currentSnapshot = state.getSnapshot();
+        const newElements = { ...currentSnapshot.elements };
+
+        if (data.elementsToUpdate) {
+          for (const [id, element] of data.elementsToUpdate) {
+            newElements[id] = element;
+          }
+        }
+
+        if (data.elementsToDelete) {
+          for (const [id] of data.elementsToDelete) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete newElements[id];
+          }
+        }
+
+        state.setState(() => ({ ...currentSnapshot, elements: newElements }));
+      });
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Add then remove quickly
+      const element = new dia.Element({
+        id: 'temp',
+        type: 'ReactElement',
+        size: { width: 100, height: 100 },
+      });
+      graph.addCell(element);
+      graph.removeCells([element]);
+
+      await flushScheduler();
+
+      // Element should be removed (delete wins over add)
+      expect(state.getSnapshot().elements['temp']).toBeUndefined();
+    });
+  });
+
+  describe('element and link updates', () => {
+    it('should handle element position updates', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { x: 0, y: 0, width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: initialElements, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback((data) => {
+        if (data.elementsToUpdate) {
+          const newElements: Record<string, GraphElement> = { ...state.getSnapshot().elements };
+          for (const [id, element] of data.elementsToUpdate) {
+            newElements[id] = element;
+          }
+          state.setState((previous) => ({ ...previous, elements: newElements }));
+        }
+      });
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Move element in graph
+      const element = graph.getCell('1') as dia.Element;
+      element.position(50, 50);
+
+      await flushScheduler();
+
+      const updatedElement = state.getSnapshot().elements['1'];
+      expect(updatedElement.x).toBe(50);
+      expect(updatedElement.y).toBe(50);
+    });
+
+    it('should handle element resize updates', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { x: 0, y: 0, width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: initialElements, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback((data) => {
+        if (data.elementsToUpdate) {
+          const newElements: Record<string, GraphElement> = { ...state.getSnapshot().elements };
+          for (const [id, element] of data.elementsToUpdate) {
+            newElements[id] = element;
+          }
+          state.setState((previous) => ({ ...previous, elements: newElements }));
+        }
+      });
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Resize element in graph
+      const element = graph.getCell('1') as dia.Element;
+      element.resize(200, 200);
+
+      await flushScheduler();
+
+      const updatedElement = state.getSnapshot().elements['1'];
+      expect(updatedElement.width).toBe(200);
+      expect(updatedElement.height).toBe(200);
+    });
+
+    it('should handle link source/target updates', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, type: 'ReactElement' },
+        '2': { width: 100, height: 100, type: 'ReactElement' },
+        '3': { width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const initialLinks: Record<string, GraphLink> = {
+        link1: { source: '1', target: '2' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: initialElements, links: initialLinks }),
+        name: 'elements',
+      });
+
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback((data) => {
+        if (data.linksToUpdate) {
+          const newLinks: Record<string, GraphLink> = { ...state.getSnapshot().links };
+          for (const [id, link] of data.linksToUpdate) {
+            newLinks[id] = link;
+          }
+          state.setState((previous) => ({ ...previous, links: newLinks }));
+        }
+      });
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Update link target
+      const link = graph.getCell('link1') as dia.Link;
+      link.target({ id: '3' });
+
+      await flushScheduler();
+
+      const updatedLink = state.getSnapshot().links['link1'];
+      // Link target from JointJS is an object with id property
+      expect(updatedLink.target).toEqual({ id: '3' });
+    });
+  });
+
+  describe('error handling and edge cases', () => {
+    it('should handle empty graph gracefully', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: {}, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler } = createMockScheduler();
+
+      // Should not throw
+      const sync = stateSync({ graph, store: state, scheduler });
+
+      expect(graph.getElements()).toHaveLength(0);
+      expect(graph.getLinks()).toHaveLength(0);
+
+      sync.cleanup();
+    });
+
+    it('should handle removing non-existent elements gracefully', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: {}, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler } = createMockScheduler();
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Try to remove non-existent cell - should not throw
+      expect(() => {
+        state.setState((previous) => {
+          // eslint-disable-next-line sonarjs/no-unused-vars
+          const { 'non-existent': _, ...rest } = previous.elements;
+          return { ...previous, elements: rest };
+        });
+      }).not.toThrow();
+    });
+
+    it('should handle multiple cleanup calls gracefully', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: {}, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler } = createMockScheduler();
+
+      const sync = stateSync({ graph, store: state, scheduler });
+
+      // Should not throw on multiple cleanup calls
+      expect(() => {
+        sync.cleanup();
+        sync.cleanup();
+      }).not.toThrow();
+    });
+  });
+
+  describe('concurrent updates', () => {
+    it('should handle simultaneous graph and state updates', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+      const initialElements: Record<string, GraphElement> = {
+        '1': { x: 0, y: 0, width: 100, height: 100, type: 'ReactElement' },
+      };
+
+      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+        newState: () => ({ elements: initialElements, links: {} }),
+        name: 'elements',
+      });
+
+      const { scheduler, setFlushCallback } = createMockScheduler();
+
+      setFlushCallback((data) => {
+        if (data.elementsToUpdate) {
+          const newElements: Record<string, GraphElement> = { ...state.getSnapshot().elements };
+          for (const [id, element] of data.elementsToUpdate) {
+            newElements[id] = element;
+          }
+          state.setState((previous) => ({ ...previous, elements: newElements }));
+        }
+      });
+
+      stateSync({ graph, store: state, scheduler });
+
+      // Update from state (React side)
+      state.setState((previous) => ({
+        ...previous,
+        elements: {
+          ...previous.elements,
+          '2': { x: 100, y: 100, width: 100, height: 100, type: 'ReactElement' },
+        },
+      }));
+
+      // Update from graph (JointJS side) simultaneously
+      const element = graph.getCell('1') as dia.Element;
+      element.position(50, 50);
+
+      await flushScheduler();
+
+      // Both updates should be reflected
+      expect(graph.getCell('2')).toBeDefined();
+    });
+  });
+});
+
+describe('updateGraph', () => {
+  it('should update graph when elements differ', () => {
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+    const elements: Record<string, GraphElement> = {
+      '1': { width: 100, height: 100, type: 'ReactElement' },
+    };
+
+    const result = updateGraph({
+      graph,
+      elements,
+      links: {},
+      graphToElementSelector: (options) => mapElementAttributesToData(options),
+      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
+      mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
+    });
+
+    expect(result).toBe(true);
+    expect(graph.getElements()).toHaveLength(1);
+    expect(graph.getCell('1')).toBeDefined();
+  });
+
+  it('should return false when graph is already in sync', () => {
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+    // Include x and y as they are returned by mapElementAttributesToData
+    const elements: Record<string, GraphElement> = {
+      '1': { width: 100, height: 100, x: 0, y: 0, type: 'ReactElement' },
+    };
+
+    // First sync
+    updateGraph({
+      graph,
+      elements,
+      links: {},
+      graphToElementSelector: (options) => mapElementAttributesToData(options),
+      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
+      mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
+    });
+
+    // Get what the graph now thinks the element is
+    const [graphElement] = graph.getElements();
+    const id = graphElement.id as string;
+    const defaultAttributes = createDefaultGraphToElementMapper(graphElement);
+    const graphElementData = mapElementAttributesToData({
+      id,
+      cell: graphElement,
+      graph,
+      defaultAttributes,
+    });
+
+    // Second sync with the actual graph state should return false
+    const result = updateGraph({
+      graph,
+      elements: { [id]: graphElementData },
+      links: {},
+      graphToElementSelector: (options) => mapElementAttributesToData(options),
+      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
+      mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false when graph has active batch', () => {
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+    const elements: Record<string, GraphElement> = {
+      '1': { width: 100, height: 100, type: 'ReactElement' },
+    };
+
+    // Start a batch
+    graph.startBatch('test');
+
+    const result = updateGraph({
+      graph,
+      elements,
+      links: {},
+      graphToElementSelector: (options) => mapElementAttributesToData(options),
+      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
+      mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
+    });
+
+    expect(result).toBe(false);
+    expect(graph.getElements()).toHaveLength(0);
+
+    // End batch
+    graph.stopBatch('test');
+  });
+
+  it('should use isUpdateFromReact flag when syncing', () => {
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+    const elements: Record<string, GraphElement> = {
+      '1': { width: 100, height: 100, type: 'ReactElement' },
+    };
+
+    // Spy on syncCells
+    const syncCellsSpy = jest.spyOn(graph, 'syncCells');
+
+    updateGraph({
+      graph,
+      elements,
+      links: {},
+      graphToElementSelector: (options) => mapElementAttributesToData(options),
+      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
+      mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
+      isUpdateFromReact: true,
+    });
+
+    expect(syncCellsSpy).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ isUpdateFromReact: true })
+    );
   });
 });

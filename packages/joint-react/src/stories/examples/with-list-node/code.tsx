@@ -3,17 +3,16 @@
 
 import '../index.css';
 import React, { useCallback, useRef, type PropsWithChildren } from 'react';
-import { GraphProvider, Paper, useNodeSize, type OnTransformElement } from '@joint/react';
+import { GraphProvider, Paper, useNodeSize, type OnTransformElement, useCellId } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', inputs: [] as string[], x: 100, y: 0 },
-  { id: '2', label: 'Node 2', inputs: [] as string[], x: 500, y: 200 },
-];
-const initialEdges = [
-  {
-    id: 'e1-2',
+const initialElements: Record<string, { label: string; inputs: string[]; x: number; y: number }> = {
+  '1': { label: 'Node 1', inputs: [] as string[], x: 100, y: 0 },
+  '2': { label: 'Node 2', inputs: [] as string[], x: 500, y: 200 },
+};
+const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string } } }> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -22,11 +21,12 @@ const initialEdges = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
-function ListElement({ id, children, inputs }: PropsWithChildren<BaseElementWithData>) {
+function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData>) {
+  const id = useCellId();
   const padding = 10;
   const headerHeight = 50;
   const elementRef = useRef<HTMLDivElement>(null);

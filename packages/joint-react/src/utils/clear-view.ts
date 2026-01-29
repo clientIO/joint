@@ -4,9 +4,7 @@ interface Options {
   readonly graph: dia.Graph;
   readonly paper: dia.Paper;
   readonly cellId: dia.Cell.ID;
-  readonly onValidateLink?: (link: dia.Link) => boolean;
 }
-const DEFAULT_ON_VALIDATE_LINK = () => true;
 
 /**
  * Clear the view of the cell and the links connected to it.
@@ -21,7 +19,7 @@ const DEFAULT_ON_VALIDATE_LINK = () => true;
  * @param options - The options for the clear view.
  */
 export function clearView(options: Options) {
-  const { graph, paper, cellId, onValidateLink = DEFAULT_ON_VALIDATE_LINK } = options;
+  const { graph, paper, cellId } = options;
   const elementView = paper.findViewByModel(cellId);
   elementView.cleanNodesCache();
   for (const link of graph.getConnectedLinks(elementView.model)) {
@@ -29,11 +27,6 @@ export function clearView(options: Options) {
     const source = link.source();
     const isElementLink = target.id === cellId || source.id === cellId;
     if (!isElementLink) {
-      continue;
-    }
-
-    const isValid = onValidateLink(link);
-    if (!isValid) {
       continue;
     }
 

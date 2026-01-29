@@ -19,6 +19,11 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
   dia.Element.Attributes & Attributes
 > {
   /**
+   * Empty markup - React will render content via portal into view.el
+   */
+  markup: dia.MarkupJSON = [];
+
+  /**
    * Sets the default attributes for the ReactElement.
    * @returns The default attributes.
    */

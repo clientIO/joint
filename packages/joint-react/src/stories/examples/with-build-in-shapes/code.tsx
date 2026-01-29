@@ -41,10 +41,9 @@ const mapDataToLinkAttributes = ({
 
 const SECONDARY = '#6366f1';
 
-const initialElements: NativeElement[] = [
+const initialElements: Record<string, NativeElement> = {
   // Row 1: Basic shapes
-  {
-    id: 'rectangle',
+  'rectangle': {
     x: 20,
     y: 20,
     width: 100,
@@ -55,8 +54,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Rectangle', fill: 'white' },
     },
   },
-  {
-    id: 'circle',
+  'circle': {
     x: 150,
     y: 20,
     width: 60,
@@ -67,8 +65,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Circle', fill: 'white' },
     },
   },
-  {
-    id: 'ellipse',
+  'ellipse': {
     x: 240,
     y: 20,
     width: 100,
@@ -79,8 +76,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Ellipse', fill: 'white' },
     },
   },
-  {
-    id: 'cylinder',
+  'cylinder': {
     x: 370,
     y: 10,
     width: 60,
@@ -92,8 +88,7 @@ const initialElements: NativeElement[] = [
     },
   },
   // Row 2: Path shapes
-  {
-    id: 'path',
+  'path': {
     x: 20,
     y: 110,
     width: 80,
@@ -107,8 +102,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Path', fill: 'white' },
     },
   },
-  {
-    id: 'polygon',
+  'polygon': {
     x: 130,
     y: 110,
     width: 80,
@@ -122,8 +116,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Polygon', fill: 'white' },
     },
   },
-  {
-    id: 'polyline',
+  'polyline': {
     x: 240,
     y: 110,
     width: 100,
@@ -139,8 +132,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Polyline', y: 70, fill: 'white' },
     },
   },
-  {
-    id: 'textblock',
+  'textblock': {
     x: 370,
     y: 110,
     width: 100,
@@ -152,8 +144,7 @@ const initialElements: NativeElement[] = [
     },
   },
   // Row 3: Headered and Image shapes
-  {
-    id: 'headered',
+  'headered': {
     x: 20,
     y: 220,
     width: 120,
@@ -166,8 +157,7 @@ const initialElements: NativeElement[] = [
       bodyText: { text: 'Body', fill: '#374151' },
     },
   },
-  {
-    id: 'image',
+  'image': {
     x: 170,
     y: 220,
     width: 60,
@@ -180,8 +170,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Image', fill: 'white' },
     },
   },
-  {
-    id: 'bordered-image',
+  'bordered-image': {
     x: 260,
     y: 220,
     width: 70,
@@ -195,8 +184,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Bordered', fill: 'white' },
     },
   },
-  {
-    id: 'embedded-image',
+  'embedded-image': {
     x: 360,
     y: 220,
     width: 100,
@@ -211,8 +199,7 @@ const initialElements: NativeElement[] = [
     },
   },
   // Row 4: More shapes and link targets
-  {
-    id: 'inscribed-image',
+  'inscribed-image': {
     x: 20,
     y: 330,
     width: 70,
@@ -227,8 +214,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Inscribed', fill: 'white' },
     },
   },
-  {
-    id: 'link-source',
+  'link-source': {
     x: 150,
     y: 350,
     width: 80,
@@ -239,8 +225,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Source', fill: 'white' },
     },
   },
-  {
-    id: 'link-target-1',
+  'link-target-1': {
     x: 350,
     y: 320,
     width: 80,
@@ -251,8 +236,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Target 1', fill: 'white' },
     },
   },
-  {
-    id: 'link-target-2',
+  'link-target-2': {
     x: 350,
     y: 420,
     width: 80,
@@ -263,8 +247,7 @@ const initialElements: NativeElement[] = [
       label: { text: 'Target 2', fill: 'white' },
     },
   },
-  {
-    id: 'link-target-3',
+  'link-target-3': {
     x: 520,
     y: 320,
     width: 80,
@@ -275,11 +258,10 @@ const initialElements: NativeElement[] = [
       label: { text: 'Target 3', fill: 'white' },
     },
   },
-];
+};
 
-const initialLinks: NativeLink[] = [
-  {
-    id: 'link-standard',
+const initialLinks: Record<string, NativeLink> = {
+  'link-standard': {
     source: 'link-source',
     target: 'link-target-1',
     type: 'standard.Link',
@@ -288,8 +270,7 @@ const initialLinks: NativeLink[] = [
     },
     labels: [{ attrs: { text: { text: 'Link' } } }],
   },
-  {
-    id: 'link-double',
+  'link-double': {
     source: 'link-source',
     target: 'link-target-2',
     type: 'standard.DoubleLink',
@@ -299,8 +280,7 @@ const initialLinks: NativeLink[] = [
     },
     labels: [{ attrs: { text: { text: 'DoubleLink' } } }],
   },
-  {
-    id: 'link-shadow',
+  'link-shadow': {
     source: 'link-target-1',
     target: 'link-target-3',
     type: 'standard.ShadowLink',
@@ -310,7 +290,7 @@ const initialLinks: NativeLink[] = [
     },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
-];
+};
 
 function Main() {
   return (

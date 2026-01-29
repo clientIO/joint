@@ -5,15 +5,15 @@ import { useElement } from '../use-element';
 describe('use-element', () => {
   const wrapper = paperRenderElementWrapper({
     graphProviderProps: {
-      elements: [
-        {
+      elements: {
+        '1': {
           id: '1',
           width: 100,
           height: 100,
           x: 10,
           y: 20,
         },
-      ],
+      },
     },
     paperProps: {
       renderElement: () => <rect />,

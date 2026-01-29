@@ -56,14 +56,13 @@ import type { Update } from '../../../utils/create-state';
  */
 type CustomElement = GraphElement & { label: string };
 
-const defaultElements: CustomElement[] = [
-  { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
-  { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
-];
+const defaultElements: Record<string, CustomElement> = {
+  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+};
 
-const defaultLinks: GraphLink[] = [
-  {
-    id: 'e1-2',
+const defaultLinks: Record<string, GraphLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -72,7 +71,7 @@ const defaultLinks: GraphLink[] = [
       },
     },
   },
-];
+};
 
 // ============================================================================
 // STEP 2: Custom Element Renderer
@@ -101,12 +100,14 @@ const jotaiStore = createStore();
  * Jotai atom for graph elements.
  * Atoms are the building blocks of Jotai - they hold state.
  */
-const elementsAtom = atom<GraphElement[]>(defaultElements as GraphElement[]);
+const elementsAtom = atom<Record<string, GraphElement>>(
+  defaultElements as Record<string, GraphElement>
+);
 
 /**
  * Jotai atom for graph links.
  */
-const linksAtom = atom<GraphLink[]>(defaultLinks as GraphLink[]);
+const linksAtom = atom<Record<string, GraphLink>>(defaultLinks as Record<string, GraphLink>);
 
 // ============================================================================
 // STEP 4: Create Jotai Adapter Hook
@@ -230,8 +231,9 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
             const currentState = store.getSnapshot();
 
             // Create a new element
+            const newId = Math.random().toString(36).slice(7);
             const newElement: CustomElement = {
-              id: Math.random().toString(36).slice(7),
+              id: newId,
               label: 'New Node',
               x: Math.random() * 200,
               y: Math.random() * 200,
@@ -242,8 +244,8 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
             // Update the store with the new element
             // This will automatically sync to the graph and update Jotai atoms
             store.setState({
-              elements: [...currentState.elements, newElement],
-              links: currentState.links as GraphLink[],
+              elements: { ...currentState.elements, [newId]: newElement },
+              links: currentState.links as Record<string, GraphLink>,
             });
           }}
         >
@@ -256,26 +258,33 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
             // Get current state from the store
             const currentState = store.getSnapshot();
 
-            if (currentState.elements.length === 0) {
+            const elementIds = Object.keys(currentState.elements);
+            if (elementIds.length === 0) {
               return;
             }
 
             // Remove the last element
-            const newElements = currentState.elements.slice(0, -1);
-            const removedElementId = currentState.elements.at(-1)?.id;
+            const removedElementId = elementIds.at(-1);
+            if (!removedElementId) {
+              return;
+            }
+
+            // eslint-disable-next-line sonarjs/no-unused-vars
+            const { [removedElementId]: _removed, ...newElements } = currentState.elements;
 
             // Remove links connected to the removed element
-            const newLinks = removedElementId
-              ? currentState.links.filter(
-                  (link) => link.source !== removedElementId && link.target !== removedElementId
-                )
-              : currentState.links;
+            const newLinks: Record<string, GraphLink> = {};
+            for (const [id, link] of Object.entries(currentState.links)) {
+              if (link.source !== removedElementId && link.target !== removedElementId) {
+                newLinks[id] = link;
+              }
+            }
 
             // Update the store
             // This will automatically sync to the graph and update Jotai atoms
             store.setState({
               elements: newElements,
-              links: newLinks as GraphLink[],
+              links: newLinks,
             });
           }}
         >

@@ -22,15 +22,15 @@ describe('PortItem cleanup', () => {
       wrapper: paperRenderElementWrapper({
         graphProviderProps: {
           graph,
-          elements: [
-            {
+          elements: {
+            'element-1': {
               id: 'element-1',
               x: 0,
               y: 0,
               width: 100,
               height: 100,
             },
-          ],
+          },
         },
       }),
     };

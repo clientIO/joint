@@ -11,7 +11,10 @@ export interface OnLoadOptions {
   readonly graph: dia.Graph;
 }
 
-type ReactPaperOptionsBase = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen' | 'defaultLink'>;
+type ReactPaperOptionsBase = OmitWithoutIndexSignature<
+  dia.Paper.Options,
+  'frozen' | 'defaultLink' | 'autoFreeze' | 'viewManagement'
+>;
 export interface ReactPaperOptions extends ReactPaperOptionsBase {
   /**
    * Default link for the paper - for example if there is new element added, this will be used as default.
@@ -26,9 +29,7 @@ export type RenderElement<ElementItem extends GraphElement = GraphElement> = (
   element: ElementItem
 ) => ReactNode;
 
-export type RenderLink<LinkItem extends GraphLink = GraphLink> = (
-  link: LinkItem
-) => ReactNode;
+export type RenderLink<LinkItem extends GraphLink = GraphLink> = (link: LinkItem) => ReactNode;
 
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
@@ -69,10 +70,10 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
   readonly renderElement?: RenderElement<ElementItem>;
   /**
    * A function that renders the link.
-   * 
+   *
    * Note: JointJS works with SVG by default, so `renderLink` content is appended inside an SVG node.
    * To render HTML elements, use an SVG `foreignObject`.
-   * 
+   *
    * This is called when the link data changes.
    * @example
    * Example with `global component`:

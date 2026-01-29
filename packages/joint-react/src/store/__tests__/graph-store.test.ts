@@ -1,4 +1,4 @@
-/* eslint-disable no-shadow */
+ 
 /* eslint-disable unicorn/consistent-function-scoping */
 import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
@@ -22,7 +22,6 @@ describe('GraphStore', () => {
       expect(store.graph).toBeInstanceOf(dia.Graph);
       expect(store.publicState).toBeDefined();
       expect(store.internalState).toBeDefined();
-      expect(store.derivedStore).toBeDefined();
     });
 
     it('should create a GraphStore with provided graph instance', () => {
@@ -34,43 +33,55 @@ describe('GraphStore', () => {
     it('should initialize with empty elements and links by default', () => {
       const store = new GraphStore({});
       const snapshot = store.publicState.getSnapshot();
-      expect(snapshot.elements).toEqual([]);
-      expect(snapshot.links).toEqual([]);
+      expect(snapshot.elements).toEqual({});
+      expect(snapshot.links).toEqual({});
     });
 
     it('should initialize with initialElements', () => {
-      const initialElements: GraphElement[] = [
-        { id: 'element-1', x: 10, y: 20, width: 100, height: 50, type: 'ReactElement' },
-        { id: 'element-2', x: 30, y: 40, width: 80, height: 60, type: 'ReactElement' },
-      ];
+      const initialElements: Record<string, GraphElement> = {
+        'element-1': {
+          x: 10,
+          y: 20,
+          width: 100,
+          height: 50,
+          type: 'ReactElement',
+        },
+        'element-2': { x: 30, y: 40, width: 80, height: 60, type: 'ReactElement' },
+      };
       const store = new GraphStore({ initialElements });
       const snapshot = store.publicState.getSnapshot();
-      expect(snapshot.elements).toHaveLength(2);
-      expect(snapshot.elements[0].id).toBe('element-1');
-      expect(snapshot.elements[1].id).toBe('element-2');
+      expect(Object.keys(snapshot.elements)).toHaveLength(2);
+      expect(snapshot.elements['element-1']).toBeDefined();
+      expect(snapshot.elements['element-2']).toBeDefined();
     });
 
     it('should initialize with initialLinks', () => {
-      const initialLinks: GraphLink[] = [
-        { id: 'link-1', source: 'element-1', target: 'element-2', type: 'standard.Link' },
-      ];
+      const initialLinks: Record<string, GraphLink> = {
+        'link-1': { source: 'element-1', target: 'element-2', type: 'standard.Link' },
+      };
       const store = new GraphStore({ initialLinks });
       const snapshot = store.publicState.getSnapshot();
-      expect(snapshot.links).toHaveLength(1);
-      expect(snapshot.links[0].id).toBe('link-1');
+      expect(Object.keys(snapshot.links)).toHaveLength(1);
+      expect(snapshot.links['link-1']).toBeDefined();
     });
 
     it('should initialize with both initialElements and initialLinks', () => {
-      const initialElements: GraphElement[] = [
-        { id: 'element-1', x: 10, y: 20, width: 100, height: 50, type: 'ReactElement' },
-      ];
-      const initialLinks: GraphLink[] = [
-        { id: 'link-1', source: 'element-1', target: 'element-2', type: 'standard.Link' },
-      ];
+      const initialElements: Record<string, GraphElement> = {
+        'element-1': {
+          x: 10,
+          y: 20,
+          width: 100,
+          height: 50,
+          type: 'ReactElement',
+        },
+      };
+      const initialLinks: Record<string, GraphLink> = {
+        'link-1': { source: 'element-1', target: 'element-2', type: 'standard.Link' },
+      };
       const store = new GraphStore({ initialElements, initialLinks });
       const snapshot = store.publicState.getSnapshot();
-      expect(snapshot.elements).toHaveLength(1);
-      expect(snapshot.links).toHaveLength(1);
+      expect(Object.keys(snapshot.elements)).toHaveLength(1);
+      expect(Object.keys(snapshot.links)).toHaveLength(1);
     });
 
     it('should merge custom cellNamespace with default namespace', () => {
@@ -85,7 +96,7 @@ describe('GraphStore', () => {
         // Empty unsubscribe function
       }
       const externalStore = {
-        getSnapshot: () => ({ elements: [], links: [] }),
+        getSnapshot: () => ({ elements: {}, links: {} }),
         subscribe: () => unsubscribe,
         setState: () => {},
       };
@@ -107,8 +118,8 @@ describe('GraphStore', () => {
       });
 
       // Add an element to trigger the selector
+      const id = 'test-element';
       const data: GraphElement = {
-        id: 'test-element',
         x: 10,
         y: 20,
         width: 100,
@@ -117,28 +128,13 @@ describe('GraphStore', () => {
       };
       store.publicState.setState((previous) => ({
         ...previous,
-        elements: [...previous.elements, data],
+        elements: { ...previous.elements, [id]: data },
       }));
 
       // Wait a bit for sync to happen
       setTimeout(() => {
         expect(customElementToGraph).toHaveBeenCalled();
       }, 10);
-    });
-
-    it('should default areBatchUpdatesDisabled to false (batch updates enabled)', () => {
-      const store = new GraphStore({});
-      // The store should be created successfully with default batch-based updates
-      expect(store).toBeDefined();
-      expect(store.graph).toBeDefined();
-    });
-
-    it('should use areBatchUpdatesDisabled when provided', () => {
-      const storeWithRealtime = new GraphStore({ areBatchUpdatesDisabled: true });
-      expect(storeWithRealtime).toBeDefined();
-
-      const storeWithBatches = new GraphStore({ areBatchUpdatesDisabled: false });
-      expect(storeWithBatches).toBeDefined();
     });
 
     it('should handle graph with existing cells', () => {
@@ -152,9 +148,15 @@ describe('GraphStore', () => {
       graph.addCell(existingElement);
       const cellCountBefore = graph.getCells().length;
 
-      const initialElements: GraphElement[] = [
-        { id: 'new-element', x: 10, y: 20, width: 100, height: 50, type: 'ReactElement' },
-      ];
+      const initialElements: Record<string, GraphElement> = {
+        'new-element': {
+          x: 10,
+          y: 20,
+          width: 100,
+          height: 50,
+          type: 'ReactElement',
+        },
+      };
       const store = new GraphStore({ graph, initialElements });
 
       // Store should be created successfully
@@ -358,8 +360,8 @@ describe('GraphStore', () => {
 
     it('should return true for measured nodes', () => {
       const store = new GraphStore({});
+      const id = 'measured-element';
       const data: GraphElement = {
-        id: 'measured-element',
         x: 10,
         y: 20,
         width: 100,
@@ -369,24 +371,24 @@ describe('GraphStore', () => {
 
       store.publicState.setState((previous) => ({
         ...previous,
-        elements: [...previous.elements, data],
+        elements: { ...previous.elements, [id]: data },
       }));
 
       const domElement = document.createElement('div');
       store.setMeasuredNode({
-        id: 'measured-element',
+        id,
         element: domElement,
       });
 
-      expect(store.hasMeasuredNode('measured-element')).toBe(true);
+      expect(store.hasMeasuredNode(id)).toBe(true);
     });
   });
 
   describe('setMeasuredNode', () => {
     it('should register a node for measurement and return cleanup', () => {
       const store = new GraphStore({});
+      const id = 'measured-element';
       const element: GraphElement = {
-        id: 'measured-element',
         x: 10,
         y: 20,
         width: 100,
@@ -396,22 +398,22 @@ describe('GraphStore', () => {
 
       store.publicState.setState((previous) => ({
         ...previous,
-        elements: [...previous.elements, element],
+        elements: { ...previous.elements, [id]: element },
       }));
 
       const domElement = document.createElement('div');
       const setSize = jest.fn();
       const cleanup = store.setMeasuredNode({
-        id: 'measured-element',
+        id,
         element: domElement,
         transform: setSize,
       });
 
       expect(typeof cleanup).toBe('function');
-      expect(store.hasMeasuredNode('measured-element')).toBe(true);
+      expect(store.hasMeasuredNode(id)).toBe(true);
 
       cleanup();
-      expect(store.hasMeasuredNode('measured-element')).toBe(false);
+      expect(store.hasMeasuredNode(id)).toBe(false);
     });
   });
 
@@ -462,7 +464,7 @@ describe('GraphStore', () => {
         // Empty unsubscribe function
       }
       const newStore = {
-        getSnapshot: () => ({ elements: [], links: [] }),
+        getSnapshot: () => ({ elements: {}, links: {} }),
         subscribe: () => unsubscribe,
         setState: () => {},
       };
@@ -474,41 +476,7 @@ describe('GraphStore', () => {
     });
   });
 
-  describe('derivedStore', () => {
-    it('should create elementIds mapping', () => {
-      const store = new GraphStore({});
-      const elements: GraphElement[] = [
-        { id: 'element-1', x: 10, y: 20, width: 100, height: 50, type: 'ReactElement' },
-        { id: 'element-2', x: 30, y: 40, width: 80, height: 60, type: 'ReactElement' },
-      ];
-
-      store.publicState.setState((previous) => ({
-        ...previous,
-        elements,
-      }));
-
-      const derived = store.derivedStore.getSnapshot();
-      expect(derived.elementIds['element-1']).toBe(0);
-      expect(derived.elementIds['element-2']).toBe(1);
-    });
-
-    it('should create linkIds mapping', () => {
-      const store = new GraphStore({});
-      const links: GraphLink[] = [
-        { id: 'link-1', source: 'element-1', target: 'element-2', type: 'standard.Link' },
-        { id: 'link-2', source: 'element-2', target: 'element-3', type: 'standard.Link' },
-      ];
-
-      store.publicState.setState((previous) => ({
-        ...previous,
-        links,
-      }));
-
-      const derived = store.derivedStore.getSnapshot();
-      expect(derived.linkIds['link-1']).toBe(0);
-      expect(derived.linkIds['link-2']).toBe(1);
-    });
-
+  describe('areElementsMeasuredState', () => {
     it('should track areElementsMeasured correctly', (done) => {
       const store = new GraphStore({});
 
@@ -550,8 +518,8 @@ describe('GraphStore', () => {
   describe('state synchronization', () => {
     it('should sync state changes to graph', (done) => {
       const store = new GraphStore({});
+      const id = 'sync-element';
       const element: GraphElement = {
-        id: 'sync-element',
         x: 10,
         y: 20,
         width: 100,
@@ -561,12 +529,12 @@ describe('GraphStore', () => {
 
       store.publicState.setState((previous) => ({
         ...previous,
-        elements: [...previous.elements, element],
+        elements: { ...previous.elements, [id]: element },
       }));
 
       // Wait for sync
       setTimeout(() => {
-        const graphElement = store.graph.getCell('sync-element');
+        const graphElement = store.graph.getCell(id);
         expect(graphElement).toBeDefined();
         expect(graphElement?.isElement()).toBe(true);
         done();
@@ -587,11 +555,9 @@ describe('GraphStore', () => {
       graph.addCell(element);
 
       // Wait for sync
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      const findElementById = (element: GraphElement) => element.id === 'graph-element';
       setTimeout(() => {
         const snapshot = store.publicState.getSnapshot();
-        const stateElement = snapshot.elements.find(findElementById);
+        const stateElement = snapshot.elements['graph-element'];
         expect(stateElement).toBeDefined();
         done();
       }, 50);

@@ -12,8 +12,18 @@ import { Paper } from '../../src/components/paper/paper';
 export type StoryFunction = PartialStoryFn<any, any>;
 export type StoryCtx = StoryContext<any, any>;
 
-export const testElements = [
-  {
+export const testElements: Record<string, {
+  id: string;
+  label: string;
+  color: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  hoverColor: string;
+  angle: number;
+}> = {
+  '1': {
     id: '1',
     label: 'Node 1',
     color: PRIMARY,
@@ -24,7 +34,7 @@ export const testElements = [
     hoverColor: 'red',
     angle: 0,
   },
-  {
+  '2': {
     id: '2',
     label: 'Node 2',
     color: PRIMARY,
@@ -35,11 +45,11 @@ export const testElements = [
     hoverColor: 'blue',
     angle: 0,
   },
-];
+};
 
-export type SimpleElement = (typeof testElements)[number];
-export const testLinks: GraphLink[] = [
-  {
+export type SimpleElement = (typeof testElements)[string];
+export const testLinks: Record<string, GraphLink> = {
+  'l-1': {
     id: 'l-1',
     source: '1',
     target: '2',
@@ -49,7 +59,7 @@ export const testLinks: GraphLink[] = [
       },
     },
   },
-];
+};
 
 export function SimpleGraphProviderDecorator({ children }: Readonly<PropsWithChildren>) {
   return (

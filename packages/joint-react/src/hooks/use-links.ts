@@ -1,19 +1,22 @@
-import { useGraphStore } from './use-graph-store';
+import type { dia } from '@joint/core';
 import { util } from '@joint/core';
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { GraphLink } from '../types/link-types';
+import { useGraphStoreSelector } from './use-graph-store-selector';
 
 /**
  * Default selector function that returns all links unchanged.
  * Used when no custom selector is provided to useLinks.
  * @template Link - The type of links
- * @param items - The links array to select from
- * @returns The same links array
+ * @param items - The links record to select from
+ * @returns The same links record
  * @internal
  */
-function defaultSelector<Link extends GraphLink = GraphLink>(items: Link[]): Link[] {
-  return items.map((item) => item) as Link[];
+function defaultSelector<Link extends GraphLink = GraphLink>(
+  items: Record<dia.Cell.ID, Link>
+): Record<dia.Cell.ID, Link> {
+  return items;
 }
+
 /**
  * Hook to access and subscribe to links (edges) from the graph store.
  *
@@ -40,35 +43,34 @@ function defaultSelector<Link extends GraphLink = GraphLink>(items: Link[]): Lin
  * @group Hooks
  * @example
  * ```ts
- * // Get all links
+ * // Get all links as a Record
  * const links = useLinks();
+ * // links is Record<dia.Cell.ID, GraphLink>
  * ```
  * @example
  * ```ts
  * // Extract only link IDs
- * const linkIds = useLinks((links) => links.map(link => link.id));
+ * const linkIds = useLinks((links) => Object.keys(links));
+ * ```
+ * @example
+ * ```ts
+ * // Get a specific link by ID
+ * const link = useLinks((links) => links['link-1']);
  * ```
  * @example
  * ```ts
  * // Custom equality check (only re-render if count changes)
  * const linkCount = useLinks(
- *   (links) => links.length,
+ *   (links) => Object.keys(links).length,
  *   (prev, next) => prev === next
  * );
  * ```
  */
-export function useLinks<Link extends GraphLink = GraphLink, SelectorReturnType = Link[]>(
-  selector: (items: Link[]) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+export function useLinks<Link extends GraphLink = GraphLink, SelectorReturnType = Record<dia.Cell.ID, Link>>(
+  selector: (items: Record<dia.Cell.ID, Link>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
 ): SelectorReturnType {
-  const { publicState } = useGraphStore();
-  const getLinks = () => publicState.getSnapshot().links as Link[];
-  const elements = useSyncExternalStoreWithSelector(
-    publicState.subscribe,
-    getLinks,
-    getLinks,
-    selector,
-    isEqual
-  );
-  return elements;
+  return useGraphStoreSelector((snapshot) => {
+    return selector(snapshot.links as Record<dia.Cell.ID, Link>);
+  }, isEqual);
 }

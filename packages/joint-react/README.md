@@ -56,17 +56,17 @@ bun add @joint/react
 import React from 'react'
 import { GraphProvider } from '@joint/react'
 
-const elements = [
-  { id: 'node1', label: 'Start', x: 100, y: 50, width: 120, height: 60 },
-  { id: 'node2', label: 'End',   x: 100, y: 200, width: 120, height: 60 },
-] as const
+const elements = {
+  'node1': { id: 'node1', label: 'Start', x: 100, y: 50, width: 120, height: 60 },
+  'node2': { id: 'node2', label: 'End',   x: 100, y: 200, width: 120, height: 60 },
+} as const
 
-const links = [
-  { id: 'link1', source: 'node1', target: 'node2' },
-] as const
+const links = {
+  'link1': { id: 'link1', source: 'node1', target: 'node2' },
+} as const
 
-// Narrow element type straight from the array:
-type Element = typeof elements[number]
+// Narrow element type straight from the record:
+type Element = typeof elements[keyof typeof elements]
 
 export default function App() {
   return (
@@ -102,12 +102,14 @@ Share one diagram across views. Give each view a stable `id`.
 import React from 'react'
 import { GraphProvider } from '@joint/react'
 
-const elements = [
-  { id: 'a' as const, label: 'A', x: 40,  y: 60,  width: 80, height: 40 },
-  { id: 'b' as const, label: 'B', x: 260, y: 180, width: 80, height: 40 },
-] as const
+const elements = {
+  'a': { id: 'a' as const, label: 'A', x: 40,  y: 60,  width: 80, height: 40 },
+  'b': { id: 'b' as const, label: 'B', x: 260, y: 180, width: 80, height: 40 },
+} as const
 
-const links = [{ id: 'a-b' as const, source: 'a', target: 'b' }] as const
+const links = {
+  'a-b': { id: 'a-b' as const, source: 'a', target: 'b' },
+} as const
 
 export function MultiView() {
   return (
@@ -166,15 +168,15 @@ Pass `elements/links` + `onElementsChange/onLinksChange` to keep React in charge
 import React, { useState } from 'react'
 import { GraphProvider } from '@joint/react'
 
-const initialElements = [
-  { id: 'n1' as const, label: 'Item', x: 60, y: 60, width: 100, height: 40 },
-] as const
+const initialElements = {
+  'n1': { id: 'n1' as const, label: 'Item', x: 60, y: 60, width: 100, height: 40 },
+} as const
 
-const initialLinks = [] as const
+const initialLinks = {} as const
 
 export function Controlled() {
-  const [els, setEls] = useState([...initialElements])
-  const [lns, setLns] = useState([...initialLinks])
+  const [els, setEls] = useState<Record<string, typeof initialElements[keyof typeof initialElements]>>({ ...initialElements })
+  const [lns, setLns] = useState<Record<string, never>>({ ...initialLinks })
 
   return (
     <GraphProvider
@@ -198,8 +200,8 @@ import { createStore } from 'zustand'
 
 // Create a store compatible with ExternalStoreLike interface
 const useGraphStore = createStore((set) => ({
-  elements: [],
-  links: [],
+  elements: {},
+  links: {},
   setState: (updater) => set(updater),
   getSnapshot: () => useGraphStore.getState(),
   subscribe: (listener) => {
@@ -287,7 +289,7 @@ export function FitOnMount() {
 ## 🧠 Best Practices
 
 - **Define ids as literals**: `id: 'node1' as const` — enables exact typing and prevents mismatches.
-- **Type elements from data**: `type Element = typeof elements[number]` — reuse data as your source of truth.
+- **Type elements from data**: `type Element = typeof elements[keyof typeof elements]` — reuse data as your source of truth.
 - **Memoize renderers & handlers**: `useCallback` to minimize re-renders.
 - **Keep overlay HTML lightweight**: Prefer simple layout; avoid heavy transforms/animations in `<foreignObject>` (Safari can be picky).
 - **Give each view a stable `id`** when rendering multiple `Paper` instances.

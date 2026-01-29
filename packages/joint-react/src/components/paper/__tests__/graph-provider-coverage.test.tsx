@@ -6,7 +6,6 @@ import { dia } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
 import type { GraphElement } from '../../../types/element-types';
 import type { GraphLink } from '../../../types/link-types';
-import { mapLinkFromGraph } from '../../../utils/cell/cell-utilities';
 import { GraphProvider } from '../../graph/graph-provider';
 import { GraphStore } from '../../../store';
 
@@ -16,12 +15,12 @@ describe('GraphProvider Coverage Tests', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.length);
+        elementCount = useElements((items) => Object.keys(items).length);
         return null;
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>([]);
+        const [elements, setElements] = useState<Record<string, GraphElement>>({});
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -40,12 +39,12 @@ describe('GraphProvider Coverage Tests', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        linkCount = useLinks((items) => items.length);
+        linkCount = useLinks((items) => Object.keys(items).length);
         return null;
       }
 
       function ControlledGraph() {
-        const [links, setLinks] = useState<GraphLink[]>([]);
+        const [links, setLinks] = useState<Record<string, GraphLink>>({});
         return (
           <GraphProvider links={links} onLinksChange={setLinks}>
             <TestComponent />
@@ -61,21 +60,21 @@ describe('GraphProvider Coverage Tests', () => {
     });
 
     it('should handle only elements controlled (not links)', async () => {
-      const initialElements = [
-        { id: '1', width: 100, height: 100, type: 'ReactElement' },
-      ];
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, type: 'ReactElement' },
+      };
 
       let elementCount = 0;
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.length);
-        linkCount = useLinks((items) => items.length);
+        elementCount = useElements((items) => Object.keys(items).length);
+        linkCount = useLinks((items) => Object.keys(items).length);
         return null;
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(initialElements);
+        const [elements, setElements] = useState<Record<string, GraphElement>>(initialElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -92,24 +91,25 @@ describe('GraphProvider Coverage Tests', () => {
     });
 
     it('should handle only links controlled (not elements)', async () => {
-      const initialLink = new dia.Link({
-        id: 'link1',
+      const initialLink: GraphLink = {
         type: 'standard.Link',
         source: { id: '1' },
         target: { id: '2' },
-      });
+      };
 
       let elementCount = 0;
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.length);
-        linkCount = useLinks((items) => items.length);
+        elementCount = useElements((items) => Object.keys(items).length);
+        linkCount = useLinks((items) => Object.keys(items).length);
         return null;
       }
 
       function ControlledGraph() {
-        const [links, setLinks] = useState<GraphLink[]>(() => [mapLinkFromGraph(initialLink)]);
+        const [links, setLinks] = useState<Record<string, GraphLink>>(() => ({
+          'link1': initialLink,
+        }));
         return (
           <GraphProvider links={links} onLinksChange={setLinks}>
             <TestComponent />
@@ -137,20 +137,20 @@ describe('GraphProvider Coverage Tests', () => {
 
   describe('GraphProvider edge cases', () => {
     it('should handle unmeasured elements (width/height <= 1)', async () => {
-      const unmeasuredElements = [
-        { id: '1', width: 0, height: 0, type: 'ReactElement' },
-        { id: '2', width: 1, height: 1, type: 'ReactElement' },
-      ];
+      const unmeasuredElements: Record<string, GraphElement> = {
+        '1': { width: 0, height: 0, type: 'ReactElement' },
+        '2': { width: 1, height: 1, type: 'ReactElement' },
+      };
 
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.length);
+        elementCount = useElements((items) => Object.keys(items).length);
         return null;
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(unmeasuredElements);
+        const [elements, setElements] = useState<Record<string, GraphElement>>(unmeasuredElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />

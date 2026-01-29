@@ -1,11 +1,10 @@
 import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import type { CellWithId } from '../../../types/cell.types';
 import typedMemo from '../../../utils/typed-react';
 import type { GraphElement } from '../../../types/element-types';
 import { useGraphStore, useNodeLayout } from '../../../hooks';
 
-export interface ElementItemProps<Data extends CellWithId = GraphElement> {
+export interface ElementItemProps<Data extends GraphElement = GraphElement> {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
@@ -16,13 +15,14 @@ export interface ElementItemProps<Data extends CellWithId = GraphElement> {
   readonly portalElement: SVGElement | HTMLElement | null;
 
   readonly areElementsMeasured: boolean;
+  readonly id: string;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
   props: ElementItemProps<Data>
 ) {
-  const { renderElement, portalElement, areElementsMeasured, ...rest } = props;
+  const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
   const cell = rest as Data;
   const graphStore = useGraphStore();
 
@@ -31,10 +31,10 @@ function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
       return;
     }
     graphStore.scheduleClearView({
-      cellId: cell.id,
+      cellId: id,
     });
     graphStore.flushPendingUpdates();
-  }, [cell.id, graphStore, areElementsMeasured]);
+  }, [id, graphStore, areElementsMeasured]);
 
   if (!portalElement) {
     return null;
@@ -73,12 +73,11 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
 function HTMLElementItemComponent<Data extends GraphElement = GraphElement>(
   props: ElementItemProps<Data>
 ) {
-  const { renderElement, portalElement, areElementsMeasured, ...rest } = props;
+  const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
   const cell = rest as Data;
   // we must use renderElement and not cell data, because user can select different data, so then, the width and height do not have to be inside the cell data.
   const element = renderElement(cell);
-  const { width, height, x, y, id } = cell;
-
+  const { width, height, x, y } = cell;
   const graphStore = useGraphStore();
 
   useLayoutEffect(() => {
@@ -86,10 +85,10 @@ function HTMLElementItemComponent<Data extends GraphElement = GraphElement>(
       return;
     }
     graphStore.scheduleClearView({
-      cellId: cell.id,
+      cellId: id,
     });
     graphStore.flushPendingUpdates();
-  }, [cell.id, graphStore, areElementsMeasured]);
+  }, [id, graphStore, areElementsMeasured]);
 
   // WE NEED TO COMPARE WHAT IS CHANGED HERE...
 
@@ -133,14 +132,15 @@ export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
 
 /**
  * Default rectangle element renderer.
- * Renders a blue rectangle with rounded corners using the node's layout data.
+ * Renders a transparent rectangle placeholder using the node's layout data.
  * @group Components
  * @description
- * This component renders a blue rectangle with rounded corners.
+ * This component renders a transparent rectangle placeholder.
  * It uses the `useNodeLayout` hook to get the node's layout data (width and height).
  * @returns The rendered rectangle element.
  */
 export function DefaultRectElement() {
-  const { width, height } = useNodeLayout();
+  const layout = useNodeLayout();
+  const { width, height } = layout;
   return <rect width={width} height={height} fill="transparent" />;
 }

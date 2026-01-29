@@ -4,14 +4,13 @@ import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', x: 100, y: 0 },
-  { id: '2', label: 'Node 2', x: 100, y: 200 },
-];
+const initialElements: Record<string, { label: string; x: number; y: number }> = {
+  '1': { label: 'Node 1', x: 100, y: 0 },
+  '2': { label: 'Node 2', x: 100, y: 200 },
+};
 
-const initialEdges = [
-  {
-    id: 'e1-2',
+const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string } } }> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -20,9 +19,9 @@ const initialEdges = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
 function ResizableNode({ label }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
@@ -30,7 +29,7 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
     const node = nodeRef.current;
     if (!node) return;
 
-    // Get the node’s bounding rectangle
+    // Get the node's bounding rectangle
     const rect = node.getBoundingClientRect();
     const threshold = 20; // pixels from the bottom-right corner considered as resize area
 
@@ -61,7 +60,7 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
 
 function Main() {
   const elementsSize = useElements((items) =>
-    items.map(({ width, height }) => `${width} x ${height}`)
+    Object.values(items).map(({ width, height }) => `${width} x ${height}`)
   );
 
   return (

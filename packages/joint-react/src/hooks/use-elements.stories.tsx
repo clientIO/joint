@@ -21,7 +21,7 @@ const meta: Meta<typeof HookTester> = {
 The **useElements** hook provides access to all elements in the graph. It supports selector functions for optimized re-renders, only updating when selected element properties change.
 
 **Key Features:**
-- Returns all elements in the graph
+- Returns all elements in the graph as a Record keyed by ID
 - Supports selector functions for performance optimization
 - Only re-renders when selected properties change
 - Can be used anywhere within GraphProvider context
@@ -30,37 +30,37 @@ The **useElements** hook provides access to all elements in the graph. It suppor
 \`\`\`tsx
 import { useElements } from '@joint/react';
 
-// Get all elements
+// Get all elements (returns Record<string, GraphElement>)
 function Component() {
   const elements = useElements();
-  return <div>Total elements: {elements.length}</div>;
+  return <div>Total elements: {Object.keys(elements).length}</div>;
 }
 
 // Get specific properties (optimized)
 function OptimizedComponent() {
-  const elementIds = useElements((elements) => 
-    elements.map(element => element.id)
+  const elementIds = useElements((elements) =>
+    Object.values(elements).map(element => element.id)
   );
   return <div>Element IDs: {elementIds.join(', ')}</div>;
 }
 \`\`\`
     `,
     props: `
-- **selector** (optional): Function that transforms the elements array
-  - Returns: Transformed elements data or full elements array if no selector provided
+- **selector** (optional): Function that transforms the elements Record
+  - Returns: Transformed elements data or full elements Record if no selector provided
   - Re-renders only when selected properties change
     `,
     code: `import { useElements } from '@joint/react'
 
 function Component() {
   const elements = useElements();
-  return <div>Total elements: {elements.length}</div>;
+  return <div>Total elements: {Object.keys(elements).length}</div>;
 }
 
 // With selector for optimization
 function OptimizedComponent() {
-  const elementIds = useElements((elements) => 
-    elements.map(element => element.id)
+  const elementIds = useElements((elements) =>
+    Object.values(elements).map(element => element.id)
   );
   return <div>Element IDs: {elementIds.join(', ')}</div>;
 }`,
@@ -92,16 +92,16 @@ export const Default = makeStory<Story>({
   code: `import { useElements } from '@joint/react'
 
 function Component() {
-  const elements = useElements();
+  const elements = useElements(); // returns Record<string, GraphElement>
   return <div>elements are: {JSON.stringify(elements)}</div>;
 }`,
-  description: 'Get all elements.',
+  description: 'Get all elements as a Record keyed by ID.',
 });
 
 export const WithSelectedJustIds = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements) => elements.map((element) => element.id)],
+    hookArgs: [(elements) => Object.values(elements).map((element) => element.id)],
     render: (result) => (
       <span>
         <Paper
@@ -119,7 +119,7 @@ export const WithSelectedJustIds = makeStory<Story>({
   code: `import { useElements } from '@joint/react'
 
 function Component() {
-  const elementIds = useElements((elements) => elements.map((element) => element.id));
+  const elementIds = useElements((elements) => Object.values(elements).map((element) => element.id));
   return <div>element ids are: {JSON.stringify(elementIds)}</div>;
 }`,
   description: 'Get the ids of the elements.',
@@ -128,7 +128,7 @@ function Component() {
 export const WithGetJustSize = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements) => elements.length],
+    hookArgs: [(elements) => Object.keys(elements).length],
     render: (result) => (
       <div>
         <Paper
@@ -146,7 +146,7 @@ export const WithGetJustSize = makeStory<Story>({
   code: `import { useElements } from '@joint/react'
 
 function Component() {
-  const size = useElements((elements) => elements.length);
+  const size = useElements((elements) => Object.keys(elements).length);
   return <div>size of elements is: {JSON.stringify(size)}</div>;
 }`,
   description: 'Get the size of the elements.',
@@ -157,7 +157,7 @@ export const WithJustPosition = makeStory<Story>({
     useHook: useElements,
     hookArgs: [
       (elements) =>
-        elements.map((element) => ({
+        Object.values(elements).map((element) => ({
           x: element.x,
           y: element.y,
         })),
@@ -180,7 +180,7 @@ export const WithJustPosition = makeStory<Story>({
 
 function Component() {
   const positions = useElements((elements) =>
-    elements.map((element) => ({ x: element.x, y: element.y }))
+    Object.values(elements).map((element) => ({ x: element.x, y: element.y }))
   );
   return <div>positions are: {JSON.stringify(positions)}</div>;
 }`,
@@ -192,7 +192,7 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
     useHook: useElements,
     hookArgs: [
       (elements) =>
-        elements.map((element) => ({
+        Object.values(elements).map((element) => ({
           x: element.x,
           y: element.y,
         })),
@@ -216,7 +216,7 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
 
 function Component() {
   const positions = useElements(
-    (elements) => elements.map((element) => ({ x: element.x, y: element.y })),
+    (elements) => Object.values(elements).map((element) => ({ x: element.x, y: element.y })),
     (_previous, _next) => true
   );
   return <div>positions are: {JSON.stringify(positions)}</div>;
@@ -228,7 +228,7 @@ function Component() {
 export const WithAdditionalData = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements) => elements.map((element) => ({ id: element.id, other: 'something' }))],
+    hookArgs: [(elements) => Object.values(elements).map((element) => ({ id: element.id, other: 'something' }))],
     render: (result) => (
       <div>
         <Paper
@@ -247,7 +247,7 @@ export const WithAdditionalData = makeStory<Story>({
 
 function Component() {
   const elements = useElements((elements) =>
-    elements.map((element) => ({ id: element.id, data: element.data, other: 'something' }))
+    Object.values(elements).map((element) => ({ id: element.id, data: element.data, other: 'something' }))
   );
   return <div>elements with new data are: {JSON.stringify(elements)}</div>;
 }`,

@@ -1,18 +1,15 @@
-import { mapLinkFromGraph } from '../cell/cell-utilities';
+import { createDefaultGraphToLinkMapper } from '../../state/graph-state-selectors';
 import type { dia } from '@joint/core';
 
-describe('cell utilities', () => {
-  let mockCell: dia.Cell;
+describe('graph-state-selectors link mapping', () => {
+  let mockCell: dia.Link;
 
   beforeEach(() => {
     mockCell = {
       id: 'mock-id',
       attributes: {
-        size: { width: 100, height: 50 },
-        position: { x: 10, y: 20 },
         data: { key: 'value' },
         type: 'mock-type',
-        ports: { items: [] },
       },
       get: jest.fn((key) => {
         const mockData: Record<string, unknown> = {
@@ -21,29 +18,27 @@ describe('cell utilities', () => {
           z: 1,
           markup: '<markup>',
           defaultLabel: 'default-label',
-          ports: { items: [] },
         };
         return mockData[key];
       }),
-    } as unknown as dia.Cell;
+    } as unknown as dia.Link;
   });
 
-  describe('linkFromGraph', () => {
+  describe('createDefaultGraphToLinkMapper', () => {
     it('should extract link attributes correctly', () => {
-      const link = mapLinkFromGraph(mockCell);
+      const mapper = createDefaultGraphToLinkMapper(mockCell);
+      const link = mapper();
+      // id is no longer part of GraphLink - it's the Record key
       expect(link).toMatchObject({
-        id: 'mock-id',
         source: 'source-id',
         target: 'target-id',
         type: 'mock-type',
         z: 1,
         markup: '<markup>',
         defaultLabel: 'default-label',
-        data: { key: 'value' },
-        size: { width: 100, height: 50 },
-        position: { x: 10, y: 20 },
-        ports: { items: [] },
+        key: 'value', // data properties are spread to top level
       });
+      expect(link).not.toHaveProperty('id');
     });
   });
 });

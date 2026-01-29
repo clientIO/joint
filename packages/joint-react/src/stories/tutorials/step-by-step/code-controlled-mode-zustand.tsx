@@ -56,14 +56,13 @@ import type { Update } from '../../../utils/create-state';
  */
 type CustomElement = GraphElement & { label: string };
 
-const defaultElements: CustomElement[] = [
-  { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
-  { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
-];
+const defaultElements: Record<string, CustomElement> = {
+  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+};
 
-const defaultLinks: GraphLink[] = [
-  {
-    id: 'e1-2',
+const defaultLinks: Record<string, GraphLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -72,7 +71,7 @@ const defaultLinks: GraphLink[] = [
       },
     },
   },
-];
+};
 
 // ============================================================================
 // STEP 2: Custom Element Renderer
@@ -95,12 +94,12 @@ function RenderItem(props: CustomElement) {
  * Zustand store interface for graph state.
  */
 interface GraphStore {
-  /** Array of all elements (nodes) in the graph */
-  elements: GraphElement[];
-  /** Array of all links (edges) in the graph */
-  links: GraphLink[];
+  /** Record of all elements (nodes) in the graph keyed by ID */
+  elements: Record<string, GraphElement>;
+  /** Record of all links (edges) in the graph keyed by ID */
+  links: Record<string, GraphLink>;
   /** Action to add a new element */
-  addElement: (data: GraphElement) => void;
+  addElement: (id: string, data: GraphElement) => void;
   /** Action to remove the last element */
   removeLastElement: () => void;
   /** Action to update the graph state (used by adapter) */
@@ -112,27 +111,34 @@ interface GraphStore {
  * Zustand stores are simple - just define state and actions in one place.
  */
 const useGraphStore = create<GraphStore>((set) => ({
-  elements: defaultElements as GraphElement[],
-  links: defaultLinks as GraphLink[],
+  elements: defaultElements as Record<string, GraphElement>,
+  links: defaultLinks as Record<string, GraphLink>,
 
-  addElement: (element) => {
+  addElement: (id: string, element: GraphElement) => {
     set((state) => ({
-      elements: [...state.elements, element],
+      elements: { ...state.elements, [id]: element },
     }));
   },
 
   removeLastElement: () => {
     set((state) => {
-      if (state.elements.length === 0) {
+      const elementIds = Object.keys(state.elements);
+      if (elementIds.length === 0) {
         return state;
       }
-      const removedElementId = state.elements.at(-1)?.id;
-      const newElements = state.elements.slice(0, -1);
-      const newLinks = removedElementId
-        ? state.links.filter(
-            (link) => link.source !== removedElementId && link.target !== removedElementId
-          )
-        : state.links;
+      const removedElementId = elementIds.at(-1);
+      if (!removedElementId) {
+        return state;
+      }
+      // eslint-disable-next-line sonarjs/no-unused-vars
+      const { [removedElementId]: _removed, ...newElements } = state.elements;
+
+      const newLinks: Record<string, GraphLink> = {};
+      for (const [id, link] of Object.entries(state.links)) {
+        if (link.source !== removedElementId && link.target !== removedElementId) {
+          newLinks[id] = link;
+        }
+      }
 
       return {
         elements: newElements,
@@ -249,15 +255,15 @@ function PaperApp() {
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
           onClick={() => {
             // Use Zustand action to add a new element
+            const newId = Math.random().toString(36).slice(7);
             const newElement: CustomElement = {
-              id: Math.random().toString(36).slice(7),
               label: 'New Node',
               x: Math.random() * 200,
               y: Math.random() * 200,
               width: 100,
               height: 50,
-            } as CustomElement;
-            addElement(newElement);
+            };
+            addElement(newId, newElement);
           }}
         >
           Add Element

@@ -1,5 +1,4 @@
 import type {
-  GraphStoreDerivedSnapshot,
   GraphStoreSnapshot,
   GraphStoreInternalSnapshot,
 } from '../store';
@@ -64,20 +63,6 @@ export function useGraphInternalStoreSelector<Selection>(
 ): Selection {
   const { internalState } = useGraphStore();
   return useStoreSelector(internalState, selector, isEqual);
-}
-
-/**
- * Hook to select data from the ids store state.
- * @param selector - The selector function.
- * @param isEqual - The equality function.
- * @returns The selected data.
- */
-export function useDerivedGraphStoreSelector<Selection>(
-  selector: (snapshot: MarkDeepReadOnly<GraphStoreDerivedSnapshot>) => Selection,
-  isEqual?: (a: Selection, b: Selection) => boolean
-): Selection {
-  const { derivedStore } = useGraphStore();
-  return useStoreSelector(derivedStore, selector, isEqual);
 }
 
 /**

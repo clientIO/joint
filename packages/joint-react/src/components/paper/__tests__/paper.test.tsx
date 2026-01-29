@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
+ 
 /* eslint-disable @eslint-react/web-api/no-leaked-timeout */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/no-nested-functions */
@@ -9,17 +9,26 @@ import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import type { PaperStore } from '../../../store';
-import { useGraph, usePaperStoreContext } from '../../../hooks';
+import { useGraph, usePaperStoreContext, useCellId } from '../../../hooks';
 import type { GraphElement } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 
-const elements = [
-  { id: '1', label: 'Node 1', width: 10, height: 10 },
-  { id: '2', label: 'Node 2', width: 10, height: 10 },
-];
+const elements: Record<string, { label: string; width: number; height: number }> = {
+  '1': { label: 'Node 1', width: 10, height: 10 },
+  '2': { label: 'Node 2', width: 10, height: 10 },
+};
 
-type Element = (typeof elements)[number];
+function TestNode({ width, height }: Readonly<{ width?: number; height?: number }>) {
+  const id = useCellId();
+  return (
+    <div id={`node-${id}`} style={{ width, height }} className="test-node">
+      {id}
+    </div>
+  );
+}
+
+type Element = (typeof elements)[keyof typeof elements];
 const WIDTH = 200;
 
 // we need to mock `new ResizeObserver`, to return the size width 50 and height 50 for test purposes
@@ -100,10 +109,10 @@ describe('Paper Component', () => {
 
   it('calls onElementsSizeChange when element sizes change', async () => {
     const onElementsSizeChangeMock = jest.fn();
-    const updatedElements = [
-      { id: '1', label: 'Node 1', width: 100, height: 50 },
-      { id: '2', label: 'Node 2', width: 150, height: 75 },
-    ];
+    const updatedElements: Record<string, { id: string; label: string; width: number; height: number }> = {
+      '1': { id: '1', label: 'Node 1', width: 100, height: 50 },
+      '2': { id: '2', label: 'Node 2', width: 150, height: 75 },
+    };
 
     const { rerender } = render(
       <GraphProvider elements={elements}>
@@ -323,10 +332,10 @@ describe('Paper Component', () => {
 
   it('should set elements and positions via react state, when change it via paper api', async () => {
     // Create elements with initial x/y so they can be synced back
-    const elementsWithPosition = [
-      { id: '1', label: 'Node 1', x: 0, y: 0, width: 10, height: 10 },
-      { id: '2', label: 'Node 2', x: 0, y: 0, width: 10, height: 10 },
-    ];
+    const elementsWithPosition: Record<string, { id: string; label: string; x: number; y: number; width: number; height: number }> = {
+      '1': { id: '1', label: 'Node 1', x: 0, y: 0, width: 10, height: 10 },
+      '2': { id: '2', label: 'Node 2', x: 0, y: 0, width: 10, height: 10 },
+    };
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function UpdatePosition() {
       const graph = useGraph();
@@ -338,10 +347,10 @@ describe('Paper Component', () => {
       }, [graph]);
       return null;
     }
-    let currentOutsideElements: Element[] = [];
+    let currentOutsideElements: Record<string, Element> = {};
     function Content() {
-      const [currentElements, setCurrentElements] = useState<GraphElement[]>(elementsWithPosition);
-      currentOutsideElements = currentElements as Element[];
+      const [currentElements, setCurrentElements] = useState<Record<string, GraphElement>>(elementsWithPosition);
+      currentOutsideElements = currentElements as Record<string, Element>;
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
           <Paper<Element> renderElement={() => <div>Test</div>} />
@@ -351,7 +360,7 @@ describe('Paper Component', () => {
     }
     render(<Content />);
     await waitFor(() => {
-      const element1 = currentOutsideElements.find((element) => element.id === '1');
+      const element1 = currentOutsideElements['1'];
       expect(element1).toBeDefined();
       // @ts-expect-error we know it's element
       expect(element1.x).toBe(100);
@@ -361,27 +370,25 @@ describe('Paper Component', () => {
   });
   it('should update elements via react state, and then reflect the changes in the paper', async () => {
     function Content() {
-      const [currentElements, setCurrentElements] = useState<GraphElement[]>(elements);
+      const [currentElements, setCurrentElements] = useState<Record<string, GraphElement>>(elements);
 
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
           <Paper<Element>
-            renderElement={({ width, height, id }) => {
-              return (
-                <div id={`node-${id}`} style={{ width, height }} className="test-node">
-                  {id}
-                </div>
-              );
+            renderElement={({ width, height }) => {
+              return <TestNode width={width} height={height} />;
             }}
           />
           <button
             type="button"
             onClick={() => {
-              setCurrentElements((els) =>
-                els.map((element) =>
-                  element.id === '1' ? { ...element, width: 200, height: 200 } : element
-                )
-              );
+              setCurrentElements((els) => {
+                const newEls = { ...els };
+                if (newEls['1']) {
+                  newEls['1'] = { ...newEls['1'], width: 200, height: 200 };
+                }
+                return newEls;
+              });
             }}
           >
             Update Element 1

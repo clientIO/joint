@@ -5,13 +5,13 @@ import { usePaperStoreContext } from '../use-paper-context';
 describe('use-paper-context', () => {
   const wrapper = paperRenderElementWrapper({
     graphProviderProps: {
-      elements: [
-        {
+      elements: {
+        '1': {
           id: '1',
           width: 100,
           height: 100,
         },
-      ],
+      },
     },
     paperProps: {
       renderElement: () => <rect />,

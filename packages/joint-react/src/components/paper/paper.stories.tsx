@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
+ 
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
@@ -359,9 +359,8 @@ export const WithOnClickColorChange: Story = {
     };
     return (
       <GraphProvider
-        areBatchUpdatesDisabled
-        elements={[
-          {
+        elements={{
+          '1': {
             width: 100,
             height: 40,
             id: '1',
@@ -370,7 +369,7 @@ export const WithOnClickColorChange: Story = {
             y: 50,
             hoverColor: 'red',
           } as GraphElement & { label: string; hoverColor: string },
-          {
+          '2': {
             width: 100,
             height: 40,
             id: '2',
@@ -379,9 +378,9 @@ export const WithOnClickColorChange: Story = {
             y: 250,
             hoverColor: 'red',
           } as GraphElement & { label: string; hoverColor: string },
-        ]}
-        links={[
-          {
+        }}
+        links={{
+          'l1': {
             id: 'l1',
             source: '1',
             target: '2',
@@ -391,7 +390,7 @@ export const WithOnClickColorChange: Story = {
               },
             },
           },
-        ]}
+        }}
       >
         <Paper
           id="main"
@@ -446,21 +445,19 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
     };
     return (
       <GraphProvider
-        areBatchUpdatesDisabled
-        elements={[
-          {
-            id: '1',
+        elements={{
+          '1': {
             label: 'Element 1',
             hoverColor: 'red',
             somethingMine: true,
           } as GraphElement & { label: string; hoverColor: string },
-          { id: '2', label: 'Element 1', hoverColor: 'red' } as GraphElement & {
+          '2': { label: 'Element 1', hoverColor: 'red' } as GraphElement & {
             label: string;
             hoverColor: string;
           },
-        ]}
-        links={[
-          {
+        }}
+        links={{
+          'l1': {
             id: 'l1',
             source: '1',
             target: '2',
@@ -470,7 +467,7 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
               },
             },
           },
-        ]}
+        }}
       >
         <Paper
           id="main"

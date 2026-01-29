@@ -6,29 +6,28 @@ import { dia } from '@joint/core';
 import { useElements, useLinks, useGraph } from '../../../hooks';
 import type { GraphElement } from '../../../types/element-types';
 import type { GraphLink } from '../../../types/link-types';
-import { mapLinkFromGraph } from '../../../utils/cell/cell-utilities';
 import { GraphProvider } from '../../graph/graph-provider';
 
 describe('GraphProvider Controlled Mode', () => {
   describe('Basic useState integration', () => {
     it('should sync React state to store and graph on initial mount', async () => {
-      const initialElements = [
-        { id: '1', width: 100, height: 100 },
-        { id: '2', width: 200, height: 200 },
-      ];
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100 },
+        '2': { width: 200, height: 200 },
+      };
 
       let elementCount = 0;
       let elementIds: string[] = [];
 
       function TestComponent() {
-        const elements = useElements((items) => items);
+        const elements = useElements((items) => Object.values(items));
         elementCount = elements.length;
-        elementIds = elements.map((element) => String(element.id));
+        elementIds = Object.keys(useElements((items) => items));
         return null;
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -45,23 +44,25 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should update store when React state changes via useState', async () => {
-      const initialElements = [{ id: '1', width: 100, height: 100 }];
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100 },
+      };
 
       let elementCount = 0;
       let elementIds: string[] = [];
 
       function TestComponent() {
-        const elements = useElements((items) => items);
+        const elements = useElements((items) => Object.values(items));
         elementCount = elements.length;
-        elementIds = elements.map((element) => String(element.id));
+        elementIds = Object.keys(useElements((items) => items));
         return null;
       }
 
-      let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, GraphElement>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
-        setElementsExternal = setElements as (elements: GraphElement[]) => void;
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, GraphElement>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -77,13 +78,11 @@ describe('GraphProvider Controlled Mode', () => {
       });
 
       act(() => {
-        setElementsExternal?.(
-          [
-            { id: '1', width: 100, height: 100 },
-            { id: '2', width: 200, height: 200 },
-            { id: '3', width: 300, height: 300 },
-          ]
-        );
+        setElementsExternal?.({
+          '1': { width: 100, height: 100 },
+          '2': { width: 200, height: 200 },
+          '3': { width: 300, height: 300 },
+        });
       });
 
       await waitFor(() => {
@@ -93,31 +92,34 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle both elements and links in controlled mode', async () => {
-      const initialElements = [{ id: '1', width: 100, height: 100 }];
-      const initialLink = new dia.Link({
-        id: 'link1',
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100 },
+      };
+      const initialLink: GraphLink = {
         type: 'standard.Link',
         source: { id: '1' },
         target: { id: '2' },
-      });
+      };
 
       let elementCount = 0;
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.length);
-        linkCount = useLinks((items) => items.length);
+        elementCount = useElements((items) => Object.keys(items).length);
+        linkCount = useLinks((items) => Object.keys(items).length);
         return null;
       }
 
-      let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
-      let setLinksExternal: ((links: GraphLink[]) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, GraphElement>) => void) | null = null;
+      let setLinksExternal: ((links: Record<string, GraphLink>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
-        const [links, setLinks] = useState<GraphLink[]>(() => [mapLinkFromGraph(initialLink)]);
-        setElementsExternal = setElements as (elements: GraphElement[]) => void;
-        setLinksExternal = setLinks as (links: GraphLink[]) => void;
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
+        const [links, setLinks] = useState<Record<string, GraphLink>>(() => ({
+          'link1': initialLink,
+        }));
+        setElementsExternal = setElements as (elements: Record<string, GraphElement>) => void;
+        setLinksExternal = setLinks as (links: Record<string, GraphLink>) => void;
         return (
           <GraphProvider
             elements={elements}
@@ -139,12 +141,10 @@ describe('GraphProvider Controlled Mode', () => {
 
       // Update elements only
       act(() => {
-        setElementsExternal?.(
-          [
-            { id: '1', width: 100, height: 100 },
-            { id: '2', width: 200, height: 200 },
-          ]
-        );
+        setElementsExternal?.({
+          '1': { width: 100, height: 100 },
+          '2': { width: 200, height: 200 },
+        });
       });
 
       await waitFor(() => {
@@ -154,24 +154,18 @@ describe('GraphProvider Controlled Mode', () => {
 
       // Update links only
       act(() => {
-        setLinksExternal?.([
-          mapLinkFromGraph(
-            new dia.Link({
-              id: 'link1',
-              type: 'standard.Link',
-              source: { id: '1' },
-              target: { id: '2' },
-            })
-          ),
-          mapLinkFromGraph(
-            new dia.Link({
-              id: 'link2',
-              type: 'standard.Link',
-              source: { id: '2' },
-              target: { id: '1' },
-            })
-          ),
-        ]);
+        setLinksExternal?.({
+          'link1': {
+            type: 'standard.Link',
+            source: { id: '1' },
+            target: { id: '2' },
+          },
+          'link2': {
+            type: 'standard.Link',
+            source: { id: '2' },
+            target: { id: '1' },
+          },
+        });
       });
 
       await waitFor(() => {
@@ -183,21 +177,23 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Rapid consecutive updates', () => {
     it('should handle rapid consecutive state updates correctly', async () => {
-      const initialElements = [{ id: '1', width: 100, height: 100 }];
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100 },
+      };
 
       let elementCount = 0;
 
       function TestComponent() {
-        const count = useElements((items) => items.length);
+        const count = useElements((items) => Object.keys(items).length);
         elementCount = count;
         return null;
       }
 
-      let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, GraphElement>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
-        setElementsExternal = setElements as (elements: GraphElement[]) => void;
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, GraphElement>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -213,27 +209,21 @@ describe('GraphProvider Controlled Mode', () => {
 
       // Rapid consecutive updates
       act(() => {
-        setElementsExternal?.(
-          [
-            { id: '1', width: 100, height: 100 },
-            { id: '2', width: 200, height: 200 },
-          ]
-        );
-        setElementsExternal?.(
-          [
-            { id: '1', width: 100, height: 100 },
-            { id: '2', width: 200, height: 200 },
-            { id: '3', width: 300, height: 300 },
-          ]
-        );
-        setElementsExternal?.(
-          [
-            { id: '1', width: 100, height: 100 },
-            { id: '2', width: 200, height: 200 },
-            { id: '3', width: 300, height: 300 },
-            { id: '4', width: 400, height: 400 },
-          ]
-        );
+        setElementsExternal?.({
+          '1': { width: 100, height: 100 },
+          '2': { width: 200, height: 200 },
+        });
+        setElementsExternal?.({
+          '1': { width: 100, height: 100 },
+          '2': { width: 200, height: 200 },
+          '3': { width: 300, height: 300 },
+        });
+        setElementsExternal?.({
+          '1': { width: 100, height: 100 },
+          '2': { width: 200, height: 200 },
+          '3': { width: 300, height: 300 },
+          '4': { width: 400, height: 400 },
+        });
       });
 
       await waitFor(
@@ -245,20 +235,22 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle 10 rapid updates without losing state', async () => {
-      const initialElements = [{ id: '1', width: 100, height: 100 }];
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100 },
+      };
 
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.length);
+        elementCount = useElements((items) => Object.keys(items).length);
         return null;
       }
 
-      let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, GraphElement>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
-        setElementsExternal = setElements as (elements: GraphElement[]) => void;
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, GraphElement>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -275,13 +267,14 @@ describe('GraphProvider Controlled Mode', () => {
       // 10 rapid updates
       act(() => {
         for (let index = 2; index <= 11; index++) {
-          setElementsExternal?.(
-            Array.from({ length: index }, (_, elementIndex) => ({
-                id: String(elementIndex + 1),
-                width: 100 * (elementIndex + 1),
-                height: 100 * (elementIndex + 1),
-              }))
-          );
+          const newElements: Record<string, GraphElement> = {};
+          for (let elementIndex = 1; elementIndex <= index; elementIndex++) {
+            newElements[String(elementIndex)] = {
+              width: 100 * elementIndex,
+              height: 100 * elementIndex,
+            };
+          }
+          setElementsExternal?.(newElements);
         }
       });
 
@@ -296,31 +289,34 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Concurrent updates', () => {
     it('should handle concurrent element and link updates', async () => {
-      const initialElements = [{ id: '1', width: 100, height: 100 }];
-      const initialLink = new dia.Link({
-        id: 'link1',
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100 },
+      };
+      const initialLink: GraphLink = {
         type: 'standard.Link',
         source: { id: '1' },
         target: { id: '2' },
-      });
+      };
 
       let elementCount = 0;
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.length);
-        linkCount = useLinks((items) => items.length);
+        elementCount = useElements((items) => Object.keys(items).length);
+        linkCount = useLinks((items) => Object.keys(items).length);
         return null;
       }
 
-      let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
-      let setLinksExternal: ((links: GraphLink[]) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, GraphElement>) => void) | null = null;
+      let setLinksExternal: ((links: Record<string, GraphLink>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
-        const [links, setLinks] = useState<GraphLink[]>(() => [mapLinkFromGraph(initialLink)]);
-        setElementsExternal = setElements as (elements: GraphElement[]) => void;
-        setLinksExternal = setLinks as (links: GraphLink[]) => void;
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
+        const [links, setLinks] = useState<Record<string, GraphLink>>(() => ({
+          'link1': initialLink,
+        }));
+        setElementsExternal = setElements as (elements: Record<string, GraphElement>) => void;
+        setLinksExternal = setLinks as (links: Record<string, GraphLink>) => void;
         return (
           <GraphProvider
             elements={elements}
@@ -342,30 +338,22 @@ describe('GraphProvider Controlled Mode', () => {
 
       // Concurrent updates
       act(() => {
-        setElementsExternal?.(
-          [
-            { id: '1', width: 100, height: 100 },
-            { id: '2', width: 200, height: 200 },
-          ]
-        );
-        setLinksExternal?.([
-          mapLinkFromGraph(
-            new dia.Link({
-              id: 'link1',
-              type: 'standard.Link',
-              source: { id: '1' },
-              target: { id: '2' },
-            })
-          ),
-          mapLinkFromGraph(
-            new dia.Link({
-              id: 'link2',
-              type: 'standard.Link',
-              source: { id: '2' },
-              target: { id: '1' },
-            })
-          ),
-        ]);
+        setElementsExternal?.({
+          '1': { width: 100, height: 100 },
+          '2': { width: 200, height: 200 },
+        });
+        setLinksExternal?.({
+          'link1': {
+            type: 'standard.Link',
+            source: { id: '1' },
+            target: { id: '2' },
+          },
+          'link2': {
+            type: 'standard.Link',
+            source: { id: '2' },
+            target: { id: '1' },
+          },
+        });
       });
 
       await waitFor(
@@ -378,28 +366,32 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle multiple rapid updates with callbacks', async () => {
-      const initialElements = [{ id: '1', width: 100, height: 100 }];
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100 },
+      };
 
       let elementCount = 0;
 
       function TestComponent() {
-        const count = useElements((items) => items.length);
+        const count = useElements((items) => Object.keys(items).length);
         elementCount = count;
         return null;
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
 
         const handleAddElement = useCallback(() => {
-          setElements((previous) => [
-            ...previous,
-            {
-              id: String(previous.length + 1),
-              width: 100 * (previous.length + 1),
-              height: 100 * (previous.length + 1),
-            },
-          ]);
+          setElements((previous) => {
+            const newId = String(Object.keys(previous).length + 1);
+            return {
+              ...previous,
+              [newId]: {
+                width: 100 * (Object.keys(previous).length + 1),
+                height: 100 * (Object.keys(previous).length + 1),
+              },
+            };
+          });
         }, []);
 
         return (
@@ -437,10 +429,12 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('User interaction sync back to React state', () => {
     it('should sync graph changes back to React state in controlled mode', async () => {
-      const initialElements = [{ id: '1', width: 100, height: 100 }];
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100 },
+      };
 
-      let reactStateElements: GraphElement[] = [];
-      let storeElements: GraphElement[] = [];
+      let reactStateElements: Record<string, GraphElement> = {};
+      let storeElements: Record<string, GraphElement> = {};
 
       function TestComponent() {
         storeElements = useElements((items) => items);
@@ -448,7 +442,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
         reactStateElements = elements;
 
         return (
@@ -484,8 +478,8 @@ describe('GraphProvider Controlled Mode', () => {
       const { getByRole } = render(<ControlledGraph />);
 
       await waitFor(() => {
-        expect(reactStateElements.length).toBe(1);
-        expect(storeElements.length).toBe(1);
+        expect(Object.keys(reactStateElements).length).toBe(1);
+        expect(Object.keys(storeElements).length).toBe(1);
       });
 
       // Simulate user interaction
@@ -496,22 +490,24 @@ describe('GraphProvider Controlled Mode', () => {
       // Graph change should sync back to React state
       await waitFor(
         () => {
-          expect(reactStateElements.length).toBe(2);
-          expect(storeElements.length).toBe(2);
-          expect(reactStateElements.some((element) => element.id === '2')).toBe(true);
-          expect(storeElements.some((element) => element.id === '2')).toBe(true);
+          expect(Object.keys(reactStateElements).length).toBe(2);
+          expect(Object.keys(storeElements).length).toBe(2);
+          expect(reactStateElements['2']).toBeDefined();
+          expect(storeElements['2']).toBeDefined();
         },
         { timeout: 3000 }
       );
     });
 
     it('should handle element position changes from user interaction', async () => {
-      const initialElements = [{ id: '1', width: 100, height: 100, x: 0, y: 0 }];
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100, x: 0, y: 0 },
+      };
 
-      let reactStateElements: GraphElement[] = [];
+      let reactStateElements: Record<string, GraphElement> = {};
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
         reactStateElements = elements;
 
         return (
@@ -542,9 +538,9 @@ describe('GraphProvider Controlled Mode', () => {
       const { getByRole } = render(<ControlledGraph />);
 
       await waitFor(() => {
-        expect(reactStateElements.length).toBe(1);
-        expect(reactStateElements[0]?.x).toBe(0);
-        expect(reactStateElements[0]?.y).toBe(0);
+        expect(Object.keys(reactStateElements).length).toBe(1);
+        expect(reactStateElements['1']?.x).toBe(0);
+        expect(reactStateElements['1']?.y).toBe(0);
       });
 
       // Simulate user interaction
@@ -555,9 +551,9 @@ describe('GraphProvider Controlled Mode', () => {
       // Graph change should sync back to React state
       await waitFor(
         () => {
-          expect(reactStateElements.length).toBe(1);
-          expect(reactStateElements[0]?.x).toBe(100);
-          expect(reactStateElements[0]?.y).toBe(100);
+          expect(Object.keys(reactStateElements).length).toBe(1);
+          expect(reactStateElements['1']?.x).toBe(100);
+          expect(reactStateElements['1']?.y).toBe(100);
         },
         { timeout: 3000 }
       );
@@ -565,21 +561,23 @@ describe('GraphProvider Controlled Mode', () => {
   });
 
   describe('Edge cases', () => {
-    it('should handle empty arrays correctly', async () => {
-      const initialElements = [{ id: '1', width: 100, height: 100 }];
+    it('should handle empty records correctly', async () => {
+      const initialElements: Record<string, GraphElement> = {
+        '1': { width: 100, height: 100 },
+      };
 
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.length);
+        elementCount = useElements((items) => Object.keys(items).length);
         return null;
       }
 
-      let setElementsExternal: ((elements: GraphElement[]) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, GraphElement>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
-        setElementsExternal = setElements as (elements: GraphElement[]) => void;
+        const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, GraphElement>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -595,7 +593,7 @@ describe('GraphProvider Controlled Mode', () => {
 
       // Clear all elements
       act(() => {
-        setElementsExternal?.([]);
+        setElementsExternal?.({});
       });
 
       await waitFor(() => {
@@ -604,12 +602,10 @@ describe('GraphProvider Controlled Mode', () => {
 
       // Add elements back
       act(() => {
-        setElementsExternal?.(
-          [
-            { id: '1', width: 100, height: 100 },
-            { id: '2', width: 200, height: 200 },
-          ]
-        );
+        setElementsExternal?.({
+          '1': { width: 100, height: 100 },
+          '2': { width: 200, height: 200 },
+        });
       });
 
       await waitFor(() => {
@@ -622,14 +618,14 @@ describe('GraphProvider Controlled Mode', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.length);
-        linkCount = useLinks((items) => items.length);
+        elementCount = useElements((items) => Object.keys(items).length);
+        linkCount = useLinks((items) => Object.keys(items).length);
         return null;
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<GraphElement[]>([]);
-        const [links, setLinks] = useState<GraphLink[]>([]);
+        const [elements, setElements] = useState<Record<string, GraphElement>>({});
+        const [links, setLinks] = useState<Record<string, GraphLink>>({});
         return (
           <GraphProvider
             elements={elements}

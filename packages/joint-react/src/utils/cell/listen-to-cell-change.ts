@@ -2,10 +2,20 @@ import { mvc, type dia } from '@joint/core';
 
 export type ChangeEvent = 'change' | 'add' | 'remove' | 'reset';
 
+/**
+ * JointJS options object passed through events.
+ * Contains flags like `isUpdateFromReact` to detect update sources.
+ */
+export interface JointJSEventOptions {
+  readonly isUpdateFromReact?: boolean;
+  readonly [key: string]: unknown;
+}
+
 interface OnChangeOptionsBase {
   readonly type: ChangeEvent;
   readonly cells?: dia.Cell[];
   readonly cell?: dia.Cell;
+  readonly options?: JointJSEventOptions;
 }
 interface OnChangeOptionsUpdate extends OnChangeOptionsBase {
   readonly type: 'change' | 'add' | 'remove';
@@ -31,15 +41,26 @@ export function listenToCellChange(
   handleCellsChange: OnChangeHandler
 ): () => void {
   const controller = new mvc.Listener();
-  controller.listenTo(graph, 'change', (cell: dia.Cell) =>
-    handleCellsChange({ type: 'change', cell })
+  controller.listenTo(graph, 'change', (cell: dia.Cell, options: JointJSEventOptions) =>
+    handleCellsChange({ type: 'change', cell, options })
   );
-  controller.listenTo(graph, 'add', (cell: dia.Cell) => handleCellsChange({ type: 'add', cell }));
-  controller.listenTo(graph, 'remove', (cell: dia.Cell) =>
-    handleCellsChange({ type: 'remove', cell })
+  controller.listenTo(
+    graph,
+    'add',
+    (cell: dia.Cell, _collection: mvc.Collection<dia.Cell>, options: JointJSEventOptions) =>
+      handleCellsChange({ type: 'add', cell, options })
   );
-  controller.listenTo(graph, 'reset', (cells: dia.Cell[]) =>
-    handleCellsChange({ type: 'reset', cells })
+  controller.listenTo(
+    graph,
+    'remove',
+    (cell: dia.Cell, _collection: mvc.Collection<dia.Cell>, options: JointJSEventOptions) =>
+      handleCellsChange({ type: 'remove', cell, options })
+  );
+  controller.listenTo(
+    graph,
+    'reset',
+    (collection: mvc.Collection<dia.Cell>, options: JointJSEventOptions) =>
+      handleCellsChange({ type: 'reset', cells: collection.models, options })
   );
 
   return () => controller.stopListening();

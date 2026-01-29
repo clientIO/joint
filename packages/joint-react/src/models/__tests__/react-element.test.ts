@@ -56,6 +56,13 @@ describe('react-element', () => {
 
       expect(element).toBeInstanceOf(ReactElement);
     });
+
+    describe('markup', () => {
+      it('should have empty markup array', () => {
+        const element = new ReactElement({ id: 'test' });
+        expect(element.markup).toEqual([]);
+      });
+    });
   });
 
   describe('createElement', () => {

@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
-import type { GraphStoreDerivedSnapshot, GraphStoreSnapshot, NodeLayout } from './graph-store';
+import type { GraphStoreSnapshot, NodeLayout } from './graph-store';
 import type { MarkDeepReadOnly } from '../utils/create-state';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
@@ -70,12 +70,10 @@ interface Options {
   readonly resizeObserverOptions?: ResizeObserverOptions;
   /** Function to get the current size of a cell from the graph */
   readonly getCellTransform: (id: dia.Cell.ID) => NodeLayoutOptionalXY & { element: dia.Element; angle: number };
-  /** Function to get the current IDs snapshot for efficient lookups */
-  readonly getIdsSnapshot: () => MarkDeepReadOnly<GraphStoreDerivedSnapshot>;
   /** Function to get the current public snapshot containing all elements */
   readonly getPublicSnapshot: () => MarkDeepReadOnly<GraphStoreSnapshot>;
   /** Callback function called when a batch of elements needs to be updated */
-  readonly onBatchUpdate: (elements: GraphElement[]) => void;
+  readonly onBatchUpdate: (elements: Record<dia.Cell.ID, GraphElement>) => void;
 }
 
 /**
@@ -130,7 +128,6 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
   const {
     resizeObserverOptions = DEFAULT_OBSERVER_OPTIONS,
     getCellTransform,
-    getIdsSnapshot,
     onBatchUpdate,
     getPublicSnapshot,
   } = options;
@@ -139,9 +136,10 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
   const observer = new ResizeObserver((entries) => {
     // Process all entries as a single batch
     let hasAnySizeChange = false;
-    const idsSnapshot = getIdsSnapshot();
     const publicSnapshot = getPublicSnapshot();
-    const updatedElements: GraphElement[] = [...publicSnapshot.elements] as GraphElement[];
+    // Convert Record to array for batch update (preserving compatibility)
+    const elementsRecord = publicSnapshot.elements as Record<dia.Cell.ID, GraphElement>;
+    const updatedElements: Record<dia.Cell.ID, GraphElement> = { ...elementsRecord };
 
     for (const entry of entries) {
       // We must be careful to not mutate the snapshot data.
@@ -181,12 +179,11 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         continue;
       }
 
-      const elementArrayIndex = idsSnapshot.elementIds[cellId];
-      if (elementArrayIndex == undefined) {
+      const graphElement = updatedElements[cellId];
+      if (!graphElement) {
         throw new Error(`Element with id ${cellId} not found in graph data ref`);
       }
 
-      const graphElement = updatedElements[elementArrayIndex];
       const observedElement = observedElementsByCellId.get(cellId) ?? DEFAULT_OBSERVED_ELEMENT;
       const { transform: sizeTransformFunction = defaultTransform } = observedElement;
 
@@ -204,12 +201,8 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       observedElement.lastWidth = measuredWidth;
       observedElement.lastHeight = measuredHeight;
 
-      if (!graphElement) {
-        throw new Error(`Element with id ${cellId} not found in graph data ref`);
-      }
-
       const { x, y, angle, element: cell } = currentCellTransform;
-      updatedElements[elementArrayIndex] = {
+      updatedElements[cellId] = {
         ...graphElement,
         ...sizeTransformFunction({
           x: x ?? 0,
@@ -229,6 +222,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       return;
     }
 
+    // Pass updated elements as Record
     onBatchUpdate(updatedElements);
   });
 
