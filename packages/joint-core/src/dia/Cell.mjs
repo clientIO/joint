@@ -432,7 +432,7 @@ export const Cell = Model.extend({
             return [];
         }
 
-        let cells = childIds.map(id => this.graph.getCell(id)).filter(Boolean);
+        let cells = childIds.map(id => this.graph.getCell(id));
         if (opt.sortSiblings) {
             cells = sortBy(cells, cell => cell.z());
         }
