@@ -4400,6 +4400,39 @@ QUnit.module('graph', function(hooks) {
             assert.equal(embedded.length, 1);
             assert.equal(embedded[0].id, child.id);
         });
+
+        QUnit.test('distinguishes numeric and string IDs', function(assert) {
+            const graph = this.graph;
+
+            // Create cells with numeric ID 1 and string ID "1"
+            const parent = new joint.shapes.standard.Rectangle({ id: 'parent' });
+            const childNumeric = new joint.shapes.standard.Rectangle({ id: 1 });
+            const childString = new joint.shapes.standard.Rectangle({ id: '1' });
+
+            graph.addCells([parent, childNumeric, childString]);
+
+            parent.embed(childNumeric);
+            parent.embed(childString);
+
+            // Both should be tracked as separate children
+            const childrenIds = graph.hierarchyIndex.getChildrenIds('parent');
+            assert.equal(childrenIds.length, 2, 'both children tracked separately');
+            assert.ok(childrenIds.includes(1), 'numeric ID 1 is in children');
+            assert.ok(childrenIds.includes('1'), 'string ID "1" is in children');
+
+            // Verify they are different
+            assert.notStrictEqual(1, '1', 'numeric 1 and string "1" are different');
+
+            // Unembed numeric ID - string should remain
+            parent.unembed(childNumeric);
+            const remainingIds = graph.hierarchyIndex.getChildrenIds('parent');
+            assert.equal(remainingIds.length, 1, 'one child remaining after unembed');
+            assert.strictEqual(remainingIds[0], '1', 'string ID "1" remains');
+
+            // Unembed string ID
+            parent.unembed(childString);
+            assert.notOk(graph.hierarchyIndex.hasChildren('parent'), 'no children after both unembedded');
+        });
     });
 
     QUnit.module('config.storeEmbeds', function() {

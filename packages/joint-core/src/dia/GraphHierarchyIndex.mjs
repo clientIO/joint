@@ -47,9 +47,10 @@ export class GraphHierarchyIndex extends Listener {
      * @description Initialize the internal data structures.
      */
     initializeIndex() {
-        // Parent to children mapping.
-        // [parentId] -> Object [childId] -> true
-        this._children = {};
+        // Parent to children mappings (links first, then elements).
+        // Map(parentId -> Set of child IDs)
+        this._linkChildren = new Map();
+        this._elementChildren = new Map();
     }
 
     /**
@@ -70,7 +71,7 @@ export class GraphHierarchyIndex extends Listener {
     _restructureOnAdd(cell) {
         const parentId = cell.get('parent');
         if (parentId) {
-            this._addChild(parentId, cell.id);
+            this._addChild(parentId, cell);
         }
     }
 
@@ -82,10 +83,11 @@ export class GraphHierarchyIndex extends Listener {
     _restructureOnRemove(cell) {
         const parentId = cell.get('parent');
         if (parentId) {
-            this._removeChild(parentId, cell.id);
+            this._removeChild(parentId, cell);
         }
         // Also remove this cell as a parent (cleanup any orphaned entries)
-        delete this._children[cell.id];
+        this._linkChildren.delete(cell.id);
+        this._elementChildren.delete(cell.id);
     }
 
     /**
@@ -98,10 +100,10 @@ export class GraphHierarchyIndex extends Listener {
         const newParentId = cell.get('parent');
 
         if (prevParentId) {
-            this._removeChild(prevParentId, cell.id);
+            this._removeChild(prevParentId, cell);
         }
         if (newParentId) {
-            this._addChild(newParentId, cell.id);
+            this._addChild(newParentId, cell);
         }
     }
 
@@ -109,35 +111,50 @@ export class GraphHierarchyIndex extends Listener {
      * @protected
      * @description Add a child to the parent's children set.
      * @param {string} parentId - The parent cell ID.
-     * @param {string} childId - The child cell ID.
+     * @param {dia.Cell} child - The child cell.
      */
-    _addChild(parentId, childId) {
-        if (!this._children[parentId]) {
-            this._children[parentId] = {};
+    _addChild(parentId, child) {
+        const map = child.isLink() ? this._linkChildren : this._elementChildren;
+        let children = map.get(parentId);
+        if (!children) {
+            children = new Set();
+            map.set(parentId, children);
         }
-        this._children[parentId][childId] = true;
+        children.add(child.id);
     }
 
     /**
      * @protected
      * @description Remove a child from the parent's children set.
      * @param {string} parentId - The parent cell ID.
-     * @param {string} childId - The child cell ID.
+     * @param {dia.Cell} child - The child cell.
      */
-    _removeChild(parentId, childId) {
-        const children = this._children[parentId];
-        if (!children) return;
-        delete children[childId];
+    _removeChild(parentId, child) {
+        const map = child.isLink() ? this._linkChildren : this._elementChildren;
+        const children = map.get(parentId);
+        if (children) {
+            children.delete(child.id);
+        }
     }
 
     /**
      * @public
-     * @description Get all direct children IDs for a parent. Time complexity: O(n) where n is number of children.
+     * @description Get all direct children IDs for a parent (links first, then elements).
+     * Time complexity: O(n) where n is number of children.
      * @param {string} parentId - The parent cell ID.
-     * @returns {string[]} Array of child cell IDs.
+     * @returns {Array} Array of child cell IDs.
      */
     getChildrenIds(parentId) {
-        return Object.keys(this._children[parentId] || {});
+        const linkChildren = this._linkChildren.get(parentId);
+        const elementChildren = this._elementChildren.get(parentId);
+        if (!linkChildren && !elementChildren) {
+            return [];
+        }
+        // Links first, then elements
+        return [
+            ...(linkChildren || []),
+            ...(elementChildren || [])
+        ];
     }
 
     /**
@@ -147,12 +164,10 @@ export class GraphHierarchyIndex extends Listener {
      * @returns {boolean} True if the cell has children.
      */
     hasChildren(parentId) {
-        const children = this._children[parentId];
-        if (!children) return false;
-        // Check if the object has any keys
-        for (const _ in children) {
-            return true;
-        }
+        const linkChildren = this._linkChildren.get(parentId);
+        if (linkChildren && linkChildren.size > 0) return true;
+        const elementChildren = this._elementChildren.get(parentId);
+        if (elementChildren && elementChildren.size > 0) return true;
         return false;
     }
 }
