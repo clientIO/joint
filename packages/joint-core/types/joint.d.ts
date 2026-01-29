@@ -242,6 +242,31 @@ export namespace dia {
         protected _restructureOnChangeTarget(cell: Cell): void;
     }
 
+    class GraphHierarchyIndex extends mvc.Listener<[]> {
+
+        layerCollection: GraphLayerCollection;
+
+        startListening(): void;
+
+        getChildrenIds(parentId: Cell.ID): Cell.ID[];
+
+        hasChildren(parentId: Cell.ID): boolean;
+
+        protected initializeIndex(): void;
+
+        protected _restructureOnReset(): void;
+
+        protected _restructureOnAdd(cell: Cell): void;
+
+        protected _restructureOnRemove(cell: Cell): void;
+
+        protected _restructureOnChangeParent(cell: Cell): void;
+
+        protected _addChild(parentId: Cell.ID, childId: Cell.ID): void;
+
+        protected _removeChild(parentId: Cell.ID, childId: Cell.ID): void;
+    }
+
     export namespace Graph {
 
         interface Options {
@@ -319,6 +344,8 @@ export namespace dia {
         layersController: GraphLayersController;
 
         topologyIndex: GraphTopologyIndex;
+
+        hierarchyIndex: GraphHierarchyIndex;
 
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,

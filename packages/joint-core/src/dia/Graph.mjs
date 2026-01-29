@@ -10,6 +10,7 @@ import { GraphLayerCollection } from './GraphLayerCollection.mjs';
 import { config } from '../config/index.mjs';
 import { CELL_MARKER } from './symbols.mjs';
 import { GraphTopologyIndex } from './GraphTopologyIndex.mjs';
+import { GraphHierarchyIndex } from './GraphHierarchyIndex.mjs';
 
 // The ID of the default graph layer.
 const DEFAULT_LAYER_ID = 'cells';
@@ -70,6 +71,10 @@ export const Graph = Model.extend({
         // questions such as "what are the neighbors of this node" or "what
         // are the sibling links of this link".
         this.topologyIndex = new GraphTopologyIndex({ layerCollection });
+
+        // `Graph` keeps an internal data structure for fast hierarchy queries.
+        // This index tracks parent-child relationships based on the `parent` attribute.
+        this.hierarchyIndex = new GraphHierarchyIndex({ layerCollection });
 
         this._batches = {};
     },
