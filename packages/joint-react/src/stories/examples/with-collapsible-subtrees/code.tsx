@@ -13,8 +13,6 @@ interface BaseEvent extends GraphElement {
   readonly label: string;
   readonly width: number;
   readonly height: number;
-  readonly hidden: boolean;
-  readonly collapsed: boolean;
 }
 
 const GATE_TYPES = ['OR', 'XOR', 'AND', 'PRIORITY_AND', 'INHIBIT', 'TRANSFER'] as const;
@@ -55,8 +53,6 @@ const initialElements: FTAElement[] = [
     height: 150,
     label: 'Fall from Scaffolding',
     gate: 'INHIBIT',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'd8jpey',
@@ -65,8 +61,6 @@ const initialElements: FTAElement[] = [
     height: 150,
     label: 'Fall from the Scaffolding',
     gate: 'AND',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'is079n',
@@ -75,8 +69,6 @@ const initialElements: FTAElement[] = [
     height: 150,
     label: 'Safety Belt Not Working',
     gate: 'OR',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'ht8wnb',
@@ -85,8 +77,6 @@ const initialElements: FTAElement[] = [
     height: 150,
     label: 'Fall By Accident',
     gate: 'OR',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: '07vhpd',
@@ -95,8 +85,6 @@ const initialElements: FTAElement[] = [
     height: 150,
     label: 'Broken By Equipment',
     gate: 'OR',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'd8ojep',
@@ -105,8 +93,6 @@ const initialElements: FTAElement[] = [
     height: 150,
     label: 'Did not Wear Safety Belt',
     gate: 'OR',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'szf1q3',
@@ -114,8 +100,6 @@ const initialElements: FTAElement[] = [
     width: 140,
     height: 80,
     label: 'Slip and Fall',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'kj5m9a',
@@ -123,8 +107,6 @@ const initialElements: FTAElement[] = [
     width: 140,
     height: 80,
     label: 'Lose Balance',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'tcv79r',
@@ -132,8 +114,6 @@ const initialElements: FTAElement[] = [
     width: 140,
     height: 80,
     label: 'Upholder Broken',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'ylp4gu',
@@ -141,8 +121,6 @@ const initialElements: FTAElement[] = [
     width: 80,
     height: 80,
     label: 'Safety Belt Broken',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'q2vwnc',
@@ -150,8 +128,6 @@ const initialElements: FTAElement[] = [
     width: 80,
     height: 80,
     label: 'Forgot to Wear',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'x8rboj',
@@ -159,8 +135,6 @@ const initialElements: FTAElement[] = [
     width: 80,
     height: 100,
     label: 'Take off When Walking',
-    collapsed: false,
-    hidden: false,
   },
   {
     id: 'mte5xr',
@@ -168,8 +142,6 @@ const initialElements: FTAElement[] = [
     width: 140,
     height: 80,
     label: 'Height and Ground Condition',
-    collapsed: false,
-    hidden: false,
   },
 ];
 
@@ -178,7 +150,6 @@ const initialLinks = [
     id: 'link-0',
     source: 'ot8h17',
     target: 'd8jpey',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -192,7 +163,6 @@ const initialLinks = [
     id: 'link-1',
     source: 'd8jpey',
     target: 'is079n',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -206,7 +176,6 @@ const initialLinks = [
     id: 'link-2',
     source: 'd8jpey',
     target: 'ht8wnb',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -220,7 +189,6 @@ const initialLinks = [
     id: 'link-3',
     source: 'is079n',
     target: '07vhpd',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -234,7 +202,6 @@ const initialLinks = [
     id: 'link-4',
     source: 'is079n',
     target: 'd8ojep',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -248,7 +215,6 @@ const initialLinks = [
     id: 'link-5',
     source: 'ht8wnb',
     target: 'szf1q3',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -262,7 +228,6 @@ const initialLinks = [
     id: 'link-6',
     source: 'ht8wnb',
     target: 'kj5m9a',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -276,7 +241,6 @@ const initialLinks = [
     id: 'link-7',
     source: '07vhpd',
     target: 'tcv79r',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -290,7 +254,6 @@ const initialLinks = [
     id: 'link-8',
     source: '07vhpd',
     target: 'ylp4gu',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -304,7 +267,6 @@ const initialLinks = [
     id: 'link-9',
     source: 'd8ojep',
     target: 'q2vwnc',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -318,7 +280,6 @@ const initialLinks = [
     id: 'link-10',
     source: 'd8ojep',
     target: 'x8rboj',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -337,7 +298,6 @@ const initialLinks = [
       }
     },
     target: 'mte5xr',
-    hidden: false,
     z: -1,
     attrs: {
       line: {
@@ -348,8 +308,6 @@ const initialLinks = [
     },
   },
 ];
-
-type LinkData = typeof initialLinks[number];
 
 // ----------------------------------------------------------------------------
 // Custom Hooks
@@ -767,11 +725,8 @@ function addExpandTools(paper: dia.Paper) {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
-  const { set: setElement } = useCellActions<FTAElement>();
-  const { set: setLink } = useCellActions<LinkData>();
-
   const cellVisibilityCallback = useCallback((cell: dia.Cell) => {
-    return !cell.prop('data/hidden');
+    return !cell.prop('hidden');
   }, []);
 
   const handleElementsSizeReady = useCallback(({ paper }: { paper: dia.Paper }) => {
@@ -795,38 +750,27 @@ function Main() {
 
     if (successorElements.length === 0) return;
 
-    const shouldExpand = !successor.prop('data/hidden');
+    const shouldExpand = !successor.prop('hidden');
     const successorCells = graph.getSubgraph([element, ...successorElements]);
 
     for (const cell of successorCells) {
       if (cell === element) {
-        setElement(cell.id, (previous) => {
-          return {
-            ...previous,
-            hidden: false,
+        cell.prop({
+          hidden: false,
+          data: {
             collapsed: shouldExpand,
-          };
-        });
-      } else if (cell.isElement()) {
-        setElement(cell.id, (previous) => {
-          return {
-            ...previous,
-            hidden: shouldExpand,
-            collapsed: false,
-          };
+          },
         });
       } else {
-        setLink(cell.id, (previous) => {
-          return {
-            ...previous,
-            hidden: shouldExpand,
-          };
-        });
+        cell.prop('hidden', shouldExpand);
+        if (cell.isElement()) {
+          cell.prop('data/collapsed', false);
+        }
       }
     }
 
     runLayout(graph);
-  }, [setElement, setLink]);
+  }, []);
 
   return (
     <Paper
