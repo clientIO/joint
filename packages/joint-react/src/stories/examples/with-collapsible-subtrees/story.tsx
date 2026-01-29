@@ -8,7 +8,7 @@ import CodeRaw from './code?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
-  title: 'Examples/Collapsible Subtree',
+  title: 'Examples/Collapsible subtrees',
   component: Code,
   tags: ['example'],
   parameters: makeRootDocumentation({

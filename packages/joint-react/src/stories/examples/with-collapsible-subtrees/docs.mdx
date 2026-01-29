@@ -1,0 +1,67 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+
+<Meta of={Stories} />
+
+# Collapsible Subtree Example
+
+This example demonstrates how to create an interactive diagram with collapsible subtrees. Users can expand and collapse branches of the diagram to focus on specific parts of the hierarchy.
+
+## Overview
+
+Collapsible subtrees are useful for:
+- Large hierarchical diagrams where you want to hide/show details on demand
+- Fault Tree Analysis (FTA) diagrams with complex event relationships
+- Organization charts with expandable departments
+- Any tree structure where you need to manage visual complexity
+
+## Demo
+
+<Canvas of={Stories.Default} />
+
+## Key Concepts
+
+### Element Visibility
+
+Elements and links have a `hidden` property that controls their visibility. The `cellVisibility` prop on the Paper component filters which cells are rendered:
+
+```tsx
+const cellVisibilityCallback = useCallback((cell: dia.Cell) => {
+  return !cell.prop('data/hidden');
+}, []);
+```
+
+### Expand/Collapse Button
+
+A custom element tool (ExpandButton) is added to intermediate events, allowing users to toggle the visibility of successor elements:
+
+```tsx
+class ExpandButton extends elementTools.Button {
+  // Custom button that triggers expand/collapse action
+}
+```
+
+### Automatic Layout
+
+The diagram uses `DirectedGraph` layout to automatically position visible elements after expand/collapse operations:
+
+```tsx
+function runLayout(graph: dia.Graph) {
+  DirectedGraph.layout(graph.getSubgraph(visibleElements), {
+    rankDir: 'TB',
+    setVertices: true,
+  });
+}
+```
+
+## How It Works
+
+1. **Initial State**: All elements have `hidden` and `collapsed` flags in their data
+2. **User Interaction**: Clicking the expand/collapse button triggers a custom event
+3. **Update State**: The event handler updates the `hidden` property for successor elements
+4. **Reflow Layout**: The layout algorithm repositions visible elements
+5. **Re-render**: Paper re-renders based on the updated `cellVisibility` filter
+
+## Best Practices
+
+- **Performance**: Use `cellVisibility` to avoid rendering hidden elements entirely
