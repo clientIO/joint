@@ -13,6 +13,7 @@ interface BaseEvent extends GraphElement {
   readonly label: string;
   readonly width: number;
   readonly height: number;
+  readonly collapsed?: boolean;
 }
 
 const GATE_TYPES = ['OR', 'XOR', 'AND', 'PRIORITY_AND', 'INHIBIT', 'TRANSFER'] as const;
