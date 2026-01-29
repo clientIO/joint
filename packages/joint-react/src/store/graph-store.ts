@@ -24,7 +24,7 @@ import {
   createDefaultLinkMapper,
 } from '../state/graph-state-selectors';
 import type { OnChangeOptions } from '../utils/cell/listen-to-cell-change';
-import { createScheduler } from '../utils/scheduler';
+import { createScheduler } from '../utils/scheduler-old';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
