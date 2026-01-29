@@ -3528,13 +3528,9 @@ export const Paper = View.extend({
         if (view) {
             // The view could have been disposed during dragging
             // e.g. dragged outside of the viewport and hidden
-            view = this.findViewByModel(view.model);
-            // The model can be removed on previous mouseup events (e.g. when deleting an element after dragging)
-            if (!view) {
-                this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
-            } else {
-                view.pointerup(normalizedEvt, localPoint.x, localPoint.y);
-            }
+            // The model can be removed in previous mouseup event handlers (e.g. when deleting an element after dragging)
+            view = this.findViewByModel(view.model) || view;
+            view.pointerup(normalizedEvt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
         }
