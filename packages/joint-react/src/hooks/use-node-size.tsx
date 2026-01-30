@@ -149,7 +149,7 @@ export function useNodeSize(
     const cell = graph.getCell(id);
     if (!cell?.isElement()) throw new Error('Cell not valid');
     // Check if another useNodeSize hook is already measuring this element
-    if (hasMeasuredNode(id)) {
+    if (hasMeasuredNode(id) && process.env.NODE_ENV !== 'production') {
       const errorMessage =
         process.env.NODE_ENV === 'production'
           ? `Multiple useNodeSize hooks detected for element "${id}". Only one useNodeSize hook can be used per element.`
