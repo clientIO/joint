@@ -107,7 +107,6 @@ export interface LinkLayout {
   readonly targetX: number;
   readonly targetY: number;
   readonly d: string;
-
   readonly vertices: ReadonlyArray<{ readonly x: number; readonly y: number }>;
 }
 
