@@ -3507,7 +3507,8 @@ export const Paper = View.extend({
         if (view) {
             // The view could have been disposed during dragging
             // e.g. dragged outside of the viewport and hidden
-            view = this.findViewByModel(view.model);
+            // The model can be removed in previous mousemove event handlers
+            view = this.findViewByModel(view.model) || view;
             view.pointermove(evt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
