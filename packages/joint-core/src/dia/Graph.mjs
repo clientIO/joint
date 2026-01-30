@@ -147,7 +147,7 @@ export const Graph = Model.extend({
 
         } while (sortedCells.length > 0);
 
-        this.stopBatch('clear');
+        this.stopBatch('clear', opt);
 
         return this;
     },
@@ -329,7 +329,7 @@ export const Graph = Model.extend({
     removeCells: function(cellRefs, options) {
         if (!cellRefs.length) return this;
         // Remove multiple cells in a single batch
-        this.startBatch('remove');
+        this.startBatch('remove', options);
         for (const cellRef of cellRefs) {
             if (!cellRef) continue;
             let cell;
@@ -344,7 +344,7 @@ export const Graph = Model.extend({
             }
             this.layerCollection.removeCell(cell, options);
         }
-        this.stopBatch('remove');
+        this.stopBatch('remove', options);
         return this;
     },
 
@@ -376,7 +376,7 @@ export const Graph = Model.extend({
 
         // 3. Add the replacement cell
         this.addCell(replacement, replaceOptions);
-        this.stopBatch(batchName);
+        this.stopBatch(batchName, opt);
     },
 
     /**
@@ -472,7 +472,7 @@ export const Graph = Model.extend({
             }
         }
 
-        this.stopBatch(batchName);
+        this.stopBatch(batchName, opt);
     },
 
     /**
@@ -499,27 +499,27 @@ export const Graph = Model.extend({
             throw new Error('dia.Graph: cell to remove does not exist in the graph.');
         }
         if (cell.graph !== this) return;
-        this.startBatch('remove');
+        this.startBatch('remove', options);
         cell.collection.remove(cell, options);
-        this.stopBatch('remove');
+        this.stopBatch('remove', options);
     },
 
     transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {
 
         const batchName = 'transfer-embeds';
-        this.startBatch(batchName);
+        this.startBatch(batchName, opt);
 
         // Embed children of the source cell in the target cell.
         const children = sourceCell.getEmbeddedCells();
         targetCell.embed(children, { ...opt, reparent: true });
 
-        this.stopBatch(batchName);
+        this.stopBatch(batchName, opt);
     },
 
     transferCellConnectedLinks: function(sourceCell, targetCell, opt = {}) {
 
         const batchName = 'transfer-connected-links';
-        this.startBatch(batchName);
+        this.startBatch(batchName, opt);
 
         // Reconnect all the links connected to the old cell to the new cell.
         const connectedLinks = this.getConnectedLinks(sourceCell, opt);
@@ -534,7 +534,7 @@ export const Graph = Model.extend({
             }
         });
 
-        this.stopBatch(batchName);
+        this.stopBatch(batchName, opt);
     },
 
     /**

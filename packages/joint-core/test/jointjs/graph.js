@@ -3633,6 +3633,201 @@ QUnit.module('graph', function(hooks) {
         });
     });
 
+    QUnit.module('batch events options', function() {
+
+        QUnit.test('clear() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const rect = new joint.shapes.standard.Rectangle();
+            graph.addCell(rect);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.clear(opt);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'clear', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'clear', customOption: 'test-value' })));
+        });
+
+        QUnit.test('addCells() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.addCells([
+                new joint.shapes.standard.Rectangle(),
+                new joint.shapes.standard.Rectangle()
+            ], opt);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'add', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'add', customOption: 'test-value' })));
+        });
+
+        QUnit.test('removeCells() passes options to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+            graph.addCells([rect1, rect2]);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const options = { customOption: 'test-value' };
+            graph.removeCells([rect1, rect2], options);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'remove', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'remove', customOption: 'test-value' })));
+        });
+
+        QUnit.test('removeCell() passes options to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const rect = new joint.shapes.standard.Rectangle();
+            graph.addCell(rect);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const options = { customOption: 'test-value' };
+            graph.removeCell(rect, options);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'remove', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'remove', customOption: 'test-value' })));
+        });
+
+        QUnit.test('syncCells() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.syncCells([
+                { id: 'a', type: 'standard.Rectangle' }
+            ], opt);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'sync-cells', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'sync-cells', customOption: 'test-value' })));
+        });
+
+        QUnit.test('syncCells() with type change passes opt to batch:start and batch:stop for replace-cell batch', function(assert) {
+            const graph = this.graph;
+            graph.resetCells([
+                { id: 'a', type: 'standard.Rectangle' }
+            ]);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.syncCells([
+                { id: 'a', type: 'standard.Circle' }
+            ], opt);
+
+            // Should have sync-cells and replace-cell batches
+            const replaceCellStartCall = batchStartSpy.getCalls().find(call => call.args[0].batchName === 'replace-cell');
+            const replaceCellStopCall = batchStopSpy.getCalls().find(call => call.args[0].batchName === 'replace-cell');
+
+            assert.ok(replaceCellStartCall, 'batch:start called for replace-cell');
+            assert.ok(replaceCellStopCall, 'batch:stop called for replace-cell');
+            assert.equal(replaceCellStartCall.args[0].customOption, 'test-value', 'batch:start has customOption');
+            assert.equal(replaceCellStopCall.args[0].customOption, 'test-value', 'batch:stop has customOption');
+        });
+
+        QUnit.test('transferCellEmbeds() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            const newParent = new joint.shapes.standard.Rectangle();
+            parent.embed(child);
+            graph.addCells([parent, child, newParent]);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.transferCellEmbeds(parent, newParent, opt);
+
+            const transferEmbedsStartCall = batchStartSpy.getCalls().find(call => call.args[0].batchName === 'transfer-embeds');
+            const transferEmbedsStopCall = batchStopSpy.getCalls().find(call => call.args[0].batchName === 'transfer-embeds');
+
+            assert.ok(transferEmbedsStartCall, 'batch:start called for transfer-embeds');
+            assert.ok(transferEmbedsStopCall, 'batch:stop called for transfer-embeds');
+            assert.equal(transferEmbedsStartCall.args[0].customOption, 'test-value', 'batch:start has customOption');
+            assert.equal(transferEmbedsStopCall.args[0].customOption, 'test-value', 'batch:stop has customOption');
+        });
+
+        QUnit.test('transferCellConnectedLinks() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const source = new joint.shapes.standard.Rectangle();
+            const target = new joint.shapes.standard.Rectangle();
+            const newSource = new joint.shapes.standard.Rectangle();
+            const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+            graph.addCells([source, target, newSource, link]);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.transferCellConnectedLinks(source, newSource, opt);
+
+            const transferLinksStartCall = batchStartSpy.getCalls().find(call => call.args[0].batchName === 'transfer-connected-links');
+            const transferLinksStopCall = batchStopSpy.getCalls().find(call => call.args[0].batchName === 'transfer-connected-links');
+
+            assert.ok(transferLinksStartCall, 'batch:start called for transfer-connected-links');
+            assert.ok(transferLinksStopCall, 'batch:stop called for transfer-connected-links');
+            assert.equal(transferLinksStartCall.args[0].customOption, 'test-value', 'batch:start has customOption');
+            assert.equal(transferLinksStopCall.args[0].customOption, 'test-value', 'batch:stop has customOption');
+        });
+
+        QUnit.test('setDefaultLayer() passes options to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            graph.addLayer({ id: 'layer1' });
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const options = { customOption: 'test-value' };
+            graph.setDefaultLayer('layer1', options);
+
+            const defaultLayerStartCall = batchStartSpy.getCalls().find(call => call.args[0].batchName === 'default-layer-change');
+            const defaultLayerStopCall = batchStopSpy.getCalls().find(call => call.args[0].batchName === 'default-layer-change');
+
+            assert.ok(defaultLayerStartCall, 'batch:start called for default-layer-change');
+            assert.ok(defaultLayerStopCall, 'batch:stop called for default-layer-change');
+            assert.equal(defaultLayerStartCall.args[0].customOption, 'test-value', 'batch:start has customOption');
+            assert.equal(defaultLayerStopCall.args[0].customOption, 'test-value', 'batch:stop has customOption');
+        });
+    });
+
     QUnit.module('graph.transferCellEmbeds()', function() {
         QUnit.test(
             'should transfer embeds from one element to another',
