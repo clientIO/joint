@@ -11,14 +11,13 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', x: 100, y: 0 },
-  { id: '2', label: 'Node 2 with longer text', x: 250, y: 150 },
-];
+const initialElements: Record<string, { label: string; x: number; y: number }> = {
+  '1': { label: 'Node 1', x: 100, y: 0 },
+  '2': { label: 'Node 2 with longer text', x: 250, y: 150 },
+};
 
-const initialEdges: GraphLink[] = [
-  {
-    id: 'e1-2',
+const initialEdges: Record<string, GraphLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -27,9 +26,9 @@ const initialEdges: GraphLink[] = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
 function Card({ label }: Readonly<Partial<BaseElementWithData>>) {
   const contentRef = useRef<HTMLDivElement>(null);

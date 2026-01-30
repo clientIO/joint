@@ -10,27 +10,32 @@ import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 import { Paper } from '../paper/paper';
 
-const initialElements = [
-  {
-    id: '1',
+const initialElements: Record<string, {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}> = {
+  '1': {
     x: 100,
     y: 20,
     width: 100,
     height: 50,
   },
-  {
-    id: '2',
+  '2': {
     x: 200,
     y: 250,
     width: 100,
     height: 50,
   },
-];
+};
 
-const initialLinks = [
-  {
-    id: 'e1-2',
-
+const initialLinks: Record<string, {
+  target: { id: string; port: string };
+  source: { id: string; port: string };
+  attrs: { line: { stroke: string } };
+}> = {
+  'e1-2': {
     target: {
       id: '2',
       port: 'port-one',
@@ -45,7 +50,7 @@ const initialLinks = [
       },
     },
   },
-];
+};
 
 export type Story = StoryObj<typeof PortGroup>;
 const API_URL = getAPILink('Port.Group', 'variables');

@@ -1,18 +1,17 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useElements, usePaper, useNodeSize } from '@joint/react';
+import { GraphProvider, Paper, useElements, usePaper, useNodeSize, useCellId } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', x: 20, y: 100 },
-  { id: '2', label: 'Node 2', x: 200, y: 100 },
-];
+const initialElements: Record<string, { label: string; x: number; y: number }> = {
+  '1': { label: 'Node 1', x: 20, y: 100 },
+  '2': { label: 'Node 2', x: 200, y: 100 },
+};
 
-const initialEdges = [
-  {
-    id: 'e1-2',
+const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string } } }> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -21,11 +20,12 @@ const initialEdges = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
-function RotatableNode({ label, id }: Readonly<BaseElementWithData>) {
+function RotatableNode({ label }: Readonly<BaseElementWithData>) {
+  const id = useCellId();
   const paper = usePaper();
   const { set } = useCellActions();
 
@@ -85,7 +85,7 @@ function RotatableNode({ label, id }: Readonly<BaseElementWithData>) {
 
 function Main() {
   const elementRotation = useElements((items) =>
-    items.map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
+    Object.values(items).map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
   );
 
   return (

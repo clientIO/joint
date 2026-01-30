@@ -11,7 +11,6 @@ describe('react-element', () => {
   describe('ReactElement', () => {
     it('should create a ReactElement instance', () => {
       const element = new ReactElement({
-        id: '1',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
@@ -23,7 +22,6 @@ describe('react-element', () => {
 
     it('should have default attributes', () => {
       const element = new ReactElement({
-        id: '1',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
@@ -34,7 +32,6 @@ describe('react-element', () => {
 
     it('should accept custom attributes', () => {
       const element = new ReactElement({
-        id: '1',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         data: { custom: 'value' },
@@ -49,19 +46,24 @@ describe('react-element', () => {
       }
 
       const element = new ReactElement<CustomAttributes>({
-        id: '1',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
 
       expect(element).toBeInstanceOf(ReactElement);
     });
+
+    describe('markup', () => {
+      it('should have empty markup array', () => {
+        const element = new ReactElement();
+        expect(element.markup).toEqual([]);
+      });
+    });
   });
 
   describe('createElement', () => {
     it('should create a ReactElement instance', () => {
       const element = createElement({
-        id: '1',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
@@ -79,7 +81,6 @@ describe('react-element', () => {
 
     it('should accept custom attributes', () => {
       const element = createElement({
-        id: '1',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         data: { label: 'Test' },

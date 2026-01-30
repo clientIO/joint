@@ -26,10 +26,6 @@ export type StandardShapesType = keyof StandardShapesTypeMapper;
 
 export interface GraphElement extends Record<string, unknown> {
   /**
-   * Unique identifier of the element.
-   */
-  id: dia.Cell.ID;
-  /**
    * Ports of the element.
    */
   ports?: Ports;

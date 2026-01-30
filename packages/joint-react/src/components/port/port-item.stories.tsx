@@ -9,22 +9,26 @@ import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 import { Paper } from '../paper/paper';
 
-const initialElements = [
-  {
-    id: '1',
+const initialElements: Record<string, {
+  x: number;
+  y: number;
+}> = {
+  '1': {
     x: 100,
     y: 20,
   },
-  {
-    id: '2',
+  '2': {
     x: 200,
     y: 250,
   },
-];
+};
 
-const initialLinks = [
-  {
-    id: 'link-1',
+const initialLinks: Record<string, {
+  source: { id: string; port: string };
+  target: { id: string; port: string };
+  attrs: { line: { stroke: string } };
+}> = {
+  'link-1': {
     source: {
       id: '1',
       port: 'port-one',
@@ -39,7 +43,7 @@ const initialLinks = [
       },
     },
   },
-];
+};
 
 export type Story = StoryObj<typeof Port.Item>;
 const API_URL = getAPILink('Port.Item', 'variables');
@@ -62,7 +66,7 @@ function PaperDecorator(Story: React.FC) {
   return (
     <GraphProvider elements={initialElements} links={initialLinks}>
       <Paper
-        defaultLink={initialLinks[0]}
+        defaultLink={initialLinks['link-1']}
         className={PAPER_CLASSNAME}
         width={'100%'}
         height={350}

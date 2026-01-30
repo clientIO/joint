@@ -6,12 +6,14 @@ import { REACT_TYPE } from '../models/react-element';
 import { REACT_LINK_TYPE } from '../models/react-link';
 
 export interface ElementToGraphOptions<Element extends GraphElement> {
+  readonly id: string;
   readonly data: Element;
   readonly graph: dia.Graph;
   readonly defaultAttributes: () => dia.Cell.JSON;
 }
 
 export interface GraphToElementOptions<Element extends GraphElement> {
+  readonly id: string;
   readonly cell: dia.Element;
   readonly previous?: Element;
   readonly graph: dia.Graph;
@@ -19,12 +21,14 @@ export interface GraphToElementOptions<Element extends GraphElement> {
 }
 
 export interface LinkToGraphOptions<Link extends GraphLink> {
+  readonly id: string;
   readonly data: Link;
   readonly graph: dia.Graph;
   readonly defaultAttributes: () => dia.Cell.JSON;
 }
 
 export interface GraphToLinkOptions<Link extends GraphLink> {
+  readonly id: string;
   readonly cell: dia.Link;
   readonly previous?: Link;
   readonly graph: dia.Graph;
@@ -43,34 +47,42 @@ export interface GraphStateSelectors<Element extends GraphElement, Link extends 
 /**
  * Creates the default mapper function for element to graph conversion.
  * Separates user data into the `data` property.
+ * Supports both flat format (x, y, width, height) and nested format (position, size).
+ * @param id
  * @param data - The element to convert
  * @returns A function that returns the JointJS Cell JSON representation
  */
 export function createDefaultElementMapper<Element extends GraphElement>(
+  id: string,
   data: Element
 ): () => dia.Cell.JSON {
   return () => {
-    // Extract built-in JointJS element properties: id, x, y, width, height, angle, z, ports
-    // Remaining properties are user data
-    const { id, x, y, width, height, angle, z, ports, ...userData } = data as GraphElement & {
-      z?: number;
-      ports?: { groups?: Record<string, dia.Element.PortGroup>; items?: dia.Element.Port[] };
-      attrs?: dia.Cell.Selectors;
-      markup?: dia.MarkupJSON;
-    };
-    const { attrs: elementAttributes, markup, ...restUserData } = userData;
+    // Extract built-in JointJS element properties
+    // Support both flat format (x, y, width, height) and nested format (position, size)
+    const { x, y, width, height, angle, z, ports, position, size, ...userData } =
+      data as GraphElement & {
+        position?: { x: number; y: number };
+        size?: { width: number; height: number };
+      };
+    const { attrs: elementAttributes, markup, ...restUserData } = userData as GraphElement;
 
     const attributes: dia.Cell.JSON = {
       id,
       type: REACT_TYPE,
     };
 
-    if (x !== undefined && y !== undefined) {
-      attributes.position = { x, y };
+    // Position: prefer nested position object, fallback to flat x, y
+    const positionX = position?.x ?? x;
+    const positionY = position?.y ?? y;
+    if (positionX !== undefined && positionY !== undefined) {
+      attributes.position = { x: positionX, y: positionY };
     }
 
-    if (width !== undefined && height !== undefined) {
-      attributes.size = { width, height };
+    // Size: prefer nested size object, fallback to flat width, height
+    const sizeWidth = size?.width ?? width;
+    const sizeHeight = size?.height ?? height;
+    if (sizeWidth !== undefined && sizeHeight !== undefined) {
+      attributes.size = { width: sizeWidth, height: sizeHeight };
     }
 
     if (angle !== undefined) attributes.angle = angle;
@@ -113,15 +125,9 @@ function applyShapePreservation<Element extends GraphElement>(
  * @returns The extracted cell data as a record
  */
 function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
-  const { size, position, data, type, angle, z, parent, ports } = cell.attributes;
+  const { size, position, data, angle, z, ports } = cell.attributes;
 
-  const cellData: Record<string, unknown> = {
-    id: cell.id,
-  };
-
-  if (type !== REACT_TYPE) {
-    cellData.type = type;
-  }
+  const cellData: Record<string, unknown> = {};
 
   if (position) {
     cellData.x = position.x;
@@ -135,9 +141,7 @@ function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
 
   if (angle !== undefined) cellData.angle = angle;
   if (z !== undefined) cellData.z = z;
-  if (parent !== undefined) cellData.parent = parent;
   if (ports !== undefined) cellData.ports = ports;
-
   // Spread user data from data property to top level
   if (data && typeof data === 'object') {
     for (const [key, value] of Object.entries(data)) {
@@ -173,18 +177,19 @@ export function createDefaultGraphToElementMapper<Element extends GraphElement>(
 /**
  * Creates the default mapper function for link to graph conversion.
  * Separates user data into the `data` property.
+ * @param id
  * @param data - The link to convert
  * @param graph - The JointJS graph instance
  * @returns A function that returns the JointJS Cell JSON representation
  */
 export function createDefaultLinkMapper<Link extends GraphLink>(
+  id: string,
   data: Link,
   graph: dia.Graph
 ): () => dia.Cell.JSON {
   return () => {
     // Extract built-in JointJS link properties, remaining properties are user data
     const {
-      id,
       source: linkSource,
       target: linkTarget,
       attrs,
@@ -203,9 +208,7 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
     const target = getTargetOrSource(linkTarget);
 
     const typeClass = util.getByPath(graph.layerCollection.cellNamespace, type, '.');
-    const defaults = typeClass
-      ? util.result(typeClass.prototype, 'defaults', {})
-      : {};
+    const defaults = typeClass ? util.result(typeClass.prototype, 'defaults', {}) : {};
 
     const existingCell = graph.getCell(id);
     const existingAttributes = existingCell?.isLink() ? existingCell.attr() : {};
@@ -252,7 +255,6 @@ export function createDefaultGraphToLinkMapper<Link extends GraphLink>(
 
     const cellData: Record<string, unknown> = {
       ...attributes,
-      id: cell.id,
       source: cell.get('source') as dia.Cell.ID,
       target: cell.get('target') as dia.Cell.ID,
       type: cell.attributes.type,
@@ -325,7 +327,7 @@ export function defaultMapDataToElementAttributes<Element extends GraphElement>(
  * This selector uses the defaultAttributes to convert the JointJS link cell to a Link.
  * The defaultAttributes handles data extraction and shape preservation.
  */
-export function defaultGraphToLinkSelector<Link extends GraphLink>(
+export function mapLinkAttributesToData<Link extends GraphLink>(
   options: GraphToLinkOptions<Link>
 ): Link {
   const { defaultAttributes } = options;
@@ -341,7 +343,7 @@ export function defaultGraphToLinkSelector<Link extends GraphLink>(
  * This selector uses the defaultAttributes to convert the JointJS element cell to a GraphElement.
  * The defaultAttributes handles data extraction and shape preservation.
  */
-export function defaultGraphToElementSelector<Element extends GraphElement>(
+export function mapElementAttributesToData<Element extends GraphElement>(
   options: GraphToElementOptions<Element>
 ): GraphElement {
   const { defaultAttributes } = options;

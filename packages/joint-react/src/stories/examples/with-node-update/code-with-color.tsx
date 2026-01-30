@@ -1,19 +1,18 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, type GraphLink } from '@joint/react';
+import { GraphProvider, Paper, useCellId, type GraphLink } from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', color: PRIMARY, x: 100, y: 0 },
-  { id: '2', label: 'Node 2', color: PRIMARY, x: 100, y: 200 },
-];
+const initialElements: Record<string, { label: string; color: string; x: number; y: number; width: number; height: number }> = {
+  '1': { label: 'Node 1', color: PRIMARY, x: 100, y: 0, width: 100, height: 50 },
+  '2': { label: 'Node 2', color: PRIMARY, x: 100, y: 200, width: 100, height: 50 },
+};
 
-const initialEdges: GraphLink[] = [
-  {
-    id: 'e1-2',
+const initialEdges: Record<string, GraphLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -22,11 +21,12 @@ const initialEdges: GraphLink[] = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
-function RenderElement({ color, id }: Readonly<BaseElementWithData>) {
+function RenderElement({ color }: Readonly<BaseElementWithData>) {
+  const id = useCellId();
   const { set } = useCellActions<BaseElementWithData>();
   return (
     <HTMLNode

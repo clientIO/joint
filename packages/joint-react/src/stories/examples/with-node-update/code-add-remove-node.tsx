@@ -14,15 +14,14 @@ import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', color: '#ffffff', x: 40, y: 70 },
-  { id: '2', label: 'Node 2', color: '#ffffff', x: 170, y: 120 },
-  { id: '3', label: 'Node 2', color: '#ffffff', x: 30, y: 180 },
-];
+const initialElements: Record<string, { label: string; color: string; x: number; y: number; width: number; height: number }> = {
+  '1': { label: 'Node 1', color: '#ffffff', x: 40, y: 70, width: 120, height: 80 },
+  '2': { label: 'Node 2', color: '#ffffff', x: 170, y: 120, width: 120, height: 80 },
+  '3': { label: 'Node 2', color: '#ffffff', x: 30, y: 180, width: 120, height: 80 },
+};
 
-const initialEdges: GraphLink[] = [
-  {
-    id: 'e1-1',
+const initialEdges: Record<string, GraphLink> = {
+  'e1-1': {
     source: '1',
     target: '2',
     attrs: {
@@ -31,11 +30,15 @@ const initialEdges: GraphLink[] = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
-function ElementInput({ id, label }: Readonly<BaseElementWithData>) {
+interface ElementInputProps extends BaseElementWithData {
+  readonly id: string;
+}
+
+function ElementInput({ id, label }: Readonly<ElementInputProps>) {
   const { set } = useCellActions<BaseElementWithData>();
   return (
     <input
@@ -97,8 +100,8 @@ function Main() {
         renderElement={RenderElement}
       />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {elements.map((item) => {
-          return <ElementInput key={item.id} {...item} />;
+        {Object.entries(elements).map(([id, item]) => {
+          return <ElementInput key={id} id={id} {...item} />;
         })}
       </div>
     </div>

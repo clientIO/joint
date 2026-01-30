@@ -58,20 +58,18 @@ export function paperRenderElementWrapper(options: Options): React.JSXElementCon
 
 export const simpleRenderElementWrapper = paperRenderElementWrapper({
   graphProviderProps: {
-    elements: [
-      {
-        id: '1',
+    elements: {
+      '1': {
         width: 97,
         height: 99,
       },
-    ],
-    links: [
-      {
-        id: '3',
+    },
+    links: {
+      '3': {
         source: '1',
         target: '2',
       },
-    ],
+    },
   },
 });
 

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
+ 
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
@@ -17,6 +17,7 @@ import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 import { useCellActions } from '../../hooks/use-cell-actions';
+import { useCellId } from '../../hooks/use-cell-id';
 import { Paper } from './paper';
 import type { RenderElement } from './paper.types';
 import type { GraphElement } from '../../types/element-types';
@@ -345,7 +346,8 @@ export const WithOnClickColorChange: Story = {
     },
   },
   render: () => {
-    const renderElement: RenderElement<SimpleElement> = ({ width, height, hoverColor, id }) => {
+    const renderElement: RenderElement<SimpleElement> = ({ width, height, hoverColor }) => {
+      const id = useCellId();
       const { set } = useCellActions();
       return (
         <div
@@ -359,30 +361,26 @@ export const WithOnClickColorChange: Story = {
     };
     return (
       <GraphProvider
-        areBatchUpdatesDisabled
-        elements={[
-          {
+        elements={{
+          '1': {
             width: 100,
             height: 40,
-            id: '1',
             label: 'Element 1',
             x: 50,
             y: 50,
             hoverColor: 'red',
           } as GraphElement & { label: string; hoverColor: string },
-          {
+          '2': {
             width: 100,
             height: 40,
-            id: '2',
             label: 'Element 1',
             x: 100,
             y: 250,
             hoverColor: 'red',
           } as GraphElement & { label: string; hoverColor: string },
-        ]}
-        links={[
-          {
-            id: 'l1',
+        }}
+        links={{
+          'l1': {
             source: '1',
             target: '2',
             attrs: {
@@ -391,7 +389,7 @@ export const WithOnClickColorChange: Story = {
               },
             },
           },
-        ]}
+        }}
       >
         <Paper
           id="main"
@@ -446,22 +444,19 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
     };
     return (
       <GraphProvider
-        areBatchUpdatesDisabled
-        elements={[
-          {
-            id: '1',
+        elements={{
+          '1': {
             label: 'Element 1',
             hoverColor: 'red',
             somethingMine: true,
           } as GraphElement & { label: string; hoverColor: string },
-          { id: '2', label: 'Element 1', hoverColor: 'red' } as GraphElement & {
+          '2': { label: 'Element 1', hoverColor: 'red' } as GraphElement & {
             label: string;
             hoverColor: string;
           },
-        ]}
-        links={[
-          {
-            id: 'l1',
+        }}
+        links={{
+          'l1': {
             source: '1',
             target: '2',
             attrs: {
@@ -470,7 +465,7 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
               },
             },
           },
-        ]}
+        }}
       >
         <Paper
           id="main"

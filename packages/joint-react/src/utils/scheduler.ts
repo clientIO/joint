@@ -1,57 +1,95 @@
-// eslint-disable-next-line camelcase
-import { unstable_getCurrentPriorityLevel, unstable_scheduleCallback } from 'scheduler';
+import {
+  unstable_getCurrentPriorityLevel as getCurrentPriorityLevel,
+  unstable_scheduleCallback as scheduleCallback,
+} from 'scheduler';
+
 /**
- * Creates a debounced function that uses React's internal scheduler for timing.
- * Multiple calls within the same synchronous execution cycle are batched into a single
- * execution in the next available event loop tick. All callbacks stored by id will be
- * executed when the scheduled work flushes.
- * @param userCallback The function to be debounced and scheduled.
- * @param priorityLevel The priority level to run the task at.
- * @returns A function you call to schedule your work with an optional callback and id.
+ * Options for creating a graph updates scheduler.
  */
-export function createScheduler(userCallback: () => void, priorityLevel?: number) {
-  let callbackId: unknown | null = null;
-  const callbacks = new Map<string, (id: string) => void>();
-
-  const effectivePriority =
-    priorityLevel === undefined ? unstable_getCurrentPriorityLevel() : priorityLevel;
+export interface GraphUpdatesSchedulerOptions<Data extends object> {
+  /**
+   * Callback invoked when scheduled updates are flushed.
+   * Receives all accumulated data since the last flush.
+   */
+  readonly onFlush: (data: Data) => void;
 
   /**
-   * The actual function that processes the batched callbacks.
-   * This runs asynchronously via the scheduler.
+   * Optional React scheduler priority level.
+   * If not specified, uses the current priority level.
    */
-  const flushScheduledWork = () => {
-    callbackId = null;
+  readonly priorityLevel?: number;
+}
 
-    // Collect all ids before clearing
+/**
+ * Scheduler that batches data updates and flushes them together.
+ * Uses React's internal scheduler for timing, batching multiple calls
+ * within the same synchronous execution cycle into a single flush.
+ * Data starts as empty object `{}` and resets after each flush.
+ * @example
+ * ```ts
+ * interface MyData {
+ *   elementsToUpdate?: Map<string, { id: string; label: string }>;
+ *   elementsToDelete?: Map<string, true>;
+ * }
+ *
+ * const scheduler = new Scheduler<MyData>({
+ *   onFlush: (data) => {
+ *     console.log(data.elementsToUpdate, data.elementsToDelete);
+ *   },
+ * });
+ *
+ * // Multiple calls are batched
+ * const updateMap = new Map([['el1', { id: 'el1', label: 'Element 1' }]]);
+ * scheduler.scheduleData((prev) => ({ ...prev, elementsToUpdate: updateMap }));
+ * const deleteMap = new Map([['el2', true as const]]);
+ * scheduler.scheduleData((prev) => ({ ...prev, elementsToDelete: deleteMap }));
+ * // onFlush called once with combined result
+ * ```
+ */
+export class Scheduler<Data extends object> {
+  private readonly onFlush: (data: Data) => void;
+  private readonly effectivePriority: number;
+  private callbackId: unknown | null = null;
+  private currentData: Data = {} as Data;
 
-    // Execute all stored callbacks with their respective ids
-    for (const [id, callback] of callbacks) {
-      callback(id);
-    }
-
-    // Execute the main callback for each id after stored callbacks
-    userCallback();
-
-    // Clear all stored callbacks after execution
-    callbacks.clear();
-  };
+  constructor(options: GraphUpdatesSchedulerOptions<Data>) {
+    const { onFlush, priorityLevel } = options;
+    this.onFlush = onFlush;
+    this.effectivePriority =
+      priorityLevel === undefined ? getCurrentPriorityLevel() : priorityLevel;
+  }
 
   /**
-   * This is the function the user calls to schedule a task.
-   * It stores the callback with its id and ensures the flush function is scheduled once.
-   * @param id Optional id string to pass to the callback.
-   * @param callback Optional callback function that receives an id parameter.
+   * Schedule a data update using an updater function.
+   * Multiple calls are batched and flushed together.
+   * @param updater Function that receives previous data and returns updated data.
    */
-  return (id?: string, callback?: (id: string) => void) => {
-    if (id !== undefined && callback !== undefined) {
-      // Store callback in map with id as key
-      callbacks.set(id, callback);
-    }
+  scheduleData = (updater: (previousData: Data) => Data): void => {
+    this.currentData = updater(this.currentData);
 
-    if (callbackId === null) {
-      // Schedule the flush function if it hasn't been scheduled already
-      callbackId = unstable_scheduleCallback(effectivePriority, flushScheduledWork);
+    if (this.callbackId === null) {
+      this.callbackId = scheduleCallback(this.effectivePriority, this.flushScheduledWork);
     }
   };
+
+  private flushScheduledWork = (): void => {
+    this.callbackId = null;
+
+    const dataToFlush = this.currentData;
+    this.currentData = {} as Data;
+
+    this.onFlush(dataToFlush);
+  };
+}
+
+/**
+ * Creates a simple scheduler function that batches multiple calls into a single flush.
+ * @param callback The callback to invoke on flush
+ * @returns A function to schedule updates
+ */
+export function createScheduler(callback: () => void): () => void {
+  const scheduler = new Scheduler<Record<string, never>>({
+    onFlush: callback,
+  });
+  return () => scheduler.scheduleData((previous) => previous);
 }

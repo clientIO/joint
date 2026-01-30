@@ -1,13 +1,12 @@
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import React, { createRef, useState, useCallback } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { GraphStoreContext } from '../../../context';
-import { GraphStore } from '../../../store';
+import { GraphStore, DEFAULT_CELL_NAMESPACE } from '../../../store';
 import { dia, shapes } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
 import type { GraphElement } from '../../../types/element-types';
 import type { GraphLink } from '../../../types/link-types';
-import { mapLinkFromGraph } from '../../../utils/cell/cell-utilities';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../../paper/paper';
 import type { RenderLink } from '../../paper/paper.types';
@@ -42,25 +41,24 @@ describe('graph', () => {
   });
 
   it('should render graph provider with links and elements', async () => {
-    const elements = [
-      {
+    const elements: Record<string, GraphElement> = {
+      'element1': {
         width: 100,
         height: 100,
-        id: 'element1',
       },
-    ];
-    const link = new dia.Link({ id: 'link1', type: 'standard.Link', source: { id: 'element1' } });
+    };
+    const link: GraphLink = { type: 'standard.Link', source: { id: 'element1' }, target: {} };
     let linkCount = 0;
     let elementCount = 0;
     function TestComponent() {
-      linkCount = useElements((items) => items.length);
+      linkCount = useElements((items) => Object.keys(items).length);
       elementCount = useLinks((items) => {
-        return items.length;
+        return Object.keys(items).length;
       });
       return null;
     }
     render(
-      <GraphProvider elements={elements} links={[mapLinkFromGraph(link)]}>
+      <GraphProvider elements={elements} links={{ 'link1': link }}>
         <TestComponent />
       </GraphProvider>
     );
@@ -71,14 +69,14 @@ describe('graph', () => {
     });
   });
   it('should add elements and links after initial load and useElements and useLinks should catch them', async () => {
-    const graph = new dia.Graph();
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
     let linkCount = 0;
     let elementCount = 0;
     // eslint-disable-next-line sonarjs/no-identical-functions
     function TestComponent() {
-      linkCount = useElements((items) => items.length);
+      linkCount = useElements((items) => Object.keys(items).length);
       elementCount = useLinks((items) => {
-        return items.length;
+        return Object.keys(items).length;
       });
       return null;
     }
@@ -93,27 +91,32 @@ describe('graph', () => {
       expect(elementCount).toBe(0);
     });
 
-    act(() => {
+    await act(async () => {
       graph.addCells([
         new dia.Element({ id: 'element1', type: 'standard.Rectangle' }),
         new dia.Link({ id: 'link1', type: 'standard.Link', source: { id: 'element1' } }),
       ]);
     });
 
+    // Allow multiple scheduler ticks to flush
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
     await waitFor(() => {
       expect(linkCount).toBe(1);
       expect(elementCount).toBe(1);
-    });
+    }, { timeout: 2000 });
   });
 
   it('should initialize with default elements', async () => {
-    const elements = [
-      { width: 100, height: 100, id: 'element1' },
-      { width: 200, height: 200, id: 'element2' },
-    ];
+    const elements: Record<string, GraphElement> = {
+      'element1': { width: 100, height: 100 },
+      'element2': { width: 200, height: 200 },
+    };
     let elementCount = 0;
     function TestComponent() {
-      elementCount = useElements((items) => items.length);
+      elementCount = useElements((items) => Object.keys(items).length);
       return null;
     }
     render(
@@ -147,7 +150,7 @@ describe('graph', () => {
     const graph = new dia.Graph({}, { cellNamespace: shapes });
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
-    let currentElements: GraphElement[] = [];
+    let currentElements: Record<string, GraphElement> = {};
     function Elements() {
       const elements = useElements();
       currentElements = elements;
@@ -163,7 +166,7 @@ describe('graph', () => {
 
     await waitFor(() => {
       expect(graph.getCells()).toHaveLength(1);
-      expect(currentElements).toHaveLength(1);
+      expect(Object.keys(currentElements)).toHaveLength(1);
       expect(graph.getCell('element1')).toBeDefined();
     });
 
@@ -174,14 +177,14 @@ describe('graph', () => {
     await waitFor(() => {
       expect(graph.getCell('element2')).toBeDefined();
       expect(graph.getCells()).toHaveLength(2);
-      expect(currentElements).toHaveLength(2);
+      expect(Object.keys(currentElements)).toHaveLength(2);
     });
 
     // its external graph, so we do not destroy it
     unmount();
     await waitFor(() => {
       expect(graph.getCells()).toHaveLength(2);
-      expect(currentElements).toHaveLength(2);
+      expect(Object.keys(currentElements)).toHaveLength(2);
     });
   });
 
@@ -190,7 +193,7 @@ describe('graph', () => {
     const store = new GraphStore({ graph });
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
-    let currentElements: GraphElement[] = [];
+    let currentElements: Record<string, GraphElement> = {};
     // eslint-disable-next-line sonarjs/no-identical-functions
     function Elements() {
       const elements = useElements();
@@ -209,7 +212,7 @@ describe('graph', () => {
 
     await waitFor(() => {
       expect(graph.getCells()).toHaveLength(1);
-      expect(currentElements).toHaveLength(1);
+      expect(Object.keys(currentElements)).toHaveLength(1);
     });
 
     act(() => {
@@ -219,39 +222,38 @@ describe('graph', () => {
     await waitFor(() => {
       expect(graph.getCell('element2')).toBeDefined();
       expect(graph.getCells()).toHaveLength(2);
-      expect(currentElements).toHaveLength(2);
+      expect(Object.keys(currentElements)).toHaveLength(2);
     });
 
     // its external graph, so we do not destroy it
     unmount();
     await waitFor(() => {
       expect(graph.getCells()).toHaveLength(2);
-      expect(currentElements).toHaveLength(2);
+      expect(Object.keys(currentElements)).toHaveLength(2);
     });
   });
 
   it('should render graph provider with links and elements - with explicit react type', async () => {
-    const elements = [
-      {
+    const elements: Record<string, GraphElement> = {
+      'element1': {
         width: 100,
         height: 100,
-        id: 'element1',
         type: 'ReactElement',
       },
-    ];
-    const link = new dia.Link({ id: 'link1', type: 'standard.Link', source: { id: 'element1' } });
+    };
+    const link: GraphLink = { type: 'standard.Link', source: { id: 'element1' }, target: {} };
     let linkCount = 0;
     let elementCount = 0;
     // eslint-disable-next-line sonarjs/no-identical-functions
     function TestComponent() {
-      linkCount = useElements((items) => items.length);
+      linkCount = useElements((items) => Object.keys(items).length);
       elementCount = useLinks((items) => {
-        return items.length;
+        return Object.keys(items).length;
       });
       return null;
     }
     render(
-      <GraphProvider elements={elements} links={[mapLinkFromGraph(link)]}>
+      <GraphProvider elements={elements} links={{ 'link1': link }}>
         <TestComponent />
       </GraphProvider>
     );
@@ -263,39 +265,40 @@ describe('graph', () => {
   });
 
   it('should update graph in controlled mode', async () => {
-    const initialElements = [
-      {
+    const initialElements: Record<string, GraphElement> = {
+      'element1': {
         width: 100,
         height: 100,
-        id: 'element1',
         type: 'ReactElement',
       },
-    ];
-    const initialLink = new dia.Link({
-      id: 'link1',
+    };
+    const initialLink: GraphLink = {
       type: 'standard.Link',
       source: { id: 'element1' },
-    });
+      target: {},
+    };
     let linkCount = 0;
     let elementCount = 0;
     function TestComponent() {
       linkCount = useLinks((items) => {
-        return items.length;
+        return Object.keys(items).length;
       });
       elementCount = useElements((items) => {
-        return items.length;
+        return Object.keys(items).length;
       });
       return null;
     }
 
-    let setElementsOutside: ((elements: GraphElement[]) => void) | null = null;
-    let setLinksOutside: ((links: GraphLink[]) => void) | null = null;
+    let setElementsOutside: ((elements: Record<string, GraphElement>) => void) | null = null;
+    let setLinksOutside: ((links: Record<string, GraphLink>) => void) | null = null;
 
     function Graph() {
-      const [elements, setElements] = useState<GraphElement[]>(() => initialElements);
-      const [links, setLinks] = useState<GraphLink[]>(() => [mapLinkFromGraph(initialLink)]);
-      setElementsOutside = setElements as unknown as (elements: GraphElement[]) => void;
-      setLinksOutside = setLinks as unknown as (links: GraphLink[]) => void;
+      const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
+      const [links, setLinks] = useState<Record<string, GraphLink>>(() => ({
+        'link1': initialLink,
+      }));
+      setElementsOutside = setElements as unknown as (elements: Record<string, GraphElement>) => void;
+      setLinksOutside = setLinks as unknown as (links: Record<string, GraphLink>) => void;
       return (
         <GraphProvider
           elements={elements}
@@ -315,20 +318,18 @@ describe('graph', () => {
     });
 
     act(() => {
-      setElementsOutside?.([
-        {
+      setElementsOutside?.({
+        'element1': {
           width: 100,
           height: 100,
-          id: 'element1',
           type: 'ReactElement',
         },
-        {
+        'element2': {
           width: 10,
           height: 10,
-          id: 'element2',
           type: 'ReactElement',
         },
-      ]);
+      });
     });
 
     await waitFor(() => {
@@ -338,24 +339,18 @@ describe('graph', () => {
 
     // add link
     act(() => {
-      setLinksOutside?.([
-        mapLinkFromGraph(
-          new dia.Link({
-            id: 'link2',
-            type: 'standard.Link',
-            source: { id: 'element1' },
-            target: { id: 'element2' },
-          })
-        ),
-        mapLinkFromGraph(
-          new dia.Link({
-            id: 'link3',
-            type: 'standard.Link',
-            source: { id: 'element1' },
-            target: { id: 'element2' },
-          })
-        ),
-      ]);
+      setLinksOutside?.({
+        'link2': {
+          type: 'standard.Link',
+          source: { id: 'element1' },
+          target: { id: 'element2' },
+        },
+        'link3': {
+          type: 'standard.Link',
+          source: { id: 'element1' },
+          target: { id: 'element2' },
+        },
+      });
     });
 
     await waitFor(() => {
@@ -373,47 +368,43 @@ describe('graph', () => {
   });
 
   it('should pass correct link data to renderLink function', async () => {
-    const elements = [
-      {
-        id: 'element-1',
+    const elements: Record<string, GraphElement> = {
+      'element-1': {
         x: 0,
         y: 0,
         width: 100,
         height: 100,
       },
-      {
-        id: 'element-2',
+      'element-2': {
         x: 200,
         y: 200,
         width: 100,
         height: 100,
       },
-    ];
+    };
 
-    const links: GraphLink[] = [
-      {
-        id: 'link-1',
+    const links: Record<string, GraphLink> = {
+      'link-1': {
         source: 'element-1',
         target: 'element-2',
         type: 'ReactLink',
         z: 1,
       },
-      {
-        id: 'link-2',
+      'link-2': {
         source: 'element-2',
         target: 'element-1',
         type: 'ReactLink',
         z: 2,
         customProperty: 'custom-value',
       },
-    ];
+    };
 
     const receivedLinks: GraphLink[] = [];
 
     function TestComponent() {
       const renderLink: RenderLink = useCallback((link) => {
         receivedLinks.push(link);
-        return <g data-testid={`link-${link.id}`} />;
+        return <g data-testid="link" />;
       }, []);
 
       return (
@@ -437,64 +428,54 @@ describe('graph', () => {
       expect(receivedLinks.length).toBe(2);
     });
 
-    // Verify first link data
-    const link1 = receivedLinks.find((link) => link.id === 'link-1');
+    // Verify link data was passed (links no longer have id property)
+    const link1 = receivedLinks.find((link) => link.source === 'element-1' && link.target === 'element-2');
     expect(link1).toBeDefined();
-    expect(link1?.id).toBe('link-1');
-    expect(link1?.source).toBe('element-1');
-    expect(link1?.target).toBe('element-2');
     expect(link1?.type).toBe('ReactLink');
     expect(link1?.z).toBe(1);
 
-    // Verify second link data
-    const link2 = receivedLinks.find((link) => link.id === 'link-2');
+    const link2 = receivedLinks.find((link) => link.source === 'element-2' && link.target === 'element-1');
     expect(link2).toBeDefined();
-    expect(link2?.id).toBe('link-2');
-    expect(link2?.source).toBe('element-2');
-    expect(link2?.target).toBe('element-1');
     expect(link2?.type).toBe('ReactLink');
     expect(link2?.z).toBe(2);
     expect(link2?.customProperty).toBe('custom-value');
   });
 
   it('should pass updated link data to renderLink when links change', async () => {
-    const elements = [
-      {
-        id: 'element-1',
+    const elements: Record<string, GraphElement> = {
+      'element-1': {
         x: 0,
         y: 0,
         width: 100,
         height: 100,
       },
-      {
-        id: 'element-2',
+      'element-2': {
         x: 200,
         y: 200,
         width: 100,
         height: 100,
       },
-    ];
+    };
 
-    const initialLinks: GraphLink[] = [
-      {
-        id: 'link-1',
+    const initialLinks: Record<string, GraphLink> = {
+      'link-1': {
         source: 'element-1',
         target: 'element-2',
         type: 'ReactLink',
       },
-    ];
+    };
 
     const receivedLinks: GraphLink[] = [];
 
-    let setLinksExternal: ((links: GraphLink[]) => void) | null = null;
+    let setLinksExternal: ((links: Record<string, GraphLink>) => void) | null = null;
 
     function ControlledGraph() {
-      const [links, setLinks] = useState<GraphLink[]>(() => initialLinks);
-      setLinksExternal = setLinks as unknown as (links: GraphLink[]) => void;
+      const [links, setLinks] = useState<Record<string, GraphLink>>(() => initialLinks);
+      setLinksExternal = setLinks as unknown as (links: Record<string, GraphLink>) => void;
 
       const renderLink: RenderLink = useCallback((link) => {
         receivedLinks.push(link);
-        return <g data-testid={`link-${link.id}`} />;
+        return <g data-testid="link" />;
       }, []);
 
       return (
@@ -516,36 +497,34 @@ describe('graph', () => {
       expect(receivedLinks.length).toBeGreaterThanOrEqual(1);
     });
 
-    const initialLink = receivedLinks.find((link) => link.id === 'link-1');
+    // Verify initial link was received
+    const initialLink = receivedLinks.find((link) => link.source === 'element-1' && link.target === 'element-2');
     expect(initialLink).toBeDefined();
-    expect(initialLink?.source).toBe('element-1');
-    expect(initialLink?.target).toBe('element-2');
+    expect(initialLink?.type).toBe('ReactLink');
 
     // Clear received links to track new ones
     receivedLinks.length = 0;
 
     // Update links
     act(() => {
-      setLinksExternal?.([
-        {
-          id: 'link-2',
+      setLinksExternal?.({
+        'link-2': {
           source: 'element-2',
           target: 'element-1',
           type: 'ReactLink',
           customProperty: 'updated-value',
         },
-      ]);
+      });
     });
 
     await waitFor(() => {
       expect(receivedLinks.length).toBeGreaterThanOrEqual(1);
     });
 
-    const updatedLink = receivedLinks.find((link) => link.id === 'link-2');
+    // Verify updated link was received
+    const updatedLink = receivedLinks.find((link) => link.source === 'element-2' && link.target === 'element-1');
     expect(updatedLink).toBeDefined();
-    expect(updatedLink?.id).toBe('link-2');
-    expect(updatedLink?.source).toBe('element-2');
-    expect(updatedLink?.target).toBe('element-1');
+    expect(updatedLink?.type).toBe('ReactLink');
     expect(updatedLink?.customProperty).toBe('updated-value');
   });
 });

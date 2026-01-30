@@ -1,4 +1,4 @@
-/* eslint-disable prefer-destructuring */
+ 
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-shadow */
 /* eslint-disable @eslint-react/no-array-index-key */
@@ -76,10 +76,9 @@ const PAPER_PROPS: PaperProps<Element> = {
   onLinkMouseLeave: ({ linkView }) => linkView.removeTools(),
 };
 
-// Create initial elements and links with typing support
-const elements: Element[] = [
-  {
-    id: '1',
+// Create initial elements and links with typing support as Records
+const elements: Record<string, Element> = {
+  '1': {
     x: 50,
     y: 110,
     elementType: 'alert',
@@ -87,8 +86,7 @@ const elements: Element[] = [
     description: 'This is longer text, it can be any message provided by the user',
     inputText: 'Node Text',
   },
-  {
-    id: '2',
+  '2': {
     x: 550,
     y: 110,
     elementType: 'info',
@@ -96,8 +94,7 @@ const elements: Element[] = [
     description: 'This is longer text, it can be any message provided by the user',
     inputText: '',
   },
-  {
-    id: '3',
+  '3': {
     x: 50,
     y: 370,
     elementType: 'table',
@@ -115,12 +112,11 @@ const elements: Element[] = [
       },
     },
   },
-];
+};
 
-// Create initial links from table element port to another element
-const links: GraphLink[] = [
-  {
-    id: 'link2',
+// Create initial links from table element port to another element as Record
+const links: Record<string, GraphLink> = {
+  'link2': {
     source: { id: '3', port: 'out-3-0' }, // Port from table element
     target: { id: '1' },
     attrs: {
@@ -135,7 +131,7 @@ const links: GraphLink[] = [
       },
     },
   },
-];
+};
 
 // Define the message component
 function MessageComponent({
@@ -485,7 +481,7 @@ function Main() {
           {...PAPER_PROPS}
           defaultLink={() => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { id, ...rest } = links[0];
+            const { id, ...rest } = links['link2'];
             return new shapes.standard.Link(rest as shapes.standard.LinkAttributes);
           }}
           width="100%"

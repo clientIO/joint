@@ -3,6 +3,7 @@ export const REACT_LINK_TYPE = 'ReactLink';
 
 /**
  * A custom JointJS link that can render React components.
+ * Uses empty markup - React renders content via portal using useLinkPath hook.
  * @group Models
  * @example
  * ```ts
@@ -20,36 +21,30 @@ export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
 > {
   /**
    * Sets the default attributes for the ReactLink.
+   * Includes `connection: true` attrs which are required for JointJS to compute link paths.
    * @returns The default attributes.
    */
   defaults() {
     return {
       ...super.defaults,
+      type: REACT_LINK_TYPE,
       attrs: {
-        line: {
-          connection: true,
-          stroke: '#333333',
-          strokeWidth: 2,
-          strokeLinejoin: 'round',
-          targetMarker: {
-            type: 'path',
-            d: 'M 10 -5 0 0 10 5 z',
-          },
-        },
         wrapper: {
           connection: true,
           strokeWidth: 10,
           strokeLinejoin: 'round',
         },
+        line: {
+          connection: true,
+          stroke: '#333333',
+          strokeWidth: 2,
+          strokeLinejoin: 'round',
+        },
       },
-      // defaultLabel: {
-      //   markup: []
-      // },
-      type: REACT_LINK_TYPE,
     } as unknown as dia.Link.Attributes & Attributes;
   }
 
-  markup: string | dia.MarkupJSON = [
+  markup: dia.MarkupJSON = [
     {
       tagName: 'path',
       selector: 'wrapper',

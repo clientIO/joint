@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-dynamic-delete */
 /* eslint-disable @eslint-react/hooks-extra/no-direct-set-state-in-use-effect */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
@@ -71,10 +72,10 @@ import type { Update } from '../../../utils/create-state';
  * History is managed automatically by redux-undo, so we don't need to include it here.
  */
 interface GraphState {
-  /** Array of all elements (nodes) in the graph */
-  readonly elements: GraphElement[];
-  /** Array of all links (edges) in the graph */
-  readonly links: GraphLink[];
+  /** Record of all elements (nodes) in the graph keyed by ID */
+  readonly elements: Record<string, GraphElement>;
+  /** Record of all links (edges) in the graph keyed by ID */
+  readonly links: Record<string, GraphLink>;
 }
 
 // ============================================================================
@@ -89,17 +90,16 @@ type CustomElement = GraphElement & { label: string };
 /**
  * Initial elements for the graph.
  */
-const defaultElements: CustomElement[] = [
-  { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
-  { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
-];
+const defaultElements: Record<string, CustomElement> = {
+  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+};
 
 /**
  * Initial links for the graph.
  */
-const defaultLinks: GraphLink[] = [
-  {
-    id: 'e1-2',
+const defaultLinks: Record<string, GraphLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -108,7 +108,7 @@ const defaultLinks: GraphLink[] = [
       },
     },
   },
-];
+};
 
 /**
  * Redux slice for managing graph state.
@@ -118,32 +118,40 @@ const defaultLinks: GraphLink[] = [
 const graphSlice = createSlice({
   name: 'graph',
   initialState: {
-    elements: defaultElements as GraphElement[],
-    links: defaultLinks as GraphLink[],
+    elements: defaultElements as Record<string, GraphElement>,
+    links: defaultLinks as Record<string, GraphLink>,
   } satisfies GraphState,
   reducers: {
     /**
      * Adds a new element to the graph.
+     * The element must include an 'id' property that will be used as the key.
      */
-    addElement: (state, action: PayloadAction<GraphElement>) => {
-      state.elements.push(action.payload);
+    addElement: (state, action: PayloadAction<{ id: string } & GraphElement>) => {
+      const { id, ...element } = action.payload;
+      state.elements[id] = element;
     },
     /**
      * Removes the last element from the graph.
      * Also removes all links connected to that element.
      */
     removeLastElement: (state) => {
-      if (state.elements.length === 0) {
+      const elementIds = Object.keys(state.elements);
+      if (elementIds.length === 0) {
         return;
       }
       // Remove the last element
-      const removedElementId = state.elements.at(-1)?.id;
-      state.elements.pop();
+      const removedElementId = elementIds.at(-1);
+      if (!removedElementId) {
+        return;
+      }
+      delete state.elements[removedElementId];
       // Remove all links connected to the removed element
       if (removedElementId) {
-        state.links = state.links.filter(
-          (link) => link.source !== removedElementId && link.target !== removedElementId
-        );
+        for (const [id, link] of Object.entries(state.links)) {
+          if (link.source === removedElementId || link.target === removedElementId) {
+            delete state.links[id];
+          }
+        }
       }
     },
     /**
@@ -414,15 +422,15 @@ function ReduxConnectedPaperApp() {
           onClick={() => {
             // Dispatch Redux action to add a new element
             // redux-undo automatically saves the current state to history
+            const newId = Math.random().toString(36).slice(7);
             const newElement: CustomElement = {
-              id: Math.random().toString(36).slice(7),
               label: 'New Node',
               x: Math.random() * 200,
               y: Math.random() * 200,
               width: 100,
               height: 50,
-            } as CustomElement;
-            dispatch(addElement(newElement));
+            };
+            dispatch(addElement({ id: newId, ...newElement }));
           }}
         >
           Add Element
@@ -495,6 +503,3 @@ function ReduxConnectedPaperApp() {
 export default function App(props: Readonly<GraphProps>) {
   return <Main {...props} />;
 }
-
-
-

@@ -14,15 +14,14 @@ describe('Highlighter cleanup', () => {
       wrapper: paperRenderElementWrapper({
         graphProviderProps: {
           graph,
-          elements: [
-            {
-              id: 'element-1',
+          elements: {
+            'element-1': {
               x: 0,
               y: 0,
               width: 100,
               height: 100,
             },
-          ],
+          },
         },
       }),
     };

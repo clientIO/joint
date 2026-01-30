@@ -6,14 +6,13 @@ import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', color: '#ffffff', x: 100, y: 0 },
-  { id: '2', label: 'Node 2', color: '#ffffff', x: 100, y: 200 },
-];
+const initialElements: Record<string, { label: string; color: string; x: number; y: number; width: number; height: number }> = {
+  '1': { label: 'Node 1', color: '#ffffff', x: 100, y: 0, width: 100, height: 50 },
+  '2': { label: 'Node 2', color: '#ffffff', x: 100, y: 200, width: 100, height: 50 },
+};
 
-const initialEdges: GraphLink[] = [
-  {
-    id: 'e1-2',
+const initialEdges: Record<string, GraphLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -22,11 +21,11 @@ const initialEdges: GraphLink[] = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
-function ElementInput({ id, label }: Readonly<BaseElementWithData>) {
+function ElementInput({ id, label }: Readonly<BaseElementWithData & { id: string }>) {
   const { set } = useCellActions<BaseElementWithData>();
   return (
     <input
@@ -56,8 +55,8 @@ function Main() {
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {elements.map((item) => {
-          return <ElementInput key={item.id} {...item} />;
+        {Object.entries(elements).map(([id, item]) => {
+          return <ElementInput key={id} id={id} {...item} />;
         })}
       </div>
     </div>

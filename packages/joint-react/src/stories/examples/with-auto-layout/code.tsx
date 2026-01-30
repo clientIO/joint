@@ -17,19 +17,19 @@ import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', width: 100, height: 50 },
-  { id: '2', label: 'Node 2', width: 100, height: 50 },
-  { id: '3', label: 'Node 3', width: 100, height: 50 },
-  { id: '4', label: 'Node 4', width: 100, height: 50 },
-  { id: '5', label: 'Node 5', width: 100, height: 50 },
-  { id: '6', label: 'Node 6', width: 100, height: 50 },
-  { id: '7', label: 'Node 7', width: 100, height: 50 },
-  { id: '8', label: 'Node 8', width: 100, height: 50 },
-  { id: '9', label: 'Node 9', width: 100, height: 50 },
-];
+const initialElements: Record<string, { label: string; width: number; height: number }> = {
+  '1': { label: 'Node 1', width: 100, height: 50 },
+  '2': { label: 'Node 2', width: 100, height: 50 },
+  '3': { label: 'Node 3', width: 100, height: 50 },
+  '4': { label: 'Node 4', width: 100, height: 50 },
+  '5': { label: 'Node 5', width: 100, height: 50 },
+  '6': { label: 'Node 6', width: 100, height: 50 },
+  '7': { label: 'Node 7', width: 100, height: 50 },
+  '8': { label: 'Node 8', width: 100, height: 50 },
+  '9': { label: 'Node 9', width: 100, height: 50 },
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
 const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
@@ -84,7 +84,7 @@ function Main() {
     [makeLayoutWithGrid, gridXSize]
   );
 
-  const elementsLength = useElements((items) => items.length);
+  const elementsLength = useElements((items) => Object.keys(items).length);
   return (
     <div className="flex flex-col">
       <div className="mb-8 flex flex-row items-center">
@@ -106,8 +106,8 @@ function Main() {
 
         <button
           onClick={() => {
-            set({
-              id: `${Math.random()}`,
+            const newId = `${Math.random()}`;
+            set(newId, {
               label: `Node ${elementsLength + 1}`,
               height: 0, // we recompute the size after the element is added
               width: 0, // we recompute the size after the element is added

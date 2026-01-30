@@ -42,23 +42,23 @@ Welcome! This guide will help you get started with the new `@joint/react` librar
 
 ### a. Elements (Nodes)
 
-Elements are plain objects with at least an `id` and geometry properties (`x`, `y`, `width`, `height`).
+Elements are plain objects with geometry properties (`x`, `y`, `width`, `height`). They are stored as Records keyed by their ID.
 
 ```tsx
-const elements = [
-  { id: '1', label: 'Node 1', x: 100, y: 0, width: 100, height: 25 },
-  { id: '2', label: 'Node 2', x: 100, y: 200, width: 100, height: 25 },
-];
+const elements = {
+  '1': { label: 'Node 1', x: 100, y: 0, width: 100, height: 25 },
+  '2': { label: 'Node 2', x: 100, y: 200, width: 100, height: 25 },
+};
 ```
 
 ### b. Links (Edges)
 
-Links are plain objects with `id`, `source`, and `target` properties.
+Links are plain objects with `source` and `target` properties. They are stored as Records keyed by their ID.
 
 ```tsx
-const links = [
-  { id: 'l1', source: '1', target: '2' },
-];
+const links = {
+  'l1': { source: '1', target: '2' },
+};
 ```
 
 ---
@@ -207,10 +207,10 @@ ${CodeControlledMode}
 
 #### How It Works:
 
-1. **State Management**: Use `useState` to manage elements and links:
+1. **State Management**: Use `useState` to manage elements and links as Records:
    ```tsx
-   const [elements, setElements] = useState<GraphElement[]>(defaultElements);
-   const [links, setLinks] = useState<GraphLink[]>(defaultLinks);
+   const [elements, setElements] = useState<Record<string, GraphElement>>(defaultElements);
+   const [links, setLinks] = useState<Record<string, GraphLink>>(defaultLinks);
    ```
 
 2. **Controlled Mode**: Pass state and change handlers to `GraphProvider`:
@@ -489,10 +489,10 @@ You can render multiple `Paper` instances inside one `GraphProvider` to create f
 ```tsx
 import { GraphProvider } from '@joint/react';
 
-const elements = [
-  { id: '1', label: 'A', x: 50, y: 50, width: 80, height: 40 },
-  { id: '2', label: 'B', x: 250, y: 180, width: 80, height: 40 },
-];
+const elements = {
+  '1': { label: 'A', x: 50, y: 50, width: 80, height: 40 },
+  '2': { label: 'B', x: 250, y: 180, width: 80, height: 40 },
+};
 
 export function MultiViews() {
   return (

@@ -4,25 +4,22 @@ import { useElements } from '../use-elements';
 
 describe('use-elements', () => {
   const wrapper = graphProviderWrapper({
-    elements: [
-      {
-        id: '1',
+    elements: {
+      '1': {
         width: 97,
         height: 99,
       },
-      {
-        id: '2',
+      '2': {
         width: 97,
         height: 99,
       },
-    ],
-    links: [
-      {
-        id: '3',
+    },
+    links: {
+      '3': {
         source: '1',
         target: '2',
       },
-    ],
+    },
   });
 
   it('should get elements properly without selector', async () => {
@@ -39,12 +36,12 @@ describe('use-elements', () => {
 
     await waitFor(() => {
       expect(renders).toHaveBeenCalledTimes(1);
-      expect(result.current.length).toBe(2);
-      expect(result.current[0].width).toBe(97);
-      expect(result.current[0].height).toBe(99);
+      expect(Object.keys(result.current).length).toBe(2);
+      expect(result.current['1'].width).toBe(97);
+      expect(result.current['1'].height).toBe(99);
 
-      expect(result.current[1].width).toBe(97);
-      expect(result.current[1].height).toBe(99);
+      expect(result.current['2'].width).toBe(97);
+      expect(result.current['2'].height).toBe(99);
     });
   });
 
@@ -54,7 +51,7 @@ describe('use-elements', () => {
       () => {
         renders();
         // eslint-disable-next-line sonarjs/no-nested-functions
-        return useElements((element) => element.map((items) => items.width));
+        return useElements((elements) => Object.values(elements).map((item) => item.width));
       },
       {
         wrapper,

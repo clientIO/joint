@@ -7,10 +7,10 @@ import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { Paper } from '../../../components/paper/paper';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', x: 100, y: 0 },
-  { id: '2', label: 'Node 2', x: 100, y: 200 },
-];
+const initialElements: Record<string, { label: string; x: number; y: number }> = {
+  '1': { label: 'Node 1', x: 100, y: 0 },
+  '2': { label: 'Node 2', x: 100, y: 200 },
+};
 
 class LinkModel extends shapes.standard.Link {
   defaults() {
@@ -27,7 +27,7 @@ class LinkModel extends shapes.standard.Link {
   }
 }
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
@@ -47,15 +47,14 @@ function Main() {
   );
 }
 
-const links = [
-  {
+const links: Record<string, { source: string; target: string; type: string; attrs: { line: { stroke: string } } }> = {
+  '1123': {
     source: '1',
     target: '2',
     type: 'LinkModel',
-    id: '1123',
     attrs: { line: { stroke: PRIMARY } },
   },
-];
+};
 
 export default function App(props: Readonly<GraphProps>) {
   return (

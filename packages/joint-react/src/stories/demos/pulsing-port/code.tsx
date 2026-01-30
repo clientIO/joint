@@ -14,6 +14,7 @@ import {
   TextNode,
   useLinks,
   useNodeSize,
+  useCellId,
 } from '@joint/react';
 
 const NODE_WIDTH = 150;
@@ -68,9 +69,8 @@ type Element = GraphElement & {
   };
 };
 
-const elements: Element[] = [
-  {
-    id: '1',
+const elements: Record<string, Element> = {
+  '1': {
     x: 50,
     y: 50,
     attrs: {
@@ -79,8 +79,7 @@ const elements: Element[] = [
       },
     },
   },
-  {
-    id: '2',
+  '2': {
     x: 350,
     y: 50,
     attrs: {
@@ -89,8 +88,7 @@ const elements: Element[] = [
       },
     },
   },
-  {
-    id: '3',
+  '3': {
     x: 150,
     y: 250,
     attrs: {
@@ -99,20 +97,19 @@ const elements: Element[] = [
       },
     },
   },
-];
+};
 
-function NodeElement({ id }: Element) {
+function NodeElement(_props: Element) {
+  const id = useCellId();
   const rectRef = useRef<SVGRectElement>(null);
   const { width, height } = useNodeSize(rectRef);
 
   const isConnected = useLinks((links) =>
-    links
-      .map((link) => {
-        const sourceId = getCellId(link.source);
-        const targetId = getCellId(link.target);
-        return sourceId === id || targetId === id;
-      })
-      .includes(true)
+    Object.values(links).some((link) => {
+      const sourceId = getCellId(link.source);
+      const targetId = getCellId(link.target);
+      return sourceId === id || targetId === id;
+    })
   );
 
   return (

@@ -20,15 +20,15 @@ import type { dia } from '@joint/core';
  * @template Element - The type of elements
  * @template Link - The type of links
  */
-interface Options<Element extends dia.Element | GraphElement, Link extends dia.Link | GraphLink> {
-  /** Current elements array from React state */
-  readonly elements?: Element[];
-  /** Current links array from React state */
-  readonly links?: Link[];
+interface Options<Element extends GraphElement, Link extends GraphLink> {
+  /** Current elements Record from React state, keyed by cell ID */
+  readonly elements?: Record<dia.Cell.ID, Element>;
+  /** Current links Record from React state, keyed by cell ID */
+  readonly links?: Record<dia.Cell.ID, Link>;
   /** Callback function called when elements change */
-  readonly onElementsChange?: Dispatch<SetStateAction<Element[]>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, Element>>>;
   /** Callback function called when links change */
-  readonly onLinksChange?: Dispatch<SetStateAction<Link[]>>;
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, Link>>>;
 }
 
 /**
@@ -49,7 +49,7 @@ interface Options<Element extends dia.Element | GraphElement, Link extends dia.L
 export function useStateToExternalStore<Element extends GraphElement, Link extends GraphLink>(
   options: Options<Element, Link>
 ): ExternalStoreLike<GraphStoreSnapshot<Element, Link>> | undefined {
-  const { elements = [], links = [], onElementsChange, onLinksChange } = options;
+  const { elements = {}, links = {}, onElementsChange, onLinksChange } = options;
   const subscribers = useRef<Set<() => void>>(new Set());
   const snapshot = useRef<GraphStoreSnapshot<Element, Link>>({ elements, links });
 

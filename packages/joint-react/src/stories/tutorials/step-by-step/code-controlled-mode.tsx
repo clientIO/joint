@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-unused-vars */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
@@ -71,10 +72,10 @@ type CustomLink = GraphLink;
  * - x, y: position on the canvas
  * - width, height: dimensions
  */
-const defaultElements: CustomElement[] = [
-  { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
-  { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
-];
+const defaultElements: Record<string, CustomElement> = {
+  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+};
 
 /**
  * Initial links (edges) for the graph.
@@ -84,9 +85,8 @@ const defaultElements: CustomElement[] = [
  * - target: id of the target element
  * - attrs: visual attributes (colors, stroke width, etc.)
  */
-const defaultLinks: CustomLink[] = [
-  {
-    id: 'e1-2',
+const defaultLinks: Record<string, CustomLink> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -95,7 +95,7 @@ const defaultLinks: CustomLink[] = [
       },
     },
   },
-];
+};
 
 // ============================================================================
 // STEP 3: Custom Element Renderer
@@ -132,10 +132,10 @@ function RenderItem(props: CustomElement) {
  * In controlled mode, all state changes must go through these setters.
  */
 interface PaperAppProps {
-  /** Function to update the elements array */
-  readonly onElementsChange: Dispatch<SetStateAction<CustomElement[]>>;
-  /** Function to update the links array */
-  readonly onLinksChange: Dispatch<SetStateAction<CustomLink[]>>;
+  /** Function to update the elements Record */
+  readonly onElementsChange: Dispatch<SetStateAction<Record<string, CustomElement>>>;
+  /** Function to update the links Record */
+  readonly onLinksChange: Dispatch<SetStateAction<Record<string, CustomLink>>>;
 }
 
 /**
@@ -230,28 +230,30 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
           type="button"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
           onClick={() => {
-            // Step 1: Create a new element object
+            // Step 1: Generate a unique ID for the new element
+            // Math.random().toString(36) creates a base-36 string
+            // .slice(7) removes the "0." prefix
+            const newId = Math.random().toString(36).slice(7);
+
+            // Step 2: Create a new element object (without id - id is the Record key)
             // This is just a plain JavaScript object - not a JointJS element yet
             const newElement: CustomElement = {
-              // Generate a unique ID using random string
-              // Math.random().toString(36) creates a base-36 string
-              // .slice(7) removes the "0." prefix
-              id: Math.random().toString(36).slice(7),
               label: 'New Node',
               // Random position to spread elements across the canvas
               x: Math.random() * 200,
               y: Math.random() * 200,
               width: 100,
               height: 50,
-            } as CustomElement;
+            };
 
-            // Step 2: Update React state using functional update
+            // Step 3: Update React state using functional update
             // This is the KEY to controlled mode - we update state, not the graph
             // The functional form (prev) => newValue ensures we use the latest state
             onElementsChange((elements) => {
-              // Create a new array with all existing elements plus the new one
-              // We use spread operator to create a new array (immutability)
-              return [...elements, newElement];
+              // Create a new Record with all existing elements plus the new one
+              // We use spread operator to create a new object (immutability)
+              // The id is the key, not a property of the element
+              return { ...elements, [newId]: newElement };
             });
 
             // Step 3: That's it! GraphProvider will handle the rest:
@@ -306,24 +308,28 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
             // Step 1: Update elements state by removing the last element
             onElementsChange((elements) => {
               // Check if there are any elements to remove
-              if (elements.length === 0) {
+              const elementIds = Object.keys(elements);
+              if (elementIds.length === 0) {
                 // No elements to remove, return current state unchanged
                 return elements;
               }
 
-              // Create a new array without the last element
-              // slice(0, -1) returns all elements except the last one
-              const newElements = elements.slice(0, -1);
+              // Create a new Record without the last element
+              const removedElementId = elementIds.at(-1);
+              if (!removedElementId) {
+                return elements;
+              }
+              const { [removedElementId]: _, ...newElements } = elements;
 
               // Step 2: If no elements remain, clear all links
               // Links require source and target elements to exist
               // If we remove all elements, links become invalid
-              if (newElements.length === 0) {
+              if (Object.keys(newElements).length === 0) {
                 // Clear all links since there are no elements left
-                onLinksChange([]);
+                onLinksChange({});
               }
 
-              // Return the new elements array
+              // Return the new elements Record
               return newElements;
             });
 
@@ -381,8 +387,8 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
 function Main(props: Readonly<GraphProps>) {
   // Create React state for elements and links
   // These are the single source of truth for the graph
-  const [elements, setElements] = useState<GraphElement[]>(defaultElements);
-  const [links, setLinks] = useState<GraphLink[]>(defaultLinks);
+  const [elements, setElements] = useState<Record<string, GraphElement>>(defaultElements);
+  const [links, setLinks] = useState<Record<string, GraphLink>>(defaultLinks);
 
   return (
     <GraphProvider
@@ -395,14 +401,14 @@ function Main(props: Readonly<GraphProps>) {
       onElementsChange={setElements}
       onLinksChange={setLinks}
     >
-      {/* 
+      {/*
         Pass state setters to child component so it can update the graph
         by updating React state. The type assertions are needed because
         GraphElement/GraphLink are more generic than CustomElement/CustomLink.
       */}
       <PaperApp
-        onElementsChange={setElements as Dispatch<SetStateAction<CustomElement[]>>}
-        onLinksChange={setLinks as Dispatch<SetStateAction<CustomLink[]>>}
+        onElementsChange={setElements as Dispatch<SetStateAction<Record<string, CustomElement>>>}
+        onLinksChange={setLinks as Dispatch<SetStateAction<Record<string, CustomLink>>>}
       />
     </GraphProvider>
   );

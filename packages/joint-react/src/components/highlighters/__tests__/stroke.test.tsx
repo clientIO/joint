@@ -5,13 +5,12 @@ import { Stroke } from '../stroke';
 describe('Stroke highlighter', () => {
   const wrapper = paperRenderElementWrapper({
     graphProviderProps: {
-      elements: [
-        {
-          id: '1',
+      elements: {
+        '1': {
           width: 100,
           height: 100,
         },
-      ],
+      },
     },
     paperProps: {
       renderElement: () => <rect />,

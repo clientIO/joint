@@ -2,7 +2,12 @@
 import { dia, util } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import type { FunctionComponent, JSX } from 'react';
-import type { GraphCell } from './cell/cell-utilities';
+import type { GraphLink } from '../types/link-types';
+
+/**
+ * Represents a cell in the graph (either element or link).
+ */
+export type GraphCell<Element extends GraphElement = GraphElement> = Element | GraphLink;
 
 export type Setter<Value> = (item: Value) => Value;
 

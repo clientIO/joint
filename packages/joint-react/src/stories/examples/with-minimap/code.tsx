@@ -4,13 +4,12 @@ import { useCallback, useRef } from 'react';
 import { GraphProvider, Paper, useNodeSize, type RenderElement } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialElements = [
-  { id: '1', label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
-  { id: '2', label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
-];
-const initialEdges = [
-  {
-    id: 'e1-2',
+const initialElements: Record<string, { label: string; color: string; x: number; y: number; width: number; height: number }> = {
+  '1': { label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
+  '2': { label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
+};
+const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string } } }> = {
+  'e1-2': {
     source: '1',
     target: '2',
     attrs: {
@@ -19,9 +18,9 @@ const initialEdges = [
       },
     },
   },
-];
+};
 
-type BaseElementWithData = (typeof initialElements)[number];
+type BaseElementWithData = (typeof initialElements)[string];
 
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(

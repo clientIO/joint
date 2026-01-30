@@ -1,9 +1,7 @@
-/* eslint-disable sonarjs/no-duplicated-branches */
-/* eslint-disable sonarjs/cognitive-complexity */
-import type { GraphStoreDerivedSnapshot, GraphStoreSnapshot } from '../store/graph-store';
+import type { GraphStoreSnapshot } from '../store/graph-store';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import { removeDeepReadOnly, type ExternalStoreLike } from '../utils/create-state';
-import { util, type dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import type {
@@ -15,746 +13,327 @@ import type {
 } from './graph-state-selectors';
 import {
   defaultMapDataToElementAttributes,
-  defaultGraphToElementSelector,
+  mapElementAttributesToData,
   defaultMapDataToLinkAttributes,
-  defaultGraphToLinkSelector,
-  createDefaultElementMapper,
-  createDefaultGraphToElementMapper,
-  createDefaultLinkMapper,
-  createDefaultGraphToLinkMapper,
+  mapLinkAttributesToData,
 } from './graph-state-selectors';
-import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equality';
+import type { GraphSchedulerData } from '../types/scheduler.types';
+import type { Scheduler } from '../utils/scheduler';
+import { updateGraph, mapGraphElement, mapGraphLink } from './update-graph';
 
-/**
- * Interface for state synchronization instance.
- * Provides methods to subscribe to cell changes and clean up resources.
- */
 export interface StateSync {
-  /**
-   * Subscribes to cell change events in the graph - but this happened only when the graph is updated from the external store.
-   * The callback receives change information and should return a cleanup function.
-   * @param callback - Function that receives change options and returns a cleanup function
-   * @returns Unsubscribe function to remove the listener
-   */
-  subscribeToGraphChange: (callback: (change: OnChangeOptions) => () => void) => () => void;
-
-  /**
-   * Subscribes to cell change events in the graph.
-   * The callback receives change information and should return a cleanup function.
-   * @param callback - Function that receives change options and returns a cleanup function
-   * @returns Unsubscribe function to remove the listener
-   */
-  subscribeToCellChange: (callback: (change: OnChangeOptions) => () => void) => () => void;
-
-  /**
-   * Cleans up all subscriptions and event listeners.
-   * Should be called when the synchronization is no longer needed.
-   */
-  cleanup: () => void;
+  readonly cleanup: () => void;
 }
 
-/**
- * Configuration options for state synchronization.
- * @template Graph - The type of JointJS graph instance
- * @template Element - The type of elements in the graph
- * @template Link - The type of links in the graph
- */
-interface Options<Graph extends dia.Graph, Element extends GraphElement, Link extends GraphLink>
-  extends GraphStateSelectors<Element, Link> {
-  /** The JointJS graph instance to synchronize */
-  readonly graph: Graph;
-  /** The external store containing elements and links to sync with */
-  readonly store: ExternalStoreLike<GraphStoreSnapshot<Element, Link>>;
-  readonly getIdsSnapshot: () => GraphStoreDerivedSnapshot;
-  /**
-   * If true, batch updates are disabled and synchronization will be real-time.
-   * If false (default), batch updates are enabled for better performance.
-   * @default false
-   */
-  readonly areBatchUpdatesDisabled?: boolean;
-}
-const BATCH_START_EVENT_NAME = 'batch:start';
-const BATCH_STOP_EVENT_NAME = 'batch:stop';
-
-/**
- * Configuration options for updating a JointJS graph.
- * @template Graph - The type of JointJS graph instance
- * @template Element - The type of elements in the graph
- * @template Link - The type of links in the graph
- */
-export interface UpdateGraphOptions<
+interface StateSyncOptions<
   Graph extends dia.Graph,
   Element extends GraphElement,
   Link extends GraphLink,
-> {
-  /** The JointJS graph instance to update */
+> extends GraphStateSelectors<Element, Link> {
   readonly graph: Graph;
-  /** The elements to sync to the graph */
-  readonly elements: readonly Element[];
-  /** The links to sync to the graph */
-  readonly links: readonly Link[];
-  /** Selector to convert graph elements to Element format for comparison */
-  readonly graphToElementSelector: (
+  readonly store: Omit<ExternalStoreLike<GraphStoreSnapshot<Element, Link>>, 'setState'>;
+  readonly scheduler: Scheduler<GraphSchedulerData>;
+  readonly graphToElementSelector?: (
     options: GraphToElementOptions<Element> & { readonly graph: Graph }
   ) => Element;
-  /** Selector to convert graph links to Link format for comparison */
-  readonly graphToLinkSelector: (
+  readonly graphToLinkSelector?: (
     options: GraphToLinkOptions<Link> & { readonly graph: Graph }
   ) => Link;
-  /** Selector to convert Element to JointJS Cell JSON format */
-  readonly mapDataToElementAttributes: (
-    options: ElementToGraphOptions<Element> & { readonly graph: Graph }
-  ) => dia.Cell.JSON;
-  /** Selector to convert Link to JointJS Cell JSON format */
-  readonly mapDataToLinkAttributes: (
-    options: LinkToGraphOptions<Link> & { readonly graph: Graph }
-  ) => dia.Cell.JSON;
-
-  readonly getIdsSnapshot: () => GraphStoreDerivedSnapshot;
+  /**
+   * Callback invoked after the graph is successfully updated from the store.
+   * Used to trigger layout updates when changes come from React state (e.g., useCellActions).
+   */
+  readonly onGraphUpdated?: () => void;
 }
 
 /**
- * Updates a JointJS graph with the provided elements and links.
- * Compares the current graph state with the provided state and only syncs if they differ.
- * @template Graph - The type of JointJS graph instance
- * @template Element - The type of elements in the graph
- * @template Link - The type of links in the graph
- * @param options - Configuration options for updating the graph
- * @returns true if the graph was synced, false if it was already in sync or skipped due to active batch
+ * Helper to update a Map immutably - add/set operation.
+ * @param map
+ * @param key
+ * @param value
  */
-export function updateGraph<
+function mapSet<K, V>(map: Map<K, V> | undefined, key: K, value: V): Map<K, V> {
+  const newMap = new Map(map);
+  newMap.set(key, value);
+  return newMap;
+}
+
+/**
+ * Helper to update a Map immutably - delete operation.
+ * @param map
+ * @param key
+ */
+function mapDelete<K, V>(map: Map<K, V> | undefined, key: K): Map<K, V> {
+  const newMap = new Map(map);
+  newMap.delete(key);
+  return newMap;
+}
+
+/**
+ * Maps all cells to their typed representations.
+ * @param cells
+ * @param graph
+ * @param elementSelector
+ * @param linkSelector
+ * @param previousElements
+ * @param previousLinks
+ */
+function mapCellsToData<
   Graph extends dia.Graph,
   Element extends GraphElement,
   Link extends GraphLink,
->(options: UpdateGraphOptions<Graph, Element, Link>): boolean {
-  const {
-    graph,
-    elements,
-    links,
-    graphToElementSelector,
-    graphToLinkSelector,
-    mapDataToElementAttributes,
-    mapDataToLinkAttributes,
-    getIdsSnapshot,
-  } = options;
+>(
+  cells: dia.Cell[],
+  graph: Graph,
+  elementSelector: (options: GraphToElementOptions<Element> & { readonly graph: Graph }) => Element,
+  linkSelector: (options: GraphToLinkOptions<Link> & { readonly graph: Graph }) => Link,
+  previousElements?: Record<dia.Cell.ID, Element>,
+  previousLinks?: Record<dia.Cell.ID, Link>
+): { elements: Map<dia.Cell.ID, GraphElement>; links: Map<dia.Cell.ID, GraphLink> } {
+  const elements = new Map<dia.Cell.ID, GraphElement>();
+  const links = new Map<dia.Cell.ID, GraphLink>();
 
-  if (graph.hasActiveBatch()) {
-    return false;
-  }
-  const { elementIds, linkIds } = getIdsSnapshot();
-  // Compare current graph state with provided state to avoid unnecessary syncs
-  // This prevents syncing when graph and provided state are already in sync
-  const graphElements = graph.getElements().map((element) => {
-    const previousIndex = elementIds[element.id];
-    const previous =
-      previousIndex != null && previousIndex >= 0 && previousIndex < elements.length
-        ? elements[previousIndex]
-        : undefined;
-    const defaultAttributes = createDefaultGraphToElementMapper(element, previous);
-    return graphToElementSelector({
-      cell: element,
-      graph,
-      previous,
-      defaultAttributes,
-    });
-  });
-  const graphLinks = graph.getLinks().map((link) => {
-    const previousIndex = linkIds[link.id];
-    const previous =
-      previousIndex != null && previousIndex >= 0 && previousIndex < links.length
-        ? links[previousIndex]
-        : undefined;
-    const defaultAttributes = createDefaultGraphToLinkMapper(link, previous);
-    return graphToLinkSelector({
-      cell: link,
-      graph,
-      previous,
-      defaultAttributes,
-    });
-  });
-
-  // Fast path: Check if arrays have same length first
-  if (elements.length !== graphElements.length || links.length !== graphLinks.length) {
-    // Length mismatch, need to sync
-  } else if (isPositionOnlyUpdate(graphElements as Element[], elements as Element[])) {
-    // Position-only update: use fast equality check
-    if (
-      fastElementArrayEqual(elements as Element[], graphElements as Element[]) &&
-      fastElementArrayEqual(links as Link[], graphLinks as Link[])
-    ) {
-      return false;
-    }
-  } else {
-    // Check if graph is already in sync with provided state using fast equality
-    if (
-      fastElementArrayEqual(elements as Element[], graphElements as Element[]) &&
-      fastElementArrayEqual(links as Link[], graphLinks as Link[])
-    ) {
-      return false;
+  for (const cell of cells) {
+    if (cell.isElement()) {
+      elements.set(cell.id, mapGraphElement(cell, graph, elementSelector, previousElements?.[cell.id]));
+    } else if (cell.isLink()) {
+      links.set(cell.id, mapGraphLink(cell, graph, linkSelector, previousLinks?.[cell.id]));
     }
   }
 
-  // Build items array using selectors with defaultAttributes injected
-  const elementItems = elements.map((data) => {
-    const defaultAttributes = createDefaultElementMapper(data);
-    return mapDataToElementAttributes({
-      data,
-      graph,
-      defaultAttributes,
-    });
-  });
-  const linkItems = links.map((data) => {
-    const defaultAttributes = createDefaultLinkMapper(data, graph);
-    return mapDataToLinkAttributes({
-      data,
-      graph,
-      defaultAttributes,
-    });
-  });
-
-  graph.syncCells([...elementItems, ...linkItems], { remove: true });
-  return true;
+  return { elements, links };
 }
 
 /**
- * Creates a bidirectional synchronization system between a JointJS graph and an external store.
- *
- * This function handles:
- * - Syncing changes from the graph to the store (when users interact with the graph)
- * - Syncing changes from the store to the graph (when React state updates)
- * - Preventing circular update loops using flags and batch tracking
- * - Handling incremental updates efficiently
- * - Supporting batch operations for performance
- *
- * The synchronization uses several mechanisms to prevent infinite loops:
- * - `isSyncingFromState`: Prevents syncing graph changes back when we're syncing from state
- * - `isUpdatingStateFromGraph`: Prevents syncing state changes to graph when we're updating from graph
- * - Batch tracking: Groups multiple changes together to avoid intermediate syncs
- * @template Graph - The type of JointJS graph instance
- * @template Element - The type of elements in the graph
- * @template Link - The type of links in the graph
- * @param options - Configuration options for state synchronization
- * @returns StateSync instance with subscription and cleanup methods
+ * Finds IDs to delete by comparing current snapshot with new IDs.
+ * @param currentIds
+ * @param newIds
+ * @param existingDeletes
+ */
+function findIdsToDelete(
+  currentIds: string[],
+  newIds: Set<dia.Cell.ID>,
+  existingDeletes: Map<dia.Cell.ID, true> | undefined
+): Map<dia.Cell.ID, true> {
+  const toDelete = new Map(existingDeletes);
+  for (const id of currentIds) {
+    if (!newIds.has(id)) {
+      toDelete.set(id, true);
+    }
+  }
+  return toDelete;
+}
+
+/**
+ * GOLDEN RULE: This function NEVER calls setState directly.
+ * All state updates are scheduled via the unified scheduler.
+ * @param options
  */
 export function stateSync<
   Graph extends dia.Graph,
   Element extends GraphElement,
   Link extends GraphLink,
->(options: Options<Graph, Element, Link>): StateSync {
+>(options: StateSyncOptions<Graph, Element, Link>): StateSync {
   const {
     graph,
     store,
-    areBatchUpdatesDisabled = false,
-    getIdsSnapshot,
-
+    scheduler,
     mapDataToElementAttributes = defaultMapDataToElementAttributes,
     mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
+    onGraphUpdated,
   } = options;
-  const graphToElementSelector = defaultGraphToElementSelector;
-  const graphToLinkSelector = defaultGraphToLinkSelector;
 
-  // We need to ensure several things:
-  // 1. Graph can update itself, via onCellChange or via onBatchStop - this change is internal and must update the external store - but only if the external store do not trigger the same change.
-  // 2. External store can update the graph via new elements or links - this change is external and must update the internal graph
-  // But issue in the 2. is that the change of graph will re-run internal updates, so it will trigger onCellChange or onBatchStop.
+  const elementSelector = (options.graphToElementSelector ?? mapElementAttributesToData) as (
+    options: GraphToElementOptions<Element> & { readonly graph: Graph }
+  ) => Element;
 
-  const changedCellIds = new Set<string>();
-  const pendingChanges = new Map<string, OnChangeOptions>();
-  let hasReset = false;
-  let isSyncingFromState = false;
-  let syncFromStateCounter = 0;
-  let isUpdatingStateFromGraph = false;
-  let updatingStateFromGraphCounter = 0;
-  let batchCounter = 0;
+  const linkSelector = (options.graphToLinkSelector ?? mapLinkAttributesToData) as (
+    options: GraphToLinkOptions<Link> & { readonly graph: Graph }
+  ) => Link;
 
-  const onIncrementalChange = () => {
-    // Skip syncing back to React if we're currently syncing from React
-    // This prevents circular updates: React → Graph → React
-    if (isSyncingFromState) {
-      return;
-    }
+  // --- Scheduling ---
 
-    // Check if there are any changes to process
-    if (!hasReset && changedCellIds.size === 0) return;
-
-    // Capture current state of changes
-    const isReset = hasReset;
-    const ids = [...changedCellIds];
-
-    // Clear for next batch
-    hasReset = false;
-    changedCellIds.clear();
-
-    // Call listeners before isEqual check (layout data might not be in state)
-    if (isReset) {
-      const allCells = graph.getCells();
-      const resetChange: OnChangeOptions = {
-        type: 'reset',
-        cells: allCells,
-      };
-      for (const listener of graphChangeListeners) {
-        listener(resetChange);
-      }
-    } else {
-      // Call listeners for each changed cell
-      for (const id of ids) {
-        const change = pendingChanges.get(id);
-        if (change) {
-          for (const listener of graphChangeListeners) {
-            listener(change);
-          }
-        }
-      }
-    }
-    // Clear pending changes after calling listeners
-    pendingChanges.clear();
-
-    if (isReset) {
+  const scheduleCellUpdate = (cell: dia.Cell) => {
+    scheduler.scheduleData((data) => {
       const snapshot = store.getSnapshot();
-      const elements = removeDeepReadOnly(snapshot.elements);
-      const links = removeDeepReadOnly(snapshot.links);
-      const idsSnapshot = getIdsSnapshot();
-
-      // Map graph elements with previous state for shape preservation
-      const graphElements = graph.getElements().map((element) => {
-        const previousIndex = idsSnapshot.elementIds[element.id];
-        const previous: Element | undefined =
-          previousIndex != null && previousIndex >= 0 && previousIndex < elements.length
-            ? (elements[previousIndex] as Element)
-            : undefined;
-        const defaultAttributes = createDefaultGraphToElementMapper(element, previous);
-        return graphToElementSelector({
-          cell: element,
-          graph,
-          previous,
-          defaultAttributes,
-        });
-      });
-
-      // Map graph links with previous state for shape preservation
-      const graphLinks = graph.getLinks().map((link) => {
-        const previousIndex = idsSnapshot.linkIds[link.id];
-        const previous: Link | undefined =
-          previousIndex != null && previousIndex >= 0 && previousIndex < links.length
-            ? (links[previousIndex] as Link)
-            : undefined;
-        const defaultAttributes = createDefaultGraphToLinkMapper(link, previous);
-        return graphToLinkSelector({
-          cell: link,
-          graph,
-          previous,
-          defaultAttributes,
-        });
-      });
-
-      // Use fast equality check for better performance
-      const isEqual =
-        fastElementArrayEqual(elements as Element[], graphElements as Element[]) &&
-        fastElementArrayEqual(links as Link[], graphLinks as Link[]);
-      if (isEqual) return;
-
-      // Update state with shape-preserved graph data
-      if (!store.setState) return;
-
-      updatingStateFromGraphCounter++;
-      isUpdatingStateFromGraph = true;
-
-      store.setState(() => ({
-        elements: graphElements as Element[],
-        links: graphLinks as Link[],
-      }));
-
-      isUpdatingStateFromGraph = false;
-      updatingStateFromGraphCounter--;
-      return;
-    }
-    if (!store.setState) {
-      throw new Error('Store does not have setState method');
-    }
-    // Incremental update
-    // Set flag to prevent this state update from triggering another graph sync
-    updatingStateFromGraphCounter++;
-    isUpdatingStateFromGraph = true;
-
-    // Get IDs snapshot for O(1) lookups
-    const idsSnapshot = getIdsSnapshot();
-
-    store.setState((previous: GraphStoreSnapshot<Element, Link>) => {
-      const updates = new Map<string, { type: 'link' | 'element'; data: Element | Link }>();
-      const removals = new Set<string>();
-
-      for (const id of ids) {
-        const cell = graph.getCell(id);
-        if (cell) {
-          if (cell.isLink()) {
-            // Get previous link using O(1) lookup
-            const linkIndex = idsSnapshot.linkIds[id];
-            const previousLink =
-              linkIndex != null && linkIndex >= 0 && linkIndex < previous.links.length
-                ? previous.links[linkIndex]
-                : undefined;
-
-            const defaultAttributes = createDefaultGraphToLinkMapper(cell as dia.Link, previousLink);
-            const updatedLink = graphToLinkSelector({
-              cell: cell as dia.Link,
-              graph,
-              previous: previousLink,
-              defaultAttributes,
-            });
-            updates.set(id, { type: 'link', data: updatedLink as Link });
-          } else {
-            // Get previous element using O(1) lookup
-            const elementIndex = idsSnapshot.elementIds[id];
-            const previousElement =
-              elementIndex != null && elementIndex >= 0 && elementIndex < previous.elements.length
-                ? previous.elements[elementIndex]
-                : undefined;
-
-            const defaultAttributes = createDefaultGraphToElementMapper(cell as dia.Element, previousElement);
-            const updatedElement = graphToElementSelector({
-              cell: cell as dia.Element,
-              graph,
-              previous: previousElement,
-              defaultAttributes,
-            });
-            updates.set(id, { type: 'element', data: updatedElement as Element });
-          }
-        } else {
-          removals.add(id);
-        }
+      if (cell.isElement()) {
+        const previous = snapshot.elements[cell.id] as Element | undefined;
+        return {
+          ...data,
+          elementsToUpdate: mapSet(
+            data.elementsToUpdate,
+            cell.id,
+            mapGraphElement(cell, graph, elementSelector, previous)
+          ),
+        };
       }
-
-      // Elements
-      const nextElements: Element[] = [];
-      let elementsChanged = false;
-
-      for (const cellElement of previous.elements) {
-        const id = cellElement.id.toString();
-        if (removals.has(id)) {
-          elementsChanged = true;
-          continue;
-        }
-        if (updates.has(id)) {
-          const update = updates.get(id);
-          if (update?.type === 'element') {
-            if (util.isEqual(cellElement, update.data)) {
-              nextElements.push(cellElement);
-            } else {
-              nextElements.push(update.data as Element);
-              elementsChanged = true;
-            }
-            updates.delete(id);
-          } else {
-            nextElements.push(cellElement);
-          }
-        } else {
-          nextElements.push(cellElement);
-        }
+      if (cell.isLink()) {
+        const previous = snapshot.links[cell.id] as Link | undefined;
+        return {
+          ...data,
+          linksToUpdate: mapSet(
+            data.linksToUpdate,
+            cell.id,
+            mapGraphLink(cell, graph, linkSelector, previous)
+          ),
+        };
       }
+      return data;
+    });
+  };
 
-      // Add new elements
-      for (const [id, update] of updates) {
-        if (update.type === 'element') {
-          nextElements.push(update.data as Element);
-          elementsChanged = true;
-          updates.delete(id);
-        }
+  const scheduleCellDelete = (cell: dia.Cell) => {
+    scheduler.scheduleData((data) => {
+      if (cell.isElement()) {
+        return {
+          ...data,
+          elementsToUpdate: mapDelete(data.elementsToUpdate, cell.id),
+          elementsToDelete: mapSet(data.elementsToDelete, cell.id, true),
+        };
       }
-
-      // Links
-      const nextLinks: Link[] = [];
-      let linksChanged = false;
-
-      for (const link of previous.links) {
-        const id = link.id.toString();
-        if (removals.has(id)) {
-          linksChanged = true;
-          continue;
-        }
-        if (updates.has(id)) {
-          const update = updates.get(id);
-          if (update?.type === 'link') {
-            if (util.isEqual(link, update.data)) {
-              nextLinks.push(link);
-            } else {
-              nextLinks.push(update.data as Link);
-              linksChanged = true;
-            }
-            updates.delete(id);
-          } else {
-            nextLinks.push(link);
-          }
-        } else {
-          nextLinks.push(link);
-        }
+      if (cell.isLink()) {
+        return {
+          ...data,
+          linksToUpdate: mapDelete(data.linksToUpdate, cell.id),
+          linksToDelete: mapSet(data.linksToDelete, cell.id, true),
+        };
       }
+      return data;
+    });
+  };
 
-      // Add new links
-      for (const [, update] of updates) {
-        if (update.type === 'link') {
-          nextLinks.push(update.data as Link);
-          linksChanged = true;
-        }
-      }
+  const scheduleReset = (cells: dia.Cell[]) => {
+    scheduler.scheduleData((data) => {
+      const snapshot = store.getSnapshot();
+      const { elements, links } = mapCellsToData(
+        cells,
+        graph,
+        elementSelector,
+        linkSelector,
+        snapshot.elements as Record<dia.Cell.ID, Element>,
+        snapshot.links as Record<dia.Cell.ID, Link>
+      );
 
-      if (!elementsChanged && !linksChanged) return previous;
-
-      const newElements = elementsChanged ? nextElements : previous.elements;
-      const newLinks = linksChanged ? nextLinks : previous.links;
       return {
-        ...previous,
-        elements: newElements as Element[],
-        links: newLinks as Link[],
+        ...data,
+        elementsToUpdate: elements,
+        linksToUpdate: links,
+        elementsToDelete: findIdsToDelete(
+          Object.keys(snapshot.elements),
+          new Set(elements.keys()),
+          data.elementsToDelete
+        ),
+        linksToDelete: findIdsToDelete(
+          Object.keys(snapshot.links),
+          new Set(links.keys()),
+          data.linksToDelete
+        ),
       };
     });
-    // Reset the flag after setState completes
-    // The subscription callback runs synchronously within setState (via ReactDOM.unstable_batchedUpdates),
-    // so we can reset the flag immediately after setState returns
-    // If there's a batch, onBatchStop will also handle resetting it as a safety measure
-    updatingStateFromGraphCounter--;
-    if (updatingStateFromGraphCounter === 0) {
-      isUpdatingStateFromGraph = false;
-    }
   };
 
-  const graphChangeListeners = new Set<(change: OnChangeOptions) => () => void>();
-  const cellChangeListeners = new Set<(change: OnChangeOptions) => () => void>();
+  const scheduleCellsUpdate = (cells: dia.Cell[]) => {
+    scheduler.scheduleData((data) => {
+      const snapshot = store.getSnapshot();
+      const { elements, links } = mapCellsToData(
+        cells,
+        graph,
+        elementSelector,
+        linkSelector,
+        snapshot.elements as Record<dia.Cell.ID, Element>,
+        snapshot.links as Record<dia.Cell.ID, Link>
+      );
+      return {
+        ...data,
+        elementsToUpdate: new Map([...(data.elementsToUpdate ?? []), ...elements]),
+        linksToUpdate: new Map([...(data.linksToUpdate ?? []), ...links]),
+      };
+    });
+  };
 
-  /**
-   * Subscribes to cell changes in the graph.
-   * Allows external code to react to changes that occur in the graph.
-   * The callback receives change information and should return a cleanup function that will be called
-   * when the cell is removed or the subscription is cancelled.
-   * @param callback - The callback function that receives change options and returns a cleanup function
-   * @returns A function to unsubscribe from cell changes
-   */
-  function subscribeToGraphChange(callback: (change: OnChangeOptions) => () => void) {
-    graphChangeListeners.add(callback);
-    return () => {
-      graphChangeListeners.delete(callback);
-    };
-  }
+  // --- Event Handlers ---
 
-  /**
-   * Subscribes to cell change events in the graph.
-   * The callback receives change information and should return a cleanup function.
-   * @param callback - Function that receives change options and returns a cleanup function
-   * @returns Unsubscribe function to remove the listener
-   */
-  function subscribeToCellChange(callback: (change: OnChangeOptions) => () => void) {
-    cellChangeListeners.add(callback);
-    return () => {
-      cellChangeListeners.delete(callback);
-    };
-  }
-  // Here we handle graph internal changes, it's skipped when there is an active batch
-  const destroy = listenToCellChange(graph, (change) => {
-    for (const listener of cellChangeListeners) {
-      listener(change);
+  const handleCellChange = (change: OnChangeOptions): void => {
+    if (change.options?.isUpdateFromReact) {
+      return;
     }
-    // Store change for later processing in onIncrementalChange
+
     if (change.type === 'reset') {
-      hasReset = true;
-      changedCellIds.clear();
-      pendingChanges.clear();
-    } else {
-      const id = change.cell.id.toString();
-      changedCellIds.add(id);
-      pendingChanges.set(id, change);
-    }
-
-    // Skip if we're syncing from state to prevent circular updates
-    if (isSyncingFromState) return;
-    if (!areBatchUpdatesDisabled && graph.hasActiveBatch()) return;
-    onIncrementalChange();
-  });
-
-  // Track when batches start
-  const onBatchStart = (event: { batchName?: string }) => {
-    batchCounter++;
-    // If we're syncing from state and this is a sync-cells batch, track it
-    if (isSyncingFromState && event.batchName === 'sync-cells') {
-      // This batch is from our syncCells call, so we should ignore its stop event
-    }
-  };
-
-  // We only update batch when there is last one.
-  const onBatchStop = (_event: { batchName?: string }) => {
-    batchCounter--;
-    if (batchCounter > 0) return; // Still in a nested batch
-    if (!areBatchUpdatesDisabled && graph.hasActiveBatch()) return;
-
-    // Reset the flag after batch completes
-    const wasSyncingFromState = isSyncingFromState;
-    if (syncFromStateCounter > 0) {
-      syncFromStateCounter--;
-      isSyncingFromState = syncFromStateCounter > 0;
-    }
-
-    // Reset the updatingStateFromGraph flag after batch completes
-    // This ensures the flag stays set during the entire batch lifecycle
-    if (updatingStateFromGraphCounter > 0) {
-      updatingStateFromGraphCounter--;
-      if (updatingStateFromGraphCounter === 0) {
-        isUpdatingStateFromGraph = false;
-      }
-    }
-
-    // Skip syncing back to React if we were syncing from React
-    // This prevents circular updates: React → Graph (via syncCells) → batch:stop → React
-    if (wasSyncingFromState) {
-      // Still need to call listeners (e.g., for layout state updates) even when syncing from state
-      // Get current changed cells to notify listeners
-      const currentIds = [...changedCellIds];
-      if (hasReset) {
-        const allCells = graph.getCells();
-        const resetChange: OnChangeOptions = {
-          type: 'reset',
-          cells: allCells,
-        };
-        for (const listener of graphChangeListeners) {
-          listener(resetChange);
-        }
-        hasReset = false;
-        changedCellIds.clear();
-        pendingChanges.clear();
-      } else if (currentIds.length > 0) {
-        for (const id of currentIds) {
-          const change = pendingChanges.get(id);
-          if (change) {
-            for (const listener of graphChangeListeners) {
-              listener(change);
-            }
-          }
-        }
-        changedCellIds.clear();
-        pendingChanges.clear();
-      }
-      return;
-    }
-    onIncrementalChange();
-  };
-
-  // If graph has existing cells but store is empty, sync those cells to the store first
-  const syncExistingGraphCellsToStore = () => {
-    if (!store.setState) {
+      scheduleReset(change.cells);
       return;
     }
 
+    if (change.type === 'remove') {
+      scheduleCellDelete(change.cell);
+      return;
+    }
+
+    scheduleCellUpdate(change.cell);
+  };
+
+  // --- Store Sync ---
+
+  const updateGraphFromStore = () => {
     const snapshot = store.getSnapshot();
-    const storeElements = removeDeepReadOnly(snapshot.elements);
-    const storeLinks = removeDeepReadOnly(snapshot.links);
+    const elements = removeDeepReadOnly(snapshot.elements);
+    const links = removeDeepReadOnly(snapshot.links);
 
-    // Only sync if store is empty and graph has cells
-    if (storeElements.length === 0 && storeLinks.length === 0) {
-      const existingElements = graph.getElements().map((element) => {
-        const defaultAttributes = createDefaultGraphToElementMapper(element);
-        return graphToElementSelector({
-          cell: element,
-          graph,
-          defaultAttributes,
-        });
-      }) as Element[];
-      const existingLinks = graph.getLinks().map((link) => {
-        const defaultAttributes = createDefaultGraphToLinkMapper(link);
-        return graphToLinkSelector({
-          cell: link,
-          graph,
-          defaultAttributes,
-        });
-      }) as Link[];
-
-      if (existingElements.length > 0 || existingLinks.length > 0) {
-        // Set flag to prevent syncing graph changes back to React during initialization
-        updatingStateFromGraphCounter++;
-        isUpdatingStateFromGraph = true;
-
-        store.setState((previous) => ({
-          ...previous,
-          elements: existingElements,
-          links: existingLinks,
-        }));
-
-        updatingStateFromGraphCounter--;
-        if (updatingStateFromGraphCounter === 0) {
-          isUpdatingStateFromGraph = false;
-        }
-      }
-    }
-  };
-
-  const updateGraphInternal = () => {
-    // Skip if we're updating state from graph changes
-    // This prevents circular updates: Graph → State → Graph
-    if (isUpdatingStateFromGraph) {
+    // Skip sync if store is empty but graph has cells - the scheduler will populate store first
+    const isStoreEmpty = Object.keys(elements).length === 0 && Object.keys(links).length === 0;
+    const graphHasCells = graph.getElements().length > 0 || graph.getLinks().length > 0;
+    if (isStoreEmpty && graphHasCells) {
       return;
     }
 
-    const snapshot = store.getSnapshot();
-    const elements = removeDeepReadOnly(snapshot.elements) as Element[];
-    const links = removeDeepReadOnly(snapshot.links) as Link[];
-
-    // Set flag to prevent syncing graph changes back to React
-    // This prevents circular updates: React → Graph → React
-    syncFromStateCounter++;
-    isSyncingFromState = true;
-
-    const wasSynced = updateGraph({
+    const wasUpdated = updateGraph({
       graph,
-      elements,
-      links,
-      getIdsSnapshot,
-      graphToElementSelector: graphToElementSelector as unknown as (
-        options: GraphToElementOptions<Element> & { readonly graph: Graph }
-      ) => Element,
-      graphToLinkSelector: graphToLinkSelector as (
-        options: GraphToLinkOptions<Link> & { readonly graph: Graph }
-      ) => Link,
+      elements: elements as Record<string, Element>,
+      links: links as Record<string, Link>,
+      graphToElementSelector: elementSelector,
+      graphToLinkSelector: linkSelector,
       mapDataToElementAttributes: mapDataToElementAttributes as (
         options: ElementToGraphOptions<Element> & { readonly graph: Graph }
       ) => dia.Cell.JSON,
       mapDataToLinkAttributes: mapDataToLinkAttributes as (
         options: LinkToGraphOptions<Link> & { readonly graph: Graph }
       ) => dia.Cell.JSON,
+      isUpdateFromReact: true,
     });
 
-    // Only reset the flag if there's no batch (events were processed synchronously)
-    // If there's a batch, onBatchStop will handle resetting it
-    // We need to check after syncCells because it might have started a batch
-    const shouldResetImmediately =
-      !wasSynced || (wasSynced && batchCounter === 0 && !graph.hasActiveBatch());
-    if (shouldResetImmediately) {
-      syncFromStateCounter--;
-      isSyncingFromState = syncFromStateCounter > 0;
+    // Trigger layout update when graph is updated from store (e.g., via useCellActions)
+    if (wasUpdated && onGraphUpdated) {
+      onGraphUpdated();
     }
-    // If wasSynced is true but batch is active, onBatchStop will handle resetting the flag
-  };
-  // Here we get the external changes and update the graph
-  const clean = store.subscribe(() => {
-    // Check if we should skip this update (we're updating state from graph)
-    if (isUpdatingStateFromGraph) {
-      return;
-    }
-    updateGraphInternal();
-  });
-  // listen to batch start and stop events to track batch lifecycle
-  graph.on(BATCH_START_EVENT_NAME, onBatchStart);
-  graph.on(BATCH_STOP_EVENT_NAME, onBatchStop);
-  const cleanup = () => {
-    graphChangeListeners.clear();
-    destroy();
-    clean();
-    graph.off(BATCH_START_EVENT_NAME, onBatchStart);
-    graph.off(BATCH_STOP_EVENT_NAME, onBatchStop);
   };
 
-  // First, sync existing graph cells to store if store is empty
+  const syncExistingGraphCellsToStore = () => {
+    const snapshot = store.getSnapshot();
+    const hasStoreData =
+      Object.keys(snapshot.elements).length > 0 || Object.keys(snapshot.links).length > 0;
+    if (hasStoreData) {
+      return;
+    }
+
+    const allCells = [...graph.getElements(), ...graph.getLinks()];
+    if (allCells.length === 0) {
+      return;
+    }
+
+    scheduleCellsUpdate(allCells);
+  };
+
+  // --- Setup & Cleanup ---
+
+  const destroyCellListener = listenToCellChange(graph, handleCellChange);
+  const destroyStoreSubscription = store.subscribe(updateGraphFromStore);
+
   syncExistingGraphCellsToStore();
-  // Then, sync store to graph
-  updateGraphInternal();
+  updateGraphFromStore();
+
   return {
-    subscribeToGraphChange,
-    subscribeToCellChange,
-    cleanup,
+    cleanup: () => {
+      destroyCellListener();
+      destroyStoreSubscription();
+    },
   };
 }

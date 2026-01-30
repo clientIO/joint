@@ -1,11 +1,42 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import { useMemo } from 'react';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
-import type { CellWithId } from '../types/cell.types';
 import type { GraphLink } from '../types/link-types';
 import type { GraphStoreSnapshot } from '../store';
 import { useGraphStore } from './use-graph-store';
+
+/**
+ * Normalizes element attributes to the GraphElement format.
+ * Converts nested JointJS format (position: {x, y}, size: {width, height})
+ * to flat format (x, y, width, height).
+ * @param attributes
+ */
+function normalizeElementAttributes<T extends GraphElement>(attributes: T): T {
+  const {
+    position,
+    size,
+    ...rest
+  } = attributes as T & {
+    position?: { x: number; y: number };
+    size?: { width: number; height: number };
+  };
+
+  const normalized = { ...rest } as T;
+
+  // Convert position to flat x, y (prefer position over existing x, y)
+  if (position !== undefined) {
+    (normalized as GraphElement).x = position.x;
+    (normalized as GraphElement).y = position.y;
+  }
+
+  // Convert size to flat width, height (prefer size over existing width, height)
+  if (size !== undefined) {
+    (normalized as GraphElement).width = size.width;
+    (normalized as GraphElement).height = size.height;
+  }
+
+  return normalized;
+}
 
 /**
  * Actions for manipulating cells (elements and links) in the graph.
@@ -15,14 +46,11 @@ interface CellActions<Attributes extends dia.Element | GraphElement> {
   /**
    * Sets or updates a cell in the graph.
    * Can be called in two ways:
-   * 1. With full attributes: `set({ id: '1', ...attributes })`
+   * 1. With ID and attributes: `set('1', { x: 100, y: 150 })`
    * 2. With ID and updater: `set('1', (prev) => ({ ...prev, label: 'New' }))`
    * If the cell doesn't exist, it will be added.
    */
-  set: {
-    (attributes: Attributes): void;
-    (id: dia.Cell.ID, updater: (previous: Attributes) => Attributes): void;
-  };
+  set: (id: dia.Cell.ID, attributesOrUpdater: Attributes | ((previous: Attributes) => Attributes)) => void;
   /**
    * Removes a cell from the graph by its ID.
    * @param id - The ID of the cell to remove
@@ -35,8 +63,8 @@ interface CellActions<Attributes extends dia.Element | GraphElement> {
  * @param cell - The cell to check.
  * @returns True if the cell is a link, false otherwise.
  */
-function isLink(cell: CellWithId): cell is GraphLink {
-  return cell instanceof dia.Link || ('source' in cell && 'target' in cell);
+function isLink(cell: GraphElement | GraphLink): cell is GraphLink {
+  return 'source' in cell && 'target' in cell;
 }
 
 /**
@@ -63,11 +91,11 @@ function isLink(cell: CellWithId): cell is GraphLink {
  * ```tsx
  * const { set, remove } = useCellActions<GraphElement | GraphLink<"standard.Link">>();
  *
- * // Add or update element with full attributes
- * set({ id: '1', position: { x: 100, y: 150 }, width: 100, height: 50 });
+ * // Add or update element with ID and attributes
+ * set('1', { x: 100, y: 150, width: 100, height: 50 });
  *
  * // Update element with updater function (safer, preserves other properties)
- * set('1', (cell) => ({ ...cell, position: { x: 200, y: 250 } }));
+ * set('1', (cell) => ({ ...cell, x: 200, y: 250 }));
  *
  * // Remove element
  * remove('1');
@@ -81,60 +109,43 @@ export function useCellActions<
   return useMemo(
     (): CellActions<Attributes> => ({
       set(
-        attributesOrId: Attributes | dia.Cell.ID,
-        maybeUpdater?: (previousAttributes: Attributes) => Attributes
+        id: dia.Cell.ID,
+        attributesOrUpdater: Attributes | ((previousAttributes: Attributes) => Attributes)
       ) {
         let attributes: Attributes;
         const { elements, links } = publicState.getSnapshot();
-        if (
-          typeof attributesOrId !== 'object' &&
-          maybeUpdater &&
-          typeof maybeUpdater === 'function'
-        ) {
-          const cell: GraphElement | GraphLink | undefined =
-            elements.find((data: GraphElement) => data.id === attributesOrId) ||
-            links.find((data: GraphLink) => data.id === attributesOrId);
 
-          if (!cell) throw new Error(`Cell with id "${attributesOrId}" not found.`);
-          attributes = maybeUpdater(cell as Attributes);
-        } else if (typeof attributesOrId === 'object') {
-          attributes = attributesOrId;
+        if (typeof attributesOrUpdater === 'function') {
+          const cell: GraphElement | GraphLink | undefined = elements[id] || links[id];
+
+          if (!cell) throw new Error(`Cell with id "${id}" not found.`);
+          attributes = attributesOrUpdater(cell as Attributes);
         } else {
-          throw new TypeError('Invalid arguments for set().');
+          attributes = attributesOrUpdater;
         }
 
         const areAttributesLink = isLink(attributes);
-        const targetId = typeof attributesOrId === 'object' ? attributes.id : attributesOrId;
+        const targetId = id;
 
-        let hasElement = false;
-        let hasLink = false;
-        const newLinks = [...links];
-        const newElements = [...elements];
-
-        for (let index = 0; index < newElements.length; index++) {
-          if (newElements[index].id === targetId) {
-            newElements[index] = attributes;
-            hasElement = true;
-            break;
-          }
-        }
-        if (!hasElement) {
-          for (let index = 0; index < newLinks.length; index++) {
-            if (newLinks[index].id === targetId) {
-              newLinks[index] = attributes as GraphLink;
-              hasLink = true;
-              break;
-            }
-          }
-        }
+        const hasElement = targetId in elements;
+        const hasLink = targetId in links;
         const isFound = hasElement || hasLink;
-        if (!isFound) {
+
+        const newElements = { ...elements };
+        const newLinks = { ...links };
+
+        if (hasElement) {
+          newElements[targetId] = normalizeElementAttributes(attributes);
+        } else if (hasLink) {
+          newLinks[targetId] = attributes as GraphLink;
+        } else if (!isFound) {
           if (areAttributesLink) {
-            newLinks.push(attributes as GraphLink);
+            newLinks[targetId] = attributes as GraphLink;
           } else {
-            newElements.push(attributes);
+            newElements[targetId] = normalizeElementAttributes(attributes);
           }
         }
+
         publicState.setState((previous: GraphStoreSnapshot) => ({
           ...previous,
           elements: newElements,

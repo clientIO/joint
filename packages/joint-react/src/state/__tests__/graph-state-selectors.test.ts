@@ -5,9 +5,9 @@ import { ReactElement } from '../../models/react-element';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import {
-  defaultGraphToElementSelector,
+  mapElementAttributesToData,
   defaultMapDataToElementAttributes,
-  defaultGraphToLinkSelector,
+  mapLinkAttributesToData,
   defaultMapDataToLinkAttributes,
   createDefaultElementMapper,
   createDefaultGraphToElementMapper,
@@ -23,19 +23,23 @@ const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
 // Helper functions to create options with defaultAttributes
 const createElementToGraphOptions = <E extends GraphElement>(
+  id: string,
   data: E,
   graph: dia.Graph
 ): ElementToGraphOptions<E> => ({
+  id,
   data,
   graph,
-  defaultAttributes: createDefaultElementMapper(data),
+  defaultAttributes: createDefaultElementMapper(id, data),
 });
 
 const createGraphToElementOptions = <E extends GraphElement>(
+  id: string,
   cell: dia.Element,
   graph: dia.Graph,
   previous?: E
 ): GraphToElementOptions<E> => ({
+  id,
   cell,
   graph,
   previous,
@@ -43,19 +47,23 @@ const createGraphToElementOptions = <E extends GraphElement>(
 });
 
 const createLinkToGraphOptions = <L extends GraphLink>(
+  id: string,
   data: L,
   graph: dia.Graph
 ): LinkToGraphOptions<L> => ({
+  id,
   data,
   graph,
-  defaultAttributes: createDefaultLinkMapper(data, graph),
+  defaultAttributes: createDefaultLinkMapper(id, data, graph),
 });
 
 const createGraphToLinkOptions = <L extends GraphLink>(
+  id: string,
   cell: dia.Link,
   graph: dia.Graph,
   previous?: L
 ): GraphToLinkOptions<L> => ({
+  id,
   cell,
   graph,
   previous,
@@ -75,8 +83,8 @@ describe('graph-state-selectors', () => {
 
   describe('defaultAttributes function', () => {
     it('should pass defaultAttributes in ElementToGraphOptions', () => {
+      const id = 'element-1';
       const data: GraphElement = {
-        id: 'element-1',
         x: 100,
         y: 50,
         width: 200,
@@ -90,7 +98,7 @@ describe('graph-state-selectors', () => {
         return options.defaultAttributes();
       };
 
-      const options = createElementToGraphOptions(data, graph);
+      const options = createElementToGraphOptions(id, data, graph);
       customSelector(options);
 
       expect(receivedDefaultMapper).toBeDefined();
@@ -99,8 +107,8 @@ describe('graph-state-selectors', () => {
 
   describe('defaultMapDataToElementAttributes', () => {
     it('should map element to graph cell JSON', () => {
+      const id = 'element-1';
       const data: GraphElement = {
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -108,7 +116,7 @@ describe('graph-state-selectors', () => {
         type: 'ReactElement',
       };
 
-      const options = createElementToGraphOptions(data, graph);
+      const options = createElementToGraphOptions(id, data, graph);
 
       const elementAsGraphJson = defaultMapDataToElementAttributes(options);
 
@@ -123,12 +131,11 @@ describe('graph-state-selectors', () => {
       graph.syncCells([elementAsGraphJson], { remove: true });
 
       const cell = graph.getCell('element-1') as dia.Element<dia.Element.Attributes>;
-      const elementFromGraph = defaultGraphToElementSelector(
-        createGraphToElementOptions(cell, graph)
+      const elementFromGraph = mapElementAttributesToData(
+        createGraphToElementOptions(id, cell, graph)
       );
 
       expect(elementFromGraph).toMatchObject({
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -137,15 +144,15 @@ describe('graph-state-selectors', () => {
     });
 
     it('should handle element without type (defaults to REACT_TYPE)', () => {
+      const id = 'element-1';
       const data: GraphElement = {
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
         height: 50,
       };
 
-      const options = createElementToGraphOptions(data, graph);
+      const options = createElementToGraphOptions(id, data, graph);
 
       const elementAsGraphJson = defaultMapDataToElementAttributes(options);
 
@@ -155,12 +162,11 @@ describe('graph-state-selectors', () => {
       graph.syncCells([elementAsGraphJson], { remove: true });
 
       const cell = graph.getCell('element-1') as dia.Element<dia.Element.Attributes>;
-      const elementFromGraph = defaultGraphToElementSelector(
-        createGraphToElementOptions(cell, graph)
+      const elementFromGraph = mapElementAttributesToData(
+        createGraphToElementOptions(id, cell, graph)
       );
 
       expect(elementFromGraph).toMatchObject({
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -169,8 +175,8 @@ describe('graph-state-selectors', () => {
     });
 
     it('should preserve all element properties', () => {
+      const id = 'element-1';
       const data: GraphElement = {
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -180,7 +186,7 @@ describe('graph-state-selectors', () => {
         angle: 45,
       };
 
-      const options = createElementToGraphOptions(data, graph);
+      const options = createElementToGraphOptions(id, data, graph);
 
       const elementAsGraphJson = defaultMapDataToElementAttributes(options);
 
@@ -194,12 +200,11 @@ describe('graph-state-selectors', () => {
       graph.syncCells([elementAsGraphJson], { remove: true });
 
       const cell = graph.getCell('element-1') as dia.Element<dia.Element.Attributes>;
-      const elementFromGraph = defaultGraphToElementSelector(
-        createGraphToElementOptions(cell, graph)
+      const elementFromGraph = mapElementAttributesToData(
+        createGraphToElementOptions(id, cell, graph)
       );
 
       expect(elementFromGraph).toMatchObject({
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -210,8 +215,9 @@ describe('graph-state-selectors', () => {
     });
   });
 
-  describe('defaultGraphToElementSelector', () => {
+  describe('mapElementAttributesToData', () => {
     it('should map graph cell to element without previous state', () => {
+      const id = 'element-1';
       const elementAsGraphJson = {
         type: 'ReactElement',
         position: { x: 10, y: 20 },
@@ -221,12 +227,11 @@ describe('graph-state-selectors', () => {
       graph.syncCells([elementAsGraphJson], { remove: true });
       const cell = graph.getCell('element-1') as dia.Element;
 
-      const options = createGraphToElementOptions(cell, graph);
+      const options = createGraphToElementOptions(id, cell, graph);
 
-      const elementFromGraph = defaultGraphToElementSelector(options);
+      const elementFromGraph = mapElementAttributesToData(options);
 
       expect(elementFromGraph).toMatchObject({
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -235,18 +240,17 @@ describe('graph-state-selectors', () => {
 
       // Round-trip: element → graph → element
       const recreatedElementAsGraphJson = defaultMapDataToElementAttributes(
-        createElementToGraphOptions(elementFromGraph, graph)
+        createElementToGraphOptions(id, elementFromGraph, graph)
       );
       graph.clear();
       graph.syncCells([recreatedElementAsGraphJson], { remove: true });
 
       const roundTripCell = graph.getCell('element-1') as dia.Element<dia.Element.Attributes>;
-      const elementFromRoundTrip = defaultGraphToElementSelector(
-        createGraphToElementOptions(roundTripCell, graph)
+      const elementFromRoundTrip = mapElementAttributesToData(
+        createGraphToElementOptions(id, roundTripCell, graph)
       );
 
       expect(elementFromRoundTrip).toMatchObject({
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -255,6 +259,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should map graph cell to element with previous state, filtering properties', () => {
+      const id = 'element-1';
       const elementAsGraphJson = {
         type: 'ReactElement',
         position: { x: 10, y: 20 },
@@ -271,7 +276,6 @@ describe('graph-state-selectors', () => {
       };
 
       const previous: ExtendedElement = {
-        id: 'element-1',
         x: 5,
         y: 15,
         width: 80,
@@ -280,13 +284,12 @@ describe('graph-state-selectors', () => {
         // extraProp is not in previous, so it should be filtered out
       };
 
-      const options = createGraphToElementOptions(cell, graph, previous);
+      const options = createGraphToElementOptions(id, cell, graph, previous);
 
-      const result = defaultGraphToElementSelector(options);
+      const result = mapElementAttributesToData(options);
 
       // Should only include properties that exist in previous state
       expect(result).toMatchObject({
-        id: 'element-1',
         x: 10, // Updated from graph
         y: 20, // Updated from graph
         width: 100, // Updated from graph
@@ -299,6 +302,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should preserve undefined properties from previous state', () => {
+      const id = 'element-1';
       const elementAsGraphJson = {
         type: 'ReactElement',
         position: { x: 10, y: 20 },
@@ -313,7 +317,6 @@ describe('graph-state-selectors', () => {
       };
 
       const previous: ExtendedElement = {
-        id: 'element-1',
         x: 5,
         y: 15,
         width: 80,
@@ -321,9 +324,9 @@ describe('graph-state-selectors', () => {
         customProp: undefined, // Explicitly undefined in previous
       };
 
-      const options = createGraphToElementOptions(cell, graph, previous);
+      const options = createGraphToElementOptions(id, cell, graph, previous);
 
-      const result = defaultGraphToElementSelector(options);
+      const result = mapElementAttributesToData(options);
 
       // Should include customProp even though it's undefined in previous
       expect(result).toHaveProperty('customProp');
@@ -331,6 +334,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should handle element with non-REACT_TYPE', () => {
+      const id = 'element-1';
       const elementAsGraphJson = {
         type: 'standard.Rectangle',
         position: { x: 10, y: 20 },
@@ -340,14 +344,15 @@ describe('graph-state-selectors', () => {
       graph.syncCells([elementAsGraphJson], { remove: true });
       const cell = graph.getCell('element-1') as dia.Element;
 
-      const options = createGraphToElementOptions(cell, graph);
+      const options = createGraphToElementOptions(id, cell, graph);
 
-      const elementFromGraph = defaultGraphToElementSelector(options);
+      const elementFromGraph = mapElementAttributesToData(options);
 
-      expect(elementFromGraph.type).toBe('standard.Rectangle');
+      expect(elementFromGraph.type).toBeUndefined();
     });
 
     it('should extract ports from cell', () => {
+      const id = 'element-1';
       const ports = {
         items: [
           {
@@ -366,9 +371,9 @@ describe('graph-state-selectors', () => {
       graph.syncCells([elementAsGraphJson], { remove: true });
       const cell = graph.getCell('element-1') as dia.Element;
 
-      const options = createGraphToElementOptions(cell, graph);
+      const options = createGraphToElementOptions(id, cell, graph);
 
-      const result = defaultGraphToElementSelector(options);
+      const result = mapElementAttributesToData(options);
 
       expect(result.ports).toEqual(ports);
     });
@@ -376,14 +381,14 @@ describe('graph-state-selectors', () => {
 
   describe('defaultMapDataToLinkAttributes', () => {
     it('should map link to graph cell JSON', () => {
+      const id = 'link-1';
       const link: GraphLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
       };
 
-      const options = createLinkToGraphOptions(link, graph);
+      const options = createLinkToGraphOptions(id, link, graph);
 
       const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
@@ -398,10 +403,9 @@ describe('graph-state-selectors', () => {
       graph.syncCells([linkAsGraphJson], { remove: true });
 
       const linkCell = graph.getCell('link-1') as dia.Link<dia.Link.Attributes>;
-      const linkFromGraph = defaultGraphToLinkSelector(createGraphToLinkOptions(linkCell, graph));
+      const linkFromGraph = mapLinkAttributesToData(createGraphToLinkOptions(id, linkCell, graph));
 
       expect(linkFromGraph).toMatchObject({
-        id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         type: 'standard.Link',
@@ -409,14 +413,14 @@ describe('graph-state-selectors', () => {
     });
 
     it('should handle link with object source and target', () => {
+      const id = 'link-1';
       const link: GraphLink = {
-        id: 'link-1',
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
         type: 'standard.Link',
       };
 
-      const options = createLinkToGraphOptions(link, graph);
+      const options = createLinkToGraphOptions(id, link, graph);
 
       const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
@@ -431,10 +435,9 @@ describe('graph-state-selectors', () => {
       graph.syncCells([linkAsGraphJson], { remove: true });
 
       const linkCell = graph.getCell('link-1') as dia.Link<dia.Link.Attributes>;
-      const linkFromGraph = defaultGraphToLinkSelector(createGraphToLinkOptions(linkCell, graph));
+      const linkFromGraph = mapLinkAttributesToData(createGraphToLinkOptions(id, linkCell, graph));
 
       expect(linkFromGraph).toMatchObject({
-        id: 'link-1',
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
         type: 'standard.Link',
@@ -442,8 +445,8 @@ describe('graph-state-selectors', () => {
     });
 
     it('should merge attrs with defaults from cell namespace', () => {
+      const id = 'link-1';
       const link: GraphLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -454,7 +457,7 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const options = createLinkToGraphOptions(link, graph);
+      const options = createLinkToGraphOptions(id, link, graph);
 
       const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
@@ -463,8 +466,8 @@ describe('graph-state-selectors', () => {
     });
 
     it('should preserve all link properties', () => {
+      const id = 'link-1';
       const link: GraphLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -473,7 +476,7 @@ describe('graph-state-selectors', () => {
         defaultLabel: { markup: [{ tagName: 'text' }] },
       };
 
-      const options = createLinkToGraphOptions(link, graph);
+      const options = createLinkToGraphOptions(id, link, graph);
 
       const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
@@ -486,8 +489,9 @@ describe('graph-state-selectors', () => {
     });
   });
 
-  describe('defaultGraphToLinkSelector', () => {
+  describe('mapLinkAttributesToData', () => {
     it('should map graph link to link without previous state', () => {
+      const id = 'link-1';
       const linkAsGraphJson = {
         type: 'standard.Link',
         source: { id: 'element-1' },
@@ -498,12 +502,11 @@ describe('graph-state-selectors', () => {
       graph.syncCells([linkAsGraphJson], { remove: true });
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      const options = createGraphToLinkOptions(linkCell, graph);
+      const options = createGraphToLinkOptions(id, linkCell, graph);
 
-      const linkFromGraph = defaultGraphToLinkSelector(options);
+      const linkFromGraph = mapLinkAttributesToData(options);
 
       expect(linkFromGraph).toMatchObject({
-        id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         type: 'standard.Link',
@@ -512,6 +515,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should map graph link to link with previous state, filtering properties', () => {
+      const id = 'link-1';
       const linkAsGraphJson = {
         type: 'standard.Link',
         source: { id: 'element-1' },
@@ -529,7 +533,6 @@ describe('graph-state-selectors', () => {
       };
 
       const previous: ExtendedLink = {
-        id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         type: 'standard.Link',
@@ -538,13 +541,12 @@ describe('graph-state-selectors', () => {
         // extraProp is not in previous, so it should be filtered out
       };
 
-      const options = createGraphToLinkOptions(linkCell, graph, previous);
+      const options = createGraphToLinkOptions(id, linkCell, graph, previous);
 
-      const linkFromGraph = defaultGraphToLinkSelector(options);
+      const linkFromGraph = mapLinkAttributesToData(options);
 
       // Should only include properties that exist in previous state
       expect(linkFromGraph).toMatchObject({
-        id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         type: 'standard.Link',
@@ -557,6 +559,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should preserve undefined properties from previous state', () => {
+      const id = 'link-1';
       const linkAsGraphJson = {
         type: 'standard.Link',
         source: { id: 'element-1' },
@@ -571,16 +574,15 @@ describe('graph-state-selectors', () => {
       };
 
       const previous: ExtendedLink = {
-        id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         type: 'standard.Link',
         customProp: undefined, // Explicitly undefined in previous
       };
 
-      const options = createGraphToLinkOptions(linkCell, graph, previous);
+      const options = createGraphToLinkOptions(id, linkCell, graph, previous);
 
-      const linkFromGraph = defaultGraphToLinkSelector(options);
+      const linkFromGraph = mapLinkAttributesToData(options);
 
       // Should include customProp even though it's undefined in previous
       expect(linkFromGraph).toHaveProperty('customProp');
@@ -588,6 +590,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should extract source and target from cell', () => {
+      const id = 'link-1';
       const linkAsGraphJson = {
         type: 'standard.Link',
         source: { id: 'element-1', port: 'port-1' },
@@ -597,15 +600,16 @@ describe('graph-state-selectors', () => {
       graph.syncCells([linkAsGraphJson], { remove: true });
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      const options = createGraphToLinkOptions(linkCell, graph);
+      const options = createGraphToLinkOptions(id, linkCell, graph);
 
-      const linkFromGraph = defaultGraphToLinkSelector(options);
+      const linkFromGraph = mapLinkAttributesToData(options);
 
       expect(linkFromGraph.source).toEqual({ id: 'element-1', port: 'port-1' });
       expect(linkFromGraph.target).toEqual({ id: 'element-2', port: 'port-2' });
     });
 
     it('should extract z, markup, and defaultLabel from cell', () => {
+      const id = 'link-1';
       const linkAsGraphJson = {
         type: 'standard.Link',
         source: { id: 'element-1' },
@@ -618,9 +622,9 @@ describe('graph-state-selectors', () => {
       graph.syncCells([linkAsGraphJson], { remove: true });
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      const options = createGraphToLinkOptions(linkCell, graph);
+      const options = createGraphToLinkOptions(id, linkCell, graph);
 
-      const linkFromGraph = defaultGraphToLinkSelector(options);
+      const linkFromGraph = mapLinkAttributesToData(options);
 
       expect(linkFromGraph.z).toBe(10);
       expect(linkFromGraph.markup).toEqual([{ tagName: 'path' }]);
@@ -628,6 +632,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should include all cell attributes when no previous state', () => {
+      const id = 'link-1';
       const linkAsGraphJson = {
         type: 'standard.Link',
         source: { id: 'element-1' },
@@ -643,9 +648,9 @@ describe('graph-state-selectors', () => {
       graph.syncCells([linkAsGraphJson], { remove: true });
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      const options = createGraphToLinkOptions(linkCell, graph);
+      const options = createGraphToLinkOptions(id, linkCell, graph);
 
-      const linkFromGraph = defaultGraphToLinkSelector(options);
+      const linkFromGraph = mapLinkAttributesToData(options);
 
       expect(linkFromGraph.attrs).toBeDefined();
       expect(linkFromGraph.attrs).toMatchObject({
@@ -659,6 +664,7 @@ describe('graph-state-selectors', () => {
 
   describe('integration: state is source of truth', () => {
     it('should not add new properties from graph when previous state exists', () => {
+      const id = 'element-1';
       // Create element in graph with extra properties
       const elementAsGraphJson = {
         type: 'ReactElement',
@@ -672,7 +678,6 @@ describe('graph-state-selectors', () => {
 
       // Previous state only has specific properties
       const previous: GraphElement = {
-        id: 'element-1',
         x: 5,
         y: 15,
         width: 80,
@@ -680,19 +685,20 @@ describe('graph-state-selectors', () => {
         // graphOnlyProp and anotherGraphProp are NOT in previous state
       };
 
-      const options = createGraphToElementOptions(cell, graph, previous);
+      const options = createGraphToElementOptions(id, cell, graph, previous);
 
-      const elementFromGraph = defaultGraphToElementSelector(options);
+      const elementFromGraph = mapElementAttributesToData(options);
 
       // Should only have properties from previous state
       expect(elementFromGraph).not.toHaveProperty('graphOnlyProp');
       expect(elementFromGraph).not.toHaveProperty('anotherGraphProp');
       expect(Object.keys(elementFromGraph).toSorted()).toEqual(
-        ['id', 'x', 'y', 'width', 'height'].toSorted()
+        ['x', 'y', 'width', 'height'].toSorted()
       );
     });
 
     it('should update existing properties from graph even if undefined in previous', () => {
+      const id = 'element-1';
       const elementAsGraphJson = {
         type: 'ReactElement',
         position: { x: 10, y: 20 },
@@ -708,7 +714,6 @@ describe('graph-state-selectors', () => {
       };
 
       const previous: ExtendedElement = {
-        id: 'element-1',
         x: 5,
         y: 15,
         width: 80,
@@ -716,9 +721,9 @@ describe('graph-state-selectors', () => {
         customProp: undefined, // Exists but undefined
       };
 
-      const options = createGraphToElementOptions(cell, graph, previous);
+      const options = createGraphToElementOptions(id, cell, graph, previous);
 
-      const elementFromGraph = defaultGraphToElementSelector(options);
+      const elementFromGraph = mapElementAttributesToData(options);
 
       // Should update customProp from graph data
       expect((elementFromGraph as ExtendedElement).customProp).toBe('updated-value');
@@ -727,8 +732,8 @@ describe('graph-state-selectors', () => {
 
   describe('integration: links with syncCells', () => {
     it('should handle link round-trip using syncCells', () => {
+      const id = 'link-1';
       const link: GraphLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -736,7 +741,7 @@ describe('graph-state-selectors', () => {
       };
 
       // Convert link to graph JSON
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
 
       // Store in graph using syncCells
       graph.syncCells([linkAsGraphJson], { remove: true });
@@ -746,12 +751,11 @@ describe('graph-state-selectors', () => {
       expect(graphLinkCell).toBeDefined();
 
       // Convert back to link
-      const linkFromGraph = defaultGraphToLinkSelector(
-        createGraphToLinkOptions(graphLinkCell, graph)
+      const linkFromGraph = mapLinkAttributesToData(
+        createGraphToLinkOptions(id, graphLinkCell, graph)
       );
 
       expect(linkFromGraph).toMatchObject({
-        id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         type: 'standard.Link',
@@ -760,8 +764,8 @@ describe('graph-state-selectors', () => {
     });
 
     it('should handle link with complex properties using syncCells', () => {
+      const id = 'link-1';
       const link: GraphLink = {
-        id: 'link-1',
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
         type: 'standard.Link',
@@ -776,17 +780,16 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
-      const linkFromGraph = defaultGraphToLinkSelector(
-        createGraphToLinkOptions(graphLinkCell, graph)
+      const linkFromGraph = mapLinkAttributesToData(
+        createGraphToLinkOptions(id, graphLinkCell, graph)
       );
 
       expect(linkFromGraph).toMatchObject({
-        id: 'link-1',
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
         type: 'standard.Link',
@@ -804,8 +807,8 @@ describe('graph-state-selectors', () => {
         anotherProp?: number;
       };
 
+      const id = 'link-1';
       const link: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -815,7 +818,7 @@ describe('graph-state-selectors', () => {
         anotherProp: 42,
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
 
       // Add extra properties to graph JSON that don't exist in state
       const linkWithExtraProps = {
@@ -827,7 +830,6 @@ describe('graph-state-selectors', () => {
       graph.syncCells([linkWithExtraProps], { remove: true });
 
       const previous: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -838,13 +840,12 @@ describe('graph-state-selectors', () => {
       };
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
-      const linkFromGraph = defaultGraphToLinkSelector(
-        createGraphToLinkOptions(graphLinkCell, graph, previous)
+      const linkFromGraph = mapLinkAttributesToData(
+        createGraphToLinkOptions(id, graphLinkCell, graph, previous)
       );
 
       // Should only include properties that exist in previous state
       expect(linkFromGraph).toMatchObject({
-        id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         type: 'standard.Link',
@@ -865,79 +866,89 @@ describe('graph-state-selectors', () => {
         metadata?: Record<string, unknown>;
       };
 
-      const links: ExtendedLink[] = [
+      const links: Array<{ id: string; data: ExtendedLink }> = [
         {
           id: 'link-1',
-          source: 'element-1',
-          target: 'element-2',
-          type: 'standard.Link',
-          z: 1,
-          label: 'Link 1',
+          data: {
+            source: 'element-1',
+            target: 'element-2',
+            type: 'standard.Link',
+            z: 1,
+            label: 'Link 1',
+          },
         },
         {
           id: 'link-2',
-          source: 'element-2',
-          target: 'element-3',
-          type: 'standard.Link',
-          z: 2,
-          metadata: { key: 'value' },
+          data: {
+            source: 'element-2',
+            target: 'element-3',
+            type: 'standard.Link',
+            z: 2,
+            metadata: { key: 'value' },
+          },
         },
       ];
 
-      const linksAsGraphJson = links.map((link) =>
-        defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph))
+      const linksAsGraphJson = links.map(({ id, data }) =>
+        defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, data, graph))
       );
 
       graph.syncCells(linksAsGraphJson, { remove: true });
 
       // Previous state only has specific properties for each link
-      const previousLinks: ExtendedLink[] = [
+      const previousLinks: Array<{ id: string; data: ExtendedLink }> = [
         {
           id: 'link-1',
-          source: 'element-1',
-          target: 'element-2',
-          type: 'standard.Link',
-          z: 0, // Exists in previous
-          label: undefined, // Exists but undefined
+          data: {
+            source: 'element-1',
+            target: 'element-2',
+            type: 'standard.Link',
+            z: 0, // Exists in previous
+            label: undefined, // Exists but undefined
+          },
         },
         {
           id: 'link-2',
-          source: 'element-2',
-          target: 'element-3',
-          type: 'standard.Link',
-          z: 0, // Exists in previous
-          metadata: undefined, // Exists but undefined
+          data: {
+            source: 'element-2',
+            target: 'element-3',
+            type: 'standard.Link',
+            z: 0, // Exists in previous
+            metadata: undefined, // Exists but undefined
+          },
         },
       ];
 
       const retrievedLinks = graph.getLinks().map((graphLinkCell) => {
-        const previous = previousLinks.find((l) => l.id === graphLinkCell.id);
-        return defaultGraphToLinkSelector(createGraphToLinkOptions(graphLinkCell, graph, previous));
+        const id = graphLinkCell.id as string;
+        const previous = previousLinks.find((l) => l.id === id)?.data;
+        return {
+          id,
+          data: mapLinkAttributesToData(createGraphToLinkOptions(id, graphLinkCell, graph, previous)),
+        };
       });
 
       expect(retrievedLinks).toHaveLength(2);
 
       const link1 = retrievedLinks.find((l) => l.id === 'link-1');
-      expect(link1).toMatchObject({
-        id: 'link-1',
+      expect(link1?.data).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         type: 'standard.Link',
         z: 1, // Updated from graph
         label: 'Link 1', // Updated from graph data
       });
-      expect(link1).not.toHaveProperty('metadata');
+      expect(link1?.data).not.toHaveProperty('metadata');
 
       const link2 = retrievedLinks.find((l) => l.id === 'link-2');
-      expect(link2).toMatchObject({
-        id: 'link-2',
+      expect(link2?.data).toMatchObject({
         source: { id: 'element-2' },
         target: { id: 'element-3' },
         type: 'standard.Link',
         z: 2, // Updated from graph
         metadata: { key: 'value' }, // Updated from graph data
       });
-      expect(link2).not.toHaveProperty('label');
+      expect(link2?.data).not.toHaveProperty('label');
     });
 
     it('should preserve undefined properties from previous state when using syncCells', () => {
@@ -946,20 +957,19 @@ describe('graph-state-selectors', () => {
         anotherOptionalProp?: number;
       };
 
+      const id = 'link-1';
       const link: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
         optionalProp: 'has-value',
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
       const previous: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -968,8 +978,8 @@ describe('graph-state-selectors', () => {
       };
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
-      const linkFromGraph = defaultGraphToLinkSelector(
-        createGraphToLinkOptions(graphLinkCell, graph, previous)
+      const linkFromGraph = mapLinkAttributesToData(
+        createGraphToLinkOptions(id, graphLinkCell, graph, previous)
       );
 
       // Should include optionalProp with value from graph data
@@ -985,9 +995,9 @@ describe('graph-state-selectors', () => {
         weight?: number;
       };
 
+      const id = 'link-1';
       // Initial link
       const initialLink: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -996,14 +1006,13 @@ describe('graph-state-selectors', () => {
       };
 
       const initialLinkAsGraphJson = defaultMapDataToLinkAttributes(
-        createLinkToGraphOptions(initialLink, graph)
+        createLinkToGraphOptions(id, initialLink, graph)
       );
 
       graph.syncCells([initialLinkAsGraphJson], { remove: true });
 
       // Update link with new values
-      const updatedLink: ExtendedLink = {
-        id: 'link-1',
+      const updatedLink: ExtendedLink & { newProp?: string } = {
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -1013,14 +1022,13 @@ describe('graph-state-selectors', () => {
       };
 
       const updatedLinkAsGraphJson = defaultMapDataToLinkAttributes(
-        createLinkToGraphOptions(updatedLink, graph)
+        createLinkToGraphOptions(id, updatedLink, graph)
       );
 
       graph.syncCells([updatedLinkAsGraphJson], { remove: true });
 
       // Previous state only has status and weight
       const previous: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -1029,13 +1037,12 @@ describe('graph-state-selectors', () => {
       };
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
-      const linkFromGraph = defaultGraphToLinkSelector(
-        createGraphToLinkOptions(graphLinkCell, graph, previous)
+      const linkFromGraph = mapLinkAttributesToData(
+        createGraphToLinkOptions(id, graphLinkCell, graph, previous)
       );
 
       // Should only include properties from previous state
       expect(linkFromGraph).toMatchObject({
-        id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         type: 'standard.Link',
@@ -1048,8 +1055,8 @@ describe('graph-state-selectors', () => {
     });
 
     it('should handle link with attrs merging when using syncCells', () => {
+      const id = 'link-1';
       const link: GraphLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -1061,13 +1068,13 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
-      const linkFromGraph = defaultGraphToLinkSelector(
-        createGraphToLinkOptions(graphLinkCell, graph)
+      const linkFromGraph = mapLinkAttributesToData(
+        createGraphToLinkOptions(id, graphLinkCell, graph)
       );
 
       expect(linkFromGraph.attrs).toBeDefined();
@@ -1087,9 +1094,9 @@ describe('graph-state-selectors', () => {
         anotherNewProperty?: number;
       };
 
+      const id = 'element-1';
       // Create element in graph with new properties
       const element: ExtendedElement = {
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -1099,14 +1106,13 @@ describe('graph-state-selectors', () => {
       };
 
       const elementAsGraphJson = defaultMapDataToElementAttributes(
-        createElementToGraphOptions(element, graph)
+        createElementToGraphOptions(id, element, graph)
       );
 
       graph.syncCells([elementAsGraphJson], { remove: true });
 
       // Previous state has newProperty defined (but undefined) and anotherNewProperty defined
       const previous: ExtendedElement = {
-        id: 'element-1',
         x: 5,
         y: 15,
         width: 80,
@@ -1116,8 +1122,8 @@ describe('graph-state-selectors', () => {
       };
 
       const graphElement = graph.getCell('element-1') as dia.Element;
-      const elementFromGraph = defaultGraphToElementSelector(
-        createGraphToElementOptions(graphElement, graph, previous)
+      const elementFromGraph = mapElementAttributesToData(
+        createGraphToElementOptions(id, graphElement, graph, previous)
       );
 
       // Should return newProperty with value from graph data
@@ -1133,9 +1139,9 @@ describe('graph-state-selectors', () => {
         metadata?: Record<string, unknown>;
       };
 
+      const id = 'link-1';
       // Create link in graph with new properties
       const link: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -1144,13 +1150,12 @@ describe('graph-state-selectors', () => {
         metadata: { key: 'value' },
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
       // Previous state has all properties defined (some undefined)
       const previous: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -1160,8 +1165,8 @@ describe('graph-state-selectors', () => {
       };
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
-      const linkFromGraph = defaultGraphToLinkSelector(
-        createGraphToLinkOptions(graphLinkCell, graph, previous)
+      const linkFromGraph = mapLinkAttributesToData(
+        createGraphToLinkOptions(id, graphLinkCell, graph, previous)
       );
 
       // Should return all properties with values from graph data
@@ -1178,8 +1183,8 @@ describe('graph-state-selectors', () => {
         score?: number;
       };
 
+      const id = 'element-1';
       const element: ExtendedElement = {
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -1191,14 +1196,13 @@ describe('graph-state-selectors', () => {
       };
 
       const elementAsGraphJson = defaultMapDataToElementAttributes(
-        createElementToGraphOptions(element, graph)
+        createElementToGraphOptions(id, element, graph)
       );
 
       graph.syncCells([elementAsGraphJson], { remove: true });
 
       // Previous state defines all properties (some undefined)
       const previous: ExtendedElement = {
-        id: 'element-1',
         x: 5,
         y: 15,
         width: 80,
@@ -1210,8 +1214,8 @@ describe('graph-state-selectors', () => {
       };
 
       const graphElement = graph.getCell('element-1') as dia.Element;
-      const elementFromGraph = defaultGraphToElementSelector(
-        createGraphToElementOptions(graphElement, graph, previous)
+      const elementFromGraph = mapElementAttributesToData(
+        createGraphToElementOptions(id, graphElement, graph, previous)
       );
 
       // All properties should be returned with values from graph data
@@ -1231,8 +1235,8 @@ describe('graph-state-selectors', () => {
         customData?: Record<string, unknown>;
       };
 
+      const id = 'link-1';
       const link: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -1250,24 +1254,22 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
       // Previous state defines all properties (all undefined)
       const previous: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
         config: undefined,
-        labels: undefined,
         customData: undefined,
       };
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
-      const linkFromGraph = defaultGraphToLinkSelector(
-        createGraphToLinkOptions(graphLinkCell, graph, previous)
+      const linkFromGraph = mapLinkAttributesToData(
+        createGraphToLinkOptions(id, graphLinkCell, graph, previous)
       );
 
       // All complex properties should be returned with values from graph data
@@ -1275,10 +1277,6 @@ describe('graph-state-selectors', () => {
         style: 'dashed',
         animation: true,
       });
-      expect((linkFromGraph as ExtendedLink).labels).toEqual([
-        { text: 'Label 1', position: 0.3 },
-        { text: 'Label 2', position: 0.7 },
-      ]);
       expect((linkFromGraph as ExtendedLink).customData).toEqual({
         source: 'api',
         timestamp: 1_234_567_890,
@@ -1292,8 +1290,8 @@ describe('graph-state-selectors', () => {
         notInPreviousProperty?: boolean;
       };
 
+      const id = 'element-1';
       const element: ExtendedElement = {
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -1304,14 +1302,13 @@ describe('graph-state-selectors', () => {
       };
 
       const elementAsGraphJson = defaultMapDataToElementAttributes(
-        createElementToGraphOptions(element, graph)
+        createElementToGraphOptions(id, element, graph)
       );
 
       graph.syncCells([elementAsGraphJson], { remove: true });
 
       // Previous state only defines some properties
       const previous: ExtendedElement = {
-        id: 'element-1',
         x: 5,
         y: 15,
         width: 80,
@@ -1322,8 +1319,8 @@ describe('graph-state-selectors', () => {
       };
 
       const graphElement = graph.getCell('element-1') as dia.Element;
-      const elementFromGraph = defaultGraphToElementSelector(
-        createGraphToElementOptions(graphElement, graph, previous)
+      const elementFromGraph = mapElementAttributesToData(
+        createGraphToElementOptions(id, graphElement, graph, previous)
       );
 
       // Properties defined in previous should be returned from graph data
@@ -1340,8 +1337,8 @@ describe('graph-state-selectors', () => {
         weight?: number;
       };
 
+      const id = 'link-1';
       const link: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -1351,13 +1348,12 @@ describe('graph-state-selectors', () => {
         weight: 10, // New property
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
       // Previous state has both existing and new properties
       const previous: ExtendedLink = {
-        id: 'link-1',
         source: 'element-1',
         target: 'element-2',
         type: 'standard.Link',
@@ -1367,8 +1363,8 @@ describe('graph-state-selectors', () => {
       };
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
-      const linkFromGraph = defaultGraphToLinkSelector(
-        createGraphToLinkOptions(graphLinkCell, graph, previous)
+      const linkFromGraph = mapLinkAttributesToData(
+        createGraphToLinkOptions(id, graphLinkCell, graph, previous)
       );
 
       // All properties should be returned
@@ -1383,9 +1379,9 @@ describe('graph-state-selectors', () => {
         lastModified?: string;
       };
 
+      const id = 'element-1';
       // Initial element without new properties
       const initialElement: ExtendedElement = {
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -1393,14 +1389,13 @@ describe('graph-state-selectors', () => {
       };
 
       const initialElementAsGraphJson = defaultMapDataToElementAttributes(
-        createElementToGraphOptions(initialElement, graph)
+        createElementToGraphOptions(id, initialElement, graph)
       );
 
       graph.syncCells([initialElementAsGraphJson], { remove: true });
 
       // Update element with new properties
       const updatedElement: ExtendedElement = {
-        id: 'element-1',
         x: 15,
         y: 25,
         width: 120,
@@ -1410,14 +1405,13 @@ describe('graph-state-selectors', () => {
       };
 
       const updatedElementAsGraphJson = defaultMapDataToElementAttributes(
-        createElementToGraphOptions(updatedElement, graph)
+        createElementToGraphOptions(id, updatedElement, graph)
       );
 
       graph.syncCells([updatedElementAsGraphJson], { remove: true });
 
       // Previous state now includes the new properties
       const previous: ExtendedElement = {
-        id: 'element-1',
         x: 10,
         y: 20,
         width: 100,
@@ -1427,8 +1421,8 @@ describe('graph-state-selectors', () => {
       };
 
       const graphElement = graph.getCell('element-1') as dia.Element;
-      const elementFromGraph = defaultGraphToElementSelector(
-        createGraphToElementOptions(graphElement, graph, previous)
+      const elementFromGraph = mapElementAttributesToData(
+        createGraphToElementOptions(id, graphElement, graph, previous)
       );
 
       // Should return all properties including new ones from graph data
@@ -1444,8 +1438,8 @@ describe('graph-state-selectors', () => {
   describe('custom selector with defaultAttributes', () => {
     it('should allow using defaultAttributes as-is', () => {
       type CustomElement = GraphElement & { label: string };
+      const id = 'node1';
       const element: CustomElement = {
-        id: 'node1',
         x: 100,
         y: 50,
         width: 200,
@@ -1457,8 +1451,8 @@ describe('graph-state-selectors', () => {
         return options.defaultAttributes();
       };
 
-      const defaultAttributes = createDefaultElementMapper(element);
-      const result = customSelector({ data: element, graph, defaultAttributes });
+      const defaultAttributes = createDefaultElementMapper(id, element);
+      const result = customSelector({ id, data: element, graph, defaultAttributes });
 
       expect(result.data).toEqual({ label: 'Test' });
       expect(result.position).toEqual({ x: 100, y: 50 });
@@ -1466,8 +1460,8 @@ describe('graph-state-selectors', () => {
 
     it('should allow modifying defaultAttributes result', () => {
       type CustomElement = GraphElement & { label: string };
+      const id = 'node1';
       const element: CustomElement = {
-        id: 'node1',
         x: 100,
         y: 50,
         width: 200,
@@ -1481,8 +1475,8 @@ describe('graph-state-selectors', () => {
         return base;
       };
 
-      const defaultAttributes = createDefaultElementMapper(element);
-      const result = customSelector({ data: element, graph, defaultAttributes });
+      const defaultAttributes = createDefaultElementMapper(id, element);
+      const result = customSelector({ id, data: element, graph, defaultAttributes });
 
       expect(result.attrs).toEqual({ root: { fill: 'red' } });
       expect(result.data).toEqual({ label: 'Test' });
@@ -1490,8 +1484,8 @@ describe('graph-state-selectors', () => {
 
     it('should allow custom selector to ignore defaultAttributes and return custom result', () => {
       type CustomElement = GraphElement & { label: string };
+      const id = 'node1';
       const element: CustomElement = {
-        id: 'node1',
         x: 100,
         y: 50,
         width: 200,
@@ -1502,14 +1496,14 @@ describe('graph-state-selectors', () => {
       const customSelector = (options: ElementToGraphOptions<CustomElement>) => {
         // Ignore defaultAttributes and return completely custom result
         return {
-          id: options.data.id,
+          id: options.id,
           type: 'custom.Element',
           customData: { label: options.data.label },
         };
       };
 
-      const defaultAttributes = createDefaultElementMapper(element);
-      const result = customSelector({ data: element, graph, defaultAttributes });
+      const defaultAttributes = createDefaultElementMapper(id, element);
+      const result = customSelector({ id, data: element, graph, defaultAttributes });
 
       expect(result.type).toBe('custom.Element');
       expect(result.customData).toEqual({ label: 'Test' });
@@ -1519,8 +1513,8 @@ describe('graph-state-selectors', () => {
 
     it('should allow custom link selector to use defaultAttributes', () => {
       type CustomLink = GraphLink & { weight: number };
+      const id = 'link1';
       const data: CustomLink = {
-        id: 'link1',
         source: 'node1',
         target: 'node2',
         weight: 5,
@@ -1530,8 +1524,8 @@ describe('graph-state-selectors', () => {
         return options.defaultAttributes();
       };
 
-      const defaultAttributes = createDefaultLinkMapper(data, graph);
-      const result = customSelector({ data, graph, defaultAttributes });
+      const defaultAttributes = createDefaultLinkMapper(id, data, graph);
+      const result = customSelector({ id, data, graph, defaultAttributes });
 
       expect(result.data).toEqual({ weight: 5 });
       expect(result.source).toEqual({ id: 'node1' });
@@ -1540,8 +1534,8 @@ describe('graph-state-selectors', () => {
 
     it('should allow custom link selector to modify defaultAttributes result', () => {
       type CustomLink = GraphLink & { weight: number };
+      const id = 'link1';
       const data: CustomLink = {
-        id: 'link1',
         source: 'node1',
         target: 'node2',
         weight: 5,
@@ -1553,8 +1547,8 @@ describe('graph-state-selectors', () => {
         return base;
       };
 
-      const defaultAttributes = createDefaultLinkMapper(data, graph);
-      const result = customSelector({ data, graph, defaultAttributes });
+      const defaultAttributes = createDefaultLinkMapper(id, data, graph);
+      const result = customSelector({ id, data, graph, defaultAttributes });
 
       expect(result.attrs).toEqual({ line: { stroke: 'blue', strokeWidth: 2 } });
       expect(result.data).toEqual({ weight: 5 });

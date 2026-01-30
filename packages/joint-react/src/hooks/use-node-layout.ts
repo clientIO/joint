@@ -54,6 +54,6 @@ export function useNodeLayout<Id extends dia.Cell.ID | undefined = undefined>(
   }
 
   return useStoreSelector(layoutState, (snapshot) => {
-    return snapshot.layouts[actualId];
+    return snapshot.elements[actualId];
   });
 }

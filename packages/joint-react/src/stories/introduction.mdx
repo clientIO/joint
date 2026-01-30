@@ -69,16 +69,16 @@ Use the graph APIs to update state. Hooks provide convenient access:
 - {getAPIDocumentationLink('usePaper')}: Access the JointJS [Paper](https://docs.jointjs.com/learn/quickstart/paper/)
 
 ### 🔹 Creating Nodes and Links
-Elements and links are plain objects with at least an `id` field and geometry properties.
+Elements and links are plain objects with geometry properties. They are stored as Records keyed by their ID.
 
 ```ts
-const initialElements = [
-  { id: '1', type: 'rect', x: 10, y: 10, width: 100, height: 100 },
-];
+const initialElements = {
+  '1': { type: 'rect', x: 10, y: 10, width: 100, height: 100 },
+};
 
-const initialLinks = [
-  { id: '1-2', source: '1', target: '2' },
-];
+const initialLinks = {
+  '1-2': { source: '1', target: '2' },
+};
 ```
 
 ---

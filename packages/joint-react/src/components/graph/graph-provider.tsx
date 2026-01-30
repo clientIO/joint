@@ -11,10 +11,15 @@ import type { GraphStateSelectors } from '../../state/graph-state-selectors';
 /**
  * Props for GraphProvider component.
  * Supports three modes: uncontrolled, React-controlled, and external-store-controlled.
+ * @template Element - The type of elements in the graph
+ * @template Link - The type of links in the graph
  */
-interface GraphProviderProps {
+interface GraphProviderProps<
+  Element extends GraphElement = GraphElement,
+  Link extends GraphLink = GraphLink,
+> {
   /**
-   * Elements (nodes) to be added to the graph.
+   * Elements (nodes) to be added to the graph as a Record keyed by cell ID.
    *
    * **Controlled mode:** When `onElementsChange` is provided, this prop controls the elements.
    * All changes must go through React state updates.
@@ -22,10 +27,10 @@ interface GraphProviderProps {
    * **Uncontrolled mode:** If `onElementsChange` is not provided, this is only used for initial elements.
    * The graph manages its own state internally.
    */
-  readonly elements?: GraphElement[];
+  readonly elements?: Record<dia.Cell.ID, Element>;
 
   /**
-   * Links (edges) to be added to the graph.
+   * Links (edges) to be added to the graph as a Record keyed by cell ID.
    *
    * **Controlled mode:** When `onLinksChange` is provided, this prop controls the links.
    * All changes must go through React state updates.
@@ -33,7 +38,7 @@ interface GraphProviderProps {
    * **Uncontrolled mode:** If `onLinksChange` is not provided, this is only used for initial links.
    * The graph manages its own state internally.
    */
-  readonly links?: GraphLink[];
+  readonly links?: Record<dia.Cell.ID, Link>;
 
   /**
    * Callback triggered when elements (nodes) change in the graph.
@@ -47,7 +52,7 @@ interface GraphProviderProps {
    * - State persistence
    * - Integration with other React state management
    */
-  readonly onElementsChange?: Dispatch<SetStateAction<GraphElement[]>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, Element>>>;
 
   /**
    * Callback triggered when links (edges) change in the graph.
@@ -61,16 +66,7 @@ interface GraphProviderProps {
    * - State persistence
    * - Integration with other React state management
    */
-  readonly onLinksChange?: Dispatch<SetStateAction<GraphLink[]>>;
-
-  // readonly linkMapper: {
-  //   toStateSelector: (data: GraphLink) => dia.Link.JSON;
-  //   toDiaGraphSelector: (link: dia.Link.JSON) => GraphLink;
-  // };
-  // readonly elementMapper: {
-  //   toStateSelector: (data: GraphElement) => dia.Element.JSON;
-  //   toDiaGraphSelector: (element: dia.Element.JSON) => GraphElement;
-  // };
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, Link>>>;
 }
 
 /**
@@ -82,7 +78,7 @@ interface GraphProviderProps {
 export interface GraphProps<
   Element extends GraphElement = GraphElement,
   Link extends GraphLink = GraphLink,
-> extends GraphProviderProps,
+> extends GraphProviderProps<Element, Link>,
     GraphStateSelectors<Element, Link> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
@@ -142,13 +138,6 @@ export interface GraphProps<
    * with most state management libraries.
    */
   readonly externalStore?: ExternalGraphStore;
-
-  /**
-   * If true, batch updates are disabled and synchronization will be real-time.
-   * If false (default), batch updates are enabled for better performance.
-   * @default false
-   */
-  readonly areBatchUpdatesDisabled?: boolean;
 }
 
 /**
@@ -296,8 +285,8 @@ const GraphBaseRouter = forwardRef<GraphStore, GraphProps>(
  *
  * 2. **React-controlled mode:**
  * ```tsx
- * const [elements, setElements] = useState<GraphElement[]>([]);
- * const [links, setLinks] = useState<GraphLink[]>([]);
+ * const [elements, setElements] = useState<Record<string, GraphElement>>({});
+ * const [links, setLinks] = useState<Record<string, GraphLink>>({});
  *
  * <GraphProvider
  *   elements={elements}
