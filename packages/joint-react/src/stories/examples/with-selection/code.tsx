@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
 import { dia, highlighters, g, V } from '@joint/core';
 import type {
@@ -76,7 +77,8 @@ const PAPER_PROPS: PaperProps<ElementData> = {
     },
     measureNode: (node, view) => {
         if (node === view.el) {
-            return new g.Rect(view.model.size());
+            const size = (view.model as dia.Element).size();
+            return new g.Rect(0, 0, size.width, size.height);
         }
         return V(node).getBBox();
     }
@@ -170,10 +172,10 @@ function nodeSizeToModelSize({
 function Shape({
     color = 'lightgray',
     title = 'No Title',
-}: {
+}: Readonly<{
   color?: string;
   title?: string;
-}) {
+}>) {
     const textRef = useRef<SVGTextElement>(null);
     const { width, height } = useNodeSize(textRef, {
         transform: nodeSizeToModelSize,
@@ -202,7 +204,7 @@ function Shape({
     );
 }
 
-function MinimapShape({ color = 'lightgray' }: { color?: string }) {
+function MinimapShape({ color = 'lightgray' }: Readonly<{ color?: string }>) {
     const layout = useNodeLayout();
     if (!layout) return null;
 
@@ -214,7 +216,7 @@ function MinimapShape({ color = 'lightgray' }: { color?: string }) {
 // Minimap
 // ============================================================================
 
-function MiniMap({ paper }: { paper: dia.Paper }) {
+function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
     const renderElement: RenderElement<ElementData> = useCallback(
         ({ color = 'white' }) => <MinimapShape color={color} />,
         [],
@@ -278,7 +280,7 @@ function Selection({ selectedId }: { selectedId: dia.Cell.ID | null }) {
 // ============================================================================
 
 
-function Badge({ x = 0, y = 0, size = 10, color = 'red' }: { x?: number; y?: number; size?: number; color?: string }) {
+function Badge({ x = 0, y = 0, size = 10, color = 'red' }: Readonly<{ x?: number; y?: number; size?: number; color?: string }>) {
     return (
         <>
             <circle cx={x} cy={y} r={size} fill={color} />
@@ -297,6 +299,17 @@ function Badge({ x = 0, y = 0, size = 10, color = 'red' }: { x?: number; y?: num
     );
 }
 
+function RenderElementWithBadge({ jjType, color = 'lightgray', title = 'No Title' }: Readonly<ElementData>) {
+    const layout = useNodeLayout();
+    const width = layout?.width ?? 100;
+    return (
+        <>
+            {jjType ?? <Shape color={color} title={title} />}
+            <Badge x={width + 10} y={-10} size={10} color={color} />
+        </>
+    );
+}
+
 function Main() {
     const [paperStore, setPaperStore] = useState<PaperStore | null>(null);
     const [showMinimap, setShowMinimap] = useState(false);
@@ -306,14 +319,7 @@ function Main() {
 
 
     const renderElement = useCallback((data: ElementData) => {
-        const { jjType, color = 'lightgray', title = 'No Title' } = data;
-        const { width } = useNodeLayout();
-        return (
-            <>
-                {jjType ?? <Shape color={color} title={title} />}
-                <Badge x={width + 10} y={-10} size={10} color={color} />
-            </>
-        );
+        return <RenderElementWithBadge {...data} />;
     }, []);
 
     const graph = useGraph();
@@ -361,6 +367,7 @@ function Main() {
                 type="button"
                 className="absolute top-2 left-2 z-10 bg-gray-900 rounded-lg p-2 shadow-md text-white text-sm"
                 onClick={() => {
+                    // eslint-disable-next-line no-console
                     console.log('Graph log:', graph.toJSON());
                 }}>Log
             </button>
@@ -395,9 +402,12 @@ function mapDataToLinkAttributesExample({ data, defaultAttributes }: LinkToGraph
     }
 
     // For custom link types (like standard.ShadowLink), override the type
-    const { attrs, ...rest } = defaultAttributes();
+    // and exclude attrs so the link type's defaults are used
+    const defaults = defaultAttributes();
     return {
-        ...rest,
+        id: defaults.id,
+        source: defaults.source,
+        target: defaults.target,
         type: jjType,
     };
 }

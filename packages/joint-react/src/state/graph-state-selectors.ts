@@ -5,7 +5,6 @@ import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import { getTargetOrSource } from '../utils/cell/get-link-targe-and-source-ids';
 import { REACT_TYPE } from '../models/react-element';
-import { REACT_LINK_TYPE } from '../models/react-link';
 import { DEFAULT_LINK_THEME, resolveMarker } from '../theme/link-theme';
 
 export interface ElementToGraphOptions<Element extends GraphElement> {
@@ -259,7 +258,15 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
     if (router !== undefined) attributes.router = router;
     if (connector !== undefined) attributes.connector = connector;
 
-    attributes.data = userData;
+    // Store theme properties and user data in the data property
+    // so they can be retrieved when mapping back from graph to React state
+    attributes.data = {
+      ...userData,
+      color,
+      width,
+      sourceMarker,
+      targetMarker,
+    };
 
     return attributes;
   };

@@ -33,10 +33,13 @@ const mapDataToLinkAttributes = ({
   defaultAttributes,
 }: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
   const result = defaultAttributes();
-  if (data.type) {
-    return { ...result, type: data.type };
-  }
-  return result;
+  const { type, attrs, labels } = data as NativeLink;
+  return {
+    ...result,
+    ...(type && { type }),
+    ...(attrs && { attrs }),
+    ...(labels && { labels }),
+  };
 };
 
 const SECONDARY = '#6366f1';

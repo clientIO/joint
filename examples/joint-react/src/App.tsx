@@ -1,4 +1,4 @@
-import { dia, highlighters } from '@joint/core';
+import { dia, highlighters, g, V } from '@joint/core';
 import './index.css';
 import {
     GraphProvider,
@@ -11,11 +11,12 @@ import {
     type GraphLink,
     type PaperProps,
     type RenderElement,
-    Link,
-    ReactElementView,
+    // ReactElementView,
     PaperStore,
+    // ReactLinkView,
+    // type MarkerPreset,
 } from '@joint/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 // ============================================================================
 // Types & Constants
@@ -35,51 +36,104 @@ interface ElementData extends GraphElement {
 }
 
 interface LinkData extends GraphLink {
-  readonly color?: string;
+  readonly className?: string;
   readonly jjType?: string;
 }
 
 const PAPER_PROPS: PaperProps<ElementData> = {
-    defaultRouter: {
-        name: 'rightAngle',
-        args: { margin: 25 },
+    defaultAnchor: {
+        name: 'midSide',
+        args: {
+            rotate: true,
+            useModelGeometry: true,
+        }
+    },
+    defaultConnectionPoint: {
+        name: 'anchor',
+        args: {
+            offset: 0,
+            useModelGeometry: true,
+        },
     },
     defaultConnector: {
         name: 'straight',
-        args: { cornerType: 'line', cornerPreserveAspectRatio: true },
+        args: {
+            cornerType: 'line',
+            cornerPreserveAspectRatio: true,
+            useModelGeometry: true,
+        },
     },
+    defaultRouter: {
+        name: 'rightAngle',
+        args: {
+            direction: 'right',
+            useModelGeometry: true,
+        },
+    },
+    measureNode: (node, view) => {
+        if (node === view.el) {
+            return new g.Rect(view.model.size());
+        }
+        return V(node).getBBox();
+    }
 };
 
 // ============================================================================
 // Data
 // ============================================================================
 
-const elements: ElementData[] = [
-    { id: '1', x: 50, y: 110, angle: 30, title: 'This is error element' },
-    { id: '2', x: 550, y: 110, title: 'This is info element' },
-    { id: '3', x: 50, y: 370, color: '#f87171' },
-    {
-        id: '4',
+const elements: Record<string, ElementData> = {
+    '1': {
+        x: 50,
+        y: 110,
+        angle: 30,
+        title: 'This is error element',
+    },
+    '2': {
+        x: 550,
+        y: 110,
+        title: 'This is info element',
+    },
+    '3': {
+        x: 50,
+        y: 370,
+        color: '#f87171',
+    },
+    '4': {
         x: 550,
         y: 370,
         width: 100,
-        height: 40,
+        height: 150,
         jjType: 'standard.Cylinder',
         color: '#60a5fa',
     },
-];
+};
 
-const links: LinkData[] = [
-    { id: 'link1', source: { id: '1' }, target: { id: '2' }, color: 'orange' },
-    { id: 'link2', source: { id: '3' }, target: { id: '4' }, color: 'green' },
-    {
-        id: 'link3',
+
+// Links now use built-in theme properties: color, width, sourceMarker, targetMarker
+const links: Record<string, LinkData> = {
+    'link1': {
+        source: { id: '1' },
+        target: { id: '2' },
+        width: 4,
+        color: 'orange',
+        // targetMarker: 'arrow' as MarkerPreset,
+        className: 'dashed-link',
+    },
+    'link2': {
+        source: { id: '3' },
+        target: { id: '4' },
+        color: 'green',
+        // sourceMarker: 'circle' as MarkerPreset,
+        // targetMarker: 'cross' as MarkerPreset,
+    },
+    'link3': {
         source: { id: '2' },
         target: { id: '4' },
-        type: 'standard.ShadowLink',
+        jjType: 'standard.ShadowLink',
         color: 'purple',
     },
-];
+};
 
 // ============================================================================
 // Helpers
@@ -182,7 +236,7 @@ function MiniMap({ paper }: { paper: dia.Paper }) {
                 height="100%"
                 scale={scale}
                 className={PAPER_CLASSNAME}
-                elementView={ReactElementView}
+                // elementView={ReactElementView}
                 renderElement={renderElement}
             />
         </div>
@@ -219,32 +273,46 @@ function Selection({ selectedId }: { selectedId: dia.Cell.ID | null }) {
 // Main
 // ============================================================================
 
+
+function Badge({ x = 0, y = 0, size = 10, color = 'red' }: { x?: number; y?: number; size?: number; color?: string }) {
+    return (
+        <>
+            <circle cx={x} cy={y} r={size} fill={color} />
+            <text
+                x={x}
+                y={y}
+                dominantBaseline="middle"
+                textAnchor="middle"
+                fontSize="12"
+                fill="white"
+                fontWeight="bold"
+            >
+        !
+            </text>
+        </>
+    );
+}
+
 function Main() {
     const [paperStore, setPaperStore] = useState<PaperStore | null>(null);
-    const [showMinimap, setShowMinimap] = useState(true);
+    const [showMinimap, setShowMinimap] = useState(false);
     const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(
         null,
     );
 
+
     const renderElement = useCallback((data: ElementData) => {
-        const { color = 'lightgray', title = 'No Title' } = data;
-        return <Shape color={color} title={title} />;
-    }, []);
-
-    const renderLink = useCallback((data: LinkData) => {
-        const { color = 'white' } = data;
-
+        const { jjType, color = 'lightgray', title = 'No Title' } = data;
+        const { width } = useNodeLayout();
         return (
             <>
-                <Link.Base style={{ stroke: color, strokeDasharray: '5,5' }} />
-                <Link.Label>
-                    <text dominantBaseline="middle" textAnchor="middle" fill="white">
-            test
-                    </text>
-                </Link.Label>
+                {jjType ?? <Shape color={color} title={title} />}
+                <Badge x={width + 10} y={-10} size={10} color={color} />
             </>
         );
     }, []);
+
+    const graph = useGraph();
 
     return (
         <div className="flex flex-col relative w-full h-full">
@@ -256,7 +324,9 @@ function Main() {
                 height="calc(100vh - 100px)"
                 snapLinks={{ radius: 25 }}
                 renderElement={renderElement}
-                renderLink={renderLink}
+                // linkView={ReactLinkView}
+                onViewPostponed={() => false}
+                // elementView={ReactElementView}
                 validateMagnet={(_, magnet) =>
                     magnet.getAttribute('magnet') !== 'passive'
                 }
@@ -282,6 +352,14 @@ function Main() {
             >
                 {showMinimap ? 'Hide Minimap' : 'Show Minimap'}
             </button>
+
+            <button
+                type="button"
+                className="absolute top-2 left-2 z-10 bg-gray-900 rounded-lg p-2 shadow-md text-white text-sm"
+                onClick={() => {
+                    console.log('Graph log:', graph.toJSON());
+                }}>Log
+            </button>
         </div>
     );
 }
@@ -297,9 +375,7 @@ export default function App() {
             links={links}
             mapDataToElementAttributes={({ data, defaultAttributes }) => {
                 const { jjType, color = 'lightgray' } = data as ElementData;
-
                 if (!jjType) return defaultAttributes();
-
                 return {
                     ...defaultAttributes(),
                     type: jjType,
@@ -309,16 +385,19 @@ export default function App() {
                 };
             }}
             mapDataToLinkAttributes={({ data, defaultAttributes }) => {
-                const { jjType, color = 'lightgray' } = data as LinkData;
+                const { jjType } = data as LinkData;
 
-                if (!jjType) return defaultAttributes();
+                // For standard links, use the built-in theme defaults
+                // The defaultAttributes() already handles color, width, and markers
+                if (!jjType) {
+                    return defaultAttributes();
+                }
 
+                // For custom link types (like standard.ShadowLink), override the type
+                const { attrs, ...rest } = defaultAttributes();
                 return {
-                    ...defaultAttributes(),
+                    ...rest,
                     type: jjType,
-                    attrs: {
-                        line: { stroke: color },
-                    },
                 };
             }}
         >

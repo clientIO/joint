@@ -1,8 +1,9 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
-import { GraphProvider, type GraphProps, type RenderElement } from '@joint/react';
+import { GraphProvider, type GraphProps, type RenderElement, type LinkToGraphOptions, type GraphLink } from '@joint/react';
 import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { Paper } from '../../../components/paper/paper';
@@ -47,13 +48,31 @@ function Main() {
   );
 }
 
-const links: Record<string, { source: string; target: string; type: string; attrs: { line: { stroke: string } } }> = {
+interface CustomLink extends GraphLink {
+  readonly type: string;
+  readonly attrs?: { line: { stroke: string } };
+}
+
+const links: Record<string, CustomLink> = {
   '1123': {
     source: '1',
     target: '2',
     type: 'LinkModel',
     attrs: { line: { stroke: PRIMARY } },
   },
+};
+
+const mapDataToLinkAttributes = ({
+  data,
+  defaultAttributes,
+}: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
+  const result = defaultAttributes();
+  const { type, attrs } = data as CustomLink;
+  return {
+    ...result,
+    ...(type && { type }),
+    ...(attrs && { attrs }),
+  };
 };
 
 export default function App(props: Readonly<GraphProps>) {
@@ -63,6 +82,7 @@ export default function App(props: Readonly<GraphProps>) {
       links={links}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
+      mapDataToLinkAttributes={mapDataToLinkAttributes}
     >
       <Main />
     </GraphProvider>

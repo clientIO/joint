@@ -444,17 +444,12 @@ describe('graph-state-selectors', () => {
       });
     });
 
-    it('should merge attrs with defaults from cell namespace', () => {
+    it('should use theme color property for stroke', () => {
       const id = 'link-1';
       const link: GraphLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
-        attrs: {
-          line: {
-            stroke: 'red',
-          },
-        },
+        color: 'red',
       };
 
       const options = createLinkToGraphOptions(id, link, graph);
@@ -1527,7 +1522,14 @@ describe('graph-state-selectors', () => {
       const defaultAttributes = createDefaultLinkMapper(id, data, graph);
       const result = customSelector({ id, data, graph, defaultAttributes });
 
-      expect(result.data).toEqual({ weight: 5 });
+      // Theme properties are now stored in data for sync purposes
+      expect(result.data).toEqual({
+        weight: 5,
+        color: '#333333',
+        width: 2,
+        sourceMarker: 'none',
+        targetMarker: 'none',
+      });
       expect(result.source).toEqual({ id: 'node1' });
       expect(result.target).toEqual({ id: 'node2' });
     });
@@ -1551,7 +1553,14 @@ describe('graph-state-selectors', () => {
       const result = customSelector({ id, data, graph, defaultAttributes });
 
       expect(result.attrs).toEqual({ line: { stroke: 'blue', strokeWidth: 2 } });
-      expect(result.data).toEqual({ weight: 5 });
+      // Theme properties are now stored in data for sync purposes
+      expect(result.data).toEqual({
+        weight: 5,
+        color: '#333333',
+        width: 2,
+        sourceMarker: 'none',
+        targetMarker: 'none',
+      });
     });
   });
 });
