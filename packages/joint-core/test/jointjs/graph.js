@@ -3633,6 +3633,201 @@ QUnit.module('graph', function(hooks) {
         });
     });
 
+    QUnit.module('batch events options', function() {
+
+        QUnit.test('clear() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const rect = new joint.shapes.standard.Rectangle();
+            graph.addCell(rect);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.clear(opt);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'clear', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'clear', customOption: 'test-value' })));
+        });
+
+        QUnit.test('addCells() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.addCells([
+                new joint.shapes.standard.Rectangle(),
+                new joint.shapes.standard.Rectangle()
+            ], opt);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'add', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'add', customOption: 'test-value' })));
+        });
+
+        QUnit.test('removeCells() passes options to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const rect1 = new joint.shapes.standard.Rectangle();
+            const rect2 = new joint.shapes.standard.Rectangle();
+            graph.addCells([rect1, rect2]);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const options = { customOption: 'test-value' };
+            graph.removeCells([rect1, rect2], options);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'remove', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'remove', customOption: 'test-value' })));
+        });
+
+        QUnit.test('removeCell() passes options to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const rect = new joint.shapes.standard.Rectangle();
+            graph.addCell(rect);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const options = { customOption: 'test-value' };
+            graph.removeCell(rect, options);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'remove', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'remove', customOption: 'test-value' })));
+        });
+
+        QUnit.test('syncCells() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.syncCells([
+                { id: 'a', type: 'standard.Rectangle' }
+            ], opt);
+
+            assert.ok(batchStartSpy.calledOnce);
+            assert.ok(batchStopSpy.calledOnce);
+            assert.ok(batchStartSpy.calledWith(sinon.match({ batchName: 'sync-cells', customOption: 'test-value' })));
+            assert.ok(batchStopSpy.calledWith(sinon.match({ batchName: 'sync-cells', customOption: 'test-value' })));
+        });
+
+        QUnit.test('syncCells() with type change passes opt to batch:start and batch:stop for replace-cell batch', function(assert) {
+            const graph = this.graph;
+            graph.resetCells([
+                { id: 'a', type: 'standard.Rectangle' }
+            ]);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.syncCells([
+                { id: 'a', type: 'standard.Circle' }
+            ], opt);
+
+            // Should have sync-cells and replace-cell batches
+            const replaceCellStartCall = batchStartSpy.getCalls().find(call => call.args[0].batchName === 'replace-cell');
+            const replaceCellStopCall = batchStopSpy.getCalls().find(call => call.args[0].batchName === 'replace-cell');
+
+            assert.ok(replaceCellStartCall, 'batch:start called for replace-cell');
+            assert.ok(replaceCellStopCall, 'batch:stop called for replace-cell');
+            assert.equal(replaceCellStartCall.args[0].customOption, 'test-value', 'batch:start has customOption');
+            assert.equal(replaceCellStopCall.args[0].customOption, 'test-value', 'batch:stop has customOption');
+        });
+
+        QUnit.test('transferCellEmbeds() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            const newParent = new joint.shapes.standard.Rectangle();
+            parent.embed(child);
+            graph.addCells([parent, child, newParent]);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.transferCellEmbeds(parent, newParent, opt);
+
+            const transferEmbedsStartCall = batchStartSpy.getCalls().find(call => call.args[0].batchName === 'transfer-embeds');
+            const transferEmbedsStopCall = batchStopSpy.getCalls().find(call => call.args[0].batchName === 'transfer-embeds');
+
+            assert.ok(transferEmbedsStartCall, 'batch:start called for transfer-embeds');
+            assert.ok(transferEmbedsStopCall, 'batch:stop called for transfer-embeds');
+            assert.equal(transferEmbedsStartCall.args[0].customOption, 'test-value', 'batch:start has customOption');
+            assert.equal(transferEmbedsStopCall.args[0].customOption, 'test-value', 'batch:stop has customOption');
+        });
+
+        QUnit.test('transferCellConnectedLinks() passes opt to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            const source = new joint.shapes.standard.Rectangle();
+            const target = new joint.shapes.standard.Rectangle();
+            const newSource = new joint.shapes.standard.Rectangle();
+            const link = new joint.shapes.standard.Link({ source: { id: source.id }, target: { id: target.id }});
+            graph.addCells([source, target, newSource, link]);
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const opt = { customOption: 'test-value' };
+            graph.transferCellConnectedLinks(source, newSource, opt);
+
+            const transferLinksStartCall = batchStartSpy.getCalls().find(call => call.args[0].batchName === 'transfer-connected-links');
+            const transferLinksStopCall = batchStopSpy.getCalls().find(call => call.args[0].batchName === 'transfer-connected-links');
+
+            assert.ok(transferLinksStartCall, 'batch:start called for transfer-connected-links');
+            assert.ok(transferLinksStopCall, 'batch:stop called for transfer-connected-links');
+            assert.equal(transferLinksStartCall.args[0].customOption, 'test-value', 'batch:start has customOption');
+            assert.equal(transferLinksStopCall.args[0].customOption, 'test-value', 'batch:stop has customOption');
+        });
+
+        QUnit.test('setDefaultLayer() passes options to batch:start and batch:stop', function(assert) {
+            const graph = this.graph;
+            graph.addLayer({ id: 'layer1' });
+
+            const batchStartSpy = sinon.spy();
+            const batchStopSpy = sinon.spy();
+            graph.on('batch:start', batchStartSpy);
+            graph.on('batch:stop', batchStopSpy);
+
+            const options = { customOption: 'test-value' };
+            graph.setDefaultLayer('layer1', options);
+
+            const defaultLayerStartCall = batchStartSpy.getCalls().find(call => call.args[0].batchName === 'default-layer-change');
+            const defaultLayerStopCall = batchStopSpy.getCalls().find(call => call.args[0].batchName === 'default-layer-change');
+
+            assert.ok(defaultLayerStartCall, 'batch:start called for default-layer-change');
+            assert.ok(defaultLayerStopCall, 'batch:stop called for default-layer-change');
+            assert.equal(defaultLayerStartCall.args[0].customOption, 'test-value', 'batch:start has customOption');
+            assert.equal(defaultLayerStopCall.args[0].customOption, 'test-value', 'batch:stop has customOption');
+        });
+    });
+
     QUnit.module('graph.transferCellEmbeds()', function() {
         QUnit.test(
             'should transfer embeds from one element to another',
@@ -4132,6 +4327,199 @@ QUnit.module('graph', function(hooks) {
             });
         });
 
+    });
+
+    QUnit.module('graph.hierarchyIndex', function() {
+
+        QUnit.test('tracks parent-child relationships on embed/unembed', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent, child]);
+
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent.id), 'no children initially');
+
+            parent.embed(child);
+            assert.ok(graph.hierarchyIndex.hasChildren(parent.id), 'has children after embed');
+            assert.deepEqual(graph.hierarchyIndex.getChildrenIds(parent.id), [child.id]);
+
+            parent.unembed(child);
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent.id), 'no children after unembed');
+        });
+
+        QUnit.test('updates on reparent', function(assert) {
+            const graph = this.graph;
+            const parent1 = new joint.shapes.standard.Rectangle();
+            const parent2 = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent1, parent2, child]);
+
+            parent1.embed(child);
+            assert.ok(graph.hierarchyIndex.hasChildren(parent1.id));
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent2.id));
+
+            parent2.embed(child, { reparent: true });
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent1.id));
+            assert.ok(graph.hierarchyIndex.hasChildren(parent2.id));
+        });
+
+        QUnit.test('cleans up on cell removal', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent, child]);
+            parent.embed(child);
+
+            assert.ok(graph.hierarchyIndex.hasChildren(parent.id));
+            child.remove();
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent.id));
+        });
+
+        QUnit.test('rebuilds on graph.resetCells()', function(assert) {
+            const graph = this.graph;
+            graph.resetCells([
+                { id: 'parent', type: 'standard.Rectangle' },
+                { id: 'child', type: 'standard.Rectangle', parent: 'parent' }
+            ]);
+
+            assert.deepEqual(graph.hierarchyIndex.getChildrenIds('parent'), ['child']);
+        });
+
+        QUnit.test('getEmbeddedCells() uses index, not embeds attribute', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent, child]);
+            parent.embed(child);
+
+            // Silently clear embeds attribute
+            parent.set('embeds', [], { silent: true });
+
+            // getEmbeddedCells should still return the child via index
+            const embedded = parent.getEmbeddedCells();
+            assert.equal(embedded.length, 1);
+            assert.equal(embedded[0].id, child.id);
+        });
+
+        QUnit.test('distinguishes numeric and string IDs', function(assert) {
+            const graph = this.graph;
+
+            // Create cells with numeric ID 1 and string ID "1"
+            const parent = new joint.shapes.standard.Rectangle({ id: 'parent' });
+            const childNumeric = new joint.shapes.standard.Rectangle({ id: 1 });
+            const childString = new joint.shapes.standard.Rectangle({ id: '1' });
+
+            graph.addCells([parent, childNumeric, childString]);
+
+            parent.embed(childNumeric);
+            parent.embed(childString);
+
+            // Both should be tracked as separate children
+            const childrenIds = graph.hierarchyIndex.getChildrenIds('parent');
+            assert.equal(childrenIds.length, 2, 'both children tracked separately');
+            assert.ok(childrenIds.includes(1), 'numeric ID 1 is in children');
+            assert.ok(childrenIds.includes('1'), 'string ID "1" is in children');
+
+            // Verify they are different
+            assert.notStrictEqual(1, '1', 'numeric 1 and string "1" are different');
+
+            // Unembed numeric ID - string should remain
+            parent.unembed(childNumeric);
+            const remainingIds = graph.hierarchyIndex.getChildrenIds('parent');
+            assert.equal(remainingIds.length, 1, 'one child remaining after unembed');
+            assert.strictEqual(remainingIds[0], '1', 'string ID "1" remains');
+
+            // Unembed string ID
+            parent.unembed(childString);
+            assert.notOk(graph.hierarchyIndex.hasChildren('parent'), 'no children after both unembedded');
+        });
+    });
+
+    QUnit.module('config.storeEmbeds', function() {
+
+        QUnit.test('when false, embeds attribute is not set', function(assert) {
+            const originalValue = joint.config.storeEmbeds;
+            joint.config.storeEmbeds = false;
+
+            try {
+                const graph = this.graph;
+                const parent = new joint.shapes.standard.Rectangle();
+                const child = new joint.shapes.standard.Rectangle();
+                graph.addCells([parent, child]);
+
+                const changeSpy = sinon.spy();
+                parent.on('change:embeds', changeSpy);
+
+                parent.embed(child);
+
+                assert.notOk(parent.get('embeds'), 'embeds attribute not set on embed');
+                assert.notOk(changeSpy.called, 'change:embeds event not fired');
+
+                // getEmbeddedCells still works
+                assert.equal(parent.getEmbeddedCells().length, 1);
+
+                parent.unembed(child);
+                assert.notOk(parent.get('embeds'), 'embeds attribute not set on unembed');
+                assert.equal(parent.getEmbeddedCells().length, 0);
+            } finally {
+                joint.config.storeEmbeds = originalValue;
+            }
+        });
+
+        QUnit.test('when true (default), embeds attribute is set', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent, child]);
+
+            const changeSpy = sinon.spy();
+            parent.on('change:embeds', changeSpy);
+
+            parent.embed(child);
+
+            assert.ok(parent.get('embeds'), 'embeds attribute is set');
+            assert.deepEqual(parent.get('embeds'), [child.id]);
+            assert.ok(changeSpy.called, 'change:embeds event fired');
+        });
+
+        QUnit.test('cloneCells preserves embeddings when storeEmbeds is false', function(assert) {
+            const originalValue = joint.config.storeEmbeds;
+            joint.config.storeEmbeds = false;
+
+            try {
+                const graph = this.graph;
+                const parent = new joint.shapes.standard.Rectangle({ id: 'parent' });
+                const child1 = new joint.shapes.standard.Rectangle({ id: 'child1' });
+                const child2 = new joint.shapes.standard.Rectangle({ id: 'child2' });
+                graph.addCells([parent, child1, child2]);
+
+                parent.embed(child1);
+                parent.embed(child2);
+
+                // Verify embeds attribute is not set
+                assert.notOk(parent.get('embeds'), 'embeds attribute not set when storeEmbeds is false');
+
+                // Clone all cells
+                const cloneMap = graph.cloneCells([parent, child1, child2]);
+
+                // Verify clones have correct parent-child relationships
+                const clonedParent = cloneMap['parent'];
+                const clonedChild1 = cloneMap['child1'];
+                const clonedChild2 = cloneMap['child2'];
+
+                assert.equal(clonedChild1.get('parent'), clonedParent.id, 'cloned child1 has correct parent');
+                assert.equal(clonedChild2.get('parent'), clonedParent.id, 'cloned child2 has correct parent');
+
+                // Verify cloned parent has embeds set (cloneCells should always set embeds on clones)
+                const clonedEmbeds = clonedParent.get('embeds');
+                assert.ok(clonedEmbeds, 'cloned parent has embeds attribute');
+                assert.equal(clonedEmbeds.length, 2, 'cloned parent has 2 embedded cells');
+                assert.ok(clonedEmbeds.includes(clonedChild1.id), 'cloned parent embeds child1');
+                assert.ok(clonedEmbeds.includes(clonedChild2.id), 'cloned parent embeds child2');
+            } finally {
+                joint.config.storeEmbeds = originalValue;
+            }
+        });
     });
 
 });
