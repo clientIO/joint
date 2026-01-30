@@ -7,11 +7,12 @@ import type { LinkLayout } from '../store/graph-store';
 // Re-export LinkLayout for convenience
 export type { LinkLayout } from '../store/graph-store';
 import type { dia } from '@joint/core';
-import { CellIdContext } from '../context';
+import { CellIdContext, ReactPaperIdContext } from '../context';
 
 /**
  * Hook to get layout data (geometry) for a specific link.
- * Returns sourceX, sourceY, targetX, targetY, and d (path) from the link view.
+ * Returns sourceX, sourceY, targetX, targetY, d (path), and vertices from the link view.
+ * Works with both Paper and ReactPaper components.
  * @param id - Optional ID of the link to get layout for. If not provided, uses the current cell ID from context.
  * @returns The layout data or undefined if not found
  * @group Hooks
@@ -50,10 +51,19 @@ export function useLinkLayout<Id extends dia.Cell.ID | undefined = undefined>(
 ): Id extends dia.Cell.ID ? LinkLayout | undefined : LinkLayout | undefined {
   const contextId = useContext(CellIdContext);
   const { layoutState } = useGraphStore();
-  const { paperId } = usePaperStoreContext();
+  // Try PaperStoreContext first (for Paper), then ReactPaperIdContext (for ReactPaper)
+  const paperStore = usePaperStoreContext(true);
+  const reactPaperId = useContext(ReactPaperIdContext);
+  const paperId = paperStore?.paperId ?? reactPaperId;
+
   const actualId = id ?? contextId;
   if (!actualId) {
-    throw new Error('useLinkLayout must be used inside Paper renderLink or provide an id');
+    throw new Error(
+      'useLinkLayout must be used inside Paper/ReactPaper renderLink or provide an id'
+    );
+  }
+  if (!paperId) {
+    throw new Error('useLinkLayout must be used inside Paper or ReactPaper component');
   }
 
   return useStoreSelector(layoutState, (snapshot) => {

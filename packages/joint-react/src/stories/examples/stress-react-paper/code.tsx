@@ -1,10 +1,16 @@
 /* eslint-disable sonarjs/pseudo-random */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, type GraphElement, type GraphLink } from '@joint/react';
+import {
+  GraphProvider,
+  ReactPaper,
+  useLinkLayout,
+  type GraphElement,
+  type GraphLink,
+  type RenderLink,
+} from '@joint/react';
 import '../index.css';
-import React, { useCallback, useRef, useState, startTransition, memo } from 'react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { REACT_LINK_TYPE } from '../../../models/react-link';
+import React, { useCallback, useState, startTransition, memo } from 'react';
+import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
+import { REACT_PAPER_LINK_TYPE } from '../../../models/react-paper-link';
 
 function initialElements(xNodes = 15, yNodes = 30) {
   const nodes: Record<
@@ -48,7 +54,7 @@ function initialElements(xNodes = 15, yNodes = 30) {
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
         const edgeIdString = `edge-${edgeId.toString()}`;
         edges[edgeIdString] = {
-          type: REACT_LINK_TYPE,
+          type: REACT_PAPER_LINK_TYPE,
           source: `stress-${recentNodeId.toString()}`,
           target: `stress-${nodeId.toString()}`,
           z: -1,
@@ -68,24 +74,41 @@ const { nodes: initialNodes, edges: initialEdges } = initialElements(15, 30);
 
 type BaseElementWithData = (typeof initialNodes)[string];
 
+/**
+ * Pure SVG element renderer for ReactPaper stress test.
+ * Uses SVG rect + text instead of foreignObject for better performance.
+ */
 const RenderElement = memo(function RenderElement({
   width,
   height,
   label,
 }: Readonly<BaseElementWithData>) {
-  const elementRef = useRef<HTMLDivElement>(null);
   return (
-    <foreignObject width={width} height={height}>
-      <div
-        ref={elementRef}
-        className="flex flex-col items-center justify-center rounded-sm text-xs"
-        style={{ background: PRIMARY, color: '#ffffff', fontSize: 11, width, height }}
+    <g>
+      <rect width={width} height={height} fill={PRIMARY} rx={2} ry={2} />
+      <text
+        x={width / 2}
+        y={height / 2}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="#ffffff"
+        fontSize={11}
+        fontFamily="sans-serif"
       >
         {label}
-      </div>
-    </foreignObject>
+      </text>
+    </g>
   );
 });
+
+/**
+ * Link path component using useLinkLayout hook.
+ */
+function StressLinkPath() {
+  const layout = useLinkLayout();
+  if (!layout) return null;
+  return <path d={layout.d} stroke={LIGHT} strokeWidth={0.5} fill="none" />;
+}
 
 function Main({
   setElements,
@@ -97,6 +120,8 @@ function Main({
     (element: BaseElementWithData) => <RenderElement {...element} />,
     []
   );
+
+  const renderLink: RenderLink = useCallback(() => <StressLinkPath />, []);
 
   const updatePos = useCallback(() => {
     // Use startTransition to mark this as a non-urgent update
@@ -119,13 +144,13 @@ function Main({
 
   return (
     <div className="flex flex-row relative">
-      <Paper
-        id="main-view"
+      <ReactPaper
+        id="stress-react-paper"
         width="100%"
         className={PAPER_CLASSNAME}
         height={600}
         renderElement={renderElement}
-        // renderLink={renderLink}
+        renderLink={renderLink}
       />
       <div className="absolute top-4 right-4">
         <button

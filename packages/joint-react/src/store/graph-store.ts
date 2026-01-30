@@ -3,6 +3,24 @@ import type { GraphLink } from '../types/link-types';
 import type { GraphElement } from '../types/element-types';
 import type { AddPaperOptions, PaperStoreSnapshot } from './paper-store';
 import { PaperStore } from './paper-store';
+import { ReactPaperStore, type ReactPaperStoreOptions } from './react-paper-store';
+
+/**
+ * Common interface for paper stores (PaperStore and ReactPaperStore).
+ * Used by flushLayoutState to read link geometry from paper views.
+ */
+export interface PaperStoreLike {
+  /** The underlying paper instance (dia.Paper or ControlledPaper). */
+  readonly paper: dia.Paper;
+  /** Unique identifier for this paper instance. */
+  readonly paperId: string;
+  /** Cleanup function. */
+  readonly destroy: () => void;
+  /** Optional overwrite result (PaperStore only). */
+  readonly overWriteResultRef?: unknown;
+  /** Optional render link function (PaperStore only). */
+  readonly renderLink?: unknown;
+}
 import {
   createElementsSizeObserver,
   type GraphStoreObserver,
@@ -10,6 +28,7 @@ import {
 } from './create-elements-size-observer';
 import { ReactElement } from '../models/react-element';
 import { ReactLink } from '../models/react-link';
+import { ReactPaperLink } from '../models/react-paper-link';
 import type { ExternalStoreLike, State } from '../utils/create-state';
 import { createState, derivedState } from '../utils/create-state';
 import { stateSync, type StateSync } from '../state/state-sync';
@@ -44,6 +63,7 @@ export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
   ReactElement,
   ReactLink,
+  ReactPaperLink,
 };
 
 /**
@@ -87,6 +107,8 @@ export interface LinkLayout {
   readonly targetX: number;
   readonly targetY: number;
   readonly d: string;
+
+  readonly vertices: ReadonlyArray<{ readonly x: number; readonly y: number }>;
 }
 
 /**
@@ -130,7 +152,7 @@ export class GraphStore {
   public readonly layoutState: State<GraphStoreLayoutSnapshot>;
   public readonly graph: dia.Graph;
 
-  private papers = new Map<string, PaperStore>();
+  private papers = new Map<string, PaperStoreLike>();
   private observer: GraphStoreObserver;
   private stateSync: StateSync;
 
@@ -338,8 +360,9 @@ export class GraphStore {
 
   /**
    * Schedules a layout state update via the single scheduler.
+   * Can be called externally to trigger a layout refresh (e.g., after paper unfreeze).
    */
-  private scheduleLayoutUpdate = () => {
+  public scheduleLayoutUpdate = () => {
     this.isLayoutUpdateScheduled = true;
     this.scheduler.scheduleData((data) => data);
   };
@@ -455,6 +478,18 @@ export class GraphStore {
     const paperStore = new PaperStore({ ...paperOptions, graphStore: this, id });
     this.papers.set(id, paperStore);
     return () => this.removePaper(id);
+  };
+
+  /**
+   * Registers a ReactPaper's ControlledPaper with the graph store.
+   * This allows flushLayoutState to read link geometry from the paper's views.
+   * @param options - The ReactPaperStore options (paper, paperId)
+   * @returns Cleanup function to unregister the paper
+   */
+  public addReactPaper = (options: ReactPaperStoreOptions) => {
+    const reactPaperStore = new ReactPaperStore(options);
+    this.papers.set(options.paperId, reactPaperStore);
+    return () => this.removePaper(options.paperId);
   };
 
   public hasMeasuredNode = (id: dia.Cell.ID) => this.observer.has(id);

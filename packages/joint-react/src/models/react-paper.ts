@@ -30,7 +30,14 @@ export class ReactPaper extends dia.Paper {
   public reactLinkCache!: ReactLinkViewCache;
 
   constructor(options: ReactPaperOptions) {
-    super(options);
+    super({
+      ...options,
+      autoFreeze: true,
+      viewManagement: {
+        disposeHidden: true,
+        lazyInitialize: true,
+      },
+    });
     this.graphStore = options.graphStore;
   }
 
