@@ -4329,4 +4329,197 @@ QUnit.module('graph', function(hooks) {
 
     });
 
+    QUnit.module('graph.hierarchyIndex', function() {
+
+        QUnit.test('tracks parent-child relationships on embed/unembed', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent, child]);
+
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent.id), 'no children initially');
+
+            parent.embed(child);
+            assert.ok(graph.hierarchyIndex.hasChildren(parent.id), 'has children after embed');
+            assert.deepEqual(graph.hierarchyIndex.getChildrenIds(parent.id), [child.id]);
+
+            parent.unembed(child);
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent.id), 'no children after unembed');
+        });
+
+        QUnit.test('updates on reparent', function(assert) {
+            const graph = this.graph;
+            const parent1 = new joint.shapes.standard.Rectangle();
+            const parent2 = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent1, parent2, child]);
+
+            parent1.embed(child);
+            assert.ok(graph.hierarchyIndex.hasChildren(parent1.id));
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent2.id));
+
+            parent2.embed(child, { reparent: true });
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent1.id));
+            assert.ok(graph.hierarchyIndex.hasChildren(parent2.id));
+        });
+
+        QUnit.test('cleans up on cell removal', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent, child]);
+            parent.embed(child);
+
+            assert.ok(graph.hierarchyIndex.hasChildren(parent.id));
+            child.remove();
+            assert.notOk(graph.hierarchyIndex.hasChildren(parent.id));
+        });
+
+        QUnit.test('rebuilds on graph.resetCells()', function(assert) {
+            const graph = this.graph;
+            graph.resetCells([
+                { id: 'parent', type: 'standard.Rectangle' },
+                { id: 'child', type: 'standard.Rectangle', parent: 'parent' }
+            ]);
+
+            assert.deepEqual(graph.hierarchyIndex.getChildrenIds('parent'), ['child']);
+        });
+
+        QUnit.test('getEmbeddedCells() uses index, not embeds attribute', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent, child]);
+            parent.embed(child);
+
+            // Silently clear embeds attribute
+            parent.set('embeds', [], { silent: true });
+
+            // getEmbeddedCells should still return the child via index
+            const embedded = parent.getEmbeddedCells();
+            assert.equal(embedded.length, 1);
+            assert.equal(embedded[0].id, child.id);
+        });
+
+        QUnit.test('distinguishes numeric and string IDs', function(assert) {
+            const graph = this.graph;
+
+            // Create cells with numeric ID 1 and string ID "1"
+            const parent = new joint.shapes.standard.Rectangle({ id: 'parent' });
+            const childNumeric = new joint.shapes.standard.Rectangle({ id: 1 });
+            const childString = new joint.shapes.standard.Rectangle({ id: '1' });
+
+            graph.addCells([parent, childNumeric, childString]);
+
+            parent.embed(childNumeric);
+            parent.embed(childString);
+
+            // Both should be tracked as separate children
+            const childrenIds = graph.hierarchyIndex.getChildrenIds('parent');
+            assert.equal(childrenIds.length, 2, 'both children tracked separately');
+            assert.ok(childrenIds.includes(1), 'numeric ID 1 is in children');
+            assert.ok(childrenIds.includes('1'), 'string ID "1" is in children');
+
+            // Verify they are different
+            assert.notStrictEqual(1, '1', 'numeric 1 and string "1" are different');
+
+            // Unembed numeric ID - string should remain
+            parent.unembed(childNumeric);
+            const remainingIds = graph.hierarchyIndex.getChildrenIds('parent');
+            assert.equal(remainingIds.length, 1, 'one child remaining after unembed');
+            assert.strictEqual(remainingIds[0], '1', 'string ID "1" remains');
+
+            // Unembed string ID
+            parent.unembed(childString);
+            assert.notOk(graph.hierarchyIndex.hasChildren('parent'), 'no children after both unembedded');
+        });
+    });
+
+    QUnit.module('config.storeEmbeds', function() {
+
+        QUnit.test('when false, embeds attribute is not set', function(assert) {
+            const originalValue = joint.config.storeEmbeds;
+            joint.config.storeEmbeds = false;
+
+            try {
+                const graph = this.graph;
+                const parent = new joint.shapes.standard.Rectangle();
+                const child = new joint.shapes.standard.Rectangle();
+                graph.addCells([parent, child]);
+
+                const changeSpy = sinon.spy();
+                parent.on('change:embeds', changeSpy);
+
+                parent.embed(child);
+
+                assert.notOk(parent.get('embeds'), 'embeds attribute not set on embed');
+                assert.notOk(changeSpy.called, 'change:embeds event not fired');
+
+                // getEmbeddedCells still works
+                assert.equal(parent.getEmbeddedCells().length, 1);
+
+                parent.unembed(child);
+                assert.notOk(parent.get('embeds'), 'embeds attribute not set on unembed');
+                assert.equal(parent.getEmbeddedCells().length, 0);
+            } finally {
+                joint.config.storeEmbeds = originalValue;
+            }
+        });
+
+        QUnit.test('when true (default), embeds attribute is set', function(assert) {
+            const graph = this.graph;
+            const parent = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            graph.addCells([parent, child]);
+
+            const changeSpy = sinon.spy();
+            parent.on('change:embeds', changeSpy);
+
+            parent.embed(child);
+
+            assert.ok(parent.get('embeds'), 'embeds attribute is set');
+            assert.deepEqual(parent.get('embeds'), [child.id]);
+            assert.ok(changeSpy.called, 'change:embeds event fired');
+        });
+
+        QUnit.test('cloneCells preserves embeddings when storeEmbeds is false', function(assert) {
+            const originalValue = joint.config.storeEmbeds;
+            joint.config.storeEmbeds = false;
+
+            try {
+                const graph = this.graph;
+                const parent = new joint.shapes.standard.Rectangle({ id: 'parent' });
+                const child1 = new joint.shapes.standard.Rectangle({ id: 'child1' });
+                const child2 = new joint.shapes.standard.Rectangle({ id: 'child2' });
+                graph.addCells([parent, child1, child2]);
+
+                parent.embed(child1);
+                parent.embed(child2);
+
+                // Verify embeds attribute is not set
+                assert.notOk(parent.get('embeds'), 'embeds attribute not set when storeEmbeds is false');
+
+                // Clone all cells
+                const cloneMap = graph.cloneCells([parent, child1, child2]);
+
+                // Verify clones have correct parent-child relationships
+                const clonedParent = cloneMap['parent'];
+                const clonedChild1 = cloneMap['child1'];
+                const clonedChild2 = cloneMap['child2'];
+
+                assert.equal(clonedChild1.get('parent'), clonedParent.id, 'cloned child1 has correct parent');
+                assert.equal(clonedChild2.get('parent'), clonedParent.id, 'cloned child2 has correct parent');
+
+                // Verify cloned parent has embeds set (cloneCells should always set embeds on clones)
+                const clonedEmbeds = clonedParent.get('embeds');
+                assert.ok(clonedEmbeds, 'cloned parent has embeds attribute');
+                assert.equal(clonedEmbeds.length, 2, 'cloned parent has 2 embedded cells');
+                assert.ok(clonedEmbeds.includes(clonedChild1.id), 'cloned parent embeds child1');
+                assert.ok(clonedEmbeds.includes(clonedChild2.id), 'cloned parent embeds child2');
+            } finally {
+                joint.config.storeEmbeds = originalValue;
+            }
+        });
+    });
+
 });
