@@ -21,6 +21,20 @@ export function cloneCells(cells) {
         return map;
     }, {});
 
+    // Build parent -> children map from the parent attribute.
+    // This works regardless of whether `storeEmbeds` is enabled,
+    // as the parent attribute is always maintained.
+    const parentToChildren = {};
+    toArray(cells).forEach(function(cell) {
+        const parentId = cell.get('parent');
+        if (parentId && cloneMap[parentId]) {
+            if (!parentToChildren[parentId]) {
+                parentToChildren[parentId] = [];
+            }
+            parentToChildren[parentId].push(cell.id);
+        }
+    });
+
     toArray(cells).forEach(function(cell) {
 
         const clone = cloneMap[cell.id];
@@ -42,23 +56,19 @@ export function cloneCells(cells) {
         }
 
         // Find the parent of the original cell
-        const parent = cell.get('parent');
-        if (parent && cloneMap[parent]) {
-            clone.set('parent', cloneMap[parent].id);
+        const parentId = cell.get('parent');
+        if (parentId && cloneMap[parentId]) {
+            clone.set('parent', cloneMap[parentId].id);
         }
 
-        // Find the embeds of the original cell
-        const embeds = toArray(cell.get('embeds')).reduce(function(newEmbeds, embed) {
-            // Embedded cells that are not being cloned can not be carried
-            // over with other embedded cells.
-            if (cloneMap[embed]) {
-                newEmbeds.push(cloneMap[embed].id);
-            }
-            return newEmbeds;
-        }, []);
-
-        if (!isEmpty(embeds)) {
-            clone.set('embeds', embeds);
+        // Find the embeds of the original cell from the parent -> children map.
+        // This approach works regardless of whether `storeEmbeds` is enabled.
+        const childIds = parentToChildren[cell.id];
+        if (childIds && childIds.length > 0) {
+            const clonedEmbeds = childIds.map(function(childId) {
+                return cloneMap[childId].id;
+            });
+            clone.set('embeds', clonedEmbeds);
         }
     });
 

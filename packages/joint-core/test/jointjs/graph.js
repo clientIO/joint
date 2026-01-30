@@ -4481,6 +4481,45 @@ QUnit.module('graph', function(hooks) {
             assert.deepEqual(parent.get('embeds'), [child.id]);
             assert.ok(changeSpy.called, 'change:embeds event fired');
         });
+
+        QUnit.test('cloneCells preserves embeddings when storeEmbeds is false', function(assert) {
+            const originalValue = joint.config.storeEmbeds;
+            joint.config.storeEmbeds = false;
+
+            try {
+                const graph = this.graph;
+                const parent = new joint.shapes.standard.Rectangle({ id: 'parent' });
+                const child1 = new joint.shapes.standard.Rectangle({ id: 'child1' });
+                const child2 = new joint.shapes.standard.Rectangle({ id: 'child2' });
+                graph.addCells([parent, child1, child2]);
+
+                parent.embed(child1);
+                parent.embed(child2);
+
+                // Verify embeds attribute is not set
+                assert.notOk(parent.get('embeds'), 'embeds attribute not set when storeEmbeds is false');
+
+                // Clone all cells
+                const cloneMap = graph.cloneCells([parent, child1, child2]);
+
+                // Verify clones have correct parent-child relationships
+                const clonedParent = cloneMap['parent'];
+                const clonedChild1 = cloneMap['child1'];
+                const clonedChild2 = cloneMap['child2'];
+
+                assert.equal(clonedChild1.get('parent'), clonedParent.id, 'cloned child1 has correct parent');
+                assert.equal(clonedChild2.get('parent'), clonedParent.id, 'cloned child2 has correct parent');
+
+                // Verify cloned parent has embeds set (cloneCells should always set embeds on clones)
+                const clonedEmbeds = clonedParent.get('embeds');
+                assert.ok(clonedEmbeds, 'cloned parent has embeds attribute');
+                assert.equal(clonedEmbeds.length, 2, 'cloned parent has 2 embedded cells');
+                assert.ok(clonedEmbeds.includes(clonedChild1.id), 'cloned parent embeds child1');
+                assert.ok(clonedEmbeds.includes(clonedChild2.id), 'cloned parent embeds child2');
+            } finally {
+                joint.config.storeEmbeds = originalValue;
+            }
+        });
     });
 
 });
