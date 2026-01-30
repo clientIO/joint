@@ -4,7 +4,7 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
-import { GraphProvider, useNodeSize, type GraphLink } from '@joint/react';
+import { GraphProvider, useCellId, useNodeSize, type GraphLink } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
@@ -12,19 +12,20 @@ import { Paper } from '../../src/components/paper/paper';
 export type StoryFunction = PartialStoryFn<any, any>;
 export type StoryCtx = StoryContext<any, any>;
 
-export const testElements: Record<string, {
-  id: string;
-  label: string;
-  color: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  hoverColor: string;
-  angle: number;
-}> = {
+export const testElements: Record<
+  string,
+  {
+    label: string;
+    color: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    hoverColor: string;
+    angle: number;
+  }
+> = {
   '1': {
-    id: '1',
     label: 'Node 1',
     color: PRIMARY,
     x: 100,
@@ -35,7 +36,6 @@ export const testElements: Record<string, {
     angle: 0,
   },
   '2': {
-    id: '2',
     label: 'Node 2',
     color: PRIMARY,
     x: 200,
@@ -50,7 +50,6 @@ export const testElements: Record<string, {
 export type SimpleElement = (typeof testElements)[string];
 export const testLinks: Record<string, GraphLink> = {
   'l-1': {
-    id: 'l-1',
     source: '1',
     target: '2',
     attrs: {
@@ -138,7 +137,11 @@ export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryC
     <RenderItemDecorator
       renderLink={component}
       // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
-      renderElement={({ id }) => <HTMLNode className="node">{id}</HTMLNode>}
+      renderElement={() => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const id = useCellId();
+        return <HTMLNode className="node">{id}</HTMLNode>;
+      }}
     />
   );
 }

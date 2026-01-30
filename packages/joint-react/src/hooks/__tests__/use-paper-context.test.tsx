@@ -7,7 +7,6 @@ describe('use-paper-context', () => {
     graphProviderProps: {
       elements: {
         '1': {
-          id: '1',
           width: 100,
           height: 100,
         },

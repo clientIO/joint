@@ -24,7 +24,6 @@ describe('PortItem cleanup', () => {
           graph,
           elements: {
             'element-1': {
-              id: 'element-1',
               x: 0,
               y: 0,
               width: 100,

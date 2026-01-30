@@ -17,6 +17,7 @@ import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 import { useCellActions } from '../../hooks/use-cell-actions';
+import { useCellId } from '../../hooks/use-cell-id';
 import { Paper } from './paper';
 import type { RenderElement } from './paper.types';
 import type { GraphElement } from '../../types/element-types';
@@ -345,7 +346,8 @@ export const WithOnClickColorChange: Story = {
     },
   },
   render: () => {
-    const renderElement: RenderElement<SimpleElement> = ({ width, height, hoverColor, id }) => {
+    const renderElement: RenderElement<SimpleElement> = ({ width, height, hoverColor }) => {
+      const id = useCellId();
       const { set } = useCellActions();
       return (
         <div
@@ -363,7 +365,6 @@ export const WithOnClickColorChange: Story = {
           '1': {
             width: 100,
             height: 40,
-            id: '1',
             label: 'Element 1',
             x: 50,
             y: 50,
@@ -372,7 +373,6 @@ export const WithOnClickColorChange: Story = {
           '2': {
             width: 100,
             height: 40,
-            id: '2',
             label: 'Element 1',
             x: 100,
             y: 250,
@@ -381,7 +381,6 @@ export const WithOnClickColorChange: Story = {
         }}
         links={{
           'l1': {
-            id: 'l1',
             source: '1',
             target: '2',
             attrs: {
@@ -458,7 +457,6 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
         }}
         links={{
           'l1': {
-            id: 'l1',
             source: '1',
             target: '2',
             attrs: {

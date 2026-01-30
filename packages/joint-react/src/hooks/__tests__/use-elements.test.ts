@@ -6,19 +6,16 @@ describe('use-elements', () => {
   const wrapper = graphProviderWrapper({
     elements: {
       '1': {
-        id: '1',
         width: 97,
         height: 99,
       },
       '2': {
-        id: '2',
         width: 97,
         height: 99,
       },
     },
     links: {
       '3': {
-        id: '3',
         source: '1',
         target: '2',
       },

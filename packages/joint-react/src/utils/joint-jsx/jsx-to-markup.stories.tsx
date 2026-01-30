@@ -42,13 +42,11 @@ const CustomRect = dia.Element.define(
 
 const initialElements: Record<string, {
   type: string;
-  id: string;
   x: number;
   y: number;
 }> = {
   'rect1': {
     type: 'CustomRect',
-    id: 'rect1',
     x: 80,
     y: 80,
   },

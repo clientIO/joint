@@ -7,7 +7,6 @@ describe('use-element', () => {
     graphProviderProps: {
       elements: {
         '1': {
-          id: '1',
           width: 100,
           height: 100,
           x: 10,
@@ -32,7 +31,6 @@ describe('use-element', () => {
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
-      expect(result.current.id).toBe('1');
       expect(result.current.width).toBe(100);
       expect(result.current.height).toBe(100);
     });

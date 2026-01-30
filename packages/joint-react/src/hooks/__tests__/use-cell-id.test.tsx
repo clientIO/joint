@@ -8,7 +8,6 @@ describe('use-cell-id', () => {
       graphProviderProps: {
         elements: {
           'test-cell-id': {
-            id: 'test-cell-id',
             width: 100,
             height: 100,
           },
