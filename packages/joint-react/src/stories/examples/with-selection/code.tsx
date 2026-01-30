@@ -1,258 +1,415 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
-import type { dia} from '@joint/core';
-import { highlighters } from '@joint/core';
+import { dia, highlighters, g, V } from '@joint/core';
 import type {
-  PaperStore} from '@joint/react';
+  ElementToGraphOptions,
+    LinkToGraphOptions,
+    // ReactElementView,
+    PaperStore} from '@joint/react';
 import {
-  GraphProvider,
-  Paper,
-  useGraph,
-  usePaper,
-  useNodeSize,
-  useNodeLayout,
-  type GraphElement,
-  type GraphLink,
-  type RenderElement
+    GraphProvider,
+    Paper,
+    useGraph,
+    usePaper,
+    useNodeSize,
+    useNodeLayout,
+    type GraphElement,
+    type GraphLink,
+    type PaperProps,
+    type RenderElement
+    // ReactLinkView,
+    // type MarkerPreset,
 } from '@joint/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 // ============================================================================
-// Types & Data
+// Types & Constants
 // ============================================================================
+
+const PAPER_CLASSNAME =
+  'border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2';
+
+const MINIMAP_WIDTH = 200;
+const MINIMAP_HEIGHT = 150;
 
 interface ElementData extends GraphElement {
+  readonly type?: 'default' | 'error' | 'info';
   readonly title?: string;
   readonly color?: string;
-  readonly jjType?: string; // Custom JointJS type (e.g., 'standard.Cylinder')
+  readonly jjType?: string;
 }
 
 interface LinkData extends GraphLink {
-  readonly color?: string;
-  readonly width?: number;
-  readonly dashed?: boolean;
+  readonly className?: string;
+  readonly jjType?: string;
 }
 
-const MINIMAP_WIDTH = 200;
-const MINIMAP_HEIGHT = 120;
+const PAPER_PROPS: PaperProps<ElementData> = {
+    defaultAnchor: {
+        name: 'midSide',
+        args: {
+            rotate: true,
+            useModelGeometry: true,
+        }
+    },
+    defaultConnectionPoint: {
+        name: 'anchor',
+        args: {
+            offset: 0,
+            useModelGeometry: true,
+        },
+    },
+    defaultConnector: {
+        name: 'straight',
+        args: {
+            cornerType: 'line',
+            cornerPreserveAspectRatio: true,
+            useModelGeometry: true,
+        },
+    },
+    defaultRouter: {
+        name: 'rightAngle',
+        args: {
+            direction: 'right',
+            useModelGeometry: true,
+        },
+    },
+    measureNode: (node, view) => {
+        if (node === view.el) {
+            return new g.Rect(view.model.size());
+        }
+        return V(node).getBBox();
+    }
+};
+
+// ============================================================================
+// Data
+// ============================================================================
 
 const elements: Record<string, ElementData> = {
-  '1': { x: 50, y: 50, title: 'Node 1', color: PRIMARY },
-  '2': { x: 300, y: 50, title: 'Node 2', color: SECONDARY },
-  '3': { x: 50, y: 200, title: 'Node 3', color: LIGHT },
-  '4': { x: 300, y: 200, width: 80, height: 100, jjType: 'standard.Cylinder', color: PRIMARY },
+    '1': {
+        x: 50,
+        y: 110,
+        angle: 30,
+        title: 'This is error element',
+    },
+    '2': {
+        x: 550,
+        y: 110,
+        title: 'This is info element',
+    },
+    '3': {
+        x: 50,
+        y: 370,
+        color: '#f87171',
+    },
+    '4': {
+        x: 550,
+        y: 370,
+        width: 100,
+        height: 150,
+        jjType: 'standard.Cylinder',
+        color: '#60a5fa',
+    },
 };
 
+
+// Links now use built-in theme properties: color, width, sourceMarker, targetMarker
 const links: Record<string, LinkData> = {
-  'link1': { source: { id: '1' }, target: { id: '2' }, color: PRIMARY, width: 3 },
-  'link2': { source: { id: '1' }, target: { id: '3' }, color: SECONDARY, dashed: true },
-  'link3': { source: { id: '2' }, target: { id: '4' }, color: LIGHT, width: 2 },
-  'link4': { source: { id: '3' }, target: { id: '4' }, color: PRIMARY, dashed: true },
+    'link1': {
+        source: { id: '1' },
+        target: { id: '2' },
+        width: 4,
+        color: 'orange',
+        // targetMarker: 'arrow' as MarkerPreset,
+        className: 'dashed-link',
+    },
+    'link2': {
+        source: { id: '3' },
+        target: { id: '4' },
+        color: 'green',
+        // sourceMarker: 'circle' as MarkerPreset,
+        // targetMarker: 'cross' as MarkerPreset,
+    },
+    'link3': {
+        source: { id: '2' },
+        target: { id: '4' },
+        jjType: 'standard.ShadowLink',
+        color: 'purple',
+    },
 };
 
 // ============================================================================
-// Data Mappers
+// Helpers
 // ============================================================================
 
-function mapDataToElementAttributes({
-  data,
-  defaultAttributes,
+function nodeSizeToModelSize({
+    x,
+    y,
+    width,
+    height,
 }: {
-  data: ElementData;
-  defaultAttributes: () => Record<string, unknown>;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }) {
-  const { jjType, color = 'lightgray' } = data;
-  // For custom JointJS types (like standard.Cylinder), override the type
-  if (jjType) {
+    const padding = 20;
     return {
-      ...defaultAttributes(),
-      type: jjType,
-   };
-  }
-  // For React-rendered elements, use defaults
-  return defaultAttributes();
+        x,
+        y,
+        width: width + padding,
+        height: height + padding,
+    };
 }
 
-function mapDataToLinkAttributes({
-  data,
-  defaultAttributes,
+// ============================================================================
+// Shapes
+// ============================================================================
+
+function Shape({
+    color = 'lightgray',
+    title = 'No Title',
 }: {
-  data: LinkData;
-  defaultAttributes: () => Record<string, unknown>;
+  color?: string;
+  title?: string;
 }) {
-  const { color = LIGHT, width = 2, dashed = false } = data;
-  const attributes = defaultAttributes();
-  // Apply custom link styling
-  return {
-    ...attributes,
-  };
+    const textRef = useRef<SVGTextElement>(null);
+    const { width, height } = useNodeSize(textRef, {
+        transform: nodeSizeToModelSize,
+    });
+
+    return (
+        <>
+            <ellipse
+                rx={width / 2}
+                ry={height / 2}
+                cx={width / 2}
+                cy={height / 2}
+                fill={color}
+            />
+            <text
+                ref={textRef}
+                x={width / 2}
+                y={height / 2}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                style={{ fontSize: 14, fill: 'black' }}
+            >
+                {title}
+            </text>
+        </>
+    );
 }
 
-// ============================================================================
-// Shape Component
-// ============================================================================
+function MinimapShape({ color = 'lightgray' }: { color?: string }) {
+    const layout = useNodeLayout();
+    if (!layout) return null;
 
-function Shape({ color = 'lightgray', title = 'Node' }: { color?: string; title?: string }) {
-  const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useNodeSize(textRef, {
-    transform: ({ x, y, width, height }) => ({
-      x,
-      y,
-      width: width + 24,
-      height: height + 16,
-    }),
-  });
-
-  return (
-    <>
-      <rect width={width} height={height} rx={8} ry={8} fill={color} />
-      <text
-        ref={textRef}
-        x={width / 2}
-        y={height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        style={{ fontSize: 14, fill: 'white', fontWeight: 500 }}
-      >
-        {title}
-      </text>
-    </>
-  );
+    const { width, height } = layout;
+    return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 
 // ============================================================================
 // Minimap
 // ============================================================================
 
-function MinimapShape({ color = 'lightgray' }: { color?: string }) {
-  const layout = useNodeLayout();
-  if (!layout) return null;
-  const { width, height } = layout;
-  return <rect width={width} height={height} fill={color} rx={4} ry={4} />;
-}
-
 function MiniMap({ paper }: { paper: dia.Paper }) {
-  const renderElement: RenderElement<ElementData> = useCallback(
-    ({ color = 'white' }) => <MinimapShape color={color} />,
-    []
-  );
+    const renderElement: RenderElement<ElementData> = useCallback(
+        ({ color = 'white' }) => <MinimapShape color={color} />,
+        [],
+    );
 
-  const [scale, setScale] = useState(1);
+    const [scale, setScale] = useState(1);
 
-  useEffect(() => {
-    const { width, height } = paper.getComputedSize();
-    const nextScale = Math.min(MINIMAP_WIDTH / width, MINIMAP_HEIGHT / height);
-    setScale(nextScale);
-  }, [paper]);
+    useEffect(() => {
+        const { width, height } = paper.getComputedSize();
+        const nextScale = Math.min(MINIMAP_WIDTH / width, MINIMAP_HEIGHT / height);
+        setScale(nextScale);
+    }, [paper]);
 
-  return (
-    <div
-      className="absolute bottom-4 right-4 border border-gray-300 rounded-lg overflow-hidden bg-gray-900"
-      style={{ width: MINIMAP_WIDTH, height: MINIMAP_HEIGHT }}
-    >
-      <Paper
-        interactive={false}
-        width="100%"
-        height="100%"
-        scale={scale}
-        className={PAPER_CLASSNAME}
-        renderElement={renderElement}
-      />
-    </div>
-  );
+    return (
+        <div
+            className="absolute bg-black bottom-6 right-6 border border-[#dde6ed] rounded-lg overflow-hidden"
+            style={{ width: MINIMAP_WIDTH, height: MINIMAP_HEIGHT }}
+        >
+            <Paper
+                {...PAPER_PROPS}
+                interactive={false}
+                width="100%"
+                height="100%"
+                scale={scale}
+                className={PAPER_CLASSNAME}
+                // elementView={ReactElementView}
+                renderElement={renderElement}
+            />
+        </div>
+    );
 }
 
 // ============================================================================
-// Selection Highlighter
+// Selection
 // ============================================================================
 
 function Selection({ selectedId }: { selectedId: dia.Cell.ID | null }) {
-  const paper = usePaper();
-  const graph = useGraph();
+    const paper = usePaper();
+    const graph = useGraph();
 
-  useEffect(() => {
-    highlighters.mask.removeAll(paper);
+    useEffect(() => {
+        highlighters.mask.removeAll(paper);
 
-    if (!selectedId) return;
+        if (!selectedId) return;
 
-    const cell = graph.getCell(selectedId);
-    if (!cell) return;
+        const cell = graph.getCell(selectedId);
+        if (!cell) return;
 
-    const view = paper.findViewByModel(cell);
-    highlighters.mask.add(view, 'root', 'selection', {
-      padding: 6,
-      attrs: {
-        stroke: '#2563eb',
-        'stroke-width': 2,
-        'stroke-dasharray': '4,2',
-      },
-    });
-  }, [graph, paper, selectedId]);
+        const view = paper.findViewByModel(cell);
+        highlighters.mask.add(view, 'root', 'selection', {
+            padding: 8,
+            layer: dia.Paper.Layers.FRONT,
+        });
+    }, [graph, paper, selectedId]);
 
-  return null;
+    return null;
 }
 
 // ============================================================================
-// Main Component
+// Main
 // ============================================================================
+
+
+function Badge({ x = 0, y = 0, size = 10, color = 'red' }: { x?: number; y?: number; size?: number; color?: string }) {
+    return (
+        <>
+            <circle cx={x} cy={y} r={size} fill={color} />
+            <text
+                x={x}
+                y={y}
+                dominantBaseline="middle"
+                textAnchor="middle"
+                fontSize="12"
+                fill="white"
+                fontWeight="bold"
+            >
+        !
+            </text>
+        </>
+    );
+}
 
 function Main() {
-  const [paperStore, setPaperStore] = useState<PaperStore | null>(null);
-  const [showMinimap, setShowMinimap] = useState(true);
-  const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(null);
+    const [paperStore, setPaperStore] = useState<PaperStore | null>(null);
+    const [showMinimap, setShowMinimap] = useState(false);
+    const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(
+        null,
+    );
 
-  const renderElement: RenderElement<ElementData> = useCallback(
-    ({ color, title }) => <Shape color={color} title={title} />,
-    []
-  );
 
-  return (
-    <div className="flex flex-col relative w-full" style={{ height: 400 }}>
-      <Paper
-        ref={setPaperStore}
-        className={PAPER_CLASSNAME}
-        width="100%"
-        height="100%"
-        renderElement={renderElement}
-        onElementPointerClick={({ elementView }) =>
-          setSelectedElement(elementView.model.id ?? null)
-        }
-        onBlankPointerClick={() => setSelectedElement(null)}
-      >
-        <Selection selectedId={selectedElement} />
-      </Paper>
+    const renderElement = useCallback((data: ElementData) => {
+        const { jjType, color = 'lightgray', title = 'No Title' } = data;
+        const { width } = useNodeLayout();
+        return (
+            <>
+                {jjType ?? <Shape color={color} title={title} />}
+                <Badge x={width + 10} y={-10} size={10} color={color} />
+            </>
+        );
+    }, []);
 
-      {showMinimap && paperStore && <MiniMap paper={paperStore.paper} />}
+    const graph = useGraph();
 
-      <button
-        type="button"
-        className="absolute top-2 right-2 z-10 bg-gray-800 hover:bg-gray-700 rounded-md px-3 py-1.5 text-white text-sm transition-colors"
-        onClick={() => setShowMinimap((v) => !v)}
-      >
-        {showMinimap ? 'Hide Minimap' : 'Show Minimap'}
-      </button>
+    return (
+        <div className="flex flex-col relative w-full h-full">
+            <Paper
+                {...PAPER_PROPS}
+                ref={setPaperStore}
+                className={PAPER_CLASSNAME}
+                width="100%"
+                height="calc(100vh - 100px)"
+                snapLinks={{ radius: 25 }}
+                renderElement={renderElement}
+                // linkView={ReactLinkView}
+                onViewPostponed={() => false}
+                // elementView={ReactElementView}
+                validateMagnet={(_, magnet) =>
+                    magnet.getAttribute('magnet') !== 'passive'
+                }
+                linkPinning={false}
+                onElementPointerClick={({ elementView }) =>
+                    setSelectedElement(elementView.model.id ?? null)
+                }
+                onElementPointerDblClick={({ elementView }) => {
+                    const cell = elementView.model;
+                    cell.clone().translate(10, 10).addTo(cell.graph);
+                }}
+                onBlankPointerClick={() => setSelectedElement(null)}
+            >
+                <Selection selectedId={selectedElement} />
+            </Paper>
 
-      <div className="absolute top-2 left-2 z-10 bg-gray-800 rounded-md px-3 py-1.5 text-white text-sm">
-        {selectedElement ? `Selected: ${selectedElement}` : 'Click a node to select'}
-      </div>
-    </div>
-  );
+            {showMinimap && paperStore && <MiniMap paper={paperStore.paper} />}
+
+            <button
+                type="button"
+                className="absolute top-2 right-2 z-10 bg-gray-900 rounded-lg p-2 shadow-md text-white text-sm"
+                onClick={() => setShowMinimap((v) => !v)}
+            >
+                {showMinimap ? 'Hide Minimap' : 'Show Minimap'}
+            </button>
+
+            <button
+                type="button"
+                className="absolute top-2 left-2 z-10 bg-gray-900 rounded-lg p-2 shadow-md text-white text-sm"
+                onClick={() => {
+                    console.log('Graph log:', graph.toJSON());
+                }}>Log
+            </button>
+        </div>
+    );
 }
 
 // ============================================================================
-// App Export
+// App
 // ============================================================================
 
 export default function App() {
-  return (
-    <GraphProvider
-      elements={elements}
-      links={links}
-      mapDataToElementAttributes={mapDataToElementAttributes}
-      mapDataToLinkAttributes={mapDataToLinkAttributes}
-    >
-      <Main />
-    </GraphProvider>
-  );
+    return (
+        <GraphProvider
+            elements={elements}
+            links={links}
+            mapDataToElementAttributes={mapDataToElementAttributesExample}
+            mapDataToLinkAttributes={mapDataToLinkAttributesExample}
+        >
+            <Main />
+        </GraphProvider>
+    );
+}
+
+function mapDataToLinkAttributesExample({ data, defaultAttributes }: LinkToGraphOptions<LinkData>) {
+    const { jjType } = data;
+
+    // For standard links, use the built-in theme defaults
+    // The defaultAttributes() already handles color, width, and markers
+    if (!jjType) {
+        return defaultAttributes();
+    }
+
+    // For custom link types (like standard.ShadowLink), override the type
+    const { attrs, ...rest } = defaultAttributes();
+    return {
+        ...rest,
+        type: jjType,
+    };
+}
+
+function mapDataToElementAttributesExample({ data, defaultAttributes }: ElementToGraphOptions<ElementData>) {
+    const { jjType, color = 'lightgray' } = data;
+    if (!jjType) return defaultAttributes();
+    return {
+        ...defaultAttributes(),
+        type: jjType,
+        attrs: {
+            body: { fill: color },
+        },
+    };
 }

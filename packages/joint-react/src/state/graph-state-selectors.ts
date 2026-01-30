@@ -4,6 +4,7 @@ import type { GraphLink } from '../types/link-types';
 import { getTargetOrSource } from '../utils/cell/get-link-targe-and-source-ids';
 import { REACT_TYPE } from '../models/react-element';
 import { REACT_LINK_TYPE } from '../models/react-link';
+import { DEFAULT_LINK_THEME, resolveMarker } from '../theme/link-theme';
 
 export interface ElementToGraphOptions<Element extends GraphElement> {
   readonly id: string;
@@ -176,6 +177,7 @@ export function createDefaultGraphToElementMapper<Element extends GraphElement>(
 
 /**
  * Creates the default mapper function for link to graph conversion.
+ * Extracts styling properties and applies theme defaults.
  * Separates user data into the `data` property.
  * @param id
  * @param data - The link to convert
@@ -204,6 +206,12 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
       ...userData
     } = data;
 
+    // Read styling properties with theme defaults (they remain in userData for round-trip)
+    const color = data.color ?? DEFAULT_LINK_THEME.color;
+    const width = data.width ?? DEFAULT_LINK_THEME.width;
+    const sourceMarker = data.sourceMarker ?? DEFAULT_LINK_THEME.sourceMarker;
+    const targetMarker = data.targetMarker ?? DEFAULT_LINK_THEME.targetMarker;
+
     const source = getTargetOrSource(linkSource);
     const target = getTargetOrSource(linkTarget);
 
@@ -213,7 +221,37 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
     const existingCell = graph.getCell(id);
     const existingAttributes = existingCell?.isLink() ? existingCell.attr() : {};
 
-    const mergedAttributes = util.defaultsDeep({}, attrs || {}, existingAttributes, defaults.attrs);
+    // Build theme-based line attributes
+    const resolvedSourceMarker = resolveMarker(sourceMarker);
+    const resolvedTargetMarker = resolveMarker(targetMarker);
+
+    const themeLineAttrs: Record<string, unknown> = {
+      stroke: color,
+      strokeWidth: width,
+    };
+
+    if (resolvedSourceMarker !== null) {
+      themeLineAttrs.sourceMarker = resolvedSourceMarker;
+    }
+    if (resolvedTargetMarker !== null) {
+      themeLineAttrs.targetMarker = resolvedTargetMarker;
+    }
+
+    const themeAttrs = {
+      line: themeLineAttrs,
+      wrapper: {
+        strokeWidth: width + DEFAULT_LINK_THEME.wrapperBuffer,
+      },
+    };
+
+    // Merge: user attrs > theme attrs > existing attrs > type defaults
+    const mergedAttributes = util.defaultsDeep(
+      {},
+      attrs || {},
+      themeAttrs,
+      existingAttributes,
+      defaults.attrs
+    );
 
     const model: dia.Cell.JSON = {
       id,

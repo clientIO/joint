@@ -1,4 +1,5 @@
 import type { dia, shapes } from '@joint/core';
+import type { MarkerPreset } from '../theme/link-theme';
 
 export interface StandardLinkShapesTypeMapper {
   'standard.DoubleLink': shapes.standard.DoubleLinkSelectors;
@@ -59,4 +60,26 @@ export interface GraphLink extends Record<string, unknown> {
    * Attributes of the link.
    */
   readonly attrs?: dia.Cell.Selectors;
+  /**
+   * Stroke color of the link line.
+   * @default '#333333'
+   */
+  readonly color?: string;
+  /**
+   * Stroke width of the link line.
+   * @default 2
+   */
+  readonly width?: number;
+  /**
+   * Source marker preset name or custom marker definition.
+   * Use 'none' or null for no marker.
+   * @default 'none'
+   */
+  readonly sourceMarker?: MarkerPreset | dia.SVGMarkerJSON | null;
+  /**
+   * Target marker preset name or custom marker definition.
+   * Use 'none' or null for no marker.
+   * @default 'none'
+   */
+  readonly targetMarker?: MarkerPreset | dia.SVGMarkerJSON | null;
 }
