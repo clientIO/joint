@@ -134,6 +134,10 @@ export class GraphHierarchyIndex extends Listener {
         const children = map.get(parentId);
         if (children) {
             children.delete(child.id);
+            // Clean up empty Set to prevent memory leaks
+            if (children.size === 0) {
+                map.delete(parentId);
+            }
         }
     }
 
