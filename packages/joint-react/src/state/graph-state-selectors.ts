@@ -1,4 +1,6 @@
-import { util, type dia } from '@joint/core';
+
+import type { attributes} from '@joint/core';
+import { type dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import { getTargetOrSource } from '../utils/cell/get-link-targe-and-source-ids';
@@ -182,20 +184,20 @@ export function createDefaultGraphToElementMapper<Element extends GraphElement>(
  * @param id
  * @param data - The link to convert
  * @param graph - The JointJS graph instance
+ * @param _graph
  * @returns A function that returns the JointJS Cell JSON representation
  */
 export function createDefaultLinkMapper<Link extends GraphLink>(
   id: string,
   data: Link,
-  graph: dia.Graph
+
+  _graph: dia.Graph
 ): () => dia.Cell.JSON {
   return () => {
     // Extract built-in JointJS link properties, remaining properties are user data
     const {
       source: linkSource,
       target: linkTarget,
-      attrs,
-      type = REACT_LINK_TYPE,
       z,
       markup,
       defaultLabel,
@@ -203,77 +205,63 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
       vertices,
       router,
       connector,
+      // Styling properties with theme defaults
+      color = DEFAULT_LINK_THEME.color,
+      width = DEFAULT_LINK_THEME.width,
+      sourceMarker = DEFAULT_LINK_THEME.sourceMarker,
+      targetMarker = DEFAULT_LINK_THEME.targetMarker,
       ...userData
     } = data;
 
-    // Read styling properties with theme defaults (they remain in userData for round-trip)
-    const color = data.color ?? DEFAULT_LINK_THEME.color;
-    const width = data.width ?? DEFAULT_LINK_THEME.width;
-    const sourceMarker = data.sourceMarker ?? DEFAULT_LINK_THEME.sourceMarker;
-    const targetMarker = data.targetMarker ?? DEFAULT_LINK_THEME.targetMarker;
-
+    // Read styling properties with theme defaults
     const source = getTargetOrSource(linkSource);
     const target = getTargetOrSource(linkTarget);
-
-    const typeClass = util.getByPath(graph.layerCollection.cellNamespace, type, '.');
-    const defaults = typeClass ? util.result(typeClass.prototype, 'defaults', {}) : {};
-
-    const existingCell = graph.getCell(id);
-    const existingAttributes = existingCell?.isLink() ? existingCell.attr() : {};
 
     // Build theme-based line attributes
     const resolvedSourceMarker = resolveMarker(sourceMarker);
     const resolvedTargetMarker = resolveMarker(targetMarker);
 
-    const themeLineAttrs: Record<string, unknown> = {
+    const resolvedLineAttributes: attributes.SVGAttributes = {
       stroke: color,
       strokeWidth: width,
     };
-
     if (resolvedSourceMarker !== null) {
-      themeLineAttrs.sourceMarker = resolvedSourceMarker;
+      resolvedLineAttributes.sourceMarker = resolvedSourceMarker;
     }
     if (resolvedTargetMarker !== null) {
-      themeLineAttrs.targetMarker = resolvedTargetMarker;
+      resolvedLineAttributes.targetMarker = resolvedTargetMarker;
     }
 
-    const themeAttrs = {
-      line: themeLineAttrs,
-      wrapper: {
-        strokeWidth: width + DEFAULT_LINK_THEME.wrapperBuffer,
-      },
-    };
-
-    // Merge: user attrs > theme attrs > existing attrs > type defaults
-    const mergedAttributes = util.defaultsDeep(
-      {},
-      attrs || {},
-      themeAttrs,
-      existingAttributes,
-      defaults.attrs
-    );
-
-    const model: dia.Cell.JSON = {
+    const attributes: dia.Cell.JSON = {
       id,
-      type: data.type ?? REACT_LINK_TYPE,
+      type: 'standard.Link',
       source,
       target,
-      attrs: mergedAttributes as dia.Cell.Selectors,
+      attrs: {
+          line: {
+              connection: true,
+              strokeLinejoin: 'round',
+              ...resolvedLineAttributes
+          },
+          wrapper: {
+              connection: true,
+              strokeWidth: 10,
+              strokeLinejoin: 'round'
+          }
+      }
     };
 
-    if (z !== undefined) model.z = z;
-    if (markup !== undefined) model.markup = markup;
-    if (defaultLabel !== undefined) model.defaultLabel = defaultLabel;
-    if (labels !== undefined) model.labels = labels;
-    if (vertices !== undefined) model.vertices = vertices;
-    if (router !== undefined) model.router = router;
-    if (connector !== undefined) model.connector = connector;
+    if (z !== undefined) attributes.z = z;
+    if (markup !== undefined) attributes.markup = markup;
+    if (defaultLabel !== undefined) attributes.defaultLabel = defaultLabel;
+    if (labels !== undefined) attributes.labels = labels;
+    if (vertices !== undefined) attributes.vertices = vertices;
+    if (router !== undefined) attributes.router = router;
+    if (connector !== undefined) attributes.connector = connector;
 
-    if (Object.keys(userData).length > 0) {
-      model.data = userData;
-    }
+    attributes.data = userData;
 
-    return model;
+    return attributes;
   };
 }
 
@@ -295,7 +283,6 @@ export function createDefaultGraphToLinkMapper<Link extends GraphLink>(
       ...attributes,
       source: cell.get('source') as dia.Cell.ID,
       target: cell.get('target') as dia.Cell.ID,
-      type: cell.attributes.type,
       z: cell.get('z'),
       markup: cell.get('markup'),
       defaultLabel: cell.get('defaultLabel'),
