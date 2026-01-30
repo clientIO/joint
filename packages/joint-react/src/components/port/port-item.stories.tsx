@@ -9,31 +9,32 @@ import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 import { Paper } from '../paper/paper';
 
-const initialElements: Record<string, {
-  id: string;
-  x: number;
-  y: number;
-}> = {
+const initialElements: Record<
+  string,
+  {
+    x: number;
+    y: number;
+  }
+> = {
   '1': {
-    id: '1',
     x: 100,
     y: 20,
   },
   '2': {
-    id: '2',
     x: 200,
     y: 250,
   },
 };
 
-const initialLinks: Record<string, {
-  id: string;
-  source: { id: string; port: string };
-  target: { id: string; port: string };
-  attrs: { line: { stroke: string } };
-}> = {
+const initialLinks: Record<
+  string,
+  {
+    source: { id: string; port: string };
+    target: { id: string; port: string };
+    attrs: { line: { stroke: string } };
+  }
+> = {
   'link-1': {
-    id: 'link-1',
     source: {
       id: '1',
       port: 'port-one',

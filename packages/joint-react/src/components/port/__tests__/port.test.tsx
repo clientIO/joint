@@ -20,7 +20,6 @@ describe('port', () => {
             graph,
             elements: {
               'element-1': {
-                id: 'element-1',
                 width: 100,
                 height: 100,
               },
@@ -53,9 +52,7 @@ describe('port', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': {
-            id: 'element-1',
-          },
+          'element-1': {},
         },
       },
     });
@@ -92,9 +89,7 @@ describe('port', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': {
-            id: 'element-1',
-          },
+          'element-1': {},
         },
       },
     });
@@ -137,7 +132,6 @@ describe('port', () => {
     function DynamicPorts() {
       const [ports, setPorts] = useState([{ id: 'port-1' }]);
 
-       
       addPortTrigger = () => {
         setPorts((previous) => [...previous, { id: `port-${previous.length + 1}` }]);
       };
@@ -158,7 +152,6 @@ describe('port', () => {
         graph,
         elements: {
           'element-1': {
-            id: 'element-1',
             width: 200,
             height: 100,
           },
@@ -236,7 +229,6 @@ describe('port', () => {
         graph,
         elements: {
           'element-1': {
-            id: 'element-1',
             width: 200,
             height: 100,
             x: 0,

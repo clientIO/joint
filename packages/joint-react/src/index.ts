@@ -24,8 +24,16 @@ export * from './store';
 export * from './state/graph-state-selectors';
 
 // Experimental ReactPaper
-export { ReactPaper, ReactPaperElement, ReactPaperLinkComponent, useReactPaper } from './components/react-paper';
+export {
+  ReactPaper,
+  ReactPaperElement,
+  ReactPaperLinkComponent,
+  useReactPaper,
+} from './components/react-paper';
 export type { ReactPaperProps, RenderElement, RenderLink } from './components/react-paper';
 export { ControlledPaper } from './models/controlled-paper';
-export { ReactPaperLink as ReactPaperLinkModel, REACT_PAPER_LINK_TYPE } from './models/react-paper-link';
+export {
+  ReactPaperLink as ReactPaperLinkModel,
+  REACT_PAPER_LINK_TYPE,
+} from './models/react-paper-link';
 export type { ControlledPaperOptions, ExternalElementType } from './types/controlled-paper.types';

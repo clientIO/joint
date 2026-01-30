@@ -16,19 +16,16 @@ describe('use-links', () => {
   const wrapper = graphProviderWrapper({
     elements: {
       '1': {
-        id: '1',
         width: 97,
         height: 99,
       },
       '2': {
-        id: '2',
         width: 97,
         height: 99,
       },
     },
     links: {
       '3': {
-        id: '3',
         source: '1',
         target: '2',
       },
@@ -50,7 +47,8 @@ describe('use-links', () => {
     await waitFor(() => {
       expect(renders).toHaveBeenCalledTimes(1);
       expect(Object.keys(result.current).length).toBe(1);
-      expect(result.current['3'].id).toBe('3');
+      expect(result.current['3']).toBeDefined();
+      expect(result.current['3'].source).toBe('1');
     });
   });
 

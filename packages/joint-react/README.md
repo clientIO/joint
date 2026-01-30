@@ -41,8 +41,7 @@ bun add @joint/react
 
 ## 🧭 Core Ideas
 
-- **Elements (nodes)** and **links (edges)** are plain objects.
-- Define **`id` explicitly** and mark it as a literal (`'foo' as const`) so TypeScript keeps it precise.
+- **Elements (nodes)** and **links (edges)** are plain objects stored in a `Record<string, Data>` where the key is the ID.
 - The **`GraphProvider`** component provides the graph context; **`Paper`** renders it.
 - Use hooks like `useElements`, `useLinks`, `useGraph`, `usePaper` for reading/updating state.
 
@@ -50,19 +49,19 @@ bun add @joint/react
 
 ## 🚀 Quick Start (TypeScript)
 
-`id` must be present for every element and link.
+Elements and links are stored in a `Record<string, Data>` where the key is the ID.
 
 ```tsx
 import React from 'react'
 import { GraphProvider } from '@joint/react'
 
 const elements = {
-  'node1': { id: 'node1', label: 'Start', x: 100, y: 50, width: 120, height: 60 },
-  'node2': { id: 'node2', label: 'End',   x: 100, y: 200, width: 120, height: 60 },
+  'node1': { label: 'Start', x: 100, y: 50, width: 120, height: 60 },
+  'node2': { label: 'End',   x: 100, y: 200, width: 120, height: 60 },
 } as const
 
 const links = {
-  'link1': { id: 'link1', source: 'node1', target: 'node2' },
+  'link1': { source: 'node1', target: 'node2' },
 } as const
 
 // Narrow element type straight from the record:
@@ -103,12 +102,12 @@ import React from 'react'
 import { GraphProvider } from '@joint/react'
 
 const elements = {
-  'a': { id: 'a' as const, label: 'A', x: 40,  y: 60,  width: 80, height: 40 },
-  'b': { id: 'b' as const, label: 'B', x: 260, y: 180, width: 80, height: 40 },
+  'a': { label: 'A', x: 40,  y: 60,  width: 80, height: 40 },
+  'b': { label: 'B', x: 260, y: 180, width: 80, height: 40 },
 } as const
 
 const links = {
-  'a-b': { id: 'a-b' as const, source: 'a', target: 'b' },
+  'a-b': { source: 'a', target: 'b' },
 } as const
 
 export function MultiView() {
@@ -169,7 +168,7 @@ import React, { useState } from 'react'
 import { GraphProvider } from '@joint/react'
 
 const initialElements = {
-  'n1': { id: 'n1' as const, label: 'Item', x: 60, y: 60, width: 100, height: 40 },
+  'n1': { label: 'Item', x: 60, y: 60, width: 100, height: 40 },
 } as const
 
 const initialLinks = {} as const
@@ -231,8 +230,7 @@ function MyComponent() {
   const { set, remove } = useCellActions()
 
   const addNode = () => {
-    set({
-      id: 'new-node',
+    set('new-node', {
       x: 100,
       y: 100,
       width: 120,
@@ -288,7 +286,6 @@ export function FitOnMount() {
 
 ## 🧠 Best Practices
 
-- **Define ids as literals**: `id: 'node1' as const` — enables exact typing and prevents mismatches.
 - **Type elements from data**: `type Element = typeof elements[keyof typeof elements]` — reuse data as your source of truth.
 - **Memoize renderers & handlers**: `useCallback` to minimize re-renders.
 - **Keep overlay HTML lightweight**: Prefer simple layout; avoid heavy transforms/animations in `<foreignObject>` (Safari can be picky).

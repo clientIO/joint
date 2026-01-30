@@ -69,7 +69,9 @@ interface Options {
   /** Options to pass to the ResizeObserver constructor */
   readonly resizeObserverOptions?: ResizeObserverOptions;
   /** Function to get the current size of a cell from the graph */
-  readonly getCellTransform: (id: dia.Cell.ID) => NodeLayoutOptionalXY & { element: dia.Element; angle: number };
+  readonly getCellTransform: (
+    id: dia.Cell.ID
+  ) => NodeLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the current public snapshot containing all elements */
   readonly getPublicSnapshot: () => MarkDeepReadOnly<GraphStoreSnapshot>;
   /** Callback function called when a batch of elements needs to be updated */

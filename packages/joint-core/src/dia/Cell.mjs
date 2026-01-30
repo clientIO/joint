@@ -350,23 +350,31 @@ export const Cell = Model.extend({
 
     _embedCells: function(cells, opt) {
         const batchName = 'embed';
-        this.startBatch(batchName);
-        const embeds = assign([], this.get('embeds'));
+        this.startBatch(batchName, opt);
         cells.forEach(cell => {
-            // We keep all element ids after link ids.
-            embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
             cell.parent(this.id, opt);
         });
-        this.set('embeds', uniq(embeds), opt);
-        this.stopBatch(batchName);
+        // Only set embeds attribute if config allows (backwards compatibility)
+        if (config.storeEmbeds !== false) {
+            const embeds = assign([], this.get('embeds'));
+            cells.forEach(cell => {
+                // We keep all element ids after link ids.
+                embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
+            });
+            this.set('embeds', uniq(embeds), opt);
+        }
+        this.stopBatch(batchName, opt);
     },
 
     _unembedCells: function(cells, opt) {
         const batchName = 'unembed';
-        this.startBatch(batchName);
+        this.startBatch(batchName, opt);
         cells.forEach(cell => cell.unset('parent', opt));
-        this.set('embeds', without(this.get('embeds'), ...cells.map(cell => cell.id)), opt);
-        this.stopBatch(batchName);
+        // Only update embeds attribute if config allows (backwards compatibility)
+        if (config.storeEmbeds !== false) {
+            this.set('embeds', without(this.get('embeds'), ...cells.map(cell => cell.id)), opt);
+        }
+        this.stopBatch(batchName, opt);
     },
 
     getParentCell: function() {
@@ -418,12 +426,13 @@ export const Cell = Model.extend({
             }
         }
 
-        const embeddedIds = this.get('embeds');
-        if (isEmpty(embeddedIds)) {
+        // Read from hierarchy index instead of 'embeds' attribute
+        const childIds = this.graph.hierarchyIndex.getChildrenIds(this.id);
+        if (childIds.length === 0) {
             return [];
         }
 
-        let cells = embeddedIds.map(this.graph.getCell, this.graph);
+        let cells = childIds.map(id => this.graph.getCell(id));
         if (opt.sortSiblings) {
             cells = sortBy(cells, cell => cell.z());
         }

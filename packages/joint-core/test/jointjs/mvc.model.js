@@ -902,6 +902,17 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(model.id, 3);
     });
 
+    QUnit.test('#4289 - Trigger "changeId" need to be generate only if the content id change', function(assert) {
+        assert.expect(1);
+        var model = new joint.mvc.Model({ id: 1 });
+        model.idAttribute = 'id';
+        model.on('changeId', function(m) {
+            assert.equal(m.get('id'), 2);
+        });
+        model.set({ id: 1 });
+        model.set({ id: 2 });
+    });
+
     QUnit.test('event prefix functionality', function(assert) {
         const model = new joint.mvc.Model({}, {
             eventPrefix: 'prefix:'

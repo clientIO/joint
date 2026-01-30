@@ -6,7 +6,6 @@ describe('use-graph', () => {
   const wrapper = graphProviderWrapper({
     elements: {
       '1': {
-        id: '1',
         width: 100,
         height: 100,
       },
@@ -43,12 +42,3 @@ describe('use-graph', () => {
     });
   });
 });
-
-
-
-
-
-
-
-
-

@@ -36,12 +36,12 @@ The **GraphProvider** component provides a shared Graph context for all its desc
 import { GraphProvider, Paper } from '@joint/react';
 
 const elements = {
-  '1': { id: '1', x: 100, y: 100, width: 100, height: 50 },
-  '2': { id: '2', x: 250, y: 200, width: 100, height: 50 },
+  '1': { x: 100, y: 100, width: 100, height: 50 },
+  '2': { x: 250, y: 200, width: 100, height: 50 },
 };
 
 const links = {
-  'l1': { id: 'l1', source: '1', target: '2' },
+  'l1': { source: '1', target: '2' },
 };
 
 function MyDiagram() {

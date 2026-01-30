@@ -1,4 +1,3 @@
- 
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia } from '@joint/core';
 import '../../stories/examples/index.css';
@@ -40,15 +39,16 @@ const CustomRect = dia.Element.define(
   }
 );
 
-const initialElements: Record<string, {
-  type: string;
-  id: string;
-  x: number;
-  y: number;
-}> = {
-  'rect1': {
+const initialElements: Record<
+  string,
+  {
+    type: string;
+    x: number;
+    y: number;
+  }
+> = {
+  rect1: {
     type: 'CustomRect',
-    id: 'rect1',
     x: 80,
     y: 80,
   },

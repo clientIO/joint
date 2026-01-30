@@ -7,6 +7,7 @@ import { BUTTON_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { useCellActions } from './use-cell-actions';
+import { useCellId } from './use-cell-id';
 
 const API_URL = getAPILink('useCellActions');
 
@@ -97,7 +98,8 @@ function Component() {
 
 export default meta;
 
-function Hook({ label, id }: Readonly<SimpleElement>) {
+function Hook({ label }: Readonly<SimpleElement>) {
+  const id = useCellId();
   const { set } = useCellActions<SimpleElement>();
 
   return (
@@ -116,7 +118,6 @@ export const SetLabel: Story = makeStory<Story>({
   args: {
     label: 'default',
     color: 'red',
-    id: 'default-id',
   },
   apiURL: API_URL,
   code: `import { useCellActions } from '@joint/react'
@@ -139,7 +140,8 @@ export const SetLabel: Story = makeStory<Story>({
   description: 'Set new data for the element.',
 });
 
-function HookSetPosition({ label, id }: Readonly<SimpleElement>) {
+function HookSetPosition({ label }: Readonly<SimpleElement>) {
+  const id = useCellId();
   const { set } = useCellActions<SimpleElement>();
 
   return (
@@ -179,7 +181,8 @@ function HookSetPosition({  label , id }: SimpleElement) {
   description: 'Set the position of the element.',
 });
 
-function HookSetSize({ label, id }: Readonly<SimpleElement>) {
+function HookSetSize({ label }: Readonly<SimpleElement>) {
+  const id = useCellId();
   const { set } = useCellActions<SimpleElement>();
   return (
     <HTMLNode className="node">
@@ -216,7 +219,8 @@ function HookSetSize({  label , id }: SimpleElement) {
   description: 'Set the size of the element.',
 });
 
-function HookSetAngle({ label, id }: Readonly<SimpleElement>) {
+function HookSetAngle({ label }: Readonly<SimpleElement>) {
+  const id = useCellId();
   const { set } = useCellActions<SimpleElement>();
 
   return (
@@ -262,7 +266,8 @@ function HookSetAngle({  label , id }: SimpleElement) {
   description: 'Set the angle of the element.',
 });
 
-function HookSetAny({ label, id }: Readonly<SimpleElement>) {
+function HookSetAny({ label }: Readonly<SimpleElement>) {
+  const id = useCellId();
   const { set } = useCellActions();
 
   return (
@@ -342,7 +347,8 @@ function HookSetAny({  label , id }: SimpleElement) {
 });
 
 // remove elements
-function HookRemoveElement({ label, id }: Readonly<SimpleElement>) {
+function HookRemoveElement({ label }: Readonly<SimpleElement>) {
+  const id = useCellId();
   const { remove } = useCellActions();
 
   return (
@@ -376,7 +382,8 @@ function HookRemoveElement({  label , id }: SimpleElement) {
 });
 
 // set link example
-function HookSetAndRemoveLink({ label, id }: Readonly<SimpleElement>) {
+function HookSetAndRemoveLink({ label }: Readonly<SimpleElement>) {
+  const id = useCellId();
   const { remove, set } = useCellActions();
 
   return (

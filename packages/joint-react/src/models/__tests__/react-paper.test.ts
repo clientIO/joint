@@ -71,52 +71,47 @@ describe('ReactPaper', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
       graphStore.graph.addCell(element);
 
       // After adding cell, view should be in elementCache
-      expect(elementCache.elementViews['el1']).toBeDefined();
-      expect(elementCache.elementViews['el1'].model).toBe(element);
+      expect(elementCache.elementViews[element.id]).toBeDefined();
+      expect(elementCache.elementViews[element.id].model).toBe(element);
     });
 
     it('should add link view to reactLinkCache when inserted', () => {
       paper = createPaper();
 
       const element1 = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
       const element2 = new shapes.standard.Rectangle({
-        id: 'el2',
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
       const link = new shapes.standard.Link({
-        id: 'link1',
-        source: { id: 'el1' },
-        target: { id: 'el2' },
+        source: { id: element1.id },
+        target: { id: element2.id },
       });
       graphStore.graph.addCells([element1, element2, link]);
 
-      expect(linkCache.linkViews['link1']).toBeDefined();
-      expect(linkCache.linkViews['link1'].model).toBe(link);
+      expect(linkCache.linkViews[link.id]).toBeDefined();
+      expect(linkCache.linkViews[link.id].model).toBe(link);
     });
 
     it('should set magnet=false on element views', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
       graphStore.graph.addCell(element);
 
-      const view = elementCache.elementViews['el1'];
+      const view = elementCache.elementViews[element.id];
       expect(view.el.getAttribute('magnet')).toBe('false');
     });
 
@@ -124,23 +119,20 @@ describe('ReactPaper', () => {
       paper = createPaper();
 
       const element1 = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
       const element2 = new shapes.standard.Rectangle({
-        id: 'el2',
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
       const link = new shapes.standard.Link({
-        id: 'link1',
-        source: { id: 'el1' },
-        target: { id: 'el2' },
+        source: { id: element1.id },
+        target: { id: element2.id },
       });
       graphStore.graph.addCells([element1, element2, link]);
 
-      const linkView = linkCache.linkViews['link1'];
+      const linkView = linkCache.linkViews[link.id];
       expect(linkView.el.getAttribute('magnet')).not.toBe('false');
     });
 
@@ -150,7 +142,6 @@ describe('ReactPaper', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -165,47 +156,42 @@ describe('ReactPaper', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
       graphStore.graph.addCell(element);
-      expect(elementCache.elementViews['el1']).toBeDefined();
+      expect(elementCache.elementViews[element.id]).toBeDefined();
 
       graphStore.graph.removeCells([element]);
-      expect(elementCache.elementViews['el1']).toBeUndefined();
+      expect(elementCache.elementViews[element.id]).toBeUndefined();
     });
 
     it('should remove view from reactLinkCache when link is removed', () => {
       paper = createPaper();
 
       const element1 = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
       const element2 = new shapes.standard.Rectangle({
-        id: 'el2',
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
       const link = new shapes.standard.Link({
-        id: 'link1',
-        source: { id: 'el1' },
-        target: { id: 'el2' },
+        source: { id: element1.id },
+        target: { id: element2.id },
       });
       graphStore.graph.addCells([element1, element2, link]);
-      expect(linkCache.linkViews['link1']).toBeDefined();
+      expect(linkCache.linkViews[link.id]).toBeDefined();
 
       graphStore.graph.removeCells([link]);
-      expect(linkCache.linkViews['link1']).toBeUndefined();
+      expect(linkCache.linkViews[link.id]).toBeUndefined();
     });
 
     it('should call schedulePaperUpdate when view is removed', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -227,18 +213,17 @@ describe('ReactPaper', () => {
       });
 
       const element = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 50, height: 50 },
       });
       graphStore.graph.addCell(element);
-      expect(elementCache.elementViews['el1']).toBeDefined();
+      expect(elementCache.elementViews[element.id]).toBeDefined();
 
       // Get the view and call _hideCellView directly
       const view = paper.findViewByModel(element);
       paper._hideCellView(view);
 
-      expect(elementCache.elementViews['el1']).toBeUndefined();
+      expect(elementCache.elementViews[element.id]).toBeUndefined();
     });
 
     it('should remove link view from reactLinkCache when hidden', () => {
@@ -248,35 +233,31 @@ describe('ReactPaper', () => {
       });
 
       const element1 = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 50, height: 50 },
       });
       const element2 = new shapes.standard.Rectangle({
-        id: 'el2',
         position: { x: 200, y: 0 },
         size: { width: 50, height: 50 },
       });
       const link = new shapes.standard.Link({
-        id: 'link1',
-        source: { id: 'el1' },
-        target: { id: 'el2' },
+        source: { id: element1.id },
+        target: { id: element2.id },
       });
       graphStore.graph.addCells([element1, element2, link]);
-      expect(linkCache.linkViews['link1']).toBeDefined();
+      expect(linkCache.linkViews[link.id]).toBeDefined();
 
       // Get the link view and call _hideCellView directly
       const linkView = paper.findViewByModel(link);
       paper._hideCellView(linkView);
 
-      expect(linkCache.linkViews['link1']).toBeUndefined();
+      expect(linkCache.linkViews[link.id]).toBeUndefined();
     });
 
     it('should call schedulePaperUpdate when view is hidden', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
-        id: 'el1',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });

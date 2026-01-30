@@ -19,4 +19,8 @@ export const config = {
     doubleTapInterval: 300,
     // Name of the attribute used to store the layer id on the cell model.
     layerAttribute: 'layer',
+    // When set to `false`, the `embeds` attribute is not stored on cells.
+    // The hierarchy is maintained via the `parent` attribute and the GraphHierarchyIndex.
+    // This can reduce redundant data but disables `change:embeds` events.
+    storeEmbeds: true,
 };

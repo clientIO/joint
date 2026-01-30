@@ -132,7 +132,9 @@ assign(Model.prototype, Events, {
         if (this.idAttribute in attrs) {
             var prevId = this.id;
             this.id = this.get(this.idAttribute);
-            this.trigger(this.eventPrefix + 'changeId', this, prevId, options);
+            if (this.id !== prevId) {
+                this.trigger(this.eventPrefix + 'changeId', this, prevId, options);
+            }
         }
 
         // Trigger all relevant attribute changes.

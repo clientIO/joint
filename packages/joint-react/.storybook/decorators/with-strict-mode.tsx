@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function withStrictMode(Story: any) {
   return (
     //  <React.StrictMode>

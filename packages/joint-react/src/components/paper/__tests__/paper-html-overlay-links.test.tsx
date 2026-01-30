@@ -2,7 +2,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { render, waitFor, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, useCellActions, type GraphElement, type GraphLink } from '../../../index';
+import {
+  GraphProvider,
+  Paper,
+  useCellActions,
+  type GraphElement,
+  type GraphLink,
+} from '../../../index';
 import { useCallback } from 'react';
 
 interface TestElement extends GraphElement {
@@ -10,13 +16,12 @@ interface TestElement extends GraphElement {
 }
 
 const elements: Record<string, TestElement> = {
-  '1': { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
-  '2': { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
+  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
 };
 
 const links: Record<string, GraphLink> = {
   'link-1': {
-    id: 'link-1',
     source: '1',
     target: '2',
   },
@@ -107,8 +112,8 @@ describe('Paper with useHTMLOverlay and links', () => {
     }
 
     const initialElements: Record<string, TestElement> = {
-      '1': { id: '1', label: 'Element1', x: 100, y: 0, width: 100, height: 50 },
-      '2': { id: '2', label: 'Element2', x: 100, y: 200, width: 100, height: 50 },
+      '1': { label: 'Element1', x: 100, y: 0, width: 100, height: 50 },
+      '2': { label: 'Element2', x: 100, y: 200, width: 100, height: 50 },
     };
 
     const { container } = render(
