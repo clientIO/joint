@@ -13,12 +13,6 @@ type NodeType = {
   nodeType: 'user-action' | 'entity' | 'confirm' | 'message';
   x: number;
   y: number;
-
-  attrs?: {
-    root?: {
-      magnet?: boolean;
-    };
-  };
 };
 
 const nodes: Record<string, NodeType> = {
@@ -28,12 +22,6 @@ const nodes: Record<string, NodeType> = {
     nodeType: 'user-action',
     x: 50,
     y: 50,
-
-    attrs: {
-      root: {
-        magnet: false,
-      },
-    },
   },
   '2': {
     title: 'Entity',
@@ -41,22 +29,11 @@ const nodes: Record<string, NodeType> = {
     nodeType: 'entity',
     x: 120,
     y: 200,
-
-    attrs: {
-      root: {
-        magnet: false,
-      },
-    },
   },
   '3': {
     title: 'User Action',
     description: 'Get account balance',
     nodeType: 'user-action',
-    attrs: {
-      root: {
-        magnet: false,
-      },
-    },
     x: 190,
     y: 350,
   },

@@ -1,4 +1,4 @@
- 
+
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-shadow */
 /* eslint-disable @eslint-react/no-array-index-key */
@@ -106,11 +106,6 @@ const elements: Record<string, Element> = {
     ],
     width: 400,
     height: 200,
-    attrs: {
-      root: {
-        magnet: false,
-      },
-    },
   },
 };
 
@@ -119,16 +114,12 @@ const links: Record<string, GraphLink> = {
   'link2': {
     source: { id: '3', port: 'out-3-0' }, // Port from table element
     target: { id: '1' },
-    attrs: {
-      line: {
-        stroke: LIGHT,
-        class: 'link',
-        strokeWidth: 2,
-        strokeDasharray: '5,5',
-        targetMarker: {
-          d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
-        },
-      },
+    color: LIGHT,
+    width: 2,
+    className: 'link',
+    pattern: '5,5',
+    targetMarker: {
+      d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
     },
   },
 };

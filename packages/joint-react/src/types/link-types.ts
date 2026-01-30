@@ -82,4 +82,14 @@ export interface GraphLink extends Record<string, unknown> {
    * @default 'none'
    */
   readonly targetMarker?: MarkerPreset | dia.SVGMarkerJSON | null;
+  /**
+   * CSS class name to apply to the link line.
+   * @default ''
+   */
+  readonly className?: string;
+  /**
+   * Stroke dash pattern for the link line (e.g., '5,5' for dashed).
+   * @default ''
+   */
+  readonly pattern?: string;
 }

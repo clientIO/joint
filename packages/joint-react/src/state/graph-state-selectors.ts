@@ -209,6 +209,8 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
       width = DEFAULT_LINK_THEME.width,
       sourceMarker = DEFAULT_LINK_THEME.sourceMarker,
       targetMarker = DEFAULT_LINK_THEME.targetMarker,
+      className = DEFAULT_LINK_THEME.className,
+      pattern = DEFAULT_LINK_THEME.pattern,
       ...userData
     } = data;
 
@@ -229,6 +231,12 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
     }
     if (resolvedTargetMarker !== null) {
       resolvedLineAttributes.targetMarker = resolvedTargetMarker;
+    }
+    if (className) {
+      resolvedLineAttributes.class = className;
+    }
+    if (pattern) {
+      resolvedLineAttributes.strokeDasharray = pattern;
     }
 
     const attributes: dia.Cell.JSON = {
@@ -266,6 +274,8 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
       width,
       sourceMarker,
       targetMarker,
+      className,
+      pattern,
     };
 
     return attributes;

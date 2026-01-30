@@ -40,6 +40,8 @@ export const DEFAULT_LINK_THEME = {
     sourceMarker: 'none' as MarkerPreset,
     targetMarker: 'none' as MarkerPreset,
     wrapperBuffer: 8,
+    className: '',
+    pattern: '',
 } as const;
 
 export type LinkTheme = typeof DEFAULT_LINK_THEME;

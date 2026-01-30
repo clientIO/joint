@@ -2,37 +2,17 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, linkTools } from '@joint/core';
 import '../index.css';
-import { GraphProvider, jsx, Paper, type RenderElement, type GraphLink, type LinkToGraphOptions } from '@joint/react';
+import { GraphProvider, jsx, Paper, type RenderElement, type GraphLink } from '@joint/react';
 import { useCallback } from 'react';
 import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-interface CustomLink extends GraphLink {
-  readonly attrs?: { line: { stroke: string; strokeDasharray: string } };
-}
-
-const initialEdges: Record<string, CustomLink> = {
+const initialEdges: Record<string, GraphLink> = {
   'e1-2': {
     source: '1',
     target: '2',
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeDasharray: '5 5',
-      },
-    },
+    color: PRIMARY,
+    pattern: '5 5',
   },
-};
-
-const mapDataToLinkAttributes = ({
-  data,
-  defaultAttributes,
-}: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
-  const result = defaultAttributes();
-  const { attrs } = data as CustomLink;
-  return {
-    ...result,
-    ...(attrs && { attrs }),
-  };
 };
 
 const initialElements: Record<string, { label: string; x: number; y: number; width: number; height: number }> = {
@@ -126,7 +106,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} links={initialEdges} mapDataToLinkAttributes={mapDataToLinkAttributes}>
+    <GraphProvider elements={initialElements} links={initialEdges}>
       <Main />
     </GraphProvider>
   );
