@@ -393,7 +393,7 @@ export default function App() {
 }
 
 function mapDataToLinkAttributesExample({ data, defaultAttributes }: LinkToGraphOptions<LinkData>) {
-    const { jjType } = data;
+    const { jjType, color } = data;
 
     // For standard links, use the built-in theme defaults
     // The defaultAttributes() already handles color, width, and markers
@@ -403,23 +403,101 @@ function mapDataToLinkAttributesExample({ data, defaultAttributes }: LinkToGraph
 
     // For custom link types (like standard.ShadowLink), override the type
     // and exclude attrs so the link type's defaults are used
-    const defaults = defaultAttributes();
-    return {
-        id: defaults.id,
-        source: defaults.source,
-        target: defaults.target,
-        type: jjType,
+    const attributes = {
+      ...defaultAttributes(),
+      type: jjType
     };
+    // eslint-disable-next-line sonarjs/no-small-switch
+    switch (jjType) {
+      case 'standard.ShadowLink': {
+        attributes.attrs = {
+          line: {
+              connection: true,
+              stroke: color,
+              strokeWidth: 20,
+              strokeLinejoin: 'round',
+              targetMarker: {
+                  'type': 'path',
+                  'stroke': 'none',
+                  'd': 'M 0 -10 -10 0 0 10 z'
+              },
+              sourceMarker: {
+                  'type': 'path',
+                  'stroke': 'none',
+                  'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+              }
+          },
+          shadow: {
+              connection: true,
+              transform: 'translate(3,6)',
+              stroke: '#000000',
+              strokeOpacity: 0.2,
+              strokeWidth: 20,
+              strokeLinejoin: 'round',
+              targetMarker: {
+                  'type': 'path',
+                  'd': 'M 0 -10 -10 0 0 10 z',
+                  'stroke': 'none'
+              },
+              sourceMarker: {
+                  'type': 'path',
+                  'stroke': 'none',
+                  'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+              }
+          }
+        };
+        break;
+      }
+      default: {
+        throw new Error(`Unsupported jjType: ${jjType}`);
+      }
+    }
+    return attributes;
 }
 
 function mapDataToElementAttributesExample({ data, defaultAttributes }: ElementToGraphOptions<ElementData>) {
     const { jjType, color = 'lightgray' } = data;
     if (!jjType) return defaultAttributes();
-    return {
-        ...defaultAttributes(),
-        type: jjType,
-        attrs: {
-            body: { fill: color },
-        },
+    const attributes = {
+      ...defaultAttributes(),
+      type: jjType,
     };
+    // eslint-disable-next-line sonarjs/no-small-switch
+    switch (jjType) {
+      case 'standard.Cylinder': {
+        attributes.attrs = {
+          root: {
+              cursor: 'move'
+          },
+          body: {
+              lateralArea: 10,
+              fill: color,
+              stroke: '#333333',
+              strokeWidth: 2
+          },
+          top: {
+              cx: 'calc(w/2)',
+              cy: 10,
+              rx: 'calc(w/2)',
+              ry: 10,
+              fill: color,
+              stroke: '#333333',
+              strokeWidth: 2
+          },
+          label: {
+              textVerticalAnchor: 'middle',
+              textAnchor: 'middle',
+              x: 'calc(w/2)',
+              y: 'calc(h+15)',
+              fontSize: 14,
+              fill: '#333333'
+          }
+        };
+        break;
+      }
+      default: {
+        throw new Error(`Unsupported jjType: ${jjType}`);
+      }
+    }
+    return attributes;
 }
