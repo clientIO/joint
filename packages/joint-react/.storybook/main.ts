@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-shadow */
-import type { StorybookConfig } from '@storybook/react-vite';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import type { StorybookConfig } from '@storybook/react-vite';
 import { configureSort } from 'storybook-multilevel-sort';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 configureSort({
   storyOrder: {
@@ -14,6 +18,10 @@ configureSort({
   },
 });
 
+function getAbsolutePath(value: string): string {
+  return path.dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
+}
+
 const config: StorybookConfig = {
   // accept .stories and also story.tsx
   stories: [
@@ -21,23 +29,18 @@ const config: StorybookConfig = {
     '../**/*.stories.@(js|jsx|mjs|ts|tsx)',
     '../**/story.@(js|jsx|mjs|ts|tsx)',
   ],
+
   addons: [
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
-    '@storybook/addon-docs',
-    '@storybook/addon-a11y',
-    '@storybook/addon-links',
-    'storybook-addon-performance',
-    '@codesandbox/storybook-addon',
+    getAbsolutePath('@storybook/addon-docs'),
+    getAbsolutePath('@storybook/addon-a11y'),
+    getAbsolutePath('@storybook/addon-links'),
   ],
 
   framework: {
-    name: '@storybook/react-vite',
+    name: getAbsolutePath('@storybook/react-vite'),
     options: {},
   },
-  docs: {
-    autodocs: true,
-  },
+
   tags: {
     // Custom tags for organizing stories
     component: {},
@@ -48,7 +51,7 @@ const config: StorybookConfig = {
     utils: {},
   },
 
-  // 👇 extend Vite config here to resolve libraries properly (in storybook)
+  // extend Vite config here to resolve libraries properly (in storybook)
   viteFinal: async (config) => {
     config.resolve = config.resolve || {};
     config.resolve.alias = {
@@ -59,4 +62,5 @@ const config: StorybookConfig = {
     return config;
   },
 };
+
 export default config;

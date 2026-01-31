@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useLinks } from './use-links';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';

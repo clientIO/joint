@@ -1,4 +1,4 @@
-import { create } from '@storybook/theming';
+import { create } from 'storybook/theming';
 export const PRIMARY = '#ED2637';
 export const BG = '#131E29';
 export const SECONDARY = '#FF9505';

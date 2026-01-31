@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { HTMLNode, RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
 import '../stories/examples/index.css';
