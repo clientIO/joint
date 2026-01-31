@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia } from '@joint/core';
-import { GraphProvider, Paper, useNodeSize, type GraphElement } from '@joint/react';
+import { GraphLink, GraphProvider, Paper, useNodeSize, type GraphElement } from '@joint/react';
 import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
@@ -17,22 +17,35 @@ const elements: Record<string, ContainerElement> = {
     height: 200,
     label: 'Container',
     isContainer: true,
+    z: 1
   },
   'child-1': {
     x: 70,
     y: 80,
     label: 'Child 1',
     parent: 'container',
+    z: 2
   },
   'child-2': {
     x: 200,
     y: 80,
     label: 'Child 2',
     parent: 'container',
+    z: 2
   },
 };
 
-function ContainerNode({ label, width, height }: Readonly<ContainerElement>) {
+const links: Record<string, GraphLink> = {
+  'link-1': {
+    source: { id: 'child-1' },
+    target: { id: 'child-2' },
+    parent: 'container',
+    color: 'white',
+    z: 2
+  },
+};
+
+function ContainerElement({ label, width, height }: Readonly<ContainerElement>) {
   return (
     <g>
       <rect
@@ -58,7 +71,7 @@ function ContainerNode({ label, width, height }: Readonly<ContainerElement>) {
   );
 }
 
-function ChildNode({ label }: Readonly<ContainerElement>) {
+function ChildElement({ label }: Readonly<ContainerElement>) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useNodeSize(ref);
 
@@ -86,9 +99,9 @@ function ChildNode({ label }: Readonly<ContainerElement>) {
 
 function RenderElement(props: ContainerElement) {
   if (props.isContainer) {
-    return <ContainerNode {...props} />;
+    return <ContainerElement {...props} />;
   }
-  return <ChildNode {...props} />;
+  return <ChildElement {...props} />;
 }
 
 function validateParentChildRelationship(
@@ -114,7 +127,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={elements}>
+    <GraphProvider elements={elements} links={links}>
       <Main />
     </GraphProvider>
   );
