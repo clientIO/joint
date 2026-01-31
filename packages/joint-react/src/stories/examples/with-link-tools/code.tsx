@@ -2,20 +2,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, linkTools } from '@joint/core';
 import '../index.css';
-import { GraphProvider, jsx, Paper, type RenderElement } from '@joint/react';
+import { GraphProvider, jsx, Paper, type RenderElement, type GraphLink } from '@joint/react';
 import { useCallback } from 'react';
 import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string; strokeDasharray: string } } }> = {
+const initialEdges: Record<string, GraphLink> = {
   'e1-2': {
     source: '1',
     target: '2',
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeDasharray: '5 5',
-      },
-    },
+    color: PRIMARY,
+    pattern: '5 5',
   },
 };
 

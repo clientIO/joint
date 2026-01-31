@@ -79,19 +79,18 @@ const flowchartNodes: Record<string, NodeElement> = {
     cy: 460,
   },
 };
-const LINK_OPTIONS: Partial<GraphLink> = {
-  z: 2,
-  attrs: {
-    line: {
-      class: 'link',
-      stroke: PRIMARY,
-      strokeWidth: 2,
-      targetMarker: {
-        d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
-      },
-    },
-  },
+interface FlowchartLinkOptions extends GraphLink {
+  readonly label?: string;
+}
 
+const LINK_OPTIONS: Partial<FlowchartLinkOptions> = {
+  z: 2,
+  color: PRIMARY,
+  width: 2,
+  className: 'link',
+  targetMarker: {
+    d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
+  },
   defaultLabel: {
     attrs: {
       line: {
@@ -121,7 +120,8 @@ const LINK_OPTIONS: Partial<GraphLink> = {
     ],
   },
 };
-type FlowchartLink = GraphLink & { label?: string };
+
+type FlowchartLink = FlowchartLinkOptions;
 
 const flowchartLinks: Record<string, FlowchartLink> = {
   flow1: { ...LINK_OPTIONS, source: 'start', target: 'addToCart' },

@@ -32,12 +32,12 @@ const initialLinks: Record<string, GraphLink> = {
   'link-1-2': {
     source: '1',
     target: '2',
-    attrs: { line: { stroke: LIGHT } },
+    color: LIGHT,
   },
   'link-1-3': {
     source: '1',
     target: '3',
-    attrs: { line: { stroke: LIGHT } },
+    color: LIGHT,
   },
 };
 
@@ -241,11 +241,11 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
         <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Color</label>
         <input
           type="color"
-          value={(link.attrs?.line as { stroke?: string })?.stroke ?? '#000000'}
+          value={(link.color as string) ?? '#000000'}
           onChange={(event) =>
             set(id, (previous) => ({
               ...previous,
-              attrs: { ...previous.attrs, line: { ...previous.attrs?.line, stroke: event.target.value } },
+              color: event.target.value,
             }))
           }
           style={{ width: 36, height: 28, border: 'none', cursor: 'pointer', borderRadius: 6, padding: 0 }}
@@ -377,7 +377,7 @@ function AddLinkForm() {
     set(newId, {
       source,
       target,
-      attrs: { line: { stroke: LIGHT } },
+      color: LIGHT,
     });
     setSource('');
     setTarget('');

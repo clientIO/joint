@@ -23,13 +23,8 @@ const initialEdges: Record<string, GraphLink> = {
   'e1-2': {
     source: '1',
     target: '2',
-    type: 'standard.Link', // if define type, it provide intellisense support
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
   },
 };
 

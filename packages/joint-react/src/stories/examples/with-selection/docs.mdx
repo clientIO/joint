@@ -1,0 +1,86 @@
+import { Meta, Canvas, Markdown } from '@storybook/addon-docs/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+<Meta of={Stories} />
+
+# Example: Selection & Minimap
+
+This example demonstrates how to implement element selection with visual highlighting, a toggleable minimap overview, and custom data-to-attributes mapping.
+
+## Features
+
+- **Selection Highlighting**: Click on any node to select it. The selection is visualized using JointJS highlighters with a dashed border effect.
+- **Minimap**: A scaled-down overview of the entire graph that updates automatically. Toggle visibility with the button.
+- **Custom Shapes**: Nodes are rendered with auto-sized rectangles based on their text content using `useNodeSize`.
+- **Custom Element Types**: Use `mapDataToElementAttributes` to map custom data to JointJS built-in shapes (e.g., `standard.Cylinder`).
+- **Custom Link Styling**: Use `mapDataToLinkAttributes` to apply custom colors, widths, and dash patterns to links.
+
+### Demo
+
+<Canvas of={Stories.Default} />
+
+### Key Concepts
+
+**Data-to-Attributes Mapping**
+
+The `mapDataToElementAttributes` and `mapDataToLinkAttributes` props allow you to transform your data into JointJS cell attributes:
+
+```tsx
+<GraphProvider
+  elements={elements}
+  links={links}
+  mapDataToElementAttributes={({ data, defaultAttributes }) => {
+    const { jjType, color } = data;
+    // For custom JointJS types, override the type
+    if (jjType) {
+      return {
+        ...defaultAttributes(),
+        type: jjType,
+        attrs: { body: { fill: color } },
+      };
+    }
+    return defaultAttributes();
+  }}
+  mapDataToLinkAttributes={({ data, defaultAttributes }) => {
+    const { color, width, dashed } = data;
+    return {
+      ...defaultAttributes(),
+      attrs: {
+        line: {
+          stroke: color,
+          strokeWidth: width,
+          strokeDasharray: dashed ? '8,4' : undefined,
+        },
+      },
+    };
+  }}
+>
+```
+
+**Selection with Highlighters**
+
+The `Selection` component uses JointJS's `highlighters.mask` to add visual feedback:
+
+```tsx
+highlighters.mask.add(view, 'root', 'selection', {
+  padding: 6,
+  attrs: {
+    stroke: '#2563eb',
+    'stroke-width': 2,
+    'stroke-dasharray': '4,2',
+  },
+});
+```
+
+**Minimap Implementation**
+
+The minimap uses a second `Paper` component with `interactive={false}` and a calculated scale to show the full graph.
+
+### Full Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>

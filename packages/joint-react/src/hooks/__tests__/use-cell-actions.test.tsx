@@ -143,9 +143,7 @@ describe('useCellActions', () => {
       result.current.actions.set('3', {
         source: { id: '1' },
         target: { id: '2' },
-        attrs: {
-          line: { stroke: '#001DFF' },
-        },
+        color: '#001DFF',
       });
     });
 
@@ -164,9 +162,7 @@ describe('useCellActions', () => {
     act(() => {
       result.current.actions.set('3', (previous) => ({
         ...previous,
-        attrs: {
-          line: { stroke: '#FF0000' },
-        },
+        color: '#FF0000',
       }));
     });
 
@@ -186,9 +182,7 @@ describe('useCellActions', () => {
       result.current.actions.set('30', {
         source: { id: '2' },
         target: { id: '1' },
-        attrs: {
-          line: { stroke: '#00FF00' },
-        },
+        color: '#00FF00',
       });
     });
 

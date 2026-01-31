@@ -24,8 +24,12 @@ const mapDataToElementAttributes = ({
   defaultAttributes,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
   const result = defaultAttributes();
-  const nativeElement = data as NativeElement;
-  return { ...result, type: nativeElement.type };
+  const { type, attrs } = data as NativeElement;
+  return {
+    ...result,
+    ...(type && { type }),
+    ...(attrs && { attrs }),
+  };
 };
 
 const mapDataToLinkAttributes = ({
@@ -33,13 +37,18 @@ const mapDataToLinkAttributes = ({
   defaultAttributes,
 }: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
   const result = defaultAttributes();
-  if (data.type) {
-    return { ...result, type: data.type };
-  }
-  return result;
+  const { type, attrs, labels } = data as NativeLink;
+  return {
+    ...result,
+    ...(type && { type }),
+    ...(attrs && { attrs }),
+    ...(labels && { labels }),
+  };
 };
 
 const SECONDARY = '#6366f1';
+
+const CYLINDER_TILT = 10;
 
 const initialElements: Record<string, NativeElement> = {
   // Row 1: Basic shapes
@@ -50,8 +59,22 @@ const initialElements: Record<string, NativeElement> = {
     height: 50,
     type: 'standard.Rectangle',
     attrs: {
-      body: { fill: PRIMARY },
-      label: { text: 'Rectangle', fill: 'white' },
+      body: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        strokeWidth: 2,
+        stroke: '#000000',
+        fill: PRIMARY,
+      },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Rectangle',
+      },
     },
   },
   'circle': {
@@ -61,8 +84,23 @@ const initialElements: Record<string, NativeElement> = {
     height: 60,
     type: 'standard.Circle',
     attrs: {
-      body: { fill: SECONDARY },
-      label: { text: 'Circle', fill: 'white' },
+      body: {
+        cx: 'calc(s/2)',
+        cy: 'calc(s/2)',
+        r: 'calc(s/2)',
+        strokeWidth: 2,
+        stroke: '#333333',
+        fill: SECONDARY,
+      },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Circle',
+      },
     },
   },
   'ellipse': {
@@ -72,8 +110,24 @@ const initialElements: Record<string, NativeElement> = {
     height: 50,
     type: 'standard.Ellipse',
     attrs: {
-      body: { fill: PRIMARY },
-      label: { text: 'Ellipse', fill: 'white' },
+      body: {
+        cx: 'calc(w/2)',
+        cy: 'calc(h/2)',
+        rx: 'calc(w/2)',
+        ry: 'calc(h/2)',
+        strokeWidth: 2,
+        stroke: '#333333',
+        fill: PRIMARY,
+      },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Ellipse',
+      },
     },
   },
   'cylinder': {
@@ -83,8 +137,21 @@ const initialElements: Record<string, NativeElement> = {
     height: 70,
     type: 'standard.Cylinder',
     attrs: {
-      body: { fill: SECONDARY },
-      top: { fill: '#4f46e5' },
+      body: {
+        lateralArea: CYLINDER_TILT,
+        fill: SECONDARY,
+        stroke: '#333333',
+        strokeWidth: 2,
+      },
+      top: {
+        cx: 'calc(w/2)',
+        cy: CYLINDER_TILT,
+        rx: 'calc(w/2)',
+        ry: CYLINDER_TILT,
+        fill: '#4f46e5',
+        stroke: '#333333',
+        strokeWidth: 2,
+      },
     },
   },
   // Row 2: Path shapes
@@ -97,9 +164,19 @@ const initialElements: Record<string, NativeElement> = {
     attrs: {
       body: {
         d: 'M 0 20 L 40 0 L 80 20 L 80 60 L 40 80 L 0 60 Z',
+        strokeWidth: 2,
+        stroke: '#333333',
         fill: PRIMARY,
       },
-      label: { text: 'Path', fill: 'white' },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Path',
+      },
     },
   },
   'polygon': {
@@ -111,9 +188,19 @@ const initialElements: Record<string, NativeElement> = {
     attrs: {
       body: {
         points: '40,0 80,30 65,80 15,80 0,30',
+        strokeWidth: 2,
+        stroke: '#333333',
         fill: SECONDARY,
       },
-      label: { text: 'Polygon', fill: 'white' },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Polygon',
+      },
     },
   },
   'polyline': {
@@ -125,11 +212,20 @@ const initialElements: Record<string, NativeElement> = {
     attrs: {
       body: {
         points: '0,40 25,0 50,40 75,0 100,40',
-        fill: 'none',
-        stroke: PRIMARY,
         strokeWidth: 3,
+        stroke: PRIMARY,
+        fill: 'none',
+        pointerEvents: 'all'
       },
-      label: { text: 'Polyline', y: 70, fill: 'white' },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 70,
+        fontSize: 14,
+        fill: 'white',
+        text: 'Polyline',
+      },
     },
   },
   'textblock': {
@@ -139,8 +235,21 @@ const initialElements: Record<string, NativeElement> = {
     height: 60,
     type: 'standard.TextBlock',
     attrs: {
-      body: { fill: '#f3f4f6', stroke: PRIMARY },
-      label: { text: 'TextBlock\nwith wrap', style: { color: PRIMARY } },
+      body: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        stroke: PRIMARY,
+        fill: '#f3f4f6',
+        strokeWidth: 2,
+      },
+      foreignObject: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+      },
+      label: {
+        text: 'TextBlock\nwith wrap',
+        style: { fontSize: 14, color: PRIMARY },
+      },
     },
   },
   // Row 3: Headered and Image shapes
@@ -151,10 +260,38 @@ const initialElements: Record<string, NativeElement> = {
     height: 80,
     type: 'standard.HeaderedRectangle',
     attrs: {
-      header: { fill: PRIMARY },
-      headerText: { text: 'Header', fill: 'white' },
-      body: { fill: '#e5e7eb' },
-      bodyText: { text: 'Body', fill: '#374151' },
+      body: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        strokeWidth: 2,
+        stroke: '#000000',
+        fill: '#e5e7eb',
+      },
+      header: {
+        width: 'calc(w)',
+        height: 30,
+        strokeWidth: 2,
+        stroke: '#000000',
+        fill: PRIMARY,
+      },
+      headerText: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 15,
+        fontSize: 16,
+        fill: 'white',
+        text: 'Header',
+      },
+      bodyText: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2+15)',
+        fontSize: 14,
+        fill: '#374151',
+        text: 'Body',
+      },
     },
   },
   'image': {
@@ -165,9 +302,19 @@ const initialElements: Record<string, NativeElement> = {
     type: 'standard.Image',
     attrs: {
       image: {
+        width: 'calc(w)',
+        height: 'calc(h)',
         xlinkHref: 'https://picsum.photos/60/60?random=1',
       },
-      label: { text: 'Image', fill: 'white' },
+      label: {
+        textVerticalAnchor: 'top',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h+10)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Image',
+      },
     },
   },
   'bordered-image': {
@@ -177,25 +324,68 @@ const initialElements: Record<string, NativeElement> = {
     height: 70,
     type: 'standard.BorderedImage',
     attrs: {
-      border: { stroke: PRIMARY, strokeWidth: 3 },
+      border: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        stroke: PRIMARY,
+        strokeWidth: 3,
+      },
+      background: {
+        width: 'calc(w-1)',
+        height: 'calc(h-1)',
+        x: 0.5,
+        y: 0.5,
+        fill: '#FFFFFF',
+      },
       image: {
+        width: 'calc(w-1)',
+        height: 'calc(h-1)',
+        x: 0.5,
+        y: 0.5,
         xlinkHref: 'https://picsum.photos/70/70?random=2',
       },
-      label: { text: 'Bordered', fill: 'white' },
+      label: {
+        textVerticalAnchor: 'top',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h+10)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Bordered',
+      },
     },
   },
   'embedded-image': {
     x: 360,
     y: 220,
-    width: 100,
+    width: 150,
     height: 70,
     type: 'standard.EmbeddedImage',
     attrs: {
-      body: { fill: '#f3f4f6', stroke: SECONDARY },
+      body: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        stroke: SECONDARY,
+        fill: '#f3f4f6',
+        strokeWidth: 2,
+      },
       image: {
+        width: 'calc(0.3*w)',
+        height: 'calc(h-20)',
+        x: 10,
+        y: 10,
+        preserveAspectRatio: 'xMidYMin',
         xlinkHref: 'https://picsum.photos/30/30?random=3',
       },
-      label: { text: 'Embedded', fill: '#374151' },
+      label: {
+        textVerticalAnchor: 'top',
+        textAnchor: 'left',
+        x: 'calc(0.3*w+20)',
+        y: 10,
+        fontSize: 14,
+        fill: '#374151',
+        text: 'Embedded',
+      },
     },
   },
   // Row 4: More shapes and link targets
@@ -206,12 +396,38 @@ const initialElements: Record<string, NativeElement> = {
     height: 70,
     type: 'standard.InscribedImage',
     attrs: {
-      border: { stroke: PRIMARY, strokeWidth: 2 },
-      background: { fill: '#e5e7eb' },
+      border: {
+        rx: 'calc(w/2)',
+        ry: 'calc(h/2)',
+        cx: 'calc(w/2)',
+        cy: 'calc(h/2)',
+        stroke: PRIMARY,
+        strokeWidth: 2,
+      },
+      background: {
+        rx: 'calc(w/2)',
+        ry: 'calc(h/2)',
+        cx: 'calc(w/2)',
+        cy: 'calc(h/2)',
+        fill: '#e5e7eb',
+      },
       image: {
+        width: 'calc(0.68*w)',
+        height: 'calc(0.68*h)',
+        x: 'calc(0.16*w)',
+        y: 'calc(0.16*h)',
+        preserveAspectRatio: 'xMidYMid',
         xlinkHref: 'https://picsum.photos/50/50?random=4',
       },
-      label: { text: 'Inscribed', fill: 'white' },
+      label: {
+        textVerticalAnchor: 'top',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h+10)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Inscribed',
+      },
     },
   },
   'link-source': {
@@ -221,8 +437,22 @@ const initialElements: Record<string, NativeElement> = {
     height: 40,
     type: 'standard.Rectangle',
     attrs: {
-      body: { fill: PRIMARY },
-      label: { text: 'Source', fill: 'white' },
+      body: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        strokeWidth: 2,
+        stroke: '#000000',
+        fill: PRIMARY,
+      },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Source',
+      },
     },
   },
   'link-target-1': {
@@ -232,8 +462,22 @@ const initialElements: Record<string, NativeElement> = {
     height: 40,
     type: 'standard.Rectangle',
     attrs: {
-      body: { fill: SECONDARY },
-      label: { text: 'Target 1', fill: 'white' },
+      body: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        strokeWidth: 2,
+        stroke: '#000000',
+        fill: SECONDARY,
+      },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Target 1',
+      },
     },
   },
   'link-target-2': {
@@ -243,8 +487,22 @@ const initialElements: Record<string, NativeElement> = {
     height: 40,
     type: 'standard.Rectangle',
     attrs: {
-      body: { fill: PRIMARY },
-      label: { text: 'Target 2', fill: 'white' },
+      body: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        strokeWidth: 2,
+        stroke: '#000000',
+        fill: PRIMARY,
+      },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Target 2',
+      },
     },
   },
   'link-target-3': {
@@ -254,8 +512,22 @@ const initialElements: Record<string, NativeElement> = {
     height: 40,
     type: 'standard.Rectangle',
     attrs: {
-      body: { fill: SECONDARY },
-      label: { text: 'Target 3', fill: 'white' },
+      body: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        strokeWidth: 2,
+        stroke: '#000000',
+        fill: SECONDARY,
+      },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: 'Target 3',
+      },
     },
   },
 };
@@ -266,7 +538,21 @@ const initialLinks: Record<string, NativeLink> = {
     target: 'link-target-1',
     type: 'standard.Link',
     attrs: {
-      line: { stroke: PRIMARY, strokeWidth: 2 },
+      line: {
+        connection: true,
+        stroke: PRIMARY,
+        strokeWidth: 2,
+        strokeLinejoin: 'round',
+        targetMarker: {
+          type: 'path',
+          d: 'M 10 -5 0 0 10 5 z',
+        },
+      },
+      wrapper: {
+        connection: true,
+        strokeWidth: 10,
+        strokeLinejoin: 'round',
+      },
     },
     labels: [{ attrs: { text: { text: 'Link' } } }],
   },
@@ -275,8 +561,23 @@ const initialLinks: Record<string, NativeLink> = {
     target: 'link-target-2',
     type: 'standard.DoubleLink',
     attrs: {
-      line: { stroke: SECONDARY },
-      outline: { stroke: '#c7d2fe' },
+      line: {
+        connection: true,
+        stroke: SECONDARY,
+        strokeWidth: 4,
+        strokeLinejoin: 'round',
+        targetMarker: {
+          type: 'path',
+          stroke: '#000000',
+          d: 'M 10 -3 10 -10 -2 0 10 10 10 3',
+        },
+      },
+      outline: {
+        connection: true,
+        stroke: '#c7d2fe',
+        strokeWidth: 6,
+        strokeLinejoin: 'round',
+      },
     },
     labels: [{ attrs: { text: { text: 'DoubleLink' } } }],
   },
@@ -285,8 +586,40 @@ const initialLinks: Record<string, NativeLink> = {
     target: 'link-target-3',
     type: 'standard.ShadowLink',
     attrs: {
-      line: { stroke: PRIMARY },
-      shadow: { stroke: '#9ca3af' },
+      line: {
+        connection: true,
+        stroke: PRIMARY,
+        strokeWidth: 20,
+        strokeLinejoin: 'round',
+        targetMarker: {
+          type: 'path',
+          stroke: 'none',
+          d: 'M 0 -10 -10 0 0 10 z',
+        },
+        sourceMarker: {
+          type: 'path',
+          stroke: 'none',
+          d: 'M -10 -10 0 0 -10 10 0 10 0 -10 z',
+        },
+      },
+      shadow: {
+        connection: true,
+        transform: 'translate(3,6)',
+        stroke: '#9ca3af',
+        strokeOpacity: 0.2,
+        strokeWidth: 20,
+        strokeLinejoin: 'round',
+        targetMarker: {
+          type: 'path',
+          d: 'M 0 -10 -10 0 0 10 z',
+          stroke: 'none',
+        },
+        sourceMarker: {
+          type: 'path',
+          stroke: 'none',
+          d: 'M -10 -10 0 0 -10 10 0 10 0 -10 z',
+        },
+      },
     },
     labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },

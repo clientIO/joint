@@ -61,45 +61,22 @@ const Pulse = dia.HighlighterView.extend({
     this.el.setAttribute('transform', `translate(${position.x}, ${position.y})`);
   },
 });
-type Element = GraphElement & {
-  attrs?: {
-    root?: {
-      magnet?: boolean;
-    };
-  };
-};
-
-const elements: Record<string, Element> = {
+const elements: Record<string, GraphElement> = {
   '1': {
     x: 50,
     y: 50,
-    attrs: {
-      root: {
-        magnet: false,
-      },
-    },
   },
   '2': {
     x: 350,
     y: 50,
-    attrs: {
-      root: {
-        magnet: false,
-      },
-    },
   },
   '3': {
     x: 150,
     y: 250,
-    attrs: {
-      root: {
-        magnet: false,
-      },
-    },
   },
 };
 
-function NodeElement(_props: Element) {
+function NodeElement(_props: GraphElement) {
   const id = useCellId();
   const rectRef = useRef<SVGRectElement>(null);
   const { width, height } = useNodeSize(rectRef);

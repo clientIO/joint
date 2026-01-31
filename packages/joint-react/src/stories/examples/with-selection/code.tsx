@@ -1,5 +1,12 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+import '../index.css';
 import { dia, highlighters, g, V } from '@joint/core';
-import './index.css';
+import type {
+  ElementToGraphOptions,
+    LinkToGraphOptions,
+    // ReactElementView,
+    PaperStore} from '@joint/react';
 import {
     GraphProvider,
     Paper,
@@ -10,9 +17,7 @@ import {
     type GraphElement,
     type GraphLink,
     type PaperProps,
-    type RenderElement,
-    // ReactElementView,
-    PaperStore,
+    type RenderElement
     // ReactLinkView,
     // type MarkerPreset,
 } from '@joint/react';
@@ -72,7 +77,8 @@ const PAPER_PROPS: PaperProps<ElementData> = {
     },
     measureNode: (node, view) => {
         if (node === view.el) {
-            return new g.Rect(view.model.size());
+            const size = (view.model as dia.Element).size();
+            return new g.Rect(0, 0, size.width, size.height);
         }
         return V(node).getBBox();
     }
@@ -166,10 +172,10 @@ function nodeSizeToModelSize({
 function Shape({
     color = 'lightgray',
     title = 'No Title',
-}: {
+}: Readonly<{
   color?: string;
   title?: string;
-}) {
+}>) {
     const textRef = useRef<SVGTextElement>(null);
     const { width, height } = useNodeSize(textRef, {
         transform: nodeSizeToModelSize,
@@ -198,7 +204,7 @@ function Shape({
     );
 }
 
-function MinimapShape({ color = 'lightgray' }: { color?: string }) {
+function MinimapShape({ color = 'lightgray' }: Readonly<{ color?: string }>) {
     const layout = useNodeLayout();
     if (!layout) return null;
 
@@ -210,7 +216,7 @@ function MinimapShape({ color = 'lightgray' }: { color?: string }) {
 // Minimap
 // ============================================================================
 
-function MiniMap({ paper }: { paper: dia.Paper }) {
+function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
     const renderElement: RenderElement<ElementData> = useCallback(
         ({ color = 'white' }) => <MinimapShape color={color} />,
         [],
@@ -274,7 +280,7 @@ function Selection({ selectedId }: { selectedId: dia.Cell.ID | null }) {
 // ============================================================================
 
 
-function Badge({ x = 0, y = 0, size = 10, color = 'red' }: { x?: number; y?: number; size?: number; color?: string }) {
+function Badge({ x = 0, y = 0, size = 10, color = 'red' }: Readonly<{ x?: number; y?: number; size?: number; color?: string }>) {
     return (
         <>
             <circle cx={x} cy={y} r={size} fill={color} />
@@ -293,6 +299,17 @@ function Badge({ x = 0, y = 0, size = 10, color = 'red' }: { x?: number; y?: num
     );
 }
 
+function RenderElementWithBadge({ jjType, color = 'lightgray', title = 'No Title' }: Readonly<ElementData>) {
+    const layout = useNodeLayout();
+    const width = layout?.width ?? 100;
+    return (
+        <>
+            {jjType ?? <Shape color={color} title={title} />}
+            <Badge x={width + 10} y={-10} size={10} color={color} />
+        </>
+    );
+}
+
 function Main() {
     const [paperStore, setPaperStore] = useState<PaperStore | null>(null);
     const [showMinimap, setShowMinimap] = useState(false);
@@ -302,14 +319,7 @@ function Main() {
 
 
     const renderElement = useCallback((data: ElementData) => {
-        const { jjType, color = 'lightgray', title = 'No Title' } = data;
-        const { width } = useNodeLayout();
-        return (
-            <>
-                {jjType ?? <Shape color={color} title={title} />}
-                <Badge x={width + 10} y={-10} size={10} color={color} />
-            </>
-        );
+        return <RenderElementWithBadge {...data} />;
     }, []);
 
     const graph = useGraph();
@@ -357,6 +367,7 @@ function Main() {
                 type="button"
                 className="absolute top-2 left-2 z-10 bg-gray-900 rounded-lg p-2 shadow-md text-white text-sm"
                 onClick={() => {
+                    // eslint-disable-next-line no-console
                     console.log('Graph log:', graph.toJSON());
                 }}>Log
             </button>
@@ -373,35 +384,120 @@ export default function App() {
         <GraphProvider
             elements={elements}
             links={links}
-            mapDataToElementAttributes={({ data, defaultAttributes }) => {
-                const { jjType, color = 'lightgray' } = data as ElementData;
-                if (!jjType) return defaultAttributes();
-                return {
-                    ...defaultAttributes(),
-                    type: jjType,
-                    attrs: {
-                        body: { fill: color },
-                    },
-                };
-            }}
-            mapDataToLinkAttributes={({ data, defaultAttributes }) => {
-                const { jjType } = data as LinkData;
-
-                // For standard links, use the built-in theme defaults
-                // The defaultAttributes() already handles color, width, and markers
-                if (!jjType) {
-                    return defaultAttributes();
-                }
-
-                // For custom link types (like standard.ShadowLink), override the type
-                const { attrs, ...rest } = defaultAttributes();
-                return {
-                    ...rest,
-                    type: jjType,
-                };
-            }}
+            mapDataToElementAttributes={mapDataToElementAttributesExample}
+            mapDataToLinkAttributes={mapDataToLinkAttributesExample}
         >
             <Main />
         </GraphProvider>
     );
+}
+
+function mapDataToLinkAttributesExample({ data, defaultAttributes }: LinkToGraphOptions<LinkData>) {
+    const { jjType, color } = data;
+
+    // For standard links, use the built-in theme defaults
+    // The defaultAttributes() already handles color, width, and markers
+    if (!jjType) {
+        return defaultAttributes();
+    }
+
+    // For custom link types (like standard.ShadowLink), override the type
+    // and exclude attrs so the link type's defaults are used
+    const attributes = {
+      ...defaultAttributes(),
+      type: jjType
+    };
+    // eslint-disable-next-line sonarjs/no-small-switch
+    switch (jjType) {
+      case 'standard.ShadowLink': {
+        attributes.attrs = {
+          line: {
+              connection: true,
+              stroke: color,
+              strokeWidth: 20,
+              strokeLinejoin: 'round',
+              targetMarker: {
+                  'type': 'path',
+                  'stroke': 'none',
+                  'd': 'M 0 -10 -10 0 0 10 z'
+              },
+              sourceMarker: {
+                  'type': 'path',
+                  'stroke': 'none',
+                  'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+              }
+          },
+          shadow: {
+              connection: true,
+              transform: 'translate(3,6)',
+              stroke: '#000000',
+              strokeOpacity: 0.2,
+              strokeWidth: 20,
+              strokeLinejoin: 'round',
+              targetMarker: {
+                  'type': 'path',
+                  'd': 'M 0 -10 -10 0 0 10 z',
+                  'stroke': 'none'
+              },
+              sourceMarker: {
+                  'type': 'path',
+                  'stroke': 'none',
+                  'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+              }
+          }
+        };
+        break;
+      }
+      default: {
+        throw new Error(`Unsupported jjType: ${jjType}`);
+      }
+    }
+    return attributes;
+}
+
+function mapDataToElementAttributesExample({ data, defaultAttributes }: ElementToGraphOptions<ElementData>) {
+    const { jjType, color = 'lightgray' } = data;
+    if (!jjType) return defaultAttributes();
+    const attributes = {
+      ...defaultAttributes(),
+      type: jjType,
+    };
+    // eslint-disable-next-line sonarjs/no-small-switch
+    switch (jjType) {
+      case 'standard.Cylinder': {
+        attributes.attrs = {
+          root: {
+              cursor: 'move'
+          },
+          body: {
+              lateralArea: 10,
+              fill: color,
+              stroke: '#333333',
+              strokeWidth: 2
+          },
+          top: {
+              cx: 'calc(w/2)',
+              cy: 10,
+              rx: 'calc(w/2)',
+              ry: 10,
+              fill: color,
+              stroke: '#333333',
+              strokeWidth: 2
+          },
+          label: {
+              textVerticalAnchor: 'middle',
+              textAnchor: 'middle',
+              x: 'calc(w/2)',
+              y: 'calc(h+15)',
+              fontSize: 14,
+              fill: '#333333'
+          }
+        };
+        break;
+      }
+      default: {
+        throw new Error(`Unsupported jjType: ${jjType}`);
+      }
+    }
+    return attributes;
 }

@@ -62,6 +62,10 @@ export interface GraphElement extends Record<string, unknown> {
    */
   parent?: string;
   /**
+   * Layer id for the element.
+   */
+  layer?: string;
+  /**
    * Attributes of the element.
    */
   attrs?: dia.Cell.Selectors;

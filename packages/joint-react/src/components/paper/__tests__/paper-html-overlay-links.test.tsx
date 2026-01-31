@@ -39,10 +39,9 @@ describe('Paper with useHTMLOverlay and links', () => {
     });
 
     await waitFor(() => {
-      // ReactLink has empty markup (no SVG content), so we just check that
-      // the link view container exists in the DOM
-      // The link view is added by JointJS but ReactLink doesn't render SVG paths
-      const linkView = container.querySelector('.joint-type-reactlink');
+      // standard.Link has SVG markup for the link
+      // Check that the link view container exists in the DOM
+      const linkView = container.querySelector('.joint-type-standard-link');
       expect(linkView).toBeInTheDocument();
     });
 
@@ -97,9 +96,7 @@ describe('Paper with useHTMLOverlay and links', () => {
         set('new-link', {
           source: '1',
           target: '2',
-          attrs: {
-            line: { stroke: '#FF0000' },
-          },
+          color: '#FF0000',
         });
       }, [set]);
       return null;

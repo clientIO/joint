@@ -75,3 +75,11 @@ body {
   left: 4px;
   top: 5px;
 }
+
+.fade-in {
+  transition: opacity 0.3s ease-in;
+  opacity: 1;
+  @starting-style {
+    opacity: 0;
+  }
+}

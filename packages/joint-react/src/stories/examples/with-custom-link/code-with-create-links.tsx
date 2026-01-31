@@ -19,13 +19,9 @@ const initialEdges: Record<string, GraphLink> = {
   'e1-2': {
     source: '1',
     target: '2',
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        strokeDasharray: '5,5',
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    pattern: '5,5',
   },
 };
 

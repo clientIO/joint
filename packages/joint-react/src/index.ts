@@ -22,3 +22,4 @@ export * from './types/scheduler.types';
 export * from './context';
 export * from './store';
 export * from './state/graph-state-selectors';
+export * from './theme/link-theme';
