@@ -2572,6 +2572,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@handsontable/pikaday@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@handsontable/pikaday@npm:1.0.0"
+  checksum: 10/f9a428900fd6fcf96fd32ad466a8e319cf7b6d4b9ed1ad4ea5c7c6f489466f0eae5dfec796b0b2dd3ab47b94d24a7efb559a57e2d48f5f835f6b262889f1b5c9
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.1":
   version: 0.19.1
   resolution: "@humanfs/core@npm:0.19.1"
@@ -2964,6 +2971,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-absolute-port-layout-dynamic-port-sizes-js@workspace:examples/absolute-port-layout-dynamic-port-sizes-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-absolute-port-layout-dynamic-port-sizes-js@workspace:examples/absolute-port-layout-dynamic-port-sizes-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-activity-diagram-js@workspace:examples/activity-diagram-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-activity-diagram-js@workspace:examples/activity-diagram-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-anchors-ts@workspace:examples/anchors-ts":
   version: 0.0.0-use.local
   resolution: "@joint/demo-anchors-ts@workspace:examples/anchors-ts"
@@ -2979,6 +3004,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-animated-process-flow-diagram-js@workspace:examples/animated-process-flow-diagram-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-animated-process-flow-diagram-js@workspace:examples/animated-process-flow-diagram-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-bezier-js@workspace:examples/bezier-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-bezier-js@workspace:examples/bezier-js"
@@ -2990,6 +3024,33 @@ __metadata:
     webpack: "npm:^5.61.0"
     webpack-cli: "npm:^4.8.0"
     webpack-dev-server: "npm:^4.2.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-callouts-js@workspace:examples/callouts-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-callouts-js@workspace:examples/callouts-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-chatgpt-timeline-js@workspace:examples/chatgpt-timeline-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-chatgpt-timeline-js@workspace:examples/chatgpt-timeline-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-circular-layout-js@workspace:examples/circular-layout-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-circular-layout-js@workspace:examples/circular-layout-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
 
@@ -3008,6 +3069,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-connector-arrows-js@workspace:examples/connector-arrows-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-connector-arrows-js@workspace:examples/connector-arrows-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-container@workspace:examples/container":
   version: 0.0.0-use.local
   resolution: "@joint/demo-container@workspace:examples/container"
@@ -3020,6 +3090,42 @@ __metadata:
     webpack: "npm:5.98.0"
     webpack-cli: "npm:6.0.1"
     webpack-dev-server: "npm:5.2.0"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-content-driven-shapes-js@workspace:examples/content-driven-shapes-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-content-driven-shapes-js@workspace:examples/content-driven-shapes-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-control-tool-js@workspace:examples/control-tool-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-control-tool-js@workspace:examples/control-tool-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-counters-js@workspace:examples/counters-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-counters-js@workspace:examples/counters-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-curve-connector-js@workspace:examples/curve-connector-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-curve-connector-js@workspace:examples/curve-connector-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
 
@@ -3040,6 +3146,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-different-views-of-the-same-graph-js@workspace:examples/different-views-of-the-same-graph-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-different-views-of-the-same-graph-js@workspace:examples/different-views-of-the-same-graph-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-drop-image-as-shape-js@workspace:examples/drop-image-as-shape-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-drop-image-as-shape-js@workspace:examples/drop-image-as-shape-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-dwdm@workspace:examples/dwdm":
   version: 0.0.0-use.local
   resolution: "@joint/demo-dwdm@workspace:examples/dwdm"
@@ -3055,6 +3179,96 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-dynamic-font-size-js@workspace:examples/dynamic-font-size-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-dynamic-font-size-js@workspace:examples/dynamic-font-size-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-dynamic-status-icons-js@workspace:examples/dynamic-status-icons-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-dynamic-status-icons-js@workspace:examples/dynamic-status-icons-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-electric-generator-js@workspace:examples/electric-generator-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-electric-generator-js@workspace:examples/electric-generator-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-element-connect-tool-js@workspace:examples/element-connect-tool-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-element-connect-tool-js@workspace:examples/element-connect-tool-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-element-port-and-link-label-markup-js@workspace:examples/element-port-and-link-label-markup-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-element-port-and-link-label-markup-js@workspace:examples/element-port-and-link-label-markup-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-element-tags-and-badges-js@workspace:examples/element-tags-and-badges-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-element-tags-and-badges-js@workspace:examples/element-tags-and-badges-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-external-svg-images-js@workspace:examples/external-svg-images-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-external-svg-images-js@workspace:examples/external-svg-images-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-fault-tree-analysis-js@workspace:examples/fault-tree-analysis-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-fault-tree-analysis-js@workspace:examples/fault-tree-analysis-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-fills-js@workspace:examples/fills-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-fills-js@workspace:examples/fills-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-find-all-cells-between-2-elements-js@workspace:examples/find-all-cells-between-2-elements-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-find-all-cells-between-2-elements-js@workspace:examples/find-all-cells-between-2-elements-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-fta-js@workspace:examples/fta-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-fta-js@workspace:examples/fta-js"
@@ -3066,6 +3280,51 @@ __metadata:
     webpack: "npm:5.98.0"
     webpack-cli: "npm:6.0.1"
     webpack-dev-server: "npm:5.2.0"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-hexagonal-grid-js@workspace:examples/hexagonal-grid-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-hexagonal-grid-js@workspace:examples/hexagonal-grid-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-hierarchical-diagrams-js@workspace:examples/hierarchical-diagrams-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-hierarchical-diagrams-js@workspace:examples/hierarchical-diagrams-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-highlighterview-update-attribute-js@workspace:examples/highlighterview-update-attribute-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-highlighterview-update-attribute-js@workspace:examples/highlighterview-update-attribute-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-hover-element-connect-tool-js@workspace:examples/hover-element-connect-tool-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-hover-element-connect-tool-js@workspace:examples/hover-element-connect-tool-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-hover-link-connect-tool-js@workspace:examples/hover-link-connect-tool-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-hover-link-connect-tool-js@workspace:examples/hover-link-connect-tool-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
 
@@ -3183,6 +3442,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-link-connect-tool-js@workspace:examples/link-connect-tool-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-link-connect-tool-js@workspace:examples/link-connect-tool-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-link-labels-ts@workspace:examples/link-labels-ts":
   version: 0.0.0-use.local
   resolution: "@joint/demo-link-labels-ts@workspace:examples/link-labels-ts"
@@ -3213,6 +3481,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-microsoft-adaptive-cards-js@workspace:examples/microsoft-adaptive-cards-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-microsoft-adaptive-cards-js@workspace:examples/microsoft-adaptive-cards-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-nodejs-milestones-timeline-js@workspace:examples/nodejs-milestones-timeline-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-nodejs-milestones-timeline-js@workspace:examples/nodejs-milestones-timeline-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-offscreen-rendering@workspace:examples/offscreen-rendering":
   version: 0.0.0-use.local
   resolution: "@joint/demo-offscreen-rendering@workspace:examples/offscreen-rendering"
@@ -3225,6 +3511,96 @@ __metadata:
     webpack: "npm:^5.61.0"
     webpack-cli: "npm:^4.8.0"
     webpack-dev-server: "npm:^4.2.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-optional-ports-js@workspace:examples/optional-ports-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-optional-ports-js@workspace:examples/optional-ports-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-port-reordering-tool-js@workspace:examples/port-reordering-tool-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-port-reordering-tool-js@workspace:examples/port-reordering-tool-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-preserve-spaces-in-text-wrap-js@workspace:examples/preserve-spaces-in-text-wrap-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-preserve-spaces-in-text-wrap-js@workspace:examples/preserve-spaces-in-text-wrap-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-rectangular-layout-js@workspace:examples/rectangular-layout-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-rectangular-layout-js@workspace:examples/rectangular-layout-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-resize-control-tool-js@workspace:examples/resize-control-tool-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-resize-control-tool-js@workspace:examples/resize-control-tool-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-roi-calculator-js@workspace:examples/roi-calculator-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-roi-calculator-js@workspace:examples/roi-calculator-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-scale-option-for-tools-js@workspace:examples/scale-option-for-tools-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-scale-option-for-tools-js@workspace:examples/scale-option-for-tools-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-scale-svgmarker-js@workspace:examples/scale-svgmarker-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-scale-svgmarker-js@workspace:examples/scale-svgmarker-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-serpentine-layout-js@workspace:examples/serpentine-layout-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-serpentine-layout-js@workspace:examples/serpentine-layout-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-shapes-drawing-js@workspace:examples/shapes-drawing-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-shapes-drawing-js@workspace:examples/shapes-drawing-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
 
@@ -3246,6 +3622,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-snap-links-to-themselves-js@workspace:examples/snap-links-to-themselves-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-snap-links-to-themselves-js@workspace:examples/snap-links-to-themselves-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-spreadsheet-shapes-with-handsontable-js@workspace:examples/spreadsheet-shapes-with-handsontable-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-spreadsheet-shapes-with-handsontable-js@workspace:examples/spreadsheet-shapes-with-handsontable-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    handsontable: "npm:^16.2.0"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-tree-of-life@workspace:examples/tree-of-life":
   version: 0.0.0-use.local
   resolution: "@joint/demo-tree-of-life@workspace:examples/tree-of-life"
@@ -3259,6 +3654,24 @@ __metadata:
     webpack: "npm:5.98.0"
     webpack-cli: "npm:6.0.1"
     webpack-dev-server: "npm:5.2.0"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-use-case-diagram-js@workspace:examples/use-case-diagram-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-use-case-diagram-js@workspace:examples/use-case-diagram-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-working-with-ports-js@workspace:examples/working-with-ports-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-working-with-ports-js@workspace:examples/working-with-ports-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
 
@@ -5980,6 +6393,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/trusted-types@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "@types/trusted-types@npm:2.0.7"
+  checksum: 10/8e4202766a65877efcf5d5a41b7dd458480b36195e580a3b1085ad21e948bc417d55d6f8af1fd2a7ad008015d4117d5fdfe432731157da3c68678487174e4ba3
+  languageName: node
+  linkType: hard
+
 "@types/unist@npm:*":
   version: 3.0.3
   resolution: "@types/unist@npm:3.0.3"
@@ -8127,6 +8547,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bignumber.js@npm:^8 || ^9":
+  version: 9.3.1
+  resolution: "bignumber.js@npm:9.3.1"
+  checksum: 10/1be0372bf0d6d29d0a49b9e6a9cefbd54dad9918232ad21fcd4ec39030260773abf0c76af960c6b3b98d3115a3a71e61c6a111812d1395040a039cfa178e0245
+  languageName: node
+  linkType: hard
+
 "binary-extensions@npm:^1.0.0":
   version: 1.13.1
   resolution: "binary-extensions@npm:1.13.1"
@@ -9015,6 +9442,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chevrotain@npm:^6.5.0":
+  version: 6.5.0
+  resolution: "chevrotain@npm:6.5.0"
+  dependencies:
+    regexp-to-ast: "npm:0.4.0"
+  checksum: 10/e98f7cc12bea6732246a0a2c25028bc076d5ed7dda470403599c595e5eece5d60fe808a7cdb187b938ad3364c308c03f9eb603e2743871c861db497186776efb
+  languageName: node
+  linkType: hard
+
 "chokidar@npm:>=2.0.0 <4.0.0, chokidar@npm:^3.5.1, chokidar@npm:^3.5.3, chokidar@npm:^3.6.0":
   version: 3.6.0
   resolution: "chokidar@npm:3.6.0"
@@ -9646,6 +10082,13 @@ __metadata:
   version: 3.6.1
   resolution: "core-js@npm:3.6.1"
   checksum: 10/7b24d56dc6187edb41f868d4d1253d1f6ce37e053bb3b6b33ad537fd684600eef8e9a6cd7f178364e37a1a85b9cba239c5810829ce4bf37742df7e2a2087250e
+  languageName: node
+  linkType: hard
+
+"core-js@npm:^3.37.0":
+  version: 3.48.0
+  resolution: "core-js@npm:3.48.0"
+  checksum: 10/08bb3cc9b3225b905e72370c18257a14bb5563946d9eb7496799e0ee4f13231768b980ffe98434df7dbd0f8209bd2c19519938a2fa94846b2c82c2d5aa804037
   languageName: node
   linkType: hard
 
@@ -10690,6 +11133,18 @@ __metadata:
   dependencies:
     domelementtype: "npm:^2.3.0"
   checksum: 10/809b805a50a9c6884a29f38aec0a4e1b4537f40e1c861950ed47d10b049febe6b79ab72adaeeebb3cc8fc1cd33f34e97048a72a9265103426d93efafa78d3e96
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.1.7":
+  version: 3.3.1
+  resolution: "dompurify@npm:3.3.1"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10/f71cca489e628591165d16e8cf4fa4f0d3e2ee48db4d73e9d2c5bedc6f915c92f9e9f101f8c4ba790bec0cdffe7f4e1747f5e31c69dc53ce7ae20a81ff6b0022
   languageName: node
   linkType: hard
 
@@ -13933,6 +14388,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"handsontable@npm:^16.2.0":
+  version: 16.2.0
+  resolution: "handsontable@npm:16.2.0"
+  dependencies:
+    "@handsontable/pikaday": "npm:^1.0.0"
+    core-js: "npm:^3.37.0"
+    dompurify: "npm:^3.1.7"
+    hyperformula: "npm:^3.0.0"
+    moment: "npm:2.30.1"
+    numbro: "npm:2.5.0"
+  dependenciesMeta:
+    hyperformula:
+      optional: true
+  checksum: 10/be6e5ff9ef3bcdf7fc59f91d1f9aebb7513fa82dda767442639d78b4897db0e7f8f26e1490b132c7773177d1506250c51f5e871ce8def13d095e101a84f5b795
+  languageName: node
+  linkType: hard
+
 "happy-dom@npm:^8.1.0":
   version: 8.9.0
   resolution: "happy-dom@npm:8.9.0"
@@ -14385,6 +14857,16 @@ __metadata:
   version: 1.2.0
   resolution: "hyperdyperid@npm:1.2.0"
   checksum: 10/64abb5568ff17aa08ac0175ae55e46e22831c5552be98acdd1692081db0209f36fff58b31432017b4e1772c178962676a2cc3c54e4d5d7f020d7710cec7ad7a6
+  languageName: node
+  linkType: hard
+
+"hyperformula@npm:^3.0.0":
+  version: 3.1.1
+  resolution: "hyperformula@npm:3.1.1"
+  dependencies:
+    chevrotain: "npm:^6.5.0"
+    tiny-emitter: "npm:^2.1.0"
+  checksum: 10/18cce5efc128ed18a713cc6a5f8a28e155e817f1ffcee5157dabd43a2ff5ecd620cf58a5f29a0b857db39631ba62a258a3670072a22da1c7fdd64143dea16729
   languageName: node
   linkType: hard
 
@@ -17481,6 +17963,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"moment@npm:2.30.1":
+  version: 2.30.1
+  resolution: "moment@npm:2.30.1"
+  checksum: 10/ae42d876d4ec831ef66110bdc302c0657c664991e45cf2afffc4b0f6cd6d251dde11375c982a5c0564ccc0fa593fc564576ddceb8c8845e87c15f58aa6baca69
+  languageName: node
+  linkType: hard
+
 "move-concurrently@npm:^1.0.1":
   version: 1.0.1
   resolution: "move-concurrently@npm:1.0.1"
@@ -17886,6 +18375,15 @@ __metadata:
   version: 1.0.1
   resolution: "number-is-nan@npm:1.0.1"
   checksum: 10/13656bc9aa771b96cef209ffca31c31a03b507ca6862ba7c3f638a283560620d723d52e626d57892c7fff475f4c36ac07f0600f14544692ff595abff214b9ffb
+  languageName: node
+  linkType: hard
+
+"numbro@npm:2.5.0":
+  version: 2.5.0
+  resolution: "numbro@npm:2.5.0"
+  dependencies:
+    bignumber.js: "npm:^8 || ^9"
+  checksum: 10/50408c826dded5b5a2a5511ea8af204af4a426e9b89cac367dd115ead813c1da35448fb7b38b1c80b2edae762b59e7ca7d74414f6eb6d74685665e295f2c8f9a
   languageName: node
   linkType: hard
 
@@ -19868,6 +20366,13 @@ __metadata:
     "@eslint-community/regexpp": "npm:^4.8.0"
     refa: "npm:^0.12.1"
   checksum: 10/92299636d9c941ee27db7568a775354d36024504c104c5d7981a89dda1b0ff1e2a56db16f92d7e166a50a1164593788c0849c5840ec9d79b39c1c040d59c442c
+  languageName: node
+  linkType: hard
+
+"regexp-to-ast@npm:0.4.0":
+  version: 0.4.0
+  resolution: "regexp-to-ast@npm:0.4.0"
+  checksum: 10/381f57fa4d056056a50d7bc1365ece93434e1eea87bd3d60144ef6fd85bc4875410757908000c06fbe99ef9554c930c9890e695292b8e49756dfc0762890e777
   languageName: node
   linkType: hard
 
@@ -22466,6 +22971,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tiny-emitter@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "tiny-emitter@npm:2.1.0"
+  checksum: 10/75633f4de4f47f43af56aff6162f25b87be7efc6f669fda256658f3c3f4a216f23dc0d13200c6fafaaf1b0c7142f0201352fb06aec0b77f68aea96be898f4516
+  languageName: node
+  linkType: hard
+
 "tiny-glob@npm:0.2.9":
   version: 0.2.9
   resolution: "tiny-glob@npm:0.2.9"
@@ -23860,7 +24372,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.0.0 || ^6.0.0 || ^7.0.0-0":
+"vite@npm:^5.0.0 || ^6.0.0 || ^7.0.0-0, vite@npm:^7.3.1":
   version: 7.3.1
   resolution: "vite@npm:7.3.1"
   dependencies:

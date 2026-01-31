@@ -1,4 +1,5 @@
-const { dia, shapes } = joint;
+import { dia, shapes } from '@joint/core';
+import './styles.scss';
 
 const paperContainer = document.getElementById("paper-container");
 
@@ -73,7 +74,7 @@ function readImageFile(file) {
 }
 
 function createImage(href, width, height) {
-    return new joint.shapes.standard.BorderedImage({
+    return new shapes.standard.BorderedImage({
         size: { width, height },
         attrs: {
             image: {

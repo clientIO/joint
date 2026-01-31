@@ -1,4 +1,5 @@
-const { dia, shapes, util } = joint;
+import { dia, shapes, util } from '@joint/core';
+import './styles.css';
 
 const width = 100;
 const height = 80;

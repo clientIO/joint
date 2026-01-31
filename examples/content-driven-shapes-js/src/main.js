@@ -1,4 +1,5 @@
-const { dia, shapes, util } = joint;
+import { dia, shapes, util } from '@joint/core';
+import './styles.css';
 
 // Paper
 
@@ -29,7 +30,7 @@ function measureText(svgDocument, text, attrs) {
     return bbox;
 }
 
-class Shape extends joint.dia.Element {
+class Shape extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
@@ -164,7 +165,7 @@ class Shape extends joint.dia.Element {
     }
 }
 
-const ElementView = joint.dia.ElementView;
+const ElementView = dia.ElementView;
 
 const ShapeView = ElementView.extend({
     presentationAttributes: ElementView.addPresentationAttributes({
@@ -258,7 +259,7 @@ const ShapeView = ElementView.extend({
     }
 });
 
-joint.shapes.custom = {
+shapes.custom = {
     Shape,
     ShapeView
 };

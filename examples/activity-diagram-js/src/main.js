@@ -1,4 +1,5 @@
-const { shapes, util, dia, anchors } = joint;
+import { shapes, util, dia, anchors } from '@joint/core';
+import './styles.css';
 
 const HEADER_HEIGHT = 60;
 const SWIMLANE_PADDING = 5;
@@ -451,7 +452,7 @@ const paper = new dia.Paper({
     }),
 
     anchorNamespace: {
-        ...joint.anchors,
+        ...anchors,
         left: useParentAnchor("left"),
         right: useParentAnchor("right"),
         top: useParentAnchor("top"),

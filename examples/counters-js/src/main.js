@@ -1,4 +1,5 @@
-const { dia, shapes, util, mvc } = joint;
+import { dia, shapes, util, mvc } from '@joint/core';
+import './styles.css';
 
 // Config
 

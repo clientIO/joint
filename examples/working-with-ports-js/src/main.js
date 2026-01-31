@@ -1,4 +1,5 @@
-const { dia, shapes, connectors, anchors, linkTools } = joint;
+import { dia, shapes, connectors, anchors, linkTools } from '@joint/core';
+import './styles.scss';
 
 const paperContainer = document.getElementById("paper-container");
 const logsContainer = document.getElementById("logs-container");

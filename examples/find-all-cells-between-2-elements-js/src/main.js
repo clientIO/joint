@@ -1,4 +1,5 @@
-const { dia, shapes, highlighters, layout } = joint;
+import { dia, shapes, highlighters, layout } from '@joint/core';
+import './styles.css';
 
 // Paper
 

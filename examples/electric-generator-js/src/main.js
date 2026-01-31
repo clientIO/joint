@@ -1,4 +1,5 @@
-const { dia, shapes, util } = joint;
+import { dia, shapes, util } from '@joint/core';
+import './styles.scss';
 
 const paperContainerEl = document.getElementById("paper-container");
 const playbackRateEl = document.getElementById("power-input");

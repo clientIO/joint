@@ -1,4 +1,5 @@
-const { dia, shapes, mvc } = joint;
+import { dia, shapes, mvc } from '@joint/core';
+import './styles.css';
 
 const paperContainer = document.getElementById("paper-container");
 
@@ -13,7 +14,7 @@ const paper = new dia.Paper({
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: "#F3F7F6" },
-    defaultLink: () => new joint.shapes.standard.Link({ z: -1 }),
+    defaultLink: () => new shapes.standard.Link({ z: -1 }),
     defaultConnectionPoint: { name: "boundary" },
     clickThreshold: 10,
     magnetThreshold: "onleave",

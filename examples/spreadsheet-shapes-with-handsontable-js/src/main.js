@@ -1,10 +1,12 @@
-const {
+import{
     dia,
     shapes,
     highlighters,
     util,
     linkTools,
-} = joint;
+} from '@joint/core';
+import Handsontable from 'handsontable';
+import './styles.scss';
 
 const HotModel = dia.Element.define('HotModel', {
     size: {

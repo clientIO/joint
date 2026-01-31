@@ -1,4 +1,5 @@
-const { dia, shapes, linkTools, connectionStrategies } = joint;
+import { dia, shapes, linkTools, connectionStrategies } from '@joint/core';
+import './styles.css';
 
 // Paper
 

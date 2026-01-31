@@ -1,4 +1,5 @@
-const { dia, shapes } = joint;
+import { dia, shapes } from '@joint/core';
+import './styles.css';
 const { Point } = g;
 
 // Paper
@@ -20,7 +21,7 @@ const paper = new dia.Paper({
 
 paperContainer.appendChild(paper.el);
 
-const Link = joint.dia.Link.define(
+const Link = dia.Link.define(
     "Link",
     {
         attrs: {

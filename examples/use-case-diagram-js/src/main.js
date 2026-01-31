@@ -1,4 +1,5 @@
-const { shapes: defaultShapes, dia, util, linkTools } = joint;
+import { shapes as defaultShapes, dia, util, linkTools } from '@joint/core';
+import './styles.css';
 
 const paperContainer = document.getElementById("paper-container");
 

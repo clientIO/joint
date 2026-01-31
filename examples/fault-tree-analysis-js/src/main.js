@@ -1,4 +1,5 @@
-const { dia, elementTools, shapes: defaultShapes, layout, util } = joint;
+import { dia, elementTools, shapes as defaultShapes, layout, util } from '@joint/core';
+import './styles.css';
 
 const Event = dia.Element.define(
     'fta.Event',

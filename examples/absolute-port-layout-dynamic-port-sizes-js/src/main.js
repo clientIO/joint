@@ -1,4 +1,5 @@
-const { dia, shapes: defaultShapes, anchors, util } = joint;
+import { dia, shapes as defaultShapes, anchors, util } from '@joint/core';
+import './styles.css';
 
 class Shape extends dia.Element {
     defaults() {

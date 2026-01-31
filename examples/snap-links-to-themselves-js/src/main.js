@@ -1,4 +1,5 @@
-const { dia, shapes } = joint;
+import { dia, shapes } from '@joint/core';
+import './styles.css';
 
 // Paper
 
@@ -22,16 +23,16 @@ const paper = new dia.Paper({
 paperContainer.appendChild(paper.el);
 
 function getLinkToolsView() {
-    const verticesTool = new joint.linkTools.Vertices();
-    const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
-    const sourceArrowheadTool = new joint.linkTools.SourceArrowhead();
+    const verticesTool = new linkTools.Vertices();
+    const targetArrowheadTool = new linkTools.TargetArrowhead();
+    const sourceArrowheadTool = new linkTools.SourceArrowhead();
 
-    return new joint.dia.ToolsView({
+    return new dia.ToolsView({
         tools: [verticesTool, targetArrowheadTool, sourceArrowheadTool]
     });
 }
 
-const link1 = new joint.shapes.standard.Link();
+const link1 = new shapes.standard.Link();
 
 link1.source({ x: 200, y: 100 });
 link1.target({ x: 200, y: 300 });
@@ -41,12 +42,12 @@ link1.vertices([
     { x: 200, y: 200 }
 ]);
 
-const rect = new joint.shapes.standard.Rectangle({
+const rect = new shapes.standard.Rectangle({
     size: { width: 120, height: 120 },
     position: { x: 400, y: 40 }
 });
 
-const link2 = new joint.shapes.standard.Link();
+const link2 = new shapes.standard.Link();
 link2.source(rect);
 link2.target({ x: 300, y: 100 });
 

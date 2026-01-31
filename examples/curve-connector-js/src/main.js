@@ -1,4 +1,5 @@
-const { dia, shapes, connectors } = joint;
+import { dia, shapes, connectors } from '@joint/core';
+import './styles.css';
 
 const paperWidth = 780;
 const paperHeight = 490;

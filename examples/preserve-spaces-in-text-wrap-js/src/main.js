@@ -1,4 +1,5 @@
-const { dia, shapes } = joint;
+import { dia, shapes } from '@joint/core';
+import './styles.css';
 
 // Paper
 
@@ -19,7 +20,7 @@ const paper = new dia.Paper({
 
 paperContainer.appendChild(paper.el);
 
-const ResizeTool = joint.elementTools.Control.extend({
+const ResizeTool = elementTools.Control.extend({
     getPosition: function (view) {
         const model = view.model;
         const { width, height } = model.size();
@@ -31,7 +32,7 @@ const ResizeTool = joint.elementTools.Control.extend({
     }
 });
 
-const rect1 = new joint.shapes.standard.Rectangle({
+const rect1 = new shapes.standard.Rectangle({
     size: { width: 100, height: 100 },
     position: { x: 100, y: 100 },
     attrs: {
@@ -44,7 +45,7 @@ const rect1 = new joint.shapes.standard.Rectangle({
     }
 });
 
-const rect2 = new joint.shapes.standard.Rectangle({
+const rect2 = new shapes.standard.Rectangle({
     size: { width: 100, height: 100 },
     position: { x: 300, y: 100 },
     attrs: {
@@ -62,7 +63,7 @@ graph.addCells([rect1, rect2]);
 
 [rect1, rect2].forEach((element) => {
     element.findView(paper).addTools(
-        new joint.dia.ToolsView({
+        new dia.ToolsView({
             tools: [
                 new ResizeTool({
                     selector: "body",

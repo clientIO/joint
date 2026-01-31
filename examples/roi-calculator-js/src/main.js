@@ -1,4 +1,5 @@
-const { shapes: defaultShapes, dia, util } = joint;
+import { shapes as defaultShapes, dia, util } from '@joint/core';
+import './styles.css';
 
 const MAIN_COLOR = '#D4D9D7';
 const SECONDARY_COLOR = '#EAECEA';

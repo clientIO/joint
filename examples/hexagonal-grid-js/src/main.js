@@ -1,4 +1,5 @@
-const { dia, shapes, elementTools } = joint;
+import { dia, shapes, elementTools } from '@joint/core';
+import './styles.scss';
 
 const paperContainer = document.getElementById("paper-container");
 
@@ -68,7 +69,7 @@ grid.forEach((hex) => {
     gridEl.append(polygonEl);
 });
 
-paper.getLayerNode(joint.dia.Paper.Layers.BACK).prepend(gridEl);
+paper.getLayerNode(dia.Paper.Layers.BACK).prepend(gridEl);
 
 paper.setDimensions(grid.pointWidth(), grid.pointHeight());
 

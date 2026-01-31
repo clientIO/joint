@@ -1,4 +1,5 @@
-const { dia, shapes } = joint;
+import { dia, shapes } from '@joint/core';
+import './styles.scss';
 
 // Paper
 

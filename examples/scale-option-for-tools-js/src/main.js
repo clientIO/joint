@@ -1,4 +1,5 @@
-const { dia, shapes } = joint;
+import { dia, shapes } from '@joint/core';
+import './styles.css';
 
 // Paper
 
@@ -16,7 +17,7 @@ const paper = new dia.Paper({
     linkPinning: false,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: "#F3F7F6" },
-    defaultLink: () => new joint.shapes.standard.Link()
+    defaultLink: () => new shapes.standard.Link()
 });
 
 paperContainer.appendChild(paper.el);
@@ -51,26 +52,26 @@ scaleRange.addEventListener("input", ({ target: { value } }) =>
     setScaleValue(value)
 );
 
-const rect1 = new joint.shapes.standard.Rectangle({
+const rect1 = new shapes.standard.Rectangle({
     size: { width: 100, height: 100 },
     position: { x: 100, y: 100 }
 });
 const rect2 = rect1.clone().position(500, 100);
-const link = new joint.shapes.standard.Link();
+const link = new shapes.standard.Link();
 link.source(rect1);
 link.target(rect2);
 
 graph.addCells([rect1, rect2, link]);
 
 function addElementTools(element, scale) {
-    const removeTool = new joint.elementTools.Remove({ scale });
-    const button = new joint.elementTools.Button({
+    const removeTool = new elementTools.Remove({ scale });
+    const button = new elementTools.Button({
         scale,
         action: () => alert("Button pressed"),
         x: "calc(w)",
         markup: buttonMarkup
     });
-    const connectTool = new joint.elementTools.Connect({
+    const connectTool = new elementTools.Connect({
         scale,
         x: "calc(w)",
         y: "calc(h)",
@@ -78,20 +79,20 @@ function addElementTools(element, scale) {
     });
 
     element.findView(paper).addTools(
-        new joint.dia.ToolsView({
+        new dia.ToolsView({
             tools: [connectTool]
         })
     );
 }
 
 function addLinkTools(link, scale) {
-    const verticesTool = new joint.linkTools.Vertices({ scale });
-    const targetArrowheadTool = new joint.linkTools.TargetArrowhead({ scale });
-    const targetAnchorTool = new joint.linkTools.TargetAnchor({ scale });
-    const removeTool = new joint.linkTools.Remove({ scale });
+    const verticesTool = new linkTools.Vertices({ scale });
+    const targetArrowheadTool = new linkTools.TargetArrowhead({ scale });
+    const targetAnchorTool = new linkTools.TargetAnchor({ scale });
+    const removeTool = new linkTools.Remove({ scale });
 
     link.findView(paper).addTools(
-        new joint.dia.ToolsView({
+        new dia.ToolsView({
             tools: [verticesTool, targetArrowheadTool, targetAnchorTool, removeTool]
         })
     );

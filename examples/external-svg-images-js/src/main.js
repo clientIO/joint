@@ -1,4 +1,5 @@
-const { dia, util, shapes: defaultShapes, highlighters, elementTools } = joint;
+import { dia, util, shapes as defaultShapes, highlighters, elementTools } from '@joint/core';
+import './styles.css';
 const shapes = { ...defaultShapes };
 
 // Paper

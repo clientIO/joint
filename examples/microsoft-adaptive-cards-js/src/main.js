@@ -1,6 +1,7 @@
 
 const { AdaptiveCard, HostConfig, SubmitAction, OpenUrlAction } = AdaptiveCards;
-const { dia } = joint;
+import { dia } from '@joint/core';
+import './styles.css';
 
 var graph = new dia.Graph();
 var paper = new dia.Paper({
@@ -9,7 +10,7 @@ var paper = new dia.Paper({
     height: 1000,
     model: graph,
     async: true,
-    sorting: joint.dia.Paper.sorting.APPROX,
+    sorting: dia.Paper.sorting.APPROX,
     overflow: true,
     interactive: { linkMove: false },
     defaultAnchor: {
@@ -157,7 +158,7 @@ const acHostConfig = new HostConfig({
     }
 });
 
-const AdaptiveCardModel = joint.dia.Element.define('AdaptiveCardModel', {
+const AdaptiveCardModel = dia.Element.define('AdaptiveCardModel', {
     size: { width: 300, height: 0 },
     z: 1,
     template: null,
@@ -182,7 +183,7 @@ const ACFlags = {
 // It is located in the same namespace as the model so that it is automatically
 // used when the model is added to the graph.
 // The convention is to name the view as `[-model-name-]View`.
-joint.shapes.AdaptiveCardModelView = dia.ElementView.extend({
+shapes.AdaptiveCardModelView = dia.ElementView.extend({
 
     // The root of the element view is the <g> element by default.
     tagName: 'foreignObject',
@@ -2105,13 +2106,13 @@ const logger = new AdaptiveCardModel({
     }
 });
 
-const link1 = new joint.shapes.standard.Link({ z: 2 });
+const link1 = new shapes.standard.Link({ z: 2 });
 link1.source(activity);
 link1.target(logger);
-const link2 = new joint.shapes.standard.Link({ z: 2 });
+const link2 = new shapes.standard.Link({ z: 2 });
 link2.source(expenseReport);
 link2.target(logger);
-const link3 = new joint.shapes.standard.Link({ z: 2 });
+const link3 = new shapes.standard.Link({ z: 2 });
 link3.source(wizard);
 link3.target(logger);
 

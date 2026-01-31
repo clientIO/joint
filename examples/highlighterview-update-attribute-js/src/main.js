@@ -1,4 +1,5 @@
-const { dia, shapes } = joint;
+import { dia, shapes } from '@joint/core';
+import './styles.css';
 
 // Paper
 
@@ -39,7 +40,7 @@ counterRange.addEventListener("input", ({ target: { value } }) =>
 const color = "#0057FF";
 const errorColor = "#FF0000";
 
-const CounterHighlighter = joint.dia.HighlighterView.extend({
+const CounterHighlighter = dia.HighlighterView.extend({
     UPDATE_ATTRIBUTES: ["counter"],
     tagName: "g",
     children: [
@@ -92,7 +93,7 @@ const CounterHighlighter = joint.dia.HighlighterView.extend({
     }
 });
 
-const rect = new joint.shapes.standard.Rectangle({
+const rect = new shapes.standard.Rectangle({
     size: { width: 100, height: 100 },
     position: { x: 100, y: 100 },
     counter: defaultCounterVal,

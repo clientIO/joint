@@ -1,4 +1,5 @@
-const { dia, shapes } = joint;
+import { dia, shapes } from '@joint/core';
+import './styles.scss';
 
 // Paper
 
@@ -27,7 +28,7 @@ const PORT_WIDTH = 30;
 const PORT_HEIGHT = 20;
 const PORT_GAP = 20;
 
-const el1 = new joint.shapes.standard.Rectangle({
+const el1 = new shapes.standard.Rectangle({
     position: {
         x: 50,
         y: 50
@@ -98,7 +99,7 @@ const el1 = new joint.shapes.standard.Rectangle({
     }
 });
 
-const el2 = new joint.shapes.standard.Rectangle({
+const el2 = new shapes.standard.Rectangle({
     position: {
         x: 50,
         y: 300
@@ -109,12 +110,12 @@ const el2 = new joint.shapes.standard.Rectangle({
     }
 });
 
-const l1 = new joint.shapes.standard.Link({
+const l1 = new shapes.standard.Link({
     source: { id: el1.id, port: "1" },
     target: { id: el2.id }
 });
 
-const l2 = new joint.shapes.standard.Link({
+const l2 = new shapes.standard.Link({
     source: { id: el1.id, port: "2" },
     target: { id: el2.id }
 });

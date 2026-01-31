@@ -1,4 +1,5 @@
-const { dia, highlighters, elementTools, util, shapes } = joint;
+import { dia, highlighters, elementTools, util, shapes } from '@joint/core';
+import './styles.scss';
 
 const DEFAULT_PREFERRED_WIDTH = 300;
 const DEFAULT_HEIGHT = 40;
@@ -275,7 +276,7 @@ function addRemoveTagTools(elementView) {
             }
         });
     });
-    const toolsView = new joint.dia.ToolsView({
+    const toolsView = new dia.ToolsView({
         tools
     });
     elementView.addTools(toolsView);
@@ -327,12 +328,12 @@ class Badges extends highlighters.list {
 // =======
 
 const cellNamespace = {
-    ...joint.shapes,
+    ...shapes,
     Rectangle
 };
 
-const graph = new joint.dia.Graph({}, { cellNamespace });
-const paper = new joint.dia.Paper({
+const graph = new dia.Graph({}, { cellNamespace });
+const paper = new dia.Paper({
     el: document.getElementById("paper"),
     width: 600,
     height: 600,

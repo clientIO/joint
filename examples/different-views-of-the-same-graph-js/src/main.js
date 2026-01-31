@@ -1,6 +1,7 @@
-// Paper Viewport Option: https://resources.jointjs.com/docs/jointjs/v3.5/joint.html#dia.Paper.prototype.options.viewport
+// Paper Viewport Option: https://resources.jointjs.com/docs/jointjs/v3.5/html#dia.Paper.prototype.options.viewport
 
-const { dia, shapes } = joint;
+import { dia, shapes } from '@joint/core';
+import './styles.css';
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paperOptions = {

@@ -1,4 +1,5 @@
-const { dia, util, shapes: defaultShapes } = joint;
+import { dia, util, shapes as defaultShapes } from '@joint/core';
+import './styles.css';
 
 const chevronCount = 40;
 const chevronHeight = 8;

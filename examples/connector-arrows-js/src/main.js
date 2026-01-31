@@ -1,4 +1,5 @@
-const { dia, shapes, util } = joint;
+import { dia, shapes, util } from '@joint/core';
+import './styles.css';
 
 const BG_COLOR = "#f4f7f6";
 const FG_COLOR = "#131e29";
