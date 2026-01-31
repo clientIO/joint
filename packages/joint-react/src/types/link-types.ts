@@ -33,6 +33,10 @@ export interface GraphLink extends Record<string, unknown> {
    */
   readonly z?: number;
   /**
+   * Layer id for the link.
+   */
+  readonly layer?: string;
+  /**
    * Optional link markup.
    */
   readonly markup?: dia.MarkupJSON;

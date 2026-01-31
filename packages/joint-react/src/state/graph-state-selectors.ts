@@ -61,7 +61,7 @@ export function createDefaultElementMapper<Element extends GraphElement>(
   return () => {
     // Extract built-in JointJS element properties
     // Support both flat format (x, y, width, height) and nested format (position, size)
-    const { x, y, width, height, angle, z, ports, position, size, parent, ...userData } =
+    const { x, y, width, height, angle, z, ports, position, size, parent, layer, ...userData } =
       data as GraphElement & {
         position?: { x: number; y: number };
         size?: { width: number; height: number };
@@ -87,6 +87,7 @@ export function createDefaultElementMapper<Element extends GraphElement>(
       attributes.size = { width: sizeWidth, height: sizeHeight };
     }
     if (parent !== undefined) attributes.parent = parent;
+    if (layer !== undefined) attributes.layer = layer;
     if (angle !== undefined) attributes.angle = angle;
     if (z !== undefined) attributes.z = z;
     if (ports !== undefined) attributes.ports = ports;
@@ -127,7 +128,7 @@ function applyShapePreservation<Element extends GraphElement>(
  * @returns The extracted cell data as a record
  */
 function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
-  const { size, position, data, angle, z, ports, parent } = cell.attributes;
+  const { size, position, data, angle, z, ports, parent, layer } = cell.attributes;
 
   const cellData: Record<string, unknown> = {};
 
@@ -145,6 +146,7 @@ function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
   if (z !== undefined) cellData.z = z;
   if (ports !== undefined) cellData.ports = ports;
   if (parent !== undefined) cellData.parent = parent;
+  if (layer !== undefined) cellData.layer = layer;
   // Spread user data from data property to top level
   if (data && typeof data === 'object') {
     for (const [key, value] of Object.entries(data)) {
@@ -199,6 +201,7 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
       source: linkSource,
       target: linkTarget,
       z,
+      layer,
       markup,
       defaultLabel,
       labels,
@@ -260,6 +263,7 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
     };
 
     if (z !== undefined) attributes.z = z;
+    if (layer !== undefined) attributes.layer = layer;
     if (markup !== undefined) attributes.markup = markup;
     if (defaultLabel !== undefined) attributes.defaultLabel = defaultLabel;
     if (labels !== undefined) attributes.labels = labels;
@@ -302,6 +306,7 @@ export function createDefaultGraphToLinkMapper<Link extends GraphLink>(
       source: cell.get('source') as dia.Cell.ID,
       target: cell.get('target') as dia.Cell.ID,
       z: cell.get('z'),
+      layer: cell.get('layer'),
       markup: cell.get('markup'),
       defaultLabel: cell.get('defaultLabel'),
     };
