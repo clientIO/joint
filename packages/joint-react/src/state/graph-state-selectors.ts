@@ -61,7 +61,7 @@ export function createDefaultElementMapper<Element extends GraphElement>(
   return () => {
     // Extract built-in JointJS element properties
     // Support both flat format (x, y, width, height) and nested format (position, size)
-    const { x, y, width, height, angle, z, ports, position, size, ...userData } =
+    const { x, y, width, height, angle, z, ports, position, size, parent, ...userData } =
       data as GraphElement & {
         position?: { x: number; y: number };
         size?: { width: number; height: number };
@@ -86,7 +86,7 @@ export function createDefaultElementMapper<Element extends GraphElement>(
     if (sizeWidth !== undefined && sizeHeight !== undefined) {
       attributes.size = { width: sizeWidth, height: sizeHeight };
     }
-
+    if (parent !== undefined) attributes.parent = parent;
     if (angle !== undefined) attributes.angle = angle;
     if (z !== undefined) attributes.z = z;
     if (ports !== undefined) attributes.ports = ports;
