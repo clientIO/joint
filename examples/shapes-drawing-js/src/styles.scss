@@ -1,0 +1,116 @@
+/* VARS */
+
+$darkGreen: #2a5045;
+$green1: #59e2af;
+$green2: #08b081;
+
+$activeShadow: 0 0 10px rgba($green1, 0.5);
+
+/* MIXINS */
+@mixin focusOutline {
+    outline: dotted 1px #ccc;
+    outline-offset: 0.45rem;
+}
+
+@mixin hideInput {
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: -9999px;
+}
+
+#paper-container {
+    position: absolute;
+    right: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow: scroll;
+}
+
+#logo {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: #ffffff;
+    border: 1px solid #d3d3d3;
+    padding: 5px;
+    box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.3);
+}
+
+.preview-shape {
+    stroke: $green2;
+    fill: none;
+    stroke-width: 2;
+}
+
+.paper-active-tools * {
+    cursor: crosshair;
+}
+
+/* TOGGLE STYLING */
+#tools {
+    margin: 0 0 1.5rem;
+    box-sizing: border-box;
+    font-size: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-family: sans-serif;
+
+    input {
+        @include hideInput;
+    }
+
+    input+label {
+        margin: 0;
+        padding: 0.75rem 1.5rem;
+        box-sizing: border-box;
+        position: relative;
+        display: inline-block;
+        border: solid 1px #ddd;
+        background-color: #fff;
+        font-size: 1rem;
+        line-height: 120%;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+        transition: border-color 0.15s ease-out, color 0.25s ease-out,
+            background-color 0.15s ease-out, box-shadow 0.15s ease-out;
+
+        /* ADD THESE PROPERTIES TO SWITCH FROM AUTO WIDTH TO FULL WIDTH */
+        /*flex: 0 0 50%; display: flex; justify-content: center; align-items: center;*/
+        /* ----- */
+
+        &:first-of-type {
+            border-radius: 6px 0 0 6px;
+            border-right: none;
+        }
+
+        &:last-of-type {
+            border-radius: 0 6px 6px 0;
+            border-left: none;
+        }
+    }
+
+    input:hover+label {
+        border-color: #2a5045;
+    }
+
+    input:checked+label {
+        background-color: $green2;
+        color: #fff;
+        box-shadow: $activeShadow;
+        border-color: $green2;
+        z-index: 1;
+    }
+
+    input:focus+label {
+        @include focusOutline;
+    }
+}

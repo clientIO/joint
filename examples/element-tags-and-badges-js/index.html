@@ -9,7 +9,36 @@
 </head>
 
 <body id="app">
+    <div id="example">
+        <div id="paper"></div>
+        <div id="toolbar">
 
+            <fieldset>
+                <legend>Tags</legend>
+                <button id="add-tag">Add random tag</button>
+                <button id="remove-all-tags">Remove all tags</button>
+                <label for="preferred-width">
+                    Preferred element width:
+                    <input type="number" id="preferred-width" step="10" />
+                </label>
+            </fieldset>
+
+            <fieldset>
+                <legend>Badges</legend>
+                <label><input type="checkbox" id="badge-user" checked="true"> User</label>
+                <label><input type="checkbox" id="badge-alert" checked="true"> Alert</label>
+                <label><input type="checkbox" id="badge-ban"> Ban</label>
+                <label><input type="checkbox" id="badge-minus"> Minus</label>
+                <label><input type="checkbox" id="badge-off"> Off</label>
+                <label><input type="checkbox" id="badge-question-mark"> Question Mark</label>
+                <label><input type="checkbox" id="badge-x"> X</label>
+                <label><input type="checkbox" id="badge-check"> Check</label>
+                <label><input type="checkbox" id="badge-ellipsis"> Ellipsis</label>
+                <label><input type="checkbox" id="badge-half"> Half</label>
+                <label><input type="checkbox" id="badge-plus"> Plus</label>
+            </fieldset>
+        </div>
+    </div>
     <!-- Application files: -->
     <script type="module" src="/src/main.js"></script>
 </body>

@@ -12,8 +12,7 @@
         "vite": "^7.3.1"
     },
     "dependencies": {
-        
-    "@joint/core": "workspace:^"
-
+        "@joint/core": "workspace:^",
+        "handsontable": "^16.2.0"
     }
 }

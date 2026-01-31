@@ -4,12 +4,30 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="See how to draw shapes into diagrams, such as a rectangle, ellipse or any other shape using the free drawing function.">
+    <meta name="description"
+        content="See how to draw shapes into diagrams, such as a rectangle, ellipse or any other shape using the free drawing function.">
     <title>JointJS: Shapes Drawing</title>
 </head>
 
 <body id="app">
+    <div id="paper-container"></div>
 
+    <div id="tools">
+        <input type="radio" name="tools" id="Pointer">
+        <label for="Pointer">Pointer</label>
+        <input type="radio" name="tools" id="Line">
+        <label for="Line">Line</label>
+        <input type="radio" name="tools" id="Rectangle" checked>
+        <label for="Rectangle">Rectangle</label>
+        <input type="radio" name="tools" id="Ellipse">
+        <label for="Ellipse">Ellipse</label>
+        <input type="radio" name="tools" id="FreeDraw">
+        <label for="FreeDraw">Free Draw</label>
+    </div>
+
+    <a target="_blank" href="https://www.jointjs.com">
+        <img id="logo" src="https://assets.codepen.io/7589991/jointjs-logo.svg" width="200" height="50"></img>
+    </a>
     <!-- Application files: -->
     <script type="module" src="/src/main.js"></script>
 </body>
