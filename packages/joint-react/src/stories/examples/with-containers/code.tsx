@@ -121,6 +121,19 @@ function Main() {
       renderElement={RenderElement}
       embeddingMode
       validateEmbedding={validateParentChildRelationship}
+      highlighting={{
+        embedding: {
+          name: 'mask',
+          options: {
+            padding: 5,
+            attrs: {
+              stroke: SECONDARY,
+              strokeWidth: 2,
+              strokeLinejoin: 'round',
+            }
+          }
+        },
+      }}
     />
   );
 }
