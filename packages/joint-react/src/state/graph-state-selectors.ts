@@ -127,7 +127,7 @@ function applyShapePreservation<Element extends GraphElement>(
  * @returns The extracted cell data as a record
  */
 function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
-  const { size, position, data, angle, z, ports } = cell.attributes;
+  const { size, position, data, angle, z, ports, parent } = cell.attributes;
 
   const cellData: Record<string, unknown> = {};
 
@@ -144,6 +144,7 @@ function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
   if (angle !== undefined) cellData.angle = angle;
   if (z !== undefined) cellData.z = z;
   if (ports !== undefined) cellData.ports = ports;
+  if (parent !== undefined) cellData.parent = parent;
   // Spread user data from data property to top level
   if (data && typeof data === 'object') {
     for (const [key, value] of Object.entries(data)) {
