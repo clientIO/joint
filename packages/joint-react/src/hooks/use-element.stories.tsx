@@ -1,6 +1,6 @@
 import { useElement } from './use-element';
 import { SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
-import type { Meta } from '@storybook/react';
+import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';

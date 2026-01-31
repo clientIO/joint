@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
-import type { Meta } from '@storybook/react';
+import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
