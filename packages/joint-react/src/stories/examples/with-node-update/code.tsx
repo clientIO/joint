@@ -6,7 +6,10 @@ import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements: Record<string, { label: string; color: string; x: number; y: number; width: number; height: number }> = {
+const initialElements: Record<
+  string,
+  { label: string; color: string; x: number; y: number; width: number; height: number }
+> = {
   '1': { label: 'Node 1', color: '#ffffff', x: 100, y: 0, width: 100, height: 50 },
   '2': { label: 'Node 2', color: '#ffffff', x: 100, y: 200, width: 100, height: 50 },
 };

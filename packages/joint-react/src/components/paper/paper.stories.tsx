@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
- 
+
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
@@ -380,7 +380,7 @@ export const WithOnClickColorChange: Story = {
           } as GraphElement & { label: string; hoverColor: string },
         }}
         links={{
-          'l1': {
+          l1: {
             source: '1',
             target: '2',
             attrs: {
@@ -456,7 +456,7 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
           },
         }}
         links={{
-          'l1': {
+          l1: {
             source: '1',
             target: '2',
             attrs: {

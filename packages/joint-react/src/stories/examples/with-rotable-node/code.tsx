@@ -10,7 +10,10 @@ const initialElements: Record<string, { label: string; x: number; y: number }> =
   '2': { label: 'Node 2', x: 200, y: 100 },
 };
 
-const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string } } }> = {
+const initialEdges: Record<
+  string,
+  { source: string; target: string; attrs: { line: { stroke: string } } }
+> = {
   'e1-2': {
     source: '1',
     target: '2',

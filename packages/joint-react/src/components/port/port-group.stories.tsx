@@ -10,12 +10,15 @@ import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 import { Paper } from '../paper/paper';
 
-const initialElements: Record<string, {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}> = {
+const initialElements: Record<
+  string,
+  {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }
+> = {
   '1': {
     x: 100,
     y: 20,
@@ -30,11 +33,14 @@ const initialElements: Record<string, {
   },
 };
 
-const initialLinks: Record<string, {
-  target: { id: string; port: string };
-  source: { id: string; port: string };
-  attrs: { line: { stroke: string } };
-}> = {
+const initialLinks: Record<
+  string,
+  {
+    target: { id: string; port: string };
+    source: { id: string; port: string };
+    attrs: { line: { stroke: string } };
+  }
+> = {
   'e1-2': {
     target: {
       id: '2',
@@ -103,7 +109,8 @@ const meta: Meta<typeof PortGroup> = {
             </Port.Item>
         </Port.Group>
     `,
-    description: 'Port Group is a container for ports. It can be used to group ports together and apply transformations to them. The group can be positioned using the position prop, which can be either \'absolute\' or \'relative\'.',
+    description:
+      "Port Group is a container for ports. It can be used to group ports together and apply transformations to them. The group can be positioned using the position prop, which can be either 'absolute' or 'relative'.",
   }),
 };
 

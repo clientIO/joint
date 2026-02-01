@@ -132,7 +132,6 @@ describe('port', () => {
     function DynamicPorts() {
       const [ports, setPorts] = useState([{ id: 'port-1' }]);
 
-       
       addPortTrigger = () => {
         setPorts((previous) => [...previous, { id: `port-${previous.length + 1}` }]);
       };

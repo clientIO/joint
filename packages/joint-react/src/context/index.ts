@@ -9,6 +9,12 @@ export const PaperStoreContext = createContext<PaperStore | null>(null);
 export const CellIdContext = createContext<dia.Cell.ID | undefined>(undefined);
 export const CellIndexContext = createContext<number | undefined>(undefined);
 
+/**
+ * Context for ReactPaper's paper ID.
+ * Used as fallback when PaperStoreContext is not available (e.g., in ReactPaper).
+ */
+export const ReactPaperIdContext = createContext<string | null>(null);
+
 export interface OverWriteResult {
   readonly element: HTMLElement | SVGElement;
   readonly contextUpdate: unknown;

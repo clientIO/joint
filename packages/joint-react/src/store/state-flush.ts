@@ -8,8 +8,8 @@ import type {
   GraphStoreLayoutSnapshot,
   NodeLayout,
   LinkLayout,
+  PaperStoreLike,
 } from './graph-store';
-import type { PaperStore } from './paper-store';
 
 /**
  * GOLDEN RULE: All setState calls must happen through these flush functions.
@@ -80,7 +80,21 @@ export function flushLinks(
 export interface FlushLayoutStateOptions {
   readonly graph: dia.Graph;
   readonly layoutState: State<GraphStoreLayoutSnapshot>;
-  readonly papers?: Map<string, PaperStore>;
+  readonly papers?: Map<string, PaperStoreLike>;
+}
+
+/**
+ * Checks if two vertex arrays are equal.
+ */
+function areVerticesEqual(
+  a: ReadonlyArray<{ readonly x: number; readonly y: number }>,
+  b: ReadonlyArray<{ readonly x: number; readonly y: number }>
+): boolean {
+  if (a.length !== b.length) return false;
+  for (const [index, element] of a.entries()) {
+    if (element.x !== b[index].x || element.y !== b[index].y) return false;
+  }
+  return true;
 }
 
 /**
@@ -96,9 +110,11 @@ function isLinkLayoutEqual(a: LinkLayout | undefined, b: LinkLayout): boolean {
     a.sourceY === b.sourceY &&
     a.targetX === b.targetX &&
     a.targetY === b.targetY &&
-    a.d === b.d
+    a.d === b.d &&
+    areVerticesEqual(a.vertices, b.vertices)
   );
 }
+const EMPTY_VERTICES: ReadonlyArray<{ readonly x: number; readonly y: number }> = [];
 
 /**
  * Flushes layout state updates (element layouts and per-paper link layouts).
@@ -149,9 +165,23 @@ export function flushLayoutState(options: FlushLayoutStateOptions): void {
       const paperLinkLayouts: Record<dia.Cell.ID, LinkLayout> = {};
       const previousPaperLinkLayouts = previousLinkLayouts[paperId] ?? {};
 
+      // During initial measurement phase, element sizes may change as useNodeSize measures them.
+      // We must update all links until wasEverMeasured is true.
+      const isInitialMeasurementPhase = !previousSnapshot.wasEverMeasured;
+
       for (const link of links) {
         const linkView = paper.findViewByModel(link) as dia.LinkView | null;
         if (!linkView) continue;
+
+        // Force update if:
+        // 1. Geometry hasn't been computed yet, OR
+        // 2. We're in initial measurement phase (element sizes may still be changing)
+        // After initial measurement, JointJS Paper handles link updates via
+        // requestConnectedLinksUpdate() when elements move.
+        const hasComputedGeometry = linkView.sourcePoint && linkView.targetPoint && linkView.route;
+        if (!hasComputedGeometry || isInitialMeasurementPhase) {
+          linkView.update?.();
+        }
 
         const sourcePoint = linkView.sourcePoint ?? { x: 0, y: 0 };
         const targetPoint = linkView.targetPoint ?? { x: 0, y: 0 };
@@ -163,6 +193,7 @@ export function flushLayoutState(options: FlushLayoutStateOptions): void {
           targetX: targetPoint.x,
           targetY: targetPoint.y,
           d,
+          vertices: link.get('vertices') || EMPTY_VERTICES,
         };
 
         const previousLinkLayout = previousPaperLinkLayouts[link.id];

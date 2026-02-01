@@ -1,4 +1,3 @@
- 
 /* eslint-disable @eslint-react/web-api/no-leaked-timeout */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/no-nested-functions */
@@ -332,7 +331,10 @@ describe('Paper Component', () => {
 
   it('should set elements and positions via react state, when change it via paper api', async () => {
     // Create elements with initial x/y so they can be synced back
-    const elementsWithPosition: Record<string, { label: string; x: number; y: number; width: number; height: number }> = {
+    const elementsWithPosition: Record<
+      string,
+      { label: string; x: number; y: number; width: number; height: number }
+    > = {
       '1': { label: 'Node 1', x: 0, y: 0, width: 10, height: 10 },
       '2': { label: 'Node 2', x: 0, y: 0, width: 10, height: 10 },
     };
@@ -349,7 +351,8 @@ describe('Paper Component', () => {
     }
     let currentOutsideElements: Record<string, Element> = {};
     function Content() {
-      const [currentElements, setCurrentElements] = useState<Record<string, GraphElement>>(elementsWithPosition);
+      const [currentElements, setCurrentElements] =
+        useState<Record<string, GraphElement>>(elementsWithPosition);
       currentOutsideElements = currentElements as Record<string, Element>;
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
@@ -370,7 +373,8 @@ describe('Paper Component', () => {
   });
   it('should update elements via react state, and then reflect the changes in the paper', async () => {
     function Content() {
-      const [currentElements, setCurrentElements] = useState<Record<string, GraphElement>>(elements);
+      const [currentElements, setCurrentElements] =
+        useState<Record<string, GraphElement>>(elements);
 
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>

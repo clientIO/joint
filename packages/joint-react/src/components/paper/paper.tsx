@@ -148,7 +148,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 
   const { addPaper, graph, getPaperStore } = useGraphStore();
 
-  const paperStore = getPaperStore(id) ?? null;
+  // Paper component always uses addPaper which creates PaperStore, so casting is safe
+  const paperStore = (getPaperStore(id) as PaperStore | undefined) ?? null;
   const { paper } = paperStore ?? {};
   const paperHTMLElement = useRef<HTMLDivElement | null>(null);
   const measured = useRef(false);

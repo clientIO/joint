@@ -8,7 +8,7 @@ import CodeRaw from './code?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
-  title: 'Examples/Stress',
+  title: 'Stress/React Paper',
   component: Code,
   tags: ['example'],
   parameters: makeRootDocumentation({

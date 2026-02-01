@@ -2,7 +2,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { render, waitFor, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, useCellActions, type GraphElement, type GraphLink } from '../../../index';
+import {
+  GraphProvider,
+  Paper,
+  useCellActions,
+  type GraphElement,
+  type GraphLink,
+} from '../../../index';
 import { useCallback } from 'react';
 
 interface TestElement extends GraphElement {
