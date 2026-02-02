@@ -1,21 +1,20 @@
-import { dia, shapes, elementTools } from '@joint/core';
+import { dia, shapes } from '@joint/core';
 import './styles.css';
-const { Path } = g;
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 20,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 paperContainer.appendChild(paper.el);
@@ -26,31 +25,31 @@ const linearGradientFill = new shapes.standard.Rectangle({
         body: {
             rx: 2,
             ry: 2,
-            stroke: "#333",
+            stroke: '#333',
             strokeWidth: 2,
             fill: {
-                type: "linearGradient",
+                type: 'linearGradient',
                 stops: [
-                    { offset: 0, color: "#1f005c" },
-                    { offset: 0.14285714285714285, color: "#5b0060" },
-                    { offset: 0.2857142857142857, color: "#870160" },
-                    { offset: 0.42857142857142855, color: "#ac255e" },
-                    { offset: 0.5714285714285714, color: "#ca485c" },
-                    { offset: 0.7142857142857142, color: "#e16b5c" },
-                    { offset: 0.8571428571428571, color: "#f39060" },
-                    { offset: 1, color: "#ffb56b" }
+                    { offset: 0, color: '#1f005c' },
+                    { offset: 0.14285714285714285, color: '#5b0060' },
+                    { offset: 0.2857142857142857, color: '#870160' },
+                    { offset: 0.42857142857142855, color: '#ac255e' },
+                    { offset: 0.5714285714285714, color: '#ca485c' },
+                    { offset: 0.7142857142857142, color: '#e16b5c' },
+                    { offset: 0.8571428571428571, color: '#f39060' },
+                    { offset: 1, color: '#ffb56b' }
                 ]
             },
             filter: {
-                name: "dropShadow",
-                args: { dx: 4, dy: 4, blur: 5, color: "#333" }
+                name: 'dropShadow',
+                args: { dx: 4, dy: 4, blur: 5, color: '#333' }
             }
         },
         label: {
             fontSize: 20,
-            fontFamily: "sans-serif",
-            fill: "#fff",
-            text: "Linear Gradient"
+            fontFamily: 'sans-serif',
+            fill: '#fff',
+            text: 'Linear Gradient'
         }
     }
 });
@@ -59,31 +58,31 @@ const radialGradientFill = new shapes.standard.Ellipse({
     size: { width: 150, height: 150 },
     attrs: {
         body: {
-            stroke: "#333",
+            stroke: '#333',
             strokeWidth: 2,
             fill: {
-                type: "radialGradient",
+                type: 'radialGradient',
                 stops: [
-                    { offset: 0, color: "#ffb56b" },
-                    { offset: 0.14285714285714285, color: "#f39060" },
-                    { offset: 0.2857142857142857, color: "#e16b5c" },
-                    { offset: 0.42857142857142855, color: "#ca485c" },
-                    { offset: 0.5714285714285714, color: "#ac255e" },
-                    { offset: 0.7142857142857142, color: "#870160" },
-                    { offset: 0.8571428571428571, color: "#5b0060" },
-                    { offset: 1, color: "#1f005c" }
+                    { offset: 0, color: '#ffb56b' },
+                    { offset: 0.14285714285714285, color: '#f39060' },
+                    { offset: 0.2857142857142857, color: '#e16b5c' },
+                    { offset: 0.42857142857142855, color: '#ca485c' },
+                    { offset: 0.5714285714285714, color: '#ac255e' },
+                    { offset: 0.7142857142857142, color: '#870160' },
+                    { offset: 0.8571428571428571, color: '#5b0060' },
+                    { offset: 1, color: '#1f005c' }
                 ]
             },
             filter: {
-                name: "dropShadow",
-                args: { dx: 3, dy: 3, blur: 10, color: "#333" }
+                name: 'dropShadow',
+                args: { dx: 3, dy: 3, blur: 10, color: '#333' }
             }
         },
         label: {
             fontSize: 20,
-            fontFamily: "sans-serif",
-            fill: "#fff",
-            text: "Radial Gradient"
+            fontFamily: 'sans-serif',
+            fill: '#fff',
+            text: 'Radial Gradient'
         }
     }
 });
@@ -92,37 +91,37 @@ const patternFill1 = new shapes.standard.Rectangle({
     size: { width: 200, height: 100 },
     attrs: {
         body: {
-            stroke: "#333",
+            stroke: '#333',
             strokeWidth: 2,
             fill: {
-                type: "pattern",
+                type: 'pattern',
                 attrs: {
                     width: 12,
                     height: 12,
-                    "stroke-width": 1,
-                    stroke: "#333",
-                    fill: "none"
+                    'stroke-width': 1,
+                    stroke: '#333',
+                    fill: 'none'
                 },
                 markup: [
                     {
-                        tagName: "rect",
+                        tagName: 'rect',
                         attributes: {
                             width: 12,
                             height: 12,
-                            fill: "#fff",
-                            stroke: "none"
+                            fill: '#fff',
+                            stroke: 'none'
                         }
                     },
                     {
-                        tagName: "path",
+                        tagName: 'path',
                         attributes: {
-                            d: "M-1,11 l2,2 M11,13 l2,-2"
+                            d: 'M-1,11 l2,2 M11,13 l2,-2'
                         }
                     },
                     {
-                        tagName: "polyline",
+                        tagName: 'polyline',
                         attributes: {
-                            points: "0,0 6,6 12,0"
+                            points: '0,0 6,6 12,0'
                         }
                     }
                 ]
@@ -130,12 +129,12 @@ const patternFill1 = new shapes.standard.Rectangle({
         },
         label: {
             fontSize: 20,
-            fontFamily: "sans-serif",
-            fill: "#333",
-            stroke: "#fff",
+            fontFamily: 'sans-serif',
+            fill: '#333',
+            stroke: '#fff',
             strokeWidth: 5,
-            paintOrder: "stroke",
-            text: "Fill Pattern 1"
+            paintOrder: 'stroke',
+            text: 'Fill Pattern 1'
         }
     }
 });
@@ -151,14 +150,14 @@ const patternFill2 = new shapes.standard.Rectangle({
     size: { width: 200, height: 100 },
     attrs: {
         body: {
-            stroke: "hsla(258.5,59.4%,59.4%,1)",
+            stroke: 'hsla(258.5,59.4%,59.4%,1)',
             strokeWidth: 2,
             fill: {
-                type: "pattern",
+                type: 'pattern',
                 attrs: {
                     width: 40,
                     height: 59.428,
-                    patternTransform: "scale(0.5) rotate(45)"
+                    patternTransform: 'scale(0.5) rotate(45)'
                 },
                 markup: `
                   <rect x='0' y='0' width='100%' height='100%' fill='hsla(0,0%,100%,1)'/>
@@ -168,12 +167,12 @@ const patternFill2 = new shapes.standard.Rectangle({
         },
         label: {
             fontSize: 20,
-            fontFamily: "sans-serif",
-            fill: "#333",
-            stroke: "#fff",
+            fontFamily: 'sans-serif',
+            fill: '#333',
+            stroke: '#fff',
             strokeWidth: 5,
-            paintOrder: "stroke",
-            text: "Fill Pattern 2"
+            paintOrder: 'stroke',
+            text: 'Fill Pattern 2'
         }
     }
 });
@@ -189,10 +188,10 @@ const patternFill3 = new shapes.standard.Ellipse({
     size: { width: 300, height: 200 },
     attrs: {
         body: {
-            stroke: "#333",
+            stroke: '#333',
             strokeWidth: 2,
             fill: {
-                type: "pattern",
+                type: 'pattern',
                 attrs: {
                     width: 50,
                     height: 50
@@ -207,12 +206,12 @@ const patternFill3 = new shapes.standard.Ellipse({
         },
         label: {
             fontSize: 20,
-            fontFamily: "sans-serif",
-            fill: "#333",
-            stroke: "#fff",
+            fontFamily: 'sans-serif',
+            fill: '#333',
+            stroke: '#fff',
             strokeWidth: 4,
-            paintOrder: "stroke",
-            text: "Fill Pattern 3"
+            paintOrder: 'stroke',
+            text: 'Fill Pattern 3'
         }
     }
 });

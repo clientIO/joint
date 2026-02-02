@@ -1,4 +1,4 @@
-import { dia, shapes, util, mvc } from '@joint/core';
+import { V, g, dia, shapes, util } from '@joint/core';
 import './styles.css';
 
 // Config
@@ -22,26 +22,26 @@ const NODE_MAX_COUNTERS = 9;
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 20,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 paperContainer.appendChild(paper.el);
 
 enableVirtualRendering(paper);
 
-paper.on("blank:pointerdown", function (evt) {
+paper.on('blank:pointerdown', function(evt) {
     evt.data = {
         clientX: evt.clientX,
         clientY: evt.clientY,
@@ -50,13 +50,13 @@ paper.on("blank:pointerdown", function (evt) {
     };
 });
 
-paper.on("blank:pointermove", function (evt) {
+paper.on('blank:pointermove', function(evt) {
     const { clientX, clientY, data } = evt;
     paperContainer.scrollLeft = data.scrollLeft - (clientX - data.clientX);
     paperContainer.scrollTop = data.scrollTop - (clientY - data.clientY);
 });
 
-paper.on("node:button:pointerclick", function (nodeView) {
+paper.on('node:button:pointerclick', function(nodeView) {
     const node = nodeView.model;
     node.toggle();
 });
@@ -68,10 +68,10 @@ class Node extends dia.Element {
             ...super.defaults,
             size: { width: 200, height: 0 },
             z: 2,
-            type: "Node",
+            type: 'Node',
             // Data
             uid: null,
-            name: "",
+            name: '',
             expanded: true,
             counterNames: [],
             counterValues: [],
@@ -81,13 +81,13 @@ class Node extends dia.Element {
 
     initialize(...args) {
         super.initialize(...args);
-        this.on("change", (_cell, opt) => this.onChange(opt));
+        this.on('change', (_cell, opt) => this.onChange(opt));
         this.setSize();
     }
 
     onChange(opt) {
         const { changed } = this;
-        if ("uid" in changed && !changed.uid) {
+        if ('uid' in changed && !changed.uid) {
             this.set(
                 {
                     counterNames: [],
@@ -97,7 +97,7 @@ class Node extends dia.Element {
                 opt
             );
         }
-        if ("counterNames" in changed || "expanded" in changed) {
+        if ('counterNames' in changed || 'expanded' in changed) {
             this.setSize(opt);
         }
     }
@@ -113,7 +113,7 @@ class Node extends dia.Element {
     }
 
     changeNode(node) {
-        this.startBatch("change-uid");
+        this.startBatch('change-uid');
         this.set({
             name: node.name,
             uid: node.uid,
@@ -121,19 +121,19 @@ class Node extends dia.Element {
             counterValues: [],
             status: null
         });
-        this.stopBatch("change-uid");
+        this.stopBatch('change-uid');
     }
 
     toggle() {
-        this.startBatch("change-expanded");
-        this.set("expanded", !this.get("expanded"));
-        this.stopBatch("change-expanded");
+        this.startBatch('change-expanded');
+        this.set('expanded', !this.get('expanded'));
+        this.stopBatch('change-expanded');
     }
 
     changeStatus(status) {
         const { status: currentStatus } = this.attributes;
         if (status === currentStatus) return;
-        this.prop("status", status, { dry: true });
+        this.prop('status', status, { dry: true });
     }
 
     changeDataPoint(names, values) {
@@ -152,7 +152,7 @@ class Node extends dia.Element {
     }
 
     getCounterNames() {
-        return this.get("counterNames");
+        return this.get('counterNames');
     }
 
     toJSON() {
@@ -163,9 +163,9 @@ class Node extends dia.Element {
 
 const Flags = {
     ...dia.ElementView.Flags,
-    STATUS: "STATUS",
-    LABEL: "LABEL",
-    VALUES: "VALUES"
+    STATUS: 'STATUS',
+    LABEL: 'LABEL',
+    VALUES: 'VALUES'
 };
 
 class NodeView extends dia.ElementView {
@@ -210,16 +210,16 @@ class NodeView extends dia.ElementView {
 
         this.cleanNodesCache();
 
-        const body = (this.vBody = V("rect").addClass("node-body"));
-        const label = (this.vLabel = V("text").addClass("node-label"));
-        const button = (this.vButton = V("path").addClass("node-button"));
+        const body = (this.vBody = V('rect').addClass('node-body'));
+        const label = (this.vLabel = V('text').addClass('node-label'));
+        const button = (this.vButton = V('path').addClass('node-button'));
 
         vel.empty().append([body, label, button]);
 
-        if (model.get("expanded")) {
+        if (model.get('expanded')) {
             const counterGroup = this.renderCounterGroup();
-            const separator = (this.vSeparator = V("path").addClass(
-                "node-separator"
+            const separator = (this.vSeparator = V('path').addClass(
+                'node-separator'
             ));
             vel.append([separator, counterGroup]);
         } else {
@@ -239,40 +239,40 @@ class NodeView extends dia.ElementView {
         const { width } = model.size();
         const vCounterNames = (this.vCounterNames = []);
         const vCounterValues = (this.vCounterValues = []);
-        const names = model.get("counterNames");
+        const names = model.get('counterNames');
         for (let i = 0, n = names.length; i < n; i++) {
             const y =
                 NODE_COUNTER_PADDING +
                 i * NODE_COUNTER_HEIGHT +
                 NODE_COUNTER_HEIGHT / 2;
-            const vName = V("text")
+            const vName = V('text')
                 .attr({
                     transform: `translate(${NODE_COUNTER_PADDING}, ${y})`,
-                    "font-size": 14,
-                    "font-family": "sans-serif",
-                    "text-anchor": "start"
+                    'font-size': 14,
+                    'font-family': 'sans-serif',
+                    'text-anchor': 'start'
                 })
-                .addClass("node-counter-name")
+                .addClass('node-counter-name')
                 .text(names[i], {
-                    textVerticalAnchor: "middle"
+                    textVerticalAnchor: 'middle'
                 });
-            const vValue = V("text")
+            const vValue = V('text')
                 .attr({
                     transform: `translate(${width - NODE_COUNTER_PADDING}, ${y})`,
-                    "font-size": 14,
-                    "font-family": "sans-serif",
-                    "text-anchor": "end"
+                    'font-size': 14,
+                    'font-family': 'sans-serif',
+                    'text-anchor': 'end'
                 })
-                .addClass("node-counter-value");
+                .addClass('node-counter-value');
 
             vCounterNames.push(vName);
             vCounterValues.push(vValue);
         }
-        return V("g")
+        return V('g')
             .attr({
                 transform: `translate(0, ${NODE_HEADER_HEIGHT})`
             })
-            .addClass("node-counters")
+            .addClass('node-counters')
             .append([...vCounterNames, ...vCounterValues]);
     }
 
@@ -289,13 +289,13 @@ class NodeView extends dia.ElementView {
         const { vButton, model } = this;
         const { size, expanded } = model.attributes;
         vButton.attr({
-            d: expanded ? "M -6 6 0 0 6 6" : "M -6 0 0 6 6 0",
-            stroke: "#333",
-            "stroke-width": 3,
-            fill: "none",
-            "pointer-events": "bounding-box",
-            event: "node:button:pointerclick",
-            cursor: "pointer",
+            d: expanded ? 'M -6 6 0 0 6 6' : 'M -6 0 0 6 6 0',
+            stroke: '#333',
+            'stroke-width': 3,
+            fill: 'none',
+            'pointer-events': 'bounding-box',
+            event: 'node:button:pointerclick',
+            cursor: 'pointer',
             transform: `translate(${size.width - 20},${NODE_HEADER_HEIGHT / 2})`
         });
     }
@@ -306,7 +306,7 @@ class NodeView extends dia.ElementView {
         vBody.attr({
             width: width,
             height: height,
-            stroke: "#333",
+            stroke: '#333',
             rx: 5,
             ry: 5
         });
@@ -318,14 +318,14 @@ class NodeView extends dia.ElementView {
         const { width } = model.size();
         vSeparator.attr({
             d: `M 0 ${NODE_HEADER_HEIGHT} h ${width}`,
-            stroke: "#333",
-            "stroke-width": "2"
+            stroke: '#333',
+            'stroke-width': '2'
         });
     }
 
     updateCounters() {
         const { model, vCounterValues } = this;
-        const values = model.get("counterValues");
+        const values = model.get('counterValues');
         const cache = this.counterValuesCache;
         this.counterValuesCache = [];
         for (let i = 0, n = vCounterValues.length; i < n; i++) {
@@ -333,13 +333,13 @@ class NodeView extends dia.ElementView {
             if (cache && formattedValue === cache[i]) continue;
             this.counterValuesCache[i] = formattedValue;
             vCounterValues[i].text(formattedValue, {
-                textVerticalAnchor: "middle"
+                textVerticalAnchor: 'middle'
             });
         }
     }
 
     formatValue(value) {
-        if (typeof value !== "number") return "-";
+        if (typeof value !== 'number') return '-';
         return value.toFixed(2);
     }
 
@@ -347,12 +347,12 @@ class NodeView extends dia.ElementView {
         const { model, paper, vLabel } = this;
         if (!paper) return;
         const { width } = model.size();
-        const text = model.get("name") || "";
+        const text = model.get('name') || '';
 
         const fontAttributes = {
-            "font-size": 16,
-            "font-family": "sans-serif",
-            "text-anchor": "middle",
+            'font-size': 16,
+            'font-family': 'sans-serif',
+            'text-anchor': 'middle',
             transform: `translate(${width / 2},${NODE_HEADER_HEIGHT / 2})`
         };
 
@@ -367,29 +367,29 @@ class NodeView extends dia.ElementView {
             }
         );
         vLabel.attr(fontAttributes);
-        vLabel.text(wrappedText, { textVerticalAnchor: "middle" });
+        vLabel.text(wrappedText, { textVerticalAnchor: 'middle' });
     }
 
     toggleStatus() {
         let color;
-        switch (this.model.prop("status")) {
+        switch (this.model.prop('status')) {
             case null: {
-                color = "#FFFFFF";
+                color = '#FFFFFF';
                 break;
             }
-            case "D": {
-                color = "#78A75A";
+            case 'D': {
+                color = '#78A75A';
                 break;
             }
-            case "A": {
-                color = "#992B15";
+            case 'A': {
+                color = '#992B15';
                 break;
             }
             default: {
-                color = "#EAC452";
+                color = '#EAC452';
             }
         }
-        this.vBody.attr("fill", color);
+        this.vBody.attr('fill', color);
     }
 }
 
@@ -401,7 +401,7 @@ Object.assign(shapes, {
 // Events
 
 function getCellsFromUid(graph, uid) {
-    const uidMap = graph.get("uidMap");
+    const uidMap = graph.get('uidMap');
     if (!uidMap) return [];
     const ids = uidMap[uid];
     if (!ids) return [];
@@ -414,13 +414,13 @@ function getCellsFromUid(graph, uid) {
 
 function generateCells(graph, c, r) {
     graph.set(
-        "nodes",
+        'nodes',
         Array.from({ length: c * r }, (_, index) => {
             return { uid: `id-${index}`, name: `Data ${index + 1}` };
         })
     );
 
-    const nodes = graph.get("nodes");
+    const nodes = graph.get('nodes');
     const count = nodes.length;
     const cells = [];
     let lastEl = null;
@@ -442,7 +442,7 @@ function generateCells(graph, c, r) {
                     source: { id: lastEl.id },
                     target: { id: el.id }
                 });
-                link.unset("labels");
+                link.unset('labels');
                 cells.push(link);
             }
             lastEl = el;
@@ -454,6 +454,7 @@ function generateCells(graph, c, r) {
 }
 
 function changeDataPoint(graph, dataPointEvent) {
+    // eslint-disable-next-line no-unused-vars
     const { uid, name, ...counterPairs } = dataPointEvent;
     getCellsFromUid(graph, uid).forEach((node) => {
         let names = node.getCounterNames();
@@ -482,12 +483,12 @@ function runEvents(
         const elements = graph.getElements();
         const element = elements[g.random(0, elements.length - 1)];
         if (!element) return;
-        if (!element.get("uid")) return;
+        if (!element.get('uid')) return;
 
         changeState(graph, {
             uid: element.attributes.uid,
-            name: element.get("name"),
-            messageClass: ["A", "B", "C", "D"][g.random(0, 3)]
+            name: element.get('name'),
+            messageClass: ['A', 'B', 'C', 'D'][g.random(0, 3)]
         });
     }, stateInterval);
 
@@ -495,9 +496,9 @@ function runEvents(
         const elements = graph.getElements();
         const element = elements[g.random(0, elements.length - 1)];
         if (!element) return;
-        if (!element.get("uid")) return;
+        if (!element.get('uid')) return;
 
-        let counterNames = element.get("counterNames");
+        let counterNames = element.get('counterNames');
         if (counterNames.length === 0) {
             // or generate a new ones
             counterNames = Array.from(
@@ -515,7 +516,7 @@ function runEvents(
 
         changeDataPoint(graph, {
             uid: element.attributes.uid,
-            name: element.get("name"),
+            name: element.get('name'),
             ...counterPairs
         });
     }, dataInterval);
@@ -527,12 +528,12 @@ function runEvents(
 }
 
 function buildUidMap(graph) {
-    const prevUidMap = Object.assign({}, graph.get("uidMap"));
+    const prevUidMap = Object.assign({}, graph.get('uidMap'));
     const uidMap = {};
 
     graph.getElements().forEach((el) => {
         const { type, uid, id } = el.attributes;
-        if (type !== "Node") return;
+        if (type !== 'Node') return;
         if (uid in uidMap) {
             uidMap[uid].push(id);
         } else {
@@ -540,7 +541,7 @@ function buildUidMap(graph) {
         }
         delete prevUidMap[uid];
     });
-    graph.set("uidMap", uidMap);
+    graph.set('uidMap', uidMap);
 }
 
 generateCells(graph, COLS, ROWS);
@@ -553,7 +554,7 @@ runEvents(graph, {
 paper.fitToContent({
     useModelGeometry: true,
     padding: 20,
-    allowNewOrigin: "any"
+    allowNewOrigin: 'any'
 });
 
 function enableVirtualRendering(paper) {
@@ -568,8 +569,8 @@ function enableVirtualRendering(paper) {
 
     // Setup listeners
     updateViewportArea();
-    paperContainer.addEventListener("scroll", updateViewportArea, false);
-    paper.on("scale", updateViewportArea);
+    paperContainer.addEventListener('scroll', updateViewportArea, false);
+    paper.on('scale', updateViewportArea);
 
     // Paper `viewport` option
     // https://resources.jointjs.com/docs/jointjs/#dia.Paper.prototype.options.viewport

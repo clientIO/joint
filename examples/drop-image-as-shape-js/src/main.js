@@ -1,18 +1,18 @@
 import { dia, shapes } from '@joint/core';
 import './styles.scss';
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 20,
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 paperContainer.appendChild(paper.el);
@@ -23,12 +23,12 @@ function dragoverHandler(evt) {
 
 function dragenterHandler(evt) {
     evt.preventDefault();
-    paperContainer.classList.add("drag-n-drop");
+    paperContainer.classList.add('drag-n-drop');
 }
 
 function dragleaveHandler(evt) {
     evt.preventDefault();
-    paperContainer.classList.remove("drag-n-drop");
+    paperContainer.classList.remove('drag-n-drop');
 }
 
 async function dropHandler(evt) {
@@ -39,19 +39,19 @@ async function dropHandler(evt) {
     const result = await Promise.all(promises);
     const images = result.filter((image) => image !== null);
     const shift = 20;
-    let { x, y } = paper.clientToLocalPoint(evt.clientX, evt.clientY);
+    const { x, y } = paper.clientToLocalPoint(evt.clientX, evt.clientY);
     images.forEach((image, index) =>
         image.position(x - shift * index, y - shift * index)
     );
     graph.addCells(images);
-    paperContainer.classList.remove("drag-n-drop");
+    paperContainer.classList.remove('drag-n-drop');
 }
 
 function readImageFile(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.addEventListener(
-            "load",
+            'load',
             () => {
                 const img = new Image();
                 img.onload = () => {
@@ -62,7 +62,7 @@ function readImageFile(file) {
                     );
                     resolve(el);
                 };
-                img.onerror = function () {
+                img.onerror = function() {
                     resolve(null);
                 };
                 img.src = reader.result;
@@ -79,13 +79,13 @@ function createImage(href, width, height) {
         attrs: {
             image: {
                 href,
-                preserveAspectRatio: "none"
+                preserveAspectRatio: 'none'
             }
         }
     });
 }
 
-paper.el.addEventListener("dragover", dragoverHandler);
-paper.el.addEventListener("dragenter", dragenterHandler);
-paper.el.addEventListener("dragleave", dragleaveHandler);
-paper.el.addEventListener("drop", dropHandler);
+paper.el.addEventListener('dragover', dragoverHandler);
+paper.el.addEventListener('dragenter', dragenterHandler);
+paper.el.addEventListener('dragleave', dragleaveHandler);
+paper.el.addEventListener('drop', dropHandler);

@@ -1,21 +1,21 @@
-import { dia, shapes } from '@joint/core';
+import { linkTools, dia, shapes } from '@joint/core';
 import './styles.css';
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 1,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
+    background: { color: '#F3F7F6' },
     validateConnection: () => false,
     snapLinksSelf: { radius: 50 }
 });

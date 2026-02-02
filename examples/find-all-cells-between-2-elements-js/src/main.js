@@ -1,25 +1,25 @@
-import { dia, shapes, highlighters, layout } from '@joint/core';
+import { V, dia, shapes, highlighters, layout } from '@joint/core';
 import './styles.css';
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
+    background: { color: '#F3F7F6' },
     interactive: false,
     defaultConnectionPoint: {
-        name: "boundary"
+        name: 'boundary'
     },
     defaultConnector: {
-        name: "rounded"
+        name: 'rounded'
     },
     clickThreshold: 10
 });
@@ -28,17 +28,17 @@ paperContainer.appendChild(paper.el);
 
 // Adjacency list.
 const list = {
-    a: ["b", "c"],
-    b: ["d", "e"],
-    c: ["f", "g"],
-    f: ["b"],
-    e: ["c"],
-    h: ["f", "g"],
-    i: ["h", "a", "d", "g"],
-    j: ["a"],
-    k: ["l"],
-    l: ["h"],
-    m: ["l"]
+    a: ['b', 'c'],
+    b: ['d', 'e'],
+    c: ['f', 'g'],
+    f: ['b'],
+    e: ['c'],
+    h: ['f', 'g'],
+    i: ['h', 'a', 'd', 'g'],
+    j: ['a'],
+    k: ['l'],
+    l: ['h'],
+    m: ['l']
 };
 
 // Create a node with `id` at the position `p`.
@@ -50,7 +50,7 @@ function n(id) {
             label: {
                 text: id.toUpperCase(),
                 fontSize: 20,
-                fontFamily: "sans-serif"
+                fontFamily: 'sans-serif'
             }
         }
     });
@@ -92,24 +92,24 @@ let start;
 let subgraph;
 
 function selectStart(element) {
-    const id = "start-highlight";
+    const id = 'start-highlight';
     if (start) {
         highlighters.mask.remove(start.findView(paper), id);
     }
     start = element;
-    highlighters.mask.add(element.findView(paper), "body", id, {
+    highlighters.mask.add(element.findView(paper), 'body', id, {
         padding: 2,
         attrs: {
-            stroke: "#4666E5",
-            "stroke-width": 4
+            stroke: '#4666E5',
+            'stroke-width': 4
         }
     });
 }
 
-selectStart(graph.getCell("a"));
+selectStart(graph.getCell('a'));
 
 function highlightSubgraph(elements, valid) {
-    const id = "subgraph-highlighter";
+    const id = 'subgraph-highlighter';
     if (subgraph) {
         subgraph.forEach((cell) => {
             highlighters.addClass.remove(cell.findView(paper), id);
@@ -119,30 +119,30 @@ function highlightSubgraph(elements, valid) {
     if (!valid) {
         // No subgraph found
         subgraph.forEach((cell) => {
-            highlighters.addClass.add(cell.findView(paper), "body", id, {
-                className: "no-subgraph"
+            highlighters.addClass.add(cell.findView(paper), 'body', id, {
+                className: 'no-subgraph'
             });
         });
     } else {
         subgraph.forEach((cell) => {
             highlighters.addClass.add(
                 cell.findView(paper),
-                cell.isLink() ? "line" : "body",
+                cell.isLink() ? 'line' : 'body',
                 id,
-                { className: "subgraph" }
+                { className: 'subgraph' }
             );
         });
     }
 }
 
-paper.on("element:pointerclick", ({ model: element }) => {
+paper.on('element:pointerclick', ({ model: element }) => {
     selectStart(element);
     highlightSubgraph([]);
 });
 
 // When the user hovers over an element,
 // highlight all the elements that are between the Start and the current element.
-paper.on("element:mouseenter", ({ model: end }) => {
+paper.on('element:mouseenter', ({ model: end }) => {
     const between = getElementsBetween(start, end);
     if (between.length > 0) {
         highlightSubgraph([start, end, ...between], true);
@@ -154,7 +154,7 @@ paper.on("element:mouseenter", ({ model: end }) => {
     }
 });
 
-paper.on("element:mouseleave", (elementView) => {
+paper.on('element:mouseleave', (elementView) => {
     highlightSubgraph([]);
 });
 
@@ -199,8 +199,8 @@ function getPredecessors(element, terminator) {
 
 // Styling
 
-const color = "#4666E5";
-const invalidColor = "#FF4365";
+const color = '#4666E5';
+const invalidColor = '#FF4365';
 const styles = V.createSVGStyle(`
     .joint-element .subgraph {
         stroke: ${color};

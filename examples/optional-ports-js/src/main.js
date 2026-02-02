@@ -3,23 +3,23 @@ import './styles.scss';
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 20,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
+    background: { color: '#F3F7F6' },
     defaultLink: () => new shapes.standard.Link(),
     validateConnection: (sv, _sm, tv, _tm) => sv !== tv,
     linkPinning: false,
-    defaultAnchor: { name: "perpendicular" }
+    defaultAnchor: { name: 'perpendicular' }
 });
 
 paperContainer.appendChild(paper.el);
@@ -43,17 +43,17 @@ const el1 = new shapes.standard.Rectangle({
         },
         body: {
             strokeWidth: 2,
-            fill: "#555555"
+            fill: '#555555'
         },
         label: {
-            fontWeight: "bold",
+            fontWeight: 'bold',
             fontSize: 20,
-            fontFamily: "sans-serif",
-            fill: "#ffffff",
-            stroke: "#333333",
+            fontFamily: 'sans-serif',
+            fill: '#ffffff',
+            stroke: '#333333',
             strokeWidth: 5,
-            paintOrder: "stroke",
-            text: "Optional Ports"
+            paintOrder: 'stroke',
+            text: 'Optional Ports'
         }
     },
     ports: {
@@ -61,38 +61,38 @@ const el1 = new shapes.standard.Rectangle({
             digits: {
                 markup: [
                     {
-                        tagName: "rect",
-                        selector: "portBody"
+                        tagName: 'rect',
+                        selector: 'portBody'
                     },
                     {
-                        tagName: "text",
-                        selector: "portLabel"
+                        tagName: 'text',
+                        selector: 'portLabel'
                     }
                 ],
                 attrs: {
                     portBody: {
                         x: 0,
                         y: -PORT_HEIGHT / 2,
-                        width: "calc(w)",
-                        height: "calc(h)",
-                        fill: "#ffffff",
-                        stroke: "#333333",
+                        width: 'calc(w)',
+                        height: 'calc(h)',
+                        fill: '#ffffff',
+                        stroke: '#333333',
                         strokeWidth: 2,
-                        magnet: "active",
-                        cursor: "grab"
+                        magnet: 'active',
+                        cursor: 'grab'
                     },
                     portLabel: {
-                        x: "calc(0.5*w)",
-                        textAnchor: "middle",
-                        textVerticalAnchor: "middle",
-                        pointerEvents: "none",
-                        fontWeight: "bold",
+                        x: 'calc(0.5*w)',
+                        textAnchor: 'middle',
+                        textVerticalAnchor: 'middle',
+                        pointerEvents: 'none',
+                        fontWeight: 'bold',
                         fontSize: 12,
-                        fontFamily: "sans-serif"
+                        fontFamily: 'sans-serif'
                     }
                 },
                 size: { width: PORT_WIDTH, height: PORT_HEIGHT },
-                position: "absolute"
+                position: 'absolute'
             }
         },
         items: []
@@ -111,12 +111,12 @@ const el2 = new shapes.standard.Rectangle({
 });
 
 const l1 = new shapes.standard.Link({
-    source: { id: el1.id, port: "1" },
+    source: { id: el1.id, port: '1' },
     target: { id: el2.id }
 });
 
 const l2 = new shapes.standard.Link({
-    source: { id: el1.id, port: "2" },
+    source: { id: el1.id, port: '2' },
     target: { id: el2.id }
 });
 
@@ -130,7 +130,7 @@ function setPorts(el, digits) {
         width = x + PORT_WIDTH;
         return {
             id: `${digit}`,
-            group: "digits",
+            group: 'digits',
             attrs: {
                 portLabel: {
                     text: `${digit}`
@@ -138,7 +138,7 @@ function setPorts(el, digits) {
             },
             args: {
                 x,
-                y: "100%"
+                y: '100%'
             }
         };
     });
@@ -148,35 +148,35 @@ function setPorts(el, digits) {
 
     // Required port.
     const fallbackPort = {
-        id: "fallback",
-        group: "digits",
+        id: 'fallback',
+        group: 'digits',
         size: { width: PORT_WIDTH * 2, height: PORT_HEIGHT },
         attrs: {
             portLabel: {
-                text: "fallback"
+                text: 'fallback'
             }
         },
         args: {
             x: width,
-            y: "100%"
+            y: '100%'
         }
     };
 
     width += 2 * PORT_WIDTH;
 
-    el1.prop(["ports", "items"], [...digitPorts, fallbackPort], {
+    el1.prop(['ports', 'items'], [...digitPorts, fallbackPort], {
         rewrite: true
     });
-    el1.prop(["size", "width"], width);
+    el1.prop(['size', 'width'], width);
 }
 
 // Update element from html inputs
 
-const outputPortsEl = document.getElementById("output-ports");
-outputPortsEl.addEventListener("change", () => update());
+const outputPortsEl = document.getElementById('output-ports');
+outputPortsEl.addEventListener('change', () => update());
 function update() {
     const digits = [];
-    Array.from(outputPortsEl.querySelectorAll("input")).forEach((input) => {
+    Array.from(outputPortsEl.querySelectorAll('input')).forEach((input) => {
         if (input.checked) digits.push(input.name);
     });
     setPorts(el1, digits);

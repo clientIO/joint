@@ -1,4 +1,4 @@
-import { shapes, util, dia, anchors } from '@joint/core';
+import { g, shapes, util, dia, anchors } from '@joint/core';
 import './styles.css';
 
 const HEADER_HEIGHT = 60;
@@ -8,9 +8,9 @@ const BUTTON_BORDER_OFFSET = 8;
 const BUTTON_SIZE = SWIMLANE_HEADER_HEIGHT - BUTTON_BORDER_OFFSET * 2;
 const POOL_MARGIN = 50;
 const SIGNS = {
-    "+": `M ${BUTTON_SIZE / 2} 4 V ${BUTTON_SIZE - 4} M 4 ${BUTTON_SIZE / 2} H ${BUTTON_SIZE - 4
-        }`,
-    "-": `M 4 ${BUTTON_SIZE / 2} H ${BUTTON_SIZE - 4}`
+    '+': `M ${BUTTON_SIZE / 2} 4 V ${BUTTON_SIZE - 4} M 4 ${BUTTON_SIZE / 2} H ${BUTTON_SIZE - 4
+    }`,
+    '-': `M 4 ${BUTTON_SIZE / 2} H ${BUTTON_SIZE - 4}`
 };
 const SWIMLANE_SIZE = {
     width: 450,
@@ -19,28 +19,28 @@ const SWIMLANE_SIZE = {
 };
 const SWIMLANES = [
     {
-        title: "Senate",
-        color: "#D33653",
-        text: "#FFF",
-        mainColor: "#E2798C"
+        title: 'Senate',
+        color: '#D33653',
+        text: '#FFF',
+        mainColor: '#E2798C'
     },
     {
-        title: "Committee",
-        color: "#433E3F",
-        text: "#FFF",
-        mainColor: "#7F7677"
+        title: 'Committee',
+        color: '#433E3F',
+        text: '#FFF',
+        mainColor: '#7F7677'
     },
     {
-        title: "House of Representatives",
-        color: "#318787",
-        text: "#FFF",
-        mainColor: "#78CECE"
+        title: 'House of Representatives',
+        color: '#318787',
+        text: '#FFF',
+        mainColor: '#78CECE'
     },
     {
-        title: "President",
-        color: "#997C48",
-        text: "#FFF",
-        mainColor: "#CBB690"
+        title: 'President',
+        color: '#997C48',
+        text: '#FFF',
+        mainColor: '#CBB690'
     }
 ];
 
@@ -48,32 +48,32 @@ class UMLPool extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            type: "UMLPool",
+            type: 'UMLPool',
             attrs: {
                 body: {
-                    fill: "transparent",
-                    width: "calc(w)",
-                    height: "calc(h)"
+                    fill: 'transparent',
+                    width: 'calc(w)',
+                    height: 'calc(h)'
                 },
                 header: {
-                    stroke: "#333",
+                    stroke: '#333',
                     strokeWidth: 2,
-                    fill: "#333",
+                    fill: '#333',
                     height: HEADER_HEIGHT,
-                    width: "calc(w)"
+                    width: 'calc(w)'
                 },
                 label: {
-                    fill: "#fff",
+                    fill: '#fff',
                     fontSize: HEADER_HEIGHT * 0.7,
-                    fontWeight: "bold",
-                    textVerticalAnchor: "middle",
-                    textAnchor: "middle",
-                    fontFamily: "sans-serif",
-                    x: "calc(w / 2)",
+                    fontWeight: 'bold',
+                    textVerticalAnchor: 'middle',
+                    textAnchor: 'middle',
+                    fontFamily: 'sans-serif',
+                    x: 'calc(w / 2)',
                     y: HEADER_HEIGHT / 2,
                     textWrap: {
                         ellipsis: true,
-                        width: "calc(w - 20)",
+                        width: 'calc(w - 20)',
                         maxLineCount: 1
                     }
                 }
@@ -96,7 +96,7 @@ class UMLPool extends dia.Element {
             swimlane.position(x, HEADER_HEIGHT, { deep: true, parentRelative: true });
             x += swimlane.size().width;
         });
-        this.fitEmbeds({ padding: { top: HEADER_HEIGHT } });
+        this.fitEmbeds({ padding: { top: HEADER_HEIGHT }});
     }
 }
 
@@ -104,53 +104,53 @@ class UMLSwimlane extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            type: "UMLSwimlane",
+            type: 'UMLSwimlane',
             collapsed: false,
             expandedHeight: null,
             attrs: {
                 body: {
-                    fill: "transparent",
-                    stroke: "#333",
+                    fill: 'transparent',
+                    stroke: '#333',
                     strokeWidth: 2,
-                    width: "calc(w)",
-                    height: "calc(h)"
+                    width: 'calc(w)',
+                    height: 'calc(h)'
                 },
                 header: {
-                    stroke: "#333",
+                    stroke: '#333',
                     height: SWIMLANE_HEADER_HEIGHT,
-                    width: "calc(w)"
+                    width: 'calc(w)'
                 },
                 divider: {
-                    stroke: "#333",
+                    stroke: '#333',
                     strokeWidth: 2,
                     d: `M 0 ${SWIMLANE_HEADER_HEIGHT} H calc(w)`
                 },
                 label: {
-                    text: "Swimlane",
-                    fill: "#333",
+                    text: 'Swimlane',
+                    fill: '#333',
                     fontSize: HEADER_HEIGHT * 0.4,
-                    fontWeight: "bold",
-                    textVerticalAnchor: "middle",
-                    textAnchor: "middle",
-                    fontFamily: "sans-serif",
-                    x: "calc(w / 2)"
+                    fontWeight: 'bold',
+                    textVerticalAnchor: 'middle',
+                    textAnchor: 'middle',
+                    fontFamily: 'sans-serif',
+                    x: 'calc(w / 2)'
                 },
                 buttonGroup: {
                     transform: `translate(calc(w - ${BUTTON_SIZE + BUTTON_BORDER_OFFSET
-                        }), ${BUTTON_BORDER_OFFSET})`
+                    }), ${BUTTON_BORDER_OFFSET})`
                 },
                 button: {
-                    fill: "white",
-                    stroke: "#333",
+                    fill: 'white',
+                    stroke: '#333',
                     width: BUTTON_SIZE,
                     height: BUTTON_SIZE,
-                    cursor: "pointer",
-                    event: "swimlane:collapse"
+                    cursor: 'pointer',
+                    event: 'swimlane:collapse'
                 },
                 buttonSign: {
-                    stroke: "#333",
+                    stroke: '#333',
                     strokeWidth: 2,
-                    pointerEvents: "none"
+                    pointerEvents: 'none'
                 }
             }
         };
@@ -171,16 +171,16 @@ class UMLSwimlane extends dia.Element {
 
     constructor(...args) {
         super(...args);
-        this.on("change:collapsed", this.onCollapseChange, this);
+        this.on('change:collapsed', this.onCollapseChange, this);
         this.onCollapseChange();
     }
 
     toggleCollapse() {
-        this.set("collapsed", !this.isCollapsed());
+        this.set('collapsed', !this.isCollapsed());
     }
 
     isCollapsed() {
-        return Boolean(this.get("collapsed"));
+        return Boolean(this.get('collapsed'));
     }
 
     onCollapseChange() {
@@ -190,16 +190,16 @@ class UMLSwimlane extends dia.Element {
             : SWIMLANE_SIZE.width;
         this.resize(width, SWIMLANE_SIZE.height);
         this.attr({
-            buttonSign: { d: collapsed ? SIGNS["+"] : SIGNS["-"] },
+            buttonSign: { d: collapsed ? SIGNS['+'] : SIGNS['-'] },
             label: collapsed
                 ? {
-                    writingMode: "tb",
-                    textAnchor: "start",
+                    writingMode: 'tb',
+                    textAnchor: 'start',
                     y: SWIMLANE_HEADER_HEIGHT + SWIMLANE_PADDING
                 }
                 : {
-                    writingMode: "lr",
-                    textAnchor: "middle",
+                    writingMode: 'lr',
+                    textAnchor: 'middle',
                     y: SWIMLANE_HEADER_HEIGHT / 2
                 }
         });
@@ -207,7 +207,7 @@ class UMLSwimlane extends dia.Element {
 
     updateChildrenVisibility() {
         const collapsed = this.isCollapsed();
-        this.getEmbeddedCells().forEach((child) => child.set("hidden", collapsed));
+        this.getEmbeddedCells().forEach((child) => child.set('hidden', collapsed));
     }
 }
 
@@ -220,7 +220,7 @@ class UMLElement extends dia.Element {
     }
 
     isHidden() {
-        return Boolean(this.get("hidden"));
+        return Boolean(this.get('hidden'));
     }
 
     static isUMLElement(shape) {
@@ -232,16 +232,16 @@ class UMLInitialNode extends UMLElement {
     defaults() {
         return {
             ...super.defaults(),
-            type: "UMLInitialNode",
+            type: 'UMLInitialNode',
             size: { width: 30, height: 30 },
             attrs: {
                 body: {
-                    fill: "#333",
-                    stroke: "black",
+                    fill: '#333',
+                    stroke: 'black',
                     strokeWidth: 2,
-                    cx: "calc(0.5 * w)",
-                    cy: "calc(0.5 * h)",
-                    r: "calc(0.5 * w)"
+                    cx: 'calc(0.5 * w)',
+                    cy: 'calc(0.5 * h)',
+                    r: 'calc(0.5 * w)'
                 }
             }
         };
@@ -258,28 +258,28 @@ class UMLActivity extends UMLElement {
     defaults() {
         return {
             ...super.defaults(),
-            type: "UMLActivity",
+            type: 'UMLActivity',
             size: { width: 200, height: 50 },
             attrs: {
                 body: {
-                    fill: "white",
-                    stroke: "black",
+                    fill: 'white',
+                    stroke: 'black',
                     strokeWidth: 2,
-                    width: "calc(w)",
-                    height: "calc(h)",
+                    width: 'calc(w)',
+                    height: 'calc(h)',
                     rx: 15,
                     ry: 15
                 },
                 label: {
-                    text: "Activity",
-                    fill: "black",
+                    text: 'Activity',
+                    fill: 'black',
                     fontSize: 16,
-                    fontWeight: "bold",
-                    textVerticalAnchor: "middle",
-                    textAnchor: "middle",
-                    fontFamily: "sans-serif",
-                    x: "calc(w/2)",
-                    y: "calc(h/2)"
+                    fontWeight: 'bold',
+                    textVerticalAnchor: 'middle',
+                    textAnchor: 'middle',
+                    fontFamily: 'sans-serif',
+                    x: 'calc(w/2)',
+                    y: 'calc(h/2)'
                 }
             }
         };
@@ -297,13 +297,13 @@ class UMLDecision extends UMLElement {
     defaults() {
         return {
             ...super.defaults(),
-            type: "UMLDecision",
+            type: 'UMLDecision',
             size: { width: 50, height: 50 },
             attrs: {
                 body: {
                     strokeWidth: 2,
                     d:
-                        "M calc(0.5 * w) 0 L calc(w) calc(0.5 * h) L calc(0.5 * w) calc(h) L 0 calc(0.5 * h) z"
+                        'M calc(0.5 * w) 0 L calc(w) calc(0.5 * h) L calc(0.5 * w) calc(h) L 0 calc(0.5 * h) z'
                 }
             }
         };
@@ -320,23 +320,23 @@ class UMLEndNode extends UMLElement {
     defaults() {
         return {
             ...super.defaults(),
-            type: "UMLEndNode",
+            type: 'UMLEndNode',
             size: { width: 30, height: 30 },
             attrs: {
                 body: {
-                    fill: "transparent",
-                    stroke: "#333",
+                    fill: 'transparent',
+                    stroke: '#333',
                     strokeWidth: 2,
-                    cx: "calc(0.5 * w)",
-                    cy: "calc(0.5 * h)",
-                    r: "calc(0.5 * w)"
+                    cx: 'calc(0.5 * w)',
+                    cy: 'calc(0.5 * h)',
+                    r: 'calc(0.5 * w)'
                 },
                 innerCircle: {
-                    fill: "#333",
+                    fill: '#333',
                     stroke: null,
-                    cx: "calc(0.5 * w)",
-                    cy: "calc(0.5 * h)",
-                    r: "calc(0.33 * w)"
+                    cx: 'calc(0.5 * w)',
+                    cy: 'calc(0.5 * h)',
+                    r: 'calc(0.33 * w)'
                 }
             }
         };
@@ -354,15 +354,15 @@ class UMLVerticalFork extends UMLElement {
     defaults() {
         return {
             ...super.defaults(),
-            type: "UMLVerticalFork",
+            type: 'UMLVerticalFork',
             size: { width: 25, height: 200 },
             attrs: {
                 body: {
-                    fill: "#333",
-                    stroke: "#333",
+                    fill: '#333',
+                    stroke: '#333',
                     strokeWidth: 2,
-                    width: "calc(w)",
-                    height: "calc(h)"
+                    width: 'calc(w)',
+                    height: 'calc(h)'
                 }
             }
         };
@@ -389,13 +389,13 @@ const cellNamespace = {
 const graph = new dia.Graph({}, { cellNamespace });
 const paper = new dia.Paper({
     gridSize: 5,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     model: graph,
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     defaultRouter: orthogonalRouter,
-    defaultConnectionPoint: { name: "anchor" },
+    defaultConnectionPoint: { name: 'anchor' },
     cellViewNamespace: cellNamespace,
     restrictTranslate: (elementView) => {
         const parent = elementView.model.getParentCell();
@@ -434,7 +434,7 @@ const paper = new dia.Paper({
     // if the element is hidden.
     elementView: dia.ElementView.extend({
         presentationAttributes: dia.ElementView.addPresentationAttributes({
-            hidden: ["UPDATE"]
+            hidden: ['UPDATE']
         }),
 
         getMagnetFromLinkEnd(end) {
@@ -453,17 +453,17 @@ const paper = new dia.Paper({
 
     anchorNamespace: {
         ...anchors,
-        left: useParentAnchor("left"),
-        right: useParentAnchor("right"),
-        top: useParentAnchor("top"),
-        bottom: useParentAnchor("bottom")
+        left: useParentAnchor('left'),
+        right: useParentAnchor('right'),
+        top: useParentAnchor('top'),
+        bottom: useParentAnchor('bottom')
     }
 });
 
-document.getElementById("paper-container").appendChild(paper.el);
+document.getElementById('paper-container').appendChild(paper.el);
 
 function useParentAnchor(childAnchorName) {
-    return function (view, end, ref, args, endType, linkView) {
+    return function(view, end, ref, args, endType, linkView) {
         const { model } = view;
         // Use the default implementation for non-UML elements and visible elements.
         if (!UMLElement.isUMLElement(model) || !model.isHidden()) {
@@ -483,14 +483,14 @@ function useParentAnchor(childAnchorName) {
         // y-coordinate
         let y = bbox.y;
         switch (childAnchorName) {
-            case "left":
-            case "right":
+            case 'left':
+            case 'right':
                 y += bbox.height / 2;
                 break;
-            case "bottom":
+            case 'bottom':
                 y += bbox.height;
                 break;
-            case "top":
+            case 'top':
             default:
                 y += bbox.height / 2;
         }
@@ -499,7 +499,7 @@ function useParentAnchor(childAnchorName) {
         const xOffset = 1;
         let x = parentBBox.x;
         const { model: oppositeModel } = linkView.getEndView(
-            endType === "source" ? "target" : "source"
+            endType === 'source' ? 'target' : 'source'
         );
         if (oppositeModel.position().x > parentBBox.x) {
             // The opposite end is on the right side of the collapsed swimlane.
@@ -527,12 +527,12 @@ function createActivity(title, x, y, swimlane) {
     const activity = new UMLActivity({
         attrs: {
             label: {
-                fill: swimlane.attr("label/fill"),
+                fill: swimlane.attr('label/fill'),
                 text: title
             },
             body: {
-                fill: swimlane.attr("header/fill"),
-                stroke: swimlane.attr("label/fill")
+                fill: swimlane.attr('header/fill'),
+                stroke: swimlane.attr('label/fill')
             }
         }
     });
@@ -546,8 +546,8 @@ function createDecision(x, y, swimlane) {
     const decision = new UMLDecision({
         attrs: {
             body: {
-                fill: swimlane.attr("header/fill"),
-                stroke: swimlane.attr("label/fill")
+                fill: swimlane.attr('header/fill'),
+                stroke: swimlane.attr('label/fill')
             }
         }
     });
@@ -570,8 +570,8 @@ function createVerticalFork(x, y, swimlane) {
     const fork = new UMLVerticalFork({
         attrs: {
             body: {
-                fill: swimlane.attr("header/fill"),
-                stroke: swimlane.attr("label/fill")
+                fill: swimlane.attr('header/fill'),
+                stroke: swimlane.attr('label/fill')
             }
         }
     });
@@ -586,16 +586,16 @@ function createLink(
     target,
     { sourceSide, dx: sourceDx = 0, dy: sourceDy = 0 },
     { targetSide, dx: targetDx = 0, dy: targetDy = 0 },
-    label = ""
+    label = ''
 ) {
     const link = new shapes.standard.Link({
         source: {
             id: source.id,
-            anchor: { name: sourceSide, args: { dx: sourceDx, dy: sourceDy } }
+            anchor: { name: sourceSide, args: { dx: sourceDx, dy: sourceDy }}
         },
         target: {
             id: target.id,
-            anchor: { name: targetSide, args: { dx: targetDx, dy: targetDy } }
+            anchor: { name: targetSide, args: { dx: targetDx, dy: targetDy }}
         },
         defaultLabel: {
             markup: util.svg`
@@ -604,46 +604,46 @@ function createLink(
               `,
             attrs: {
                 labelText: {
-                    fill: "#333",
+                    fill: '#333',
                     fontSize: 12,
-                    fontFamily: "sans-serif",
-                    fontWeight: "bold",
-                    textAnchor: "middle",
-                    textVerticalAnchor: "middle"
+                    fontFamily: 'sans-serif',
+                    fontWeight: 'bold',
+                    textAnchor: 'middle',
+                    textVerticalAnchor: 'middle'
                 },
                 labelBody: {
                     rx: 2,
                     ry: 2,
-                    ref: "labelText",
-                    x: "calc(x - 3)",
-                    y: "calc(y - 3)",
-                    width: "calc(w + 6)",
-                    height: "calc(h + 6)",
-                    fill: "#fff"
+                    ref: 'labelText',
+                    x: 'calc(x - 3)',
+                    y: 'calc(y - 3)',
+                    width: 'calc(w + 6)',
+                    height: 'calc(h + 6)',
+                    fill: '#fff'
                 }
             }
         }
     });
     if (label) {
         const isSourceDecision = source instanceof UMLDecision;
-        let textAnchor = "middle";
+        let textAnchor = 'middle';
         // Make label always stay near the source/target side
         if (isSourceDecision) {
             switch (sourceSide) {
-                case "left":
-                    textAnchor = "end";
+                case 'left':
+                    textAnchor = 'end';
                     break;
-                case "right":
-                    textAnchor = "start";
+                case 'right':
+                    textAnchor = 'start';
                     break;
             }
         } else {
             switch (targetSide) {
-                case "left":
-                    textAnchor = "end";
+                case 'left':
+                    textAnchor = 'end';
                     break;
-                case "right":
-                    textAnchor = "start";
+                case 'right':
+                    textAnchor = 'start';
                     break;
             }
         }
@@ -670,7 +670,7 @@ function createLink(
 const pool = new UMLPool({
     attrs: {
         label: {
-            text: "How a Bill Becomes a Law (Senate Introduced Bill)"
+            text: 'How a Bill Becomes a Law (Senate Introduced Bill)'
         }
     }
 });
@@ -683,7 +683,7 @@ const swimlanes = SWIMLANES.map((swimlane, index) => {
         attrs: {
             label: {
                 text: swimlane.title,
-                fill: swimlane.text || "#333"
+                fill: swimlane.text || '#333'
             },
             header: {
                 fill: swimlane.color
@@ -695,7 +695,7 @@ const swimlanes = SWIMLANES.map((swimlane, index) => {
                 fill: swimlane.mainColor
             },
             buttonSign: {
-                stroke: swimlane.text || "#333"
+                stroke: swimlane.text || '#333'
             }
         }
     });
@@ -711,172 +711,172 @@ const [senate, committee, house, president] = swimlanes;
 
 // Create elements and links
 const initialNode = createInitialNode(25, 25, senate);
-const billIntroduced = createActivity("Bill Introduced", 125, 100, senate);
+const billIntroduced = createActivity('Bill Introduced', 125, 100, senate);
 createLink(
     initialNode,
     billIntroduced,
-    { sourceSide: "right" },
-    { targetSide: "top" }
+    { sourceSide: 'right' },
+    { targetSide: 'top' }
 );
-const billReferred = createActivity("Bill Referred", 25, 100, committee);
+const billReferred = createActivity('Bill Referred', 25, 100, committee);
 createLink(
     billIntroduced,
     billReferred,
-    { sourceSide: "right" },
-    { targetSide: "left" }
+    { sourceSide: 'right' },
+    { targetSide: 'left' }
 );
-const studyTheBill = createActivity("Study the Bill", 25, 225, committee);
+const studyTheBill = createActivity('Study the Bill', 25, 225, committee);
 createLink(
     billReferred,
     studyTheBill,
-    { sourceSide: "bottom" },
-    { targetSide: "top" }
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' }
 );
 const changesDecision = createDecision(100, 350, committee);
 createLink(
     studyTheBill,
     changesDecision,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "Requires changes?"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'Requires changes?'
 );
-const makeChanges = createActivity("Make Changes", 225, 350, committee);
+const makeChanges = createActivity('Make Changes', 225, 350, committee);
 createLink(
     changesDecision,
     makeChanges,
-    { sourceSide: "right" },
-    { targetSide: "left" },
-    "Yes"
+    { sourceSide: 'right' },
+    { targetSide: 'left' },
+    'Yes'
 );
 const changesMerger = createDecision(100, 475, committee);
 createLink(
     changesDecision,
     changesMerger,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "No"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'No'
 );
 createLink(
     makeChanges,
     changesMerger,
-    { sourceSide: "bottom" },
-    { targetSide: "right" }
+    { sourceSide: 'bottom' },
+    { targetSide: 'right' }
 );
-const markUp = createActivity("Mark Up", 25, 600, committee);
+const markUp = createActivity('Mark Up', 25, 600, committee);
 createLink(
     changesMerger,
     markUp,
-    { sourceSide: "bottom" },
-    { targetSide: "top" }
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' }
 );
-const voteOnTheBill = createActivity("Vote on the Bill", 125, 600, senate);
+const voteOnTheBill = createActivity('Vote on the Bill', 125, 600, senate);
 createLink(
     markUp,
     voteOnTheBill,
-    { sourceSide: "left" },
-    { targetSide: "right" }
+    { sourceSide: 'left' },
+    { targetSide: 'right' }
 );
 const voteDecision = createDecision(200, 725, senate);
 createLink(
     voteOnTheBill,
     voteDecision,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "Passed?"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'Passed?'
 );
-const billDies = createActivity("Bill Dies", 125, 850, senate);
+const billDies = createActivity('Bill Dies', 125, 850, senate);
 createLink(
     voteDecision,
     billDies,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "No"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'No'
 );
 const billMerger = createDecision(25, 725, house);
 createLink(
     voteDecision,
     billMerger,
-    { sourceSide: "right" },
-    { targetSide: "left" },
-    "Yes"
+    { sourceSide: 'right' },
+    { targetSide: 'left' },
+    'Yes'
 );
-const billReferredToHouse = createActivity("Bill Referred", 125, 500, house);
+const billReferredToHouse = createActivity('Bill Referred', 125, 500, house);
 createLink(
     billMerger,
     billReferredToHouse,
-    { sourceSide: "top" },
-    { targetSide: "left" }
+    { sourceSide: 'top' },
+    { targetSide: 'left' }
 );
 const senateEndNode = createEndNode(50, 860, senate);
 createLink(
     billDies,
     senateEndNode,
-    { sourceSide: "left" },
-    { targetSide: "right" }
+    { sourceSide: 'left' },
+    { targetSide: 'right' }
 );
 const houseDecision = createDecision(200, 650, house);
 createLink(
     billReferredToHouse,
     houseDecision,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "How did the house react?"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'How did the house react?'
 );
-const billDiesInHouse = createActivity("Bill Dies", 125, 800, house);
+const billDiesInHouse = createActivity('Bill Dies', 125, 800, house);
 createLink(
     houseDecision,
     billDiesInHouse,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "Rejected or ignored"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'Rejected or ignored'
 );
 const billDiesInHouseEndNode = createEndNode(210, 900, house);
 createLink(
     billDiesInHouse,
     billDiesInHouseEndNode,
-    { sourceSide: "bottom" },
-    { targetSide: "top" }
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' }
 );
-const billReturned = createActivity("Bill Returned", 125, 925, senate);
+const billReturned = createActivity('Bill Returned', 125, 925, senate);
 createLink(
     houseDecision,
     billReturned,
-    { sourceSide: "left" },
-    { targetSide: "right" },
-    "Changed it"
+    { sourceSide: 'left' },
+    { targetSide: 'right' },
+    'Changed it'
 );
 const afterBillReturnedDecision = createDecision(200, 1025, senate);
 createLink(
     billReturned,
     afterBillReturnedDecision,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "How did the senate react?"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'How did the senate react?'
 );
 createLink(
     afterBillReturnedDecision,
     billMerger,
-    { sourceSide: "right" },
-    { targetSide: "bottom" },
-    "Disagree with the changes"
+    { sourceSide: 'right' },
+    { targetSide: 'bottom' },
+    'Disagree with the changes'
 );
 const beforePresidentMerger = createDecision(350, 900, house);
 createLink(
     houseDecision,
     beforePresidentMerger,
-    { sourceSide: "right" },
-    { targetSide: "top" },
-    "Accept the bill"
+    { sourceSide: 'right' },
+    { targetSide: 'top' },
+    'Accept the bill'
 );
 createLink(
     afterBillReturnedDecision,
     beforePresidentMerger,
-    { sourceSide: "bottom" },
-    { targetSide: "bottom" },
-    "Agree with the changes"
-).prop(["labels", 0, "position", "distance"], 110);
+    { sourceSide: 'bottom' },
+    { targetSide: 'bottom' },
+    'Agree with the changes'
+).prop(['labels', 0, 'position', 'distance'], 110);
 const billSubmittedToPresident = createActivity(
-    "Bill Submitted",
+    'Bill Submitted',
     225,
     600,
     president
@@ -884,20 +884,20 @@ const billSubmittedToPresident = createActivity(
 createLink(
     beforePresidentMerger,
     billSubmittedToPresident,
-    { sourceSide: "right" },
-    { targetSide: "left" }
+    { sourceSide: 'right' },
+    { targetSide: 'left' }
 );
 const presidentDecision = createDecision(300, 800, president);
 const presidentMerger = createDecision(300, 1200, president);
 createLink(
     billSubmittedToPresident,
     presidentDecision,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "How did the president react?"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'How did the president react?'
 );
 const billBecomesTheLaw = createActivity(
-    "Bill Becomes the Law",
+    'Bill Becomes the Law',
     225,
     1450,
     president
@@ -905,33 +905,33 @@ const billBecomesTheLaw = createActivity(
 createLink(
     presidentDecision,
     presidentMerger,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "Signed the bill"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'Signed the bill'
 );
 createLink(
     presidentMerger,
     billBecomesTheLaw,
-    { sourceSide: "bottom" },
-    { targetSide: "top" }
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' }
 );
 const billBecomesTheLawEndNode = createEndNode(310, 1550, president);
 createLink(
     billBecomesTheLaw,
     billBecomesTheLawEndNode,
-    { sourceSide: "bottom" },
-    { targetSide: "top" }
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' }
 );
 const vetoSplit = createVerticalFork(25, 1100, president);
 createLink(
     presidentDecision,
     vetoSplit,
-    { sourceSide: "left" },
-    { targetSide: "right" },
-    "Vetoed the bill"
+    { sourceSide: 'left' },
+    { targetSide: 'right' },
+    'Vetoed the bill'
 );
 const senateVotesToOverride = createActivity(
-    "Senate Votes to Override",
+    'Senate Votes to Override',
     125,
     1325,
     senate
@@ -939,11 +939,11 @@ const senateVotesToOverride = createActivity(
 createLink(
     vetoSplit,
     senateVotesToOverride,
-    { sourceSide: "left", dy: -75 },
-    { targetSide: "top" }
+    { sourceSide: 'left', dy: -75 },
+    { targetSide: 'top' }
 );
 const houseVotesToOverride = createActivity(
-    "House Votes to Override",
+    'House Votes to Override',
     125,
     1325,
     house
@@ -951,56 +951,56 @@ const houseVotesToOverride = createActivity(
 createLink(
     vetoSplit,
     houseVotesToOverride,
-    { sourceSide: "left", dy: 75 },
-    { targetSide: "top" }
+    { sourceSide: 'left', dy: 75 },
+    { targetSide: 'top' }
 );
 const overrideMerger = createVerticalFork(25, 1400, president);
 createLink(
     senateVotesToOverride,
     overrideMerger,
-    { sourceSide: "bottom" },
-    { targetSide: "left", dy: 75 }
+    { sourceSide: 'bottom' },
+    { targetSide: 'left', dy: 75 }
 );
 createLink(
     houseVotesToOverride,
     overrideMerger,
-    { sourceSide: "bottom" },
-    { targetSide: "left", dy: -75 }
+    { sourceSide: 'bottom' },
+    { targetSide: 'left', dy: -75 }
 );
 const afterVetoDecision = createDecision(150, 1350, president);
 createLink(
     overrideMerger,
     afterVetoDecision,
-    { sourceSide: "right" },
-    { targetSide: "left" },
-    "Override the veto?"
+    { sourceSide: 'right' },
+    { targetSide: 'left' },
+    'Override the veto?'
 );
 createLink(
     afterVetoDecision,
     presidentMerger,
-    { sourceSide: "top" },
-    { targetSide: "left" },
-    "More than 2/3 of both chambers"
+    { sourceSide: 'top' },
+    { targetSide: 'left' },
+    'More than 2/3 of both chambers'
 );
-const billDiesVeto = createActivity("Bill Dies", 75, 1625, president);
+const billDiesVeto = createActivity('Bill Dies', 75, 1625, president);
 createLink(
     afterVetoDecision,
     billDiesVeto,
-    { sourceSide: "bottom" },
-    { targetSide: "top" },
-    "Bill did not pass"
+    { sourceSide: 'bottom' },
+    { targetSide: 'top' },
+    'Bill did not pass'
 );
 const billDiesAfterVeto = createEndNode(310, 1635, president);
 createLink(
     billDiesVeto,
     billDiesAfterVeto,
-    { sourceSide: "right" },
-    { targetSide: "left" }
+    { sourceSide: 'right' },
+    { targetSide: 'left' }
 );
 
 // Setup collapse/expand of swimlanes.
 
-paper.on("swimlane:collapse", ({ model: swimlane }, evt) => {
+paper.on('swimlane:collapse', ({ model: swimlane }, evt) => {
     evt.stopPropagation();
     swimlane.toggleCollapse();
     pool.layoutSwimlanes(swimlanes);
@@ -1036,19 +1036,19 @@ paper.fitToContent({
 // connects a swimlane.
 const LinkEndHighlighter = dia.HighlighterView.extend({
     MOUNTABLE: true,
-    tagName: "rect",
+    tagName: 'rect',
     attributes: {
         width: 20,
         height: 20,
         y: -10,
         rx: 2,
         ry: 2,
-        fill: "#fff",
-        stroke: "#fff",
-        "stroke-width": 2,
-        "fill-opacity": 0.3
+        fill: '#fff',
+        stroke: '#fff',
+        'stroke-width': 2,
+        'fill-opacity': 0.3
     },
-    highlight: function (linkView) {
+    highlight: function(linkView) {
         const link = linkView.model;
         const source = link.getSourceElement();
         const target = link.getTargetElement();
@@ -1060,21 +1060,21 @@ const LinkEndHighlighter = dia.HighlighterView.extend({
             anchor = linkView.targetAnchor;
             offset = anchor.x > source.position().x ? 0 : -this.attributes.width;
         } else {
-            this.el.setAttribute("display", "none");
+            this.el.setAttribute('display', 'none');
             return;
         }
-        this.el.removeAttribute("display");
+        this.el.removeAttribute('display');
         // Position the rectangle at the end of the link over the swimlane
         // (the parent of the hidden element)
         this.el.setAttribute(
-            "transform",
+            'transform',
             `translate(${anchor.x + offset},${anchor.y})`
         );
     }
 });
 
 graph.getLinks().forEach((link) => {
-    LinkEndHighlighter.add(link.findView(paper), "root", "end-marker");
+    LinkEndHighlighter.add(link.findView(paper), 'root', 'end-marker');
 });
 
 // A custom orthogonal router (It will be available in version 3.7).
@@ -1090,32 +1090,32 @@ function orthogonalRouter(vertices, opt, linkView) {
     const spacing = opt.spacing || 28;
     const sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
     switch (sourceSide) {
-        case "left":
+        case 'left':
             sourceOutsidePoint.x = sx0 - spacing;
             break;
-        case "right":
+        case 'right':
             sourceOutsidePoint.x = sx0 + sourceBBox.width + spacing;
             break;
-        case "top":
+        case 'top':
             sourceOutsidePoint.y = sy0 - spacing;
             break;
-        case "bottom":
+        case 'bottom':
             sourceOutsidePoint.y = sy0 + sourceBBox.height + spacing;
             break;
     }
     const targetOutsidePoint = targetPoint.clone();
     const targetSide = targetBBox.sideNearestToPoint(targetPoint);
     switch (targetSide) {
-        case "left":
+        case 'left':
             targetOutsidePoint.x = targetBBox.x - spacing;
             break;
-        case "right":
+        case 'right':
             targetOutsidePoint.x = targetBBox.x + targetBBox.width + spacing;
             break;
-        case "top":
+        case 'top':
             targetOutsidePoint.y = targetBBox.y - spacing;
             break;
-        case "bottom":
+        case 'bottom':
             targetOutsidePoint.y = targetBBox.y + targetBBox.height + spacing;
             break;
     }
@@ -1139,7 +1139,7 @@ function orthogonalRouter(vertices, opt, linkView) {
     const ssy0 = sy0 - spacing;
     const ssy1 = sy1 + spacing;
 
-    if (sourceSide === "left" && targetSide === "right") {
+    if (sourceSide === 'left' && targetSide === 'right') {
         if (sx0 < tx1) {
             let y = middleOfHorizontalSides;
             if (sox < tx0) {
@@ -1162,7 +1162,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x, y: soy },
             { x, y: toy }
         ];
-    } else if (sourceSide === "right" && targetSide === "left") {
+    } else if (sourceSide === 'right' && targetSide === 'left') {
         if (sx0 > tx1) {
             let y = middleOfHorizontalSides;
             if (sox > tx1) {
@@ -1186,10 +1186,10 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x, y: soy },
             { x, y: toy }
         ];
-    } else if (sourceSide === "top" && targetSide === "bottom") {
+    } else if (sourceSide === 'top' && targetSide === 'bottom') {
         if (soy < toy) {
             let x = middleOfVerticalSides;
-            let y = soy;
+            const y = soy;
 
             if (soy < ty0) {
                 if (tx1 >= ssx0 && tcx < scx) {
@@ -1211,10 +1211,10 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x: sox, y },
             { x: tox, y }
         ];
-    } else if (sourceSide === "bottom" && targetSide === "top") {
+    } else if (sourceSide === 'bottom' && targetSide === 'top') {
         if (soy - spacing > toy) {
             let x = middleOfVerticalSides;
-            let y = soy;
+            const y = soy;
 
             if (soy > ty1) {
                 if (tx1 >= ssx0 && tcx < scx) {
@@ -1236,10 +1236,10 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x: sox, y },
             { x: tox, y }
         ];
-    } else if (sourceSide === "top" && targetSide === "top") {
+    } else if (sourceSide === 'top' && targetSide === 'top') {
         let x;
-        let y1 = Math.min((sy1 + ty0) / 2, toy);
-        let y2 = Math.min((sy0 + ty1) / 2, soy);
+        const y1 = Math.min((sy1 + ty0) / 2, toy);
+        const y2 = Math.min((sy0 + ty1) / 2, soy);
 
         if (toy < soy) {
             if (sox >= tsx1 || sox <= tsx0) {
@@ -1271,7 +1271,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x: x, y: y1 },
             { x: tox, y: y1 }
         ];
-    } else if (sourceSide === "bottom" && targetSide === "bottom") {
+    } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
         if (tx0 >= ssx1 || tx1 <= ssx0) {
             return [
                 { x: sox, y: Math.max(soy, toy) },
@@ -1309,10 +1309,10 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x: x, y: y1 },
             { x: tox, y: y1 }
         ];
-    } else if (sourceSide === "left" && targetSide === "left") {
+    } else if (sourceSide === 'left' && targetSide === 'left') {
         let y;
-        let x1 = Math.min((sx1 + tx0) / 2, tox);
-        let x2 = Math.min((sx0 + tx1) / 2, sox);
+        const x1 = Math.min((sx1 + tx0) / 2, tox);
+        const x2 = Math.min((sx0 + tx1) / 2, sox);
 
         const ssy0 = sy0 - spacing;
         const ssy1 = sy1 + spacing;
@@ -1339,10 +1339,10 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x: x1, y: y },
             { x: x1, y: toy }
         ];
-    } else if (sourceSide === "right" && targetSide === "right") {
+    } else if (sourceSide === 'right' && targetSide === 'right') {
         let y;
-        let x1 = Math.max((sx0 + tx1) / 2, tox);
-        let x2 = Math.max((sx1 + tx0) / 2, sox);
+        const x1 = Math.max((sx0 + tx1) / 2, tox);
+        const x2 = Math.max((sx1 + tx0) / 2, sox);
 
         const ssy0 = sy0 - spacing;
         const ssy1 = sy1 + spacing;
@@ -1369,7 +1369,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x: x1, y: y },
             { x: x1, y: toy }
         ];
-    } else if (sourceSide === "top" && targetSide === "right") {
+    } else if (sourceSide === 'top' && targetSide === 'right') {
         if (soy > toy) {
             if (sox < tox) {
                 let y = (sy0 + ty1) / 2;
@@ -1409,7 +1409,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x, y: soy },
             { x, y: toy }
         ];
-    } else if (sourceSide === "top" && targetSide === "left") {
+    } else if (sourceSide === 'top' && targetSide === 'left') {
         if (soy > toy) {
             if (sox > tox) {
                 let y = (sy0 + ty1) / 2;
@@ -1449,7 +1449,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x, y: soy },
             { x, y: toy }
         ];
-    } else if (sourceSide === "bottom" && targetSide === "right") {
+    } else if (sourceSide === 'bottom' && targetSide === 'right') {
         if (soy < toy) {
             if (sox < tox) {
                 let y = (sy1 + ty0) / 2;
@@ -1482,7 +1482,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x, y: soy },
             { x, y: toy }
         ];
-    } else if (sourceSide === "bottom" && targetSide === "left") {
+    } else if (sourceSide === 'bottom' && targetSide === 'left') {
         if (soy < toy) {
             if (sox > tox) {
                 let y = (sy1 + ty0) / 2;
@@ -1515,7 +1515,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x, y: soy },
             { x, y: toy }
         ];
-    } else if (sourceSide === "left" && targetSide === "bottom") {
+    } else if (sourceSide === 'left' && targetSide === 'bottom') {
         if (sox > tox && soy >= toy) {
             return [{ x: tox, y: soy }];
         }
@@ -1549,7 +1549,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x, y },
             { x: tox, y }
         ];
-    } else if (sourceSide === "left" && targetSide === "top") {
+    } else if (sourceSide === 'left' && targetSide === 'top') {
         if (sox > tox && soy <= toy) {
             return [{ x: tox, y: soy }];
         }
@@ -1583,7 +1583,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x, y },
             { x: tox, y }
         ];
-    } else if (sourceSide === "right" && targetSide === "top") {
+    } else if (sourceSide === 'right' && targetSide === 'top') {
         if (sox < tox && soy <= toy) {
             return [{ x: tox, y: soy }];
         }
@@ -1627,7 +1627,7 @@ function orthogonalRouter(vertices, opt, linkView) {
             { x: sox, y: y },
             { x: tox, y: y }
         ];
-    } else if (sourceSide === "right" && targetSide === "bottom") {
+    } else if (sourceSide === 'right' && targetSide === 'bottom') {
         let x = (sx1 + tx0) / 2;
         if (sx1 < x) {
             if (soy < toy) {

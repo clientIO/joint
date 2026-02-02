@@ -5,31 +5,31 @@ import './styles.css';
 
 const cellNamespace = { ...shapes };
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: cellNamespace });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: cellNamespace,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 20,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
+    background: { color: '#F3F7F6' },
     interactive: true,
     defaultConnectionPoint: {
-        name: "boundary",
+        name: 'boundary',
     },
-    validateConnection: function (
+    validateConnection: function(
         sourceView,
         sourceMagnet,
         targetView,
         targetMagnet
     ) {
-        const sourcePort = sourceView.findAttribute("port", sourceMagnet);
-        const targetPort = targetView.findAttribute("port", targetMagnet);
+        const sourcePort = sourceView.findAttribute('port', sourceMagnet);
+        const targetPort = targetView.findAttribute('port', targetMagnet);
         if (sourcePort === targetPort) {
             return false;
         }
@@ -37,7 +37,7 @@ const paper = new dia.Paper({
     },
     highlighting: {
         default: {
-            name: "mask",
+            name: 'mask',
         },
     },
     linkPinning: false,
@@ -142,7 +142,7 @@ const portExample = new shapes.standard.Rectangle({
     ports: {
         groups: {
             right: {
-                position: { name: 'right', args: { dy: -25 } },
+                position: { name: 'right', args: { dy: -25 }},
                 size: { width: 200, height: 50 },
                 ...getMarkupAttributes()
             }
@@ -226,7 +226,7 @@ const labelExample = new shapes.standard.Link({
                 text: 'A label markup',
             }
         },
-        position: { distance: 0.5, offset: { x: -75, y: -15 } }
+        position: { distance: 0.5, offset: { x: -75, y: -15 }}
     }]
 });
 

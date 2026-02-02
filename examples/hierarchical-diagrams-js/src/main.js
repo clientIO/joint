@@ -1,17 +1,17 @@
-import { dia, shapes, highlighters } from '@joint/core';
+import { g, dia, shapes, highlighters } from '@joint/core';
 import './styles.css';
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
-const highlighterId = "embedding";
+const highlighterId = 'embedding';
 
 const highlighterOptions = {
     padding: 2,
     attrs: {
-        "stroke-width": 3,
-        stroke: "#7c68fc"
+        'stroke-width': 3,
+        stroke: '#7c68fc'
     }
 };
 
@@ -19,19 +19,19 @@ const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 1,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
+    background: { color: '#F3F7F6' },
     embeddingMode: true,
     frontParentOnly: false,
     clickThreshold: 10,
     highlighting: {
         embedding: {
-            name: "mask",
+            name: 'mask',
             options: highlighterOptions
         }
     },
@@ -48,8 +48,8 @@ const r1 = new shapes.standard.Rectangle({
     z: -1,
     attrs: {
         body: {
-            stroke: "#999",
-            fill: "#f5f5f5"
+            stroke: '#999',
+            fill: '#f5f5f5'
         }
     }
 });
@@ -83,7 +83,7 @@ c3.addTo(graph);
 
 // Events
 
-paper.on("element:pointermove", function (elementView, evt, x, y) {
+paper.on('element:pointermove', function(elementView, evt, x, y) {
     const element = elementView.model;
     if (!isContainer(element)) return;
 
@@ -103,7 +103,7 @@ paper.on("element:pointermove", function (elementView, evt, x, y) {
         // embedded into the elementView
         highlighters.mask.add(
             elementView,
-            "body",
+            'body',
             highlighterId,
             highlighterOptions
         );
@@ -114,7 +114,7 @@ paper.on("element:pointermove", function (elementView, evt, x, y) {
     }
 });
 
-paper.on("element:pointerup", function (elementView, evt, x, y) {
+paper.on('element:pointerup', function(elementView, evt, x, y) {
     const element = elementView.model;
     const elementsUnder = getElementsUnderElement(paper, element);
     const parent = elementsUnder.findLast((el) => isContainer(el));
@@ -131,8 +131,8 @@ paper.on("element:pointerup", function (elementView, evt, x, y) {
 
     // The elementView is a container
 
-    element.set("z", -1);
-    elementView.el.style.opacity = "";
+    element.set('z', -1);
+    elementView.el.style.opacity = '';
     highlighters.mask.remove(elementView, highlighterId);
 
     if (parent) {
@@ -160,7 +160,7 @@ paper.on("element:pointerup", function (elementView, evt, x, y) {
     }
 });
 
-paper.on("element:pointerdblclick", (elementView) => {
+paper.on('element:pointerdblclick', (elementView) => {
     const element = elementView.model;
     if (!isContainer(element)) return;
     resizeContainer(graph, element, false);
@@ -169,7 +169,7 @@ paper.on("element:pointerdblclick", (elementView) => {
 // Functions
 
 function isContainer(element) {
-    return element.get("type") === "standard.Rectangle";
+    return element.get('type') === 'standard.Rectangle';
 }
 
 function resizeContainer(graph, container, increaseOnly = true, padding = 20) {

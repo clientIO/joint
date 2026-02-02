@@ -1,23 +1,23 @@
-import { dia, shapes, mvc } from '@joint/core';
+import { V, g, dia, shapes, mvc } from '@joint/core';
 import './styles.css';
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 20,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
+    background: { color: '#F3F7F6' },
     defaultLink: () => new shapes.standard.Link({ z: -1 }),
-    defaultConnectionPoint: { name: "boundary" },
+    defaultConnectionPoint: { name: 'boundary' },
     clickThreshold: 10,
-    magnetThreshold: "onleave",
+    magnetThreshold: 'onleave',
     linkPinning: false,
     validateConnection: (sourceView, _, targetView) => sourceView !== targetView,
     snapLinks: true
@@ -26,7 +26,7 @@ const paper = new dia.Paper({
 paperContainer.appendChild(paper.el);
 
 const r1 = new shapes.standard.Rectangle({
-    layer: "group1",
+    layer: 'group1',
     position: { x: 100, y: 100 },
     size: { width: 200, height: 200 },
     attrs: {
@@ -34,43 +34,43 @@ const r1 = new shapes.standard.Rectangle({
             magnet: false
         },
         body: {
-            stroke: "#333333",
-            fill: "#fff",
+            stroke: '#333333',
+            fill: '#fff',
             rx: 10,
             ry: 10
         }
     },
     portMarkup: [
         {
-            tagName: "circle",
-            selector: "portBody",
+            tagName: 'circle',
+            selector: 'portBody',
             attributes: {
                 r: 10,
-                fill: "#FFFFFF",
-                stroke: "#333333"
+                fill: '#FFFFFF',
+                stroke: '#333333'
             }
         }
     ],
     portLabelMarkup: [
         {
-            tagName: "rect",
-            selector: "portLabelBackground"
+            tagName: 'rect',
+            selector: 'portLabelBackground'
         },
         {
-            tagName: "text",
-            selector: "portLabel",
+            tagName: 'text',
+            selector: 'portLabel',
             attributes: {
-                fill: "#333333"
+                fill: '#333333'
             }
         }
     ],
     ports: {
         groups: {
             left: {
-                position: "left",
+                position: 'left',
                 label: {
                     position: {
-                        name: "outside",
+                        name: 'outside',
                         args: {
                             offset: 30
                         }
@@ -78,28 +78,28 @@ const r1 = new shapes.standard.Rectangle({
                 },
                 attrs: {
                     portLabelBackground: {
-                        ref: "portLabel",
-                        fill: "#FFFFFF",
+                        ref: 'portLabel',
+                        fill: '#FFFFFF',
                         fillOpacity: 0.8,
-                        x: "calc(x - calc(w + 2))",
-                        y: "calc(y - 2)",
-                        width: "calc(w + 4)",
-                        height: "calc(h + 4)"
+                        x: 'calc(x - calc(w + 2))',
+                        y: 'calc(y - 2)',
+                        width: 'calc(w + 4)',
+                        height: 'calc(h + 4)'
                     },
                     portLabel: {
-                        fontFamily: "sans-serif"
+                        fontFamily: 'sans-serif'
                     },
                     portBody: {
                         strokeWidth: 2,
-                        magnet: "active"
+                        magnet: 'active'
                     }
                 }
             },
             right: {
-                position: "right",
+                position: 'right',
                 label: {
                     position: {
-                        name: "outside",
+                        name: 'outside',
                         args: {
                             offset: 30
                         }
@@ -107,85 +107,85 @@ const r1 = new shapes.standard.Rectangle({
                 },
                 attrs: {
                     portLabelBackground: {
-                        ref: "portLabel",
-                        fill: "#FFFFFF",
+                        ref: 'portLabel',
+                        fill: '#FFFFFF',
                         fillOpacity: 0.8,
-                        x: "calc(x - 2)",
-                        y: "calc(y - 2)",
-                        width: "calc(w + 4)",
-                        height: "calc(h + 4)"
+                        x: 'calc(x - 2)',
+                        y: 'calc(y - 2)',
+                        width: 'calc(w + 4)',
+                        height: 'calc(h + 4)'
                     },
                     portLabel: {
-                        fontFamily: "sans-serif"
+                        fontFamily: 'sans-serif'
                     },
                     portBody: {
                         strokeWidth: 2,
-                        magnet: "active"
+                        magnet: 'active'
                     }
                 }
             }
         },
         items: [
             {
-                id: "p1",
-                group: "left",
+                id: 'p1',
+                group: 'left',
                 attrs: {
                     portLabel: {
-                        text: "Port 1"
+                        text: 'Port 1'
                     }
                 }
             },
             {
-                id: "p2",
-                group: "left",
+                id: 'p2',
+                group: 'left',
                 attrs: {
                     portLabel: {
-                        text: "Port 2"
+                        text: 'Port 2'
                     }
                 }
             },
             {
-                id: "p3",
-                group: "left",
+                id: 'p3',
+                group: 'left',
                 attrs: {
                     portLabel: {
-                        text: "Port 3"
+                        text: 'Port 3'
                     }
                 }
             },
             {
-                id: "p4",
-                group: "left",
+                id: 'p4',
+                group: 'left',
                 attrs: {
                     portLabel: {
-                        text: "Port 4"
+                        text: 'Port 4'
                     }
                 }
             },
             {
-                id: "out1",
-                group: "right",
+                id: 'out1',
+                group: 'right',
                 attrs: {
                     portLabel: {
-                        text: "Out 1"
+                        text: 'Out 1'
                     }
                 }
             },
             {
-                id: "out2",
-                group: "right",
+                id: 'out2',
+                group: 'right',
                 attrs: {
                     portLabel: {
-                        text: "Out 2"
+                        text: 'Out 2'
                     }
                 }
             },
             {
-                id: "out3",
-                group: "right",
+                id: 'out3',
+                group: 'right',
                 attrs: {
                     portLabel: {
-                        text: "Out 3"
+                        text: 'Out 3'
                     }
                 }
             }
@@ -196,89 +196,89 @@ const r1 = new shapes.standard.Rectangle({
 const r2 = r1.clone().translate(400);
 const l1 = new shapes.standard.Link({ z: -1 });
 const l2 = l1.clone();
-l1.source(r1, { port: "out2" }).target(r2, { port: "p3" });
-l2.source(r1, { port: "out1" }).target(r2, { port: "p1" });
+l1.source(r1, { port: 'out2' }).target(r2, { port: 'p3' });
+l2.source(r1, { port: 'out1' }).target(r2, { port: 'p1' });
 graph.addCells([r1, r2, l1, l2]);
 
 const PortHandle = mvc.View.extend({
-    tagName: "circle",
+    tagName: 'circle',
     svgElement: true,
-    className: "port-handle",
+    className: 'port-handle',
     events: {
-        mousedown: "onPointerDown",
-        touchstart: "onPointerDown",
-        dblclick: "onDoubleClick",
-        dbltap: "onDoubleClick"
+        mousedown: 'onPointerDown',
+        touchstart: 'onPointerDown',
+        dblclick: 'onDoubleClick',
+        dbltap: 'onDoubleClick'
     },
     documentEvents: {
-        mousemove: "onPointerMove",
-        touchmove: "onPointerMove",
-        mouseup: "onPointerUp",
-        touchend: "onPointerUp",
-        touchcancel: "onPointerUp"
+        mousemove: 'onPointerMove',
+        touchmove: 'onPointerMove',
+        mouseup: 'onPointerUp',
+        touchend: 'onPointerUp',
+        touchcancel: 'onPointerUp'
     },
     attributes: {
         r: 13,
-        fill: "transparent",
-        stroke: "gray",
-        "stroke-width": 2,
-        cursor: "grab"
+        fill: 'transparent',
+        stroke: 'gray',
+        'stroke-width': 2,
+        cursor: 'grab'
     },
-    position: function (x, y) {
+    position: function(x, y) {
         this.vel.attr({ cx: x, cy: y });
     },
-    color: function (color) {
+    color: function(color) {
         this.el.style.stroke = color || this.attributes.stroke;
     },
-    onPointerDown: function (evt) {
+    onPointerDown: function(evt) {
         if (this.options.guard(evt)) return;
         evt.stopPropagation();
         evt.preventDefault();
         this.options.paper.undelegateEvents();
         this.delegateDocumentEvents(null, evt.data);
-        this.trigger("will-change", this, evt);
+        this.trigger('will-change', this, evt);
     },
-    onPointerMove: function (evt) {
-        this.trigger("changing", this, evt);
+    onPointerMove: function(evt) {
+        this.trigger('changing', this, evt);
     },
-    onDoubleClick: function (evt) {
-        this.trigger("remove", this, evt);
+    onDoubleClick: function(evt) {
+        this.trigger('remove', this, evt);
     },
-    onPointerUp: function (evt) {
-        this.trigger("changed", this, evt);
+    onPointerUp: function(evt) {
+        this.trigger('changed', this, evt);
         this.undelegateDocumentEvents();
         this.options.paper.delegateEvents();
     }
 });
 
 const Ports = dia.ToolView.extend({
-    name: "ports",
+    name: 'ports',
     options: {
         handleClass: PortHandle,
-        activeColor: "#4666E5"
+        activeColor: '#4666E5'
     },
     children: [
         {
-            tagName: "path",
-            selector: "preview",
-            className: "joint-ports-preview",
+            tagName: 'path',
+            selector: 'preview',
+            className: 'joint-ports-preview',
             attributes: {
                 d:
-                    "M -30 -5 -20 0 -30 5 M -20 -5 -10 0 -20 5 M 20 -5 10 0 20 5 M 30 -5 20 0 30 5",
-                "stroke-width": 2,
-                fill: "none"
+                    'M -30 -5 -20 0 -30 5 M -20 -5 -10 0 -20 5 M 20 -5 10 0 20 5 M 30 -5 20 0 30 5',
+                'stroke-width': 2,
+                fill: 'none'
             }
         }
     ],
     handles: null,
-    onRender: function () {
+    onRender: function() {
         this.renderChildren();
         this.updatePreview(null);
         this.resetHandles();
         this.renderHandles();
         return this;
     },
-    update: function () {
+    update: function() {
         const positions = this.getPositions();
         if (positions.length === this.handles.length) {
             this.updateHandles();
@@ -289,7 +289,7 @@ const Ports = dia.ToolView.extend({
         this.updatePreview(null);
         return this;
     },
-    resetHandles: function () {
+    resetHandles: function() {
         const handles = this.handles;
         this.handles = [];
         this.stopListening();
@@ -298,7 +298,7 @@ const Ports = dia.ToolView.extend({
             handles[i].remove();
         }
     },
-    renderHandles: function () {
+    renderHandles: function() {
         const positions = this.getPositions();
         for (let i = 0, n = positions.length; i < n; i++) {
             const position = positions[i];
@@ -316,7 +316,7 @@ const Ports = dia.ToolView.extend({
             this.startHandleListening(handle);
         }
     },
-    updateHandles: function () {
+    updateHandles: function() {
         const positions = this.getPositions();
         for (let i = 0, n = positions.length; i < n; i++) {
             const position = positions[i];
@@ -325,14 +325,14 @@ const Ports = dia.ToolView.extend({
             handle.position(position.x, position.y);
         }
     },
-    updatePreview: function (candidateIndex) {
+    updatePreview: function(candidateIndex) {
         const { preview } = this.childNodes;
         if (!preview) return;
         if (!Number.isFinite(candidateIndex)) {
-            preview.setAttribute("display", "none");
+            preview.setAttribute('display', 'none');
         } else {
-            preview.removeAttribute("display");
-            preview.setAttribute("stroke", this.options.activeColor);
+            preview.removeAttribute('display');
+            preview.setAttribute('stroke', this.options.activeColor);
             const positions = this.getPositions();
             const position = positions[candidateIndex];
             const lastPosition = positions[positions.length - 1];
@@ -347,15 +347,15 @@ const Ports = dia.ToolView.extend({
                 x = lastPosition.x;
                 y = lastPosition.y + distance / 2;
             }
-            preview.setAttribute("transform", `translate(${x},${y})`);
+            preview.setAttribute('transform', `translate(${x},${y})`);
         }
     },
-    startHandleListening: function (handle) {
-        this.listenTo(handle, "will-change", this.onHandleWillChange);
-        this.listenTo(handle, "changing", this.onHandleChanging);
-        this.listenTo(handle, "changed", this.onHandleChanged);
+    startHandleListening: function(handle) {
+        this.listenTo(handle, 'will-change', this.onHandleWillChange);
+        this.listenTo(handle, 'changing', this.onHandleChanging);
+        this.listenTo(handle, 'changed', this.onHandleChanged);
     },
-    getPositions: function () {
+    getPositions: function() {
         const { relatedView } = this;
         const translateMatrix = relatedView.getRootTranslateMatrix();
         const rotateMatrix = relatedView.getRootRotateMatrix();
@@ -364,7 +364,7 @@ const Ports = dia.ToolView.extend({
             this.options.group
         );
         const positions = [];
-        for (let id in portsPositions) {
+        for (const id in portsPositions) {
             const point = V.transformPoint(portsPositions[id], matrix);
             positions.push({
                 x: point.x,
@@ -374,7 +374,7 @@ const Ports = dia.ToolView.extend({
         }
         return positions;
     },
-    getPortIndex: function (handle, x, y) {
+    getPortIndex: function(handle, x, y) {
         const positions = this.getPositions();
         let candidateIndex = positions.findIndex((position) => position.y > y);
         const index = handle.options.index;
@@ -387,31 +387,31 @@ const Ports = dia.ToolView.extend({
         }
         return candidateIndex;
     },
-    onHandleWillChange: function (handle, evt) {
+    onHandleWillChange: function(handle, evt) {
         this.focus();
         handle.color(this.options.activeColor);
         const portNode = this.relatedView.findPortNode(
             handle.options.portId,
-            "root"
+            'root'
         );
         portNode.style.opacity = 0.2;
     },
-    onHandleChanging: function (handle, evt) {
+    onHandleChanging: function(handle, evt) {
         const { relatedView } = this;
         const [, x, y] = relatedView.paper.getPointerArgs(evt);
         const index = handle.options.index;
         const candidateIndex = this.getPortIndex(handle, x, y);
         this.updatePreview(candidateIndex !== index ? candidateIndex : null);
     },
-    onHandleChanged: function (handle, evt) {
+    onHandleChanged: function(handle, evt) {
         const { relatedView } = this;
         const { model, paper } = relatedView;
         handle.color(null);
         const portNode = this.relatedView.findPortNode(
             handle.options.portId,
-            "root"
+            'root'
         );
-        portNode.style.opacity = "";
+        portNode.style.opacity = '';
         const [, x, y] = paper.getPointerArgs(evt);
         this.updatePreview(null);
         const index = handle.options.index;
@@ -420,7 +420,7 @@ const Ports = dia.ToolView.extend({
             const positions = this.getPositions();
             const position = positions[index];
             const newPosition = positions[newIndex];
-            const portsPath = ["ports", "items"];
+            const portsPath = ['ports', 'items'];
             const ports = model.prop(portsPath);
             const positionIndex = ports.findIndex((port) => port.id === position.id);
             const port = ports[positionIndex];
@@ -435,14 +435,14 @@ const Ports = dia.ToolView.extend({
             this.renderHandles();
         }
     },
-    onRemove: function () {
+    onRemove: function() {
         this.resetHandles();
     }
 });
 
-paper.on("element:magnet:pointerclick", (elementView, evt, magnet) => {
+paper.on('element:magnet:pointerclick', (elementView, evt, magnet) => {
     paper.removeTools();
-    const group = elementView.findAttribute("port-group", magnet);
+    const group = elementView.findAttribute('port-group', magnet);
     elementView.addTools(
         new dia.ToolsView({
             tools: [new Ports({ group })]
@@ -450,12 +450,12 @@ paper.on("element:magnet:pointerclick", (elementView, evt, magnet) => {
     );
 });
 
-paper.on("blank:pointerdown cell:pointerdown", () => {
+paper.on('blank:pointerdown cell:pointerdown', () => {
     paper.removeTools();
 });
 
 r2.findView(paper).addTools(
     new dia.ToolsView({
-        tools: [new Ports({ group: "left" })]
+        tools: [new Ports({ group: 'left' })]
     })
 );

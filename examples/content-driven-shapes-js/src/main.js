@@ -1,21 +1,21 @@
-import { dia, shapes, util } from '@joint/core';
+import { V, dia, shapes } from '@joint/core';
 import './styles.css';
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 20,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 paperContainer.appendChild(paper.el);
@@ -23,7 +23,7 @@ paperContainer.appendChild(paper.el);
 const svg = paper.svg;
 
 function measureText(svgDocument, text, attrs) {
-    const vText = V("text").attr(attrs).text(text);
+    const vText = V('text').attr(attrs).text(text);
     vText.appendTo(svgDocument);
     const bbox = vText.getBBox();
     vText.remove();
@@ -34,42 +34,42 @@ class Shape extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            type: "custom.Shape",
-            fillColor: "#FCFCFC",
-            outlineColor: "#A3A5A5",
-            label: "",
-            image: ""
+            type: 'custom.Shape',
+            fillColor: '#FCFCFC',
+            outlineColor: '#A3A5A5',
+            label: '',
+            image: ''
         };
     }
 
     preinitialize() {
         this.spacing = 10;
         this.labelAttributes = {
-            "font-size": 14,
-            "font-family": "sans-serif"
+            'font-size': 14,
+            'font-family': 'sans-serif'
         };
         this.imageAttributes = {
             width: 50,
             height: 50,
-            preserveAspectRatio: "none"
+            preserveAspectRatio: 'none'
         };
         this.cache = {};
     }
 
     initialize() {
         super.initialize();
-        this.on("change", this.onAttributeChange);
+        this.on('change', this.onAttributeChange);
         this.setSizeFromContent();
     }
 
     /* Attributes that affects the size of the model. */
     onAttributeChange() {
         const { changed, cache } = this;
-        if ("label" in changed) {
+        if ('label' in changed) {
             // invalidate the cache only if the text of the `label` has changed
             delete cache.label;
         }
-        if ("label" in changed || "image" in changed) {
+        if ('label' in changed || 'image' in changed) {
             this.setSizeFromContent();
         }
     }
@@ -82,7 +82,7 @@ class Shape extends dia.Element {
 
     layout() {
         const { cache } = this;
-        let { layout } = cache;
+        const { layout } = cache;
         if (layout) {
             return layout;
         } else {
@@ -102,7 +102,7 @@ class Shape extends dia.Element {
         } = this;
         let width = spacing * 2;
         let height = spacing * 2;
-        let x = spacing;
+        const x = spacing;
         let y = spacing;
         // image metrics
         let $image;
@@ -124,7 +124,7 @@ class Shape extends dia.Element {
         let $label;
         {
             let w, h;
-            if ("label" in cache) {
+            if ('label' in cache) {
                 w = cache.label.width;
                 h = cache.label.height;
             } else {
@@ -173,53 +173,53 @@ const ShapeView = ElementView.extend({
         label: [ElementView.Flags.UPDATE],
         image: [ElementView.Flags.UPDATE],
         // attributes that do not affect the size
-        outlineColor: ["@color"],
-        fillColor: ["@color"]
+        outlineColor: ['@color'],
+        fillColor: ['@color']
     }),
 
-    confirmUpdate: function (...args) {
+    confirmUpdate: function(...args) {
         let flags = ElementView.prototype.confirmUpdate.call(this, ...args);
-        if (this.hasFlag(flags, "@color")) {
+        if (this.hasFlag(flags, '@color')) {
             // if only a color is changed, no need to resize the DOM elements
             this.updateColors();
-            flags = this.removeFlag(flags, "@color");
+            flags = this.removeFlag(flags, '@color');
         }
         // must return 0
         return flags;
     },
 
     /* Runs only once while initializing */
-    render: function () {
+    render: function() {
         const { vel, model } = this;
-        const body = (this.vBody = V("rect")
-            .addClass("body")
-            .attr("stroke-width", 2));
-        const label = (this.vLabel = V("text")
-            .addClass("label")
+        const body = (this.vBody = V('rect')
+            .addClass('body')
+            .attr('stroke-width', 2));
+        const label = (this.vLabel = V('text')
+            .addClass('label')
             .attr(model.labelAttributes));
-        this.vImage = V("image").addClass("image").attr(model.imageAttributes);
+        this.vImage = V('image').addClass('image').attr(model.imageAttributes);
         vel.empty().append([body, label]);
         this.update();
         this.updateColors();
         this.translate(); // default element translate method
     },
 
-    update: function () {
+    update: function() {
         const layout = this.model.layout();
         this.updateBody(layout);
         this.updateImage(layout.$image);
         this.updateLabel(layout.$label);
     },
 
-    updateColors: function () {
+    updateColors: function() {
         const { model, vBody } = this;
         vBody.attr({
-            fill: model.get("fillColor"),
-            stroke: model.get("outlineColor")
+            fill: model.get('fillColor'),
+            stroke: model.get('outlineColor')
         });
     },
 
-    updateBody: function () {
+    updateBody: function() {
         const { model, vBody } = this;
         const { width, height } = model.size();
         const bodyAttributes = {
@@ -229,15 +229,15 @@ const ShapeView = ElementView.extend({
         vBody.attr(bodyAttributes);
     },
 
-    updateImage: function ($image) {
+    updateImage: function($image) {
         const { model, vImage, vel } = this;
-        const image = model.get("image");
+        const image = model.get('image');
         if (image) {
             if (!vImage.parent()) {
                 vel.append(vImage);
             }
             vImage.attr({
-                "xlink:href": image,
+                'xlink:href': image,
                 x: $image.x,
                 y: $image.y
             });
@@ -246,15 +246,15 @@ const ShapeView = ElementView.extend({
         }
     },
 
-    updateLabel: function ($label) {
+    updateLabel: function($label) {
         const { model, vLabel } = this;
         vLabel.attr({
-            "text-anchor": "middle",
+            'text-anchor': 'middle',
             x: $label.x + $label.width / 2,
             y: $label.y + $label.height / 2
         });
-        vLabel.text(model.get("label"), {
-            textVerticalAnchor: "middle"
+        vLabel.text(model.get('label'), {
+            textVerticalAnchor: 'middle'
         });
     }
 });
@@ -267,47 +267,47 @@ shapes.custom = {
 // Example
 
 const customShape1 = new Shape({
-    label: "The simplest shape"
+    label: 'The simplest shape'
 });
 customShape1.position(60, 40).addTo(graph);
 
 const customShape2 = new Shape();
 customShape2
-    .set("label", "A multiline\n text with no image.")
+    .set('label', 'A multiline\n text with no image.')
     .position(60, 100)
-    .prop("fillColor", "#EBACCF")
-    .prop("outlineColor", "#d80073")
+    .prop('fillColor', '#EBACCF')
+    .prop('outlineColor', '#d80073')
     .addTo(graph);
 
 const customShape3 = new Shape();
 customShape3
-    .set("image", "https://via.placeholder.com/50/DDDDDD")
+    .set('image', 'https://via.placeholder.com/50/DDDDDD')
     .position(220, 40)
-    .prop("fillColor", "#B9DBBB")
-    .prop("outlineColor", "#339933")
+    .prop('fillColor', '#B9DBBB')
+    .prop('outlineColor', '#339933')
     .prop(
-        "label",
-        "Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.\nInteger vehicula."
+        'label',
+        'Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.\nInteger vehicula.'
     )
     .addTo(graph);
 
 const customShape4 = new Shape();
 customShape4
-    .set("image", "https://via.placeholder.com/50/DDDDDD")
-    .set("label", "")
-    .prop("fillColor", "#93B8C7")
-    .prop("outlineColor", "#1ba1e2")
+    .set('image', 'https://via.placeholder.com/50/DDDDDD')
+    .set('label', '')
+    .prop('fillColor', '#93B8C7')
+    .prop('outlineColor', '#1ba1e2')
     .position(60, 180)
     .addTo(graph);
 
 customShape4.transition(
-    "label",
-    "Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.\nInteger vehicula.",
+    'label',
+    'Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.\nInteger vehicula.',
     {
         delay: 200,
         duration: 3000,
-        valueFunction: function (start, end) {
-            return function (time) {
+        valueFunction: function(start, end) {
+            return function(time) {
                 return end.substr(0, Math.ceil(end.length * time));
             };
         }

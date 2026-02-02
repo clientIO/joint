@@ -1,72 +1,72 @@
 import { dia, shapes, connectors, anchors, linkTools } from '@joint/core';
 import './styles.scss';
 
-const paperContainer = document.getElementById("paper-container");
-const logsContainer = document.getElementById("logs-container");
+const paperContainer = document.getElementById('paper-container');
+const logsContainer = document.getElementById('logs-container');
 
 class Shape extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            type: "Shape",
+            type: 'Shape',
             size: { width: 140, height: 140 },
             attrs: {
                 root: {
                     magnet: false
                 },
                 background: {
-                    fill: "#0057ff",
-                    width: "calc(w)",
-                    height: "calc(h)",
+                    fill: '#0057ff',
+                    width: 'calc(w)',
+                    height: 'calc(h)',
                     opacity: 0.1
                 },
                 body: {
-                    stroke: "#333333",
-                    fill: "#fff",
+                    stroke: '#333333',
+                    fill: '#fff',
                     strokeWidth: 2,
                     d:
-                        "M 0 0 H calc(w) V calc(h) H 0 Z M 20 20 V calc(h-20) H calc(w-20) V 20 Z"
+                        'M 0 0 H calc(w) V calc(h) H 0 Z M 20 20 V calc(h-20) H calc(w-20) V 20 Z'
                 },
                 label: {
-                    x: "calc(0.5 * w)",
-                    y: "calc(h - 10)",
-                    textAnchor: "middle",
-                    textVerticalAnchor: "middle",
+                    x: 'calc(0.5 * w)',
+                    y: 'calc(h - 10)',
+                    textAnchor: 'middle',
+                    textVerticalAnchor: 'middle',
                     fontSize: 13,
-                    fontFamily: "sans-serif"
+                    fontFamily: 'sans-serif'
                 }
             },
             portMarkup: [
                 {
-                    tagName: "path",
-                    selector: "portBody",
+                    tagName: 'path',
+                    selector: 'portBody',
                     attributes: {
-                        fill: "#FFFFFF",
-                        stroke: "#333333",
-                        "stroke-width": 2
+                        fill: '#FFFFFF',
+                        stroke: '#333333',
+                        'stroke-width': 2
                     }
                 }
             ],
             portLabelMarkup: [
                 {
-                    tagName: "rect",
-                    selector: "portLabelBackground"
+                    tagName: 'rect',
+                    selector: 'portLabelBackground'
                 },
                 {
-                    tagName: "text",
-                    selector: "portLabel",
+                    tagName: 'text',
+                    selector: 'portLabel',
                     attributes: {
-                        fill: "#333333"
+                        fill: '#333333'
                     }
                 }
             ],
             ports: {
                 groups: {
                     in: {
-                        position: "left",
+                        position: 'left',
                         label: {
                             position: {
-                                name: "outside",
+                                name: 'outside',
                                 args: {
                                     offset: 30
                                 }
@@ -75,31 +75,31 @@ class Shape extends dia.Element {
                         size: { width: 20, height: 20 },
                         attrs: {
                             portLabelBackground: {
-                                ref: "portLabel",
-                                fill: "#FFFFFF",
+                                ref: 'portLabel',
+                                fill: '#FFFFFF',
                                 fillOpacity: 0.7,
-                                x: "calc(x - 2)",
-                                y: "calc(y - 2)",
-                                width: "calc(w + 4)",
-                                height: "calc(h + 4)",
-                                pointerEvents: "none"
+                                x: 'calc(x - 2)',
+                                y: 'calc(y - 2)',
+                                width: 'calc(w + 4)',
+                                height: 'calc(h + 4)',
+                                pointerEvents: 'none'
                             },
                             portLabel: {
-                                fontFamily: "sans-serif",
-                                pointerEvents: "none"
+                                fontFamily: 'sans-serif',
+                                pointerEvents: 'none'
                             },
                             portBody: {
                                 d:
-                                    "M 0 -calc(0.5 * h) h -calc(w) l 3 calc(0.5 * h) l -3 calc(0.5 * h) H 0 A calc(0.5 * h) calc(0.5 * h) 1  1 0 0 -calc(0.5 * h) Z",
-                                magnet: "active"
+                                    'M 0 -calc(0.5 * h) h -calc(w) l 3 calc(0.5 * h) l -3 calc(0.5 * h) H 0 A calc(0.5 * h) calc(0.5 * h) 1  1 0 0 -calc(0.5 * h) Z',
+                                magnet: 'active'
                             }
                         }
                     },
                     out: {
-                        position: "right",
+                        position: 'right',
                         label: {
                             position: {
-                                name: "outside",
+                                name: 'outside',
                                 args: {
                                     offset: 30
                                 }
@@ -108,23 +108,23 @@ class Shape extends dia.Element {
                         size: { width: 20, height: 20 },
                         attrs: {
                             portLabelBackground: {
-                                ref: "portLabel",
-                                fill: "#FFFFFF",
+                                ref: 'portLabel',
+                                fill: '#FFFFFF',
                                 fillOpacity: 0.8,
-                                x: "calc(x - 2)",
-                                y: "calc(y - 2)",
-                                width: "calc(w + 4)",
-                                height: "calc(h + 4)",
-                                pointerEvents: "none"
+                                x: 'calc(x - 2)',
+                                y: 'calc(y - 2)',
+                                width: 'calc(w + 4)',
+                                height: 'calc(h + 4)',
+                                pointerEvents: 'none'
                             },
                             portLabel: {
-                                fontFamily: "sans-serif",
-                                pointerEvents: "none"
+                                fontFamily: 'sans-serif',
+                                pointerEvents: 'none'
                             },
                             portBody: {
                                 d:
-                                    "M 0 -calc(0.5 * h) h calc(w) l 3 calc(0.5 * h) l -3 calc(0.5 * h) H 0 A calc(0.5 * h) calc(0.5 * h) 1  1 1 0 -calc(0.5 * h) Z",
-                                magnet: "active"
+                                    'M 0 -calc(0.5 * h) h calc(w) l 3 calc(0.5 * h) l -3 calc(0.5 * h) H 0 A calc(0.5 * h) calc(0.5 * h) 1  1 1 0 -calc(0.5 * h) Z',
+                                magnet: 'active'
                             }
                         }
                     }
@@ -136,16 +136,16 @@ class Shape extends dia.Element {
     preinitialize() {
         this.markup = [
             {
-                tagName: "rect",
-                selector: "background"
+                tagName: 'rect',
+                selector: 'background'
             },
             {
-                tagName: "path",
-                selector: "body"
+                tagName: 'path',
+                selector: 'body'
             },
             {
-                tagName: "text",
-                selector: "label"
+                tagName: 'text',
+                selector: 'label'
             }
         ];
     }
@@ -158,12 +158,12 @@ const graph = new dia.Graph({}, { cellNamespace: shapeNamespace });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapeNamespace,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 1,
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
+    background: { color: '#F3F7F6' },
     interactive: {
         // label move is disabled by default
         labelMove: true
@@ -175,7 +175,7 @@ const paper = new dia.Paper({
             z: -1,
             attrs: {
                 line: {
-                    stroke: "#fff",
+                    stroke: '#fff',
                     strokeWidth: 14,
                     targetMarker: null
                 },
@@ -188,7 +188,7 @@ const paper = new dia.Paper({
                     attrs: {
                         text: {
                             text: ` Link ${linkIdNumber} `,
-                            fontFamily: "sans-serif",
+                            fontFamily: 'sans-serif',
                             fontSize: 10
                         },
                         rect: {
@@ -205,28 +205,28 @@ const paper = new dia.Paper({
             ]
         });
     },
-    defaultConnectionPoint: { name: "anchor" },
+    defaultConnectionPoint: { name: 'anchor' },
     defaultAnchor: (view, magnet, ...rest) => {
-        const group = view.findAttribute("port-group", magnet);
-        const anchorFn = group === "in" ? anchors.left : anchors.right;
+        const group = view.findAttribute('port-group', magnet);
+        const anchorFn = group === 'in' ? anchors.left : anchors.right;
         return anchorFn(view, magnet, ...rest);
     },
     defaultConnector: {
-        name: "curve",
+        name: 'curve',
         args: {
             sourceDirection: connectors.curve.TangentDirections.RIGHT,
             targetDirection: connectors.curve.TangentDirections.LEFT
         }
     },
     validateMagnet: (sourceView, sourceMagnet) => {
-        const sourceGroup = sourceView.findAttribute("port-group", sourceMagnet);
-        const sourcePort = sourceView.findAttribute("port", sourceMagnet);
+        const sourceGroup = sourceView.findAttribute('port-group', sourceMagnet);
+        const sourcePort = sourceView.findAttribute('port', sourceMagnet);
         const source = sourceView.model;
 
-        if (sourceGroup !== "out") {
+        if (sourceGroup !== 'out') {
             log(
-                "paper<validateMagnet>",
-                "It's not possible to create a link from an inbound port."
+                'paper<validateMagnet>',
+                'It\'s not possible to create a link from an inbound port.'
             );
             return false;
         }
@@ -237,8 +237,8 @@ const paper = new dia.Paper({
                 .find((link) => link.source().port === sourcePort)
         ) {
             log(
-                "paper<validateMagnet>",
-                "The port has already an inbound link (we allow only one link per port)"
+                'paper<validateMagnet>',
+                'The port has already an inbound link (we allow only one link per port)'
             );
             return false;
         }
@@ -251,8 +251,8 @@ const paper = new dia.Paper({
             return false;
         }
 
-        const targetGroup = targetView.findAttribute("port-group", targetMagnet);
-        const targetPort = targetView.findAttribute("port", targetMagnet);
+        const targetGroup = targetView.findAttribute('port-group', targetMagnet);
+        const targetPort = targetView.findAttribute('port', targetMagnet);
         const target = targetView.model;
 
         if (target.isLink()) {
@@ -260,7 +260,7 @@ const paper = new dia.Paper({
             return false;
         }
 
-        if (targetGroup !== "in") {
+        if (targetGroup !== 'in') {
             // It's not possible to add inbound links to output ports (only outbound links are allowed).
             return false;
         }
@@ -278,19 +278,19 @@ const paper = new dia.Paper({
         return true;
     },
     clickThreshold: 10,
-    magnetThreshold: "onleave",
+    magnetThreshold: 'onleave',
     linkPinning: false,
     snapLinks: { radius: 20 },
     snapLabels: true,
     markAvailable: true,
     highlighting: {
         connecting: {
-            name: "mask",
+            name: 'mask',
             options: {
                 layer: dia.Paper.Layers.BACK,
                 attrs: {
-                    stroke: "#0057FF",
-                    "stroke-width": 3
+                    stroke: '#0057FF',
+                    'stroke-width': 3
                 }
             }
         }
@@ -300,39 +300,39 @@ const paper = new dia.Paper({
 paperContainer.appendChild(paper.el);
 
 const s1 = new Shape({
-    id: "element1",
+    id: 'element1',
     position: { x: 50, y: 50 },
     attrs: {
         label: {
-            text: "Element 1"
+            text: 'Element 1'
         }
     },
     ports: {
         items: [
             {
-                id: "out1",
-                group: "out",
+                id: 'out1',
+                group: 'out',
                 attrs: {
                     portLabel: {
-                        text: "Out 1"
+                        text: 'Out 1'
                     }
                 }
             },
             {
-                id: "out2",
-                group: "out",
+                id: 'out2',
+                group: 'out',
                 attrs: {
                     portLabel: {
-                        text: "Out 2"
+                        text: 'Out 2'
                     }
                 }
             },
             {
-                id: "out3",
-                group: "out",
+                id: 'out3',
+                group: 'out',
                 attrs: {
                     portLabel: {
-                        text: "Out 3"
+                        text: 'Out 3'
                     }
                 }
             }
@@ -341,57 +341,57 @@ const s1 = new Shape({
 });
 
 const s2 = new Shape({
-    id: "element2",
+    id: 'element2',
     position: { x: 380, y: 50 },
     attrs: {
         label: {
-            text: "Element 2"
+            text: 'Element 2'
         }
     },
     ports: {
         items: [
             {
-                id: "in1",
-                group: "in",
+                id: 'in1',
+                group: 'in',
                 attrs: {
                     portLabel: {
-                        text: "In 1"
+                        text: 'In 1'
                     }
                 }
             },
             {
-                id: "in2",
-                group: "in",
+                id: 'in2',
+                group: 'in',
                 attrs: {
                     portLabel: {
-                        text: "In 2"
+                        text: 'In 2'
                     }
                 }
             },
             {
-                id: "in3",
-                group: "in",
+                id: 'in3',
+                group: 'in',
                 attrs: {
                     portLabel: {
-                        text: "In 3"
+                        text: 'In 3'
                     }
                 }
             },
             {
-                id: "in4",
-                group: "in",
+                id: 'in4',
+                group: 'in',
                 attrs: {
                     portLabel: {
-                        text: "In 4"
+                        text: 'In 4'
                     }
                 }
             },
             {
-                id: "out1",
-                group: "out",
+                id: 'out1',
+                group: 'out',
                 attrs: {
                     portLabel: {
-                        text: "Out 1"
+                        text: 'Out 1'
                     }
                 }
             }
@@ -400,30 +400,30 @@ const s2 = new Shape({
 });
 
 const s3 = new Shape({
-    id: "element3",
+    id: 'element3',
     position: { x: 380, y: 270 },
     attrs: {
         label: {
-            text: "Element 3"
+            text: 'Element 3'
         }
     },
     ports: {
         items: [
             {
-                id: "in1",
-                group: "in",
+                id: 'in1',
+                group: 'in',
                 attrs: {
                     portLabel: {
-                        text: "In 1"
+                        text: 'In 1'
                     }
                 }
             },
             {
-                id: "in2",
-                group: "in",
+                id: 'in2',
+                group: 'in',
                 attrs: {
                     portLabel: {
-                        text: "In 2"
+                        text: 'In 2'
                     }
                 }
             }
@@ -437,7 +437,7 @@ graph.addCells([s1, s2, s3]);
 
 class PortTargetArrowhead extends linkTools.TargetArrowhead {
     preinitialize() {
-        this.tagName = "rect";
+        this.tagName = 'rect';
         this.attributes = {
             width: 20,
             height: 14,
@@ -445,12 +445,12 @@ class PortTargetArrowhead extends linkTools.TargetArrowhead {
             y: -7,
             rx: 7,
             ry: 7,
-            fill: "#FD0B88",
-            "fill-opacity": 0.2,
-            stroke: "#FD0B88",
-            "stroke-width": 2,
-            cursor: "move",
-            class: "target-arrowhead"
+            fill: '#FD0B88',
+            'fill-opacity': 0.2,
+            stroke: '#FD0B88',
+            'stroke-width': 2,
+            cursor: 'move',
+            class: 'target-arrowhead'
         };
     }
 }
@@ -458,38 +458,38 @@ class PortTargetArrowhead extends linkTools.TargetArrowhead {
 let timer;
 let lastView;
 
-paper.on("link:mouseenter", (linkView) => {
+paper.on('link:mouseenter', (linkView) => {
     clearTimeout(timer);
     clearTools();
     lastView = linkView;
     linkView.addTools(
         new dia.ToolsView({
-            name: "onhover",
+            name: 'onhover',
             tools: [
                 new PortTargetArrowhead(),
                 new linkTools.Remove({
                     distance: -60,
                     markup: [
                         {
-                            tagName: "circle",
-                            selector: "button",
+                            tagName: 'circle',
+                            selector: 'button',
                             attributes: {
                                 r: 10,
-                                fill: "#FFD5E8",
-                                stroke: "#FD0B88",
-                                "stroke-width": 2,
-                                cursor: "pointer"
+                                fill: '#FFD5E8',
+                                stroke: '#FD0B88',
+                                'stroke-width': 2,
+                                cursor: 'pointer'
                             }
                         },
                         {
-                            tagName: "path",
-                            selector: "icon",
+                            tagName: 'path',
+                            selector: 'icon',
                             attributes: {
-                                d: "M -4 -4 4 4 M -4 4 4 -4",
-                                fill: "none",
-                                stroke: "#333",
-                                "stroke-width": 3,
-                                "pointer-events": "none"
+                                d: 'M -4 -4 4 4 M -4 4 4 -4',
+                                fill: 'none',
+                                stroke: '#333',
+                                'stroke-width': 3,
+                                'pointer-events': 'none'
                             }
                         }
                     ]
@@ -499,7 +499,7 @@ paper.on("link:mouseenter", (linkView) => {
     );
 });
 
-paper.on("link:mouseleave", (linkView) => {
+paper.on('link:mouseleave', (linkView) => {
     timer = setTimeout(() => clearTools(), 500);
 });
 
@@ -511,12 +511,12 @@ function clearTools() {
 
 // Events
 
-paper.on("link:connect", (linkView) => {
+paper.on('link:connect', (linkView) => {
     const link = linkView.model;
     const source = link.source();
     const target = link.target();
     log(
-        "paper<link:connect>",
+        'paper<link:connect>',
         `
      ${link.id} now goes from
     ${source.port}
@@ -530,11 +530,11 @@ paper.on("link:connect", (linkView) => {
     );
 });
 
-paper.on("link:disconnect", (linkView, evt, prevElementView, prevMagnet) => {
+paper.on('link:disconnect', (linkView, evt, prevElementView, prevMagnet) => {
     const link = linkView.model;
-    const prevPort = prevElementView.findAttribute("port", prevMagnet);
+    const prevPort = prevElementView.findAttribute('port', prevMagnet);
     log(
-        "paper<link:disconnect>",
+        'paper<link:disconnect>',
         `
     ${link.id} disconnected from port
     ${prevPort}
@@ -544,7 +544,7 @@ paper.on("link:disconnect", (linkView, evt, prevElementView, prevMagnet) => {
     );
 });
 
-graph.on("remove", (cell) => {
+graph.on('remove', (cell) => {
     if (!cell.isLink()) return;
     const source = cell.source();
     const target = cell.target();
@@ -553,7 +553,7 @@ graph.on("remove", (cell) => {
         return;
     }
     log(
-        "graph<remove>",
+        'graph<remove>',
         `${cell.id} between
     ${source.port}
     of
@@ -567,12 +567,12 @@ graph.on("remove", (cell) => {
 });
 
 function log(event, text) {
-    const eventEl = document.createElement("div");
-    eventEl.classList.add("log-event");
+    const eventEl = document.createElement('div');
+    eventEl.classList.add('log-event');
     eventEl.textContent = event;
     logsContainer.appendChild(eventEl);
-    const textEl = document.createElement("div");
-    textEl.classList.add("log-text");
+    const textEl = document.createElement('div');
+    textEl.classList.add('log-text');
     textEl.textContent = text;
     logsContainer.appendChild(textEl);
     logsContainer.scrollTop = logsContainer.scrollHeight;

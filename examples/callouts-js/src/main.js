@@ -1,20 +1,20 @@
-import { dia, shapes, elementTools } from '@joint/core';
+import { g, dia, shapes, elementTools } from '@joint/core';
 import './styles.css';
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 5,
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 paperContainer.appendChild(paper.el);
@@ -189,22 +189,22 @@ function updateElementCalloutPath(el, delta) {
 }
 
 const CalloutRelativeAnchorTool = elementTools.Control.extend({
-    getPosition: function (view) {
+    getPosition: function(view) {
         const { x = 0, y = 0 } = view.model.get('calloutAnchor') || {};
         return { x, y };
     },
-    setPosition: function (view, coordinates) {
+    setPosition: function(view, coordinates) {
         view.model.set('calloutAnchor', { x: coordinates.x, y: coordinates.y });
     }
 });
 
 const CalloutAbsoluteAnchorTool = elementTools.Control.extend({
-    getPosition: function (view) {
+    getPosition: function(view) {
         const anchor = new g.Point(view.model.get('calloutAnchor'));
         const position = view.model.position();
         return anchor.difference(position);
     },
-    setPosition: function (view, coordinates) {
+    setPosition: function(view, coordinates) {
         const { x, y } = view.model.position().offset(coordinates);
         view.model.set('calloutAnchor', { x, y });
     }

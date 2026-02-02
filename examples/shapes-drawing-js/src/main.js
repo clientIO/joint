@@ -1,21 +1,21 @@
-import { dia, shapes } from '@joint/core';
+import { V, g, dia, shapes } from '@joint/core';
 import './styles.scss';
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 1,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 paperContainer.appendChild(paper.el);
@@ -42,11 +42,11 @@ function dragStart(evt, x, y) {
             evt.data.y1 = y;
             evt.data.x2 = x;
             evt.data.y2 = y;
-            data.vel = V("line", { x1: x, y1: y, x2: x, y2: y });
+            data.vel = V('line', { x1: x, y1: y, x2: x, y2: y });
             break;
         }
         case Tool.Rectangle: {
-            data.vel = V("rect", {
+            data.vel = V('rect', {
                 x: x,
                 y: y,
                 width: 1,
@@ -55,7 +55,7 @@ function dragStart(evt, x, y) {
             break;
         }
         case Tool.Ellipse: {
-            data.vel = V("ellipse", {
+            data.vel = V('ellipse', {
                 cx: x,
                 cy: y,
                 rx: 1,
@@ -64,7 +64,7 @@ function dragStart(evt, x, y) {
             break;
         }
         case Tool.FreeDraw: {
-            data.vel = V("polyline");
+            data.vel = V('polyline');
             evt.data.points = [[x, y]];
             break;
         }
@@ -74,7 +74,7 @@ function dragStart(evt, x, y) {
         }
     }
     data.vel.appendTo(paper.viewport);
-    data.vel.addClass("preview-shape");
+    data.vel.addClass('preview-shape');
 }
 
 function drag(evt, x, y) {
@@ -108,7 +108,7 @@ function drag(evt, x, y) {
         case Tool.FreeDraw: {
             const { points } = evt.data;
             points.push([x, y]);
-            vel.attr("points", points.join(" "));
+            vel.attr('points', points.join(' '));
             break;
         }
     }
@@ -127,7 +127,7 @@ function dragEnd(evt) {
             const angle = line.angle();
             const { start } = line.clone().rotate(line.midpoint(), angle);
             graph.addCell({
-                type: "standard.Path",
+                type: 'standard.Path',
                 angle,
                 position: {
                     x: start.x,
@@ -139,7 +139,7 @@ function dragEnd(evt) {
                 },
                 attrs: {
                     body: {
-                        d: "M 0 calc(0.5 * h) H calc(w)"
+                        d: 'M 0 calc(0.5 * h) H calc(w)'
                     }
                 }
             });
@@ -147,7 +147,7 @@ function dragEnd(evt) {
         }
         case Tool.Rectangle: {
             graph.addCell({
-                type: "standard.Rectangle",
+                type: 'standard.Rectangle',
                 position: {
                     x,
                     y
@@ -161,7 +161,7 @@ function dragEnd(evt) {
         }
         case Tool.Ellipse: {
             graph.addCell({
-                type: "standard.Ellipse",
+                type: 'standard.Ellipse',
                 position: {
                     x,
                     y
@@ -175,11 +175,11 @@ function dragEnd(evt) {
         }
         case Tool.FreeDraw: {
             const { points } = evt.data;
-            const geometry = new g.Polyline(points.join(" "));
+            const geometry = new g.Polyline(points.join(' '));
             geometry.simplify({ threshold: 0.8 });
             const geometryBBox = geometry.bbox();
             graph.addCell({
-                type: "standard.Polyline",
+                type: 'standard.Polyline',
                 position: {
                     x: geometryBBox.x,
                     y: geometryBBox.y
@@ -199,23 +199,23 @@ function dragEnd(evt) {
     }
 }
 
-paper.on("blank:pointerdown", (evt, x, y) => dragStart(evt, x, y));
-paper.on("element:pointerdown", (_, evt, x, y) => dragStart(evt, x, y));
+paper.on('blank:pointerdown', (evt, x, y) => dragStart(evt, x, y));
+paper.on('element:pointerdown', (_, evt, x, y) => dragStart(evt, x, y));
 
-paper.on("blank:pointermove", (evt, x, y) => drag(evt, x, y));
-paper.on("element:pointermove", (_, evt, x, y) => drag(evt, x, y));
+paper.on('blank:pointermove', (evt, x, y) => drag(evt, x, y));
+paper.on('element:pointermove', (_, evt, x, y) => drag(evt, x, y));
 
-paper.on("blank:pointerup", (evt) => dragEnd(evt));
-paper.on("element:pointerup", (_, evt) => dragEnd(evt));
+paper.on('blank:pointerup', (evt) => dragEnd(evt));
+paper.on('element:pointerup', (_, evt) => dragEnd(evt));
 
-setTool(document.querySelector("[checked]")?.id ?? "Pointer");
+setTool(document.querySelector('[checked]')?.id ?? 'Pointer');
 
 document
-    .getElementById("tools")
-    .addEventListener("change", (evt) => setTool(evt.target.id));
+    .getElementById('tools')
+    .addEventListener('change', (evt) => setTool(evt.target.id));
 
 function setTool(toolId) {
     tool = Tool[toolId];
     paper.setInteractivity(tool === Tool.Pointer);
-    paper.el.classList.toggle("paper-active-tools", tool !== Tool.Pointer);
+    paper.el.classList.toggle('paper-active-tools', tool !== Tool.Pointer);
 }

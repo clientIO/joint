@@ -120,8 +120,8 @@ const graph = new dia.Graph({}, {
 });
 
 const paper = new dia.Paper({
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     model: graph,
     defaultConnectionPoint: {
         name: 'boundary'
@@ -140,7 +140,7 @@ const paper = new dia.Paper({
         const xMax = timelineXMax - bbox.width;
         const yMin = timelineY - bbox.height - timelineMargin;
         const yMax = timelineY + timelineMargin;
-        return function (x, y) {
+        return function(x, y) {
             return {
                 x: Math.max(xMin, Math.min(xMax, x)),
                 y: (y > timelineY) ? Math.max(yMax, y) : Math.min(yMin, y)
@@ -242,7 +242,7 @@ const timeline = new shapes.standard.Link({
 
 graph.addCells([start, end, timeline]);
 
-graph.on('change:position', function (cell) {
+graph.on('change:position', function(cell) {
     if (cell instanceof TimelineEvent) {
         cell.positionLabels();
     }

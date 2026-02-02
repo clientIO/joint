@@ -1,31 +1,31 @@
-import { dia, shapes, highlighters } from '@joint/core';
+import { V, dia, shapes, highlighters } from '@joint/core';
 import './styles.css';
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 10,
     async: true,
     frozen: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
+    background: { color: '#F3F7F6' },
     clickThreshold: 10,
     defaultConnector: {
-        name: "rounded"
+        name: 'rounded'
     },
     defaultRouter: {
-        name: "manhattan",
+        name: 'manhattan',
         args: {
             step: 10,
-            endDirections: ["bottom"],
-            startDirections: ["top"],
+            endDirections: ['bottom'],
+            startDirections: ['top'],
             padding: { bottom: 20 }
         }
     }
@@ -33,7 +33,7 @@ const paper = new dia.Paper({
 
 paperContainer.appendChild(paper.el);
 
-const color = "#ff4468";
+const color = '#ff4468';
 
 paper.svg.prepend(
     V.createSVGStyle(`
@@ -61,7 +61,7 @@ function element(x, y) {
         attrs: {
             label: {
                 text: `Node ${graph.getElements().length + 1}`,
-                fontFamily: "sans-serif"
+                fontFamily: 'sans-serif'
             }
         },
         z: 2
@@ -108,14 +108,14 @@ function getElementPredecessorLinks(el) {
 function highlightCell(cell) {
     highlighters.addClass.add(
         cell.findView(paper),
-        cell.isElement() ? "body" : "line",
-        "selection",
-        { className: "selection" }
+        cell.isElement() ? 'body' : 'line',
+        'selection',
+        { className: 'selection' }
     );
 }
 
 function unhighlightCell(cell) {
-    highlighters.addClass.remove(cell.findView(paper), "selection");
+    highlighters.addClass.remove(cell.findView(paper), 'selection');
 }
 
 let selection = null;
@@ -135,9 +135,9 @@ function selectElement(el) {
     }
 }
 
-paper.on("element:pointerclick", (elementView) =>
+paper.on('element:pointerclick', (elementView) =>
     selectElement(elementView.model)
 );
-paper.on("blank:pointerclick", (elementView) => selectElement(null));
+paper.on('blank:pointerclick', (elementView) => selectElement(null));
 
 selectElement(el2);

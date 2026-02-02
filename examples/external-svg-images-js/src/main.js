@@ -4,19 +4,19 @@ const shapes = { ...defaultShapes };
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
+    background: { color: '#F3F7F6' },
     defaultConnectionPoint: {
-        name: "boundary"
+        name: 'boundary'
     }
 });
 
@@ -85,7 +85,7 @@ const standardImage = new shapes.standard.Image({
             // href: `data:image/svg+xml;base64;utf8,${btoa(christmasTreeSVG)}`
         },
         label: {
-            text: "Christmas Tree",
+            text: 'Christmas Tree',
             fontSize: 10
         }
     }
@@ -133,50 +133,50 @@ class TemplateImage extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            type: "TemplateImage",
+            type: 'TemplateImage',
             attrs: {
                 image: {
-                    width: "calc(w)",
-                    height: "calc(h)"
+                    width: 'calc(w)',
+                    height: 'calc(h)'
                     // href: '[URL]'
                 },
                 label: {
-                    textVerticalAnchor: "top",
-                    textAnchor: "middle",
-                    x: "calc(w/2)",
-                    y: "calc(h + 10)",
+                    textVerticalAnchor: 'top',
+                    textAnchor: 'middle',
+                    x: 'calc(w/2)',
+                    y: 'calc(h + 10)',
                     fontSize: 10,
-                    fill: "#333333"
+                    fill: '#333333'
                 }
             }
         };
     }
 
     preinitialize() {
-        this.dataURLPrefix = "data:image/svg+xml;utf8,";
+        this.dataURLPrefix = 'data:image/svg+xml;utf8,';
         this.markup = [
             {
-                tagName: "image",
-                selector: "image"
+                tagName: 'image',
+                selector: 'image'
             },
             {
-                tagName: "text",
-                selector: "label"
+                tagName: 'text',
+                selector: 'label'
             }
         ];
     }
 
     initialize(...args) {
         super.initialize(...args);
-        this.on("change:color", this.setImageColor);
+        this.on('change:color', this.setImageColor);
         this.setImageColor();
     }
 
     setImageColor() {
-        const svg = this.get("svg") || "";
-        const color = this.get("color") || "black";
+        const svg = this.get('svg') || '';
+        const color = this.get('color') || 'black';
         this.attr(
-            "image/href",
+            'image/href',
             this.dataURLPrefix + encodeURIComponent(svg.replace(/\$color/g, color))
         );
     }
@@ -187,16 +187,16 @@ const templateImage = new TemplateImage({
     svg: templateChristmasTreeSVG,
     attrs: {
         label: {
-            text: "Template Christmas Tree",
+            text: 'Template Christmas Tree',
             fontSize: 10
         }
     }
 });
 
 const [ti1, ti2, ti3] = addImages(templateImage, 220);
-ti1.set("color", "red");
-ti2.set("color", "purple");
-ti3.set("color", "orange");
+ti1.set('color', 'red');
+ti2.set('color', 'purple');
+ti3.set('color', 'orange');
 
 // ----------------------------------------------
 // 3. The original image is inserted directly into the markup and extended with selectors (and group-selectors)
@@ -239,21 +239,21 @@ class MarkupImage extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            type: "MarkupImage",
+            type: 'MarkupImage',
             attrs: {
                 root: {
-                    magnetSelector: "outline"
+                    magnetSelector: 'outline'
                 },
                 image: {
-                    width: "calc(w)",
-                    height: "calc(h)"
+                    width: 'calc(w)',
+                    height: 'calc(h)'
                 },
                 label: {
                     fontSize: 10,
-                    textVerticalAnchor: "top",
-                    textAnchor: "middle",
-                    x: "calc(0.5*w)",
-                    y: "calc(h + 10)"
+                    textVerticalAnchor: 'top',
+                    textAnchor: 'middle',
+                    x: 'calc(0.5*w)',
+                    y: 'calc(h + 10)'
                 }
             }
         };
@@ -268,26 +268,26 @@ shapes.MarkupImage = MarkupImage;
 const markupImage = new MarkupImage({
     attrs: {
         label: {
-            text: "Markup Christmas Tree"
+            text: 'Markup Christmas Tree'
         }
     }
 });
 
 const [mi1, mi2, mi3] = addImages(markupImage, 420);
-mi1.attr("balls/fill", "darkred");
-mi2.attr("balls/fill", "lightsalmon");
-mi3.attr("balls/fill", "white");
+mi1.attr('balls/fill', 'darkred');
+mi2.attr('balls/fill', 'lightsalmon');
+mi3.attr('balls/fill', 'white');
 
 // -----------------------------
 // Highlighters
 
 // Use highlighter with the image element (notice a slight difference in the highlight for markup style).
-highlighters.stroke.add(si2.findView(paper), "image", "h");
-highlighters.stroke.add(ti2.findView(paper), "image", "h");
-highlighters.stroke.add(mi2.findView(paper), "image", "h");
+highlighters.stroke.add(si2.findView(paper), 'image', 'h');
+highlighters.stroke.add(ti2.findView(paper), 'image', 'h');
+highlighters.stroke.add(mi2.findView(paper), 'image', 'h');
 
 // Use highlighter with an image sub-element (3).
-highlighters.stroke.add(mi3.findView(paper), "outline", "h", {
+highlighters.stroke.add(mi3.findView(paper), 'outline', 'h', {
     useFirstSubpath: true
 });
 
@@ -311,7 +311,7 @@ graph.addCells([link1, link2]);
 // Events
 // The sub-element is not clickable. Everything inside the image is a black-box (1,2)
 
-paper.on("element:mouseenter", (elementView) => {
+paper.on('element:mouseenter', (elementView) => {
     elementView.addTools(
         new dia.ToolsView({
             tools: [
@@ -319,12 +319,12 @@ paper.on("element:mouseenter", (elementView) => {
                     padding: 1,
                     useModelGeometry: true,
                     attributes: {
-                        fill: "#4a7bcb",
-                        "fill-opacity": 0.1,
-                        stroke: "#4a7bcb",
-                        "stroke-width": 2,
-                        "stroke-dasharray": "none",
-                        "pointer-events": "none",
+                        fill: '#4a7bcb',
+                        'fill-opacity': 0.1,
+                        stroke: '#4a7bcb',
+                        'stroke-width': 2,
+                        'stroke-dasharray': 'none',
+                        'pointer-events': 'none',
                         rx: 2,
                         ry: 2
                     }
@@ -335,7 +335,7 @@ paper.on("element:mouseenter", (elementView) => {
     );
 });
 
-paper.on("element:mouseleave", (elementView) => {
+paper.on('element:mouseleave', (elementView) => {
     elementView.removeTools();
 });
 

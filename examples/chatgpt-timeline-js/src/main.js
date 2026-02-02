@@ -1,17 +1,17 @@
-import { dia, shapes as defaultShapes, util, connectors } from '@joint/core';
+import { V, g, dia, shapes as defaultShapes, util, connectors } from '@joint/core';
 import './styles.css';
 
 const shapes = { ...defaultShapes };
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
+    width: '100%',
     gridSize: 20,
     async: true,
     sorting: dia.Paper.sorting.APPROX,
@@ -325,8 +325,8 @@ function serpentineLayout(graph, elements, options = {}) {
                 leftToRight = false;
                 if (index > 0) {
                     linkProps[index - 1] = {
-                        source: { anchor: { name: 'right' } },
-                        target: { anchor: { name: 'right' } },
+                        source: { anchor: { name: 'right' }},
+                        target: { anchor: { name: 'right' }},
                     };
                     if (alignRowLastElement) {
                         // Adjust the position of the previous element to make sure
@@ -347,8 +347,8 @@ function serpentineLayout(graph, elements, options = {}) {
                 leftToRight = true;
                 if (index > 0) {
                     linkProps[index - 1] = {
-                        source: { anchor: { name: 'left' } },
-                        target: { anchor: { name: 'left' } },
+                        source: { anchor: { name: 'left' }},
+                        target: { anchor: { name: 'left' }},
                     };
                     if (alignRowLastElement) {
                         // Adjust the position of the previous element to make sure
@@ -373,13 +373,13 @@ function serpentineLayout(graph, elements, options = {}) {
         if (index < links.length) {
             if (leftToRight) {
                 linkProps[index] = {
-                    source: { anchor: { name: 'right' } },
-                    target: { anchor: { name: 'left' } },
+                    source: { anchor: { name: 'right' }},
+                    target: { anchor: { name: 'left' }},
                 };
             } else {
                 linkProps[index] = {
-                    source: { anchor: { name: 'left' } },
-                    target: { anchor: { name: 'right' } },
+                    source: { anchor: { name: 'left' }},
+                    target: { anchor: { name: 'right' }},
                 };
             }
         }

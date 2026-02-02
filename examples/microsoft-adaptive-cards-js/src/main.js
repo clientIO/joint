@@ -1,9 +1,156 @@
 
-const { AdaptiveCard, HostConfig, SubmitAction, OpenUrlAction } = AdaptiveCards;
-import { dia } from '@joint/core';
+import { shapes as defaultShapes, dia } from '@joint/core';
+import { AdaptiveCard, HostConfig, SubmitAction, OpenUrlAction } from 'adaptivecards';
 import './styles.css';
 
-var graph = new dia.Graph();
+const shapes = { ...defaultShapes };
+
+const AdaptiveCardModel = dia.Element.define('AdaptiveCardModel', {
+    size: { width: 300, height: 0 },
+    z: 1,
+    template: null,
+    border: '2px solid #ddd',
+});
+shapes.AdaptiveCardModel = AdaptiveCardModel;
+
+const ACFlags = {
+    // RenderView is used to render the adaptive card inside the foreign object
+    RenderView: '@render-view',
+    // UpdateView is used to update the size of the foreign object
+    // and the color of border
+    UpdateView: '@update-view',
+    // TransformView is used to position and rotate the view
+    TransformView: '@transform-view',
+    // MeasureView is used to measure the view and update
+    // the size of the model
+    MeasureView: '@measure-view'
+};
+
+// The `AdaptiveCardModelView` is a custom view for the `AdaptiveCardModel` model.
+// It is responsible for rendering the adaptive card inside the foreign object.
+// It is located in the same namespace as the model so that it is automatically
+// used when the model is added to the graph.
+// The convention is to name the view as `[-model-name-]View`.
+shapes.AdaptiveCardModelView = dia.ElementView.extend({
+
+    // The root of the element view is the <g> element by default.
+    tagName: 'foreignObject',
+
+    // Whenever the model attributes change (the map key is the attribute name),
+    // the update flag will be reported to the paper and on the next frame of the animation
+    // the update() method will be called, which will contain all the flags that were reported.
+    presentationAttributes: {
+        size: [ACFlags.UpdateView],
+        position: [ACFlags.TransformView],
+        angle: [ACFlags.TransformView],
+        template: [ACFlags.RenderView],
+        border: [ACFlags.UpdateView],
+    },
+
+    // The initFlag property is a list of flags that will be reported to the paper
+    // when the element view is initialized.
+    initFlag: [ACFlags.RenderView, ACFlags.UpdateView, ACFlags.TransformView, ACFlags.MeasureView],
+
+    confirmUpdate: function(flags) {
+        if (this.hasFlag(flags, ACFlags.RenderView)) this.render();
+        if (this.hasFlag(flags, ACFlags.UpdateView)) this.update();
+        // `updateTransformation` is the original method of the `dia.ElementView`
+        // it applies the `transform` attribute to the root element i.e. the `<foreignObject>`
+        if (this.hasFlag(flags, ACFlags.TransformView)) this.updateTransformation();
+        if (this.hasFlag(flags, ACFlags.MeasureView)) this.resizeModel();
+    },
+
+    init: function() {
+        // Create an AdaptiveCard instance
+        const adaptiveCard = new AdaptiveCard();
+        // Set the host styling
+        adaptiveCard.hostConfig = acHostConfig;
+        // Set the adaptive card's event handlers. onExecuteAction is invoked
+        // whenever an action is clicked in the card
+        adaptiveCard.onExecuteAction = (action) => this.onExecuteAction(action);
+        // Keep a reference to the AdaptiveCard instance
+        this.adaptiveCard = adaptiveCard;
+        // Create a ResizeObserver to measure the card's size
+        this.resizeObserver = new ResizeObserver(() => this.requestMeasurement());
+    },
+
+    onExecuteAction: function(action) {
+        if (action instanceof SubmitAction) {
+            this.notify('element:submit', action.data);
+        }
+        if (action instanceof OpenUrlAction) {
+            this.notify('element:open-url', action.url);
+        }
+    },
+
+    onRemove() {
+        this.releaseResources();
+    },
+
+    releaseResources() {
+        const { el, adaptiveCard, resizeObserver } = this;
+        if (!adaptiveCard.renderedElement) return;
+        el.removeChild(adaptiveCard.renderedElement);
+        adaptiveCard.releaseDOMResources();
+        resizeObserver.disconnect();
+    },
+
+    render: function() {
+        const { el, model, adaptiveCard, resizeObserver } = this;
+        this.releaseResources();
+        // Parse the card payload
+        adaptiveCard.parse(model.get('template'));
+        // Render the card to an HTML element:
+        const cardEl = adaptiveCard.render();
+        el.appendChild(cardEl);
+        // Observe the card's size changes
+        resizeObserver.observe(cardEl);
+    },
+
+    requestMeasurement(opt = {}) {
+        this.requestUpdate(this.getFlag(ACFlags.MeasureView), opt);
+    },
+
+    resizeModel() {
+        const { model, adaptiveCard } = this;
+        if (!adaptiveCard.renderedElement) return;
+        const { width, height } = model.size();
+        const acHeight = adaptiveCard.renderedElement.offsetHeight;
+        if (height === acHeight) return;
+        // Resize the model to fit the rendered card.
+        // Note that the model is resized only vertically.
+        // We pass the view id to the resize method to make it possible
+        // this event to be ignored by for instance the command manager (undo/redo)
+        // which is not interested in this event.
+        //
+        // new ui.CommandManager({
+        //   graph,
+        //   cmdBeforeAdd: (...args: any[]) => {
+        //     const options = args[args.length - 1];
+        //     if (options.view) return false;
+        //     return true;
+        //   }
+        // });
+        model.resize(width, acHeight, { view: this.cid });
+        this.update();
+    },
+
+    update: function() {
+        const { el, model, adaptiveCard } = this;
+        // Set the size of the <foreignObject> element.
+        const { width, height } = model.size();
+        el.setAttribute('width', width);
+        el.setAttribute('height', height);
+        // Set the border of the card.
+        adaptiveCard.renderedElement.style.border = model.get('border');
+        // Clean the cache of the nodes that are used to render the card
+        // (the cache contains the position and size of the nodes that could
+        // have been changed during the resize of the card).
+        this.cleanNodesCache();
+    }
+});
+
+var graph = new dia.Graph({}, { cellNamespace: shapes });
 var paper = new dia.Paper({
     el: document.getElementById('paper'),
     width: 1800,
@@ -13,6 +160,7 @@ var paper = new dia.Paper({
     sorting: dia.Paper.sorting.APPROX,
     overflow: true,
     interactive: { linkMove: false },
+    cellViewNamespace: shapes,
     defaultAnchor: {
         name: 'modelCenter',
     },
@@ -155,150 +303,6 @@ const acHostConfig = new HostConfig({
     },
     textBlock: {
         headingLevel: 1
-    }
-});
-
-const AdaptiveCardModel = dia.Element.define('AdaptiveCardModel', {
-    size: { width: 300, height: 0 },
-    z: 1,
-    template: null,
-    border: '2px solid #ddd',
-});
-
-const ACFlags = {
-    // RenderView is used to render the adaptive card inside the foreign object
-    RenderView: '@render-view',
-    // UpdateView is used to update the size of the foreign object
-    // and the color of border
-    UpdateView: '@update-view',
-    // TransformView is used to position and rotate the view
-    TransformView: '@transform-view',
-    // MeasureView is used to measure the view and update
-    // the size of the model
-    MeasureView: '@measure-view'
-};
-
-// The `AdaptiveCardModelView` is a custom view for the `AdaptiveCardModel` model.
-// It is responsible for rendering the adaptive card inside the foreign object.
-// It is located in the same namespace as the model so that it is automatically
-// used when the model is added to the graph.
-// The convention is to name the view as `[-model-name-]View`.
-shapes.AdaptiveCardModelView = dia.ElementView.extend({
-
-    // The root of the element view is the <g> element by default.
-    tagName: 'foreignObject',
-
-    // Whenever the model attributes change (the map key is the attribute name),
-    // the update flag will be reported to the paper and on the next frame of the animation
-    // the update() method will be called, which will contain all the flags that were reported.
-    presentationAttributes: {
-        size: [ACFlags.UpdateView],
-        position: [ACFlags.TransformView],
-        angle: [ACFlags.TransformView],
-        template: [ACFlags.RenderView],
-        border: [ACFlags.UpdateView],
-    },
-
-    // The initFlag property is a list of flags that will be reported to the paper
-    // when the element view is initialized.
-    initFlag: [ACFlags.RenderView, ACFlags.UpdateView, ACFlags.TransformView, ACFlags.MeasureView],
-
-    confirmUpdate: function (flags) {
-        if (this.hasFlag(flags, ACFlags.RenderView)) this.render();
-        if (this.hasFlag(flags, ACFlags.UpdateView)) this.update();
-        // `updateTransformation` is the original method of the `dia.ElementView`
-        // it applies the `transform` attribute to the root element i.e. the `<foreignObject>`
-        if (this.hasFlag(flags, ACFlags.TransformView)) this.updateTransformation();
-        if (this.hasFlag(flags, ACFlags.MeasureView)) this.resizeModel();
-    },
-
-    init: function () {
-        // Create an AdaptiveCard instance
-        const adaptiveCard = new AdaptiveCard();
-        // Set the host styling
-        adaptiveCard.hostConfig = acHostConfig;
-        // Set the adaptive card's event handlers. onExecuteAction is invoked
-        // whenever an action is clicked in the card
-        adaptiveCard.onExecuteAction = (action) => this.onExecuteAction(action);
-        // Keep a reference to the AdaptiveCard instance
-        this.adaptiveCard = adaptiveCard;
-        // Create a ResizeObserver to measure the card's size
-        this.resizeObserver = new ResizeObserver(() => this.requestMeasurement());
-    },
-
-    onExecuteAction: function (action) {
-        if (action instanceof SubmitAction) {
-            this.notify('element:submit', action.data);
-        }
-        if (action instanceof OpenUrlAction) {
-            this.notify('element:open-url', action.url);
-        }
-    },
-
-    onRemove() {
-        this.releaseResources();
-    },
-
-    releaseResources() {
-        const { el, adaptiveCard, resizeObserver } = this;
-        if (!adaptiveCard.renderedElement) return;
-        el.removeChild(adaptiveCard.renderedElement);
-        adaptiveCard.releaseDOMResources();
-        resizeObserver.disconnect();
-    },
-
-    render: function () {
-        const { el, model, adaptiveCard, resizeObserver } = this;
-        this.releaseResources();
-        // Parse the card payload
-        adaptiveCard.parse(model.get('template'));
-        // Render the card to an HTML element:
-        const cardEl = adaptiveCard.render();
-        el.appendChild(cardEl);
-        // Observe the card's size changes
-        resizeObserver.observe(cardEl);
-    },
-
-    requestMeasurement(opt = {}) {
-        this.requestUpdate(this.getFlag(ACFlags.MeasureView), opt);
-    },
-
-    resizeModel() {
-        const { model, adaptiveCard } = this;
-        if (!adaptiveCard.renderedElement) return;
-        const { width, height } = model.size();
-        const acHeight = adaptiveCard.renderedElement.offsetHeight;
-        if (height === acHeight) return;
-        // Resize the model to fit the rendered card.
-        // Note that the model is resized only vertically.
-        // We pass the view id to the resize method to make it possible
-        // this event to be ignored by for instance the command manager (undo/redo)
-        // which is not interested in this event.
-        //
-        // new ui.CommandManager({
-        //   graph,
-        //   cmdBeforeAdd: (...args: any[]) => {
-        //     const options = args[args.length - 1];
-        //     if (options.view) return false;
-        //     return true;
-        //   }
-        // });
-        model.resize(width, acHeight, { view: this.cid });
-        this.update();
-    },
-
-    update: function () {
-        const { el, model, adaptiveCard } = this;
-        // Set the size of the <foreignObject> element.
-        const { width, height } = model.size();
-        el.setAttribute('width', width);
-        el.setAttribute('height', height);
-        // Set the border of the card.
-        adaptiveCard.renderedElement.style.border = model.get('border');
-        // Clean the cache of the nodes that are used to render the card
-        // (the cache contains the position and size of the nodes that could
-        // have been changed during the resize of the card).
-        this.cleanNodesCache();
     }
 });
 

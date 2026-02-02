@@ -1,13 +1,13 @@
 import { dia, shapes, util } from '@joint/core';
 import './styles.css';
 
-const BG_COLOR = "#f4f7f6";
-const FG_COLOR = "#131e29";
+const BG_COLOR = '#f4f7f6';
+const FG_COLOR = '#131e29';
 
 const graph = new dia.Graph();
 const paper = new dia.Paper({
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     frozen: true,
     model: graph,
     interactive: false,
@@ -15,7 +15,7 @@ const paper = new dia.Paper({
     sorting: dia.Paper.sorting.NONE
 });
 
-document.getElementById("paper-container").appendChild(paper.el);
+document.getElementById('paper-container').appendChild(paper.el);
 
 // The `stroke` of the marker is in JointJS inherited from the link by default.
 const markers = [
@@ -510,11 +510,11 @@ const hint = new shapes.standard.Rectangle({
     },
     attrs: {
         root: {
-            pointerEvents: "none"
+            pointerEvents: 'none'
         },
         body: {
             fill: {
-                type: "pattern",
+                type: 'pattern',
                 markup: util.svg`
                     <text x="10" y="20"
                           fill="#ed2637"
@@ -528,7 +528,7 @@ const hint = new shapes.standard.Rectangle({
                     height: 30
                 }
             },
-            stroke: "#0075f2",
+            stroke: '#0075f2',
             rx: 2,
             ry: 2
         }
@@ -545,44 +545,44 @@ paper.unfreeze();
 const transformToFitContent = () =>
     paper.transformToFitContent({
         padding: 50,
-        verticalAlign: "middle",
-        horizontalAlign: "middle"
+        verticalAlign: 'middle',
+        horizontalAlign: 'middle'
     });
 
-window.addEventListener("resize", () => transformToFitContent());
+window.addEventListener('resize', () => transformToFitContent());
 transformToFitContent();
 
 // Zooming
 
 // Custom highlighter that shows a text next to the link
 const TextHighlighter = dia.HighlighterView.extend({
-    tagName: "text",
+    tagName: 'text',
     attributes: {
-        fill: "#ed2637",
-        "pointer-events": "none",
-        "text-anchor": "middle",
-        "font-size": 8,
-        "font-family": "sans-serif",
+        fill: '#ed2637',
+        'pointer-events': 'none',
+        'text-anchor': 'middle',
+        'font-size': 8,
+        'font-family': 'sans-serif',
         opacity: 0
     },
     style: {
-        transition: "opacity 0.3s 0.6s ease"
+        transition: 'opacity 0.3s 0.6s ease'
     },
     highlight(linkView) {
-        const { text = "", ratio = 0.5, dx = 0, dy = 0 } = this.options;
+        const { text = '', ratio = 0.5, dx = 0, dy = 0 } = this.options;
         const point = linkView.getPointAtRatio(ratio);
-        this.vel.text(text || "", { textVerticalAnchor: "middle" });
-        this.vel.attr("transform", `translate(${point.x + dx} ${point.y + dy})`);
+        this.vel.text(text || '', { textVerticalAnchor: 'middle' });
+        this.vel.attr('transform', `translate(${point.x + dx} ${point.y + dy})`);
         // for the animation to work we need to set the opacity
         // in the next animatin frame
-        util.nextFrame(() => this.vel.attr("opacity", 1));
+        util.nextFrame(() => this.vel.attr('opacity', 1));
     }
 });
 
 let currentLink = null;
 
 paper.on({
-    "link:pointerdown": (linkView, evt) => {
+    'link:pointerdown': (linkView, evt) => {
         const { model: link } = linkView;
         const bbox = link.getBBox();
         if (currentLink === link) {
@@ -592,8 +592,8 @@ paper.on({
             bbox.height = LINK_BBOX_HEIGHT / 2;
             paper.transformToFitContent({
                 contentArea: bbox,
-                horizontalAlign: "middle",
-                verticalAlign: "middle"
+                horizontalAlign: 'middle',
+                verticalAlign: 'middle'
             });
         } else {
             // Zoom into the link
@@ -601,28 +601,28 @@ paper.on({
             bbox.inflate(20);
             paper.transformToFitContent({
                 contentArea: bbox,
-                horizontalAlign: "middle",
-                verticalAlign: "middle"
+                horizontalAlign: 'middle',
+                verticalAlign: 'middle'
             });
-            TextHighlighter.removeAll(paper, "number");
-            TextHighlighter.add(linkView, "root", "number", {
+            TextHighlighter.removeAll(paper, 'number');
+            TextHighlighter.add(linkView, 'root', 'number', {
                 layer: dia.Paper.Layers.FRONT,
-                text: `#${link.get("number")}`,
+                text: `#${link.get('number')}`,
                 ratio: 0,
                 dx: -20,
                 dy: -10
             });
         }
-        paper.el.classList.add("marker-details");
+        paper.el.classList.add('marker-details');
     },
-    "blank:pointerdown": (evt) => {
+    'blank:pointerdown': (evt) => {
         // Zoom back to all the links
         currentLink = null;
         transformToFitContent();
-        TextHighlighter.removeAll(paper, "number");
-        paper.el.classList.remove("marker-details");
+        TextHighlighter.removeAll(paper, 'number');
+        paper.el.classList.remove('marker-details');
     }
 });
 
 // Enable animations in Chrome
-paper.layers.style.transition = "transform 250ms";
+paper.layers.style.transition = 'transform 250ms';

@@ -3288,6 +3288,7 @@ __metadata:
   resolution: "@joint/demo-hexagonal-grid-js@workspace:examples/hexagonal-grid-js"
   dependencies:
     "@joint/core": "workspace:^"
+    honeycomb-grid: "npm:^3.1.8"
     vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
@@ -3486,6 +3487,8 @@ __metadata:
   resolution: "@joint/demo-microsoft-adaptive-cards-js@workspace:examples/microsoft-adaptive-cards-js"
   dependencies:
     "@joint/core": "workspace:^"
+    adaptivecards: "npm:^3.0.5"
+    swiper: "npm:^12.1.0"
     vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
@@ -7548,6 +7551,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"adaptivecards@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "adaptivecards@npm:3.0.5"
+  peerDependencies:
+    swiper: ^11.0.7
+  checksum: 10/b883933197931854c9ba103b09d59d3a15ceddc6f223a8e9333eed9dd7afca4456af7283b9a8e0c6c624315f6c4dfb9fc35ed7f8101f143b86dfc6aa757b8667
+  languageName: node
+  linkType: hard
+
 "agent-base@npm:6":
   version: 6.0.2
   resolution: "agent-base@npm:6.0.2"
@@ -8235,6 +8247,13 @@ __metadata:
   version: 4.11.1
   resolution: "axe-core@npm:4.11.1"
   checksum: 10/bbc8e8959258a229b92fbaa73437050825579815051cac7b0fdbb6752946fea226e403bfeeef3d60d712477bdd4c01afdc8455f27c3d85e4251df88b032b6250
+  languageName: node
+  linkType: hard
+
+"axis.js@npm:1.2.1":
+  version: 1.2.1
+  resolution: "axis.js@npm:1.2.1"
+  checksum: 10/71507b0ae9f332cad8947f21da5b38744e9fc8bd8f480c122894a92e693e5a33eca34f0aa97ba6aa9ad4f8900ac9be893b5e8087f2e6375138d54054ef17ca24
   languageName: node
   linkType: hard
 
@@ -14613,6 +14632,15 @@ __metadata:
   dependencies:
     parse-passwd: "npm:^1.0.0"
   checksum: 10/18dd4db87052c6a2179d1813adea0c4bfcfa4f9996f0e226fefb29eb3d548e564350fa28ec46b0bf1fbc0a1d2d6922ceceb80093115ea45ff8842a4990139250
+  languageName: node
+  linkType: hard
+
+"honeycomb-grid@npm:^3.1.8":
+  version: 3.1.8
+  resolution: "honeycomb-grid@npm:3.1.8"
+  dependencies:
+    axis.js: "npm:1.2.1"
+  checksum: 10/63474ed431072250ade269bc08dc7383c534045e78b1f8fb659070ba3035f97bedcc0248826abe69f8d6198eb2a5013083c1de511a568f7ffa9673f0afc3f285
   languageName: node
   linkType: hard
 
@@ -22721,6 +22749,13 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 10/a9dc19ae2220c952bd2231d08ddeecb1b0328b61e72071ff4000c8384e145cc07c1c0bdb3b5a1cb06e186a7b2790f1dee793418b332f6ddf320de25d9125be7e
+  languageName: node
+  linkType: hard
+
+"swiper@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "swiper@npm:12.1.0"
+  checksum: 10/16d2904592dcb8f7a525ddc11166a2c5a70b00f1d76281bacb138075f64c2e4479e54b1ad4d5c048eec4d7d8d89b728eea8918330f7d03d23335a532d4ce9fca
   languageName: node
   linkType: hard
 

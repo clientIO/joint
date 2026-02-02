@@ -1,37 +1,37 @@
-import { dia, shapes } from '@joint/core';
+import { g, dia, shapes } from '@joint/core';
 import './styles.css';
 const { Point } = g;
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 20,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 paperContainer.appendChild(paper.el);
 
 const Link = dia.Link.define(
-    "Link",
+    'Link',
     {
         attrs: {
             line: {
                 connection: true,
-                fill: "none",
+                fill: 'none',
                 targetMarker: {
-                    "stroke-width": 1,
-                    markerUnits: "strokeWidth", // the default is `userSpaceOnUse`
-                    d: "M 1,-1 0,0 1,1 Z"
+                    'stroke-width': 1,
+                    markerUnits: 'strokeWidth', // the default is `userSpaceOnUse`
+                    d: 'M 1,-1 0,0 1,1 Z'
                     // fill: 'blue',  if not defined, we use 'stroke' of the line`
                     // stroke: 'blue',  if not defined, we use 'stroke' of the line`
                 }
@@ -41,8 +41,8 @@ const Link = dia.Link.define(
     {
         markup: [
             {
-                tagName: "path",
-                selector: "line"
+                tagName: 'path',
+                selector: 'line'
             }
         ]
     }
@@ -51,7 +51,7 @@ const Link = dia.Link.define(
 const link1 = new Link({
     attrs: {
         line: {
-            stroke: "red",
+            stroke: 'red',
             strokeWidth: 2
         }
     }
@@ -63,7 +63,7 @@ link1.addTo(graph);
 const link2 = new Link({
     attrs: {
         line: {
-            stroke: "blue",
+            stroke: 'blue',
             strokeWidth: 4
         }
     }
@@ -75,7 +75,7 @@ link2.addTo(graph);
 const link3 = new Link({
     attrs: {
         line: {
-            stroke: "green",
+            stroke: 'green',
             strokeWidth: 6
         }
     }

@@ -1,7 +1,8 @@
-import { dia, shapes, elementTools } from '@joint/core';
+import { V, dia, shapes, elementTools } from '@joint/core';
+import { extendHex, defineGrid } from 'honeycomb-grid';
 import './styles.scss';
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
@@ -10,20 +11,20 @@ const paper = new dia.Paper({
     frozen: true,
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#ffffff" },
+    background: { color: '#ffffff' },
     linkPinning: false,
     clickThreshold: 10,
     defaultLink: () => new shapes.standard.Link(),
-    el: document.getElementById("paper"),
+    el: document.getElementById('paper'),
     highlighting: {
         connecting: {
-            name: "mask",
+            name: 'mask',
             options: {
                 attrs: {
-                    stroke: "#80aaff",
-                    "stroke-width": 4,
-                    "stroke-linecap": "butt",
-                    "stroke-linejoin": "miter"
+                    stroke: '#80aaff',
+                    'stroke-width': 4,
+                    'stroke-linecap': 'butt',
+                    'stroke-linejoin': 'miter'
                 }
             }
         }
@@ -34,18 +35,18 @@ const paper = new dia.Paper({
         return s.isElement() && t.isElement() && s !== t;
     },
     defaultConnectionPoint: {
-        name: "boundary"
+        name: 'boundary'
     }
 });
 
 paperContainer.appendChild(paper.el);
 
-const Hex = Honeycomb.extendHex({
+const Hex = extendHex({
     size: 50,
-    orientation: "flat"
+    orientation: 'flat'
 });
 
-const Grid = Honeycomb.defineGrid(Hex);
+const Grid = defineGrid(Hex);
 
 const size = 9;
 const grid = Grid.rectangle({ width: size, height: size });
@@ -54,18 +55,18 @@ const hex = Hex();
 
 // get the corners of a hex (they're the same for all hexes created with the same Hex factory)
 const corners = Hex().corners();
-const points = corners.map(({ x, y }) => `${x},${y}`).join(" ");
+const points = corners.map(({ x, y }) => `${x},${y}`).join(' ');
 
 // an SVG symbol can be reused
 
-const { node: gridEl } = V("g").addClass("hexagon-grid");
+const { node: gridEl } = V('g').addClass('hexagon-grid');
 
 grid.forEach((hex) => {
     const { x, y } = hex.toPoint();
-    const { node: polygonEl } = V("polygon")
-        .addClass("hexagon")
-        .attr("points", points)
-        .attr("transform", `translate(${x}, ${y})`);
+    const { node: polygonEl } = V('polygon')
+        .addClass('hexagon')
+        .attr('points', points)
+        .attr('transform', `translate(${x}, ${y})`);
     gridEl.append(polygonEl);
 });
 
@@ -73,7 +74,7 @@ paper.getLayerNode(dia.Paper.Layers.BACK).prepend(gridEl);
 
 paper.setDimensions(grid.pointWidth(), grid.pointHeight());
 
-paper.options.restrictTranslate = function (elementView, px, py) {
+paper.options.restrictTranslate = function(elementView, px, py) {
     const { x: x0, y: y0 } = elementView.model.position();
     const dx = x0 - px;
     const dy = y0 - py;
@@ -91,8 +92,8 @@ const hexagon = new shapes.standard.Polygon({
     size: { width: hex.width(), height: hex.height() },
     attrs: {
         root: {
-            highlighterSelector: "body",
-            magnetSelector: "root"
+            highlighterSelector: 'body',
+            magnetSelector: 'root'
         },
         body: {
             refPoints: points
@@ -118,22 +119,22 @@ const hexagon3 = createHexagon(5, 5);
 const link1 = createLink(hexagon1, hexagon2);
 const link2 = createLink(hexagon1, hexagon3);
 
-graph.on("add", (cell) => {
+graph.on('add', (cell) => {
     if (cell.isLink()) return;
     const tools = new dia.ToolsView({
         tools: [
             new elementTools.Connect({
                 useModelGeometry: true,
-                x: "50%",
-                y: "100%",
+                x: '50%',
+                y: '100%',
                 offset: { x: -10 }
             }),
             new elementTools.Button({
                 useModelGeometry: true,
-                x: "50%",
-                y: "100%",
+                x: '50%',
+                y: '100%',
                 offset: { x: 10 },
-                action: function (evt, elementView) {
+                action: function(evt, elementView) {
                     const sourceHexagon = elementView.model;
                     const { x, y } = sourceHexagon.getBBox().center();
                     const hex = Grid.pointToHex(x, y);
@@ -147,23 +148,23 @@ graph.on("add", (cell) => {
                 },
                 markup: [
                     {
-                        tagName: "circle",
-                        selector: "button",
+                        tagName: 'circle',
+                        selector: 'button',
                         attributes: {
                             r: 7,
-                            fill: "#333333",
-                            cursor: "pointer"
+                            fill: '#333333',
+                            cursor: 'pointer'
                         }
                     },
                     {
-                        tagName: "path",
-                        selector: "icon",
+                        tagName: 'path',
+                        selector: 'icon',
                         attributes: {
-                            d: "M -4 0 4 0 M 0 -4 0 4",
-                            fill: "none",
-                            stroke: "#FFFFFF",
-                            "stroke-width": 2,
-                            "pointer-events": "none"
+                            d: 'M -4 0 4 0 M 0 -4 0 4',
+                            fill: 'none',
+                            stroke: '#FFFFFF',
+                            'stroke-width': 2,
+                            'pointer-events': 'none'
                         }
                     }
                 ]
@@ -177,13 +178,13 @@ graph.addCells([hexagon1, hexagon2, hexagon3, link1, link2]);
 
 paper.unfreeze();
 
-paper.on("blank:pointerclick", (evt, x, y) => {
+paper.on('blank:pointerclick', (evt, x, y) => {
     const hex = Grid.pointToHex(x, y);
     const hexagon = createHexagon(hex.x, hex.y);
     graph.addCell(hexagon);
 });
 
 paper.on({
-    "cell:pointerdown": () => gridEl.classList.add("disabled"),
-    "cell:pointerup": () => gridEl.classList.remove("disabled")
+    'cell:pointerdown': () => gridEl.classList.add('disabled'),
+    'cell:pointerup': () => gridEl.classList.remove('disabled')
 });

@@ -1,17 +1,17 @@
 import { shapes as defaultShapes, dia, util, linkTools } from '@joint/core';
 import './styles.css';
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const COLORS = [
-    "#3f84e5",
-    "#49306B",
-    "#fe7f2d",
-    "#ad343e",
-    "#899e8b",
-    "#ede9e9",
-    "#b2a29f",
-    "#392F2D"
+    '#3f84e5',
+    '#49306B',
+    '#fe7f2d',
+    '#ad343e',
+    '#899e8b',
+    '#ede9e9',
+    '#b2a29f',
+    '#392F2D'
 ];
 
 const logo = /* xml */ `
@@ -23,9 +23,9 @@ const logo = /* xml */ `
 const shapes = { ...defaultShapes };
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
-    el: document.getElementById("paper"),
-    width: "100%",
-    height: "100%",
+    el: document.getElementById('paper'),
+    width: '100%',
+    height: '100%',
     model: graph,
     async: true,
     multiLinks: false,
@@ -33,29 +33,29 @@ const paper = new dia.Paper({
     cellViewNamespace: shapes,
     sorting: dia.Paper.sorting.APPROX,
     defaultConnectionPoint: {
-        name: "boundary",
+        name: 'boundary',
         args: {
             offset: 5
         }
     },
     defaultConnector: {
-        name: "jumpover"
+        name: 'jumpover'
     },
     background: {
-        color: "#f6f4f4"
+        color: '#f6f4f4'
     },
     highlighting: {
         connecting: {
-            name: "mask",
+            name: 'mask',
             options: {
                 attrs: {
-                    stroke: "#0A100D",
-                    "stroke-width": 3
+                    stroke: '#0A100D',
+                    'stroke-width': 3
                 }
             }
         }
     },
-    restrictTranslate: function (elementView) {
+    restrictTranslate: function(elementView) {
         const parent = elementView.model.getParentCell();
         if (parent) {
             // use cases movement is constrained by the parent area
@@ -63,7 +63,7 @@ const paper = new dia.Paper({
         }
         return null;
     },
-    validateConnection: function (cellViewS, _, cellViewT) {
+    validateConnection: function(cellViewS, _, cellViewT) {
         if (cellViewT.model instanceof UseCase) return true;
         return false;
     }
@@ -75,11 +75,11 @@ class Boundary extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            type: "Boundary",
+            type: 'Boundary',
             attrs: {
                 body: {
-                    width: "calc(w)",
-                    height: "calc(h)",
+                    width: 'calc(w)',
+                    height: 'calc(h)',
                     fill: COLORS[5],
                     stroke: COLORS[6],
                     strokeWidth: 1,
@@ -88,19 +88,19 @@ class Boundary extends dia.Element {
                 },
                 label: {
                     y: 10,
-                    x: "calc(w / 2)",
-                    textAnchor: "middle",
-                    textVerticalAnchor: "top",
+                    x: 'calc(w / 2)',
+                    textAnchor: 'middle',
+                    textVerticalAnchor: 'top',
                     fontSize: 18,
-                    fontFamily: "sans-serif",
-                    fontWeight: "bold",
+                    fontFamily: 'sans-serif',
+                    fontWeight: 'bold',
                     fill: COLORS[7]
                 },
                 logo: {
                     width: 200,
                     height: 100,
-                    x: "calc(w - 200)",
-                    y: "calc(h - 100)",
+                    x: 'calc(w - 200)',
+                    y: 'calc(h - 100)',
                     xlinkHref: `data:image/svg+xml;utf8,${encodeURIComponent(logo)}`
                 }
             }
@@ -125,37 +125,37 @@ class Actor extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            type: "Actor",
+            type: 'Actor',
             attrs: {
                 background: {
-                    width: "calc(w)",
-                    height: "calc(h)",
-                    fill: "transparent"
+                    width: 'calc(w)',
+                    height: 'calc(h)',
+                    fill: 'transparent'
                 },
                 body: {
                     d: `M 0 calc(0.4 * h) h calc(w) M 0 calc(h) calc(0.5 * w) calc(${legsY} * h) calc(w) calc(h) M calc(0.5 * w) calc(${legsY} * h) V calc(${bodyY} * h)`,
-                    fill: "none",
+                    fill: 'none',
                     stroke: COLORS[7],
                     strokeWidth: 2
                 },
                 head: {
-                    cx: "calc(0.5 * w)",
+                    cx: 'calc(0.5 * w)',
                     cy: `calc(${headY} * h)`,
                     r: `calc(${headY} * h)`,
                     stroke: COLORS[7],
                     strokeWidth: 2,
-                    fill: "#ffffff"
+                    fill: '#ffffff'
                 },
                 label: {
-                    y: "calc(h + 10)",
-                    x: "calc(0.5 * w)",
-                    textAnchor: "middle",
-                    textVerticalAnchor: "top",
+                    y: 'calc(h + 10)',
+                    x: 'calc(0.5 * w)',
+                    textAnchor: 'middle',
+                    textVerticalAnchor: 'top',
                     fontSize: 14,
-                    fontFamily: "sans-serif",
+                    fontFamily: 'sans-serif',
                     fill: COLORS[7],
                     textWrap: {
-                        width: "calc(3 * w)",
+                        width: 'calc(3 * w)',
                         height: null
                     }
                 }
@@ -178,30 +178,30 @@ class UseCase extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            type: "UseCase",
+            type: 'UseCase',
             attrs: {
                 root: {
-                    highlighterSelector: "body"
+                    highlighterSelector: 'body'
                 },
                 body: {
-                    cx: "calc(0.5 * w)",
-                    cy: "calc(0.5 * h)",
-                    rx: "calc(0.5 * w)",
-                    ry: "calc(0.5 * h)",
+                    cx: 'calc(0.5 * w)',
+                    cy: 'calc(0.5 * h)',
+                    rx: 'calc(0.5 * w)',
+                    ry: 'calc(0.5 * h)',
                     stroke: COLORS[7],
                     strokeWidth: 2
                 },
                 label: {
-                    x: "calc(0.5 * w)",
-                    y: "calc(0.5 * h)",
-                    textVerticalAnchor: "middle",
-                    textAnchor: "middle",
+                    x: 'calc(0.5 * w)',
+                    y: 'calc(0.5 * h)',
+                    textVerticalAnchor: 'middle',
+                    textAnchor: 'middle',
                     fontSize: 14,
-                    fontFamily: "sans-serif",
-                    fill: "#ffffff",
+                    fontFamily: 'sans-serif',
+                    fill: '#ffffff',
                     textWrap: {
-                        width: "calc(w - 30)",
-                        height: "calc(h - 10)",
+                        width: 'calc(w - 30)',
+                        height: 'calc(h - 10)',
                         ellipsis: true
                     }
                 }
@@ -222,7 +222,7 @@ class Use extends shapes.standard.Link {
     defaults() {
         return util.defaultsDeep(
             {
-                type: "Use",
+                type: 'Use',
                 attrs: {
                     line: {
                         stroke: COLORS[7],
@@ -239,13 +239,13 @@ class Use extends shapes.standard.Link {
 const lineAttrs = {
     stroke: COLORS[7],
     strokeWidth: 2,
-    strokeDasharray: "6,2",
+    strokeDasharray: '6,2',
     targetMarker: {
-        type: "path",
-        fill: "none",
+        type: 'path',
+        fill: 'none',
         stroke: COLORS[7],
-        "stroke-width": 2,
-        d: "M 10 -5 0 0 10 5"
+        'stroke-width': 2,
+        d: 'M 10 -5 0 0 10 5'
     }
 };
 
@@ -259,17 +259,17 @@ const defaultLabel = {
         labelText: {
             fill: COLORS[7],
             fontSize: 12,
-            fontFamily: "sans-serif",
-            fontWeight: "bold",
-            textAnchor: "middle",
-            textVerticalAnchor: "middle"
+            fontFamily: 'sans-serif',
+            fontWeight: 'bold',
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle'
         },
         labelBody: {
-            ref: "labelText",
-            x: "calc(x - 2)",
-            y: "calc(y - 2)",
-            width: "calc(w + 4)",
-            height: "calc(h + 4)",
+            ref: 'labelText',
+            x: 'calc(x - 2)',
+            y: 'calc(y - 2)',
+            width: 'calc(w + 4)',
+            height: 'calc(h + 4)',
             fill: COLORS[5]
         }
     }
@@ -279,7 +279,7 @@ class Include extends shapes.standard.Link {
     defaults() {
         return util.defaultsDeep(
             {
-                type: "Include",
+                type: 'Include',
                 attrs: {
                     line: lineAttrs
                 },
@@ -288,7 +288,7 @@ class Include extends shapes.standard.Link {
                     {
                         attrs: {
                             labelText: {
-                                text: "<<include>>",
+                                text: '<<include>>',
                                 annotations: [
                                     {
                                         start: 0,
@@ -319,7 +319,7 @@ class Extend extends shapes.standard.Link {
     defaults() {
         return util.defaultsDeep(
             {
-                type: "Extend",
+                type: 'Extend',
                 attrs: {
                     line: lineAttrs
                 },
@@ -328,7 +328,7 @@ class Extend extends shapes.standard.Link {
                     {
                         attrs: {
                             labelText: {
-                                text: "<<extend>>",
+                                text: '<<extend>>',
                                 annotations: [
                                     {
                                         start: 0,
@@ -408,7 +408,7 @@ function createUse(source, target) {
         source: {
             id: source.id,
             connectionPoint: {
-                name: "rectangle",
+                name: 'rectangle',
                 args: {
                     offset: 5
                 }
@@ -443,60 +443,60 @@ const boundary = new Boundary({
     },
     attrs: {
         label: {
-            text: "JointJS Support System"
+            text: 'JointJS Support System'
         }
     }
 });
 
 const packageHolder = createActor(
-    "JointJS+ Support Package Subscriber",
+    'JointJS+ Support Package Subscriber',
     100,
     400,
     COLORS[0]
 );
 const jointJSPlusUser = createActor(
-    "JointJS+ User\n(Commercial)",
+    'JointJS+ User\n(Commercial)',
     100,
     700,
     COLORS[1]
 );
 const jointJSUser = createActor(
-    "JointJS User\n(Open Source)",
+    'JointJS User\n(Open Source)',
     100,
     930,
     COLORS[2]
 );
 const techSupport = createActor(
-    "JointJS Technical Support",
+    'JointJS Technical Support',
     1075,
     550,
     COLORS[3]
 );
-const community = createActor("Community", 1075, 930, COLORS[4]);
+const community = createActor('Community', 1075, 930, COLORS[4]);
 
-const requestCodeReview = createUseCase("Request Code Review", 400, 150);
-const reviewCode = createUseCase("Review Code", 700, 150);
-const giveFeedback = createUseCase("Give Feedback", 700, 290);
-const proposeChanges = createUseCase("Propose Changes", 700, 425);
+const requestCodeReview = createUseCase('Request Code Review', 400, 150);
+const reviewCode = createUseCase('Review Code', 700, 150);
+const giveFeedback = createUseCase('Give Feedback', 700, 290);
+const proposeChanges = createUseCase('Propose Changes', 700, 425);
 const requestConferenceCall = createUseCase(
-    "Request Conference Call",
+    'Request Conference Call',
     400,
     350
 );
 const proposeTimeAndDateOfCall = createUseCase(
-    "Propose Time and Date of Call",
+    'Propose Time and Date of Call',
     400,
     525
 );
-const attendConferenceCall = createUseCase("Attend Conference Call", 400, 700);
+const attendConferenceCall = createUseCase('Attend Conference Call', 400, 700);
 const contactViaTicketingSystem = createUseCase(
-    "Contact via Ticketing System",
+    'Contact via Ticketing System',
     400,
     825
 );
-const respondToTicket = createUseCase("Respond to Ticket", 700, 825);
-const askGithubDiscussion = createUseCase("Ask on GitHub Discussion", 400, 950);
-const respondToDiscussion = createUseCase("Respond to Discussion", 700, 950);
+const respondToTicket = createUseCase('Respond to Ticket', 700, 825);
+const askGithubDiscussion = createUseCase('Ask on GitHub Discussion', 400, 950);
+const respondToDiscussion = createUseCase('Respond to Discussion', 700, 950);
 
 boundary.embed([
     requestCodeReview,
@@ -559,7 +559,7 @@ function getFillColor(colors) {
     if (colors.length === 0) return COLORS[7];
     if (colors.length === 1) return colors[0];
 
-    let step = 1 / colors.length;
+    const step = 1 / colors.length;
 
     const stops = colors.reduce((acc, color, index) => {
         const offset = index * step;
@@ -569,11 +569,11 @@ function getFillColor(colors) {
     }, []);
 
     return {
-        type: "linearGradient",
+        type: 'linearGradient',
         stops,
         attrs: {
             x1: 0.15,
-            gradientTransform: "rotate(10)"
+            gradientTransform: 'rotate(10)'
         }
     };
 }
@@ -584,17 +584,17 @@ function fillUseCaseColors() {
         const useCaseActors = graph
             .getNeighbors(element, { inbound: true })
             .filter((el) => el instanceof Actor);
-        const colors = useCaseActors.map((actor) => actor.attr("head/fill"));
-        element.attr("body/fill", getFillColor(colors), { rewrite: true });
+        const colors = useCaseActors.map((actor) => actor.attr('head/fill'));
+        element.attr('body/fill', getFillColor(colors), { rewrite: true });
     });
 }
 
 fillUseCaseColors();
 
-paper.on("link:connect", () => fillUseCaseColors());
-graph.on("remove", () => fillUseCaseColors());
+paper.on('link:connect', () => fillUseCaseColors());
+graph.on('remove', () => fillUseCaseColors());
 
-paper.on("link:mouseenter", (linkView) => {
+paper.on('link:mouseenter', (linkView) => {
     if (!(linkView.model instanceof Use)) return;
     const toolsView = new dia.ToolsView({
         tools: [
@@ -605,7 +605,7 @@ paper.on("link:mouseenter", (linkView) => {
     linkView.addTools(toolsView);
 });
 
-paper.on("link:mouseleave", (linkView) => {
+paper.on('link:mouseleave', (linkView) => {
     linkView.removeTools();
 });
 
@@ -622,5 +622,5 @@ function scaleToFit() {
     paper.translate(xLeft * sy, yTop * sy);
 }
 
-window.addEventListener("resize", () => scaleToFit());
+window.addEventListener('resize', () => scaleToFit());
 scaleToFit();

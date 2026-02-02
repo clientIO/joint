@@ -1,4 +1,4 @@
-import { dia, shapes, util } from '@joint/core';
+import { g, dia, shapes, util } from '@joint/core';
 import './styles.css';
 
 const width = 100;
@@ -12,16 +12,16 @@ const graph = new dia.Graph(
 );
 
 const paper = new dia.Paper({
-    el: document.getElementById("paper"),
+    el: document.getElementById('paper'),
     model: graph,
     cellViewNamespace: shapes,
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     interactive: false,
     defaultConnectionPoint: {
-        name: "rectangle"
+        name: 'rectangle'
     },
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 paper.unfreeze();
@@ -84,7 +84,7 @@ const templateElement = new shapes.standard.Rectangle({
             strokeWidth: 2
         },
         label: {
-            fontFamily: "sans-serif",
+            fontFamily: 'sans-serif',
             fontSize: 20
         }
     }
@@ -94,15 +94,15 @@ function generate(count, options) {
     const root = templateElement.clone().prop({
         attrs: {
             body: {
-                fill: "#ff9580"
+                fill: '#ff9580'
             },
             label: {
-                text: "Circular\nLayout"
+                text: 'Circular\nLayout'
             }
         }
     });
 
-    const colorFn = util.interpolate.hexColor("#00879b", "#80eaff");
+    const colorFn = util.interpolate.hexColor('#00879b', '#80eaff');
     const els = Array.from({ length: count }).map((_, index) => {
         return templateElement.clone().prop({
             attrs: {
@@ -138,23 +138,23 @@ function generate(count, options) {
     paper.fitToContent({
         useModelGeometry: true,
         padding: 20,
-        allowNewOrigin: "any"
+        allowNewOrigin: 'any'
     });
 }
 
 function readInputs() {
-    const count = Number(document.getElementById("count").value);
-    const gap = Number(document.getElementById("gap").value);
-    const rotate = document.getElementById("rotate").checked;
+    const count = Number(document.getElementById('count').value);
+    const gap = Number(document.getElementById('gap').value);
+    const rotate = document.getElementById('rotate').checked;
     generate(count, { gap, rotate });
 }
 
 const debouncedReadInputs = util.debounce(readInputs, 10);
 
-document.getElementById("count").addEventListener("input", debouncedReadInputs);
-document.getElementById("gap").addEventListener("input", debouncedReadInputs);
+document.getElementById('count').addEventListener('input', debouncedReadInputs);
+document.getElementById('gap').addEventListener('input', debouncedReadInputs);
 document
-    .getElementById("rotate")
-    .addEventListener("change", debouncedReadInputs);
+    .getElementById('rotate')
+    .addEventListener('change', debouncedReadInputs);
 
 readInputs();

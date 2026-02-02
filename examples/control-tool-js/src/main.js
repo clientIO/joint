@@ -3,31 +3,31 @@ import './styles.css';
 
 // Paper
 
-const paperContainer = document.getElementById("paper-container");
+const paperContainer = document.getElementById('paper-container');
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     gridSize: 20,
-    drawGrid: { name: "mesh" },
+    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 paperContainer.appendChild(paper.el);
 
 const CylinderTiltTool = elementTools.Control.extend({
-    getPosition: function (view) {
+    getPosition: function(view) {
         const model = view.model;
         const size = model.size();
         const tilt = model.topRy();
         return { x: size.width / 2, y: 2 * tilt };
     },
-    setPosition: function (view, coordinates) {
+    setPosition: function(view, coordinates) {
         const model = view.model;
         const size = model.size();
         const tilt = Math.min(Math.max(coordinates.y, 0), size.height) / 2;
@@ -36,16 +36,16 @@ const CylinderTiltTool = elementTools.Control.extend({
 });
 
 const RadiusTool = elementTools.Control.extend({
-    getPosition: function (view) {
+    getPosition: function(view) {
         const model = view.model;
-        const radius = model.attr(["body", "ry"]) || 0;
+        const radius = model.attr(['body', 'ry']) || 0;
         return { x: 0, y: radius };
     },
-    setPosition: function (view, coordinates) {
+    setPosition: function(view, coordinates) {
         const model = view.model;
         const size = model.size();
         const ry = Math.min(Math.max(coordinates.y, 0), size.height) / 2;
-        model.attr(["body"], { rx: ry, ry: ry }, { ui: true, tool: this.cid });
+        model.attr(['body'], { rx: ry, ry: ry }, { ui: true, tool: this.cid });
     }
 });
 
@@ -57,9 +57,9 @@ rectangle.findView(paper).addTools(
     new dia.ToolsView({
         tools: [
             new RadiusTool({
-                selector: "body",
+                selector: 'body',
                 handleAttributes: {
-                    fill: "#4666E5"
+                    fill: '#4666E5'
                 }
             })
         ]
@@ -74,9 +74,9 @@ cylinder.findView(paper).addTools(
     new dia.ToolsView({
         tools: [
             new CylinderTiltTool({
-                selector: "body",
+                selector: 'body',
                 handleAttributes: {
-                    fill: "#4666E5"
+                    fill: '#4666E5'
                 }
             })
         ]

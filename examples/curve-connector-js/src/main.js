@@ -1,4 +1,4 @@
-import { dia, shapes, connectors } from '@joint/core';
+import { dia, shapes } from '@joint/core';
 import './styles.css';
 
 const paperWidth = 780;
@@ -7,7 +7,7 @@ const gap = 10;
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
-    el: document.getElementById("paper"),
+    el: document.getElementById('paper'),
     model: graph,
     cellViewNamespace: shapes,
     width: paperWidth,
@@ -15,10 +15,10 @@ const paper = new dia.Paper({
     gridSize: 1,
     async: true,
     sorting: dia.Paper.sorting.APPROX,
-    background: { color: "#F3F7F6" },
-    defaultConnectionPoint: { name: "anchor" },
+    background: { color: '#F3F7F6' },
+    defaultConnectionPoint: { name: 'anchor' },
     defaultConnector: {
-        name: "curve",
+        name: 'curve',
         args: {
             sourceTangent: { x: 0, y: 100 },
             targetTangent: { x: 0, y: -120 }
@@ -26,8 +26,8 @@ const paper = new dia.Paper({
     }
 });
 
-paper.svg.style.overflow = "visible";
-paper.el.style.border = "1px solid #E5E5E5";
+paper.svg.style.overflow = 'visible';
+paper.el.style.border = '1px solid #E5E5E5';
 
 const commonBodyAttrs = {
     body: {
@@ -45,8 +45,8 @@ const r0 = new shapes.standard.Rectangle({
     attrs: {
         ...commonBodyAttrs,
         label: {
-            text: "Curves",
-            fontFamily: "sans-serif",
+            text: 'Curves',
+            fontFamily: 'sans-serif',
             fontSize: 20
         }
     }
@@ -63,7 +63,7 @@ Array.from({ length: childCount }).forEach((_, index) => {
             ...commonBodyAttrs,
             label: {
                 text: String.fromCharCode(65 + index),
-                fontFamily: "sans-serif",
+                fontFamily: 'sans-serif',
                 fontSize: 20
             }
         }
@@ -73,7 +73,7 @@ Array.from({ length: childCount }).forEach((_, index) => {
         source: {
             id: r0.id,
             anchor: {
-                name: "bottom",
+                name: 'bottom',
                 args: {
                     dx: ((index + 0.5) / childCount) * r0width - r0width / 2
                 }
@@ -81,7 +81,7 @@ Array.from({ length: childCount }).forEach((_, index) => {
         },
         target: {
             id: rN.id,
-            anchor: { name: "top" }
+            anchor: { name: 'top' }
         }
     });
 

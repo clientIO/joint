@@ -49,7 +49,7 @@ const Event = dia.Element.define(
     },
     {
         // Static
-        create: function (text) {
+        create: function(text) {
             return new this({
                 attrs: {
                     label: { text: text },
@@ -158,7 +158,7 @@ const IntermediateEvent = Event.define(
             inhibit: 'M -10 0 -20 -15 -10 -30 10 -30 20 -15 10 0 Z',
             transfer: 'M -20 0 20 0 0 -30 z',
         },
-        gate: function (type) {
+        gate: function(type) {
             if (type === undefined) return this.attr(['gate', 'gateType']);
             return this.attr(['gate'], {
                 gateType: type,
@@ -169,14 +169,14 @@ const IntermediateEvent = Event.define(
     {
         attributes: {
             gateType: {
-                set: function (type) {
+                set: function(type) {
                     const data = this.model.gateTypes[type];
                     return { d: data ? data + ' M 0 -30 0 -80' : 'M 0 0 0 0' };
                 },
             },
         },
 
-        create: function (text) {
+        create: function(text) {
             const id = Math.random().toString(36).substring(2, 8);
             return new this({
                 id,
@@ -185,7 +185,7 @@ const IntermediateEvent = Event.define(
                     idLabel: {
                         text: `id: ${id}`,
                         annotations: [
-                            { start: 4, end: 10, attrs: { fill: '#f6f740' } },
+                            { start: 4, end: 10, attrs: { fill: '#f6f740' }},
                         ],
                     },
                 },
@@ -315,7 +315,7 @@ const Link = dia.Link.define(
         `,
     },
     {
-        create: function (event1, event2) {
+        create: function(event1, event2) {
             const source = {
                 id: event1.id,
             };
@@ -420,7 +420,7 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     model: graph,
-    defaultConnectionPoint: { name: 'boundary', args: { offset: 5 } },
+    defaultConnectionPoint: { name: 'boundary', args: { offset: 5 }},
     defaultConnector: {
         name: 'straight',
         args: { cornerType: 'line', cornerRadius: 10 },
@@ -432,7 +432,7 @@ const paper = new dia.Paper({
     sorting: dia.Paper.sorting.APPROX,
     cellViewNamespace: shapes,
     background: { color: '#131e29' },
-    viewport: function (view) {
+    viewport: function(view) {
         const { model } = view;
         if (!view) return true;
         return !model.get('hidden');
@@ -572,7 +572,7 @@ function runLayout(graph) {
 
 function addTools(paper, elements) {
     const toolName = 'expand-tools';
-    elements.forEach(function (element) {
+    elements.forEach(function(element) {
         if (element.get('type') !== 'fta.IntermediateEvent') return;
         const view = element.findView(paper);
         if (view.hasTools(toolName)) return;

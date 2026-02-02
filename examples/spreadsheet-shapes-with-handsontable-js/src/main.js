@@ -1,4 +1,4 @@
-import{
+import {
     dia,
     shapes,
     highlighters,
@@ -6,6 +6,7 @@ import{
     linkTools,
 } from '@joint/core';
 import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.min.css';
 import './styles.scss';
 
 const HotModel = dia.Element.define('HotModel', {
@@ -34,8 +35,8 @@ const HotModel = dia.Element.define('HotModel', {
                 },
                 markup: util.svg/*xml*/`
                       <line @selector="portLine" x1="0" y1="0" x2="0" y2="30" stroke="#131e29" stroke-width="2"/>
-                      <rect @selector="portBody" magnet="true" x="-5" y="-5" width="10" height="10" stroke="#131e29" stroke-width="2" fill="white" />
-                  `
+                      <rect @selector="portBody" magnet="true" x="-5" y="-5" width="10" height="10" stroke="#131e29" stroke-width="2" fill="white" cursor="crosshair"/>
+                `
             }
         }
     }
@@ -113,9 +114,8 @@ const HotModelView = dia.ElementView.extend({
         } = this;
 
         this.releaseResources();
-
         const markup = util.svg/*xml*/`
-            <rect @selector="header" height="${HEADER_HEIGHT}" fill="#F0F0F0" stroke="#DEDEDE"/>
+            <rect @selector="header" height="${HEADER_HEIGHT}" fill="#F0F0F0" cursor="move" stroke="#DEDEDE"/>
             <rect @selector="border" height="3" fill="#131e239" stroke-width="1"/>
             <text @selector="label"
                 y="${HEADER_HEIGHT / 2}"
@@ -434,7 +434,6 @@ const paper = new dia.Paper({
         if (cellViewS.model.isLink() || cellViewT.model.isLink()) return false;
         return true;
     }
-
 });
 
 // Content of the graph

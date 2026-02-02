@@ -1,4 +1,4 @@
-import { dia, shapes, util } from '@joint/core';
+import { g, dia, shapes, util } from '@joint/core';
 import './styles.css';
 
 const width = 100;
@@ -12,16 +12,16 @@ const graph = new dia.Graph(
 );
 
 const paper = new dia.Paper({
-    el: document.getElementById("paper"),
+    el: document.getElementById('paper'),
     model: graph,
     cellViewNamespace: shapes,
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     interactive: false,
     defaultConnectionPoint: {
-        name: "rectangle"
+        name: 'rectangle'
     },
-    background: { color: "#F3F7F6" }
+    background: { color: '#F3F7F6' }
 });
 
 function squareLayout(elements, options = {}) {
@@ -31,7 +31,7 @@ function squareLayout(elements, options = {}) {
     const { x = 0, y = 0, gap = 10 } = options;
     const { width, height } = elements[0].size();
 
-    let firstRowElementCount = Math.ceil(count / 4) + 1;
+    const firstRowElementCount = Math.ceil(count / 4) + 1;
     let middleRowsCount = Math.ceil(count / 4) - 1;
     let lastRowElementCount = count - firstRowElementCount - 2 * middleRowsCount;
     let lastRowElementGap = gap;
@@ -94,7 +94,7 @@ const templateElement = new shapes.standard.Rectangle({
             strokeWidth: 2
         },
         label: {
-            fontFamily: "sans-serif",
+            fontFamily: 'sans-serif',
             fontSize: 17
         }
     }
@@ -104,15 +104,15 @@ function generate(count, options) {
     const root = templateElement.clone().prop({
         attrs: {
             body: {
-                fill: "#ff9580"
+                fill: '#ff9580'
             },
             label: {
-                text: "Rectangular\nLayout"
+                text: 'Rectangular\nLayout'
             }
         }
     });
 
-    const colorFn = util.interpolate.hexColor("#00879b", "#80eaff");
+    const colorFn = util.interpolate.hexColor('#00879b', '#80eaff');
     const els = Array.from({ length: count }).map((_, index) => {
         return templateElement.clone().prop({
             attrs: {
@@ -148,19 +148,19 @@ function generate(count, options) {
     paper.fitToContent({
         useModelGeometry: true,
         padding: 20,
-        allowNewOrigin: "any"
+        allowNewOrigin: 'any'
     });
 }
 
 function readInputs() {
-    const count = Number(document.getElementById("count").value);
-    const gap = Number(document.getElementById("gap").value);
+    const count = Number(document.getElementById('count').value);
+    const gap = Number(document.getElementById('gap').value);
     generate(count, { gap });
 }
 
 const debouncedReadInputs = util.debounce(readInputs, 10);
 
-document.getElementById("count").addEventListener("input", debouncedReadInputs);
-document.getElementById("gap").addEventListener("input", debouncedReadInputs);
+document.getElementById('count').addEventListener('input', debouncedReadInputs);
+document.getElementById('gap').addEventListener('input', debouncedReadInputs);
 
 generate(20);

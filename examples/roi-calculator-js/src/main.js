@@ -93,7 +93,7 @@ const paper = new dia.Paper({
             'change input,select': 'onInputChange'
         },
 
-        onInputChange: function (evt) {
+        onInputChange: function(evt) {
             const input = evt.target;
             if (!input.validity.valid) return;
             const valuePath = input.getAttribute('joint-selector') + '/props/value';
@@ -534,8 +534,8 @@ const performance = new OverallPerformance({
 });
 
 const link1 = new Link({
-    source: { id: investment.id, anchor: { name: 'top', args: { dy: 1 } } },
-    target: { id: gold.id, anchor: { name: 'left', args: { dx: -5 } } },
+    source: { id: investment.id, anchor: { name: 'top', args: { dy: 1 }}},
+    target: { id: gold.id, anchor: { name: 'left', args: { dx: -5 }}},
     z: 2,
     attrs: {
         line: {
@@ -545,8 +545,8 @@ const link1 = new Link({
 });
 
 const link2 = new Link({
-    source: { id: investment.id, anchor: { name: 'right', args: { dx: -1 } } },
-    target: { id: bitcoin.id, anchor: { name: 'left', args: { dx: -5 } } },
+    source: { id: investment.id, anchor: { name: 'right', args: { dx: -1 }}},
+    target: { id: bitcoin.id, anchor: { name: 'left', args: { dx: -5 }}},
     z: 2,
     attrs: {
         line: {
@@ -556,8 +556,8 @@ const link2 = new Link({
 });
 
 const link3 = new Link({
-    source: { id: investment.id, anchor: { name: 'bottom', args: { dy: -1 } } },
-    target: { id: sp500.id, anchor: { name: 'left', args: { dx: -5 } } },
+    source: { id: investment.id, anchor: { name: 'bottom', args: { dy: -1 }}},
+    target: { id: sp500.id, anchor: { name: 'left', args: { dx: -5 }}},
     z: 2,
     attrs: {
         line: {
@@ -567,8 +567,8 @@ const link3 = new Link({
 });
 
 const link4 = new Link({
-    source: { id: gold.id, anchor: { name: 'right', args: { dx: -1 } } },
-    target: { id: goldPerformance.id, anchor: { name: 'left', args: { dx: -5 } } },
+    source: { id: gold.id, anchor: { name: 'right', args: { dx: -1 }}},
+    target: { id: goldPerformance.id, anchor: { name: 'left', args: { dx: -5 }}},
     z: 4,
     attrs: {
         line: {
@@ -578,8 +578,8 @@ const link4 = new Link({
 });
 
 const link5 = new Link({
-    source: { id: bitcoin.id, anchor: { name: 'right', args: { dx: -1 } } },
-    target: { id: bitcoinPerformance.id, anchor: { name: 'left', args: { dx: -5 } } },
+    source: { id: bitcoin.id, anchor: { name: 'right', args: { dx: -1 }}},
+    target: { id: bitcoinPerformance.id, anchor: { name: 'left', args: { dx: -5 }}},
     z: 5,
     attrs: {
         line: {
@@ -590,8 +590,8 @@ const link5 = new Link({
 });
 
 const link6 = new Link({
-    source: { id: sp500.id, anchor: { name: 'right', args: { dx: -1 } } },
-    target: { id: sp500Performance.id, anchor: { name: 'left', args: { dx: -5 } } },
+    source: { id: sp500.id, anchor: { name: 'right', args: { dx: -1 }}},
+    target: { id: sp500Performance.id, anchor: { name: 'left', args: { dx: -5 }}},
     z: 7,
     attrs: {
         line: {
@@ -605,7 +605,7 @@ const productPerformances = [goldPerformance, bitcoinPerformance, sp500Performan
 const links = [link1, link2, link3, link4, link5, link6];
 graph.resetCells([investment, ...products, performance, ...productPerformances, ...links]);
 performance.embed(productPerformances);
-performance.fitEmbeds({ padding: { horizontal: 30, top: 50, bottom: 130 } });
+performance.fitEmbeds({ padding: { horizontal: 30, top: 50, bottom: 130 }});
 
 // Setup automatic calculation of performance
 
