@@ -1,6 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { type GraphElement, GraphProvider, jsx, Paper, TextNode, useCellActions, usePaper } from '@joint/react';
+import type { GraphLink} from '@joint/react';
+import { type GraphElement, GraphProvider, jsx, Paper, TextNode, useCellActions, useCellId, usePaper } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useMemo } from 'react';
 import { dia, elementTools } from '@joint/core';
@@ -46,252 +47,189 @@ type FTAElement =
   | ExternalEvent
   | ConditioningEvent;
 
-const initialElements: FTAElement[] = [
-  {
-    id: 'ot8h17',
+const initialElements: Record<string, FTAElement> = {
+  'ot8h17': {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Fall from Scaffolding',
     gate: 'INHIBIT',
   },
-  {
-    id: 'd8jpey',
+  'd8jpey': {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Fall from the Scaffolding',
     gate: 'AND',
   },
-  {
-    id: 'is079n',
+  'is079n': {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Safety Belt Not Working',
     gate: 'OR',
   },
-  {
-    id: 'ht8wnb',
+  'ht8wnb': {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Fall By Accident',
     gate: 'OR',
   },
-  {
-    id: '07vhpd',
+  '07vhpd': {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Broken By Equipment',
     gate: 'OR',
   },
-  {
-    id: 'd8ojep',
+  'd8ojep': {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Did not Wear Safety Belt',
     gate: 'OR',
   },
-  {
-    id: 'szf1q3',
+  'szf1q3': {
     type: 'UndevelopedEvent',
     width: 140,
     height: 80,
     label: 'Slip and Fall',
   },
-  {
-    id: 'kj5m9a',
+  'kj5m9a': {
     type: 'UndevelopedEvent',
     width: 140,
     height: 80,
     label: 'Lose Balance',
   },
-  {
-    id: 'tcv79r',
+  'tcv79r': {
     type: 'UndevelopedEvent',
     width: 140,
     height: 80,
     label: 'Upholder Broken',
   },
-  {
-    id: 'ylp4gu',
+  'ylp4gu': {
     type: 'BasicEvent',
     width: 80,
     height: 80,
     label: 'Safety Belt Broken',
   },
-  {
-    id: 'q2vwnc',
+  'q2vwnc': {
     type: 'BasicEvent',
     width: 80,
     height: 80,
     label: 'Forgot to Wear',
   },
-  {
-    id: 'x8rboj',
+  'x8rboj': {
     type: 'ExternalEvent',
     width: 80,
     height: 100,
     label: 'Take off When Walking',
   },
-  {
-    id: 'mte5xr',
+  'mte5xr': {
     type: 'ConditioningEvent',
     width: 140,
     height: 80,
     label: 'Height and Ground Condition',
   },
-];
+};
 
-const initialLinks = [
-  {
-    id: 'link-0',
+const initialLinks: Record<string, GraphLink> = {
+  'link-0': {
     source: 'ot8h17',
     target: 'd8jpey',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
-    id: 'link-1',
+  'link-1': {
     source: 'd8jpey',
     target: 'is079n',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
-    id: 'link-2',
+  'link-2': {
     source: 'd8jpey',
     target: 'ht8wnb',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
-    id: 'link-3',
+  'link-3': {
     source: 'is079n',
     target: '07vhpd',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
+  'link-4': {
     id: 'link-4',
     source: 'is079n',
     target: 'd8ojep',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
+  'link-5': {
     id: 'link-5',
     source: 'ht8wnb',
     target: 'szf1q3',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
+  'link-6': {
     id: 'link-6',
     source: 'ht8wnb',
     target: 'kj5m9a',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
+  'link-7': {
     id: 'link-7',
     source: '07vhpd',
     target: 'tcv79r',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
+  'link-8': {
     id: 'link-8',
     source: '07vhpd',
     target: 'ylp4gu',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
+  'link-9': {
     id: 'link-9',
     source: 'd8ojep',
     target: 'q2vwnc',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
-    id: 'link-10',
+  'link-10': {
     source: 'd8ojep',
     target: 'x8rboj',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null,
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-  {
-    id: 'link-11',
+  'link-11': {
     source: {
       id: 'ot8h17',
       anchor: {
@@ -300,15 +238,11 @@ const initialLinks = [
     },
     target: 'mte5xr',
     z: -1,
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        targetMarker: null
-      },
-    },
+    color: PRIMARY,
+    width: 2,
+    targetMarker: null,
   },
-];
+};
 
 // ----------------------------------------------------------------------------
 // Custom Hooks
@@ -368,8 +302,9 @@ function useGatePattern() {
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function IntermediateEventNode({ id, label, width, height, gate }: Readonly<IntermediateEvent>) {
+function IntermediateEventNode({ label, width, height, gate }: Readonly<IntermediateEvent>) {
 
+  const id = useCellId();
   const { set } = useCellActions<IntermediateEvent>();
   const gatePatternUrl = useGatePattern();
 
@@ -789,7 +724,6 @@ function Main() {
       defaultRouter={{ name: 'orthogonal' }}
       interactive={false}
       async
-      autoFreeze
       customEvents={{
         'element:expand': ({ paper, args }) => {
           const [elementView] = args;
