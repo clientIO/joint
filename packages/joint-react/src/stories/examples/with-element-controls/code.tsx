@@ -5,9 +5,28 @@ import { PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import { dia } from '@joint/core';
 import { elementTools, g } from '@joint/core';
 
-const initialElements = [
-  {
-    id: '1',
+interface BaseElement extends GraphElement {
+  type: 'parallelogram' | 'arrow';
+  label: string;
+  width: number;
+  height: number;
+}
+
+interface ParallelogramElement extends BaseElement {
+  type: 'parallelogram';
+  offset: number;
+}
+
+interface ArrowElement extends BaseElement {
+  type: 'arrow';
+  arrowHeight: number;
+  thickness: number;
+}
+
+type ControlledElement = ParallelogramElement | ArrowElement;
+
+const initialElements: Record<string, ControlledElement> = {
+  '1': {
     type: 'parallelogram',
     label: 'Parallelogram',
     x: 300,
@@ -16,8 +35,7 @@ const initialElements = [
     height: 60,
     offset: 10,
   },
-  {
-    id: '2',
+  '2': {
     type: 'arrow',
     label: 'Arrow',
     x: 500,
@@ -27,14 +45,12 @@ const initialElements = [
     arrowHeight: 30,
     thickness: 20,
   }
-] satisfies GraphElement[];
-
-type ElementData = (typeof initialElements)[number];
+};
 
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function Parallelogram({ width, height, offset = 0, label }: Readonly<ElementData>) {
+function Parallelogram({ width, height, offset = 0, label }: Readonly<ParallelogramElement>) {
   return (
     <>
       <path
@@ -63,7 +79,7 @@ function Parallelogram({ width, height, offset = 0, label }: Readonly<ElementDat
   );
 }
 
-function Arrow({ width, height, label, arrowHeight = 0, thickness = 0 }: Readonly<ElementData>) {
+function Arrow({ width, height, label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>) {
   return (
     <>
       <path
@@ -144,7 +160,7 @@ class ArrowOffsetControl extends elementTools.Control {
 // ----------------------------------------------------------------------------
 // Helper Functions
 // ----------------------------------------------------------------------------
-function renderElement(element: ElementData) {
+function renderElement(element: ControlledElement) {
   switch (element.type) {
     case 'parallelogram': {
       return <Parallelogram {...element} />;
@@ -196,7 +212,6 @@ function Main() {
 export default function App() {
   return (
     <GraphProvider
-      areBatchUpdatesDisabled
       elements={initialElements}
     >
       <Main />
