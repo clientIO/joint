@@ -12,7 +12,7 @@ body {
 
 @font-face {
     font-family: FabricMDL2Icons;
-    src: url(https://assets.codepen.io/7589991/SegoeIcons.ttf);
+    src: url(../assets/SegoeIcons.ttf);
 }
 
 .joint-element {

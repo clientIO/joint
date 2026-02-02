@@ -1,5 +1,6 @@
 import { dia, shapes, elementTools } from '@joint/core';
 import './styles.css';
+import resizeIcon from '../assets/resize.svg';
 
 // Paper
 
@@ -29,8 +30,7 @@ const ResizeTool = elementTools.Control.extend({
                 cursor: 'pointer',
                 width: 20,
                 height: 20,
-                'xlink:href':
-                    'https://assets.codepen.io/7589991/8725981_image_resize_square_icon.svg'
+                'xlink:href': resizeIcon
             }
         },
         {

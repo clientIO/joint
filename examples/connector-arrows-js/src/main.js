@@ -1,5 +1,7 @@
 import { dia, shapes, util } from '@joint/core';
 import './styles.css';
+import logoBlack from '../assets/jointjs-logo-black.svg';
+import logoRed from '../assets/jointjs-logo-red.svg';
 
 const BG_COLOR = '#f4f7f6';
 const FG_COLOR = '#131e29';
@@ -406,7 +408,7 @@ const markers = [
             />
             <image x="-25" width="50" height="25"
                 transform="rotate(-90)"
-                href="https://assets.codepen.io/7589991/jj-logo-black.svg"
+                href="${logoBlack}"
             />
         `
     },
@@ -419,7 +421,7 @@ const markers = [
             />
             <image x="-25" width="50" height="25"
                 transform="rotate(-90)"
-                href="https://assets.codepen.io/7589991/jj-logo-red.svg"
+                href="${logoRed}"
             />
         `
     },
