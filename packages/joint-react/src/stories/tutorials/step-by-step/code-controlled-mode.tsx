@@ -83,17 +83,13 @@ const defaultElements: Record<string, CustomElement> = {
  * - id: unique identifier
  * - source: id of the source element
  * - target: id of the target element
- * - attrs: visual attributes (colors, stroke width, etc.)
+ * - color: stroke color (uses theme default if not specified)
  */
 const defaultLinks: Record<string, CustomLink> = {
   'e1-2': {
     source: '1',
     target: '2',
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-      },
-    },
+    color: PRIMARY,
   },
 };
 

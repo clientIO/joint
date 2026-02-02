@@ -1,9 +1,11 @@
-import { util, type dia } from '@joint/core';
+
+import type { attributes} from '@joint/core';
+import { type dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import { getTargetOrSource } from '../utils/cell/get-link-targe-and-source-ids';
 import { REACT_TYPE } from '../models/react-element';
-import { REACT_LINK_TYPE } from '../models/react-link';
+import { DEFAULT_LINK_THEME, resolveMarker } from '../theme/link-theme';
 
 export interface ElementToGraphOptions<Element extends GraphElement> {
   readonly id: string;
@@ -59,7 +61,7 @@ export function createDefaultElementMapper<Element extends GraphElement>(
   return () => {
     // Extract built-in JointJS element properties
     // Support both flat format (x, y, width, height) and nested format (position, size)
-    const { x, y, width, height, angle, z, ports, position, size, ...userData } =
+    const { x, y, width, height, angle, z, ports, position, size, parent, layer, ...userData } =
       data as GraphElement & {
         position?: { x: number; y: number };
         size?: { width: number; height: number };
@@ -84,7 +86,8 @@ export function createDefaultElementMapper<Element extends GraphElement>(
     if (sizeWidth !== undefined && sizeHeight !== undefined) {
       attributes.size = { width: sizeWidth, height: sizeHeight };
     }
-
+    if (parent !== undefined) attributes.parent = parent;
+    if (layer !== undefined) attributes.layer = layer;
     if (angle !== undefined) attributes.angle = angle;
     if (z !== undefined) attributes.z = z;
     if (ports !== undefined) attributes.ports = ports;
@@ -125,7 +128,7 @@ function applyShapePreservation<Element extends GraphElement>(
  * @returns The extracted cell data as a record
  */
 function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
-  const { size, position, data, angle, z, ports } = cell.attributes;
+  const { size, position, data, angle, z, ports, parent, layer } = cell.attributes;
 
   const cellData: Record<string, unknown> = {};
 
@@ -142,6 +145,8 @@ function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
   if (angle !== undefined) cellData.angle = angle;
   if (z !== undefined) cellData.z = z;
   if (ports !== undefined) cellData.ports = ports;
+  if (parent !== undefined) cellData.parent = parent;
+  if (layer !== undefined) cellData.layer = layer;
   // Spread user data from data property to top level
   if (data && typeof data === 'object') {
     for (const [key, value] of Object.entries(data)) {
@@ -176,66 +181,109 @@ export function createDefaultGraphToElementMapper<Element extends GraphElement>(
 
 /**
  * Creates the default mapper function for link to graph conversion.
+ * Extracts styling properties and applies theme defaults.
  * Separates user data into the `data` property.
  * @param id
  * @param data - The link to convert
  * @param graph - The JointJS graph instance
+ * @param _graph
  * @returns A function that returns the JointJS Cell JSON representation
  */
 export function createDefaultLinkMapper<Link extends GraphLink>(
   id: string,
   data: Link,
-  graph: dia.Graph
+
+  _graph: dia.Graph
 ): () => dia.Cell.JSON {
   return () => {
     // Extract built-in JointJS link properties, remaining properties are user data
     const {
       source: linkSource,
       target: linkTarget,
-      attrs,
-      type = REACT_LINK_TYPE,
       z,
+      layer,
       markup,
       defaultLabel,
       labels,
       vertices,
       router,
       connector,
+      // Styling properties with theme defaults
+      color = DEFAULT_LINK_THEME.color,
+      width = DEFAULT_LINK_THEME.width,
+      sourceMarker = DEFAULT_LINK_THEME.sourceMarker,
+      targetMarker = DEFAULT_LINK_THEME.targetMarker,
+      className = DEFAULT_LINK_THEME.className,
+      pattern = DEFAULT_LINK_THEME.pattern,
       ...userData
     } = data;
 
+    // Read styling properties with theme defaults
     const source = getTargetOrSource(linkSource);
     const target = getTargetOrSource(linkTarget);
 
-    const typeClass = util.getByPath(graph.layerCollection.cellNamespace, type, '.');
-    const defaults = typeClass ? util.result(typeClass.prototype, 'defaults', {}) : {};
+    // Build theme-based line attributes
+    const resolvedSourceMarker = resolveMarker(sourceMarker);
+    const resolvedTargetMarker = resolveMarker(targetMarker);
 
-    const existingCell = graph.getCell(id);
-    const existingAttributes = existingCell?.isLink() ? existingCell.attr() : {};
-
-    const mergedAttributes = util.defaultsDeep({}, attrs || {}, existingAttributes, defaults.attrs);
-
-    const model: dia.Cell.JSON = {
-      id,
-      type: data.type ?? REACT_LINK_TYPE,
-      source,
-      target,
-      attrs: mergedAttributes as dia.Cell.Selectors,
+    const resolvedLineAttributes: attributes.SVGAttributes = {
+      stroke: color,
+      strokeWidth: width,
     };
-
-    if (z !== undefined) model.z = z;
-    if (markup !== undefined) model.markup = markup;
-    if (defaultLabel !== undefined) model.defaultLabel = defaultLabel;
-    if (labels !== undefined) model.labels = labels;
-    if (vertices !== undefined) model.vertices = vertices;
-    if (router !== undefined) model.router = router;
-    if (connector !== undefined) model.connector = connector;
-
-    if (Object.keys(userData).length > 0) {
-      model.data = userData;
+    if (resolvedSourceMarker !== null) {
+      resolvedLineAttributes.sourceMarker = resolvedSourceMarker;
+    }
+    if (resolvedTargetMarker !== null) {
+      resolvedLineAttributes.targetMarker = resolvedTargetMarker;
+    }
+    if (className) {
+      resolvedLineAttributes.class = className;
+    }
+    if (pattern) {
+      resolvedLineAttributes.strokeDasharray = pattern;
     }
 
-    return model;
+    const attributes: dia.Cell.JSON = {
+      id,
+      type: 'standard.Link',
+      source,
+      target,
+      attrs: {
+          line: {
+              connection: true,
+              strokeLinejoin: 'round',
+              ...resolvedLineAttributes
+          },
+          wrapper: {
+              connection: true,
+              strokeWidth: 10,
+              strokeLinejoin: 'round'
+          }
+      }
+    };
+
+    if (z !== undefined) attributes.z = z;
+    if (layer !== undefined) attributes.layer = layer;
+    if (markup !== undefined) attributes.markup = markup;
+    if (defaultLabel !== undefined) attributes.defaultLabel = defaultLabel;
+    if (labels !== undefined) attributes.labels = labels;
+    if (vertices !== undefined) attributes.vertices = vertices;
+    if (router !== undefined) attributes.router = router;
+    if (connector !== undefined) attributes.connector = connector;
+
+    // Store theme properties and user data in the data property
+    // so they can be retrieved when mapping back from graph to React state
+    attributes.data = {
+      ...userData,
+      color,
+      width,
+      sourceMarker,
+      targetMarker,
+      className,
+      pattern,
+    };
+
+    return attributes;
   };
 }
 
@@ -257,8 +305,8 @@ export function createDefaultGraphToLinkMapper<Link extends GraphLink>(
       ...attributes,
       source: cell.get('source') as dia.Cell.ID,
       target: cell.get('target') as dia.Cell.ID,
-      type: cell.attributes.type,
       z: cell.get('z'),
+      layer: cell.get('layer'),
       markup: cell.get('markup'),
       defaultLabel: cell.get('defaultLabel'),
     };

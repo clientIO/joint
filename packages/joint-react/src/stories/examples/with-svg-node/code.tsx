@@ -10,15 +10,11 @@ import {
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
 
-const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string } } }> = {
+const initialEdges: Record<string, { source: string; target: string; color: string }> = {
   'e1-2': {
     source: '1',
     target: '2',
-    attrs: {
-      line: {
-        stroke: LIGHT,
-      },
-    },
+    color: LIGHT,
   },
 };
 
