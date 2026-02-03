@@ -8,12 +8,12 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+
 export interface NodeData {
     id: string;
     label: string;
     description: string;
     type: 'default' | 'process' | 'decision';
-    isSelected?: boolean;
 }
 
 /**
@@ -54,17 +54,12 @@ export class NodeComponent {
     @Input() label = '';
     @Input() description = '';
     @Input() type: 'default' | 'process' | 'decision' = 'default';
-    @Input() isSelected = false;
 
     @Output() descriptionChanged = new EventEmitter<string>();
 
     @HostBinding('class')
     get hostClass(): string {
-        const classes = ['node-container', `type-${this.type}`];
-        if (this.isSelected) {
-            classes.push('selected');
-        }
-        return classes.join(' ');
+        return `node-container type-${this.type}`;
     }
 
     onDescriptionChange(value: string): void {

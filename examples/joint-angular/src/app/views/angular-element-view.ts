@@ -49,7 +49,6 @@ export class AngularElementView extends dia.ElementView {
      */
     override update(): void {
         super.update();
-        // Update Angular component inputs
         this.updateAngularComponent();
     }
 
@@ -108,7 +107,6 @@ export class AngularElementView extends dia.ElementView {
             this.componentRef.setInput('label', data.label);
             this.componentRef.setInput('description', data.description);
             this.componentRef.setInput('type', data.type);
-            this.componentRef.setInput('isSelected', data.isSelected ?? false);
         }
     }
 

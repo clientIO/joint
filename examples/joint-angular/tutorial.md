@@ -31,7 +31,6 @@ export interface NodeData {
     label: string;
     description: string;
     type: 'default' | 'process' | 'decision';
-    isSelected?: boolean;
 }
 
 @Component({
@@ -55,17 +54,12 @@ export class NodeComponent {
     @Input() label = '';
     @Input() description = '';
     @Input() type: 'default' | 'process' | 'decision' = 'default';
-    @Input() isSelected = false;
 
     @Output() descriptionChanged = new EventEmitter<string>();
 
     @HostBinding('class')
     get hostClass(): string {
-        const classes = ['node-container', `type-${this.type}`];
-        if (this.isSelected) {
-            classes.push('selected');
-        }
-        return classes.join(' ');
+        return `node-container type-${this.type}`;
     }
 
     onDescriptionChange(value: string): void {
@@ -119,6 +113,8 @@ override preinitialize(): void {
 
 This means `this.el` will be a `<foreignObject>` element instead of the default `<g>` element.
 
+> **Note:** The `foreignObject` doesn't have to be the root element. If you need to render SVG elements alongside the Angular component (e.g., connection ports, decorators, or custom shapes), you can keep the default `<g>` as the root and add the `foreignObject` as a child in the element's markup. This gives you the flexibility to combine SVG rendering with Angular components in the same element view.
+
 ### Step 2.2: Define Presentation Attributes for Change Detection
 
 Override `presentationAttributes()` to trigger updates when the model's `data` property changes:
@@ -145,18 +141,10 @@ override render(): this {
 }
 
 private renderAngularComponent(): void {
-    const { model, el } = this;
-    const size = model.size();
+    const { model } = this;
 
-    // Configure the foreignObject (this.el)
-    el.setAttribute('width', String(size.width));
-    el.setAttribute('height', String(size.height));
-
-    // Create a container div for the Angular component
-    this.container = document.createElement('div');
-    this.container.style.width = '100%';
-    this.container.style.height = '100%';
-    el.appendChild(this.container);
+    // Find the container div created by markup
+    this.container = this.findNode('container') as HTMLDivElement;
 
     // Create the Angular component using createComponent
     if (AngularElementView.appRef && AngularElementView.injector) {
@@ -193,20 +181,15 @@ Override `update()` to sync model data to the Angular component:
 
 ```typescript
 override update(): void {
-    this.updateTransformation();
+    super.update();
     this.updateAngularComponent();
 }
 
 private updateAngularComponent(): void {
     if (!this.componentRef) return;
 
-    const { model, el } = this;
+    const { model } = this;
     const data = model.get('data') as NodeData | undefined;
-    const size = model.size();
-
-    // Update foreignObject size
-    el.setAttribute('width', String(size.width));
-    el.setAttribute('height', String(size.height));
 
     // Update component inputs using setInput()
     if (data) {
@@ -214,7 +197,6 @@ private updateAngularComponent(): void {
         this.componentRef.setInput('label', data.label);
         this.componentRef.setInput('description', data.description);
         this.componentRef.setInput('type', data.type);
-        this.componentRef.setInput('isSelected', data.isSelected ?? false);
     }
 }
 ```
@@ -257,31 +239,50 @@ export function createAngularElementView(
 
 ## Step 3: Define a Custom JointJS Element
 
-Create a custom element class with empty markup (since the view handles rendering):
+Create a custom element class with markup that defines the HTML container:
 
 ```typescript
-class AngularElement extends dia.Element {
+// models/angular-element.ts
+import { dia } from '@joint/core';
+import { NodeData } from '../components/node.component';
+
+export class AngularElement extends dia.Element {
     override defaults() {
         return {
             ...super.defaults,
             type: 'AngularElement',
             size: { width: 200, height: 120 },
-            markup: [],  // Empty - view handles rendering
+            markup: [{
+                tagName: 'div',
+                selector: 'container',
+                namespaceURI: 'http://www.w3.org/1999/xhtml',
+                style: {
+                    width: '100%',
+                    height: '100%',
+                }
+            }],
             data: {
                 id: '',
                 label: 'Node',
                 description: '',
                 type: 'default',
-                isSelected: false,
             } as NodeData,
+            attrs: {
+                root: {
+                    width: 'calc(w)',
+                    height: 'calc(h)',
+                }
+            }
         };
     }
 }
 ```
 
 Key points:
-- Set `markup: []` since the custom view handles all rendering
+- The `markup` defines an HTML `div` container inside the foreignObject
+- Use `namespaceURI: 'http://www.w3.org/1999/xhtml'` for HTML elements
 - Store component data in a `data` property
+- The `attrs.root` uses calc expressions to size the foreignObject
 - The `type` property is used for view resolution
 
 ## Step 4: Configure the Paper
@@ -344,18 +345,99 @@ const node = new AngularElement({
 this.graph.addCell(node);
 
 // Update element data (triggers view update)
-node.set('data', { ...node.get('data'), isSelected: true });
+node.set('data', {
+    ...node.get('data'),
+    description: 'Updated description'
+});
 ```
+
+## Step 6: Managing Selection with Highlighters
+
+Instead of storing selection state in the element's data, use JointJS highlighters. This keeps UI state separate from data and leverages JointJS's built-in highlighting system.
+
+### Maintain Selection State
+
+Keep track of selected cell IDs in your component:
+
+```typescript
+export class AppComponent {
+    selection: dia.Cell.ID[] = [];
+    private static readonly SELECTION_HIGHLIGHTER_ID = 'selection';
+}
+```
+
+### Add/Remove Highlighters on Selection Change
+
+Use `highlighters.addClass` to apply a CSS class to selected elements:
+
+```typescript
+import { dia, highlighters, shapes } from '@joint/core';
+
+setSelection(cellIds: dia.Cell.ID[]): void {
+    const { paper } = this;
+    const highlighterId = AppComponent.SELECTION_HIGHLIGHTER_ID;
+
+    // Remove all existing selection highlighters
+    highlighters.addClass.removeAll(paper, highlighterId);
+
+    // Update selection
+    this.selection = cellIds;
+
+    // Add highlighters to newly selected cells
+    for (const id of this.selection) {
+        const cellView = paper.findViewByModel(id);
+        if (cellView) {
+            highlighters.addClass.add(cellView, 'root', highlighterId, {
+                className: 'selected'
+            });
+        }
+    }
+}
+```
+
+### Handle Click Events
+
+Wire up the selection to pointer events:
+
+```typescript
+// Handle element selection
+this.paper.on('element:pointerclick', (elementView: dia.ElementView) => {
+    this.setSelection([elementView.model.id]);
+});
+
+this.paper.on('blank:pointerclick', () => {
+    this.setSelection([]);
+});
+```
+
+### Define Selection Styles in CSS
+
+```css
+.selected {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
+    outline-style: dotted;
+}
+```
+
+### Benefits of Using Highlighters
+
+- **Separation of concerns** - Selection is UI state, not data
+- **Performance** - No need to trigger Angular component updates for selection changes
+- **Flexibility** - Easy to support multi-selection by adding multiple IDs to the array
+- **Built-in API** - JointJS highlighters handle the DOM manipulation
 
 ## Summary
 
 The integration works through these mechanisms:
 
 1. **foreignObject as root** - `preinitialize()` sets `tagName = 'foreignObject'` so the view's root element can contain HTML
-2. **Dynamic component creation** - `createComponent()` renders the Angular component into a host element
-3. **Change detection integration** - `appRef.attachView()` includes the component in Angular's change detection
-4. **Model-to-view sync** - `presentationAttributes()` triggers `update()` on data changes, which uses `setInput()` to update the component
-5. **View-to-model sync** - Component outputs are subscribed to update the JointJS model
-6. **Lifecycle management** - Components are properly destroyed when elements are removed
+2. **Markup with HTML namespace** - The element's markup defines an HTML container for the Angular component
+3. **Dynamic component creation** - `createComponent()` renders the Angular component into a host element
+4. **Change detection integration** - `appRef.attachView()` includes the component in Angular's change detection
+5. **Model-to-view sync** - `presentationAttributes()` triggers `update()` on data changes, which uses `setInput()` to update the component
+6. **View-to-model sync** - Component outputs are subscribed to update the JointJS model
+7. **Lifecycle management** - Components are properly destroyed when elements are removed
+8. **Selection with highlighters** - Use JointJS highlighters for UI state like selection instead of component inputs
 
-This pattern allows you to use the full power of Angular components (dependency injection, reactive forms, animations, etc.) inside JointJS diagrams.
+This pattern allows you to use the full power of Angular components (dependency injection, reactive forms, animations, etc.) inside JointJS diagrams while keeping a clean separation between data and UI state.

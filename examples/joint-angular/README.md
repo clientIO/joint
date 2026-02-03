@@ -19,14 +19,16 @@ export class AngularElementView extends dia.ElementView {
     static appRef: ApplicationRef;
     static injector: EnvironmentInjector;
 
+    override preinitialize(): void {
+        // Set the root element to be a foreignObject directly
+        this.tagName = 'foreignObject';
+    }
+
     override render(): this {
         super.render();
 
-        // Create foreignObject to host Angular component
-        const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-        const container = document.createElement('div');
-        foreignObject.appendChild(container);
-        this.el.appendChild(foreignObject);
+        // Find the container div created by the element's markup
+        const container = this.findNode('container') as HTMLDivElement;
 
         // Create Angular component using createComponent
         this.componentRef = createComponent(NodeComponent, {
@@ -42,21 +44,45 @@ export class AngularElementView extends dia.ElementView {
 }
 ```
 
+### Element Model with HTML Markup
+
+The element model defines an HTML container inside the foreignObject:
+
+```typescript
+export class AngularElement extends dia.Element {
+    override defaults() {
+        return {
+            ...super.defaults,
+            type: 'AngularElement',
+            size: { width: 200, height: 120 },
+            markup: [{
+                tagName: 'div',
+                selector: 'container',
+                namespaceURI: 'http://www.w3.org/1999/xhtml',
+                style: { width: '100%', height: '100%' }
+            }],
+            data: { id: '', label: 'Node', description: '', type: 'default' },
+            attrs: {
+                root: { width: 'calc(w)', height: 'calc(h)' }
+            }
+        };
+    }
+}
+```
+
 ### Setting Up the Paper
 
-Configure the Paper to use the custom element view for specific element types:
+Configure the Paper to use the custom element view:
 
 ```typescript
 const CustomElementView = createAngularElementView(appRef, injector);
 
 const paper = new dia.Paper({
-    // ...
-    elementView: (element: dia.Element) => {
-        if (element.get('type') === 'angular.Element') {
-            return CustomElementView;
-        }
-        return dia.ElementView;
+    cellViewNamespace: {
+        ...cellNamespace,
+        AngularElementView: CustomElementView,
     },
+    // ...
 });
 ```
 
@@ -74,6 +100,29 @@ this.componentRef.instance.descriptionChanged.subscribe((description: string) =>
 @Output() descriptionChanged = new EventEmitter<string>();
 ```
 
+### Selection with Highlighters
+
+Selection is managed using JointJS highlighters instead of component state:
+
+```typescript
+setSelection(cellIds: dia.Cell.ID[]): void {
+    // Remove all existing selection highlighters
+    highlighters.addClass.removeAll(paper, 'selection');
+
+    this.selection = cellIds;
+
+    // Add highlighters to newly selected cells
+    for (const id of this.selection) {
+        const cellView = paper.findViewByModel(id);
+        if (cellView) {
+            highlighters.addClass.add(cellView, 'root', 'selection', {
+                className: 'selected'
+            });
+        }
+    }
+}
+```
+
 ## Project Structure
 
 ```
@@ -85,6 +134,8 @@ src/
     ├── app.component.ts              # Main component with JointJS setup
     ├── components/
     │   └── node.component.ts         # Angular component rendered in views
+    ├── models/
+    │   └── angular-element.ts        # Custom JointJS element model
     └── views/
         └── angular-element-view.ts   # Custom JointJS view using createComponent
 ```
@@ -108,8 +159,13 @@ Navigate to `http://localhost:4200/` in your browser.
 - **Component Inputs/Outputs**: Full support for Angular's input/output decorators
 - **Change Detection**: Components are properly attached to Angular's change detection
 - **Clean Lifecycle**: Components are destroyed when elements are removed
+- **Selection with Highlighters**: UI state like selection is managed separately from data
 
 ## Requirements
 
 - Angular 19+
 - JointJS @joint/core
+
+## Tutorial
+
+See [tutorial.md](./tutorial.md) for a detailed step-by-step guide on how this integration works.

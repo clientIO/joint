@@ -13,18 +13,6 @@ body {
   width: 100%;
   height: 100vh;
   background: #ffffff;
-  border: 1px solid #e0e0e0;
-}
-
-/* JointJS Paper styles */
-.joint-paper {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-}
-
-.joint-element {
-  cursor: move;
 }
 
 /* Angular component inside element view */
@@ -38,31 +26,28 @@ body {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 2px solid #3b82f6;
+  border: 1px solid #d1d5db;
   overflow: hidden;
-}
 
-foreignObject:has(.selected) {
-  outline: 2px solid #6366f1;
-  outline-style: dotted;
-  outline-offset: 2px;
+  --header-color: #3b82f6;
 }
 
 .node-header {
   width: 100%;
   padding: 8px 12px;
-  background: #3b82f6;
+  background: var(--header-color);
   color: white;
   font-weight: 600;
   font-size: 14px;
 }
 
-.node-container.type-process .node-header {
-  background: #8b5cf6;
+.node-container.type-process {
+  --header-color: #8b5cf6;
+
 }
 
-.node-container.type-decision .node-header {
-  background: #f59e0b;
+.node-container.type-decision {
+  --header-color: #f59e0b;
 }
 
 .node-body {
@@ -96,4 +81,15 @@ foreignObject:has(.selected) {
   border-radius: 12px;
   font-size: 11px;
   font-weight: 500;
+}
+
+/* JointJS element styles */
+.joint-element {
+  cursor: move;
+}
+
+.joint-element.selected {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+  outline-style: dotted;
 }

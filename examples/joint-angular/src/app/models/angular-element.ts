@@ -27,7 +27,6 @@ export class AngularElement extends dia.Element {
                 label: 'Node',
                 description: '',
                 type: 'default',
-                isSelected: false,
             } as NodeData,
             attrs: {
                 root: {

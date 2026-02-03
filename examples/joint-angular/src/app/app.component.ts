@@ -8,10 +8,10 @@ import {
     EnvironmentInjector,
     inject,
 } from '@angular/core';
-import { dia, shapes } from '@joint/core';
+import { dia, highlighters, shapes } from '@joint/core';
 import { createAngularElementView } from './views/angular-element-view';
 import { AngularElement } from './models/angular-element';
-import { NodeData } from './components/node.component';
+import type { NodeData } from './components/node.component';
 
 // Define the cell namespace
 const cellNamespace = {
@@ -30,7 +30,7 @@ const cellNamespace = {
                     <button (click)="addNode('default')">Add Node</button>
                     <button (click)="addNode('process')">Add Process</button>
                     <button (click)="addNode('decision')">Add Decision</button>
-                    <button (click)="deleteSelected()" [disabled]="!selectedElement">
+                    <button (click)="deleteSelected()" [disabled]="selection.length === 0">
                         Delete Selected
                     </button>
                 </div>
@@ -75,11 +75,11 @@ const cellNamespace = {
                 font-size: 14px;
                 font-weight: 500;
                 cursor: pointer;
-                transition: background 0.2s;
+                transition: background-color 0.2s;
             }
 
             .toolbar button:hover:not(:disabled) {
-                background: #2563eb;
+                background-color: #2563eb;
             }
 
             .toolbar button:disabled {
@@ -102,8 +102,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     private appRef = inject(ApplicationRef);
     private injector = inject(EnvironmentInjector);
 
-    selectedElement: dia.Element | null = null;
+    selection: dia.Cell.ID[] = [];
     private nodeCounter = 0;
+
+    private static readonly SELECTION_HIGHLIGHTER_ID = 'selection';
 
     ngAfterViewInit(): void {
         this.initializeJointJS();
@@ -158,11 +160,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
         // Handle element selection
         this.paper.on('element:pointerclick', (elementView: dia.ElementView) => {
-            this.selectElement(elementView.model);
+            this.setSelection([elementView.model.id]);
         });
 
         this.paper.on('blank:pointerclick', () => {
-            this.selectElement(null);
+            this.setSelection([]);
         });
     }
 
@@ -253,21 +255,31 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     }
 
     /**
-     * Selects an element and updates its visual state.
+     * Updates the selection and applies highlighters.
      */
-    selectElement(element: dia.Element | null): void {
-        // Deselect previous
-        if (this.selectedElement) {
-            const prevData = this.selectedElement.get('data') as NodeData;
-            this.selectedElement.set('data', { ...prevData, isSelected: false });
+    setSelection(cellIds: dia.Cell.ID[]): void {
+        const { paper } = this;
+        const highlighterId = AppComponent.SELECTION_HIGHLIGHTER_ID;
+
+        // Remove highlighters from previously selected cells
+        for (const id of this.selection) {
+            const cellView = paper.findViewByModel(id);
+            if (cellView) {
+                highlighters.addClass.remove(cellView, highlighterId);
+            }
         }
 
-        this.selectedElement = element;
+        // Update selection
+        this.selection = cellIds;
 
-        // Select new
-        if (element) {
-            const data = element.get('data') as NodeData;
-            element.set('data', { ...data, isSelected: true });
+        // Add highlighters to newly selected cells
+        for (const id of this.selection) {
+            const cellView = paper.findViewByModel(id);
+            if (cellView) {
+                highlighters.addClass.add(cellView, 'root', highlighterId, {
+                    className: 'selected'
+                });
+            }
         }
     }
 
@@ -296,16 +308,17 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         });
 
         this.graph.addCell(node);
-        this.selectElement(node);
+        this.setSelection([node.id]);
     }
 
     /**
-     * Deletes the currently selected element.
+     * Deletes the currently selected elements.
      */
     deleteSelected(): void {
-        if (this.selectedElement) {
-            this.selectedElement.remove();
-            this.selectedElement = null;
+        for (const id of this.selection) {
+            const cell = this.graph.getCell(id);
+            cell?.remove();
         }
+        this.selection = [];
     }
 }
