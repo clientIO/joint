@@ -12,7 +12,8 @@ class Shape extends dia.Element {
             size: { width: 140, height: 140 },
             attrs: {
                 root: {
-                    magnet: false
+                    magnet: false,
+                    cursor: 'move'
                 },
                 background: {
                     fill: '#0057ff',

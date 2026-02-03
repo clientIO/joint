@@ -112,6 +112,9 @@ class ForeignObjectElement extends dia.Element {
         return {
             ...super.defaults,
             attrs: {
+                root: {
+                    cursor: 'move'
+                },
                 body: {
                     rx: 10,
                     ry: 10,

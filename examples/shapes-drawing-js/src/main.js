@@ -11,13 +11,10 @@ const paper = new dia.Paper({
     cellViewNamespace: shapes,
     width: '100%',
     height: '100%',
-    gridSize: 1,
-    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' }
 });
-
 paperContainer.appendChild(paper.el);
 
 const Tool = {

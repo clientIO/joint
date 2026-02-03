@@ -12,15 +12,15 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     gridSize: 20,
-    drawGrid: { name: 'mesh' },
     async: true,
     linkPinning: false,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' },
     defaultLink: () => new shapes.standard.Link()
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 const defaultScale = 1;
 const scaleValueSpan = document.querySelector('#scale-value');

@@ -506,7 +506,7 @@ const agenda = new AdaptiveCardModel({
                                         'items': [
                                             {
                                                 'type': 'Image',
-                                                'url': 'https://messagecardplayground.azurewebsites.net/assets/LocationBlue_B.png',
+                                                'url': 'https://adaptivecards.io/content/LocationBlue_B.png',
                                                 'altText': 'Location B'
                                             }
                                         ],
@@ -548,7 +548,7 @@ const agenda = new AdaptiveCardModel({
                                         'items': [
                                             {
                                                 'type': 'Image',
-                                                'url': 'https://messagecardplayground.azurewebsites.net/assets/LocationRed_C.png',
+                                                'url': 'https://adaptivecards.io/content/LocationRed_C.png',
                                                 'altText': 'Location C'
                                             }
                                         ],
@@ -593,7 +593,7 @@ const agenda = new AdaptiveCardModel({
                                             {
                                                 'type': 'Image',
                                                 'horizontalAlignment': 'left',
-                                                'url': 'https://messagecardplayground.azurewebsites.net/assets/Conflict.png',
+                                                'url': 'https://adaptivecards.io/content/conflict.png',
                                                 'altText': 'Calendar conflict'
                                             }
                                         ],
@@ -626,7 +626,7 @@ const agenda = new AdaptiveCardModel({
                     {
                         'type': 'Column',
                         'backgroundImage': {
-                            'url': 'https://messagecardplayground.azurewebsites.net/assets/SmallVerticalLineGray.png',
+                            'url': 'https://adaptivecards.io/content/SmallVerticalLineGray.png',
                             'fillMode': 'repeatVertically',
                             'horizontalAlignment': 'center'
                         },
@@ -658,7 +658,7 @@ const agenda = new AdaptiveCardModel({
                                         'items': [
                                             {
                                                 'type': 'Image',
-                                                'url': 'https://messagecardplayground.azurewebsites.net/assets/location_gray.png',
+                                                'url': 'https://adaptivecards.io/content/location_gray.png',
                                                 'altText': 'Location'
                                             }
                                         ],
@@ -684,19 +684,19 @@ const agenda = new AdaptiveCardModel({
                                 'images': [
                                     {
                                         'type': 'Image',
-                                        'url': 'https://messagecardplayground.azurewebsites.net/assets/person_w1.png',
+                                        'url': 'https://adaptivecards.io/content/person_w1.png',
                                         'size': 'small',
                                         'altText': 'Person with bangs'
                                     },
                                     {
                                         'type': 'Image',
-                                        'url': 'https://messagecardplayground.azurewebsites.net/assets/person_m1.png',
+                                        'url': 'https://adaptivecards.io/content/person_m1.png',
                                         'size': 'small',
                                         'altText': 'Person with glasses and short hair'
                                     },
                                     {
                                         'type': 'Image',
-                                        'url': 'https://messagecardplayground.azurewebsites.net/assets/person_w2.png',
+                                        'url': 'https://adaptivecards.io/content/person_w2.png',
                                         'size': 'small',
                                         'altText': 'Person smiling'
                                     }
@@ -711,7 +711,7 @@ const agenda = new AdaptiveCardModel({
                                         'items': [
                                             {
                                                 'type': 'Image',
-                                                'url': 'https://messagecardplayground.azurewebsites.net/assets/power_point.png',
+                                                'url': 'https://adaptivecards.io/content/power_point.png',
                                                 'altText': 'Powerpoint presentation'
                                             }
                                         ],
@@ -746,7 +746,7 @@ const agenda = new AdaptiveCardModel({
                     {
                         'type': 'Column',
                         'backgroundImage': {
-                            'url': 'https://messagecardplayground.azurewebsites.net/assets/SmallVerticalLineGray.png',
+                            'url': 'https://adaptivecards.io/content/SmallVerticalLineGray.png',
                             'fillMode': 'repeatVertically',
                             'horizontalAlignment': 'center'
                         },
@@ -754,7 +754,7 @@ const agenda = new AdaptiveCardModel({
                             {
                                 'type': 'Image',
                                 'horizontalAlignment': 'center',
-                                'url': 'https://messagecardplayground.azurewebsites.net/assets/Gray_Dot.png',
+                                'url': 'https://adaptivecards.io/content/Gray_Dot.png',
                                 'altText': 'In transit'
                             }
                         ],
@@ -772,7 +772,7 @@ const agenda = new AdaptiveCardModel({
                                         'items': [
                                             {
                                                 'type': 'Image',
-                                                'url': 'https://messagecardplayground.azurewebsites.net/assets/car.png',
+                                                'url': 'https://adaptivecards.io/content/car.png',
                                                 'altText': 'Travel by car'
                                             }
                                         ],
@@ -823,7 +823,7 @@ const agenda = new AdaptiveCardModel({
                     {
                         'type': 'Column',
                         'backgroundImage': {
-                            'url': 'https://messagecardplayground.azurewebsites.net/assets/SmallVerticalLineGray.png',
+                            'url': 'https://adaptivecards.io/content/SmallVerticalLineGray.png',
                             'fillMode': 'repeatVertically',
                             'horizontalAlignment': 'center'
                         },
@@ -831,7 +831,7 @@ const agenda = new AdaptiveCardModel({
                             {
                                 'type': 'Image',
                                 'horizontalAlignment': 'center',
-                                'url': 'https://messagecardplayground.azurewebsites.net/assets/CircleBlue_flight.png',
+                                'url': 'https://adaptivecards.io/content/CircleBlue_flight.png',
                                 'altText': 'Location B: Flight'
                             }
                         ],
@@ -855,7 +855,7 @@ const agenda = new AdaptiveCardModel({
                                         'items': [
                                             {
                                                 'type': 'Image',
-                                                'url': 'https://messagecardplayground.azurewebsites.net/assets/location_gray.png',
+                                                'url': 'https://adaptivecards.io/content/location_gray.png',
                                                 'altText': 'Location'
                                             }
                                         ],
@@ -876,7 +876,7 @@ const agenda = new AdaptiveCardModel({
                             },
                             {
                                 'type': 'Image',
-                                'url': 'https://messagecardplayground.azurewebsites.net/assets/SeaTacMap.png',
+                                'url': 'https://adaptivecards.io/content/SeaTacMap.png',
                                 'size': 'Stretch',
                                 'altText': 'Map of the Seattle-Tacoma airport'
                             }
@@ -900,7 +900,7 @@ const weather = new AdaptiveCardModel({
         'type': 'AdaptiveCard',
         'version': '1.5',
         'speak': 'Weather forecast for Monday is high of 62 and low of 42 degrees with a 20% chance of rainWinds will be 5 mph from the northeast',
-        'backgroundImage': 'https://messagecardplayground.azurewebsites.net/assets/Mostly%20Cloudy-Background.jpg',
+        'backgroundImage': 'https://adaptivecards.io/content/Mostly%20Cloudy-Background.jpg',
         'body': [
             {
                 'type': 'ColumnSet',
@@ -911,7 +911,7 @@ const weather = new AdaptiveCardModel({
                         'items': [
                             {
                                 'type': 'Image',
-                                'url': 'https://messagecardplayground.azurewebsites.net/assets/Mostly%20Cloudy-Square.png',
+                                'url': 'https://adaptivecards.io/content/Mostly%20Cloudy-Square.png',
                                 'size': 'stretch',
                                 'altText': 'Mostly cloudy weather'
                             }
@@ -973,7 +973,7 @@ const weather = new AdaptiveCardModel({
                             {
                                 'type': 'Image',
                                 'size': 'auto',
-                                'url': 'https://messagecardplayground.azurewebsites.net/assets/Drizzle-Square.png',
+                                'url': 'https://adaptivecards.io/content/Drizzle-Square.png',
                                 'altText': 'Drizzly weather'
                             },
                             {
@@ -1012,7 +1012,7 @@ const weather = new AdaptiveCardModel({
                             {
                                 'type': 'Image',
                                 'size': 'auto',
-                                'url': 'https://messagecardplayground.azurewebsites.net/assets/Mostly%20Cloudy-Square.png',
+                                'url': 'https://adaptivecards.io/content/Mostly%20Cloudy-Square.png',
                                 'altText': 'Mostly cloudy weather'
                             },
                             {
@@ -1051,7 +1051,7 @@ const weather = new AdaptiveCardModel({
                             {
                                 'type': 'Image',
                                 'size': 'auto',
-                                'url': 'https://messagecardplayground.azurewebsites.net/assets/Mostly%20Cloudy-Square.png',
+                                'url': 'https://adaptivecards.io/content/Mostly%20Cloudy-Square.png',
                                 'altText': 'Mostly cloudy weather'
                             },
                             {
@@ -1090,7 +1090,7 @@ const weather = new AdaptiveCardModel({
                             {
                                 'type': 'Image',
                                 'size': 'auto',
-                                'url': 'https://messagecardplayground.azurewebsites.net/assets/Mostly%20Cloudy-Square.png',
+                                'url': 'https://adaptivecards.io/content/Mostly%20Cloudy-Square.png',
                                 'altText': 'Mostly cloudy weather'
                             },
                             {

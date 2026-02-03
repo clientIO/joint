@@ -1,4 +1,5 @@
-import { V, dia, shapes, highlighters, layout } from '@joint/core';
+import { V, dia, shapes, highlighters } from '@joint/core';
+import { DirectedGraph } from '@joint/layout-directed-graph';
 import './styles.css';
 
 // Paper
@@ -81,7 +82,7 @@ Object.keys(list).forEach((parent) => {
     });
 });
 
-layout.DirectedGraph.layout(graph, {
+DirectedGraph.layout(graph, {
     marginX: 100,
     marginY: 50,
     setVertices: true,

@@ -1,6 +1,6 @@
 import { dia, shapes, elementTools } from '@joint/core';
 import './styles.css';
-import resizeIcon from '../assets/resize.svg';
+import resizeIcon from '../assets/icons/resize.svg';
 
 // Paper
 
@@ -13,13 +13,13 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     gridSize: 20,
-    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' }
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 const ResizeTool = elementTools.Control.extend({
     children: [

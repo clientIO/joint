@@ -12,13 +12,13 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     gridSize: 20,
-    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' }
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 function setCounterValue(value) {
     counterValueSpan.innerText = value;
@@ -73,7 +73,7 @@ const CounterHighlighter = dia.HighlighterView.extend({
         const { background, label } = this.childNodes;
         const { model } = cellView;
         const counter = model.get('counter');
-        const [body] = cellView.findBySelector('body');
+        const body = cellView.findNode('body');
         if (counter == 0) {
             background.setAttribute('width', 100);
             background.setAttribute('fill', errorColor);

@@ -11,13 +11,13 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     gridSize: 20,
-    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' }
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 const linearGradientFill = new shapes.standard.Rectangle({
     size: { width: 200, height: 100 },

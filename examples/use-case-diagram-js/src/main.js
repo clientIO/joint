@@ -77,6 +77,9 @@ class Boundary extends dia.Element {
             ...super.defaults,
             type: 'Boundary',
             attrs: {
+                root: {
+                    cursor: 'move',
+                },
                 body: {
                     width: 'calc(w)',
                     height: 'calc(h)',
@@ -127,6 +130,9 @@ class Actor extends dia.Element {
             ...super.defaults,
             type: 'Actor',
             attrs: {
+                root: {
+                    cursor: 'move',
+                },
                 background: {
                     width: 'calc(w)',
                     height: 'calc(h)',
@@ -181,7 +187,8 @@ class UseCase extends dia.Element {
             type: 'UseCase',
             attrs: {
                 root: {
-                    highlighterSelector: 'body'
+                    highlighterSelector: 'body',
+                    cursor: 'move',
                 },
                 body: {
                     cx: 'calc(0.5 * w)',

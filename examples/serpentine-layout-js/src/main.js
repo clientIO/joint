@@ -22,7 +22,6 @@ const paper = new dia.Paper({
     background: {
         color: '#fff'
     }
-
 });
 
 paperContainer.appendChild(paper.el);

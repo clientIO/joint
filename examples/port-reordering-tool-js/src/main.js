@@ -1,5 +1,7 @@
-import { V, g, dia, shapes, mvc } from '@joint/core';
+import { V, g, dia, shapes, mvc, config } from '@joint/core';
 import './styles.css';
+
+config.layerAttribute = 'graphLayer';
 
 const paperContainer = document.getElementById('paper-container');
 
@@ -10,7 +12,6 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     gridSize: 20,
-    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' },
@@ -22,8 +23,9 @@ const paper = new dia.Paper({
     validateConnection: (sourceView, _, targetView) => sourceView !== targetView,
     snapLinks: true
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 const r1 = new shapes.standard.Rectangle({
     layer: 'group1',
@@ -81,7 +83,7 @@ const r1 = new shapes.standard.Rectangle({
                         ref: 'portLabel',
                         fill: '#FFFFFF',
                         fillOpacity: 0.8,
-                        x: 'calc(x - calc(w + 2))',
+                        x: 'calc(x - 2)',
                         y: 'calc(y - 2)',
                         width: 'calc(w + 4)',
                         height: 'calc(h + 4)'

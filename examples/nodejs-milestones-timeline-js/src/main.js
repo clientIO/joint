@@ -27,7 +27,8 @@ class TimelineEvent extends dia.Element {
             type: 'TimelineEvent',
             attrs: {
                 root: {
-                    magnetSelector: 'body'
+                    magnetSelector: 'body',
+                    cursor: 'move'
                 },
                 body: {
                     stroke: 'none',

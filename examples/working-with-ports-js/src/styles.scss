@@ -1,6 +1,6 @@
 #paper-container {
     position: absolute;
-    right: 150px;
+    right: 200px;
     top: 0;
     left: 0;
     bottom: 0;
@@ -21,9 +21,9 @@
     position: absolute;
     right: 0;
     top: 0;
-    width: 150px;
+    width: 200px;
     bottom: 0;
-    overflow: scroll;
+    overflow: auto;
     border-left: 1px solid #d4d4d4;
     padding: 8px 16px;
     background-color: #fcfcfc;

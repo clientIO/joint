@@ -6,7 +6,7 @@ $side_width: 200px;
     top: 0;
     right: 0;
     bottom: 0;
-    overflow: scroll;
+    overflow: auto;
 }
 
 #side-container {
@@ -15,9 +15,8 @@ $side_width: 200px;
     top: 0;
     width: $side_width;
     bottom: 0;
-    overflow: scroll;
+    overflow: auto;
     font-family: sans-serif;
-    padding: 5px;
 
     legend {
         background-color: #555;

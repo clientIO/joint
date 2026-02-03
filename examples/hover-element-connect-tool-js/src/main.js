@@ -12,7 +12,6 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     gridSize: 20,
-    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' },
@@ -33,8 +32,9 @@ const paper = new dia.Paper({
     snapLinks: { radius: 10 },
     linkPinning: false
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 const rectangle = new shapes.standard.Rectangle();
 rectangle.resize(100, 100);
