@@ -8,7 +8,7 @@ import {
     EnvironmentInjector,
     inject,
 } from '@angular/core';
-import { dia, highlighters, shapes } from '@joint/core';
+import { dia, elementTools, highlighters, shapes } from '@joint/core';
 import { createAngularElementView } from './views/angular-element-view';
 import { AngularElement } from './models/angular-element';
 import type { NodeData } from './components/node.component';
@@ -148,6 +148,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 elementMove: true,
                 linkMove: false,
             },
+            linkPinning: false,
             defaultRouter: { name: 'rightAngle' },
             defaultConnector: { name: 'rounded' },
             defaultAnchor: {
@@ -261,13 +262,16 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         const { paper } = this;
         const highlighterId = AppComponent.SELECTION_HIGHLIGHTER_ID;
 
-        // Remove highlighters from previously selected cells
+        // Remove tools from previously selected cells
         for (const id of this.selection) {
             const cellView = paper.findViewByModel(id);
-            if (cellView) {
-                highlighters.addClass.remove(cellView, highlighterId);
+            if (cellView?.hasTools()) {
+                cellView.removeTools();
             }
         }
+
+        // Remove all existing selection highlighters
+        highlighters.addClass.removeAll(paper, highlighterId);
 
         // Update selection
         this.selection = cellIds;
@@ -279,6 +283,22 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 highlighters.addClass.add(cellView, 'root', highlighterId, {
                     className: 'selected'
                 });
+            }
+        }
+
+        // Add element tools when a single element is selected
+        if (this.selection.length === 1) {
+            const cellView = paper.findViewByModel(this.selection[0]);
+            if (cellView && cellView.model.isElement()) {
+                const toolsView = new dia.ToolsView({
+                    tools: [
+                        new elementTools.Connect({
+                            x: '100%',
+                            y: '50%',
+                        }),
+                    ],
+                });
+                (cellView as dia.ElementView).addTools(toolsView);
             }
         }
     }

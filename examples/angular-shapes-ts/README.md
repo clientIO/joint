@@ -47,7 +47,7 @@ Navigate to `http://localhost:4200/` in your browser.
 
 ## Tutorial
 
-For a detailed step-by-step guide on how this integration works, see **[tutorial.md](./tutorial.md)**.
+For a detailed step-by-step guide on how this integration works, see **[TUTORIAL.md](./TUTORIAL.md)**.
 
 The tutorial covers:
 - Creating Angular components for use in JointJS views

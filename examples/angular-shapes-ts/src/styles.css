@@ -25,11 +25,10 @@ body {
   justify-content: center;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #d1d5db;
   overflow: hidden;
 
-  --header-color: #3b82f6;
+  --header-color: #1f2937;
 }
 
 .node-header {
@@ -42,11 +41,11 @@ body {
 }
 
 .node-container.type-process {
-  --header-color: #8b5cf6;
+  --header-color: #10b981;
 }
 
 .node-container.type-decision {
-  --header-color: #f59e0b;
+  --header-color: #1d4ed8;
 }
 
 .node-body {

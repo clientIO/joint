@@ -18,9 +18,9 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
     private componentRef: ComponentRef<NodeComponent> | null = null;
     private container: HTMLDivElement | null = null;
 
-    // These will be set by the Paper configuration
-    static appRef: ApplicationRef;
-    static injector: EnvironmentInjector;
+    // These will be set by the Paper configuration via createAngularElementView()
+    static appRef?: ApplicationRef;
+    static injector?: EnvironmentInjector;
 
     override preinitialize(): void {
         // Set the root element to be a foreignObject directly
@@ -78,8 +78,9 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
                 environmentInjector: AngularElementView.injector,
             });
 
-            // Set initial inputs
+            // Set initial inputs and trigger change detection
             this.updateAngularComponent();
+            this.componentRef.changeDetectorRef.detectChanges();
 
             // Subscribe to outputs
             this.componentRef.instance.descriptionChanged.subscribe(
