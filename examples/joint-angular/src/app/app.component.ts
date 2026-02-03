@@ -280,9 +280,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         });
 
         this.graph.addCells([node1, node2, node3, node4, link1, link2, link3]);
-
-        // @ts-ignore
-        window['graph'] = this.graph; // For debugging purposes
     }
 
     /**

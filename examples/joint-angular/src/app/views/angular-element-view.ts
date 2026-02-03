@@ -21,12 +21,12 @@ export class AngularElementView extends dia.ElementView {
     static appRef: ApplicationRef;
     static injector: EnvironmentInjector;
 
+    // Define the presentation attributes to include the 'data' property for change detection
     override presentationAttributes(): dia.CellView.PresentationAttributes {
         return dia.ElementView.addPresentationAttributes({
             data: dia.ElementView.Flags.UPDATE
         });
     }
-
 
     /**
      * Called when the view is rendered.
