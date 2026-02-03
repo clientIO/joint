@@ -20,46 +20,7 @@ const NODE_COUNTER_PADDING = 10;
 // the maximum number of node counters
 const NODE_MAX_COUNTERS = 9;
 
-// Paper
-
-const paperContainer = document.getElementById('paper-container');
-
-const graph = new dia.Graph({}, { cellNamespace: shapes });
-const paper = new dia.Paper({
-    model: graph,
-    cellViewNamespace: shapes,
-    width: '100%',
-    height: '100%',
-    gridSize: 20,
-    drawGrid: { name: 'mesh' },
-    async: true,
-    sorting: dia.Paper.sorting.APPROX,
-    background: { color: '#F3F7F6' }
-});
-
-paperContainer.appendChild(paper.el);
-
-enableVirtualRendering(paper);
-
-paper.on('blank:pointerdown', function(evt) {
-    evt.data = {
-        clientX: evt.clientX,
-        clientY: evt.clientY,
-        scrollLeft: paperContainer.scrollLeft,
-        scrollTop: paperContainer.scrollTop
-    };
-});
-
-paper.on('blank:pointermove', function(evt) {
-    const { clientX, clientY, data } = evt;
-    paperContainer.scrollLeft = data.scrollLeft - (clientX - data.clientX);
-    paperContainer.scrollTop = data.scrollTop - (clientY - data.clientY);
-});
-
-paper.on('node:button:pointerclick', function(nodeView) {
-    const node = nodeView.model;
-    node.toggle();
-});
+// Custom shapes
 
 // Shape
 class Node extends dia.Element {
@@ -102,7 +63,7 @@ class Node extends dia.Element {
         }
     }
 
-    setSize(opt) {
+    setSize(opt = {}) {
         const { counterNames, size, expanded, uid } = this.attributes;
         let height = NODE_HEADER_HEIGHT;
         const numberOfRows = uid ? counterNames.length : 0;
@@ -393,9 +354,51 @@ class NodeView extends dia.ElementView {
     }
 }
 
-Object.assign(shapes, {
+const namespace = {
+    ...shapes,
     Node,
     NodeView
+};
+
+// Paper
+
+const paperContainer = document.getElementById('paper-container');
+
+const graph = new dia.Graph({}, { cellNamespace: namespace });
+const paper = new dia.Paper({
+    model: graph,
+    cellViewNamespace: namespace,
+    width: '100%',
+    height: '100%',
+    gridSize: 20,
+    drawGrid: { name: 'mesh' },
+    async: true,
+    sorting: dia.Paper.sorting.APPROX,
+    background: { color: '#F3F7F6' }
+});
+
+paperContainer.appendChild(paper.el);
+
+enableVirtualRendering(paper);
+
+paper.on('blank:pointerdown', function(evt) {
+    evt.data = {
+        clientX: evt.clientX,
+        clientY: evt.clientY,
+        scrollLeft: paperContainer.scrollLeft,
+        scrollTop: paperContainer.scrollTop
+    };
+});
+
+paper.on('blank:pointermove', function(evt) {
+    const { clientX, clientY, data } = evt;
+    paperContainer.scrollLeft = data.scrollLeft - (clientX - data.clientX);
+    paperContainer.scrollTop = data.scrollTop - (clientY - data.clientY);
+});
+
+paper.on('node:button:pointerclick', function(nodeView) {
+    const node = nodeView.model;
+    node.toggle();
 });
 
 // Events

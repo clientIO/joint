@@ -23,8 +23,9 @@ const paper = new dia.Paper({
         };
     }
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 const rectangle = new shapes.standard.Rectangle();
 rectangle.resize(100, 100);

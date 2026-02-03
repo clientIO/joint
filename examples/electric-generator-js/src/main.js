@@ -105,7 +105,7 @@ const GeneratorView = dia.ElementView.extend({
     getSpinAnimation() {
         let { spinAnimation } = this;
         if (spinAnimation) return spinAnimation;
-        const [generatorEl] = this.findBySelector('generator');
+        const generatorEl = this.findNode('generator');
         // It's important to use start and end frames to make it work in Safari.
         const keyframes = { transform: ['rotate(0deg)', 'rotate(360deg)'] };
         spinAnimation = generatorEl.animate(keyframes, {
@@ -212,7 +212,7 @@ const BulbView = dia.ElementView.extend({
     getGlassAnimation() {
         let { glassAnimation } = this;
         if (glassAnimation) return glassAnimation;
-        const [glassEl] = this.findBySelector('glass');
+        const glassEl = this.findNode('glass');
         const keyframes = {
             stroke: ['#edbc26'],
             fill: ['#f5e5b7'],

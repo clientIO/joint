@@ -10,7 +10,6 @@ const paperOptions = {
     width: '100%',
     height: '100%',
     gridSize: 20,
-    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     frozen: false,
@@ -24,6 +23,7 @@ const paper1 = new dia.Paper({
 });
 const paperContainer1 = document.getElementById('paper-container1');
 paperContainer1.appendChild(paper1.el);
+paper1.setGrid('mesh');
 
 const paper2 = new dia.Paper({
     ...paperOptions,
@@ -31,6 +31,7 @@ const paper2 = new dia.Paper({
 });
 const paperContainer2 = document.getElementById('paper-container2');
 paperContainer2.appendChild(paper2.el);
+paper2.setGrid('mesh');
 
 graph.resetCells([
     // common

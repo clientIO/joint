@@ -17,8 +17,9 @@ const paper = new dia.Paper({
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' }
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 const rectangle = new shapes.standard.Rectangle();
 rectangle.resize(100, 100);

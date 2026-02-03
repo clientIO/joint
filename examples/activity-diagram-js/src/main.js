@@ -215,7 +215,12 @@ class UMLElement extends dia.Element {
     defaults() {
         return {
             ...super.defaults,
-            hidden: false
+            hidden: false,
+            attrs: {
+                root: {
+                    cursor: 'move'
+                }
+            }
         };
     }
 
@@ -230,8 +235,7 @@ class UMLElement extends dia.Element {
 
 class UMLInitialNode extends UMLElement {
     defaults() {
-        return {
-            ...super.defaults(),
+        return util.defaultsDeep({
             type: 'UMLInitialNode',
             size: { width: 30, height: 30 },
             attrs: {
@@ -244,7 +248,7 @@ class UMLInitialNode extends UMLElement {
                     r: 'calc(0.5 * w)'
                 }
             }
-        };
+        }, super.defaults());
     }
 
     preinitialize() {
@@ -256,8 +260,7 @@ class UMLInitialNode extends UMLElement {
 
 class UMLActivity extends UMLElement {
     defaults() {
-        return {
-            ...super.defaults(),
+        return util.defaultsDeep({
             type: 'UMLActivity',
             size: { width: 200, height: 50 },
             attrs: {
@@ -282,7 +285,7 @@ class UMLActivity extends UMLElement {
                     y: 'calc(h/2)'
                 }
             }
-        };
+        }, super.defaults());
     }
 
     preinitialize() {
@@ -295,8 +298,7 @@ class UMLActivity extends UMLElement {
 
 class UMLDecision extends UMLElement {
     defaults() {
-        return {
-            ...super.defaults(),
+        return util.defaultsDeep({
             type: 'UMLDecision',
             size: { width: 50, height: 50 },
             attrs: {
@@ -306,7 +308,7 @@ class UMLDecision extends UMLElement {
                         'M calc(0.5 * w) 0 L calc(w) calc(0.5 * h) L calc(0.5 * w) calc(h) L 0 calc(0.5 * h) z'
                 }
             }
-        };
+        }, super.defaults());
     }
 
     preinitialize() {
@@ -318,8 +320,7 @@ class UMLDecision extends UMLElement {
 
 class UMLEndNode extends UMLElement {
     defaults() {
-        return {
-            ...super.defaults(),
+        return util.defaultsDeep({
             type: 'UMLEndNode',
             size: { width: 30, height: 30 },
             attrs: {
@@ -339,7 +340,7 @@ class UMLEndNode extends UMLElement {
                     r: 'calc(0.33 * w)'
                 }
             }
-        };
+        }, super.defaults());
     }
 
     preinitialize() {
@@ -352,8 +353,7 @@ class UMLEndNode extends UMLElement {
 
 class UMLVerticalFork extends UMLElement {
     defaults() {
-        return {
-            ...super.defaults(),
+        return util.defaultsDeep({
             type: 'UMLVerticalFork',
             size: { width: 25, height: 200 },
             attrs: {
@@ -365,7 +365,7 @@ class UMLVerticalFork extends UMLElement {
                     height: 'calc(h)'
                 }
             }
-        };
+        }, super.defaults());
     }
 
     preinitialize() {

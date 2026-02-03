@@ -135,6 +135,9 @@ class TemplateImage extends dia.Element {
             ...super.defaults,
             type: 'TemplateImage',
             attrs: {
+                root: {
+                    cursor: 'move'
+                },
                 image: {
                     width: 'calc(w)',
                     height: 'calc(h)'
@@ -242,7 +245,8 @@ class MarkupImage extends dia.Element {
             type: 'MarkupImage',
             attrs: {
                 root: {
-                    magnetSelector: 'outline'
+                    magnetSelector: 'outline',
+                    cursor: 'move'
                 },
                 image: {
                     width: 'calc(w)',

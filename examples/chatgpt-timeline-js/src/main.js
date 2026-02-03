@@ -57,7 +57,8 @@ class Event extends dia.Element {
             z: 1,
             attrs: {
                 root: {
-                    magnetSelector: 'body'
+                    magnetSelector: 'body',
+                    cursor: 'move'
                 },
                 body: {
                     d: 'M 10 0 H calc(w-10) A 10 10 0 0 1 calc(w) 10 V calc(h-30) H 10 A 10 10 0 0 1 0 calc(h-40) V 10 A 10 10 0 0 1 10 0 Z',

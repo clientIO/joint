@@ -11,6 +11,9 @@ class Shape extends dia.Element {
                 height: 60
             },
             attrs: {
+                root: {
+                    cursor: 'move'
+                },
                 body: {
                     fill: '#f2f1ed',
                     stroke: '#4b557d',
@@ -55,7 +58,8 @@ class Shape extends dia.Element {
                                 rx: 4,
                                 ry: 5,
                                 y: -4,
-                                magnet: true
+                                magnet: true,
+                                cursor: 'crosshair'
                             },
                             portLabel: {
                                 x: 'calc(0.5 * w)',
@@ -197,7 +201,6 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     gridSize: 20,
-    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' },
@@ -223,8 +226,9 @@ const paper = new dia.Paper({
         name: 'curve'
     }
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 Shape.svgDocument = paper.svg;
 

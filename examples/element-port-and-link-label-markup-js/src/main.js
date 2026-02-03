@@ -14,7 +14,6 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     gridSize: 20,
-    drawGrid: { name: 'mesh' },
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' },
@@ -44,8 +43,9 @@ const paper = new dia.Paper({
     snapLabels: true,
     defaultLink: () => new shapes.standard.Link(),
 });
-
 paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
 
 function getMarkupAttributes() {
     return {
@@ -57,7 +57,8 @@ function getMarkupAttributes() {
         attrs: {
             root: {
                 highlighterSelector: 'arrow',
-                magnetSelector: 'arrow'
+                magnetSelector: 'arrow',
+                cursor: 'move'
             },
             body: {
                 width: 'calc(w-10)',

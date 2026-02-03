@@ -1,4 +1,5 @@
-import { dia, elementTools, shapes as defaultShapes, layout, util } from '@joint/core';
+import { dia, elementTools, shapes as defaultShapes, util } from '@joint/core';
+import { DirectedGraph } from '@joint/layout-directed-graph';
 import './styles.css';
 
 const Event = dia.Element.define(
@@ -168,7 +169,7 @@ const IntermediateEvent = Event.define(
     },
     {
         attributes: {
-            gateType: {
+            'gate-type': {
                 set: function(type) {
                     const data = this.model.gateTypes[type];
                     return { d: data ? data + ' M 0 -30 0 -80' : 'M 0 0 0 0' };
@@ -543,7 +544,7 @@ function runLayout(graph) {
         }
     });
     // Automatic Layout
-    layout.DirectedGraph.layout(graph.getSubgraph(autoLayoutElements), {
+    DirectedGraph.layout(graph.getSubgraph(autoLayoutElements), {
         rankDir: 'TB',
         setVertices: true,
     });

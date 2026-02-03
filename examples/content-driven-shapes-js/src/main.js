@@ -1,26 +1,8 @@
 import { V, dia, shapes } from '@joint/core';
 import './styles.css';
 
-// Paper
-
-const paperContainer = document.getElementById('paper-container');
-
-const graph = new dia.Graph({}, { cellNamespace: shapes });
-const paper = new dia.Paper({
-    model: graph,
-    cellViewNamespace: shapes,
-    width: '100%',
-    height: '100%',
-    gridSize: 20,
-    drawGrid: { name: 'mesh' },
-    async: true,
-    sorting: dia.Paper.sorting.APPROX,
-    background: { color: '#F3F7F6' }
-});
-
-paperContainer.appendChild(paper.el);
-
-const svg = paper.svg;
+import jointjsLogoSvg from '../assets/jointjs-logo-black.svg';
+// Shapes
 
 function measureText(svgDocument, text, attrs) {
     const vText = V('text').attr(attrs).text(text);
@@ -49,9 +31,8 @@ class Shape extends dia.Element {
             'font-family': 'sans-serif'
         };
         this.imageAttributes = {
-            width: 50,
+            width: 140,
             height: 50,
-            preserveAspectRatio: 'none'
         };
         this.cache = {};
     }
@@ -177,7 +158,7 @@ const ShapeView = ElementView.extend({
         fillColor: ['@color']
     }),
 
-    confirmUpdate: function(...args) {
+    confirmUpdate: function (...args) {
         let flags = ElementView.prototype.confirmUpdate.call(this, ...args);
         if (this.hasFlag(flags, '@color')) {
             // if only a color is changed, no need to resize the DOM elements
@@ -189,7 +170,7 @@ const ShapeView = ElementView.extend({
     },
 
     /* Runs only once while initializing */
-    render: function() {
+    render: function () {
         const { vel, model } = this;
         const body = (this.vBody = V('rect')
             .addClass('body')
@@ -202,16 +183,17 @@ const ShapeView = ElementView.extend({
         this.update();
         this.updateColors();
         this.translate(); // default element translate method
+        this.el.setAttribute('cursor', 'move');
     },
 
-    update: function() {
+    update: function () {
         const layout = this.model.layout();
         this.updateBody(layout);
         this.updateImage(layout.$image);
         this.updateLabel(layout.$label);
     },
 
-    updateColors: function() {
+    updateColors: function () {
         const { model, vBody } = this;
         vBody.attr({
             fill: model.get('fillColor'),
@@ -219,7 +201,7 @@ const ShapeView = ElementView.extend({
         });
     },
 
-    updateBody: function() {
+    updateBody: function () {
         const { model, vBody } = this;
         const { width, height } = model.size();
         const bodyAttributes = {
@@ -229,7 +211,7 @@ const ShapeView = ElementView.extend({
         vBody.attr(bodyAttributes);
     },
 
-    updateImage: function($image) {
+    updateImage: function ($image) {
         const { model, vImage, vel } = this;
         const image = model.get('image');
         if (image) {
@@ -246,7 +228,7 @@ const ShapeView = ElementView.extend({
         }
     },
 
-    updateLabel: function($label) {
+    updateLabel: function ($label) {
         const { model, vLabel } = this;
         vLabel.attr({
             'text-anchor': 'middle',
@@ -259,10 +241,33 @@ const ShapeView = ElementView.extend({
     }
 });
 
-shapes.custom = {
-    Shape,
-    ShapeView
+const namespace = {
+    ...shapes,
+    custom: {
+        Shape,
+        ShapeView
+    }
 };
+
+// Paper
+const paperContainer = document.getElementById('paper-container');
+
+const graph = new dia.Graph({}, { cellNamespace: namespace });
+const paper = new dia.Paper({
+    model: graph,
+    cellViewNamespace: namespace,
+    width: '100%',
+    height: '100%',
+    gridSize: 20,
+    async: true,
+    sorting: dia.Paper.sorting.APPROX,
+    background: { color: '#F3F7F6' }
+});
+paperContainer.appendChild(paper.el);
+
+paper.setGrid('mesh');
+
+const svg = paper.svg;
 
 // Example
 
@@ -281,7 +286,7 @@ customShape2
 
 const customShape3 = new Shape();
 customShape3
-    .set('image', 'https://via.placeholder.com/50/DDDDDD')
+    .set('image', jointjsLogoSvg)
     .position(220, 40)
     .prop('fillColor', '#B9DBBB')
     .prop('outlineColor', '#339933')
@@ -293,7 +298,7 @@ customShape3
 
 const customShape4 = new Shape();
 customShape4
-    .set('image', 'https://via.placeholder.com/50/DDDDDD')
+    .set('image', jointjsLogoSvg)
     .set('label', '')
     .prop('fillColor', '#93B8C7')
     .prop('outlineColor', '#1ba1e2')
@@ -306,8 +311,8 @@ customShape4.transition(
     {
         delay: 200,
         duration: 3000,
-        valueFunction: function(start, end) {
-            return function(time) {
+        valueFunction: function (start, end) {
+            return function (time) {
                 return end.substr(0, Math.ceil(end.length * time));
             };
         }
