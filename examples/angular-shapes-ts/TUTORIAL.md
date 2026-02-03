@@ -2,20 +2,6 @@
 
 This tutorial explains step by step how to render Angular components inside JointJS element views using Angular's `createComponent()` API.
 
-## Documentation Links
-
-- **Angular**
-  - [createComponent()](https://angular.dev/api/core/createComponent) - Dynamically create components
-  - [ApplicationRef](https://angular.dev/api/core/ApplicationRef) - Application reference for change detection
-  - [EnvironmentInjector](https://angular.dev/api/core/EnvironmentInjector) - Dependency injection context
-  - [ChangeDetectionStrategy](https://angular.dev/api/core/ChangeDetectionStrategy) - OnPush change detection
-
-- **JointJS**
-  - [Custom Views](https://docs.jointjs.com/learn/features/custom-views) - Creating custom element views
-  - [dia.ElementView](https://docs.jointjs.com/api/dia/ElementView) - Base element view class
-  - [Highlighters](https://docs.jointjs.com/learn/features/highlighters) - Built-in highlighting system
-  - [Markup](https://docs.jointjs.com/learn/features/markup) - Defining element markup
-
 ## Overview
 
 JointJS renders elements as SVG. To embed Angular components, we use SVG's `<foreignObject>` element which allows HTML content inside SVG. We create a custom `ElementView` that:
@@ -83,14 +69,14 @@ export class NodeComponent {
 ```
 
 Key points:
-- Use `ChangeDetectionStrategy.OnPush` for better performance
+- Use [`ChangeDetectionStrategy.OnPush`](https://angular.dev/api/core/ChangeDetectionStrategy) for better performance
 - Define `@Input()` properties for data from JointJS model
 - Define `@Output()` events to communicate changes back to JointJS
 - Use `@HostBinding` for dynamic class binding on the host element
 
 ## Step 2: Create the Custom Element View
 
-Create a custom `ElementView` that renders the Angular component.
+Create a [custom element view](https://docs.jointjs.com/learn/features/custom-views) by extending [`dia.ElementView`](https://docs.jointjs.com/api/dia/ElementView) to render the Angular component.
 
 ```typescript
 // views/angular-element-view.ts
@@ -170,10 +156,10 @@ private renderAngularComponent(): void {
 ```
 
 Key points:
-- Use `createComponent()` with `hostElement` to render into a specific DOM element
-- Pass `environmentInjector` for dependency injection context
+- Use [`createComponent()`](https://angular.dev/api/core/createComponent) with `hostElement` to render into a specific DOM element
+- Pass [`EnvironmentInjector`](https://angular.dev/api/core/EnvironmentInjector) for dependency injection context
 - Subscribe to component outputs to update the JointJS model
-- Call `appRef.attachView()` to include the component in Angular's change detection
+- Call [`ApplicationRef.attachView()`](https://angular.dev/api/core/ApplicationRef) to include the component in Angular's change detection
 
 ### Step 2.3: Update the Component on Model Changes
 
@@ -239,7 +225,7 @@ export function createAngularElementView(
 
 ## Step 3: Define a Custom JointJS Element
 
-Create a custom element class with markup that includes a `foreignObject` containing the HTML container. Use `dia.Element`'s generic type parameter to define the attributes interface with typed `data`:
+Create a custom element class with [markup](https://docs.jointjs.com/learn/features/diagram-basics/cells/#markup) that includes a `foreignObject` containing the HTML container. Use `dia.Element`'s generic type parameter to define the attributes interface with typed `data`:
 
 ```typescript
 // models/angular-element.ts
@@ -302,39 +288,7 @@ Key points:
 - The `attrs.foreignObject` uses calc expressions to size the foreignObject to match the element
 - The `type` property is used for view resolution
 
-## Step 4: Create a Custom Link Model (Optional)
-
-For consistent link styling across the application, create a custom link model that extends `shapes.standard.Link`:
-
-```typescript
-// models/link.ts
-import { type dia, shapes, util } from '@joint/core';
-
-export class Link extends shapes.standard.Link {
-    override defaults(): dia.Link.Attributes {
-        const attributes: dia.Link.Attributes = {
-            type: 'Link',
-            attrs: {
-                line: {
-                    stroke: '#64748b',
-                    strokeWidth: 2,
-                    targetMarker: { type: 'path', d: 'M 10 -5 0 0 10 5 z' },
-                },
-            },
-        };
-
-        return util.defaultsDeep(attributes, super.defaults);
-    }
-}
-```
-
-Key points:
-- Use `util.defaultsDeep()` to properly merge with parent defaults
-- Type the return value as `dia.Link.Attributes` for type safety
-
-This allows you to create links with `new Link()` without repeating the styling attributes.
-
-## Step 5: Configure the Paper
+## Step 4: Configure the Paper
 
 Set up the JointJS Paper to use the custom view:
 
@@ -355,7 +309,6 @@ export class AppComponent implements AfterViewInit {
         const cellNamespace = {
             ...shapes,
             AngularElement,
-            Link,
         };
 
         // Create the paper
@@ -366,7 +319,6 @@ export class AppComponent implements AfterViewInit {
                 ...cellNamespace,
                 AngularElementView: CustomElementView,
             },
-            defaultLink: () => new Link(),
             // ... other options
         });
     }
@@ -377,10 +329,8 @@ Key points:
 - Inject `ApplicationRef` and `EnvironmentInjector` in the component
 - Call `createAngularElementView()` to create the view class with DI context
 - Register the view in `cellViewNamespace` with the naming convention `{ElementType}View`
-- Include custom models (`AngularElement`, `Link`) in the `cellNamespace`
-- Use `defaultLink` to specify the link type created when connecting elements
 
-## Step 6: Create Elements and Update Data
+## Step 5: Create Elements and Update Data
 
 Create elements and update their data:
 
@@ -402,18 +352,11 @@ node.set('data', {
     ...node.get('data'),
     description: 'Updated description'
 });
-
-// Create links between elements
-const link = new Link({
-    source: { id: node1.id },
-    target: { id: node2.id },
-});
-this.graph.addCell(link);
 ```
 
-## Step 7: Managing Selection with Highlighters
+## Step 6: Using Highlighters and Tools
 
-Instead of storing selection state in the element's data, use JointJS highlighters. This keeps UI state separate from data and leverages JointJS's built-in highlighting system.
+JointJS [highlighters](https://docs.jointjs.com/learn/features/highlighters) and element tools work with Angular components as usual. Here's an example of managing selection state with highlighters.
 
 ### Maintain Selection State
 
@@ -480,10 +423,9 @@ this.paper.on('blank:pointerclick', () => {
 }
 ```
 
-### Benefits of Using Highlighters
+### Benefits
 
-- **Separation of concerns** - Selection is UI state, not data
-- **Performance** - No need to trigger Angular component updates for selection changes
+- **Full JointJS compatibility** - Highlighters and tools work seamlessly with Angular components
 - **Flexibility** - Easy to support multi-selection by adding multiple IDs to the array
 - **Built-in API** - JointJS highlighters handle the DOM manipulation
 
@@ -497,6 +439,6 @@ The integration works through these mechanisms:
 4. **Model-to-view sync** - `presentationAttributes()` triggers `update()` on data changes, which uses `setInput()` to update the component
 5. **View-to-model sync** - Component outputs are subscribed to update the JointJS model
 6. **Lifecycle management** - Components are properly destroyed when elements are removed
-7. **Selection with highlighters** - Use JointJS highlighters for UI state like selection instead of component inputs
+7. **Full JointJS features** - Highlighters, tools, and other JointJS features work as expected
 
-This pattern allows you to use the full power of Angular components (dependency injection, reactive forms, animations, etc.) inside JointJS diagrams while keeping a clean separation between data and UI state.
+This pattern allows you to use the full power of Angular components (dependency injection, reactive forms, animations, etc.) inside JointJS diagrams.
