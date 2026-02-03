@@ -2,6 +2,20 @@
 
 This tutorial explains step by step how to render Angular components inside JointJS element views using Angular's `createComponent()` API.
 
+## Documentation Links
+
+- **Angular**
+  - [createComponent()](https://angular.dev/api/core/createComponent) - Dynamically create components
+  - [ApplicationRef](https://angular.dev/api/core/ApplicationRef) - Application reference for change detection
+  - [EnvironmentInjector](https://angular.dev/api/core/EnvironmentInjector) - Dependency injection context
+  - [ChangeDetectionStrategy](https://angular.dev/api/core/ChangeDetectionStrategy) - OnPush change detection
+
+- **JointJS**
+  - [Custom Views](https://docs.jointjs.com/learn/features/custom-views) - Creating custom element views
+  - [dia.ElementView](https://docs.jointjs.com/api/dia/ElementView) - Base element view class
+  - [Highlighters](https://docs.jointjs.com/learn/features/highlighters) - Built-in highlighting system
+  - [Markup](https://docs.jointjs.com/learn/features/markup) - Defining element markup
+
 ## Overview
 
 JointJS renders elements as SVG. To embed Angular components, we use SVG's `<foreignObject>` element which allows HTML content inside SVG. We create a custom `ElementView` that:
@@ -239,14 +253,20 @@ export function createAngularElementView(
 
 ## Step 3: Define a Custom JointJS Element
 
-Create a custom element class with markup that defines the HTML container:
+Create a custom element class with markup that defines the HTML container. Use `dia.Element`'s generic type parameter to define the attributes interface with typed `data`:
 
 ```typescript
 // models/angular-element.ts
 import { dia } from '@joint/core';
 import { NodeData } from '../components/node.component';
 
-export class AngularElement extends dia.Element {
+// Define attributes interface with typed data property
+export interface AngularElementAttributes extends dia.Element.Attributes {
+    data: NodeData;
+}
+
+// Use generic type parameter for type-safe attribute access
+export class AngularElement extends dia.Element<AngularElementAttributes> {
     override defaults() {
         return {
             ...super.defaults,
@@ -279,6 +299,9 @@ export class AngularElement extends dia.Element {
 ```
 
 Key points:
+- Extend `dia.Element.Attributes` to define a custom attributes interface with typed `data`
+- Pass the attributes interface as a generic type parameter to `dia.Element<T>`
+- This provides type safety when calling `element.get('data')` or `element.set('data', ...)`
 - The `markup` defines an HTML `div` container inside the foreignObject
 - Use `namespaceURI: 'http://www.w3.org/1999/xhtml'` for HTML elements
 - Store component data in a `data` property

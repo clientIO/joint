@@ -1,14 +1,18 @@
 import { dia } from '@joint/core';
 import { NodeData } from '../components/node.component';
 
+export interface AngularElementAttributes extends dia.Element.Attributes {
+    data: NodeData;
+}
+
 /**
  * Custom JointJS Element shape for Angular-rendered nodes.
  *
  * This element uses a foreignObject as its root (via AngularElementView)
  * and renders an Angular component inside it.
  */
-export class AngularElement extends dia.Element {
-    override defaults() {
+export class AngularElement extends dia.Element<AngularElementAttributes> {
+    override defaults(): AngularElementAttributes {
         return {
             ...super.defaults,
             type: 'AngularElement',
@@ -27,7 +31,7 @@ export class AngularElement extends dia.Element {
                 label: 'Node',
                 description: '',
                 type: 'default',
-            } as NodeData,
+            },
             attrs: {
                 root: {
                     width: 'calc(w)',
