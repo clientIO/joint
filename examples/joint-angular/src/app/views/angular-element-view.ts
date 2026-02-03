@@ -3,7 +3,6 @@ import {
     ComponentRef,
     createComponent,
     EnvironmentInjector,
-    Type,
 } from '@angular/core';
 import { dia } from '@joint/core';
 import { NodeComponent, NodeData } from '../components/node.component';
@@ -16,10 +15,16 @@ import { NodeComponent, NodeData } from '../components/node.component';
  */
 export class AngularElementView extends dia.ElementView {
     private componentRef: ComponentRef<NodeComponent> | null = null;
+    private container: HTMLDivElement | null = null;
 
     // These will be set by the Paper configuration
     static appRef: ApplicationRef;
     static injector: EnvironmentInjector;
+
+    override preinitialize(): void {
+        // Set the root element to be a foreignObject directly
+        this.tagName = 'foreignObject';
+    }
 
     // Define the presentation attributes to include the 'data' property for change detection
     override presentationAttributes(): dia.CellView.PresentationAttributes {
@@ -30,7 +35,7 @@ export class AngularElementView extends dia.ElementView {
 
     /**
      * Called when the view is rendered.
-     * We use a foreignObject to embed HTML content (the Angular component).
+     * The root element (this.el) is already a foreignObject.
      */
     override render(): this {
         super.render();
@@ -43,7 +48,7 @@ export class AngularElementView extends dia.ElementView {
      * We update the Angular component's inputs.
      */
     override update(): void {
-        super.update();
+        this.updateTransformation();
         this.updateAngularComponent();
     }
 
@@ -57,34 +62,27 @@ export class AngularElementView extends dia.ElementView {
     }
 
     /**
-     * Creates and renders the Angular component inside a foreignObject.
+     * Creates and renders the Angular component inside the foreignObject root.
      */
     private renderAngularComponent(): void {
-        const { model } = this;
+        const { model, el } = this;
         const size = model.size();
 
-        // Create foreignObject to host the Angular component
-        const foreignObject = document.createElementNS(
-            'http://www.w3.org/2000/svg',
-            'foreignObject'
-        );
-        foreignObject.setAttribute('width', String(size.width));
-        foreignObject.setAttribute('height', String(size.height));
-        foreignObject.setAttribute('class', 'angular-host');
+        // Configure the foreignObject (this.el)
+        el.setAttribute('width', String(size.width));
+        el.setAttribute('height', String(size.height));
+        el.setAttribute('class', 'angular-host');
 
         // Create a container div for the Angular component
-        const container = document.createElement('div');
-        container.style.width = '100%';
-        container.style.height = '100%';
-        foreignObject.appendChild(container);
-
-        // Append foreignObject to the element view
-        this.el.appendChild(foreignObject);
+        this.container = document.createElement('div');
+        this.container.style.width = '100%';
+        this.container.style.height = '100%';
+        el.appendChild(this.container);
 
         // Create the Angular component using createComponent
         if (AngularElementView.appRef && AngularElementView.injector) {
             this.componentRef = createComponent(NodeComponent, {
-                hostElement: container,
+                hostElement: this.container,
                 environmentInjector: AngularElementView.injector,
             });
 
@@ -109,16 +107,13 @@ export class AngularElementView extends dia.ElementView {
     private updateAngularComponent(): void {
         if (!this.componentRef) return;
 
-        const { model } = this;
+        const { model, el } = this;
         const data = model.get('data') as NodeData | undefined;
         const size = model.size();
 
-        // Update foreignObject size
-        const foreignObject = this.el.querySelector('foreignObject');
-        if (foreignObject) {
-            foreignObject.setAttribute('width', String(size.width));
-            foreignObject.setAttribute('height', String(size.height));
-        }
+        // Update foreignObject size (this.el is the foreignObject)
+        el.setAttribute('width', String(size.width));
+        el.setAttribute('height', String(size.height));
 
         // Update component inputs using setInput() for proper OnPush change detection
         if (data) {

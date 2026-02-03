@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { dia, shapes } from '@joint/core';
 import {
-    AngularElementView,
     createAngularElementView,
 } from './views/angular-element-view';
 import { NodeData } from './components/node.component';
@@ -22,7 +21,7 @@ class AngularElement extends dia.Element {
     override defaults() {
         return {
             ...super.defaults,
-            type: 'angular.Element',
+            type: 'AngularElement',
             size: { width: 200, height: 120 },
             markup: [],
             data: {
@@ -39,15 +38,13 @@ class AngularElement extends dia.Element {
 // Define the cell namespace
 const cellNamespace = {
     ...shapes,
-    angular: {
-        Element: AngularElement,
-    },
+    AngularElement,
 };
 
 @Component({
     selector: 'app-root',
     standalone: true,
-    template: `
+    template: /* html */`
         <div class="app-container">
             <div class="toolbar">
                 <h1>JointJS + Angular</h1>
@@ -64,7 +61,7 @@ const cellNamespace = {
         </div>
     `,
     styles: [
-        `
+        /* css */`
             .app-container {
                 display: flex;
                 flex-direction: column;
@@ -160,25 +157,25 @@ export class AppComponent implements AfterViewInit, OnDestroy {
             width: '100%',
             height: '100%',
             gridSize: 10,
-            drawGrid: true,
             background: { color: '#f8fafc' },
+            clickThreshold: 5,
             cellViewNamespace: {
                 ...cellNamespace,
-                // Register the custom view for our Angular element type
-            },
-            // Use the custom Angular element view for 'angular.Element' type
-            elementView: (element: dia.Element) => {
-                if (element.get('type') === 'angular.Element') {
-                    return CustomElementView;
-                }
-                return dia.ElementView;
+                // Use the custom Angular element view for 'AngularElement' type
+                AngularElementView: CustomElementView,
             },
             interactive: {
                 elementMove: true,
                 linkMove: false,
             },
-            defaultRouter: { name: 'orthogonal' },
+            defaultRouter: { name: 'rightAngle' },
             defaultConnector: { name: 'rounded' },
+            defaultAnchor: {
+                name: 'midSide',
+                args: {
+                    mode: 'horizontal',
+                }
+            },
         });
 
         // Handle element selection
@@ -188,11 +185,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
         this.paper.on('blank:pointerclick', () => {
             this.selectElement(null);
-        });
-
-        // Handle resize
-        window.addEventListener('resize', () => {
-            this.paper.setDimensions('100%', '100%');
         });
     }
 
