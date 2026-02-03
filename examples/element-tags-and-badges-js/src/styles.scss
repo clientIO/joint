@@ -1,0 +1,49 @@
+#example {
+    display: flex;
+    flex-direction: row;
+}
+
+#paper {
+    margin: 10px;
+    border: 1px solid #ccc;
+}
+
+[data-tool-name="remove"]:hover circle {
+    opacity: 1;
+}
+
+#toolbar {
+    display: flex;
+    flex-direction: column;
+
+    fieldset {
+        width: 270px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        display: inline-block;
+        margin: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+
+    button {
+        display: block;
+        margin: 5px;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    input[type="number"] {
+        width: 60px;
+    }
+}

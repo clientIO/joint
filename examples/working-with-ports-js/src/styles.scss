@@ -1,0 +1,50 @@
+#paper-container {
+    position: absolute;
+    right: 200px;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow: hidden;
+
+    .joint-cells-layer {
+        .available-magnet {
+            stroke: #0057ff;
+        }
+
+        .available-cell>text {
+            fill: #0057ff;
+        }
+    }
+}
+
+#logs-container {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 200px;
+    bottom: 0;
+    overflow: auto;
+    border-left: 1px solid #d4d4d4;
+    padding: 8px 16px;
+    background-color: #fcfcfc;
+    font-family: sans-serif;
+    font-size: 0.9em;
+
+    .log-event {
+        font-weight: bold;
+    }
+
+    .log-text {
+        border-bottom: 1px solid #e4e4e4;
+    }
+}
+
+#logo {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background-color: #ffffff;
+    border: 1px solid #d3d3d3;
+    padding: 5px;
+    box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.3);
+}

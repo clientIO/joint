@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="This demo shows how to form a circle from elements and automatically calculate the positions based on their count.">
+    <title>JointJS: Circular Layout</title>
+</head>
+
+<body id="app">
+    <label for="count">count</label>
+    <input id="count" type="range" min="5" max="30" value="20"></input>
+    <label for="gap">gap</label>
+    <input id="gap" type="range" min="0" max="30" value="10"></input>
+    <label for="rotate">rotate</label>
+    <input id="rotate" type="checkbox" checked="true"></input>
+
+    <div id="paper"></div>
+    <a target="_blank" href="https://www.jointjs.com">
+        <img id="logo" src="./assets/jointjs-logo-black.svg" width="200" height="50"></img>
+    </a>
+    <!-- Application files: -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
