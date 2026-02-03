@@ -166,7 +166,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 connecting: {
                     name: 'addClass',
                     options: {
-                        className: 'target',
+                        className: 'link-target',
                     },
                 }
             }
@@ -278,8 +278,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 const toolsView = new dia.ToolsView({
                     tools: [
                         new elementTools.Connect({
-                            x: '100%',
-                            y: '50%',
+                            x: 'calc(w + 15)',
+                            y: 'calc(h / 2)',
                         }),
                     ],
                 });
