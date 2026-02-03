@@ -88,16 +88,18 @@ import {
     createComponent,
     EnvironmentInjector,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { dia } from '@joint/core';
 import { NodeComponent, NodeData } from '../components/node.component';
 
 export class AngularElementView extends dia.ElementView {
     private componentRef: ComponentRef<NodeComponent> | null = null;
     private container: HTMLDivElement | null = null;
+    private subscription: Subscription | null = null;
 
     // Static properties set by factory function
-    static appRef: ApplicationRef;
-    static injector: EnvironmentInjector;
+    static appRef?: ApplicationRef;
+    static injector?: EnvironmentInjector;
 
     // ... methods below
 }
@@ -144,8 +146,8 @@ private renderAngularComponent(): void {
         // Set initial inputs
         this.updateAngularComponent();
 
-        // Subscribe to outputs
-        this.componentRef.instance.descriptionChanged.subscribe(
+        // Subscribe to outputs (store subscription for cleanup)
+        this.subscription = this.componentRef.instance.descriptionChanged.subscribe(
             (description: string) => {
                 model.set('data', { ...model.get('data'), description });
             }
@@ -202,6 +204,8 @@ override onRemove(): void {
 }
 
 private destroyAngularComponent(): void {
+    this.subscription?.unsubscribe();
+    this.subscription = null;
     if (this.componentRef) {
         AngularElementView.appRef?.detachView(this.componentRef.hostView);
         this.componentRef.destroy();
