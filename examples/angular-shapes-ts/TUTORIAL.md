@@ -20,7 +20,7 @@ This tutorial explains step by step how to render Angular components inside Join
 
 JointJS renders elements as SVG. To embed Angular components, we use SVG's `<foreignObject>` element which allows HTML content inside SVG. We create a custom `ElementView` that:
 
-1. Uses `foreignObject` as its root element
+1. Renders Angular components inside a `foreignObject` defined in the element's markup
 2. Dynamically creates Angular components using `createComponent()`
 3. Manages the component lifecycle (create, update, destroy)
 4. Handles two-way data binding between JointJS model and Angular component
@@ -115,21 +115,7 @@ export class AngularElementView extends dia.ElementView {
 }
 ```
 
-### Step 2.1: Set the Root Element to foreignObject
-
-Override `preinitialize()` to set the view's root element (`this.el`) to be a `foreignObject`:
-
-```typescript
-override preinitialize(): void {
-    this.tagName = 'foreignObject';
-}
-```
-
-This means `this.el` will be a `<foreignObject>` element instead of the default `<g>` element.
-
-> **Note:** The `foreignObject` doesn't have to be the root element. If you need to render SVG elements alongside the Angular component (e.g., connection ports, decorators, or custom shapes), you can keep the default `<g>` as the root and add the `foreignObject` as a child in the element's markup. This gives you the flexibility to combine SVG rendering with Angular components in the same element view.
-
-### Step 2.2: Define Presentation Attributes for Change Detection
+### Step 2.1: Define Presentation Attributes for Change Detection
 
 Override `presentationAttributes()` to trigger updates when the model's `data` property changes:
 
@@ -143,7 +129,7 @@ override presentationAttributes(): dia.CellView.PresentationAttributes {
 
 This tells JointJS to call `update()` whenever `model.set('data', ...)` is called.
 
-### Step 2.3: Render the Angular Component
+### Step 2.2: Render the Angular Component
 
 Override `render()` to create the Angular component:
 
@@ -189,7 +175,7 @@ Key points:
 - Subscribe to component outputs to update the JointJS model
 - Call `appRef.attachView()` to include the component in Angular's change detection
 
-### Step 2.4: Update the Component on Model Changes
+### Step 2.3: Update the Component on Model Changes
 
 Override `update()` to sync model data to the Angular component:
 
@@ -217,7 +203,7 @@ private updateAngularComponent(): void {
 
 **Important:** Use `componentRef.setInput()` instead of directly setting properties. This properly triggers Angular's `OnPush` change detection. Direct property assignment (`instance.prop = value`) bypasses the input binding mechanism and won't trigger updates.
 
-### Step 2.5: Clean Up on Remove
+### Step 2.4: Clean Up on Remove
 
 Override `onRemove()` to properly destroy the Angular component:
 
@@ -236,7 +222,7 @@ private destroyAngularComponent(): void {
 }
 ```
 
-### Step 2.6: Create a Factory Function
+### Step 2.5: Create a Factory Function
 
 Create a factory function to inject Angular's DI context:
 
@@ -253,7 +239,7 @@ export function createAngularElementView(
 
 ## Step 3: Define a Custom JointJS Element
 
-Create a custom element class with markup that defines the HTML container. Use `dia.Element`'s generic type parameter to define the attributes interface with typed `data`:
+Create a custom element class with markup that includes a `foreignObject` containing the HTML container. Use `dia.Element`'s generic type parameter to define the attributes interface with typed `data`:
 
 ```typescript
 // models/angular-element.ts
@@ -273,13 +259,20 @@ export class AngularElement extends dia.Element<AngularElementAttributes> {
             type: 'AngularElement',
             size: { width: 200, height: 120 },
             markup: [{
-                tagName: 'div',
-                selector: 'container',
-                namespaceURI: 'http://www.w3.org/1999/xhtml',
-                style: {
-                    width: '100%',
-                    height: '100%',
-                }
+                tagName: 'foreignObject',
+                selector: 'foreignObject',
+                attributes: {
+                    overflow: 'visible',
+                },
+                children: [{
+                    tagName: 'div',
+                    selector: 'container',
+                    namespaceURI: 'http://www.w3.org/1999/xhtml',
+                    style: {
+                        width: '100%',
+                        height: '100%',
+                    }
+                }]
             }],
             data: {
                 id: '',
@@ -288,7 +281,7 @@ export class AngularElement extends dia.Element<AngularElementAttributes> {
                 type: 'default',
             } as NodeData,
             attrs: {
-                root: {
+                foreignObject: {
                     width: 'calc(w)',
                     height: 'calc(h)',
                 }
@@ -302,13 +295,46 @@ Key points:
 - Extend `dia.Element.Attributes` to define a custom attributes interface with typed `data`
 - Pass the attributes interface as a generic type parameter to `dia.Element<T>`
 - This provides type safety when calling `element.get('data')` or `element.set('data', ...)`
-- The `markup` defines an HTML `div` container inside the foreignObject
-- Use `namespaceURI: 'http://www.w3.org/1999/xhtml'` for HTML elements
+- The `markup` includes a `foreignObject` element with an HTML `div` container as a child
+- Using `foreignObject` in markup (not as root) preserves support for ports, highlighters, and other JointJS features
+- Use `namespaceURI: 'http://www.w3.org/1999/xhtml'` for HTML elements inside foreignObject
 - Store component data in a `data` property
-- The `attrs.root` uses calc expressions to size the foreignObject
+- The `attrs.foreignObject` uses calc expressions to size the foreignObject to match the element
 - The `type` property is used for view resolution
 
-## Step 4: Configure the Paper
+## Step 4: Create a Custom Link Model (Optional)
+
+For consistent link styling across the application, create a custom link model that extends `shapes.standard.Link`:
+
+```typescript
+// models/link.ts
+import { type dia, shapes, util } from '@joint/core';
+
+export class Link extends shapes.standard.Link {
+    override defaults(): dia.Link.Attributes {
+        const attributes: dia.Link.Attributes = {
+            type: 'Link',
+            attrs: {
+                line: {
+                    stroke: '#64748b',
+                    strokeWidth: 2,
+                    targetMarker: { type: 'path', d: 'M 10 -5 0 0 10 5 z' },
+                },
+            },
+        };
+
+        return util.defaultsDeep(attributes, super.defaults);
+    }
+}
+```
+
+Key points:
+- Use `util.defaultsDeep()` to properly merge with parent defaults
+- Type the return value as `dia.Link.Attributes` for type safety
+
+This allows you to create links with `new Link()` without repeating the styling attributes.
+
+## Step 5: Configure the Paper
 
 Set up the JointJS Paper to use the custom view:
 
@@ -329,6 +355,7 @@ export class AppComponent implements AfterViewInit {
         const cellNamespace = {
             ...shapes,
             AngularElement,
+            Link,
         };
 
         // Create the paper
@@ -339,6 +366,7 @@ export class AppComponent implements AfterViewInit {
                 ...cellNamespace,
                 AngularElementView: CustomElementView,
             },
+            defaultLink: () => new Link(),
             // ... other options
         });
     }
@@ -349,8 +377,10 @@ Key points:
 - Inject `ApplicationRef` and `EnvironmentInjector` in the component
 - Call `createAngularElementView()` to create the view class with DI context
 - Register the view in `cellViewNamespace` with the naming convention `{ElementType}View`
+- Include custom models (`AngularElement`, `Link`) in the `cellNamespace`
+- Use `defaultLink` to specify the link type created when connecting elements
 
-## Step 5: Create Elements and Update Data
+## Step 6: Create Elements and Update Data
 
 Create elements and update their data:
 
@@ -372,9 +402,16 @@ node.set('data', {
     ...node.get('data'),
     description: 'Updated description'
 });
+
+// Create links between elements
+const link = new Link({
+    source: { id: node1.id },
+    target: { id: node2.id },
+});
+this.graph.addCell(link);
 ```
 
-## Step 6: Managing Selection with Highlighters
+## Step 7: Managing Selection with Highlighters
 
 Instead of storing selection state in the element's data, use JointJS highlighters. This keeps UI state separate from data and leverages JointJS's built-in highlighting system.
 
@@ -454,13 +491,12 @@ this.paper.on('blank:pointerclick', () => {
 
 The integration works through these mechanisms:
 
-1. **foreignObject as root** - `preinitialize()` sets `tagName = 'foreignObject'` so the view's root element can contain HTML
-2. **Markup with HTML namespace** - The element's markup defines an HTML container for the Angular component
-3. **Dynamic component creation** - `createComponent()` renders the Angular component into a host element
-4. **Change detection integration** - `appRef.attachView()` includes the component in Angular's change detection
-5. **Model-to-view sync** - `presentationAttributes()` triggers `update()` on data changes, which uses `setInput()` to update the component
-6. **View-to-model sync** - Component outputs are subscribed to update the JointJS model
-7. **Lifecycle management** - Components are properly destroyed when elements are removed
-8. **Selection with highlighters** - Use JointJS highlighters for UI state like selection instead of component inputs
+1. **foreignObject in markup** - The element's markup includes a `foreignObject` with an HTML container, preserving support for ports, highlighters, and tools
+2. **Dynamic component creation** - `createComponent()` renders the Angular component into the container element
+3. **Change detection integration** - `appRef.attachView()` includes the component in Angular's change detection
+4. **Model-to-view sync** - `presentationAttributes()` triggers `update()` on data changes, which uses `setInput()` to update the component
+5. **View-to-model sync** - Component outputs are subscribed to update the JointJS model
+6. **Lifecycle management** - Components are properly destroyed when elements are removed
+7. **Selection with highlighters** - Use JointJS highlighters for UI state like selection instead of component inputs
 
 This pattern allows you to use the full power of Angular components (dependency injection, reactive forms, animations, etc.) inside JointJS diagrams while keeping a clean separation between data and UI state.

@@ -9,10 +9,12 @@ import { AngularElement } from '../models/angular-element';
 import { NodeComponent } from '../components/node.component';
 
 /**
- * Custom JointJS ElementView that renders an Angular component inside the view.
+ * Custom JointJS ElementView that renders an Angular component inside a foreignObject.
  *
  * This demonstrates how to use Angular's createComponent() API to dynamically
- * render Angular components within JointJS element views.
+ * render Angular components within JointJS element views. The foreignObject is
+ * defined in the element's markup, keeping the standard SVG group as the root
+ * to support ports, highlighters, and other JointJS features.
  */
 export class AngularElementView extends dia.ElementView<AngularElement> {
     private componentRef: ComponentRef<NodeComponent> | null = null;
@@ -21,11 +23,6 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
     // These will be set by the Paper configuration via createAngularElementView()
     static appRef?: ApplicationRef;
     static injector?: EnvironmentInjector;
-
-    override preinitialize(): void {
-        // Set the root element to be a foreignObject directly
-        this.tagName = 'foreignObject';
-    }
 
     // Define the presentation attributes to include the 'data' property for change detection
     override presentationAttributes(): dia.CellView.PresentationAttributes {
@@ -36,7 +33,7 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
 
     /**
      * Called when the view is rendered.
-     * The root element (this.el) is already a foreignObject.
+     * Creates the Angular component inside the foreignObject's container.
      */
     override render(): this {
         super.render();

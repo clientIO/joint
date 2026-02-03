@@ -11,12 +11,14 @@ import {
 import { dia, elementTools, highlighters, shapes } from '@joint/core';
 import { createAngularElementView } from './views/angular-element-view';
 import { AngularElement } from './models/angular-element';
+import { Link } from './models/link';
 import type { NodeData } from './components/node.component';
 
 // Define the cell namespace
 const cellNamespace = {
     ...shapes,
     AngularElement,
+    Link,
 };
 
 @Component({
@@ -149,11 +151,14 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 linkMove: false,
             },
             linkPinning: false,
+            multiLinks: false,
+            defaultLink: () => new Link(),
             defaultRouter: { name: 'rightAngle' },
             defaultConnector: { name: 'rounded' },
             defaultAnchor: {
                 name: 'midSide',
                 args: {
+                    useModelGeometry: true,
                     mode: 'horizontal',
                 }
             },
@@ -216,40 +221,19 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         this.nodeCounter = 4;
 
         // Create links
-        const link1 = new shapes.standard.Link({
+        const link1 = new Link({
             source: { id: node1.id },
             target: { id: node2.id },
-            attrs: {
-                line: {
-                    stroke: '#64748b',
-                    strokeWidth: 2,
-                    targetMarker: { type: 'path', d: 'M 10 -5 0 0 10 5 z' },
-                },
-            },
         });
 
-        const link2 = new shapes.standard.Link({
+        const link2 = new Link({
             source: { id: node2.id },
             target: { id: node3.id },
-            attrs: {
-                line: {
-                    stroke: '#64748b',
-                    strokeWidth: 2,
-                    targetMarker: { type: 'path', d: 'M 10 -5 0 0 10 5 z' },
-                },
-            },
         });
 
-        const link3 = new shapes.standard.Link({
+        const link3 = new Link({
             source: { id: node3.id },
             target: { id: node4.id },
-            attrs: {
-                line: {
-                    stroke: '#64748b',
-                    strokeWidth: 2,
-                    targetMarker: { type: 'path', d: 'M 10 -5 0 0 10 5 z' },
-                },
-            },
         });
 
         this.graph.addCells([node1, node2, node3, node4, link1, link2, link3]);
@@ -262,16 +246,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         const { paper } = this;
         const highlighterId = AppComponent.SELECTION_HIGHLIGHTER_ID;
 
-        // Remove tools from previously selected cells
-        for (const id of this.selection) {
-            const cellView = paper.findViewByModel(id);
-            if (cellView?.hasTools()) {
-                cellView.removeTools();
-            }
-        }
-
-        // Remove all existing selection highlighters
+        // Remove all existing selection highlighters and tools
         highlighters.addClass.removeAll(paper, highlighterId);
+        paper.removeTools();
 
         // Update selection
         this.selection = cellIds;
@@ -324,7 +301,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 label: `${labels[type]} ${this.nodeCounter}`,
                 description: '',
                 type,
-            } as NodeData,
+            },
         });
 
         this.graph.addCell(node);

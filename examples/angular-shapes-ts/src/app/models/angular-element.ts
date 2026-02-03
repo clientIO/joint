@@ -8,8 +8,8 @@ export interface AngularElementAttributes extends dia.Element.Attributes {
 /**
  * Custom JointJS Element shape for Angular-rendered nodes.
  *
- * This element uses a foreignObject as its root (via AngularElementView)
- * and renders an Angular component inside it.
+ * This element uses a foreignObject in its markup to render
+ * an Angular component inside the standard SVG group root.
  */
 export class AngularElement extends dia.Element<AngularElementAttributes> {
     override defaults(): AngularElementAttributes {
@@ -18,13 +18,20 @@ export class AngularElement extends dia.Element<AngularElementAttributes> {
             type: 'AngularElement',
             size: { width: 200, height: 120 },
             markup: [{
-                tagName: 'div',
-                selector: 'container',
-                namespaceURI: 'http://www.w3.org/1999/xhtml',
-                style: {
-                    width: '100%',
-                    height: '100%',
-                }
+                tagName: 'foreignObject',
+                selector: 'foreignObject',
+                attributes: {
+                    overflow: 'visible',
+                },
+                children: [{
+                    tagName: 'div',
+                    selector: 'container',
+                    namespaceURI: 'http://www.w3.org/1999/xhtml',
+                    style: {
+                        width: '100%',
+                        height: '100%',
+                    }
+                }]
             }],
             data: {
                 id: '',
@@ -33,7 +40,7 @@ export class AngularElement extends dia.Element<AngularElementAttributes> {
                 type: 'default',
             },
             attrs: {
-                root: {
+                foreignObject: {
                     width: 'calc(w)',
                     height: 'calc(h)',
                 }
