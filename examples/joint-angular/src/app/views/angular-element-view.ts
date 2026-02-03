@@ -48,7 +48,8 @@ export class AngularElementView extends dia.ElementView {
      * We update the Angular component's inputs.
      */
     override update(): void {
-        this.updateTransformation();
+        super.update();
+        // Update Angular component inputs
         this.updateAngularComponent();
     }
 
@@ -65,19 +66,10 @@ export class AngularElementView extends dia.ElementView {
      * Creates and renders the Angular component inside the foreignObject root.
      */
     private renderAngularComponent(): void {
-        const { model, el } = this;
-        const size = model.size();
+        const { model } = this;
 
-        // Configure the foreignObject (this.el)
-        el.setAttribute('width', String(size.width));
-        el.setAttribute('height', String(size.height));
-        el.setAttribute('class', 'angular-host');
-
-        // Create a container div for the Angular component
-        this.container = document.createElement('div');
-        this.container.style.width = '100%';
-        this.container.style.height = '100%';
-        el.appendChild(this.container);
+        // Find the container div for the Angular component
+        this.container = this.findNode('container') as HTMLDivElement;
 
         // Create the Angular component using createComponent
         if (AngularElementView.appRef && AngularElementView.injector) {
@@ -107,13 +99,8 @@ export class AngularElementView extends dia.ElementView {
     private updateAngularComponent(): void {
         if (!this.componentRef) return;
 
-        const { model, el } = this;
+        const { model } = this;
         const data = model.get('data') as NodeData | undefined;
-        const size = model.size();
-
-        // Update foreignObject size (this.el is the foreignObject)
-        el.setAttribute('width', String(size.width));
-        el.setAttribute('height', String(size.height));
 
         // Update component inputs using setInput() for proper OnPush change detection
         if (data) {

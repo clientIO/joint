@@ -9,31 +9,9 @@ import {
     inject,
 } from '@angular/core';
 import { dia, shapes } from '@joint/core';
-import {
-    createAngularElementView,
-} from './views/angular-element-view';
+import { createAngularElementView } from './views/angular-element-view';
+import { AngularElement } from './models/angular-element';
 import { NodeData } from './components/node.component';
-
-/**
- * Custom JointJS Element shape for Angular-rendered nodes.
- */
-class AngularElement extends dia.Element {
-    override defaults() {
-        return {
-            ...super.defaults,
-            type: 'AngularElement',
-            size: { width: 200, height: 120 },
-            markup: [],
-            data: {
-                id: '',
-                label: 'Node',
-                description: '',
-                type: 'default',
-                isSelected: false,
-            } as NodeData,
-        };
-    }
-}
 
 // Define the cell namespace
 const cellNamespace = {
