@@ -68,7 +68,10 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
         const { model } = this;
 
         // Find the container div for the Angular component
-        this.container = this.findNode('container') as HTMLDivElement;
+        this.container = this.findNode('container') as HTMLDivElement | null;
+        if (!this.container) {
+            throw new Error('AngularElementView: "container" node not found in markup');
+        }
 
         // Create the Angular component using createComponent
         if (AngularElementView.appRef && AngularElementView.injector) {

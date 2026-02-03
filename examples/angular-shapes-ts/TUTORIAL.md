@@ -25,6 +25,7 @@ import {
     ChangeDetectionStrategy,
     HostBinding,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 export interface NodeData {
     id: string;
@@ -36,6 +37,7 @@ export interface NodeData {
 @Component({
     selector: 'app-node',
     standalone: true,
+    imports: [FormsModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="node-header">{{ label }}</div>
