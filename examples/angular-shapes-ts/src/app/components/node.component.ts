@@ -36,6 +36,7 @@ export interface NodeData {
                 [ngModel]="description"
                 (ngModelChange)="onDescriptionChange($event)"
                 placeholder="Enter description..."
+                aria-label="Node description"
             />
         </div>
     `,

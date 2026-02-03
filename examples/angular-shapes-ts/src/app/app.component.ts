@@ -165,8 +165,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         });
 
         // Handle element selection
-        this.paper.on('element:pointerclick', (elementView: dia.ElementView) => {
-            this.setSelection([elementView.model.id]);
+        this.paper.on('cell:pointerclick', (cellView: dia.CellView) => {
+            this.setSelection([cellView.model.id]);
         });
 
         this.paper.on('blank:pointerclick', () => {

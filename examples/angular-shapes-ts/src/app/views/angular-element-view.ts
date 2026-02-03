@@ -4,6 +4,7 @@ import {
     createComponent,
     EnvironmentInjector,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { dia } from '@joint/core';
 import { AngularElement } from '../models/angular-element';
 import { NodeComponent } from '../components/node.component';
@@ -19,6 +20,7 @@ import { NodeComponent } from '../components/node.component';
 export class AngularElementView extends dia.ElementView<AngularElement> {
     private componentRef: ComponentRef<NodeComponent> | null = null;
     private container: HTMLDivElement | null = null;
+    private subscription: Subscription | null = null;
 
     // These will be set by the Paper configuration via createAngularElementView()
     static appRef?: ApplicationRef;
@@ -80,7 +82,7 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
             this.componentRef.changeDetectorRef.detectChanges();
 
             // Subscribe to outputs
-            this.componentRef.instance.descriptionChanged.subscribe(
+            this.subscription = this.componentRef.instance.descriptionChanged.subscribe(
                 (description: string) => {
                     model.set('data', { ...model.get('data'), description });
                 }
@@ -112,6 +114,8 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
      * Destroys the Angular component and cleans up.
      */
     private destroyAngularComponent(): void {
+        this.subscription?.unsubscribe();
+        this.subscription = null;
         if (this.componentRef) {
             AngularElementView.appRef?.detachView(this.componentRef.hostView);
             this.componentRef.destroy();

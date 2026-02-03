@@ -81,13 +81,16 @@ body {
   font-weight: 500;
 }
 
+.selected .node-container {
+  outline: 3px solid #4E81EE;
+  outline-offset: 3px;
+}
+
+.selected [joint-selector="wrapper"] {
+  stroke: lightgray;
+}
+
 /* JointJS element styles */
 .joint-element {
   cursor: move;
-}
-
-.joint-element.selected {
-  outline: 2px solid #2563eb;
-  outline-offset: 3px;
-  outline-style: dotted;
 }

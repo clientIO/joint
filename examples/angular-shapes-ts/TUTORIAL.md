@@ -369,19 +369,20 @@ export class AppComponent {
 }
 ```
 
-### Add/Remove Highlighters on Selection Change
+### Add/Remove Highlighters and Tools on Selection Change
 
-Use `highlighters.addClass` to apply a CSS class to selected elements:
+Use `highlighters.addClass` to apply a CSS class to selected cells, and add element tools:
 
 ```typescript
-import { dia, highlighters, shapes } from '@joint/core';
+import { dia, elementTools, highlighters, shapes } from '@joint/core';
 
 setSelection(cellIds: dia.Cell.ID[]): void {
     const { paper } = this;
     const highlighterId = AppComponent.SELECTION_HIGHLIGHTER_ID;
 
-    // Remove all existing selection highlighters
+    // Remove all existing selection highlighters and tools
     highlighters.addClass.removeAll(paper, highlighterId);
+    paper.removeTools();
 
     // Update selection
     this.selection = cellIds;
@@ -395,6 +396,22 @@ setSelection(cellIds: dia.Cell.ID[]): void {
             });
         }
     }
+
+    // Add element tools when a single element is selected
+    if (this.selection.length === 1) {
+        const cellView = paper.findViewByModel(this.selection[0]);
+        if (cellView && cellView.model.isElement()) {
+            const toolsView = new dia.ToolsView({
+                tools: [
+                    new elementTools.Connect({
+                        x: '100%',
+                        y: '50%',
+                    }),
+                ],
+            });
+            (cellView as dia.ElementView).addTools(toolsView);
+        }
+    }
 }
 ```
 
@@ -403,9 +420,9 @@ setSelection(cellIds: dia.Cell.ID[]): void {
 Wire up the selection to pointer events:
 
 ```typescript
-// Handle element selection
-this.paper.on('element:pointerclick', (elementView: dia.ElementView) => {
-    this.setSelection([elementView.model.id]);
+// Handle cell selection
+this.paper.on('cell:pointerclick', (cellView: dia.CellView) => {
+    this.setSelection([cellView.model.id]);
 });
 
 this.paper.on('blank:pointerclick', () => {
@@ -416,7 +433,7 @@ this.paper.on('blank:pointerclick', () => {
 ### Define Selection Styles in CSS
 
 ```css
-.selected {
+.selected .node-container {
     outline: 2px solid #2563eb;
     outline-offset: 3px;
     outline-style: dotted;
