@@ -90,6 +90,11 @@ body {
   stroke: lightgray;
 }
 
+.target .node-container {
+  outline: 3px solid #F59E0B;
+  outline-offset: 3px;
+}
+
 /* JointJS element styles */
 .joint-element {
   cursor: move;

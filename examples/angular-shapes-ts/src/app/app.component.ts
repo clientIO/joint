@@ -162,6 +162,14 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                     mode: 'horizontal',
                 }
             },
+            highlighting: {
+                connecting: {
+                    name: 'addClass',
+                    options: {
+                        className: 'target',
+                    },
+                }
+            }
         });
 
         // Handle element selection

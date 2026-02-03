@@ -14,7 +14,7 @@ import { NodeComponent } from '../components/node.component';
  *
  * This demonstrates how to use Angular's createComponent() API to dynamically
  * render Angular components within JointJS element views. The foreignObject is
- * defined in the element's markup, keeping the standard SVG group as the root
+ * defined in the element's markup, keeping the default SVG group as the root
  * to support ports, highlighters, and other JointJS features.
  */
 export class AngularElementView extends dia.ElementView<AngularElement> {
