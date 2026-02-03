@@ -191,18 +191,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/animations@npm:^19.2.0":
-  version: 19.2.18
-  resolution: "@angular/animations@npm:19.2.18"
-  dependencies:
-    tslib: "npm:^2.3.0"
-  peerDependencies:
-    "@angular/common": 19.2.18
-    "@angular/core": 19.2.18
-  checksum: 10/55201c16818a2f36abe145b07235ac19256cfdca02db87691a2cfa23fa4e488f7636ed385bc341a5e4575fd64e0ee17a78387e5956437e5a8ad62834d86381dd
-  languageName: node
-  linkType: hard
-
 "@angular/build@npm:19.2.19":
   version: 19.2.19
   resolution: "@angular/build@npm:19.2.19"
@@ -370,20 +358,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/platform-browser-dynamic@npm:^19.2.0":
-  version: 19.2.18
-  resolution: "@angular/platform-browser-dynamic@npm:19.2.18"
-  dependencies:
-    tslib: "npm:^2.3.0"
-  peerDependencies:
-    "@angular/common": 19.2.18
-    "@angular/compiler": 19.2.18
-    "@angular/core": 19.2.18
-    "@angular/platform-browser": 19.2.18
-  checksum: 10/d42006a11f64e9f81137492ac931d918a699f27c707a9b813f224b363359524e646d5f804867f2a6744a45916b3bd0f6c18a8684213b3efea959f53a7b6db5d6
-  languageName: node
-  linkType: hard
-
 "@angular/platform-browser@npm:^19.2.0":
   version: 19.2.18
   resolution: "@angular/platform-browser@npm:19.2.18"
@@ -397,20 +371,6 @@ __metadata:
     "@angular/animations":
       optional: true
   checksum: 10/b7277416cf0a90331678be926d156b481b9903010437bcd24724d673a72e920c5cdb62d702dd39063852c536c0d676b03543be16d65ad9b52a178f25f94a4969
-  languageName: node
-  linkType: hard
-
-"@angular/router@npm:^19.2.0":
-  version: 19.2.18
-  resolution: "@angular/router@npm:19.2.18"
-  dependencies:
-    tslib: "npm:^2.3.0"
-  peerDependencies:
-    "@angular/common": 19.2.18
-    "@angular/core": 19.2.18
-    "@angular/platform-browser": 19.2.18
-    rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10/be7cfd68b332c9703ce556ea0d3c0b5a80b2088b84d6b4fcb5348c677f162f3b9d28cb0f9459738af48051a0e7a1fd2277f3852e49bb80dde8951a961e473e73
   languageName: node
   linkType: hard
 
@@ -4300,7 +4260,6 @@ __metadata:
   resolution: "@joint/demo-joint-angular@workspace:examples/angular-shapes-ts"
   dependencies:
     "@angular-devkit/build-angular": "npm:^19.2.0"
-    "@angular/animations": "npm:^19.2.0"
     "@angular/cli": "npm:^19.2.0"
     "@angular/common": "npm:^19.2.0"
     "@angular/compiler": "npm:^19.2.0"
@@ -4308,8 +4267,6 @@ __metadata:
     "@angular/core": "npm:^19.2.0"
     "@angular/forms": "npm:^19.2.0"
     "@angular/platform-browser": "npm:^19.2.0"
-    "@angular/platform-browser-dynamic": "npm:^19.2.0"
-    "@angular/router": "npm:^19.2.0"
     "@joint/core": "workspace:^"
     rxjs: "npm:~7.8.0"
     tslib: "npm:^2.8.0"
