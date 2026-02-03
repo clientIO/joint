@@ -4295,9 +4295,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-joint-angular@workspace:examples/angular-v21":
+"@joint/demo-joint-angular@workspace:examples/angular-shapes-ts":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-joint-angular@workspace:examples/angular-v21"
+  resolution: "@joint/demo-joint-angular@workspace:examples/angular-shapes-ts"
   dependencies:
     "@angular-devkit/build-angular": "npm:^19.2.0"
     "@angular/animations": "npm:^19.2.0"

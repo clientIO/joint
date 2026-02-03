@@ -5,7 +5,8 @@ import {
     EnvironmentInjector,
 } from '@angular/core';
 import { dia } from '@joint/core';
-import { NodeComponent, NodeData } from '../components/node.component';
+import { AngularElement } from '../models/angular-element';
+import { NodeComponent } from '../components/node.component';
 
 /**
  * Custom JointJS ElementView that renders an Angular component inside the view.
@@ -13,7 +14,7 @@ import { NodeComponent, NodeData } from '../components/node.component';
  * This demonstrates how to use Angular's createComponent() API to dynamically
  * render Angular components within JointJS element views.
  */
-export class AngularElementView extends dia.ElementView {
+export class AngularElementView extends dia.ElementView<AngularElement> {
     private componentRef: ComponentRef<NodeComponent> | null = null;
     private container: HTMLDivElement | null = null;
 
@@ -98,8 +99,7 @@ export class AngularElementView extends dia.ElementView {
     private updateAngularComponent(): void {
         if (!this.componentRef) return;
 
-        const { model } = this;
-        const data = model.get('data') as NodeData | undefined;
+        const data = this.model.get('data');
 
         // Update component inputs using setInput() for proper OnPush change detection
         if (data) {
