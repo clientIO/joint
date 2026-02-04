@@ -168,7 +168,6 @@ const initialLinks: Record<string, GraphLink> = {
     targetMarker: null,
   },
   'link-4': {
-    id: 'link-4',
     source: 'is079n',
     target: 'd8ojep',
     z: -1,
@@ -177,7 +176,6 @@ const initialLinks: Record<string, GraphLink> = {
     targetMarker: null,
   },
   'link-5': {
-    id: 'link-5',
     source: 'ht8wnb',
     target: 'szf1q3',
     z: -1,
@@ -186,7 +184,6 @@ const initialLinks: Record<string, GraphLink> = {
     targetMarker: null,
   },
   'link-6': {
-    id: 'link-6',
     source: 'ht8wnb',
     target: 'kj5m9a',
     z: -1,
@@ -195,7 +192,6 @@ const initialLinks: Record<string, GraphLink> = {
     targetMarker: null,
   },
   'link-7': {
-    id: 'link-7',
     source: '07vhpd',
     target: 'tcv79r',
     z: -1,
@@ -204,7 +200,6 @@ const initialLinks: Record<string, GraphLink> = {
     targetMarker: null,
   },
   'link-8': {
-    id: 'link-8',
     source: '07vhpd',
     target: 'ylp4gu',
     z: -1,
@@ -213,7 +208,6 @@ const initialLinks: Record<string, GraphLink> = {
     targetMarker: null,
   },
   'link-9': {
-    id: 'link-9',
     source: 'd8ojep',
     target: 'q2vwnc',
     z: -1,

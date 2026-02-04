@@ -95,11 +95,6 @@ graph.on({
         }
     },
 
-    'remove': (cell: dia.Cell) => {
-        if (cell.isLink()) return;
-        updateContainerSize(cell.getParentCell());
-    },
-
     'change:position': (cell: dia.Cell) => {
         if (cell.isLink()) return;
         updateContainerSize(cell.getParentCell());
@@ -110,9 +105,13 @@ graph.on({
         updateContainerSize(cell.getParentCell());
     },
 
-    'change:embeds': (cell: dia.Cell) => {
+    'change:parent': (cell: dia.Cell, parentId?: dia.Cell.ID) => {
         if (cell.isLink()) return;
-        updateContainerSize(cell);
+        // Use the new parent id if it is defined,
+        // otherwise use the previous parent id (for when the element is removed)
+        const containerId = parentId || cell.previous('parent');
+        const container = graph.getCell(containerId);
+        updateContainerSize(container);
     },
 
     'change:collapsed': (cell: dia.Cell) => {
@@ -124,37 +123,15 @@ graph.on({
 paper.on({
     'element:mouseenter': (elementView) => {
         elementView.removeTools();
-        if (Container.isContainer(elementView.model)) {
-            // Silently remove the children elements, then remove the container
-            elementView.addTools(
-                new dia.ToolsView({
-                    tools: [
-                        new elementTools.Remove({
-                            useModelGeometry: true,
-                            y: 0,
-                            x: 0,
-                            action: (_evt, view) => {
-                                graph.removeCells(view.model.getEmbeddedCells());
-                                view.model.remove();
-                            }
-                        })
-                    ]
+        elementView.addTools(new dia.ToolsView({
+            tools: [
+                new elementTools.Remove({
+                    useModelGeometry: true,
+                    y: 0,
+                    x: 0,
                 })
-            );
-        } else if (Child.isChild(elementView.model)) {
-            // Remove the element from the graph
-            elementView.addTools(
-                new dia.ToolsView({
-                    tools: [
-                        new elementTools.Remove({
-                            useModelGeometry: true,
-                            y: 0,
-                            x: 0
-                        })
-                    ]
-                })
-            );
-        }
+            ]
+        }));
     },
 
     'element:mouseleave': (elementView) => {
