@@ -383,8 +383,10 @@ export class AppComponent implements AfterViewInit {
                 ...cellNamespace,
                 AngularElementView,
             },
-            // Allow default browser behavior on blank area clicks (e.g., blur inputs)
+            // Allow default browser behavior (e.g. blur inputs) when clicking
+            // on the paper's blank area or on element/link views
             preventDefaultBlankAction: false,
+            preventDefaultViewAction: false,
             // ... other options
         });
     }
@@ -395,7 +397,7 @@ Key points:
 - Inject `ApplicationRef` and `EnvironmentInjector` in the component
 - Call `createAngularElementView()` to create the view class with DI context
 - Register the view in `cellViewNamespace` with the naming convention `{ElementType}View`
-- Set `preventDefaultBlankAction: false` to allow default browser behavior (like blurring inputs) when clicking on the paper's blank area
+- Set `preventDefaultBlankAction` and `preventDefaultViewAction` to `false` to allow default browser behavior (like blurring inputs) when clicking on the paper
 
 ## Step 5: Create Elements and Update Data
 

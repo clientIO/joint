@@ -83,7 +83,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
             },
             linkPinning: false,
             multiLinks: false,
+            // Allow default browser behavior (e.g. blur inputs) when clicking
+            // on the paper's blank area or on element/link views
             preventDefaultBlankAction: false,
+            preventDefaultViewAction: false,
             defaultLink: () => new Link(),
             defaultRouter: { name: 'rightAngle' },
             defaultConnector: { name: 'rounded' },
