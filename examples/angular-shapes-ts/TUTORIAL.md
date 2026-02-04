@@ -136,9 +136,18 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
     private container: HTMLDivElement | null = null;
     private subscription: Subscription | null = null;
 
-    // Static properties set by factory function
+    // Static properties set on subclasses created by the factory function
     static appRef?: ApplicationRef;
     static injector?: EnvironmentInjector;
+
+    // Instance getters to access the subclass static properties
+    protected get appRef(): ApplicationRef | undefined {
+        return (this.constructor as typeof AngularElementView).appRef;
+    }
+
+    protected get injector(): EnvironmentInjector | undefined {
+        return (this.constructor as typeof AngularElementView).injector;
+    }
 
     // ... methods below
 }
@@ -164,6 +173,8 @@ Override `render()` to create the Angular component:
 
 ```typescript
 override render(): this {
+    // Clean up any existing Angular component before re-rendering
+    this.destroyAngularComponent();
     super.render();
     this.renderAngularComponent();
     return this;
@@ -176,10 +187,11 @@ private renderAngularComponent(): void {
     this.container = this.findNode('container') as HTMLDivElement;
 
     // Create the Angular component using createComponent
-    if (AngularElementView.appRef && AngularElementView.injector) {
+    const { appRef, injector } = this;
+    if (appRef && injector) {
         this.componentRef = createComponent(ElementComponent, {
             hostElement: this.container,
-            environmentInjector: AngularElementView.injector,
+            environmentInjector: injector,
         });
 
         // Set initial inputs
@@ -193,7 +205,7 @@ private renderAngularComponent(): void {
         );
 
         // Attach to Angular's change detection
-        AngularElementView.appRef.attachView(this.componentRef.hostView);
+        appRef.attachView(this.componentRef.hostView);
     }
 }
 ```
@@ -246,7 +258,7 @@ private destroyAngularComponent(): void {
     this.subscription?.unsubscribe();
     this.subscription = null;
     if (this.componentRef) {
-        AngularElementView.appRef?.detachView(this.componentRef.hostView);
+        this.appRef?.detachView(this.componentRef.hostView);
         this.componentRef.destroy();
         this.componentRef = null;
     }
@@ -262,9 +274,12 @@ export function createAngularElementView(
     appRef: ApplicationRef,
     injector: EnvironmentInjector
 ): typeof AngularElementView {
-    AngularElementView.appRef = appRef;
-    AngularElementView.injector = injector;
-    return AngularElementView;
+    // Return a new subclass to avoid global mutable state
+    // when multiple papers are created
+    return class extends AngularElementView {
+        static override appRef = appRef;
+        static override injector = injector;
+    };
 }
 ```
 

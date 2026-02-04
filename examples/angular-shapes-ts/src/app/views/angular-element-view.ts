@@ -22,9 +22,19 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
     private container: HTMLDivElement | null = null;
     private subscription: Subscription | null = null;
 
-    // These will be set by the Paper configuration via createAngularElementView()
+    // These are set on subclasses created by createAngularElementView()
+    // to avoid global mutable state when multiple papers/apps are created
     static appRef?: ApplicationRef;
     static injector?: EnvironmentInjector;
+
+    // Get the static properties from the actual class (subclass)
+    protected get appRef(): ApplicationRef | undefined {
+        return (this.constructor as typeof AngularElementView).appRef;
+    }
+
+    protected get injector(): EnvironmentInjector | undefined {
+        return (this.constructor as typeof AngularElementView).injector;
+    }
 
     // Define the presentation attributes to include the 'data' property for change detection
     override presentationAttributes(): dia.CellView.PresentationAttributes {
@@ -38,6 +48,9 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
      * Creates the Angular component inside the foreignObject's container.
      */
     override render(): this {
+        // Clean up any existing Angular component before re-rendering
+        // to prevent memory leaks if render() is called multiple times
+        this.destroyAngularComponent();
         super.render();
         this.renderAngularComponent();
         return this;
@@ -74,10 +87,11 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
         }
 
         // Create the Angular component using createComponent
-        if (AngularElementView.appRef && AngularElementView.injector) {
+        const { appRef, injector } = this;
+        if (appRef && injector) {
             this.componentRef = createComponent(ElementComponent, {
                 hostElement: this.container,
-                environmentInjector: AngularElementView.injector,
+                environmentInjector: injector,
             });
 
             // Set initial inputs and trigger change detection
@@ -92,7 +106,7 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
             );
 
             // Attach to Angular's change detection
-            AngularElementView.appRef.attachView(this.componentRef.hostView);
+            appRef.attachView(this.componentRef.hostView);
         }
     }
 
@@ -120,7 +134,7 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
         this.subscription?.unsubscribe();
         this.subscription = null;
         if (this.componentRef) {
-            AngularElementView.appRef?.detachView(this.componentRef.hostView);
+            this.appRef?.detachView(this.componentRef.hostView);
             this.componentRef.destroy();
             this.componentRef = null;
         }
@@ -128,14 +142,15 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
 }
 
 /**
- * Factory function to create the custom element view class with Angular DI context.
+ * Factory function to create a custom element view class with Angular DI context.
+ * Returns a new subclass to avoid global mutable state when multiple papers are created.
  */
 export function createAngularElementView(
     appRef: ApplicationRef,
     injector: EnvironmentInjector
 ): typeof AngularElementView {
-    // Set the static properties for the view class
-    AngularElementView.appRef = appRef;
-    AngularElementView.injector = injector;
-    return AngularElementView;
+    return class extends AngularElementView {
+        static override appRef = appRef;
+        static override injector = injector;
+    };
 }
