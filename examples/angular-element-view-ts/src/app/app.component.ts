@@ -128,7 +128,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 label: 'Start',
                 description: 'Beginning of the flow',
                 type: 'default',
-            } as ElementData,
+            },
         });
 
         const node2 = new AngularElement({
@@ -138,7 +138,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 label: 'Process Data',
                 description: 'Transform and validate',
                 type: 'process',
-            } as ElementData,
+            },
         });
 
         const node3 = new AngularElement({
@@ -148,7 +148,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 label: 'Decision',
                 description: 'Check conditions',
                 type: 'decision',
-            } as ElementData,
+            },
         });
 
         const node4 = new AngularElement({
@@ -158,7 +158,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 label: 'End',
                 description: 'Flow completed',
                 type: 'default',
-            } as ElementData,
+            },
         });
 
         this.nodeCounter = 4;
