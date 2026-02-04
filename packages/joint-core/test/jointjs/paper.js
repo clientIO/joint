@@ -2974,9 +2974,9 @@ QUnit.module('paper', function(hooks) {
             const testElementView = testElement.findView(paper);
             const testElementRect = testElementView.el.querySelector('rect');
 
-            // Second handler: Should still be called even though element was removed
             paper.once('element:pointerup', spy);
 
+            // Override pointerup to remove the element during the event
             paper.pointerup = function(evt) {
                 testElement.remove();
                 joint.dia.Paper.prototype.pointerup.call(paper, evt);
@@ -3005,8 +3005,13 @@ QUnit.module('paper', function(hooks) {
             const testElementView = testElement.findView(paper);
             const testElementRect = testElementView.el.querySelector('rect');
 
-            // Second handler: Should still be called even though element was removed
             paper.once('element:pointermove', spy);
+
+            // Override pointermove to remove the element during the event
+            paper.pointermove = function(evt) {
+                testElement.remove();
+                joint.dia.Paper.prototype.pointermove.call(paper, evt);
+            };
 
             // Simulate drag operation
             simulate.mousedown({ el: testElementRect });
