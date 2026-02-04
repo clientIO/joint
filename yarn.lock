@@ -3911,9 +3911,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-angular-shapes-ts@workspace:examples/angular-shapes-ts":
+"@joint/demo-angular-element-view-ts@workspace:examples/angular-element-view-ts":
   version: 0.0.0-use.local
-  resolution: "@joint/demo-angular-shapes-ts@workspace:examples/angular-shapes-ts"
+  resolution: "@joint/demo-angular-element-view-ts@workspace:examples/angular-element-view-ts"
   dependencies:
     "@angular-devkit/build-angular": "npm:^19.2.0"
     "@angular/cli": "npm:^19.2.0"
