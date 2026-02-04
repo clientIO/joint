@@ -40,6 +40,16 @@ yarn start
 
 Navigate to `http://localhost:4200/` in your browser.
 
+
+Or open the example in StackBlitz:
+
+<a href="https://stackblitz.com/github/kumilingus/joint/tree/joint-angular/examples/angular-shapes-ts?file=package.stackblitz.json">
+  <img
+    alt="Open in StackBlitz"
+    src="https://developer.stackblitz.com/img/open_in_stackblitz.svg"
+  />
+</a>
+
 ## Requirements
 
 - Angular 19+
