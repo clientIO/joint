@@ -22,6 +22,9 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
     private container: HTMLDivElement | null = null;
     private subscription: Subscription | null = null;
 
+    // Custom flag for data changes to avoid full update() overhead on every keystroke
+    static DATA_FLAG: string = 'DATA';
+
     // These are set on subclasses created by createAngularElementView()
     // to avoid global mutable state when multiple papers/apps are created
     static appRef?: ApplicationRef;
@@ -36,11 +39,21 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
         return (this.constructor as typeof AngularElementView).injector;
     }
 
-    // Define the presentation attributes to include the 'data' property for change detection
+    // Map 'data' changes to a custom flag to avoid full update() on every keystroke
     override presentationAttributes(): dia.CellView.PresentationAttributes {
         return dia.ElementView.addPresentationAttributes({
-            data: dia.ElementView.Flags.UPDATE
+            data: AngularElementView.DATA_FLAG
         });
+    }
+
+    // Handle the custom DATA flag separately from the standard UPDATE flag
+    override confirmUpdate(flag: number, options: { [key: string]: unknown }): number {
+        let flags = super.confirmUpdate(flag, options);
+        if (this.hasFlag(flags, AngularElementView.DATA_FLAG)) {
+            this.updateAngularComponent();
+            flags = this.removeFlag(flags, AngularElementView.DATA_FLAG);
+        }
+        return flags;
     }
 
     /**
@@ -57,8 +70,8 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
     }
 
     /**
-     * Called when the model changes.
-     * We update the Angular component's inputs.
+     * Called when the model attrs/size changes.
+     * We also update the Angular component's inputs.
      */
     override update(): void {
         super.update();

@@ -149,23 +149,40 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
         return (this.constructor as typeof AngularElementView).injector;
     }
 
+    // Custom flag for data changes (see Step 2.1)
+    static DATA_FLAG: string = 'DATA';
+
     // ... methods below
 }
 ```
 
-### Step 2.1: Define Presentation Attributes for Change Detection
+### Step 2.1: Update the Component When Data Changes
 
-Override `presentationAttributes()` to trigger updates when the model's `data` property changes:
+To update the Angular component when the model's `data` property changes, use [presentation attributes](https://docs.jointjs.com/api/dia/CellView#presentationAttributes) with a custom flag and handle it in `confirmUpdate()`:
 
 ```typescript
+// Custom flag for data changes
+static DATA_FLAG: string = 'DATA';
+
+// Map 'data' changes to a custom flag
 override presentationAttributes(): dia.CellView.PresentationAttributes {
     return dia.ElementView.addPresentationAttributes({
-        data: dia.ElementView.Flags.UPDATE
+        data: AngularElementView.DATA_FLAG
     });
+}
+
+// Handle the custom DATA flag
+override confirmUpdate(flag: number, options: { [key: string]: unknown }): number {
+    let flags = super.confirmUpdate(flag, options);
+    if (this.hasFlag(flags, AngularElementView.DATA_FLAG)) {
+        this.updateAngularComponent();
+        flags = this.removeFlag(flags, AngularElementView.DATA_FLAG);
+    }
+    return flags;
 }
 ```
 
-This tells JointJS to call `update()` whenever `model.set('data', ...)` is called.
+This tells JointJS to call `confirmUpdate()` whenever `model.set('data', ...)` is called, which then updates the Angular component inputs.
 
 ### Step 2.2: Render the Angular Component
 
@@ -218,7 +235,7 @@ Key points:
 
 ### Step 2.3: Update the Component on Model Changes
 
-Override `update()` to sync model data to the Angular component:
+Override `update()` to also sync model data when `attrs` or `markup` changes trigger a full update:
 
 ```typescript
 override update(): void {
