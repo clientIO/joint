@@ -12,7 +12,6 @@ import { dia, elementTools, highlighters, shapes } from '@joint/core';
 import { createAngularElementView } from './views/angular-element-view';
 import { AngularElement } from './models/angular-element';
 import { Link } from './models/link';
-import type { ElementData } from './components/element.component';
 
 // Define the cell namespace
 const cellNamespace = {
