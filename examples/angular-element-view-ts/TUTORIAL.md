@@ -214,8 +214,9 @@ private renderAngularComponent(): void {
         // Attach to Angular's change detection tree first
         appRef.attachView(this.componentRef.hostView);
 
-        // Set initial inputs
+        // Set initial inputs and trigger change detection
         this.updateAngularComponent();
+        this.componentRef.changeDetectorRef.detectChanges();
 
         // Subscribe to outputs (store subscription for cleanup)
         this.subscription = this.componentRef.instance.descriptionChanged.subscribe(
