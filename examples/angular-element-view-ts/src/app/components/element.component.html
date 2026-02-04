@@ -1,0 +1,12 @@
+<div class="element-header">{{ label }}</div>
+<div class="element-body">
+    <span class="element-badge">{{ type }}</span>
+    <input
+        class="element-input"
+        type="text"
+        [ngModel]="description"
+        (ngModelChange)="onDescriptionChange($event)"
+        placeholder="Enter description..."
+        aria-label="Element description"
+    />
+</div>

@@ -1,0 +1,93 @@
+:host {
+    /* Container */
+    --element-background: white;
+    --element-border-color: #d1d5db;
+    --element-border-width: 1px;
+    --element-border-radius: 8px;
+
+    /* Header */
+    --element-header-background: #1f2937;
+    --element-header-color: white;
+    --element-header-padding: 8px 12px;
+    --element-header-font-size: 14px;
+    --element-header-font-weight: 600;
+
+    /* Body */
+    --element-body-padding: 12px;
+    --element-body-gap: 8px;
+
+    /* Badge */
+    --element-badge-background: #e0f2fe;
+    --element-badge-color: #0369a1;
+    --element-badge-padding: 2px 8px;
+    --element-badge-border-radius: 12px;
+    --element-badge-font-size: 11px;
+
+    /* Input */
+    --element-input-background: white;
+    --element-input-border-color: #d1d5db;
+    --element-input-border-radius: 4px;
+    --element-input-padding: 6px 10px;
+    --element-input-font-size: 13px;
+    --element-input-focus-color: #3b82f6;
+
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--element-background);
+    border-radius: var(--element-border-radius);
+    border: var(--element-border-width) solid var(--element-border-color);
+    overflow: hidden;
+}
+
+:host(.type-process) {
+    --element-header-background: #10b981;
+}
+
+:host(.type-decision) {
+    --element-header-background: #1d4ed8;
+}
+
+.element-header {
+    width: 100%;
+    padding: var(--element-header-padding);
+    background: var(--element-header-background);
+    color: var(--element-header-color);
+    font-weight: var(--element-header-font-weight);
+    font-size: var(--element-header-font-size);
+}
+
+.element-body {
+    flex: 1;
+    padding: var(--element-body-padding);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--element-body-gap);
+}
+
+.element-input {
+    width: 100%;
+    padding: var(--element-input-padding);
+    background: var(--element-input-background);
+    border: 1px solid var(--element-input-border-color);
+    border-radius: var(--element-input-border-radius);
+    font-size: var(--element-input-font-size);
+}
+
+.element-input:focus {
+    outline: none;
+    border-color: var(--element-input-focus-color);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--element-input-focus-color) 20%, transparent);
+}
+
+.element-badge {
+    display: inline-block;
+    padding: var(--element-badge-padding);
+    background: var(--element-badge-background);
+    color: var(--element-badge-color);
+    border-radius: var(--element-badge-border-radius);
+    font-size: var(--element-badge-font-size);
+    font-weight: 500;
+}
