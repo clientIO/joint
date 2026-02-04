@@ -194,6 +194,9 @@ private renderAngularComponent(): void {
             environmentInjector: injector,
         });
 
+        // Attach to Angular's change detection tree first
+        appRef.attachView(this.componentRef.hostView);
+
         // Set initial inputs
         this.updateAngularComponent();
 
@@ -203,9 +206,6 @@ private renderAngularComponent(): void {
                 model.set('data', { ...model.get('data'), description });
             }
         );
-
-        // Attach to Angular's change detection
-        appRef.attachView(this.componentRef.hostView);
     }
 }
 ```
@@ -213,8 +213,8 @@ private renderAngularComponent(): void {
 Key points:
 - Use [`createComponent()`](https://angular.dev/api/core/createComponent) with `hostElement` to render into a specific DOM element
 - Pass [`EnvironmentInjector`](https://angular.dev/api/core/EnvironmentInjector) for dependency injection context
+- Call [`ApplicationRef.attachView()`](https://angular.dev/api/core/ApplicationRef) to attach the view to Angular's change detection tree before running initial change detection
 - Subscribe to component outputs to update the JointJS model
-- Call [`ApplicationRef.attachView()`](https://angular.dev/api/core/ApplicationRef) to include the component in Angular's change detection
 
 ### Step 2.3: Update the Component on Model Changes
 

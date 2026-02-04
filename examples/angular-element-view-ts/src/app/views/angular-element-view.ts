@@ -94,6 +94,9 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
                 environmentInjector: injector,
             });
 
+            // Attach to Angular's change detection tree first
+            appRef.attachView(this.componentRef.hostView);
+
             // Set initial inputs and trigger change detection
             this.updateAngularComponent();
             this.componentRef.changeDetectorRef.detectChanges();
@@ -104,9 +107,6 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
                     model.set('data', { ...model.get('data'), description });
                 }
             );
-
-            // Attach to Angular's change detection
-            appRef.attachView(this.componentRef.hostView);
         }
     }
 
