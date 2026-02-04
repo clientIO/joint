@@ -1,7 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { useCallback, useEffect, useState } from 'react';
-import type { dia } from '@joint/core';
+import { useCallback, useEffect } from 'react';
+import { dia, elementTools } from '@joint/core';
 import {
   GraphProvider,
   Paper,
@@ -11,7 +10,6 @@ import {
   type GraphElement,
   type GraphLink,
 } from '@joint/react';
-import { useCellActions } from '../../../hooks/use-cell-actions';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 
@@ -36,13 +34,13 @@ const LINK_COLOR = '#222222';
 // Utilities
 // ============================================================================
 
-function fitContainer(element: dia.Element, collapsed: boolean) {
+function fitContainer(container: dia.Element, collapsed: boolean) {
   if (collapsed) {
-    element.resize(140, HEADER_HEIGHT);
+    container.resize(140, HEADER_HEIGHT);
     return;
   }
 
-  element.fitToChildren({
+  container.fitToChildren({
     padding: {
       top: HEADER_HEIGHT + PADDING,
       left: PADDING,
@@ -229,55 +227,23 @@ function ExpandButton({ collapsed, transform, onClick }: Readonly<{ collapsed: b
   );
 }
 
-function RemoveButton({ onClick }: Readonly<{ onClick: () => void }>) {
-  return (
-    <g transform="translate(0, 0)" onClick={onClick} style={{ cursor: 'pointer' }}>
-      <circle cx={0} cy={0} r={8} fill="#FF4365" stroke="#FFFFFF" strokeWidth={1} />
-      <path d="M -3 -3 L 3 3 M -3 3 L 3 -3" stroke="#FFFFFF" strokeWidth={1.5} />
-    </g>
-  );
-}
-
 function ContainerNode({ title, collapsed = false, width = 140, height = 100 }: Readonly<ContainerElement>) {
-  const [isHovered, setIsHovered] = useState(false);
   const id = useCellId();
-  const { set, remove } = useCellActions<ContainerElement>();
   const graph = useGraph();
 
   const handleToggle = useCallback(() => {
     const cell = graph.getCell(id);
     if (!cell?.isElement()) return;
-    const element = cell as dia.Element;
+    const container = cell as dia.Element;
 
     const isCollapsed = !collapsed;
 
-    cell.prop('data/collapsed', isCollapsed, { silent: true });
-    fitContainer(element, isCollapsed);
-
-    set(id, (previous) => ({
-      ...previous,
-      // collapsed: isCollapsed,
-      x: (previous.x ?? 0) + 1
-    }));
-
-  }, [id, graph, collapsed, set]);
-
-  const handleRemove = useCallback(() => {
-    const cell = graph.getCell(id);
-    if (cell?.isElement()) {
-      const embedded = (cell as dia.Element).getEmbeddedCells();
-      for (const child of embedded) {
-        child.remove();
-      }
-    }
-    remove(id);
-  }, [graph, id, remove]);
+    container.prop('data/collapsed', isCollapsed);
+    fitContainer(container, isCollapsed);
+  }, [id, graph, collapsed]);
 
   return (
-    <g
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <>
       {/* Body */}
       <rect
         width={width}
@@ -319,28 +285,13 @@ function ContainerNode({ title, collapsed = false, width = 140, height = 100 }: 
         collapsed={collapsed}
         onClick={handleToggle}
       />
-      {/* Remove button (on hover) */}
-      {isHovered && (
-        <RemoveButton onClick={handleRemove} />
-      )}
-    </g>
+    </>
   );
 }
 
 function ChildNode({ label, width = 50, height = 50 }: Readonly<ChildElement>) {
-  const [isHovered, setIsHovered] = useState(false);
-  const id = useCellId();
-  const { remove } = useCellActions<ChildElement>();
-
-  const handleRemove = useCallback(() => {
-    remove(id);
-  }, [id, remove]);
-
   return (
-    <g
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <>
       {/* Body */}
       <rect
         width={width}
@@ -361,13 +312,7 @@ function ChildNode({ label, width = 50, height = 50 }: Readonly<ChildElement>) {
       >
         {label}
       </text>
-      {/* Remove button (on hover) */}
-      {isHovered && (
-        <g transform="translate(0, 0)">
-          <RemoveButton onClick={handleRemove} />
-        </g>
-      )}
-    </g>
+    </>
   );
 }
 
@@ -381,36 +326,38 @@ function useContainerAutoResize() {
   useEffect(() => {
     const updateContainerSize = (cell: dia.Cell | null) => {
       if (!cell?.isElement()) return;
-      const element = cell as dia.Element;
+      const container = cell as dia.Element;
 
       // Check if this is a container by looking at its embeds
-      const embeds = element.getEmbeddedCells().filter((c) => c.isElement());
+      const embeds = container.getEmbeddedCells().filter((c) => c.isElement());
       if (embeds.length === 0) return;
 
-      fitContainer(element, element.prop('data/collapsed'));
+      fitContainer(container, container.prop('data/collapsed'));
     };
 
     const handleChange = (cell: dia.Cell) => {
       if (cell.isLink()) return;
-      const parent = (cell as dia.Element).getParentCell();
-      updateContainerSize(parent);
+      const container = (cell as dia.Element).getParentCell();
+      updateContainerSize(container);
     };
 
-    const handleEmbeds = (cell: dia.Cell) => {
-      if (cell.isLink()) return;
-      updateContainerSize(cell);
+    const handleParentChange = (child: dia.Cell, newParentId?: string) => {
+      if (child.isLink()) return;
+      // Use the new parent id if it is defined,
+      // otherwise use the previous parent id (for when the child is removed)
+      const containerId = newParentId || child.previous('parent');
+      const container = graph.getCell(containerId);
+      updateContainerSize(container);
     };
 
     graph.on('change:position', handleChange);
     graph.on('change:size', handleChange);
-    graph.on('remove', handleChange);
-    graph.on('change:embeds', handleEmbeds);
+    graph.on('change:parent', handleParentChange);
 
     return () => {
       graph.off('change:position', handleChange);
       graph.off('change:size', handleChange);
-      graph.off('remove', handleChange);
-      graph.off('change:embeds', handleEmbeds);
+      graph.off('change:parent', handleParentChange);
     };
   }, [graph]);
 }
@@ -424,20 +371,20 @@ function Main() {
 
   const graph = useGraph();
 
-  // Cell visibility callback - hides children when parent is collapsed
+  // Cell visibility callback - hides children when parent container is collapsed
   const cellVisibility = useCallback(
     (cell: dia.Cell) => {
-      const hasCollapsedAncestor = (element: dia.Cell) => {
-        return element.getAncestors().some((ancestor) => ancestor.prop('data/collapsed') === true);
+      const hasCollapsedAncestor = (cellToCheck: dia.Cell) => {
+        return cellToCheck.getAncestors().some((ancestor) => ancestor.prop('data/collapsed') === true);
       };
 
       if (cell.isLink()) {
         const link = cell as dia.Link;
-        const source = link.getSourceCell();
-        const target = link.getTargetCell();
+        const sourceCell = link.getSourceCell();
+        const targetCell = link.getTargetCell();
         // Hide link if source or target (or their ancestors) is collapsed
-        if (source && hasCollapsedAncestor(source)) return false;
-        if (target && hasCollapsedAncestor(target)) return false;
+        if (sourceCell && hasCollapsedAncestor(sourceCell)) return false;
+        if (targetCell && hasCollapsedAncestor(targetCell)) return false;
         return true;
       }
 
@@ -460,12 +407,29 @@ function Main() {
   // Initial setup - fit containers to their children on first render
   useEffect(() => {
     const containers = graph.getElements().filter(
-      (graphElement) => graphElement.prop('data/elementType') === ElementType.Container
+      (element) => element.prop('data/elementType') === ElementType.Container
     );
     for (const container of containers) {
       fitContainer(container, container.prop('data/collapsed'));
     }
   }, [graph]);
+
+  const handleElementMouseEnter = useCallback(({ elementView }: { elementView: dia.ElementView }) => {
+    elementView.removeTools();
+    elementView.addTools(new dia.ToolsView({
+      tools: [
+        new elementTools.Remove({
+          useModelGeometry: true,
+          y: 0,
+          x: 0,
+        }),
+      ]
+    }));
+  }, []);
+
+  const handleElementMouseLeave = useCallback(({ elementView }: { elementView: dia.ElementView }) => {
+    elementView.removeTools();
+  }, []);
 
   return (
     <Paper
@@ -476,6 +440,8 @@ function Main() {
       cellVisibility={cellVisibility}
       interactive={{ linkMove: false }}
       background={{ color: '#F3F7F6' }}
+      onElementMouseEnter={handleElementMouseEnter}
+      onElementMouseLeave={handleElementMouseLeave}
       async
     />
   );
