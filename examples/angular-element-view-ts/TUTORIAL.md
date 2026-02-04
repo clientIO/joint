@@ -247,8 +247,7 @@ override update(): void {
 private updateAngularComponent(): void {
     if (!this.componentRef) return;
 
-    const { model } = this;
-    const data = model.get('data') as ElementData | undefined;
+    const data = this.model.get('data');
 
     // Update component inputs using setInput()
     if (data) {
@@ -340,7 +339,7 @@ export class AngularElement extends dia.Element<AngularElementAttributes> {
             }],
             data: {
                 id: '',
-                label: 'Element',
+                label: 'Node',
                 description: '',
                 type: 'default',
             },
@@ -430,7 +429,7 @@ const element = new AngularElement({
         label: 'Start',
         description: 'Beginning of the flow',
         type: 'default',
-    } as ElementData,
+    },
 });
 this.graph.addCell(element);
 
@@ -491,8 +490,8 @@ setSelection(cellIds: dia.Cell.ID[]): void {
             const toolsView = new dia.ToolsView({
                 tools: [
                     new elementTools.Connect({
-                        x: '100%',
-                        y: '50%',
+                        x: 'calc(w + 15)',
+                        y: 'calc(h / 2)',
                     }),
                 ],
             });
@@ -522,7 +521,7 @@ this.paper.on('blank:pointerclick', () => {
 ```css
 /* The highlighter adds 'selected' class to the element view's root */
 .selected .element-container {
-    outline: 2px solid #2563eb;
+    outline: 3px solid #4E81EE;
     outline-offset: 3px;
 }
 ```

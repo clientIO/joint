@@ -123,7 +123,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         const node1 = new AngularElement({
             position: { x: 50, y: 50 },
             data: {
-                id: 'node-1',
+                id: 'element-1',
                 label: 'Start',
                 description: 'Beginning of the flow',
                 type: 'default',
@@ -133,7 +133,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         const node2 = new AngularElement({
             position: { x: 300, y: 50 },
             data: {
-                id: 'node-2',
+                id: 'element-2',
                 label: 'Process Data',
                 description: 'Transform and validate',
                 type: 'process',
@@ -143,7 +143,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         const node3 = new AngularElement({
             position: { x: 550, y: 50 },
             data: {
-                id: 'node-3',
+                id: 'element-3',
                 label: 'Decision',
                 description: 'Check conditions',
                 type: 'decision',
@@ -153,7 +153,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         const node4 = new AngularElement({
             position: { x: 300, y: 220 },
             data: {
-                id: 'node-4',
+                id: 'element-4',
                 label: 'End',
                 description: 'Flow completed',
                 type: 'default',
@@ -239,7 +239,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 y: 50 + Math.random() * 200,
             },
             data: {
-                id: `node-${this.nodeCounter}`,
+                id: `element-${this.nodeCounter}`,
                 label: `${labels[type]} ${this.nodeCounter}`,
                 description: '',
                 type,
