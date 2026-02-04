@@ -3911,6 +3911,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-angular-shapes-ts@workspace:examples/angular-shapes-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-angular-shapes-ts@workspace:examples/angular-shapes-ts"
+  dependencies:
+    "@angular-devkit/build-angular": "npm:^19.2.0"
+    "@angular/cli": "npm:^19.2.0"
+    "@angular/common": "npm:^19.2.0"
+    "@angular/compiler": "npm:^19.2.0"
+    "@angular/compiler-cli": "npm:^19.2.0"
+    "@angular/core": "npm:^19.2.0"
+    "@angular/forms": "npm:^19.2.0"
+    "@angular/platform-browser": "npm:^19.2.0"
+    "@joint/core": "workspace:^"
+    rxjs: "npm:~7.8.0"
+    tslib: "npm:^2.8.0"
+    typescript: "npm:~5.7.0"
+    zone.js: "npm:~0.15.0"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-animated-process-flow-diagram-js@workspace:examples/animated-process-flow-diagram-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-animated-process-flow-diagram-js@workspace:examples/animated-process-flow-diagram-js"
@@ -4252,26 +4272,6 @@ __metadata:
     webpack: "npm:5.98.0"
     webpack-cli: "npm:6.0.1"
     webpack-dev-server: "npm:5.2.0"
-  languageName: unknown
-  linkType: soft
-
-"@joint/demo-joint-angular@workspace:examples/angular-shapes-ts":
-  version: 0.0.0-use.local
-  resolution: "@joint/demo-joint-angular@workspace:examples/angular-shapes-ts"
-  dependencies:
-    "@angular-devkit/build-angular": "npm:^19.2.0"
-    "@angular/cli": "npm:^19.2.0"
-    "@angular/common": "npm:^19.2.0"
-    "@angular/compiler": "npm:^19.2.0"
-    "@angular/compiler-cli": "npm:^19.2.0"
-    "@angular/core": "npm:^19.2.0"
-    "@angular/forms": "npm:^19.2.0"
-    "@angular/platform-browser": "npm:^19.2.0"
-    "@joint/core": "workspace:^"
-    rxjs: "npm:~7.8.0"
-    tslib: "npm:^2.8.0"
-    typescript: "npm:~5.7.0"
-    zone.js: "npm:~0.15.0"
   languageName: unknown
   linkType: soft
 
