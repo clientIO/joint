@@ -2959,6 +2959,68 @@ QUnit.module('paper', function(hooks) {
             view.undelegateDocumentEvents();
         });
 
+        QUnit.test('pointerup handles element removal during event', function(assert) {
+            const paper = this.paper;
+            const graph = this.graph;
+            const spy = sinon.spy();
+
+            // Create a new element for this test
+            const testElement = new joint.shapes.standard.Rectangle({
+                position: { x: 100, y: 100 },
+                size: { width: 100, height: 100 }
+            });
+            testElement.addTo(graph);
+
+            const testElementView = testElement.findView(paper);
+            const testElementRect = testElementView.el.querySelector('rect');
+
+            paper.once('element:pointerup', spy);
+
+            // Override pointerup to remove the element during the event
+            paper.pointerup = function(evt) {
+                testElement.remove();
+                joint.dia.Paper.prototype.pointerup.call(paper, evt);
+            };
+
+            // Simulate drag operation
+            simulate.mousedown({ el: testElementRect });
+            simulate.mousemove({ el: testElementRect });
+            simulate.mouseup({ el: testElementRect });
+
+            assert.ok(spy.called, 'Handler executed successfully');
+        });
+
+        QUnit.test('pointermove handles element removal during event', function(assert) {
+            const paper = this.paper;
+            const graph = this.graph;
+            const spy = sinon.spy();
+
+            // Create a new element for this test
+            const testElement = new joint.shapes.standard.Rectangle({
+                position: { x: 100, y: 100 },
+                size: { width: 100, height: 100 }
+            });
+            testElement.addTo(graph);
+
+            const testElementView = testElement.findView(paper);
+            const testElementRect = testElementView.el.querySelector('rect');
+
+            paper.once('element:pointermove', spy);
+
+            // Override pointermove to remove the element during the event
+            paper.pointermove = function(evt) {
+                testElement.remove();
+                joint.dia.Paper.prototype.pointermove.call(paper, evt);
+            };
+
+            // Simulate drag operation
+            simulate.mousedown({ el: testElementRect });
+            simulate.mousemove({ el: testElementRect });
+            simulate.mouseup({ el: testElementRect });
+
+            assert.ok(spy.called, 'Handler executed successfully');
+        });
+
         QUnit.module('Labels', function(hooks) {
 
             var link, linkView;
