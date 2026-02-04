@@ -299,7 +299,7 @@ export interface AngularElementAttributes extends dia.Element.Attributes {
 
 // Use generic type parameter for type-safe attribute access
 export class AngularElement extends dia.Element<AngularElementAttributes> {
-    override defaults() {
+    override defaults(): AngularElementAttributes {
         return {
             ...super.defaults,
             type: 'AngularElement',
@@ -325,7 +325,7 @@ export class AngularElement extends dia.Element<AngularElementAttributes> {
                 label: 'Element',
                 description: '',
                 type: 'default',
-            } as ElementData,
+            },
             attrs: {
                 foreignObject: {
                     width: 'calc(w)',
