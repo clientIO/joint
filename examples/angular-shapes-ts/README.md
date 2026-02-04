@@ -20,10 +20,15 @@ src/
 ├── index.html                        # HTML entry point
 └── app/
     ├── app.component.ts              # Main component with JointJS setup
+    ├── app.component.html            # Main component template
+    ├── app.component.css             # Main component styles
     ├── components/
-    │   └── node.component.ts         # Angular component rendered in views
+    │   ├── element.component.ts      # Angular component rendered in views
+    │   ├── element.component.html    # Element component template
+    │   └── element.component.css     # Element component styles
     ├── models/
-    │   └── angular-element.ts        # Custom JointJS element model
+    │   ├── angular-element.ts        # Custom JointJS element model
+    │   └── link.ts                   # Custom JointJS link model
     └── views/
         └── angular-element-view.ts   # Custom JointJS view using createComponent
 ```

@@ -16,7 +16,7 @@ JointJS renders elements as SVG. To embed Angular components, we use SVG's `<for
 First, create a standard Angular component that will be rendered inside the JointJS element view.
 
 ```typescript
-// components/node.component.ts
+// components/element.component.ts
 import {
     Component,
     Input,
@@ -27,7 +27,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-export interface NodeData {
+export interface ElementData {
     id: string;
     label: string;
     description: string;
@@ -35,23 +35,14 @@ export interface NodeData {
 }
 
 @Component({
-    selector: 'app-node',
+    selector: 'app-element',
     standalone: true,
     imports: [FormsModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
-        <div class="node-header">{{ label }}</div>
-        <div class="node-body">
-            <span class="node-badge">{{ type }}</span>
-            <input
-                type="text"
-                [ngModel]="description"
-                (ngModelChange)="onDescriptionChange($event)"
-            />
-        </div>
-    `,
+    templateUrl: './element.component.html',
+    styleUrls: ['./element.component.css'],
 })
-export class NodeComponent {
+export class ElementComponent {
     @Input() id = '';
     @Input() label = '';
     @Input() description = '';
@@ -61,12 +52,59 @@ export class NodeComponent {
 
     @HostBinding('class')
     get hostClass(): string {
-        return `node-container type-${this.type}`;
+        return `element-container type-${this.type}`;
     }
 
     onDescriptionChange(value: string): void {
         this.descriptionChanged.emit(value);
     }
+}
+```
+
+The template (`element.component.html`):
+
+```html
+<div class="element-header">{{ label }}</div>
+<div class="element-body">
+    <span class="element-badge">{{ type }}</span>
+    <input
+        type="text"
+        [ngModel]="description"
+        (ngModelChange)="onDescriptionChange($event)"
+    />
+</div>
+```
+
+The styles (`element.component.css`):
+
+```css
+:host {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    overflow: hidden;
+}
+
+.element-header {
+    width: 100%;
+    padding: 8px 12px;
+    background: #1f2937;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.element-body {
+    flex: 1;
+    padding: 12px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 ```
 
@@ -90,10 +128,11 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { dia } from '@joint/core';
-import { NodeComponent, NodeData } from '../components/node.component';
+import { AngularElement } from '../models/angular-element';
+import { ElementComponent } from '../components/element.component';
 
-export class AngularElementView extends dia.ElementView {
-    private componentRef: ComponentRef<NodeComponent> | null = null;
+export class AngularElementView extends dia.ElementView<AngularElement> {
+    private componentRef: ComponentRef<ElementComponent> | null = null;
     private container: HTMLDivElement | null = null;
     private subscription: Subscription | null = null;
 
@@ -138,7 +177,7 @@ private renderAngularComponent(): void {
 
     // Create the Angular component using createComponent
     if (AngularElementView.appRef && AngularElementView.injector) {
-        this.componentRef = createComponent(NodeComponent, {
+        this.componentRef = createComponent(ElementComponent, {
             hostElement: this.container,
             environmentInjector: AngularElementView.injector,
         });
@@ -179,7 +218,7 @@ private updateAngularComponent(): void {
     if (!this.componentRef) return;
 
     const { model } = this;
-    const data = model.get('data') as NodeData | undefined;
+    const data = model.get('data') as ElementData | undefined;
 
     // Update component inputs using setInput()
     if (data) {
@@ -236,11 +275,11 @@ Create a custom element class with [markup](https://docs.jointjs.com/learn/featu
 ```typescript
 // models/angular-element.ts
 import { dia } from '@joint/core';
-import { NodeData } from '../components/node.component';
+import { ElementData } from '../components/element.component';
 
 // Define attributes interface with typed data property
 export interface AngularElementAttributes extends dia.Element.Attributes {
-    data: NodeData;
+    data: ElementData;
 }
 
 // Use generic type parameter for type-safe attribute access
@@ -268,10 +307,10 @@ export class AngularElement extends dia.Element<AngularElementAttributes> {
             }],
             data: {
                 id: '',
-                label: 'Node',
+                label: 'Element',
                 description: '',
                 type: 'default',
-            } as NodeData,
+            } as ElementData,
             attrs: {
                 foreignObject: {
                     width: 'calc(w)',
@@ -291,22 +330,26 @@ Key points:
 - Using `foreignObject` in markup (not as root) preserves support for ports, highlighters, and other JointJS features
 - Use `namespaceURI: 'http://www.w3.org/1999/xhtml'` for HTML elements inside foreignObject
 - Store component data in a `data` property
-- The `attrs.foreignObject` uses calc expressions to size the foreignObject to match the element
-- The `type` property is used for view resolution
+- The `attrs.foreignObject` uses calc expressions to size the foreignObject to match the element model size `element.size()`.
 
 ## Step 4: Configure the Paper
 
 Set up the JointJS Paper to use the custom view:
 
 ```typescript
-@Component({ ... })
+@Component({
+    selector: 'app-root',
+    standalone: true,
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
+})
 export class AppComponent implements AfterViewInit {
     private appRef = inject(ApplicationRef);
     private injector = inject(EnvironmentInjector);
 
     ngAfterViewInit(): void {
         // Create the custom view class with Angular DI
-        const CustomElementView = createAngularElementView(
+        const AngularElementView = createAngularElementView(
             this.appRef,
             this.injector
         );
@@ -323,8 +366,10 @@ export class AppComponent implements AfterViewInit {
             model: this.graph,
             cellViewNamespace: {
                 ...cellNamespace,
-                AngularElementView: CustomElementView,
+                AngularElementView,
             },
+            // Allow default browser behavior on blank area clicks (e.g., blur inputs)
+            preventDefaultBlankAction: false,
             // ... other options
         });
     }
@@ -335,6 +380,7 @@ Key points:
 - Inject `ApplicationRef` and `EnvironmentInjector` in the component
 - Call `createAngularElementView()` to create the view class with DI context
 - Register the view in `cellViewNamespace` with the naming convention `{ElementType}View`
+- Set `preventDefaultBlankAction: false` to allow default browser behavior (like blurring inputs) when clicking on the paper's blank area
 
 ## Step 5: Create Elements and Update Data
 
@@ -342,20 +388,20 @@ Create elements and update their data:
 
 ```typescript
 // Create an element
-const node = new AngularElement({
+const element = new AngularElement({
     position: { x: 50, y: 50 },
     data: {
-        id: 'node-1',
+        id: 'element-1',
         label: 'Start',
         description: 'Beginning of the flow',
         type: 'default',
-    } as NodeData,
+    } as ElementData,
 });
-this.graph.addCell(node);
+this.graph.addCell(element);
 
 // Update element data (triggers view update)
-node.set('data', {
-    ...node.get('data'),
+element.set('data', {
+    ...element.get('data'),
     description: 'Updated description'
 });
 ```
@@ -439,10 +485,10 @@ this.paper.on('blank:pointerclick', () => {
 ### Define Selection Styles in CSS
 
 ```css
-.selected .node-container {
+/* The highlighter adds 'selected' class to the element view's root */
+.selected .element-container {
     outline: 2px solid #2563eb;
     outline-offset: 3px;
-    outline-style: dotted;
 }
 ```
 
