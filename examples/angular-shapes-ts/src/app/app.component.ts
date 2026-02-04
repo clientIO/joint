@@ -12,7 +12,7 @@ import { dia, elementTools, highlighters, shapes } from '@joint/core';
 import { createAngularElementView } from './views/angular-element-view';
 import { AngularElement } from './models/angular-element';
 import { Link } from './models/link';
-import type { NodeData } from './components/node.component';
+import type { ElementData } from './components/element.component';
 
 // Define the cell namespace
 const cellNamespace = {
@@ -24,77 +24,8 @@ const cellNamespace = {
 @Component({
     selector: 'app-root',
     standalone: true,
-    template: /* html */`
-        <div class="app-container">
-            <div class="toolbar">
-                <h1>JointJS + Angular</h1>
-                <div class="toolbar-actions">
-                    <button (click)="addNode('default')">Add Node</button>
-                    <button (click)="addNode('process')">Add Process</button>
-                    <button (click)="addNode('decision')">Add Decision</button>
-                    <button (click)="deleteSelected()" [disabled]="selection.length === 0">
-                        Delete Selected
-                    </button>
-                </div>
-            </div>
-            <div #paperContainer id="paper-container"></div>
-        </div>
-    `,
-    styles: [
-        /* css */`
-            .app-container {
-                display: flex;
-                flex-direction: column;
-                height: 100vh;
-            }
-
-            .toolbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 12px 20px;
-                background: #1e293b;
-                color: white;
-            }
-
-            .toolbar h1 {
-                margin: 0;
-                font-size: 18px;
-                font-weight: 600;
-            }
-
-            .toolbar-actions {
-                display: flex;
-                gap: 8px;
-            }
-
-            .toolbar button {
-                padding: 8px 16px;
-                border: none;
-                border-radius: 6px;
-                background: #3b82f6;
-                color: white;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            }
-
-            .toolbar button:hover:not(:disabled) {
-                background-color: #2563eb;
-            }
-
-            .toolbar button:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-
-            #paper-container {
-                flex: 1;
-                overflow: hidden;
-            }
-        `,
-    ],
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
     @ViewChild('paperContainer') paperContainer!: ElementRef<HTMLDivElement>;
@@ -127,7 +58,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         this.graph = new dia.Graph({}, { cellNamespace });
 
         // Create the custom view class with Angular DI
-        const CustomElementView = createAngularElementView(
+        const AngularElementView = createAngularElementView(
             this.appRef,
             this.injector
         );
@@ -144,7 +75,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
             cellViewNamespace: {
                 ...cellNamespace,
                 // Use the custom Angular element view for 'AngularElement' type
-                AngularElementView: CustomElementView,
+                AngularElementView,
             },
             interactive: {
                 elementMove: true,
@@ -152,6 +83,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
             },
             linkPinning: false,
             multiLinks: false,
+            preventDefaultBlankAction: false,
             defaultLink: () => new Link(),
             defaultRouter: { name: 'rightAngle' },
             defaultConnector: { name: 'rounded' },
@@ -193,7 +125,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 label: 'Start',
                 description: 'Beginning of the flow',
                 type: 'default',
-            } as NodeData,
+            } as ElementData,
         });
 
         const node2 = new AngularElement({
@@ -203,7 +135,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 label: 'Process Data',
                 description: 'Transform and validate',
                 type: 'process',
-            } as NodeData,
+            } as ElementData,
         });
 
         const node3 = new AngularElement({
@@ -213,7 +145,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 label: 'Decision',
                 description: 'Check conditions',
                 type: 'decision',
-            } as NodeData,
+            } as ElementData,
         });
 
         const node4 = new AngularElement({
@@ -223,7 +155,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
                 label: 'End',
                 description: 'Flow completed',
                 type: 'default',
-            } as NodeData,
+            } as ElementData,
         });
 
         this.nodeCounter = 4;

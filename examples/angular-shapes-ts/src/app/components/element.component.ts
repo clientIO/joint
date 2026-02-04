@@ -8,8 +8,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-
-export interface NodeData {
+export interface ElementData {
     id: string;
     label: string;
     description: string;
@@ -22,35 +21,14 @@ export interface NodeData {
  * attached to the element view's DOM.
  */
 @Component({
-    selector: 'app-node',
+    selector: 'app-element',
     standalone: true,
     imports: [FormsModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    template: /* html */ `
-        <div class="node-header">{{ label }}</div>
-        <div class="node-body">
-            <span class="node-badge">{{ type }}</span>
-            <input
-                class="node-input"
-                type="text"
-                [ngModel]="description"
-                (ngModelChange)="onDescriptionChange($event)"
-                placeholder="Enter description..."
-                aria-label="Node description"
-            />
-        </div>
-    `,
-    styles: [
-        /* css */ `
-            :host {
-                display: block;
-                width: 100%;
-                height: 100%;
-            }
-        `,
-    ],
+    templateUrl: './element.component.html',
+    styleUrls: ['./element.component.css'],
 })
-export class NodeComponent {
+export class ElementComponent {
     @Input() id = '';
     @Input() label = '';
     @Input() description = '';
@@ -60,7 +38,7 @@ export class NodeComponent {
 
     @HostBinding('class')
     get hostClass(): string {
-        return `node-container type-${this.type}`;
+        return `element-container type-${this.type}`;
     }
 
     onDescriptionChange(value: string): void {

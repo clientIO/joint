@@ -1,8 +1,8 @@
 import { dia } from '@joint/core';
-import { NodeData } from '../components/node.component';
+import { ElementData } from '../components/element.component';
 
 export interface AngularElementAttributes extends dia.Element.Attributes {
-    data: NodeData;
+    data: ElementData;
 }
 
 /**

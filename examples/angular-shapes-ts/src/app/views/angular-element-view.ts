@@ -7,7 +7,7 @@ import {
 import { Subscription } from 'rxjs';
 import { dia } from '@joint/core';
 import { AngularElement } from '../models/angular-element';
-import { NodeComponent } from '../components/node.component';
+import { ElementComponent } from '../components/element.component';
 
 /**
  * Custom JointJS ElementView that renders an Angular component inside a foreignObject.
@@ -18,7 +18,7 @@ import { NodeComponent } from '../components/node.component';
  * to support ports, highlighters, and other JointJS features.
  */
 export class AngularElementView extends dia.ElementView<AngularElement> {
-    private componentRef: ComponentRef<NodeComponent> | null = null;
+    private componentRef: ComponentRef<ElementComponent> | null = null;
     private container: HTMLDivElement | null = null;
     private subscription: Subscription | null = null;
 
@@ -75,7 +75,7 @@ export class AngularElementView extends dia.ElementView<AngularElement> {
 
         // Create the Angular component using createComponent
         if (AngularElementView.appRef && AngularElementView.injector) {
-            this.componentRef = createComponent(NodeComponent, {
+            this.componentRef = createComponent(ElementComponent, {
                 hostElement: this.container,
                 environmentInjector: AngularElementView.injector,
             });
