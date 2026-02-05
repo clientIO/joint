@@ -190,7 +190,7 @@ class StatusList extends highlighters.list {
       cy: height / 2,
       fill: color,
       stroke: '#333',
-      'stroke-width': 2,
+      strokeWidth: 2,
     });
 
     return node;
