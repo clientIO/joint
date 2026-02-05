@@ -4,16 +4,15 @@ import type { dia } from '@joint/core';
 import {
   GraphProvider,
   Paper,
-  useCellId,
-  useGraph,
-  usePaper,
+  useCellActions,
+  useElements,
   type GraphElement,
   type GraphLink,
   type LinkToGraphOptions,
   TextNode,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import '../index.css';
 
@@ -69,6 +68,9 @@ const BULB_LIT_STROKE = '#edbc26';
 
 const WIRE_LINE = '#346f83';
 const WIRE_OUTLINE = '#004456';
+
+// The generator element ID that controls power for the circuit
+const GENERATOR_ID = 'generator';
 
 // ----------------------------------------------------------------------------
 // Initial Data
@@ -153,7 +155,7 @@ const mapDataToLinkAttributes = ({
 function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
   const turbineRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-  const paper = usePaper();
+  const { set } = useCellActions<ShapeElement>();
 
   // Turbine blade path
   const turbinePath = `
@@ -189,8 +191,8 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
 
   const handleTogglePower = useCallback(() => {
     const newPower = power === 0 ? 1 : 0;
-    paper.trigger('generator:power:change', newPower);
-  }, [paper, power]);
+    set(GENERATOR_ID, (previous) => ({ ...previous, power: newPower }));
+  }, [power, set]);
 
   return (
     <>
@@ -261,29 +263,14 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
 function BulbNode({ width, height, watts }: Readonly<BulbElement>) {
   const glassRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-  const cellId = useCellId();
-  const graph = useGraph();
 
-  const [light, setLight] = useState(false);
+  // Read generator power from the store (reactive)
+  const generatorPower = useElements<ShapeElement, number>(
+    (elements) => (elements[GENERATOR_ID] as GeneratorElement)?.power ?? 0
+  );
 
-  useEffect(() => {
-    const cell = graph.getCell(cellId);
-    if (!cell) return;
-
-    // Set initial value
-    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
-    setLight(cell.prop('light') ?? false);
-
-    // Listen for changes
-    const handleLightChange = () => {
-      setLight(cell.prop('light') ?? false);
-    };
-    cell.on('change:light', handleLightChange);
-
-    return () => {
-      cell.off('change:light', handleLightChange);
-    };
-  }, [cellId, graph]);
+  // Compute light state from generator power (derived state)
+  const light = Math.round(generatorPower * 100) >= watts;
 
   // Glass bulb path (scaled to fit width/height)
   const glassPath =
@@ -351,18 +338,20 @@ function RenderShapeElement(props: Readonly<ShapeElement>) {
 // ----------------------------------------------------------------------------
 // Power Control Component
 // ----------------------------------------------------------------------------
-interface PowerControlProps {
-  readonly power: number;
-  readonly onPowerChange: (power: number) => void;
-}
+function PowerControl() {
+  const { set } = useCellActions<ShapeElement>();
 
-function PowerControl({ power, onPowerChange }: Readonly<PowerControlProps>) {
+  // Read generator power from store (reactive)
+  const power = useElements<ShapeElement, number>(
+    (elements) => (elements[GENERATOR_ID] as GeneratorElement)?.power ?? 0
+  );
+
   const handlePowerChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newPower = Number.parseFloat(event.target.value);
-      onPowerChange(newPower);
+      const newPower = event.target.valueAsNumber;
+      set(GENERATOR_ID, (previous) => ({ ...previous, power: newPower }));
     },
-    [onPowerChange]
+    [set]
   );
 
   return (
@@ -418,77 +407,9 @@ function PowerControl({ power, onPowerChange }: Readonly<PowerControlProps>) {
 }
 
 // ----------------------------------------------------------------------------
-// Helper: Update power and bulbs
-// ----------------------------------------------------------------------------
-function updatePowerAndBulbs(graph: dia.Graph, newPower: number) {
-  const generator = graph.getCell('generator');
-  if (!generator) return;
-
-  generator.prop('data/power', newPower);
-
-  // Update connected bulbs based on power vs watts
-  // 'light' is a computed/presentation attribute (root level), not source data
-  const bulbs = graph.getNeighbors(generator as dia.Element, { outbound: true });
-  for (const bulb of bulbs) {
-    const watts = bulb.prop('data/watts') as number;
-    const shouldLight = Math.round(newPower * 100) >= watts;
-    bulb.prop('light', shouldLight);
-  }
-}
-
-// ----------------------------------------------------------------------------
 // Main Component
 // ----------------------------------------------------------------------------
 function Main() {
-  const graph = useGraph();
-
-  // Subscribe to generator's power from the graph
-  const [power, setPower] = useState(() => {
-    const generator = graph.getCell('generator');
-    return (generator?.prop('data/power') as number) ?? 1;
-  });
-
-  useEffect(() => {
-    const generator = graph.getCell('generator');
-    if (!generator) return;
-
-    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
-    setPower((generator.prop('data/power') as number) ?? 1);
-
-    const handleChange = (_cell: dia.Cell, data: { power: number }) => {
-      setPower(data.power);
-    };
-
-    generator.on('change:data', handleChange);
-
-    return () => {
-      generator.off('change:data', handleChange);
-    };
-  }, [graph]);
-
-  // Initialize bulb light states on mount
-  useEffect(() => {
-    updatePowerAndBulbs(graph, power);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graph]);
-
-  // Update graph (which triggers the subscription above)
-  const handlePowerChange = useCallback(
-    (newPower: number) => {
-      updatePowerAndBulbs(graph, newPower);
-    },
-    [graph]
-  );
-
-  // Handle custom event from generator toggle
-  const handleGeneratorPowerChange = useCallback(
-    ({ args }: { args: unknown[] }) => {
-      const [newPower] = args as [number];
-      updatePowerAndBulbs(graph, newPower);
-    },
-    [graph]
-  );
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <Paper
@@ -502,11 +423,8 @@ function Main() {
         interactive={{
           linkMove: false,
         }}
-        customEvents={{
-          'generator:power:change': handleGeneratorPowerChange,
-        }}
       />
-      <PowerControl power={power} onPowerChange={handlePowerChange} />
+      <PowerControl />
     </div>
   );
 }
