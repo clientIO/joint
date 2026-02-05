@@ -1,5 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+import { useEffect, useRef } from 'react';
 import type { GraphLink, GraphElement } from '@joint/react';
 import { GraphProvider, jsx, Paper } from '@joint/react';
 import { PAPER_CLASSNAME, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
@@ -377,6 +378,18 @@ function getLinkTools(_linkView: dia.LinkView) {
 // Main Component
 // ----------------------------------------------------------------------------
 function Main() {
+  const currentToolsViewRef = useRef<dia.ToolsView | null>(null);
+  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+    };
+  }, []);
+
   return (
     <Paper
       width="100%"
@@ -424,14 +437,30 @@ function Main() {
         sourceView.model.isElement() && targetView.model.isElement() && sourceView !== targetView
       }
       // Event handlers
-      onCellMouseEnter={({ cellView }) => {
+      onCellMouseEnter={({ cellView, paper }) => {
+        paper.removeTools();
+
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+          timeoutIdRef.current = null;
+        }
+
         const tools = cellView.model.isLink()
           ? getLinkTools(cellView as dia.LinkView)
           : getElementTools(cellView as dia.ElementView);
-        cellView.addTools(new dia.ToolsView({ tools }));
+        
+        const toolsView = new dia.ToolsView({ tools });
+        cellView.addTools(toolsView);
+        currentToolsViewRef.current = toolsView;
       }}
-      onCellMouseLeave={({ cellView }) => {
-        cellView.removeTools();
+      onCellMouseLeave={() => {
+        timeoutIdRef.current = setTimeout(() => {
+          currentToolsViewRef.current?.remove();
+          currentToolsViewRef.current = null;
+          timeoutIdRef.current = null;
+        }, 100_000);
+
+        currentToolsViewRef.current?.el.classList.add('opacity-0','transition-opacity','duration-300', 'delay-300');
       }}
       onElementPointerMove={({ elementView }) => {
         if (elementView.hasTools()) {
