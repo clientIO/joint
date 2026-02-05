@@ -458,7 +458,7 @@ function Main() {
           currentToolsViewRef.current?.remove();
           currentToolsViewRef.current = null;
           timeoutIdRef.current = null;
-        }, 100_000);
+        }, 1000);
 
         currentToolsViewRef.current?.el.classList.add('opacity-0','transition-opacity','duration-300', 'delay-300');
       }}
