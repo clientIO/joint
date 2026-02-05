@@ -213,7 +213,7 @@ const AnchorsHighlighter = dia.HighlighterView.extend({
   attributes: {
     stroke: ANCHOR_STROKE,
     fill: ANCHOR_FILL,
-    'stroke-width': 2,
+    strokeWidth: 2,
   },
 
   highlight(cellView: dia.CellView) {
@@ -351,7 +351,7 @@ function getLinkTools(_linkView: dia.LinkView) {
       r: 6,
       fill: ANCHOR_FILL,
       stroke: ANCHOR_STROKE,
-      'stroke-width': 2,
+      strokeWidth: 2,
       cursor: 'move',
     },
   });
