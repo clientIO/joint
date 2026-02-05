@@ -1,0 +1,54 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/addon-docs/blocks';
+import * as Stories from './story';
+
+<Meta of={Stories} />
+
+# Dynamic Status Icons Example
+
+This example demonstrates how to add dynamic status indicators to diagram elements using a custom highlighter. Status icons update in real-time to reflect changing element states.
+
+## Overview
+
+Dynamic status icons are useful for:
+- Monitoring dashboards showing real-time system health
+- Workflow diagrams with task progress indicators
+- Network diagrams displaying connection or node status
+- Any diagram where elements need visual state indicators
+
+## Demo
+
+<Canvas of={Stories.Default} />
+
+## Key Concepts
+
+### Custom Highlighter
+
+The example extends the built-in `highlighters.list` class to create status indicators as colored ellipses:
+
+```tsx
+class StatusList extends highlighters.list {
+  createListItem(color: string, { width, height }: { width: number; height: number }) {
+    const { node } = V('ellipse', {
+      rx: width / 2,
+      ry: height / 2,
+      cx: width / 2,
+      cy: height / 2,
+      fill: color,
+      stroke: '#333',
+      'stroke-width': 2,
+    });
+    return node;
+  }
+}
+```
+
+## How It Works
+
+1. **Define Custom Highlighter**: Extend `highlighters.list` and override `createListItem` to define the status icon appearance
+2. **Render Elements**: Elements render with their custom shapes (rectangle, circle, ellipse, path)
+3. **Attach Highlighters**: After elements are sized, attach the `StatusList` highlighter to each element
+4. **Update Status**: Periodically update the `status` property on elements to trigger re-render of status icons
+
+## Best Practices
+
+- **Leverage Built-in Highlighters**: Extend existing highlighter classes like `highlighters.list` for common patterns
