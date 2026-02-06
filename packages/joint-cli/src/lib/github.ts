@@ -1,4 +1,4 @@
-import { GITHUB_API_URL, REPO_BRANCH } from '../constants.js';
+import { getGitHubApiUrl, type RepoOptions } from '../constants.js';
 
 interface GitHubTreeItem {
     path: string;
@@ -23,8 +23,9 @@ function buildHeaders(): Record<string, string> {
     return headers;
 }
 
-export async function listDemoFolders(): Promise<string[]> {
-    const url = `${GITHUB_API_URL}/git/trees/${REPO_BRANCH}?recursive=1`;
+export async function listDemoFolders(options: RepoOptions): Promise<string[]> {
+    const apiUrl = getGitHubApiUrl(options);
+    const url = `${apiUrl}/git/trees/${options.branch}?recursive=1`;
 
     const response = await fetch(url, { headers: buildHeaders() });
 

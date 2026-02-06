@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
+import { createRequire } from 'node:module';
 import { list } from './commands/list.js';
 import { download } from './commands/download.js';
+import { DEFAULT_OWNER, DEFAULT_BRANCH, type RepoOptions } from './constants.js';
 import * as logger from './lib/logger.js';
 
-const VERSION = '0.1.0';
+const require = createRequire(import.meta.url);
+const { version: VERSION } = require('../package.json');
 
 const HELP = `
 ${logger.bold('joint')} — Command-line tool for JointJS
@@ -19,39 +22,65 @@ ${logger.bold('Commands:')}
 ${logger.bold('Options:')}
   --help, -h          Show this help message
   --version, -v       Show version number
+  --owner <name>      GitHub repo owner (default: ${DEFAULT_OWNER})
+  --branch <name>     GitHub repo branch (default: ${DEFAULT_BRANCH})
 
 ${logger.bold('Environment:')}
   GITHUB_TOKEN        Optional GitHub token to avoid rate limiting
 `;
 
-async function main(): Promise<void> {
-    const args = process.argv.slice(2);
+function getFlag(args: string[], name: string): string | undefined {
+    const index = args.indexOf(name);
+    if (index === -1 || index + 1 >= args.length) return undefined;
+    return args[index + 1];
+}
 
-    if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
+function stripFlags(args: string[]): string[] {
+    const result: string[] = [];
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--owner' || args[i] === '--branch') {
+            i++; // skip the value
+        } else {
+            result.push(args[i]);
+        }
+    }
+    return result;
+}
+
+async function main(): Promise<void> {
+    const rawArgs = process.argv.slice(2);
+
+    if (rawArgs.length === 0 || rawArgs.includes('--help') || rawArgs.includes('-h')) {
         console.log(HELP);
         return;
     }
 
-    if (args.includes('--version') || args.includes('-v')) {
+    if (rawArgs.includes('--version') || rawArgs.includes('-v')) {
         console.log(VERSION);
         return;
     }
 
+    const options: RepoOptions = {
+        owner: getFlag(rawArgs, '--owner') ?? DEFAULT_OWNER,
+        branch: getFlag(rawArgs, '--branch') ?? DEFAULT_BRANCH,
+    };
+
+    const args = stripFlags(rawArgs);
     const command = args[0];
 
     switch (command) {
         case 'list':
-            await list();
+            await list(options);
             break;
 
         case 'download': {
             const folder = args[1];
             if (!folder) {
-                logger.error('Missing required argument: <folder>\n');
-                logger.info('Usage: joint download <folder>');
+                logger.error('Missing required argument: <name>\n');
+                logger.info('Usage: joint download <name>');
                 process.exit(1);
             }
-            await download(folder);
+            await download(folder, options);
             break;
         }
 

@@ -1,13 +1,14 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import type { RepoOptions } from '../constants.js';
 import { listDemoFolders } from '../lib/github.js';
 import { sparseCheckout } from '../lib/git.js';
 import * as logger from '../lib/logger.js';
 
-export async function download(folder: string): Promise<void> {
+export async function download(folder: string, options: RepoOptions): Promise<void> {
     logger.info(`Validating example "${folder}"...\n`);
 
-    const folders = await listDemoFolders();
+    const folders = await listDemoFolders(options);
 
     if (!folders.includes(folder)) {
         logger.error(`Example "${folder}" not found.`);
@@ -35,7 +36,7 @@ export async function download(folder: string): Promise<void> {
 
     logger.info(`Downloading "${folder}"...`);
 
-    await sparseCheckout(folder, dest);
+    await sparseCheckout(folder, dest, options);
 
     logger.success(`\nDone! Example downloaded to ./${dirName}`);
 }

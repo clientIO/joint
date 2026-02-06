@@ -1,5 +1,16 @@
-export const REPO_OWNER = 'Geliogabalus';
-export const REPO_NAME = 'joint-demos';
-export const REPO_BRANCH = 'demos-upload';
-export const REPO_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}.git`;
-export const GITHUB_API_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+export const DEFAULT_OWNER = 'clientIO';
+export const DEFAULT_REPO = 'joint-demos';
+export const DEFAULT_BRANCH = 'main';
+
+export interface RepoOptions {
+    owner: string;
+    branch: string;
+}
+
+export function getRepoUrl({ owner }: RepoOptions): string {
+    return `https://github.com/${owner}/${DEFAULT_REPO}.git`;
+}
+
+export function getGitHubApiUrl({ owner }: RepoOptions): string {
+    return `https://api.github.com/repos/${owner}/${DEFAULT_REPO}`;
+}
