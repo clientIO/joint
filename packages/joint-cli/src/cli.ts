@@ -61,12 +61,12 @@ async function main(): Promise<void> {
     const rawArgs = process.argv.slice(2);
 
     if (rawArgs.length === 0 || rawArgs.includes('--help') || rawArgs.includes('-h')) {
-        console.log(HELP);
+        logger.log(HELP);
         return;
     }
 
     if (rawArgs.includes('--version') || rawArgs.includes('-v')) {
-        console.log(VERSION);
+        logger.log(VERSION);
         return;
     }
 

@@ -12,9 +12,9 @@ export async function list(options: RepoOptions): Promise<void> {
         return;
     }
 
-    console.log(logger.bold('Available examples:\n'));
+    logger.log(logger.bold('Available examples:\n'));
     for (const folder of folders) {
-        console.log(`  - ${folder}`);
+        logger.log(`  - ${folder}`);
     }
-    console.log();
+    logger.log('');
 }
