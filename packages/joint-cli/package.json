@@ -1,0 +1,26 @@
+{
+  "name": "@joint/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CLI tool for downloading JointJS demo applications.",
+  "license": "MPL-2.0",
+  "bin": {
+    "joint": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
+  }
+}

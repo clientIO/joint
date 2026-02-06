@@ -3806,6 +3806,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@joint/cli@workspace:packages/joint-cli":
+  version: 0.0.0-use.local
+  resolution: "@joint/cli@workspace:packages/joint-cli"
+  dependencies:
+    "@types/node": "npm:^22.0.0"
+    typescript: "npm:^5.8.0"
+  bin:
+    joint: ./dist/cli.js
+  languageName: unknown
+  linkType: soft
+
 "@joint/core@workspace:*, @joint/core@workspace:^, @joint/core@workspace:packages/joint-core, @joint/core@workspace:~":
   version: 0.0.0-use.local
   resolution: "@joint/core@workspace:packages/joint-core"
@@ -7933,6 +7944,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~6.21.0"
   checksum: 10/6196b4cc4429b29407dcb657dfa2624cf83460315b05a29dcf7f1b0c582da6cd941e9380eb056b77209f7cc31c118a815ed86f70dc3f3736c7d8497f0137de8a
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.0.0":
+  version: 22.19.9
+  resolution: "@types/node@npm:22.19.9"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10/32bcafba1de0eff44a3527568549ba03132a53f4e3d6270bb3148005338c81bed17b78d1f35f373164b6125718034d524b7f9f221103cc8649b9da52d6752497
   languageName: node
   linkType: hard
 
@@ -27150,7 +27170,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:>=5, typescript@npm:^5.7.3":
+"typescript@npm:>=5, typescript@npm:^5.7.3, typescript@npm:^5.8.0":
   version: 5.9.3
   resolution: "typescript@npm:5.9.3"
   bin:
@@ -27190,7 +27210,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A>=5#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.7.3#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A>=5#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.7.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.8.0#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
   bin:
