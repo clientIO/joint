@@ -1,11 +1,15 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { RepoOptions } from '../constants.js';
 import { listDemoFolders } from '../lib/github.js';
 import { sparseCheckout } from '../lib/git.js';
 import * as logger from '../lib/logger.js';
 
-export async function download(folder: string, target: string | undefined, options: RepoOptions): Promise<void> {
+export interface DownloadOptions extends RepoOptions {
+    force?: boolean;
+}
+
+export async function download(folder: string, target: string | undefined, options: DownloadOptions): Promise<void> {
     logger.info(`Validating example "${folder}"...\n`);
 
     const folders = await listDemoFolders(options);
@@ -29,9 +33,16 @@ export async function download(folder: string, target: string | undefined, optio
     const dirName = target ?? folder.replace(/\//g, '-');
     const dest = resolve(process.cwd(), dirName);
 
-    if (dirName !== '.' && existsSync(dest)) {
-        logger.error(`Directory "${dirName}" already exists in the current directory.`);
-        process.exit(1);
+    if (existsSync(dest)) {
+        if (dirName !== '.' && !options.force) {
+            logger.error(`Directory "${dirName}" already exists. Use --force to overwrite.`);
+            process.exit(1);
+        }
+
+        if (dirName === '.' && readdirSync(dest).length > 0 && !options.force) {
+            logger.error('Current directory is not empty. Use --force to overwrite existing files.');
+            process.exit(1);
+        }
     }
 
     logger.info(`Downloading "${folder}"...`);
