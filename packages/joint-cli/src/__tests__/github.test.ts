@@ -22,18 +22,18 @@ describe('listDemoFolders', () => {
             ok: true,
             json: async () => ({
                 tree: [
-                    { path: 'scada', type: 'tree' },
-                    { path: 'scada/js', type: 'tree' },
-                    { path: 'scada/ts', type: 'tree' },
-                    { path: 'scada/js/package.json', type: 'blob' },
-                    { path: 'kitchen-sink', type: 'tree' },
-                    { path: 'kitchen-sink/js', type: 'tree' },
+                    { path: 'demo-a', type: 'tree' },
+                    { path: 'demo-a/js', type: 'tree' },
+                    { path: 'demo-a/ts', type: 'tree' },
+                    { path: 'demo-a/js/package.json', type: 'blob' },
+                    { path: 'demo-b', type: 'tree' },
+                    { path: 'demo-b/js', type: 'tree' },
                 ],
             }),
         })) as typeof fetch;
 
         const result = await listDemoFolders(defaultOptions);
-        assert.deepEqual(result, ['kitchen-sink/js', 'scada/js', 'scada/ts']);
+        assert.deepEqual(result, ['demo-a/js', 'demo-a/ts', 'demo-b/js']);
     });
 
     it('filters out blobs and top-level directories', async () => {
@@ -42,15 +42,15 @@ describe('listDemoFolders', () => {
             json: async () => ({
                 tree: [
                     { path: 'README.md', type: 'blob' },
-                    { path: 'scada', type: 'tree' },
-                    { path: 'scada/js', type: 'tree' },
-                    { path: 'scada/js/src', type: 'tree' },
+                    { path: 'demo-a', type: 'tree' },
+                    { path: 'demo-a/js', type: 'tree' },
+                    { path: 'demo-a/js/src', type: 'tree' },
                 ],
             }),
         })) as typeof fetch;
 
         const result = await listDemoFolders(defaultOptions);
-        assert.deepEqual(result, ['scada/js']);
+        assert.deepEqual(result, ['demo-a/js']);
     });
 
     it('returns empty array when tree is empty', async () => {

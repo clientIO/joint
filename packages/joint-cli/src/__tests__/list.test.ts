@@ -27,18 +27,18 @@ describe('list command', () => {
             ok: true,
             json: async () => ({
                 tree: [
-                    { path: 'scada', type: 'tree' },
-                    { path: 'scada/js', type: 'tree' },
-                    { path: 'kitchen-sink', type: 'tree' },
-                    { path: 'kitchen-sink/ts', type: 'tree' },
+                    { path: 'demo-a', type: 'tree' },
+                    { path: 'demo-a/js', type: 'tree' },
+                    { path: 'demo-b', type: 'tree' },
+                    { path: 'demo-b/ts', type: 'tree' },
                 ],
             }),
         })) as typeof fetch;
 
         await list(defaultOptions);
 
-        assert.ok(logOutput.some((line) => line.includes('scada/js')));
-        assert.ok(logOutput.some((line) => line.includes('kitchen-sink/ts')));
+        assert.ok(logOutput.some((line) => line.includes('demo-a/js')));
+        assert.ok(logOutput.some((line) => line.includes('demo-b/ts')));
     });
 
     it('handles empty tree', async () => {

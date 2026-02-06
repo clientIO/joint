@@ -38,7 +38,7 @@ describe('download command', () => {
     });
 
     it('exits with error when example not found', async () => {
-        mockFetchWithFolders(['scada/js', 'scada/ts']);
+        mockFetchWithFolders(['demo-a/js', 'demo-a/ts']);
 
         // Dynamic import to get fresh module
         const { download } = await import('../commands/download.js');
@@ -59,22 +59,22 @@ describe('download command', () => {
         const { download } = await import('../commands/download.js');
 
         await assert.rejects(
-            () => download('scada/js', undefined, defaultOptions),
+            () => download('demo-a/js', undefined, defaultOptions),
             { message: 'process.exit(1)' }
         );
     });
 
     it('computes default directory name from folder path', async () => {
         // We can test the naming logic by checking what happens when the dir already exists
-        // If we provide a folder that exists in the list, it will try to create "scada-js"
+        // If we provide a folder that exists in the list, it will try to create "demo-a-js"
         // We test this indirectly — the naming logic is: folder.replace(/\//g, '-')
-        const folderName = 'scada/js';
-        const expected = 'scada-js';
+        const folderName = 'demo-a/js';
+        const expected = 'demo-a-js';
         assert.equal(folderName.replace(/\//g, '-'), expected);
     });
 
     it('uses custom target name when provided', () => {
-        const folderName = 'scada/js';
+        const folderName = 'demo-a/js';
         const target = 'my-project';
         const dirName = target ?? folderName.replace(/\//g, '-');
         assert.equal(dirName, 'my-project');
