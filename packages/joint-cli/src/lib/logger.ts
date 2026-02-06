@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 const RESET = '\x1b[0m';
 const RED = '\x1b[31m';
 const GREEN = '\x1b[32m';
@@ -19,6 +21,10 @@ export function warn(msg: string): void {
 
 export function error(msg: string): void {
     console.error(`${RED}${msg}${RESET}`);
+}
+
+export function log(msg: string): void {
+    console.log(msg);
 }
 
 export function bold(msg: string): string {

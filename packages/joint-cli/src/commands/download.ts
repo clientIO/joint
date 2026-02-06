@@ -18,11 +18,11 @@ export async function download(folder: string, target: string | undefined, optio
         logger.error(`Example "${folder}" not found.`);
 
         if (folders.length > 0) {
-            console.log(`\n${logger.bold('Available examples:')}\n`);
+            logger.log(`\n${logger.bold('Available examples:')}\n`);
             for (const f of folders) {
-                console.log(`  - ${f}`);
+                logger.log(`  - ${f}`);
             }
-            console.log();
+            logger.log('');
         } else {
             logger.warn('No examples are available yet.');
         }

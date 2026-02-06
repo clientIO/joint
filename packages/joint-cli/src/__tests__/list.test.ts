@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { list } from '../commands/list.js';
@@ -22,10 +23,10 @@ describe('list command', () => {
         console.log = originalLog;
     });
 
-    it('prints available examples', async () => {
-        globalThis.fetch = mock.fn(async () => ({
+    it('prints available examples', async() => {
+        globalThis.fetch = mock.fn(async() => ({
             ok: true,
-            json: async () => ({
+            json: async() => ({
                 tree: [
                     { path: 'demo-a', type: 'tree' },
                     { path: 'demo-a/js', type: 'tree' },
@@ -41,10 +42,10 @@ describe('list command', () => {
         assert.ok(logOutput.some((line) => line.includes('demo-b/ts')));
     });
 
-    it('handles empty tree', async () => {
-        globalThis.fetch = mock.fn(async () => ({
+    it('handles empty tree', async() => {
+        globalThis.fetch = mock.fn(async() => ({
             ok: true,
-            json: async () => ({ tree: [] }),
+            json: async() => ({ tree: [] }),
         })) as typeof fetch;
 
         await list(defaultOptions);
@@ -52,10 +53,10 @@ describe('list command', () => {
         assert.ok(!logOutput.some((line) => line.includes('  - ')));
     });
 
-    it('passes options to the API call', async () => {
-        const mockFetch = mock.fn(async () => ({
+    it('passes options to the API call', async() => {
+        const mockFetch = mock.fn(async() => ({
             ok: true,
-            json: async () => ({ tree: [] }),
+            json: async() => ({ tree: [] }),
         }));
         globalThis.fetch = mockFetch as typeof fetch;
 
