@@ -1,6 +1,6 @@
 {
   "name": "@joint/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Command-line tool for JointJS.",
   "license": "MIT",
@@ -17,6 +17,9 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.8.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "volta": {
     "node": "22.14.0",
