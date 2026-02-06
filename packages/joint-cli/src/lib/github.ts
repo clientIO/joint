@@ -31,7 +31,7 @@ export async function listDemoFolders(options: RepoOptions): Promise<string[]> {
 
     if (!response.ok) {
         if (response.status === 404) {
-            return [];
+            throw new Error('Repository or branch not found. Please verify the --owner and --branch options.');
         }
         throw new Error(`GitHub API request failed: ${response.status} ${response.statusText}`);
     }

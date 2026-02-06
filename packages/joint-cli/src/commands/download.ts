@@ -38,5 +38,6 @@ export async function download(folder: string, target: string | undefined, optio
 
     await sparseCheckout(folder, dest, options);
 
-    logger.success(`\nDone! Example downloaded to ./${dirName}`);
+    const displayPath = dirName === '.' ? 'current directory' : `./${dirName}`;
+    logger.success(`\nDone! Example downloaded to ${displayPath}`);
 }
