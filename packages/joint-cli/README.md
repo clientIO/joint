@@ -6,7 +6,7 @@ Command-line tool for [JointJS](https://jointjs.com).
 
 ```bash
 npx @joint/cli list
-npx @joint/cli download scada/js
+npx @joint/cli download kitchen-sink/js
 ```
 
 ## Installation
@@ -19,7 +19,7 @@ Once installed globally, the `joint` command is available:
 
 ```bash
 joint list
-joint download scada/js
+joint download kitchen-sink/js
 ```
 
 ## Commands
@@ -37,14 +37,21 @@ joint list
 Download an example into the current working directory.
 
 ```bash
-# Downloads into ./scada-js/
-joint download scada/js
+# Downloads into ./kitchen-sink-js/
+joint download kitchen-sink/js
 
-# Downloads into ./scada/
-joint download scada/js scada
+# Downloads into ./my-app/
+joint download kitchen-sink/js my-app
 
-# Downloads into the current directory
-joint download scada/js .
+# Downloads into the current directory (must be empty or use --force)
+joint download kitchen-sink/js .
+```
+
+If the destination directory already exists, use `--force` to overwrite:
+
+```bash
+joint download kitchen-sink/js --force
+joint download kitchen-sink/js . --force
 ```
 
 ## Options
@@ -55,6 +62,7 @@ joint download scada/js .
 | `--version`, `-v` | Show version number |
 | `--owner <name>` | GitHub repo owner (default: `clientIO`) |
 | `--branch <name>` | GitHub repo branch (default: `main`) |
+| `--force` | Overwrite existing files when downloading |
 
 ### Working with forks
 
@@ -62,7 +70,7 @@ Use `--owner` and `--branch` to list and download examples from a fork:
 
 ```bash
 joint list --owner myGitHubUser
-joint download scada/js --owner myGitHubUser --branch dev
+joint download kitchen-sink/js --owner myGitHubUser --branch dev
 ```
 
 ## Environment Variables
