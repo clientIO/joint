@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { mkdtemp, rm, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { REPO_URL, REPO_BRANCH } from '../constants.js';
+import { getRepoUrl, type RepoOptions } from '../constants.js';
 
 function run(command: string, args: string[], cwd?: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -16,15 +16,16 @@ function run(command: string, args: string[], cwd?: string): Promise<string> {
     });
 }
 
-export async function sparseCheckout(folder: string, dest: string): Promise<void> {
+export async function sparseCheckout(folder: string, dest: string, options: RepoOptions): Promise<void> {
+    const repoUrl = getRepoUrl(options);
     const tmp = await mkdtemp(join(tmpdir(), 'joint-cli-'));
 
     try {
         await run('git', ['init', tmp]);
-        await run('git', ['remote', 'add', 'origin', REPO_URL], tmp);
+        await run('git', ['remote', 'add', 'origin', repoUrl], tmp);
         await run('git', ['sparse-checkout', 'init', '--cone'], tmp);
         await run('git', ['sparse-checkout', 'set', folder], tmp);
-        await run('git', ['pull', 'origin', REPO_BRANCH, '--depth=1'], tmp);
+        await run('git', ['pull', 'origin', options.branch, '--depth=1'], tmp);
 
         // Move only the target folder to the destination
         await rename(join(tmp, folder), dest);
