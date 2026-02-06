@@ -12,9 +12,9 @@ function mockFetchWithFolders(folders: string[]) {
         ];
     });
 
-    globalThis.fetch = mock.fn(async () => ({
+    globalThis.fetch = mock.fn(async() => ({
         ok: true,
-        json: async () => ({ tree }),
+        json: async() => ({ tree }),
     })) as typeof fetch;
 }
 
@@ -37,7 +37,7 @@ describe('download command', () => {
         process.exit = originalExit;
     });
 
-    it('exits with error when example not found', async () => {
+    it('exits with error when example not found', async() => {
         mockFetchWithFolders(['demo-a/js', 'demo-a/ts']);
 
         // Dynamic import to get fresh module
@@ -50,10 +50,10 @@ describe('download command', () => {
         assert.equal(exitCode, 1);
     });
 
-    it('exits with error when folder not found in empty repo', async () => {
-        globalThis.fetch = mock.fn(async () => ({
+    it('exits with error when folder not found in empty repo', async() => {
+        globalThis.fetch = mock.fn(async() => ({
             ok: true,
-            json: async () => ({ tree: [] }),
+            json: async() => ({ tree: [] }),
         })) as typeof fetch;
 
         const { download } = await import('../commands/download.js');
@@ -64,7 +64,7 @@ describe('download command', () => {
         );
     });
 
-    it('computes default directory name from folder path', async () => {
+    it('computes default directory name from folder path', async() => {
         // We can test the naming logic by checking what happens when the dir already exists
         // If we provide a folder that exists in the list, it will try to create "demo-a-js"
         // We test this indirectly — the naming logic is: folder.replace(/\//g, '-')
