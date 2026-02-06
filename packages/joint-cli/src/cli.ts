@@ -17,7 +17,7 @@ ${logger.bold('Usage:')}
 
 ${logger.bold('Commands:')}
   list                List available examples
-  download <name>     Download an example
+  download <name> [dest]  Download an example
 
 ${logger.bold('Options:')}
   --help, -h          Show this help message
@@ -77,10 +77,11 @@ async function main(): Promise<void> {
             const folder = args[1];
             if (!folder) {
                 logger.error('Missing required argument: <name>\n');
-                logger.info('Usage: joint download <name>');
+                logger.info('Usage: joint download <name> [dest]');
                 process.exit(1);
             }
-            await download(folder, options);
+            const target = args[2];
+            await download(folder, target, options);
             break;
         }
 
