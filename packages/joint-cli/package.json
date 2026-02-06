@@ -12,11 +12,13 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "tsx --test src/__tests__/*.test.ts",
     "prepack": "yarn build",
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.8.0"
   },
   "publishConfig": {
