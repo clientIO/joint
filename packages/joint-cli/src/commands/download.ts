@@ -5,7 +5,7 @@ import { listDemoFolders } from '../lib/github.js';
 import { sparseCheckout } from '../lib/git.js';
 import * as logger from '../lib/logger.js';
 
-export async function download(folder: string, options: RepoOptions): Promise<void> {
+export async function download(folder: string, target: string | undefined, options: RepoOptions): Promise<void> {
     logger.info(`Validating example "${folder}"...\n`);
 
     const folders = await listDemoFolders(options);
@@ -26,10 +26,10 @@ export async function download(folder: string, options: RepoOptions): Promise<vo
         process.exit(1);
     }
 
-    const dirName = folder.replace(/\//g, '-');
+    const dirName = target ?? folder.replace(/\//g, '-');
     const dest = resolve(process.cwd(), dirName);
 
-    if (existsSync(dest)) {
+    if (dirName !== '.' && existsSync(dest)) {
         logger.error(`Directory "${dirName}" already exists in the current directory.`);
         process.exit(1);
     }

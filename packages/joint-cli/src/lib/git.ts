@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm, rename } from 'node:fs/promises';
+import { mkdtemp, rm, cp } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { getRepoUrl, type RepoOptions } from '../constants.js';
@@ -27,8 +27,11 @@ export async function sparseCheckout(folder: string, dest: string, options: Repo
         await run('git', ['sparse-checkout', 'set', folder], tmp);
         await run('git', ['pull', 'origin', options.branch, '--depth=1'], tmp);
 
-        // Move only the target folder to the destination
-        await rename(join(tmp, folder), dest);
+        const src = join(tmp, folder);
+
+        // If dest already exists (e.g. "."), copy contents into it.
+        // Otherwise, move the folder directly.
+        await cp(src, dest, { recursive: true });
     } finally {
         await rm(tmp, { recursive: true, force: true });
     }
