@@ -31,8 +31,15 @@ ${logger.bold('Environment:')}
 
 function getFlag(args: string[], name: string): string | undefined {
     const index = args.indexOf(name);
-    if (index === -1 || index + 1 >= args.length) return undefined;
-    return args[index + 1];
+    if (index === -1) return undefined;
+
+    const value = args[index + 1];
+    if (index + 1 >= args.length || !value || value.startsWith('--')) {
+        logger.error(`Missing value for option "${name}".`);
+        process.exit(1);
+    }
+
+    return value;
 }
 
 function stripFlags(args: string[]): string[] {
