@@ -7,14 +7,14 @@ import * as logger from './lib/logger.js';
 const VERSION = '0.1.0';
 
 const HELP = `
-${logger.bold('joint')} — Download JointJS demo applications
+${logger.bold('joint')} — Command-line tool for JointJS
 
 ${logger.bold('Usage:')}
   joint <command> [options]
 
 ${logger.bold('Commands:')}
-  list                List available demo folders
-  download <folder>   Download a demo folder
+  list                List available examples
+  download <name>     Download an example
 
 ${logger.bold('Options:')}
   --help, -h          Show this help message
