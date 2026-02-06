@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(gh api:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(git -C /Users/robur/Workspace/clientio/joint log --oneline -5 -- cli/)",
+      "Bash(yarn install)",
+      "Bash(yarn workspace @joint/cli build:*)",
+      "Bash(node:*)",
+      "Bash(echo:*)"
+    ]
+  }
+}
