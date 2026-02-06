@@ -25,8 +25,8 @@ export async function sparseCheckout(folder: string, dest: string, options: Repo
         await run('git', ['init', tmp]);
         await run('git', ['remote', 'add', 'origin', repoUrl], tmp);
         await run('git', ['sparse-checkout', 'init', '--cone'], tmp);
-        await run('git', ['sparse-checkout', 'set', folder], tmp);
-        await run('git', ['pull', 'origin', options.branch, '--depth=1'], tmp);
+        await run('git', ['sparse-checkout', 'set', '--', folder], tmp);
+        await run('git', ['pull', 'origin', '--depth=1', '--', options.branch], tmp);
 
         const src = join(tmp, folder);
 

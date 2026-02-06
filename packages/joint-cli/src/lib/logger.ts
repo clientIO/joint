@@ -14,7 +14,7 @@ export function success(msg: string): void {
 }
 
 export function warn(msg: string): void {
-    console.log(`${YELLOW}${msg}${RESET}`);
+    console.warn(`${YELLOW}${msg}${RESET}`);
 }
 
 export function error(msg: string): void {

@@ -25,7 +25,7 @@ function buildHeaders(): Record<string, string> {
 
 export async function listDemoFolders(options: RepoOptions): Promise<string[]> {
     const apiUrl = getGitHubApiUrl(options);
-    const url = `${apiUrl}/git/trees/${options.branch}?recursive=1`;
+    const url = `${apiUrl}/git/trees/${encodeURIComponent(options.branch)}?recursive=1`;
 
     const response = await fetch(url, { headers: buildHeaders() });
 
