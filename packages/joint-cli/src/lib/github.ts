@@ -41,7 +41,7 @@ export async function listDemoFolders(): Promise<string[]> {
         return [];
     }
 
-    // Return only 2-level deep directories (e.g. "scada/js")
+    // Return only 2-level deep directories (e.g. "scada/js", "kitchen-sink/ts")
     return data.tree
         .filter((item) => item.type === 'tree' && item.path.split('/').length === 2)
         .map((item) => item.path)

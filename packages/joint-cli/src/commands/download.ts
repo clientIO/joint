@@ -5,21 +5,21 @@ import { sparseCheckout } from '../lib/git.js';
 import * as logger from '../lib/logger.js';
 
 export async function download(folder: string): Promise<void> {
-    logger.info(`Validating demo "${folder}"...\n`);
+    logger.info(`Validating example "${folder}"...\n`);
 
     const folders = await listDemoFolders();
 
     if (!folders.includes(folder)) {
-        logger.error(`Demo "${folder}" not found.`);
+        logger.error(`Example "${folder}" not found.`);
 
         if (folders.length > 0) {
-            console.log(`\n${logger.bold('Available demos:')}\n`);
+            console.log(`\n${logger.bold('Available examples:')}\n`);
             for (const f of folders) {
                 console.log(`  - ${f}`);
             }
             console.log();
         } else {
-            logger.warn('No demos are available yet.');
+            logger.warn('No examples are available yet.');
         }
 
         process.exit(1);
@@ -37,5 +37,5 @@ export async function download(folder: string): Promise<void> {
 
     await sparseCheckout(folder, dest);
 
-    logger.success(`\nDone! Demo downloaded to ./${dirName}`);
+    logger.success(`\nDone! Example downloaded to ./${dirName}`);
 }
