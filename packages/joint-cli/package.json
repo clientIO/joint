@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "prepack": "yarn build",
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1"
   },
   "devDependencies": {
