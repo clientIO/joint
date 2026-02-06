@@ -17,10 +17,10 @@ describe('listDemoFolders', () => {
         delete process.env.GITHUB_TOKEN;
     });
 
-    it('returns sorted 2-level deep directories', async () => {
-        globalThis.fetch = mock.fn(async () => ({
+    it('returns sorted 2-level deep directories', async() => {
+        globalThis.fetch = mock.fn(async() => ({
             ok: true,
-            json: async () => ({
+            json: async() => ({
                 tree: [
                     { path: 'demo-a', type: 'tree' },
                     { path: 'demo-a/js', type: 'tree' },
@@ -36,10 +36,10 @@ describe('listDemoFolders', () => {
         assert.deepEqual(result, ['demo-a/js', 'demo-a/ts', 'demo-b/js']);
     });
 
-    it('filters out blobs and top-level directories', async () => {
-        globalThis.fetch = mock.fn(async () => ({
+    it('filters out blobs and top-level directories', async() => {
+        globalThis.fetch = mock.fn(async() => ({
             ok: true,
-            json: async () => ({
+            json: async() => ({
                 tree: [
                     { path: 'README.md', type: 'blob' },
                     { path: 'demo-a', type: 'tree' },
@@ -53,18 +53,18 @@ describe('listDemoFolders', () => {
         assert.deepEqual(result, ['demo-a/js']);
     });
 
-    it('returns empty array when tree is empty', async () => {
-        globalThis.fetch = mock.fn(async () => ({
+    it('returns empty array when tree is empty', async() => {
+        globalThis.fetch = mock.fn(async() => ({
             ok: true,
-            json: async () => ({ tree: [] }),
+            json: async() => ({ tree: [] }),
         })) as typeof fetch;
 
         const result = await listDemoFolders(defaultOptions);
         assert.deepEqual(result, []);
     });
 
-    it('throws on 404', async () => {
-        globalThis.fetch = mock.fn(async () => ({
+    it('throws on 404', async() => {
+        globalThis.fetch = mock.fn(async() => ({
             ok: false,
             status: 404,
             statusText: 'Not Found',
@@ -76,8 +76,8 @@ describe('listDemoFolders', () => {
         );
     });
 
-    it('throws on other HTTP errors', async () => {
-        globalThis.fetch = mock.fn(async () => ({
+    it('throws on other HTTP errors', async() => {
+        globalThis.fetch = mock.fn(async() => ({
             ok: false,
             status: 403,
             statusText: 'rate limit exceeded',
@@ -89,10 +89,10 @@ describe('listDemoFolders', () => {
         );
     });
 
-    it('uses correct URL with custom owner and branch', async () => {
-        const mockFetch = mock.fn(async () => ({
+    it('uses correct URL with custom owner and branch', async() => {
+        const mockFetch = mock.fn(async() => ({
             ok: true,
-            json: async () => ({ tree: [] }),
+            json: async() => ({ tree: [] }),
         }));
         globalThis.fetch = mockFetch as typeof fetch;
 
@@ -103,12 +103,12 @@ describe('listDemoFolders', () => {
         assert.ok(calledUrl.endsWith('/git/trees/dev?recursive=1'));
     });
 
-    it('includes Authorization header when GITHUB_TOKEN is set', async () => {
+    it('includes Authorization header when GITHUB_TOKEN is set', async() => {
         process.env.GITHUB_TOKEN = 'test-token';
 
-        const mockFetch = mock.fn(async () => ({
+        const mockFetch = mock.fn(async() => ({
             ok: true,
-            json: async () => ({ tree: [] }),
+            json: async() => ({ tree: [] }),
         }));
         globalThis.fetch = mockFetch as typeof fetch;
 
