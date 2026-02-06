@@ -3,7 +3,7 @@
 import { createRequire } from 'node:module';
 import { list } from './commands/list.js';
 import { download } from './commands/download.js';
-import { DEFAULT_OWNER, DEFAULT_BRANCH, type RepoOptions } from './constants.js';
+import { DEFAULT_OWNER, DEFAULT_BRANCH } from './constants.js';
 import * as logger from './lib/logger.js';
 
 const require = createRequire(import.meta.url);
@@ -24,6 +24,7 @@ ${logger.bold('Options:')}
   --version, -v       Show version number
   --owner <name>      GitHub repo owner (default: ${DEFAULT_OWNER})
   --branch <name>     GitHub repo branch (default: ${DEFAULT_BRANCH})
+  --force             Overwrite existing files when downloading
 
 ${logger.bold('Environment:')}
   GITHUB_TOKEN        Optional GitHub token to avoid rate limiting
@@ -45,7 +46,9 @@ function getFlag(args: string[], name: string): string | undefined {
 function stripFlags(args: string[]): string[] {
     const result: string[] = [];
     for (let i = 0; i < args.length; i++) {
-        if (args[i] === '--owner' || args[i] === '--branch') {
+        if (args[i] === '--force') {
+            continue;
+        } else if (args[i] === '--owner' || args[i] === '--branch') {
             i++; // skip the value
         } else {
             result.push(args[i]);
@@ -67,9 +70,10 @@ async function main(): Promise<void> {
         return;
     }
 
-    const options: RepoOptions = {
+    const options = {
         owner: getFlag(rawArgs, '--owner') ?? DEFAULT_OWNER,
         branch: getFlag(rawArgs, '--branch') ?? DEFAULT_BRANCH,
+        force: rawArgs.includes('--force'),
     };
 
     const args = stripFlags(rawArgs);

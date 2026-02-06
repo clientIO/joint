@@ -3992,7 +3992,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/cli@workspace:packages/joint-cli"
   dependencies:
+    "@joint/eslint-config": "workspace:*"
     "@types/node": "npm:^22.0.0"
+    eslint: "npm:9.39.2"
     tsx: "npm:^4.21.0"
     typescript: "npm:^5.8.0"
   bin:
