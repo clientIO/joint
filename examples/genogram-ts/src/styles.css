@@ -27,6 +27,10 @@
     cursor: pointer;
 }
 
+#link-style-toggle:hover {
+    background: #f0f0f0;
+}
+
 #logo {
     position: absolute;
     bottom: 10px;
