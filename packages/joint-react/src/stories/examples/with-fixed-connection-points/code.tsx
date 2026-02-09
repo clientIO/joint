@@ -479,16 +479,6 @@ export default function App() {
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapDataToElementAttributes={({ defaultAttributes }) => {
-        return {
-          ...defaultAttributes(),
-          attrs: {
-            root: {
-              magnet: 'passive'
-            }
-          }
-        };
-      }}
     >
       <Main />
     </GraphProvider>
