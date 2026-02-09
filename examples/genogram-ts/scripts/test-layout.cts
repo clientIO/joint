@@ -1,7 +1,7 @@
 // Test script: runs the genogram layout in Node.js (no browser needed).
 // Uses the same layoutGenogram() as the browser version — no duplication.
 //
-// Usage: cd examples/genogram-directed-graph-ts
+// Usage: cd examples/genogram-ts
 //   yarn test-layout
 //   yarn test-layout --data=thompson.json
 
