@@ -37,7 +37,6 @@ src/
     thompson.json          Thompson family (fictional, multi-generational)
     british-royals.json    British Royal Family (George V to present)
     relationship-chart.json  Labeled relationship roles (Father, Cousin, etc.)
-    test.json              Stress-test dataset (twins, large sibships, crossings)
     benchmark.json         Large dataset (~1000 persons, 7 generations)
 scripts/
   test-layout.cts    Node.js layout test (no browser needed)

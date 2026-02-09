@@ -217,6 +217,13 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         return count > 0 ? sum / count : Infinity;
     }
 
+    // Apply nameMaxLineCount override to all elements (may differ per link style).
+    if (sizes.nameMaxLineCount !== themeSizes.nameMaxLineCount) {
+        for (const el of elements) {
+            el.attr('name/textWrap/maxLineCount', sizes.nameMaxLineCount);
+        }
+    }
+
     for (const { container, fromId, toId } of coupleInfos) {
         const pos = container.position();
         const fromEl = elements.find((e) => e.id === fromId)!;
@@ -234,11 +241,8 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         rightEl.position(pos.x + inset + sizes.symbolWidth + gap, pos.y);
 
         if (linkStyle === 'orthogonal') {
-            const nameOverrides = {
-                textWrap: { maxLineCount: sizes.nameMaxLineCount },
-            };
-            leftEl.attr('name', { ...nameOverrides, textAnchor: 'end', x: `calc(w / 2 - ${themeSizes.nameMargin})` });
-            rightEl.attr('name', { ...nameOverrides, textAnchor: 'start', x: `calc(w / 2 + ${themeSizes.nameMargin})` });
+            leftEl.attr('name', { textAnchor: 'end', x: `calc(w / 2 - ${themeSizes.nameMargin})` });
+            rightEl.attr('name', { textAnchor: 'start', x: `calc(w / 2 + ${themeSizes.nameMargin})` });
         }
     }
 
