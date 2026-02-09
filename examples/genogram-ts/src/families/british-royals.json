@@ -1,0 +1,42 @@
+[
+    { "id": 1, "name": "George V", "sex": "M", "dob": "1865-06-03", "dod": "1936-01-20" },
+    { "id": 2, "name": "Mary of Teck", "sex": "F", "dob": "1867-05-26", "dod": "1953-03-24" },
+
+    { "id": 5, "name": "Edward VIII", "sex": "M", "father": 1, "mother": 2, "dob": "1894-06-23", "dod": "1972-05-28" },
+    { "id": 6, "name": "Wallis Simpson", "sex": "F", "dob": "1896-06-19", "dod": "1986-04-24" },
+    { "id": 3, "name": "George VI", "sex": "M", "father": 1, "mother": 2, "dob": "1895-12-14", "dod": "1952-02-06" },
+    { "id": 4, "name": "Elizabeth Bowes-Lyon", "sex": "F", "dob": "1900-08-04", "dod": "2002-03-30" },
+
+    { "id": 7, "name": "Elizabeth II", "sex": "F", "father": 3, "mother": 4, "dob": "1926-04-21", "dod": "2022-09-08" },
+    { "id": 8, "name": "Prince Philip", "sex": "M", "dob": "1921-06-10", "dod": "2021-04-09" },
+    { "id": 9, "name": "Princess Margaret", "sex": "F", "father": 3, "mother": 4, "dob": "1930-08-21", "dod": "2002-02-09" },
+    { "id": 10, "name": "Antony Armstrong-Jones", "sex": "M", "dob": "1930-03-07", "dod": "2017-01-13" },
+
+    { "id": 11, "name": "Charles III", "sex": "M", "father": 8, "mother": 7, "dob": "1948-11-14" },
+    { "id": 12, "name": "Diana Spencer", "sex": "F", "dob": "1961-07-01", "dod": "1997-08-31" },
+    { "id": 13, "name": "Princess Anne", "sex": "F", "father": 8, "mother": 7, "dob": "1950-08-15" },
+    { "id": 14, "name": "Mark Phillips", "sex": "M", "dob": "1948-09-22" },
+    { "id": 15, "name": "Prince Andrew", "sex": "M", "father": 8, "mother": 7, "dob": "1960-02-19" },
+    { "id": 16, "name": "Sarah Ferguson", "sex": "F", "dob": "1959-10-15" },
+    { "id": 17, "name": "Prince Edward", "sex": "M", "father": 8, "mother": 7, "dob": "1964-03-10" },
+    { "id": 18, "name": "Sophie Rhys-Jones", "sex": "F", "dob": "1965-01-20" },
+    { "id": 19, "name": "David Armstrong-Jones", "sex": "M", "father": 10, "mother": 9, "dob": "1961-11-03" },
+    { "id": 20, "name": "Lady Sarah Chatto", "sex": "F", "father": 10, "mother": 9, "dob": "1964-05-01" },
+
+    { "id": 21, "name": "Prince William", "sex": "M", "father": 11, "mother": 12, "dob": "1982-06-21" },
+    { "id": 22, "name": "Catherine Middleton", "sex": "F", "dob": "1982-01-09" },
+    { "id": 23, "name": "Prince Harry", "sex": "M", "father": 11, "mother": 12, "dob": "1984-09-15" },
+    { "id": 24, "name": "Meghan Markle", "sex": "F", "dob": "1981-08-04" },
+    { "id": 25, "name": "Peter Phillips", "sex": "M", "father": 14, "mother": 13, "dob": "1977-11-15" },
+    { "id": 26, "name": "Zara Tindall", "sex": "F", "father": 14, "mother": 13, "dob": "1981-05-15" },
+    { "id": 27, "name": "Princess Beatrice", "sex": "F", "father": 15, "mother": 16, "dob": "1988-08-08" },
+    { "id": 28, "name": "Princess Eugenie", "sex": "F", "father": 15, "mother": 16, "dob": "1990-03-23" },
+    { "id": 29, "name": "Lady Louise Windsor", "sex": "F", "father": 17, "mother": 18, "dob": "2003-11-08" },
+    { "id": 30, "name": "James Windsor", "sex": "M", "father": 17, "mother": 18, "dob": "2007-12-17" },
+
+    { "id": 31, "name": "Prince George", "sex": "M", "father": 21, "mother": 22, "dob": "2013-07-22" },
+    { "id": 32, "name": "Princess Charlotte", "sex": "F", "father": 21, "mother": 22, "dob": "2015-05-02" },
+    { "id": 33, "name": "Prince Louis", "sex": "M", "father": 21, "mother": 22, "dob": "2018-04-23" },
+    { "id": 34, "name": "Archie Mountbatten-Windsor", "sex": "M", "father": 23, "mother": 24, "dob": "2019-05-06" },
+    { "id": 35, "name": "Lilibet Mountbatten-Windsor", "sex": "F", "father": 23, "mother": 24, "dob": "2021-06-04" }
+]
