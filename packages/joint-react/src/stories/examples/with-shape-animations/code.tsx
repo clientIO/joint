@@ -153,7 +153,7 @@ const mapDataToLinkAttributes = ({
 // Generator Component
 // ----------------------------------------------------------------------------
 function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
-  const turbineRef = useRef<SVGPathElement>(null);
+  const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
   const { set } = useCellActions<ShapeElement>();
 
@@ -163,7 +163,7 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
 
   // Initialize and control animation
   useEffect(() => {
-    const turbineElement = turbineRef.current;
+    const turbineElement = turbinePathRef.current;
     if (!turbineElement) return;
 
     if (!animationRef.current) {
@@ -212,7 +212,7 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
         <circle r={24} fill={GENERATOR_DARK} stroke={GENERATOR_ACCENT} strokeWidth={2} />
         {/* Spinning turbine */}
         <path
-          ref={turbineRef}
+          ref={turbinePathRef}
           d={turbinePath}
           fill={GENERATOR_BLADE}
           stroke={GENERATOR_ACCENT}
