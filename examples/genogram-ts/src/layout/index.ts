@@ -109,6 +109,11 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         return container ? container.id as string : personElId;
     }
 
+    const elementById = new Map<string, dia.Element>();
+    for (const el of elements) {
+        elementById.set(el.id as string, el);
+    }
+
     // Solo (non-coupled) person elements participate in layout directly.
     const soloElements = elements.filter((el) => !coupledPersonIds.has(el.id as string));
 
@@ -226,8 +231,8 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
 
     for (const { container, fromId, toId } of coupleInfos) {
         const pos = container.position();
-        const fromEl = elements.find((e) => e.id === fromId)!;
-        const toEl = elements.find((e) => e.id === toId)!;
+        const fromEl = elementById.get(fromId)!;
+        const toEl = elementById.get(toId)!;
 
         const fromParentX = getParentX(fromId);
         const toParentX = getParentX(toId);

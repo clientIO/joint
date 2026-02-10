@@ -1,5 +1,5 @@
 import { dia, highlighters } from '@joint/core';
-import { MalePerson, FemalePerson, UnknownPerson } from './shapes';
+import { MalePerson, FemalePerson, UnknownPerson, IdenticalLink } from './shapes';
 import { colors, defaultZIndex } from './theme';
 import { PersonNode, ParentChildLink } from './data';
 
@@ -76,17 +76,43 @@ export function setupLineageHighlighting(
             }
         }
 
-        for (const link of graph.getLinks()) {
+        // Collect related link IDs (non-identical links whose source and
+        // target are both related persons).
+        const relatedLinkIds = new Set<string>();
+        const allLinks = graph.getLinks();
+        const identicalLinks: IdenticalLink[] = [];
+        for (const link of allLinks) {
+            if (link.get('type') === 'genogram.IdenticalLink') {
+                identicalLinks.push(link as IdenticalLink);
+                continue;
+            }
             const sourceId = (link.source() as { id?: string }).id;
             const targetId = (link.target() as { id?: string }).id;
-            const sourceRelated = sourceId ? relatedElIds.has(sourceId) : false;
-            const targetRelated = targetId ? relatedElIds.has(targetId) : false;
-            if (sourceRelated && targetRelated) {
+            if (sourceId && relatedElIds.has(sourceId) && targetId && relatedElIds.has(targetId)) {
+                relatedLinkIds.add(link.id as string);
+            }
+        }
+
+        // IdenticalLinks connect two parent-child links (link-to-link).
+        // Resolve the twin person IDs from the connected parent-child links
+        // and check if both twins are in the related set.
+        for (const link of identicalLinks) {
+            const pcLinkA = link.getSourceCell() as dia.Link | null;
+            const pcLinkB = link.getTargetCell() as dia.Link | null;
+            const twinAId = pcLinkA?.getTargetCell()?.id as string | undefined;
+            const twinBId = pcLinkB?.getTargetCell()?.id as string | undefined;
+            if (twinAId && relatedElIds.has(twinAId) && twinBId && relatedElIds.has(twinBId)) {
+                relatedLinkIds.add(link.id as string);
+            }
+        }
+
+        // Apply z-index boost to related links, dim unrelated ones.
+        for (const link of allLinks) {
+            if (relatedLinkIds.has(link.id as string)) {
                 const z = zByType[link.get('type') as string];
                 if (z !== undefined) link.set('z', z + defaultZIndex.focusedOffset);
                 continue;
             }
-
             const view = paper.findViewByModel(link);
             if (view) {
                 highlighters.addClass.add(view, 'root', HIGHLIGHT_DIM, { className: 'dimmed' });

@@ -23,7 +23,7 @@ const parentChildLinks = getParentChildLinks(persons);
 const mateLinks = getMateLinks(persons);
 
 // --- Create elements and graph (use standard shapes — no SVG markup needed) ---
-const sizes = { symbolWidth: 50, symbolHeight: 50, coupleGap: 20, symbolGap: 20, levelGap: 70 };
+const sizes = { symbolWidth: 50, symbolHeight: 50, coupleGap: 20, symbolGap: 20, levelGap: 70, nameMaxLineCount: 2 };
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 
