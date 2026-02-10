@@ -7,7 +7,8 @@
         "dev": "vite",
         "build": "tsc && vite build",
         "preview": "vite preview",
-        "test-layout": "npx tsx scripts/test-layout.cts"
+        "test-layout": "npx tsx scripts/test-layout.cts",
+        "test": "npx tsx scripts/test-layout.cts --data=thompson.json && npx tsx scripts/test-layout.cts --data=british-royals.json && npx tsx scripts/test-layout.cts --data=relationship-chart.json"
     },
     "devDependencies": {
         "typescript": "~5.8.2",
