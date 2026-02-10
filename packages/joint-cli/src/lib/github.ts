@@ -44,7 +44,9 @@ export async function listDemoFolders(options: RepoOptions): Promise<string[]> {
 
     // Return only 2-level deep directories (e.g. "scada/js", "kitchen-sink/ts")
     return data.tree
-        .filter((item) => item.type === 'tree' && item.path.split('/').length === 2)
+        // Only include items that are directories (type 'tree'),
+        // are exactly 2 levels deep, and don't start with a dot (to exclude hidden folders)
+        .filter((item) => item.type === 'tree' && item.path.split('/').length === 2 && !item.path.startsWith('.'))
         .map((item) => item.path)
         .sort();
 }
