@@ -1,0 +1,12 @@
+.highlighted-link {
+  stroke: #FF9505;
+  stroke-width: 3px;
+  stroke-dasharray: 8 4;
+  animation: dash-flow 0.5s linear infinite;
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -12;
+  }
+}

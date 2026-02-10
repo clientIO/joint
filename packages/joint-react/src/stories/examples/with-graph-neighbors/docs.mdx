@@ -1,0 +1,89 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/addon-docs/blocks';
+import * as Stories from './story';
+
+<Meta of={Stories} />
+
+# Graph Neighbors Example
+
+This example demonstrates how to use the JointJS Graph API (`getNeighbors`, `getConnectedLinks`) together with React highlighters to build an interactive network explorer. Click any node to highlight its direct neighbors and connected links.
+
+## Overview
+
+Graph neighbor highlighting is useful for:
+- **Network visualization**: Exploring relationships in infrastructure or social graphs
+- **Dependency analysis**: Understanding which nodes are directly connected
+- **Interactive exploration**: Focusing on a specific part of a larger graph
+
+## Demo
+
+<Canvas of={Stories.Default} />
+
+## Key Concepts
+
+### Graph API for Neighbor Discovery
+
+The `useGraph()` hook provides access to the JointJS graph instance. From there, `getNeighbors()` and `getConnectedLinks()` compute the highlight sets:
+
+```tsx
+const graph = useGraph();
+const element = graph.getCell(clickedId) as dia.Element;
+const neighbors = graph.getNeighbors(element);
+const connectedLinks = graph.getConnectedLinks(element);
+```
+
+### Element Highlighting with React Highlighters
+
+Elements use declarative React highlighter components inside `renderElement`. `Highlighter.Mask` shows a colored ring around selected/neighbor nodes, and `Highlighter.Opacity` dims unrelated nodes:
+
+```tsx
+<Highlighter.Opacity isHidden={!isDimmed} alphaValue={0.3}>
+  <Highlighter.Mask isHidden={!isSelected && !isNeighbor} padding={6} strokeWidth={3} stroke={PRIMARY}>
+    <rect rx={8} ry={8} width={width} height={height} fill="transparent" stroke={LIGHT} strokeWidth={1.5} />
+  </Highlighter.Mask>
+</Highlighter.Opacity>
+```
+
+### Link Highlighting with Imperative Highlighters
+
+Links are highlighted using imperative JointJS highlighters (`highlighters.addClass` and `highlighters.opacity`) via a `useEffect` that reacts to state changes:
+
+```tsx
+import { highlighters } from '@joint/core';
+
+// Highlight connected links with a CSS class (animated dashed stroke)
+highlighters.addClass.add(view, 'line', LINK_HIGHLIGHT_ID, {
+  className: 'highlighted-link',
+});
+
+// Dim unrelated links
+highlighters.opacity.add(view, 'line', LINK_OPACITY_ID, {
+  alphaValue: 0.3,
+});
+```
+
+### Animated Links via CSS
+
+Connected links get an animated dashed stroke using a CSS class applied by `highlighters.addClass`:
+
+```css
+.highlighted-link {
+  stroke: #FF9505;
+  stroke-width: 3px;
+  stroke-dasharray: 8 4;
+  animation: dash-flow 0.5s linear infinite;
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+```
+
+## How It Works
+
+1. **Click a node**: `onElementPointerClick` fires, computing neighbors and connected links via the Graph API
+2. **State update**: A single `highlightState` object stores `selectedId`, `neighborIds`, and `connectedLinkIds`
+3. **Element re-render**: The `renderElement` callback passes highlight state as props to each node, which uses `Highlighter.Mask` and `Highlighter.Opacity` declaratively
+4. **Link highlighting**: A `useEffect` imperatively applies `highlighters.addClass` (animated dash) and `highlighters.opacity` (dimming) on link views
+5. **Clear**: Click blank area or the same node again to reset all highlights
