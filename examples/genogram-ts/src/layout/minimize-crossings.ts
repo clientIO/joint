@@ -180,7 +180,10 @@ export function minimizeCrossings(
 
         for (let ri = 0; ri < ranks.length; ri++) {
             const nodes = nodesByRank.get(ranks[ri])!;
-            if (nodes.length <= 1 || nodes.length > 50) continue;
+            // Greedy relocation is O(n² × positions) per rank. Skip wide
+            // ranks to avoid excessive computation on large datasets.
+            const MAX_RANK_WIDTH_FOR_RELOCATION = 50;
+            if (nodes.length <= 1 || nodes.length > MAX_RANK_WIDTH_FOR_RELOCATION) continue;
 
             for (let i = 0; i < nodes.length; i++) {
                 const nodeId = nodes[i];
@@ -214,21 +217,29 @@ export function minimizeCrossings(
         }
     }
 
-    // --- Phase 4: Resolve visual crossings from couple expansion ---
-    //
-    // Dagre's crossing-minimization works on a dummy-augmented graph
-    // where long edges are split into short segments. This can miss
-    // crossings between real edges that span multiple ranks. We fix
-    // this by re-running barycenter sweeps using only real-edge
-    // adjacency, checking container crossings after each sweep
-    // direction. The top-to-bottom sweep propagates parent order to
-    // children; we save the best result before a bottom-to-top sweep
-    // can reverse it.
-    //
-    // We use container-level orders (no sub-partner offsets): Step 4
-    // places partners consistently based on parent positions, so
-    // fixing container order is sufficient.
+    resolveContainerCrossings(glGraph, parentChildLinks, layoutId, ranks, nodesByRank, applyOrder, saveOrder, restoreOrder);
 
+    enforceTwinAdjacency(ranks, nodesByRank, nodeMultipleGroup, personById, identicalGroupOf, applyOrder);
+}
+
+// --- Phase 4: Resolve visual crossings from couple expansion ---
+//
+// Dagre's crossing-minimization works on a dummy-augmented graph where
+// long edges are split into short segments. This can miss crossings
+// between real edges that span multiple ranks. We fix this by re-running
+// barycenter sweeps using only real-edge adjacency, checking container
+// crossings after each sweep direction separately (a bottom-to-top sweep
+// can reverse the fix from a top-to-bottom sweep).
+function resolveContainerCrossings(
+    glGraph: any,
+    parentChildLinks: ParentChildLink[],
+    layoutId: (personElId: string) => string,
+    ranks: number[],
+    nodesByRank: Map<number, string[]>,
+    applyOrder: (nodes: string[]) => void,
+    saveOrder: () => Map<string, number>,
+    restoreOrder: (saved: Map<string, number>) => void,
+) {
     function computeContainerCrossings(): number {
         const realEdges: { srcRank: number; tgtRank: number; srcOrder: number; tgtOrder: number }[] = [];
         const seen = new Set<string>();
@@ -261,92 +272,90 @@ export function minimizeCrossings(
         return crossings;
     }
 
-    // Phase 4: Barycenter sweeps using real-edge adjacency.
-    // Dagre's Phases 1-3 minimize crossings including dummy
-    // intermediates. This can leave real-edge (container-level)
-    // crossings unresolved. We re-run barycenter reordering using
-    // only real edges, which directly targets these crossings.
-    // Dummy nodes get their barycenter from dagre-graph neighbors
-    // (preserving link routing quality).
-    {
-        // Build real-edge adjacency.
-        const realSucc = new Map<string, Set<string>>();
-        const realPred = new Map<string, Set<string>>();
-        const seenRE = new Set<string>();
-        for (const rel of parentChildLinks) {
-            const s = layoutId(String(rel.parentId));
-            const t = layoutId(String(rel.childId));
-            const k = `${s}->${t}`;
-            if (seenRE.has(k)) continue;
-            seenRE.add(k);
-            if (!glGraph.node(s) || !glGraph.node(t)) continue;
-            if (!realSucc.has(s)) realSucc.set(s, new Set());
-            realSucc.get(s)!.add(t);
-            if (!realPred.has(t)) realPred.set(t, new Set());
-            realPred.get(t)!.add(s);
-        }
-        const isRealNode = (id: string) => realSucc.has(id) || realPred.has(id);
+    // Build real-edge adjacency for barycenter sweeps.
+    // Real nodes use real-edge neighbors; dummy nodes use dagre-graph
+    // neighbors (preserving link routing quality).
+    const realSucc = new Map<string, Set<string>>();
+    const realPred = new Map<string, Set<string>>();
+    const seenRE = new Set<string>();
+    for (const rel of parentChildLinks) {
+        const s = layoutId(String(rel.parentId));
+        const t = layoutId(String(rel.childId));
+        const k = `${s}->${t}`;
+        if (seenRE.has(k)) continue;
+        seenRE.add(k);
+        if (!glGraph.node(s) || !glGraph.node(t)) continue;
+        if (!realSucc.has(s)) realSucc.set(s, new Set());
+        realSucc.get(s)!.add(t);
+        if (!realPred.has(t)) realPred.set(t, new Set());
+        realPred.get(t)!.add(s);
+    }
+    const isRealNode = (id: string) => realSucc.has(id) || realPred.has(id);
 
-        function realBarycenter(rank: number, direction: 'up' | 'down') {
-            const nodes = nodesByRank.get(rank)!;
-            if (nodes.length <= 1) return;
-            const bary = new Map<string, number>();
-            for (const nodeId of nodes) {
-                // For real nodes, use real-edge neighbors.
-                // For dummies, use dagre-graph neighbors (preserves routing).
-                let neighbors: string[];
-                if (isRealNode(nodeId)) {
-                    neighbors = direction === 'up'
-                        ? [...(realPred.get(nodeId) || [])]
-                        : [...(realSucc.get(nodeId) || [])];
-                } else {
-                    neighbors = direction === 'up'
-                        ? (glGraph.predecessors(nodeId) || [])
-                        : (glGraph.successors(nodeId) || []);
-                }
-                if (neighbors.length === 0) {
-                    bary.set(nodeId, glGraph.node(nodeId).order!);
-                    continue;
-                }
-                let sum = 0;
-                for (const nId of neighbors) sum += glGraph.node(nId).order!;
-                bary.set(nodeId, sum / neighbors.length);
+    function realBarycenter(rank: number, direction: 'up' | 'down') {
+        const nodes = nodesByRank.get(rank)!;
+        if (nodes.length <= 1) return;
+        const bary = new Map<string, number>();
+        for (const nodeId of nodes) {
+            let neighbors: string[];
+            if (isRealNode(nodeId)) {
+                neighbors = direction === 'up'
+                    ? [...(realPred.get(nodeId) || [])]
+                    : [...(realSucc.get(nodeId) || [])];
+            } else {
+                neighbors = direction === 'up'
+                    ? (glGraph.predecessors(nodeId) || [])
+                    : (glGraph.successors(nodeId) || []);
             }
-            nodes.sort((a, b) => {
-                const ba = bary.get(a)!, bb = bary.get(b)!;
-                if (ba !== bb) return ba - bb;
-                return glGraph.node(a).order! - glGraph.node(b).order!;
-            });
-            applyOrder(nodes);
+            if (neighbors.length === 0) {
+                bary.set(nodeId, glGraph.node(nodeId).order!);
+                continue;
+            }
+            let sum = 0;
+            for (const nId of neighbors) sum += glGraph.node(nId).order!;
+            bary.set(nodeId, sum / neighbors.length);
         }
-
-        let bestCC = computeContainerCrossings();
-        let bestCCOrder = saveOrder();
-        for (let iter = 0; iter < 24 && bestCC > 0; iter++) {
-            // Top-to-bottom: propagate parent order to children.
-            for (const rank of ranks) realBarycenter(rank, 'up');
-            let cc = computeContainerCrossings();
-            if (cc < bestCC) { bestCC = cc; bestCCOrder = saveOrder(); }
-            if (cc === 0) break;
-
-            // Bottom-to-top: propagate child order to parents.
-            for (let ri = ranks.length - 1; ri >= 0; ri--) realBarycenter(ranks[ri], 'down');
-            cc = computeContainerCrossings();
-            if (cc < bestCC) { bestCC = cc; bestCCOrder = saveOrder(); }
-            if (cc === 0) break;
-        }
-        restoreOrder(bestCCOrder);
+        nodes.sort((a, b) => {
+            const ba = bary.get(a)!, bb = bary.get(b)!;
+            if (ba !== bb) return ba - bb;
+            return glGraph.node(a).order! - glGraph.node(b).order!;
+        });
+        applyOrder(nodes);
     }
 
-    // --- Phase 5: Enforce twin/triplet adjacency ---
-    // Crossing minimization may separate siblings from the same
-    // multiple-birth group. Pull group members together at the
-    // position of the leftmost member, with identical twins adjacent.
+    let bestCC = computeContainerCrossings();
+    let bestCCOrder = saveOrder();
+    for (let iter = 0; iter < 24 && bestCC > 0; iter++) {
+        for (const rank of ranks) realBarycenter(rank, 'up');
+        let cc = computeContainerCrossings();
+        if (cc < bestCC) { bestCC = cc; bestCCOrder = saveOrder(); }
+        if (cc === 0) break;
+
+        for (let ri = ranks.length - 1; ri >= 0; ri--) realBarycenter(ranks[ri], 'down');
+        cc = computeContainerCrossings();
+        if (cc < bestCC) { bestCC = cc; bestCCOrder = saveOrder(); }
+        if (cc === 0) break;
+    }
+    restoreOrder(bestCCOrder);
+}
+
+// --- Phase 5: Enforce twin/triplet adjacency ---
+//
+// Crossing minimization may separate siblings from the same multiple-birth
+// group. Pull group members together at the position of the leftmost member,
+// with identical twins kept adjacent.
+function enforceTwinAdjacency(
+    ranks: number[],
+    nodesByRank: Map<number, string[]>,
+    nodeMultipleGroup: Map<string, string>,
+    personById: Map<number, PersonNode>,
+    identicalGroupOf: Map<number, number>,
+    applyOrder: (nodes: string[]) => void,
+) {
     for (const rank of ranks) {
         const nodes = nodesByRank.get(rank)!;
         if (nodes.length <= 1) continue;
 
-        // Collect twin/triplet groups present on this rank.
         const groupMembers = new Map<string, string[]>();
         for (const nodeId of nodes) {
             const groupKey = nodeMultipleGroup.get(nodeId);
@@ -359,7 +368,6 @@ export function minimizeCrossings(
         for (const [, members] of groupMembers) {
             if (members.length <= 1) continue;
 
-            // Sort members: identical group first, then birth date.
             members.sort((a, b) => {
                 const personA = personById.get(Number(a));
                 const personB = personById.get(Number(b));
@@ -370,14 +378,9 @@ export function minimizeCrossings(
                 return (personA.dob || '').localeCompare(personB.dob || '');
             });
 
-            // Find leftmost position of any group member.
             const memberSet = new Set(members);
             const insertAt = nodes.findIndex((n) => memberSet.has(n));
-
-            // Remove all group members, preserving other nodes' order.
             const filtered = nodes.filter((n) => !memberSet.has(n));
-
-            // Reinsert sorted group at the leftmost position.
             filtered.splice(insertAt, 0, ...members);
 
             nodes.length = 0;

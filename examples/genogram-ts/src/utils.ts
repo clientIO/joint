@@ -16,6 +16,7 @@ function computeAge(dob: string, dod?: string): number {
     return age;
 }
 
+/** Create a JointJS element for a person, choosing the shape by sex (male/female/unknown). */
 export function createPersonElement(person: PersonNode): dia.Element {
     const ShapeClass = person.sex === 'M' ? MalePerson : person.sex === 'F' ? FemalePerson : UnknownPerson;
     const birthYear = person.dob ? person.dob.slice(0, 4) : '?';
@@ -36,6 +37,12 @@ export function createPersonElement(person: PersonNode): dia.Element {
 const HIGHLIGHT_DIM = 'lineage-dim';
 const HIGHLIGHT_FOCUS = 'lineage-focus';
 
+/**
+ * Set up hover-based lineage highlighting on the paper.
+ * On `element:mouseenter`, ancestors and descendants are kept visible while
+ * unrelated cells are dimmed. Related links are brought to the front via
+ * z-index offsets. On `element:mouseleave`, all highlights are removed.
+ */
 export function setupLineageHighlighting(
     paper: dia.Paper,
     graph: dia.Graph,
@@ -132,6 +139,10 @@ export function setupLineageHighlighting(
 
 // --- Family tree graph (for lineage traversal) ---
 
+/**
+ * Build a lightweight graph containing only person nodes and parent-child links,
+ * used for efficient ancestor/descendant traversal via `getPredecessors`/`getSuccessors`.
+ */
 export function buildFamilyTree(
     persons: PersonNode[],
     parentChildLinks: ParentChildLink[],

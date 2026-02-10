@@ -409,12 +409,10 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
 
     // Compute the ratio along a link's path at a given vertical offset from
     // the target end. Used to position link-to-link anchors consistently.
-    function computeAnchorRatio(link: dia.Link, verticalOffset: number): number {
-        const sourceEl = graph.getCell((link.source() as { id: string }).id) as dia.Element;
-        const targetEl = graph.getCell((link.target() as { id: string }).id) as dia.Element;
-        if (!sourceEl || !targetEl) {
-            throw new Error(`Link source or target element not found for link ${link.id}`);
-        }
+    function computeAnchorRatio(link: dia.Link, verticalOffset: number): number | null {
+        const sourceEl = link.getSourceCell() as dia.Element | null;
+        const targetEl = link.getTargetCell() as dia.Element | null;
+        if (!sourceEl || !targetEl) return null;
 
         const srcBBox = sourceEl.getBBox();
         const tgtBBox = targetEl.getBBox();
@@ -473,6 +471,7 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
 
         const ratioA = computeAnchorRatio(linkA, ANCHOR_VERTICAL_OFFSET);
         const ratioB = computeAnchorRatio(linkB, ANCHOR_VERTICAL_OFFSET);
+        if (ratioA === null || ratioB === null) continue;
 
         identicalLinks.push(new IdenticalLinkShape({
             source: { id: linkA.id, anchor: { name: 'connectionRatio', args: { ratio: ratioA } } },

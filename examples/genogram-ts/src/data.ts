@@ -21,6 +21,7 @@ export interface MateLink {
     to: number;
 }
 
+/** Derive parent-child links from each person's `mother` and `father` fields. */
 export function getParentChildLinks(persons: PersonNode[]): ParentChildLink[] {
     const links: ParentChildLink[] = [];
     const personIds = new Set(persons.map((p) => p.id));
@@ -37,6 +38,7 @@ export function getParentChildLinks(persons: PersonNode[]): ParentChildLink[] {
     return links;
 }
 
+/** Derive mate (couple) links from shared children — two persons who appear as mother and father of the same child are mates. */
 export function getMateLinks(persons: PersonNode[]): MateLink[] {
     const couples = new Set<string>();
     const links: MateLink[] = [];

@@ -12,7 +12,7 @@ import { getParentChildLinks, getMateLinks, type PersonNode } from '../src/data'
 import { layoutGenogram } from '../src/layout';
 
 // --- Parse CLI args ---
-const dataFile = process.argv.find(a => a.startsWith('--data='))?.split('=')[1] || 'test.json';
+const dataFile = process.argv.find(a => a.startsWith('--data='))?.split('=')[1] || 'thompson.json';
 const familiesDir = resolve(dirname(__filename), '../src/families');
 const persons: PersonNode[] = JSON.parse(readFileSync(`${familiesDir}/${dataFile}`, 'utf-8'));
 
