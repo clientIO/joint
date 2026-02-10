@@ -405,6 +405,7 @@ The link style affects multiple parts of the layout:
 - **Name labels**: Shifted outward (left partner's label right-aligned, right partner's label left-aligned) to avoid overlap
 - **Vertex computation**: Different routing geometry (see Step 6)
 - **Spacing**: Orthogonal mode uses larger `coupleGap` and `levelGap` for visual clarity
+- **Name wrapping**: Orthogonal mode allows more lines (`nameMaxLineCount: 4` vs default `2`) since labels are shifted outward and have more room
 
 ## Theme Architecture
 
@@ -413,7 +414,7 @@ Layout sizes and colors are centralized in `theme.ts`. The base `sizes` object i
 ```typescript
 export const linkStyleOverrides = {
     fan: {},
-    orthogonal: { coupleGap: 30, levelGap: 100 },
+    orthogonal: { coupleGap: 30, levelGap: 100, nameMaxLineCount: 4 },
 } as const satisfies Record<string, Partial<typeof sizes>>;
 ```
 
