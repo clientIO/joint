@@ -4212,6 +4212,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-genogram-directed-graph-ts@workspace:examples/genogram-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-genogram-directed-graph-ts@workspace:examples/genogram-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-directed-graph": "workspace:^"
+    typescript: "npm:~5.8.2"
+    vite: "npm:^7.3.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-hexagonal-grid-js@workspace:examples/hexagonal-grid-js":
   version: 0.0.0-use.local
   resolution: "@joint/demo-hexagonal-grid-js@workspace:examples/hexagonal-grid-js"
@@ -27149,7 +27160,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~5.8.3":
+"typescript@npm:~5.8.2, typescript@npm:~5.8.3":
   version: 5.8.3
   resolution: "typescript@npm:5.8.3"
   bin:
@@ -27189,7 +27200,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A~5.8.3#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A~5.8.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.8.3#optional!builtin<compat/typescript>":
   version: 5.8.3
   resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"
   bin:
