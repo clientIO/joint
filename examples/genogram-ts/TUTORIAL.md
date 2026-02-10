@@ -1,6 +1,6 @@
 # Building a Genogram with Automatic Directed Graph Layout
 
-This tutorial walks through building an interactive family tree (genogram) using [JointJS](https://www.jointjs.com/) and the `@joint/layout-directed-graph` package. The focus is on the **automatic layout** strategy — how we turn flat family data into a clean, hierarchical diagram without manually positioning any nodes.
+This tutorial walks through building an interactive family tree (genogram) using [JointJS](https://www.jointjs.com/) and the `@joint/layout-directed-graph` package (which uses the open-source [dagre](https://github.com/dagrejs/dagre) library under the hood). The focus is on the **automatic layout** strategy — how we turn flat family data into a clean, hierarchical diagram without manually positioning any nodes.
 
 ## Overview
 
@@ -15,7 +15,7 @@ A genogram presents unique layout challenges compared to a standard directed gra
 The approach we take is:
 
 1. Replace each couple with a single **container node** for layout
-2. Run dagre layout with a **custom ordering callback** that minimizes crossings
+2. Run DirectedGraph layout with a **custom ordering callback** that minimizes crossings
 3. **Post-process**: split containers back into individual elements, route links through couple midpoints, and add mate links
 4. Apply **highlighters** for deceased and adopted indicators
 
@@ -27,8 +27,8 @@ src/
   shapes.ts                Custom element shapes (MalePerson, FemalePerson, UnknownPerson)
   highlighters.ts          Custom dia.HighlighterView classes (deceased cross, adopted brackets)
   layout/
-    index.ts               Genogram layout algorithm (dagre + couple containers)
-    minimize-crossings.ts  5-phase crossing minimization for dagre's customOrder
+    index.ts               Genogram layout algorithm (DirectedGraph + couple containers)
+    minimize-crossings.ts  5-phase crossing minimization for DirectedGraph's customOrder
   utils.ts                 Element creation, lineage highlighting, family tree graph
   data.ts                  Data types and parsing (PersonNode, parent-child/mate links)
   theme.ts                 Centralized sizes, colors, z-index defaults, link style overrides
@@ -68,7 +68,7 @@ export function getParentChildLinks(persons: PersonNode[]): ParentChildLink[] {
 
 ## Step 2: Couple Containers
 
-Dagre positions individual nodes. But in a genogram, a couple must occupy the same rank and sit next to each other. If we lay out each person independently, partners can end up on different ranks or far apart.
+The DirectedGraph layout positions individual nodes. But in a genogram, a couple must occupy the same rank and sit next to each other. If we lay out each person independently, partners can end up on different ranks or far apart.
 
 The solution: **replace each couple with a single invisible rectangle** that's wide enough to hold both partners side-by-side.
 
@@ -100,7 +100,7 @@ All parent-child links are redirected to point from/to the **container** during 
 
 ## Step 3: Edge Deduplication
 
-When both parents are in the same couple container, a child produces **two** parent-child links that both map to the same container-to-child layout edge. Dagre gets confused by duplicate edges, so we deduplicate:
+When both parents are in the same couple container, a child produces **two** parent-child links that both map to the same container-to-child layout edge. The layout engine gets confused by duplicate edges, so we deduplicate:
 
 ```typescript
 const edgeKey = `${srcLayout}->${tgtLayout}`;
@@ -114,9 +114,9 @@ if (isDuplicate) {
 
 Only the first occurrence participates in layout. Duplicates are added back to the graph afterward.
 
-## Step 4: Dagre Layout with Custom Ordering
+## Step 4: DirectedGraph Layout with Custom Ordering
 
-With containers replacing couples, solo elements standing alone, and deduplicated links — we run dagre with a `customOrder` callback that controls the crossing-minimization strategy. The ordering logic is extracted into `minimize-crossings.ts`:
+With containers replacing couples, solo elements standing alone, and deduplicated links — we run DirectedGraph layout with a `customOrder` callback that controls the crossing-minimization strategy. The ordering logic is extracted into `minimize-crossings.ts`:
 
 ```typescript
 import { minimizeCrossings } from './minimize-crossings';
@@ -136,11 +136,11 @@ Key options:
 - **`rankDir: 'TB'`** — top-to-bottom hierarchy (generations flow downward)
 - **`symbolGap`** — horizontal spacing between nodes
 - **`levelGap`** — vertical spacing between generations
-- **`customOrder`** — callback that replaces dagre's built-in ordering with our multi-phase approach
+- **`customOrder`** — callback that replaces the built-in ordering with our multi-phase approach
 
-### Phase 1: Seed from dagre's default heuristic
+### Phase 1: Seed from the default heuristic
 
-We start with dagre's own node ordering as a baseline and measure crossings:
+We start with the layout engine's own node ordering as a baseline and measure crossings:
 
 ```typescript
 defaultOrder(glGraph);
@@ -190,7 +190,7 @@ for (let i = 0; i < nodes.length; i++) {
 
 ### Phase 4: Container-level crossing resolution
 
-Dagre treats couple containers as single nodes, so `countCrossings()` may return 0 even when **visual crossings** exist after containers are expanded into two partners. We fix this with `computeContainerCrossings()` — a crossing check using only real edges (container-to-container) — followed by barycenter sweeps that use real-edge adjacency for containers and dagre-graph neighbors for dummy nodes (preserving link routing quality).
+The layout engine treats couple containers as single nodes, so `countCrossings()` may return 0 even when **visual crossings** exist after containers are expanded into two partners. We fix this with `computeContainerCrossings()` — a crossing check using only real edges (container-to-container) — followed by barycenter sweeps that use real-edge adjacency for containers and layout-graph neighbors for dummy nodes (preserving link routing quality).
 
 The key insight: we must check container crossings **after each sweep direction separately** (top-to-bottom and bottom-to-top), saving the best result, because a bottom-to-top sweep can reverse the fix from a top-to-bottom sweep.
 
@@ -297,7 +297,7 @@ The `computeAnchorRatio` function walks backwards along the link path to find th
 
 ## Step 9: Mate Links (Added Last)
 
-Mate links are horizontal connections between partners. They're added **after layout** because they're bidirectional and would break dagre's DAG assumption:
+Mate links are horizontal connections between partners. They're added **after layout** because they're bidirectional and would break the layout engine's DAG assumption:
 
 ```typescript
 const mateJointLinks = mateLinks.map((ml) => {
@@ -454,9 +454,9 @@ Shape classes reference these values for their initial z, and the highlighting s
          Wider containers in orthogonal mode for shifted name labels
         |
         v
- Step 2: Dagre layout with minimizeCrossings callback
+ Step 2: DirectedGraph layout with minimizeCrossings callback
          Deduplicate layout edges (one edge per container-child pair)
-         Phase 1: Seed from dagre's default ordering
+         Phase 1: Seed from the default ordering
          Phase 2: Multi-pass barycenter sweeps (up + down)
          Phase 3: Greedy node relocation (try every position, skip wide ranks)
          Phase 4: Container-level crossing resolution (real-edge barycenters)
