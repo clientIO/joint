@@ -86,7 +86,6 @@ export function RenderItemDecorator(
     <div style={{ width: '100%', height: 450 }}>
       <SimpleGraphProviderDecorator>
         <Paper
-          width="100%"
           height={450}
           className={PAPER_CLASSNAME}
           renderElement={properties.renderElement}
@@ -107,12 +106,7 @@ export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX
   return (
     <div style={{ width: '100%', height: 350 }}>
       <SimpleGraphProviderDecorator>
-        <Paper
-          width="100%"
-          height={350}
-          className={PAPER_CLASSNAME}
-          renderElement={RenderSimpleRectElement}
-        >
+        <Paper height={350} className={PAPER_CLASSNAME} renderElement={RenderSimpleRectElement}>
           {properties.children}
         </Paper>
       </SimpleGraphProviderDecorator>

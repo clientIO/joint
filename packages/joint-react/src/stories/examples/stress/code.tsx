@@ -136,7 +136,6 @@ function Main({
     <div className="flex flex-row relative">
       <Paper
         id="main-view"
-        width="100%"
         className={PAPER_CLASSNAME}
         height={600}
         renderElement={renderElement}

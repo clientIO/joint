@@ -44,7 +44,7 @@ const initialElements: Record<string, ControlledElement> = {
     height: 60,
     arrowHeight: 30,
     thickness: 20,
-  }
+  },
 };
 
 // ----------------------------------------------------------------------------
@@ -91,8 +91,7 @@ function Arrow({ width, height, label, arrowHeight = 0, thickness = 0 }: Readonl
           H 0
           v -${thickness}
           H ${width - arrowHeight}
-          z`
-        }
+          z`}
         fill={PRIMARY}
         stroke={PRIMARY}
         strokeWidth="2"
@@ -119,8 +118,11 @@ class ParallelogramOffsetControl extends elementTools.Control {
   protected getPosition(view: dia.ElementView) {
     const { model } = view;
     const { width, height } = model.size();
-    const controlLevel = height * 1 / 3;
-    const offsetSide = new g.Line(new g.Point(model.prop('data/offset'), 0), new g.Point(0, height));
+    const controlLevel = (height * 1) / 3;
+    const offsetSide = new g.Line(
+      new g.Point(model.prop('data/offset'), 0),
+      new g.Point(0, height)
+    );
     const levelLine = new g.Line(new g.Point(0, controlLevel), new g.Point(width, controlLevel));
     const controlPoint = offsetSide.intersect(levelLine);
     if (controlPoint) return controlPoint;
@@ -148,10 +150,7 @@ class ArrowOffsetControl extends elementTools.Control {
     const { model } = view;
     const { width, height } = model.size();
     const arrowHeight = Math.max(0, Math.min(width - coordinates.x, width));
-    const thickness = Math.max(
-      0,
-      Math.min(height - 2 * coordinates.y, height)
-    );
+    const thickness = Math.max(0, Math.min(height - 2 * coordinates.y, height));
     model.prop('data/arrowHeight', arrowHeight);
     model.prop('data/thickness', thickness);
   }
@@ -201,7 +200,6 @@ function addElementControls({ paper, graph }: OnLoadOptions) {
 function Main() {
   return (
     <Paper
-      width="100%"
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       onElementsSizeReady={addElementControls}
@@ -211,9 +209,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
-      elements={initialElements}
-    >
+    <GraphProvider elements={initialElements}>
       <Main />
     </GraphProvider>
   );

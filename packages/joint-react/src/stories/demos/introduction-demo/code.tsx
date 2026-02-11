@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-shadow */
 /* eslint-disable @eslint-react/no-array-index-key */
@@ -111,7 +110,7 @@ const elements: Record<string, Element> = {
 
 // Create initial links from table element port to another element as Record
 const links: Record<string, GraphLink> = {
-  'link2': {
+  link2: {
     source: { id: '3', port: 'out-3-0' }, // Port from table element
     target: { id: '1' },
     color: LIGHT,
@@ -475,7 +474,6 @@ function Main() {
             const { id, ...rest } = links['link2'];
             return new shapes.standard.Link(rest as shapes.standard.LinkAttributes);
           }}
-          width="100%"
           renderElement={renderElement}
           className={PAPER_CLASSNAME}
           onCellPointerClick={({ cellView }) => {

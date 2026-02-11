@@ -429,4 +429,156 @@ describe('Paper Component', () => {
       { timeout: 3000 }
     );
   });
+
+  it('applies default defaultConnectionPoint and measureNode options', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      const paperOptions = ref.current!.paper.options;
+      // Default connection point should be rectangle with useModelGeometry
+      expect(paperOptions.defaultConnectionPoint).toEqual({
+        name: 'rectangle',
+        args: { useModelGeometry: true },
+      });
+      // Default measureNode should be defined
+      expect(typeof paperOptions.measureNode).toBe('function');
+    });
+  });
+
+  it('allows user to override defaultConnectionPoint and measureNode', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+    const customMeasureNode = jest.fn();
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          defaultConnectionPoint={{ name: 'boundary' }}
+          measureNode={customMeasureNode}
+          renderElement={() => <div>Test</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      const paperOptions = ref.current!.paper.options;
+      expect(paperOptions.defaultConnectionPoint).toEqual({ name: 'boundary' });
+      expect(paperOptions.measureNode).toBe(customMeasureNode);
+    });
+  });
+
+  it('should render children inside a positioned container so absolute positioning works', async () => {
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element> width={WIDTH} height={150}>
+          <div data-testid="paper-child" style={{ position: 'absolute', right: 20, bottom: 20 }}>
+            Child Content
+          </div>
+        </Paper>
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      const child = screen.getByTestId('paper-child');
+      expect(child).toBeInTheDocument();
+      // The child's parent container should have position: relative
+      // so that absolutely positioned children are positioned relative to the paper area
+      const parentContainer = child.parentElement;
+      expect(parentContainer).not.toBeNull();
+      const parentStyle = globalThis.getComputedStyle(parentContainer!);
+      expect(parentStyle.position).toBe('relative');
+    });
+  });
+
+  it('applies percentage width to JointJS paper when only width="100%" is set', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          width="100%"
+          renderElement={() => <div>Test</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      // The JointJS paper should have 100% width, not the default 800px
+      expect(ref.current!.paper.el.style.width).toBe('100%');
+    });
+  });
+
+  it('applies percentage height to JointJS paper when only height="100%" is set', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          height="100%"
+          renderElement={() => <div>Test</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      // The JointJS paper should have 100% height, not the default 600px
+      expect(ref.current!.paper.el.style.height).toBe('100%');
+    });
+  });
+
+  it('applies percentage dimensions to JointJS paper when both width and height are "100%"', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          width="100%"
+          height="100%"
+          renderElement={() => <div>Test</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      expect(ref.current!.paper.el.style.width).toBe('100%');
+      expect(ref.current!.paper.el.style.height).toBe('100%');
+    });
+  });
+
+  it('does not overwrite container percentage width with pixel values from resizePaperContainer', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          width="100%"
+          height="100%"
+          renderElement={() => <div>Test</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      // The paper container div should maintain percentage width
+      const paperContainer = ref.current!.paper.el.parentElement;
+      expect(paperContainer).not.toBeNull();
+      expect(paperContainer!.style.width).not.toBe('800px');
+    });
+  });
 });

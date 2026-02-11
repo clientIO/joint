@@ -1,8 +1,16 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, shapes } from '@joint/core';
-import type { PaperStore} from '@joint/react';
-import { GraphProvider, Paper, ReactElement, useNodeSize, type GraphElement, type GraphLink } from '@joint/react';
+import type { PaperStore } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  ReactElement,
+  useNodeSize,
+  type GraphElement,
+  type GraphLink,
+} from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
@@ -77,7 +85,7 @@ const links: Record<string, GraphLink> = {
 
 function BackgroundNode({ label, width, height, color }: Readonly<LayeredElement>) {
   return (
-    <g className='fade-in'>
+    <g className="fade-in">
       <rect
         width={width}
         height={height}
@@ -100,7 +108,7 @@ function ElementNode({ label, color }: Readonly<LayeredElement>) {
   const { width, height } = useNodeSize(ref);
 
   return (
-    <foreignObject width={width} height={height} className='fade-in'>
+    <foreignObject width={width} height={height} className="fade-in">
       <div
         ref={ref}
         style={{
@@ -166,7 +174,6 @@ function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
       </div>
       <Paper
         ref={storeRef}
-        width="100%"
         height={300}
         className={PAPER_CLASSNAME}
         renderElement={RenderElement}
@@ -189,47 +196,52 @@ export default function App() {
       return {
         ...super.defaults,
         // overriding the default markup to add a class to the link line
-        markup: [{
+        markup: [
+          {
             tagName: 'path',
             selector: 'wrapper',
             attributes: {
-                'fill': 'none',
-                'cursor': 'pointer',
-                'stroke': 'transparent',
-                'stroke-linecap': 'round'
-            }
-        }, {
+              fill: 'none',
+              cursor: 'pointer',
+              stroke: 'transparent',
+              'stroke-linecap': 'round',
+            },
+          },
+          {
             tagName: 'path',
             selector: 'line',
             className: 'fade-in', // Apply fade-in class to link line
             attributes: {
-                'fill': 'none',
-                'pointer-events': 'none',
-            }
-        }]
+              fill: 'none',
+              'pointer-events': 'none',
+            },
+          },
+        ],
       };
     }
   }
 
   // Create graph with layers configured
   const graph = useMemo(() => {
-    const g = new dia.Graph({}, {
-      cellNamespace: {
-        ...shapes,
-        ReactElement,
-        standard: {
-          ...shapes.standard,
-          Link: FadingLink
-        }
-      },
-
-    });
+    const g = new dia.Graph(
+      {},
+      {
+        cellNamespace: {
+          ...shapes,
+          ReactElement,
+          standard: {
+            ...shapes.standard,
+            Link: FadingLink,
+          },
+        },
+      }
+    );
     // Add layers in order (background renders first, foreground last)
     g.addLayer({ id: 'background' });
     g.addLayer({ id: 'main' });
     g.addLayer({ id: 'foreground' });
     return g;
-  }, []);
+  }, [FadingLink]);
 
   const toggleLayer = (layerId: string) => {
     setHiddenLayers((previous) => {

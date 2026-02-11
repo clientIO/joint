@@ -14,7 +14,10 @@ import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
-const initialElements: Record<string, { label: string; color: string; x: number; y: number; width: number; height: number }> = {
+const initialElements: Record<
+  string,
+  { label: string; color: string; x: number; y: number; width: number; height: number }
+> = {
   '1': { label: 'Node 1', color: '#ffffff', x: 40, y: 70, width: 120, height: 80 },
   '2': { label: 'Node 2', color: '#ffffff', x: 170, y: 120, width: 120, height: 80 },
   '3': { label: 'Node 2', color: '#ffffff', x: 30, y: 180, width: 120, height: 80 },
@@ -76,7 +79,6 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
-        width="100%"
         className={PAPER_CLASSNAME}
         clickThreshold={10}
         interactive={{ linkMove: false }}

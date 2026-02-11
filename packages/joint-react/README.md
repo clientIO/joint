@@ -71,7 +71,7 @@ export default function App() {
   return (
     <GraphProvider elements={elements} links={links}>
       <Paper
-        width="100%"
+        
         height={360}
         useHTMLOverlay
         renderElement={(el: Element) => (
@@ -113,7 +113,7 @@ const links = {
 export function MultiView() {
   return (
     <GraphProvider elements={elements} links={links}>
-      <Paper id="main" width="100%" height={420} />
+      <Paper id="main"  height={420} />
       <div style={{ position: 'absolute', right: 16, bottom: 16 }}>
         <Paper id="mini" width={180} height={120} interactive={false} scale={0.25} />
       </div>

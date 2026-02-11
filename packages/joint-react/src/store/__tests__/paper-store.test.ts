@@ -1,6 +1,32 @@
-import { dia } from '@joint/core';
-import { PaperStore } from '../paper-store';
+import { dia, V } from '@joint/core';
+import { PORTAL_SELECTOR, PaperStore } from '../paper-store';
+import type { PortElementsCacheEntry } from '../paper-store';
+import type { ReactPaper } from '../../types/paper.types';
 import { GraphStore } from '../graph-store';
+
+function createGetNewPortsPaperStore() {
+  const graph = new dia.Graph();
+  const graphStore = new GraphStore({ graph });
+  const paperElement = document.createElement('div');
+  const paperStore = new PaperStore({
+    graphStore,
+    paperElement,
+    paperOptions: {},
+    id: 'test-paper',
+  });
+  const { getNewPorts } = (paperStore.paper as unknown as ReactPaper).reactElementPaperStore;
+  return { paperStore, graphStore, getNewPorts };
+}
+
+function createPortCacheEntry(
+  selectors: Record<string, SVGElement | SVGElement[]>
+): PortElementsCacheEntry {
+  return {
+    portElement: V('g') as unknown as PortElementsCacheEntry['portElement'],
+    portContentElement: V('g') as unknown as PortElementsCacheEntry['portContentElement'],
+    portSelectors: selectors,
+  };
+}
 
 describe('PaperStore', () => {
   describe('constructor', () => {
@@ -183,6 +209,164 @@ describe('PaperStore', () => {
 
       const labelId2 = paperStore.getLinkLabelId('link-1', 2);
       expect(labelId2).toBe('link-1-label-2');
+    });
+  });
+
+  describe('getNewPorts', () => {
+    it('should skip native ports without portal selector', () => {
+      const { getNewPorts, graphStore } = createGetNewPortsPaperStore();
+      const nativePortElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+
+      const portElementsCache: Record<string, PortElementsCacheEntry> = {
+        'port-1': createPortCacheEntry({ circle: nativePortElement }),
+      };
+
+      const result = getNewPorts({
+        state: graphStore.internalState,
+        cellId: 'cell-1',
+        portElementsCache,
+        portsData: {},
+      });
+
+      // Should return original portsData (unchanged) since native port is skipped
+      expect(result).toEqual({});
+    });
+
+    it('should process React portal ports with portal selector', () => {
+      const { getNewPorts, graphStore } = createGetNewPortsPaperStore();
+      const portalElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+      const portElementsCache: Record<string, PortElementsCacheEntry> = {
+        'port-1': createPortCacheEntry({ [PORTAL_SELECTOR]: portalElement }),
+      };
+
+      const result = getNewPorts({
+        state: graphStore.internalState,
+        cellId: 'cell-1',
+        portElementsCache,
+        portsData: {},
+      });
+
+      expect(result).toEqual({ 'cell-1-port-1': portalElement });
+    });
+
+    it('should handle mix of native and React portal ports', () => {
+      const { getNewPorts, graphStore } = createGetNewPortsPaperStore();
+      const nativePortElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const portalElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+      const portElementsCache: Record<string, PortElementsCacheEntry> = {
+        'native-port': createPortCacheEntry({ circle: nativePortElement }),
+        'react-port': createPortCacheEntry({ [PORTAL_SELECTOR]: portalElement }),
+      };
+
+      const result = getNewPorts({
+        state: graphStore.internalState,
+        cellId: 'cell-1',
+        portElementsCache,
+        portsData: {},
+      });
+
+      // Only the React portal port should be in the result
+      expect(result).toEqual({ 'cell-1-react-port': portalElement });
+      // Native port should NOT be in the result
+      expect(result).not.toHaveProperty('cell-1-native-port');
+    });
+  });
+
+  describe('measureNode', () => {
+    it('should return model geometry for root element node', () => {
+      const graph = new dia.Graph();
+      const graphStore = new GraphStore({ graph });
+      const paperElement = document.createElement('div');
+
+      const paperStore = new PaperStore({
+        graphStore,
+        paperElement,
+        paperOptions: {},
+        id: 'test-paper',
+      });
+
+      const { measureNode } = paperStore.paper.options;
+      expect(typeof measureNode).toBe('function');
+
+      // Mock a cellView where node IS the root element
+      const rootElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const mockCellView = {
+        el: rootElement,
+        model: {
+          getBBox: () => ({ x: 10, y: 20, width: 100, height: 50 }),
+        },
+      } as unknown as dia.CellView;
+
+      const result = measureNode!(rootElement as SVGGraphicsElement, mockCellView);
+      expect(result.width).toBe(100);
+      expect(result.height).toBe(50);
+      // Root node should return (0,0) origin with model dimensions
+      expect(result.x).toBe(0);
+      expect(result.y).toBe(0);
+
+      paperStore.destroy();
+    });
+
+    it('should return SVG bounding box for port magnet nodes, not model geometry', () => {
+      const graph = new dia.Graph();
+      const graphStore = new GraphStore({ graph });
+      const paperElement = document.createElement('div');
+
+      const paperStore = new PaperStore({
+        graphStore,
+        paperElement,
+        paperOptions: {},
+        id: 'test-paper',
+      });
+
+      const { measureNode } = paperStore.paper.options;
+      expect(typeof measureNode).toBe('function');
+
+      // Mock a cellView where node is NOT the root element (e.g. a port magnet)
+      const rootElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const portMagnet = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      // Mock getBBox to simulate a small port circle at an offset
+      portMagnet.getBBox = jest.fn(() => ({ x: -5, y: -5, width: 10, height: 10 }) as DOMRect);
+
+      const mockCellView = {
+        el: rootElement,
+        model: {
+          getBBox: () => ({ x: 10, y: 20, width: 200, height: 100 }),
+        },
+      } as unknown as dia.CellView;
+
+      const result = measureNode!(portMagnet as SVGGraphicsElement, mockCellView);
+
+      // Should return the port's own bbox, NOT the element's model bbox (200x100)
+      expect(result.width).toBe(10);
+      expect(result.height).toBe(10);
+      expect(result.x).toBe(-5);
+      expect(result.y).toBe(-5);
+
+      paperStore.destroy();
+    });
+
+    it('should allow user to override measureNode', () => {
+      const graph = new dia.Graph();
+      const graphStore = new GraphStore({ graph });
+      const paperElement = document.createElement('div');
+      const customMeasureNode = jest.fn();
+
+      const paperStore = new PaperStore({
+        graphStore,
+        paperElement,
+        paperOptions: {
+          measureNode: customMeasureNode,
+        },
+        id: 'test-paper',
+      });
+
+      // User-provided measureNode should override the default
+      expect(paperStore.paper.options.measureNode).toBe(customMeasureNode);
+
+      paperStore.destroy();
     });
   });
 

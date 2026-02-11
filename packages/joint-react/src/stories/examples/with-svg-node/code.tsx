@@ -68,7 +68,7 @@ function Main() {
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
+      <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
       <div
         style={{
           position: 'absolute',

@@ -52,7 +52,7 @@ const CYLINDER_TILT = 10;
 
 const initialElements: Record<string, NativeElement> = {
   // Row 1: Basic shapes
-  'rectangle': {
+  rectangle: {
     x: 20,
     y: 20,
     width: 100,
@@ -77,7 +77,7 @@ const initialElements: Record<string, NativeElement> = {
       },
     },
   },
-  'circle': {
+  circle: {
     x: 150,
     y: 20,
     width: 60,
@@ -103,7 +103,7 @@ const initialElements: Record<string, NativeElement> = {
       },
     },
   },
-  'ellipse': {
+  ellipse: {
     x: 240,
     y: 20,
     width: 100,
@@ -130,7 +130,7 @@ const initialElements: Record<string, NativeElement> = {
       },
     },
   },
-  'cylinder': {
+  cylinder: {
     x: 370,
     y: 10,
     width: 60,
@@ -155,7 +155,7 @@ const initialElements: Record<string, NativeElement> = {
     },
   },
   // Row 2: Path shapes
-  'path': {
+  path: {
     x: 20,
     y: 110,
     width: 80,
@@ -179,7 +179,7 @@ const initialElements: Record<string, NativeElement> = {
       },
     },
   },
-  'polygon': {
+  polygon: {
     x: 130,
     y: 110,
     width: 80,
@@ -203,7 +203,7 @@ const initialElements: Record<string, NativeElement> = {
       },
     },
   },
-  'polyline': {
+  polyline: {
     x: 240,
     y: 110,
     width: 100,
@@ -215,7 +215,7 @@ const initialElements: Record<string, NativeElement> = {
         strokeWidth: 3,
         stroke: PRIMARY,
         fill: 'none',
-        pointerEvents: 'all'
+        pointerEvents: 'all',
       },
       label: {
         textVerticalAnchor: 'middle',
@@ -228,7 +228,7 @@ const initialElements: Record<string, NativeElement> = {
       },
     },
   },
-  'textblock': {
+  textblock: {
     x: 370,
     y: 110,
     width: 100,
@@ -253,7 +253,7 @@ const initialElements: Record<string, NativeElement> = {
     },
   },
   // Row 3: Headered and Image shapes
-  'headered': {
+  headered: {
     x: 20,
     y: 220,
     width: 120,
@@ -294,7 +294,7 @@ const initialElements: Record<string, NativeElement> = {
       },
     },
   },
-  'image': {
+  image: {
     x: 170,
     y: 220,
     width: 60,
@@ -628,7 +628,7 @@ const initialLinks: Record<string, NativeLink> = {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width="100%" className={PAPER_CLASSNAME} height={500} />
+      <Paper className={PAPER_CLASSNAME} height={500} />
     </div>
   );
 }

@@ -35,7 +35,7 @@ function Main() {
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
+      <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
     </div>
   );
 }

@@ -3,7 +3,13 @@
 
 import '../index.css';
 import React, { useCallback, useRef, type PropsWithChildren } from 'react';
-import { GraphProvider, Paper, useNodeSize, type OnTransformElement, useCellId } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useNodeSize,
+  type OnTransformElement,
+  useCellId,
+} from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
@@ -105,9 +111,7 @@ function Main() {
   const renderElement = useCallback((element: BaseElementWithData) => {
     return <ListElement {...element}>{element.label}</ListElement>;
   }, []);
-  return (
-    <Paper width="100%" className={PAPER_CLASSNAME} height={500} renderElement={renderElement} />
-  );
+  return <Paper className={PAPER_CLASSNAME} height={500} renderElement={renderElement} />;
 }
 
 export default function App() {

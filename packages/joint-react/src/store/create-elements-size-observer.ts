@@ -162,6 +162,13 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
 
       const measuredWidth = roundToTwoDecimals(inlineSize);
       const measuredHeight = roundToTwoDecimals(blockSize);
+
+      // Skip zero-size entries. This happens when an element is hidden (display:none)
+      // or removed from the DOM. We must never propagate 0-size to the model.
+      if (measuredWidth <= 0 || measuredHeight <= 0) {
+        continue;
+      }
+
       const currentCellTransform = getCellTransform(cellId);
 
       // Compare the measured size with the current cell size using epsilon to avoid jitter

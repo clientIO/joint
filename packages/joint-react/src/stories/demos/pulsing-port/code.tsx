@@ -76,7 +76,7 @@ const elements: Record<string, GraphElement> = {
   },
 };
 
-function NodeElement(_props: GraphElement) {
+function NodeElement(_props: Readonly<GraphElement>) {
   const id = useCellId();
   const rectRef = useRef<SVGRectElement>(null);
   const { width, height } = useNodeSize(rectRef);

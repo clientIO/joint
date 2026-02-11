@@ -106,6 +106,70 @@ describe('PortGroup cleanup', () => {
     });
   });
 
+  it('should update port group props without error when props change', async () => {
+    const { graph, wrapper } = getTestWrapper();
+
+    const TestComponent = ({ width }: { readonly width: number }) => (
+      <PortGroup id="test-group" position="absolute" width={width} />
+    );
+
+    const { rerender } = render(<TestComponent width={100} />, { wrapper });
+
+    await waitFor(() => {
+      const element = graph.getCell('element-1');
+      if (!element?.isElement()) throw new Error('Element not found');
+      const groups = element.prop('ports/groups') ?? {};
+      expect(groups['test-group']).toBeDefined();
+    });
+
+    // Changing props should NOT remove and re-add the group (no error)
+    rerender(<TestComponent width={200} />);
+
+    await waitFor(() => {
+      const element = graph.getCell('element-1');
+      if (!element?.isElement()) throw new Error('Element not found');
+      const groups = element.prop('ports/groups') ?? {};
+      expect(groups['test-group']).toBeDefined();
+    });
+  });
+
+  it('should remove port group on unmount after props have been changed', async () => {
+    const { graph, wrapper } = getTestWrapper();
+
+    const TestComponent = ({ width }: { readonly width: number }) => (
+      <PortGroup id="test-group" position="absolute" width={width} />
+    );
+
+    const { rerender, unmount } = render(<TestComponent width={100} />, { wrapper });
+
+    await waitFor(() => {
+      const element = graph.getCell('element-1');
+      if (!element?.isElement()) throw new Error('Element not found');
+      const groups = element.prop('ports/groups') ?? {};
+      expect(groups['test-group']).toBeDefined();
+    });
+
+    // Change props first
+    rerender(<TestComponent width={200} />);
+
+    await waitFor(() => {
+      const element = graph.getCell('element-1');
+      if (!element?.isElement()) throw new Error('Element not found');
+      const groups = element.prop('ports/groups') ?? {};
+      expect(groups['test-group']).toBeDefined();
+    });
+
+    // Then unmount - group should be cleaned up
+    unmount();
+
+    await waitFor(() => {
+      const element = graph.getCell('element-1');
+      if (!element?.isElement()) throw new Error('Element not found');
+      const groups = element.prop('ports/groups') ?? {};
+      expect(groups['test-group']).toBeUndefined();
+    });
+  });
+
   it('should only remove unmounted group, keeping others', async () => {
     const { graph, wrapper } = getTestWrapper();
 

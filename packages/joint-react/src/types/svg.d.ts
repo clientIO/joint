@@ -9,10 +9,10 @@ declare module 'react' {
   interface SVGProps<T extends SVGElement = SVGElement> {
     /**
      * JointJS-specific attribute that controls whether an element can be used as a connection point.
-     * - 'passive': Element cannot be used as a connection point
-     * - 'true': Element can be used as a connection point (default)
-     * - 'false': Element cannot be used as a connection point
+     * - `true`: Element can be used as a connection point (active magnet)
+     * - `'passive'`: Element is a magnet but cannot initiate link creation
+     * - `false`: Element is not a magnet
      */
-    magnet?: 'passive';
+    magnet?: boolean | 'passive';
   }
 }

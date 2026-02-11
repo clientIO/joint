@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prevent-abbreviations */
 /* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable sonarjs/no-alphabetical-sort */
 import { dia, shapes } from '@joint/core';
@@ -460,6 +461,89 @@ describe('graph-state-selectors', () => {
       expect(linkAsGraphJson.attrs?.line?.stroke).toBe('red');
     });
 
+    it('should explicitly set targetMarker to null in line attrs when set to null', () => {
+      const id = 'link-1';
+      const link: GraphLink = {
+        source: 'element-1',
+        target: 'element-2',
+        targetMarker: null,
+      };
+
+      const options = createLinkToGraphOptions(id, link, graph);
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
+
+      // targetMarker should be explicitly null to override standard.Link default arrowhead
+      expect(linkAsGraphJson.attrs?.line?.targetMarker).toBeNull();
+    });
+
+    it('should explicitly set targetMarker to null in line attrs when set to none', () => {
+      const id = 'link-1';
+      const link: GraphLink = {
+        source: 'element-1',
+        target: 'element-2',
+        targetMarker: 'none',
+      };
+
+      const options = createLinkToGraphOptions(id, link, graph);
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
+
+      expect(linkAsGraphJson.attrs?.line?.targetMarker).toBeNull();
+    });
+
+    it('should not include sourceMarker in line attrs when set to null', () => {
+      const id = 'link-1';
+      const link: GraphLink = {
+        source: 'element-1',
+        target: 'element-2',
+        sourceMarker: null,
+      };
+
+      const options = createLinkToGraphOptions(id, link, graph);
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
+
+      expect(linkAsGraphJson.attrs?.line).not.toHaveProperty('sourceMarker');
+    });
+
+    it('should hide default targetMarker after round-trip through graph when set to null', () => {
+      const id = 'link-1';
+      const link: GraphLink = {
+        source: 'element-1',
+        target: 'element-2',
+        targetMarker: null,
+      };
+
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
+      graph.syncCells([linkAsGraphJson], { remove: true });
+
+      const graphLinkCell = graph.getCell('link-1') as dia.Link;
+      const lineAttrs = graphLinkCell.attr('line');
+
+      // After syncing to graph, the standard.Link default targetMarker should be overridden
+      expect(lineAttrs.targetMarker).toBeNull();
+    });
+
+    it('should hide default targetMarker after round-trip through graph when set to none', () => {
+      const id = 'link-1';
+      const link: GraphLink = {
+        source: 'element-1',
+        target: 'element-2',
+        targetMarker: 'none',
+      };
+
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
+      graph.syncCells([linkAsGraphJson], { remove: true });
+
+      const graphLinkCell = graph.getCell('link-1') as dia.Link;
+      const lineAttrs = graphLinkCell.attr('line');
+
+      // After syncing to graph, the standard.Link default targetMarker should be overridden
+      expect(lineAttrs.targetMarker).toBeNull();
+    });
+
     it('should preserve all link properties', () => {
       const id = 'link-1';
       const link: GraphLink = {
@@ -736,7 +820,9 @@ describe('graph-state-selectors', () => {
       };
 
       // Convert link to graph JSON
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
 
       // Store in graph using syncCells
       graph.syncCells([linkAsGraphJson], { remove: true });
@@ -775,7 +861,9 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -813,7 +901,9 @@ describe('graph-state-selectors', () => {
         anotherProp: 42,
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
 
       // Add extra properties to graph JSON that don't exist in state
       const linkWithExtraProps = {
@@ -919,7 +1009,9 @@ describe('graph-state-selectors', () => {
         const previous = previousLinks.find((l) => l.id === id)?.data;
         return {
           id,
-          data: mapLinkAttributesToData(createGraphToLinkOptions(id, graphLinkCell, graph, previous)),
+          data: mapLinkAttributesToData(
+            createGraphToLinkOptions(id, graphLinkCell, graph, previous)
+          ),
         };
       });
 
@@ -960,7 +1052,9 @@ describe('graph-state-selectors', () => {
         optionalProp: 'has-value',
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -1063,7 +1157,9 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -1145,7 +1241,9 @@ describe('graph-state-selectors', () => {
         metadata: { key: 'value' },
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -1249,7 +1347,9 @@ describe('graph-state-selectors', () => {
         },
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 
@@ -1343,7 +1443,9 @@ describe('graph-state-selectors', () => {
         weight: 10, // New property
       };
 
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, link, graph));
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(
+        createLinkToGraphOptions(id, link, graph)
+      );
 
       graph.syncCells([linkAsGraphJson], { remove: true });
 

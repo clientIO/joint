@@ -78,7 +78,6 @@ export const Default = makeStory<Story>({
     render: (result) => (
       <div>
         <Paper
-          width="100%"
           className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
@@ -105,7 +104,6 @@ export const WithSelectedJustIds = makeStory<Story>({
     render: (result) => (
       <span>
         <Paper
-          width="100%"
           className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
@@ -132,7 +130,6 @@ export const WithGetJustSize = makeStory<Story>({
     render: (result) => (
       <div>
         <Paper
-          width="100%"
           className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
@@ -165,7 +162,6 @@ export const WithJustPosition = makeStory<Story>({
     render: (result) => (
       <div>
         <Paper
-          width="100%"
           className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
@@ -201,7 +197,6 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
     render: (result) => (
       <div>
         <Paper
-          width="100%"
           className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
@@ -228,11 +223,13 @@ function Component() {
 export const WithAdditionalData = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements) => Object.values(elements).map((element) => ({ id: element.id, other: 'something' }))],
+    hookArgs: [
+      (elements) =>
+        Object.values(elements).map((element) => ({ id: element.id, other: 'something' })),
+    ],
     render: (result) => (
       <div>
         <Paper
-          width="100%"
           className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;

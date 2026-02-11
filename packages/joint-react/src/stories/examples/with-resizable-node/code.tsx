@@ -61,7 +61,7 @@ function Main() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={ResizableNode} />
+      <Paper className={PAPER_CLASSNAME} height={280} renderElement={ResizableNode} />
       <div>
         <u>width & height</u>
         {elementsSize.map((size, index) => (

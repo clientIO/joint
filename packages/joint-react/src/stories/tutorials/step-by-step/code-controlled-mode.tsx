@@ -155,7 +155,7 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
         - renderElement: custom renderer for elements (defined above)
         - The Paper automatically reads elements and links from GraphProvider context
       */}
-      <Paper width="100%" className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
+      <Paper className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
 
       {/* 
         ========================================================================

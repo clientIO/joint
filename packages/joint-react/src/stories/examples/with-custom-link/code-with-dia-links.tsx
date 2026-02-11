@@ -3,7 +3,13 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
-import { GraphProvider, type GraphProps, type RenderElement, type LinkToGraphOptions, type GraphLink } from '@joint/react';
+import {
+  GraphProvider,
+  type GraphProps,
+  type RenderElement,
+  type LinkToGraphOptions,
+  type GraphLink,
+} from '@joint/react';
 import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { Paper } from '../../../components/paper/paper';
@@ -23,22 +29,22 @@ class LinkModel extends shapes.standard.Link {
 
   static getPresentationAttributes(color: string): dia.Cell.Selectors {
     return {
-        line: {
-            connection: true,
-            stroke: color,
-            strokeWidth: 10,
-            strokeDasharray: '5,5',
-            strokeLinejoin: 'round',
-            targetMarker: {
-                'type': 'path',
-                'd': 'M 10 -5 0 0 10 5 z'
-            }
+      line: {
+        connection: true,
+        stroke: color,
+        strokeWidth: 10,
+        strokeDasharray: '5,5',
+        strokeLinejoin: 'round',
+        targetMarker: {
+          type: 'path',
+          d: 'M 10 -5 0 0 10 5 z',
         },
-        wrapper: {
-            connection: true,
-            strokeWidth: 10,
-            strokeLinejoin: 'round'
-        }
+      },
+      wrapper: {
+        connection: true,
+        strokeWidth: 10,
+        strokeLinejoin: 'round',
+      },
     };
   }
 }
@@ -54,7 +60,6 @@ function Main() {
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
         defaultLink={() => new LinkModel()}
-        width="100%"
         className={PAPER_CLASSNAME}
         height={280}
         renderElement={renderElement}
@@ -85,7 +90,7 @@ const mapDataToLinkAttributes = ({
   return {
     ...defaultAttributesRest,
     type: 'LinkModel',
-    attrs: LinkModel.getPresentationAttributes(color)
+    attrs: LinkModel.getPresentationAttributes(color),
   };
 };
 

@@ -3,7 +3,7 @@
  
  
 import type { dia } from '@joint/core';
-import { memo, useLayoutEffect } from 'react';
+import { memo, useLayoutEffect, useRef } from 'react';
 import { useCellId } from '../../hooks';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import { PortGroupContext } from '../../context/port-group-context';
@@ -100,6 +100,24 @@ function Component(props: PortGroupProps) {
   const graphStore = useGraphStore();
   const { graph } = graphStore;
 
+  // Refs for stable cleanup access
+  const cellIdRef = useRef(cellId);
+  const idRef = useRef(id);
+  const graphStoreRef = useRef(graphStore);
+  cellIdRef.current = cellId;
+  idRef.current = id;
+  graphStoreRef.current = graphStore;
+
+  // Effect 1: Unmount cleanup only
+  useLayoutEffect(() => {
+    return () => {
+      // Remove port group via graphStore for batching
+      graphStoreRef.current.removePortGroup(cellIdRef.current, idRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Effect 2: Create port group on mount + update on prop changes (no cleanup)
   useLayoutEffect(() => {
     const cell = graph.getCell(cellId);
     if (!cell?.isElement()) return;
@@ -131,11 +149,6 @@ function Component(props: PortGroupProps) {
     };
     graphStore.setPortGroup(cellId, id, groupData);
     graphStore.flushPendingUpdates();
-
-    return () => {
-      // Remove port group via graphStore for batching
-      graphStore.removePortGroup(cellId, id);
-    };
   }, [
     angle,
     cellId,

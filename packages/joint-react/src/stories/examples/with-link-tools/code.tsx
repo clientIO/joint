@@ -15,7 +15,10 @@ const initialEdges: Record<string, GraphLink> = {
   },
 };
 
-const initialElements: Record<string, { label: string; x: number; y: number; width: number; height: number }> = {
+const initialElements: Record<
+  string,
+  { label: string; x: number; y: number; width: number; height: number }
+> = {
   '1': { label: 'Node 1', x: 100, y: 10, width: 120, height: 30 },
   '2': { label: 'Node 2', x: 100, y: 200, width: 120, height: 30 },
 };
@@ -85,7 +88,6 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper
-        width="100%"
         className={PAPER_CLASSNAME}
         height={280}
         renderElement={renderElement}
