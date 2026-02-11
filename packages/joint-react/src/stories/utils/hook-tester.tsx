@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import type { JSX } from 'react';
-import type { StoryObj } from '@storybook/react';
+import type { StoryObj } from '@storybook/react-vite';
 import '../examples/index.css';
 import { HTMLNode, ShowJson } from 'storybook-config/decorators/with-simple-data';
 

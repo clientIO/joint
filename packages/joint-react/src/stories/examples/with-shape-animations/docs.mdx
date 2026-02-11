@@ -1,0 +1,71 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/addon-docs/blocks';
+import * as Stories from './story';
+
+<Meta of={Stories} />
+
+# Shape Animations
+
+## Overview
+
+This example shows how to render custom SVG-based shapes in JointJS React and animate parts of those shapes using the **Web Animations API**.
+
+It includes:
+
+- A **generator** element with a spinning turbine (speed controlled by “power”)
+- Two **bulb** elements that animate between “off” and “lit” states based on generator power
+
+## Demo
+
+<Canvas of={Stories.Default} />
+
+## Key Concepts
+
+### Animating SVG with the Web Animations API
+
+Both shapes create an `Animation` once (stored in a ref) and then update its `playbackRate` when state changes:
+
+```tsx
+animationRef.current = turbineElement.animate(
+  { transform: ['rotate(0deg)', 'rotate(360deg)'] },
+  { fill: 'forwards', duration: 1000, iterations: Infinity }
+);
+animationRef.current.playbackRate = power;
+```
+
+For the bulbs, the animation is “reversed” by setting a negative `playbackRate` when the light turns off.
+
+### Graph-Driven State (Source Data vs Presentation)
+
+The generator’s power is stored under `data/power`. Bulb “light” is computed from power and stored as a presentation property (`light`) on the bulb cells:
+
+```tsx
+generator.prop('data/power', newPower);
+bulb.prop('light', shouldLight);
+```
+
+Bulb components subscribe to `change:light` to update their local React state.
+
+### Custom Events from Shapes
+
+The generator toggles power by triggering a custom Paper event:
+
+```tsx
+paper.trigger('generator:power:change', newPower);
+```
+
+The `Paper` listens via `customEvents` and updates the graph accordingly.
+
+## How It Works
+
+1. **Bootstrap graph**: `GraphProvider` creates a graph from `initialElements` and `initialLinks`.
+2. **Render elements**: `Paper` calls `renderElement`, which picks `GeneratorNode` or `BulbNode`.
+3. **Animate shapes**: Each node creates a Web Animations `Animation` once and adjusts `playbackRate` when state changes.
+4. **Change power**: The slider or the generator click handler updates `data/power` on the generator cell.
+5. **Compute bulb light**: `updatePowerAndBulbs()` sets `light` on bulbs based on power vs `data/watts`.
+6. **React to updates**: Bulbs listen for `change:light` and play their on/off animation accordingly.
+
+## Best Practices
+
+- **Separate concerns**: Keep persisted values under `data/*` and derived/presentation state (such as `light`) on separate properties.
+- **Clean up listeners**: When subscribing to cell events (e.g. `change:light`), always unsubscribe in `useEffect` cleanup.
+- **Prefer stable props**: In real apps, consider memoizing large `interactive`/`customEvents` objects to avoid unnecessary Paper updates.

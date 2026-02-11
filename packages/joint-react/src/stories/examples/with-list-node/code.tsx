@@ -11,15 +11,11 @@ const initialElements: Record<string, { label: string; inputs: string[]; x: numb
   '1': { label: 'Node 1', inputs: [] as string[], x: 100, y: 0 },
   '2': { label: 'Node 2', inputs: [] as string[], x: 500, y: 200 },
 };
-const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string } } }> = {
+const initialEdges: Record<string, { source: string; target: string; color: string }> = {
   'e1-2': {
     source: '1',
     target: '2',
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-      },
-    },
+    color: PRIMARY,
   },
 };
 

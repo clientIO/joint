@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   testElements,
   testLinks,

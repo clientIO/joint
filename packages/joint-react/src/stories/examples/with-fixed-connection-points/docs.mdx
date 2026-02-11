@@ -1,0 +1,118 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/addon-docs/blocks';
+import * as Stories from './story';
+
+<Meta of={Stories} />
+
+# Fixed Connection Points
+
+This example demonstrates how to create elements with predefined anchor points for link connections. Instead of allowing links to connect anywhere on an element, connections snap to specific fixed positions.
+
+## Overview
+
+Fixed connection points are useful for:
+- Creating clean, organized diagrams with consistent link attachment points
+- Building circuit diagrams or flowcharts with port-like connections
+- Ensuring visual consistency across similar elements
+- Providing clear visual feedback during link creation
+
+## Demo
+
+<Canvas of={Stories.Default} />
+
+## Key Concepts
+
+### Anchor Points Per Shape
+
+Each shape type defines its own set of anchor points:
+
+- **Square**: 12 anchors (3 on each side)
+- **Rectangle**: Anchors every 20px along top and bottom edges
+- **Ellipse**: 4 anchors (one at each cardinal direction)
+
+```tsx
+function getAnchors(shapeType: string, width: number, height: number): Point[] {
+  switch (shapeType) {
+    case 'Square':
+      return [
+        { x: width / 4, y: 0 }, { x: width / 2, y: 0 }, { x: (width / 4) * 3, y: 0 },
+        // ... 3 anchors on each side
+      ];
+    case 'Ellipse':
+      return [
+        { x: width / 2, y: 0 },      // top
+        { x: width, y: height / 2 }, // right
+        { x: width / 2, y: height }, // bottom
+        { x: 0, y: height / 2 },     // left
+      ];
+  }
+}
+```
+
+### Connection Strategy
+
+When creating a new link, the `connectionStrategy` prop finds the closest anchor point to the cursor:
+
+```tsx
+connectionStrategy={(end, view, _magnet, coords) => {
+  const model = view.model;
+  const size = model.size();
+  const shapeType = model.prop('data/shapeType');
+  const anchors = getAnchors(shapeType, size.width, size.height);
+  const relPoint = model.getRelativePointFromAbsolute(coords);
+  const anchor = findClosestAnchor(anchors, relPoint);
+  return {
+    anchor: {
+      name: 'modelCenter',
+      args: { dx: anchor.x - size.width/2, dy: anchor.y - size.height/2 }
+    },
+    id: end.id,
+  };
+}}
+```
+
+### Custom Highlighter
+
+A custom highlighter shows available anchor points when dragging a link over an element:
+
+```tsx
+const AnchorsHighlighter = dia.HighlighterView.extend({
+  highlight(cellView) {
+    const { width, height } = cellView.model.size();
+    const shapeType = cellView.model.prop('data/shapeType');
+    const anchors = getAnchors(shapeType, width, height);
+    const children = anchors.map(anchor => ({
+      tagName: 'circle',
+      attributes: { cx: anchor.x, cy: anchor.y, r: 5 },
+    }));
+    this.renderChildren(children);
+  },
+});
+```
+
+### Interactive Tools
+
+Hovering over an element shows Connect tools at each anchor point, allowing users to start new links from specific positions:
+
+```tsx
+function getElementTools(elementView) {
+  const anchors = getAnchors(shapeType, width, height);
+  return anchors.map(anchor => new elementTools.Connect({
+    markup: jsx(<circle r="6" fill="#f6f740" cursor="pointer" />),
+    x: anchor.x,
+    y: anchor.y,
+  }));
+}
+```
+
+## How It Works
+
+1. **Element Data**: Each element stores its `shapeType` which determines its anchor configuration
+2. **Hover**: Moving the cursor over an element displays Connect tools at anchor positions
+3. **Drag**: Starting a link from a connect tool uses that position as the source
+4. **Target**: Dragging over another element shows the custom highlighter with all available anchors
+5. **Snap**: Releasing snaps the link to the closest anchor point on the target element
+
+## Best Practices
+
+- **Validation**: Use `validateConnection` to enforce connection rules (e.g., no self-loops)
+- **Router**: Use `rightAngle` or `orthogonal` routers for clean link paths between fixed points

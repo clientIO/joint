@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { Mask } from './mask';
 import { PRIMARY, SECONDARY } from 'storybook-config/theme';

@@ -4,12 +4,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import React, { useRef } from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   SimpleGraphDecorator,
   type SimpleElement,
 } from '../../../.storybook/decorators/with-simple-data';
-import { action } from '@storybook/addon-actions';
+import { action } from 'storybook/actions';
 import { dia, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useNodeSize } from '../../hooks/use-node-size';

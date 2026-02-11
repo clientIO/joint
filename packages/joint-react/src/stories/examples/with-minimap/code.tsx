@@ -8,15 +8,11 @@ const initialElements: Record<string, { label: string; color: string; x: number;
   '1': { label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
   '2': { label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
 };
-const initialEdges: Record<string, { source: string; target: string; attrs: { line: { stroke: string } } }> = {
+const initialEdges: Record<string, { source: string; target: string; color: string }> = {
   'e1-2': {
     source: '1',
     target: '2',
-    attrs: {
-      line: {
-        stroke: LIGHT,
-      },
-    },
+    color: LIGHT,
   },
 };
 
