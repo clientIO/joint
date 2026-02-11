@@ -1,9 +1,10 @@
 import { dia, shapes } from '@joint/core';
 import { ReactPaper } from '../react-paper';
+import { ReactElement } from '../react-element';
 import { GraphStore } from '../../store/graph-store';
 import type { ReactElementViewCache, ReactLinkViewCache } from '../../types/paper.types';
 
-const DEFAULT_CELL_NAMESPACE = shapes;
+const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
 describe('ReactPaper', () => {
   let graphStore: GraphStore;
@@ -49,6 +50,13 @@ describe('ReactPaper', () => {
     p.reactElementCache = elementCache;
     p.reactLinkCache = linkCache;
     return p;
+  }
+
+  /**
+   * Helper to access private pendingLinks for testing
+   */
+  function getPendingLinks(p: ReactPaper): Set<string> {
+    return (p as unknown as { pendingLinks: Set<string> }).pendingLinks;
   }
 
   describe('constructor', () => {
@@ -270,6 +278,278 @@ describe('ReactPaper', () => {
       paper._hideCellView(view);
 
       expect(scheduleSpy).toHaveBeenCalled();
+    });
+
+    it('should remove link from pendingLinks when hidden', () => {
+      paper = createPaper();
+
+      // Use ReactElement which has empty markup (like real React usage)
+      const element1 = new ReactElement({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const element2 = new ReactElement({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const link = new shapes.standard.Link({
+        source: { id: element1.id },
+        target: { id: element2.id },
+      });
+      graphStore.graph.addCells([element1, element2, link]);
+
+      const pendingLinks = getPendingLinks(paper);
+
+      // Link should be in pending (source/target have no children - ReactElement has empty markup)
+      expect(pendingLinks.has(link.id as string)).toBe(true);
+
+      // Hide the link
+      const linkView = paper.findViewByModel(link);
+      paper._hideCellView(linkView);
+
+      // Should be removed from pending
+      expect(pendingLinks.has(link.id as string)).toBe(false);
+    });
+  });
+
+  describe('pending links visibility', () => {
+    it('should hide link when source element has no children (ReactElement)', () => {
+      paper = createPaper();
+
+      // Use ReactElement which has empty markup (like real React usage)
+      const element1 = new ReactElement({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const element2 = new ReactElement({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const link = new shapes.standard.Link({
+        source: { id: element1.id },
+        target: { id: element2.id },
+      });
+      graphStore.graph.addCells([element1, element2, link]);
+
+      const linkView = linkCache.linkViews[link.id];
+
+      // Link should be hidden (ReactElement has empty markup, no children)
+      expect(linkView.el.style.visibility).toBe('hidden');
+    });
+
+    it('should NOT hide link when using standard shapes with default markup', () => {
+      paper = createPaper();
+
+      // Standard shapes have default markup with children
+      const element1 = new shapes.standard.Rectangle({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const element2 = new shapes.standard.Rectangle({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const link = new shapes.standard.Link({
+        source: { id: element1.id },
+        target: { id: element2.id },
+      });
+      graphStore.graph.addCells([element1, element2, link]);
+
+      const linkView = linkCache.linkViews[link.id];
+      const pendingLinks = getPendingLinks(paper);
+
+      // Standard shapes have children, so link should NOT be hidden or pending
+      expect(linkView.el.style.visibility).toBe('');
+      expect(pendingLinks.has(link.id as string)).toBe(false);
+    });
+
+    it('should add link to pendingLinks when source/target not ready (ReactElement)', () => {
+      paper = createPaper();
+
+      // Use ReactElement which has empty markup
+      const element1 = new ReactElement({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const element2 = new ReactElement({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const link = new shapes.standard.Link({
+        source: { id: element1.id },
+        target: { id: element2.id },
+      });
+      graphStore.graph.addCells([element1, element2, link]);
+
+      const pendingLinks = getPendingLinks(paper);
+
+      expect(pendingLinks.has(link.id as string)).toBe(true);
+    });
+
+    it('should show link when source and target elements have children', () => {
+      paper = createPaper();
+
+      // Use ReactElement which has empty markup
+      const element1 = new ReactElement({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const element2 = new ReactElement({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const link = new shapes.standard.Link({
+        source: { id: element1.id },
+        target: { id: element2.id },
+      });
+      graphStore.graph.addCells([element1, element2, link]);
+
+      const linkView = linkCache.linkViews[link.id];
+      const element1View = elementCache.elementViews[element1.id];
+      const element2View = elementCache.elementViews[element2.id];
+
+      // Initially hidden
+      expect(linkView.el.style.visibility).toBe('hidden');
+
+      // Simulate React rendering children by adding child elements
+      const child1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const child2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      element1View.el.append(child1);
+      element2View.el.append(child2);
+
+      // Call checkPendingLinks to process
+      paper.checkPendingLinks();
+
+      // Link should now be visible
+      expect(linkView.el.style.visibility).toBe('');
+    });
+
+    it('should remove link from pendingLinks after showing', () => {
+      paper = createPaper();
+
+      // Use ReactElement which has empty markup
+      const element1 = new ReactElement({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const element2 = new ReactElement({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const link = new shapes.standard.Link({
+        source: { id: element1.id },
+        target: { id: element2.id },
+      });
+      graphStore.graph.addCells([element1, element2, link]);
+
+      const pendingLinks = getPendingLinks(paper);
+      const element1View = elementCache.elementViews[element1.id];
+      const element2View = elementCache.elementViews[element2.id];
+
+      // Initially in pending
+      expect(pendingLinks.has(link.id as string)).toBe(true);
+
+      // Simulate React rendering children
+      element1View.el.append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
+      element2View.el.append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
+
+      paper.checkPendingLinks();
+
+      // Should be removed from pending
+      expect(pendingLinks.has(link.id as string)).toBe(false);
+    });
+
+    it('should not show link if only source is ready', () => {
+      paper = createPaper();
+
+      // Use ReactElement which has empty markup
+      const element1 = new ReactElement({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const element2 = new ReactElement({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const link = new shapes.standard.Link({
+        source: { id: element1.id },
+        target: { id: element2.id },
+      });
+      graphStore.graph.addCells([element1, element2, link]);
+
+      const linkView = linkCache.linkViews[link.id];
+      const element1View = elementCache.elementViews[element1.id];
+
+      // Only add children to source element
+      element1View.el.append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
+
+      paper.checkPendingLinks();
+
+      // Link should still be hidden (target has no children)
+      expect(linkView.el.style.visibility).toBe('hidden');
+    });
+
+    it('should clean up pendingLinks when link is removed', () => {
+      paper = createPaper();
+
+      // Use ReactElement which has empty markup
+      const element1 = new ReactElement({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const element2 = new ReactElement({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const link = new shapes.standard.Link({
+        source: { id: element1.id },
+        target: { id: element2.id },
+      });
+      graphStore.graph.addCells([element1, element2, link]);
+
+      const pendingLinks = getPendingLinks(paper);
+
+      // Link should be in pending
+      expect(pendingLinks.has(link.id as string)).toBe(true);
+
+      // Remove the link
+      graphStore.graph.removeCells([link]);
+
+      // Should be cleaned up
+      expect(pendingLinks.has(link.id as string)).toBe(false);
+    });
+
+    it('should handle checkPendingLinks when link view was removed', () => {
+      paper = createPaper();
+
+      // Use ReactElement which has empty markup
+      const element1 = new ReactElement({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const element2 = new ReactElement({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const link = new shapes.standard.Link({
+        source: { id: element1.id },
+        target: { id: element2.id },
+      });
+      graphStore.graph.addCells([element1, element2, link]);
+
+      const pendingLinks = getPendingLinks(paper);
+
+      // Link should be in pending
+      expect(pendingLinks.has(link.id as string)).toBe(true);
+
+      // Manually remove from linkCache but keep in pendingLinks (simulating race condition)
+      Reflect.deleteProperty(linkCache.linkViews, link.id);
+
+      // Should not throw
+      expect(() => paper.checkPendingLinks()).not.toThrow();
+
+      // Should clean up the orphaned pending link
+      expect(pendingLinks.has(link.id as string)).toBe(false);
     });
   });
 });

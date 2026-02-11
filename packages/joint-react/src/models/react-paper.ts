@@ -10,6 +10,7 @@ import type { ReactElementViewCache, ReactLinkViewCache } from '../types/paper.t
  * - Tracking mounted views in React caches for portal rendering
  * - Scheduling React updates when views mount/unmount
  * - Disabling magnets on React elements
+ * - Hiding links until their source/target elements have rendered
  * @example
  * ```typescript
  * const paper = new ReactPaper({
@@ -29,14 +30,86 @@ export class ReactPaper extends dia.Paper {
   /** Cache for link views - set by PaperStore */
   public reactLinkCache!: ReactLinkViewCache;
 
+  /** Links waiting for source/target elements to render */
+  private pendingLinks: Set<dia.Cell.ID> = new Set();
+
   constructor(options: ReactPaperOptions) {
     super(options);
     this.graphStore = options.graphStore;
   }
 
   /**
+   * Check if an element view has rendered its React content.
+   * @param elementId - The element ID to check
+   * @returns true if element view exists and has children
+   */
+  private isElementReady(elementId: dia.Cell.ID | undefined): boolean {
+    if (!elementId) return false;
+    const elementView = this.reactElementCache.elementViews[elementId];
+    return !!elementView?.el && elementView.el.children.length > 0;
+  }
+
+  /**
+   * Check pending links and show them if their source/target are ready.
+   * Called after React renders element content.
+   */
+  public checkPendingLinks(): void {
+    if (this.pendingLinks.size === 0) return;
+
+    const linksToShow: dia.Cell.ID[] = [];
+
+    for (const linkId of this.pendingLinks) {
+      const linkView = this.reactLinkCache.linkViews[linkId];
+      if (!linkView) {
+        // Link was removed, clean up
+        this.pendingLinks.delete(linkId);
+        continue;
+      }
+
+      const link = linkView.model;
+      const sourceId = link.source().id as dia.Cell.ID;
+      const targetId = link.target().id as dia.Cell.ID;
+
+      if (this.isElementReady(sourceId) && this.isElementReady(targetId)) {
+        linksToShow.push(linkId);
+      }
+    }
+
+    // Show ready links
+    for (const linkId of linksToShow) {
+      this.pendingLinks.delete(linkId);
+      const linkView = this.reactLinkCache.linkViews[linkId];
+      if (linkView?.el) {
+        linkView.el.style.visibility = '';
+      }
+    }
+  }
+
+  /**
+   * Remove a cell from the appropriate cache.
+   * Uses Reflect.deleteProperty to satisfy `@typescript-eslint/no-dynamic-delete` rule.
+   * Performance is identical to `delete` operator.
+   * @param cell - The cell to remove from cache
+   */
+  private removeFromCache(cell: dia.Cell): void {
+    const cellId = cell.id;
+
+    if (cell.isElement()) {
+      const newElementViews = { ...this.reactElementCache.elementViews };
+      Reflect.deleteProperty(newElementViews, cellId);
+      this.reactElementCache.elementViews = newElementViews;
+    } else if (cell.isLink()) {
+      const newLinkViews = { ...this.reactLinkCache.linkViews };
+      Reflect.deleteProperty(newLinkViews, cellId);
+      this.reactLinkCache.linkViews = newLinkViews;
+      this.pendingLinks.delete(cellId);
+    }
+  }
+
+  /**
    * Called when a view is mounted into the DOM.
    * Adds view to appropriate cache and schedules React update.
+   * For links, hides them until source/target elements have rendered.
    * @param view - The cell view being inserted
    * @param isInitialInsert - Whether this is the initial insert
    */
@@ -52,8 +125,24 @@ export class ReactPaper extends dia.Paper {
         ...this.reactElementCache.elementViews,
         [cellId]: view as dia.ElementView,
       };
+
+      // Check if any pending links can now be shown
+      this.checkPendingLinks();
     } else if (view.model.isLink()) {
       const linkView = view as dia.LinkView;
+      const link = linkView.model;
+      const sourceId = link.source().id as dia.Cell.ID;
+      const targetId = link.target().id as dia.Cell.ID;
+
+      // Check if source/target elements have rendered their React content
+      const isSourceReady = this.isElementReady(sourceId);
+      const isTargetReady = this.isElementReady(targetId);
+
+      if (!isSourceReady || !isTargetReady) {
+        // Hide link until source/target are ready
+        view.el.style.visibility = 'hidden';
+        this.pendingLinks.add(cellId);
+      }
 
       // Add to link views cache
       this.reactLinkCache.linkViews = {
@@ -73,24 +162,8 @@ export class ReactPaper extends dia.Paper {
    * @returns The removed cell view
    */
   removeView(cell: dia.Cell): dia.CellView {
-    const cellId = cell.id;
-
-    if (cell.isElement()) {
-      // Remove from element views cache
-      const newElementViews = { ...this.reactElementCache.elementViews };
-      Reflect.deleteProperty(newElementViews, cellId);
-      this.reactElementCache.elementViews = newElementViews;
-    } else if (cell.isLink()) {
-      // Remove from link views cache
-      const newLinkViews = { ...this.reactLinkCache.linkViews };
-      Reflect.deleteProperty(newLinkViews, cellId);
-      this.reactLinkCache.linkViews = newLinkViews;
-    }
-
-    // Schedule React update
+    this.removeFromCache(cell);
     this.graphStore.schedulePaperUpdate();
-
-    // Call parent implementation
     return super.removeView(cell);
   }
 
@@ -101,24 +174,8 @@ export class ReactPaper extends dia.Paper {
    * @internal
    */
   _hideCellView(cellView: dia.CellView): void {
-    const cellId = cellView.model.id;
-
-    if (cellView.model.isElement()) {
-      // Remove from element views cache
-      const newElementViews = { ...this.reactElementCache.elementViews };
-      Reflect.deleteProperty(newElementViews, cellId);
-      this.reactElementCache.elementViews = newElementViews;
-    } else if (cellView.model.isLink()) {
-      // Remove from link views cache
-      const newLinkViews = { ...this.reactLinkCache.linkViews };
-      Reflect.deleteProperty(newLinkViews, cellId);
-      this.reactLinkCache.linkViews = newLinkViews;
-    }
-
-    // Schedule React update
+    this.removeFromCache(cellView.model);
     this.graphStore.schedulePaperUpdate();
-
-    // Call parent implementation
     super._hideCellView(cellView);
   }
 }
