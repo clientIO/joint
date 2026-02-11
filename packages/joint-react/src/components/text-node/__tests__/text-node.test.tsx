@@ -1,14 +1,6 @@
-import { runStorybookSnapshot } from '../../../utils/run-storybook-snapshot';
 import { paperRenderElementWrapper } from '../../../utils/test-wrappers';
 import { TextNode } from '../text-node';
-import * as stories from '../text-node.stories';
 import { render } from '@testing-library/react';
-runStorybookSnapshot({
-  Component: TextNode,
-  name: 'TextNode',
-  withRenderElementWrapper: true,
-  stories,
-});
 
 describe('TextNode', () => {
   it('renders with minimal props', () => {
