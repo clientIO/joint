@@ -60,9 +60,13 @@ const initialElements: Record<string, NativeElement> = {
       groups: {
         out: {
           position: 'right',
+          size: {
+            width: 16,
+            height: 16,
+          },
           attrs: {
             circle: {
-              r: 8,
+              r: 'calc(s / 2)',
               magnet: true,
               fill: SECONDARY,
               stroke: '#333',
@@ -106,10 +110,14 @@ const initialElements: Record<string, NativeElement> = {
     ports: {
       groups: {
         in: {
+          size: {
+            width: 16,
+            height: 16,
+          },
           position: 'left',
           attrs: {
             circle: {
-              r: 8,
+              r: 'calc(s / 2)',
               magnet: true,
               fill: PRIMARY,
               stroke: '#333',
@@ -121,7 +129,7 @@ const initialElements: Record<string, NativeElement> = {
           position: 'right',
           attrs: {
             circle: {
-              r: 8,
+              r: 'calc(s / 2)',
               magnet: true,
               fill: SECONDARY,
               stroke: '#333',
@@ -165,10 +173,14 @@ const initialElements: Record<string, NativeElement> = {
     ports: {
       groups: {
         in: {
+          size: {
+            width: 16,
+            height: 16,
+          },
           position: 'left',
           attrs: {
             circle: {
-              r: 8,
+              r: 'calc(s / 2)',
               magnet: true,
               fill: PRIMARY,
               stroke: '#333',

@@ -1,4 +1,4 @@
-import { dia, g, util, type Vectorizer } from '@joint/core';
+import { dia, g, util, V, type Vectorizer } from '@joint/core';
 import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
 import type { GraphElement } from '../types/element-types';
@@ -15,15 +15,15 @@ const DEFAULT_CONNECTION_POINT = { name: 'rectangle', args: { useModelGeometry: 
  * This ensures consistent measurement in React where elements are rendered via portals,
  * while still allowing port connection points to be calculated correctly.
  */
-const DEFAULT_MEASURE_NODE = (node: SVGGraphicsElement, cellView: dia.CellView): g.Rect => {
-  if (node === cellView.el) {
-    // Root element node: use model geometry (works with React portals)
-    const bbox = cellView.model.getBBox();
-    return new g.Rect(0, 0, bbox.width, bbox.height);
+const DEFAULT_MEASURE_NODE = (
+  node: SVGGraphicsElement,
+  view: dia.ElementView<dia.Element>
+): g.Rect => {
+  if (node === view.el) {
+    const { height, width } = view.model.size();
+    return new g.Rect({ height, width, x: 0, y: 0 });
   }
-  // Sub-nodes (ports, etc.): use actual SVG bounding box
-  const { x, y, width, height } = node.getBBox();
-  return new g.Rect(x, y, width, height);
+  return V(node).getBBox();
 };
 export const PORTAL_SELECTOR = 'react-port-portal';
 
