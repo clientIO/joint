@@ -15,18 +15,8 @@ export async function download(folder: string, target: string | undefined, optio
     const folders = await listDemoFolders(options);
 
     if (!folders.includes(folder)) {
-        logger.error(`Example "${folder}" not found.`);
-
-        if (folders.length > 0) {
-            logger.log(`\n${logger.bold('Available examples:')}\n`);
-            for (const f of folders) {
-                logger.log(`  - ${f}`);
-            }
-            logger.log('');
-        } else {
-            logger.warn('No examples are available yet.');
-        }
-
+        logger.error(`Example "${folder}" not found.\n`);
+        logger.info('Run "joint list" to see available examples.');
         process.exit(1);
     }
 
