@@ -54,12 +54,7 @@ function RenderItemWithChildren({ height = 0, width = 0, label }: Readonly<BaseE
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper
-        width="100%"
-        className={PAPER_CLASSNAME}
-        height={280}
-        renderElement={RenderItemWithChildren}
-      />
+      <Paper className={PAPER_CLASSNAME} height={280} renderElement={RenderItemWithChildren} />
     </div>
   );
 }

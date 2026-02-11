@@ -1,4 +1,4 @@
-import { dia, util, type Vectorizer } from '@joint/core';
+import { dia, g, util, type Vectorizer } from '@joint/core';
 import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
 import type { GraphElement } from '../types/element-types';
@@ -8,6 +8,23 @@ import type { GraphState, GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
+const DEFAULT_CONNECTION_POINT = { name: 'rectangle', args: { useModelGeometry: true } };
+/**
+ * Default measureNode function that uses the model's bounding box for the root element node.
+ * For sub-nodes (e.g. port magnets), falls back to the native SVG bounding box.
+ * This ensures consistent measurement in React where elements are rendered via portals,
+ * while still allowing port connection points to be calculated correctly.
+ */
+const DEFAULT_MEASURE_NODE = (node: SVGGraphicsElement, cellView: dia.CellView): g.Rect => {
+  if (node === cellView.el) {
+    // Root element node: use model geometry (works with React portals)
+    const bbox = cellView.model.getBBox();
+    return new g.Rect(0, 0, bbox.width, bbox.height);
+  }
+  // Sub-nodes (ports, etc.): use actual SVG bounding box
+  const { x, y, width, height } = node.getBBox();
+  return new g.Rect(x, y, width, height);
+};
 export const PORTAL_SELECTOR = 'react-port-portal';
 
 /**
@@ -90,7 +107,7 @@ export class PaperStore {
   /** Reference to the overwrite result if custom rendering is used */
   public overWriteResultRef?: OverWriteResult;
   /** Optional custom element renderer */
-  private renderElement?: RenderElement<GraphElement>;
+  public renderElement?: RenderElement<GraphElement>;
   /** Optional custom link renderer */
   public renderLink?: RenderLink<GraphLink>;
 
@@ -197,6 +214,8 @@ export class PaperStore {
           }
         };
       })(),
+      defaultConnectionPoint: DEFAULT_CONNECTION_POINT,
+      measureNode: DEFAULT_MEASURE_NODE,
       ...paperOptions,
       clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
       autoFreeze: true,
@@ -284,6 +303,9 @@ export class PaperStore {
 
       elementToRender = overWriteResult?.element;
       this.overWriteResultRef = overWriteResult;
+      if (overWriteResult?.contextUpdate) {
+        Object.assign(this, overWriteResult.contextUpdate);
+      }
     }
 
     if (!elementToRender) {
@@ -310,9 +332,9 @@ export class PaperStore {
       const { portSelectors } = portElementsCache[portId];
       const portalElement = portSelectors[PORTAL_SELECTOR];
       if (!portalElement) {
-        throw new Error(
-          `Portal element not found for port id: ${portId} via ${PORTAL_SELECTOR} selector`
-        );
+        // Port was defined via JointJS native API (not via React <Port> component),
+        // so it doesn't have the portal selector. Skip it - it renders natively.
+        continue;
       }
 
       const element = Array.isArray(portalElement) ? portalElement[0] : portalElement;

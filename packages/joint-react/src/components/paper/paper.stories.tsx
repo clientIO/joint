@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
- 
+
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
@@ -59,7 +59,7 @@ function MyDiagram() {
             fill="blue" 
           />
         )}
-        width="100%"
+        
         height={600}
       />
     </GraphProvider>
@@ -85,7 +85,7 @@ function MyDiagram() {
     renderElement={({ width, height }) => (
       <rect rx={10} ry={10} width={width} height={height} fill="blue" />
     )}
-    width="100%"
+    
     height={600}
   />
 </GraphProvider>
@@ -380,7 +380,7 @@ export const WithOnClickColorChange: Story = {
           } as GraphElement & { label: string; hoverColor: string },
         }}
         links={{
-          'l1': {
+          l1: {
             source: '1',
             target: '2',
             attrs: {
@@ -395,7 +395,6 @@ export const WithOnClickColorChange: Story = {
           id="main"
           useHTMLOverlay
           className={PAPER_CLASSNAME}
-          width="100%"
           height={400}
           renderElement={renderElement}
         />
@@ -456,7 +455,7 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
           },
         }}
         links={{
-          'l1': {
+          l1: {
             source: '1',
             target: '2',
             attrs: {
@@ -467,13 +466,7 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
           },
         }}
       >
-        <Paper
-          id="main"
-          className={PAPER_CLASSNAME}
-          width="100%"
-          height={400}
-          renderElement={renderElement}
-        />
+        <Paper id="main" className={PAPER_CLASSNAME} height={400} renderElement={renderElement} />
       </GraphProvider>
     );
   },

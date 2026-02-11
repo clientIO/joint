@@ -45,6 +45,27 @@ import {
 } from '../../hooks/use-graph-store-selector';
 
 const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
+const PAPER_WRAPPER_STYLE: CSSProperties = { position: 'relative' };
+
+/**
+ * Updates paper dimensions when width or height props change.
+ * Handles partial updates (only width or only height specified).
+ */
+function updatePaperDimensions(
+  paper: dia.Paper,
+  width: dia.Paper.Dimension | undefined,
+  height: dia.Paper.Dimension | undefined
+) {
+  const { width: paperWidth, height: paperHeight } = paper.options;
+  const shouldUpdateWidth = width !== undefined && width !== paperWidth;
+  const shouldUpdateHeight = height !== undefined && height !== paperHeight;
+  if (shouldUpdateWidth || shouldUpdateHeight) {
+    paper.setDimensions(
+      shouldUpdateWidth ? width : (paperWidth ?? 800),
+      shouldUpdateHeight ? height : (paperHeight ?? 600)
+    );
+  }
+}
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function LinkItem({
@@ -208,7 +229,6 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
       ...paperOptions,
     });
     const { drawGrid, theme, gridSize } = paperOptions;
-    const { width: paperWidth, height: paperHeight } = paper.options;
 
     if (drawGrid !== undefined) {
       paper.setGrid(drawGrid);
@@ -224,13 +244,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     }
 
     const { shouldIgnoreWidthAndHeightUpdates } = overWriteResultRef ?? {};
-    if (
-      !shouldIgnoreWidthAndHeightUpdates &&
-      width !== undefined &&
-      height !== undefined &&
-      (width !== paperWidth || height !== paperHeight)
-    ) {
-      paper.setDimensions(width, height);
+    if (!shouldIgnoreWidthAndHeightUpdates) {
+      updatePaperDimensions(paper, width, height);
     }
   }, [defaultLinkJointJS, height, paper, paperOptions, paperStore, scale, width]);
 
@@ -451,10 +466,12 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
-      <div className={className} ref={paperHTMLElement} style={paperContainerStyle}>
-        {isReady && content}
+      <div style={PAPER_WRAPPER_STYLE}>
+        <div className={className} ref={paperHTMLElement} style={paperContainerStyle}>
+          {isReady && content}
+        </div>
+        {isReady && children}
       </div>
-      {isReady && children}
     </PaperStoreContext.Provider>
   );
 }

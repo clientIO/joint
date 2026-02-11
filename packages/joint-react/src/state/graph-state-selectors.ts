@@ -1,5 +1,4 @@
-
-import type { attributes} from '@joint/core';
+import type { attributes } from '@joint/core';
 import { type dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
@@ -233,7 +232,11 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
     if (resolvedSourceMarker !== null) {
       resolvedLineAttributes.sourceMarker = resolvedSourceMarker;
     }
-    if (resolvedTargetMarker !== null) {
+    // eslint-disable-next-line unicorn/prefer-ternary
+    if (resolvedTargetMarker === null) {
+      // Explicitly set to null to override the standard.Link default arrowhead
+      resolvedLineAttributes.targetMarker = null;
+    } else {
       resolvedLineAttributes.targetMarker = resolvedTargetMarker;
     }
     if (className) {
@@ -249,17 +252,17 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
       source,
       target,
       attrs: {
-          line: {
-              connection: true,
-              strokeLinejoin: 'round',
-              ...resolvedLineAttributes
-          },
-          wrapper: {
-              connection: true,
-              strokeWidth: 10,
-              strokeLinejoin: 'round'
-          }
-      }
+        line: {
+          connection: true,
+          strokeLinejoin: 'round',
+          ...resolvedLineAttributes,
+        },
+        wrapper: {
+          connection: true,
+          strokeWidth: 10,
+          strokeLinejoin: 'round',
+        },
+      },
     };
 
     if (z !== undefined) attributes.z = z;

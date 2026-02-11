@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { memo, useContext, useLayoutEffect } from 'react';
+import { memo, useContext, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useCellId } from '../../hooks';
 import { PortGroupContext } from '../../context/port-group-context';
@@ -17,10 +17,13 @@ export enum Magnet {
 
 export interface PortItemProps {
   /**
-   * Magnet - define if the port is passive or not. It can be set to any value inside the paper.
+   * Magnet - controls whether the port can be used as a connection point.
+   * - `true`: Port can be used as a connection point (active magnet, default)
+   * - `'passive'`: Port is a magnet but cannot initiate link creation
+   * - `false`: Port is not a magnet
    * @default true
    */
-  readonly magnet?: 'passive' | 'true' | 'false';
+  readonly magnet?: boolean | 'passive';
   /**
    * The id of the port. It must be unique within the cell.
    */
@@ -69,6 +72,15 @@ function Component(props: PortItemProps) {
 
   const contextGroupId = useContext(PortGroupContext);
 
+  // Refs for stable cleanup access
+  const cellIdRef = useRef(cellId);
+  const idRef = useRef(id);
+  const graphStoreRef = useRef(graphStore);
+  cellIdRef.current = cellId;
+  idRef.current = id;
+  graphStoreRef.current = graphStore;
+
+  // Effect 1: Mount validation + unmount cleanup only
   useLayoutEffect(() => {
     const cell = graph.getCell(cellId);
     if (!cell) {
@@ -85,6 +97,18 @@ function Component(props: PortItemProps) {
     if (alreadyExists) {
       throw new Error(`Port with id ${id} already exists in cell ${cellId}`);
     }
+
+    return () => {
+      // Remove port via graphStore for batching
+      graphStoreRef.current.removePort(cellIdRef.current, idRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Effect 2: Create port on mount + update port data on prop changes (no cleanup)
+  useLayoutEffect(() => {
+    const cell = graph.getCell(cellId);
+    if (!cell?.isElement()) return;
 
     const port: dia.Element.Port = {
       group: groupId ?? contextGroupId,
@@ -104,14 +128,9 @@ function Component(props: PortItemProps) {
       markup: elementMarkup,
     };
 
-    // Add port via graphStore for batching
+    // Add or update port via graphStore for batching
     graphStore.setPort(cellId, id, port);
     graphStore.flushPendingUpdates();
-
-    return () => {
-      // Remove port via graphStore for batching
-      graphStore.removePort(cellId, id);
-    };
   }, [cellId, contextGroupId, graph, graphStore, groupId, id, x, y, z, magnet, dx, dy]);
 
   const portalNode = useGraphInternalStoreSelector((state) => {

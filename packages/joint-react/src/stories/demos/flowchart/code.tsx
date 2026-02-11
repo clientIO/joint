@@ -347,7 +347,6 @@ function Main() {
           horizontalAlign: 'middle',
         });
       }}
-      width="100%"
       className={PAPER_CLASSNAME}
       renderElement={RenderFlowchartNode as unknown as RenderElement}
       interactive={{ linkMove: false }}

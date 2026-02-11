@@ -86,7 +86,7 @@ function Main() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RotatableNode} />
+      <Paper className={PAPER_CLASSNAME} height={280} renderElement={RotatableNode} />
       <div>
         <u>angle</u>
         {elementRotation.map((rotation, index) => (

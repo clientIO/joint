@@ -1,7 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { GraphLink} from '@joint/react';
-import { type GraphElement, GraphProvider, jsx, Paper, TextNode, useCellActions, useCellId, usePaper } from '@joint/react';
+import type { GraphLink } from '@joint/react';
+import {
+  type GraphElement,
+  GraphProvider,
+  jsx,
+  Paper,
+  TextNode,
+  useCellActions,
+  useCellId,
+  usePaper,
+} from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useMemo } from 'react';
 import { dia, elementTools } from '@joint/core';
@@ -48,28 +57,28 @@ type FTAElement =
   | ConditioningEvent;
 
 const initialElements: Record<string, FTAElement> = {
-  'ot8h17': {
+  ot8h17: {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Fall from Scaffolding',
     gate: 'INHIBIT',
   },
-  'd8jpey': {
+  d8jpey: {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Fall from the Scaffolding',
     gate: 'AND',
   },
-  'is079n': {
+  is079n: {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Safety Belt Not Working',
     gate: 'OR',
   },
-  'ht8wnb': {
+  ht8wnb: {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
@@ -83,50 +92,50 @@ const initialElements: Record<string, FTAElement> = {
     label: 'Broken By Equipment',
     gate: 'OR',
   },
-  'd8ojep': {
+  d8ojep: {
     type: 'IntermediateEvent',
     width: 120,
     height: 150,
     label: 'Did not Wear Safety Belt',
     gate: 'OR',
   },
-  'szf1q3': {
+  szf1q3: {
     type: 'UndevelopedEvent',
     width: 140,
     height: 80,
     label: 'Slip and Fall',
   },
-  'kj5m9a': {
+  kj5m9a: {
     type: 'UndevelopedEvent',
     width: 140,
     height: 80,
     label: 'Lose Balance',
   },
-  'tcv79r': {
+  tcv79r: {
     type: 'UndevelopedEvent',
     width: 140,
     height: 80,
     label: 'Upholder Broken',
   },
-  'ylp4gu': {
+  ylp4gu: {
     type: 'BasicEvent',
     width: 80,
     height: 80,
     label: 'Safety Belt Broken',
   },
-  'q2vwnc': {
+  q2vwnc: {
     type: 'BasicEvent',
     width: 80,
     height: 80,
     label: 'Forgot to Wear',
   },
-  'x8rboj': {
+  x8rboj: {
     type: 'ExternalEvent',
     width: 80,
     height: 100,
     label: 'Take off When Walking',
   },
-  'mte5xr': {
+  mte5xr: {
     type: 'ConditioningEvent',
     width: 140,
     height: 80,
@@ -233,8 +242,8 @@ const initialLinks: Record<string, GraphLink> = {
     source: {
       id: 'ot8h17',
       anchor: {
-        name: 'perpendicular'
-      }
+        name: 'perpendicular',
+      },
     },
     target: 'mte5xr',
     z: -1,
@@ -266,7 +275,7 @@ function useElementPattern() {
           <rect width="12" height="12" fill="#131e29" stroke="none" />
           <path d="M 0 0 L 12 12 M 6 -6 L 18 6 M -6 6 L 6 18" />
         </>
-      )
+      ),
     });
 
     return `url(#${patternId})`;
@@ -292,7 +301,7 @@ function useGatePattern() {
           <rect width="6" height="6" fill="#131e29" stroke="none" />
           <path d="M 3 0 L 3 6" />
         </>
-      )
+      ),
     });
 
     return `url(#${patternId})`;
@@ -303,7 +312,6 @@ function useGatePattern() {
 // Shapes
 // ----------------------------------------------------------------------------
 function IntermediateEventNode({ label, width, height, gate }: Readonly<IntermediateEvent>) {
-
   const id = useCellId();
   const { set } = useCellActions<IntermediateEvent>();
   const gatePatternUrl = useGatePattern();
@@ -314,16 +322,23 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
 
     switch (gate) {
       case 'OR': {
-        return 'M -20 0 C -20 -15 -10 -30 0 -30 C 10 -30 20 -15 20 0 C 10 -6 -10 -6 -20 0' + verticalLine;
+        return (
+          'M -20 0 C -20 -15 -10 -30 0 -30 C 10 -30 20 -15 20 0 C 10 -6 -10 -6 -20 0' + verticalLine
+        );
       }
       case 'XOR': {
-        return 'M -20 0 C -20 -15 -10 -30 0 -30 C 10 -30 20 -15 20 0 C 10 -6 -10 -6 -20 0 M -20 0 0 -30 M 0 -30 20 0' + verticalLine;
+        return (
+          'M -20 0 C -20 -15 -10 -30 0 -30 C 10 -30 20 -15 20 0 C 10 -6 -10 -6 -20 0 M -20 0 0 -30 M 0 -30 20 0' +
+          verticalLine
+        );
       }
       case 'AND': {
         return 'M -20 0 C -20 -25 -10 -30 0 -30 C 10 -30 20 -25 20 0 Z' + verticalLine;
       }
       case 'PRIORITY_AND': {
-        return 'M -20 0 C -20 -25 -10 -30 0 -30 C 10 -30 20 -25 20 0 Z M -20 0 0 -30 20 0' + verticalLine;
+        return (
+          'M -20 0 C -20 -25 -10 -30 0 -30 C 10 -30 20 -25 20 0 Z M -20 0 0 -30 20 0' + verticalLine
+        );
       }
       case 'INHIBIT': {
         return 'M -10 0 -20 -15 -10 -30 10 -30 20 -15 10 0 Z' + verticalLine;
@@ -352,14 +367,19 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
         stroke={LIGHT}
         strokeWidth={2}
         fill={gatePatternUrl}
-        fillRule='nonzero'
-        cursor='pointer'
+        fillRule="nonzero"
+        cursor="pointer"
         d={gateSvgPath}
         transform={`translate(${width / 2}, ${height})`}
         onClick={changeGate}
       />
       {/* Body */}
-      <path d={`M 10 0 H ${width - 10} l 10 10 V ${height - 90} l -10 10 H 10 l -10 -10 V 10 Z`} stroke={PRIMARY} strokeWidth={2} fill={BG} />
+      <path
+        d={`M 10 0 H ${width - 10} l 10 10 V ${height - 90} l -10 10 H 10 l -10 -10 V 10 Z`}
+        stroke={PRIMARY}
+        strokeWidth={2}
+        fill={BG}
+      />
       {/* ID Body */}
       <rect
         width={width - 20}
@@ -375,13 +395,13 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
         width={width - 20}
         height={height - 90}
         fontSize={16}
-        fontFamily='sans-serif'
+        fontFamily="sans-serif"
         fill={TEXT}
         x={width / 2}
         y={height / 2 - 40}
         textWrap={{ ellipsis: true }}
-        textAnchor='middle'
-        textVerticalAnchor='middle'
+        textAnchor="middle"
+        textVerticalAnchor="middle"
       >
         {label}
       </TextNode>
@@ -390,10 +410,10 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
         x={width / 2}
         y={height - 55}
         fontSize={14}
-        fontFamily='sans-serif'
+        fontFamily="sans-serif"
         fill={TEXT}
-        textAnchor='middle'
-        textVerticalAnchor='middle'
+        textAnchor="middle"
+        textVerticalAnchor="middle"
         annotations={[{ start: 4, end: 10, attrs: { fill: '#f6f740' } }]}
       >
         {`id: ${id}`}
@@ -419,13 +439,13 @@ function UndevelopedEventNode({ label, width, height }: Readonly<UndevelopedEven
         width={width - 20}
         height={height - 20}
         fontSize={16}
-        fontFamily='sans-serif'
+        fontFamily="sans-serif"
         fill={TEXT}
         x={width / 2}
         y={height / 2}
         textWrap={{ ellipsis: true }}
-        textAnchor='middle'
-        textVerticalAnchor='middle'
+        textAnchor="middle"
+        textVerticalAnchor="middle"
       >
         {label}
       </TextNode>
@@ -452,13 +472,13 @@ function BasicEventNode({ label, width, height }: Readonly<BasicEvent>) {
         width={width - 20}
         height={height - 20}
         fontSize={16}
-        fontFamily='sans-serif'
+        fontFamily="sans-serif"
         fill={TEXT}
         x={width / 2}
         y={height / 2}
         textWrap={{ ellipsis: true }}
-        textAnchor='middle'
-        textVerticalAnchor='middle'
+        textAnchor="middle"
+        textVerticalAnchor="middle"
       >
         {label}
       </TextNode>
@@ -483,13 +503,13 @@ function ExternalEventNode({ label, width, height }: Readonly<ExternalEvent>) {
         width={width - 20}
         height={height - 20}
         fontSize={16}
-        fontFamily='sans-serif'
+        fontFamily="sans-serif"
         fill={TEXT}
         x={width / 2}
         y={height / 2}
         textWrap={{ ellipsis: true }}
-        textAnchor='middle'
-        textVerticalAnchor='middle'
+        textAnchor="middle"
+        textVerticalAnchor="middle"
       >
         {label}
       </TextNode>
@@ -517,13 +537,13 @@ function ConditioningEventNode({ label, width, height }: Readonly<ConditioningEv
         width={width - 20}
         height={height - 20}
         fontSize={16}
-        fontFamily='sans-serif'
+        fontFamily="sans-serif"
         fill={TEXT}
         x={width / 2}
         y={height / 2}
         textWrap={{ ellipsis: true }}
-        textAnchor='middle'
-        textVerticalAnchor='middle'
+        textAnchor="middle"
+        textVerticalAnchor="middle"
       >
         {label}
       </TextNode>
@@ -558,7 +578,6 @@ function RenderFTAElement(props: Readonly<FTAElement>) {
 // Custom Element Tools
 // ----------------------------------------------------------------------------
 class ExpandButton extends elementTools.Button {
-
   options: elementTools.Button.Options = {
     x: 'calc(w / 2 - 35)',
     y: 'calc(h - 15)',
@@ -569,8 +588,22 @@ class ExpandButton extends elementTools.Button {
 
   children = jsx(
     <>
-      <rect joint-selector="button" fill="#cad8e3" x="-8" y="-8" width="16" height="16" cursor="pointer" />
-      <path joint-selector="icon" fill="none" stroke="#131e29" stroke-width="2" pointer-events="none" />
+      <rect
+        joint-selector="button"
+        fill="#cad8e3"
+        x="-8"
+        y="-8"
+        width="16"
+        height="16"
+        cursor="pointer"
+      />
+      <path
+        joint-selector="icon"
+        fill="none"
+        stroke="#131e29"
+        stroke-width="2"
+        pointer-events="none"
+      />
     </>
   );
 
@@ -613,10 +646,7 @@ function runLayout(graph: dia.Graph) {
     const [neighbor] = graph.getNeighbors(element, { inbound: true });
     if (!neighbor) continue;
     const neighborPosition = neighbor.getBBox().bottomRight();
-    element.position(
-      neighborPosition.x + 50,
-      neighborPosition.y - element.size().height / 2 - 15
-    );
+    element.position(neighborPosition.x + 50, neighborPosition.y - element.size().height / 2 - 15);
   }
 
   // Make sure the root element of the graph is always at the same position after the layout
@@ -648,9 +678,7 @@ function addExpandTools(paper: dia.Paper) {
 
     const toolsView = new dia.ToolsView({
       name: 'expand-tools',
-      tools: [
-        new ExpandButton(),
-      ],
+      tools: [new ExpandButton()],
     });
 
     elementView.addTools(toolsView);
@@ -710,7 +738,6 @@ function Main() {
 
   return (
     <Paper
-      width="100%"
       height={600}
       className={PAPER_CLASSNAME}
       renderElement={RenderFTAElement}
@@ -736,10 +763,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
-      elements={initialElements}
-      links={initialLinks}
-    >
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Main />
     </GraphProvider>
   );

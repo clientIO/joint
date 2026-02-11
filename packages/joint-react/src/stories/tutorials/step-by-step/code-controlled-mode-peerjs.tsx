@@ -214,7 +214,12 @@ function createPeerJSStore(
       notifySubscribers();
 
       // eslint-disable-next-line no-console
-      console.log('[PeerJS] setState called, connectionStatus:', connectionStatus, 'connections:', connectionsRef.length);
+      console.log(
+        '[PeerJS] setState called, connectionStatus:',
+        connectionStatus,
+        'connections:',
+        connectionsRef.length
+      );
 
       // Send to peers (if connected and not receiving an update)
       if (connectionStatus === 'connected' && !isReceivingUpdateRef.current) {
@@ -298,7 +303,10 @@ function createPeerJSStore(
       console.log('[PeerJS] RTCPeerConnection state:', conn.peerConnection.connectionState);
       conn.peerConnection.onconnectionstatechange = () => {
         // eslint-disable-next-line no-console
-        console.log('[PeerJS] RTCPeerConnection state changed:', conn.peerConnection?.connectionState);
+        console.log(
+          '[PeerJS] RTCPeerConnection state changed:',
+          conn.peerConnection?.connectionState
+        );
       };
       conn.peerConnection.oniceconnectionstatechange = () => {
         // eslint-disable-next-line no-console
@@ -410,7 +418,7 @@ interface PaperAppProps {
 function PaperApp({ store }: Readonly<PaperAppProps>) {
   return (
     <div className="flex flex-col gap-4">
-      <Paper width="100%" className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
+      <Paper className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
       {/* Dark-themed controls matching the connection panel */}
       <div className="flex flex-wrap gap-2 justify-start p-4 bg-gray-800 rounded-lg border border-gray-700">
         <button

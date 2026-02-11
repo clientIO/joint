@@ -1,0 +1,106 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/addon-docs/blocks';
+import * as Stories from './story';
+
+<Meta of={Stories} />
+
+# Collapsible Containers Example
+
+This example demonstrates how to create interactive container elements that can be collapsed and expanded. Containers automatically resize to fit their children and support nested hierarchies.
+
+## Overview
+
+Collapsible containers are useful for:
+- Grouping related diagram elements together
+- Creating visual hierarchies with parent-child relationships
+- Managing complex diagrams by hiding/showing groups of elements
+
+## Demo
+
+<Canvas of={Stories.Default} />
+
+## Key Concepts
+
+### Container Elements with Embedding
+
+Elements are embedded within containers using the `parent` property. When a container collapses, all its children (and their links) are hidden:
+
+```tsx
+const elements = {
+  'container-a': {
+    elementType: 'container',
+    title: 'Container A',
+    collapsed: false,
+    // ...position and size
+  },
+  'child-1': {
+    elementType: 'child',
+    label: '1',
+    parent: 'container-a',  // Embedded in container
+    // ...position and size
+  },
+};
+```
+
+### Cell Visibility
+
+The `cellVisibility` callback hides elements and links when their ancestor container is collapsed:
+
+```tsx
+const cellVisibility = useCallback((cell: dia.Cell) => {
+  const hasCollapsedAncestor = (cellToCheck: dia.Cell) => {
+    return cellToCheck.getAncestors().some(
+      (ancestor) => ancestor.prop('data/collapsed') === true
+    );
+  };
+
+  if (cell.isLink()) {
+    const sourceCell = link.getSourceCell();
+    const targetCell = link.getTargetCell();
+    // Hide link if source or target has collapsed ancestor
+    if (sourceCell && hasCollapsedAncestor(sourceCell)) return false;
+    if (targetCell && hasCollapsedAncestor(targetCell)) return false;
+    return true;
+  }
+
+  return !hasCollapsedAncestor(cell);
+}, []);
+```
+
+### Automatic Container Resizing
+
+Containers automatically resize to fit their children using `fitToChildren()`:
+
+```tsx
+function fitContainer(container: dia.Element, collapsed: boolean) {
+  if (collapsed) {
+    container.resize(140, HEADER_HEIGHT);
+    return;
+  }
+
+  container.fitToChildren({
+    padding: {
+      top: HEADER_HEIGHT + PADDING,
+      left: PADDING,
+      right: PADDING,
+      bottom: PADDING,
+    },
+  });
+}
+```
+
+## How It Works
+
+1. **Initial Render**: Containers are sized to fit their embedded children
+2. **Collapse**: Clicking the button sets `collapsed: true` and resizes to header-only
+3. **Visibility Update**: `cellVisibility` hides all descendant elements and their links
+4. **Expand**: Clicking again sets `collapsed: false` and calls `fitToChildren()`
+5. **Child Movement**: When children move, the parent container auto-resizes
+
+## Nested Containers
+
+This example supports nested containers (Container B inside Container A). When the outer container collapses, all nested containers and their children are hidden.
+
+## Best Practices
+
+- **Use `cellVisibility`**: Prevents hidden elements from being rendered at all
+- **Separate collapsed state**: Store `collapsed` flag in element data, not just dimensions
