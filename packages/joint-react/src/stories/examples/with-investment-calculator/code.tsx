@@ -22,43 +22,35 @@ import '../index.css';
 // Types
 // ----------------------------------------------------------------------------
 
-const ShapeTypes = {
-  investment: 'investment',
-  product: 'product',
-  productPerformance: 'productPerformance',
-  overallPerformance: 'overallPerformance',
-  link: 'link',
-} as const;
+type ShapeType = 'Investment' | 'Product' | 'ProductPerformance' | 'OverallPerformance';
 
-interface InvestmentElement extends GraphElement {
-  readonly type: typeof ShapeTypes.investment;
+interface BaseElement extends GraphElement {
+  readonly type: ShapeType;
   readonly width: number;
   readonly height: number;
+}
+
+interface InvestmentElement extends BaseElement {
+  readonly type: 'Investment';
   readonly funds: number;
   readonly year: number;
 }
 
-interface ProductElement extends GraphElement {
-  readonly type: typeof ShapeTypes.product;
-  readonly width: number;
-  readonly height: number;
+interface ProductElement extends BaseElement {
+  readonly type: 'Product';
   readonly name: 'gold' | 'bitcoin' | 'sp500';
   readonly label: string;
   readonly percentage: number;
   readonly color: string;
 }
 
-interface ProductPerformanceElement extends GraphElement {
-  readonly type: typeof ShapeTypes.productPerformance;
-  readonly width: number;
-  readonly height: number;
+interface ProductPerformanceElement extends BaseElement {
+  readonly type: 'ProductPerformance';
   readonly label: string;
 }
 
-interface OverallPerformanceElement extends GraphElement {
-  readonly type: typeof ShapeTypes.overallPerformance;
-  readonly width: number;
-  readonly height: number;
+interface OverallPerformanceElement extends BaseElement {
+  readonly type: 'OverallPerformance';
 }
 
 type ShapeElement =
@@ -80,6 +72,8 @@ const SP500_COLOR = '#FFCCD6';
 const CURRENT_YEAR = 2023;
 const INVESTMENT_ID = 'investment';
 const PRODUCT_IDS = ['gold', 'bitcoin', 'sp500'] as const;
+
+const DEFAULT_ROI_VALUE = { value: 0, roi: 0 };
 
 const INPUT_CLASSNAME = 'box-border text-right my-1 w-full bg-white border border-gray-400 px-[2px] py-[1px] text-[13px] leading-none';
 
@@ -106,7 +100,7 @@ const YEARS = Object.keys(historicalPrices);
 
 const initialElements: Record<string, ShapeElement> = {
   investment: {
-    type: ShapeTypes.investment,
+    type: 'Investment',
     x: 100,
     y: 280,
     width: 140,
@@ -116,7 +110,7 @@ const initialElements: Record<string, ShapeElement> = {
     year: 2018,
   },
   gold: {
-    type: ShapeTypes.product,
+    type: 'Product',
     x: 300,
     y: 100,
     width: 140,
@@ -128,7 +122,7 @@ const initialElements: Record<string, ShapeElement> = {
     color: GOLD_COLOR,
   },
   bitcoin: {
-    type: ShapeTypes.product,
+    type: 'Product',
     x: 300,
     y: 330,
     width: 140,
@@ -140,7 +134,7 @@ const initialElements: Record<string, ShapeElement> = {
     color: BTC_COLOR,
   },
   sp500: {
-    type: ShapeTypes.product,
+    type: 'Product',
     x: 300,
     y: 560,
     width: 140,
@@ -152,7 +146,7 @@ const initialElements: Record<string, ShapeElement> = {
     color: SP500_COLOR,
   },
   goldPerf: {
-    type: ShapeTypes.productPerformance,
+    type: 'ProductPerformance',
     x: 600,
     y: 200,
     width: 200,
@@ -162,7 +156,7 @@ const initialElements: Record<string, ShapeElement> = {
     parent: 'performance',
   },
   bitcoinPerf: {
-    type: ShapeTypes.productPerformance,
+    type: 'ProductPerformance',
     x: 600,
     y: 320,
     width: 200,
@@ -172,7 +166,7 @@ const initialElements: Record<string, ShapeElement> = {
     parent: 'performance',
   },
   sp500Perf: {
-    type: ShapeTypes.productPerformance,
+    type: 'ProductPerformance',
     x: 600,
     y: 440,
     width: 200,
@@ -182,7 +176,7 @@ const initialElements: Record<string, ShapeElement> = {
     parent: 'performance',
   },
   performance: {
-    type: ShapeTypes.overallPerformance,
+    type: 'OverallPerformance',
     x: 500,
     y: 300,
     width: 340,
@@ -193,14 +187,12 @@ const initialElements: Record<string, ShapeElement> = {
 
 const initialLinks: Record<string, GraphLink> = {
   link1: {
-    type: ShapeTypes.link,
     source: { id: 'investment', anchor: { name: 'top', args: { dy: 1 } } },
     target: { id: 'gold', anchor: { name: 'left', args: { dx: -5 } } },
     color: MAIN_COLOR,
     z: 2,
   },
   link2: {
-    type: ShapeTypes.link,
     source: {
       id: 'investment',
       anchor: { name: 'right', args: { dx: -1 } },
@@ -210,7 +202,6 @@ const initialLinks: Record<string, GraphLink> = {
     z: 2,
   },
   link3: {
-    type: ShapeTypes.link,
     source: {
       id: 'investment',
       anchor: { name: 'bottom', args: { dy: -1 } },
@@ -220,14 +211,12 @@ const initialLinks: Record<string, GraphLink> = {
     z: 2,
   },
   link4: {
-    type: ShapeTypes.link,
     source: { id: 'gold', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'goldPerf', anchor: { name: 'left', args: { dx: -5 } } },
     color: GOLD_COLOR,
     z: 4,
   },
   link5: {
-    type: ShapeTypes.link,
     source: { id: 'bitcoin', anchor: { name: 'right', args: { dx: -1 } } },
     target: {
       id: 'bitcoinPerf',
@@ -237,7 +226,6 @@ const initialLinks: Record<string, GraphLink> = {
     z: 5,
   },
   link6: {
-    type: ShapeTypes.link,
     source: { id: 'sp500', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'sp500Perf', anchor: { name: 'left', args: { dx: -5 } } },
     color: SP500_COLOR,
@@ -406,7 +394,7 @@ function ProductNode({
       for (const productId of sortedIds) {
         if (diff === 0) break;
         set(productId, (previous) => {
-          if (previous.type !== ShapeTypes.product) return previous;
+          if (previous.type !== 'Product') return previous;
           const adjusted = Math.max(previous.percentage + diff, 0);
           diff = Math.min(previous.percentage + diff, 0);
           return { ...previous, percentage: adjusted };
@@ -467,13 +455,21 @@ function ProductPerformanceNode({
   // Use graph topology to find the connected product (inbound neighbor via link)
   const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>(
     (elements) => {
-      const cell = graph.getCell(cellId) as dia.Element;
-      const [productCell] = graph.getNeighbors(cell, { inbound: true });
-      if (!productCell) return { value: 0, roi: 0 };
+      const cell = graph.getCell(cellId);
+      if (!cell?.isElement()) {
+        return DEFAULT_ROI_VALUE;
+      }
 
-      const investment = elements[INVESTMENT_ID] as InvestmentElement | undefined;
-      const product = elements[productCell.id] as ProductElement | undefined;
-      if (!investment || !product) return { value: 0, roi: 0 };
+      const [productCell] = graph.getNeighbors(cell, { inbound: true });
+      if (!productCell) {
+        return DEFAULT_ROI_VALUE;
+      }
+
+      const investment = elements[INVESTMENT_ID];
+      const product = elements[productCell.id];
+      if (investment?.type !== 'Investment' || product?.type !== 'Product') {
+        return DEFAULT_ROI_VALUE;
+      }
 
       const productValue = calculateProductValue(investment, product);
       const cost = (investment.funds * product.percentage) / 100;
@@ -543,18 +539,26 @@ function OverallPerformanceNode({
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
   const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>(
     (elements) => {
-      const investment = elements[INVESTMENT_ID] as InvestmentElement | undefined;
-      if (!investment) return { value: 0, roi: 0 };
+      const investment = elements[INVESTMENT_ID];
+      if (investment?.type !== 'Investment') {
+        return DEFAULT_ROI_VALUE;
+      }
 
-      const cell = graph.getCell(cellId) as dia.Element;
-      const embeddedCells = cell.getEmbeddedCells() as dia.Element[];
+      const cell = graph.getCell(cellId);
+      if (!cell?.isElement()) {
+        return DEFAULT_ROI_VALUE;
+      }
+
+      const embeddedCells = cell.getEmbeddedCells().filter((c): c is dia.Element => c.isElement());
 
       let totalValue = 0;
       for (const embeddedCell of embeddedCells) {
         const [productCell] = graph.getNeighbors(embeddedCell, { inbound: true });
         if (!productCell) continue;
-        const product = elements[productCell.id] as ProductElement | undefined;
-        if (!product) continue;
+
+        const product = elements[productCell.id];
+        if (product?.type !== 'Product') continue;
+
         totalValue += calculateProductValue(investment, product);
       }
 
@@ -619,16 +623,16 @@ function OverallPerformanceNode({
 
 function RenderElement(props: Readonly<ShapeElement>) {
   switch (props.type) {
-    case ShapeTypes.investment: {
+    case 'Investment': {
       return <InvestmentNode {...props} />;
     }
-    case ShapeTypes.product: {
+    case 'Product': {
       return <ProductNode {...props} />;
     }
-    case ShapeTypes.productPerformance: {
+    case 'ProductPerformance': {
       return <ProductPerformanceNode {...props} />;
     }
-    case ShapeTypes.overallPerformance: {
+    case 'OverallPerformance': {
       return <OverallPerformanceNode {...props} />;
     }
   }
@@ -641,8 +645,8 @@ function RenderElement(props: Readonly<ShapeElement>) {
 function Main() {
   const handleReady = useCallback(({ paper, graph }: OnLoadOptions) => {
     const performance = graph.getCell('performance');
-    if (performance) {
-      (performance as dia.Element).fitEmbeds({
+    if (performance?.isElement()) {
+      performance.fitEmbeds({
         padding: { left: 30, right: 30, top: 50, bottom: 130 },
       });
     }
