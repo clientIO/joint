@@ -5,6 +5,15 @@ import { list } from '../commands/list.js';
 
 const defaultOptions = { owner: 'clientIO', branch: 'main' };
 
+function createMockFetch(tree: { path: string; type: string }[]) {
+    return mock.fn(async(url: string) => {
+        if (url.includes('/contents/demos.config.json')) {
+            return { ok: false, status: 404, statusText: 'Not Found' };
+        }
+        return { ok: true, json: async() => ({ tree }) };
+    }) as typeof fetch;
+}
+
 describe('list command', () => {
     let originalFetch: typeof globalThis.fetch;
     const logOutput: string[] = [];
@@ -24,17 +33,12 @@ describe('list command', () => {
     });
 
     it('prints available examples', async() => {
-        globalThis.fetch = mock.fn(async() => ({
-            ok: true,
-            json: async() => ({
-                tree: [
-                    { path: 'demo-a', type: 'tree' },
-                    { path: 'demo-a/js', type: 'tree' },
-                    { path: 'demo-b', type: 'tree' },
-                    { path: 'demo-b/ts', type: 'tree' },
-                ],
-            }),
-        })) as typeof fetch;
+        globalThis.fetch = createMockFetch([
+            { path: 'demo-a', type: 'tree' },
+            { path: 'demo-a/js', type: 'tree' },
+            { path: 'demo-b', type: 'tree' },
+            { path: 'demo-b/ts', type: 'tree' },
+        ]);
 
         await list(defaultOptions);
 
@@ -43,10 +47,7 @@ describe('list command', () => {
     });
 
     it('handles empty tree', async() => {
-        globalThis.fetch = mock.fn(async() => ({
-            ok: true,
-            json: async() => ({ tree: [] }),
-        })) as typeof fetch;
+        globalThis.fetch = createMockFetch([]);
 
         await list(defaultOptions);
 
@@ -54,15 +55,19 @@ describe('list command', () => {
     });
 
     it('passes options to the API call', async() => {
-        const mockFetch = mock.fn(async() => ({
-            ok: true,
-            json: async() => ({ tree: [] }),
-        }));
+        const mockFetch = mock.fn(async(url: string) => {
+            if (url.includes('/contents/demos.config.json')) {
+                return { ok: false, status: 404, statusText: 'Not Found' };
+            }
+            return { ok: true, json: async() => ({ tree: [] }) };
+        });
         globalThis.fetch = mockFetch as typeof fetch;
 
         await list({ owner: 'myFork', branch: 'dev' });
 
-        const calledUrl = mockFetch.mock.calls[0].arguments[0] as string;
+        const treeCall = mockFetch.mock.calls.find((c) => !(c.arguments[0] as string).includes('/contents/'));
+        assert.ok(treeCall);
+        const calledUrl = treeCall.arguments[0] as string;
         assert.ok(calledUrl.includes('/myFork/'));
         assert.ok(calledUrl.includes('/dev?'));
     });

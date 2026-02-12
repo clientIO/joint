@@ -12,10 +12,12 @@ function mockFetchWithFolders(folders: string[]) {
         ];
     });
 
-    globalThis.fetch = mock.fn(async() => ({
-        ok: true,
-        json: async() => ({ tree }),
-    })) as typeof fetch;
+    globalThis.fetch = mock.fn(async(url: string) => {
+        if (url.includes('/contents/demos.config.json')) {
+            return { ok: false, status: 404, statusText: 'Not Found' };
+        }
+        return { ok: true, json: async() => ({ tree }) };
+    }) as typeof fetch;
 }
 
 describe('download command', () => {
@@ -51,10 +53,12 @@ describe('download command', () => {
     });
 
     it('exits with error when folder not found in empty repo', async() => {
-        globalThis.fetch = mock.fn(async() => ({
-            ok: true,
-            json: async() => ({ tree: [] }),
-        })) as typeof fetch;
+        globalThis.fetch = mock.fn(async(url: string) => {
+            if (url.includes('/contents/demos.config.json')) {
+                return { ok: false, status: 404, statusText: 'Not Found' };
+            }
+            return { ok: true, json: async() => ({ tree: [] }) };
+        }) as typeof fetch;
 
         const { download } = await import('../commands/download.js');
 
