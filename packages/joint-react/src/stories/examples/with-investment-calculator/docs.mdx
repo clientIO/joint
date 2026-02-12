@@ -1,0 +1,47 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './story';
+
+<Meta of={Stories} />
+
+# Investment Calculator
+
+## Overview
+
+This example demonstrates how to build an interactive financial calculator using `@joint/react`. It uses SVG `foreignObject` to embed HTML form inputs inside diagram elements and reactive derived state to compute values in real time.
+
+The diagram models an investment flow: funds are allocated across three products (Gold, Bitcoin, S&P 500), and performance values (Value and ROI) are computed automatically based on historical price data.
+
+## Demo
+
+<Canvas of={Stories.Default} />
+
+## Key Concepts
+
+### Reactive Derived State
+
+Performance values are not stored in the graph — they are computed inline during render using `useElements()` selectors. When any input changes (funds, year, or percentages), React automatically re-renders the affected performance nodes with fresh calculations.
+
+```tsx
+const { value, roi } = useElements((elements) => {
+  const investment = elements['investment'];
+  const product = elements[productId];
+  const computedValue = funds * percentage / 100 * (sellPrice / buyPrice);
+  return { value: computedValue, roi: computedRoi };
+});
+```
+
+### foreignObject HTML Forms
+
+Each diagram element uses SVG `foreignObject` to embed standard HTML form controls (inputs, selects) inside the SVG canvas. Changes are handled via React event handlers that update the graph store using `useCellActions().set()`.
+
+### Embedding and Auto-Sizing
+
+The three product performance elements are embedded inside the overall performance container using the `parent` property. On initial render, `fitEmbeds()` automatically sizes the container to fit its children.
+
+## How It Works
+
+1. **Graph initialization**: `GraphProvider` creates elements and links from static data.
+2. **Render elements**: `Paper` calls `renderElement`, dispatching to `InvestmentNode`, `ProductNode`, `ProductPerformanceNode`, or `OverallPerformanceNode`.
+3. **User input**: Changing funds, year, or percentages calls `useCellActions().set()` to update the graph store.
+4. **Reactive computation**: Performance nodes use `useElements()` selectors to read inputs and compute values inline.
+5. **Links**: Custom `mapDataToLinkAttributes` renders `standard.DoubleLink` connections with product-specific colors.
