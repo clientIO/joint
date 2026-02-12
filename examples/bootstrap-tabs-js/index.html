@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="See how to create multiple Bootstrap Tabs while displaying and manipulating diagram content with JointJS.">
+    <title>JointJS: Bootstrap Tabs</title>
+</head>
+
+<body id="app">
+    <div class="container">
+        <h1>Bootstrap + JointJS</h1>
+
+        <ul class="nav nav-tabs" id="myTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="main-tab" data-bs-toggle="tab" data-bs-target="#main" type="button"
+                    role="tab" aria-controls="main" aria-selected="true">Main</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="jointjs-tab" data-bs-toggle="tab" data-bs-target="#jointjs" type="button"
+                    role="tab" aria-controls="jointjs" aria-selected="false">JointJS</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="main" role="tabpanel" aria-labelledby="main-tab">
+                <button id="move-element-button" class="btn btn-primary" style="margin:10px;">Click to move an element
+                    in the JointJS tab</button>
+            </div>
+            <div class="tab-pane fade" id="jointjs" role="tabpanel" aria-labelledby="jointjs-tab">
+                <div id="diagram"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Application files: -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
