@@ -367,7 +367,7 @@ class Train extends dia.Link {
 const namespace = {
     ...shapes,
     Train
-}
+};
 
 const graph = new dia.Graph({}, { cellNamespace: namespace });
 

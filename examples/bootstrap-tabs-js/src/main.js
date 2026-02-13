@@ -40,8 +40,8 @@ const link = new shapes.standard.Link({
 
 graph.addCells([rect, rect2, link]);
 
-document.querySelectorAll('#myTabs button.nav-link').forEach(function (tab) {
-    tab.addEventListener('hidden.bs.tab', function (event) {
+document.querySelectorAll('#myTabs button.nav-link').forEach(function(tab) {
+    tab.addEventListener('hidden.bs.tab', function(event) {
         switch (event.target.id) {
             case 'main-tab': {
                 break;
@@ -53,7 +53,7 @@ document.querySelectorAll('#myTabs button.nav-link').forEach(function (tab) {
         }
     });
 
-    tab.addEventListener('shown.bs.tab', function (event) {
+    tab.addEventListener('shown.bs.tab', function(event) {
         switch (event.target.id) {
             case 'main-tab': {
                 break;
@@ -66,6 +66,6 @@ document.querySelectorAll('#myTabs button.nav-link').forEach(function (tab) {
     });
 });
 
-document.getElementById('move-element-button').addEventListener('click', function () {
+document.getElementById('move-element-button').addEventListener('click', function() {
     rect.translate(0, 20);
 });

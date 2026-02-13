@@ -89,7 +89,7 @@ const namespace = {
     jigsaw: {
         Piece
     }
-}
+};
 
 const Jigsaw = {
 
@@ -179,7 +179,7 @@ const Jigsaw = {
         const pieces = [];
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < columns; c++) {
-                let tabs = [0, 0, 0, 0];
+                const tabs = [0, 0, 0, 0];
 
                 if (c < (columns - 1)) {
                     tabs[1] = sample([1, -1]);

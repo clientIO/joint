@@ -2,7 +2,7 @@ import { dia, shapes, util } from '@joint/core';
 
 const cellNamespace = {
     ...shapes,
-}
+};
 
 const graph = new dia.Graph({}, {
     cellNamespace: cellNamespace

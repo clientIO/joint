@@ -38,7 +38,7 @@ document.getElementById('paper')!.appendChild(paper.el);
 const highlighterMarkup = util.svg/* xml */`
     <rect @selector="button" fill="#000000" fill-opacity="0.2" stroke="#FFFFFF" stroke-width="0.5" x="-7" y="-7" width="14" height="14" cursor="pointer"/>
     <path @selector="icon" fill="none" stroke="#FFFFFF" stroke-width="1" pointer-events="none"/>
-`
+`;
 
 // Custom highlighter to render the expand/collapse button.
 class ExpandButtonHighlighter extends dia.HighlighterView {
@@ -85,7 +85,7 @@ const updateContainerSize = (container: dia.Cell) => {
     } else {
         container.fitToChildElements();
     }
-}
+};
 
 graph.on({
     'add': (cell: dia.Cell) => {
@@ -166,7 +166,7 @@ paper.on({
 const container_a = new Container({
     z: 1,
     position: { x: 0, y: 0 },
-    size: {width: 10, height: 10 },
+    size: { width: 10, height: 10 },
     attrs: { headerText: { text: 'Container A' }}
 });
 

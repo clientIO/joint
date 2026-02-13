@@ -204,7 +204,7 @@ const paper = new dia.Paper({
             if (!mt || !mt.getAttribute('class') || mt.getAttribute('class').indexOf('input') < 0) return false;
 
             // check whether the port is being already used
-            let portUsed = this.model.getLinks().some(function(link) {
+            const portUsed = this.model.getLinks().some(function(link) {
                 return (link.id !== vl.model.id &&
                         link.get('target').id === vt.model.id &&
                         link.get('target').port === mt.getAttribute('port'));
@@ -226,7 +226,7 @@ paper.scale(1.5,1.5);
 // Link Tools
 
 paper.on({
-    'link:mouseenter': function (linkView) {
+    'link:mouseenter': function(linkView) {
         const linkToolsView = new dia.ToolsView({
             tools: [
                 new linkTools.Vertices(),
@@ -237,10 +237,10 @@ paper.on({
         });
         linkView.addTools(linkToolsView);
     },
-    'link:mouseleave': function (linkView) {
+    'link:mouseleave': function(linkView) {
         linkView.removeTools();
     },
-    'link:connect': function (linkView) {
+    'link:connect': function(linkView) {
         linkView.removeTools();
     }
 });
@@ -280,7 +280,7 @@ util.forIn(wires, function(attributes) {
 
 graph.on('change:source change:target', function(model, end) {
 
-    let e = 'target' in model.changed ? 'target' : 'source';
+    const e = 'target' in model.changed ? 'target' : 'source';
 
     if ((model.previous(e).id && !model.get(e).id) || (!model.previous(e).id && model.get(e).id)) {
         // if source/target has been connected to a port or disconnected from a port reinitialize signals
@@ -292,27 +292,27 @@ graph.on('change:signal', function(wire, signal) {
 
     toggleLive(wire, signal);
 
-    let magnitude = Math.abs(signal);
+    const magnitude = Math.abs(signal);
 
     // if a new signal has been generated stop transmitting the old one
     if (magnitude !== current) return;
 
-    let gate = wire.getTargetElement();
+    const gate = wire.getTargetElement();
     if (gate) {
 
         gate.onSignal(signal, function() {
 
             // get an array of signals on all input ports
-            let inboundLinks = graph.getConnectedLinks(gate, { inbound: true });
-            let linksByPorts = util.groupBy(inboundLinks, function(wire) {
+            const inboundLinks = graph.getConnectedLinks(gate, { inbound: true });
+            const linksByPorts = util.groupBy(inboundLinks, function(wire) {
                 return wire.get('target').port;
             });
-            let inputs = util.toArray(linksByPorts).map(function(wires) {
+            const inputs = util.toArray(linksByPorts).map(function(wires) {
                 return Math.max.apply(this, util.invoke(wires, 'get', 'signal')) > 0;
             });
 
             // calculate the output signal
-            let output = magnitude * (gate.operation.apply(gate, inputs) ? 1 : -1);
+            const output = magnitude * (gate.operation.apply(gate, inputs) ? 1 : -1);
 
             broadcastSignal(gate, output);
         });
@@ -339,7 +339,7 @@ function broadcastSignal(gate, signal) {
 
 function initializeSignal() {
 
-    let signal = Math.random();
+    const signal = Math.random();
     // > 0 wire with a positive signal is alive
     // < 0 wire with a negative signal means, there is no signal
     // 0 none of the above - reset value

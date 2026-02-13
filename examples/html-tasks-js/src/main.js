@@ -14,7 +14,7 @@ const namespace = {
         Element: HtmlElement,
         ElementView: HtmlElementView
     }
-}
+};
 
 const graph = new dia.Graph({}, { cellNamespace: namespace });
 const paper = new dia.Paper({

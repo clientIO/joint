@@ -180,7 +180,7 @@ const namespace = {
         ISA,
         Line
     }
-}
+};
 
 const graph = new dia.Graph({}, { cellNamespace: namespace });
 

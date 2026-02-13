@@ -66,7 +66,7 @@ const link2 = new shapes.standard.Link({
 function normalizeMarker(d, offset) {
     const path = new g.Path(V.normalizePathData(d));
     const bbox = path.bbox();
-    let ty = - bbox.height / 2 - bbox.y;
+    const ty = - bbox.height / 2 - bbox.y;
     let tx = - bbox.width / 2 - bbox.x;
     if (typeof offset === 'number') tx -= offset;
     path.translate(tx, ty);

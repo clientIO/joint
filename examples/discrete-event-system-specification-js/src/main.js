@@ -102,7 +102,7 @@ const Model = dia.Element.define('devs.Model', {
         className: 'port-label'
     }],
 
-    initialize: function () {
+    initialize: function() {
 
         dia.Element.prototype.initialize.apply(this, arguments);
 
@@ -110,7 +110,7 @@ const Model = dia.Element.define('devs.Model', {
         this.updatePortItems();
     },
 
-    updatePortItems: function (model, changed, opt) {
+    updatePortItems: function(model, changed, opt) {
 
         // Make sure all ports are unique.
         const inPorts = uniq(this.get('inPorts'));
@@ -122,7 +122,7 @@ const Model = dia.Element.define('devs.Model', {
         this.prop('ports/items', inPortItems.concat(outPortItems), assign({ rewrite: true }, opt));
     },
 
-    createPortItem: function (group, port) {
+    createPortItem: function(group, port) {
 
         return {
             id: port,
@@ -135,53 +135,53 @@ const Model = dia.Element.define('devs.Model', {
         };
     },
 
-    createPortItems: function (group, ports) {
+    createPortItems: function(group, ports) {
 
         return toArray(ports).map(this.createPortItem.bind(this, group));
     },
 
-    _addGroupPort: function (port, group, opt) {
+    _addGroupPort: function(port, group, opt) {
 
         const ports = this.get(group);
         return this.set(group, Array.isArray(ports) ? ports.concat(port) : [port], opt);
     },
 
-    addOutPort: function (port, opt) {
+    addOutPort: function(port, opt) {
 
         return this._addGroupPort(port, 'outPorts', opt);
     },
 
-    addInPort: function (port, opt) {
+    addInPort: function(port, opt) {
 
         return this._addGroupPort(port, 'inPorts', opt);
     },
 
-    _removeGroupPort: function (port, group, opt) {
+    _removeGroupPort: function(port, group, opt) {
 
         return this.set(group, without(this.get(group), port), opt);
     },
 
-    removeOutPort: function (port, opt) {
+    removeOutPort: function(port, opt) {
 
         return this._removeGroupPort(port, 'outPorts', opt);
     },
 
-    removeInPort: function (port, opt) {
+    removeInPort: function(port, opt) {
 
         return this._removeGroupPort(port, 'inPorts', opt);
     },
 
-    _changeGroup: function (group, properties, opt) {
+    _changeGroup: function(group, properties, opt) {
 
         return this.prop('ports/groups/' + group, isObject(properties) ? properties : {}, opt);
     },
 
-    changeInGroup: function (properties, opt) {
+    changeInGroup: function(properties, opt) {
 
         return this._changeGroup('in', properties, opt);
     },
 
-    changeOutGroup: function (properties, opt) {
+    changeOutGroup: function(properties, opt) {
 
         return this._changeGroup('out', properties, opt);
     }
@@ -260,16 +260,16 @@ const paper = new dia.Paper({
         }
     },
     defaultLink: () => new Link(),
-    validateEmbedding: function (childView, parentView) {
+    validateEmbedding: function(childView, parentView) {
         return parentView.model instanceof Coupled;
     },
 
-    validateConnection: function (sourceView, sourceMagnet, targetView, targetMagnet) {
+    validateConnection: function(sourceView, sourceMagnet, targetView, targetMagnet) {
         return sourceMagnet != targetMagnet;
     }
 });
 
-const connect = function (source, sourcePort, target, targetPort) {
+const connect = function(source, sourcePort, target, targetPort) {
 
     const link = new Link({
         source: {
@@ -324,7 +324,7 @@ const a3 = new Atomic({
     inPorts: ['a', 'b']
 });
 
-[c1, a1, a2, a3].forEach(function (element) {
+[c1, a1, a2, a3].forEach(function(element) {
     element.attr({
         '.body': {
             'rx': 6,
@@ -348,14 +348,14 @@ connect(c1, 'out 2', a3, 'b');
 
 const strokeDasharrayPath = '.body/strokeDasharray';
 
-paper.on('element:pointerdblclick', function (elementView) {
+paper.on('element:pointerdblclick', function(elementView) {
     const element = elementView.model;
     if (element.get('type') === 'devs.Atomic') {
         toggleDelegation(element);
     }
 });
 
-paper.setInteractivity(function (elementView) {
+paper.setInteractivity(function(elementView) {
     return {
         stopDelegation: !elementView.model.attr(strokeDasharrayPath)
     };
@@ -370,7 +370,7 @@ function toggleDelegation(element) {
 // Link Tools
 
 paper.on({
-    'link:mouseenter': function (linkView) {
+    'link:mouseenter': function(linkView) {
         const linkToolsView = new dia.ToolsView({
             tools: [
                 new linkTools.Vertices(),
@@ -381,10 +381,10 @@ paper.on({
         });
         linkView.addTools(linkToolsView);
     },
-    'link:mouseleave': function (linkView) {
+    'link:mouseleave': function(linkView) {
         linkView.removeTools();
     },
-    'link:connect': function (linkView) {
+    'link:connect': function(linkView) {
         linkView.removeTools();
     }
 });

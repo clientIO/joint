@@ -153,7 +153,7 @@ const paper = new dia.Paper({
 });
 
 paper.on({
-    'link:mouseenter': function (linkView) {
+    'link:mouseenter': function(linkView) {
         const linkToolsView = new dia.ToolsView({
             tools: [
                 new linkTools.Vertices(),
@@ -164,10 +164,10 @@ paper.on({
         });
         linkView.addTools(linkToolsView);
     },
-    'link:mouseleave': function (linkView) {
+    'link:mouseleave': function(linkView) {
         linkView.removeTools();
     },
-    'link:connect': function (linkView) {
+    'link:connect': function(linkView) {
         linkView.removeTools();
     }
 });

@@ -224,7 +224,7 @@ class ListElement extends dia.Element {
                 },
                 items: []
             }
-        }
+        };
     }
 
     initialize(...args: any[]) {
@@ -323,7 +323,7 @@ const paper = new dia.Paper({
     }
 });
 
-paper.el.style.border = `1px solid #e2e2e2`;
+paper.el.style.border = '1px solid #e2e2e2';
 
 // Events
 
@@ -336,7 +336,7 @@ function onPaperElementPortAdd(elementView: dia.ElementView, evt: dia.Event): vo
 function onPaperElementPortRemove(elementView: dia.ElementView, evt: dia.Event): void {
     evt.stopPropagation();
     const portId = elementView.findAttribute('port', evt.target);
-    const message = elementView.model as ListElement
+    const message = elementView.model as ListElement;
     message.removePort(portId);
 }
 

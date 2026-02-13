@@ -15,7 +15,7 @@ const namespace = {
         LifeSpan,
         Message
     }
-}
+};
 
 const graph = new dia.Graph({}, { cellNamespace: namespace });
 const paper = new dia.Paper({

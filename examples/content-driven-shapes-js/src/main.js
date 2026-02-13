@@ -158,7 +158,7 @@ const ShapeView = ElementView.extend({
         fillColor: ['@color']
     }),
 
-    confirmUpdate: function (...args) {
+    confirmUpdate: function(...args) {
         let flags = ElementView.prototype.confirmUpdate.call(this, ...args);
         if (this.hasFlag(flags, '@color')) {
             // if only a color is changed, no need to resize the DOM elements
@@ -170,7 +170,7 @@ const ShapeView = ElementView.extend({
     },
 
     /* Runs only once while initializing */
-    render: function () {
+    render: function() {
         const { vel, model } = this;
         const body = (this.vBody = V('rect')
             .addClass('body')
@@ -186,14 +186,14 @@ const ShapeView = ElementView.extend({
         this.el.setAttribute('cursor', 'move');
     },
 
-    update: function () {
+    update: function() {
         const layout = this.model.layout();
         this.updateBody(layout);
         this.updateImage(layout.$image);
         this.updateLabel(layout.$label);
     },
 
-    updateColors: function () {
+    updateColors: function() {
         const { model, vBody } = this;
         vBody.attr({
             fill: model.get('fillColor'),
@@ -201,7 +201,7 @@ const ShapeView = ElementView.extend({
         });
     },
 
-    updateBody: function () {
+    updateBody: function() {
         const { model, vBody } = this;
         const { width, height } = model.size();
         const bodyAttributes = {
@@ -211,7 +211,7 @@ const ShapeView = ElementView.extend({
         vBody.attr(bodyAttributes);
     },
 
-    updateImage: function ($image) {
+    updateImage: function($image) {
         const { model, vImage, vel } = this;
         const image = model.get('image');
         if (image) {
@@ -228,7 +228,7 @@ const ShapeView = ElementView.extend({
         }
     },
 
-    updateLabel: function ($label) {
+    updateLabel: function($label) {
         const { model, vLabel } = this;
         vLabel.attr({
             'text-anchor': 'middle',
@@ -311,8 +311,8 @@ customShape4.transition(
     {
         delay: 200,
         duration: 3000,
-        valueFunction: function (start, end) {
-            return function (time) {
+        valueFunction: function(start, end) {
+            return function(time) {
                 return end.substr(0, Math.ceil(end.length * time));
             };
         }

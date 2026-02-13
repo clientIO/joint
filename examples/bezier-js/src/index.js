@@ -1,11 +1,11 @@
-import { dia, shapes, util, g, linkTools } from "@joint/core";
-import { Bezier } from "bezier-js";
+import { dia, shapes, util, g, linkTools } from '@joint/core';
+import { Bezier } from 'bezier-js';
 
-import "../css/bezier.css";
+import '../css/bezier.css';
 
 class BezierLinkView extends dia.LinkView {
     updateDOMSubtreeAttributes() {
-        const method = this.model.get("outline") ? outlinePath : offsetPath;
+        const method = this.model.get('outline') ? outlinePath : offsetPath;
 
         const thickness1 = 20;
         const thickness2 = 30;
@@ -19,53 +19,53 @@ class BezierLinkView extends dia.LinkView {
 
         const path1 = this.getConnection();
         path1.round(roundDecimals);
-        line1.setAttribute("stroke", "red");
-        line1.setAttribute("stroke-width", strokeWidth);
-        line1.setAttribute("fill", useFill ? "red" : "none");
-        line1.setAttribute("fill-opacity", fillOpacity);
-        line1.setAttribute("fill-rule", "nonzero");
-        line1.setAttribute("d", method(path1, thickness1));
+        line1.setAttribute('stroke', 'red');
+        line1.setAttribute('stroke-width', strokeWidth);
+        line1.setAttribute('fill', useFill ? 'red' : 'none');
+        line1.setAttribute('fill-opacity', fillOpacity);
+        line1.setAttribute('fill-rule', 'nonzero');
+        line1.setAttribute('d', method(path1, thickness1));
 
         const path2 = new g.Path(offsetPath(path1, thickness1 + thickness2));
         path2.round(roundDecimals);
-        line2.setAttribute("stroke", "blue");
-        line2.setAttribute("stroke-width", strokeWidth);
-        line2.setAttribute("fill", useFill ? "blue" : "none");
-        line2.setAttribute("fill-opacity", fillOpacity);
-        line2.setAttribute("fill-rule", "nonzero");
-        line2.setAttribute("d", method(path2, thickness2));
+        line2.setAttribute('stroke', 'blue');
+        line2.setAttribute('stroke-width', strokeWidth);
+        line2.setAttribute('fill', useFill ? 'blue' : 'none');
+        line2.setAttribute('fill-opacity', fillOpacity);
+        line2.setAttribute('fill-rule', 'nonzero');
+        line2.setAttribute('d', method(path2, thickness2));
 
         const path3 = new g.Path(offsetPath(path1, -(thickness1 + thickness3)));
         path3.round(roundDecimals);
-        line3.setAttribute("stroke", "green");
-        line3.setAttribute("stroke-width", strokeWidth);
-        line3.setAttribute("fill", useFill ? "green" : "none");
-        line3.setAttribute("fill-opacity", fillOpacity);
-        line3.setAttribute("fill-rule", "nonzero");
-        line3.setAttribute("d", method(path3, thickness3));
+        line3.setAttribute('stroke', 'green');
+        line3.setAttribute('stroke-width', strokeWidth);
+        line3.setAttribute('fill', useFill ? 'green' : 'none');
+        line3.setAttribute('fill-opacity', fillOpacity);
+        line3.setAttribute('fill-rule', 'nonzero');
+        line3.setAttribute('d', method(path3, thickness3));
     }
 }
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     model: graph,
     overflow: true,
     cellViewNamespace: shapes,
     linkView: BezierLinkView,
 });
 
-document.getElementById("paper-container").appendChild(paper.el);
+document.getElementById('paper-container').appendChild(paper.el);
 
 const link1 = new dia.Link({
-    type: "bezier",
+    type: 'bezier',
     source: { x: 40, y: 100 },
     target: { x: 740, y: 100 },
     vertices: [{ x: 401, y: 208 }],
     // vertices: [{ x: 422, y: 417 }], // rounding issues
     // vertices: [{ x: 204, y: 63 }], // can not create offset
-    connector: { name: "smooth" },
+    connector: { name: 'smooth' },
     markup: util.svg`
         <path @selector="line1" />
         <path @selector="line2" />
@@ -73,7 +73,7 @@ const link1 = new dia.Link({
     `,
 });
 
-const link2 = link1.clone().translate(0, 300).set("outline", true);
+const link2 = link1.clone().translate(0, 300).set('outline', true);
 graph.resetCells([link1, link2]);
 
 function offsetPath(path, offset) {
@@ -82,14 +82,14 @@ function offsetPath(path, offset) {
             const polyBezier = bezier.offset(offset);
             return polyBezier.map((b) => {
                 if (isNaN(b.points[0].x)) {
-                    console.warn("Unable to create offset", bezier);
+                    console.warn('Unable to create offset', bezier);
                     return bezier;
                 }
                 return b;
             });
         })
         .flat();
-    let d = "";
+    let d = '';
     for (let i = 0; i < offsetBezierCurves.length; i++) {
         d += offsetBezierCurves[i].toSVG();
     }
@@ -102,25 +102,25 @@ function outlinePath(path, o) {
         try {
             curves = curve1.outline(o).curves;
         } catch (e) {
-            console.warn("Caught exception in bezier-js", curve1);
+            console.warn('Caught exception in bezier-js', curve1);
             return curve1;
         }
         return curves.map((curve2) => {
             if (isNaN(curve2.points[0].x)) {
-                console.warn("Unable to create outline", curve1);
+                console.warn('Unable to create outline', curve1);
                 return curve1;
             }
             return curve2;
         });
     });
-    let d = "M 0 0";
+    let d = 'M 0 0';
     for (let i = 0; i < outlines.length; i++) {
         const outline = outlines[i];
         for (let j = 0; j < outline.length; j++) {
             let segmentPath = outline[j].toSVG();
             if (j > 0) {
                 // Remove the first moveTo command
-                let index = segmentPath.search(/[CQ]/);
+                const index = segmentPath.search(/[CQ]/);
                 if (index > 0) {
                     segmentPath = segmentPath.slice(index);
                 }
@@ -128,7 +128,7 @@ function outlinePath(path, o) {
             d += segmentPath;
         }
     }
-    d += "Z";
+    d += 'Z';
     return d;
 }
 
@@ -139,7 +139,7 @@ function pathToBezierCurves(path) {
         const curve = segments[i];
         // Note: JointJS path use only absolute commands
         // it's safe to ignore all
-        if (curve.type === "M") continue;
+        if (curve.type === 'M') continue;
         const {
             start,
             end,

@@ -1,4 +1,4 @@
-import { PersonNode, ParentChildLink } from '../data';
+import type { PersonNode, ParentChildLink } from '../data';
 
 // Maximum barycenter sweep iterations. The barycenter heuristic for crossing
 // minimization (Sugiyama et al.) converges quickly in practice. Empirical

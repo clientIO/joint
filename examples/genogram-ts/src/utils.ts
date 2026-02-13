@@ -1,7 +1,8 @@
 import { dia, highlighters } from '@joint/core';
-import { MalePerson, FemalePerson, UnknownPerson, IdenticalLink } from './shapes';
+import type { IdenticalLink } from './shapes';
+import { MalePerson, FemalePerson, UnknownPerson } from './shapes';
 import { colors, defaultZIndex } from './theme';
-import { PersonNode, ParentChildLink } from './data';
+import type { PersonNode, ParentChildLink } from './data';
 
 // --- Element creation ---
 

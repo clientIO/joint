@@ -1,6 +1,7 @@
-import { dia, shapes } from '@joint/core';
+import type { dia } from '@joint/core';
+import { shapes } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
-import { PersonNode, ParentChildLink, MateLink } from '../data';
+import type { PersonNode, ParentChildLink, MateLink } from '../data';
 import { sizes as themeSizes } from '../theme';
 import { minimizeCrossings } from './minimize-crossings';
 
@@ -302,8 +303,8 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         link.source({ id: realSourceId });
         link.target({
             id: realTargetId,
-            anchor: { name: 'top', args: { useModelGeometry: true } }
-         });
+            anchor: { name: 'top', args: { useModelGeometry: true }}
+        });
 
         // Route through couple midpoint when source was a container.
         if (sourceWasContainer) {
@@ -390,11 +391,11 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         return new MateLinkShape({
             source: {
                 id: String(ml.from),
-                anchor: { name: 'center', args: { useModelGeometry: true } }
+                anchor: { name: 'center', args: { useModelGeometry: true }}
             },
             target: {
                 id: String(ml.to),
-                anchor: { name: 'center', args: { useModelGeometry: true } }
+                anchor: { name: 'center', args: { useModelGeometry: true }}
             },
         });
     });
@@ -474,8 +475,8 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         if (ratioA === null || ratioB === null) continue;
 
         identicalLinks.push(new IdenticalLinkShape({
-            source: { id: linkA.id, anchor: { name: 'connectionRatio', args: { ratio: ratioA } } },
-            target: { id: linkB.id, anchor: { name: 'connectionRatio', args: { ratio: ratioB } } },
+            source: { id: linkA.id, anchor: { name: 'connectionRatio', args: { ratio: ratioA }}},
+            target: { id: linkB.id, anchor: { name: 'connectionRatio', args: { ratio: ratioB }}},
         }));
     }
 

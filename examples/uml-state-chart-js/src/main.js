@@ -144,7 +144,7 @@ const Transition = shapes.standard.Link.define('uml.Transition', {
     }
 });
 
-const cellNamespace = { ...shapes, uml: { State, StartState, EndState, Transition } };
+const cellNamespace = { ...shapes, uml: { State, StartState, EndState, Transition }};
 
 const graph = new dia.Graph({}, { cellNamespace: cellNamespace });
 
@@ -161,7 +161,7 @@ const paper = new dia.Paper({
 // Link Tools
 
 paper.on({
-    'link:mouseenter': function (linkView) {
+    'link:mouseenter': function(linkView) {
         const linkToolsView = new dia.ToolsView({
             tools: [
                 new linkTools.Vertices(),
@@ -172,10 +172,10 @@ paper.on({
         });
         linkView.addTools(linkToolsView);
     },
-    'link:mouseleave': function (linkView) {
+    'link:mouseleave': function(linkView) {
         linkView.removeTools();
     },
-    'link:connect': function (linkView) {
+    'link:connect': function(linkView) {
         linkView.removeTools();
     }
 });

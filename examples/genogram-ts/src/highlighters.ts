@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
 import { colors, sizes } from './theme';
-import { PersonNode } from './data';
+import type { PersonNode } from './data';
 
 const { deceasedCrossInset, adoptedBracketPadding } = sizes;
 
