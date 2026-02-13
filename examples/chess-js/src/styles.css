@@ -1,0 +1,30 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    overflow-y: hidden;
+    text-align: center;
+}
+
+#board {
+    margin: 0 auto;
+    border-style: none;
+    width: 400px;
+    background-color: #7c68fd;
+    position: relative;
+}
+
+#board > svg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}

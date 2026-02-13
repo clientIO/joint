@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="This demo generates interactive jigsaw puzzles from images with draggable and rotatable pieces.">
+    <title>JointJS: Puzzle</title>
+</head>
+
+<body id="app">
+    <div id="paper-container"></div>
+    <div id="controls">
+        <label for="image-picker">Image:</label>
+        <select id="image-picker">
+            <option value="./images/cow.jpg" selected>cow</option>
+            <option value="./images/mountain.jpg">mountain</option>
+            <option value="./images/tree.jpg">tree</option>
+        </select>
+        <label for="size-picker">Size:</label>
+        <select id="size-picker">
+            <option value="[2,2,200]">small</option>
+            <option value="[4,5,100]" selected>normal</option>
+            <option value="[20,20,50]">large</option>
+        </select>
+    </div>
+    <!-- Application files: -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
