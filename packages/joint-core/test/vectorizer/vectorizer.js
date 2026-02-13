@@ -1720,6 +1720,42 @@ QUnit.module('vectorizer', function(hooks) {
             rect.remove();
         });
 
+        QUnit.test('nested SVG elements', function(assert) {
+
+            // SVG > g(A) > g > nested SVG > g > rect(B)
+            var elA = V('g', { id: 'outer-g', transform: 'translate(10, 20)' });
+            var elB = V('rect', { id: 'inner-rect', width: 10, height: 10 });
+            var nestedSvg = V('svg', { id: 'nested-svg', x: '30', y: '40' });
+            var innerGroup = V('g', { id: 'inner-g', transform: 'translate(5, 5)' });
+
+            innerGroup.append(elB);
+            nestedSvg.append(innerGroup);
+            var outerGroup = V('g');
+            outerGroup.append(nestedSvg);
+            elA.append(outerGroup);
+
+            var container = V(svgContainer);
+            container.append(elA);
+
+            var epsilon = 0.01;
+
+            // getTransformToElement(A, B) maps from A's coordinate space into B's.
+            // B is offset from A by nested SVG (x=30,y=40) + inner-g translate(5,5),
+            // so the transform into B's space negates that: translate(-35,-45).
+            var matrix = elA.getTransformToElement(elB.node);
+            assert.ok(matrix, 'Returns a matrix for elements across nested SVG boundary');
+            assert.ok(Math.abs(matrix.e - (-35)) < epsilon, 'Matrix tx is ~-35 (got ' + matrix.e + ')');
+            assert.ok(Math.abs(matrix.f - (-45)) < epsilon, 'Matrix ty is ~-45 (got ' + matrix.f + ')');
+
+            // Safe mode (DOM-walk based) should also return a non-null matrix across nested SVG.
+            // Note: safe mode does not account for <svg> x/y attributes, only transform attributes.
+            var safeMatrix = elA.getTransformToElement(elB.node, { safe: true });
+            assert.ok(safeMatrix, 'Safe mode returns a matrix for elements across nested SVG boundary');
+            assert.ok(Math.abs(safeMatrix.e - (-5)) < epsilon, 'Safe mode matrix tx is ~-5 (got ' + safeMatrix.e + ')');
+            assert.ok(Math.abs(safeMatrix.f - (-5)) < epsilon, 'Safe mode matrix ty is ~-5 (got ' + safeMatrix.f + ')');
+
+            elA.remove();
+        });
 
     });
 });
