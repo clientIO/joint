@@ -1737,18 +1737,22 @@ QUnit.module('vectorizer', function(hooks) {
             var container = V(svgContainer);
             container.append(elA);
 
-            // Elements across nested SVG boundary should return a valid matrix, not identity
+            var epsilon = 0.01;
+
+            // getTransformToElement(A, B) maps from A's coordinate space into B's.
+            // B is offset from A by nested SVG (x=30,y=40) + inner-g translate(5,5),
+            // so the transform into B's space negates that: translate(-35,-45).
             var matrix = elA.getTransformToElement(elB.node);
             assert.ok(matrix, 'Returns a matrix for elements across nested SVG boundary');
-            // The matrix should not be identity (the transforms are non-trivial)
-            var matrixStr = V.matrixToTransformString(matrix);
-            assert.notEqual(matrixStr, 'matrix(1,0,0,1,0,0)', 'Matrix is not identity for elements with transforms across nested SVG');
+            assert.ok(Math.abs(matrix.e - (-35)) < epsilon, 'Matrix tx is ~-35 (got ' + matrix.e + ')');
+            assert.ok(Math.abs(matrix.f - (-45)) < epsilon, 'Matrix ty is ~-45 (got ' + matrix.f + ')');
 
-            // Safe mode should also work
+            // Safe mode (DOM-walk based) should also return a non-null matrix across nested SVG.
+            // Note: safe mode does not account for <svg> x/y attributes, only transform attributes.
             var safeMatrix = elA.getTransformToElement(elB.node, { safe: true });
             assert.ok(safeMatrix, 'Safe mode returns a matrix for elements across nested SVG boundary');
-            var safeMatrixStr = V.matrixToTransformString(safeMatrix);
-            assert.notEqual(safeMatrixStr, 'matrix(1,0,0,1,0,0)', 'Safe mode matrix is not identity for elements with transforms across nested SVG');
+            assert.ok(Math.abs(safeMatrix.e - (-5)) < epsilon, 'Safe mode matrix tx is ~-5 (got ' + safeMatrix.e + ')');
+            assert.ok(Math.abs(safeMatrix.f - (-5)) < epsilon, 'Safe mode matrix ty is ~-5 (got ' + safeMatrix.f + ')');
 
             elA.remove();
         });
