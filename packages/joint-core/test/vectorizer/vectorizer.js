@@ -1720,6 +1720,38 @@ QUnit.module('vectorizer', function(hooks) {
             rect.remove();
         });
 
+        QUnit.test('nested SVG elements', function(assert) {
+
+            // SVG > g(A) > g > nested SVG > g > rect(B)
+            var elA = V('g', { id: 'outer-g', transform: 'translate(10, 20)' });
+            var elB = V('rect', { id: 'inner-rect', width: 10, height: 10 });
+            var nestedSvg = V('svg', { id: 'nested-svg', x: '30', y: '40' });
+            var innerGroup = V('g', { id: 'inner-g', transform: 'translate(5, 5)' });
+
+            innerGroup.append(elB);
+            nestedSvg.append(innerGroup);
+            var outerGroup = V('g');
+            outerGroup.append(nestedSvg);
+            elA.append(outerGroup);
+
+            var container = V(svgContainer);
+            container.append(elA);
+
+            // Elements across nested SVG boundary should return a valid matrix, not identity
+            var matrix = elA.getTransformToElement(elB.node);
+            assert.ok(matrix, 'Returns a matrix for elements across nested SVG boundary');
+            // The matrix should not be identity (the transforms are non-trivial)
+            var matrixStr = V.matrixToTransformString(matrix);
+            assert.notEqual(matrixStr, 'matrix(1,0,0,1,0,0)', 'Matrix is not identity for elements with transforms across nested SVG');
+
+            // Safe mode should also work
+            var safeMatrix = elA.getTransformToElement(elB.node, { safe: true });
+            assert.ok(safeMatrix, 'Safe mode returns a matrix for elements across nested SVG boundary');
+            var safeMatrixStr = V.matrixToTransformString(safeMatrix);
+            assert.notEqual(safeMatrixStr, 'matrix(1,0,0,1,0,0)', 'Safe mode matrix is not identity for elements with transforms across nested SVG');
+
+            elA.remove();
+        });
 
     });
 });
