@@ -1,5 +1,5 @@
 import { dia } from '@joint/core';
-import { ElementData } from '../components/element.component';
+import type { ElementData } from '../components/element.component';
 
 export interface AngularElementAttributes extends dia.Element.Attributes {
     data: ElementData;

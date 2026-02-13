@@ -1,9 +1,10 @@
+import type {
+    ElementRef,
+    AfterViewInit,
+    OnDestroy } from '@angular/core';
 import {
     Component,
-    ElementRef,
     ViewChild,
-    AfterViewInit,
-    OnDestroy,
     ApplicationRef,
     EnvironmentInjector,
     inject,

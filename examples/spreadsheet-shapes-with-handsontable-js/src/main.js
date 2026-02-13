@@ -76,7 +76,7 @@ const HotModelView = dia.ElementView.extend({
     // when the element view is initialized.
     initFlag: [HotFlags.RenderView, HotFlags.UpdateView, HotFlags.TransformView, HotFlags.MeasureView],
 
-    confirmUpdate: function (flags) {
+    confirmUpdate: function(flags) {
         if (this.hasFlag(flags, HotFlags.RenderView)) this.render();
         if (this.hasFlag(flags, HotFlags.UpdateView)) this.update();
         // `updateTransformation` is the original method of the `dia.ElementView`
@@ -85,7 +85,7 @@ const HotModelView = dia.ElementView.extend({
         if (this.hasFlag(flags, HotFlags.MeasureView)) this.resizeModel();
     },
 
-    init: function () {
+    init: function() {
         this.el.setAttribute('magnet', 'false');
         // Create a ResizeObserver to measure the card's size
         this.resizeObserver = new ResizeObserver(() => this.requestMeasurement());
@@ -107,7 +107,7 @@ const HotModelView = dia.ElementView.extend({
         this.selectors = null;
     },
 
-    render: function () {
+    render: function() {
         const {
             resizeObserver,
             HEADER_HEIGHT
@@ -191,7 +191,7 @@ const HotModelView = dia.ElementView.extend({
         this._renderPorts();
     },
 
-    addHooks: function () {
+    addHooks: function() {
 
         const {
             hot
@@ -228,7 +228,7 @@ const HotModelView = dia.ElementView.extend({
         });
     },
 
-    addEventListeners: function () {
+    addEventListeners: function() {
         this.listenTo(paper, 'element:columns:selection', (elementView, selection) => {
             if (elementView === this) return;
             this.hot.deselectCell();
@@ -293,7 +293,7 @@ const HotModelView = dia.ElementView.extend({
         this.hot.view.adjustElementsSize();
     },
 
-    update: function () {
+    update: function() {
         const {
             selectors,
             model,
@@ -588,7 +588,7 @@ paper.on('element:columns:selection', (elementView, selection) => {
 });
 
 // Update the mapped table cells when the source table cells change
-paper.on('element:change', function (elementView, changes, type) {
+paper.on('element:change', function(elementView, changes, type) {
     changes.forEach(([row, col, , value]) => {
         calcValue(elementView, row, col, value);
     });

@@ -1,12 +1,13 @@
-import {
+import type {
     ApplicationRef,
     ComponentRef,
-    createComponent,
-    EnvironmentInjector,
+    EnvironmentInjector } from '@angular/core';
+import {
+    createComponent
 } from '@angular/core';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 import { dia } from '@joint/core';
-import { AngularElement } from '../models/angular-element';
+import type { AngularElement } from '../models/angular-element';
 import { ElementComponent } from '../components/element.component';
 
 /**

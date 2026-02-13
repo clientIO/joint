@@ -1,0 +1,15 @@
+body {
+    background: black;
+    color: #ddd;
+}
+
+#paper-container {
+    border: 1px solid #ddd;
+    background: radial-gradient(ellipse at center, #45484d 0%, #000000 100%);
+    margin: auto;
+}
+
+#controls {
+    margin: auto;
+    text-align: center;
+}

@@ -118,7 +118,7 @@ export class UnknownPerson extends dia.Element {
             z: defaultZIndex.person,
             attrs: {
                 body: {
-                    points: `calc(0.5*w),0 calc(w),calc(0.5*h) calc(0.5*w),calc(h) 0,calc(0.5*h)`,
+                    points: 'calc(0.5*w),0 calc(w),calc(0.5*h) calc(0.5*w),calc(h) 0,calc(0.5*h)',
                     fill: colors.unknownFill,
                     stroke: colors.unknownStroke,
                     strokeWidth: 2

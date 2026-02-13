@@ -53,7 +53,7 @@ const init = () => {
         // Scroll into a busy area of the example
         window.scroll(650, 560);
     }).catch((error) => {
-        console.error('ELK layout error:', error.message);
+        console.warn('ELK layout error:', error.message);
     });
 };
 

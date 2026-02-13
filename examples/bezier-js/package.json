@@ -13,8 +13,7 @@
     "hoistingLimits": "workspaces"
   },
   "scripts": {
-    "start": "webpack-dev-server",
-    "tsc": "tsc"
+    "start": "webpack-dev-server"
   },
   "dependencies": {
     "@joint/core": "workspace:^",

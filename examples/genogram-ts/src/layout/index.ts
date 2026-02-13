@@ -1,6 +1,7 @@
-import { dia, shapes } from '@joint/core';
+import type { dia } from '@joint/core';
+import { shapes } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
-import { PersonNode, ParentChildLink, MateLink } from '../data';
+import type { PersonNode, ParentChildLink, MateLink } from '../data';
 import { sizes as themeSizes } from '../theme';
 import { minimizeCrossings } from './minimize-crossings';
 
@@ -155,6 +156,7 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
     }
     const linkInfos: LinkInfo[] = [];
     const layoutEdgeSet = new Set<string>();
+    const duplicateLinkSet = new Set<dia.Link>();
     for (const rel of parentChildLinks) {
         const realSourceId = String(rel.parentId);
         const realTargetId = String(rel.childId);
@@ -170,11 +172,11 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         });
         linkInfos.push({ link, realSourceId, realTargetId });
         if (isDuplicate) {
-            (link as any)._layoutDuplicate = true;
+            duplicateLinkSet.add(link);
         }
     }
     const links = linkInfos.map((li) => li.link);
-    const layoutLinks = links.filter((l) => !(l as any)._layoutDuplicate);
+    const layoutLinks = links.filter((l) => !duplicateLinkSet.has(l));
 
     graph.resetCells([...coupleContainers, ...soloElements, ...layoutLinks]);
 
@@ -188,7 +190,7 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
     });
 
     // Add duplicate links back (they were excluded from layout).
-    const duplicateLinks = links.filter((l) => (l as any)._layoutDuplicate);
+    const duplicateLinks = links.filter((l) => duplicateLinkSet.has(l));
     if (duplicateLinks.length > 0) {
         graph.addCells(duplicateLinks);
     }
@@ -302,8 +304,8 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         link.source({ id: realSourceId });
         link.target({
             id: realTargetId,
-            anchor: { name: 'top', args: { useModelGeometry: true } }
-         });
+            anchor: { name: 'top', args: { useModelGeometry: true }}
+        });
 
         // Route through couple midpoint when source was a container.
         if (sourceWasContainer) {
@@ -390,11 +392,11 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         return new MateLinkShape({
             source: {
                 id: String(ml.from),
-                anchor: { name: 'center', args: { useModelGeometry: true } }
+                anchor: { name: 'center', args: { useModelGeometry: true }}
             },
             target: {
                 id: String(ml.to),
-                anchor: { name: 'center', args: { useModelGeometry: true } }
+                anchor: { name: 'center', args: { useModelGeometry: true }}
             },
         });
     });
@@ -474,8 +476,8 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         if (ratioA === null || ratioB === null) continue;
 
         identicalLinks.push(new IdenticalLinkShape({
-            source: { id: linkA.id, anchor: { name: 'connectionRatio', args: { ratio: ratioA } } },
-            target: { id: linkB.id, anchor: { name: 'connectionRatio', args: { ratio: ratioB } } },
+            source: { id: linkA.id, anchor: { name: 'connectionRatio', args: { ratio: ratioA }}},
+            target: { id: linkB.id, anchor: { name: 'connectionRatio', args: { ratio: ratioB }}},
         }));
     }
 
