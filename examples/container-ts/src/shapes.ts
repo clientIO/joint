@@ -76,7 +76,7 @@ export class Child extends Base {
         }, super.defaults());
     }
 
-    static isChild(obj: any) {
+    static isChild(obj: dia.Cell) {
         return obj instanceof Child;
     }
 }
@@ -173,7 +173,7 @@ export class Container extends Base {
         });
     }
 
-    static isContainer(obj: any) {
+    static isContainer(obj: dia.Cell) {
         return obj instanceof Container;
     }
 }

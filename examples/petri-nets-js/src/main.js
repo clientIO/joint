@@ -346,8 +346,10 @@ function simulate() {
     }, 2000);
 }
 
+// eslint-disable-next-line no-unused-vars
 const simulationId = simulate();
 
+// eslint-disable-next-line no-unused-vars
 function stopSimulation(id) {
     clearInterval(id);
 }

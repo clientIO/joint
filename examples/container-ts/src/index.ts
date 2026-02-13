@@ -1,3 +1,4 @@
+import type { mvc } from '@joint/core';
 import { shapes, dia, util, elementTools } from '@joint/core';
 import { Child, Container, Link, HEADER_HEIGHT } from './shapes';
 
@@ -42,12 +43,14 @@ const highlighterMarkup = util.svg/* xml */`
 
 // Custom highlighter to render the expand/collapse button.
 class ExpandButtonHighlighter extends dia.HighlighterView {
-
     preinitialize() {
         this.UPDATE_ATTRIBUTES = ['collapsed'];
         this.tagName = 'g';
         this.children = highlighterMarkup;
-        this.events = <any>{
+    }
+
+    events(): mvc.EventsHash {
+        return {
             click: 'onClick'
         };
     }

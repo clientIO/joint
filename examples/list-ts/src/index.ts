@@ -227,7 +227,7 @@ class ListElement extends dia.Element {
         };
     }
 
-    initialize(...args: any[]) {
+    initialize(...args: unknown[]) {
         this.on('change:ports', () => this.resizeToFitPorts());
         this.resizeToFitPorts();
         this.toggleAddPortButton(LIST_GROUP_NAME);

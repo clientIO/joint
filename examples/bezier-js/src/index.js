@@ -101,7 +101,7 @@ function outlinePath(path, o) {
         let curves;
         try {
             curves = curve1.outline(o).curves;
-        } catch (e) {
+        } catch {
             console.warn('Caught exception in bezier-js', curve1);
             return curve1;
         }

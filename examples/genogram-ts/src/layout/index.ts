@@ -156,6 +156,7 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
     }
     const linkInfos: LinkInfo[] = [];
     const layoutEdgeSet = new Set<string>();
+    const duplicateLinkSet = new Set<dia.Link>();
     for (const rel of parentChildLinks) {
         const realSourceId = String(rel.parentId);
         const realTargetId = String(rel.childId);
@@ -171,11 +172,11 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
         });
         linkInfos.push({ link, realSourceId, realTargetId });
         if (isDuplicate) {
-            (link as any)._layoutDuplicate = true;
+            duplicateLinkSet.add(link);
         }
     }
     const links = linkInfos.map((li) => li.link);
-    const layoutLinks = links.filter((l) => !(l as any)._layoutDuplicate);
+    const layoutLinks = links.filter((l) => !duplicateLinkSet.has(l));
 
     graph.resetCells([...coupleContainers, ...soloElements, ...layoutLinks]);
 
@@ -189,7 +190,7 @@ export function layoutGenogram({ graph, elements, persons, parentChildLinks, mat
     });
 
     // Add duplicate links back (they were excluded from layout).
-    const duplicateLinks = links.filter((l) => (l as any)._layoutDuplicate);
+    const duplicateLinks = links.filter((l) => duplicateLinkSet.has(l));
     if (duplicateLinks.length > 0) {
         graph.addCells(duplicateLinks);
     }
