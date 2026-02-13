@@ -3,7 +3,7 @@ const modules = require('../resources/esm');
 
 module.exports = function(grunt) {
 
-    process.env.CHROME_BIN = require('puppeteer').executablePath();
+    process.env.CHROME_BIN = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
     function karmaPreprocessors(files) {
         const preprocessors = ['coverage'];

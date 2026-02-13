@@ -1,3 +1,11 @@
+13-02-2026 (v4.2.4)
+
+  @joint/core
+  * dia.Paper - fix to handle element removal during pointer events
+  * dia.Graph - fix to pass options to `batch:start` and `batch:stop` events consistently
+  * mvc.Model - fix to trigger the `changeId` event only if the previous ID is different from the current ID
+  * Vectorizer - fix `getTransformToElement()` when the target node is inside a nested SVG document
+
 21-01-2026 (v4.2.3)
 
   @joint/core
