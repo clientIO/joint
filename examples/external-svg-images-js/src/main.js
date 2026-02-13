@@ -288,11 +288,14 @@ mi3.attr('balls/fill', 'white');
 // Use highlighter with the image element (notice a slight difference in the highlight for markup style).
 highlighters.stroke.add(si2.findView(paper), 'image', 'h');
 highlighters.stroke.add(ti2.findView(paper), 'image', 'h');
-highlighters.stroke.add(mi2.findView(paper), 'image', 'h');
+highlighters.stroke.add(mi2.findView(paper), 'image', 'h', {
+    nonScalingStroke: true
+});
 
 // Use highlighter with an image sub-element (3).
 highlighters.stroke.add(mi3.findView(paper), 'outline', 'h', {
-    useFirstSubpath: true
+    useFirstSubpath: true,
+    nonScalingStroke: true,
 });
 
 // -----------------------------
