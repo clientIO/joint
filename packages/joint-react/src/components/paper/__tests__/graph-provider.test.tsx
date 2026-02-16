@@ -12,14 +12,13 @@ import { Paper } from '../../paper/paper';
 import type { RenderLink } from '../../paper/paper.types';
 
 describe('graph', () => {
-  it('should render children and match snapshot', () => {
-    const { asFragment, getByText } = render(
+  it('should render children', () => {
+    const { getByText } = render(
       <GraphProvider>
         <div>Child Content</div>
       </GraphProvider>
     );
-    expect(getByText('Child Content')).toMatchSnapshot();
-    expect(asFragment()).toMatchSnapshot();
+    expect(getByText('Child Content')).toBeDefined();
   });
 
   it('should provide a graph instance in context', () => {

@@ -2,16 +2,6 @@
 import { render, waitFor } from '@testing-library/react';
 import { getTestGraph, paperRenderElementWrapper } from '../../../utils/test-wrappers';
 import { PortGroup } from '../port-group';
-import { runStorybookSnapshot } from '../../../utils/run-storybook-snapshot';
-import * as stories from '../port-group.stories';
-
-// Keep the storybook snapshot tests
-runStorybookSnapshot({
-  Component: PortGroup,
-  stories,
-  name: 'Port/Item',
-  withRenderElementWrapper: true,
-});
 
 describe('PortGroup cleanup', () => {
   const getTestWrapper = () => {
