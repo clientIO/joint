@@ -146,6 +146,9 @@ export class PaperStore {
 
     // Create a new ReactPaper instance
     // ReactPaper handles view lifecycle internally via insertView/removeView
+    // NOTE: We don't use cellVisibility to hide links because JointJS's
+    // unmountedList.rotate() causes O(n) checks per frame when returning false.
+    // Link visibility should be handled in React layer instead.
     const paper = new ReactPaper({
       async: true,
       sorting: dia.Paper.sorting.APPROX,
@@ -160,41 +163,44 @@ export class PaperStore {
       afterRender: (() => {
         // Re-entrancy guard to prevent infinite loops
         let isProcessing = false;
-        return () => {
+        return function (this: ReactPaper) {
           if (isProcessing) {
             return;
           }
           isProcessing = true;
-          try {
-            // Iterate through all element views and capture port elements
-            let hasPortsChanged = false;
-            for (const view of Object.values(cache.elementViews)) {
-              const portElementsCache = (
-                view as dia.ElementView & {
-                  _portElementsCache?: Record<string, PortElementsCacheEntry>;
-                }
-              )._portElementsCache;
-              if (!portElementsCache) {
-                continue;
+
+          // Check if any pending links can now be shown
+          this.checkPendingLinks();
+
+          // Iterate through all element views and capture port elements
+          let hasPortsChanged = false;
+          for (const view of Object.values(cache.elementViews)) {
+            const portElementsCache = (
+              view as dia.ElementView & {
+                _portElementsCache?: Record<string, PortElementsCacheEntry>;
               }
-              const newPorts = store.getNewPorts({
-                state: graphStore.internalState,
-                cellId: view.model.id as dia.Cell.ID,
-                portElementsCache,
-                portsData: cache.portsData,
-              });
-              if (newPorts && newPorts !== cache.portsData) {
-                cache.portsData = newPorts;
-                hasPortsChanged = true;
-              }
+            )._portElementsCache;
+            if (!portElementsCache) {
+              continue;
             }
-            // Only schedule update if ports actually changed
-            if (hasPortsChanged) {
-              graphStore.schedulePaperUpdate();
+            const newPorts = store.getNewPorts({
+              state: graphStore.internalState,
+              cellId: view.model.id as dia.Cell.ID,
+              portElementsCache,
+              portsData: cache.portsData,
+            });
+            if (newPorts && newPorts !== cache.portsData) {
+              cache.portsData = newPorts;
+              hasPortsChanged = true;
             }
-          } finally {
-            isProcessing = false;
           }
+
+          // Only schedule update if ports actually changed
+          if (hasPortsChanged) {
+            graphStore.schedulePaperUpdate();
+          }
+
+          isProcessing = false;
         };
       })(),
       ...paperOptions,
