@@ -13,6 +13,12 @@ declare module 'react' {
      * - 'true': Element can be used as a connection point (default)
      * - 'false': Element cannot be used as a connection point
      */
-    magnet?: 'passive';
+    magnet?: string;
+
+    /**
+     * JointJS-specific attribute that assigns a port name to an SVG element.
+     * This allows the element to be identified as a specific port when connecting links.
+     */
+    port?: string;
   }
 }
