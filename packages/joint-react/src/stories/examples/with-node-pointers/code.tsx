@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { forwardRef, useCallback, useRef } from 'react';
 import {
   GraphProvider,
@@ -59,11 +60,11 @@ interface ItemProps {
 
 const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, width, rowY }, ref) {
   return (
-    <g ref={ref} magnet="active">
+    <g ref={ref} magnet="active" className="item">
       {index > 0 && (
         <line x1={0} y1={rowY} x2={width} y2={rowY} stroke={PRIMARY} strokeOpacity={0.3} />
       )}
-      <rect x={0} y={rowY} width={width} height={ROW_HEIGHT} fill={BG} />
+      <rect className="item__bg" x={0} y={rowY} width={width} height={ROW_HEIGHT} fill={BG} />
       <text
         x={width / 2}
         y={rowY + ROW_HEIGHT / 2}
@@ -116,20 +117,22 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
     <>
       <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} rx={4} ry={4} />
       {/* Header */}
-      <rect width={width} height={HEADER_HEIGHT} fill={HEADER_COLOR} rx={4} ry={4} />
-      <rect x={0} y={HEADER_HEIGHT - 4} width={width} height={4} fill={HEADER_COLOR} />
-      <text
-        x={width / 2}
-        y={HEADER_HEIGHT / 2}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="#1a1a1a"
-        fontSize={14}
-        fontFamily="sans-serif"
-        fontWeight="bold"
-      >
-        {name}
-      </text>
+      <g className="header">
+        <rect width={width} height={HEADER_HEIGHT} fill={HEADER_COLOR} rx={4} ry={4} />
+        <rect x={0} y={HEADER_HEIGHT - 4} width={width} height={4} fill={HEADER_COLOR} />
+        <text
+          x={width / 2}
+          y={HEADER_HEIGHT / 2}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill="#1a1a1a"
+          fontSize={14}
+          fontFamily="sans-serif"
+          fontWeight="bold"
+        >
+          {name}
+        </text>
+      </g>
       {/* Attribute rows */}
       {labels?.map((label, index) => {
         const rowY = HEADER_HEIGHT + index * ROW_HEIGHT;
@@ -185,6 +188,9 @@ function Main() {
           }
         }
       }}
+      validateConnection={(sourceView, _sourceMagnet, targetView) =>
+        sourceView.model.id !== targetView.model.id
+      }
     />
   );
 }
