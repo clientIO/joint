@@ -5,6 +5,7 @@ import {
   GraphProvider,
   Paper,
   useNodeSize,
+  type GraphElement,
   type GraphLink,
   type RenderElement,
   type OnTransformElement,
@@ -21,7 +22,7 @@ const HEADER_HEIGHT = 32;
 const ELEMENT_WIDTH = 160;
 const HEADER_COLOR = '#f6c744';
 
-interface StackedElement {
+interface StackedElement extends GraphElement {
   readonly name: string;
   readonly labels: readonly string[];
   readonly x: number;
@@ -85,7 +86,9 @@ function useNodePointer() {
   const id = useCellId();
   return useCallback((selector: string) => {
     return (node: SVGGElement | null) => {
-      const elementView = paper.findViewByModel(id);
+      const elementView = paper.findViewByModel(id) as
+        | (dia.ElementView & { selectors: Record<string, SVGElement> })
+        | undefined;
       if (!elementView) return;
       if (node) {
         node.setAttribute('joint-selector', selector);

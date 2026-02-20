@@ -120,7 +120,6 @@ function Main() {
         </button>
       </div>
       <Paper
-        width="100%"
         className={PAPER_CLASSNAME}
         height={450}
         renderElement={renderElement}

@@ -4,7 +4,10 @@ import { useCallback, useRef } from 'react';
 import { GraphProvider, Paper, useNodeSize, type RenderElement } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialElements: Record<string, { label: string; color: string; x: number; y: number; width: number; height: number }> = {
+const initialElements: Record<
+  string,
+  { label: string; color: string; x: number; y: number; width: number; height: number }
+> = {
   '1': { label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
   '2': { label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
 };
@@ -32,7 +35,6 @@ function MiniMap() {
         id="minimap"
         interactive={false}
         scale={0.4}
-        width="100%"
         className={PAPER_CLASSNAME}
         height="100%"
         renderElement={renderElement}
@@ -62,7 +64,6 @@ function Main() {
     <div className="flex flex-row relative">
       <Paper
         id="main-view"
-        width="100%"
         className={PAPER_CLASSNAME}
         height={280}
         renderElement={RenderElement}

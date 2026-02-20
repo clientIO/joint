@@ -153,7 +153,7 @@ export class GraphStore {
       readonly defaultAttributes: () => GraphLink;
     }
   ) => GraphLink;
-  private readonly mapDataToElementAttributes: (options: {
+  public readonly mapDataToElementAttributes: (options: {
     readonly data: GraphElement;
     readonly graph: dia.Graph;
     readonly defaultAttributes: () => dia.Cell.JSON;

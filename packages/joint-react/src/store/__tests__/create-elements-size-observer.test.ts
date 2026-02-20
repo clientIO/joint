@@ -97,7 +97,8 @@ describe('createElementsSizeObserver', () => {
     // Re-assign the mock after reset to ensure it's used
     globalThis.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
     // eslint-disable-next-line unicorn/prefer-module
-    createElementsSizeObserver = require('../create-elements-size-observer').createElementsSizeObserver;
+    createElementsSizeObserver =
+      require('../create-elements-size-observer').createElementsSizeObserver;
 
     mockElements = {
       'element-1': { x: 0, y: 0, width: 1, height: 1, type: 'ReactElement' },

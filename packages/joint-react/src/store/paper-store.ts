@@ -1,4 +1,4 @@
-import { dia, util, type Vectorizer } from '@joint/core';
+import { dia, g, util, type Vectorizer } from '@joint/core';
 import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
 import type { GraphElement } from '../types/element-types';
@@ -8,6 +8,85 @@ import type { GraphState, GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
+const DEFAULT_CONNECTION_POINT = { name: 'rectangle', args: { useModelGeometry: true } };
+type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
+
+const DEFAULT_PORT_HIGHLIGHTING: PaperHighlighting = {
+  [dia.CellView.Highlighting.DEFAULT]: {
+    name: 'stroke',
+    options: {
+      padding: 3,
+    },
+  },
+  [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
+    name: 'stroke',
+    options: {
+      padding: 4,
+      attrs: {
+        stroke: '#DDE6ED',
+        'stroke-width': 2,
+      },
+    },
+  },
+  [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
+    name: 'addClass',
+    options: {
+      className: 'available-cell',
+    },
+  },
+};
+/**
+ * Default measureNode function that uses the model's bounding box for the root element node.
+ * For sub-nodes (e.g. port magnets), falls back to the native SVG bounding box.
+ * This ensures consistent measurement in React where elements are rendered via portals,
+ * while still allowing port connection points to be calculated correctly.
+ */
+const DEFAULT_MEASURE_NODE = (
+  node: SVGGraphicsElement,
+  view: dia.ElementView<dia.Element>
+): g.Rect => {
+  const getModelRect = (preservePosition: boolean) => {
+    if (typeof view.model.size === 'function') {
+      const { height, width } = view.model.size();
+      const position =
+        preservePosition && typeof view.model.position === 'function'
+          ? view.model.position()
+          : { x: 0, y: 0 };
+      return new g.Rect({ height, width, x: position.x, y: position.y });
+    }
+    if (typeof view.model.getBBox === 'function') {
+      const { height, width, x, y } = view.model.getBBox();
+      return new g.Rect({
+        height,
+        width,
+        x: preservePosition ? x : 0,
+        y: preservePosition ? y : 0,
+      });
+    }
+    return new g.Rect({ height: 0, width: 0, x: 0, y: 0 });
+  };
+
+  const getNodeRect = () => {
+    try {
+      const { height, width, x, y } = node.getBBox();
+      return new g.Rect({ height, width, x, y });
+    } catch {
+      return new g.Rect({ height: 0, width: 0, x: 0, y: 0 });
+    }
+  };
+
+  if (node === view.el) {
+    return getModelRect(false);
+  }
+
+  const nodeBox = getNodeRect();
+  if (nodeBox.width > 0 || nodeBox.height > 0 || nodeBox.x !== 0 || nodeBox.y !== 0) {
+    return nodeBox;
+  }
+
+  // In jsdom many SVG subnodes report empty bbox; fallback to model geometry.
+  return getModelRect(true);
+};
 export const PORTAL_SELECTOR = 'react-port-portal';
 
 /**
@@ -90,7 +169,7 @@ export class PaperStore {
   /** Reference to the overwrite result if custom rendering is used */
   public overWriteResultRef?: OverWriteResult;
   /** Optional custom element renderer */
-  private renderElement?: RenderElement<GraphElement>;
+  public renderElement?: RenderElement<GraphElement>;
   /** Optional custom link renderer */
   public renderLink?: RenderLink<GraphLink>;
 
@@ -113,6 +192,18 @@ export class PaperStore {
     } = options;
     const { width, height } = paperOptions;
     const { graph } = graphStore;
+    const hasHighlightingOverride = typeof paperOptions.highlighting === 'object';
+    const highlightingOverride = hasHighlightingOverride
+      ? (paperOptions.highlighting as PaperHighlighting)
+      : undefined;
+
+    const mergedHighlighting: dia.Paper.Options['highlighting'] =
+      paperOptions.highlighting === false
+        ? false
+        : {
+            ...DEFAULT_PORT_HIGHLIGHTING,
+            ...highlightingOverride,
+          };
     this.paperId = id;
     this.renderElement = renderElement;
     this.renderLink = renderLink;
@@ -155,13 +246,8 @@ export class PaperStore {
       preventDefaultBlankAction: false,
       frozen: true,
       model: graph,
-      // 👇 override to always allow connection
-      validateConnection: () => true,
-      // 👇 also, allow links to start or end on empty space
-      validateMagnet: () => true,
-      // 👇 capture port elements after render for React portals
       afterRender: (() => {
-        // Re-entrancy guard to prevent infinite loops
+        // Re-entrance guard to prevent infinite loops
         let isProcessing = false;
         return function (this: ReactPaper) {
           if (isProcessing) {
@@ -203,7 +289,11 @@ export class PaperStore {
           isProcessing = false;
         };
       })(),
+      defaultConnectionPoint: DEFAULT_CONNECTION_POINT,
+      measureNode: DEFAULT_MEASURE_NODE as unknown as dia.Paper.Options['measureNode'],
       ...paperOptions,
+      highlighting: mergedHighlighting,
+      markAvailable: paperOptions.markAvailable ?? true,
       clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
       autoFreeze: true,
       viewManagement: {
@@ -290,6 +380,9 @@ export class PaperStore {
 
       elementToRender = overWriteResult?.element;
       this.overWriteResultRef = overWriteResult;
+      if (overWriteResult?.contextUpdate) {
+        Object.assign(this, overWriteResult.contextUpdate);
+      }
     }
 
     if (!elementToRender) {
@@ -316,9 +409,9 @@ export class PaperStore {
       const { portSelectors } = portElementsCache[portId];
       const portalElement = portSelectors[PORTAL_SELECTOR];
       if (!portalElement) {
-        throw new Error(
-          `Portal element not found for port id: ${portId} via ${PORTAL_SELECTOR} selector`
-        );
+        // Port was defined via JointJS native API (not via React <Port> component),
+        // so it doesn't have the portal selector. Skip it - it renders natively.
+        continue;
       }
 
       const element = Array.isArray(portalElement) ? portalElement[0] : portalElement;

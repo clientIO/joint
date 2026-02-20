@@ -236,7 +236,6 @@ function Main() {
 
   return (
     <Paper
-      width="100%"
       height={500}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}

@@ -105,7 +105,9 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
     >
       <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 13 }}>
         {element.label}
-        <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>#{id}</span>
+        <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
+          #{id}
+        </span>
       </div>
 
       {/* Label */}
@@ -126,7 +128,14 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           type="color"
           value={element.color}
           onChange={(event) => set(id, (previous) => ({ ...previous, color: event.target.value }))}
-          style={{ width: 36, height: 28, border: 'none', cursor: 'pointer', borderRadius: 6, padding: 0 }}
+          style={{
+            width: 36,
+            height: 28,
+            border: 'none',
+            cursor: 'pointer',
+            borderRadius: 6,
+            padding: 0,
+          }}
         />
       </div>
 
@@ -136,14 +145,18 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         <input
           type="number"
           value={layout?.x ?? element.x}
-          onChange={(event) => set(id, (previous) => ({ ...previous, x: Number(event.target.value) }))}
+          onChange={(event) =>
+            set(id, (previous) => ({ ...previous, x: Number(event.target.value) }))
+          }
           style={{ ...inputStyle, width: 65 }}
           placeholder="X"
         />
         <input
           type="number"
           value={layout?.y ?? element.y}
-          onChange={(event) => set(id, (previous) => ({ ...previous, y: Number(event.target.value) }))}
+          onChange={(event) =>
+            set(id, (previous) => ({ ...previous, y: Number(event.target.value) }))
+          }
           style={{ ...inputStyle, width: 65 }}
           placeholder="Y"
         />
@@ -155,14 +168,18 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         <input
           type="number"
           value={layout?.width ?? element.width}
-          onChange={(event) => set(id, (previous) => ({ ...previous, width: Number(event.target.value) }))}
+          onChange={(event) =>
+            set(id, (previous) => ({ ...previous, width: Number(event.target.value) }))
+          }
           style={{ ...inputStyle, width: 65 }}
           placeholder="W"
         />
         <input
           type="number"
           value={layout?.height ?? element.height}
-          onChange={(event) => set(id, (previous) => ({ ...previous, height: Number(event.target.value) }))}
+          onChange={(event) =>
+            set(id, (previous) => ({ ...previous, height: Number(event.target.value) }))
+          }
           style={{ ...inputStyle, width: 65 }}
           placeholder="H"
         />
@@ -176,7 +193,9 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           min="0"
           max="360"
           value={layout?.angle ?? 0}
-          onChange={(event) => set(id, (previous) => ({ ...previous, angle: Number(event.target.value) }))}
+          onChange={(event) =>
+            set(id, (previous) => ({ ...previous, angle: Number(event.target.value) }))
+          }
           style={{ flex: 1, accentColor: PRIMARY }}
         />
         <span style={{ fontSize: 11, width: 32, color: '#6b7280' }}>{layout?.angle ?? 0}°</span>
@@ -248,7 +267,14 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
               color: event.target.value,
             }))
           }
-          style={{ width: 36, height: 28, border: 'none', cursor: 'pointer', borderRadius: 6, padding: 0 }}
+          style={{
+            width: 36,
+            height: 28,
+            border: 'none',
+            cursor: 'pointer',
+            borderRadius: 6,
+            padding: 0,
+          }}
         />
       </div>
 
@@ -282,7 +308,9 @@ function AddElementForm() {
   const handleAdd = () => {
     if (!label.trim()) return;
 
-    const existingIds = Object.keys(elements).map(Number).filter((numberValue) => !Number.isNaN(numberValue));
+    const existingIds = Object.keys(elements)
+      .map(Number)
+      .filter((numberValue) => !Number.isNaN(numberValue));
     const newId = String(Math.max(0, ...existingIds) + 1);
 
     // eslint-disable-next-line sonarjs/pseudo-random -- Random position for demo purposes
@@ -395,7 +423,11 @@ function AddLinkForm() {
     >
       <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 12 }}>Add Link</div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <select value={source} onChange={(event) => setSource(event.target.value)} style={selectStyle}>
+        <select
+          value={source}
+          onChange={(event) => setSource(event.target.value)}
+          style={selectStyle}
+        >
           <option value="">From...</option>
           {elementIds.map((id) => (
             <option key={id} value={id}>
@@ -403,7 +435,11 @@ function AddLinkForm() {
             </option>
           ))}
         </select>
-        <select value={target} onChange={(event) => setTarget(event.target.value)} style={selectStyle}>
+        <select
+          value={target}
+          onChange={(event) => setTarget(event.target.value)}
+          style={selectStyle}
+        >
           <option value="">To...</option>
           {elementIds.map((id) => (
             <option key={id} value={id}>
@@ -441,7 +477,6 @@ function Main() {
     <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
       {/* Canvas */}
       <Paper
-        width="100%"
         className={PAPER_CLASSNAME}
         height={500}
         renderElement={RenderElement}

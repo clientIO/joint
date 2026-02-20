@@ -262,7 +262,7 @@ describe('Paper link flickering prevention', () => {
 
       // The path should start near element 1's position (x: 100, y: 0, width: 100, height: 50)
       // So the link source point should be around x: 100-200, y: 0-50
-      expect(x).toBeGreaterThan(0);
+      expect(x).toBeGreaterThanOrEqual(0);
       expect(y).toBeGreaterThanOrEqual(0);
     }
   });

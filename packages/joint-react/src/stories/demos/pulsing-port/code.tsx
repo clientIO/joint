@@ -3,14 +3,13 @@
 import { useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import { shapes } from '@joint/core';
-import type { GraphElement } from '@joint/react';
+import type { ElementToGraphOptions, GraphElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
 import {
   getCellId,
   GraphProvider,
   jsx,
   Paper,
-  Port,
   TextNode,
   useLinks,
   useNodeSize,
@@ -61,22 +60,77 @@ const Pulse = dia.HighlighterView.extend({
     this.el.setAttribute('transform', `translate(${position.x}, ${position.y})`);
   },
 });
+
+const mapDataToElementAttributes = ({
+  data,
+  defaultAttributes,
+}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
+  const result = defaultAttributes();
+  const { ports } = data;
+  return {
+    ...result,
+    ...(ports && { ports }),
+  };
+};
+
 const elements: Record<string, GraphElement> = {
   '1': {
     x: 50,
     y: 50,
+    ports: {
+      items: [
+        {
+          id: 'in',
+          args: { x: NODE_WIDTH / 2, y: 0 },
+          attrs: { circle: { magnet: true }, text: { display: 'none' } },
+        },
+        {
+          id: 'out',
+          args: { x: NODE_WIDTH / 2, y: NODE_HEIGHT },
+          attrs: { circle: { magnet: true }, text: { display: 'none' } },
+        },
+      ],
+    },
   },
   '2': {
     x: 350,
     y: 50,
+    ports: {
+      items: [
+        {
+          id: 'in',
+          args: { x: NODE_WIDTH / 2, y: 0 },
+          attrs: { circle: { magnet: true }, text: { display: 'none' } },
+        },
+        {
+          id: 'out',
+          args: { x: NODE_WIDTH / 2, y: NODE_HEIGHT },
+          attrs: { circle: { magnet: true }, text: { display: 'none' } },
+        },
+      ],
+    },
   },
   '3': {
     x: 150,
     y: 250,
+    ports: {
+      items: [
+        {
+          id: 'in',
+          args: { x: NODE_WIDTH / 2, y: 0 },
+          attrs: { circle: { magnet: true }, text: { display: 'none' } },
+        },
+        {
+          id: 'out',
+          args: { x: NODE_WIDTH / 2, y: NODE_HEIGHT },
+          attrs: { circle: { magnet: true }, text: { display: 'none' } },
+        },
+      ],
+    },
   },
 };
 
-function NodeElement(_props: GraphElement) {
+function NodeElement(_props: Readonly<GraphElement>) {
   const id = useCellId();
   const rectRef = useRef<SVGRectElement>(null);
   const { width, height } = useNodeSize(rectRef);
@@ -105,30 +159,6 @@ function NodeElement(_props: GraphElement) {
       <TextNode fill="white" x={width / 2} y={height / 2 + 4} textAnchor="middle" fontSize={16}>
         {id}
       </TextNode>
-      <Port.Group id="in" position="top" x={NODE_WIDTH / 2 - PORT_SIZE / 2} y={-PORT_SIZE / 2}>
-        <Port.Item id="port1">
-          <rect
-            width={PORT_SIZE}
-            height={PORT_SIZE}
-            rx={PORT_SIZE / 2}
-            ry={PORT_SIZE / 2}
-            fill={LIGHT}
-            strokeWidth={2}
-          />
-        </Port.Item>
-      </Port.Group>
-      <Port.Group id="out" position="bottom" x={NODE_WIDTH / 2 - PORT_SIZE / 2} dy={-PORT_SIZE / 2}>
-        <Port.Item id="port2">
-          <rect
-            width={PORT_SIZE}
-            height={PORT_SIZE}
-            rx={PORT_SIZE / 2}
-            ry={PORT_SIZE / 2}
-            fill={LIGHT}
-            strokeWidth={2}
-          />
-        </Port.Item>
-      </Port.Group>
     </>
   );
 }
@@ -153,7 +183,7 @@ function Main() {
         if (cellViewS === cellViewT) return false;
         if (!magnetS || !magnetT) return false;
         // Prevent linking to output ports.
-        return magnetT.getAttribute('port-group') === 'in';
+        return magnetT.getAttribute('port') === 'in';
       }}
       onLinkMouseEnter={({ linkView }) => linkView.addTools(toolsView)}
       onLinkMouseLeave={({ linkView }) => linkView.removeTools()}
@@ -190,7 +220,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={elements}>
+    <GraphProvider elements={elements} mapDataToElementAttributes={mapDataToElementAttributes}>
       <Main />
     </GraphProvider>
   );

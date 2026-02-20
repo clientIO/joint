@@ -1,6 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { dia } from '@joint/core';
-import { GraphLink, GraphProvider, Paper, useNodeSize, type GraphElement } from '@joint/react';
+import type { dia } from '@joint/core';
+import type { GraphLink } from '@joint/react';
+import { GraphProvider, Paper, useNodeSize, type GraphElement } from '@joint/react';
 import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
@@ -10,28 +11,28 @@ interface ContainerElement extends GraphElement {
 }
 
 const elements: Record<string, ContainerElement> = {
-  'container': {
+  container: {
     x: 50,
     y: 50,
     width: 300,
     height: 200,
     label: 'Container',
     isContainer: true,
-    z: 1
+    z: 1,
   },
   'child-1': {
     x: 70,
     y: 80,
     label: 'Child 1',
     parent: 'container',
-    z: 2
+    z: 2,
   },
   'child-2': {
     x: 200,
     y: 80,
     label: 'Child 2',
     parent: 'container',
-    z: 2
+    z: 2,
   },
 };
 
@@ -41,7 +42,7 @@ const links: Record<string, GraphLink> = {
     target: { id: 'child-2' },
     parent: 'container',
     color: 'white',
-    z: 2
+    z: 2,
   },
 };
 
@@ -58,13 +59,7 @@ function ContainerElement({ label, width, height }: Readonly<ContainerElement>) 
         strokeWidth={2}
         strokeDasharray="5,5"
       />
-      <text
-        x={10}
-        y={20}
-        fill={PRIMARY}
-        fontSize={12}
-        fontWeight="bold"
-      >
+      <text x={10} y={20} fill={PRIMARY} fontSize={12} fontWeight="bold">
         {label}
       </text>
     </g>
@@ -97,7 +92,7 @@ function ChildElement({ label }: Readonly<ContainerElement>) {
   );
 }
 
-function RenderElement(props: ContainerElement) {
+function RenderElement(props: Readonly<ContainerElement>) {
   if (props.isContainer) {
     return <ContainerElement {...props} />;
   }
@@ -115,7 +110,6 @@ function validateParentChildRelationship(
 function Main() {
   return (
     <Paper
-      width="100%"
       height={350}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
@@ -130,8 +124,8 @@ function Main() {
               stroke: SECONDARY,
               strokeWidth: 2,
               strokeLinejoin: 'round',
-            }
-          }
+            },
+          },
         },
       }}
     />

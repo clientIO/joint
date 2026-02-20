@@ -9,9 +9,22 @@ import { elementTools, g } from '@joint/core';
 // Type Definitions
 // ----------------------------------------------------------------------------
 type ElementType =
-  | 'linkedProcess' | 'input' | 'mark' | 'actor' | 'shipment'
-  | 'parallelogram' | 'hexagon' | 'step' | 'trapezoid' | 'document'
-  | 'plus' | 'arrow' | 'note' | 'table' | 'cube' | 'card';
+  | 'linkedProcess'
+  | 'input'
+  | 'mark'
+  | 'actor'
+  | 'shipment'
+  | 'parallelogram'
+  | 'hexagon'
+  | 'step'
+  | 'trapezoid'
+  | 'document'
+  | 'plus'
+  | 'arrow'
+  | 'note'
+  | 'table'
+  | 'cube'
+  | 'card';
 
 interface BaseElement extends GraphElement {
   type: ElementType;
@@ -70,28 +83,90 @@ function pos(index: number, w: number, h: number) {
 // Initial Elements
 // ----------------------------------------------------------------------------
 const initialElements: Record<string, ControlledElement> = {
-  'linkedProcess': { type: 'linkedProcess', label: 'Linked Process', ...pos(0, 120, 50), width: 120, height: 50 },
-  'input': { type: 'input', label: 'Input', ...pos(1, 100, 50), width: 100, height: 50 },
-  'mark': { type: 'mark', label: 'Mark', ...pos(2, 120, 50), width: 120, height: 50 },
-  'actor': { type: 'actor', label: 'Actor', ...pos(3, 50, 100), width: 50, height: 100 },
-  'parallelogram': { type: 'parallelogram', label: 'Parallelogram', ...pos(4, 80, 60), width: 80, height: 60, offset: 10 },
-  'hexagon': { type: 'hexagon', label: 'Hexagon', ...pos(5, 90, 60), width: 90, height: 60, offset: 20 },
-  'step': { type: 'step', label: 'Step', ...pos(6, 90, 60), width: 90, height: 60, offset: 20 },
-  'trapezoid': { type: 'trapezoid', label: 'Trapezoid', ...pos(7, 120, 60), width: 120, height: 60, offset: 20 },
-  'document': { type: 'document', label: 'Document', ...pos(8, 120, 50), width: 120, height: 50, offset: 20 },
-  'shipment': { type: 'shipment', label: 'Shipment', ...pos(9, 70, 50), width: 70, height: 50 },
-  'plus': { type: 'plus', label: 'Plus', ...pos(10, 70, 70), width: 70, height: 70, offset: 20 },
-  'arrow': { type: 'arrow', label: 'Arrow', ...pos(11, 100, 100), width: 100, height: 100, arrowHeight: 33, thickness: 33 },
-  'note': { type: 'note', label: 'Note', ...pos(12, 100, 100), width: 100, height: 100, offset: 20 },
-  'table': { type: 'table', label: 'Table', ...pos(13, 100, 100), width: 100, height: 100, dividerX: 25, dividerY: 25 },
-  'cube': { type: 'cube', label: 'Cube', ...pos(14, 100, 100), width: 100, height: 100, cornerX: 100 / 3, cornerY: 40 },
-  'card': { type: 'card', label: 'Card', ...pos(15, 100, 60), width: 100, height: 60, offset: 20 },
+  linkedProcess: {
+    type: 'linkedProcess',
+    label: 'Linked Process',
+    ...pos(0, 120, 50),
+    width: 120,
+    height: 50,
+  },
+  input: { type: 'input', label: 'Input', ...pos(1, 100, 50), width: 100, height: 50 },
+  mark: { type: 'mark', label: 'Mark', ...pos(2, 120, 50), width: 120, height: 50 },
+  actor: { type: 'actor', label: 'Actor', ...pos(3, 50, 100), width: 50, height: 100 },
+  parallelogram: {
+    type: 'parallelogram',
+    label: 'Parallelogram',
+    ...pos(4, 80, 60),
+    width: 80,
+    height: 60,
+    offset: 10,
+  },
+  hexagon: {
+    type: 'hexagon',
+    label: 'Hexagon',
+    ...pos(5, 90, 60),
+    width: 90,
+    height: 60,
+    offset: 20,
+  },
+  step: { type: 'step', label: 'Step', ...pos(6, 90, 60), width: 90, height: 60, offset: 20 },
+  trapezoid: {
+    type: 'trapezoid',
+    label: 'Trapezoid',
+    ...pos(7, 120, 60),
+    width: 120,
+    height: 60,
+    offset: 20,
+  },
+  document: {
+    type: 'document',
+    label: 'Document',
+    ...pos(8, 120, 50),
+    width: 120,
+    height: 50,
+    offset: 20,
+  },
+  shipment: { type: 'shipment', label: 'Shipment', ...pos(9, 70, 50), width: 70, height: 50 },
+  plus: { type: 'plus', label: 'Plus', ...pos(10, 70, 70), width: 70, height: 70, offset: 20 },
+  arrow: {
+    type: 'arrow',
+    label: 'Arrow',
+    ...pos(11, 100, 100),
+    width: 100,
+    height: 100,
+    arrowHeight: 33,
+    thickness: 33,
+  },
+  note: { type: 'note', label: 'Note', ...pos(12, 100, 100), width: 100, height: 100, offset: 20 },
+  table: {
+    type: 'table',
+    label: 'Table',
+    ...pos(13, 100, 100),
+    width: 100,
+    height: 100,
+    dividerX: 25,
+    dividerY: 25,
+  },
+  cube: {
+    type: 'cube',
+    label: 'Cube',
+    ...pos(14, 100, 100),
+    width: 100,
+    height: 100,
+    cornerX: 100 / 3,
+    cornerY: 40,
+  },
+  card: { type: 'card', label: 'Card', ...pos(15, 100, 60), width: 100, height: 60, offset: 20 },
 };
 
 // ----------------------------------------------------------------------------
 // Label Component
 // ----------------------------------------------------------------------------
-function Label({ width, height, label }: Readonly<{ width: number; height: number; label: string }>) {
+function Label({
+  width,
+  height,
+  label,
+}: Readonly<{ width: number; height: number; label: string }>) {
   return (
     <text
       textAnchor="middle"
@@ -297,18 +372,19 @@ function NoteShape({ width, height, offset = 0, label }: Readonly<OffsetElement>
         stroke="#333333"
         strokeWidth={2}
       />
-      <path
-        d={`M 0 ${o} H ${o} V 0`}
-        fill="none"
-        stroke="#333333"
-        strokeWidth={2}
-      />
+      <path d={`M 0 ${o} H ${o} V 0`} fill="none" stroke="#333333" strokeWidth={2} />
       <Label width={width} height={height} label={label} />
     </>
   );
 }
 
-function TableShape({ width, height, dividerX = 25, dividerY = 25, label }: Readonly<TableElement>) {
+function TableShape({
+  width,
+  height,
+  dividerX = 25,
+  dividerY = 25,
+  label,
+}: Readonly<TableElement>) {
   const dx = Math.max(0, Math.min(dividerX, width));
   const dy = Math.max(0, Math.min(dividerY, height));
   return (
@@ -386,8 +462,11 @@ class ParallelogramOffsetControl extends elementTools.Control {
   protected getPosition(view: dia.ElementView) {
     const { model } = view;
     const { width, height } = model.size();
-    const controlLevel = height * 1 / 3;
-    const offsetSide = new g.Line(new g.Point(model.prop('data/offset'), 0), new g.Point(0, height));
+    const controlLevel = (height * 1) / 3;
+    const offsetSide = new g.Line(
+      new g.Point(model.prop('data/offset'), 0),
+      new g.Point(0, height)
+    );
     const levelLine = new g.Line(new g.Point(0, controlLevel), new g.Point(width, controlLevel));
     const controlPoint = offsetSide.intersect(levelLine);
     if (controlPoint) return controlPoint;
@@ -440,8 +519,11 @@ class TrapezoidOffsetControl extends elementTools.Control {
   protected getPosition(view: dia.ElementView) {
     const { model } = view;
     const { width, height } = model.size();
-    const controlLevel = height * 1 / 4;
-    const offsetSide = new g.Line(new g.Point(model.prop('data/offset'), 0), new g.Point(0, height));
+    const controlLevel = (height * 1) / 4;
+    const offsetSide = new g.Line(
+      new g.Point(model.prop('data/offset'), 0),
+      new g.Point(0, height)
+    );
     const levelLine = new g.Line(new g.Point(0, controlLevel), new g.Point(width, controlLevel));
     const controlPoint = offsetSide.intersect(levelLine);
     return controlPoint ?? { x: 0, y: controlLevel };
@@ -553,7 +635,7 @@ class CubeCornerControl extends elementTools.Control {
 
   protected setPosition(view: dia.ElementView, coordinates: dia.Point) {
     const { width, height } = view.model.size();
-    const defaultAspect = (100 / 3) / 40;
+    const defaultAspect = 100 / 3 / 40;
     const xFromX = Math.max(0, Math.min(coordinates.x, width));
     const xFromY = Math.max(0, Math.min(coordinates.y, height)) * defaultAspect;
     const x = Math.min(xFromX, xFromY);
@@ -581,23 +663,57 @@ class CardOffsetControl extends elementTools.Control {
 // ----------------------------------------------------------------------------
 function renderElement(element: ControlledElement) {
   switch (element.type) {
-    case 'linkedProcess': { return <LinkedProcess {...element} />; }
-    case 'input': { return <InputShape {...element} />; }
-    case 'mark': { return <MarkShape {...element} />; }
-    case 'actor': { return <ActorShape {...element} />; }
-    case 'parallelogram': { return <Parallelogram {...element} />; }
-    case 'hexagon': { return <Hexagon {...element} />; }
-    case 'step': { return <StepShape {...element} />; }
-    case 'trapezoid': { return <TrapezoidShape {...element} />; }
-    case 'document': { return <DocumentShape {...element} />; }
-    case 'shipment': { return <ShipmentShape {...element} />; }
-    case 'plus': { return <PlusShape {...element} />; }
-    case 'arrow': { return <Arrow {...element} />; }
-    case 'note': { return <NoteShape {...element} />; }
-    case 'table': { return <TableShape {...element} />; }
-    case 'cube': { return <CubeShape {...element} />; }
-    case 'card': { return <CardShape {...element} />; }
-    default: { return null; }
+    case 'linkedProcess': {
+      return <LinkedProcess {...element} />;
+    }
+    case 'input': {
+      return <InputShape {...element} />;
+    }
+    case 'mark': {
+      return <MarkShape {...element} />;
+    }
+    case 'actor': {
+      return <ActorShape {...element} />;
+    }
+    case 'parallelogram': {
+      return <Parallelogram {...element} />;
+    }
+    case 'hexagon': {
+      return <Hexagon {...element} />;
+    }
+    case 'step': {
+      return <StepShape {...element} />;
+    }
+    case 'trapezoid': {
+      return <TrapezoidShape {...element} />;
+    }
+    case 'document': {
+      return <DocumentShape {...element} />;
+    }
+    case 'shipment': {
+      return <ShipmentShape {...element} />;
+    }
+    case 'plus': {
+      return <PlusShape {...element} />;
+    }
+    case 'arrow': {
+      return <Arrow {...element} />;
+    }
+    case 'note': {
+      return <NoteShape {...element} />;
+    }
+    case 'table': {
+      return <TableShape {...element} />;
+    }
+    case 'cube': {
+      return <CubeShape {...element} />;
+    }
+    case 'card': {
+      return <CardShape {...element} />;
+    }
+    default: {
+      return null;
+    }
   }
 }
 

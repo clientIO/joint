@@ -76,9 +76,7 @@ function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback((data) => {
     return <Card label={data.label} />;
   }, []);
-  return (
-    <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
-  );
+  return <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />;
 }
 
 export default function App() {

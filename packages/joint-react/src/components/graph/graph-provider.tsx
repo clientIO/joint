@@ -27,7 +27,7 @@ interface GraphProviderProps<
    * **Uncontrolled mode:** If `onElementsChange` is not provided, this is only used for initial elements.
    * The graph manages its own state internally.
    */
-  readonly elements?: Record<dia.Cell.ID, Element>;
+  readonly elements?: Record<string, Element>;
 
   /**
    * Links (edges) to be added to the graph as a Record keyed by cell ID.
@@ -38,7 +38,7 @@ interface GraphProviderProps<
    * **Uncontrolled mode:** If `onLinksChange` is not provided, this is only used for initial links.
    * The graph manages its own state internally.
    */
-  readonly links?: Record<dia.Cell.ID, Link>;
+  readonly links?: Record<string, Link>;
 
   /**
    * Callback triggered when elements (nodes) change in the graph.
@@ -52,7 +52,7 @@ interface GraphProviderProps<
    * - State persistence
    * - Integration with other React state management
    */
-  readonly onElementsChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, Element>>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<string, Element>>>;
 
   /**
    * Callback triggered when links (edges) change in the graph.

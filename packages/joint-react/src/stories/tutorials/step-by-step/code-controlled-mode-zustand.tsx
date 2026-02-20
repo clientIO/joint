@@ -243,7 +243,7 @@ function PaperApp() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Paper width="100%" className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
+      <Paper className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
       {/* Dark-themed controls */}
       <div className="flex flex-wrap gap-2 justify-start p-4 bg-gray-800 rounded-lg border border-gray-700">
         <button
@@ -320,6 +320,3 @@ function Main(props: Readonly<GraphProps>) {
 export default function App(props: Readonly<GraphProps>) {
   return <Main {...props} />;
 }
-
-
-

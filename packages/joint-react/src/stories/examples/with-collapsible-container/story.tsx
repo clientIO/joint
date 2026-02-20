@@ -7,28 +7,14 @@ import CodeRaw from './code?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
-  title: 'Examples/Highlighter',
+  title: 'Examples/Collapsible Containers',
   component: Code,
   tags: ['example'],
   parameters: makeRootDocumentation({
     code: CodeRaw,
+    description:
+      'Container elements with collapse/expand functionality, nested containers, parent-child embedding, and automatic container resizing.',
   }),
 } satisfies Meta<typeof Code>;
 
-export const Mask: Story = {
-  args: {
-    variant: 'mask',
-  },
-};
-
-export const Opacity: Story = {
-  args: {
-    variant: 'opacity',
-  },
-};
-
-export const Custom: Story = {
-  args: {
-    variant: 'custom',
-  },
-};
+export const Default: Story = {};

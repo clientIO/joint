@@ -5,3 +5,4 @@ export type RemoveIndexSignature<T> = {
 export type OmitWithoutIndexSignature<T, K extends keyof T> = Omit<RemoveIndexSignature<T>, K>;
 
 export * from './event.types';
+export * from './port.types';
