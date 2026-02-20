@@ -604,7 +604,7 @@ function renderElement(element: ControlledElement) {
 // ----------------------------------------------------------------------------
 // Add Element Controls
 // ----------------------------------------------------------------------------
-const controlMap: Record<string, () => elementTools.Control> = {
+const controlMap: Partial<Record<ElementType, () => elementTools.Control>> = {
   parallelogram: () => new ParallelogramOffsetControl(),
   hexagon: () => new HexagonOffsetControl(),
   step: () => new StepOffsetControl(),
@@ -620,7 +620,7 @@ const controlMap: Record<string, () => elementTools.Control> = {
 
 function addElementControls({ paper, graph }: OnLoadOptions) {
   for (const element of graph.getElements()) {
-    const type = element.prop('data/type') as string;
+    const type = element.prop('data/type') as ElementType;
     const factory = controlMap[type];
     if (!factory) continue;
     const toolsView = new dia.ToolsView({ tools: [factory()] });
