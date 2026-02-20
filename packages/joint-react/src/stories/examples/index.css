@@ -76,6 +76,26 @@ body {
   top: 5px;
 }
 
+.header {
+  cursor: grab;
+}
+
+.header:active {
+  cursor: grabbing;
+}
+
+.item {
+  cursor: crosshair;
+}
+
+.item:hover .item__bg {
+  fill: #1a2938;
+}
+
+.item:hover text {
+  fill: #ffffff;
+}
+
 .fade-in {
   transition: opacity 0.3s ease-in;
   opacity: 1;

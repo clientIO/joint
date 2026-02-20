@@ -13,7 +13,7 @@ export interface OnLoadOptions {
 
 type ReactPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
-  'frozen' | 'defaultLink' | 'autoFreeze' | 'viewManagement'
+  'frozen' | 'defaultLink' | 'autoFreeze' | 'viewManagement' | 'measureNode'
 >;
 export interface ReactPaperOptions extends ReactPaperOptionsBase {
   /**

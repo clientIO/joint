@@ -12,6 +12,11 @@ import type {
 import type { PaperStore } from './paper-store';
 
 /**
+ * Default point used as fallback when position is not available.
+ */
+const DEFAULT_POINT = { x: 0, y: 0 } as const;
+
+/**
  * GOLDEN RULE: All setState calls must happen through these flush functions.
  * This module isolates state mutations to ensure they only happen in scheduler's onFlush.
  *
@@ -116,7 +121,7 @@ export function flushLayoutState(options: FlushLayoutStateOptions): void {
 
   for (const element of elements) {
     const size = element.get('size');
-    const position = element.get('position') ?? { x: 0, y: 0 };
+    const position = element.get('position') ?? DEFAULT_POINT;
     const angle = element.get('angle') ?? 0;
     if (!size) continue;
 
@@ -153,8 +158,8 @@ export function flushLayoutState(options: FlushLayoutStateOptions): void {
         const linkView = paper.findViewByModel(link) as dia.LinkView | null;
         if (!linkView) continue;
 
-        const sourcePoint = linkView.sourcePoint ?? { x: 0, y: 0 };
-        const targetPoint = linkView.targetPoint ?? { x: 0, y: 0 };
+        const sourcePoint = linkView.sourcePoint ?? DEFAULT_POINT;
+        const targetPoint = linkView.targetPoint ?? DEFAULT_POINT;
         const d = linkView.getSerializedConnection?.() ?? '';
 
         const newLinkLayout: LinkLayout = {
