@@ -8,8 +8,13 @@ import { elementTools, g } from '@joint/core';
 // ----------------------------------------------------------------------------
 // Type Definitions
 // ----------------------------------------------------------------------------
+type ElementType =
+  | 'linkedProcess' | 'input' | 'mark' | 'actor' | 'shipment'
+  | 'parallelogram' | 'hexagon' | 'step' | 'trapezoid' | 'document'
+  | 'plus' | 'arrow' | 'note' | 'table' | 'cube' | 'card';
+
 interface BaseElement extends GraphElement {
-  type: string;
+  type: ElementType;
   label: string;
   width: number;
   height: number;
