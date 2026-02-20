@@ -12,6 +12,7 @@ import {
   ReactElement,
   usePaper,
   useCellId,
+  ReactLink,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
@@ -218,7 +219,8 @@ export default function App() {
   const graph = new dia.Graph({}, {
     cellNamespace: {
       ...shapes,
-      ReactElement: MyReactElement
+      ReactElement: MyReactElement,
+      ReactLink
     }
   });
   return (
