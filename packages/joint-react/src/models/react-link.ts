@@ -31,18 +31,55 @@ export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
       attrs: {
         wrapper: {
           connection: true,
-          strokeWidth: 10,
-          strokeLinejoin: 'round',
         },
         line: {
           connection: true,
-          stroke: '#333333',
-          strokeWidth: 2,
-          strokeLinejoin: 'round',
-        },
-      },
+        }
+      }
     } as unknown as dia.Link.Attributes & Attributes;
   }
+
+  defaultLabel: dia.Link.Label = {
+    markup: [
+      {
+        tagName: 'rect',
+        selector: 'labelBody',
+        attributes: {
+          fill: '#ffffff',
+          stroke: '#333333',
+          strokeWidth: 1,
+          rx: 4,
+          ry: 4,
+        }
+      },
+      {
+        tagName: 'text',
+        selector: 'labelText',
+        attributes: {
+          fill: '#333333',
+          fontSize: 12,
+          fontFamily: 'sans-serif',
+          textAnchor: 'middle',
+          pointerEvents: 'none',
+        }
+      },
+    ],
+    attrs: {
+      labelText: {
+        textVerticalAnchor: 'middle',
+      },
+      labelBody: {
+        ref: 'labelText',
+        x: 'calc(x - 4)',
+        y: 'calc(y - 2)',
+        width: 'calc(w + 8)',
+        height: 'calc(h + 4)',
+      },
+    },
+    position: {
+      distance: 0.5,
+    },
+  };
 
   markup: dia.MarkupJSON = [
     {
@@ -52,7 +89,9 @@ export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
         fill: 'none',
         cursor: 'pointer',
         stroke: 'transparent',
-        'stroke-linecap': 'round',
+        strokeLinecap: 'round',
+        strokeWidth: 10,
+        strokeLinejoin: 'round'
       },
     },
     {
@@ -60,7 +99,10 @@ export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
       selector: 'line',
       attributes: {
         fill: 'none',
-        'pointer-events': 'none',
+        pointerEvents: 'none',
+        stroke: '#333333',
+        strokeWidth: 2,
+        strokeLinejoin: 'round',
       },
     },
   ];

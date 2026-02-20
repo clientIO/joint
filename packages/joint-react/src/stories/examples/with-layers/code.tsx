@@ -7,6 +7,7 @@ import {
   GraphProvider,
   Paper,
   ReactElement,
+  ReactLink,
   useNodeSize,
   type GraphElement,
   type GraphLink,
@@ -229,6 +230,7 @@ export default function App() {
         cellNamespace: {
           ...shapes,
           ReactElement,
+          ReactLink,
           standard: {
             ...shapes.standard,
             Link: FadingLink,

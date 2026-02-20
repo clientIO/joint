@@ -9,6 +9,36 @@ export interface StandardLinkShapesTypeMapper {
 
 export type StandardLinkShapesType = keyof StandardLinkShapesTypeMapper;
 /**
+ * Simplified label definition for graph links.
+ * @group Graph
+ */
+export interface GraphLinkLabel {
+  /**
+   * Label text content.
+   */
+  readonly text: string;
+  /**
+   * Position along the link. A number between 0 and 1 is a ratio,
+   * a number greater than 1 is an absolute distance in pixels.
+   */
+  readonly position?: number;
+  /**
+   * Text color.
+   */
+  readonly color?: string;
+  /**
+   * Background color of the label rectangle.
+   */
+  readonly backgroundColor?: string;
+  /**
+   * Padding between the text and the background rectangle.
+   * A single number applies uniform padding, or use `{ x, y }` for horizontal/vertical.
+   * @default { x: 4, y: 2 }
+   */
+  readonly backgroundPadding?: number | { readonly x: number; readonly y: number };
+}
+
+/**
  * Base interface for graph link.
  * It's a subset of `dia.Link` with some additional properties.
  * @group Graph
@@ -47,7 +77,7 @@ export interface GraphLink extends Record<string, unknown> {
   /**
    * Link labels.
    */
-  readonly labels?: dia.Link.Label[];
+  readonly labels?: GraphLinkLabel[];
   /**
    * Link vertices (waypoints).
    */

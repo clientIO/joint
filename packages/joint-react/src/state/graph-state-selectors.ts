@@ -1,10 +1,11 @@
 import type { attributes } from '@joint/core';
 import { type dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
-import type { GraphLink } from '../types/link-types';
+import type { GraphLink, GraphLinkLabel } from '../types/link-types';
 import { getTargetOrSource } from '../utils/cell/get-link-targe-and-source-ids';
 import { REACT_TYPE } from '../models/react-element';
 import { DEFAULT_LINK_THEME, resolveMarker } from '../theme/link-theme';
+import { REACT_LINK_TYPE, ReactLink } from '../models/react-link';
 
 export interface ElementToGraphOptions<Element extends GraphElement> {
   readonly id: string;
@@ -179,6 +180,47 @@ export function createDefaultGraphToElementMapper<Element extends GraphElement>(
 }
 
 /**
+ * Converts a simplified GraphLinkLabel into a JointJS dia.Link.Label
+ * using the ReactLink's defaultLabel selectors (labelText, labelBody).
+ */
+function convertLabel(label: GraphLinkLabel): dia.Link.Label {
+  const { text, position, color, backgroundColor, backgroundPadding } = label;
+
+  const labelTextAttributes: Record<string, unknown> = {
+    text,
+  };
+  if (color) {
+    labelTextAttributes.fill = color;
+  }
+
+  const labelBodyAttributes: Record<string, unknown> = {};
+  if (backgroundColor) {
+    labelBodyAttributes.fill = backgroundColor;
+  }
+  if (backgroundPadding !== undefined) {
+    const px = typeof backgroundPadding === 'number' ? backgroundPadding : backgroundPadding.x;
+    const py = typeof backgroundPadding === 'number' ? backgroundPadding : backgroundPadding.y;
+    labelBodyAttributes.x = `calc(x - ${px})`;
+    labelBodyAttributes.y = `calc(y - ${py})`;
+    labelBodyAttributes.width = `calc(w + ${px * 2})`;
+    labelBodyAttributes.height = `calc(h + ${py * 2})`;
+  }
+
+  const result: dia.Link.Label = {
+    attrs: {
+      labelText: labelTextAttributes,
+      labelBody: labelBodyAttributes,
+    },
+  };
+
+  if (position !== undefined) {
+    result.position = { distance: position };
+  }
+
+  return result;
+}
+
+/**
  * Creates the default mapper function for link to graph conversion.
  * Extracts styling properties and applies theme defaults.
  * Separates user data into the `data` property.
@@ -248,7 +290,7 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
 
     const attributes: dia.Cell.JSON = {
       id,
-      type: 'standard.Link',
+      type: REACT_LINK_TYPE,
       source,
       target,
       attrs: {
@@ -269,7 +311,7 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
     if (layer !== undefined) attributes.layer = layer;
     if (markup !== undefined) attributes.markup = markup;
     if (defaultLabel !== undefined) attributes.defaultLabel = defaultLabel;
-    if (labels !== undefined) attributes.labels = labels;
+    if (Array.isArray(labels)) attributes.labels = labels.map(convertLabel);
     if (vertices !== undefined) attributes.vertices = vertices;
     if (router !== undefined) attributes.router = router;
     if (connector !== undefined) attributes.connector = connector;
