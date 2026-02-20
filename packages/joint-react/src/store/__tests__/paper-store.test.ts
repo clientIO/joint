@@ -83,6 +83,62 @@ describe('PaperStore', () => {
       expect(currentScale.sx).toBe(2);
       expect(currentScale.sy).toBe(2);
     });
+
+    it('should enable visible magnet highlighting while dragging links by default', () => {
+      const graph = new dia.Graph();
+      const graphStore = new GraphStore({ graph });
+      const paperElement = document.createElement('div');
+
+      const paperStore = new PaperStore({
+        graphStore,
+        paperElement,
+        paperOptions: {},
+        id: 'test-paper',
+      });
+
+      const { highlighting } = paperStore.paper.options;
+      expect(highlighting).not.toBe(false);
+      expect(paperStore.paper.options.markAvailable).toBe(true);
+      expect((highlighting as Record<string, unknown>)?.magnetAvailability).toMatchObject({
+        name: 'stroke',
+        options: {
+          attrs: {
+            stroke: '#DDE6ED',
+            'stroke-width': 2,
+          },
+          padding: 4,
+        },
+      });
+    });
+
+    it('should allow overriding markAvailable and magnetAvailability highlighting', () => {
+      const graph = new dia.Graph();
+      const graphStore = new GraphStore({ graph });
+      const paperElement = document.createElement('div');
+
+      const paperStore = new PaperStore({
+        graphStore,
+        paperElement,
+        paperOptions: {
+          markAvailable: false,
+          highlighting: {
+            magnetAvailability: {
+              name: 'addClass',
+              options: { className: 'custom-available-magnet' },
+            },
+          },
+        },
+        id: 'test-paper',
+      });
+
+      const { highlighting } = paperStore.paper.options;
+      expect(highlighting).not.toBe(false);
+      expect(paperStore.paper.options.markAvailable).toBe(false);
+      expect((highlighting as Record<string, unknown>)?.magnetAvailability).toMatchObject({
+        name: 'addClass',
+        options: { className: 'custom-available-magnet' },
+      });
+    });
   });
 
   describe('destroy', () => {

@@ -386,6 +386,26 @@ describe('ReactPaper', () => {
       expect(pendingLinks.has(link.id as string)).toBe(true);
     });
 
+    it('should keep link visible while dragging when one end is a point', () => {
+      paper = createPaper();
+
+      const sourceElement = new shapes.standard.Rectangle({
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      const dragLink = new shapes.standard.Link({
+        source: { id: sourceElement.id },
+        target: { x: 240, y: 160 },
+      });
+      graphStore.graph.addCells([sourceElement, dragLink]);
+
+      const pendingLinks = getPendingLinks(paper);
+      const linkView = linkCache.linkViews[dragLink.id];
+
+      expect(linkView.el.style.visibility).toBe('');
+      expect(pendingLinks.has(dragLink.id as string)).toBe(false);
+    });
+
     it('should show link when source and target elements have children', () => {
       paper = createPaper();
 

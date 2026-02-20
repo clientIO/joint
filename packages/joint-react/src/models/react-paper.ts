@@ -50,6 +50,17 @@ export class ReactPaper extends dia.Paper {
   }
 
   /**
+   * Check whether a link end can be rendered immediately.
+   * Endpoints defined as coordinates do not depend on element view readiness.
+   * @param end - Link endpoint descriptor.
+   * @returns true when the endpoint is ready for link rendering.
+   */
+  private isLinkEndReady(end: dia.Link.EndJSON): boolean {
+    if (!end.id) return true;
+    return this.isElementReady(end.id as dia.Cell.ID);
+  }
+
+  /**
    * Check pending links and show them if their source/target are ready.
    * Called after React renders element content.
    */
@@ -67,10 +78,7 @@ export class ReactPaper extends dia.Paper {
       }
 
       const link = linkView.model;
-      const sourceId = link.source().id as dia.Cell.ID;
-      const targetId = link.target().id as dia.Cell.ID;
-
-      if (this.isElementReady(sourceId) && this.isElementReady(targetId)) {
+      if (this.isLinkEndReady(link.source()) && this.isLinkEndReady(link.target())) {
         linksToShow.push(linkId);
       }
     }
@@ -132,12 +140,8 @@ export class ReactPaper extends dia.Paper {
     } else if (view.model.isLink()) {
       const linkView = view as dia.LinkView;
       const link = linkView.model;
-      const sourceId = link.source().id as dia.Cell.ID;
-      const targetId = link.target().id as dia.Cell.ID;
-
-      // Check if source/target elements have rendered their React content
-      const isSourceReady = this.isElementReady(sourceId);
-      const isTargetReady = this.isElementReady(targetId);
+      const isSourceReady = this.isLinkEndReady(link.source());
+      const isTargetReady = this.isLinkEndReady(link.target());
 
       if (!isSourceReady || !isTargetReady) {
         // Hide link until source/target are ready

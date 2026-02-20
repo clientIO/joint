@@ -9,6 +9,32 @@ import { ReactPaper } from '../models/react-paper';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 const DEFAULT_CONNECTION_POINT = { name: 'rectangle', args: { useModelGeometry: true } };
+type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
+
+const DEFAULT_PORT_HIGHLIGHTING: PaperHighlighting = {
+  [dia.CellView.Highlighting.DEFAULT]: {
+    name: 'stroke',
+    options: {
+      padding: 3,
+    },
+  },
+  [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
+    name: 'stroke',
+    options: {
+      padding: 4,
+      attrs: {
+        stroke: '#DDE6ED',
+        'stroke-width': 2,
+      },
+    },
+  },
+  [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
+    name: 'addClass',
+    options: {
+      className: 'available-cell',
+    },
+  },
+};
 /**
  * Default measureNode function that uses the model's bounding box for the root element node.
  * For sub-nodes (e.g. port magnets), falls back to the native SVG bounding box.
@@ -166,6 +192,18 @@ export class PaperStore {
     } = options;
     const { width, height } = paperOptions;
     const { graph } = graphStore;
+    const hasHighlightingOverride = typeof paperOptions.highlighting === 'object';
+    const highlightingOverride = hasHighlightingOverride
+      ? (paperOptions.highlighting as PaperHighlighting)
+      : undefined;
+
+    const mergedHighlighting: dia.Paper.Options['highlighting'] =
+      paperOptions.highlighting === false
+        ? false
+        : {
+            ...DEFAULT_PORT_HIGHLIGHTING,
+            ...highlightingOverride,
+          };
     this.paperId = id;
     this.renderElement = renderElement;
     this.renderLink = renderLink;
@@ -254,6 +292,8 @@ export class PaperStore {
       defaultConnectionPoint: DEFAULT_CONNECTION_POINT,
       measureNode: DEFAULT_MEASURE_NODE as unknown as dia.Paper.Options['measureNode'],
       ...paperOptions,
+      highlighting: mergedHighlighting,
+      markAvailable: paperOptions.markAvailable ?? true,
       clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
       autoFreeze: true,
       viewManagement: {
