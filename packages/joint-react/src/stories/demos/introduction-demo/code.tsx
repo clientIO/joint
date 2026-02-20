@@ -5,21 +5,21 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import React from 'react';
-import { dia, linkTools, shapes } from '@joint/core';
+import { dia, highlighters, linkTools, shapes } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
 import './index.css';
 import {
   GraphProvider,
-  Highlighter,
   Paper,
-  Port,
   useCellId,
   useElements,
   useGraph,
+  useHighlighter,
   useNodeSize,
   useLinks,
   type GraphElement,
   type GraphLink,
+  type ElementToGraphOptions,
   type PaperStore,
   type PaperProps,
   useNodeLayout,
@@ -52,6 +52,37 @@ type ElementWithSelected<T> = { readonly isSelected: boolean } & T;
 
 const BUTTON_CLASSNAME =
   'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm flex items-center';
+
+const TABLE_OUTPUT_PORTS = {
+  items: Array.from({ length: 3 }, (_, index) => ({
+    id: `out-3-${index}`,
+    args: { x: 400, y: index * 45 + 65 },
+    attrs: {
+      circle: {
+        magnet: true,
+        r: 10,
+        fill: 'transparent',
+        stroke: 'transparent',
+        'stroke-width': 16,
+        'pointer-events': 'all',
+      },
+      text: { display: 'none' },
+    },
+    z: 'auto' as const,
+  })),
+} as const;
+
+const mapDataToElementAttributes = ({
+  data,
+  defaultAttributes,
+}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
+  const result = defaultAttributes();
+  const { ports } = data as Element;
+  return {
+    ...result,
+    ...(ports && { ports }),
+  };
+};
 
 // Define static properties for the view's Paper - used by minimap and main view
 const PAPER_PROPS: PaperProps<Element> = {
@@ -105,6 +136,7 @@ const elements: Record<string, Element> = {
     ],
     width: 400,
     height: 200,
+    ports: TABLE_OUTPUT_PORTS,
   },
 };
 
@@ -191,58 +223,73 @@ function TableElement({
   height,
   isSelected,
 }: ElementWithSelected<TableElement>) {
-  const cellId = useCellId();
+  const tableWidth = width ?? 0;
+  const tableHeight = height ?? 0;
+  const highlighterRef = useRef<SVGForeignObjectElement | null>(null);
+  useHighlighter({
+      type: 'custom',
+      isEnabled: isSelected,
+      padding: 25,
+      rx: 5,
+      ry: 5,
+      attrs: {
+        stroke: LIGHT,
+        'stroke-width': 3,
+      },
+      create: ({ cellView, element, highlighterId, options }) => {
+        return highlighters.stroke.add(cellView, element, highlighterId, options);
+      },
+      ref: highlighterRef,
+    });
   return (
     <>
-      <Highlighter.Stroke
-        padding={25}
-        rx={5}
-        ry={5}
-        strokeWidth={3}
-        stroke={LIGHT}
-        isHidden={!isSelected}
-      >
-        <foreignObject width={width} height={height} overflow="visible">
-          <div
-            style={{ width, height }}
-            className="flex flex-col border-1 border-solid border-white/20 text-white rounded-lg p-4 w-full h-full bg-gray-900 shadow-sm"
-          >
-            <table className="w-full">
-              <thead>
-                <tr>
-                  {columnNames.map((name) => (
-                    <th key={name} className="text-left p-2">
-                      {name}
-                    </th>
+      <foreignObject ref={highlighterRef} width={tableWidth} height={tableHeight} overflow="visible">
+        <div
+          style={{ width: tableWidth, height: tableHeight }}
+          className="flex flex-col border-1 border-solid border-white/20 text-white rounded-lg p-4 w-full h-full bg-gray-900 shadow-sm"
+        >
+          <table className="w-full">
+            <thead>
+              <tr>
+                {columnNames.map((name) => (
+                  <th key={name} className="text-left p-2">
+                    {name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => (
+                <tr key={index}>
+                  {row.map((cell, cellIndex) => (
+                    <td key={cellIndex} className="p-2 border-t border-white/20 border-dashed">
+                      {cell}
+                    </td>
                   ))}
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, index) => (
-                  <tr key={index}>
-                    {row.map((cell, cellIndex) => (
-                      <td key={cellIndex} className="p-2 border-t border-white/20 border-dashed">
-                        {cell}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </foreignObject>
+      {rows.map((_, index) => (
+        <foreignObject
+          key={index}
+          x={tableWidth - 10}
+          y={index * ROW_HEIGHT + ROW_START - 10}
+          width={20}
+          height={20}
+          style={{ pointerEvents: 'none' }}
+          overflow="visible"
+        >
+          <div
+            style={{ pointerEvents: 'none' }}
+            className="flex flex-col items-center justify-center bg-white rounded-full w-5 h-5"
+          >
+            <i className="fa-solid fa-arrow-right text-black text-sm"></i>
           </div>
         </foreignObject>
-      </Highlighter.Stroke>
-      <Port.Group position="right" id="out" dx={-10}>
-        {rows.map((_, index) => (
-          <Port.Item key={index} id={`out-${cellId}-${index}`} y={index * ROW_HEIGHT + ROW_START}>
-            <foreignObject width={20} height={20} overflow="visible">
-              <div className="flex flex-col items-center justify-center bg-white rounded-full w-5 h-5">
-                <i className="fa-solid fa-arrow-right text-black text-sm"></i>
-              </div>
-            </foreignObject>
-          </Port.Item>
-        ))}
-      </Port.Group>
+      ))}
     </>
   );
 }
@@ -470,9 +517,25 @@ function Main() {
           ref={paperCtxRef}
           {...PAPER_PROPS}
           defaultLink={() => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { id, ...rest } = links['link2'];
-            return new shapes.standard.Link(rest as shapes.standard.LinkAttributes);
+            return new shapes.standard.Link({
+              attrs: {
+                line: {
+                  stroke: LIGHT,
+                  strokeWidth: 2,
+                  strokeDasharray: '5,5',
+                  targetMarker: {
+                    d: 'M 0 0 L 8 4 L 8 -4 Z',
+                  },
+                },
+              },
+              color: LIGHT,
+              width: 2,
+              className: 'link',
+              pattern: '5,5',
+              targetMarker: {
+                d: 'M 0 0 L 8 4 L 8 -4 Z',
+              },
+            } as shapes.standard.LinkAttributes);
           }}
           renderElement={renderElement}
           className={PAPER_CLASSNAME}
@@ -497,7 +560,11 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={elements} links={links}>
+    <GraphProvider
+      elements={elements}
+      links={links}
+      mapDataToElementAttributes={mapDataToElementAttributes}
+    >
       <Main />
     </GraphProvider>
   );

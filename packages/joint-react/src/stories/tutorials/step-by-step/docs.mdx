@@ -130,26 +130,36 @@ If you need full HTML support, enable the experimental `useHTMLOverlay` prop to 
 
 ### a. Ports
 
-Ports allow you to define named connection points on elements for links.
+Ports allow you to define named connection points directly on element data and map them via `mapDataToElementAttributes`.
 
 ```tsx
-function RenderNodeWithPorts({ label, width, height }) {
-  return (
-    <>
-      <rect width={width} height={height} fill="lightblue">
-        <title>{label}</title>
-      </rect>
-      <Port.Group id="ports" position="top">
-        <Port id="in">
-          <circle r={5} fill="red" />
-        </Port>
-        <Port id="out">
-          <circle r={5} fill="green" />
-        </Port>
-      </Port.Group>
-    </>
-  );
-}
+import { GraphProvider, type ElementToGraphOptions, type GraphElement } from '@joint/react';
+import type { dia } from '@joint/core';
+
+const elements = {
+  '1': {
+    x: 100,
+    y: 100,
+    ports: {
+      items: [
+        { id: 'in', args: { x: 12, y: -6 }, attrs: { circle: { magnet: true } } },
+        { id: 'out', args: { x: 60, y: 48 }, attrs: { circle: { magnet: true } } },
+      ],
+    },
+  },
+};
+
+const mapDataToElementAttributes = ({
+  data,
+  defaultAttributes,
+}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => ({
+  ...defaultAttributes(),
+  ...(data.ports && { ports: data.ports }),
+});
+
+<GraphProvider elements={elements} mapDataToElementAttributes={mapDataToElementAttributes}>
+  <Paper />
+</GraphProvider>;
 ```
 
 ### b. Customizing behavior

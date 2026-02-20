@@ -169,13 +169,8 @@ export class PaperStore {
       preventDefaultBlankAction: false,
       frozen: true,
       model: graph,
-      // 👇 override to always allow connection
-      validateConnection: () => true,
-      // 👇 also, allow links to start or end on empty space
-      validateMagnet: () => true,
-      // 👇 capture port elements after render for React portals
       afterRender: (() => {
-        // Re-entrancy guard to prevent infinite loops
+        // Re-entrance guard to prevent infinite loops
         let isProcessing = false;
         return () => {
           if (isProcessing) {
@@ -215,7 +210,7 @@ export class PaperStore {
         };
       })(),
       defaultConnectionPoint: DEFAULT_CONNECTION_POINT,
-      measureNode: DEFAULT_MEASURE_NODE,
+      measureNode: DEFAULT_MEASURE_NODE as unknown as dia.Paper.Options['measureNode'],
       ...paperOptions,
       clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
       autoFreeze: true,

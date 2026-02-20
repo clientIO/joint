@@ -15,4 +15,20 @@ export default {
   }),
 } satisfies Meta<typeof Code>;
 
-export const Default: Story = {};
+export const Mask: Story = {
+  args: {
+    variant: 'mask',
+  },
+};
+
+export const Opacity: Story = {
+  args: {
+    variant: 'opacity',
+  },
+};
+
+export const Custom: Story = {
+  args: {
+    variant: 'custom',
+  },
+};

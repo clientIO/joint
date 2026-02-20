@@ -6,7 +6,7 @@ import Code from './code?raw';
 
 # Using Highlighters
 
-This example demonstrates how to use highlighters to create visual emphasis on elements in your diagram. Highlighters are React components that wrap your element content and add visual effects like borders, opacity changes, or custom styling.
+This example demonstrates how to use the `useHighlighter` hook to create visual emphasis on elements in your diagram.
 
 ## Overview
 
@@ -18,7 +18,9 @@ Highlighters are useful for:
 
 ## Demo
 
-<Canvas of={Stories.Default} />
+<Canvas of={Stories.Mask} />
+<Canvas of={Stories.Opacity} />
+<Canvas of={Stories.Custom} />
 
 ## Implementation
 
@@ -28,74 +30,65 @@ ${Code}
 \`\`\``}
 </Markdown>
 
-## Available Highlighter Types
+## Available Highlighter Types (Hook API)
 
-### Mask Highlighter
-Creates a border/mask around the element. Perfect for selection indicators.
+### Mask
+Creates a border/mask around the element.
 
 ```tsx
-import { Highlighter } from '@joint/react';
+import { useRef } from 'react';
+import { useHighlighter } from '@joint/react';
 
-<Highlighter.Mask 
-  stroke="blue" 
-  strokeWidth={2} 
-  padding={5}
->
-  <YourElement />
-</Highlighter.Mask>
+const ref = useRef<SVGRectElement>(null);
+useHighlighter({
+  type: 'mask',
+  isEnabled: true,
+  padding: 5,
+  attrs: { stroke: 'blue', 'stroke-width': 2 },
+  ref,
+});
 ```
 
-### Opacity Highlighter
-Changes the opacity of the element. Great for hover effects.
+### Opacity
+Changes the opacity of the element.
 
 ```tsx
-import { Highlighter } from '@joint/react';
+import { useRef } from 'react';
+import { useHighlighter } from '@joint/react';
 
-<Highlighter.Opacity opacity={0.5}>
-  <YourElement />
-</Highlighter.Opacity>
-```
-
-### Stroke Highlighter
-Adds a stroke outline around the element.
-
-```tsx
-import { Highlighter } from '@joint/react';
-
-<Highlighter.Stroke 
-  stroke="red" 
-  strokeWidth={3}
->
-  <YourElement />
-</Highlighter.Stroke>
+const ref = useRef<SVGRectElement>(null);
+useHighlighter({
+  type: 'opacity',
+  isEnabled: true,
+  alphaValue: 0.5,
+  ref,
+});
 ```
 
 ### Custom Highlighter
 Create your own custom highlighting effect.
 
 ```tsx
-import { Highlighter } from '@joint/react';
+import { useRef } from 'react';
+import { useHighlighter } from '@joint/react';
 import { highlighters } from '@joint/core';
 
-<Highlighter.Custom 
-  onAdd={(elementView) => {
-    return highlighters.mask.add(elementView, {
-      padding: 10,
-      rx: 5,
-      ry: 5,
-    });
-  }}
->
-  <YourElement />
-</Highlighter.Custom>
+const ref = useRef<SVGRectElement>(null);
+useHighlighter({
+  type: 'custom',
+  isEnabled: true,
+  padding: 10,
+  rx: 5,
+  ry: 5,
+  create: ({ cellView, element, highlighterId, options }) =>
+    highlighters.mask.add(cellView, element, highlighterId, options),
+  ref,
+});
 ```
 
 ## Best Practices
 
-1. **Use forwardRef**: Child elements must forward refs for highlighters to work
-2. **Conditional rendering**: Use `isHidden` prop to show/hide highlighters dynamically
+1. **Use refs**: Attach a stable ref to the SVG element you want to highlight
+2. **Conditional behavior**: Use `isEnabled` to toggle highlighting
 3. **Performance**: Highlighters are lightweight and don't impact rendering performance
 4. **Accessibility**: Consider color contrast and visual indicators for accessibility
-
-
-

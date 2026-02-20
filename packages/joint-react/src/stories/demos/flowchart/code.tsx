@@ -2,10 +2,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
 import type { GraphLink, RenderElement, TransformOptions } from '@joint/react';
-import { GraphProvider, Highlighter, Paper, useNodeSize } from '@joint/react';
+import { GraphProvider, Paper, useHighlighter, useNodeSize } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { dia, linkTools } from '@joint/core';
-import { forwardRef, useRef, useState, type FC } from 'react';
+import { forwardRef, useRef, useState } from 'react';
 
 const unit = 4;
 
@@ -263,15 +263,24 @@ function StepNodeRaw(
     </>
   );
 }
-// We need to forward ref, so highlighter can access the element
-const DecisionNode: FC<FlowchartNodeProps> = forwardRef(DecisionNodeRaw as never);
-const StepNode: FC<FlowchartNodeProps> = forwardRef(StepNodeRaw as never);
+const DecisionNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(DecisionNodeRaw);
+const StepNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StepNodeRaw);
 
 // Custom render function that maps the node type to a CSS class for styling
 function RenderFlowchartNode(props: FlowchartNodeProps) {
   const { type } = props;
 
   const [isHighlighted, setIsHighlighted] = useState(false);
+  useHighlighter({
+    type: 'mask',
+    isEnabled: isHighlighted,
+    target: 'root',
+    padding: 2,
+    attrs: {
+      stroke: SECONDARY,
+      'stroke-width': 2,
+    },
+  });
   const content =
     type === 'decision' ? (
       <DecisionNode
@@ -286,11 +295,7 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
         onMouseLeave={() => setIsHighlighted(false)}
       />
     );
-  return (
-    <Highlighter.Mask isHidden={!isHighlighted} stroke={SECONDARY} padding={2} strokeWidth={2}>
-      {content}
-    </Highlighter.Mask>
-  );
+  return content;
 }
 
 // Create link tools

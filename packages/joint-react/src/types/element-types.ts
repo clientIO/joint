@@ -1,5 +1,5 @@
 import type { attributes, dia, shapes } from '@joint/core';
-import type { Ports } from '../components';
+import type { Ports } from './port.types';
 
 export interface ReactElementAttributes {
   root?: attributes.SVGAttributes;

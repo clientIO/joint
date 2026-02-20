@@ -52,7 +52,7 @@ interface GraphProviderProps<
    * - State persistence
    * - Integration with other React state management
    */
-  readonly onElementsChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, Element>>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<string, Element>>>;
 
   /**
    * Callback triggered when links (edges) change in the graph.

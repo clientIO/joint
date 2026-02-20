@@ -13,6 +13,6 @@ declare module 'react' {
      * - `'passive'`: Element is a magnet but cannot initiate link creation
      * - `false`: Element is not a magnet
      */
-    magnet?: boolean | 'passive';
+    magnet?: 'active' | 'passive';
   }
 }
