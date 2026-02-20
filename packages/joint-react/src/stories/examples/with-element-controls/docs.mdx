@@ -9,18 +9,40 @@ This example demonstrates how to add custom interactive controls to elements usi
 
 ## Overview
 
-Interactive element controls enhance user experience by allowing direct manipulation of element properties. This example shows how to:
+All 16 shapes from `@joint/shapes-general` are rendered as pure React SVG components inside `@joint/react`, each with a matching interactive control tool where applicable. This example shows how to:
+- Render JointJS general shapes as React SVG components
 - Create custom control classes extending `elementTools.Control`
-- Position controls dynamically based on element geometry
-- Update element properties through control interactions
+- Position controls dynamically based on element geometry using `g.Line`, `g.Curve`, and `g.Point`
+- Update element data properties through drag interactions, triggering React re-renders
 
 ## Demo
 
 <Canvas of={Stories.Default} />
 
+## Shapes
+
+| Shape | Control | Property |
+|-------|---------|----------|
+| LinkedProcess | — | — |
+| Input | — | — |
+| Mark | — | — |
+| Actor | — | — |
+| Shipment | — | — |
+| Parallelogram | `ParallelogramOffsetControl` | `offset` |
+| Hexagon | `HexagonOffsetControl` | `offset` |
+| Step | `StepOffsetControl` | `offset` |
+| Trapezoid | `TrapezoidOffsetControl` | `offset` |
+| Document | `DocumentOffsetControl` | `offset` |
+| Plus | `PlusOffsetControl` | `offset` |
+| Arrow | `ArrowOffsetControl` | `arrowHeight`, `thickness` |
+| Note | `NoteOffsetControl` | `offset` |
+| Table | `TableDividerControl` | `dividerX`, `dividerY` |
+| Cube | `CubeCornerControl` | `cornerX`, `cornerY` |
+| Card | `CardOffsetControl` | `offset` |
+
 ## How It Works
 
-1. **Custom Control Classes**: Two control classes (`ParallelogramOffsetControl` and `ArrowOffsetControl`) extend `elementTools.Control`
-2. **Position Calculation**: `getPosition()` calculates the control handle's position based on current element properties
-3. **User Interaction**: When users drag the control, `setPosition()` receives the new coordinates
-4. **Property Updates**: The controls update element data properties, triggering re-renders
+1. **Custom Control Classes**: Each controllable shape has a corresponding `elementTools.Control` subclass
+2. **Position Calculation**: `getPosition()` computes the control handle's position from current element properties using JointJS geometry utilities
+3. **User Interaction**: When users drag a control handle, `setPosition()` receives the new coordinates and clamps them to valid ranges
+4. **Property Updates**: Controls update element data via `model.prop('data/...')`, which triggers a React re-render of the shape component
