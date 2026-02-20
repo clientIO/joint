@@ -9,13 +9,13 @@ import {
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 
-interface NodeElement extends GraphElement {
+interface ShapeElement extends GraphElement {
   readonly label: string;
   readonly width: number;
   readonly height: number;
 }
 
-const initialElements: Record<string, NodeElement> = {
+const initialElements: Record<string, ShapeElement> = {
   '1': { label: 'Node 1', x: 50, y: 50, width: 100, height: 40 },
   '2': { label: 'Node 2', x: 300, y: 50, width: 100, height: 40 },
   '3': { label: 'Node 3', x: 50, y: 200, width: 100, height: 40 },
@@ -27,6 +27,7 @@ const initialLinks: Record<string, GraphLink> = {
     source: '1',
     target: '2',
     color: 'blue',
+    targetMarker: 'arrow',
     labels: [
       {
         position: 0.5,
@@ -37,17 +38,27 @@ const initialLinks: Record<string, GraphLink> = {
       },
     ],
   },
-  // 'l1-4': {
-  //   source: '1',
-  //   target: '4',
-  // },
-  // 'l3-4': {
-  //   source: '3',
-  //   target: '4',
-  // },
+  'l1-4': {
+    source: '1',
+    target: '4',
+    labels: [{
+      text: 'Link 1-4',
+    }],
+  },
+  'l3-4': {
+    source: '3',
+    target: '4',
+    labels: [{
+      text: '+',
+      position: 10,
+    }, {
+      text: '-',
+      position: -10,
+    }],
+  }
 };
 
-function Node({ label, width, height }: Readonly<NodeElement>) {
+function Shape({ label, width, height }: Readonly<ShapeElement>) {
   return (
     <>
       <rect width={width} height={height} rx={6} ry={6} fill="#ed2637" />
@@ -67,8 +78,8 @@ function Node({ label, width, height }: Readonly<NodeElement>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<NodeElement> = useCallback((data) => {
-    return <Node {...data} />;
+  const renderElement: RenderElement<ShapeElement> = useCallback((data) => {
+    return <Shape {...data} />;
   }, []);
 
   return (
@@ -77,6 +88,9 @@ function Main() {
       height={350}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
+      interactive={{
+        labelMove: true
+      }}
     />
   );
 }

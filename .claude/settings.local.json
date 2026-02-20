@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsx:*)",
+      "Bash(yarn test:*)",
+      "WebFetch(domain:gist.github.com)",
+      "Bash(command -v:*)",
+      "Bash(chmod:*)",
+      "Bash(~/.claude/notification.sh:*)",
+      "Bash(python3:*)",
+      "Bash(yarn grunt-release-trial:*)",
+      "Bash(node -e:*)",
+      "Bash(done)",
+      "Bash(grep:*)",
+      "Bash(git checkout:*)",
+      "WebSearch",
+      "Bash(git revert:*)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr:*)",
+      "Bash(git push:*)",
+      "Bash(git mv:*)",
+      "Bash(npx:*)",
+      "Bash(lsof:*)",
+      "Bash(git stash:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rebase:*)",
+      "Bash(yarn workspace @joint/plus run grunt-sandpack:*)",
+      "Bash(gh api:*)",
+      "Bash(yarn typecheck:*)",
+      "Bash(yarn build-storybook:*)",
+      "Bash(git status:*)",
+      "Bash(yarn lint)",
+      "Bash(yarn jest:*)"
+    ]
+  }
+}

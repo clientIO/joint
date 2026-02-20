@@ -36,6 +36,14 @@ export interface GraphLinkLabel {
    * @default { x: 4, y: 2 }
    */
   readonly backgroundPadding?: number | { readonly x: number; readonly y: number };
+  /**
+   * CSS class name applied to the label text element.
+   */
+  readonly className?: string;
+  /**
+   * CSS class name applied to the label background rectangle.
+   */
+  readonly backgroundClassName?: string;
 }
 
 /**

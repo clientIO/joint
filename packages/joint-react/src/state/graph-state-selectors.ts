@@ -184,7 +184,7 @@ export function createDefaultGraphToElementMapper<Element extends GraphElement>(
  * using the ReactLink's defaultLabel selectors (labelText, labelBody).
  */
 function convertLabel(label: GraphLinkLabel): dia.Link.Label {
-  const { text, position, color, backgroundColor, backgroundPadding } = label;
+  const { text, position, color, backgroundColor, backgroundPadding, className, backgroundClassName } = label;
 
   const labelTextAttributes: Record<string, unknown> = {
     text,
@@ -192,10 +192,16 @@ function convertLabel(label: GraphLinkLabel): dia.Link.Label {
   if (color) {
     labelTextAttributes.fill = color;
   }
+  if (className) {
+    labelTextAttributes.class = className;
+  }
 
   const labelBodyAttributes: Record<string, unknown> = {};
   if (backgroundColor) {
     labelBodyAttributes.fill = backgroundColor;
+  }
+  if (backgroundClassName) {
+    labelBodyAttributes.class = backgroundClassName;
   }
   if (backgroundPadding !== undefined) {
     const px = typeof backgroundPadding === 'number' ? backgroundPadding : backgroundPadding.x;
