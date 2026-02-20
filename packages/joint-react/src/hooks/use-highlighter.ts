@@ -9,10 +9,10 @@ type HighlighterCellView =
   | dia.ElementView<dia.Element<dia.Element.Attributes, dia.ModelSetOptions>>
   | dia.LinkView<dia.Link<dia.Link.Attributes, dia.ModelSetOptions>>;
 
-interface HighlighterConfigBase {
+interface HighlighterConfigBase<Element extends SVGElement = SVGElement> {
   readonly isEnabled?: boolean;
   readonly target?: dia.HighlighterView.NodeSelector;
-  readonly ref?: React.RefObject<SVGElement | null>;
+  readonly ref?: React.RefObject<Element | null>;
 }
 
 type ReservedCustomOptionKeys = keyof HighlighterConfigBase | 'type' | 'create';
@@ -21,7 +21,8 @@ type ReservedCustomOptionKeys = keyof HighlighterConfigBase | 'type' | 'create';
  * Configuration for the built-in mask highlighter.
  * Keep highlighter arguments flattened at the top level (e.g. `padding`, `attrs`).
  */
-export type MaskHighlighterConfig = HighlighterConfigBase &
+export type MaskHighlighterConfig<Element extends SVGElement = SVGElement> =
+  HighlighterConfigBase<Element> &
   highlighterTypes.MaskHighlighterArguments & {
     readonly type: 'mask';
   };
@@ -30,7 +31,8 @@ export type MaskHighlighterConfig = HighlighterConfigBase &
  * Configuration for the built-in opacity highlighter.
  * Keep highlighter arguments flattened at the top level (e.g. `alphaValue`).
  */
-export type OpacityHighlighterConfig = HighlighterConfigBase &
+export type OpacityHighlighterConfig<Element extends SVGElement = SVGElement> =
+  HighlighterConfigBase<Element> &
   highlighterTypes.OpacityHighlighterArguments & {
     readonly type: 'opacity';
   };
@@ -57,7 +59,8 @@ export interface CustomHighlighterCreateContext<
 export type CustomHighlighterConfig<
   Options extends dia.HighlighterView.Options &
     Record<string, unknown> = dia.HighlighterView.Options & Record<string, unknown>,
-> = HighlighterConfigBase &
+  Element extends SVGElement = SVGElement,
+> = HighlighterConfigBase<Element> &
   Omit<Options, ReservedCustomOptionKeys> & {
     readonly type: 'custom';
     readonly create: (
@@ -72,13 +75,17 @@ export type CustomHighlighterConfig<
 export type UseHighlighterConfig<
   Options extends dia.HighlighterView.Options &
     Record<string, unknown> = dia.HighlighterView.Options & Record<string, unknown>,
-> = MaskHighlighterConfig | OpacityHighlighterConfig | CustomHighlighterConfig<Options>;
+  Element extends SVGElement = SVGElement,
+> =
+  | MaskHighlighterConfig<Element>
+  | OpacityHighlighterConfig<Element>
+  | CustomHighlighterConfig<Options, Element>;
 
 /**
  * Hook state returned by `useHighlighter`.
  */
-export interface UseHighlighterResult {
-  readonly ref: React.RefObject<SVGElement | null>;
+export interface UseHighlighterResult<Element extends SVGElement = SVGElement> {
+  readonly ref: React.RefObject<Element | null>;
   readonly highlighterId: string;
   readonly isReady: boolean;
 }
@@ -114,7 +121,10 @@ export function isOpacityHighlighterConfig(
 export function isCustomHighlighterConfig<
   Options extends dia.HighlighterView.Options &
     Record<string, unknown> = dia.HighlighterView.Options & Record<string, unknown>,
->(config: UseHighlighterConfig<Options>): config is CustomHighlighterConfig<Options> {
+  Element extends SVGElement = SVGElement,
+>(
+  config: UseHighlighterConfig<Options, Element>
+): config is CustomHighlighterConfig<Options, Element> {
   return config.type === 'custom';
 }
 
@@ -209,11 +219,12 @@ function getHighlighterOptions<
 export function useHighlighter<
   Options extends dia.HighlighterView.Options &
     Record<string, unknown> = dia.HighlighterView.Options & Record<string, unknown>,
->(config: UseHighlighterConfig<Options>): UseHighlighterResult {
+  Element extends SVGElement = SVGElement,
+>(config: UseHighlighterConfig<Options, Element>): UseHighlighterResult<Element> {
   const cellId = useCellId();
   const paper = usePaper();
   const highlighterId = useId();
-  const internalRef = useRef<SVGElement | null>(null);
+  const internalRef = useRef<Element | null>(null);
   const resolvedRef = config.ref ?? internalRef;
   const hasPaper = !!paper;
 

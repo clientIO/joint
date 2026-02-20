@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   GraphProvider,
-  Highlighter,
   Paper,
   TextNode,
   useCellId,
   useGraph,
+  useHighlighter,
   type GraphElement,
   type GraphLink,
   type PaperStore,
@@ -175,38 +175,55 @@ interface RenderNodeProps extends NodeData {
 
 function RenderNode({ label, width, height, selectedId, neighborIds }: Readonly<RenderNodeProps>) {
   const id = String(useCellId());
+  const opacityRef = useRef<SVGGElement | null>(null);
+  const maskRef = useRef<SVGRectElement | null>(null);
 
   const isSelected = selectedId === id;
   const isNeighbor = neighborIds.has(id);
   const isDimmed = selectedId !== null && !isSelected && !isNeighbor;
+  useHighlighter({
+    type: 'opacity',
+    isEnabled: isDimmed,
+    alphaValue: DIMMED_OPACITY,
+    ref: opacityRef,
+  });
+  useHighlighter({
+    type: 'mask',
+    isEnabled: isSelected || isNeighbor,
+    padding: 6,
+    ref: maskRef,
+    attrs: {
+      stroke: isSelected ? PRIMARY : SECONDARY,
+      'stroke-width': 3,
+      fill: 'none',
+    },
+  });
 
   return (
-    <Highlighter.Opacity isHidden={!isDimmed} alphaValue={DIMMED_OPACITY}>
-      <g className="cursor-pointer">
-        <Highlighter.Mask isHidden={!isSelected && !isNeighbor} padding={6} strokeWidth={3} stroke={isSelected ? PRIMARY : SECONDARY}>
-          <rect
-            rx={8}
-            ry={8}
-            width={width}
-            height={height}
-            fill="transparent"
-            stroke={LIGHT}
-            strokeWidth={1.5}
-          />
-        </Highlighter.Mask>
-        <TextNode
-          x={width / 2}
-          y={height / 2}
-          textAnchor="middle"
-          textVerticalAnchor="middle"
-          fill={LIGHT}
-          fontSize={14}
-          fontWeight={500}
-        >
-          {label}
-        </TextNode>
-      </g>
-    </Highlighter.Opacity>
+    <g ref={opacityRef} className="cursor-pointer">
+      <rect
+        ref={maskRef}
+        rx={8}
+        ry={8}
+        width={width}
+        height={height}
+        fill="transparent"
+        stroke={LIGHT}
+        strokeWidth={1.5}
+      />
+
+      <TextNode
+        x={width / 2}
+        y={height / 2}
+        textAnchor="middle"
+        textVerticalAnchor="middle"
+        fill={LIGHT}
+        fontSize={14}
+        fontWeight={500}
+      >
+        {label}
+      </TextNode>
+    </g>
   );
 }
 
@@ -239,7 +256,9 @@ function Main() {
     }
 
     if (highlightState.selectedId) {
-      const otherLinks = graph.getLinks().filter((l) => !highlightState.connectedLinkIds.has(String(l.id)));
+      const otherLinks = graph
+        .getLinks()
+        .filter((l) => !highlightState.connectedLinkIds.has(String(l.id)));
       for (const link of otherLinks) {
         const view = paper.findViewByModel(link);
         if (!view) continue;
@@ -279,7 +298,7 @@ function Main() {
         };
       });
     },
-    [graph],
+    [graph]
   );
 
   const handleBlankClick = useCallback(() => {
@@ -287,8 +306,14 @@ function Main() {
   }, []);
 
   const renderElement = useCallback(
-    (props: NodeData) => <RenderNode {...props} selectedId={highlightState.selectedId} neighborIds={highlightState.neighborIds} />,
-    [highlightState],
+    (props: NodeData) => (
+      <RenderNode
+        {...props}
+        selectedId={highlightState.selectedId}
+        neighborIds={highlightState.neighborIds}
+      />
+    ),
+    [highlightState]
   );
 
   return (

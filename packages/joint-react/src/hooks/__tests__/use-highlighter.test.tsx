@@ -1,6 +1,6 @@
 import { highlighters, type dia } from '@joint/core';
 import { render, waitFor } from '@testing-library/react';
-import { useEffect, useRef, type Ref } from 'react';
+import { useEffect, useRef } from 'react';
 import { useHighlighter } from '../use-highlighter';
 import { getTestGraph, paperRenderElementWrapper } from '../../utils/test-wrappers';
 
@@ -24,13 +24,15 @@ function getWrapper() {
 }
 
 function MaskTarget({ isEnabled = true }: Readonly<{ isEnabled?: boolean }>) {
+  const targetRef = useRef<SVGGElement | null>(null);
   const { ref } = useHighlighter({
     type: 'mask',
     padding: 2,
     isEnabled,
+    ref: targetRef,
   });
 
-  return <g ref={ref as Ref<SVGGElement>} />;
+  return <g ref={ref} />;
 }
 
 let usesConfigRef = false;
@@ -46,7 +48,7 @@ function MaskTargetWithConfigRef() {
     usesConfigRef = ref === externalRef && externalRef.current !== null;
   }, [ref, externalRef]);
 
-  return <g ref={ref as Ref<SVGGElement>} />;
+  return <g ref={ref} />;
 }
 
 describe('useHighlighter', () => {
@@ -85,12 +87,14 @@ describe('useHighlighter', () => {
     );
 
     function CustomTarget() {
+      const targetRef = useRef<SVGGElement | null>(null);
       const { ref } = useHighlighter({
         type: 'custom',
         padding: 3,
         create: createSpy,
+        ref: targetRef,
       });
-      return <g ref={ref as Ref<SVGGElement>} />;
+      return <g ref={ref} />;
     }
 
     const wrapper = getWrapper();

@@ -1,4 +1,4 @@
-import { dia, g, util, V, type Vectorizer } from '@joint/core';
+import { dia, g, util, type Vectorizer } from '@joint/core';
 import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
 import type { GraphElement } from '../types/element-types';
@@ -19,11 +19,47 @@ const DEFAULT_MEASURE_NODE = (
   node: SVGGraphicsElement,
   view: dia.ElementView<dia.Element>
 ): g.Rect => {
+  const getModelRect = (preservePosition: boolean) => {
+    if (typeof view.model.size === 'function') {
+      const { height, width } = view.model.size();
+      const position =
+        preservePosition && typeof view.model.position === 'function'
+          ? view.model.position()
+          : { x: 0, y: 0 };
+      return new g.Rect({ height, width, x: position.x, y: position.y });
+    }
+    if (typeof view.model.getBBox === 'function') {
+      const { height, width, x, y } = view.model.getBBox();
+      return new g.Rect({
+        height,
+        width,
+        x: preservePosition ? x : 0,
+        y: preservePosition ? y : 0,
+      });
+    }
+    return new g.Rect({ height: 0, width: 0, x: 0, y: 0 });
+  };
+
+  const getNodeRect = () => {
+    try {
+      const { height, width, x, y } = node.getBBox();
+      return new g.Rect({ height, width, x, y });
+    } catch {
+      return new g.Rect({ height: 0, width: 0, x: 0, y: 0 });
+    }
+  };
+
   if (node === view.el) {
-    const { height, width } = view.model.size();
-    return new g.Rect({ height, width, x: 0, y: 0 });
+    return getModelRect(false);
   }
-  return V(node).getBBox();
+
+  const nodeBox = getNodeRect();
+  if (nodeBox.width > 0 || nodeBox.height > 0 || nodeBox.x !== 0 || nodeBox.y !== 0) {
+    return nodeBox;
+  }
+
+  // In jsdom many SVG subnodes report empty bbox; fallback to model geometry.
+  return getModelRect(true);
 };
 export const PORTAL_SELECTOR = 'react-port-portal';
 
