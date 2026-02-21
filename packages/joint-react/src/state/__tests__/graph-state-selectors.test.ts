@@ -183,7 +183,7 @@ describe('graph-state-selectors', () => {
         width: 100,
         height: 50,
         type: 'ReactElement',
-        ports: { items: [] },
+        ports: [],
         angle: 45,
       };
 
@@ -193,7 +193,7 @@ describe('graph-state-selectors', () => {
 
       expect(elementAsGraphJson).toMatchObject({
         id: 'element-1',
-        ports: { items: [] },
+        ports: { groups: { main: { position: { name: 'absolute' } } }, items: [] },
         angle: 45,
       });
 

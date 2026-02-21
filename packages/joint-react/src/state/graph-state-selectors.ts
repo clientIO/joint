@@ -1,6 +1,6 @@
 import type { attributes } from '@joint/core';
 import { type dia } from '@joint/core';
-import type { GraphElement } from '../types/element-types';
+import type { GraphElement, GraphElementPort } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import { getTargetOrSource } from '../utils/cell/get-link-targe-and-source-ids';
 import { REACT_TYPE } from '../models/react-element';
@@ -10,7 +10,7 @@ export interface ElementToGraphOptions<Element extends GraphElement> {
   readonly id: string;
   readonly data: Element;
   readonly graph: dia.Graph;
-  readonly defaultAttributes: () => dia.Cell.JSON;
+  readonly defaultAttributes: (data?: Element) => dia.Cell.JSON;
 }
 
 export interface GraphToElementOptions<Element extends GraphElement> {
@@ -25,7 +25,7 @@ export interface LinkToGraphOptions<Link extends GraphLink> {
   readonly id: string;
   readonly data: Link;
   readonly graph: dia.Graph;
-  readonly defaultAttributes: () => dia.Cell.JSON;
+  readonly defaultAttributes: (data?: Link) => dia.Cell.JSON;
 }
 
 export interface GraphToLinkOptions<Link extends GraphLink> {
@@ -46,6 +46,84 @@ export interface GraphStateSelectors<Element extends GraphElement, Link extends 
 }
 
 /**
+ * Converts a simplified GraphElementPort to a full JointJS port definition.
+ */
+function convertPort(port: GraphElementPort): dia.Element.Port {
+  const {
+    id,
+    cx,
+    cy,
+    width = 10,
+    height = 10,
+    color = '#333333',
+    shape = 'ellipse',
+    className,
+    magnet = true,
+  } = port;
+
+  const result: dia.Element.Port = {
+    group: 'main',
+    args: { x: cx, y: cy },
+  };
+
+  if (shape === 'none') {
+    result.markup = [];
+  } else {
+    const isEllipse = shape === 'ellipse';
+
+    const portBodyAttributes: Record<string, unknown> = {
+      fill: color,
+      magnet,
+    };
+
+    if (isEllipse) {
+      portBodyAttributes.rx = width / 2;
+      portBodyAttributes.ry = height / 2;
+    } else {
+      portBodyAttributes.width = width;
+      portBodyAttributes.height = height;
+      portBodyAttributes.x = -width / 2;
+      portBodyAttributes.y = -height / 2;
+    }
+
+    if (className) {
+      portBodyAttributes.class = className;
+    }
+
+    result.markup = [
+      {
+        tagName: isEllipse ? 'ellipse' : 'rect',
+        selector: 'portBody',
+      },
+    ];
+    result.attrs = { portBody: portBodyAttributes };
+  }
+
+  if (id !== undefined) {
+    result.id = id;
+  }
+
+  return result;
+}
+
+/**
+ * Converts a simplified GraphElementPort array to the full JointJS ports object.
+ */
+function convertPorts(ports: GraphElementPort[]): {
+  groups: Record<string, dia.Element.PortGroup>;
+  items: dia.Element.Port[];
+} {
+  return {
+    groups: {
+      main: {
+        position: { name: 'absolute' },
+      },
+    },
+    items: ports.map(convertPort),
+  };
+}
+
+/**
  * Creates the default mapper function for element to graph conversion.
  * Separates user data into the `data` property.
  * Supports both flat format (x, y, width, height) and nested format (position, size).
@@ -56,12 +134,13 @@ export interface GraphStateSelectors<Element extends GraphElement, Link extends 
 export function createDefaultElementMapper<Element extends GraphElement>(
   id: string,
   data: Element
-): () => dia.Cell.JSON {
-  return () => {
+): (overrideData?: Element) => dia.Cell.JSON {
+  return (overrideData?: Element) => {
+    const resolvedData = overrideData ?? data;
     // Extract built-in JointJS element properties
     // Support both flat format (x, y, width, height) and nested format (position, size)
     const { x, y, width, height, angle, z, ports, position, size, parent, layer, ...userData } =
-      data as GraphElement & {
+      resolvedData as GraphElement & {
         position?: { x: number; y: number };
         size?: { width: number; height: number };
       };
@@ -89,7 +168,9 @@ export function createDefaultElementMapper<Element extends GraphElement>(
     if (layer !== undefined) attributes.layer = layer;
     if (angle !== undefined) attributes.angle = angle;
     if (z !== undefined) attributes.z = z;
-    if (ports !== undefined) attributes.ports = ports;
+    if (ports !== undefined) {
+      attributes.ports = convertPorts(ports);
+    }
     if (elementAttributes !== undefined) attributes.attrs = elementAttributes;
     if (markup !== undefined) attributes.markup = markup;
 
@@ -193,8 +274,9 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
   data: Link,
 
   _graph: dia.Graph
-): () => dia.Cell.JSON {
-  return () => {
+): (overrideData?: Link) => dia.Cell.JSON {
+  return (overrideData?: Link) => {
+    const resolvedData = overrideData ?? data;
     // Extract built-in JointJS link properties, remaining properties are user data
     const {
       source: linkSource,
@@ -215,7 +297,7 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
       className = DEFAULT_LINK_THEME.className,
       pattern = DEFAULT_LINK_THEME.pattern,
       ...userData
-    } = data;
+    } = resolvedData;
 
     // Read styling properties with theme defaults
     const source = getTargetOrSource(linkSource);

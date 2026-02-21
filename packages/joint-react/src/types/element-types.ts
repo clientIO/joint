@@ -1,5 +1,55 @@
 import type { attributes, dia, shapes } from '@joint/core';
-import type { Ports } from './port.types';
+
+/**
+ * Simplified port definition for declarative port configuration.
+ * Converted to full JointJS port format by the default element mapper.
+ * @group Graph
+ */
+export interface GraphElementPort {
+  /**
+   * Unique port identifier.
+   */
+  readonly id?: string;
+  /**
+   * X position of the port (absolute positioning).
+   * Supports calc() expressions (e.g., 'calc(w)').
+   */
+  readonly cx: number | string;
+  /**
+   * Y position of the port (absolute positioning).
+   * Supports calc() expressions (e.g., 'calc(h)').
+   */
+  readonly cy: number | string;
+  /**
+   * Width of the port shape.
+   * @default 10
+   */
+  readonly width?: number;
+  /**
+   * Height of the port shape.
+   * @default 10
+   */
+  readonly height?: number;
+  /**
+   * Fill color of the port shape.
+   * @default '#333333'
+   */
+  readonly color?: string;
+  /**
+   * Shape of the port.
+   * @default 'ellipse'
+   */
+  readonly shape?: 'ellipse' | 'rect' | 'none';
+  /**
+   * CSS class name to apply to the port shape.
+   */
+  readonly className?: string;
+  /**
+   * Whether the port acts as a magnet for link connections.
+   * @default true
+   */
+  readonly magnet?: boolean;
+}
 
 export interface ReactElementAttributes {
   root?: attributes.SVGAttributes;
@@ -28,7 +78,7 @@ export interface GraphElement extends Record<string, unknown> {
   /**
    * Ports of the element.
    */
-  ports?: Ports;
+  ports?: GraphElementPort[];
   /**
    * X position of the element.
    */

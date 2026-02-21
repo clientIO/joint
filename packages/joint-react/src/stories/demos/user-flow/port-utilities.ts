@@ -1,4 +1,4 @@
-import type { GraphElement } from '@joint/react';
+import type { dia } from '@joint/core';
 
 export type OutputPort = {
   readonly id: string;
@@ -7,8 +7,7 @@ export type OutputPort = {
 
 export type OutputPortNode = {
   readonly outputPorts: readonly OutputPort[];
-  readonly ports?: GraphElement['ports'];
-} & GraphElement;
+};
 
 export const PORT_IN_SIZE = 15;
 export const NODE_MIN_WIDTH = 250;
@@ -44,7 +43,7 @@ const HIDDEN_OUTPUT_PORT_ATTRIBUTES = {
   },
 } as const;
 
-export function createPorts(outputPorts: readonly OutputPort[]): GraphElement['ports'] {
+export function createPorts(outputPorts: readonly OutputPort[]): { items: dia.Element.Port[] } {
   return {
     items: [
       {
@@ -92,6 +91,5 @@ export function appendOutputPort<Node extends OutputPortNode>(node: Node): Node 
   return {
     ...node,
     outputPorts: nextOutputPorts,
-    ports: createPorts(nextOutputPorts),
   };
 }

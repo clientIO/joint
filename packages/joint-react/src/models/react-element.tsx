@@ -31,6 +31,13 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
     return {
       ...super.defaults,
       type: REACT_TYPE,
+      portDefaults: {
+        groups: {
+          main: {
+            position: { name: 'absolute' },
+          },
+        },
+      },
     } as unknown as dia.Element.Attributes & Attributes;
   }
 }

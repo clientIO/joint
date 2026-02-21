@@ -12,7 +12,58 @@ import {
 const SECONDARY = '#6366f1';
 
 interface NativeElement extends GraphElement {
-  readonly type: string;
+  readonly color: string;
+  readonly label: string;
+  readonly portIds?: {
+    readonly in?: readonly string[];
+    readonly out?: readonly string[];
+  };
+}
+
+function buildNativePorts(portIds: NativeElement['portIds']) {
+  if (!portIds) return;
+  const groups: Record<string, dia.Element.PortGroup> = {};
+  const items: dia.Element.Port[] = [];
+
+  if (portIds.in) {
+    groups.in = {
+      position: 'left',
+      size: { width: 16, height: 16 },
+      attrs: {
+        circle: {
+          r: 'calc(s / 2)',
+          magnet: true,
+          fill: PRIMARY,
+          stroke: '#333',
+          strokeWidth: 2,
+        },
+      },
+    };
+    for (const id of portIds.in) {
+      items.push({ id, group: 'in' });
+    }
+  }
+
+  if (portIds.out) {
+    groups.out = {
+      position: 'right',
+      size: { width: 16, height: 16 },
+      attrs: {
+        circle: {
+          r: 'calc(s / 2)',
+          magnet: true,
+          fill: SECONDARY,
+          stroke: '#333',
+          strokeWidth: 2,
+        },
+      },
+    };
+    for (const id of portIds.out) {
+      items.push({ id, group: 'out' });
+    }
+  }
+
+  return { groups, items };
 }
 
 const mapDataToElementAttributes = ({
@@ -20,12 +71,31 @@ const mapDataToElementAttributes = ({
   defaultAttributes,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
   const result = defaultAttributes();
-  const { type, attrs, ports } = data as NativeElement;
+  const { color, label, portIds } = data as NativeElement;
   return {
     ...result,
-    ...(type && { type }),
-    ...(attrs && { attrs }),
-    ...(ports && { ports }),
+    type: 'standard.Rectangle',
+    attrs: {
+      body: {
+        width: 'calc(w)',
+        height: 'calc(h)',
+        strokeWidth: 2,
+        stroke: '#333',
+        fill: color,
+        rx: 8,
+        ry: 8,
+      },
+      label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        x: 'calc(w/2)',
+        y: 'calc(h/2)',
+        fontSize: 14,
+        fill: 'white',
+        text: label,
+      },
+    },
+    ports: buildNativePorts(portIds),
   };
 };
 
@@ -35,162 +105,27 @@ const initialElements: Record<string, NativeElement> = {
     y: 100,
     width: 140,
     height: 60,
-    type: 'standard.Rectangle',
-    attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        strokeWidth: 2,
-        stroke: '#333',
-        fill: PRIMARY,
-        rx: 8,
-        ry: 8,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Node 1',
-      },
-    },
-    ports: {
-      groups: {
-        out: {
-          position: 'right',
-          size: {
-            width: 16,
-            height: 16,
-          },
-          attrs: {
-            circle: {
-              r: 'calc(s / 2)',
-              magnet: true,
-              fill: SECONDARY,
-              stroke: '#333',
-              strokeWidth: 2,
-            },
-          },
-        },
-      },
-      items: [
-        { id: 'out-1', group: 'out' },
-        { id: 'out-2', group: 'out' },
-      ],
-    },
+    color: PRIMARY,
+    label: 'Node 1',
+    portIds: { out: ['out-1', 'out-2'] },
   },
   'node-2': {
     x: 350,
     y: 50,
     width: 140,
     height: 60,
-    type: 'standard.Rectangle',
-    attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        strokeWidth: 2,
-        stroke: '#333',
-        fill: SECONDARY,
-        rx: 8,
-        ry: 8,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Node 2',
-      },
-    },
-    ports: {
-      groups: {
-        in: {
-          size: {
-            width: 16,
-            height: 16,
-          },
-          position: 'left',
-          attrs: {
-            circle: {
-              r: 'calc(s / 2)',
-              magnet: true,
-              fill: PRIMARY,
-              stroke: '#333',
-              strokeWidth: 2,
-            },
-          },
-        },
-        out: {
-          position: 'right',
-          attrs: {
-            circle: {
-              r: 'calc(s / 2)',
-              magnet: true,
-              fill: SECONDARY,
-              stroke: '#333',
-              strokeWidth: 2,
-            },
-          },
-        },
-      },
-      items: [
-        { id: 'in-1', group: 'in' },
-        { id: 'out-1', group: 'out' },
-      ],
-    },
+    color: SECONDARY,
+    label: 'Node 2',
+    portIds: { in: ['in-1'], out: ['out-1'] },
   },
   'node-3': {
     x: 350,
     y: 200,
     width: 140,
     height: 60,
-    type: 'standard.Rectangle',
-    attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        strokeWidth: 2,
-        stroke: '#333',
-        fill: PRIMARY,
-        rx: 8,
-        ry: 8,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Node 3',
-      },
-    },
-    ports: {
-      groups: {
-        in: {
-          size: {
-            width: 16,
-            height: 16,
-          },
-          position: 'left',
-          attrs: {
-            circle: {
-              r: 'calc(s / 2)',
-              magnet: true,
-              fill: PRIMARY,
-              stroke: '#333',
-              strokeWidth: 2,
-            },
-          },
-        },
-      },
-      items: [{ id: 'in-1', group: 'in' }],
-    },
+    color: PRIMARY,
+    label: 'Node 3',
+    portIds: { in: ['in-1'] },
   },
 };
 

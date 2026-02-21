@@ -156,12 +156,12 @@ export class GraphStore {
   public readonly mapDataToElementAttributes: (options: {
     readonly data: GraphElement;
     readonly graph: dia.Graph;
-    readonly defaultAttributes: () => dia.Cell.JSON;
+    readonly defaultAttributes: (data?: GraphElement) => dia.Cell.JSON;
   }) => dia.Cell.JSON;
   private readonly mapDataToLinkAttributes: (options: {
     readonly data: GraphLink;
     readonly graph: dia.Graph;
-    readonly defaultAttributes: () => dia.Cell.JSON;
+    readonly defaultAttributes: (data?: GraphLink) => dia.Cell.JSON;
   }) => dia.Cell.JSON;
 
   constructor(config: GraphStoreOptions) {

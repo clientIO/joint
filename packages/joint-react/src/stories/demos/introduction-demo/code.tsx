@@ -53,35 +53,40 @@ type ElementWithSelected<T> = { readonly isSelected: boolean } & T;
 const BUTTON_CLASSNAME =
   'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm flex items-center';
 
-const TABLE_OUTPUT_PORTS = {
-  items: Array.from({ length: 3 }, (_, index) => ({
-    id: `out-3-${index}`,
-    args: { x: 400, y: index * 45 + 65 },
-    attrs: {
-      circle: {
-        magnet: true,
-        r: 10,
-        fill: 'transparent',
-        stroke: 'transparent',
-        'stroke-width': 16,
-        'pointer-events': 'all',
+const ROW_HEIGHT_OFFSET = 45;
+const PORT_START_Y = 65;
+
+function buildTablePorts(rows: string[][]) {
+  return {
+    items: rows.map((_, index) => ({
+      id: `out-3-${index}`,
+      args: { x: 400, y: index * ROW_HEIGHT_OFFSET + PORT_START_Y },
+      attrs: {
+        circle: {
+          magnet: true,
+          r: 10,
+          fill: 'transparent',
+          stroke: 'transparent',
+          'stroke-width': 16,
+          'pointer-events': 'all',
+        },
+        text: { display: 'none' },
       },
-      text: { display: 'none' },
-    },
-    z: 'auto' as const,
-  })),
-} as const;
+      z: 'auto' as const,
+    })),
+  };
+}
 
 const mapDataToElementAttributes = ({
   data,
   defaultAttributes,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
   const result = defaultAttributes();
-  const { ports } = data as Element;
-  return {
-    ...result,
-    ...(ports && { ports }),
-  };
+  const element = data as Element;
+  if (element.elementType === 'table') {
+    return { ...result, ports: buildTablePorts(element.rows) };
+  }
+  return result;
 };
 
 // Define static properties for the view's Paper - used by minimap and main view
@@ -136,7 +141,6 @@ const elements: Record<string, Element> = {
     ],
     width: 400,
     height: 200,
-    ports: TABLE_OUTPUT_PORTS,
   },
 };
 

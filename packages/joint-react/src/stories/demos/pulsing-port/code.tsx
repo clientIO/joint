@@ -61,73 +61,35 @@ const Pulse = dia.HighlighterView.extend({
   },
 });
 
+const NODE_PORTS = {
+  items: [
+    {
+      id: 'in',
+      args: { x: NODE_WIDTH / 2, y: 0 },
+      attrs: { circle: { magnet: true }, text: { display: 'none' } },
+    },
+    {
+      id: 'out',
+      args: { x: NODE_WIDTH / 2, y: NODE_HEIGHT },
+      attrs: { circle: { magnet: true }, text: { display: 'none' } },
+    },
+  ],
+};
+
 const mapDataToElementAttributes = ({
-  data,
   defaultAttributes,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
   const result = defaultAttributes();
-  const { ports } = data;
   return {
     ...result,
-    ...(ports && { ports }),
+    ports: NODE_PORTS,
   };
 };
 
 const elements: Record<string, GraphElement> = {
-  '1': {
-    x: 50,
-    y: 50,
-    ports: {
-      items: [
-        {
-          id: 'in',
-          args: { x: NODE_WIDTH / 2, y: 0 },
-          attrs: { circle: { magnet: true }, text: { display: 'none' } },
-        },
-        {
-          id: 'out',
-          args: { x: NODE_WIDTH / 2, y: NODE_HEIGHT },
-          attrs: { circle: { magnet: true }, text: { display: 'none' } },
-        },
-      ],
-    },
-  },
-  '2': {
-    x: 350,
-    y: 50,
-    ports: {
-      items: [
-        {
-          id: 'in',
-          args: { x: NODE_WIDTH / 2, y: 0 },
-          attrs: { circle: { magnet: true }, text: { display: 'none' } },
-        },
-        {
-          id: 'out',
-          args: { x: NODE_WIDTH / 2, y: NODE_HEIGHT },
-          attrs: { circle: { magnet: true }, text: { display: 'none' } },
-        },
-      ],
-    },
-  },
-  '3': {
-    x: 150,
-    y: 250,
-    ports: {
-      items: [
-        {
-          id: 'in',
-          args: { x: NODE_WIDTH / 2, y: 0 },
-          attrs: { circle: { magnet: true }, text: { display: 'none' } },
-        },
-        {
-          id: 'out',
-          args: { x: NODE_WIDTH / 2, y: NODE_HEIGHT },
-          attrs: { circle: { magnet: true }, text: { display: 'none' } },
-        },
-      ],
-    },
-  },
+  '1': { x: 50, y: 50 },
+  '2': { x: 350, y: 50 },
+  '3': { x: 150, y: 250 },
 };
 
 function NodeElement(_props: Readonly<GraphElement>) {

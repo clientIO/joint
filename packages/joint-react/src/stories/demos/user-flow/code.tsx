@@ -41,7 +41,6 @@ const nodes: Record<string, NodeType> = {
     description: 'Transfer funds',
     nodeType: 'user-action',
     outputPorts: INITIAL_OUTPUT_PORTS,
-    ports: createPorts(INITIAL_OUTPUT_PORTS),
     x: 50,
     y: 50,
     z: 10,
@@ -51,7 +50,6 @@ const nodes: Record<string, NodeType> = {
     description: 'Transfer funds',
     nodeType: 'entity',
     outputPorts: INITIAL_OUTPUT_PORTS,
-    ports: createPorts(INITIAL_OUTPUT_PORTS),
     x: 120,
     y: 200,
     z: 10,
@@ -61,7 +59,6 @@ const nodes: Record<string, NodeType> = {
     description: 'Get account balance',
     nodeType: 'user-action',
     outputPorts: INITIAL_OUTPUT_PORTS,
-    ports: createPorts(INITIAL_OUTPUT_PORTS),
     x: 190,
     y: 350,
     z: 10,
@@ -91,10 +88,10 @@ const mapDataToElementAttributes = ({
   defaultAttributes,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
   const result = defaultAttributes();
-  const { ports } = data as NodeType;
+  const { outputPorts } = data as NodeType;
   return {
     ...result,
-    ...(ports && { ports }),
+    ...(outputPorts && { ports: createPorts(outputPorts) }),
   };
 };
 

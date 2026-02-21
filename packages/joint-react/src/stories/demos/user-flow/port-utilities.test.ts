@@ -7,7 +7,7 @@ describe('user-flow port utils', () => {
       { id: '2', label: 'Port 2' },
     ]);
 
-    const items = ports?.items ?? [];
+    const { items } = ports;
     expect(items).toHaveLength(3);
     expect(items[0]?.id).toBe('in');
     expect(items[0]?.z).toBe(100);
@@ -26,27 +26,27 @@ describe('user-flow port utils', () => {
     expect(next.label).toBe('Port 4');
   });
 
-  it('appends output port and regenerates native ports data', () => {
+  it('appends output port to node', () => {
     const updated = appendOutputPort({
-      id: 'n-1',
-      title: 'Node',
-      description: 'Description',
-      nodeType: 'user-action',
-      x: 10,
-      y: 20,
       outputPorts: [
         { id: '1', label: 'Port 1' },
         { id: '2', label: 'Port 2' },
       ],
-      ports: createPorts([
-        { id: '1', label: 'Port 1' },
-        { id: '2', label: 'Port 2' },
-      ]),
     });
 
     expect(updated.outputPorts).toHaveLength(3);
     expect(updated.outputPorts[2]).toEqual({ id: '3', label: 'Port 3' });
-    expect(updated.ports?.items).toHaveLength(4);
-    expect(updated.ports?.items?.[3]?.id).toBe('3');
+  });
+
+  it('generates correct native ports from output ports', () => {
+    const ports = createPorts([
+      { id: '1', label: 'Port 1' },
+      { id: '2', label: 'Port 2' },
+      { id: '3', label: 'Port 3' },
+    ]);
+
+    expect(ports.items).toHaveLength(4);
+    expect(ports.items[0]?.id).toBe('in');
+    expect(ports.items[3]?.id).toBe('3');
   });
 });

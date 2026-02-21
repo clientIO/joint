@@ -17,33 +17,34 @@ export default {
         component: `
 Demonstrates how to use native [JointJS ports](https://docs.jointjs.com/learn/features/ports) with @joint/react using the \`mapDataToElementAttributes\` selector.
 
-Instead of using the React \`<Port>\` component (which creates React portals), you can define ports directly in your element data using the standard JointJS ports API. This is useful when you want to use JointJS's built-in port rendering without React portals.
+Instead of using the React \`<Port>\` component (which creates React portals), you can use JointJS's built-in port rendering by constructing port definitions inside \`mapDataToElementAttributes\`. Element data stays minimal and declarative — only describing *what* is needed (colors, labels, port IDs). The mapper builds the full JointJS shape type, attrs, and ports.
 
-## Key Concept: Native Ports via Element Data
+## Key Concept: Native Ports via Mapper
 
 \`\`\`tsx
-// Define element with native ports
+// Element data is minimal — no JointJS specifics
 const elements = {
   'node-1': {
     x: 50, y: 50, width: 140, height: 60,
-    type: 'standard.Rectangle',
-    ports: {
-      groups: {
-        out: {
-          position: 'right',
-          attrs: { circle: { r: 8, magnet: true, fill: '#6366f1' } },
-        },
-      },
-      items: [{ id: 'out-1', group: 'out' }],
-    },
+    color: '#3b82f6',
+    label: 'Node 1',
+    portIds: { out: ['out-1', 'out-2'] },
   },
 };
 
-// Custom selector that preserves ports
+// Mapper builds JointJS type, attrs, and ports from data
 const mapDataToElementAttributes = ({ data, defaultAttributes }) => {
   const result = defaultAttributes();
-  const { type, attrs, ports } = data;
-  return { ...result, type, attrs, ports };
+  const { color, label, portIds } = data;
+  return {
+    ...result,
+    type: 'standard.Rectangle',
+    attrs: {
+      body: { fill: color, ... },
+      label: { text: label, ... },
+    },
+    ports: buildNativePorts(portIds),
+  };
 };
 
 <GraphProvider
@@ -65,5 +66,5 @@ export const Default = makeStory({
   name: 'Native Ports',
   apiURL: 'https://docs.jointjs.com/learn/features/ports',
   description:
-    'Elements with native JointJS ports defined via the ports property and mapDataToElementAttributes, without React Port portals.',
+    'Elements with native JointJS ports built inside mapDataToElementAttributes from declarative port descriptors, without React Port portals.',
 });
