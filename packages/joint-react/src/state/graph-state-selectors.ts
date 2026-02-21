@@ -53,8 +53,8 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
     id,
     cx,
     cy,
-    width = 10,
-    height = 10,
+    width = 1,
+    height = 1,
     color = '#333333',
     shape = 'ellipse',
     className,
@@ -63,41 +63,38 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
 
   const result: dia.Element.Port = {
     group: 'main',
-    args: { x: cx, y: cy },
+    size: { width, height },
+    position: { args: { x: cx, y: cy }},
   };
 
-  if (shape === 'none') {
-    result.markup = [];
+  const isEllipse = shape === 'ellipse';
+
+  const portBodyAttributes: Record<string, unknown> = {
+    fill: color,
+    magnet,
+  };
+
+  if (isEllipse) {
+    portBodyAttributes.rx = width / 2;
+    portBodyAttributes.ry = height / 2;
   } else {
-    const isEllipse = shape === 'ellipse';
-
-    const portBodyAttributes: Record<string, unknown> = {
-      fill: color,
-      magnet,
-    };
-
-    if (isEllipse) {
-      portBodyAttributes.rx = width / 2;
-      portBodyAttributes.ry = height / 2;
-    } else {
-      portBodyAttributes.width = width;
-      portBodyAttributes.height = height;
-      portBodyAttributes.x = -width / 2;
-      portBodyAttributes.y = -height / 2;
-    }
-
-    if (className) {
-      portBodyAttributes.class = className;
-    }
-
-    result.markup = [
-      {
-        tagName: isEllipse ? 'ellipse' : 'rect',
-        selector: 'portBody',
-      },
-    ];
-    result.attrs = { portBody: portBodyAttributes };
+    portBodyAttributes.width = width;
+    portBodyAttributes.height = height;
+    portBodyAttributes.x = -width / 2;
+    portBodyAttributes.y = -height / 2;
   }
+
+  if (className) {
+    portBodyAttributes.class = className;
+  }
+
+  result.markup = [
+    {
+      tagName: isEllipse ? 'ellipse' : 'rect',
+      selector: 'portBody',
+    },
+  ];
+  result.attrs = { portBody: portBodyAttributes };
 
   if (id !== undefined) {
     result.id = id;

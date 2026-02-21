@@ -14,18 +14,16 @@ const SECONDARY = '#6366f1';
 interface NativeElement extends GraphElement {
   readonly color: string;
   readonly label: string;
-  readonly portIds?: {
-    readonly in?: readonly string[];
-    readonly out?: readonly string[];
-  };
+  readonly inputPorts?: readonly string[];
+  readonly outputPorts?: readonly string[];
 }
 
-function buildNativePorts(portIds: NativeElement['portIds']) {
-  if (!portIds) return;
+function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly string[]) {
+  if (!inputPorts && !outputPorts) return;
   const groups: Record<string, dia.Element.PortGroup> = {};
   const items: dia.Element.Port[] = [];
 
-  if (portIds.in) {
+  if (inputPorts) {
     groups.in = {
       position: 'left',
       size: { width: 16, height: 16 },
@@ -39,12 +37,12 @@ function buildNativePorts(portIds: NativeElement['portIds']) {
         },
       },
     };
-    for (const id of portIds.in) {
+    for (const id of inputPorts) {
       items.push({ id, group: 'in' });
     }
   }
 
-  if (portIds.out) {
+  if (outputPorts) {
     groups.out = {
       position: 'right',
       size: { width: 16, height: 16 },
@@ -58,7 +56,7 @@ function buildNativePorts(portIds: NativeElement['portIds']) {
         },
       },
     };
-    for (const id of portIds.out) {
+    for (const id of outputPorts) {
       items.push({ id, group: 'out' });
     }
   }
@@ -71,7 +69,7 @@ const mapDataToElementAttributes = ({
   defaultAttributes,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
   const result = defaultAttributes();
-  const { color, label, portIds } = data as NativeElement;
+  const { color, label, inputPorts, outputPorts } = data as NativeElement;
   return {
     ...result,
     type: 'standard.Rectangle',
@@ -95,7 +93,7 @@ const mapDataToElementAttributes = ({
         text: label,
       },
     },
-    ports: buildNativePorts(portIds),
+    ports: buildNativePorts(inputPorts, outputPorts),
   };
 };
 
@@ -107,7 +105,7 @@ const initialElements: Record<string, NativeElement> = {
     height: 60,
     color: PRIMARY,
     label: 'Node 1',
-    portIds: { out: ['out-1', 'out-2'] },
+    outputPorts: ['out-1', 'out-2'],
   },
   'node-2': {
     x: 350,
@@ -116,7 +114,8 @@ const initialElements: Record<string, NativeElement> = {
     height: 60,
     color: SECONDARY,
     label: 'Node 2',
-    portIds: { in: ['in-1'], out: ['out-1'] },
+    inputPorts: ['in-1'],
+    outputPorts: ['out-1'],
   },
   'node-3': {
     x: 350,
@@ -125,7 +124,7 @@ const initialElements: Record<string, NativeElement> = {
     height: 60,
     color: PRIMARY,
     label: 'Node 3',
-    portIds: { in: ['in-1'] },
+    inputPorts: ['in-1'],
   },
 };
 

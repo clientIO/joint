@@ -39,7 +39,7 @@ export interface GraphElementPort {
    * Shape of the port.
    * @default 'ellipse'
    */
-  readonly shape?: 'ellipse' | 'rect' | 'none';
+  readonly shape?: 'ellipse' | 'rect';
   /**
    * CSS class name to apply to the port shape.
    */

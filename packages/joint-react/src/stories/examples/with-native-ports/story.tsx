@@ -28,14 +28,14 @@ const elements = {
     x: 50, y: 50, width: 140, height: 60,
     color: '#3b82f6',
     label: 'Node 1',
-    portIds: { out: ['out-1', 'out-2'] },
+    outputPorts: ['out-1', 'out-2'],
   },
 };
 
 // Mapper builds JointJS type, attrs, and ports from data
 const mapDataToElementAttributes = ({ data, defaultAttributes }) => {
   const result = defaultAttributes();
-  const { color, label, portIds } = data;
+  const { color, label, inputPorts, outputPorts } = data;
   return {
     ...result,
     type: 'standard.Rectangle',
@@ -43,7 +43,7 @@ const mapDataToElementAttributes = ({ data, defaultAttributes }) => {
       body: { fill: color, ... },
       label: { text: label, ... },
     },
-    ports: buildNativePorts(portIds),
+    ports: buildNativePorts(inputPorts, outputPorts),
   };
 };
 

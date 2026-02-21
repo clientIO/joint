@@ -1,4 +1,4 @@
-import { PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
+import { LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import '../index.css';
 import type { dia } from '@joint/core';
 import {
@@ -37,25 +37,7 @@ const initialElements: Record<string, PortElement> = {
     x: 350,
     y: 100,
     width: 140,
-    height: 60,
-    ports: [
-      {
-        id: 'in-1',
-        cx: 0,
-        cy: 'calc(0.33 * h)',
-        width: 16,
-        height: 16,
-        color: PRIMARY,
-      },
-      {
-        id: 'in-2',
-        cx: 0,
-        cy: 'calc(0.66 * h)',
-        width: 16,
-        height: 16,
-        color: PRIMARY,
-      },
-    ],
+    height: 60
   },
 };
 
@@ -63,16 +45,16 @@ const initialLinks: Record<string, GraphLink> = {
   'link-1': {
     source: { id: 'node-1', port: 'out-1' },
     target: { id: 'node-2', port: 'in-1' },
-    color: SECONDARY,
+    color: LIGHT,
   },
   'link-2': {
     source: { id: 'node-1', port: 'out-2' },
     target: { id: 'node-2', port: 'in-2' },
-    color: PRIMARY,
+    color: LIGHT,
   },
 };
 
-function ElementNode({ label, color }: Readonly<PortElement>) {
+function ElementShape({ label, color }: Readonly<PortElement>) {
   const { width = 140, height = 60 } = useElement<PortElement>();
   return (
     <>
@@ -94,13 +76,22 @@ function ElementNode({ label, color }: Readonly<PortElement>) {
 
 function Main() {
   const renderElement: RenderElement<PortElement> = useCallback(
-    (props) => <ElementNode {...props} />,
+    (props) => <ElementShape {...props} />,
     []
   );
-  return <Paper className={PAPER_CLASSNAME} height={400} renderElement={renderElement} />;
+  return (
+    <Paper
+      className={PAPER_CLASSNAME}
+      height={400}
+      renderElement={renderElement}
+      // @todo: the default measureNode should always return model bbox
+      snapLinks={true}
+      defaultAnchor={{ name: 'center', args: { useModelGeometry: true } }}
+    />
+  );
 }
 
-const NODE_1_PORTS = [
+const OUTPUT_PORTS = [
   {
     id: 'out-1',
     cx: 'calc(w)',
@@ -119,15 +110,37 @@ const NODE_1_PORTS = [
   },
 ] as const;
 
+const INPUT_PORTS = [
+  {
+    id: 'in-1',
+    cx: -8,
+    cy: 'calc(0.33 * h)',
+    color: PRIMARY,
+    width: 16,
+    height: 16,
+    shape: 'rect',
+  },
+  {
+    id: 'in-2',
+    cx: 0,
+    cy: 'calc(0.66 * h)',
+    width: 16,
+    height: 16,
+    color: PRIMARY,
+  },
+] as const;
+
 const mapDataToElementAttributes = ({
   id,
   data,
   defaultAttributes,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
   if (id === 'node-1') {
-    return defaultAttributes({ ...data, ports: [...NODE_1_PORTS] });
+    return defaultAttributes({ ...data, ports: [...OUTPUT_PORTS] });
+  } else if (id === 'node-2') {
+    return defaultAttributes({ ...data, ports: [...INPUT_PORTS] });
   }
-  return defaultAttributes();
+  throw new Error(`Unknown element id: ${id}`);
 };
 
 export default function App() {
