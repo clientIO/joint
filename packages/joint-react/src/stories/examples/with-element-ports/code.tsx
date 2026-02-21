@@ -50,11 +50,13 @@ const initialLinks: Record<string, GraphLink> = {
     source: { id: 'node-1', port: 'out-1' },
     target: { id: 'node-2', port: 'in-1' },
     color: LIGHT,
+    z: -1,
   },
   'link-2': {
     source: { id: 'node-1', port: 'out-2' },
     target: { id: 'node-2', port: 'in-2' },
     color: LIGHT,
+    z: -1
   },
 };
 
@@ -88,8 +90,9 @@ function Main() {
       className={PAPER_CLASSNAME}
       height={400}
       renderElement={renderElement}
-      // @todo: the default measureNode should always return model bbox
       snapLinks={true}
+      linkPinning={true}
+      // @todo: the default measureNode should always return model bbox
       defaultAnchor={DEFAULT_ANCHOR}
     />
   );
@@ -103,6 +106,8 @@ const OUTPUT_PORTS = [
     width: 16,
     height: 16,
     color: SECONDARY,
+    label: 'Out 1',
+    labelColor: LIGHT,
   },
   {
     id: 'out-2',
@@ -111,6 +116,8 @@ const OUTPUT_PORTS = [
     width: 16,
     height: 16,
     color: SECONDARY,
+    label: 'Out 2',
+    labelColor: LIGHT,
   },
 ] as const;
 
@@ -123,6 +130,8 @@ const INPUT_PORTS = [
     width: 16,
     height: 16,
     shape: 'rect',
+    label: 'In 1',
+    labelColor: LIGHT,
   },
   {
     id: 'in-2',
@@ -131,6 +140,8 @@ const INPUT_PORTS = [
     width: 16,
     height: 16,
     color: PRIMARY,
+    label: 'In 2',
+    labelColor: LIGHT,
   },
 ] as const;
 

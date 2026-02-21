@@ -59,6 +59,10 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
     shape = 'ellipse',
     className,
     magnet = true,
+    label,
+    labelPosition = 'outside',
+    labelColor = '#333333',
+    labelClassName,
   } = port;
 
   const result: dia.Element.Port = {
@@ -95,6 +99,20 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
     },
   ];
   result.attrs = { portBody: portBodyAttributes };
+
+  if (label) {
+    result.label = {
+      position: { name: labelPosition },
+      markup: [{ tagName: 'text', selector: 'text', attributes: {
+        fill: labelColor,
+      }}],
+    };
+    const labelAttributes: Record<string, unknown> = { text: label };
+    if (labelClassName) {
+      labelAttributes.class = labelClassName;
+    }
+    result.attrs.text = labelAttributes;
+  }
 
   if (id !== undefined) {
     result.id = id;
