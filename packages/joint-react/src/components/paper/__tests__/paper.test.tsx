@@ -1,4 +1,3 @@
- 
 /* eslint-disable @eslint-react/web-api/no-leaked-timeout */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/no-nested-functions */
@@ -332,7 +331,10 @@ describe('Paper Component', () => {
 
   it('should set elements and positions via react state, when change it via paper api', async () => {
     // Create elements with initial x/y so they can be synced back
-    const elementsWithPosition: Record<string, { label: string; x: number; y: number; width: number; height: number }> = {
+    const elementsWithPosition: Record<
+      string,
+      { label: string; x: number; y: number; width: number; height: number }
+    > = {
       '1': { label: 'Node 1', x: 0, y: 0, width: 10, height: 10 },
       '2': { label: 'Node 2', x: 0, y: 0, width: 10, height: 10 },
     };
@@ -349,7 +351,8 @@ describe('Paper Component', () => {
     }
     let currentOutsideElements: Record<string, Element> = {};
     function Content() {
-      const [currentElements, setCurrentElements] = useState<Record<string, GraphElement>>(elementsWithPosition);
+      const [currentElements, setCurrentElements] =
+        useState<Record<string, GraphElement>>(elementsWithPosition);
       currentOutsideElements = currentElements as Record<string, Element>;
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
@@ -370,7 +373,8 @@ describe('Paper Component', () => {
   });
   it('should update elements via react state, and then reflect the changes in the paper', async () => {
     function Content() {
-      const [currentElements, setCurrentElements] = useState<Record<string, GraphElement>>(elements);
+      const [currentElements, setCurrentElements] =
+        useState<Record<string, GraphElement>>(elements);
 
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
@@ -475,39 +479,12 @@ describe('Paper Component', () => {
     });
   });
 
-  it('should render children inside a positioned container so absolute positioning works', async () => {
-    render(
-      <GraphProvider elements={elements}>
-        <Paper<Element> width={WIDTH} height={150}>
-          <div data-testid="paper-child" style={{ position: 'absolute', right: 20, bottom: 20 }}>
-            Child Content
-          </div>
-        </Paper>
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      const child = screen.getByTestId('paper-child');
-      expect(child).toBeInTheDocument();
-      // The child's parent container should have position: relative
-      // so that absolutely positioned children are positioned relative to the paper area
-      const parentContainer = child.parentElement;
-      expect(parentContainer).not.toBeNull();
-      const parentStyle = globalThis.getComputedStyle(parentContainer!);
-      expect(parentStyle.position).toBe('relative');
-    });
-  });
-
   it('applies percentage width to JointJS paper when only width="100%" is set', async () => {
     const ref: RefObject<PaperStore | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element>
-          ref={ref}
-          width="100%"
-          renderElement={() => <div>Test</div>}
-        />
+        <Paper<Element> ref={ref} width="100%" renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
 
@@ -523,11 +500,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element>
-          ref={ref}
-          height="100%"
-          renderElement={() => <div>Test</div>}
-        />
+        <Paper<Element> ref={ref} height="100%" renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
 

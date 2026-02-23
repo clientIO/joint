@@ -45,7 +45,6 @@ import {
 } from '../../hooks/use-graph-store-selector';
 
 const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
-const PAPER_WRAPPER_STYLE: CSSProperties = { position: 'relative' };
 
 /**
  * Updates paper dimensions when width or height props change.
@@ -466,12 +465,10 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
-      <div style={PAPER_WRAPPER_STYLE}>
-        <div className={className} ref={paperHTMLElement} style={paperContainerStyle}>
-          {isReady && content}
-        </div>
-        {isReady && children}
+      <div className={className} ref={paperHTMLElement} style={paperContainerStyle}>
+        {isReady && content}
       </div>
+      {isReady && children}
     </PaperStoreContext.Provider>
   );
 }

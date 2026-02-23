@@ -301,23 +301,18 @@ export function createDefaultLinkMapper<Link extends GraphLink>(
     const target = getTargetOrSource(linkTarget);
 
     // Build theme-based line attributes
-    const resolvedSourceMarker = resolveMarker(sourceMarker);
-    const resolvedTargetMarker = resolveMarker(targetMarker);
-
     const resolvedLineAttributes: attributes.SVGAttributes = {
       stroke: color,
       strokeWidth: width,
     };
-    if (resolvedSourceMarker !== null) {
-      resolvedLineAttributes.sourceMarker = resolvedSourceMarker;
+    if (sourceMarker !== 'none') {
+      resolvedLineAttributes.sourceMarker = resolveMarker(sourceMarker);
     }
-    // eslint-disable-next-line unicorn/prefer-ternary
-    if (resolvedTargetMarker === null) {
-      // Explicitly set to null to override the standard.Link default arrowhead
-      resolvedLineAttributes.targetMarker = null;
-    } else {
-      resolvedLineAttributes.targetMarker = resolvedTargetMarker;
-    }
+
+    // Explicitly set to null to override the standard.Link default arrowhead
+    resolvedLineAttributes.targetMarker =
+      targetMarker === 'none' ? null : resolveMarker(targetMarker);
+
     if (className) {
       resolvedLineAttributes.class = className;
     }

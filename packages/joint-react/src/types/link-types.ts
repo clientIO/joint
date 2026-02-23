@@ -76,16 +76,16 @@ export interface GraphLink extends Record<string, unknown> {
   readonly width?: number;
   /**
    * Source marker preset name or custom marker definition.
-   * Use 'none' or null for no marker.
+   * Use 'none' for no marker.
    * @default 'none'
    */
-  readonly sourceMarker?: MarkerPreset | dia.SVGMarkerJSON | null;
+  readonly sourceMarker?: MarkerPreset | dia.SVGMarkerJSON;
   /**
    * Target marker preset name or custom marker definition.
-   * Use 'none' or null for no marker.
+   * Use 'none' for no marker.
    * @default 'none'
    */
-  readonly targetMarker?: MarkerPreset | dia.SVGMarkerJSON | null;
+  readonly targetMarker?: MarkerPreset | dia.SVGMarkerJSON;
   /**
    * CSS class name to apply to the link line.
    * @default ''

@@ -150,7 +150,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-1': {
     source: 'd8jpey',
@@ -158,7 +158,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-2': {
     source: 'd8jpey',
@@ -166,7 +166,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-3': {
     source: 'is079n',
@@ -174,7 +174,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-4': {
     id: 'link-4',
@@ -183,7 +183,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-5': {
     id: 'link-5',
@@ -192,7 +192,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-6': {
     id: 'link-6',
@@ -201,7 +201,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-7': {
     id: 'link-7',
@@ -210,7 +210,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-8': {
     id: 'link-8',
@@ -219,7 +219,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-9': {
     id: 'link-9',
@@ -228,7 +228,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-10': {
     source: 'd8ojep',
@@ -236,7 +236,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
   'link-11': {
     source: {
@@ -249,7 +249,7 @@ const initialLinks: Record<string, GraphLink> = {
     z: -1,
     color: PRIMARY,
     width: 2,
-    targetMarker: null,
+    targetMarker: 'none',
   },
 };
 

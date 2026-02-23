@@ -52,11 +52,15 @@ export type LinkTheme = typeof DEFAULT_LINK_THEME;
  * @returns The resolved marker JSON or null
  */
 export function resolveMarker(
-    marker: MarkerPreset | dia.SVGMarkerJSON | null | undefined
+    marker: MarkerPreset | dia.SVGMarkerJSON | undefined
 ): dia.SVGMarkerJSON | null {
-    if (marker === null || marker === undefined || marker === 'none') return null;
+    if (marker === undefined || marker === 'none') return null;
     if (typeof marker === 'string') {
         return defaultMarkers[marker as keyof typeof defaultMarkers] ?? null;
+    }
+    const markerAsRecord = marker as Record<string, unknown>;
+    if (!('type' in markerAsRecord) && typeof markerAsRecord.d === 'string') {
+        return { type: 'path', ...markerAsRecord } as dia.SVGMarkerJSON;
     }
     return marker;
 }

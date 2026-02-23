@@ -461,21 +461,6 @@ describe('graph-state-selectors', () => {
       expect(linkAsGraphJson.attrs?.line?.stroke).toBe('red');
     });
 
-    it('should explicitly set targetMarker to null in line attrs when set to null', () => {
-      const id = 'link-1';
-      const link: GraphLink = {
-        source: 'element-1',
-        target: 'element-2',
-        targetMarker: null,
-      };
-
-      const options = createLinkToGraphOptions(id, link, graph);
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
-
-      // targetMarker should be explicitly null to override standard.Link default arrowhead
-      expect(linkAsGraphJson.attrs?.line?.targetMarker).toBeNull();
-    });
-
     it('should explicitly set targetMarker to null in line attrs when set to none', () => {
       const id = 'link-1';
       const link: GraphLink = {
@@ -490,38 +475,35 @@ describe('graph-state-selectors', () => {
       expect(linkAsGraphJson.attrs?.line?.targetMarker).toBeNull();
     });
 
-    it('should not include sourceMarker in line attrs when set to null', () => {
+    it('should normalize custom targetMarker with only d to path marker', () => {
       const id = 'link-1';
       const link: GraphLink = {
         source: 'element-1',
         target: 'element-2',
-        sourceMarker: null,
+        targetMarker: { d: 'M 0 0 7 5 7 -5' } as dia.SVGMarkerJSON,
+      };
+
+      const options = createLinkToGraphOptions(id, link, graph);
+      const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
+
+      expect(linkAsGraphJson.attrs?.line?.targetMarker).toMatchObject({
+        type: 'path',
+        d: 'M 0 0 7 5 7 -5',
+      });
+    });
+
+    it('should not include sourceMarker in line attrs when set to none', () => {
+      const id = 'link-1';
+      const link: GraphLink = {
+        source: 'element-1',
+        target: 'element-2',
+        sourceMarker: 'none',
       };
 
       const options = createLinkToGraphOptions(id, link, graph);
       const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson.attrs?.line).not.toHaveProperty('sourceMarker');
-    });
-
-    it('should hide default targetMarker after round-trip through graph when set to null', () => {
-      const id = 'link-1';
-      const link: GraphLink = {
-        source: 'element-1',
-        target: 'element-2',
-        targetMarker: null,
-      };
-
-      const linkAsGraphJson = defaultMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
-      );
-      graph.syncCells([linkAsGraphJson], { remove: true });
-
-      const graphLinkCell = graph.getCell('link-1') as dia.Link;
-      const lineAttrs = graphLinkCell.attr('line');
-
-      // After syncing to graph, the standard.Link default targetMarker should be overridden
-      expect(lineAttrs.targetMarker).toBeNull();
     });
 
     it('should hide default targetMarker after round-trip through graph when set to none', () => {
