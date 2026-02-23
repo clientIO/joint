@@ -27,6 +27,8 @@ import {
 import { useCallback, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
 import { useCellActions } from '../../../hooks/use-cell-actions';
+import { getMessageNodeClassName } from './get-message-node-class-name';
+import { isCellSelected } from './is-cell-selected';
 
 // Define types for the elements
 interface ElementBase extends GraphElement {
@@ -48,7 +50,7 @@ interface TableElement extends ElementBase {
 
 type Element = MessageElement | TableElement;
 
-type ElementWithSelected<T> = { readonly isSelected: boolean } & T;
+type ElementWithSelected<T> = { readonly selectedId: dia.Cell.ID | null } & T;
 
 const BUTTON_CLASSNAME =
   'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm flex items-center';
@@ -165,6 +167,7 @@ function MessageComponent({
   title,
   description,
   inputText,
+  selectedId,
 }: ElementWithSelected<MessageElement>) {
   let iconContent;
   let titleText;
@@ -186,12 +189,10 @@ function MessageComponent({
   const { set } = useCellActions<MessageElement>();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useNodeSize(elementRef);
+  const isSelected = isCellSelected(id, selectedId);
   return (
     <foreignObject width={width} height={height} overflow="visible" magnet="passive">
-      <div
-        ref={elementRef}
-        className="flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm"
-      >
+      <div ref={elementRef} className={getMessageNodeClassName(isSelected)}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 items-start">
             <div className="text-2xl">{iconContent}</div>
@@ -225,29 +226,36 @@ function TableElement({
   rows,
   width,
   height,
-  isSelected,
+  selectedId,
 }: ElementWithSelected<TableElement>) {
   const tableWidth = width ?? 0;
   const tableHeight = height ?? 0;
+  const id = useCellId();
+  const isSelected = isCellSelected(id, selectedId);
   const highlighterRef = useRef<SVGForeignObjectElement | null>(null);
   useHighlighter({
-      type: 'custom',
-      isEnabled: isSelected,
-      padding: 25,
-      rx: 5,
-      ry: 5,
-      attrs: {
-        stroke: LIGHT,
-        'stroke-width': 3,
-      },
-      create: ({ cellView, element, highlighterId, options }) => {
-        return highlighters.stroke.add(cellView, element, highlighterId, options);
-      },
-      ref: highlighterRef,
-    });
+    type: 'custom',
+    isEnabled: isSelected,
+    padding: 25,
+    rx: 5,
+    ry: 5,
+    attrs: {
+      stroke: LIGHT,
+      'stroke-width': 3,
+    },
+    create: ({ cellView, element, highlighterId, options }) => {
+      return highlighters.stroke.add(cellView, element, highlighterId, options);
+    },
+    ref: highlighterRef,
+  });
   return (
     <>
-      <foreignObject ref={highlighterRef} width={tableWidth} height={tableHeight} overflow="visible">
+      <foreignObject
+        ref={highlighterRef}
+        width={tableWidth}
+        height={tableHeight}
+        overflow="visible"
+      >
         <div
           style={{ width: tableWidth, height: tableHeight }}
           className="flex flex-col border-1 border-solid border-white/20 text-white rounded-lg p-4 w-full h-full bg-gray-900 shadow-sm"
@@ -489,16 +497,14 @@ function Main() {
 
   const renderElement = useCallback(
     (element: Element) => {
-      const { elementType, id } = element;
-
-      const isSelected = id === selectedElement;
+      const { elementType } = element;
       switch (elementType) {
         case 'alert':
         case 'info': {
-          return <MessageComponent {...element} isSelected={isSelected} />;
+          return <MessageComponent {...element} selectedId={selectedElement} />;
         }
         case 'table': {
-          return <TableElement {...element} isSelected={isSelected} />;
+          return <TableElement {...element} selectedId={selectedElement} />;
         }
       }
     },

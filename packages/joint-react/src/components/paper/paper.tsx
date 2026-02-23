@@ -7,7 +7,7 @@
  * 2. Is setup of paper
  * 3. Is render of elements
  */
-import { dia, mvc, shapes } from '@joint/core';
+import { dia, mvc } from '@joint/core';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import {
   forwardRef,
@@ -45,6 +45,24 @@ import {
 } from '../../hooks/use-graph-store-selector';
 
 const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
+type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
+
+/**
+ * Retrieves the ReactLink constructor from the graph's cell namespace.
+ * This is necessary to create new ReactLink instances when the defaultLink function is called.
+ * @param graph - The JointJS graph instance.
+ * @returns The ReactLink constructor.
+ */
+function getReactLinkConstructor(graph: dia.Graph): ReactLinkConstructor {
+  const cellNamespace = graph.layerCollection?.cellNamespace as Record<string, unknown> | undefined;
+  const reactLinkConstructor = cellNamespace?.ReactLink;
+  if (typeof reactLinkConstructor === 'function') {
+    return reactLinkConstructor as ReactLinkConstructor;
+  }
+  throw new Error(
+    'Paper: ReactLink constructor is missing in graph.layerCollection.cellNamespace.'
+  );
+}
 
 /**
  * Updates paper dimensions when width or height props change.
@@ -170,8 +188,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 
   const paperStore = getPaperStore(id) ?? null;
   const { paper } = paperStore ?? {};
-  const paperHTMLElement = useRef<HTMLDivElement | null>(null);
-  const measured = useRef(false);
+  const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
+  const measuredRef = useRef(false);
   const previousSizesRef = useRef<number[][]>([]);
 
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
@@ -184,25 +202,26 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   const defaultLinkJointJS = useCallback(
     (cellView: dia.CellView, magnet: SVGElement) => {
       const link = typeof defaultLink === 'function' ? defaultLink(cellView, magnet) : defaultLink;
+      const ReactLinkModel = getReactLinkConstructor(graph);
       if (!link) {
-        return new shapes.standard.Link();
+        return new ReactLinkModel();
       }
       if (link instanceof dia.Link) {
         return link;
       }
-      return new shapes.standard.Link(link as dia.Link.EndJSON);
+      return new ReactLinkModel(link as dia.Link.Attributes);
     },
-    [defaultLink]
+    [defaultLink, graph]
   );
 
-  const isReady = !!paper && !!paperHTMLElement.current;
+  const isReady = !!paper && !!paperHTMLElementRef.current;
 
   useLayoutEffect(() => {
-    if (!paperHTMLElement.current) {
+    if (!paperHTMLElementRef.current) {
       return;
     }
     const remove = addPaper(id, {
-      paperElement: paperHTMLElement.current,
+      paperElement: paperHTMLElementRef.current,
       paperOptions: {
         ...paperOptions,
         defaultLink: defaultLinkJointJS,
@@ -250,10 +269,10 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 
   useEffect(() => {
     if (!isReady) return;
-    if (measured.current) return;
+    if (measuredRef.current) return;
     if (!paper) return;
     if (areElementsMeasured) {
-      measured.current = true;
+      measuredRef.current = true;
       return onElementsSizeReady?.({ paper, graph: paper.model });
     }
 
@@ -323,9 +342,9 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
      * @param jointPaper - The paper instance.
      */
     function resizePaperContainer(jointPaper: dia.Paper) {
-      if (paperHTMLElement.current && jointPaper.el) {
-        paperHTMLElement.current.style.width = jointPaper.el.style.width;
-        paperHTMLElement.current.style.height = jointPaper.el.style.height;
+      if (paperHTMLElementRef.current && jointPaper.el) {
+        paperHTMLElementRef.current.style.width = jointPaper.el.style.width;
+        paperHTMLElementRef.current.style.height = jointPaper.el.style.height;
       }
     }
     // An object to keep track of the listeners. It's not exposed, so the users
@@ -465,7 +484,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
 
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
-      <div className={className} ref={paperHTMLElement} style={paperContainerStyle}>
+      <div className={className} ref={paperHTMLElementRef} style={paperContainerStyle}>
         {isReady && content}
       </div>
       {isReady && children}

@@ -4,6 +4,8 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { shapes } from '@joint/core';
+import type { dia } from '@joint/core';
 import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
@@ -12,6 +14,7 @@ import { useGraph, usePaperStoreContext, useCellId } from '../../../hooks';
 import type { GraphElement } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
+import { ReactLink, REACT_LINK_TYPE } from '../../../models/react-link';
 
 const elements: Record<string, { label: string; width: number; height: number }> = {
   '1': { label: 'Node 1', width: 10, height: 10 },
@@ -553,5 +556,130 @@ describe('Paper Component', () => {
       expect(paperContainer).not.toBeNull();
       expect(paperContainer!.style.width).not.toBe('800px');
     });
+  });
+
+  it('uses ReactLink from graph namespace when defaultLink is not provided', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+    });
+
+    class CustomNamespaceReactLink extends ReactLink {}
+    ref.current!.paper.model.layerCollection.cellNamespace.ReactLink = CustomNamespaceReactLink;
+
+    const defaultLinkFactory = ref.current!.paper.options.defaultLink as (
+      cellView: dia.CellView,
+      magnet: SVGElement
+    ) => dia.Link;
+
+    const createdLink = defaultLinkFactory(
+      {} as dia.CellView,
+      document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    );
+    expect(createdLink).toBeInstanceOf(CustomNamespaceReactLink);
+  });
+
+  it('supports defaultLink as a dia.Link instance', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+    const providedLink = new shapes.standard.Link({ attrs: { line: { stroke: '#123456' } } });
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element> ref={ref} defaultLink={providedLink} renderElement={() => <div>Test</div>} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+    });
+
+    const defaultLinkFactory = ref.current!.paper.options.defaultLink as (
+      cellView: dia.CellView,
+      magnet: SVGElement
+    ) => dia.Link;
+
+    const createdLink = defaultLinkFactory(
+      {} as dia.CellView,
+      document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    );
+    expect(createdLink).toBe(providedLink);
+  });
+
+  it('supports defaultLink as a callback returning a dia.Link', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+    const callbackResultLink = new shapes.standard.Link({ attrs: { line: { stroke: '#abcdef' } } });
+    const defaultLinkCallback = jest.fn(() => callbackResultLink);
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          defaultLink={defaultLinkCallback}
+          renderElement={() => <div>Test</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+    });
+
+    const defaultLinkFactory = ref.current!.paper.options.defaultLink as (
+      cellView: dia.CellView,
+      magnet: SVGElement
+    ) => dia.Link;
+    const cellView = {} as dia.CellView;
+    const magnet = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+
+    const createdLink = defaultLinkFactory(cellView, magnet);
+    expect(defaultLinkCallback).toHaveBeenCalledWith(cellView, magnet);
+    expect(createdLink).toBe(callbackResultLink);
+  });
+
+  it('supports defaultLink as an attributes object by creating a ReactLink from namespace', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+    const linkAttributes = {
+      source: { x: 10, y: 10 },
+      target: { x: 120, y: 20 },
+      attrs: {
+        line: {
+          stroke: '#ff5500',
+        },
+      },
+    };
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          defaultLink={linkAttributes}
+          renderElement={() => <div>Test</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+    });
+
+    const defaultLinkFactory = ref.current!.paper.options.defaultLink as (
+      cellView: dia.CellView,
+      magnet: SVGElement
+    ) => dia.Link;
+
+    const createdLink = defaultLinkFactory(
+      {} as dia.CellView,
+      document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    );
+    expect(createdLink).toBeInstanceOf(ReactLink);
+    expect(createdLink.get('type')).toBe(REACT_LINK_TYPE);
+    expect(createdLink.attr(['line', 'stroke'])).toBe('#ff5500');
   });
 });
