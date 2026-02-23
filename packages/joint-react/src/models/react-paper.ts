@@ -128,7 +128,6 @@ export class ReactPaper extends dia.Paper {
     const cellId = view.model.id;
 
     if (view.model.isElement()) {
-      view.el.setAttribute('magnet', 'false');
       // Add to element views cache
       this.reactElementCache.elementViews = {
         ...this.reactElementCache.elementViews,

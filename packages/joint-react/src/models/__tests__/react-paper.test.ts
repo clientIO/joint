@@ -110,19 +110,6 @@ describe('ReactPaper', () => {
       expect(linkCache.linkViews[link.id].model).toBe(link);
     });
 
-    it('should set magnet=false on element views', () => {
-      paper = createPaper();
-
-      const element = new shapes.standard.Rectangle({
-        position: { x: 0, y: 0 },
-        size: { width: 100, height: 100 },
-      });
-      graphStore.graph.addCell(element);
-
-      const view = elementCache.elementViews[element.id];
-      expect(view.el.getAttribute('magnet')).toBe('false');
-    });
-
     it('should NOT set magnet=false on link views', () => {
       paper = createPaper();
 
