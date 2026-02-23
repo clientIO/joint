@@ -4,6 +4,65 @@ import { useCombinedRef } from '../../hooks/use-combined-ref';
 import { isNumber } from '../../utils/is';
 import { useCellId, useGraph } from '../../hooks';
 
+interface BreakTextWidthOptions {
+  readonly width: number | undefined;
+  readonly graph: ReturnType<typeof useGraph>;
+  readonly cellId: string;
+}
+
+interface TextWrapStylesOptions {
+  readonly lineHeight: Vectorizer.TextOptions['lineHeight'];
+  readonly fontWeight: SVGTextElementAttributes<SVGTextElement>['fontWeight'];
+  readonly fontFamily: SVGTextElementAttributes<SVGTextElement>['fontFamily'];
+  readonly fontSize: SVGTextElementAttributes<SVGTextElement>['fontSize'];
+  readonly letterSpacing: SVGTextElementAttributes<SVGTextElement>['letterSpacing'];
+  readonly textTransform: SVGTextElementAttributes<SVGTextElement>['textTransform'];
+}
+
+function getBreakTextWidth({
+  width,
+  graph,
+  cellId,
+}: BreakTextWidthOptions) {
+  if (isNumber(width)) {
+    return Math.max(0, width);
+  }
+
+  if (width != undefined) {
+    return width;
+  }
+
+  const element = graph.getCell(cellId);
+  if (!element.isElement()) {
+    throw new TypeError('TextNode must be used with useNodeSize hook to measure the element size');
+  }
+
+  return element.size().width ?? 0;
+}
+
+function getTextWrapStyles({
+  lineHeight,
+  fontWeight,
+  fontFamily,
+  fontSize,
+  letterSpacing,
+  textTransform,
+}: TextWrapStylesOptions) {
+  const textWrapStyles: Record<string, string | number> = {};
+
+  if (fontWeight != undefined) textWrapStyles['font-weight'] = fontWeight;
+  if (fontFamily != undefined) textWrapStyles['font-family'] = fontFamily;
+  if (fontSize != undefined) textWrapStyles['font-size'] = fontSize;
+  if (letterSpacing != undefined) textWrapStyles['letter-spacing'] = letterSpacing;
+  if (textTransform != undefined) textWrapStyles['text-transform'] = textTransform;
+
+  if (lineHeight != undefined) {
+    textWrapStyles.lineHeight = lineHeight;
+  }
+
+  return textWrapStyles;
+}
+
 export interface TextNodeProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
@@ -25,6 +84,11 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     annotations,
     includeAnnotationIndices,
     displayEmpty,
+    fontWeight,
+    fontFamily,
+    fontSize,
+    letterSpacing,
+    textTransform,
     width,
     height,
     textWrap,
@@ -45,22 +109,17 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
 
     let text = children;
     if (textWrap) {
-      let breakTextWidth = width;
-
-      if (isNumber(breakTextWidth)) {
-        breakTextWidth = Math.max(0, breakTextWidth);
-      } else if (breakTextWidth == undefined) {
-        const element = graph.getCell(cellId);
-        if (!element.isElement()) {
-          throw new TypeError(
-            'TextNode must be used with useNodeSize hook to measure the element size'
-          );
-        }
-        breakTextWidth = element.size().width ?? 0;
-      }
-
+      const breakTextWidth = getBreakTextWidth({ width, graph, cellId });
       const options: util.BreakTextOptions = typeof textWrap === 'object' ? textWrap : {};
-      text = util.breakText(text, { width: breakTextWidth, height }, {}, options);
+      const textWrapStyles = getTextWrapStyles({
+        lineHeight,
+        fontWeight,
+        fontFamily,
+        fontSize,
+        letterSpacing,
+        textTransform,
+      });
+      text = util.breakText(text, { width: breakTextWidth, height }, textWrapStyles, options);
     }
 
     V(textRef.current).text(text, {
@@ -84,13 +143,29 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     lineHeight,
     textPath,
     textRef,
+    textTransform,
     textVerticalAnchor,
     width,
     x,
+    fontFamily,
+    fontSize,
+    fontWeight,
+    letterSpacing,
     graph,
     cellId,
   ]);
-  return <text ref={textRef} {...rest} x={x} />;
+  return (
+    <text
+      ref={textRef}
+      {...rest}
+      x={x}
+      fontWeight={fontWeight}
+      fontFamily={fontFamily}
+      fontSize={fontSize}
+      letterSpacing={letterSpacing}
+      textTransform={textTransform}
+    />
+  );
 }
 
 /**

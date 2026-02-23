@@ -1,6 +1,18 @@
+jest.mock('@joint/core', () => {
+  const actual = jest.requireActual('@joint/core');
+  return {
+    ...actual,
+    util: {
+      ...actual.util,
+      breakText: jest.fn(actual.util.breakText),
+    },
+  };
+});
+
 import { paperRenderElementWrapper } from '../../../utils/test-wrappers';
 import { TextNode } from '../text-node';
-import { render } from '@testing-library/react';
+import { util } from '@joint/core';
+import { render, waitFor } from '@testing-library/react';
 
 describe('TextNode', () => {
   it('renders with minimal props', () => {
@@ -43,5 +55,50 @@ describe('TextNode', () => {
       </TextNode>,
       { wrapper: paperRenderElementWrapper({}) }
     );
+  });
+
+  it('passes text styles to util.breakText', () => {
+    render(
+      <TextNode
+        width={120}
+        textWrap
+        lineHeight={1.5}
+        fontSize={14}
+        fontFamily="monospace"
+        fontWeight={600}
+        letterSpacing={2}
+        textTransform="uppercase"
+      >
+        styled text
+      </TextNode>,
+      {
+        wrapper: paperRenderElementWrapper({
+          graphProviderProps: {
+            elements: {
+              '1': {
+                width: 120,
+                height: 40,
+              },
+            },
+          },
+        }),
+      }
+    );
+
+    return waitFor(() => {
+      expect(util.breakText).toHaveBeenCalledWith(
+        'styled text',
+        { width: 120, height: undefined },
+        {
+          'font-size': 14,
+          'font-family': 'monospace',
+          'font-weight': 600,
+          'letter-spacing': 2,
+          'text-transform': 'uppercase',
+          lineHeight: 1.5,
+        },
+        {}
+      );
+    });
   });
 });
