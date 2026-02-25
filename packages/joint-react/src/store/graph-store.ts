@@ -19,7 +19,7 @@ import {
   defaultMapDataToLinkAttributes,
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
-} from '../state/data-mapper';
+} from '../state/data-mapping';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import { Scheduler } from '../utils/scheduler';
 import type { GraphSchedulerData } from '../types/scheduler.types';

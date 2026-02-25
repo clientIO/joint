@@ -16,7 +16,7 @@ import {
   defaultMapDataToLinkAttributes,
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
-} from './data-mapper';
+} from './data-mapping';
 import type { GraphSchedulerData } from '../types/scheduler.types';
 import type { Scheduler } from '../utils/scheduler';
 import { updateGraph, mapGraphElement, mapGraphLink } from './update-graph';

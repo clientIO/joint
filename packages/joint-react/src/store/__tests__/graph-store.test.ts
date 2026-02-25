@@ -8,7 +8,7 @@ import type { GraphLink } from '../../types/link-types';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
-} from '../../state/data-mapper';
+} from '../../state/data-mapping';
 import type {
   ElementToGraphOptions,
   LinkToGraphOptions,

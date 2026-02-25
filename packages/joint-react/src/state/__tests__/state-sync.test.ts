@@ -11,7 +11,7 @@ import {
   defaultMapDataToLinkAttributes,
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
-} from '../data-mapper';
+} from '../data-mapping';
 import type {
   ElementToGraphOptions,
   GraphToElementOptions,

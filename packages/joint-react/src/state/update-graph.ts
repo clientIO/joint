@@ -12,7 +12,7 @@ import {
   defaultMapDataToLinkAttributes,
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
-} from './data-mapper';
+} from './data-mapping';
 import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equality';
 
 /**

@@ -1,4 +1,4 @@
-import { defaultMapLinkAttributesToData } from '../../state/data-mapper';
+import { defaultMapLinkAttributesToData } from '../../state/data-mapping';
 import type { dia } from '@joint/core';
 import type { GraphToLinkOptions } from '../../state/graph-state-selectors';
 import type { GraphLink } from '../../types/link-types';

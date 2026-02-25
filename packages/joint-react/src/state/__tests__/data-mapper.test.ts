@@ -6,7 +6,7 @@ import { ReactElement } from '../../models/react-element';
 import type { GraphElement, GraphElementPort } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import type { ElementToGraphOptions, GraphToElementOptions, LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
-import { defaultMapDataToElementAttributes, defaultMapDataToLinkAttributes, defaultMapElementAttributesToData, defaultMapLinkAttributesToData } from '../data-mapper';
+import { defaultMapDataToElementAttributes, defaultMapDataToLinkAttributes, defaultMapElementAttributesToData, defaultMapLinkAttributesToData } from '../data-mapping';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
