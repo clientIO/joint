@@ -23,15 +23,7 @@ import {
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import { Scheduler } from '../utils/scheduler';
 import type { GraphSchedulerData } from '../types/scheduler.types';
-import { createPortCache, createClearViewCache, type BatchCache } from './batch-cache';
-import {
-  type PortUpdateCacheEntry,
-  mergePortUpdates,
-  setPort as setPortEntry,
-  removePort as removePortEntry,
-  setPortGroup as setPortGroupEntry,
-  removePortGroup as removePortGroupEntry,
-} from './port-cache';
+import { createClearViewCache, type BatchCache } from './batch-cache';
 import {
   type ClearViewCacheEntry,
   mergeClearViewValidators,
@@ -134,7 +126,6 @@ export class GraphStore {
   private observer: GraphStoreObserver;
   private stateSync: StateSync;
 
-  private portCache: BatchCache<dia.Cell.ID, PortUpdateCacheEntry>;
   private clearViewCache: BatchCache<dia.Cell.ID, ClearViewCacheEntry>;
   private readonly scheduler: Scheduler<GraphSchedulerData>;
   private paperUpdateCallbacks = new Set<() => void>();
@@ -238,7 +229,7 @@ export class GraphStore {
         flushElements(this.publicState, data);
         flushLinks(this.publicState, data);
 
-        // 2. Flush graph updates (link/port/clearView caches)
+        // 2. Flush graph updates (clearView cache)
         if (hadGraphUpdate) {
           this.isGraphUpdateScheduled = false;
           for (const callback of this.paperUpdateCallbacks) {
@@ -267,8 +258,6 @@ export class GraphStore {
     // Initial layout update (direct, before scheduler is active)
     flushLayoutState({ graph: this.graph, layoutState: this.layoutState, papers: this.papers });
 
-    // BatchCaches use scheduleGraphUpdate which schedules via the single scheduler
-    this.portCache = createPortCache(() => this.scheduleGraphUpdate());
     this.clearViewCache = createClearViewCache(() => this.scheduleGraphUpdate());
 
     this.stateSync = stateSync({
@@ -344,42 +333,9 @@ export class GraphStore {
     this.scheduler.scheduleData((data) => data);
   };
 
-  // --- Port Cache Flush ---
-
-  private flushPortUpdates(): dia.Cell.JSON[] {
-    if (this.portCache.isEmpty) return [];
-
-    const cellsToSync: dia.Cell.JSON[] = [];
-
-    for (const [elementId, entry] of this.portCache.entries()) {
-      const element = this.graph.getCell(elementId);
-      if (!element?.isElement()) continue;
-
-      const currentPorts = element.get('ports') || {};
-      const { ports, groups } = mergePortUpdates(
-        currentPorts.items || [],
-        currentPorts.groups || {},
-        entry
-      );
-
-      const cellJson = element.toJSON();
-      cellJson.ports = { items: ports, groups };
-      cellsToSync.push(cellJson);
-    }
-
-    this.portCache.clear();
-    return cellsToSync;
-  }
-
   // --- Graph Updates Flush ---
 
   private flushGraphUpdates = () => {
-    const portCells = this.flushPortUpdates();
-
-    if (portCells.length > 0) {
-      this.graph.syncCells(portCells, { remove: false });
-    }
-
     this.flushClearViewInternal();
   };
 
@@ -424,7 +380,7 @@ export class GraphStore {
 
   public updatePaperElementView(paperId: string, cellId: dia.Cell.ID, view: dia.ElementView) {
     this.updatePaperSnapshot(paperId, (current) => {
-      const base = current ?? { paperElementViews: {}, portsData: {} };
+      const base = current ?? { paperElementViews: {} };
       if (base.paperElementViews?.[cellId] === view) return base;
       return { paperElementViews: { ...base.paperElementViews, [cellId]: view } };
     });
@@ -454,41 +410,50 @@ export class GraphStore {
   public addPaper = (id: string, paperOptions: AddPaperOptions) => {
     const paperStore = new PaperStore({ ...paperOptions, graphStore: this, id });
     this.papers.set(id, paperStore);
+    // Initialize paper snapshot in state if it doesn't exist
+    this.internalState.setState((previous) => {
+      if (previous.papers[id]) {
+        return previous;
+      }
+      return { ...previous, papers: { ...previous.papers, [id]: {} } };
+    });
     return () => this.removePaper(id);
   };
 
+  /**
+   * Checks if a node with the given ID is currently being observed for size changes. This can be used by paper views to determine if they should register a node for measurement.
+   * @param id - The ID of the node to check.
+   * @returns True if the node is being observed, false otherwise.
+   */
   public hasMeasuredNode = (id: dia.Cell.ID) => this.observer.has(id);
+  /**
+   * Registers a node to be observed for size changes. The observer will call the provided callback with batches of size updates, which are then synced to the graph and trigger layout updates.
+   * @param options - Configuration options for the measured node, including its ID and a callback to receive size updates.
+   * @returns A function to unregister the node from observation.
+   */
   public setMeasuredNode = (options: SetMeasuredNodeOptions) => this.observer.add(options);
+  /**
+   * Get not-reactive paper snapshot for a given paper ID. This is used internally by the paper views to access their own state without causing re-renders.
+   * @param id - The id of the paper to access.
+   * @returns The paper snapshot or undefined if not found.
+   */
   public getPaperStore = (id: string) => this.papers.get(id);
 
+  /**
+   * Subscribes to cell changes in the graph and calls the provided callback with change details. This allows external code to react to changes in cells (elements and links) without directly subscribing to the entire graph state.
+   * @param callback - A function that receives change details and returns an unsubscribe function.
+   * @returns A function to unsubscribe from cell changes.
+   */
   public subscribeToCellChange = (callback: (change: OnChangeOptions) => () => void) => {
     return listenToCellChange(this.graph, (change) => callback(change));
   };
 
+  /**
+   * Updates the public state of the graph store with a new snapshot. This can be used to replace the entire graph state from an external source, such as when integrating with another state management solution.
+   * @param newStore - The new graph store snapshot to replace the current state.
+   */
   public updateExternalStore = (newStore: ExternalStoreLike<GraphStoreSnapshot>) => {
     this.publicState = newStore;
-  };
-
-  // --- Port API (uses BatchCache) ---
-
-  public setPort = (elementId: dia.Cell.ID, portId: string, portData: dia.Element.Port) => {
-    this.portCache.update(elementId, (entry) => setPortEntry(entry, portId, portData));
-  };
-
-  public removePort = (elementId: dia.Cell.ID, portId: string) => {
-    this.portCache.update(elementId, (entry) => removePortEntry(entry, portId));
-  };
-
-  public setPortGroup = (
-    elementId: dia.Cell.ID,
-    groupId: string,
-    groupData: dia.Element.PortGroup
-  ) => {
-    this.portCache.update(elementId, (entry) => setPortGroupEntry(entry, groupId, groupData));
-  };
-
-  public removePortGroup = (elementId: dia.Cell.ID, groupId: string) => {
-    this.portCache.update(elementId, (entry) => removePortGroupEntry(entry, groupId));
   };
 
   // --- Paper API ---
@@ -499,7 +464,7 @@ export class GraphStore {
   };
 
   /**
-   * Schedules graph updates (link/port/clearView) via the single scheduler.
+   * Schedules graph updates (clearView and paper updates) via the single scheduler.
    * Marks that graph updates need to be flushed in the next onFlush.
    */
   private scheduleGraphUpdate = () => {
@@ -529,7 +494,7 @@ export class GraphStore {
   };
 
   public flushPendingUpdates = () => {
-    if (this.portCache.isEmpty && this.clearViewCache.isEmpty) return;
+    if (this.clearViewCache.isEmpty) return;
     for (const callback of this.paperUpdateCallbacks) {
       callback();
     }

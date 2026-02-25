@@ -205,7 +205,6 @@ describe('GraphStore', () => {
 
       store.updatePaperSnapshot(paperId, () => ({
         paperElementViews: {},
-        portsData: {},
       }));
 
       const internalSnapshot = store.internalState.getSnapshot();
@@ -219,7 +218,6 @@ describe('GraphStore', () => {
 
       store.updatePaperSnapshot(paperId, () => ({
         paperElementViews: {},
-        portsData: {},
       }));
 
       store.updatePaperSnapshot(paperId, (previous) => ({
@@ -234,7 +232,7 @@ describe('GraphStore', () => {
     it('should not update if snapshot is unchanged', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const snapshot = { paperElementViews: {}, portsData: {} };
+      const snapshot = { paperElementViews: {} };
 
       store.updatePaperSnapshot(paperId, () => snapshot);
       const firstUpdate = store.internalState.getSnapshot().papers[paperId];

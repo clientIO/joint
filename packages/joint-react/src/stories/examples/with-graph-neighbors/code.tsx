@@ -10,7 +10,6 @@ import {
   useHighlighter,
   type GraphElement,
   type GraphLink,
-  type PaperStore,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -233,12 +232,12 @@ function RenderNode({ label, width, height, selectedId, neighborIds }: Readonly<
 
 function Main() {
   const graph = useGraph();
-  const paperStoreRef = useRef<PaperStore | null>(null);
+  const paperRef = useRef<dia.Paper | null>(null);
 
   const [highlightState, setHighlightState] = useState<HighlightState>(INITIAL_STATE);
 
   useEffect(() => {
-    const paper = paperStoreRef.current?.paper;
+    const paper = paperRef.current;
     if (!paper) return;
 
     highlighters.addClass.removeAll(paper, LINK_HIGHLIGHT_ID);
@@ -318,7 +317,7 @@ function Main() {
 
   return (
     <Paper
-      ref={paperStoreRef}
+      ref={paperRef}
       width="100%"
       className={PAPER_CLASSNAME}
       height={500}

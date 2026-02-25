@@ -2,12 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
 import { dia, highlighters, g, V } from '@joint/core';
-import type {
-  ElementToGraphOptions,
-  LinkToGraphOptions,
-  // ReactElementView,
-  PaperStore,
-} from '@joint/react';
+import type { ElementToGraphOptions, LinkToGraphOptions } from '@joint/react';
 import {
   GraphProvider,
   Paper,
@@ -311,7 +306,7 @@ function RenderElementWithBadge({
 }
 
 function Main() {
-  const [paperStore, setPaperStore] = useState<PaperStore | null>(null);
+  const [paper, setPaper] = useState<dia.Paper | null>(null);
   const [showMinimap, setShowMinimap] = useState(false);
   const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(null);
 
@@ -325,7 +320,7 @@ function Main() {
     <div className="flex flex-col relative w-full h-full">
       <Paper
         {...PAPER_PROPS}
-        ref={setPaperStore}
+        ref={setPaper}
         className={PAPER_CLASSNAME}
         height="calc(100vh - 100px)"
         snapLinks={{ radius: 25 }}
@@ -347,7 +342,7 @@ function Main() {
         <Selection selectedId={selectedElement} />
       </Paper>
 
-      {showMinimap && paperStore && <MiniMap paper={paperStore.paper} />}
+      {showMinimap && paper && <MiniMap paper={paper} />}
 
       <button
         type="button"

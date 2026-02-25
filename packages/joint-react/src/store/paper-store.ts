@@ -1,10 +1,10 @@
-import { dia, g, util, type Vectorizer } from '@joint/core';
+import { dia, g } from '@joint/core';
 import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import type { ReactPaper as ReactPaperType } from '../types/paper.types';
-import type { GraphState, GraphStore } from './graph-store';
+import type { GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
@@ -87,27 +87,6 @@ const DEFAULT_MEASURE_NODE = (
   // In jsdom many SVG subnodes report empty bbox; fallback to model geometry.
   return getModelRect(true);
 };
-export const PORTAL_SELECTOR = 'react-port-portal';
-
-/**
- * Cache entry for port-related DOM elements and selectors.
- * Used internally to track port rendering state.
- */
-export interface PortElementsCacheEntry {
-  /** The main port element vectorizer */
-  portElement: Vectorizer;
-  /** Optional port label element vectorizer */
-  portLabelElement?: Vectorizer | null;
-  /** Selectors for port SVG elements */
-  portSelectors: Record<string, SVGElement | SVGElement[]>;
-  /** Optional selectors for port label SVG elements */
-  portLabelSelectors?: Record<string, SVGElement | SVGElement[]>;
-  /** The port content element vectorizer */
-  portContentElement: Vectorizer;
-  /** Optional selectors for port content SVG elements */
-  portContentSelectors?: Record<string, SVGElement | SVGElement[]>;
-}
-
 /**
  * Options for adding a new paper instance to the graph store.
  */
@@ -139,13 +118,11 @@ export interface PaperStoreOptions extends AddPaperOptions {
 
 /**
  * Snapshot of paper-specific state.
- * Contains element views and port data for this paper instance.
+ * Contains element and link views for this paper instance.
  */
 export interface PaperStoreSnapshot {
   /** Map of cell IDs to their element views in this paper */
   paperElementViews?: Record<dia.Cell.ID, dia.ElementView>;
-  /** Map of port IDs to their SVG elements */
-  portsData?: Record<string, SVGElement>;
   /** Map of link IDs to their link views in this paper */
   linkViews?: Record<dia.Cell.ID, dia.LinkView>;
   /** Map of link label IDs to their SVG elements */
@@ -158,7 +135,6 @@ export interface PaperStoreSnapshot {
  * Each Paper component creates a PaperStore instance that:
  * - Manages the JointJS Paper instance
  * - Tracks element views for rendering
- * - Handles port rendering and caching
  * - Coordinates with the GraphStore for state updates
  */
 export class PaperStore {
@@ -208,12 +184,10 @@ export class PaperStore {
     this.renderElement = renderElement;
     this.renderLink = renderLink;
     const cache: {
-      portsData: Record<string, SVGElement>;
       elementViews: Record<dia.Cell.ID, dia.ElementView>;
       linkViews: Record<dia.Cell.ID, dia.LinkView>;
       linksData: Record<string, SVGElement>;
     } = {
-      portsData: {},
       elementViews: {},
       linkViews: {},
       linksData: {},
@@ -224,7 +198,6 @@ export class PaperStore {
       graphStore.updatePaperSnapshot(options.id, (current) => {
         return {
           ...current,
-          portsData: cache.portsData,
           paperElementViews: cache.elementViews,
           linkViews: cache.linkViews,
           linksData: cache.linksData,
@@ -232,9 +205,6 @@ export class PaperStore {
       });
     };
     this.unregisterPaperUpdate = graphStore.registerPaperUpdate(paperUpdateCallback);
-    // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
-    const store = this;
-
     // Create a new ReactPaper instance
     // ReactPaper handles view lifecycle internally via insertView/removeView
     // NOTE: We don't use cellVisibility to hide links because JointJS's
@@ -257,34 +227,6 @@ export class PaperStore {
 
           // Check if any pending links can now be shown
           this.checkPendingLinks();
-
-          // Iterate through all element views and capture port elements
-          let hasPortsChanged = false;
-          for (const view of Object.values(cache.elementViews)) {
-            const portElementsCache = (
-              view as dia.ElementView & {
-                _portElementsCache?: Record<string, PortElementsCacheEntry>;
-              }
-            )._portElementsCache;
-            if (!portElementsCache) {
-              continue;
-            }
-            const newPorts = store.getNewPorts({
-              state: graphStore.internalState,
-              cellId: view.model.id as dia.Cell.ID,
-              portElementsCache,
-              portsData: cache.portsData,
-            });
-            if (newPorts && newPorts !== cache.portsData) {
-              cache.portsData = newPorts;
-              hasPortsChanged = true;
-            }
-          }
-
-          // Only schedule update if ports actually changed
-          if (hasPortsChanged) {
-            graphStore.schedulePaperUpdate();
-          }
 
           isProcessing = false;
         };
@@ -311,21 +253,12 @@ export class PaperStore {
       set elementViews(value) {
         cache.elementViews = value;
       },
-      get portsData() {
-        return cache.portsData;
-      },
-      set portsData(value) {
-        cache.portsData = value;
-      },
     };
     paper.reactElementGraphStore = {
       schedulePaperUpdate: () => graphStore.schedulePaperUpdate(),
       get internalState() {
         return graphStore.internalState;
       },
-    };
-    paper.reactElementPaperStore = {
-      getNewPorts: store.getNewPorts,
     };
     paper.reactLinkCache = {
       get linkViews() {
@@ -346,7 +279,7 @@ export class PaperStore {
       flushPendingUpdates: () => graphStore.flushPendingUpdates(),
     };
     paper.reactLinkPaperStore = {
-      getLinkLabelId: store.getLinkLabelId,
+      getLinkLabelId: this.getLinkLabelId,
     };
 
     this.paper = paper;
@@ -393,51 +326,6 @@ export class PaperStore {
     this.paper.unfreeze();
     return this.overWriteResultRef;
   };
-
-  private getNewPorts = (options: {
-    portsData: Record<string, SVGElement>;
-    state: GraphState;
-    cellId: dia.Cell.ID;
-    portElementsCache: Record<string, PortElementsCacheEntry>;
-  }) => {
-    // silently update the ports data
-    const { cellId, portElementsCache, portsData } = options;
-
-    const nextPorts = { ...portsData };
-    let isChanged = false;
-    for (const portId in portElementsCache) {
-      const { portSelectors } = portElementsCache[portId];
-      const portalElement = portSelectors[PORTAL_SELECTOR];
-      if (!portalElement) {
-        // Port was defined via JointJS native API (not via React <Port> component),
-        // so it doesn't have the portal selector. Skip it - it renders natively.
-        continue;
-      }
-
-      const element = Array.isArray(portalElement) ? portalElement[0] : portalElement;
-      const id = this.getPortId(cellId, portId);
-      if (util.isEqual(nextPorts[id], element)) {
-        continue;
-      }
-      isChanged = true;
-      nextPorts[id] = element;
-    }
-    if (!isChanged) {
-      return portsData;
-    }
-    const newPorts = { ...portsData, ...nextPorts };
-    return newPorts;
-  };
-
-  /**
-   * Generates a unique port ID by combining cell ID and port ID.
-   * @param cellId - The ID of the cell containing the port
-   * @param portId - The ID of the port
-   * @returns A unique identifier for the port
-   */
-  public getPortId(cellId: dia.Cell.ID, portId: string) {
-    return `${cellId}-${portId}`;
-  }
 
   /**
    * Generates a unique link label ID by combining link ID and label index.

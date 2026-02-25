@@ -13,6 +13,10 @@ import {
 import { useCallback } from 'react';
 
 const SECONDARY = '#6366f1';
+const DEFAULT_ANCHOR: dia.Paper.Options['defaultAnchor'] = {
+  name: 'center',
+  args: { useModelGeometry: true },
+};
 
 interface PortElement extends GraphElement {
   readonly label: string;
@@ -86,7 +90,7 @@ function Main() {
       renderElement={renderElement}
       // @todo: the default measureNode should always return model bbox
       snapLinks={true}
-      defaultAnchor={{ name: 'center', args: { useModelGeometry: true } }}
+      defaultAnchor={DEFAULT_ANCHOR}
     />
   );
 }

@@ -1,32 +1,6 @@
-import { dia, V } from '@joint/core';
-import { PORTAL_SELECTOR, PaperStore } from '../paper-store';
-import type { PortElementsCacheEntry } from '../paper-store';
-import type { ReactPaper } from '../../types/paper.types';
+import { dia } from '@joint/core';
+import { PaperStore } from '../paper-store';
 import { GraphStore } from '../graph-store';
-
-function createGetNewPortsPaperStore() {
-  const graph = new dia.Graph();
-  const graphStore = new GraphStore({ graph });
-  const paperElement = document.createElement('div');
-  const paperStore = new PaperStore({
-    graphStore,
-    paperElement,
-    paperOptions: {},
-    id: 'test-paper',
-  });
-  const { getNewPorts } = (paperStore.paper as unknown as ReactPaper).reactElementPaperStore;
-  return { paperStore, graphStore, getNewPorts };
-}
-
-function createPortCacheEntry(
-  selectors: Record<string, SVGElement | SVGElement[]>
-): PortElementsCacheEntry {
-  return {
-    portElement: V('g') as unknown as PortElementsCacheEntry['portElement'],
-    portContentElement: V('g') as unknown as PortElementsCacheEntry['portContentElement'],
-    portSelectors: selectors,
-  };
-}
 
 describe('PaperStore', () => {
   describe('constructor', () => {
@@ -229,24 +203,6 @@ describe('PaperStore', () => {
     });
   });
 
-  describe('getPortId', () => {
-    it('should generate unique port ID from cell and port IDs', () => {
-      const graph = new dia.Graph();
-      const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
-
-      const paperStore = new PaperStore({
-        graphStore,
-        paperElement,
-        paperOptions: {},
-        id: 'test-paper',
-      });
-
-      const portId = paperStore.getPortId('cell-1', 'port-a');
-      expect(portId).toBe('cell-1-port-a');
-    });
-  });
-
   describe('getLinkLabelId', () => {
     it('should generate unique link label ID from link ID and index', () => {
       const graph = new dia.Graph();
@@ -265,68 +221,6 @@ describe('PaperStore', () => {
 
       const labelId2 = paperStore.getLinkLabelId('link-1', 2);
       expect(labelId2).toBe('link-1-label-2');
-    });
-  });
-
-  describe('getNewPorts', () => {
-    it('should skip native ports without portal selector', () => {
-      const { getNewPorts, graphStore } = createGetNewPortsPaperStore();
-      const nativePortElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-
-      const portElementsCache: Record<string, PortElementsCacheEntry> = {
-        'port-1': createPortCacheEntry({ circle: nativePortElement }),
-      };
-
-      const result = getNewPorts({
-        state: graphStore.internalState,
-        cellId: 'cell-1',
-        portElementsCache,
-        portsData: {},
-      });
-
-      // Should return original portsData (unchanged) since native port is skipped
-      expect(result).toEqual({});
-    });
-
-    it('should process React portal ports with portal selector', () => {
-      const { getNewPorts, graphStore } = createGetNewPortsPaperStore();
-      const portalElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-
-      const portElementsCache: Record<string, PortElementsCacheEntry> = {
-        'port-1': createPortCacheEntry({ [PORTAL_SELECTOR]: portalElement }),
-      };
-
-      const result = getNewPorts({
-        state: graphStore.internalState,
-        cellId: 'cell-1',
-        portElementsCache,
-        portsData: {},
-      });
-
-      expect(result).toEqual({ 'cell-1-port-1': portalElement });
-    });
-
-    it('should handle mix of native and React portal ports', () => {
-      const { getNewPorts, graphStore } = createGetNewPortsPaperStore();
-      const nativePortElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      const portalElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-
-      const portElementsCache: Record<string, PortElementsCacheEntry> = {
-        'native-port': createPortCacheEntry({ circle: nativePortElement }),
-        'react-port': createPortCacheEntry({ [PORTAL_SELECTOR]: portalElement }),
-      };
-
-      const result = getNewPorts({
-        state: graphStore.internalState,
-        cellId: 'cell-1',
-        portElementsCache,
-        portsData: {},
-      });
-
-      // Only the React portal port should be in the result
-      expect(result).toEqual({ 'cell-1-react-port': portalElement });
-      // Native port should NOT be in the result
-      expect(result).not.toHaveProperty('cell-1-native-port');
     });
   });
 

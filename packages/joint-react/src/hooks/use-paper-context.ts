@@ -1,6 +1,8 @@
 import { useContext } from 'react';
 import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
+import { useGraphStore } from './use-graph-store';
+import { useGraphInternalStoreSelector } from './use-graph-store-selector';
 
 /**
  * Hook to access the current GraphProvider View context or a specific view by id from the GraphProvider Store.
@@ -18,4 +20,21 @@ export function usePaperStoreContext<T extends boolean = false>(
 
   const value = ctx ?? null;
   return value as T extends true ? PaperStore | null : PaperStore;
+}
+
+/**
+ * Hook to access a specific PaperStore by id from the GraphProvider Store.
+ * @param id - The id of the PaperStore to access.
+ * @returns The PaperStore with the specified id from the store, or null if not found.
+ */
+export function usePaperStoreById(id: string): PaperStore | null {
+  const { getPaperStore } = useGraphStore();
+  const paper = useGraphInternalStoreSelector((state) => {
+    const hasPaper = !!state.papers[id];
+    if (!hasPaper) {
+      return null;
+    }
+    return getPaperStore(id) ?? null;
+  });
+  return paper;
 }
