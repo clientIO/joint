@@ -360,10 +360,10 @@ describe('graph', () => {
 
   it('should pass ref instance to the GraphProvider component', () => {
     // eslint-disable-next-line @eslint-react/no-create-ref
-    const graphRef = createRef<GraphStore>();
+    const graphRef = createRef<dia.Graph>();
     render(<GraphProvider ref={graphRef} />);
     expect(graphRef.current).not.toBeNull();
-    expect(graphRef.current?.destroy).toBeDefined();
+    expect(graphRef.current?.getCells).toBeDefined();
   });
 
   it('should pass correct link data to renderLink function', async () => {
