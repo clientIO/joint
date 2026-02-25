@@ -1,4 +1,4 @@
-import { flatMapper } from '../../state/flat-mapper';
+import { defaultMapLinkAttributesToData } from '../../state/data-mapper';
 import type { dia } from '@joint/core';
 import type { GraphToLinkOptions } from '../../state/graph-state-selectors';
 import type { GraphLink } from '../../types/link-types';
@@ -26,9 +26,9 @@ describe('graph-state-selectors link mapping', () => {
     } as unknown as dia.Link;
   });
 
-  describe('flatMapper.mapLinkAttributesToData', () => {
+  describe('defaultMapLinkAttributesToData', () => {
     it('should extract link attributes correctly', () => {
-      const link = flatMapper.mapLinkAttributesToData({
+      const link = defaultMapLinkAttributesToData({
         id: mockCell.id as string,
         cell: mockCell,
         graph: {} as dia.Graph,

@@ -10,7 +10,6 @@ import type {
   GraphToElementOptions,
   LinkToGraphOptions,
   GraphToLinkOptions,
-  MapperPreset,
 } from './graph-state-selectors';
 
 /**
@@ -133,7 +132,7 @@ function applyShapePreservation<T extends GraphElement | GraphLink>(
  * Converts simplified `GraphElementPort[]` to full JointJS port format.
  * Remaining user props go to `cell.data`. Sets `type: REACT_TYPE`.
  */
-function mapDataToElementAttributes<Element extends GraphElement>(
+export function defaultMapDataToElementAttributes<Element extends GraphElement>(
   options: ElementToGraphOptions<Element>
 ): dia.Cell.JSON {
   const { id, data } = options;
@@ -222,7 +221,7 @@ function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
  * Extracts `position` to `{x, y}`, `size` to `{width, height}`.
  * Spreads `cell.data` to top level. Shape preservation via `previousData`.
  */
-function mapElementAttributesToData<Element extends GraphElement>(
+export function defaultMapElementAttributesToData<Element extends GraphElement>(
   options: GraphToElementOptions<Element>
 ): Element {
   const { cell, previousData } = options;
@@ -242,7 +241,7 @@ function mapElementAttributesToData<Element extends GraphElement>(
  * with `DEFAULT_LINK_THEME` fallbacks. Builds `attrs.line`.
  * Remaining user + theme data go to `cell.data`.
  */
-function mapDataToLinkAttributes<Link extends GraphLink>(
+export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
   options: LinkToGraphOptions<Link>
 ): dia.Cell.JSON {
   const { id, data } = options;
@@ -341,7 +340,7 @@ function mapDataToLinkAttributes<Link extends GraphLink>(
  * Extracts source/target, spreads `cell.data` to top level.
  * Shape preservation via `previousData`.
  */
-function mapLinkAttributesToData<Link extends GraphLink>(
+export function defaultMapLinkAttributesToData<Link extends GraphLink>(
   options: GraphToLinkOptions<Link>
 ): Link {
   const { cell, previousData } = options;
@@ -372,19 +371,3 @@ function mapLinkAttributesToData<Link extends GraphLink>(
   return cellData as Link;
 }
 
-/**
- * Flat mapper preset.
- *
- * Uses a flat data format where `position` is `{x, y}` and `size` is `{width, height}`
- * at the top level. Ports use the simplified `GraphElementPort[]` format and are
- * converted to full JointJS port definitions. Links use a theme system with
- * `color`, `width`, `sourceMarker`, `targetMarker`, `pattern`, and `className` props.
- *
- * This is the default mapper used when no mapper is specified.
- */
-export const flatMapper: MapperPreset = {
-  mapDataToElementAttributes,
-  mapDataToLinkAttributes,
-  mapElementAttributesToData,
-  mapLinkAttributesToData,
-};

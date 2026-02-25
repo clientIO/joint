@@ -10,7 +10,6 @@ import {
   usePaper,
   useNodeSize,
   useNodeLayout,
-  flatMapper,
   type GraphElement,
   type GraphLink,
   type PaperProps,
@@ -388,15 +387,15 @@ function mapDataToLinkAttributesExample(options: LinkToGraphOptions<LinkData>) {
   const { jjType, color } = options.data;
 
   // For standard links, use the built-in theme defaults
-  // The flatMapper already handles color, width, and markers
+  // The default mapper already handles color, width, and markers
   if (!jjType) {
-    return flatMapper.mapDataToLinkAttributes(options);
+    return options.toAttributes(options.data);
   }
 
   // For custom link types (like standard.ShadowLink), override the type
   // and exclude attrs so the link type's defaults are used
   const attributes = {
-    ...flatMapper.mapDataToLinkAttributes(options),
+    ...options.toAttributes(options.data),
     type: jjType,
   };
   // eslint-disable-next-line sonarjs/no-small-switch
@@ -451,9 +450,9 @@ function mapDataToElementAttributesExample(
   options: ElementToGraphOptions<ElementData>
 ) {
   const { jjType, color = 'lightgray' } = options.data;
-  if (!jjType) return flatMapper.mapDataToElementAttributes(options);
+  if (!jjType) return options.toAttributes(options.data);
   const attributes = {
-    ...flatMapper.mapDataToElementAttributes(options),
+    ...options.toAttributes(options.data),
     type: jjType,
   };
   // eslint-disable-next-line sonarjs/no-small-switch

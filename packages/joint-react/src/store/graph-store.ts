@@ -14,7 +14,12 @@ import type { ExternalStoreLike, State } from '../utils/create-state';
 import { createState, derivedState } from '../utils/create-state';
 import { stateSync, type StateSync } from '../state/state-sync';
 import type { GraphStateSelectors } from '../state/graph-state-selectors';
-import { flatMapper } from '../state/flat-mapper';
+import {
+  defaultMapDataToElementAttributes,
+  defaultMapDataToLinkAttributes,
+  defaultMapElementAttributesToData,
+  defaultMapLinkAttributesToData,
+} from '../state/data-mapper';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import { Scheduler } from '../utils/scheduler';
 import type { GraphSchedulerData } from '../types/scheduler.types';
@@ -154,10 +159,10 @@ export class GraphStore {
       cellNamespace = DEFAULT_CELL_NAMESPACE,
       graph,
       externalStore,
-      mapDataToElementAttributes = flatMapper.mapDataToElementAttributes,
-      mapDataToLinkAttributes = flatMapper.mapDataToLinkAttributes,
-      mapElementAttributesToData = flatMapper.mapElementAttributesToData,
-      mapLinkAttributesToData = flatMapper.mapLinkAttributesToData,
+      mapDataToElementAttributes = defaultMapDataToElementAttributes,
+      mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
+      mapElementAttributesToData = defaultMapElementAttributesToData,
+      mapLinkAttributesToData = defaultMapLinkAttributesToData,
     } = config;
 
     this.graphToElementSelector = mapElementAttributesToData as typeof this.graphToElementSelector;

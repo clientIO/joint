@@ -8,7 +8,6 @@ import {
   useCellId,
   useElements,
   useGraph,
-  flatMapper,
   type OnLoadOptions,
   type GraphElement,
   type GraphLink,
@@ -244,7 +243,7 @@ const mapDataToLinkAttributes = (
   const { color, z } = options.data;
 
   return {
-    ...flatMapper.mapDataToLinkAttributes(options),
+    ...options.toAttributes(options.data),
     type: 'standard.DoubleLink',
     z,
     attrs: {

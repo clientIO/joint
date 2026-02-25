@@ -6,14 +6,17 @@ import { updateGraph } from '../update-graph';
 import { createState } from '../../utils/create-state';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
-import { flatMapper } from '../flat-mapper';
+import {
+  defaultMapDataToElementAttributes,
+  defaultMapDataToLinkAttributes,
+  defaultMapElementAttributesToData,
+  defaultMapLinkAttributesToData,
+} from '../data-mapper';
 import type {
   ElementToGraphOptions,
   GraphToElementOptions,
   LinkToGraphOptions,
 } from '../graph-state-selectors';
-
-const { mapDataToElementAttributes: defaultMapDataToElementAttributes, mapDataToLinkAttributes: defaultMapDataToLinkAttributes, mapElementAttributesToData, mapLinkAttributesToData } = flatMapper;
 import { Scheduler } from '../../utils/scheduler';
 import type { GraphSchedulerData } from '../../types/scheduler.types';
 
@@ -27,7 +30,7 @@ function createElementToGraphOptions<E extends GraphElement>(
     id,
     data: element,
     graph,
-    toAttributes: (newData) => flatMapper.mapDataToElementAttributes({ id, data: newData, graph } as ElementToGraphOptions<E>),
+    toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData, graph } as ElementToGraphOptions<E>),
   };
 }
 
@@ -41,7 +44,7 @@ function _createLinkToGraphOptions<L extends GraphLink>(
     id,
     data,
     graph,
-    toAttributes: (newData) => flatMapper.mapDataToLinkAttributes({ id, data: newData, graph } as LinkToGraphOptions<L>),
+    toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData, graph } as LinkToGraphOptions<L>),
   };
 }
 
@@ -854,8 +857,8 @@ describe('updateGraph', () => {
       graph,
       elements,
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
     });
@@ -868,7 +871,7 @@ describe('updateGraph', () => {
   it('should return false when graph is already in sync', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-    // Include x and y as they are returned by mapElementAttributesToData
+    // Include x and y as they are returned by defaultMapElementAttributesToData
     const elements: Record<string, GraphElement> = {
       '1': { width: 100, height: 100, x: 0, y: 0, type: 'ReactElement' },
     };
@@ -878,8 +881,8 @@ describe('updateGraph', () => {
       graph,
       elements,
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
     });
@@ -887,11 +890,11 @@ describe('updateGraph', () => {
     // Get what the graph now thinks the element is
     const [graphElement] = graph.getElements();
     const id = graphElement.id as string;
-    const graphElementData = mapElementAttributesToData({
+    const graphElementData = defaultMapElementAttributesToData({
       id,
       cell: graphElement,
       graph,
-      toData: () => flatMapper.mapElementAttributesToData({ id, cell: graphElement, graph } as unknown as GraphToElementOptions<GraphElement>),
+      toData: () => defaultMapElementAttributesToData({ id, cell: graphElement, graph } as unknown as GraphToElementOptions<GraphElement>),
     });
 
     // Second sync with the actual graph state should return false
@@ -899,8 +902,8 @@ describe('updateGraph', () => {
       graph,
       elements: { [id]: graphElementData },
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
     });
@@ -922,8 +925,8 @@ describe('updateGraph', () => {
       graph,
       elements,
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
     });
@@ -949,8 +952,8 @@ describe('updateGraph', () => {
       graph,
       elements,
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
       isUpdateFromReact: true,

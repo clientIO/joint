@@ -4,7 +4,6 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  flatMapper,
   type GraphElement,
   type GraphLink,
   type ElementToGraphOptions,
@@ -68,7 +67,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
 const mapDataToElementAttributes = (
   options: ElementToGraphOptions<GraphElement>
 ): dia.Cell.JSON => {
-  const result = flatMapper.mapDataToElementAttributes(options);
+  const result = options.toAttributes(options.data);
   const { color, label, inputPorts, outputPorts } = options.data as NativeElement;
   return {
     ...result,

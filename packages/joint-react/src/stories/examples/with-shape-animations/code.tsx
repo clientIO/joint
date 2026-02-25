@@ -6,7 +6,6 @@ import {
   Paper,
   useCellActions,
   useElements,
-  flatMapper,
   type GraphElement,
   type GraphLink,
   type LinkToGraphOptions,
@@ -122,7 +121,7 @@ const initialLinks: Record<string, WireLink> = {
 const mapDataToLinkAttributes = (
   options: LinkToGraphOptions<GraphLink>
 ): dia.Cell.JSON => {
-  const result = flatMapper.mapDataToLinkAttributes(options);
+  const result = options.toAttributes(options.data);
   return {
     ...result,
     z: -1,

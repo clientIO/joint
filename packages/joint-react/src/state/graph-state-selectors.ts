@@ -43,11 +43,3 @@ export interface GraphStateSelectors<Element extends GraphElement, Link extends 
   readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<Link>) => Link;
 }
 
-/**
- * A complete set of mapper functions for bidirectional conversion between
- * React data and JointJS cell attributes.
- *
- * @see flatMapper - Flat data format (default)
- * @see nativeMapper - Native JointJS attribute format
- */
-export type MapperPreset = Required<GraphStateSelectors<GraphElement, GraphLink>>;

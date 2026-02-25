@@ -11,7 +11,12 @@ import type {
   GraphStateSelectors,
   LinkToGraphOptions,
 } from './graph-state-selectors';
-import { flatMapper } from './flat-mapper';
+import {
+  defaultMapDataToElementAttributes,
+  defaultMapDataToLinkAttributes,
+  defaultMapElementAttributesToData,
+  defaultMapLinkAttributesToData,
+} from './data-mapper';
 import type { GraphSchedulerData } from '../types/scheduler.types';
 import type { Scheduler } from '../utils/scheduler';
 import { updateGraph, mapGraphElement, mapGraphLink } from './update-graph';
@@ -133,16 +138,16 @@ export function stateSync<
     graph,
     store,
     scheduler,
-    mapDataToElementAttributes = flatMapper.mapDataToElementAttributes,
-    mapDataToLinkAttributes = flatMapper.mapDataToLinkAttributes,
+    mapDataToElementAttributes = defaultMapDataToElementAttributes,
+    mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
     onGraphUpdated,
   } = options;
 
-  const elementSelector = (options.graphToElementSelector ?? flatMapper.mapElementAttributesToData) as (
+  const elementSelector = (options.graphToElementSelector ?? defaultMapElementAttributesToData) as (
     options: GraphToElementOptions<Element> & { readonly graph: Graph }
   ) => Element;
 
-  const linkSelector = (options.graphToLinkSelector ?? flatMapper.mapLinkAttributesToData) as (
+  const linkSelector = (options.graphToLinkSelector ?? defaultMapLinkAttributesToData) as (
     options: GraphToLinkOptions<Link> & { readonly graph: Graph }
   ) => Link;
 

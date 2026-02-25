@@ -7,7 +7,12 @@ import type {
   GraphToLinkOptions,
   LinkToGraphOptions,
 } from './graph-state-selectors';
-import { flatMapper } from './flat-mapper';
+import {
+  defaultMapDataToElementAttributes,
+  defaultMapDataToLinkAttributes,
+  defaultMapElementAttributesToData,
+  defaultMapLinkAttributesToData,
+} from './data-mapper';
 import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equality';
 
 /**
@@ -63,7 +68,7 @@ export function mapGraphElement<Graph extends dia.Graph, Element extends GraphEl
   const id = cell.id as string;
   return selector({
     id, cell, graph, previousData,
-    toData: () => flatMapper.mapElementAttributesToData({ id, cell, graph } as unknown as GraphToElementOptions<Element>),
+    toData: () => defaultMapElementAttributesToData({ id, cell, graph } as unknown as GraphToElementOptions<Element>),
   });
 }
 
@@ -83,7 +88,7 @@ export function mapGraphLink<Graph extends dia.Graph, Link extends GraphLink>(
   const id = cell.id as string;
   return selector({
     id, cell, graph, previousData,
-    toData: () => flatMapper.mapLinkAttributesToData({ id, cell, graph } as unknown as GraphToLinkOptions<Link>),
+    toData: () => defaultMapLinkAttributesToData({ id, cell, graph } as unknown as GraphToLinkOptions<Link>),
   });
 }
 
@@ -168,14 +173,14 @@ export function updateGraph<
   const elementItems = Object.entries(elementsRecord).map(([id, data]) => {
     return mapDataToElementAttributes({
       id, data, graph,
-      toAttributes: (newData) => flatMapper.mapDataToElementAttributes({ id, data: newData, graph } as unknown as ElementToGraphOptions<Element>),
+      toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData, graph } as unknown as ElementToGraphOptions<Element>),
     });
   });
 
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
     return mapDataToLinkAttributes({
       id, data, graph,
-      toAttributes: (newData) => flatMapper.mapDataToLinkAttributes({ id, data: newData, graph } as unknown as LinkToGraphOptions<Link>),
+      toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData, graph } as unknown as LinkToGraphOptions<Link>),
     });
   });
 

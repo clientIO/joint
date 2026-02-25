@@ -5,7 +5,6 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  flatMapper,
   type GraphElement,
   type GraphLink,
   type ElementToGraphOptions,
@@ -23,7 +22,7 @@ interface NativeLink extends GraphLink {
 const mapDataToElementAttributes = (
   options: ElementToGraphOptions<GraphElement>
 ): dia.Cell.JSON => {
-  const result = flatMapper.mapDataToElementAttributes(options);
+  const result = options.toAttributes(options.data);
   const { type, attrs } = options.data as NativeElement;
   return {
     ...result,
@@ -35,7 +34,7 @@ const mapDataToElementAttributes = (
 const mapDataToLinkAttributes = (
   options: LinkToGraphOptions<GraphLink>
 ): dia.Cell.JSON => {
-  const result = flatMapper.mapDataToLinkAttributes(options);
+  const result = options.toAttributes(options.data);
   const { type, attrs, labels } = options.data as NativeLink;
   return {
     ...result,
