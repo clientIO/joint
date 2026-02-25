@@ -1,3 +1,4 @@
+import type { dia } from '@joint/core';
 import { util, V, type Vectorizer } from '@joint/core';
 import { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
 import { useCombinedRef } from '../../hooks/use-combined-ref';
@@ -7,7 +8,7 @@ import { useCellId, useGraph } from '../../hooks';
 interface BreakTextWidthOptions {
   readonly width: number | undefined;
   readonly graph: ReturnType<typeof useGraph>;
-  readonly cellId: string;
+  readonly cellId: dia.Cell.ID;
 }
 
 interface TextWrapStylesOptions {
@@ -16,14 +17,10 @@ interface TextWrapStylesOptions {
   readonly fontFamily: SVGTextElementAttributes<SVGTextElement>['fontFamily'];
   readonly fontSize: SVGTextElementAttributes<SVGTextElement>['fontSize'];
   readonly letterSpacing: SVGTextElementAttributes<SVGTextElement>['letterSpacing'];
-  readonly textTransform: SVGTextElementAttributes<SVGTextElement>['textTransform'];
+  readonly textTransform?: string;
 }
 
-function getBreakTextWidth({
-  width,
-  graph,
-  cellId,
-}: BreakTextWidthOptions) {
+function getBreakTextWidth({ width, graph, cellId }: BreakTextWidthOptions) {
   if (isNumber(width)) {
     return Math.max(0, width);
   }
@@ -70,6 +67,7 @@ export interface TextNodeProps
   readonly width?: number;
   readonly height?: number;
   readonly textWrap?: boolean | util.BreakTextOptions;
+  readonly textTransform?: string;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -98,6 +96,8 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
   const textRef = useCombinedRef<SVGTextElement>(ref);
   const cellId = useCellId();
   const graph = useGraph();
+  const textStyle = textTransform ? { textTransform } : undefined;
+
   useEffect(() => {
     if (!textRef.current) {
       return;
@@ -163,7 +163,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
       fontFamily={fontFamily}
       fontSize={fontSize}
       letterSpacing={letterSpacing}
-      textTransform={textTransform}
+      style={textStyle}
     />
   );
 }

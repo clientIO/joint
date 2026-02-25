@@ -21,7 +21,6 @@ describe('ReactPaper', () => {
     // Initialize caches that PaperStore would normally set up
     elementCache = {
       elementViews: {},
-      portsData: {},
     };
     linkCache = {
       linkViews: {},

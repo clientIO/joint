@@ -1,13 +1,11 @@
 import type { dia } from '@joint/core';
 import type { GraphState } from '../store/graph-store';
-import type { PortElementsCacheEntry } from '../store/paper-store';
 
 /**
  * Cache interface for element view state.
  */
 export interface ReactElementViewCache {
   elementViews: Record<dia.Cell.ID, dia.ElementView>;
-  portsData: Record<string, SVGElement>;
 }
 
 /**
@@ -16,18 +14,6 @@ export interface ReactElementViewCache {
 export interface ReactElementViewGraphStoreRef {
   schedulePaperUpdate: () => void;
   readonly internalState: GraphState;
-}
-
-/**
- * PaperStore reference interface for element view.
- */
-export interface ReactElementViewPaperStoreRef {
-  getNewPorts: (options: {
-    state: GraphState;
-    cellId: dia.Cell.ID;
-    portElementsCache: Record<string, PortElementsCacheEntry>;
-    portsData: Record<string, SVGElement>;
-  }) => Record<string, SVGElement> | undefined;
 }
 
 /**
@@ -59,7 +45,6 @@ export interface ReactLinkViewPaperStoreRef {
 export interface ReactPaper extends dia.Paper {
   reactElementCache: ReactElementViewCache;
   reactElementGraphStore: ReactElementViewGraphStoreRef;
-  reactElementPaperStore: ReactElementViewPaperStoreRef;
   reactLinkCache: ReactLinkViewCache;
   reactLinkGraphStore: ReactLinkViewGraphStoreRef;
   reactLinkPaperStore: ReactLinkViewPaperStoreRef;
