@@ -11,12 +11,7 @@ import type {
   GraphStateSelectors,
   LinkToGraphOptions,
 } from './graph-state-selectors';
-import {
-  defaultMapDataToElementAttributes,
-  mapElementAttributesToData,
-  defaultMapDataToLinkAttributes,
-  mapLinkAttributesToData,
-} from './graph-state-selectors';
+import { flatMapper } from './flat-mapper';
 import type { GraphSchedulerData } from '../types/scheduler.types';
 import type { Scheduler } from '../utils/scheduler';
 import { updateGraph, mapGraphElement, mapGraphLink } from './update-graph';
@@ -138,16 +133,16 @@ export function stateSync<
     graph,
     store,
     scheduler,
-    mapDataToElementAttributes = defaultMapDataToElementAttributes,
-    mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
+    mapDataToElementAttributes = flatMapper.mapDataToElementAttributes,
+    mapDataToLinkAttributes = flatMapper.mapDataToLinkAttributes,
     onGraphUpdated,
   } = options;
 
-  const elementSelector = (options.graphToElementSelector ?? mapElementAttributesToData) as (
+  const elementSelector = (options.graphToElementSelector ?? flatMapper.mapElementAttributesToData) as (
     options: GraphToElementOptions<Element> & { readonly graph: Graph }
   ) => Element;
 
-  const linkSelector = (options.graphToLinkSelector ?? mapLinkAttributesToData) as (
+  const linkSelector = (options.graphToLinkSelector ?? flatMapper.mapLinkAttributesToData) as (
     options: GraphToLinkOptions<Link> & { readonly graph: Graph }
   ) => Link;
 
@@ -157,24 +152,24 @@ export function stateSync<
     scheduler.scheduleData((data) => {
       const snapshot = store.getSnapshot();
       if (cell.isElement()) {
-        const previous = snapshot.elements[cell.id] as Element | undefined;
+        const previousData = snapshot.elements[cell.id] as Element | undefined;
         return {
           ...data,
           elementsToUpdate: mapSet(
             data.elementsToUpdate,
             cell.id,
-            mapGraphElement(cell, graph, elementSelector, previous)
+            mapGraphElement(cell, graph, elementSelector, previousData)
           ),
         };
       }
       if (cell.isLink()) {
-        const previous = snapshot.links[cell.id] as Link | undefined;
+        const previousData = snapshot.links[cell.id] as Link | undefined;
         return {
           ...data,
           linksToUpdate: mapSet(
             data.linksToUpdate,
             cell.id,
-            mapGraphLink(cell, graph, linkSelector, previous)
+            mapGraphLink(cell, graph, linkSelector, previousData)
           ),
         };
       }

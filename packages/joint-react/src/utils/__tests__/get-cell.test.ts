@@ -1,5 +1,7 @@
-import { createDefaultGraphToLinkMapper } from '../../state/graph-state-selectors';
+import { flatMapper } from '../../state/flat-mapper';
 import type { dia } from '@joint/core';
+import type { GraphToLinkOptions } from '../../state/graph-state-selectors';
+import type { GraphLink } from '../../types/link-types';
 
 describe('graph-state-selectors link mapping', () => {
   let mockCell: dia.Link;
@@ -24,10 +26,13 @@ describe('graph-state-selectors link mapping', () => {
     } as unknown as dia.Link;
   });
 
-  describe('createDefaultGraphToLinkMapper', () => {
+  describe('flatMapper.mapLinkAttributesToData', () => {
     it('should extract link attributes correctly', () => {
-      const mapper = createDefaultGraphToLinkMapper(mockCell);
-      const link = mapper();
+      const link = flatMapper.mapLinkAttributesToData({
+        id: mockCell.id as string,
+        cell: mockCell,
+        graph: {} as dia.Graph,
+      } as unknown as GraphToLinkOptions<GraphLink>);
       // id is no longer part of GraphLink - it's the Record key
       expect(link).toMatchObject({
         source: 'source-id',

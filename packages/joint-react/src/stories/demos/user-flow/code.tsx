@@ -5,6 +5,7 @@ import {
   GraphProvider,
   Paper,
   useCellId,
+  flatMapper,
   type ElementToGraphOptions,
   type GraphElement,
   type GraphLink,
@@ -83,12 +84,11 @@ const links: Record<string, GraphLink> = {
   },
 };
 
-const mapDataToElementAttributes = ({
-  data,
-  defaultAttributes,
-}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  const result = defaultAttributes();
-  const { outputPorts } = data as NodeType;
+const mapDataToElementAttributes = (
+  options: ElementToGraphOptions<GraphElement>
+): dia.Cell.JSON => {
+  const result = flatMapper.mapDataToElementAttributes(options);
+  const { outputPorts } = options.data as NodeType;
   return {
     ...result,
     ...(outputPorts && { ports: createPorts(outputPorts) }),

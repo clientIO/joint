@@ -6,6 +6,7 @@ import {
   Paper,
   useCellActions,
   useElements,
+  flatMapper,
   type GraphElement,
   type GraphLink,
   type LinkToGraphOptions,
@@ -118,10 +119,10 @@ const initialLinks: Record<string, WireLink> = {
 // ----------------------------------------------------------------------------
 // Custom Attribute Mapper for Links
 // ----------------------------------------------------------------------------
-const mapDataToLinkAttributes = ({
-  defaultAttributes,
-}: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
-  const result = defaultAttributes();
+const mapDataToLinkAttributes = (
+  options: LinkToGraphOptions<GraphLink>
+): dia.Cell.JSON => {
+  const result = flatMapper.mapDataToLinkAttributes(options);
   return {
     ...result,
     z: -1,

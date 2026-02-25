@@ -7,12 +7,7 @@ import type {
   GraphToLinkOptions,
   LinkToGraphOptions,
 } from './graph-state-selectors';
-import {
-  createDefaultElementMapper,
-  createDefaultGraphToElementMapper,
-  createDefaultLinkMapper,
-  createDefaultGraphToLinkMapper,
-} from './graph-state-selectors';
+import { flatMapper } from './flat-mapper';
 import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equality';
 
 /**
@@ -57,16 +52,19 @@ export interface UpdateGraphOptions<
  * @param cell
  * @param graph
  * @param selector
- * @param previous
+ * @param previousData
  */
 export function mapGraphElement<Graph extends dia.Graph, Element extends GraphElement>(
   cell: dia.Element,
   graph: Graph,
   selector: (options: GraphToElementOptions<Element> & { readonly graph: Graph }) => Element,
-  previous?: Element
+  previousData?: Element
 ): Element {
-  const defaultAttributes = createDefaultGraphToElementMapper(cell, previous) as () => Element;
-  return selector({ id: cell.id as string, cell, graph, defaultAttributes, previous });
+  const id = cell.id as string;
+  return selector({
+    id, cell, graph, previousData,
+    toData: () => flatMapper.mapElementAttributesToData({ id, cell, graph } as unknown as GraphToElementOptions<Element>),
+  });
 }
 
 /**
@@ -74,16 +72,19 @@ export function mapGraphElement<Graph extends dia.Graph, Element extends GraphEl
  * @param cell
  * @param graph
  * @param selector
- * @param previous
+ * @param previousData
  */
 export function mapGraphLink<Graph extends dia.Graph, Link extends GraphLink>(
   cell: dia.Link,
   graph: Graph,
   selector: (options: GraphToLinkOptions<Link> & { readonly graph: Graph }) => Link,
-  previous?: Link
+  previousData?: Link
 ): Link {
-  const defaultAttributes = createDefaultGraphToLinkMapper(cell, previous) as () => Link;
-  return selector({ id: cell.id as string, cell, graph, defaultAttributes, previous });
+  const id = cell.id as string;
+  return selector({
+    id, cell, graph, previousData,
+    toData: () => flatMapper.mapLinkAttributesToData({ id, cell, graph } as unknown as GraphToLinkOptions<Link>),
+  });
 }
 
 /**
@@ -150,7 +151,7 @@ export function updateGraph<
   const links = Object.values(linksRecord);
 
   // Map current graph state to typed representations
-  // Pass previous state for shape preservation
+  // Pass previous data state for shape preservation
   const graphElements = graph
     .getElements()
     .map((cell) => mapGraphElement(cell, graph, graphToElementSelector, elementsRecord[cell.id]));
@@ -163,15 +164,19 @@ export function updateGraph<
     return false;
   }
 
-  // Build items array using selectors with defaultAttributes injected
+  // Build items array using selectors
   const elementItems = Object.entries(elementsRecord).map(([id, data]) => {
-    const defaultAttributes = createDefaultElementMapper(id, data);
-    return mapDataToElementAttributes({ id, data, graph, defaultAttributes });
+    return mapDataToElementAttributes({
+      id, data, graph,
+      toAttributes: (newData) => flatMapper.mapDataToElementAttributes({ id, data: newData, graph } as unknown as ElementToGraphOptions<Element>),
+    });
   });
 
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
-    const defaultAttributes = createDefaultLinkMapper(id, data, graph);
-    return mapDataToLinkAttributes({ id, data, graph, defaultAttributes });
+    return mapDataToLinkAttributes({
+      id, data, graph,
+      toAttributes: (newData) => flatMapper.mapDataToLinkAttributes({ id, data: newData, graph } as unknown as LinkToGraphOptions<Link>),
+    });
   });
 
   graph.syncCells([...elementItems, ...linkItems], { remove: true, isUpdateFromReact });

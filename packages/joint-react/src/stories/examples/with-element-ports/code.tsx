@@ -146,15 +146,10 @@ const INPUT_PORTS = [
 ] as const;
 
 const mapDataToElementAttributes = ({
-  id,
-  data,
-  defaultAttributes,
+  id, data, toAttributes,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  if (id === 'node-1') {
-    return defaultAttributes({ ...data, ports: [...OUTPUT_PORTS] });
-  } else if (id === 'node-2') {
-    return defaultAttributes({ ...data, ports: [...INPUT_PORTS] });
-  }
+  if (id === 'node-1') return toAttributes({ ...data, ports: [...OUTPUT_PORTS] });
+  if (id === 'node-2') return toAttributes({ ...data, ports: [...INPUT_PORTS] });
   throw new Error(`Unknown element id: ${id}`);
 };
 

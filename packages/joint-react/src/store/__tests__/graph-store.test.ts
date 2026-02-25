@@ -5,12 +5,13 @@ import { GraphStore } from '../graph-store';
 import { ReactElement } from '../../models/react-element';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
-import {
-  defaultMapDataToElementAttributes,
-  defaultMapDataToLinkAttributes,
-  type ElementToGraphOptions,
-  type LinkToGraphOptions,
+import { flatMapper } from '../../state/flat-mapper';
+import type {
+  ElementToGraphOptions,
+  LinkToGraphOptions,
 } from '../../state/graph-state-selectors';
+
+const { mapDataToElementAttributes: defaultMapDataToElementAttributes, mapDataToLinkAttributes: defaultMapDataToLinkAttributes } = flatMapper;
 
 const DEFAULT_TEST_NAMESPACE = { ...shapes, ReactElement };
 

@@ -23,6 +23,7 @@ import {
   type ReactPaper,
   type PaperProps,
   useNodeLayout,
+  flatMapper,
 } from '@joint/react';
 import { useCallback, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
@@ -77,12 +78,11 @@ function buildTablePorts(rows: string[][]) {
   };
 }
 
-const mapDataToElementAttributes = ({
-  data,
-  defaultAttributes,
-}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  const result = defaultAttributes();
-  const element = data as Element;
+const mapDataToElementAttributes = (
+  options: ElementToGraphOptions<GraphElement>
+): dia.Cell.JSON => {
+  const result = flatMapper.mapDataToElementAttributes(options);
+  const element = options.data as Element;
   if (element.elementType === 'table') {
     return { ...result, ports: buildTablePorts(element.rows) };
   }

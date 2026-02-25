@@ -8,6 +8,7 @@ import {
   useCellId,
   useElements,
   useGraph,
+  flatMapper,
   type OnLoadOptions,
   type GraphElement,
   type GraphLink,
@@ -237,14 +238,13 @@ const initialLinks: Record<string, GraphLink> = {
 // Custom Attribute Mapper for Links (standard.DoubleLink)
 // ----------------------------------------------------------------------------
 
-const mapDataToLinkAttributes = ({
-  data,
-  defaultAttributes,
-}: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
-  const { color, z } = data;
+const mapDataToLinkAttributes = (
+  options: LinkToGraphOptions<GraphLink>
+): dia.Cell.JSON => {
+  const { color, z } = options.data;
 
   return {
-    ...defaultAttributes(),
+    ...flatMapper.mapDataToLinkAttributes(options),
     type: 'standard.DoubleLink',
     z,
     attrs: {

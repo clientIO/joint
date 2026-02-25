@@ -14,6 +14,7 @@ import {
   useLinks,
   useNodeSize,
   useCellId,
+  flatMapper,
 } from '@joint/react';
 
 const NODE_WIDTH = 150;
@@ -76,10 +77,10 @@ const NODE_PORTS = {
   ],
 };
 
-const mapDataToElementAttributes = ({
-  defaultAttributes,
-}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  const result = defaultAttributes();
+const mapDataToElementAttributes = (
+  options: ElementToGraphOptions<GraphElement>
+): dia.Cell.JSON => {
+  const result = flatMapper.mapDataToElementAttributes(options);
   return {
     ...result,
     ports: NODE_PORTS,

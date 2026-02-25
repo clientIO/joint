@@ -5,6 +5,7 @@ import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
 import {
   GraphProvider,
+  flatMapper,
   type GraphProps,
   type RenderElement,
   type LinkToGraphOptions,
@@ -80,13 +81,12 @@ const links: Record<string, CustomLink> = {
   },
 };
 
-const mapDataToLinkAttributes = ({
-  data,
-  defaultAttributes,
-}: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
+const mapDataToLinkAttributes = (
+  options: LinkToGraphOptions<GraphLink>
+): dia.Cell.JSON => {
   // eslint-disable-next-line sonarjs/no-unused-vars
-  const { attrs: _, ...defaultAttributesRest } = defaultAttributes();
-  const { color } = data as CustomLink;
+  const { attrs: _, ...defaultAttributesRest } = flatMapper.mapDataToLinkAttributes(options);
+  const { color } = options.data as CustomLink;
   return {
     ...defaultAttributesRest,
     type: 'LinkModel',

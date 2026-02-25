@@ -6,17 +6,14 @@ import { updateGraph } from '../update-graph';
 import { createState } from '../../utils/create-state';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
-import {
-  defaultMapDataToElementAttributes,
-  defaultMapDataToLinkAttributes,
-  mapElementAttributesToData,
-  mapLinkAttributesToData,
-  createDefaultElementMapper,
-  createDefaultLinkMapper,
-  createDefaultGraphToElementMapper,
-  type ElementToGraphOptions,
-  type LinkToGraphOptions,
+import { flatMapper } from '../flat-mapper';
+import type {
+  ElementToGraphOptions,
+  GraphToElementOptions,
+  LinkToGraphOptions,
 } from '../graph-state-selectors';
+
+const { mapDataToElementAttributes: defaultMapDataToElementAttributes, mapDataToLinkAttributes: defaultMapDataToLinkAttributes, mapElementAttributesToData, mapLinkAttributesToData } = flatMapper;
 import { Scheduler } from '../../utils/scheduler';
 import type { GraphSchedulerData } from '../../types/scheduler.types';
 
@@ -30,7 +27,7 @@ function createElementToGraphOptions<E extends GraphElement>(
     id,
     data: element,
     graph,
-    defaultAttributes: createDefaultElementMapper(id, element),
+    toAttributes: (newData) => flatMapper.mapDataToElementAttributes({ id, data: newData, graph } as ElementToGraphOptions<E>),
   };
 }
 
@@ -44,7 +41,7 @@ function _createLinkToGraphOptions<L extends GraphLink>(
     id,
     data,
     graph,
-    defaultAttributes: createDefaultLinkMapper(id, data, graph),
+    toAttributes: (newData) => flatMapper.mapDataToLinkAttributes({ id, data: newData, graph } as LinkToGraphOptions<L>),
   };
 }
 
@@ -890,12 +887,11 @@ describe('updateGraph', () => {
     // Get what the graph now thinks the element is
     const [graphElement] = graph.getElements();
     const id = graphElement.id as string;
-    const defaultAttributes = createDefaultGraphToElementMapper(graphElement);
     const graphElementData = mapElementAttributesToData({
       id,
       cell: graphElement,
       graph,
-      defaultAttributes,
+      toData: () => flatMapper.mapElementAttributesToData({ id, cell: graphElement, graph } as unknown as GraphToElementOptions<GraphElement>),
     });
 
     // Second sync with the actual graph state should return false
