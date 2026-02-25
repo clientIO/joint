@@ -243,7 +243,7 @@ const mapDataToLinkAttributes = (
   const { color, z } = options.data;
 
   return {
-    ...options.toAttributes(),
+    ...options.toAttributes(options.data),
     type: 'standard.DoubleLink',
     z,
     attrs: {

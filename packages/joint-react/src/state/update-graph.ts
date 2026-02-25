@@ -175,7 +175,7 @@ export function updateGraph<
   const elementItems = Object.entries(elementsRecord).map(([id, data]) => {
     const attrs = mapDataToElementAttributes({
       id, data, graph,
-      toAttributes: (newData = data) => defaultMapDataToElementAttributes({ id, data: newData, graph } as unknown as ElementToGraphOptions<Element>),
+      toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData, graph } as unknown as ElementToGraphOptions<Element>),
     });
     if ('id' in attrs && attrs.id !== id) {
       throw new Error(
@@ -190,7 +190,7 @@ export function updateGraph<
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
     const attrs = mapDataToLinkAttributes({
       id, data, graph,
-      toAttributes: (newData = data) => defaultMapDataToLinkAttributes({ id, data: newData, graph } as unknown as LinkToGraphOptions<Link>),
+      toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData, graph } as unknown as LinkToGraphOptions<Link>),
     });
     if ('id' in attrs && attrs.id !== id) {
       throw new Error(

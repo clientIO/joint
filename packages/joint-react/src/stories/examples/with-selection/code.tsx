@@ -389,13 +389,13 @@ function mapDataToLinkAttributesExample(options: LinkToGraphOptions<LinkData>) {
   // For standard links, use the built-in theme defaults
   // The default mapper already handles color, width, and markers
   if (!jjType) {
-    return options.toAttributes();
+    return options.toAttributes(options.data);
   }
 
   // For custom link types (like standard.ShadowLink), override the type
   // and exclude attrs so the link type's defaults are used
   const attributes = {
-    ...options.toAttributes(),
+    ...options.toAttributes(options.data),
     type: jjType,
   };
   // eslint-disable-next-line sonarjs/no-small-switch
@@ -450,9 +450,9 @@ function mapDataToElementAttributesExample(
   options: ElementToGraphOptions<ElementData>
 ) {
   const { jjType, color = 'lightgray' } = options.data;
-  if (!jjType) return options.toAttributes();
+  if (!jjType) return options.toAttributes(options.data);
   const attributes = {
-    ...options.toAttributes(),
+    ...options.toAttributes(options.data),
     type: jjType,
   };
   // eslint-disable-next-line sonarjs/no-small-switch

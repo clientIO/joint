@@ -32,7 +32,7 @@ const mapDataToElementAttributes = ({
   data,
   toAttributes,
 }: ElementToGraphOptions<NativeElement>): dia.Cell.JSON => {
-  return { ...toAttributes(), type: data.type };
+  return { ...toAttributes(data), type: data.type };
 };
 
 // Pass to GraphProvider

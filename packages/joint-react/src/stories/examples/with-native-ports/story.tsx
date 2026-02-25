@@ -36,7 +36,7 @@ const elements = {
 const mapDataToElementAttributes = ({ data, toAttributes }) => {
   const { color, label, inputPorts, outputPorts } = data;
   return {
-    ...toAttributes(),
+    ...toAttributes(data),
     type: 'standard.Rectangle',
     attrs: {
       body: { fill: color, ... },

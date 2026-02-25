@@ -6,7 +6,7 @@ export interface ElementToGraphOptions<Element extends GraphElement> {
   readonly id: string;
   readonly data: Element;
   readonly graph: dia.Graph;
-  readonly toAttributes: (data?: GraphElement) => dia.Cell.JSON;
+  readonly toAttributes: (data: GraphElement) => dia.Cell.JSON;
 }
 
 export interface GraphToElementOptions<Element extends GraphElement> {
@@ -21,7 +21,7 @@ export interface LinkToGraphOptions<Link extends GraphLink> {
   readonly id: string;
   readonly data: Link;
   readonly graph: dia.Graph;
-  readonly toAttributes: (data?: GraphLink) => dia.Cell.JSON;
+  readonly toAttributes: (data: GraphLink) => dia.Cell.JSON;
 }
 
 export interface GraphToLinkOptions<Link extends GraphLink> {
@@ -42,4 +42,3 @@ export interface GraphStateSelectors<Element extends GraphElement, Link extends 
   readonly mapElementAttributesToData?: (options: GraphToElementOptions<Element>) => Element;
   readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<Link>) => Link;
 }
-
