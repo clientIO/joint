@@ -255,6 +255,63 @@ describe('Paper Component', () => {
       { timeout: 3000 }
     );
   });
+
+  it('exposes paper ref for empty graph without requiring view updates', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+
+    render(
+      <GraphProvider elements={{}}>
+        <Paper ref={ref} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      expect(ref.current?.paper).toBeDefined();
+    });
+  });
+
+  it('binds paper pointer events for empty graph', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+    const onBlankPointerClick = jest.fn();
+
+    render(
+      <GraphProvider elements={{}}>
+        <Paper ref={ref} onBlankPointerClick={onBlankPointerClick} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current?.paper).toBeDefined();
+    });
+
+    act(() => {
+      ref.current!.paper.trigger('blank:pointerclick', {}, 0, 0);
+    });
+
+    expect(onBlankPointerClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('binds onElementPointerClick for empty graph once paper is ready', async () => {
+    const ref: RefObject<PaperStore | null> = { current: null };
+    const onElementPointerClick = jest.fn();
+
+    render(
+      <GraphProvider elements={{}}>
+        <Paper ref={ref} onElementPointerClick={onElementPointerClick} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current?.paper).toBeDefined();
+    });
+
+    act(() => {
+      ref.current!.paper.trigger('element:pointerclick', null, null, 0, 0);
+    });
+
+    expect(onElementPointerClick).toHaveBeenCalledTimes(1);
+  });
   it('should access paper via context and change scale', async () => {
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function ChangeScale({ paperRef }: { paperRef: RefObject<PaperStore | null> }) {

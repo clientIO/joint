@@ -9,6 +9,7 @@
  */
 import { dia, mvc, shapes } from '@joint/core';
 import { useGraphStore } from '../../hooks/use-graph-store';
+import { usePaperStoreById } from '../../hooks/use-paper-context';
 import {
   forwardRef,
   useCallback,
@@ -166,9 +167,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     (snapshot) => snapshot.papers[id]?.linkViews ?? EMPTY_OBJECT
   );
 
-  const { addPaper, graph, getPaperStore } = useGraphStore();
-
-  const paperStore = getPaperStore(id) ?? null;
+  const { addPaper, graph } = useGraphStore();
+  const paperStore = usePaperStoreById(id);
   const { paper } = paperStore ?? {};
   const paperHTMLElement = useRef<HTMLDivElement | null>(null);
   const measured = useRef(false);
@@ -337,7 +337,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
       stopListening();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graph, isReady, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
+  }, [graph, isReady, paper, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

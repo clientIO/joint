@@ -454,6 +454,13 @@ export class GraphStore {
   public addPaper = (id: string, paperOptions: AddPaperOptions) => {
     const paperStore = new PaperStore({ ...paperOptions, graphStore: this, id });
     this.papers.set(id, paperStore);
+    // Initialize paper snapshot in state if it doesn't exist
+    this.internalState.setState((previous) => {
+      if (previous.papers[id]) {
+        return previous;
+      }
+      return { ...previous, papers: { ...previous.papers, [id]: {} } };
+    });
     return () => this.removePaper(id);
   };
 
