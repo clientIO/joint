@@ -121,7 +121,7 @@ const initialLinks: Record<string, WireLink> = {
 const mapDataToLinkAttributes = (
   options: LinkToGraphOptions<GraphLink>
 ): dia.Cell.JSON => {
-  const result = options.toAttributes(options.data);
+  const result = options.toAttributes();
   return {
     ...result,
     z: -1,

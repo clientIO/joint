@@ -33,11 +33,10 @@ const elements = {
 };
 
 // Mapper builds JointJS type, attrs, and ports from data
-const mapDataToElementAttributes = ({ data, defaultAttributes }) => {
-  const result = defaultAttributes();
+const mapDataToElementAttributes = ({ data, toAttributes }) => {
   const { color, label, inputPorts, outputPorts } = data;
   return {
-    ...result,
+    ...toAttributes(),
     type: 'standard.Rectangle',
     attrs: {
       body: { fill: color, ... },

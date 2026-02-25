@@ -29,11 +29,10 @@ interface NativeElement extends GraphElement {
 
 // Custom selector that preserves the 'type' property
 const mapDataToElementAttributes = ({
-  element,
-  defaultAttributes,
+  data,
+  toAttributes,
 }: ElementToGraphOptions<NativeElement>): dia.Cell.JSON => {
-  const result = defaultAttributes();
-  return { ...result, type: element.type };
+  return { ...toAttributes(), type: data.type };
 };
 
 // Pass to GraphProvider

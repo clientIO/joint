@@ -67,7 +67,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
 const mapDataToElementAttributes = (
   options: ElementToGraphOptions<GraphElement>
 ): dia.Cell.JSON => {
-  const result = options.toAttributes(options.data);
+  const result = options.toAttributes();
   const { color, label, inputPorts, outputPorts } = options.data as NativeElement;
   return {
     ...result,

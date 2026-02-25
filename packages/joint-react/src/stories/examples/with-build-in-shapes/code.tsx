@@ -22,7 +22,7 @@ interface NativeLink extends GraphLink {
 const mapDataToElementAttributes = (
   options: ElementToGraphOptions<GraphElement>
 ): dia.Cell.JSON => {
-  const result = options.toAttributes(options.data);
+  const result = options.toAttributes();
   const { type, attrs } = options.data as NativeElement;
   return {
     ...result,
@@ -34,7 +34,7 @@ const mapDataToElementAttributes = (
 const mapDataToLinkAttributes = (
   options: LinkToGraphOptions<GraphLink>
 ): dia.Cell.JSON => {
-  const result = options.toAttributes(options.data);
+  const result = options.toAttributes();
   const { type, attrs, labels } = options.data as NativeLink;
   return {
     ...result,

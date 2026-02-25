@@ -84,7 +84,7 @@ const mapDataToLinkAttributes = (
   options: LinkToGraphOptions<GraphLink>
 ): dia.Cell.JSON => {
   // eslint-disable-next-line sonarjs/no-unused-vars
-  const { attrs: _, ...defaultAttributesRest } = options.toAttributes(options.data);
+  const { attrs: _, ...defaultAttributesRest } = options.toAttributes();
   const { color } = options.data as CustomLink;
   return {
     ...defaultAttributesRest,
