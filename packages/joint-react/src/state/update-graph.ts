@@ -68,7 +68,7 @@ export function mapGraphElement<Graph extends dia.Graph, Element extends GraphEl
   const id = cell.id as string;
   return selector({
     id, cell, graph, previousData,
-    toData: () => defaultMapElementAttributesToData({ id, cell, graph } as unknown as GraphToElementOptions<Element>),
+    toData: () => defaultMapElementAttributesToData({ cell }),
   });
 }
 
@@ -88,7 +88,7 @@ export function mapGraphLink<Graph extends dia.Graph, Link extends GraphLink>(
   const id = cell.id as string;
   return selector({
     id, cell, graph, previousData,
-    toData: () => defaultMapLinkAttributesToData({ id, cell, graph } as unknown as GraphToLinkOptions<Link>),
+    toData: () => defaultMapLinkAttributesToData({ cell }),
   });
 }
 
@@ -175,7 +175,7 @@ export function updateGraph<
   const elementItems = Object.entries(elementsRecord).map(([id, data]) => {
     const attrs = mapDataToElementAttributes({
       id, data, graph,
-      toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData, graph } as unknown as ElementToGraphOptions<Element>),
+      toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData }),
     });
     if ('id' in attrs && attrs.id !== id) {
       throw new Error(
@@ -190,7 +190,7 @@ export function updateGraph<
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
     const attrs = mapDataToLinkAttributes({
       id, data, graph,
-      toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData, graph } as unknown as LinkToGraphOptions<Link>),
+      toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData }),
     });
     if ('id' in attrs && attrs.id !== id) {
       throw new Error(

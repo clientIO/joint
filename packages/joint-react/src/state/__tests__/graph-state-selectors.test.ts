@@ -29,7 +29,7 @@ const createElementToGraphOptions = <E extends GraphElement>(
   id,
   data,
   graph,
-  toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData, graph } as ElementToGraphOptions<E>),
+  toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData }),
 });
 
 const createGraphToElementOptions = <E extends GraphElement>(
@@ -42,7 +42,7 @@ const createGraphToElementOptions = <E extends GraphElement>(
   cell,
   graph,
   previousData,
-  toData: () => defaultMapElementAttributesToData({ id, cell, graph } as GraphToElementOptions<E>),
+  toData: () => defaultMapElementAttributesToData({ cell }),
 });
 
 const createLinkToGraphOptions = <L extends GraphLink>(
@@ -53,7 +53,7 @@ const createLinkToGraphOptions = <L extends GraphLink>(
   id,
   data,
   graph,
-  toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData, graph } as LinkToGraphOptions<L>),
+  toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData }),
 });
 
 const createGraphToLinkOptions = <L extends GraphLink>(
@@ -66,7 +66,7 @@ const createGraphToLinkOptions = <L extends GraphLink>(
   cell,
   graph,
   previousData,
-  toData: () => defaultMapLinkAttributesToData({ id, cell, graph } as GraphToLinkOptions<L>),
+  toData: () => defaultMapLinkAttributesToData({ cell }),
 });
 
 describe('graph-state-selectors', () => {

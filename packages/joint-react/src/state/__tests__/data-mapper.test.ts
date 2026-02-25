@@ -11,16 +11,16 @@ import { defaultMapDataToElementAttributes, defaultMapDataToLinkAttributes, defa
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
 function elementToGraphOpts(id: string, data: GraphElement, graph: dia.Graph): ElementToGraphOptions<GraphElement> {
-  return { id, data, graph, toAttributes: (d) => defaultMapDataToElementAttributes({ id, data: d, graph } as unknown as ElementToGraphOptions<GraphElement>) };
+  return { id, data, graph, toAttributes: (d) => defaultMapDataToElementAttributes({ id, data: d }) };
 }
 function graphToElementOpts(id: string, cell: dia.Element, graph: dia.Graph, previousData?: GraphElement): GraphToElementOptions<GraphElement> {
-  return { id, cell, graph, previousData, toData: () => defaultMapElementAttributesToData({ id, cell, graph } as unknown as GraphToElementOptions<GraphElement>) };
+  return { id, cell, graph, previousData, toData: () => defaultMapElementAttributesToData({ cell }) };
 }
 function linkToGraphOpts(id: string, data: GraphLink, graph: dia.Graph): LinkToGraphOptions<GraphLink> {
-  return { id, data, graph, toAttributes: (d) => defaultMapDataToLinkAttributes({ id, data: d, graph } as unknown as LinkToGraphOptions<GraphLink>) };
+  return { id, data, graph, toAttributes: (d) => defaultMapDataToLinkAttributes({ id, data: d }) };
 }
 function graphToLinkOpts(id: string, cell: dia.Link, graph: dia.Graph, previousData?: GraphLink): GraphToLinkOptions<GraphLink> {
-  return { id, cell, graph, previousData, toData: () => defaultMapLinkAttributesToData({ id, cell, graph } as unknown as GraphToLinkOptions<GraphLink>) };
+  return { id, cell, graph, previousData, toData: () => defaultMapLinkAttributesToData({ cell }) };
 }
 
 describe('dataMapper', () => {
@@ -53,7 +53,7 @@ describe('dataMapper', () => {
 
     it('should handle nested position/size format', () => {
       const id = 'el-1';
-      const data = { position: { x: 30, y: 40 }, size: { width: 200, height: 100 } } as unknown as GraphElement;
+      const data: GraphElement = { position: { x: 30, y: 40 }, size: { width: 200, height: 100 } };
 
       const cellJson = defaultMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       expect(cellJson.position).toEqual({ x: 30, y: 40 });

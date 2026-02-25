@@ -30,7 +30,7 @@ function createElementToGraphOptions<E extends GraphElement>(
     id,
     data: element,
     graph,
-    toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData, graph } as ElementToGraphOptions<E>),
+    toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData }),
   };
 }
 
@@ -44,7 +44,7 @@ function _createLinkToGraphOptions<L extends GraphLink>(
     id,
     data,
     graph,
-    toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData, graph } as LinkToGraphOptions<L>),
+    toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData }),
   };
 }
 
@@ -891,10 +891,7 @@ describe('updateGraph', () => {
     const [graphElement] = graph.getElements();
     const id = graphElement.id as string;
     const graphElementData = defaultMapElementAttributesToData({
-      id,
       cell: graphElement,
-      graph,
-      toData: () => defaultMapElementAttributesToData({ id, cell: graphElement, graph } as unknown as GraphToElementOptions<GraphElement>),
     });
 
     // Second sync with the actual graph state should return false

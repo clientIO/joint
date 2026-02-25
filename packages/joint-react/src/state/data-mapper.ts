@@ -133,7 +133,7 @@ function applyShapePreservation<T extends GraphElement | GraphLink>(
  * Remaining user props go to `cell.data`. Sets `type: REACT_TYPE`.
  */
 export function defaultMapDataToElementAttributes<Element extends GraphElement>(
-  options: ElementToGraphOptions<Element>
+  options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'>
 ): dia.Cell.JSON {
   const { id, data } = options;
   // Extract built-in JointJS element properties
@@ -222,7 +222,7 @@ function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
  * Spreads `cell.data` to top level. Shape preservation via `previousData`.
  */
 export function defaultMapElementAttributesToData<Element extends GraphElement>(
-  options: GraphToElementOptions<Element>
+  options: Pick<GraphToElementOptions<Element>, 'cell' | 'previousData'>
 ): Element {
   const { cell, previousData } = options;
   const cellData = extractBaseCellData(cell);
@@ -242,7 +242,7 @@ export function defaultMapElementAttributesToData<Element extends GraphElement>(
  * Remaining user + theme data go to `cell.data`.
  */
 export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
-  options: LinkToGraphOptions<Link>
+  options: Pick<LinkToGraphOptions<Link>, 'id' | 'data'>
 ): dia.Cell.JSON {
   const { id, data } = options;
   // Extract built-in JointJS link properties, remaining properties are user data
@@ -341,7 +341,7 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
  * Shape preservation via `previousData`.
  */
 export function defaultMapLinkAttributesToData<Link extends GraphLink>(
-  options: GraphToLinkOptions<Link>
+  options: Pick<GraphToLinkOptions<Link>, 'cell' | 'previousData'>
 ): Link {
   const { cell, previousData } = options;
   const { data, ...attributes } = cell.attributes;
