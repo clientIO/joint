@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { util, V, type Vectorizer } from '@joint/core';
-import { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
+import React, { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
 import { useCombinedRef } from '../../hooks/use-combined-ref';
 import { isNumber } from '../../utils/is';
 import { useCellId, useGraph } from '../../hooks';
@@ -17,7 +17,7 @@ interface TextWrapStylesOptions {
   readonly fontFamily: SVGTextElementAttributes<SVGTextElement>['fontFamily'];
   readonly fontSize: SVGTextElementAttributes<SVGTextElement>['fontSize'];
   readonly letterSpacing: SVGTextElementAttributes<SVGTextElement>['letterSpacing'];
-  readonly textTransform?: string;
+  readonly style?: React.CSSProperties;
 }
 
 function getBreakTextWidth({ width, graph, cellId }: BreakTextWidthOptions) {
@@ -43,18 +43,42 @@ function getTextWrapStyles({
   fontFamily,
   fontSize,
   letterSpacing,
-  textTransform,
+  style,
 }: TextWrapStylesOptions) {
   const textWrapStyles: Record<string, string | number> = {};
+  // we check for undefined, and if undefined check also style object
+  if (fontWeight != undefined) {
+    textWrapStyles['font-weight'] = fontWeight;
+  } else if (style?.fontWeight != undefined) {
+    textWrapStyles['font-weight'] = style.fontWeight;
+  }
 
-  if (fontWeight != undefined) textWrapStyles['font-weight'] = fontWeight;
-  if (fontFamily != undefined) textWrapStyles['font-family'] = fontFamily;
-  if (fontSize != undefined) textWrapStyles['font-size'] = fontSize;
-  if (letterSpacing != undefined) textWrapStyles['letter-spacing'] = letterSpacing;
-  if (textTransform != undefined) textWrapStyles['text-transform'] = textTransform;
+  if (fontFamily != undefined) {
+    textWrapStyles['font-family'] = fontFamily;
+  } else if (style?.fontFamily != undefined) {
+    textWrapStyles['font-family'] = style.fontFamily;
+  }
+
+  if (fontSize != undefined) {
+    textWrapStyles['font-size'] = fontSize;
+  } else if (style?.fontSize != undefined) {
+    textWrapStyles['font-size'] = style.fontSize;
+  }
+
+  if (letterSpacing != undefined) {
+    textWrapStyles['letter-spacing'] = letterSpacing;
+  } else if (style?.letterSpacing != undefined) {
+    textWrapStyles['letter-spacing'] = style.letterSpacing;
+  }
+
+  if (style?.textTransform != undefined) {
+    textWrapStyles['text-transform'] = style.textTransform;
+  }
 
   if (lineHeight != undefined) {
-    textWrapStyles.lineHeight = lineHeight;
+    textWrapStyles['line-height'] = lineHeight;
+  } else if (style?.lineHeight != undefined) {
+    textWrapStyles['line-height'] = style.lineHeight;
   }
 
   return textWrapStyles;
@@ -67,7 +91,6 @@ export interface TextNodeProps
   readonly width?: number;
   readonly height?: number;
   readonly textWrap?: boolean | util.BreakTextOptions;
-  readonly textTransform?: string;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -86,7 +109,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     fontFamily,
     fontSize,
     letterSpacing,
-    textTransform,
+    style,
     width,
     height,
     textWrap,
@@ -96,8 +119,6 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
   const textRef = useCombinedRef<SVGTextElement>(ref);
   const cellId = useCellId();
   const graph = useGraph();
-  const textStyle = textTransform ? { textTransform } : undefined;
-
   useEffect(() => {
     if (!textRef.current) {
       return;
@@ -117,7 +138,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
         fontFamily,
         fontSize,
         letterSpacing,
-        textTransform,
+        style,
       });
       text = util.breakText(text, { width: breakTextWidth, height }, textWrapStyles, options);
     }
@@ -143,7 +164,6 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     lineHeight,
     textPath,
     textRef,
-    textTransform,
     textVerticalAnchor,
     width,
     x,
@@ -153,6 +173,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     letterSpacing,
     graph,
     cellId,
+    style,
   ]);
   return (
     <text
@@ -163,7 +184,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
       fontFamily={fontFamily}
       fontSize={fontSize}
       letterSpacing={letterSpacing}
-      style={textStyle}
+      style={style}
     />
   );
 }
