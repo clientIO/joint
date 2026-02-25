@@ -12,6 +12,7 @@ import {
   useCellId,
   type GraphElement,
   type PaperStore,
+  usePaperById,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
@@ -112,20 +113,9 @@ function Node({ label, color }: Readonly<Partial<ElementData>>) {
 }
 
 function Main() {
-  const listenerRef = useRef<mvc.Listener<[]> | null>(null);
+  const paper = usePaperById('my-paper');
 
-  // Cleanup on unmount
   useEffect(() => {
-    return () => listenerRef.current?.stopListening();
-  }, []);
-
-  // Callback ref: called by React when useImperativeHandle sets the PaperStore
-  const paperRef = useCallback((store: PaperStore | null) => {
-    // Tear down previous listener (if any)
-    listenerRef.current?.stopListening();
-    listenerRef.current = null;
-
-    const paper = store?.paper;
     if (!paper) return;
 
     const listener = new mvc.Listener<[]>();
@@ -154,8 +144,10 @@ function Main() {
       }
     );
 
-    listenerRef.current = listener;
-  }, []);
+    return () => {
+      listener.stopListening();
+    };
+  }, [paper]);
 
   const renderElement = (data: ElementData) => {
     return <Node label={data.label} color={data.color} />;
@@ -163,7 +155,7 @@ function Main() {
 
   return (
     <Paper
-      ref={paperRef}
+      id="my-paper"
       className={PAPER_CLASSNAME}
       height={380}
       renderElement={renderElement}
