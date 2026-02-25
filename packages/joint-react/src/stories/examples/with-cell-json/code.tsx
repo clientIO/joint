@@ -1,5 +1,5 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import type { dia } from '@joint/core';
+import { util, type dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
@@ -84,44 +84,47 @@ const initialLinks: Record<string, CellJsonLink> = {
 // Identity Mappers: data IS JointJS cell JSON
 // ============================================================================
 
+// Derive pick keys from the data so the reverse mappers stay in sync
+// with the types automatically — add a property to the data and it flows through.
+const ELEMENT_KEYS = Object.keys(Object.values(initialElements)[0]);
+const LINK_KEYS = Object.keys(Object.values(initialLinks)[0]);
+
 /**
- * Forward mapper: data is already cell JSON — just add `id`.
+ * Forward mapper: data is already cell JSON — pass it through as-is.
+ * The store handles `id` automatically.
  */
 const mapDataToElementAttributes = ({
-  id, data,
+  data,
 }: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  return { id, ...data } as dia.Cell.JSON;
+  return { ...data } as dia.Cell.JSON;
 };
 
 /**
- * Reverse mapper: extract everything from cell.attributes, strip `id`.
+ * Reverse mapper: pick only the keys defined in the data format.
  */
 const mapElementAttributesToData = ({
   cell,
 }: GraphToElementOptions<GraphElement>): GraphElement => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, ...rest } = cell.attributes;
-  return rest as GraphElement;
+  return util.pick(cell.attributes, ELEMENT_KEYS) as GraphElement;
 };
 
 /**
- * Forward mapper for links: data is already cell JSON — just add `id`.
+ * Forward mapper for links: data is already cell JSON — pass it through as-is.
+ * The store handles `id` automatically.
  */
 const mapDataToLinkAttributes = ({
-  id, data,
+  data,
 }: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
-  return { id, ...data } as dia.Cell.JSON;
+  return { ...data } as unknown as dia.Cell.JSON;
 };
 
 /**
- * Reverse mapper for links: extract from cell.attributes, strip `id`.
+ * Reverse mapper: pick only the keys defined in the data format.
  */
 const mapLinkAttributesToData = ({
   cell,
 }: GraphToLinkOptions<GraphLink>): GraphLink => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, ...rest } = cell.attributes;
-  return rest as GraphLink;
+  return util.pick(cell.attributes, LINK_KEYS) as GraphLink;
 };
 
 // ============================================================================

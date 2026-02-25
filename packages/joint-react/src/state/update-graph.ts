@@ -170,18 +170,36 @@ export function updateGraph<
   }
 
   // Build items array using selectors
+  // The store always enforces the `id` from the record key onto the returned
+  // attributes — custom mappers don't need to (and can't) change the cell id.
   const elementItems = Object.entries(elementsRecord).map(([id, data]) => {
-    return mapDataToElementAttributes({
+    const attrs = mapDataToElementAttributes({
       id, data, graph,
       toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData, graph } as unknown as ElementToGraphOptions<Element>),
     });
+    if ('id' in attrs && attrs.id !== id) {
+      throw new Error(
+        `mapDataToElementAttributes returned id "${String(attrs.id)}" but the record key is "${id}". ` +
+        'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
+      );
+    }
+    attrs.id = id;
+    return attrs;
   });
 
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
-    return mapDataToLinkAttributes({
+    const attrs = mapDataToLinkAttributes({
       id, data, graph,
       toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData, graph } as unknown as LinkToGraphOptions<Link>),
     });
+    if ('id' in attrs && attrs.id !== id) {
+      throw new Error(
+        `mapDataToLinkAttributes returned id "${String(attrs.id)}" but the record key is "${id}". ` +
+        'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
+      );
+    }
+    attrs.id = id;
+    return attrs;
   });
 
   graph.syncCells([...elementItems, ...linkItems], { remove: true, isUpdateFromReact });
