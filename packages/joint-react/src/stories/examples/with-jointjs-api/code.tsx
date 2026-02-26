@@ -7,6 +7,7 @@ import {
   GraphProvider,
   Paper,
   ReactElement,
+  ReactLink,
   useGraph,
   useNodeSize,
   useCellId,
@@ -26,7 +27,7 @@ interface ElementData extends GraphElement {
 }
 
 function createGraph(): dia.Graph {
-  const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ReactElement } });
+  const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ReactElement, ReactLink } });
 
   const element1 = new ReactElement({
     id: 'el1',

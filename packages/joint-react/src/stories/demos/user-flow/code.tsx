@@ -83,12 +83,11 @@ const links: Record<string, GraphLink> = {
   },
 };
 
-const mapDataToElementAttributes = ({
-  data,
-  defaultAttributes,
-}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  const result = defaultAttributes();
-  const { outputPorts } = data as NodeType;
+const mapDataToElementAttributes = (
+  options: ElementToGraphOptions<GraphElement>
+): dia.Cell.JSON => {
+  const result = options.toAttributes(options.data);
+  const { outputPorts } = options.data as NodeType;
   return {
     ...result,
     ...(outputPorts && { ports: createPorts(outputPorts) }),

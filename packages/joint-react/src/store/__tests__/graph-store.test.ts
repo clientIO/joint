@@ -8,8 +8,10 @@ import type { GraphLink } from '../../types/link-types';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
-  type ElementToGraphOptions,
-  type LinkToGraphOptions,
+} from '../../state/data-mapping';
+import type {
+  ElementToGraphOptions,
+  LinkToGraphOptions,
 } from '../../state/graph-state-selectors';
 
 const DEFAULT_TEST_NAMESPACE = { ...shapes, ReactElement };

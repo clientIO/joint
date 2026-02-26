@@ -1,9 +1,14 @@
 import { dia } from '@joint/core';
+
 export const REACT_LINK_TYPE = 'ReactLink';
 
 /**
  * A custom JointJS link that can render React components.
  * Uses empty markup - React renders content via portal using useLinkPath hook.
+ *
+ * Theme-derived visual properties (colors, stroke widths, defaultLabel) are not
+ * set here — they are applied at mapping time by the link mapper, so the theme
+ * can be overridden via GraphProvider.
  * @group Models
  * @example
  * ```ts
@@ -31,16 +36,11 @@ export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
       attrs: {
         wrapper: {
           connection: true,
-          strokeWidth: 10,
-          strokeLinejoin: 'round',
         },
         line: {
           connection: true,
-          stroke: '#333333',
-          strokeWidth: 2,
-          strokeLinejoin: 'round',
-        },
-      },
+        }
+      }
     } as unknown as dia.Link.Attributes & Attributes;
   }
 
@@ -52,7 +52,8 @@ export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
         fill: 'none',
         cursor: 'pointer',
         stroke: 'transparent',
-        'stroke-linecap': 'round',
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
       },
     },
     {
@@ -60,7 +61,8 @@ export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
       selector: 'line',
       attributes: {
         fill: 'none',
-        'pointer-events': 'none',
+        pointerEvents: 'none',
+        strokeLinejoin: 'round',
       },
     },
   ];

@@ -118,10 +118,10 @@ const initialLinks: Record<string, WireLink> = {
 // ----------------------------------------------------------------------------
 // Custom Attribute Mapper for Links
 // ----------------------------------------------------------------------------
-const mapDataToLinkAttributes = ({
-  defaultAttributes,
-}: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
-  const result = defaultAttributes();
+const mapDataToLinkAttributes = (
+  options: LinkToGraphOptions<GraphLink>
+): dia.Cell.JSON => {
+  const result = options.toAttributes(options.data);
   return {
     ...result,
     z: -1,

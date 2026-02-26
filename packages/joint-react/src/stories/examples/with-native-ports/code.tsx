@@ -64,12 +64,11 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
   return { groups, items };
 }
 
-const mapDataToElementAttributes = ({
-  data,
-  defaultAttributes,
-}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  const result = defaultAttributes();
-  const { color, label, inputPorts, outputPorts } = data as NativeElement;
+const mapDataToElementAttributes = (
+  options: ElementToGraphOptions<GraphElement>
+): dia.Cell.JSON => {
+  const result = options.toAttributes(options.data);
+  const { color, label, inputPorts, outputPorts } = options.data as NativeElement;
   return {
     ...result,
     type: 'standard.Rectangle',

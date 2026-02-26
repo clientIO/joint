@@ -49,6 +49,24 @@ export interface GraphElementPort {
    * @default true
    */
   readonly magnet?: boolean;
+  /**
+   * Label displayed next to the port.
+   */
+  readonly label?: string;
+  /**
+   * Position of the port label.
+   * @default 'outside'
+   */
+  readonly labelPosition?: string;
+  /**
+   * Color of the port label text.
+   * @default '#333333'
+   */
+  readonly labelColor?: string;
+  /**
+   * CSS class name to apply to the port label.
+   */
+  readonly labelClassName?: string;
 }
 
 export interface ReactElementAttributes {

@@ -76,10 +76,10 @@ const NODE_PORTS = {
   ],
 };
 
-const mapDataToElementAttributes = ({
-  defaultAttributes,
-}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  const result = defaultAttributes();
+const mapDataToElementAttributes = (
+  options: ElementToGraphOptions<GraphElement>
+): dia.Cell.JSON => {
+  const result = options.toAttributes(options.data);
   return {
     ...result,
     ports: NODE_PORTS,

@@ -9,13 +9,13 @@ import type { GraphLink } from '../../types/link-types';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
-  mapElementAttributesToData,
-  mapLinkAttributesToData,
-  createDefaultElementMapper,
-  createDefaultLinkMapper,
-  createDefaultGraphToElementMapper,
-  type ElementToGraphOptions,
-  type LinkToGraphOptions,
+  defaultMapElementAttributesToData,
+  defaultMapLinkAttributesToData,
+} from '../data-mapping';
+import type {
+  ElementToGraphOptions,
+  GraphToElementOptions,
+  LinkToGraphOptions,
 } from '../graph-state-selectors';
 import { Scheduler } from '../../utils/scheduler';
 import type { GraphSchedulerData } from '../../types/scheduler.types';
@@ -30,7 +30,7 @@ function createElementToGraphOptions<E extends GraphElement>(
     id,
     data: element,
     graph,
-    defaultAttributes: createDefaultElementMapper(id, element),
+    toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData }),
   };
 }
 
@@ -44,7 +44,7 @@ function _createLinkToGraphOptions<L extends GraphLink>(
     id,
     data,
     graph,
-    defaultAttributes: createDefaultLinkMapper(id, data, graph),
+    toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData }),
   };
 }
 
@@ -857,8 +857,8 @@ describe('updateGraph', () => {
       graph,
       elements,
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
     });
@@ -871,7 +871,7 @@ describe('updateGraph', () => {
   it('should return false when graph is already in sync', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-    // Include x and y as they are returned by mapElementAttributesToData
+    // Include x and y as they are returned by defaultMapElementAttributesToData
     const elements: Record<string, GraphElement> = {
       '1': { width: 100, height: 100, x: 0, y: 0, type: 'ReactElement' },
     };
@@ -881,8 +881,8 @@ describe('updateGraph', () => {
       graph,
       elements,
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
     });
@@ -890,12 +890,8 @@ describe('updateGraph', () => {
     // Get what the graph now thinks the element is
     const [graphElement] = graph.getElements();
     const id = graphElement.id as string;
-    const defaultAttributes = createDefaultGraphToElementMapper(graphElement);
-    const graphElementData = mapElementAttributesToData({
-      id,
+    const graphElementData = defaultMapElementAttributesToData({
       cell: graphElement,
-      graph,
-      defaultAttributes,
     });
 
     // Second sync with the actual graph state should return false
@@ -903,8 +899,8 @@ describe('updateGraph', () => {
       graph,
       elements: { [id]: graphElementData },
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
     });
@@ -926,8 +922,8 @@ describe('updateGraph', () => {
       graph,
       elements,
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
     });
@@ -953,8 +949,8 @@ describe('updateGraph', () => {
       graph,
       elements,
       links: {},
-      graphToElementSelector: (options) => mapElementAttributesToData(options),
-      graphToLinkSelector: (options) => mapLinkAttributesToData(options),
+      graphToElementSelector: (options) => defaultMapElementAttributesToData(options),
+      graphToLinkSelector: (options) => defaultMapLinkAttributesToData(options),
       mapDataToElementAttributes: (options) => defaultMapDataToElementAttributes(options),
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
       isUpdateFromReact: true,

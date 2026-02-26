@@ -13,10 +13,10 @@ import type {
 } from './graph-state-selectors';
 import {
   defaultMapDataToElementAttributes,
-  mapElementAttributesToData,
   defaultMapDataToLinkAttributes,
-  mapLinkAttributesToData,
-} from './graph-state-selectors';
+  defaultMapElementAttributesToData,
+  defaultMapLinkAttributesToData,
+} from './data-mapping';
 import type { GraphSchedulerData } from '../types/scheduler.types';
 import type { Scheduler } from '../utils/scheduler';
 import { updateGraph, mapGraphElement, mapGraphLink } from './update-graph';
@@ -143,11 +143,11 @@ export function stateSync<
     onGraphUpdated,
   } = options;
 
-  const elementSelector = (options.graphToElementSelector ?? mapElementAttributesToData) as (
+  const elementSelector = (options.graphToElementSelector ?? defaultMapElementAttributesToData) as (
     options: GraphToElementOptions<Element> & { readonly graph: Graph }
   ) => Element;
 
-  const linkSelector = (options.graphToLinkSelector ?? mapLinkAttributesToData) as (
+  const linkSelector = (options.graphToLinkSelector ?? defaultMapLinkAttributesToData) as (
     options: GraphToLinkOptions<Link> & { readonly graph: Graph }
   ) => Link;
 
@@ -157,24 +157,24 @@ export function stateSync<
     scheduler.scheduleData((data) => {
       const snapshot = store.getSnapshot();
       if (cell.isElement()) {
-        const previous = snapshot.elements[cell.id] as Element | undefined;
+        const previousData = snapshot.elements[cell.id] as Element | undefined;
         return {
           ...data,
           elementsToUpdate: mapSet(
             data.elementsToUpdate,
             cell.id,
-            mapGraphElement(cell, graph, elementSelector, previous)
+            mapGraphElement(cell, graph, elementSelector, previousData)
           ),
         };
       }
       if (cell.isLink()) {
-        const previous = snapshot.links[cell.id] as Link | undefined;
+        const previousData = snapshot.links[cell.id] as Link | undefined;
         return {
           ...data,
           linksToUpdate: mapSet(
             data.linksToUpdate,
             cell.id,
-            mapGraphLink(cell, graph, linkSelector, previous)
+            mapGraphLink(cell, graph, linkSelector, previousData)
           ),
         };
       }

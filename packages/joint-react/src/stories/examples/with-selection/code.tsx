@@ -383,19 +383,19 @@ export default function App() {
   );
 }
 
-function mapDataToLinkAttributesExample({ data, defaultAttributes }: LinkToGraphOptions<LinkData>) {
-  const { jjType, color } = data;
+function mapDataToLinkAttributesExample(options: LinkToGraphOptions<LinkData>) {
+  const { jjType, color } = options.data;
 
   // For standard links, use the built-in theme defaults
-  // The defaultAttributes() already handles color, width, and markers
+  // The default mapper already handles color, width, and markers
   if (!jjType) {
-    return defaultAttributes();
+    return options.toAttributes(options.data);
   }
 
   // For custom link types (like standard.ShadowLink), override the type
   // and exclude attrs so the link type's defaults are used
   const attributes = {
-    ...defaultAttributes(),
+    ...options.toAttributes(options.data),
     type: jjType,
   };
   // eslint-disable-next-line sonarjs/no-small-switch
@@ -446,14 +446,13 @@ function mapDataToLinkAttributesExample({ data, defaultAttributes }: LinkToGraph
   return attributes;
 }
 
-function mapDataToElementAttributesExample({
-  data,
-  defaultAttributes,
-}: ElementToGraphOptions<ElementData>) {
-  const { jjType, color = 'lightgray' } = data;
-  if (!jjType) return defaultAttributes();
+function mapDataToElementAttributesExample(
+  options: ElementToGraphOptions<ElementData>
+) {
+  const { jjType, color = 'lightgray' } = options.data;
+  if (!jjType) return options.toAttributes(options.data);
   const attributes = {
-    ...defaultAttributes(),
+    ...options.toAttributes(options.data),
     type: jjType,
   };
   // eslint-disable-next-line sonarjs/no-small-switch

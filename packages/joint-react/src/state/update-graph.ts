@@ -8,11 +8,11 @@ import type {
   LinkToGraphOptions,
 } from './graph-state-selectors';
 import {
-  createDefaultElementMapper,
-  createDefaultGraphToElementMapper,
-  createDefaultLinkMapper,
-  createDefaultGraphToLinkMapper,
-} from './graph-state-selectors';
+  defaultMapDataToElementAttributes,
+  defaultMapDataToLinkAttributes,
+  defaultMapElementAttributesToData,
+  defaultMapLinkAttributesToData,
+} from './data-mapping';
 import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equality';
 
 /**
@@ -57,16 +57,19 @@ export interface UpdateGraphOptions<
  * @param cell
  * @param graph
  * @param selector
- * @param previous
+ * @param previousData
  */
 export function mapGraphElement<Graph extends dia.Graph, Element extends GraphElement>(
   cell: dia.Element,
   graph: Graph,
   selector: (options: GraphToElementOptions<Element> & { readonly graph: Graph }) => Element,
-  previous?: Element
+  previousData?: Element
 ): Element {
-  const defaultAttributes = createDefaultGraphToElementMapper(cell, previous) as () => Element;
-  return selector({ id: cell.id as string, cell, graph, defaultAttributes, previous });
+  const id = cell.id as string;
+  return selector({
+    id, cell, graph, previousData,
+    toData: () => defaultMapElementAttributesToData({ cell }),
+  });
 }
 
 /**
@@ -74,16 +77,19 @@ export function mapGraphElement<Graph extends dia.Graph, Element extends GraphEl
  * @param cell
  * @param graph
  * @param selector
- * @param previous
+ * @param previousData
  */
 export function mapGraphLink<Graph extends dia.Graph, Link extends GraphLink>(
   cell: dia.Link,
   graph: Graph,
   selector: (options: GraphToLinkOptions<Link> & { readonly graph: Graph }) => Link,
-  previous?: Link
+  previousData?: Link
 ): Link {
-  const defaultAttributes = createDefaultGraphToLinkMapper(cell, previous) as () => Link;
-  return selector({ id: cell.id as string, cell, graph, defaultAttributes, previous });
+  const id = cell.id as string;
+  return selector({
+    id, cell, graph, previousData,
+    toData: () => defaultMapLinkAttributesToData({ cell }),
+  });
 }
 
 /**
@@ -150,7 +156,7 @@ export function updateGraph<
   const links = Object.values(linksRecord);
 
   // Map current graph state to typed representations
-  // Pass previous state for shape preservation
+  // Pass previous data state for shape preservation
   const graphElements = graph
     .getElements()
     .map((cell) => mapGraphElement(cell, graph, graphToElementSelector, elementsRecord[cell.id]));
@@ -163,15 +169,37 @@ export function updateGraph<
     return false;
   }
 
-  // Build items array using selectors with defaultAttributes injected
+  // Build items array using selectors
+  // The store always enforces the `id` from the record key onto the returned
+  // attributes — custom mappers don't need to (and can't) change the cell id.
   const elementItems = Object.entries(elementsRecord).map(([id, data]) => {
-    const defaultAttributes = createDefaultElementMapper(id, data);
-    return mapDataToElementAttributes({ id, data, graph, defaultAttributes });
+    const attrs = mapDataToElementAttributes({
+      id, data, graph,
+      toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData }),
+    });
+    if ('id' in attrs && attrs.id !== id) {
+      throw new Error(
+        `mapDataToElementAttributes returned id "${String(attrs.id)}" but the record key is "${id}". ` +
+        'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
+      );
+    }
+    attrs.id = id;
+    return attrs;
   });
 
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
-    const defaultAttributes = createDefaultLinkMapper(id, data, graph);
-    return mapDataToLinkAttributes({ id, data, graph, defaultAttributes });
+    const attrs = mapDataToLinkAttributes({
+      id, data, graph,
+      toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData }),
+    });
+    if ('id' in attrs && attrs.id !== id) {
+      throw new Error(
+        `mapDataToLinkAttributes returned id "${String(attrs.id)}" but the record key is "${id}". ` +
+        'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
+      );
+    }
+    attrs.id = id;
+    return attrs;
   });
 
   graph.syncCells([...elementItems, ...linkItems], { remove: true, isUpdateFromReact });

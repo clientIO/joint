@@ -77,12 +77,11 @@ function buildTablePorts(rows: string[][]) {
   };
 }
 
-const mapDataToElementAttributes = ({
-  data,
-  defaultAttributes,
-}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
-  const result = defaultAttributes();
-  const element = data as Element;
+const mapDataToElementAttributes = (
+  options: ElementToGraphOptions<GraphElement>
+): dia.Cell.JSON => {
+  const result = options.toAttributes(options.data);
+  const element = options.data as Element;
   if (element.elementType === 'table') {
     return { ...result, ports: buildTablePorts(element.rows) };
   }

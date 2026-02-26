@@ -10,6 +10,7 @@ import {
   type RenderElement,
   type OnTransformElement,
   ReactElement,
+  ReactLink,
   usePaper,
   useCellId,
 } from '@joint/react';
@@ -218,7 +219,8 @@ export default function App() {
   const graph = new dia.Graph({}, {
     cellNamespace: {
       ...shapes,
-      ReactElement: MyReactElement
+      ReactElement: MyReactElement,
+      ReactLink
     }
   });
   return (

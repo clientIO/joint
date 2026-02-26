@@ -15,11 +15,11 @@ import { createState, derivedState } from '../utils/create-state';
 import { stateSync, type StateSync } from '../state/state-sync';
 import type { GraphStateSelectors } from '../state/graph-state-selectors';
 import {
-  mapElementAttributesToData,
   defaultMapDataToElementAttributes,
-  mapLinkAttributesToData,
   defaultMapDataToLinkAttributes,
-} from '../state/graph-state-selectors';
+  defaultMapElementAttributesToData,
+  defaultMapLinkAttributesToData,
+} from '../state/data-mapping';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import { Scheduler } from '../utils/scheduler';
 import type { GraphSchedulerData } from '../types/scheduler.types';
@@ -134,25 +134,21 @@ export class GraphStore {
 
   private readonly graphToElementSelector: (
     options: { readonly id: string; readonly cell: dia.Element; readonly graph: dia.Graph } & {
-      readonly previous?: GraphElement;
-      readonly defaultAttributes: () => GraphElement;
+      readonly previousData?: GraphElement;
     }
   ) => GraphElement;
   private readonly graphToLinkSelector: (
     options: { readonly id: string; readonly cell: dia.Link; readonly graph: dia.Graph } & {
-      readonly previous?: GraphLink;
-      readonly defaultAttributes: () => GraphLink;
+      readonly previousData?: GraphLink;
     }
   ) => GraphLink;
   public readonly mapDataToElementAttributes: (options: {
     readonly data: GraphElement;
     readonly graph: dia.Graph;
-    readonly defaultAttributes: (data?: GraphElement) => dia.Cell.JSON;
   }) => dia.Cell.JSON;
   private readonly mapDataToLinkAttributes: (options: {
     readonly data: GraphLink;
     readonly graph: dia.Graph;
-    readonly defaultAttributes: (data?: GraphLink) => dia.Cell.JSON;
   }) => dia.Cell.JSON;
 
   constructor(config: GraphStoreOptions) {
@@ -165,6 +161,8 @@ export class GraphStore {
       externalStore,
       mapDataToElementAttributes = defaultMapDataToElementAttributes,
       mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
+      mapElementAttributesToData = defaultMapElementAttributesToData,
+      mapLinkAttributesToData = defaultMapLinkAttributesToData,
     } = config;
 
     this.graphToElementSelector = mapElementAttributesToData as typeof this.graphToElementSelector;
@@ -265,6 +263,8 @@ export class GraphStore {
       scheduler: this.scheduler,
       mapDataToElementAttributes,
       mapDataToLinkAttributes,
+      graphToElementSelector: this.graphToElementSelector,
+      graphToLinkSelector: this.graphToLinkSelector,
       onGraphUpdated: () => this.scheduleLayoutUpdate(),
       store: {
         getSnapshot: () => this.publicState.getSnapshot(),

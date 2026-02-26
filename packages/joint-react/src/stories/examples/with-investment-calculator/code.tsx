@@ -237,14 +237,13 @@ const initialLinks: Record<string, GraphLink> = {
 // Custom Attribute Mapper for Links (standard.DoubleLink)
 // ----------------------------------------------------------------------------
 
-const mapDataToLinkAttributes = ({
-  data,
-  defaultAttributes,
-}: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
-  const { color, z } = data;
+const mapDataToLinkAttributes = (
+  options: LinkToGraphOptions<GraphLink>
+): dia.Cell.JSON => {
+  const { color, z } = options.data;
 
   return {
-    ...defaultAttributes(),
+    ...options.toAttributes(options.data),
     type: 'standard.DoubleLink',
     z,
     attrs: {
