@@ -8,7 +8,15 @@ import type { GraphLinkLabel } from '../../types/link-types';
  * @returns The full JointJS label definition
  */
 export function convertLabel(label: GraphLinkLabel): dia.Link.Label {
-  const { text, position, color, backgroundColor, backgroundPadding, className, backgroundClassName } = label;
+  const {
+    text,
+    position,
+    color,
+    backgroundColor,
+    backgroundPadding,
+    className,
+    backgroundClassName,
+  } = label;
 
   const labelTextAttributes: Record<string, unknown> = {
     text,

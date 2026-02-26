@@ -2,7 +2,7 @@ import type { attributes } from '@joint/core';
 import { type dia } from '@joint/core';
 import type { GraphLink } from '../../types/link-types';
 import { getTargetOrSource } from '../../utils/cell/get-link-targe-and-source-ids';
-import { DEFAULT_LINK_THEME } from '../../theme/link-theme';
+import { defaultLinkTheme } from '../../theme/link-theme';
 import { resolveMarker } from '../../theme/markers';
 import { REACT_LINK_TYPE } from '../../models/react-link';
 import type {
@@ -16,7 +16,7 @@ import { convertLabel } from './convert-labels';
  * Maps flat link data to JointJS cell attributes.
  *
  * Extracts theme props (`color`, `width`, `sourceMarker`, `targetMarker`, `pattern`, `className`)
- * with `DEFAULT_LINK_THEME` fallbacks. Builds `attrs.line`.
+ * with `defaultLinkTheme` fallbacks. Builds `attrs.line`.
  * Remaining user + theme data go to `cell.data`.
  * @param options - The link id and data to convert
  * @returns The JointJS cell JSON attributes
@@ -38,12 +38,12 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     router,
     connector,
     // Styling properties with theme defaults
-    color = DEFAULT_LINK_THEME.color,
-    width = DEFAULT_LINK_THEME.width,
-    sourceMarker = DEFAULT_LINK_THEME.sourceMarker,
-    targetMarker = DEFAULT_LINK_THEME.targetMarker,
-    className = DEFAULT_LINK_THEME.className,
-    pattern = DEFAULT_LINK_THEME.pattern,
+    color = defaultLinkTheme.color,
+    width = defaultLinkTheme.width,
+    sourceMarker = defaultLinkTheme.sourceMarker,
+    targetMarker = defaultLinkTheme.targetMarker,
+    className = defaultLinkTheme.className,
+    pattern = defaultLinkTheme.pattern,
     ...userData
   } = data;
 
@@ -84,8 +84,49 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
       },
       wrapper: {
         connection: true,
-        strokeWidth: 10,
+        strokeWidth: defaultLinkTheme.wrapperBuffer + width,
         strokeLinejoin: 'round',
+      },
+    },
+    defaultLabel: defaultLabel ?? {
+      markup: [
+        {
+          tagName: 'rect',
+          selector: 'labelBody',
+          attributes: {
+            fill: defaultLinkTheme.labelBackgroundColor,
+            stroke: defaultLinkTheme.labelBackgroundStroke,
+            strokeWidth: defaultLinkTheme.labelBackgroundStrokeWidth,
+            rx: defaultLinkTheme.labelBackgroundBorderRadius,
+            ry: defaultLinkTheme.labelBackgroundBorderRadius,
+          },
+        },
+        {
+          tagName: 'text',
+          selector: 'labelText',
+          attributes: {
+            fill: defaultLinkTheme.labelColor,
+            fontSize: defaultLinkTheme.labelFontSize,
+            fontFamily: defaultLinkTheme.labelFontFamily,
+            textAnchor: 'middle',
+            pointerEvents: 'none',
+          },
+        },
+      ],
+      attrs: {
+        labelText: {
+          textVerticalAnchor: 'middle',
+        },
+        labelBody: {
+          ref: 'labelText',
+          x: `calc(x - ${defaultLinkTheme.labelBackgroundPadding.x})`,
+          y: `calc(y - ${defaultLinkTheme.labelBackgroundPadding.y})`,
+          width: `calc(w + ${defaultLinkTheme.labelBackgroundPadding.x * 2})`,
+          height: `calc(h + ${defaultLinkTheme.labelBackgroundPadding.y * 2})`,
+        },
+      },
+      position: {
+        distance: defaultLinkTheme.labelPosition,
       },
     },
   };
@@ -93,7 +134,6 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
   if (z !== undefined) attributes.z = z;
   if (layer !== undefined) attributes.layer = layer;
   if (markup !== undefined) attributes.markup = markup;
-  if (defaultLabel !== undefined) attributes.defaultLabel = defaultLabel;
   if (Array.isArray(labels)) attributes.labels = labels.map(convertLabel);
   if (vertices !== undefined) attributes.vertices = vertices;
   if (router !== undefined) attributes.router = router;

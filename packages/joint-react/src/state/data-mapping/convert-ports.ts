@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
 import type { GraphElementPort } from '../../types/element-types';
-import { DEFAULT_ELEMENT_THEME } from '../../theme/element-theme';
+import { defaultElementTheme } from '../../theme/element-theme';
 
 /**
  * Converts a simplified GraphElementPort to a full JointJS port definition.
@@ -12,15 +12,15 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
     id,
     cx,
     cy,
-    width = DEFAULT_ELEMENT_THEME.portWidth,
-    height = DEFAULT_ELEMENT_THEME.portHeight,
-    color = DEFAULT_ELEMENT_THEME.portColor,
-    shape = DEFAULT_ELEMENT_THEME.portShape,
+    width = defaultElementTheme.portWidth,
+    height = defaultElementTheme.portHeight,
+    color = defaultElementTheme.portColor,
+    shape = defaultElementTheme.portShape,
     className,
-    magnet = DEFAULT_ELEMENT_THEME.portMagnet,
+    magnet = defaultElementTheme.portMagnet,
     label,
-    labelPosition = DEFAULT_ELEMENT_THEME.portLabelPosition,
-    labelColor = DEFAULT_ELEMENT_THEME.portLabelColor,
+    labelPosition = defaultElementTheme.portLabelPosition,
+    labelColor = defaultElementTheme.portLabelColor,
     labelClassName,
   } = port;
 

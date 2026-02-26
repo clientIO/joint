@@ -2,7 +2,7 @@ import { ReactLink, REACT_LINK_TYPE } from '../react-link';
 
 describe('ReactLink', () => {
   describe('markup', () => {
-    it('should have wrapper and line path markup for link rendering', () => {
+    it('should have wrapper and line path markup with structural attributes only', () => {
       const link = new ReactLink();
       expect(link.markup).toEqual([
         {
@@ -13,7 +13,6 @@ describe('ReactLink', () => {
             cursor: 'pointer',
             stroke: 'transparent',
             strokeLinecap: 'round',
-            strokeWidth: 10,
             strokeLinejoin: 'round',
           },
         },
@@ -23,12 +22,21 @@ describe('ReactLink', () => {
           attributes: {
             fill: 'none',
             pointerEvents: 'none',
-            stroke: '#333333',
-            strokeWidth: 2,
             strokeLinejoin: 'round',
           },
         },
       ]);
+    });
+
+    it('should not contain theme-derived visual properties', () => {
+      const link = new ReactLink();
+      const wrapper = link.markup[0] as { attributes: Record<string, unknown> };
+      const line = link.markup[1] as { attributes: Record<string, unknown> };
+
+      // strokeWidth and stroke color come from the mapper, not the model
+      expect(wrapper.attributes).not.toHaveProperty('strokeWidth');
+      expect(line.attributes).not.toHaveProperty('stroke');
+      expect(line.attributes).not.toHaveProperty('strokeWidth');
     });
   });
 
@@ -49,20 +57,8 @@ describe('ReactLink', () => {
     });
   });
 
-  describe('defaultLabel', () => {
-    it('should have label markup with labelBody and labelText selectors', () => {
-      const link = new ReactLink();
-      expect(link.defaultLabel.markup).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ tagName: 'rect', selector: 'labelBody' }),
-          expect.objectContaining({ tagName: 'text', selector: 'labelText' }),
-        ])
-      );
-    });
-
-    it('should have default label position at 0.5', () => {
-      const link = new ReactLink();
-      expect(link.defaultLabel.position).toEqual({ distance: 0.5 });
-    });
+  it('should not have a defaultLabel (applied by mapper instead)', () => {
+    const link = new ReactLink();
+    expect(link.defaultLabel).toBeUndefined();
   });
 });

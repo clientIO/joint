@@ -1,7 +1,7 @@
 /**
  * Default element theme for port rendering.
  */
-export const DEFAULT_ELEMENT_THEME = {
+export const defaultElementTheme = {
   portColor: '#333333',
   portWidth: 10,
   portHeight: 10,
@@ -11,4 +11,4 @@ export const DEFAULT_ELEMENT_THEME = {
   portLabelColor: '#333333',
 } as const;
 
-export type ElementTheme = typeof DEFAULT_ELEMENT_THEME;
+export type ElementTheme = typeof defaultElementTheme;
