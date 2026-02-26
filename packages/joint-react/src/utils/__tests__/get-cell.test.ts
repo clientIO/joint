@@ -12,17 +12,12 @@ describe('graph-state-selectors link mapping', () => {
       attributes: {
         data: { key: 'value' },
         type: 'mock-type',
+        source: 'source-id',
+        target: 'target-id',
+        z: 1,
+        markup: '<markup>',
+        defaultLabel: 'default-label',
       },
-      get: jest.fn((key) => {
-        const mockData: Record<string, unknown> = {
-          source: 'source-id',
-          target: 'target-id',
-          z: 1,
-          markup: '<markup>',
-          defaultLabel: 'default-label',
-        };
-        return mockData[key];
-      }),
     } as unknown as dia.Link;
   });
 

@@ -124,29 +124,16 @@ export function defaultMapLinkAttributesToData<Link extends GraphLink>(
   options: Pick<GraphToLinkOptions<Link>, 'cell' | 'previousData'>
 ): Link {
   const { cell, previousData } = options;
-  const { data, ...attributes } = cell.attributes;
+  const { data, ...rest } = cell.attributes;
 
-  const cellData: Record<string, unknown> = {
-    ...attributes,
-    source: cell.get('source') as dia.Cell.ID,
-    target: cell.get('target') as dia.Cell.ID,
-    z: cell.get('z'),
-    layer: cell.get('layer'),
-    markup: cell.get('markup'),
-    defaultLabel: cell.get('defaultLabel'),
+  const linkData: Record<string, unknown> = {
+    ...rest,
+    ...(data as Record<string, unknown>),
   };
 
-  // Spread user data from data property to top level
-  if (data && typeof data === 'object') {
-    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-      cellData[key] = value;
-    }
-  }
-
-  // Shape preservation
   if (previousData !== undefined) {
-    return pickPreviousKeys(cellData, previousData);
+    return pickPreviousKeys(linkData, previousData);
   }
 
-  return cellData as Link;
+  return linkData as Link;
 }

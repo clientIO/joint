@@ -66,38 +66,35 @@ export function defaultMapDataToElementAttributes<Element extends GraphElement>(
 }
 
 /**
- * Extracts base cell data from a JointJS Element in flat format.
+ * Extracts element data from a JointJS Element in flat format.
  * @param cell - The JointJS Element cell
- * @returns The extracted cell data as a record
+ * @returns The extracted element data as a record
  */
-function extractBaseCellData(cell: dia.Element): Record<string, unknown> {
+function extractElementData(cell: dia.Element): Record<string, unknown> {
   const { size, position, data, angle, z, ports, parent, layer } = cell.attributes;
 
-  const cellData: Record<string, unknown> = {};
+  const elementData: Record<string, unknown> = {};
 
   if (position) {
-    cellData.x = position.x;
-    cellData.y = position.y;
+    elementData.x = position.x;
+    elementData.y = position.y;
   }
 
   if (size) {
-    cellData.width = size.width;
-    cellData.height = size.height;
+    elementData.width = size.width;
+    elementData.height = size.height;
   }
 
-  if (angle !== undefined) cellData.angle = angle;
-  if (z !== undefined) cellData.z = z;
-  if (ports !== undefined) cellData.ports = ports;
-  if (parent !== undefined) cellData.parent = parent;
-  if (layer !== undefined) cellData.layer = layer;
-  // Spread user data from data property to top level
-  if (data && typeof data === 'object') {
-    for (const [key, value] of Object.entries(data)) {
-      cellData[key] = value;
-    }
-  }
+  if (angle !== undefined) elementData.angle = angle;
+  if (z !== undefined) elementData.z = z;
+  if (ports !== undefined) elementData.ports = ports;
+  if (parent !== undefined) elementData.parent = parent;
+  if (layer !== undefined) elementData.layer = layer;
 
-  return cellData;
+  return {
+    ...elementData,
+    ...(data as Record<string, unknown>),
+  };
 }
 
 /**
@@ -112,11 +109,11 @@ export function defaultMapElementAttributesToData<Element extends GraphElement>(
   options: Pick<GraphToElementOptions<Element>, 'cell' | 'previousData'>
 ): Element {
   const { cell, previousData } = options;
-  const cellData = extractBaseCellData(cell);
+  const elementData = extractElementData(cell);
 
   if (previousData !== undefined) {
-    return pickPreviousKeys(cellData, previousData);
+    return pickPreviousKeys(elementData, previousData);
   }
 
-  return cellData as Element;
+  return elementData as Element;
 }
