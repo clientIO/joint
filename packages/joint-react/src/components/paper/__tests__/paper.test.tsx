@@ -256,6 +256,66 @@ describe('Paper Component', () => {
     );
   });
 
+  it('provides non-null ref inside onElementsSizeReady', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+    const onElementsSizeReadyMock = jest.fn();
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          renderElement={() => <div>Test</div>}
+          onElementsSizeReady={({ paper }) => {
+            onElementsSizeReadyMock({
+              paperFromCallback: paper,
+              paperFromRef: ref.current,
+            });
+          }}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(onElementsSizeReadyMock).toHaveBeenCalledWith({
+        paperFromCallback: expect.any(Object),
+        paperFromRef: expect.any(Object),
+      });
+      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
+      expect(onElementsSizeReadyMock.mock.calls[0][0].paperFromRef).toBe(
+        onElementsSizeReadyMock.mock.calls[0][0].paperFromCallback
+      );
+    });
+  });
+
+  it('provides non-null ref in child useEffect on mount', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+    const captureRefInEffectMock = jest.fn();
+
+    function CapturePaperRef({
+      paperRef,
+    }: Readonly<{
+      paperRef: RefObject<ReactPaper | null>;
+    }>) {
+      useEffect(() => {
+        captureRefInEffectMock(paperRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+      return null;
+    }
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
+        <CapturePaperRef paperRef={ref} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(captureRefInEffectMock).toHaveBeenCalledTimes(1);
+      expect(captureRefInEffectMock).toHaveBeenCalledWith(expect.any(Object));
+    });
+  });
+
   it('exposes paper ref for empty graph without requiring view updates', async () => {
     const ref: RefObject<ReactPaper | null> = { current: null };
 
