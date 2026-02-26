@@ -3,6 +3,7 @@
 /* eslint-disable sonarjs/no-alphabetical-sort */
 import { dia, shapes } from '@joint/core';
 import { ReactElement } from '../../models/react-element';
+import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
 import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import {
@@ -18,7 +19,7 @@ import type {
   LinkToGraphOptions,
 } from '../graph-state-selectors';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 
 // Helper functions to create options (no more defaultAttributes)
 const createElementToGraphOptions = <E extends GraphElement>(
@@ -360,7 +361,7 @@ describe('graph-state-selectors', () => {
       const link: GraphLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
       };
 
       const options = createLinkToGraphOptions(id, link, graph);
@@ -371,7 +372,7 @@ describe('graph-state-selectors', () => {
         id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
       });
 
       // Round-trip: link → graph → link
@@ -383,7 +384,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
       });
     });
 
@@ -392,7 +393,7 @@ describe('graph-state-selectors', () => {
       const link: GraphLink = {
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
       };
 
       const options = createLinkToGraphOptions(id, link, graph);
@@ -403,7 +404,7 @@ describe('graph-state-selectors', () => {
         id: 'link-1',
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
       });
 
       // Round-trip: link → graph → link
@@ -415,7 +416,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
       });
     });
 
@@ -496,7 +497,7 @@ describe('graph-state-selectors', () => {
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const lineAttrs = graphLinkCell.attr('line');
 
-      // After syncing to graph, the standard.Link default targetMarker should be overridden
+      // After syncing to graph, the ReactLink default targetMarker should be overridden
       expect(lineAttrs.targetMarker).toBeNull();
     });
 
@@ -505,7 +506,7 @@ describe('graph-state-selectors', () => {
       const link: GraphLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 10,
         markup: [{ tagName: 'path' }],
         defaultLabel: { markup: [{ tagName: 'text' }] },
@@ -528,7 +529,7 @@ describe('graph-state-selectors', () => {
     it('should map graph link to link without previousData state', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -544,7 +545,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 5,
       });
     });
@@ -552,7 +553,7 @@ describe('graph-state-selectors', () => {
     it('should map graph link to link with previousData state, filtering properties', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -570,7 +571,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 3,
         customProp: undefined,
         // extraProp is not in previousData, so it should be filtered out
@@ -584,7 +585,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 5, // Updated from graph
         customProp: 'from-graph', // Updated from graph data
       });
@@ -596,7 +597,7 @@ describe('graph-state-selectors', () => {
     it('should preserve undefined properties from previousData state', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -611,7 +612,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         customProp: undefined, // Explicitly undefined in previousData
       };
 
@@ -627,7 +628,7 @@ describe('graph-state-selectors', () => {
     it('should extract source and target from cell', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
         id: 'link-1',
@@ -646,7 +647,7 @@ describe('graph-state-selectors', () => {
     it('should extract z, markup, and defaultLabel from cell', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -669,7 +670,7 @@ describe('graph-state-selectors', () => {
     it('should include all cell attributes when no previousData state', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -771,7 +772,7 @@ describe('graph-state-selectors', () => {
       const link: GraphLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 5,
       };
 
@@ -795,7 +796,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 5,
       });
     });
@@ -805,7 +806,7 @@ describe('graph-state-selectors', () => {
       const link: GraphLink = {
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 10,
         markup: [{ tagName: 'path' }],
         defaultLabel: { markup: [{ tagName: 'text' }] },
@@ -831,7 +832,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 10,
       });
       expect(linkFromGraph.markup).toEqual([{ tagName: 'path' }]);
@@ -850,7 +851,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 5,
         customProp: 'value-from-state',
         extraProp: 'should-be-filtered',
@@ -873,7 +874,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 3,
         customProp: undefined,
         anotherProp: 0,
@@ -889,7 +890,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 5, // Updated from graph
         customProp: 'value-from-state', // From graph data
         anotherProp: 42, // Updated from graph data
@@ -913,7 +914,7 @@ describe('graph-state-selectors', () => {
           data: {
             source: 'element-1',
             target: 'element-2',
-            type: 'standard.Link',
+            type: REACT_LINK_TYPE,
             z: 1,
             label: 'Link 1',
           },
@@ -923,7 +924,7 @@ describe('graph-state-selectors', () => {
           data: {
             source: 'element-2',
             target: 'element-3',
-            type: 'standard.Link',
+            type: REACT_LINK_TYPE,
             z: 2,
             metadata: { key: 'value' },
           },
@@ -943,7 +944,7 @@ describe('graph-state-selectors', () => {
           data: {
             source: 'element-1',
             target: 'element-2',
-            type: 'standard.Link',
+            type: REACT_LINK_TYPE,
             z: 0, // Exists in previousData
             label: undefined, // Exists but undefined
           },
@@ -953,7 +954,7 @@ describe('graph-state-selectors', () => {
           data: {
             source: 'element-2',
             target: 'element-3',
-            type: 'standard.Link',
+            type: REACT_LINK_TYPE,
             z: 0, // Exists in previousData
             metadata: undefined, // Exists but undefined
           },
@@ -977,7 +978,7 @@ describe('graph-state-selectors', () => {
       expect(link1?.data).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 1, // Updated from graph
         label: 'Link 1', // Updated from graph data
       });
@@ -987,7 +988,7 @@ describe('graph-state-selectors', () => {
       expect(link2?.data).toMatchObject({
         source: { id: 'element-2' },
         target: { id: 'element-3' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 2, // Updated from graph
         metadata: { key: 'value' }, // Updated from graph data
       });
@@ -1004,7 +1005,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         optionalProp: 'has-value',
       };
 
@@ -1017,7 +1018,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         optionalProp: undefined, // Explicitly undefined
         anotherOptionalProp: undefined, // Explicitly undefined
       };
@@ -1045,7 +1046,7 @@ describe('graph-state-selectors', () => {
       const initialLink: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         status: 'active',
         weight: 1,
       };
@@ -1060,7 +1061,7 @@ describe('graph-state-selectors', () => {
       const updatedLink: ExtendedLink & { newProp?: string } = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         status: 'inactive',
         weight: 2,
         newProp: 'should-be-filtered',
@@ -1076,7 +1077,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         status: 'active',
         weight: 1,
       };
@@ -1090,7 +1091,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         status: 'inactive', // Updated from graph data
         weight: 2, // Updated from graph data
       });
@@ -1104,7 +1105,7 @@ describe('graph-state-selectors', () => {
       const link: GraphLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         attrs: {
           line: {
             stroke: 'red',
@@ -1191,7 +1192,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         newLinkProperty: 'value-from-graph',
         priority: 10,
         metadata: { key: 'value' },
@@ -1207,7 +1208,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         newLinkProperty: undefined, // Defined in state type but undefined
         priority: undefined, // Defined in state type but undefined
         metadata: undefined, // Defined in state type but undefined
@@ -1288,7 +1289,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         config: {
           style: 'dashed',
           animation: true,
@@ -1313,7 +1314,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         config: undefined,
         customData: undefined,
       };
@@ -1392,7 +1393,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 5, // Existing GraphLink property
         markup: [{ tagName: 'path' }], // Existing GraphLink property
         customLabel: 'Custom', // New property
@@ -1409,7 +1410,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: 'standard.Link',
+        type: REACT_LINK_TYPE,
         z: 3, // Existing property
         customLabel: undefined, // New property defined
         weight: undefined, // New property defined

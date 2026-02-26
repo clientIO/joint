@@ -4,11 +4,13 @@ import type { GraphLink } from '../../types/link-types';
 import { getTargetOrSource } from '../../utils/cell/get-link-targe-and-source-ids';
 import { DEFAULT_LINK_THEME } from '../../theme/link-theme';
 import { resolveMarker } from '../../theme/markers';
+import { REACT_LINK_TYPE } from '../../models/react-link';
 import type {
   LinkToGraphOptions,
   GraphToLinkOptions,
 } from '../graph-state-selectors';
 import { pickPreviousKeys } from './pick-previous-keys';
+import { convertLabel } from './convert-labels';
 
 /**
  * Maps flat link data to JointJS cell attributes.
@@ -71,7 +73,7 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
 
   const attributes: dia.Cell.JSON = {
     id,
-    type: 'standard.Link',
+    type: REACT_LINK_TYPE,
     source,
     target,
     attrs: {
@@ -92,7 +94,7 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
   if (layer !== undefined) attributes.layer = layer;
   if (markup !== undefined) attributes.markup = markup;
   if (defaultLabel !== undefined) attributes.defaultLabel = defaultLabel;
-  if (labels !== undefined) attributes.labels = labels;
+  if (Array.isArray(labels)) attributes.labels = labels.map(convertLabel);
   if (vertices !== undefined) attributes.vertices = vertices;
   if (router !== undefined) attributes.router = router;
   if (connector !== undefined) attributes.connector = connector;

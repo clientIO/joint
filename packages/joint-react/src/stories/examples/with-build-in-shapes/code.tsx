@@ -552,7 +552,7 @@ const initialLinks: Record<string, NativeLink> = {
         strokeLinejoin: 'round',
       },
     },
-    labels: [{ attrs: { text: { text: 'Link' } } }],
+    labels: [{ text: 'Link' }],
   },
   'link-double': {
     source: 'link-source',
@@ -577,7 +577,7 @@ const initialLinks: Record<string, NativeLink> = {
         strokeLinejoin: 'round',
       },
     },
-    labels: [{ attrs: { text: { text: 'DoubleLink' } } }],
+    labels: [{ text: 'DoubleLink' }],
   },
   'link-shadow': {
     source: 'link-target-1',
@@ -619,7 +619,7 @@ const initialLinks: Record<string, NativeLink> = {
         },
       },
     },
-    labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
+    labels: [{ text: 'ShadowLink' }],
   },
 };
 

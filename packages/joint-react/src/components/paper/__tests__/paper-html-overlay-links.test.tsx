@@ -39,9 +39,9 @@ describe('Paper with useHTMLOverlay and links', () => {
     });
 
     await waitFor(() => {
-      // standard.Link has SVG markup for the link
+      // ReactLink has SVG markup for the link
       // Check that the link view container exists in the DOM
-      const linkView = container.querySelector('.joint-type-standard-link');
+      const linkView = container.querySelector('.joint-type-reactlink');
       expect(linkView).toBeInTheDocument();
     });
 

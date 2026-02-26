@@ -3,12 +3,13 @@
 /* eslint-disable sonarjs/no-alphabetical-sort */
 import { dia, shapes } from '@joint/core';
 import { ReactElement } from '../../models/react-element';
+import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
 import type { GraphElement, GraphElementPort } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 import type { ElementToGraphOptions, GraphToElementOptions, LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
 import { defaultMapDataToElementAttributes, defaultMapDataToLinkAttributes, defaultMapElementAttributesToData, defaultMapLinkAttributesToData } from '../data-mapping';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 
 function elementToGraphOpts(id: string, data: GraphElement, graph: dia.Graph): ElementToGraphOptions<GraphElement> {
   return { id, data, graph, toAttributes: (d) => defaultMapDataToElementAttributes({ id, data: d }) };
@@ -147,7 +148,7 @@ describe('dataMapper', () => {
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.source).toEqual({ id: 'el-1' });
       expect(cellJson.target).toEqual({ id: 'el-2' });
-      expect(cellJson.type).toBe('standard.Link');
+      expect(cellJson.type).toBe(REACT_LINK_TYPE);
       expect(cellJson.attrs?.line).toBeDefined();
 
       graph.syncCells([cellJson], { remove: true });

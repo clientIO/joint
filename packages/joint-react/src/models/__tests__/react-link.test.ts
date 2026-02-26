@@ -12,7 +12,9 @@ describe('ReactLink', () => {
             fill: 'none',
             cursor: 'pointer',
             stroke: 'transparent',
-            'stroke-linecap': 'round',
+            strokeLinecap: 'round',
+            strokeWidth: 10,
+            strokeLinejoin: 'round',
           },
         },
         {
@@ -20,7 +22,10 @@ describe('ReactLink', () => {
           selector: 'line',
           attributes: {
             fill: 'none',
-            'pointer-events': 'none',
+            pointerEvents: 'none',
+            stroke: '#333333',
+            strokeWidth: 2,
+            strokeLinejoin: 'round',
           },
         },
       ]);
@@ -42,22 +47,22 @@ describe('ReactLink', () => {
       expect(attributes?.wrapper?.connection).toBe(true);
       expect(attributes?.line?.connection).toBe(true);
     });
+  });
 
-    it('should have default stroke and strokeWidth for line', () => {
+  describe('defaultLabel', () => {
+    it('should have label markup with labelBody and labelText selectors', () => {
       const link = new ReactLink();
-      const attributes = link.get('attrs');
-
-      expect(attributes?.line?.stroke).toBe('#333333');
-      expect(attributes?.line?.strokeWidth).toBe(2);
-      expect(attributes?.line?.strokeLinejoin).toBe('round');
+      expect(link.defaultLabel.markup).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ tagName: 'rect', selector: 'labelBody' }),
+          expect.objectContaining({ tagName: 'text', selector: 'labelText' }),
+        ])
+      );
     });
 
-    it('should have default strokeWidth for wrapper (click target)', () => {
+    it('should have default label position at 0.5', () => {
       const link = new ReactLink();
-      const attributes = link.get('attrs');
-
-      expect(attributes?.wrapper?.strokeWidth).toBe(10);
-      expect(attributes?.wrapper?.strokeLinejoin).toBe('round');
+      expect(link.defaultLabel.position).toEqual({ distance: 0.5 });
     });
   });
 });
