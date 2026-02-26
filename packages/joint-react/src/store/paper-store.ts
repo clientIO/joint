@@ -351,5 +351,6 @@ export class PaperStore {
     // - All cell views
     // - The paper's DOM element
     this.paper.remove();
+    this.overWriteResultRef?.cleanup?.();
   };
 }
