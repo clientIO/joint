@@ -673,3 +673,147 @@ export interface PaperEvents {
     }) => void
   >;
 }
+
+export type GraphKnownEventName =
+  | 'add'
+  | 'remove'
+  | 'change'
+  | 'reset'
+  | 'sort'
+  | 'move'
+  | 'batch:start'
+  | 'batch:stop';
+
+export type GraphPatternEventName = `change:${string}` | `layer:${string}` | `layers:${string}`;
+
+export type GraphEventName = GraphKnownEventName | GraphPatternEventName;
+
+export interface GraphEventPayloadBase<EventName extends string, Args extends unknown[]> {
+  readonly graph: dia.Graph;
+  readonly eventName: EventName;
+  readonly args: Args;
+}
+
+export interface GraphEventOptions {
+  readonly [key: string]: unknown;
+}
+
+export interface GraphEventPayloadMap {
+  readonly add: GraphEventPayloadBase<
+    'add',
+    [cell: dia.Cell, collection: mvc.Collection<dia.Cell>, options: GraphEventOptions]
+  > & {
+    readonly cell: dia.Cell;
+    readonly collection: mvc.Collection<dia.Cell>;
+    readonly options: GraphEventOptions;
+  };
+  readonly remove: GraphEventPayloadBase<
+    'remove',
+    [cell: dia.Cell, collection: mvc.Collection<dia.Cell>, options: GraphEventOptions]
+  > & {
+    readonly cell: dia.Cell;
+    readonly collection: mvc.Collection<dia.Cell>;
+    readonly options: GraphEventOptions;
+  };
+  readonly change: GraphEventPayloadBase<
+    'change',
+    [cell: dia.Cell, options: GraphEventOptions]
+  > & {
+    readonly cell: dia.Cell;
+    readonly options: GraphEventOptions;
+  };
+  readonly reset: GraphEventPayloadBase<
+    'reset',
+    [collection: mvc.Collection<dia.Cell>, options: GraphEventOptions]
+  > & {
+    readonly collection: mvc.Collection<dia.Cell>;
+    readonly cells: dia.Cell[];
+    readonly options: GraphEventOptions;
+  };
+  readonly sort: GraphEventPayloadBase<
+    'sort',
+    [collection: mvc.Collection<dia.Cell>, options: GraphEventOptions]
+  > & {
+    readonly collection: mvc.Collection<dia.Cell>;
+    readonly options: GraphEventOptions;
+  };
+  readonly move: GraphEventPayloadBase<
+    'move',
+    [cell: dia.Cell, options: GraphEventOptions]
+  > & {
+    readonly cell: dia.Cell;
+    readonly options: GraphEventOptions;
+  };
+  readonly 'batch:start': GraphEventPayloadBase<'batch:start', [data: GraphEventOptions]> & {
+    readonly data: GraphEventOptions;
+  };
+  readonly 'batch:stop': GraphEventPayloadBase<'batch:stop', [data: GraphEventOptions]> & {
+    readonly data: GraphEventOptions;
+  };
+}
+
+export type GraphPatternPayload<EventName extends GraphPatternEventName> =
+  EventName extends `change:${string}`
+    ? GraphEventPayloadBase<EventName, [cell: dia.Cell, options: GraphEventOptions]> & {
+        readonly cell: dia.Cell;
+        readonly options: GraphEventOptions;
+      }
+    : EventName extends `layer:${string}`
+      ? GraphEventPayloadBase<
+          EventName,
+          [
+            layer: dia.GraphLayer,
+            collectionOrOptions?: mvc.Collection<dia.GraphLayer> | GraphEventOptions,
+            options?: GraphEventOptions,
+          ]
+        > & {
+          readonly layer: dia.GraphLayer;
+          readonly collection: mvc.Collection<dia.GraphLayer> | null;
+          readonly options: GraphEventOptions;
+        }
+      : GraphEventPayloadBase<
+          EventName,
+          [layerCollection: dia.GraphLayerCollection, options?: GraphEventOptions]
+        > & {
+          readonly layerCollection: dia.GraphLayerCollection | null;
+          readonly options: GraphEventOptions;
+        };
+
+export type GraphEventPayload<EventName extends GraphEventName> =
+  EventName extends GraphKnownEventName
+    ? GraphEventPayloadMap[EventName]
+    : GraphPatternPayload<EventName & GraphPatternEventName>;
+
+export type GraphEventHandlers = Partial<{
+  readonly [EventName in GraphKnownEventName]: (
+    payload: GraphEventPayloadMap[EventName]
+  ) => void;
+}> &
+  Partial<{
+    readonly [EventName in GraphPatternEventName]: (
+      payload: GraphPatternPayload<EventName>
+    ) => void;
+  }>;
+
+export type PaperListenerPayload<EventName extends PaperEventType> = {
+  readonly graph: dia.Graph;
+  readonly paper: dia.Paper;
+  readonly eventName: EventName;
+  readonly args: Parameters<EventMap[EventName]>;
+};
+
+export type PaperEventHandlers = Partial<{
+  readonly [EventName in PaperEventType]: (
+    payload: PaperListenerPayload<EventName>
+  ) => void;
+}> & {
+  readonly customEvents?: Record<
+    string,
+    (payload: {
+      readonly graph: dia.Graph;
+      readonly paper: dia.Paper;
+      readonly eventName: string;
+      readonly args: Parameters<mvc.EventHandler>;
+    }) => void
+  >;
+};

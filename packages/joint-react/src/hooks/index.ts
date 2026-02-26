@@ -6,7 +6,7 @@ export * from './use-element';
 export * from './use-node-size';
 export * from './use-node-layout';
 export * from './use-cell-id';
-export * from './use-paper-events';
+export * from './use-event-listener';
 export * from './use-imperative-api';
 export * from './use-cell-actions';
 export * from './use-graph-store';
