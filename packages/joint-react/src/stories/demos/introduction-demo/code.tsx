@@ -20,7 +20,7 @@ import {
   type GraphElement,
   type GraphLink,
   type ElementToGraphOptions,
-  type PaperStore,
+  type ReactPaper,
   type PaperProps,
   useNodeLayout,
 } from '@joint/react';
@@ -361,7 +361,7 @@ interface ToolbarProps {
   readonly setSelectedId: (id: dia.Cell.ID | null) => void;
   readonly showElementsInfo: boolean;
   readonly setShowElementsInfo: (show: boolean) => void;
-  readonly paperCtxRef: React.RefObject<PaperStore | null>;
+  readonly paperCtxRef: React.RefObject<ReactPaper | null>;
 }
 // Toolbar component with some actions
 function ToolBar(props: Readonly<ToolbarProps>) {
@@ -375,7 +375,7 @@ function ToolBar(props: Readonly<ToolbarProps>) {
     paperCtxRef,
   } = props;
   const graph = useGraph();
-  const { paper } = paperCtxRef.current ?? {};
+  const paper = paperCtxRef.current;
   return (
     <div className="flex flex-row absolute top-2 left-2 z-10 bg-gray-900  rounded-lg p-2 shadow-md gap-2">
       <button
@@ -493,7 +493,7 @@ function Main() {
   const [isMinimapVisible, setIsMinimapVisible] = useState(false);
   const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(null);
   const [showElementsInfo, setShowElementsInfo] = useState(false);
-  const paperCtxRef = useRef<PaperStore | null>(null);
+  const paperCtxRef = useRef<ReactPaper | null>(null);
 
   const renderElement = useCallback(
     (element: Element) => {

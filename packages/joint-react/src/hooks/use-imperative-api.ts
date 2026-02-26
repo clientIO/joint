@@ -23,7 +23,7 @@ interface OnLoadReturn<Instance> {
  * Options for the useImperativeApi hook.
  * @template Instance - The type of the instance being managed
  */
-export interface UseImperativeApiOptions<Instance> {
+export interface UseImperativeApiOptions<Instance, InstanceSelector = Instance> {
   /**
    * Function called to create the instance.
    * Should return the instance and a cleanup function.
@@ -53,7 +53,8 @@ export interface UseImperativeApiOptions<Instance> {
   /**
    * Optional ref to forward the instance to.
    */
-  readonly forwardedRef?: React.Ref<Instance>;
+  readonly forwardedRef?: React.Ref<InstanceSelector>;
+  readonly instanceSelector?: (instance: Instance) => InstanceSelector;
 }
 
 interface ResultBase<Instance> {
@@ -91,11 +92,11 @@ export type ImperativeStateResult<Instance> = ResultReady<Instance> | ResultNotR
  * @private
  * @group Hooks
  */
-export function useImperativeApi<Instance>(
-  options: UseImperativeApiOptions<Instance>,
+export function useImperativeApi<Instance, InstanceSelector = Instance>(
+  options: UseImperativeApiOptions<Instance, InstanceSelector>,
   dependencies: DependencyList
 ): ImperativeStateResult<Instance> {
-  const { onLoad, onUpdate, onReadyChange, isDisabled, forwardedRef } = options;
+  const { onLoad, onUpdate, onReadyChange, instanceSelector, isDisabled, forwardedRef } = options;
   const [isReady, setIsReady] = useState(false);
   const instanceRef = useRef<Instance | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -159,8 +160,15 @@ export function useImperativeApi<Instance>(
   }, dependencies);
 
   // Expose the instance via the forwarded ref, if there is one
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useImperativeHandle(forwardedRef, () => instanceRef.current!, [instanceRef, isReady]);
+  useImperativeHandle(
+    forwardedRef,
+    () =>
+      instanceSelector
+        ? instanceSelector(instanceRef.current!)
+        : (instanceRef.current! as unknown as InstanceSelector),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [instanceRef, isReady]
+  );
 
   return { ref: instanceRef, isReady } as ImperativeStateResult<Instance>;
 }

@@ -1,10 +1,9 @@
 import type { dia } from '@joint/core';
-import type { PortUpdateCacheEntry } from './port-cache';
 import type { ClearViewCacheEntry } from './clear-view';
 
 /**
  * Generic batch cache for collecting updates before flushing.
- * Provides a unified pattern for link, port, and other batched updates.
+ * Provides a unified pattern for link, and other batched updates.
  * @template K - Key type (usually dia.Cell.ID)
  * @template V - Value type (cache entry)
  */
@@ -109,17 +108,11 @@ function createCellCache<V extends object>(scheduler: () => void): BatchCache<di
 }
 
 /**
- * Creates a port update cache with the standard entry structure.
- * @param scheduler
- */
-export function createPortCache(scheduler: () => void): BatchCache<dia.Cell.ID, PortUpdateCacheEntry> {
-  return createCellCache<PortUpdateCacheEntry>(scheduler);
-}
-
-/**
  * Creates a clearView cache with the standard entry structure.
  * @param scheduler
  */
-export function createClearViewCache(scheduler: () => void): BatchCache<dia.Cell.ID, ClearViewCacheEntry> {
+export function createClearViewCache(
+  scheduler: () => void
+): BatchCache<dia.Cell.ID, ClearViewCacheEntry> {
   return createCellCache<ClearViewCacheEntry>(scheduler);
 }

@@ -145,11 +145,12 @@ export interface GraphProps<
  * Used when no external store or React state setters are provided.
  * The graph manages its own state internally.
  */
-const GraphBase = forwardRef<GraphStore, GraphProps>(function GraphBase(props, forwardedRef) {
+const GraphBase = forwardRef<dia.Graph, GraphProps>(function GraphBase(props, forwardedRef) {
   const { children, store, elements, links, ...rest } = props;
 
-  const { isReady, ref } = useImperativeApi<GraphStore>(
+  const { isReady, ref } = useImperativeApi<GraphStore, dia.Graph>(
     {
+      instanceSelector: (instance) => instance.graph,
       forwardedRef,
       onLoad() {
         const graphStore =
@@ -186,7 +187,7 @@ const GraphBase = forwardRef<GraphStore, GraphProps>(function GraphBase(props, f
  * Used when onElementsChange and/or onLinksChange props are provided.
  * All graph changes are synchronized with React state.
  */
-const GraphBaseWithSetters = forwardRef<GraphStore, GraphProps>(
+const GraphBaseWithSetters = forwardRef<dia.Graph, GraphProps>(
   function GraphBaseWithSetters(props, forwardedRef) {
     const { children, store, onElementsChange, onLinksChange, elements, links, ...rest } = props;
 
@@ -197,8 +198,9 @@ const GraphBaseWithSetters = forwardRef<GraphStore, GraphProps>(
       onLinksChange,
     });
 
-    const { isReady, ref } = useImperativeApi<GraphStore>(
+    const { isReady, ref } = useImperativeApi<GraphStore, dia.Graph>(
       {
+        instanceSelector: (instance) => instance.graph,
         forwardedRef,
         onLoad() {
           const graphStore =
@@ -246,7 +248,7 @@ const GraphBaseWithSetters = forwardRef<GraphStore, GraphProps>(
  * @param forwardedRef - The forwarded ref for GraphStore instance
  * @returns The appropriate GraphBase component or null if not ready
  */
-const GraphBaseRouter = forwardRef<GraphStore, GraphProps>(
+const GraphBaseRouter = forwardRef<dia.Graph, GraphProps>(
   function GraphBaseRouter(props, forwardedRef) {
     const { externalStore, onElementsChange, onLinksChange } = props;
 

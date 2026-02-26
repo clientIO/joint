@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, shapes } from '@joint/core';
-import type { PaperStore } from '@joint/react';
+import type { ReactPaper } from '@joint/react';
 import {
   GraphProvider,
   Paper,
@@ -144,7 +144,7 @@ interface MainProps {
 
 function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
   const layers = ['background', 'main', 'foreground'];
-  const storeRef = useRef<PaperStore>(null);
+  const paperRef = useRef<ReactPaper>(null);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -155,7 +155,7 @@ function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
             type="button"
             onClick={() => {
               toggleLayer(layerId);
-              storeRef.current?.paper.wakeUp();
+              paperRef.current?.wakeUp();
             }}
             style={{
               padding: '8px 16px',
@@ -173,7 +173,7 @@ function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
         ))}
       </div>
       <Paper
-        ref={storeRef}
+        ref={paperRef}
         height={300}
         className={PAPER_CLASSNAME}
         renderElement={RenderElement}

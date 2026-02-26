@@ -9,6 +9,7 @@
  */
 import { dia, mvc } from '@joint/core';
 import { useGraphStore } from '../../hooks/use-graph-store';
+import { usePaperStoreById } from '../../hooks/use-paper-context';
 import {
   forwardRef,
   useCallback,
@@ -38,11 +39,11 @@ import {
 } from './render-element/paper-element-item';
 import { createPortal } from 'react-dom';
 import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/handle-paper-events';
-import type { PaperStore } from '../../store';
 import {
   useAreElementsMeasured,
   useGraphInternalStoreSelector,
 } from '../../hooks/use-graph-store-selector';
+import type { ReactPaper } from '../../models/react-paper';
 
 const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
@@ -126,7 +127,7 @@ function LinkItem({
  */
 function PaperBase<ElementItem extends GraphElement = GraphElement>(
   props: PaperProps<ElementItem>,
-  forwardedRef: React.ForwardedRef<PaperStore | null>
+  forwardedRef: React.ForwardedRef<ReactPaper | null>
 ) {
   const {
     renderElement,
@@ -184,9 +185,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
     (snapshot) => snapshot.papers[id]?.linkViews ?? EMPTY_OBJECT
   );
 
-  const { addPaper, graph, getPaperStore } = useGraphStore();
-
-  const paperStore = getPaperStore(id) ?? null;
+  const { addPaper, graph } = useGraphStore();
+  const paperStore = usePaperStoreById(id);
   const { paper } = paperStore ?? {};
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
   const measuredRef = useRef(false);
@@ -197,7 +197,11 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
   const hasRenderElement = !!renderElement;
   const hasRenderLink = !!renderLink;
 
-  useImperativeHandle(forwardedRef, () => paperStore as PaperStore, [paperStore]);
+  useImperativeHandle<ReactPaper | null, ReactPaper | null>(
+    forwardedRef,
+    () => paperStore?.paper ?? null,
+    [paperStore]
+  );
 
   const defaultLinkJointJS = useCallback(
     (cellView: dia.CellView, magnet: SVGElement) => {
@@ -356,7 +360,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
       stopListening();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graph, isReady, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
+  }, [graph, isReady, paper, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {
@@ -516,6 +520,6 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
  */
 export const Paper = forwardRef(PaperBase) as <ElementItem extends GraphElement = GraphElement>(
   props: Readonly<PaperProps<ElementItem>> & {
-    ref?: React.Ref<PaperStore>;
+    ref?: React.Ref<dia.Paper | null>;
   }
 ) => ReturnType<typeof PaperBase>;

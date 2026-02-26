@@ -9,12 +9,12 @@ import type { dia } from '@joint/core';
 import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
-import type { PaperStore } from '../../../store';
 import { useGraph, usePaperStoreContext, useCellId } from '../../../hooks';
 import type { GraphElement } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 import { ReactLink, REACT_LINK_TYPE } from '../../../models/react-link';
+import type { ReactPaper } from '../../../models/react-paper';
 
 const elements: Record<string, { label: string; width: number; height: number }> = {
   '1': { label: 'Node 1', width: 10, height: 10 },
@@ -258,13 +258,70 @@ describe('Paper Component', () => {
       { timeout: 3000 }
     );
   });
+
+  it('exposes paper ref for empty graph without requiring view updates', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+
+    render(
+      <GraphProvider elements={{}}>
+        <Paper ref={ref} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      expect(ref.current).toBeDefined();
+    });
+  });
+
+  it('binds paper pointer events for empty graph', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+    const onBlankPointerClick = jest.fn();
+
+    render(
+      <GraphProvider elements={{}}>
+        <Paper ref={ref} onBlankPointerClick={onBlankPointerClick} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).toBeDefined();
+    });
+
+    act(() => {
+      ref.current!.trigger('blank:pointerclick', {}, 0, 0);
+    });
+
+    expect(onBlankPointerClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('binds onElementPointerClick for empty graph once paper is ready', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+    const onElementPointerClick = jest.fn();
+
+    render(
+      <GraphProvider elements={{}}>
+        <Paper ref={ref} onElementPointerClick={onElementPointerClick} />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).toBeDefined();
+    });
+
+    act(() => {
+      ref.current!.trigger('element:pointerclick', null, null, 0, 0);
+    });
+
+    expect(onElementPointerClick).toHaveBeenCalledTimes(1);
+  });
   it('should access paper via context and change scale', async () => {
     // eslint-disable-next-line unicorn/consistent-function-scoping
-    function ChangeScale({ paperRef }: { paperRef: RefObject<PaperStore | null> }) {
+    function ChangeScale({ paperRef }: { paperRef: RefObject<ReactPaper | null> }) {
       useEffect(() => {
         const checkAndScale = () => {
-          if (paperRef.current?.paper) {
-            paperRef.current.paper.scale(2, 2);
+          if (paperRef.current) {
+            paperRef.current.scale(2, 2);
           } else {
             setTimeout(checkAndScale, 10);
           }
@@ -278,7 +335,7 @@ describe('Paper Component', () => {
     }
 
     function Component() {
-      const ref = useRef<PaperStore | null>(null);
+      const ref = useRef<ReactPaper | null>(null);
       return (
         <GraphProvider elements={elements}>
           <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
@@ -298,12 +355,12 @@ describe('Paper Component', () => {
     );
   });
   it('should access paper via ref and change scale', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<ReactPaper | null> = { current: null };
     function ChangeScale() {
       useEffect(() => {
         const checkAndScale = () => {
-          if (ref.current?.paper) {
-            ref.current.paper.scale(2, 2);
+          if (ref.current) {
+            ref.current.scale(2, 2);
           } else {
             setTimeout(checkAndScale, 10);
           }
@@ -325,8 +382,7 @@ describe('Paper Component', () => {
 
     await waitFor(
       () => {
-        const layersGroup = document.querySelector('.joint-layers');
-        expect(layersGroup).toHaveAttribute('transform', 'matrix(2,0,0,2,0,0)');
+        expect(ref.current?.scale().sx).toBe(2);
       },
       { timeout: 3000 }
     );
@@ -416,8 +472,8 @@ describe('Paper Component', () => {
     });
   });
   it('should test two separate Paper with same paper, and get their data via ref', async () => {
-    const view1Ref: RefObject<PaperStore | null> = { current: null };
-    const view2Ref: RefObject<PaperStore | null> = { current: null };
+    const view1Ref: RefObject<ReactPaper | null> = { current: null };
+    const view2Ref: RefObject<ReactPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -431,14 +487,13 @@ describe('Paper Component', () => {
         expect(view1Ref.current).not.toBeNull();
         expect(view2Ref.current).not.toBeNull();
         expect(view1Ref.current).not.toBe(view2Ref.current);
-        expect(view1Ref.current?.paper).not.toBe(view2Ref.current?.paper);
       },
       { timeout: 3000 }
     );
   });
 
   it('applies default defaultConnectionPoint and measureNode options', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<ReactPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -448,7 +503,7 @@ describe('Paper Component', () => {
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
-      const paperOptions = ref.current!.paper.options;
+      const paperOptions = ref.current!.options;
       // Default connection point should be rectangle with useModelGeometry
       expect(paperOptions.defaultConnectionPoint).toEqual({
         name: 'rectangle',
@@ -460,7 +515,7 @@ describe('Paper Component', () => {
   });
 
   it('allows user to override defaultConnectionPoint and measureNode', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<ReactPaper | null> = { current: null };
     const customMeasureNode = jest.fn();
 
     render(
@@ -476,14 +531,14 @@ describe('Paper Component', () => {
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
-      const paperOptions = ref.current!.paper.options;
+      const paperOptions = ref.current!.options;
       expect(paperOptions.defaultConnectionPoint).toEqual({ name: 'boundary' });
       expect(paperOptions.measureNode).toBe(customMeasureNode);
     });
   });
 
   it('applies percentage width to JointJS paper when only width="100%" is set', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<ReactPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -494,12 +549,12 @@ describe('Paper Component', () => {
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
       // The JointJS paper should have 100% width, not the default 800px
-      expect(ref.current!.paper.el.style.width).toBe('100%');
+      expect(ref.current!.el.style.width).toBe('100%');
     });
   });
 
   it('applies percentage height to JointJS paper when only height="100%" is set', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<ReactPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -510,12 +565,12 @@ describe('Paper Component', () => {
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
       // The JointJS paper should have 100% height, not the default 600px
-      expect(ref.current!.paper.el.style.height).toBe('100%');
+      expect(ref.current!.el.style.height).toBe('100%');
     });
   });
 
   it('applies percentage dimensions to JointJS paper when both width and height are "100%"', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<ReactPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -530,13 +585,13 @@ describe('Paper Component', () => {
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
-      expect(ref.current!.paper.el.style.width).toBe('100%');
-      expect(ref.current!.paper.el.style.height).toBe('100%');
+      expect(ref.current!.el.style.width).toBe('100%');
+      expect(ref.current!.el.style.height).toBe('100%');
     });
   });
 
   it('does not overwrite container percentage width with pixel values from resizePaperContainer', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<ReactPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -552,7 +607,7 @@ describe('Paper Component', () => {
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
       // The paper container div should maintain percentage width
-      const paperContainer = ref.current!.paper.el.parentElement;
+      const paperContainer = ref.current!.el.parentElement;
       expect(paperContainer).not.toBeNull();
       expect(paperContainer!.style.width).not.toBe('800px');
     });
@@ -592,7 +647,11 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> ref={ref} defaultLink={providedLink} renderElement={() => <div>Test</div>} />
+        <Paper<Element>
+          ref={ref}
+          defaultLink={providedLink}
+          renderElement={() => <div>Test</div>}
+        />
       </GraphProvider>
     );
 

@@ -18,7 +18,6 @@ export interface IReactPaper extends dia.Paper {
   /** Cache for element views - managed by ReactPaper */
   readonly reactElementCache: {
     elementViews: Record<dia.Cell.ID, dia.ElementView>;
-    portsData: Record<string, SVGElement>;
   };
   /** Cache for link views - managed by ReactPaper */
   readonly reactLinkCache: {
