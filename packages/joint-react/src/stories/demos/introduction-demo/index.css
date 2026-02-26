@@ -4,6 +4,16 @@
   animation: dashmove 1s linear infinite;
 }
 
+.joint-react-introduction-node-selected {
+  border-color: #22d3ee !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(34, 211, 238, 0.95),
+    0 0 0 2px rgba(34, 211, 238, 0.65),
+    0 0 22px rgba(34, 211, 238, 0.35) !important;
+  outline: 2px solid rgba(34, 211, 238, 0.8);
+  outline-offset: 1px;
+}
+
 @keyframes dashmove {
   to {
     stroke-dashoffset: -20; /* dash + gap length */
