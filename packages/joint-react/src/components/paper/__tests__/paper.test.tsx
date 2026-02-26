@@ -614,7 +614,7 @@ describe('Paper Component', () => {
   });
 
   it('uses ReactLink from graph namespace when defaultLink is not provided', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -627,9 +627,9 @@ describe('Paper Component', () => {
     });
 
     class CustomNamespaceReactLink extends ReactLink {}
-    ref.current!.paper.model.layerCollection.cellNamespace.ReactLink = CustomNamespaceReactLink;
+    ref.current!.model.layerCollection.cellNamespace.ReactLink = CustomNamespaceReactLink;
 
-    const defaultLinkFactory = ref.current!.paper.options.defaultLink as (
+    const defaultLinkFactory = ref.current!.options.defaultLink as (
       cellView: dia.CellView,
       magnet: SVGElement
     ) => dia.Link;
@@ -642,7 +642,7 @@ describe('Paper Component', () => {
   });
 
   it('supports defaultLink as a dia.Link instance', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
     const providedLink = new shapes.standard.Link({ attrs: { line: { stroke: '#123456' } } });
 
     render(
@@ -659,7 +659,7 @@ describe('Paper Component', () => {
       expect(ref.current).not.toBeNull();
     });
 
-    const defaultLinkFactory = ref.current!.paper.options.defaultLink as (
+    const defaultLinkFactory = ref.current!.options.defaultLink as (
       cellView: dia.CellView,
       magnet: SVGElement
     ) => dia.Link;
@@ -672,7 +672,7 @@ describe('Paper Component', () => {
   });
 
   it('supports defaultLink as a callback returning a dia.Link', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
     const callbackResultLink = new shapes.standard.Link({ attrs: { line: { stroke: '#abcdef' } } });
     const defaultLinkCallback = jest.fn(() => callbackResultLink);
 
@@ -690,7 +690,7 @@ describe('Paper Component', () => {
       expect(ref.current).not.toBeNull();
     });
 
-    const defaultLinkFactory = ref.current!.paper.options.defaultLink as (
+    const defaultLinkFactory = ref.current!.options.defaultLink as (
       cellView: dia.CellView,
       magnet: SVGElement
     ) => dia.Link;
@@ -703,7 +703,7 @@ describe('Paper Component', () => {
   });
 
   it('supports defaultLink as an attributes object by creating a ReactLink from namespace', async () => {
-    const ref: RefObject<PaperStore | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
     const linkAttributes = {
       source: { x: 10, y: 10 },
       target: { x: 120, y: 20 },
@@ -728,7 +728,7 @@ describe('Paper Component', () => {
       expect(ref.current).not.toBeNull();
     });
 
-    const defaultLinkFactory = ref.current!.paper.options.defaultLink as (
+    const defaultLinkFactory = ref.current!.options.defaultLink as (
       cellView: dia.CellView,
       magnet: SVGElement
     ) => dia.Link;
