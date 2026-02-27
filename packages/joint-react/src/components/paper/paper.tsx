@@ -38,7 +38,7 @@ import {
   SVGElementItem,
 } from './render-element/paper-element-item';
 import { createPortal } from 'react-dom';
-import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/handle-paper-events';
+import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/events/handle-paper-events';
 import {
   useAreElementsMeasured,
   useGraphInternalStoreSelector,

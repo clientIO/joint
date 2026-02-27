@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 jest.mock('@joint/core', () => {
   const actual = jest.requireActual('@joint/core');
   return {
@@ -13,6 +14,8 @@ import { paperRenderElementWrapper } from '../../../utils/test-wrappers';
 import { TextNode } from '../text-node';
 import { util } from '@joint/core';
 import { render, waitFor } from '@testing-library/react';
+
+const UPPERCASE_STYLE = { textTransform: 'uppercase' } as const;
 
 describe('TextNode', () => {
   it('renders with minimal props', () => {
@@ -67,7 +70,7 @@ describe('TextNode', () => {
         fontFamily="monospace"
         fontWeight={600}
         letterSpacing={2}
-        textTransform="uppercase"
+        style={UPPERCASE_STYLE}
       >
         styled text
       </TextNode>,
@@ -95,7 +98,7 @@ describe('TextNode', () => {
           'font-weight': 600,
           'letter-spacing': 2,
           'text-transform': 'uppercase',
-          lineHeight: 1.5,
+          'line-height': 1.5,
         },
         {}
       );

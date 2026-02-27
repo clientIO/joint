@@ -14,6 +14,7 @@ interface ShapeElement extends GraphElement {
   readonly width: number;
   readonly height: number;
 }
+const INTERACTIVE_OPTIONS = { labelMove: true } as const;
 
 const initialElements: Record<string, ShapeElement> = {
   '1': { label: 'Node 1', x: 50, y: 50, width: 100, height: 40 },
@@ -88,9 +89,7 @@ function Main() {
       height={350}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
-      interactive={{
-        labelMove: true
-      }}
+      interactive={INTERACTIVE_OPTIONS}
     />
   );
 }
