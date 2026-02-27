@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { dia, linkTools, mvc, shapes } from '@joint/core';
 import {
   GraphProvider,
@@ -12,7 +12,6 @@ import {
   useNodeSize,
   useCellId,
   type GraphElement,
-  type PaperStore,
   usePaperById,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';

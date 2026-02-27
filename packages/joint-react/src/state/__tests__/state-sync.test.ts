@@ -14,7 +14,6 @@ import {
 } from '../data-mapping';
 import type {
   ElementToGraphOptions,
-  GraphToElementOptions,
   LinkToGraphOptions,
 } from '../graph-state-selectors';
 import { Scheduler } from '../../utils/scheduler';

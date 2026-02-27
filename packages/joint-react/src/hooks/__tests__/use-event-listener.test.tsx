@@ -53,7 +53,7 @@ describe('use-event-listener', () => {
     });
   });
 
-  it('covers all curated graph events and pattern events', async () => {
+  it('covers all curated graph events and pattern events with normalized keys', async () => {
     const wrapper = graphProviderWrapper({
       elements: {},
       links: {},
@@ -66,11 +66,11 @@ describe('use-event-listener', () => {
       reset: jest.fn(),
       sort: jest.fn(),
       move: jest.fn(),
-      'batch:start': jest.fn(),
-      'batch:stop': jest.fn(),
-      'change:position': jest.fn(),
-      'layer:add': jest.fn(),
-      'layers:add': jest.fn(),
+      batchStart: jest.fn(),
+      batchStop: jest.fn(),
+      changePosition: jest.fn(),
+      layerAdd: jest.fn(),
+      layersAdd: jest.fn(),
     };
 
     const { result } = renderHook(
@@ -116,6 +116,74 @@ describe('use-event-listener', () => {
     });
   });
 
+  it('supports normalized graph event keys and payload event names', async () => {
+    const wrapper = graphProviderWrapper({
+      elements: {},
+      links: {},
+    });
+
+    const handlerMap = {
+      batchStart: jest.fn(),
+      batchStop: jest.fn(),
+      changePosition: jest.fn(),
+      layerAdd: jest.fn(),
+      layersAdd: jest.fn(),
+    };
+
+    const { result } = renderHook(
+      () => {
+        const graph = useGraph();
+        useEventListener(graph, handlerMap);
+        return graph;
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+
+    const graph = result.current;
+    const { layerCollection } = graph;
+    const defaultLayer = graph.getDefaultLayer();
+
+    graph.trigger('batch:start', { source: 'test-batch-start' });
+    graph.trigger('batch:stop', { source: 'test-batch-stop' });
+    graph.trigger('change:position', new shapes.standard.Rectangle({ id: 'change-position-cell' }), {
+      source: 'test-change-pattern',
+    });
+    graph.trigger('layer:add', defaultLayer, layerCollection, { source: 'test-layer-pattern' });
+    graph.trigger('layers:add', layerCollection, { source: 'test-layers-pattern' });
+
+    await waitFor(() => {
+      expect(handlerMap.batchStart).toHaveBeenCalledTimes(1);
+      expect(handlerMap.batchStart.mock.calls[0][0]).toMatchObject({
+        eventName: 'batchStart',
+        graph,
+      });
+      expect(handlerMap.batchStop).toHaveBeenCalledTimes(1);
+      expect(handlerMap.batchStop.mock.calls[0][0]).toMatchObject({
+        eventName: 'batchStop',
+        graph,
+      });
+      expect(handlerMap.changePosition).toHaveBeenCalledTimes(1);
+      expect(handlerMap.changePosition.mock.calls[0][0]).toMatchObject({
+        eventName: 'changePosition',
+        graph,
+      });
+      expect(handlerMap.layerAdd).toHaveBeenCalledTimes(1);
+      expect(handlerMap.layerAdd.mock.calls[0][0]).toMatchObject({
+        eventName: 'layerAdd',
+        graph,
+      });
+      expect(handlerMap.layersAdd).toHaveBeenCalledTimes(1);
+      expect(handlerMap.layersAdd.mock.calls[0][0]).toMatchObject({
+        eventName: 'layersAdd',
+        graph,
+      });
+    });
+  });
+
   it('listens to paper events from paper instance', async () => {
     const onTranslate = jest.fn();
     const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -130,7 +198,7 @@ describe('use-event-listener', () => {
       () => {
         const paper = usePaper();
         useEventListener(paper, {
-          translate: onTranslate,
+          onTranslate,
         });
         return paper;
       },
@@ -148,6 +216,49 @@ describe('use-event-listener', () => {
       expect(onTranslate.mock.calls[0][0]).toMatchObject({
         eventName: 'translate',
         paper: result.current,
+        tx: 20,
+        ty: 30,
+      });
+    });
+  });
+
+  it('listens to normalized paper event names', async () => {
+    const onElementContextMenu = jest.fn();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+        <Paper id="paper-normalized" width={100} height={100} renderElement={renderTestElement}>
+          {children}
+        </Paper>
+      </GraphProvider>
+    );
+
+    const { result } = renderHook(
+      () => {
+        const paper = usePaperById('paper-normalized');
+        if (paper) {
+          useEventListener(paper, {
+            onElementContextMenu,
+          });
+        }
+        return paper;
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+
+    const elementView = {} as never;
+    const event = { type: 'contextmenu' } as never;
+    result.current?.trigger('element:contextmenu', elementView, event, 30, 50);
+
+    await waitFor(() => {
+      expect(onElementContextMenu).toHaveBeenCalledTimes(1);
+      expect(onElementContextMenu.mock.calls[0][0]).toMatchObject({
+        eventName: 'elementContextMenu',
+        x: 30,
+        y: 50,
       });
     });
   });

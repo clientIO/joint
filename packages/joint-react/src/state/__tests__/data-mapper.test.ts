@@ -6,7 +6,7 @@ import { ReactElement } from '../../models/react-element';
 import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
 import type { GraphElement, GraphElementPort } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
-import type { ElementToGraphOptions, GraphToElementOptions, LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
+import type { ElementToGraphOptions, LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
 import { defaultMapDataToElementAttributes, defaultMapDataToLinkAttributes, defaultMapElementAttributesToData, defaultMapLinkAttributesToData } from '../data-mapping';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
@@ -14,7 +14,7 @@ const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 function elementToGraphOpts(id: string, data: GraphElement, graph: dia.Graph): ElementToGraphOptions<GraphElement> {
   return { id, data, graph, toAttributes: (d) => defaultMapDataToElementAttributes({ id, data: d }) };
 }
-function graphToElementOpts(id: string, cell: dia.Element, graph: dia.Graph, previousData?: GraphElement): GraphToElementOptions<GraphElement> {
+function graphToElementOpts(id: string, cell: dia.Element, graph: dia.Graph, previousData?: GraphElement) {
   return { id, cell, graph, previousData, toData: () => defaultMapElementAttributesToData({ cell }) };
 }
 function linkToGraphOpts(id: string, data: GraphLink, graph: dia.Graph): LinkToGraphOptions<GraphLink> {

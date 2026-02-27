@@ -687,6 +687,20 @@ export type GraphKnownEventName =
 export type GraphPatternEventName = `change:${string}` | `layer:${string}` | `layers:${string}`;
 
 export type GraphEventName = GraphKnownEventName | GraphPatternEventName;
+export type GraphKnownNormalizedEventName =
+  | 'add'
+  | 'remove'
+  | 'change'
+  | 'reset'
+  | 'sort'
+  | 'move'
+  | 'batchStart'
+  | 'batchStop';
+export type GraphPatternNormalizedEventName =
+  | `change${Capitalize<string>}`
+  | `layer${Capitalize<string>}`
+  | `layers${Capitalize<string>}`;
+export type GraphNormalizedEventName = GraphKnownNormalizedEventName | GraphPatternNormalizedEventName;
 
 export interface GraphEventPayloadBase<EventName extends string, Args extends unknown[]> {
   readonly graph: dia.Graph;
@@ -784,26 +798,71 @@ export type GraphEventPayload<EventName extends GraphEventName> =
     ? GraphEventPayloadMap[EventName]
     : GraphPatternPayload<EventName & GraphPatternEventName>;
 
-export type GraphEventHandlers = Partial<{
-  readonly [EventName in GraphKnownEventName]: (
-    payload: GraphEventPayloadMap[EventName]
-  ) => void;
-}> &
-  Partial<{
-    readonly [EventName in GraphPatternEventName]: (
-      payload: GraphPatternPayload<EventName>
-    ) => void;
-  }>;
-
-export type PaperListenerPayload<EventName extends PaperEventType> = {
-  readonly graph: dia.Graph;
-  readonly paper: dia.Paper;
+type GraphRawPayload<EventName extends GraphEventName> = Omit<GraphEventPayload<EventName>, 'eventName'> & {
   readonly eventName: EventName;
-  readonly args: Parameters<EventMap[EventName]>;
+  readonly jointEventName: EventName;
+};
+
+type GraphKnownNormalizedPayloadMap = {
+  readonly add: GraphRawPayload<'add'>;
+  readonly remove: GraphRawPayload<'remove'>;
+  readonly change: GraphRawPayload<'change'>;
+  readonly reset: GraphRawPayload<'reset'>;
+  readonly sort: GraphRawPayload<'sort'>;
+  readonly move: GraphRawPayload<'move'>;
+  readonly batchStart: Omit<GraphEventPayloadMap['batch:start'], 'eventName'> & {
+    readonly eventName: 'batchStart';
+    readonly jointEventName: 'batch:start';
+  };
+  readonly batchStop: Omit<GraphEventPayloadMap['batch:stop'], 'eventName'> & {
+    readonly eventName: 'batchStop';
+    readonly jointEventName: 'batch:stop';
+  };
+};
+
+type ToRawGraphPatternEventName<EventName extends GraphPatternNormalizedEventName> =
+  EventName extends `change${infer S}`
+    ? `change:${Uncapitalize<S>}`
+    : EventName extends `layer${infer S}`
+      ? `layer:${Uncapitalize<S>}`
+      : EventName extends `layers${infer S}`
+        ? `layers:${Uncapitalize<S>}`
+        : never;
+
+type GraphPatternNormalizedPayload<EventName extends GraphPatternNormalizedEventName> = Omit<
+  GraphPatternPayload<ToRawGraphPatternEventName<EventName>>,
+  'eventName'
+> & {
+  readonly eventName: EventName;
+  readonly jointEventName: ToRawGraphPatternEventName<EventName>;
+};
+
+export type GraphEventPayloadByHandlerName<EventName extends GraphNormalizedEventName> =
+  EventName extends GraphKnownNormalizedEventName
+    ? GraphKnownNormalizedPayloadMap[EventName]
+    : EventName extends GraphPatternNormalizedEventName
+      ? GraphPatternNormalizedPayload<EventName>
+      : never;
+
+export type GraphEventHandlers = Partial<{
+  readonly [EventName in GraphNormalizedEventName]: (
+    payload: GraphEventPayloadByHandlerName<EventName>
+  ) => void;
+}>;
+
+export type PaperEventsHandlerKey = Exclude<keyof PaperEvents, 'customEvents'>;
+type NormalizedPaperEventName<EventName extends PaperEventsHandlerKey> = EventName extends `on${infer Rest}`
+  ? Uncapitalize<Rest>
+  : EventName;
+
+export type PaperListenerPayload<EventName extends PaperEventsHandlerKey> = Parameters<
+  NonNullable<PaperEvents[EventName]>
+>[0] & {
+  readonly eventName: NormalizedPaperEventName<EventName>;
 };
 
 export type PaperEventHandlers = Partial<{
-  readonly [EventName in PaperEventType]: (
+  readonly [EventName in PaperEventsHandlerKey]: (
     payload: PaperListenerPayload<EventName>
   ) => void;
 }> & {

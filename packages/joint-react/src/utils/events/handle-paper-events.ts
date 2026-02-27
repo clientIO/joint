@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { mvc } from '@joint/core';
-import type { EventMap, PaperEvents } from '../types/event.types';
+import type { EventMap, PaperEvents } from '../../types/event.types';
 
 export const PAPER_EVENTS_MAPPER: {
   [K in keyof PaperEvents]?: {

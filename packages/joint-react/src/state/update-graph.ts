@@ -173,33 +173,33 @@ export function updateGraph<
   // The store always enforces the `id` from the record key onto the returned
   // attributes — custom mappers don't need to (and can't) change the cell id.
   const elementItems = Object.entries(elementsRecord).map(([id, data]) => {
-    const attrs = mapDataToElementAttributes({
+    const attributes = mapDataToElementAttributes({
       id, data, graph,
       toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData }),
     });
-    if ('id' in attrs && attrs.id !== id) {
+    if ('id' in attributes && attributes.id !== id) {
       throw new Error(
-        `mapDataToElementAttributes returned id "${String(attrs.id)}" but the record key is "${id}". ` +
+        `mapDataToElementAttributes returned id "${String(attributes.id)}" but the record key is "${id}". ` +
         'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
       );
     }
-    attrs.id = id;
-    return attrs;
+    attributes.id = id;
+    return attributes;
   });
 
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
-    const attrs = mapDataToLinkAttributes({
+    const attributes = mapDataToLinkAttributes({
       id, data, graph,
       toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData }),
     });
-    if ('id' in attrs && attrs.id !== id) {
+    if ('id' in attributes && attributes.id !== id) {
       throw new Error(
-        `mapDataToLinkAttributes returned id "${String(attrs.id)}" but the record key is "${id}". ` +
+        `mapDataToLinkAttributes returned id "${String(attributes.id)}" but the record key is "${id}". ` +
         'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
       );
     }
-    attrs.id = id;
-    return attrs;
+    attributes.id = id;
+    return attributes;
   });
 
   graph.syncCells([...elementItems, ...linkItems], { remove: true, isUpdateFromReact });
