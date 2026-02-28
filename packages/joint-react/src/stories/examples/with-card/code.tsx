@@ -47,13 +47,13 @@ function Card({ label }: Readonly<Partial<BaseElementWithData>>) {
 
   const imageHeight = height - 2 * gap;
   const iconURL = `https://placehold.co/${imageWidth}x${imageHeight}`;
-  const foWidth = width - 2 * gap - imageWidth - gap;
-  const foHeight = height - 2 * gap;
+  const foWidth = Math.max(width - 2 * gap - imageWidth - gap, 0);
+  const foHeight = Math.max(height - 2 * gap, 0);
 
   return (
     <>
       <rect width={width} height={height} fill="#333" stroke="#eee" strokeWidth="2"></rect>
-      <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />
+      {(imageHeight > 0) && <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />}
       <foreignObject x={gap + imageWidth + gap} y={gap} width={foWidth} height={foHeight}>
         <div
           ref={contentRef}
