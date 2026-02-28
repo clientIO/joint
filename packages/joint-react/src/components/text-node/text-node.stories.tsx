@@ -13,22 +13,27 @@ export type Story = StoryObj<typeof TextNode>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SVGDecorator(Story: any) {
-  const { width = 0, height = 0 } = useElement();
   const gRef = React.useRef<SVGGElement>(null);
-  useNodeSize(gRef);
+  const { width, height } = useNodeSize(gRef, {
+    transform: ({ x, y, width: measuredWidth, height: measuredHeight }) => ({
+      x: x - PADDING,
+      y: y - PADDING,
+      width: measuredWidth + PADDING * 2,
+      height: measuredHeight + PADDING * 2,
+    }),
+  });
 
   const PADDING = 10;
   return (
     <>
       <rect
-        width={width + PADDING * 2}
-        height={height + PADDING * 2}
+        width={width}
+        height={height}
         fill={PRIMARY}
         rx={PADDING}
         ry={PADDING}
-        transform={`translate(-${PADDING}, -${PADDING})`}
       />
-      <g ref={gRef}>
+      <g ref={gRef} transform={`translate(${PADDING}, ${PADDING})`}>
         <Story />
       </g>
     </>

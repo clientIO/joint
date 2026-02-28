@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { useMemo } from 'react';
 import { dia } from '@joint/core';
 import '../../stories/examples/index.css';
 import { GraphProvider, jsx, Paper } from '@joint/react';
@@ -11,8 +12,8 @@ import { makeRootDocumentation } from '../../stories/utils/make-story';
 const API_URL = getAPILink('jsx');
 
 // Define a custom element using JointJS and provide markup using the jsx utility
-const CustomRect = dia.Element.define(
-  'CustomRect',
+const CustomShape = dia.Element.define(
+  'CustomShape',
   {
     attrs: {
       body: {
@@ -39,24 +40,20 @@ const CustomRect = dia.Element.define(
   }
 );
 
-const initialElements: Record<
-  string,
-  {
-    type: string;
-    x: number;
-    y: number;
-  }
-> = {
-  rect1: {
-    type: 'CustomRect',
-    x: 80,
-    y: 80,
-  },
-};
+function createGraph(): dia.Graph {
+  const graph = new dia.Graph({}, { cellNamespace: { CustomShape } });
+  graph.addCell(
+    new CustomShape({
+      position: { x: 80, y: 80 },
+    })
+  );
+  return graph;
+}
 
 function App() {
+  const graph = useMemo(() => createGraph(), []);
   return (
-    <GraphProvider cellNamespace={{ CustomRect }} elements={initialElements} links={{}}>
+    <GraphProvider graph={graph}>
       <Paper width={320} height={220} className={PAPER_CLASSNAME} />
     </GraphProvider>
   );
@@ -74,8 +71,8 @@ const meta: Meta<typeof App> = {
     code: `import { dia } from '@joint/core';
 import { jsx } from '@joint/react';
 
-const CustomRect = dia.Element.define(
-  'custom.Rect',
+const CustomShape = dia.Element.define(
+  'CustomShape',
   {
     attrs: {
       body: { fill: '#007bff' },
