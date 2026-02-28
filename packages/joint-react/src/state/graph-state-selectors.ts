@@ -1,6 +1,14 @@
 import { type dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
+import type { LinkTheme } from '../theme/link-theme';
+
+/**
+ * Options for the `toAttributes` callback on link mappers.
+ */
+export interface ToLinkAttributesOptions {
+  readonly theme?: LinkTheme;
+}
 
 export interface ElementToGraphOptions<Element extends GraphElement> {
   readonly id: string;
@@ -21,7 +29,7 @@ export interface LinkToGraphOptions<Link extends GraphLink> {
   readonly id: string;
   readonly data: Link;
   readonly graph: dia.Graph;
-  readonly toAttributes: (data: GraphLink) => dia.Cell.JSON;
+  readonly toAttributes: (data: GraphLink, options?: ToLinkAttributesOptions) => dia.Cell.JSON;
 }
 
 export interface GraphToLinkOptions<Link extends GraphLink> {

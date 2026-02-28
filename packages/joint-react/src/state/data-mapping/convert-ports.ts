@@ -81,6 +81,22 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
 }
 
 /**
+ * Creates the default port group configuration.
+ *
+ * Used as `portDefaults` on elements that have ports.
+ * @returns The port defaults object with the `main` group
+ */
+export function createPortDefaults(): { groups: Record<string, dia.Element.PortGroup> } {
+  return {
+    groups: {
+      main: {
+        position: { name: 'absolute' },
+      },
+    },
+  };
+}
+
+/**
  * Converts a simplified GraphElementPort array to the full JointJS ports object.
  * @param ports - The array of simplified port definitions
  * @returns The full JointJS ports object with groups and items
@@ -90,11 +106,7 @@ export function convertPorts(ports: GraphElementPort[]): {
   items: dia.Element.Port[];
 } {
   return {
-    groups: {
-      main: {
-        position: { name: 'absolute' },
-      },
-    },
+    ...createPortDefaults(),
     items: ports.map(convertPort),
   };
 }

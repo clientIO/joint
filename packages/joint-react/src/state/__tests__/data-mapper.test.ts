@@ -52,15 +52,6 @@ describe('dataMapper', () => {
       expect(result).toMatchObject({ x: 10, y: 20, width: 100, height: 50 });
     });
 
-    it('should handle nested position/size format', () => {
-      const id = 'el-1';
-      const data: GraphElement = { position: { x: 30, y: 40 }, size: { width: 200, height: 100 } };
-
-      const cellJson = defaultMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
-      expect(cellJson.position).toEqual({ x: 30, y: 40 });
-      expect(cellJson.size).toEqual({ width: 200, height: 100 });
-    });
-
     it('should store user data in cell.data and extract on reverse', () => {
       type MyElement = GraphElement & { label: string; color: string };
       const id = 'el-1';

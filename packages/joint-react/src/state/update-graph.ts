@@ -190,7 +190,7 @@ export function updateGraph<
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
     const attributes = mapDataToLinkAttributes({
       id, data, graph,
-      toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData }),
+      toAttributes: (newData, attributeOptions) => defaultMapDataToLinkAttributes({ id, data: newData, ...attributeOptions }),
     });
     if ('id' in attributes && attributes.id !== id) {
       throw new Error(

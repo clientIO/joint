@@ -5,8 +5,7 @@ import type {
   ElementToGraphOptions,
   GraphToElementOptions,
 } from '../graph-state-selectors';
-import { convertPorts } from './convert-ports';
-import { pickPreviousKeys } from './pick-previous-keys';
+import { convertPorts, createPortDefaults } from './convert-ports';
 
 /**
  * Maps flat element data to JointJS cell attributes.
@@ -22,56 +21,73 @@ export function defaultMapDataToElementAttributes<Element extends GraphElement>(
 ): dia.Cell.JSON {
   const { id, data } = options;
   // Extract built-in JointJS element properties
-  // Support both flat format (x, y, width, height) and nested format (position, size)
-  const { x, y, width, height, angle, z, ports, position, size, parent, layer, ...userData } =
-    data as GraphElement & {
-      position?: { x: number; y: number };
-      size?: { width: number; height: number };
-    };
-  const { attrs: elementAttributes, markup, ...restUserData } = userData as GraphElement;
+  const {
+    // Built-in properties
+    // 2-way element properties
+    x,
+    y,
+    width,
+    height,
+    angle,
+    z,
+    parent,
+    layer,
+    // 1-way element properties
+    ports,
+
+    // User data
+    ...userData
+  } = data;
 
   const attributes: dia.Cell.JSON = {
     id,
     type: REACT_TYPE,
   };
 
-  // Position: prefer nested position object, fallback to flat x, y
-  const positionX = position?.x ?? x;
-  const positionY = position?.y ?? y;
-  if (positionX !== undefined && positionY !== undefined) {
-    attributes.position = { x: positionX, y: positionY };
+  // Flat x, y → nested JointJS position object
+  if (x !== undefined && y !== undefined) {
+    attributes.position = { x, y };
   }
 
-  // Size: prefer nested size object, fallback to flat width, height
-  const sizeWidth = size?.width ?? width;
-  const sizeHeight = size?.height ?? height;
-  if (sizeWidth !== undefined && sizeHeight !== undefined) {
-    attributes.size = { width: sizeWidth, height: sizeHeight };
+  // Flat width, height → nested JointJS size object
+  if (width !== undefined && height !== undefined) {
+    attributes.size = { width, height };
   }
-  if (parent !== undefined) attributes.parent = parent;
-  if (layer !== undefined) attributes.layer = layer;
+
   if (angle !== undefined) attributes.angle = angle;
+
   if (z !== undefined) attributes.z = z;
+  if (layer !== undefined) attributes.layer = layer;
+  if (parent !== undefined) attributes.parent = parent;
+
   if (ports !== undefined) {
     attributes.ports = convertPorts(ports);
+    attributes.portDefaults = createPortDefaults();
   }
-  if (elementAttributes !== undefined) attributes.attrs = elementAttributes;
-  if (markup !== undefined) attributes.markup = markup;
 
-  if (Object.keys(restUserData).length > 0) {
-    attributes.data = restUserData;
-  }
+  attributes.data = userData;
 
   return attributes;
 }
 
 /**
- * Extracts element data from a JointJS Element in flat format.
- * @param cell - The JointJS Element cell
- * @returns The extracted element data as a record
+ * Maps JointJS element attributes back to flat element data.
+ *
+ * Extracts `position` to `{x, y}`, `size` to `{width, height}`.
+ * Spreads `cell.data` to top level.
+ * @param options - The JointJS cell and optional `previousData`
+ * @returns The flat element data
  */
-function extractElementData(cell: dia.Element): Record<string, unknown> {
-  const { size, position, data, angle, z, ports, parent, layer } = cell.attributes;
+export function defaultMapElementAttributesToData<Element extends GraphElement>(
+  options: Pick<GraphToElementOptions<Element>, 'cell' | 'previousData'>
+): Element {
+  const { cell } = options;
+
+  const {
+    data: userData,
+    size, position, angle,
+    z, parent, layer
+  } = cell.attributes;
 
   const elementData: Record<string, unknown> = {};
 
@@ -85,35 +101,19 @@ function extractElementData(cell: dia.Element): Record<string, unknown> {
     elementData.height = size.height;
   }
 
+  // Element attributes
   if (angle !== undefined) elementData.angle = angle;
+
+  // Cell attributes
   if (z !== undefined) elementData.z = z;
-  if (ports !== undefined) elementData.ports = ports;
-  if (parent !== undefined) elementData.parent = parent;
   if (layer !== undefined) elementData.layer = layer;
+  if (parent !== undefined) elementData.parent = parent;
 
+  // @todo: what if user dat contains keys that conflict top-level keys
+  // like x/y?
   return {
+    ...userData,
     ...elementData,
-    ...(data as Record<string, unknown>),
-  };
-}
+  } as Element;
 
-/**
- * Maps JointJS element attributes back to flat element data.
- *
- * Extracts `position` to `{x, y}`, `size` to `{width, height}`.
- * Spreads `cell.data` to top level. Shape preservation via `previousData`.
- * @param options - The JointJS cell and optional previous data for shape preservation
- * @returns The flat element data
- */
-export function defaultMapElementAttributesToData<Element extends GraphElement>(
-  options: Pick<GraphToElementOptions<Element>, 'cell' | 'previousData'>
-): Element {
-  const { cell, previousData } = options;
-  const elementData = extractElementData(cell);
-
-  if (previousData !== undefined) {
-    return pickPreviousKeys(elementData, previousData);
-  }
-
-  return elementData as Element;
 }
