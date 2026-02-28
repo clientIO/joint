@@ -17,11 +17,11 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
     color = defaultElementTheme.portColor,
     shape = defaultElementTheme.portShape,
     className,
-    magnet = defaultElementTheme.portMagnet,
     label,
     labelPosition = defaultElementTheme.portLabelPosition,
     labelColor = defaultElementTheme.portLabelColor,
     labelClassName,
+    passive = defaultElementTheme.portPassive,
   } = port;
 
   const result: dia.Element.Port = {
@@ -34,7 +34,7 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
 
   const portBodyAttributes: Record<string, unknown> = {
     fill: color,
-    magnet,
+    magnet: passive ? 'passive' : 'active',
   };
 
   if (isEllipse) {
