@@ -69,8 +69,8 @@ function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData
       <foreignObject
         x={padding}
         y={headerHeight}
-        width={width - 2 * padding}
-        height={height - headerHeight - padding}
+        width={Math.max(width - 2 * padding, 0)}
+        height={Math.max(height - headerHeight - padding, 0)}
       >
         <div ref={elementRef} className="absolute p-1 min-w-50">
           <button

@@ -1,7 +1,7 @@
 import type { OnLoadOptions } from '@joint/react';
 import { GraphProvider, Paper, type GraphElement } from '@joint/react';
 import '../index.css';
-import { PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia } from '@joint/core';
 import { elementTools, g } from '@joint/core';
 
@@ -92,7 +92,7 @@ const initialElements: Record<string, ControlledElement> = {
   },
   input: { type: 'input', label: 'Input', ...pos(1, 100, 50), width: 100, height: 50 },
   mark: { type: 'mark', label: 'Mark', ...pos(2, 120, 50), width: 120, height: 50 },
-  actor: { type: 'actor', label: 'Actor', ...pos(3, 50, 100), width: 50, height: 100 },
+  actor: { type: 'actor', label: 'Actor', ...pos(15, 50, 100), width: 50, height: 100 },
   parallelogram: {
     type: 'parallelogram',
     label: 'Parallelogram',
@@ -126,7 +126,7 @@ const initialElements: Record<string, ControlledElement> = {
     height: 50,
     offset: 20,
   },
-  shipment: { type: 'shipment', label: 'Shipment', ...pos(9, 70, 50), width: 70, height: 50 },
+  shipment: { type: 'shipment', label: 'Shipment', ...pos(3, 70, 50), width: 70, height: 50 },
   plus: { type: 'plus', label: 'Plus', ...pos(10, 70, 70), width: 70, height: 70, offset: 20 },
   arrow: {
     type: 'arrow',
@@ -156,7 +156,7 @@ const initialElements: Record<string, ControlledElement> = {
     cornerX: 100 / 3,
     cornerY: 40,
   },
-  card: { type: 'card', label: 'Card', ...pos(15, 100, 60), width: 100, height: 60, offset: 20 },
+  card: { type: 'card', label: 'Card', ...pos(9, 100, 60), width: 100, height: 60, offset: 20 },
 };
 
 // ----------------------------------------------------------------------------
@@ -188,9 +188,9 @@ function Label({
 function LinkedProcess({ width, height, label }: Readonly<BaseElement>) {
   return (
     <>
-      <rect width={width} height={height} fill="#ffffff" stroke="#333333" strokeWidth={2} />
-      <path d={`M 10 0 v ${height}`} stroke="#333333" strokeWidth={2} fill="none" />
-      <path d={`M ${width - 10} 0 v ${height}`} stroke="#333333" strokeWidth={2} fill="none" />
+      <rect width={width} height={height} fill="transparent" stroke={PRIMARY} strokeWidth={2} />
+      <path d={`M 10 0 v ${height}`} stroke={PRIMARY} strokeWidth={2} fill="none" />
+      <path d={`M ${width - 10} 0 v ${height}`} stroke={PRIMARY} strokeWidth={2} fill="none" />
       <Label width={width} height={height} label={label} />
     </>
   );
@@ -201,8 +201,8 @@ function InputShape({ width, height, label }: Readonly<BaseElement>) {
     <>
       <path
         d={`M 0 0 h ${width} v ${height - 10} C ${0.6 * width} ${height - 10} ${0.3 * width} ${height + 5} 0 ${height - 5} z`}
-        fill="#ffffff"
-        stroke="#333333"
+        fill="transparent"
+        stroke={PRIMARY}
         strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
@@ -216,8 +216,8 @@ function MarkShape({ width, height, label }: Readonly<BaseElement>) {
     <>
       <path
         d={`M 0 ${hh} ${hh} 0 H ${width - hh} a 3 3 0 0 1 3 ${height} H ${hh} z`}
-        fill="#ffffff"
-        stroke="#333333"
+        fill="transparent"
+        stroke={PRIMARY}
         strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
@@ -238,10 +238,10 @@ function ActorShape({ width, height, label }: Readonly<BaseElement>) {
       <path
         d={`M 0 ${0.5 * height} h ${width} M 0 ${height} ${cx} ${legsY * height} ${width} ${height} M ${cx} ${legsY * height} V ${bodyY * height}`}
         fill="none"
-        stroke="#333333"
+        stroke={PRIMARY}
         strokeWidth={2}
       />
-      <circle cx={cx} cy={cy} r={r} fill="#ffffff" stroke="#333333" strokeWidth={2} />
+      <circle cx={cx} cy={cy} r={r} fill="transparent" stroke={PRIMARY} strokeWidth={2} />
       <Label width={width} height={height} label={label} />
     </>
   );
@@ -252,8 +252,9 @@ function Parallelogram({ width, height, offset = 0, label }: Readonly<OffsetElem
     <>
       <path
         d={`M 0 ${height} L ${offset} 0 L ${width} 0 L ${width - offset} ${height} Z`}
-        fill={PRIMARY}
+        fill="transparent"
         stroke={PRIMARY}
+        strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
     </>
@@ -266,8 +267,9 @@ function Hexagon({ width, height, offset = 0, label }: Readonly<OffsetElement>) 
     <>
       <path
         d={`M 0 ${height / 2} L ${o} ${height} L ${width - o} ${height} L ${width} ${height / 2} L ${width - o} 0 L ${o} 0 Z`}
-        fill={PRIMARY}
+        fill="transparent"
         stroke={PRIMARY}
+        strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
     </>
@@ -280,8 +282,9 @@ function StepShape({ width, height, offset = 0, label }: Readonly<OffsetElement>
     <>
       <path
         d={`M 0 0 L ${o} ${height / 2} L 0 ${height} L ${width - o} ${height} L ${width} ${height / 2} L ${width - o} 0 Z`}
-        fill={PRIMARY}
+        fill="transparent"
         stroke={PRIMARY}
+        strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
     </>
@@ -294,8 +297,9 @@ function TrapezoidShape({ width, height, offset = 0, label }: Readonly<OffsetEle
     <>
       <path
         d={`M 0 ${height} L ${width} ${height} L ${width - o} 0 L ${o} 0 Z`}
-        fill={PRIMARY}
+        fill="transparent"
         stroke={PRIMARY}
+        strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
     </>
@@ -308,8 +312,9 @@ function DocumentShape({ width, height, offset = 0, label }: Readonly<OffsetElem
     <>
       <path
         d={`M 0 0 L 0 ${height - o} C ${0.16 * width} ${height} ${0.33 * width} ${height} ${0.5 * width} ${height - o} S ${0.75 * width} ${height - 2 * o} ${width} ${height - o} L ${width} 0 Z`}
-        fill={PRIMARY}
+        fill="transparent"
         stroke={PRIMARY}
+        strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
     </>
@@ -326,7 +331,7 @@ function ShipmentShape({ width, height, label }: Readonly<BaseElement>) {
       <g transform={`translate(${tx},${ty}) scale(${scale})`}>
         <path
           d="M248,119.9v-.2a1.7,1.7,0,0,0-.1-.7v-.3c0-.2-.1-.4-.1-.6v-.2l-.2-.8h-.1l-14-34.8A15.7,15.7,0,0,0,218.6,72H184V64a8,8,0,0,0-8-8H24A16,16,0,0,0,8,72V184a16,16,0,0,0,16,16H37a32,32,0,0,0,62,0h58a32,32,0,0,0,62,0h13a16,16,0,0,0,16-16V120ZM184,88h34.6l9.6,24H184ZM24,72H168v64H24ZM68,208a16,16,0,1,1,16-16A16,16,0,0,1,68,208Zm120,0a16,16,0,1,1,16-16A16,16,0,0,1,188,208Z"
-          fill="#333333"
+          fill={PRIMARY}
         />
       </g>
       <Label width={width} height={height} label={label} />
@@ -340,8 +345,9 @@ function PlusShape({ width, height, offset = 0, label }: Readonly<OffsetElement>
     <>
       <path
         d={`M ${o} 0 L ${width - o} 0 v ${o} h ${o} V ${height - o} h ${-o} v ${o} H ${o} v ${-o} h ${-o} V ${o} H ${o} z`}
-        fill={PRIMARY}
+        fill="transparent"
         stroke={PRIMARY}
+        strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
     </>
@@ -353,9 +359,9 @@ function Arrow({ width, height, label, arrowHeight = 0, thickness = 0 }: Readonl
     <>
       <path
         d={`M ${width - arrowHeight} 0 L ${width} ${height / 2} L ${width - arrowHeight} ${height} v -${height / 2 - thickness / 2} H 0 v -${thickness} H ${width - arrowHeight} z`}
-        fill={PRIMARY}
+        fill="transparent"
         stroke={PRIMARY}
-        strokeWidth="2"
+        strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
     </>
@@ -368,11 +374,12 @@ function NoteShape({ width, height, offset = 0, label }: Readonly<OffsetElement>
     <>
       <path
         d={`M ${o} 0 H ${width} V ${height} H 0 V ${o} Z`}
-        fill="#ffffff"
-        stroke="#333333"
+        fill="transparent"
+        stroke={PRIMARY}
         strokeWidth={2}
+        strokeLinejoin="round"
       />
-      <path d={`M 0 ${o} H ${o} V 0`} fill="none" stroke="#333333" strokeWidth={2} />
+      <path d={`M 0 ${o} H ${o} V 0`} fill="none" stroke={PRIMARY} strokeWidth={2} strokeLinejoin="round" />
       <Label width={width} height={height} label={label} />
     </>
   );
@@ -389,11 +396,13 @@ function TableShape({
   const dy = Math.max(0, Math.min(dividerY, height));
   return (
     <>
+      <rect width={width} height={height} fill="transparent" stroke={PRIMARY} strokeWidth={2} strokeLinejoin="round" />
       <path
-        d={`M 0 0 H ${width} V ${height} H 0 Z M 0 ${dy} H ${width} M ${dx} 0 V ${height}`}
-        fill="#ffffff"
-        stroke="#333333"
+        d={`M 0 ${dy} H ${width} M ${dx} 0 V ${height}`}
+        fill="none"
+        stroke={PRIMARY}
         strokeWidth={2}
+        strokeLinejoin="round"
       />
       <Label width={width} height={height} label={label} />
     </>
@@ -408,23 +417,28 @@ function CubeShape({ width, height, cornerX = 33, cornerY = 40, label }: Readonl
       {/* Background outline */}
       <path
         d={`M 0 0 H ${width - cx} L ${width} ${cy} V ${height} H ${cx} L 0 ${height - cy} Z`}
-        fill="#ffffff"
-        stroke="#333333"
+        fill="transparent"
+        stroke={PRIMARY}
         strokeWidth={2}
+        strokeLinejoin="round"
       />
       {/* Top face */}
       <path
         d={`M 0 0 H ${width - cx} L ${width} ${cy} H ${cx} Z`}
-        fill="#f5f5f5"
-        stroke="#333333"
+        fill={LIGHT}
+        stroke={PRIMARY}
         strokeWidth={2}
+        strokeLinejoin="round"
+        fillOpacity={0.2}
       />
       {/* Side face */}
       <path
         d={`M 0 0 L ${cx} ${cy} V ${height} L 0 ${height - cy} Z`}
-        fill="#ededed"
-        stroke="#333333"
+        fill={LIGHT}
+        stroke={PRIMARY}
         strokeWidth={2}
+        strokeLinejoin="round"
+        fillOpacity={0.1}
       />
       {/* Front face */}
       <rect
@@ -432,9 +446,11 @@ function CubeShape({ width, height, cornerX = 33, cornerY = 40, label }: Readonl
         y={cy}
         width={width - cx}
         height={height - cy}
-        fill="#ffffff"
-        stroke="#333333"
+        fill={LIGHT}
+        stroke={PRIMARY}
         strokeWidth={2}
+        strokeLinejoin="round"
+        fillOpacity={0.3}
       />
       <Label width={width} height={height} label={label} />
     </>
@@ -447,8 +463,9 @@ function CardShape({ width, height, offset = 0, label }: Readonly<OffsetElement>
     <>
       <path
         d={`M ${o} 0 H ${width} A ${height / 2},${o} 90 0 0 ${width},${height} H ${o} A ${height / 2},${o} 90 0 1 ${o},0 Z`}
-        fill={PRIMARY}
+        fill="transparent"
         stroke={PRIMARY}
+        strokeWidth={2}
       />
       <Label width={width} height={height} label={label} />
     </>

@@ -13,6 +13,7 @@ export const defaultLinkTheme = {
     sourceMarker: 'none' as MarkerPreset,
     targetMarker: 'none' as MarkerPreset,
     wrapperBuffer: 8,
+    wrapperColor: 'transparent',
     className: '',
     pattern: '',
     labelColor: '#333333',

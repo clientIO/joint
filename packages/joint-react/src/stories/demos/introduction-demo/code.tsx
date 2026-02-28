@@ -18,8 +18,8 @@ import {
   useNodeSize,
   useLinks,
   type GraphElement,
+  type GraphElementPort,
   type GraphLink,
-  type ElementToGraphOptions,
   type ReactPaper,
   type PaperProps,
   useNodeLayout,
@@ -58,37 +58,16 @@ const BUTTON_CLASSNAME =
 const ROW_HEIGHT_OFFSET = 45;
 const PORT_START_Y = 65;
 
-function buildTablePorts(rows: string[][]) {
-  return {
-    items: rows.map((_, index) => ({
-      id: `out-3-${index}`,
-      args: { x: 400, y: index * ROW_HEIGHT_OFFSET + PORT_START_Y },
-      attrs: {
-        circle: {
-          magnet: true,
-          r: 10,
-          fill: 'transparent',
-          stroke: 'transparent',
-          'stroke-width': 16,
-          'pointer-events': 'all',
-        },
-        text: { display: 'none' },
-      },
-      z: 'auto' as const,
-    })),
-  };
+function buildTablePorts(rows: string[][]): GraphElementPort[] {
+  return rows.map((_, index) => ({
+    id: `out-3-${index}`,
+    cx: 400,
+    cy: index * ROW_HEIGHT_OFFSET + PORT_START_Y,
+    width: 20,
+    height: 20,
+    color: 'transparent',
+  }));
 }
-
-const mapDataToElementAttributes = (
-  options: ElementToGraphOptions<GraphElement>
-): dia.Cell.JSON => {
-  const result = options.toAttributes(options.data);
-  const element = options.data as Element;
-  if (element.elementType === 'table') {
-    return { ...result, ports: buildTablePorts(element.rows) };
-  }
-  return result;
-};
 
 // Define static properties for the view's Paper - used by minimap and main view
 const PAPER_PROPS: PaperProps<Element> = {
@@ -103,9 +82,6 @@ const PAPER_PROPS: PaperProps<Element> = {
     args: { cornerType: 'line', cornerPreserveAspectRatio: true },
   },
   snapLinks: { radius: 25 },
-  validateMagnet: (_cellView, magnet) => {
-    return magnet.getAttribute('magnet') !== 'passive';
-  },
   sorting: dia.Paper.sorting.APPROX,
   linkPinning: false,
   onLinkMouseEnter: ({ linkView }) => linkView.addTools(toolsView),
@@ -142,6 +118,11 @@ const elements: Record<string, Element> = {
     ],
     width: 400,
     height: 200,
+    ports: buildTablePorts([
+      ['Row 1', 'Row 2', 'Row 3'],
+      ['Row 4', 'Row 5', 'Row 6'],
+      ['Row 7', 'Row 8', 'Row 9'],
+    ]),
   },
 };
 
@@ -240,7 +221,7 @@ function TableElement({
     ry: 5,
     attrs: {
       stroke: LIGHT,
-      'stroke-width': 3,
+      strokeWidth: 3,
     },
     create: ({ cellView, element, highlighterId, options }) => {
       return highlighters.stroke.add(cellView, element, highlighterId, options);
@@ -572,7 +553,6 @@ export default function App() {
     <GraphProvider
       elements={elements}
       links={links}
-      mapDataToElementAttributes={mapDataToElementAttributes}
     >
       <Main />
     </GraphProvider>

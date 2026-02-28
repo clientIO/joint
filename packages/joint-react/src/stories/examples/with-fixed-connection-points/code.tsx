@@ -154,6 +154,7 @@ const initialLinks: Record<string, GraphLink> = {
     },
     color: LIGHT,
     width: 2,
+    targetMarker: 'arrow'
   },
   link2: {
     source: {
@@ -166,6 +167,7 @@ const initialLinks: Record<string, GraphLink> = {
     },
     color: LIGHT,
     width: 2,
+    targetMarker: 'arrow'
   },
   link3: {
     source: {
@@ -178,6 +180,7 @@ const initialLinks: Record<string, GraphLink> = {
     },
     color: LIGHT,
     width: 2,
+    targetMarker: 'arrow'
   },
   link4: {
     source: {
@@ -190,6 +193,7 @@ const initialLinks: Record<string, GraphLink> = {
     },
     color: LIGHT,
     width: 2,
+    targetMarker: 'arrow'
   },
   link5: {
     source: {
@@ -202,6 +206,7 @@ const initialLinks: Record<string, GraphLink> = {
     },
     color: LIGHT,
     width: 2,
+    targetMarker: 'arrow'
   },
 };
 
@@ -448,7 +453,7 @@ function Main() {
         const tools = cellView.model.isLink()
           ? getLinkTools(cellView as dia.LinkView)
           : getElementTools(cellView as dia.ElementView);
-        
+
         const toolsView = new dia.ToolsView({ tools });
         cellView.addTools(toolsView);
         currentToolsViewRef.current = toolsView;

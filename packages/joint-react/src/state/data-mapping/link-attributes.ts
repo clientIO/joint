@@ -65,13 +65,15 @@ export function buildLinePresentationAttributes(options: LineAttributeOptions): 
  * `line` and `wrapper` selectors.
  * @param lineAttributes - Resolved SVG attributes from `buildLinePresentationAttributes`
  * @param width - Stroke width, used to compute the wrapper hit area
+ * @param wrapperBuffer
  * @param theme - The link theme providing the wrapper buffer size
  * @returns Record with `line` and `wrapper` attribute objects
  */
 export function buildLinkPresentationAttributes(
   lineAttributes: attributes.SVGAttributes,
   width: number,
-  theme: Pick<LinkTheme, 'wrapperBuffer'>,
+  wrapperBuffer: number,
+  wrapperColor: string
 ): Record<string, attributes.SVGAttributes> {
   return {
     line: {
@@ -80,7 +82,8 @@ export function buildLinkPresentationAttributes(
     },
     wrapper: {
       connection: true,
-      strokeWidth: theme.wrapperBuffer + width,
+      strokeWidth: wrapperBuffer + width,
+      stroke: wrapperColor,
     },
   };
 }

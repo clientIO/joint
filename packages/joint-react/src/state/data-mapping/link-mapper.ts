@@ -45,6 +45,8 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     targetMarker = theme.targetMarker,
     className = theme.className,
     pattern = theme.pattern,
+    wrapperBuffer = theme.wrapperBuffer,
+    wrapperColor = theme.wrapperColor,
     // Rest of user data
     ...userData
 
@@ -58,7 +60,7 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     type: REACT_LINK_TYPE,
     source: normalizeLinkEnd(source),
     target: normalizeLinkEnd(target),
-    attrs: buildLinkPresentationAttributes(lineAttributes, width, theme),
+    attrs: buildLinkPresentationAttributes(lineAttributes, width, wrapperBuffer, wrapperColor),
   };
 
   // Link attributes
@@ -87,6 +89,8 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     targetMarker,
     className,
     pattern,
+    wrapperBuffer,
+    wrapperColor,
   };
 
   return attributes;

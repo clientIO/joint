@@ -76,14 +76,6 @@ export interface GraphLink extends Record<string, unknown> {
    */
   readonly layer?: string;
   /**
-   * Optional link markup.
-   */
-  readonly markup?: dia.MarkupJSON;
-  /**
-   * Default label configuration.
-   */
-  readonly defaultLabel?: dia.Link.Label;
-  /**
    * Link labels.
    */
   readonly labels?: GraphLinkLabel[];
@@ -100,10 +92,6 @@ export interface GraphLink extends Record<string, unknown> {
    */
   readonly connector?: unknown;
   /**
-   * Attributes of the link.
-   */
-  readonly attrs?: dia.Cell.Selectors;
-  /**
    * Stroke color of the link line.
    * @default '#333333'
    */
@@ -113,6 +101,16 @@ export interface GraphLink extends Record<string, unknown> {
    * @default 2
    */
   readonly width?: number;
+  /**
+   * Buffer in pixels added to the link's hit area for easier interaction.
+   */
+  readonly wrapperBuffer?: number;
+  /**
+   * Stroke color of the link wrapper (outline).
+   * Set to a visible color to create a double-line effect.
+   * @default 'transparent'
+   */
+  readonly wrapperColor?: string;
   /**
    * Source marker preset name or custom marker definition.
    * Use 'none' for no marker.
