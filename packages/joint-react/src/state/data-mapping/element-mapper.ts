@@ -6,6 +6,7 @@ import type {
   GraphToElementOptions,
 } from '../graph-state-selectors';
 import { convertPorts, createPortDefaults } from './convert-ports';
+import { resolveCellDefaults } from './resolve-cell-defaults';
 
 // ────────────────────────────────────────────────────────────────────────────
 // React → JointJS
@@ -117,6 +118,7 @@ export function defaultMapElementAttributesToData<Element extends GraphElement>(
     parent,
   } = cell.attributes;
 
+  const defaults = resolveCellDefaults(cell);
   const elementData: Record<string, unknown> = {};
 
   // ↔ Two-way (nested → flat)
@@ -128,11 +130,11 @@ export function defaultMapElementAttributesToData<Element extends GraphElement>(
     elementData.width = size.width;
     elementData.height = size.height;
   }
-  if (angle !== undefined) elementData.angle = angle;
+  if (angle !== undefined && angle !== defaults.angle) elementData.angle = angle;
 
-  // ↔ Two-way (optional)
-  if (z !== undefined) elementData.z = z;
-  if (layer !== undefined) elementData.layer = layer;
+  // ↔ Two-way (skip when matching model defaults)
+  if (z !== undefined && z !== defaults.z) elementData.z = z;
+  if (layer !== undefined && layer !== defaults.layer) elementData.layer = layer;
   if (parent) elementData.parent = parent;
 
   return {
