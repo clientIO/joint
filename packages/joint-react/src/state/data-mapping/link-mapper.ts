@@ -111,6 +111,9 @@ export function defaultMapLinkAttributesToData<Link extends GraphLink>(
     data: userData,
     z, parent, layer,
     vertices,
+    // cell.attributes.labels is an array of JointJS label attributes, not the same as GraphLinkLabels.
+    // @eslint-disable-next-line @typescript-eslint/no-unused-vars
+    labels,
     ...rest
   } = cell.attributes;
 
