@@ -9,12 +9,24 @@ import type {
 import { convertLabel } from './convert-labels';
 import { normalizeLinkEnd, buildLinkPresentationAttributes } from './link-attributes';
 
+// ────────────────────────────────────────────────────────────────────────────
+// React → JointJS
+// ────────────────────────────────────────────────────────────────────────────
+
 /**
  * Maps flat link data to JointJS cell attributes.
  *
- * Extracts theme props (`color`, `width`, `sourceMarker`, `targetMarker`, `pattern`, `className`)
- * with theme fallbacks. Builds `attrs.line`.
- * Remaining user + theme data go to `cell.data`.
+ * Properties are grouped by sync direction:
+ * - **↔ Two-way** — synced back to React state when the graph changes
+ *   (`source`, `target`, `z`, `layer`, `parent`, `vertices`)
+ * - **→ One-way** — consumed during forward mapping only
+ *   (`labels`, `router`, `connector`)
+ * - **→ Presentation** — converted to `attrs.line` / `attrs.wrapper` via theme,
+ *   then stored in `cell.data` for round-trip preservation
+ *   (`color`, `width`, `sourceMarker`, `targetMarker`, `className`, `pattern`,
+ *    `lineCap`, `lineJoin`, `wrapperBuffer`, `wrapperColor`)
+ *
+ * Any remaining properties are treated as user data and stored in `cell.data`.
  * @param options - The link id, data, and optional theme to convert
  * @returns The JointJS cell JSON attributes
  */
@@ -22,22 +34,22 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
   options: Pick<LinkToGraphOptions<Link>, 'id' | 'data'> & { readonly theme?: LinkTheme }
 ): dia.Cell.JSON {
   const { id, data, theme = defaultLinkTheme } = options;
-  // Extract built-in JointJS link properties, remaining properties are user data
+
   const {
-    // 2-way link properties
+    // ↔ Two-way: synced back from graph → React state
     source,
     target,
     z,
     layer,
     parent,
     vertices,
-    // 1-way link properties
+
+    // → One-way: consumed here, not synced back
     labels,
     router,
     connector,
 
-    // User data
-    // Styling properties with theme defaults
+    // → Presentation: theme-driven, stored in cell.data for round-trip
     color = theme.color,
     width = theme.width,
     sourceMarker = theme.sourceMarker,
@@ -48,36 +60,37 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     lineJoin = theme.lineJoin,
     wrapperBuffer = theme.wrapperBuffer,
     wrapperColor = theme.wrapperColor,
-    // Rest of user data
-    ...userData
 
+    // Everything else is user data
+    ...userData
   } = data;
+
+  // ── Assemble cell JSON ──────────────────────────────────────────────────
 
   const attributes: dia.Cell.JSON = {
     id,
     type: REACT_LINK_TYPE,
+    // ↔ Two-way properties
     source: normalizeLinkEnd(source),
     target: normalizeLinkEnd(target),
+    // → Presentation → attrs
     attrs: buildLinkPresentationAttributes({ color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor }),
   };
 
-  // Link attributes
-  if (vertices !== undefined) attributes.vertices = vertices;
-
-  // Cell attributes
+  // ↔ Two-way (optional)
   if (z !== undefined) attributes.z = z;
   if (layer !== undefined) attributes.layer = layer;
   if (parent !== undefined) attributes.parent = parent;
+  if (vertices !== undefined) attributes.vertices = vertices;
 
+  // → One-way
   if (Array.isArray(labels)) {
     attributes.labels = labels.map((label) => convertLabel(label, theme));
   }
-
   if (router !== undefined) attributes.router = router;
   if (connector !== undefined) attributes.connector = connector;
 
-  // Store theme properties and user data in the data property
-  // so they can be retrieved when mapping back from graph to React state
+  // Presentation props + user data stored for round-trip (graph → React)
   attributes.data = {
     ...userData,
     color,
@@ -95,11 +108,19 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
   return attributes;
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// JointJS → React
+// ────────────────────────────────────────────────────────────────────────────
+
 /**
  * Maps JointJS link attributes back to flat link data.
  *
- * Extracts source/target, spreads `cell.data` to top level.
- * Shape preservation via `previousData`.
+ * Picks the two-way properties (`source`, `target`, `z`, `layer`, `parent`,
+ * `vertices`) from `cell.attributes` and merges them with `cell.data`
+ * (which holds presentation props + user data saved during forward mapping).
+ *
+ * One-way properties (`labels`, `router`, `connector`) and internal
+ * properties (`type`, `attrs`, `markup`) are not mapped back.
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat link data
  */
@@ -108,29 +129,30 @@ export function defaultMapLinkAttributesToData<Link extends GraphLink>(
 ): Link {
   const { cell } = options;
   const {
+    // User data + presentation props (saved during forward mapping)
     data: userData,
-    z, parent, layer,
+    // ↔ Two-way
+    source,
+    target,
+    z,
+    layer,
+    parent,
     vertices,
-    // cell.attributes.labels is an array of JointJS label attributes, not the same as GraphLinkLabels.
-    // @eslint-disable-next-line @typescript-eslint/no-unused-vars
-    labels,
-    ...rest
   } = cell.attributes;
 
   const linkData: Record<string, unknown> = {
-    ...rest
+    source,
+    target,
   };
 
-  // Cell attributes
+  // ↔ Two-way (optional)
   if (z !== undefined) linkData.z = z;
   if (layer !== undefined) linkData.layer = layer;
   if (parent !== undefined) linkData.parent = parent;
   if (vertices !== undefined) linkData.vertices = vertices;
 
-  // @todo: what if user dat contains keys that conflict top-level keys
-  // like source/target?
   return {
-    ...linkData,
     ...userData,
+    ...linkData,
   } as Link;
 }
