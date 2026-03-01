@@ -384,8 +384,8 @@ describe('graph-state-selectors', () => {
       const linkFromGraph = defaultMapLinkAttributesToData(createGraphToLinkOptions(id, linkCell, graph));
 
       expect(linkFromGraph).toMatchObject({
-        source: { id: 'element-1' },
-        target: { id: 'element-2' },
+        source: 'element-1',
+        target: 'element-2',
         type: REACT_LINK_TYPE,
       });
     });
@@ -543,8 +543,8 @@ describe('graph-state-selectors', () => {
       const linkFromGraph = defaultMapLinkAttributesToData(options);
 
       expect(linkFromGraph).toMatchObject({
-        source: { id: 'element-1' },
-        target: { id: 'element-2' },
+        source: 'element-1',
+        target: 'element-2',
         z: 5,
       });
       // Internal JointJS properties are not mapped back
@@ -582,8 +582,8 @@ describe('graph-state-selectors', () => {
 
       // previousData is passed through but the default mapper does not filter by it
       expect(linkFromGraph).toMatchObject({
-        source: { id: 'element-1' },
-        target: { id: 'element-2' },
+        source: 'element-1',
+        target: 'element-2',
         z: 5,
         customProp: 'from-graph',
       });
@@ -785,8 +785,8 @@ describe('graph-state-selectors', () => {
       );
 
       expect(linkFromGraph).toMatchObject({
-        source: { id: 'element-1' },
-        target: { id: 'element-2' },
+        source: 'element-1',
+        target: 'element-2',
         type: REACT_LINK_TYPE,
         z: 5,
       });
@@ -871,8 +871,8 @@ describe('graph-state-selectors', () => {
 
       // Default mapper spreads all cell.data — no filtering by previousData
       expect(linkFromGraph).toMatchObject({
-        source: { id: 'element-1' },
-        target: { id: 'element-2' },
+        source: 'element-1',
+        target: 'element-2',
         type: REACT_LINK_TYPE,
         z: 5,
         customProp: 'value-from-state',
@@ -957,21 +957,21 @@ describe('graph-state-selectors', () => {
 
       const link1 = retrievedLinks.find((l) => l.id === 'link-1');
       expect(link1?.data).toMatchObject({
-        source: { id: 'element-1' },
-        target: { id: 'element-2' },
+        source: 'element-1',
+        target: 'element-2',
         type: REACT_LINK_TYPE,
-        z: 1, // Updated from graph
-        label: 'Link 1', // Updated from graph data
+        z: 1,
+        label: 'Link 1',
       });
       expect(link1?.data).not.toHaveProperty('metadata');
 
       const link2 = retrievedLinks.find((l) => l.id === 'link-2');
       expect(link2?.data).toMatchObject({
-        source: { id: 'element-2' },
-        target: { id: 'element-3' },
+        source: 'element-2',
+        target: 'element-3',
         type: REACT_LINK_TYPE,
-        z: 2, // Updated from graph
-        metadata: { key: 'value' }, // Updated from graph data
+        z: 2,
+        metadata: { key: 'value' },
       });
       expect(link2?.data).not.toHaveProperty('label');
     });
@@ -1070,8 +1070,8 @@ describe('graph-state-selectors', () => {
 
       // Default mapper spreads all cell.data — no filtering by previousData
       expect(linkFromGraph).toMatchObject({
-        source: { id: 'element-1' },
-        target: { id: 'element-2' },
+        source: 'element-1',
+        target: 'element-2',
         type: REACT_LINK_TYPE,
         status: 'inactive',
         weight: 2,

@@ -7,7 +7,7 @@ import type {
   GraphToLinkOptions,
 } from '../graph-state-selectors';
 import { convertLabel } from './convert-labels';
-import { normalizeLinkEnd, buildLinkPresentationAttributes } from './link-attributes';
+import { toLinkEndAttribute, toLinkEndData, buildLinkPresentationAttributes } from './link-attributes';
 import { resolveCellDefaults } from './resolve-cell-defaults';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -72,8 +72,8 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     id,
     type: REACT_LINK_TYPE,
     // ↔ Two-way properties
-    source: normalizeLinkEnd(source),
-    target: normalizeLinkEnd(target),
+    source: toLinkEndAttribute(source),
+    target: toLinkEndAttribute(target),
     // → Presentation → attrs
     attrs: buildLinkPresentationAttributes({ color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor }),
   };
@@ -143,8 +143,8 @@ export function defaultMapLinkAttributesToData<Link extends GraphLink>(
 
   const defaults = resolveCellDefaults(cell);
   const linkData: Record<string, unknown> = {
-    source,
-    target,
+    source: toLinkEndData(source),
+    target: toLinkEndData(target),
   };
 
   // ↔ Two-way (skip when matching model defaults)

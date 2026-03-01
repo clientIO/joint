@@ -3,17 +3,37 @@ import type { MarkerPreset } from '../../theme/markers';
 import { resolveMarker } from '../../theme/markers';
 
 /**
- * Normalizes a link end (source or target) to the JointJS EndJSON format.
+ * Converts a link end from React data format to JointJS attribute format.
  *
  * Accepts either a cell ID string or an existing EndJSON object.
- * @param id - A cell ID or an EndJSON object
- * @returns The normalized EndJSON object
+ * String IDs are wrapped as `{ id }`.
+ * @param end - A cell ID or an EndJSON object
+ * @returns The JointJS EndJSON object
  */
-export function normalizeLinkEnd(id: dia.Cell.ID | dia.Link.EndJSON): dia.Link.EndJSON {
-  if (typeof id === 'object') {
-    return id;
+export function toLinkEndAttribute(end: dia.Cell.ID | dia.Link.EndJSON): dia.Link.EndJSON {
+  if (typeof end === 'object') {
+    return end;
   }
-  return { id };
+  return { id: end };
+}
+
+/**
+ * Converts a link end from JointJS attribute format to React data format.
+ *
+ * Simple `{ id }` objects (optionally with `port`) are flattened to a
+ * string ID or `{ id, port }`. Objects with `anchor` or `connectionPoint`
+ * are kept as-is to preserve their full structure.
+ * @param end - A JointJS EndJSON object
+ * @returns A cell ID string or the EndJSON object
+ */
+export function toLinkEndData(end: dia.Link.EndJSON): dia.Cell.ID | dia.Link.EndJSON {
+  if (end.anchor || end.connectionPoint) {
+    return end;
+  }
+  if (end.port !== undefined) {
+    return { id: end.id, port: end.port };
+  }
+  return end.id!;
 }
 
 interface LinkPresentationOptions {

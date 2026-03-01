@@ -147,8 +147,8 @@ describe('dataMapper', () => {
       const cell = graph.getCell(id) as dia.Link;
       const result = defaultMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
 
-      expect(result.source).toEqual({ id: 'el-1' });
-      expect(result.target).toEqual({ id: 'el-2' });
+      expect(result.source).toBe('el-1');
+      expect(result.target).toBe('el-2');
     });
 
     it('should apply theme defaults', () => {

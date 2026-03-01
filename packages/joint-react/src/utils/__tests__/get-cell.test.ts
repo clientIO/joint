@@ -40,8 +40,8 @@ describe('graph-state-selectors link mapping', () => {
       } as unknown as GraphToLinkOptions<GraphLink>);
 
       expect(link).toMatchObject({
-        source: { id: 'source-id' },
-        target: { id: 'target-id' },
+        source: 'source-id',
+        target: 'target-id',
         key: 'value', // data properties are spread to top level
       });
       // Internal JointJS properties are not mapped back
