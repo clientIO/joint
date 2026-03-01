@@ -16,6 +16,8 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
     height = defaultElementTheme.portHeight,
     color = defaultElementTheme.portColor,
     shape = defaultElementTheme.portShape,
+    stroke = defaultElementTheme.portStroke,
+    strokeWidth = defaultElementTheme.portStrokeWidth,
     className,
     label,
     labelPosition = defaultElementTheme.portLabelPosition,
@@ -34,6 +36,8 @@ function convertPort(port: GraphElementPort): dia.Element.Port {
 
   const portBodyAttributes: Record<string, unknown> = {
     fill: color,
+    stroke,
+    strokeWidth,
     magnet: passive ? 'passive' : 'active',
   };
 

@@ -16,6 +16,8 @@ export const defaultLinkTheme = {
     wrapperColor: 'transparent',
     className: '',
     pattern: '',
+    lineCap: '' as '' | 'butt' | 'round' | 'square',
+    lineJoin: '' as '' | 'miter' | 'round' | 'bevel',
     labelColor: '#333333',
     labelFontSize: 12,
     labelFontFamily: 'sans-serif',

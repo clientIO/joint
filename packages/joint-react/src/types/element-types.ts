@@ -39,6 +39,16 @@ export interface GraphElementPort {
    */
   readonly shape?: 'ellipse' | 'rect';
   /**
+   * Stroke color of the port shape.
+   * @default 'transparent'
+   */
+  readonly stroke?: string;
+  /**
+   * Stroke width of the port shape.
+   * @default 0
+   */
+  readonly strokeWidth?: number;
+  /**
    * CSS class name to apply to the port shape.
    */
   readonly className?: string;

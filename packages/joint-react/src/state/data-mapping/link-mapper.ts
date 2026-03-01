@@ -7,8 +7,7 @@ import type {
   GraphToLinkOptions,
 } from '../graph-state-selectors';
 import { convertLabel } from './convert-labels';
-import { createDefaultLabel } from './link-label-defaults';
-import { normalizeLinkEnd, buildLinePresentationAttributes, buildLinkPresentationAttributes } from './link-attributes';
+import { normalizeLinkEnd, buildLinkPresentationAttributes } from './link-attributes';
 
 /**
  * Maps flat link data to JointJS cell attributes.
@@ -45,6 +44,8 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     targetMarker = theme.targetMarker,
     className = theme.className,
     pattern = theme.pattern,
+    lineCap = theme.lineCap,
+    lineJoin = theme.lineJoin,
     wrapperBuffer = theme.wrapperBuffer,
     wrapperColor = theme.wrapperColor,
     // Rest of user data
@@ -52,15 +53,12 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
 
   } = data;
 
-  // Build theme-based attributes
-  const lineAttributes = buildLinePresentationAttributes({ color, width, sourceMarker, targetMarker, className, pattern });
-
   const attributes: dia.Cell.JSON = {
     id,
     type: REACT_LINK_TYPE,
     source: normalizeLinkEnd(source),
     target: normalizeLinkEnd(target),
-    attrs: buildLinkPresentationAttributes(lineAttributes, width, wrapperBuffer, wrapperColor),
+    attrs: buildLinkPresentationAttributes({ color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor }),
   };
 
   // Link attributes
@@ -72,8 +70,7 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
   if (parent !== undefined) attributes.parent = parent;
 
   if (Array.isArray(labels)) {
-    attributes.labels = labels.map(convertLabel);
-    attributes.defaultLabel = createDefaultLabel(theme);
+    attributes.labels = labels.map((label) => convertLabel(label, theme));
   }
 
   if (router !== undefined) attributes.router = router;
@@ -89,6 +86,8 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     targetMarker,
     className,
     pattern,
+    lineCap,
+    lineJoin,
     wrapperBuffer,
     wrapperColor,
   };

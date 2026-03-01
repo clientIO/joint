@@ -38,9 +38,33 @@ export interface GraphLinkLabel {
    */
   readonly backgroundPadding?: number | { readonly x: number; readonly y: number };
   /**
+   * Font size of the label text.
+   */
+  readonly fontSize?: number;
+  /**
+   * Font family of the label text.
+   */
+  readonly fontFamily?: string;
+  /**
    * CSS class name applied to the label text element.
    */
   readonly className?: string;
+  /**
+   * Stroke color of the label background rectangle.
+   */
+  readonly backgroundStroke?: string;
+  /**
+   * Stroke width of the label background rectangle.
+   */
+  readonly backgroundStrokeWidth?: number;
+  /**
+   * Border radius of the label background rectangle.
+   */
+  readonly backgroundBorderRadius?: number;
+  /**
+   * Opacity of the label background rectangle (0–1).
+   */
+  readonly backgroundOpacity?: number;
   /**
    * CSS class name applied to the label background rectangle.
    */
@@ -133,4 +157,14 @@ export interface GraphLink extends Record<string, unknown> {
    * @default ''
    */
   readonly pattern?: string;
+  /**
+   * Stroke line cap for the link line.
+   * @default ''
+   */
+  readonly lineCap?: 'butt' | 'round' | 'square';
+  /**
+   * Stroke line join for the link line.
+   * @default ''
+   */
+  readonly lineJoin?: 'miter' | 'round' | 'bevel';
 }

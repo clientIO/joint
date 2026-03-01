@@ -13,17 +13,20 @@ import {
 
 interface NativeElement extends GraphElement {
   readonly type: string;
+  readonly attrs?: dia.Cell.Attributes;
 }
 
-interface NativeLink extends GraphLink {
+interface NativeLink extends Omit<GraphLink, 'labels'> {
   readonly type: string;
+  readonly attrs?: dia.Cell.Attributes;
+  readonly labels?: dia.Link.Label[];
 }
 
 const mapDataToElementAttributes = (
-  options: ElementToGraphOptions<GraphElement>
+  options: ElementToGraphOptions<NativeElement>
 ): dia.Cell.JSON => {
+  const { type, attrs } = options.data;
   const result = options.toAttributes(options.data);
-  const { type, attrs } = options.data as NativeElement;
   return {
     ...result,
     ...(type && { type }),
@@ -32,10 +35,11 @@ const mapDataToElementAttributes = (
 };
 
 const mapDataToLinkAttributes = (
-  options: LinkToGraphOptions<GraphLink>
+  options: LinkToGraphOptions<NativeLink>
 ): dia.Cell.JSON => {
-  const result = options.toAttributes(options.data);
-  const { type, attrs, labels } = options.data as NativeLink;
+  const { labels, ...rest } = options.data;
+  const result = options.toAttributes(rest);
+  const { type, attrs } = rest;
   return {
     ...result,
     ...(type && { type }),
@@ -552,7 +556,7 @@ const initialLinks: Record<string, NativeLink> = {
         strokeLinejoin: 'round',
       },
     },
-    labels: [{ text: 'Link' }],
+    labels: [{ attrs: { text: { text: 'Link' }}}],
   },
   'link-double': {
     source: 'link-source',
@@ -577,7 +581,7 @@ const initialLinks: Record<string, NativeLink> = {
         strokeLinejoin: 'round',
       },
     },
-    labels: [{ text: 'DoubleLink' }],
+    labels: [{ attrs: { text: { text: 'DoubleLink' }}}],
   },
   'link-shadow': {
     source: 'link-target-1',
@@ -619,7 +623,7 @@ const initialLinks: Record<string, NativeLink> = {
         },
       },
     },
-    labels: [{ text: 'ShadowLink' }],
+    labels: [{ attrs: { text: { text: 'ShadowLink' }}}],
   },
 };
 

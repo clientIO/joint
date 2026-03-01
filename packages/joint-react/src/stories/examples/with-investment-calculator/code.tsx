@@ -188,7 +188,7 @@ const linkAppearance = {
   width: 4,
   wrapperColor: '#000000',
   wrapperBuffer: 4,
-  className: 'investment-link',
+  lineCap: 'butt' as const,
   targetMarker: {
     d: 'M 10 -2 10 -10 -3 0 10 10 10 2',
     stroke: '#000000',

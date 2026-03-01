@@ -10,32 +10,32 @@ export interface ToLinkAttributesOptions {
   readonly theme?: LinkTheme;
 }
 
-export interface ElementToGraphOptions<Element extends GraphElement> {
+export interface ElementToGraphOptions<ElementData = GraphElement> {
   readonly id: string;
-  readonly data: Element;
+  readonly data: ElementData;
   readonly graph: dia.Graph;
-  readonly toAttributes: (data: GraphElement) => dia.Cell.JSON;
+  readonly toAttributes: (data: ElementData) => dia.Cell.JSON;
 }
 
-export interface GraphToElementOptions<Element extends GraphElement> {
+export interface GraphToElementOptions<ElementData = GraphElement> {
   readonly id: string;
   readonly cell: dia.Element;
-  readonly previousData?: Element;
+  readonly previousData?: ElementData;
   readonly graph: dia.Graph;
   readonly toData: () => GraphElement;
 }
 
-export interface LinkToGraphOptions<Link extends GraphLink> {
+export interface LinkToGraphOptions<LinkData = GraphLink> {
   readonly id: string;
-  readonly data: Link;
+  readonly data: LinkData;
   readonly graph: dia.Graph;
-  readonly toAttributes: (data: GraphLink, options?: ToLinkAttributesOptions) => dia.Cell.JSON;
+  readonly toAttributes: (data: LinkData, options?: ToLinkAttributesOptions) => dia.Cell.JSON;
 }
 
-export interface GraphToLinkOptions<Link extends GraphLink> {
+export interface GraphToLinkOptions<LinkData = GraphLink> {
   readonly id: string;
   readonly cell: dia.Link;
-  readonly previousData?: Link;
+  readonly previousData?: LinkData;
   readonly graph: dia.Graph;
   readonly toData: () => GraphLink;
 }

@@ -103,7 +103,3 @@ body {
     opacity: 0;
   }
 }
-
-:has(> .investment-link) > path {
-  stroke-linecap: butt;
-}

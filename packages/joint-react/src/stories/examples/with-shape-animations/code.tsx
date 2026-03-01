@@ -1,6 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import type { dia } from '@joint/core';
 import {
   GraphProvider,
   Paper,
@@ -8,7 +7,6 @@ import {
   useElements,
   type GraphElement,
   type GraphLink,
-  type LinkToGraphOptions,
   TextNode,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
@@ -22,7 +20,6 @@ import '../index.css';
 const ShapeTypes = {
   generator: 'generator',
   bulb: 'bulb',
-  wire: 'wire',
 } as const;
 
 interface GeneratorElement extends GraphElement {
@@ -37,10 +34,6 @@ interface BulbElement extends GraphElement {
   readonly width: number;
   readonly height: number;
   readonly watts: number;
-}
-
-interface WireLink extends GraphLink {
-  readonly type: typeof ShapeTypes.wire;
 }
 
 type ShapeElement = GeneratorElement | BulbElement;
@@ -102,51 +95,27 @@ const initialElements: Record<string, ShapeElement> = {
   },
 };
 
-const initialLinks: Record<string, WireLink> = {
-  wire1: {
-    type: ShapeTypes.wire,
-    source: 'generator',
-    target: 'bulb1',
-  },
-  wire2: {
-    type: ShapeTypes.wire,
-    source: 'generator',
-    target: 'bulb2',
-  },
+const wireAppearance = {
+  color: WIRE_LINE,
+  width: 2,
+  wrapperColor: WIRE_OUTLINE,
+  wrapperBuffer: 2,
+  lineCap: 'round' as const,
+  lineJoin: 'round' as const,
+  z: -1,
 };
 
-// ----------------------------------------------------------------------------
-// Custom Attribute Mapper for Links
-// ----------------------------------------------------------------------------
-const mapDataToLinkAttributes = (
-  options: LinkToGraphOptions<GraphLink>
-): dia.Cell.JSON => {
-  const result = options.toAttributes(options.data);
-  return {
-    ...result,
-    z: -1,
-    attrs: {
-      line: {
-        connection: true,
-        stroke: WIRE_LINE,
-        strokeWidth: 2,
-        strokeLinejoin: 'round',
-        strokeLinecap: 'round',
-        targetMarker: null
-      },
-      outline: {
-        connection: true,
-        stroke: WIRE_OUTLINE,
-        strokeWidth: 4,
-        strokeLinejoin: 'round',
-        strokeLinecap: 'round',
-      },
-    },
-    markup: [
-      { tagName: 'path', selector: 'outline', attributes: { fill: 'none' } },
-      { tagName: 'path', selector: 'line', attributes: { fill: 'none' } },
-    ],
-  };
+const initialLinks: Record<string, GraphLink> = {
+  wire1: {
+    source: 'generator',
+    target: 'bulb1',
+    ...wireAppearance,
+  },
+  wire2: {
+    source: 'generator',
+    target: 'bulb2',
+    ...wireAppearance,
+  },
 };
 
 // ----------------------------------------------------------------------------
@@ -437,7 +406,6 @@ export default function App() {
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapDataToLinkAttributes={mapDataToLinkAttributes}
     >
       <Main />
     </GraphProvider>

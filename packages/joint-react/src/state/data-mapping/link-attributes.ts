@@ -1,6 +1,5 @@
 import type { attributes, dia } from '@joint/core';
 import type { MarkerPreset } from '../../theme/markers';
-import type { LinkTheme } from '../../theme/link-theme';
 import { resolveMarker } from '../../theme/markers';
 
 /**
@@ -17,26 +16,35 @@ export function normalizeLinkEnd(id: dia.Cell.ID | dia.Link.EndJSON): dia.Link.E
   return { id };
 }
 
-interface LineAttributeOptions {
+interface LinkPresentationOptions {
   color: string;
   width: number;
   sourceMarker: MarkerPreset | dia.SVGMarkerJSON;
   targetMarker: MarkerPreset | dia.SVGMarkerJSON;
   className: string;
   pattern: string;
+  lineCap: string;
+  lineJoin: string;
+  wrapperBuffer: number;
+  wrapperColor: string;
 }
 
 /**
- * Builds SVG attributes for the link line element.
+ * Builds the full `attrs` object for a link cell, containing
+ * `line` and `wrapper` selectors.
  *
  * Resolves marker presets, dash patterns, and class names into
- * flat SVG attribute objects.
- * @param options - Theme-driven line styling options
- * @returns SVG attributes for the line selector
+ * flat SVG attribute objects for the line, and computes wrapper
+ * hit-area attributes.
+ * @param options - Theme-driven styling options for line and wrapper
+ * @returns Record with `line` and `wrapper` attribute objects
  */
-export function buildLinePresentationAttributes(options: LineAttributeOptions): attributes.SVGAttributes {
-  const { color, width, sourceMarker, targetMarker, className, pattern } = options;
+export function buildLinkPresentationAttributes(
+  options: LinkPresentationOptions
+): Record<string, attributes.SVGAttributes> {
+  const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor } = options;
 
+  // Build line attributes
   const lineAttributes: attributes.SVGAttributes = {
     stroke: color,
     strokeWidth: width,
@@ -56,25 +64,13 @@ export function buildLinePresentationAttributes(options: LineAttributeOptions): 
   if (pattern) {
     lineAttributes.strokeDasharray = pattern;
   }
+  if (lineCap) {
+    lineAttributes.strokeLinecap = lineCap;
+  }
+  if (lineJoin) {
+    lineAttributes.strokeLinejoin = lineJoin;
+  }
 
-  return lineAttributes;
-}
-
-/**
- * Builds the full `attrs` object for a link cell, containing
- * `line` and `wrapper` selectors.
- * @param lineAttributes - Resolved SVG attributes from `buildLinePresentationAttributes`
- * @param width - Stroke width, used to compute the wrapper hit area
- * @param wrapperBuffer
- * @param theme - The link theme providing the wrapper buffer size
- * @returns Record with `line` and `wrapper` attribute objects
- */
-export function buildLinkPresentationAttributes(
-  lineAttributes: attributes.SVGAttributes,
-  width: number,
-  wrapperBuffer: number,
-  wrapperColor: string
-): Record<string, attributes.SVGAttributes> {
   return {
     line: {
       connection: true,
