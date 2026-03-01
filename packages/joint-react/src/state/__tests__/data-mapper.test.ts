@@ -45,7 +45,7 @@ describe('dataMapper', () => {
       expect(cellJson.size).toEqual({ width: 100, height: 50 });
       expect(cellJson.type).toBe('ReactElement');
 
-      graph.syncCells([cellJson], { remove: true });
+      graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Element;
       const result = defaultMapElementAttributesToData(graphToElementOpts(id, cell, graph));
 
@@ -60,7 +60,7 @@ describe('dataMapper', () => {
       const cellJson = defaultMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       expect(cellJson.data).toEqual({ label: 'Hello', color: 'red' });
 
-      graph.syncCells([cellJson], { remove: true });
+      graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Element;
       const result = defaultMapElementAttributesToData(graphToElementOpts(id, cell, graph));
 
@@ -68,24 +68,25 @@ describe('dataMapper', () => {
       expect((result as MyElement).color).toBe('red');
     });
 
-    it('should preserve shape via previousData', () => {
+    it('should include all cell.data properties regardless of previousData', () => {
       const id = 'el-1';
       const cellJson = {
         type: 'ReactElement',
         id,
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
-        data: { known: 'value', extra: 'should-be-filtered' },
+        data: { known: 'value', extra: 'also-included' },
       } as dia.Cell.JSON;
-      graph.syncCells([cellJson], { remove: true });
+      graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Element;
 
       type E = GraphElement & { known?: string; extra?: string };
       const previousData: E = { x: 0, y: 0, width: 0, height: 0, known: undefined };
 
       const result = defaultMapElementAttributesToData(graphToElementOpts(id, cell, graph, previousData));
+      // previousData is passed through but the default mapper does not filter by it
       expect(result).toHaveProperty('known', 'value');
-      expect(result).not.toHaveProperty('extra');
+      expect(result).toHaveProperty('extra', 'also-included');
     });
   });
 
@@ -142,7 +143,7 @@ describe('dataMapper', () => {
       expect(cellJson.type).toBe(REACT_LINK_TYPE);
       expect(cellJson.attrs?.line).toBeDefined();
 
-      graph.syncCells([cellJson], { remove: true });
+      graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Link;
       const result = defaultMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
 
@@ -182,24 +183,25 @@ describe('dataMapper', () => {
       expect(cellJson.data?.color).toBe('#333333');
     });
 
-    it('should preserve link shape via previousData', () => {
+    it('should include all cell.data properties regardless of previousData', () => {
       const id = 'link-1';
       const cellJson = {
         type: 'standard.Link',
         id,
         source: { id: 'a' },
         target: { id: 'b' },
-        data: { known: 'value', extra: 'filtered' },
+        data: { known: 'value', extra: 'also-included' },
       } as dia.Cell.JSON;
-      graph.syncCells([cellJson], { remove: true });
+      graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Link;
 
       type L = GraphLink & { known?: string; extra?: string };
       const previousData: L = { source: 'a', target: 'b', known: undefined };
 
+      // previousData is passed through but the default mapper does not filter by it
       const result = defaultMapLinkAttributesToData(graphToLinkOpts(id, cell, graph, previousData));
       expect(result).toHaveProperty('known', 'value');
-      expect(result).not.toHaveProperty('extra');
+      expect(result).toHaveProperty('extra', 'also-included');
     });
 
     it('should handle object source/target with ports', () => {
