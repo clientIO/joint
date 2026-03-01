@@ -32,13 +32,14 @@ describe('graph-state-selectors link mapping', () => {
       expect(link).toMatchObject({
         source: 'source-id',
         target: 'target-id',
-        type: 'mock-type',
         z: 1,
-        markup: '<markup>',
-        defaultLabel: 'default-label',
         key: 'value', // data properties are spread to top level
       });
+      // Internal JointJS properties are not mapped back
       expect(link).not.toHaveProperty('id');
+      expect(link).not.toHaveProperty('type');
+      expect(link).not.toHaveProperty('markup');
+      expect(link).not.toHaveProperty('defaultLabel');
     });
   });
 });

@@ -545,9 +545,10 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: REACT_LINK_TYPE,
         z: 5,
       });
+      // Internal JointJS properties are not mapped back
+      expect(linkFromGraph).not.toHaveProperty('type');
     });
 
     it('should map graph link to link with previousData state, filtering properties', () => {
@@ -571,7 +572,6 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: REACT_LINK_TYPE,
         z: 3,
         customProp: undefined,
         // extraProp is not in previousData, so it should be filtered out
@@ -585,7 +585,6 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: REACT_LINK_TYPE,
         z: 5, // Updated from graph
         customProp: 'from-graph', // Updated from graph data
       });
@@ -612,7 +611,6 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: REACT_LINK_TYPE,
         customProp: undefined, // Explicitly undefined in previousData
       };
 
@@ -644,7 +642,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph.target).toEqual({ id: 'element-2', port: 'port-2' });
     });
 
-    it('should extract z, markup, and defaultLabel from cell', () => {
+    it('should extract z but not markup or defaultLabel from cell', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
         type: REACT_LINK_TYPE,
@@ -662,12 +660,14 @@ describe('graph-state-selectors', () => {
 
       const linkFromGraph = defaultMapLinkAttributesToData(options);
 
+      // Two-way properties are mapped back
       expect(linkFromGraph.z).toBe(10);
-      expect(linkFromGraph.markup).toEqual([{ tagName: 'path' }]);
-      expect(linkFromGraph.defaultLabel).toEqual({ markup: [{ tagName: 'text' }] });
+      // Internal JointJS properties are not mapped back
+      expect(linkFromGraph).not.toHaveProperty('markup');
+      expect(linkFromGraph).not.toHaveProperty('defaultLabel');
     });
 
-    it('should include all cell attributes when no previousData state', () => {
+    it('should not include internal cell attributes like attrs', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
         type: REACT_LINK_TYPE,
@@ -688,13 +688,8 @@ describe('graph-state-selectors', () => {
 
       const linkFromGraph = defaultMapLinkAttributesToData(options);
 
-      expect(linkFromGraph.attrs).toBeDefined();
-      expect(linkFromGraph.attrs).toMatchObject({
-        line: {
-          stroke: 'blue',
-          strokeWidth: 2,
-        },
-      });
+      // Internal JointJS properties are not mapped back
+      expect(linkFromGraph).not.toHaveProperty('attrs');
     });
   });
 

@@ -133,7 +133,7 @@ export function defaultMapElementAttributesToData<Element extends GraphElement>(
   // ↔ Two-way (optional)
   if (z !== undefined) elementData.z = z;
   if (layer !== undefined) elementData.layer = layer;
-  if (parent !== undefined) elementData.parent = parent;
+  if (parent) elementData.parent = parent;
 
   return {
     ...userData,

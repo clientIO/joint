@@ -146,10 +146,25 @@ export function defaultMapLinkAttributesToData<Link extends GraphLink>(
   };
 
   // ↔ Two-way (optional)
-  if (z !== undefined) linkData.z = z;
-  if (layer !== undefined) linkData.layer = layer;
-  if (parent !== undefined) linkData.parent = parent;
-  if (vertices !== undefined) linkData.vertices = vertices;
+  if (z !== undefined) {
+    // @todo if the `z` is the same as the model default, we should not include it in the data
+    // to detect it we need to check a default value of the model
+    // we can get the class from the cell's type and check the default value of the `z` property
+    // const defaults = util.result(graph.layerCollection.cellNamespace[nodeType].prototype, 'defaults', {});
+    // We can create utility function to get the default value of the property for the given cell type
+    // It would cache the default values for each type to avoid performance issues
+    linkData.z = z;
+  }
+  if (layer !== undefined) {
+    // @todo same as `z`
+    linkData.layer = layer;
+  }
+  if (parent) {
+    linkData.parent = parent;
+  }
+  if (Array.isArray(vertices) && vertices.length > 0) {
+    linkData.vertices = vertices;
+  }
 
   return {
     ...userData,
