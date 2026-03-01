@@ -47,7 +47,9 @@ const initialElements: Record<string, StackedElement> = {
 
 const initialLinks: Record<string, GraphLink> = {
   'e1-2': {
+    // @ts-expect-error selector is not yet supported as a top-level link property
     source: {id: '1', selector: 'item-2'},
+    // @ts-expect-error selector is not yet supported as a top-level link property
     target: {id: '2', selector: 'item-2'},
     color: LIGHT,
   },

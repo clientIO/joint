@@ -144,66 +144,46 @@ const initialElements: Record<string, CustomElement> = {
 
 const initialLinks: Record<string, GraphLink> = {
   link1: {
-    source: {
-      id: 'square1',
-      anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } },
-    },
-    target: {
-      id: 'square2',
-      anchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } },
-    },
+    source: 'square1',
+    sourceAnchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } },
+    target: 'square2',
+    targetAnchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } },
     color: LIGHT,
     width: 2,
     targetMarker: 'arrow'
   },
   link2: {
-    source: {
-      id: 'ellipse1',
-      anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } },
-    },
-    target: {
-      id: 'rectangle1',
-      anchor: { name: 'modelCenter', args: { dx: -80, dy: -20 } },
-    },
+    source: 'ellipse1',
+    sourceAnchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } },
+    target: 'rectangle1',
+    targetAnchor: { name: 'modelCenter', args: { dx: -80, dy: -20 } },
     color: LIGHT,
     width: 2,
     targetMarker: 'arrow'
   },
   link3: {
-    source: {
-      id: 'rectangle1',
-      anchor: { name: 'modelCenter', args: { dx: 80, dy: -20 } },
-    },
-    target: {
-      id: 'ellipse1',
-      anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
-    },
+    source: 'rectangle1',
+    sourceAnchor: { name: 'modelCenter', args: { dx: 80, dy: -20 } },
+    target: 'ellipse1',
+    targetAnchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
     color: LIGHT,
     width: 2,
     targetMarker: 'arrow'
   },
   link4: {
-    source: {
-      id: 'square2',
-      anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } },
-    },
-    target: {
-      id: 'ellipse1',
-      anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 } },
-    },
+    source: 'square2',
+    sourceAnchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } },
+    target: 'ellipse1',
+    targetAnchor: { name: 'modelCenter', args: { dx: 0, dy: -40 } },
     color: LIGHT,
     width: 2,
     targetMarker: 'arrow'
   },
   link5: {
-    source: {
-      id: 'square2',
-      anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } },
-    },
-    target: {
-      id: 'square1',
-      anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
-    },
+    source: 'square2',
+    sourceAnchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } },
+    target: 'square1',
+    targetAnchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
     color: LIGHT,
     width: 2,
     targetMarker: 'arrow'

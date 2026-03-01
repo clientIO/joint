@@ -129,8 +129,9 @@ const elements: Record<string, Element> = {
 // Create initial links from table element port to another element as Record
 const links: Record<string, GraphLink> = {
   link2: {
-    source: { id: '3', port: 'out-3-0' }, // Port from table element
-    target: { id: '1' },
+    source: '3', // Port from table element
+    sourcePort: 'out-3-0',
+    target: '1',
     color: LIGHT,
     width: 2,
     className: 'link',

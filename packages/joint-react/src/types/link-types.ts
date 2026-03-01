@@ -1,5 +1,19 @@
-import type { dia, shapes } from '@joint/core';
+import type { anchors, connectionPoints, dia, shapes } from '@joint/core';
 import type { MarkerPreset } from '../theme/link-theme';
+
+/**
+ * Link endpoint definition.
+ *
+ * - A string is an element ID (connects to the element's center).
+ * - An object with `x` and `y` connects to a fixed point on the canvas.
+ *
+ * Port, anchor, connectionPoint and magnet are specified via separate
+ * top-level properties on {@link GraphLink} (e.g. `sourcePort`, `sourceAnchor`).
+ * @group Graph
+ */
+export type GraphLinkEnd =
+  | dia.Cell.ID
+  | { readonly x: number; readonly y: number };
 
 export interface StandardLinkShapesTypeMapper {
   'standard.DoubleLink': shapes.standard.DoubleLinkSelectors;
@@ -79,13 +93,51 @@ export interface GraphLinkLabel {
  */
 export interface GraphLink extends Record<string, unknown> {
   /**
-   * Source element id or endpoint definition.
+   * Source element id or point.
    */
-  readonly source: dia.Cell.ID | dia.Link.EndJSON;
+  readonly source: GraphLinkEnd;
   /**
-   * Target element id or endpoint definition.
+   * Target element id or point.
    */
-  readonly target: dia.Cell.ID | dia.Link.EndJSON;
+  readonly target: GraphLinkEnd;
+  /**
+   * Source port id.
+   */
+  readonly sourcePort?: string;
+  /**
+   * Target port id.
+   */
+  readonly targetPort?: string;
+  /**
+   * Source anchor definition.
+   * @see https://docs.jointjs.com/learn/features/links/anchors
+   */
+  readonly sourceAnchor?: anchors.AnchorJSON;
+  /**
+   * Target anchor definition.
+   * @see https://docs.jointjs.com/learn/features/links/anchors
+   */
+  readonly targetAnchor?: anchors.AnchorJSON;
+  /**
+   * Source connection point definition.
+   * @see https://docs.jointjs.com/learn/features/links/connection-points
+   */
+  readonly sourceConnectionPoint?: connectionPoints.ConnectionPointJSON;
+  /**
+   * Target connection point definition.
+   * @see https://docs.jointjs.com/learn/features/links/connection-points
+   */
+  readonly targetConnectionPoint?: connectionPoints.ConnectionPointJSON;
+  /**
+   * Source magnet selector.
+   * CSS selector of the SVG element used as the connection magnet on the source.
+   */
+  readonly sourceMagnet?: string;
+  /**
+   * Target magnet selector.
+   * CSS selector of the SVG element used as the connection magnet on the target.
+   */
+  readonly targetMagnet?: string;
   /**
    * Optional link type.
    * @default 'standard.Link'

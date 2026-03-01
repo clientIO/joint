@@ -239,11 +239,9 @@ const initialLinks: Record<string, GraphLink> = {
     targetMarker: 'none',
   },
   'link-11': {
-    source: {
-      id: 'ot8h17',
-      anchor: {
-        name: 'perpendicular',
-      },
+    source: 'ot8h17',
+    sourceAnchor: {
+      name: 'perpendicular',
     },
     target: 'mte5xr',
     z: -1,

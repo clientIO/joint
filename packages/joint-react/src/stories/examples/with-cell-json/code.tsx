@@ -70,13 +70,13 @@ const initialElements: Record<string, CellJsonElement> = {
 const initialLinks: Record<string, CellJsonLink> = {
   'link-1': {
     type: 'ReactLink',
-    source: { id: 'node-1' },
-    target: { id: 'node-2' },
+    source: 'node-1',
+    target: 'node-2',
   },
   'link-2': {
     type: 'ReactLink',
-    source: { id: 'node-1' },
-    target: { id: 'node-3' },
+    source: 'node-1',
+    target: 'node-3',
   },
 };
 

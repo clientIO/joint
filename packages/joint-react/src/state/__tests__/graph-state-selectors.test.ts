@@ -390,11 +390,13 @@ describe('graph-state-selectors', () => {
       });
     });
 
-    it('should handle link with object source and target', () => {
+    it('should handle link with ports', () => {
       const id = 'link-1';
       const link: GraphLink = {
-        source: { id: 'element-1', port: 'port-1' },
-        target: { id: 'element-2', port: 'port-2' },
+        source: 'element-1',
+        target: 'element-2',
+        sourcePort: 'port-1',
+        targetPort: 'port-2',
         type: REACT_LINK_TYPE,
       };
 
@@ -416,8 +418,10 @@ describe('graph-state-selectors', () => {
       const linkFromGraph = defaultMapLinkAttributesToData(createGraphToLinkOptions(id, linkCell, graph));
 
       expect(linkFromGraph).toMatchObject({
-        source: { id: 'element-1', port: 'port-1' },
-        target: { id: 'element-2', port: 'port-2' },
+        source: 'element-1',
+        target: 'element-2',
+        sourcePort: 'port-1',
+        targetPort: 'port-2',
         type: REACT_LINK_TYPE,
       });
     });
@@ -570,8 +574,8 @@ describe('graph-state-selectors', () => {
       };
 
       const previousData: ExtendedLink = {
-        source: { id: 'element-1' },
-        target: { id: 'element-2' },
+        source: 'element-1',
+        target: 'element-2',
         z: 3,
         customProp: undefined,
       };
@@ -609,8 +613,8 @@ describe('graph-state-selectors', () => {
       };
 
       const previousData: ExtendedLink = {
-        source: { id: 'element-1' },
-        target: { id: 'element-2' },
+        source: 'element-1',
+        target: 'element-2',
         customProp: undefined,
       };
 
@@ -623,7 +627,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).not.toHaveProperty('customProp');
     });
 
-    it('should extract source and target from cell', () => {
+    it('should extract source, target, and ports from cell', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
         type: REACT_LINK_TYPE,
@@ -638,8 +642,10 @@ describe('graph-state-selectors', () => {
 
       const linkFromGraph = defaultMapLinkAttributesToData(options);
 
-      expect(linkFromGraph.source).toEqual({ id: 'element-1', port: 'port-1' });
-      expect(linkFromGraph.target).toEqual({ id: 'element-2', port: 'port-2' });
+      expect(linkFromGraph.source).toBe('element-1');
+      expect(linkFromGraph.target).toBe('element-2');
+      expect(linkFromGraph.sourcePort).toBe('port-1');
+      expect(linkFromGraph.targetPort).toBe('port-2');
     });
 
     it('should extract z but not markup or defaultLabel from cell', () => {
@@ -795,8 +801,10 @@ describe('graph-state-selectors', () => {
     it('should handle link with complex properties', () => {
       const id = 'link-1';
       const link: GraphLink = {
-        source: { id: 'element-1', port: 'port-1' },
-        target: { id: 'element-2', port: 'port-2' },
+        source: 'element-1',
+        target: 'element-2',
+        sourcePort: 'port-1',
+        targetPort: 'port-2',
         type: REACT_LINK_TYPE,
         z: 10,
         markup: [{ tagName: 'path' }],
@@ -821,8 +829,10 @@ describe('graph-state-selectors', () => {
       );
 
       expect(linkFromGraph).toMatchObject({
-        source: { id: 'element-1', port: 'port-1' },
-        target: { id: 'element-2', port: 'port-2' },
+        source: 'element-1',
+        target: 'element-2',
+        sourcePort: 'port-1',
+        targetPort: 'port-2',
         type: REACT_LINK_TYPE,
         z: 10,
       });

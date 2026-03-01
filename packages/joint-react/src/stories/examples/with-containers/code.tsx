@@ -38,8 +38,8 @@ const elements: Record<string, ContainerElement> = {
 
 const links: Record<string, GraphLink> = {
   'link-1': {
-    source: { id: 'child-1' },
-    target: { id: 'child-2' },
+    source: 'child-1',
+    target: 'child-2',
     parent: 'container',
     color: 'white',
     z: 2,

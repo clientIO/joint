@@ -40,6 +40,14 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     // ↔ Two-way: synced back from graph → React state
     source,
     target,
+    sourcePort,
+    targetPort,
+    sourceAnchor,
+    targetAnchor,
+    sourceConnectionPoint,
+    targetConnectionPoint,
+    sourceMagnet,
+    targetMagnet,
     z,
     layer,
     parent,
@@ -72,8 +80,8 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
     id,
     type: REACT_LINK_TYPE,
     // ↔ Two-way properties
-    source: toLinkEndAttribute(source),
-    target: toLinkEndAttribute(target),
+    source: toLinkEndAttribute(source, { port: sourcePort, anchor: sourceAnchor, connectionPoint: sourceConnectionPoint, magnet: sourceMagnet }),
+    target: toLinkEndAttribute(target, { port: targetPort, anchor: targetAnchor, connectionPoint: targetConnectionPoint, magnet: targetMagnet }),
     // → Presentation → attrs
     attrs: buildLinkPresentationAttributes({ color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor }),
   };
@@ -142,10 +150,24 @@ export function defaultMapLinkAttributesToData<Link extends GraphLink>(
   } = cell.attributes;
 
   const defaults = resolveCellDefaults(cell);
+
+  const sourceData = toLinkEndData(source);
+  const targetData = toLinkEndData(target);
+
   const linkData: Record<string, unknown> = {
-    source: toLinkEndData(source),
-    target: toLinkEndData(target),
+    source: sourceData.end,
+    target: targetData.end,
   };
+
+  // ↔ Two-way (endpoint details — only when present)
+  if (sourceData.port) linkData.sourcePort = sourceData.port;
+  if (sourceData.anchor) linkData.sourceAnchor = sourceData.anchor;
+  if (sourceData.connectionPoint) linkData.sourceConnectionPoint = sourceData.connectionPoint;
+  if (sourceData.magnet) linkData.sourceMagnet = sourceData.magnet;
+  if (targetData.port) linkData.targetPort = targetData.port;
+  if (targetData.anchor) linkData.targetAnchor = targetData.anchor;
+  if (targetData.connectionPoint) linkData.targetConnectionPoint = targetData.connectionPoint;
+  if (targetData.magnet) linkData.targetMagnet = targetData.magnet;
 
   // ↔ Two-way (skip when matching model defaults)
   if (z !== undefined && z !== defaults.z) linkData.z = z;

@@ -639,8 +639,11 @@ export default function App() {
   return (
     <GraphProvider
       elements={initialElements}
+      // @ts-expect-error NativeLink uses dia.Link.Label[] instead of GraphLinkLabel[]
       links={initialLinks}
+      // @ts-expect-error NativeElement uses a narrower type than GraphElement
       mapDataToElementAttributes={mapDataToElementAttributes}
+      // @ts-expect-error NativeLink uses dia.Link.Label[] instead of GraphLinkLabel[]
       mapDataToLinkAttributes={mapDataToLinkAttributes}
     >
       <Main />

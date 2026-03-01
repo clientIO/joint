@@ -204,11 +204,13 @@ describe('dataMapper', () => {
       expect(result).toHaveProperty('extra', 'also-included');
     });
 
-    it('should handle object source/target with ports', () => {
+    it('should handle source/target with ports', () => {
       const id = 'link-1';
       const data: GraphLink = {
-        source: { id: 'el-1', port: 'p1' },
-        target: { id: 'el-2', port: 'p2' },
+        source: 'el-1',
+        target: 'el-2',
+        sourcePort: 'p1',
+        targetPort: 'p2',
       };
 
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));

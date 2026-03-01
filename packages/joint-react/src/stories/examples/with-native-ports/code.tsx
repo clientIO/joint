@@ -129,13 +129,17 @@ const initialElements: Record<string, NativeElement> = {
 
 const initialLinks: Record<string, GraphLink> = {
   'link-1': {
-    source: { id: 'node-1', port: 'out-1' },
-    target: { id: 'node-2', port: 'in-1' },
+    source: 'node-1',
+    sourcePort: 'out-1',
+    target: 'node-2',
+    targetPort: 'in-1',
     color: SECONDARY,
   },
   'link-2': {
-    source: { id: 'node-1', port: 'out-2' },
-    target: { id: 'node-3', port: 'in-1' },
+    source: 'node-1',
+    sourcePort: 'out-2',
+    target: 'node-3',
+    targetPort: 'in-1',
     color: PRIMARY,
   },
 };

@@ -1,39 +1,74 @@
-import type { attributes, dia } from '@joint/core';
+import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
+import type { GraphLinkEnd } from '../../types/link-types';
 import type { MarkerPreset } from '../../theme/markers';
 import { resolveMarker } from '../../theme/markers';
 
-/**
- * Converts a link end from React data format to JointJS attribute format.
- *
- * Accepts either a cell ID string or an existing EndJSON object.
- * String IDs are wrapped as `{ id }`.
- * @param end - A cell ID or an EndJSON object
- * @returns The JointJS EndJSON object
- */
-export function toLinkEndAttribute(end: dia.Cell.ID | dia.Link.EndJSON): dia.Link.EndJSON {
-  if (typeof end === 'object') {
-    return end;
-  }
-  return { id: end };
+export interface LinkEndAttributeOptions {
+  port?: string;
+  anchor?: anchors.AnchorJSON;
+  connectionPoint?: connectionPoints.ConnectionPointJSON;
+  magnet?: string;
 }
 
 /**
- * Converts a link end from JointJS attribute format to React data format.
+ * Converts a link end from React data format to JointJS `EndJSON` attribute.
  *
- * Simple `{ id }` objects (optionally with `port`) are flattened to a
- * string ID or `{ id, port }`. Objects with `anchor` or `connectionPoint`
- * are kept as-is to preserve their full structure.
- * @param end - A JointJS EndJSON object
- * @returns A cell ID string or the EndJSON object
+ * - `'element-1'` → `{ id: 'element-1' }`
+ * - `{ x: 100, y: 200 }` → `{ x: 100, y: 200 }`
+ *
+ * Optionally merges `port`, `anchor`, `connectionPoint`, and `magnet`.
  */
-export function toLinkEndData(end: dia.Link.EndJSON): dia.Cell.ID | dia.Link.EndJSON {
-  if (end.anchor || end.connectionPoint) {
-    return end;
+export function toLinkEndAttribute(
+  end: GraphLinkEnd,
+  options?: LinkEndAttributeOptions,
+): dia.Link.EndJSON {
+  const base = (typeof end === 'string' ? { id: end } : end) as dia.Link.EndJSON;
+  if (!options) return base;
+
+  const { port, anchor, connectionPoint, magnet } = options;
+  if (!port && !anchor && !connectionPoint && !magnet) return base;
+
+  const result = { ...base };
+  if (port) result.port = port;
+  if (anchor) result.anchor = anchor;
+  if (connectionPoint) result.connectionPoint = connectionPoint;
+  if (magnet) result.magnet = magnet;
+  return result;
+}
+
+export interface LinkEndData {
+  end: GraphLinkEnd;
+  port?: string;
+  anchor?: anchors.AnchorJSON;
+  connectionPoint?: connectionPoints.ConnectionPointJSON;
+  magnet?: string;
+}
+
+/**
+ * Converts a JointJS `EndJSON` attribute back to React data format.
+ *
+ * - `{ id: 'element-1' }` → `end: 'element-1'`
+ * - `{ x: 100, y: 200 }` → `end: { x: 100, y: 200 }`
+ *
+ * `port`, `anchor`, `connectionPoint`, and `magnet` are extracted as
+ * separate properties.
+ */
+export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
+  const { port, anchor, connectionPoint, magnet } = end;
+
+  let endData: GraphLinkEnd;
+  if ('x' in end && 'y' in end) {
+    endData = { x: end.x!, y: end.y! };
+  } else {
+    endData = end.id!;
   }
-  if (end.port !== undefined) {
-    return { id: end.id, port: end.port };
-  }
-  return end.id!;
+
+  const result: LinkEndData = { end: endData };
+  if (port !== undefined) result.port = port;
+  if (anchor) result.anchor = anchor;
+  if (connectionPoint) result.connectionPoint = connectionPoint;
+  if (magnet) result.magnet = magnet;
+  return result;
 }
 
 interface LinkPresentationOptions {
