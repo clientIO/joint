@@ -17,6 +17,8 @@ export interface LinkEndAttributeOptions {
  * - `{ x: 100, y: 200 }` → `{ x: 100, y: 200 }`
  *
  * Optionally merges `port`, `anchor`, `connectionPoint`, and `magnet`.
+ * @param end
+ * @param options
  */
 export function toLinkEndAttribute(
   end: GraphLinkEnd,
@@ -52,16 +54,15 @@ export interface LinkEndData {
  *
  * `port`, `anchor`, `connectionPoint`, and `magnet` are extracted as
  * separate properties.
+ * @param end
+ * @returns React-friendly link end data with optional port, anchor, connectionPoint, and magnet properties
  */
 export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
   const { port, anchor, connectionPoint, magnet } = end;
 
-  let endData: GraphLinkEnd;
-  if ('x' in end && 'y' in end) {
-    endData = { x: end.x!, y: end.y! };
-  } else {
-    endData = end.id!;
-  }
+  const endData: GraphLinkEnd = 'x' in end && 'y' in end
+    ? { x: end.x!, y: end.y! }
+    : end.id!;
 
   const result: LinkEndData = { end: endData };
   if (port !== undefined) result.port = port;
