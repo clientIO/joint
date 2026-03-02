@@ -125,8 +125,8 @@ function LinkItem({
  * }
  * ```
  */
-function PaperBase<ElementItem = FlatElementData>(
-  props: PaperProps<ElementItem>,
+function PaperBase<ElementData = FlatElementData>(
+  props: PaperProps<ElementData>,
   forwardedRef: React.ForwardedRef<ReactPaper | null>
 ) {
   const {
@@ -518,8 +518,8 @@ function PaperBase<ElementItem = FlatElementData>(
  * }
  * ```
  */
-export const Paper = forwardRef(PaperBase) as <ElementItem = FlatElementData>(
-  props: Readonly<PaperProps<ElementItem>> & {
+export const Paper = forwardRef(PaperBase) as <ElementData = FlatElementData>(
+  props: Readonly<PaperProps<ElementData>> & {
     ref?: React.Ref<dia.Paper | null>;
   }
 ) => ReturnType<typeof PaperBase>;
