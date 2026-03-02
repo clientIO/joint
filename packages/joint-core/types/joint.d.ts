@@ -2094,7 +2094,7 @@ export namespace dia {
 
         removeLayerView(layerRef: Paper.LayerRef): void;
 
-        protected insertLayerView(layerView: LayerView, beforeLayerView: LayerView | null): void;
+        protected insertLayerView(layerView: LayerView, beforeLayerView?: LayerView): void;
 
         protected requestLayerViewRemoval(layerRef: Paper.LayerRef, opt?: { [key: string]: any }): void;
 
