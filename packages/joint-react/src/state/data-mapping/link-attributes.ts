@@ -120,22 +120,22 @@ export function buildLinkPresentationAttributes(
   if (pattern) {
     lineAttributes.strokeDasharray = pattern;
   }
-  if (lineCap) {
-    lineAttributes.strokeLinecap = lineCap;
-  }
-  if (lineJoin) {
-    lineAttributes.strokeLinejoin = lineJoin;
-  }
+
+  const strokeAttributes: attributes.SVGAttributes = {};
+  if (lineCap) strokeAttributes.strokeLinecap = lineCap;
+  if (lineJoin) strokeAttributes.strokeLinejoin = lineJoin;
 
   return {
     line: {
       connection: true,
       ...lineAttributes,
+      ...strokeAttributes,
     },
     wrapper: {
       connection: true,
       strokeWidth: wrapperBuffer + width,
       stroke: wrapperColor,
+      ...strokeAttributes,
     },
   };
 }
