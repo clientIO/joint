@@ -45,9 +45,9 @@ import { CellIdContext } from '../context';
  * }
  * ```
  */
-export function useLinkLayout<Id extends CellId | undefined = undefined>(
-  id?: Id
-): Id extends CellId ? LinkLayout | undefined : LinkLayout | undefined {
+export function useLinkLayout(): LinkLayout;
+export function useLinkLayout(id: CellId): LinkLayout | undefined;
+export function useLinkLayout(id?: CellId): LinkLayout | undefined {
   const contextId = useContext(CellIdContext);
   const { layoutState } = useGraphStore();
   const { paperId } = usePaperStoreContext();

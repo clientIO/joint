@@ -43,9 +43,9 @@ import { CellIdContext } from '../context';
  * }
  * ```
  */
-export function useNodeLayout<Id extends CellId | undefined = undefined>(
-  id?: Id
-): Id extends CellId ? NodeLayout | undefined : NodeLayout {
+export function useNodeLayout(): NodeLayout;
+export function useNodeLayout(id: CellId): NodeLayout | undefined;
+export function useNodeLayout(id?: CellId): NodeLayout | undefined {
   const contextId = useContext(CellIdContext);
   const { layoutState } = useGraphStore();
   const actualId = id ?? contextId;
