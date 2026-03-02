@@ -46,21 +46,21 @@ const TURBINE_R = 16;
 const TURBINE_A = 3;
 const TURBINE_B = 4;
 
-// Colors
-const GENERATOR_BODY = '#945042';
-const GENERATOR_STROKE = '#7f4439';
-const GENERATOR_DARK = '#350100';
-const GENERATOR_ACCENT = '#a95b4c';
-const GENERATOR_BLADE = '#c99287';
+// Colors (derived from storybook theme)
+const GENERATOR_BODY = '#8c1722';
+const GENERATOR_STROKE = '#6e1019';
+const GENERATOR_DARK = '#1a0508';
+const GENERATOR_ACCENT = PRIMARY;
+const GENERATOR_BLADE = LIGHT;
 
-const BULB_GLASS = '#f1f5f7';
-const BULB_GLASS_STROKE = '#659db3';
-const BULB_CAP = '#350100';
-const BULB_LIT_FILL = '#f5e5b7';
-const BULB_LIT_STROKE = '#edbc26';
+const BULB_GLASS = '#c0cdd6';
+const BULB_GLASS_STROKE = '#7a8d99';
+const BULB_CAP = BG;
+const BULB_LIT_FILL = '#ffd580';
+const BULB_LIT_STROKE = SECONDARY;
 
-const WIRE_LINE = '#346f83';
-const WIRE_OUTLINE = '#004456';
+const WIRE_LINE = '#5c6f7a';
+const WIRE_OUTLINE = BG;
 
 // The generator element ID that controls power for the circuit
 const GENERATOR_ID = 'generator';
