@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { GraphLink, RenderElement, TransformOptions } from '@joint/react';
+import type { FlatLinkData, RenderElement, TransformOptions } from '@joint/react';
 import { GraphProvider, Paper, useHighlighter, useNodeSize } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { dia, linkTools } from '@joint/core';
@@ -79,7 +79,7 @@ const flowchartNodes: Record<string, NodeElement> = {
     cy: 460,
   },
 };
-interface FlowchartLinkOptions extends GraphLink {
+interface FlowchartLinkOptions extends FlatLinkData {
   readonly label?: string;
 }
 

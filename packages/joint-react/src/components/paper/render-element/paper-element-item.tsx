@@ -1,10 +1,10 @@
 import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
-import type { GraphElement } from '../../../types/element-types';
+import type { FlatElementData } from '../../../types/element-types';
 import { useGraphStore, useNodeLayout } from '../../../hooks';
 
-export interface ElementItemProps<Data extends GraphElement = GraphElement> {
+export interface ElementItemProps<Data = FlatElementData> {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
@@ -19,7 +19,7 @@ export interface ElementItemProps<Data extends GraphElement = GraphElement> {
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function SVGElementItemComponent<Data extends GraphElement = GraphElement>(
+function SVGElementItemComponent<Data = FlatElementData>(
   props: ElementItemProps<Data>
 ) {
   const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
@@ -70,14 +70,14 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
  * @returns The rendered element inside the portal.
  * @internal
  */
-function HTMLElementItemComponent<Data extends GraphElement = GraphElement>(
+function HTMLElementItemComponent<Data = FlatElementData>(
   props: ElementItemProps<Data>
 ) {
   const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
   const cell = rest as Data;
   // we must use renderElement and not cell data, because user can select different data, so then, the width and height do not have to be inside the cell data.
   const element = renderElement(cell);
-  const { width, height, x, y } = cell;
+  const { width, height, x, y } = cell as FlatElementData;
   const graphStore = useGraphStore();
 
   useLayoutEffect(() => {

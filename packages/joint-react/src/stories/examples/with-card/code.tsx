@@ -6,7 +6,7 @@ import {
   GraphProvider,
   Paper,
   useNodeSize,
-  type GraphLink,
+  type FlatLinkData,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -16,7 +16,7 @@ const initialElements: Record<string, { label: string; x: number; y: number }> =
   '2': { label: 'Node 2 with longer text', x: 250, y: 150 },
 };
 
-const initialEdges: Record<string, GraphLink> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',

@@ -29,7 +29,7 @@ The **useLinks** hook provides access to all links in the graph. It supports sel
 \`\`\`tsx
 import { useLinks } from '@joint/react';
 
-// Get all links (returns Record<string, GraphLink>)
+// Get all links (returns Record<string, FlatLinkData>)
 function Component() {
   const links = useLinks();
   return <div>Total links: {Object.keys(links).length}</div>;
@@ -74,7 +74,7 @@ export const GetAllLinks: Story = makeStory<Story>({
   code: `import { useLinks } from '@joint/react'
 
 function Component() {
-  const links = useLinks(); // returns Record<string, GraphLink>
+  const links = useLinks(); // returns Record<string, FlatLinkData>
   return (
     <div>
       <p>Total links: {Object.keys(links).length}</p>

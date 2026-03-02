@@ -1,8 +1,8 @@
 import { dia, g } from '@joint/core';
 import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
-import type { GraphElement } from '../types/element-types';
-import type { GraphLink } from '../types/link-types';
+import type { FlatElementData } from '../types/element-types';
+import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper as ReactPaperType } from '../types/paper.types';
 import type { GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
@@ -100,9 +100,9 @@ export interface AddPaperOptions {
   /** Optional initial scale for the paper */
   readonly scale?: number;
   /** Optional custom renderer for elements */
-  readonly renderElement?: RenderElement<GraphElement>;
+  readonly renderElement?: RenderElement<FlatElementData>;
   /** Optional custom renderer for links */
-  readonly renderLink?: RenderLink<GraphLink>;
+  readonly renderLink?: RenderLink<FlatLinkData>;
 }
 
 /**
@@ -145,9 +145,9 @@ export class PaperStore {
   /** Reference to the overwrite result if custom rendering is used */
   public overWriteResultRef?: OverWriteResult;
   /** Optional custom element renderer */
-  public renderElement?: RenderElement<GraphElement>;
+  public renderElement?: RenderElement<FlatElementData>;
   /** Optional custom link renderer */
-  public renderLink?: RenderLink<GraphLink>;
+  public renderLink?: RenderLink<FlatLinkData>;
 
   /**
    * Cleanup function to unregister paper update callback from GraphStore.

@@ -8,7 +8,7 @@ import {
   type GraphProps,
   type RenderElement,
   type LinkToGraphOptions,
-  type GraphLink,
+  type FlatLinkData,
 } from '@joint/react';
 import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
@@ -68,7 +68,7 @@ function Main() {
   );
 }
 
-interface CustomLink extends GraphLink {
+interface CustomLink extends FlatLinkData {
   readonly color: string;
 }
 
@@ -81,7 +81,7 @@ const links: Record<string, CustomLink> = {
 };
 
 const mapDataToLinkAttributes = (
-  options: LinkToGraphOptions<GraphLink>
+  options: LinkToGraphOptions<FlatLinkData>
 ): dia.Cell.JSON => {
 
   const attributes = options.toAttributes(options.data);

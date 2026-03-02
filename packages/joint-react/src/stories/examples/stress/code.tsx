@@ -4,8 +4,8 @@ import {
   GraphProvider,
   Paper,
   useLinkLayout,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   type RenderLink,
 } from '@joint/react';
 import '../index.css';
@@ -103,7 +103,7 @@ function StressLinkPath() {
 function Main({
   setElements,
 }: Readonly<{
-  setElements: React.Dispatch<React.SetStateAction<Record<string, GraphElement>>>;
+  setElements: React.Dispatch<React.SetStateAction<Record<string, FlatElementData>>>;
 }>) {
   // Memoize the renderElement function to prevent unnecessary re-renders
   const renderElement = useCallback(
@@ -118,7 +118,7 @@ function Main({
     // This allows React to keep the UI responsive during the update
     startTransition(() => {
       setElements((previousElements) => {
-        const newElements: Record<string, GraphElement> = {};
+        const newElements: Record<string, FlatElementData> = {};
         for (const [id, node] of Object.entries(previousElements)) {
           newElements[id] = {
             ...node,
@@ -155,8 +155,8 @@ function Main({
 }
 
 export default function App() {
-  const [elements, setElements] = useState<Record<string, GraphElement>>(initialNodes);
-  const [links, setLinks] = useState<Record<string, GraphLink>>(initialEdges);
+  const [elements, setElements] = useState<Record<string, FlatElementData>>(initialNodes);
+  const [links, setLinks] = useState<Record<string, FlatLinkData>>(initialEdges);
 
   return (
     <GraphProvider

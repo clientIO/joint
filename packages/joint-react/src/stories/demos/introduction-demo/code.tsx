@@ -17,9 +17,9 @@ import {
   useHighlighter,
   useNodeSize,
   useLinks,
-  type GraphElement,
-  type GraphElementPort,
-  type GraphLink,
+  type FlatElementData,
+  type FlatElementPort,
+  type FlatLinkData,
   type ReactPaper,
   type PaperProps,
   useNodeLayout,
@@ -31,7 +31,7 @@ import { getMessageNodeClassName } from './get-message-node-class-name';
 import { isCellSelected } from './is-cell-selected';
 
 // Define types for the elements
-interface ElementBase extends GraphElement {
+interface ElementBase extends FlatElementData {
   readonly elementType: 'alert' | 'info' | 'table';
 }
 
@@ -58,7 +58,7 @@ const BUTTON_CLASSNAME =
 const ROW_HEIGHT_OFFSET = 45;
 const PORT_START_Y = 65;
 
-function buildTablePorts(rows: string[][]): GraphElementPort[] {
+function buildTablePorts(rows: string[][]): FlatElementPort[] {
   return rows.map((_, index) => ({
     id: `out-3-${index}`,
     cx: 400,
@@ -127,7 +127,7 @@ const elements: Record<string, Element> = {
 };
 
 // Create initial links from table element port to another element as Record
-const links: Record<string, GraphLink> = {
+const links: Record<string, FlatLinkData> = {
   link2: {
     source: '3', // Port from table element
     sourcePort: 'out-3-0',

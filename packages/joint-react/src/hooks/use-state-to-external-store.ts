@@ -6,8 +6,8 @@ import {
   type Dispatch,
   type SetStateAction,
 } from 'react';
-import type { GraphElement } from '../types/element-types';
-import type { GraphLink } from '../types/link-types';
+import type { FlatElementData } from '../types/element-types';
+import type { FlatLinkData } from '../types/link-types';
 import type { ExternalStoreLike } from '../utils/create-state';
 import type { GraphStoreSnapshot } from '../store';
 import { isUpdater } from '../utils/is';
@@ -20,15 +20,15 @@ import type { dia } from '@joint/core';
  * @template Element - The type of elements
  * @template Link - The type of links
  */
-interface Options<Element extends GraphElement, Link extends GraphLink> {
+interface Options<ElementData = FlatElementData, LinkData = FlatLinkData> {
   /** Current elements Record from React state, keyed by cell ID */
-  readonly elements?: Record<dia.Cell.ID, Element>;
+  readonly elements?: Record<dia.Cell.ID, ElementData>;
   /** Current links Record from React state, keyed by cell ID */
-  readonly links?: Record<dia.Cell.ID, Link>;
+  readonly links?: Record<dia.Cell.ID, LinkData>;
   /** Callback function called when elements change */
-  readonly onElementsChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, Element>>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, ElementData>>>;
   /** Callback function called when links change */
-  readonly onLinksChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, Link>>>;
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, LinkData>>>;
 }
 
 /**
@@ -46,12 +46,12 @@ interface Options<Element extends GraphElement, Link extends GraphLink> {
  * @param options - The options containing elements, links, and their change handlers
  * @returns An external store-like interface compatible with GraphStore, or undefined if uncontrolled
  */
-export function useStateToExternalStore<Element extends GraphElement, Link extends GraphLink>(
-  options: Options<Element, Link>
-): ExternalStoreLike<GraphStoreSnapshot<Element, Link>> | undefined {
+export function useStateToExternalStore<ElementData = FlatElementData, LinkData = FlatLinkData>(
+  options: Options<ElementData, LinkData>
+): ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>> | undefined {
   const { elements = {}, links = {}, onElementsChange, onLinksChange } = options;
   const subscribers = useRef<Set<() => void>>(new Set());
-  const snapshot = useRef<GraphStoreSnapshot<Element, Link>>({ elements, links });
+  const snapshot = useRef<GraphStoreSnapshot<ElementData, LinkData>>({ elements, links });
 
   const hasOnChange = typeof onElementsChange === 'function' || typeof onLinksChange === 'function';
   const notifySubscribers = useRef(() => {
@@ -76,7 +76,7 @@ export function useStateToExternalStore<Element extends GraphElement, Link exten
     notifySubscribers.current();
   }, [elements, hasOnChange, links]);
 
-  const store = useMemo((): ExternalStoreLike<GraphStoreSnapshot<Element, Link>> | undefined => {
+  const store = useMemo((): ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>> | undefined => {
     if (!hasOnChange) {
       return undefined;
     }

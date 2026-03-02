@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { g, highlighters, V } from '@joint/core';
-import type { GraphElement } from '@joint/react';
+import type { FlatElementData } from '@joint/react';
 import { GraphProvider, Paper, TextNode, useGraph } from '@joint/react';
 import { useCallback, useEffect } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
@@ -16,7 +16,7 @@ const ShapeTypes = {
 
 type ShapeType = (typeof ShapeTypes)[keyof typeof ShapeTypes];
 
-interface ShapeElement extends GraphElement {
+interface ShapeElement extends FlatElementData {
   readonly type: ShapeType;
   readonly width: number;
   readonly height: number;

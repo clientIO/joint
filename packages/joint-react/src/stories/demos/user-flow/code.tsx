@@ -6,8 +6,8 @@ import {
   Paper,
   useCellId,
   type ElementToGraphOptions,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 import type { dia } from '@joint/core';
 import { useCallback, useState } from 'react';
@@ -21,7 +21,7 @@ import {
   type OutputPort,
 } from './port-utilities';
 
-type NodeType = GraphElement & {
+type NodeType = FlatElementData & {
   readonly title: string;
   readonly description: string;
   readonly nodeType: 'user-action' | 'entity' | 'confirm' | 'message';
@@ -65,7 +65,7 @@ const nodes: Record<string, NodeType> = {
   },
 };
 
-const links: Record<string, GraphLink> = {
+const links: Record<string, FlatLinkData> = {
   link1: {
     source: '1',
     sourcePort: '1',
@@ -90,7 +90,7 @@ const links: Record<string, GraphLink> = {
 };
 
 const mapDataToElementAttributes = (
-  options: ElementToGraphOptions<GraphElement>
+  options: ElementToGraphOptions<FlatElementData>
 ): dia.Cell.JSON => {
   const result = options.toAttributes(options.data);
   const { outputPorts } = options.data as NodeType;
@@ -173,8 +173,8 @@ function RenderElement({ title, description, nodeType, outputPorts, onAddPort }:
 }
 
 function Main() {
-  const [elements, setElements] = useState<Record<string, GraphElement>>(nodes);
-  const [controlledLinks, setControlledLinks] = useState<Record<string, GraphLink>>(links);
+  const [elements, setElements] = useState<Record<string, FlatElementData>>(nodes);
+  const [controlledLinks, setControlledLinks] = useState<Record<string, FlatLinkData>>(links);
 
   const onAddPort = useCallback((id: dia.Cell.ID) => {
     setElements((previous) => {

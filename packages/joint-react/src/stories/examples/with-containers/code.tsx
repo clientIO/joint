@@ -1,11 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { dia } from '@joint/core';
-import type { GraphLink } from '@joint/react';
-import { GraphProvider, Paper, useNodeSize, type GraphElement } from '@joint/react';
+import type { FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, useNodeSize, type FlatElementData } from '@joint/react';
 import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
-interface ContainerElement extends GraphElement {
+interface ContainerElement extends FlatElementData {
   readonly label: string;
   readonly isContainer?: boolean;
 }
@@ -36,7 +36,7 @@ const elements: Record<string, ContainerElement> = {
   },
 };
 
-const links: Record<string, GraphLink> = {
+const links: Record<string, FlatLinkData> = {
   'link-1': {
     source: 'child-1',
     target: 'child-2',

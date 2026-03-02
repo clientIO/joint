@@ -1,17 +1,17 @@
 import { useMemo } from 'react';
 import type { dia } from '@joint/core';
-import type { GraphElement } from '../types/element-types';
-import type { GraphLink } from '../types/link-types';
+import type { FlatElementData } from '../types/element-types';
+import type { FlatLinkData } from '../types/link-types';
 import type { GraphStoreSnapshot } from '../store';
 import { useGraphStore } from './use-graph-store';
 
 /**
- * Normalizes element attributes to the GraphElement format.
+ * Normalizes element attributes to the FlatElementData format.
  * Converts nested JointJS format (position: {x, y}, size: {width, height})
  * to flat format (x, y, width, height).
  * @param attributes
  */
-function normalizeElementAttributes<T extends GraphElement>(attributes: T): T {
+function normalizeElementAttributes<T>(attributes: T): T {
   const {
     position,
     size,
@@ -25,14 +25,14 @@ function normalizeElementAttributes<T extends GraphElement>(attributes: T): T {
 
   // Convert position to flat x, y (prefer position over existing x, y)
   if (position !== undefined) {
-    (normalized as GraphElement).x = position.x;
-    (normalized as GraphElement).y = position.y;
+    (normalized as FlatElementData).x = position.x;
+    (normalized as FlatElementData).y = position.y;
   }
 
   // Convert size to flat width, height (prefer size over existing width, height)
   if (size !== undefined) {
-    (normalized as GraphElement).width = size.width;
-    (normalized as GraphElement).height = size.height;
+    (normalized as FlatElementData).width = size.width;
+    (normalized as FlatElementData).height = size.height;
   }
 
   return normalized;
@@ -42,7 +42,7 @@ function normalizeElementAttributes<T extends GraphElement>(attributes: T): T {
  * Actions for manipulating cells (elements and links) in the graph.
  * @template Attributes - The type of cell attributes, which can be an element or a link
  */
-interface CellActions<Attributes extends dia.Element | GraphElement> {
+interface CellActions<Attributes = FlatElementData> {
   /**
    * Sets or updates a cell in the graph.
    * Can be called in two ways:
@@ -63,7 +63,7 @@ interface CellActions<Attributes extends dia.Element | GraphElement> {
  * @param cell - The cell to check.
  * @returns True if the cell is a link, false otherwise.
  */
-function isLink(cell: GraphElement | GraphLink): cell is GraphLink {
+function isLink(cell: FlatElementData | FlatLinkData): cell is FlatLinkData {
   return 'source' in cell && 'target' in cell;
 }
 
@@ -89,7 +89,7 @@ function isLink(cell: GraphElement | GraphLink): cell is GraphLink {
  * @returns An object containing methods to set and remove cells
  * @example
  * ```tsx
- * const { set, remove } = useCellActions<GraphElement | GraphLink<"standard.Link">>();
+ * const { set, remove } = useCellActions<FlatElementData | FlatLinkData<"standard.Link">>();
  *
  * // Add or update element with ID and attributes
  * set('1', { x: 100, y: 150, width: 100, height: 50 });
@@ -102,7 +102,7 @@ function isLink(cell: GraphElement | GraphLink): cell is GraphLink {
  * ```
  */
 export function useCellActions<
-  Attributes extends GraphElement | GraphLink,
+  Attributes = FlatElementData | FlatLinkData,
 >(): CellActions<Attributes> {
   const { graph, publicState } = useGraphStore();
 
@@ -116,15 +116,16 @@ export function useCellActions<
         const { elements, links } = publicState.getSnapshot();
 
         if (typeof attributesOrUpdater === 'function') {
-          const cell: GraphElement | GraphLink | undefined = elements[id] || links[id];
+          const cell: FlatElementData | FlatLinkData | undefined = elements[id] || links[id];
 
           if (!cell) throw new Error(`Cell with id "${id}" not found.`);
-          attributes = attributesOrUpdater(cell as Attributes);
+          attributes = (attributesOrUpdater as (previous: Attributes) => Attributes)(cell as Attributes);
         } else {
           attributes = attributesOrUpdater;
         }
 
-        const areAttributesLink = isLink(attributes);
+        const cellData = attributes as FlatElementData | FlatLinkData;
+        const areAttributesLink = isLink(cellData);
         const targetId = id;
 
         const hasElement = targetId in elements;
@@ -135,14 +136,14 @@ export function useCellActions<
         const newLinks = { ...links };
 
         if (hasElement) {
-          newElements[targetId] = normalizeElementAttributes(attributes);
+          newElements[targetId] = normalizeElementAttributes(cellData as FlatElementData);
         } else if (hasLink) {
-          newLinks[targetId] = attributes as GraphLink;
+          newLinks[targetId] = cellData as FlatLinkData;
         } else if (!isFound) {
           if (areAttributesLink) {
-            newLinks[targetId] = attributes as GraphLink;
+            newLinks[targetId] = cellData as FlatLinkData;
           } else {
-            newElements[targetId] = normalizeElementAttributes(attributes);
+            newElements[targetId] = normalizeElementAttributes(cellData as FlatElementData);
           }
         }
 

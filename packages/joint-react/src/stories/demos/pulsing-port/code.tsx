@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import { shapes } from '@joint/core';
-import type { GraphElement, GraphElementPort } from '@joint/react';
+import type { FlatElementData, FlatElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
 import {
   getCellId,
@@ -61,18 +61,18 @@ const Pulse = dia.HighlighterView.extend({
   },
 });
 
-const NODE_PORTS: GraphElementPort[] = [
+const NODE_PORTS: FlatElementPort[] = [
   { id: 'in', cx: NODE_WIDTH / 2, cy: 0, width: PORT_SIZE, height: PORT_SIZE, color: LIGHT, passive: true },
   { id: 'out', cx: NODE_WIDTH / 2, cy: NODE_HEIGHT, width: PORT_SIZE, height: PORT_SIZE, color: LIGHT },
 ];
 
-const elements: Record<string, GraphElement> = {
+const elements: Record<string, FlatElementData> = {
   '1': { x: 50, y: 50, ports: NODE_PORTS },
   '2': { x: 350, y: 50, ports: NODE_PORTS },
   '3': { x: 150, y: 250, ports: NODE_PORTS },
 };
 
-function NodeElement(_props: Readonly<GraphElement>) {
+function NodeElement(_props: Readonly<FlatElementData>) {
   const id = useCellId();
   const rectRef = useRef<SVGRectElement>(null);
   const { width, height } = useNodeSize(rectRef);

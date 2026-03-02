@@ -3,7 +3,7 @@
 import {
   GraphProvider,
   Paper,
-  type GraphLink,
+  type FlatLinkData,
   type GraphProps,
   type RenderElement,
 } from '@joint/react';
@@ -17,7 +17,7 @@ const initialElements: Record<string, { label: string; x: number; y: number }> =
   '2': { label: 'Node 2', x: 100, y: 200 },
 };
 
-const initialEdges: Record<string, GraphLink> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',

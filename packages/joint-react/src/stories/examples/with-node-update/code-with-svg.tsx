@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useElements, type GraphLink } from '@joint/react';
+import { GraphProvider, Paper, useElements, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
@@ -13,7 +13,7 @@ const initialElements: Record<
   '2': { color: PRIMARY, x: 100, y: 200, width: 130, height: 35 },
 };
 
-const initialEdges: Record<string, GraphLink> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',

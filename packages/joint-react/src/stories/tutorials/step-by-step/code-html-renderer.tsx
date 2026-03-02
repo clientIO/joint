@@ -5,14 +5,14 @@ import {
   usePaper,
   useNodeSize,
   type GraphProps,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME } from 'storybook-config/theme';
 
 // Define element type with custom properties
-type CustomElement = GraphElement & { data: { label: string } };
+type CustomElement = FlatElementData & { data: { label: string } };
 
 // Define initial elements as Record
 const initialElements: Record<string, CustomElement> = {
@@ -21,7 +21,7 @@ const initialElements: Record<string, CustomElement> = {
 };
 
 // Define initial edges as Record
-const initialEdges: Record<string, GraphLink> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',

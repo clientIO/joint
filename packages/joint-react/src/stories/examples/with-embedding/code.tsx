@@ -8,7 +8,7 @@ import {
   useElement,
   useElements,
   useGraph,
-  type GraphElement,
+  type FlatElementData,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useEffect, useState } from 'react';
@@ -17,7 +17,7 @@ import { useCallback, useEffect, useState } from 'react';
 // Types
 // ============================================================================
 
-interface EmbeddingElement extends GraphElement {
+interface EmbeddingElement extends FlatElementData {
   readonly label: string;
   readonly color: string;
 }

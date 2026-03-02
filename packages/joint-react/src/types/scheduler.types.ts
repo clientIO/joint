@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
-import type { GraphElement } from './element-types';
-import type { GraphLink } from './link-types';
+import type { FlatElementData } from './element-types';
+import type { FlatLinkData } from './link-types';
 
 /**
  * Unified scheduler data structure for batching all JointJS to React updates.
@@ -9,11 +9,11 @@ import type { GraphLink } from './link-types';
  */
 export interface GraphSchedulerData {
   // Elements
-  readonly elementsToUpdate?: Map<dia.Cell.ID, GraphElement>;
+  readonly elementsToUpdate?: Map<dia.Cell.ID, FlatElementData>;
   readonly elementsToDelete?: Map<dia.Cell.ID, true>;
 
   // Links
-  readonly linksToUpdate?: Map<dia.Cell.ID, GraphLink>;
+  readonly linksToUpdate?: Map<dia.Cell.ID, FlatLinkData>;
   readonly linksToDelete?: Map<dia.Cell.ID, true>;
 
   // Ports (nested by element ID)

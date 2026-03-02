@@ -1,6 +1,6 @@
 import { dia, shapes, util } from '@joint/core';
-import type { GraphLink } from '../types/link-types';
-import type { GraphElement } from '../types/element-types';
+import type { FlatLinkData } from '../types/link-types';
+import type { FlatElementData } from '../types/element-types';
 import type { AddPaperOptions, PaperStoreSnapshot } from './paper-store';
 import { PaperStore } from './paper-store';
 import {
@@ -52,11 +52,11 @@ export type GraphState = State<GraphStoreInternalSnapshot>;
  * Public snapshot of the graph store containing elements and links.
  */
 export interface GraphStoreSnapshot<
-  Element extends GraphElement = GraphElement,
-  Link extends GraphLink = GraphLink,
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
 > {
-  readonly elements: Record<dia.Cell.ID, Element>;
-  readonly links: Record<dia.Cell.ID, Link>;
+  readonly elements: Record<dia.Cell.ID, ElementData>;
+  readonly links: Record<dia.Cell.ID, LinkData>;
 }
 
 /**
@@ -101,14 +101,14 @@ export interface GraphStoreInternalSnapshot {
  * Configuration options for creating a GraphStore instance.
  */
 export interface GraphStoreOptions<
-  Element extends GraphElement = GraphElement,
-  Link extends GraphLink = GraphLink,
-> extends GraphStateSelectors<Element, Link> {
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
+> extends GraphStateSelectors<ElementData, LinkData> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
-  readonly initialElements?: Record<dia.Cell.ID, GraphElement>;
-  readonly initialLinks?: Record<dia.Cell.ID, GraphLink>;
+  readonly initialElements?: Record<dia.Cell.ID, FlatElementData>;
+  readonly initialLinks?: Record<dia.Cell.ID, FlatLinkData>;
   readonly externalStore?: ExternalGraphStore;
 }
 
@@ -134,20 +134,20 @@ export class GraphStore {
 
   private readonly graphToElementSelector: (
     options: { readonly id: string; readonly cell: dia.Element; readonly graph: dia.Graph } & {
-      readonly previousData?: GraphElement;
+      readonly previousData?: FlatElementData;
     }
-  ) => GraphElement;
+  ) => FlatElementData;
   private readonly graphToLinkSelector: (
     options: { readonly id: string; readonly cell: dia.Link; readonly graph: dia.Graph } & {
-      readonly previousData?: GraphLink;
+      readonly previousData?: FlatLinkData;
     }
-  ) => GraphLink;
+  ) => FlatLinkData;
   public readonly mapDataToElementAttributes: (options: {
-    readonly data: GraphElement;
+    readonly data: FlatElementData;
     readonly graph: dia.Graph;
   }) => dia.Cell.JSON;
   private readonly mapDataToLinkAttributes: (options: {
-    readonly data: GraphLink;
+    readonly data: FlatLinkData;
     readonly graph: dia.Graph;
   }) => dia.Cell.JSON;
 

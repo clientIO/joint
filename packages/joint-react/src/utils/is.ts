@@ -1,13 +1,6 @@
 /* eslint-disable jsdoc/require-jsdoc */
 import { dia, util } from '@joint/core';
-import type { GraphElement } from '../types/element-types';
 import type { FunctionComponent, JSX } from 'react';
-import type { GraphLink } from '../types/link-types';
-
-/**
- * Represents a cell in the graph (either element or link).
- */
-export type GraphCell<Element extends GraphElement = GraphElement> = Element | GraphLink;
 
 export type Setter<Value> = (item: Value) => Value;
 
@@ -29,12 +22,6 @@ export function isAttribute<Value>(value: unknown): value is keyof Value {
 }
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return util.isObject(value);
-}
-
-export function isGraphCell<Element extends GraphElement = GraphElement>(
-  value: unknown
-): value is GraphCell<Element> {
-  return isRecord(value) && 'isElement' in value && 'isLink' in value;
 }
 
 export function isLinkInstance(value: unknown): value is dia.Link {

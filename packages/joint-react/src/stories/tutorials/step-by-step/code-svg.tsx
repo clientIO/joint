@@ -5,12 +5,12 @@ import {
   GraphProvider,
   Paper,
   type GraphProps,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 
 // define element type with custom properties
-type CustomElement = GraphElement & { color: string };
+type CustomElement = FlatElementData & { color: string };
 
 // define initial elements as Record
 const initialElements: Record<string, CustomElement> = {
@@ -19,7 +19,7 @@ const initialElements: Record<string, CustomElement> = {
 };
 
 // define initial edges as Record
-const initialEdges: Record<string, GraphLink> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',

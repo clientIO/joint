@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { util } from '@joint/core';
-import type { GraphLink } from '../types/link-types';
+import type { FlatLinkData } from '../types/link-types';
 import { useGraphStoreSelector } from './use-graph-store-selector';
 
 /**
@@ -11,9 +11,9 @@ import { useGraphStoreSelector } from './use-graph-store-selector';
  * @returns The same links record
  * @internal
  */
-function defaultSelector<Link extends GraphLink = GraphLink>(
-  items: Record<dia.Cell.ID, Link>
-): Record<dia.Cell.ID, Link> {
+function defaultSelector<LinkData = FlatLinkData>(
+  items: Record<dia.Cell.ID, LinkData>
+): Record<dia.Cell.ID, LinkData> {
   return items;
 }
 
@@ -45,7 +45,7 @@ function defaultSelector<Link extends GraphLink = GraphLink>(
  * ```ts
  * // Get all links as a Record
  * const links = useLinks();
- * // links is Record<dia.Cell.ID, GraphLink>
+ * // links is Record<dia.Cell.ID, FlatLinkData>
  * ```
  * @example
  * ```ts
@@ -66,11 +66,11 @@ function defaultSelector<Link extends GraphLink = GraphLink>(
  * );
  * ```
  */
-export function useLinks<Link extends GraphLink = GraphLink, SelectorReturnType = Record<dia.Cell.ID, Link>>(
-  selector: (items: Record<dia.Cell.ID, Link>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+export function useLinks<LinkData = FlatLinkData, SelectorReturnType = Record<dia.Cell.ID, LinkData>>(
+  selector: (items: Record<dia.Cell.ID, LinkData>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
 ): SelectorReturnType {
   return useGraphStoreSelector((snapshot) => {
-    return selector(snapshot.links as Record<dia.Cell.ID, Link>);
+    return selector(snapshot.links as Record<dia.Cell.ID, LinkData>);
   }, isEqual);
 }

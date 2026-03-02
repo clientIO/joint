@@ -4,15 +4,15 @@ import {
   GraphProvider,
   Paper,
   type GraphProps,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   useNodeSize,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 // define element type with custom properties
-type CustomElement = GraphElement & { label: string };
+type CustomElement = FlatElementData & { label: string };
 
 // define initial elements as Record
 const initialElements: Record<string, CustomElement> = {
@@ -21,7 +21,7 @@ const initialElements: Record<string, CustomElement> = {
 };
 
 // define initial edges as Record
-const initialEdges: Record<string, GraphLink> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',

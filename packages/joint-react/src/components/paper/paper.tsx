@@ -26,8 +26,8 @@ import {
   type CSSProperties,
 } from 'react';
 import { useElements, useLinks } from '../../hooks';
-import type { GraphElement } from '../../types/element-types';
-import type { GraphLink } from '../../types/link-types';
+import type { FlatElementData } from '../../types/element-types';
+import type { FlatLinkData } from '../../types/link-types';
 import type { PaperProps, RenderElement, RenderLink } from './paper.types';
 import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
 import { PaperHTMLContainer } from './render-element/paper-html-container';
@@ -91,9 +91,9 @@ function LinkItem({
   portalElement,
   renderLink,
 }: {
-  link: GraphLink;
+  link: FlatLinkData;
   portalElement: SVGAElement;
-  renderLink: RenderLink<GraphLink>;
+  renderLink: RenderLink<FlatLinkData>;
 }) {
   if (!portalElement) {
     return null;
@@ -125,7 +125,7 @@ function LinkItem({
  * }
  * ```
  */
-function PaperBase<ElementItem extends GraphElement = GraphElement>(
+function PaperBase<ElementItem = FlatElementData>(
   props: PaperProps<ElementItem>,
   forwardedRef: React.ForwardedRef<ReactPaper | null>
 ) {
@@ -231,8 +231,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
         defaultLink: defaultLinkJointJS,
       },
       overWrite,
-      renderElement: renderElement as RenderElement<GraphElement>,
-      renderLink: renderLink as RenderLink<GraphLink> | undefined,
+      renderElement: renderElement as RenderElement<FlatElementData>,
+      renderLink: renderLink as RenderLink<FlatLinkData> | undefined,
       scale,
     });
     return () => {
@@ -518,7 +518,7 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
  * }
  * ```
  */
-export const Paper = forwardRef(PaperBase) as <ElementItem extends GraphElement = GraphElement>(
+export const Paper = forwardRef(PaperBase) as <ElementItem = FlatElementData>(
   props: Readonly<PaperProps<ElementItem>> & {
     ref?: React.Ref<dia.Paper | null>;
   }

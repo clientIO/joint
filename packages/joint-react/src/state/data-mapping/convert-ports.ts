@@ -1,13 +1,13 @@
 import { type dia } from '@joint/core';
-import type { GraphElementPort } from '../../types/element-types';
+import type { FlatElementPort } from '../../types/element-types';
 import { defaultElementTheme } from '../../theme/element-theme';
 
 /**
- * Converts a simplified GraphElementPort to a full JointJS port definition.
+ * Converts a simplified FlatElementPort to a full JointJS port definition.
  * @param port - The simplified port definition
  * @returns The full JointJS port definition
  */
-function convertPort(port: GraphElementPort): dia.Element.Port {
+function convertPort(port: FlatElementPort): dia.Element.Port {
   const {
     id,
     cx,
@@ -101,11 +101,11 @@ export function createPortDefaults(): { groups: Record<string, dia.Element.PortG
 }
 
 /**
- * Converts a simplified GraphElementPort array to the full JointJS ports object.
+ * Converts a simplified FlatElementPort array to the full JointJS ports object.
  * @param ports - The array of simplified port definitions
  * @returns The full JointJS ports object with groups and items
  */
-export function convertPorts(ports: GraphElementPort[]): {
+export function convertPorts(ports: FlatElementPort[]): {
   groups: Record<string, dia.Element.PortGroup>;
   items: dia.Element.Port[];
 } {

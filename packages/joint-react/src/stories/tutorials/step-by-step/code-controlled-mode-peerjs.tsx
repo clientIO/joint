@@ -40,8 +40,8 @@
 import {
   GraphProvider,
   type GraphProps,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
   type ExternalGraphStore,
 } from '@joint/react';
@@ -59,14 +59,14 @@ import type { Update } from '../../../utils/create-state';
 /**
  * Custom element type with a label property.
  */
-type CustomElement = GraphElement & { label: string };
+type CustomElement = FlatElementData & { label: string };
 
 const defaultElements: Record<string, CustomElement> = {
   '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
   '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
 };
 
-const defaultLinks: Record<string, GraphLink> = {
+const defaultLinks: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -97,8 +97,8 @@ function RenderItem(props: CustomElement) {
  */
 interface StateSyncMessage {
   type: 'state-update';
-  elements: Record<string, GraphElement>;
-  links: Record<string, GraphLink>;
+  elements: Record<string, FlatElementData>;
+  links: Record<string, FlatLinkData>;
 }
 
 /**
@@ -117,8 +117,8 @@ interface StateSyncMessage {
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
 function createPeerJSStore(
-  initialElements: Record<string, GraphElement>,
-  initialLinks: Record<string, GraphLink>,
+  initialElements: Record<string, FlatElementData>,
+  initialLinks: Record<string, FlatLinkData>,
   callbacks: {
     onPeerIdChange: (id: string | null) => void;
     onConnectionStatusChange: (status: ConnectionStatus) => void;
@@ -470,7 +470,7 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
             const { [removedElementId]: _removed, ...newElements } = currentState.elements;
 
             // Remove links connected to the removed element
-            const newLinks: Record<string, GraphLink> = {};
+            const newLinks: Record<string, FlatLinkData> = {};
             for (const [id, link] of Object.entries(currentState.links)) {
               if (link.source !== removedElementId && link.target !== removedElementId) {
                 newLinks[id] = link;

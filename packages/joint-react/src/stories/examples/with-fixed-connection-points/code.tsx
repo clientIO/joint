@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useRef } from 'react';
-import type { GraphLink, GraphElement } from '@joint/react';
+import type { FlatLinkData, FlatElementData } from '@joint/react';
 import { GraphProvider, jsx, Paper } from '@joint/react';
 import { PAPER_CLASSNAME, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
@@ -19,7 +19,7 @@ const ShapeTypes = {
 
 type ShapeType = typeof ShapeTypes[keyof typeof ShapeTypes];
 
-interface BaseElement extends GraphElement {
+interface BaseElement extends FlatElementData {
   readonly shapeType: ShapeType;
   readonly label?: string;
   readonly width: number;
@@ -142,7 +142,7 @@ const initialElements: Record<string, CustomElement> = {
   },
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   link1: {
     source: 'square1',
     sourceAnchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } },

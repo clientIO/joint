@@ -7,8 +7,8 @@ import {
   useCellId,
   useGraph,
   TextNode,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
@@ -61,7 +61,7 @@ const ElementType = {
 
 type ElementType = (typeof ElementType)[keyof typeof ElementType];
 
-interface BaseContainerElement extends GraphElement {
+interface BaseContainerElement extends FlatElementData {
   elementType: ElementType;
 }
 
@@ -76,13 +76,13 @@ interface ChildElement extends BaseContainerElement {
   label: string;
 }
 
-type ContainerGraphElement = ContainerElement | ChildElement;
+type ContainerFlatElementData = ContainerElement | ChildElement;
 
 // ============================================================================
 // Initial Data
 // ============================================================================
 
-const elements: Record<string, ContainerGraphElement> = {
+const elements: Record<string, ContainerFlatElementData> = {
   'container-a': {
     elementType: ElementType.Container,
     title: 'Container A',
@@ -156,7 +156,7 @@ const elements: Record<string, ContainerGraphElement> = {
   },
 };
 
-const links: Record<string, GraphLink> = {
+const links: Record<string, FlatLinkData> = {
   'link-1-2': {
     source: 'child-1',
     target: 'child-2',
@@ -401,7 +401,7 @@ function Main() {
     return !hasCollapsedAncestor(cell);
   }, []);
 
-  const renderElement = useCallback((element: ContainerGraphElement) => {
+  const renderElement = useCallback((element: ContainerFlatElementData) => {
     switch (element.elementType) {
       case ElementType.Container: {
         return <ContainerNode {...element} />;

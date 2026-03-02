@@ -8,8 +8,8 @@ import {
   useCellId,
   useGraph,
   useHighlighter,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -21,7 +21,7 @@ import './styles.css';
 // Data
 // ============================================================================
 
-interface NodeData extends GraphElement {
+interface NodeData extends FlatElementData {
   readonly label: string;
   readonly width: number;
   readonly height: number;
@@ -86,7 +86,7 @@ const initialElements: Record<string, NodeData> = {
   },
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   'l-server-db': {
     source: 'server',
     target: 'db',

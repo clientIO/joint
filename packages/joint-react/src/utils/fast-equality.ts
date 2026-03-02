@@ -1,5 +1,5 @@
 import { util } from '@joint/core';
-import type { GraphElement } from '../types/element-types';
+import type { FlatElementData } from '../types/element-types';
 
 /**
  * Fast equality check for arrays of graph elements.
@@ -10,7 +10,7 @@ import type { GraphElement } from '../types/element-types';
  * @param compareFunction - Optional deep comparison function. Defaults to util.isEqual
  * @returns True if arrays are equal, false otherwise
  */
-export function fastElementArrayEqual<T extends GraphElement>(
+export function fastElementArrayEqual<T extends Record<string, unknown>>(
   a: T[],
   b: T[],
   compareFunction: (a: T, b: T) => boolean = util.isEqual
@@ -43,11 +43,11 @@ export function fastElementArrayEqual<T extends GraphElement>(
  * @param data - The element to extract properties from
  * @returns Record of properties excluding x and y
  */
-function extractNonPositionProperties(data: GraphElement): Record<string, unknown> {
+function extractNonPositionProperties(data: FlatElementData): Record<string, unknown> {
   const rest: Record<string, unknown> = {};
   for (const key in data) {
     if (key !== 'x' && key !== 'y') {
-      rest[key] = data[key as keyof GraphElement];
+      rest[key] = data[key as keyof FlatElementData];
     }
   }
   return rest;
@@ -60,7 +60,7 @@ function extractNonPositionProperties(data: GraphElement): Record<string, unknow
  * @param next - Next array of elements
  * @returns True if only positions changed, false otherwise
  */
-export function isPositionOnlyUpdate(previous: GraphElement[], next: GraphElement[]): boolean {
+export function isPositionOnlyUpdate(previous: FlatElementData[], next: FlatElementData[]): boolean {
   if (previous.length !== next.length) {
     return false;
   }

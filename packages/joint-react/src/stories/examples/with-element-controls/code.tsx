@@ -1,5 +1,5 @@
 import type { OnLoadOptions } from '@joint/react';
-import { GraphProvider, Paper, type GraphElement } from '@joint/react';
+import { GraphProvider, Paper, type FlatElementData } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia } from '@joint/core';
@@ -26,7 +26,7 @@ type ElementType =
   | 'cube'
   | 'card';
 
-interface BaseElement extends GraphElement {
+interface BaseElement extends FlatElementData {
   type: ElementType;
   label: string;
   width: number;

@@ -35,8 +35,8 @@
 import {
   GraphProvider,
   type GraphProps,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
   type ExternalGraphStore,
 } from '@joint/react';
@@ -54,14 +54,14 @@ import type { Update } from '../../../utils/create-state';
 /**
  * Custom element type with a label property.
  */
-type CustomElement = GraphElement & { label: string };
+type CustomElement = FlatElementData & { label: string };
 
 const defaultElements: Record<string, CustomElement> = {
   '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
   '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
 };
 
-const defaultLinks: Record<string, GraphLink> = {
+const defaultLinks: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -91,11 +91,11 @@ function RenderItem(props: CustomElement) {
  */
 interface GraphStore {
   /** Record of all elements (nodes) in the graph keyed by ID */
-  elements: Record<string, GraphElement>;
+  elements: Record<string, FlatElementData>;
   /** Record of all links (edges) in the graph keyed by ID */
-  links: Record<string, GraphLink>;
+  links: Record<string, FlatLinkData>;
   /** Action to add a new element */
-  addElement: (id: string, data: GraphElement) => void;
+  addElement: (id: string, data: FlatElementData) => void;
   /** Action to remove the last element */
   removeLastElement: () => void;
   /** Action to update the graph state (used by adapter) */
@@ -107,10 +107,10 @@ interface GraphStore {
  * Zustand stores are simple - just define state and actions in one place.
  */
 const useGraphStore = create<GraphStore>((set) => ({
-  elements: defaultElements as Record<string, GraphElement>,
-  links: defaultLinks as Record<string, GraphLink>,
+  elements: defaultElements as Record<string, FlatElementData>,
+  links: defaultLinks as Record<string, FlatLinkData>,
 
-  addElement: (id: string, element: GraphElement) => {
+  addElement: (id: string, element: FlatElementData) => {
     set((state) => ({
       elements: { ...state.elements, [id]: element },
     }));
@@ -129,7 +129,7 @@ const useGraphStore = create<GraphStore>((set) => ({
       // eslint-disable-next-line sonarjs/no-unused-vars
       const { [removedElementId]: _removed, ...newElements } = state.elements;
 
-      const newLinks: Record<string, GraphLink> = {};
+      const newLinks: Record<string, FlatLinkData> = {};
       for (const [id, link] of Object.entries(state.links)) {
         if (link.source !== removedElementId && link.target !== removedElementId) {
           newLinks[id] = link;

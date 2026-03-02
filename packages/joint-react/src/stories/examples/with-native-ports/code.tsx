@@ -4,14 +4,14 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   type ElementToGraphOptions,
 } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-interface NativeElement extends GraphElement {
+interface NativeElement extends FlatElementData {
   readonly color: string;
   readonly label: string;
   readonly inputPorts?: readonly string[];
@@ -65,7 +65,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
 }
 
 const mapDataToElementAttributes = (
-  options: ElementToGraphOptions<GraphElement>
+  options: ElementToGraphOptions<FlatElementData>
 ): dia.Cell.JSON => {
   const result = options.toAttributes(options.data);
   const { color, label, inputPorts, outputPorts } = options.data as NativeElement;
@@ -127,7 +127,7 @@ const initialElements: Record<string, NativeElement> = {
   },
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   'link-1': {
     source: 'node-1',
     sourcePort: 'out-1',

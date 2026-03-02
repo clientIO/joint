@@ -10,8 +10,8 @@ import {
   usePaper,
   useNodeSize,
   useNodeLayout,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   type PaperProps,
   type RenderElement,
   // ReactLinkView,
@@ -28,14 +28,14 @@ const PAPER_CLASSNAME = 'border-1 border-gray-300 rounded-lg shadow-md overflow-
 const MINIMAP_WIDTH = 200;
 const MINIMAP_HEIGHT = 150;
 
-interface ElementData extends GraphElement {
+interface ElementData extends FlatElementData {
   readonly type?: 'default' | 'error' | 'info';
   readonly title?: string;
   readonly color?: string;
   readonly jjType?: string;
 }
 
-interface LinkData extends GraphLink {
+interface LinkData extends FlatLinkData {
   readonly className?: string;
   readonly jjType?: string;
 }

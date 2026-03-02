@@ -2,8 +2,8 @@ import type { GraphStoreSnapshot } from '../store/graph-store';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import { removeDeepReadOnly, type ExternalStoreLike } from '../utils/create-state';
 import type { dia } from '@joint/core';
-import type { GraphElement } from '../types/element-types';
-import type { GraphLink } from '../types/link-types';
+import type { FlatElementData } from '../types/element-types';
+import type { FlatLinkData } from '../types/link-types';
 import type {
   ElementToGraphOptions,
   GraphToElementOptions,
@@ -27,18 +27,18 @@ export interface StateSync {
 
 interface StateSyncOptions<
   Graph extends dia.Graph,
-  Element extends GraphElement,
-  Link extends GraphLink,
-> extends GraphStateSelectors<Element, Link> {
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
+> extends GraphStateSelectors<ElementData, LinkData> {
   readonly graph: Graph;
-  readonly store: Omit<ExternalStoreLike<GraphStoreSnapshot<Element, Link>>, 'setState'>;
+  readonly store: Omit<ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>, 'setState'>;
   readonly scheduler: Scheduler<GraphSchedulerData>;
   readonly graphToElementSelector?: (
-    options: GraphToElementOptions<Element> & { readonly graph: Graph }
-  ) => Element;
+    options: GraphToElementOptions<ElementData> & { readonly graph: Graph }
+  ) => ElementData;
   readonly graphToLinkSelector?: (
-    options: GraphToLinkOptions<Link> & { readonly graph: Graph }
-  ) => Link;
+    options: GraphToLinkOptions<LinkData> & { readonly graph: Graph }
+  ) => LinkData;
   /**
    * Callback invoked after the graph is successfully updated from the store.
    * Used to trigger layout updates when changes come from React state (e.g., useCellActions).
@@ -80,18 +80,18 @@ function mapDelete<K, V>(map: Map<K, V> | undefined, key: K): Map<K, V> {
  */
 function mapCellsToData<
   Graph extends dia.Graph,
-  Element extends GraphElement,
-  Link extends GraphLink,
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
 >(
   cells: dia.Cell[],
   graph: Graph,
-  elementSelector: (options: GraphToElementOptions<Element> & { readonly graph: Graph }) => Element,
-  linkSelector: (options: GraphToLinkOptions<Link> & { readonly graph: Graph }) => Link,
-  previousElements?: Record<dia.Cell.ID, Element>,
-  previousLinks?: Record<dia.Cell.ID, Link>
-): { elements: Map<dia.Cell.ID, GraphElement>; links: Map<dia.Cell.ID, GraphLink> } {
-  const elements = new Map<dia.Cell.ID, GraphElement>();
-  const links = new Map<dia.Cell.ID, GraphLink>();
+  elementSelector: (options: GraphToElementOptions<ElementData> & { readonly graph: Graph }) => ElementData,
+  linkSelector: (options: GraphToLinkOptions<LinkData> & { readonly graph: Graph }) => LinkData,
+  previousElements?: Record<dia.Cell.ID, ElementData>,
+  previousLinks?: Record<dia.Cell.ID, LinkData>
+): { elements: Map<dia.Cell.ID, ElementData>; links: Map<dia.Cell.ID, LinkData> } {
+  const elements = new Map<dia.Cell.ID, ElementData>();
+  const links = new Map<dia.Cell.ID, LinkData>();
 
   for (const cell of cells) {
     if (cell.isElement()) {
@@ -131,9 +131,9 @@ function findIdsToDelete(
  */
 export function stateSync<
   Graph extends dia.Graph,
-  Element extends GraphElement,
-  Link extends GraphLink,
->(options: StateSyncOptions<Graph, Element, Link>): StateSync {
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
+>(options: StateSyncOptions<Graph, ElementData, LinkData>): StateSync {
   const {
     graph,
     store,
@@ -144,12 +144,12 @@ export function stateSync<
   } = options;
 
   const elementSelector = (options.graphToElementSelector ?? defaultMapElementAttributesToData) as (
-    options: GraphToElementOptions<Element> & { readonly graph: Graph }
-  ) => Element;
+    options: GraphToElementOptions<ElementData> & { readonly graph: Graph }
+  ) => ElementData;
 
   const linkSelector = (options.graphToLinkSelector ?? defaultMapLinkAttributesToData) as (
-    options: GraphToLinkOptions<Link> & { readonly graph: Graph }
-  ) => Link;
+    options: GraphToLinkOptions<LinkData> & { readonly graph: Graph }
+  ) => LinkData;
 
   // --- Scheduling ---
 
@@ -157,24 +157,24 @@ export function stateSync<
     scheduler.scheduleData((data) => {
       const snapshot = store.getSnapshot();
       if (cell.isElement()) {
-        const previousData = snapshot.elements[cell.id] as Element | undefined;
+        const previousData = snapshot.elements[cell.id] as ElementData | undefined;
         return {
           ...data,
           elementsToUpdate: mapSet(
             data.elementsToUpdate,
             cell.id,
-            mapGraphElement(cell, graph, elementSelector, previousData)
+            mapGraphElement(cell, graph, elementSelector, previousData) as FlatElementData
           ),
         };
       }
       if (cell.isLink()) {
-        const previousData = snapshot.links[cell.id] as Link | undefined;
+        const previousData = snapshot.links[cell.id] as LinkData | undefined;
         return {
           ...data,
           linksToUpdate: mapSet(
             data.linksToUpdate,
             cell.id,
-            mapGraphLink(cell, graph, linkSelector, previousData)
+            mapGraphLink(cell, graph, linkSelector, previousData) as FlatLinkData
           ),
         };
       }
@@ -210,14 +210,14 @@ export function stateSync<
         graph,
         elementSelector,
         linkSelector,
-        snapshot.elements as Record<dia.Cell.ID, Element>,
-        snapshot.links as Record<dia.Cell.ID, Link>
+        snapshot.elements as Record<dia.Cell.ID, ElementData>,
+        snapshot.links as Record<dia.Cell.ID, LinkData>
       );
 
       return {
         ...data,
-        elementsToUpdate: elements,
-        linksToUpdate: links,
+        elementsToUpdate: elements as Map<dia.Cell.ID, FlatElementData>,
+        linksToUpdate: links as Map<dia.Cell.ID, FlatLinkData>,
         elementsToDelete: findIdsToDelete(
           Object.keys(snapshot.elements),
           new Set(elements.keys()),
@@ -240,13 +240,13 @@ export function stateSync<
         graph,
         elementSelector,
         linkSelector,
-        snapshot.elements as Record<dia.Cell.ID, Element>,
-        snapshot.links as Record<dia.Cell.ID, Link>
+        snapshot.elements as Record<dia.Cell.ID, ElementData>,
+        snapshot.links as Record<dia.Cell.ID, LinkData>
       );
       return {
         ...data,
-        elementsToUpdate: new Map([...(data.elementsToUpdate ?? []), ...elements]),
-        linksToUpdate: new Map([...(data.linksToUpdate ?? []), ...links]),
+        elementsToUpdate: new Map([...(data.elementsToUpdate ?? []), ...(elements as Map<dia.Cell.ID, FlatElementData>)]),
+        linksToUpdate: new Map([...(data.linksToUpdate ?? []), ...(links as Map<dia.Cell.ID, FlatLinkData>)]),
       };
     });
   };
@@ -287,15 +287,15 @@ export function stateSync<
 
     const wasUpdated = updateGraph({
       graph,
-      elements: elements as Record<string, Element>,
-      links: links as Record<string, Link>,
+      elements: elements as Record<string, ElementData>,
+      links: links as Record<string, LinkData>,
       graphToElementSelector: elementSelector,
       graphToLinkSelector: linkSelector,
       mapDataToElementAttributes: mapDataToElementAttributes as (
-        options: ElementToGraphOptions<Element> & { readonly graph: Graph }
+        options: ElementToGraphOptions<ElementData> & { readonly graph: Graph }
       ) => dia.Cell.JSON,
       mapDataToLinkAttributes: mapDataToLinkAttributes as (
-        options: LinkToGraphOptions<Link> & { readonly graph: Graph }
+        options: LinkToGraphOptions<LinkData> & { readonly graph: Graph }
       ) => dia.Cell.JSON,
       isUpdateFromReact: true,
     });

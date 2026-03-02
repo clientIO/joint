@@ -23,7 +23,7 @@ By default, @joint/react renders elements using a custom \`ReactElement\` type. 
 
 \`\`\`tsx
 // Define element type with native shape type
-interface NativeElement extends GraphElement {
+interface NativeElement extends FlatElementData {
   type: string; // 'standard.Rectangle', 'standard.Circle', etc.
 }
 

@@ -6,8 +6,8 @@ import {
   Paper,
   useElement,
   useElements,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   type ElementToGraphOptions,
   type GraphToElementOptions,
   type LinkToGraphOptions,
@@ -27,7 +27,7 @@ const SECONDARY = '#6366f1';
  * with custom properties (`label`, `color`) at the top level.
  * The mapper is near-identity.
  */
-interface CellJsonElement extends GraphElement {
+interface CellJsonElement extends FlatElementData {
   readonly type: string;
   readonly position: { x: number; y: number };
   readonly size: { width: number; height: number };
@@ -35,7 +35,7 @@ interface CellJsonElement extends GraphElement {
   readonly color: string;
 }
 
-interface CellJsonLink extends GraphLink {
+interface CellJsonLink extends FlatLinkData {
   readonly type: string;
 }
 
@@ -95,7 +95,7 @@ const LINK_KEYS = Object.keys(Object.values(initialLinks)[0]);
  */
 const mapDataToElementAttributes = ({
   data,
-}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
+}: ElementToGraphOptions<FlatElementData>): dia.Cell.JSON => {
   return { ...data } as dia.Cell.JSON;
 };
 
@@ -104,8 +104,8 @@ const mapDataToElementAttributes = ({
  */
 const mapElementAttributesToData = ({
   cell,
-}: GraphToElementOptions<GraphElement>): GraphElement => {
-  return util.pick(cell.attributes, ELEMENT_KEYS) as GraphElement;
+}: GraphToElementOptions<FlatElementData>): FlatElementData => {
+  return util.pick(cell.attributes, ELEMENT_KEYS) as FlatElementData;
 };
 
 /**
@@ -114,7 +114,7 @@ const mapElementAttributesToData = ({
  */
 const mapDataToLinkAttributes = ({
   data,
-}: LinkToGraphOptions<GraphLink>): dia.Cell.JSON => {
+}: LinkToGraphOptions<FlatLinkData>): dia.Cell.JSON => {
   return { ...data } as unknown as dia.Cell.JSON;
 };
 
@@ -123,8 +123,8 @@ const mapDataToLinkAttributes = ({
  */
 const mapLinkAttributesToData = ({
   cell,
-}: GraphToLinkOptions<GraphLink>): GraphLink => {
-  return util.pick(cell.attributes, LINK_KEYS) as GraphLink;
+}: GraphToLinkOptions<FlatLinkData>): FlatLinkData => {
+  return util.pick(cell.attributes, LINK_KEYS) as FlatLinkData;
 };
 
 // ============================================================================

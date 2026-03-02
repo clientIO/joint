@@ -6,8 +6,8 @@
 import {
   GraphProvider,
   type GraphProps,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
   type ExternalGraphStore,
 } from '@joint/react';
@@ -73,9 +73,9 @@ import type { Update } from '../../../utils/create-state';
  */
 interface GraphState {
   /** Record of all elements (nodes) in the graph keyed by ID */
-  readonly elements: Record<string, GraphElement>;
+  readonly elements: Record<string, FlatElementData>;
   /** Record of all links (edges) in the graph keyed by ID */
-  readonly links: Record<string, GraphLink>;
+  readonly links: Record<string, FlatLinkData>;
 }
 
 // ============================================================================
@@ -85,7 +85,7 @@ interface GraphState {
 /**
  * Custom element type with a label property.
  */
-type CustomElement = GraphElement & { label: string };
+type CustomElement = FlatElementData & { label: string };
 
 /**
  * Initial elements for the graph.
@@ -98,7 +98,7 @@ const defaultElements: Record<string, CustomElement> = {
 /**
  * Initial links for the graph.
  */
-const defaultLinks: Record<string, GraphLink> = {
+const defaultLinks: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -114,15 +114,15 @@ const defaultLinks: Record<string, GraphLink> = {
 const graphSlice = createSlice({
   name: 'graph',
   initialState: {
-    elements: defaultElements as Record<string, GraphElement>,
-    links: defaultLinks as Record<string, GraphLink>,
+    elements: defaultElements as Record<string, FlatElementData>,
+    links: defaultLinks as Record<string, FlatLinkData>,
   } satisfies GraphState,
   reducers: {
     /**
      * Adds a new element to the graph.
      * The element must include an 'id' property that will be used as the key.
      */
-    addElement: (state, action: PayloadAction<{ id: string } & GraphElement>) => {
+    addElement: (state, action: PayloadAction<{ id: string } & FlatElementData>) => {
       const { id, ...element } = action.payload;
       state.elements[id] = element;
     },

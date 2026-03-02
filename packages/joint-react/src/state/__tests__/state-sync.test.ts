@@ -4,8 +4,8 @@ import { DEFAULT_CELL_NAMESPACE, type GraphStoreSnapshot } from '../../store/gra
 import { stateSync } from '../state-sync';
 import { updateGraph } from '../update-graph';
 import { createState } from '../../utils/create-state';
-import type { GraphElement } from '../../types/element-types';
-import type { GraphLink } from '../../types/link-types';
+import type { FlatElementData } from '../../types/element-types';
+import type { FlatLinkData } from '../../types/link-types';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
@@ -20,7 +20,7 @@ import { Scheduler } from '../../utils/scheduler';
 import type { GraphSchedulerData } from '../../types/scheduler.types';
 
 // Helper to create ElementToGraphOptions
-function createElementToGraphOptions<E extends GraphElement>(
+function createElementToGraphOptions<E extends FlatElementData>(
   id: string,
   element: E,
   graph: dia.Graph
@@ -34,7 +34,7 @@ function createElementToGraphOptions<E extends GraphElement>(
 }
 
 // Helper to create LinkToGraphOptions
-function _createLinkToGraphOptions<L extends GraphLink>(
+function _createLinkToGraphOptions<L extends FlatLinkData>(
   id: string,
   data: L,
   graph: dia.Graph
@@ -83,12 +83,12 @@ describe('stateSync', () => {
     it('should sync elements from state to graph on initialization', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { width: 100, height: 100, type: 'ReactElement' },
         '2': { width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
@@ -106,16 +106,16 @@ describe('stateSync', () => {
     it('should sync links from state to graph on initialization', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { width: 100, height: 100, type: 'ReactElement' },
         '2': { width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const initialLinks: Record<string, GraphLink> = {
+      const initialLinks: Record<string, FlatLinkData> = {
         link1: { source: '1', target: '2' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: initialLinks }),
         name: 'elements',
       });
@@ -134,7 +134,7 @@ describe('stateSync', () => {
     it('should schedule element updates when graph element is added', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
@@ -144,7 +144,7 @@ describe('stateSync', () => {
       // Track state updates via scheduler flush
       setFlushCallback((data) => {
         if (data.elementsToUpdate) {
-          const newElements: Record<string, GraphElement> = { ...state.getSnapshot().elements };
+          const newElements: Record<string, FlatElementData> = { ...state.getSnapshot().elements };
           for (const [id, element] of data.elementsToUpdate) {
             newElements[id] = element;
           }
@@ -173,11 +173,11 @@ describe('stateSync', () => {
     it('should schedule element deletion when graph element is removed', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
@@ -215,12 +215,12 @@ describe('stateSync', () => {
     it('should schedule link updates when graph link is added', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { width: 100, height: 100, type: 'ReactElement' },
         '2': { width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
@@ -261,11 +261,11 @@ describe('stateSync', () => {
     it('should update graph when state elements change', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
@@ -294,12 +294,12 @@ describe('stateSync', () => {
     it('should remove graph elements when state elements are removed', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { width: 100, height: 100, type: 'ReactElement' },
         '2': { width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
@@ -329,7 +329,7 @@ describe('stateSync', () => {
     it('should not trigger state update when graph is updated from state (isUpdateFromReact flag)', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
@@ -374,7 +374,7 @@ describe('stateSync', () => {
       graph.syncCells(elementItems, { remove: true });
 
       // Create empty store
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
@@ -419,11 +419,11 @@ describe('stateSync', () => {
       graph.syncCells(elementItems, { remove: true });
 
       // Create store with different elements
-      const storeElements: Record<string, GraphElement> = {
+      const storeElements: Record<string, FlatElementData> = {
         'store-element': { width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: storeElements, links: {} }),
         name: 'elements',
       });
@@ -450,7 +450,7 @@ describe('stateSync', () => {
     it('should properly cleanup all listeners on cleanup()', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
@@ -477,12 +477,12 @@ describe('stateSync', () => {
     it('should handle graph reset correctly', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { width: 100, height: 100, type: 'ReactElement' },
         '2': { width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
@@ -540,7 +540,7 @@ describe('stateSync - comprehensive edge cases', () => {
     it('should batch multiple element updates into single scheduler call', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
@@ -570,7 +570,7 @@ describe('stateSync - comprehensive edge cases', () => {
     it('should handle rapid add/remove cycles', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
@@ -619,11 +619,11 @@ describe('stateSync - comprehensive edge cases', () => {
     it('should handle element position updates', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { x: 0, y: 0, width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
@@ -632,7 +632,7 @@ describe('stateSync - comprehensive edge cases', () => {
 
       setFlushCallback((data) => {
         if (data.elementsToUpdate) {
-          const newElements: Record<string, GraphElement> = { ...state.getSnapshot().elements };
+          const newElements: Record<string, FlatElementData> = { ...state.getSnapshot().elements };
           for (const [id, element] of data.elementsToUpdate) {
             newElements[id] = element;
           }
@@ -656,11 +656,11 @@ describe('stateSync - comprehensive edge cases', () => {
     it('should handle element resize updates', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { x: 0, y: 0, width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
@@ -669,7 +669,7 @@ describe('stateSync - comprehensive edge cases', () => {
 
       setFlushCallback((data) => {
         if (data.elementsToUpdate) {
-          const newElements: Record<string, GraphElement> = { ...state.getSnapshot().elements };
+          const newElements: Record<string, FlatElementData> = { ...state.getSnapshot().elements };
           for (const [id, element] of data.elementsToUpdate) {
             newElements[id] = element;
           }
@@ -693,17 +693,17 @@ describe('stateSync - comprehensive edge cases', () => {
     it('should handle link source/target updates', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { width: 100, height: 100, type: 'ReactElement' },
         '2': { width: 100, height: 100, type: 'ReactElement' },
         '3': { width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const initialLinks: Record<string, GraphLink> = {
+      const initialLinks: Record<string, FlatLinkData> = {
         link1: { source: '1', target: '2' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: initialLinks }),
         name: 'elements',
       });
@@ -712,7 +712,7 @@ describe('stateSync - comprehensive edge cases', () => {
 
       setFlushCallback((data) => {
         if (data.linksToUpdate) {
-          const newLinks: Record<string, GraphLink> = { ...state.getSnapshot().links };
+          const newLinks: Record<string, FlatLinkData> = { ...state.getSnapshot().links };
           for (const [id, link] of data.linksToUpdate) {
             newLinks[id] = link;
           }
@@ -738,7 +738,7 @@ describe('stateSync - comprehensive edge cases', () => {
     it('should handle empty graph gracefully', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
@@ -757,7 +757,7 @@ describe('stateSync - comprehensive edge cases', () => {
     it('should handle removing non-existent elements gracefully', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
@@ -779,7 +779,7 @@ describe('stateSync - comprehensive edge cases', () => {
     it('should handle multiple cleanup calls gracefully', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: {}, links: {} }),
         name: 'elements',
       });
@@ -800,11 +800,11 @@ describe('stateSync - comprehensive edge cases', () => {
     it('should handle simultaneous graph and state updates', async () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         '1': { x: 0, y: 0, width: 100, height: 100, type: 'ReactElement' },
       };
 
-      const state = createState<GraphStoreSnapshot<GraphElement, GraphLink>>({
+      const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
         newState: () => ({ elements: initialElements, links: {} }),
         name: 'elements',
       });
@@ -813,7 +813,7 @@ describe('stateSync - comprehensive edge cases', () => {
 
       setFlushCallback((data) => {
         if (data.elementsToUpdate) {
-          const newElements: Record<string, GraphElement> = { ...state.getSnapshot().elements };
+          const newElements: Record<string, FlatElementData> = { ...state.getSnapshot().elements };
           for (const [id, element] of data.elementsToUpdate) {
             newElements[id] = element;
           }
@@ -848,7 +848,7 @@ describe('updateGraph', () => {
   it('should update graph when elements differ', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-    const elements: Record<string, GraphElement> = {
+    const elements: Record<string, FlatElementData> = {
       '1': { width: 100, height: 100, type: 'ReactElement' },
     };
 
@@ -871,7 +871,7 @@ describe('updateGraph', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
     // Include x and y as they are returned by defaultMapElementAttributesToData
-    const elements: Record<string, GraphElement> = {
+    const elements: Record<string, FlatElementData> = {
       '1': { width: 100, height: 100, x: 0, y: 0, type: 'ReactElement' },
     };
 
@@ -910,7 +910,7 @@ describe('updateGraph', () => {
   it('should return false when graph has active batch', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-    const elements: Record<string, GraphElement> = {
+    const elements: Record<string, FlatElementData> = {
       '1': { width: 100, height: 100, type: 'ReactElement' },
     };
 
@@ -937,7 +937,7 @@ describe('updateGraph', () => {
   it('should use isUpdateFromReact flag when syncing', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
-    const elements: Record<string, GraphElement> = {
+    const elements: Record<string, FlatElementData> = {
       '1': { width: 100, height: 100, type: 'ReactElement' },
     };
 

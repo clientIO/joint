@@ -10,7 +10,7 @@ import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import { useGraph, usePaperStoreContext, useCellId } from '../../../hooks';
-import type { GraphElement } from '../../../types/element-types';
+import type { FlatElementData } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 import { ReactLink, REACT_LINK_TYPE } from '../../../models/react-link';
@@ -471,7 +471,7 @@ describe('Paper Component', () => {
     let currentOutsideElements: Record<string, Element> = {};
     function Content() {
       const [currentElements, setCurrentElements] =
-        useState<Record<string, GraphElement>>(elementsWithPosition);
+        useState<Record<string, FlatElementData>>(elementsWithPosition);
       currentOutsideElements = currentElements as Record<string, Element>;
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
@@ -493,7 +493,7 @@ describe('Paper Component', () => {
   it('should update elements via react state, and then reflect the changes in the paper', async () => {
     function Content() {
       const [currentElements, setCurrentElements] =
-        useState<Record<string, GraphElement>>(elements);
+        useState<Record<string, FlatElementData>>(elements);
 
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>

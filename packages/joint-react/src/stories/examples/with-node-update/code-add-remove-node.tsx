@@ -7,7 +7,7 @@ import {
   useElements,
   useGraph,
   useNodeSize,
-  type GraphLink,
+  type FlatLinkData,
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
@@ -23,7 +23,7 @@ const initialElements: Record<
   '3': { label: 'Node 2', color: '#ffffff', x: 30, y: 180, width: 120, height: 80 },
 };
 
-const initialEdges: Record<string, GraphLink> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-1': {
     source: '1',
     target: '2',

@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
-import type { GraphElement } from '../types/element-types';
+import type { FlatElementData } from '../types/element-types';
 import type { GraphStoreSnapshot, NodeLayout } from './graph-store';
 import type { MarkDeepReadOnly } from '../utils/create-state';
 
@@ -75,7 +75,7 @@ interface Options {
   /** Function to get the current public snapshot containing all elements */
   readonly getPublicSnapshot: () => MarkDeepReadOnly<GraphStoreSnapshot>;
   /** Callback function called when a batch of elements needs to be updated */
-  readonly onBatchUpdate: (elements: Record<dia.Cell.ID, GraphElement>) => void;
+  readonly onBatchUpdate: (elements: Record<dia.Cell.ID, FlatElementData>) => void;
 }
 
 /**
@@ -120,7 +120,7 @@ interface ProcessSizeChangeOptions {
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement | Partial<ObservedElement>;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly updatedElements: Record<dia.Cell.ID, GraphElement>;
+  readonly updatedElements: Record<dia.Cell.ID, FlatElementData>;
 }
 
 /**
@@ -234,8 +234,8 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     }
 
     const publicSnapshot = getPublicSnapshot();
-    const elementsRecord = publicSnapshot.elements as Record<dia.Cell.ID, GraphElement>;
-    const updatedElements: Record<dia.Cell.ID, GraphElement> = { ...elementsRecord };
+    const elementsRecord = publicSnapshot.elements as Record<dia.Cell.ID, FlatElementData>;
+    const updatedElements: Record<dia.Cell.ID, FlatElementData> = { ...elementsRecord };
     let hasAnySizeChange = false;
 
     for (const [cellId, { width, height }] of pendingImmediateMeasurements) {
@@ -284,8 +284,8 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     let hasAnySizeChange = false;
     const publicSnapshot = getPublicSnapshot();
     // Convert Record to array for batch update (preserving compatibility)
-    const elementsRecord = publicSnapshot.elements as Record<dia.Cell.ID, GraphElement>;
-    const updatedElements: Record<dia.Cell.ID, GraphElement> = { ...elementsRecord };
+    const elementsRecord = publicSnapshot.elements as Record<dia.Cell.ID, FlatElementData>;
+    const updatedElements: Record<dia.Cell.ID, FlatElementData> = { ...elementsRecord };
 
     for (const entry of entries) {
       // We must be careful to not mutate the snapshot data.

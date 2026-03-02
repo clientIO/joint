@@ -9,15 +9,15 @@ import {
   useLinks,
   useNodeLayout,
   useNodeSize,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
 
 const SECONDARY = '#6366f1';
 
-interface NodeData extends GraphElement {
+interface NodeData extends FlatElementData {
   readonly label: string;
   readonly color: string;
 }
@@ -28,7 +28,7 @@ const initialElements: Record<string, NodeData> = {
   '3': { label: 'Node C', color: PRIMARY, x: 150, y: 180, width: 120, height: 60 },
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   'link-1-2': {
     source: '1',
     target: '2',
@@ -223,7 +223,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
   );
 }
 
-function getLinkEndpointId(endpoint: GraphLink['source']): string {
+function getLinkEndpointId(endpoint: FlatLinkData['source']): string {
   if (typeof endpoint === 'string') return endpoint;
   if (typeof endpoint === 'object' && 'id' in endpoint) {
     return String(endpoint.id);
@@ -233,11 +233,11 @@ function getLinkEndpointId(endpoint: GraphLink['source']): string {
 
 interface LinkControlsProps {
   readonly id: string;
-  readonly link: GraphLink;
+  readonly link: FlatLinkData;
 }
 
 function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
-  const { set, remove } = useCellActions<GraphLink>();
+  const { set, remove } = useCellActions<FlatLinkData>();
   const sourceId = getLinkEndpointId(link.source);
   const targetId = getLinkEndpointId(link.target);
 
@@ -379,7 +379,7 @@ function AddElementForm() {
 }
 
 function AddLinkForm() {
-  const { set } = useCellActions<GraphLink>();
+  const { set } = useCellActions<FlatLinkData>();
   const elements = useElements<NodeData>();
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
