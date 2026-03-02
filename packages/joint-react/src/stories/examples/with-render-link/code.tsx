@@ -1,9 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 
-import { GraphProvider, Paper, type RenderLink, useCellId, useLinkLayout } from '@joint/react';
-import { useCallback } from 'react';
+import {
+  GraphProvider,
+  Paper,
+  type RenderLink,
+  useCellId,
+  useLinkLayout,
+} from '@joint/react';
+import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { REACT_LINK_TYPE } from '../../../models/react-link';
 
@@ -30,25 +36,21 @@ function LinkPath() {
   const layout = useLinkLayout();
   const id = useCellId();
 
-  if (!layout) {
-    return null;
-  }
-
   // Calculate midpoint for label
   const midX = (layout.sourceX + layout.targetX) / 2;
   const midY = (layout.sourceY + layout.targetY) / 2;
 
   return (
-    <g>
-      <path d={layout.d} stroke={PRIMARY} strokeWidth={2} fill="none" />
-      <foreignObject x={midX - 30} y={midY - 10} width={60} height={20}>
-        <div className="bg-blue-100 rounded px-2 py-1 text-xs text-center">Link {id}</div>
+    <>
+      <path d={layout.d} stroke={LIGHT} opacity={0.05} strokeWidth={20} fill="none" strokeLinecap="round" />
+      <foreignObject x={midX - 30} y={midY - 10} width={60} height={40}>
+        <div className="bg-blue-100 rounded px-2 py-1 text-xs text-center" style={{ color: PRIMARY }}>Link {id}</div>
       </foreignObject>
-    </g>
+    </>
   );
 }
 
-function Main() {
+function Main({ useReactLinks }: Readonly<{ useReactLinks: boolean }>) {
   const renderElement = useCallback(
     (element: { label: string }) => <HTMLNode className="node">{element.label}</HTMLNode>,
     []
@@ -62,16 +64,27 @@ function Main() {
         className={PAPER_CLASSNAME}
         height={280}
         renderElement={renderElement}
-        renderLink={renderLink}
+        renderLink={useReactLinks ? renderLink : undefined}
       />
     </div>
   );
 }
 
 export default function App() {
+  const [useReactLinks, setUseReactLinks] = useState(true);
+
   return (
     <GraphProvider elements={initialElements} links={initialLinks}>
-      <Main />
+      <div className="flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => setUseReactLinks((v) => !v)}
+          className="px-3 py-1 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 self-start mx-2"
+        >
+          {useReactLinks ? 'Disable' : 'Enable'} renderLink
+        </button>
+        <Main useReactLinks={useReactLinks} />
+      </div>
     </GraphProvider>
   );
 }
