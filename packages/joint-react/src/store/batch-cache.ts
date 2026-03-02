@@ -1,10 +1,10 @@
-import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { ClearViewCacheEntry } from './clear-view';
 
 /**
  * Generic batch cache for collecting updates before flushing.
  * Provides a unified pattern for link, and other batched updates.
- * @template K - Key type (usually dia.Cell.ID)
+ * @template K - Key type (usually CellId)
  * @template V - Value type (cache entry)
  */
 export class BatchCache<K, V extends object> {
@@ -100,8 +100,8 @@ export class BatchCache<K, V extends object> {
  * @param scheduler - Function to call when updates are scheduled
  * @returns A new BatchCache instance
  */
-function createCellCache<V extends object>(scheduler: () => void): BatchCache<dia.Cell.ID, V> {
-  return new BatchCache<dia.Cell.ID, V>({
+function createCellCache<V extends object>(scheduler: () => void): BatchCache<CellId, V> {
+  return new BatchCache<CellId, V>({
     scheduler,
     defaultEntry: () => ({}) as V,
   });
@@ -113,6 +113,6 @@ function createCellCache<V extends object>(scheduler: () => void): BatchCache<di
  */
 export function createClearViewCache(
   scheduler: () => void
-): BatchCache<dia.Cell.ID, ClearViewCacheEntry> {
+): BatchCache<CellId, ClearViewCacheEntry> {
   return createCellCache<ClearViewCacheEntry>(scheduler);
 }

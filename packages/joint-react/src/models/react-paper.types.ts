@@ -1,4 +1,5 @@
 import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { GraphStore } from '../store/graph-store';
 
 /**
@@ -17,11 +18,11 @@ export interface ReactPaperOptions extends dia.Paper.Options {
 export interface IReactPaper extends dia.Paper {
   /** Cache for element views - managed by ReactPaper */
   readonly reactElementCache: {
-    elementViews: Record<dia.Cell.ID, dia.ElementView>;
+    elementViews: Record<CellId, dia.ElementView>;
   };
   /** Cache for link views - managed by ReactPaper */
   readonly reactLinkCache: {
-    linkViews: Record<dia.Cell.ID, dia.LinkView>;
+    linkViews: Record<CellId, dia.LinkView>;
     linksData: Record<string, SVGElement>;
   };
 }

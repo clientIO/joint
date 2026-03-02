@@ -6,14 +6,13 @@ import {
   type Dispatch,
   type SetStateAction,
 } from 'react';
+import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ExternalStoreLike } from '../utils/create-state';
 import type { GraphStoreSnapshot } from '../store';
 import { isUpdater } from '../utils/is';
 import { util } from '@joint/core';
-
-import type { dia } from '@joint/core';
 
 /**
  * Options for converting React state to an external store interface.
@@ -22,13 +21,13 @@ import type { dia } from '@joint/core';
  */
 interface Options<ElementData = FlatElementData, LinkData = FlatLinkData> {
   /** Current elements Record from React state, keyed by cell ID */
-  readonly elements?: Record<dia.Cell.ID, ElementData>;
+  readonly elements?: Record<CellId, ElementData>;
   /** Current links Record from React state, keyed by cell ID */
-  readonly links?: Record<dia.Cell.ID, LinkData>;
+  readonly links?: Record<CellId, LinkData>;
   /** Callback function called when elements change */
-  readonly onElementsChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, ElementData>>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<CellId, ElementData>>>;
   /** Callback function called when links change */
-  readonly onLinksChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, LinkData>>>;
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, LinkData>>>;
 }
 
 /**

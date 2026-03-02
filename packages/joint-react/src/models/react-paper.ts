@@ -1,4 +1,5 @@
 import { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { GraphStore } from '../store/graph-store';
 import type { ReactPaperOptions } from './react-paper.types';
 import type { ReactElementViewCache, ReactLinkViewCache } from '../types/paper.types';
@@ -31,7 +32,7 @@ export class ReactPaper extends dia.Paper {
   public reactLinkCache!: ReactLinkViewCache;
 
   /** Links waiting for source/target elements to render */
-  private pendingLinks: Set<dia.Cell.ID> = new Set();
+  private pendingLinks: Set<CellId> = new Set();
 
   constructor(options: ReactPaperOptions) {
     super(options);
@@ -43,7 +44,7 @@ export class ReactPaper extends dia.Paper {
    * @param elementId - The element ID to check
    * @returns true if element view exists and has children
    */
-  private isElementReady(elementId: dia.Cell.ID | undefined): boolean {
+  private isElementReady(elementId: CellId | undefined): boolean {
     if (!elementId) return false;
     const elementView = this.reactElementCache.elementViews[elementId];
     return !!elementView?.el && elementView.el.children.length > 0;
@@ -57,7 +58,7 @@ export class ReactPaper extends dia.Paper {
    */
   private isLinkEndReady(end: dia.Link.EndJSON): boolean {
     if (!end.id) return true;
-    return this.isElementReady(end.id as dia.Cell.ID);
+    return this.isElementReady(end.id as CellId);
   }
 
   /**
@@ -67,7 +68,7 @@ export class ReactPaper extends dia.Paper {
   public checkPendingLinks(): void {
     if (this.pendingLinks.size === 0) return;
 
-    const linksToShow: dia.Cell.ID[] = [];
+    const linksToShow: CellId[] = [];
 
     for (const linkId of this.pendingLinks) {
       const linkView = this.reactLinkCache.linkViews[linkId];
@@ -100,7 +101,7 @@ export class ReactPaper extends dia.Paper {
    * @param cell - The cell to remove from cache
    */
   private removeFromCache(cell: dia.Cell): void {
-    const cellId = cell.id;
+    const cellId = cell.id as CellId;
 
     if (cell.isElement()) {
       const newElementViews = { ...this.reactElementCache.elementViews };
@@ -125,7 +126,7 @@ export class ReactPaper extends dia.Paper {
     // Call parent implementation first
     super.insertView(view, isInitialInsert);
 
-    const cellId = view.model.id;
+    const cellId = view.model.id as CellId;
 
     if (view.model.isElement()) {
       // Add to element views cache

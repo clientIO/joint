@@ -93,26 +93,3 @@ export function isPositionOnlyUpdate(previous: FlatElementData[], next: FlatElem
 
   return true;
 }
-
-/**
- * Shallow equality check for arrays.
- * Only compares array length and reference equality of elements.
- * @template T - The type of array elements
- * @param a - First array to compare
- * @param b - Second array to compare
- * @returns True if arrays are shallowly equal, false otherwise
- */
-export function shallowArrayEqual<T>(a: T[], b: T[]): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  if (a === b) {
-    return true;
-  }
-  for (const [index, element] of a.entries()) {
-    if (element !== b[index]) {
-      return false;
-    }
-  }
-  return true;
-}

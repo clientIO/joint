@@ -10,6 +10,7 @@ import {
   usePaper,
   useNodeSize,
   useNodeLayout,
+  type CellId,
   type FlatElementData,
   type FlatLinkData,
   type PaperProps,
@@ -240,7 +241,7 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
 // Selection
 // ============================================================================
 
-function Selection({ selectedId }: { selectedId: dia.Cell.ID | null }) {
+function Selection({ selectedId }: { selectedId: CellId | null }) {
   const paper = usePaper();
   const graph = useGraph();
 
@@ -308,7 +309,7 @@ function RenderElementWithBadge({
 function Main() {
   const [paper, setPaper] = useState<dia.Paper | null>(null);
   const [showMinimap, setShowMinimap] = useState(false);
-  const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(null);
+  const [selectedElement, setSelectedElement] = useState<CellId | null>(null);
 
   const renderElement = useCallback((data: ElementData) => {
     return <RenderElementWithBadge {...data} />;
@@ -331,7 +332,7 @@ function Main() {
         validateMagnet={(_, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         linkPinning={false}
         onElementPointerClick={({ elementView }) =>
-          setSelectedElement(elementView.model.id ?? null)
+          setSelectedElement((elementView.model.id as CellId) ?? null)
         }
         onElementPointerDblClick={({ elementView }) => {
           const cell = elementView.model;

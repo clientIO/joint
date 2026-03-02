@@ -12,28 +12,4 @@ describe('link-utilities', () => {
       expect(linkUtilities.getCellId({})).toBeUndefined();
     });
   });
-
-  describe('getLinkPortId', () => {
-    it('returns port property if passed an object', () => {
-      expect(linkUtilities.getLinkPortId({ port: 'baz' })).toBe('baz');
-    });
-    it('returns undefined if object has no port', () => {
-      expect(linkUtilities.getLinkPortId({})).toBeUndefined();
-    });
-    it('returns undefined if passed a string', () => {
-      expect(linkUtilities.getLinkPortId('foo')).toBeUndefined();
-    });
-  });
-
-  describe('getLinkMagnet', () => {
-    it('returns magnet property if passed an object', () => {
-      expect(linkUtilities.getLinkMagnet({ magnet: 'mag' })).toBe('mag');
-    });
-    it('returns undefined if object has no magnet', () => {
-      expect(linkUtilities.getLinkMagnet({})).toBeUndefined();
-    });
-    it('returns undefined if passed a string', () => {
-      expect(linkUtilities.getLinkMagnet('foo')).toBeUndefined();
-    });
-  });
 });

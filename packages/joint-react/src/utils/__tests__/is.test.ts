@@ -1,55 +1,14 @@
 /* eslint-disable unicorn/consistent-function-scoping */
 /* eslint-disable unicorn/no-useless-undefined */
-import { dia } from '@joint/core';
 import type { FunctionComponent, JSX } from 'react';
 import * as is from '../is';
 
 describe('is.ts utility functions', () => {
-  test('isSetter', () => {
-    expect(is.isSetter((x: number) => x + 1)).toBe(true);
-    expect(is.isSetter(() => {})).toBe(false);
-    expect(is.isSetter(123)).toBe(false);
-  });
-
-  test('isDiaId', () => {
-    expect(is.isDiaId('cell-id')).toBe(true);
-    expect(is.isDiaId(123)).toBe(true);
-    expect(is.isDiaId({})).toBe(false);
-  });
-
-  test('isDefined', () => {
-    expect(is.isDefined(0)).toBe(true);
-    expect(is.isDefined(undefined)).toBe(false);
-    expect(is.isDefined(null)).toBe(true);
-  });
-
-  test('isAttribute', () => {
-    expect(is.isAttribute<{ foo: string }>('foo')).toBe(true);
-    expect(is.isAttribute<{ foo: string }>(123)).toBe(false);
-  });
-
   test('isRecord', () => {
     expect(is.isRecord({})).toBe(true);
     expect(is.isRecord([])).toBe(true);
     expect(is.isRecord('str')).toBe(false);
     expect(is.isRecord(null)).toBe(false);
-  });
-
-  test('isLinkInstance', () => {
-    const link = new dia.Link();
-    expect(is.isLinkInstance(link)).toBe(true);
-    expect(is.isLinkInstance({})).toBe(false);
-  });
-
-  test('isCellInstance', () => {
-    const cell = new dia.Cell();
-    expect(is.isCellInstance(cell)).toBe(true);
-    expect(is.isCellInstance({})).toBe(false);
-  });
-
-  test('hasChildren', () => {
-    expect(is.hasChildren({ children: [] })).toBe(true);
-    expect(is.hasChildren({})).toBe(false);
   });
 
   test('isString', () => {

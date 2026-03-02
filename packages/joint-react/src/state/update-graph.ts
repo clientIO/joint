@@ -1,4 +1,5 @@
 import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type {
@@ -29,9 +30,9 @@ export interface UpdateGraphOptions<
   /** The JointJS graph instance to update */
   readonly graph: Graph;
   /** The elements to sync to the graph (Record keyed by cell ID) */
-  readonly elements: Record<dia.Cell.ID, ElementData>;
+  readonly elements: Record<CellId, ElementData>;
   /** The links to sync to the graph (Record keyed by cell ID) */
-  readonly links: Record<dia.Cell.ID, LinkData>;
+  readonly links: Record<CellId, LinkData>;
   /** Selector to convert graph elements to Element format for comparison */
   readonly graphToElementSelector: (
     options: GraphToElementOptions<ElementData> & { readonly graph: Graph }

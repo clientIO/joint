@@ -1,4 +1,5 @@
 import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
+import type { CellId } from '../../types/cell-id';
 import type { FlatLinkEnd } from '../../types/link-types';
 import type { MarkerPreset } from '../../theme/markers';
 import { resolveMarker } from '../../theme/markers';
@@ -62,7 +63,7 @@ export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
 
   const endData: FlatLinkEnd = 'x' in end && 'y' in end
     ? { x: end.x!, y: end.y! }
-    : end.id!;
+    : end.id as CellId;
 
   const result: LinkEndData = { end: endData };
   if (port !== undefined) result.port = port;

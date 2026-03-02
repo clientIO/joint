@@ -1,4 +1,5 @@
 import type { dia } from '@joint/core';
+import type { CellId } from '../../types/cell-id';
 import type { FlatLinkData } from '../../types/link-types';
 import { forwardRef, type Dispatch, type SetStateAction } from 'react';
 import type { FlatElementData } from '../../types/element-types';
@@ -27,7 +28,7 @@ interface GraphProviderProps<
    * **Uncontrolled mode:** If `onElementsChange` is not provided, this is only used for initial elements.
    * The graph manages its own state internally.
    */
-  readonly elements?: Record<string, ElementData>;
+  readonly elements?: Record<CellId, ElementData>;
 
   /**
    * Links (edges) to be added to the graph as a Record keyed by cell ID.
@@ -38,7 +39,7 @@ interface GraphProviderProps<
    * **Uncontrolled mode:** If `onLinksChange` is not provided, this is only used for initial links.
    * The graph manages its own state internally.
    */
-  readonly links?: Record<string, LinkData>;
+  readonly links?: Record<CellId, LinkData>;
 
   /**
    * Callback triggered when elements (nodes) change in the graph.
@@ -52,7 +53,7 @@ interface GraphProviderProps<
    * - State persistence
    * - Integration with other React state management
    */
-  readonly onElementsChange?: Dispatch<SetStateAction<Record<string, ElementData>>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<CellId, ElementData>>>;
 
   /**
    * Callback triggered when links (edges) change in the graph.
@@ -66,7 +67,7 @@ interface GraphProviderProps<
    * - State persistence
    * - Integration with other React state management
    */
-  readonly onLinksChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, LinkData>>>;
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, LinkData>>>;
 }
 
 /**

@@ -5,6 +5,7 @@ import {
   GraphProvider,
   Paper,
   useCellId,
+  type CellId,
   type ElementToGraphOptions,
   type FlatElementData,
   type FlatLinkData,
@@ -101,7 +102,7 @@ const mapDataToElementAttributes = (
 };
 
 interface RenderElementProps extends NodeType {
-  readonly onAddPort: (id: dia.Cell.ID) => void;
+  readonly onAddPort: (id: CellId) => void;
 }
 
 function RenderElement({ title, description, nodeType, outputPorts, onAddPort }: Readonly<RenderElementProps>) {
@@ -176,7 +177,7 @@ function Main() {
   const [elements, setElements] = useState<Record<string, FlatElementData>>(nodes);
   const [controlledLinks, setControlledLinks] = useState<Record<string, FlatLinkData>>(links);
 
-  const onAddPort = useCallback((id: dia.Cell.ID) => {
+  const onAddPort = useCallback((id: CellId) => {
     setElements((previous) => {
       const node = previous[id] as NodeType | undefined;
       if (!node) return previous;

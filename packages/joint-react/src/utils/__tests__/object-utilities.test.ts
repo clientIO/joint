@@ -1,42 +1,6 @@
-import { makeOptions, assignOptions, dependencyExtract } from '../object-utilities';
+import { assignOptions, dependencyExtract } from '../object-utilities';
 
 describe('object-utilities', () => {
-  describe('makeOptions', () => {
-    it('should remove undefined values', () => {
-      const options = makeOptions({
-        width: 100,
-        height: 50,
-        color: undefined,
-      });
-
-      expect(options).toEqual({
-        width: 100,
-        height: 50,
-      });
-      expect(options).not.toHaveProperty('color');
-    });
-
-    it('should keep all defined values', () => {
-      const options = makeOptions({
-        width: 100,
-        height: 50,
-        color: 'red',
-      });
-
-      expect(options).toEqual({
-        width: 100,
-        height: 50,
-        color: 'red',
-      });
-    });
-
-    it('should handle empty object', () => {
-      const options = makeOptions({});
-
-      expect(options).toEqual({});
-    });
-  });
-
   describe('assignOptions', () => {
     it('should assign new properties and ignore undefined', () => {
       const props = { width: 100, height: 50 };

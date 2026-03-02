@@ -1,4 +1,5 @@
 import { dia, g } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
 import type { FlatElementData } from '../types/element-types';
@@ -122,9 +123,9 @@ export interface PaperStoreOptions extends AddPaperOptions {
  */
 export interface PaperStoreSnapshot {
   /** Map of cell IDs to their element views in this paper */
-  paperElementViews?: Record<dia.Cell.ID, dia.ElementView>;
+  paperElementViews?: Record<CellId, dia.ElementView>;
   /** Map of link IDs to their link views in this paper */
-  linkViews?: Record<dia.Cell.ID, dia.LinkView>;
+  linkViews?: Record<CellId, dia.LinkView>;
   /** Map of link label IDs to their SVG elements */
   linksData?: Record<string, SVGElement>;
 }
@@ -184,8 +185,8 @@ export class PaperStore {
     this.renderElement = renderElement;
     this.renderLink = renderLink;
     const cache: {
-      elementViews: Record<dia.Cell.ID, dia.ElementView>;
-      linkViews: Record<dia.Cell.ID, dia.LinkView>;
+      elementViews: Record<CellId, dia.ElementView>;
+      linkViews: Record<CellId, dia.LinkView>;
       linksData: Record<string, SVGElement>;
     } = {
       elementViews: {},
@@ -333,7 +334,7 @@ export class PaperStore {
    * @param labelIndex - The index of the label in the labels array
    * @returns A unique identifier for the link label
    */
-  public getLinkLabelId(linkId: dia.Cell.ID, labelIndex: number) {
+  public getLinkLabelId(linkId: CellId, labelIndex: number) {
     return `${linkId}-label-${labelIndex}`;
   }
 

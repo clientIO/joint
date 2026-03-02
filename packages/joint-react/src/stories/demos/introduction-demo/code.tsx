@@ -17,6 +17,7 @@ import {
   useHighlighter,
   useNodeSize,
   useLinks,
+  type CellId,
   type FlatElementData,
   type FlatElementPort,
   type FlatLinkData,
@@ -50,7 +51,7 @@ interface TableElement extends ElementBase {
 
 type Element = MessageElement | TableElement;
 
-type ElementWithSelected<T> = { readonly selectedId: dia.Cell.ID | null } & T;
+type ElementWithSelected<T> = { readonly selectedId: CellId | null } & T;
 
 const BUTTON_CLASSNAME =
   'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm flex items-center';
@@ -338,8 +339,8 @@ const toolsView = new dia.ToolsView({
 interface ToolbarProps {
   readonly onToggleMinimap: (visible: boolean) => void;
   readonly isMinimapVisible: boolean;
-  readonly selectedId: dia.Cell.ID | null;
-  readonly setSelectedId: (id: dia.Cell.ID | null) => void;
+  readonly selectedId: CellId | null;
+  readonly setSelectedId: (id: CellId | null) => void;
   readonly showElementsInfo: boolean;
   readonly setShowElementsInfo: (show: boolean) => void;
   readonly paperCtxRef: React.RefObject<ReactPaper | null>;
@@ -391,7 +392,7 @@ function ToolBar(props: Readonly<ToolbarProps>) {
           const clone = cell.clone();
           clone.translate(20, 20);
           graph.addCell(clone);
-          setSelectedId(clone.id);
+          setSelectedId(clone.id as CellId);
         }}
       >
         <i className="fa-solid fa-clone"></i>
@@ -472,7 +473,7 @@ function ElementsInfo() {
 // Define main view component and render elements
 function Main() {
   const [isMinimapVisible, setIsMinimapVisible] = useState(false);
-  const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(null);
+  const [selectedElement, setSelectedElement] = useState<CellId | null>(null);
   const [showElementsInfo, setShowElementsInfo] = useState(false);
   const paperCtxRef = useRef<ReactPaper | null>(null);
 
@@ -532,7 +533,7 @@ function Main() {
           className={PAPER_CLASSNAME}
           onCellPointerClick={({ cellView }) => {
             const cell = cellView.model;
-            setSelectedElement(cell.id ?? null);
+            setSelectedElement((cell.id as CellId) ?? null);
           }}
           onLinkPointerClick={() => {
             setSelectedElement(null);

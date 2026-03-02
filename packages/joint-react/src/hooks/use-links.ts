@@ -1,5 +1,5 @@
-import type { dia } from '@joint/core';
 import { util } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
 import { useGraphStoreSelector } from './use-graph-store-selector';
 
@@ -12,8 +12,8 @@ import { useGraphStoreSelector } from './use-graph-store-selector';
  * @internal
  */
 function defaultSelector<LinkData = FlatLinkData>(
-  items: Record<dia.Cell.ID, LinkData>
-): Record<dia.Cell.ID, LinkData> {
+  items: Record<CellId, LinkData>
+): Record<CellId, LinkData> {
   return items;
 }
 
@@ -45,7 +45,7 @@ function defaultSelector<LinkData = FlatLinkData>(
  * ```ts
  * // Get all links as a Record
  * const links = useLinks();
- * // links is Record<dia.Cell.ID, FlatLinkData>
+ * // links is Record<CellId, FlatLinkData>
  * ```
  * @example
  * ```ts
@@ -66,11 +66,11 @@ function defaultSelector<LinkData = FlatLinkData>(
  * );
  * ```
  */
-export function useLinks<LinkData = FlatLinkData, SelectorReturnType = Record<dia.Cell.ID, LinkData>>(
-  selector: (items: Record<dia.Cell.ID, LinkData>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+export function useLinks<LinkData = FlatLinkData, SelectorReturnType = Record<CellId, LinkData>>(
+  selector: (items: Record<CellId, LinkData>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
 ): SelectorReturnType {
   return useGraphStoreSelector((snapshot) => {
-    return selector(snapshot.links as Record<dia.Cell.ID, LinkData>);
+    return selector(snapshot.links as Record<CellId, LinkData>);
   }, isEqual);
 }

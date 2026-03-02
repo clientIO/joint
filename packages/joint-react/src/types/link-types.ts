@@ -1,5 +1,6 @@
 import type { anchors, connectionPoints, dia, shapes } from '@joint/core';
 import type { MarkerPreset } from '../theme/link-theme';
+import type { CellId } from './cell-id';
 
 /**
  * Link endpoint definition.
@@ -12,7 +13,7 @@ import type { MarkerPreset } from '../theme/link-theme';
  * @group Graph
  */
 export type FlatLinkEnd =
-  | dia.Cell.ID
+  | CellId
   | { readonly x: number; readonly y: number };
 
 export interface StandardLinkShapesTypeMapper {

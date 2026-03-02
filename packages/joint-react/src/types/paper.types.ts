@@ -1,11 +1,12 @@
 import type { dia } from '@joint/core';
+import type { CellId } from './cell-id';
 import type { GraphState } from '../store/graph-store';
 
 /**
  * Cache interface for element view state.
  */
 export interface ReactElementViewCache {
-  elementViews: Record<dia.Cell.ID, dia.ElementView>;
+  elementViews: Record<CellId, dia.ElementView>;
 }
 
 /**
@@ -20,7 +21,7 @@ export interface ReactElementViewGraphStoreRef {
  * Cache interface for link view state.
  */
 export interface ReactLinkViewCache {
-  linkViews: Record<dia.Cell.ID, dia.LinkView>;
+  linkViews: Record<CellId, dia.LinkView>;
   linksData: Record<string, SVGElement>;
 }
 
@@ -36,7 +37,7 @@ export interface ReactLinkViewGraphStoreRef {
  * PaperStore reference interface for link view.
  */
 export interface ReactLinkViewPaperStoreRef {
-  getLinkLabelId: (linkId: dia.Cell.ID, labelIndex: number) => string;
+  getLinkLabelId: (linkId: CellId, labelIndex: number) => string;
 }
 
 /**

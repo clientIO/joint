@@ -2,6 +2,7 @@ import type { GraphStoreSnapshot } from '../store/graph-store';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import { removeDeepReadOnly, type ExternalStoreLike } from '../utils/create-state';
 import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type {
@@ -87,17 +88,18 @@ function mapCellsToData<
   graph: Graph,
   elementSelector: (options: GraphToElementOptions<ElementData> & { readonly graph: Graph }) => ElementData,
   linkSelector: (options: GraphToLinkOptions<LinkData> & { readonly graph: Graph }) => LinkData,
-  previousElements?: Record<dia.Cell.ID, ElementData>,
-  previousLinks?: Record<dia.Cell.ID, LinkData>
-): { elements: Map<dia.Cell.ID, ElementData>; links: Map<dia.Cell.ID, LinkData> } {
-  const elements = new Map<dia.Cell.ID, ElementData>();
-  const links = new Map<dia.Cell.ID, LinkData>();
+  previousElements?: Record<CellId, ElementData>,
+  previousLinks?: Record<CellId, LinkData>
+): { elements: Map<CellId, ElementData>; links: Map<CellId, LinkData> } {
+  const elements = new Map<CellId, ElementData>();
+  const links = new Map<CellId, LinkData>();
 
   for (const cell of cells) {
+    const cellId = cell.id as CellId;
     if (cell.isElement()) {
-      elements.set(cell.id, mapGraphElement(cell, graph, elementSelector, previousElements?.[cell.id]));
+      elements.set(cellId, mapGraphElement(cell, graph, elementSelector, previousElements?.[cellId]));
     } else if (cell.isLink()) {
-      links.set(cell.id, mapGraphLink(cell, graph, linkSelector, previousLinks?.[cell.id]));
+      links.set(cellId, mapGraphLink(cell, graph, linkSelector, previousLinks?.[cellId]));
     }
   }
 
@@ -112,9 +114,9 @@ function mapCellsToData<
  */
 function findIdsToDelete(
   currentIds: string[],
-  newIds: Set<dia.Cell.ID>,
-  existingDeletes: Map<dia.Cell.ID, true> | undefined
-): Map<dia.Cell.ID, true> {
+  newIds: Set<CellId>,
+  existingDeletes: Map<CellId, true> | undefined
+): Map<CellId, true> {
   const toDelete = new Map(existingDeletes);
   for (const id of currentIds) {
     if (!newIds.has(id)) {
@@ -155,25 +157,26 @@ export function stateSync<
 
   const scheduleCellUpdate = (cell: dia.Cell) => {
     scheduler.scheduleData((data) => {
+      const id = cell.id as CellId;
       const snapshot = store.getSnapshot();
       if (cell.isElement()) {
-        const previousData = snapshot.elements[cell.id] as ElementData | undefined;
+        const previousData = snapshot.elements[id] as ElementData | undefined;
         return {
           ...data,
           elementsToUpdate: mapSet(
             data.elementsToUpdate,
-            cell.id,
+            id,
             mapGraphElement(cell, graph, elementSelector, previousData) as FlatElementData
           ),
         };
       }
       if (cell.isLink()) {
-        const previousData = snapshot.links[cell.id] as LinkData | undefined;
+        const previousData = snapshot.links[id] as LinkData | undefined;
         return {
           ...data,
           linksToUpdate: mapSet(
             data.linksToUpdate,
-            cell.id,
+            id,
             mapGraphLink(cell, graph, linkSelector, previousData) as FlatLinkData
           ),
         };
@@ -184,18 +187,19 @@ export function stateSync<
 
   const scheduleCellDelete = (cell: dia.Cell) => {
     scheduler.scheduleData((data) => {
+      const id = cell.id as CellId;
       if (cell.isElement()) {
         return {
           ...data,
-          elementsToUpdate: mapDelete(data.elementsToUpdate, cell.id),
-          elementsToDelete: mapSet(data.elementsToDelete, cell.id, true),
+          elementsToUpdate: mapDelete(data.elementsToUpdate, id),
+          elementsToDelete: mapSet(data.elementsToDelete, id, true),
         };
       }
       if (cell.isLink()) {
         return {
           ...data,
-          linksToUpdate: mapDelete(data.linksToUpdate, cell.id),
-          linksToDelete: mapSet(data.linksToDelete, cell.id, true),
+          linksToUpdate: mapDelete(data.linksToUpdate, id),
+          linksToDelete: mapSet(data.linksToDelete, id, true),
         };
       }
       return data;
@@ -210,14 +214,14 @@ export function stateSync<
         graph,
         elementSelector,
         linkSelector,
-        snapshot.elements as Record<dia.Cell.ID, ElementData>,
-        snapshot.links as Record<dia.Cell.ID, LinkData>
+        snapshot.elements as Record<CellId, ElementData>,
+        snapshot.links as Record<CellId, LinkData>
       );
 
       return {
         ...data,
-        elementsToUpdate: elements as Map<dia.Cell.ID, FlatElementData>,
-        linksToUpdate: links as Map<dia.Cell.ID, FlatLinkData>,
+        elementsToUpdate: elements as Map<CellId, FlatElementData>,
+        linksToUpdate: links as Map<CellId, FlatLinkData>,
         elementsToDelete: findIdsToDelete(
           Object.keys(snapshot.elements),
           new Set(elements.keys()),
@@ -240,13 +244,13 @@ export function stateSync<
         graph,
         elementSelector,
         linkSelector,
-        snapshot.elements as Record<dia.Cell.ID, ElementData>,
-        snapshot.links as Record<dia.Cell.ID, LinkData>
+        snapshot.elements as Record<CellId, ElementData>,
+        snapshot.links as Record<CellId, LinkData>
       );
       return {
         ...data,
-        elementsToUpdate: new Map([...(data.elementsToUpdate ?? []), ...(elements as Map<dia.Cell.ID, FlatElementData>)]),
-        linksToUpdate: new Map([...(data.linksToUpdate ?? []), ...(links as Map<dia.Cell.ID, FlatLinkData>)]),
+        elementsToUpdate: new Map([...(data.elementsToUpdate ?? []), ...(elements as Map<CellId, FlatElementData>)]),
+        linksToUpdate: new Map([...(data.linksToUpdate ?? []), ...(links as Map<CellId, FlatLinkData>)]),
       };
     });
   };

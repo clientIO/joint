@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { GraphStoreSnapshot } from '../store';
@@ -50,12 +50,12 @@ interface CellActions<Attributes = FlatElementData> {
    * 2. With ID and updater: `set('1', (prev) => ({ ...prev, label: 'New' }))`
    * If the cell doesn't exist, it will be added.
    */
-  set: (id: dia.Cell.ID, attributesOrUpdater: Attributes | ((previous: Attributes) => Attributes)) => void;
+  set: (id: CellId, attributesOrUpdater: Attributes | ((previous: Attributes) => Attributes)) => void;
   /**
    * Removes a cell from the graph by its ID.
    * @param id - The ID of the cell to remove
    */
-  remove: (id: dia.Cell.ID) => void;
+  remove: (id: CellId) => void;
 }
 
 /**
@@ -109,7 +109,7 @@ export function useCellActions<
   return useMemo(
     (): CellActions<Attributes> => ({
       set(
-        id: dia.Cell.ID,
+        id: CellId,
         attributesOrUpdater: Attributes | ((previousAttributes: Attributes) => Attributes)
       ) {
         let attributes: Attributes;

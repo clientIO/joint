@@ -15,6 +15,7 @@ export * from './models/react-link';
 export { ReactPaper } from './models/react-paper';
 export type { IReactPaper } from './models/react-paper.types';
 
+export * from './types/cell-id';
 export * from './types/element-types';
 export * from './types/paper.types';
 export * from './types/link-types';

@@ -45,7 +45,7 @@ import {
 } from '../../hooks/use-graph-store-selector';
 import type { ReactPaper } from '../../models/react-paper';
 
-const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
+const EMPTY_OBJECT = {} as Record<string, dia.ElementView>;
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
 /**

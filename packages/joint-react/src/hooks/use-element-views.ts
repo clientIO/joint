@@ -1,4 +1,5 @@
 import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import { useCallback, useState } from 'react';
 
 export type OnPaperRenderElement = (elementView: dia.ElementView) => void;
@@ -16,7 +17,7 @@ export type OnPaperRenderElement = (elementView: dia.ElementView) => void;
  * @internal
  */
 export function useElementViews(idExtractor?: (elementView: dia.ElementView) => string) {
-  const [elementViews, setElements] = useState<Record<dia.Cell.ID, dia.ElementView>>({});
+  const [elementViews, setElements] = useState<Record<CellId, dia.ElementView>>({});
 
   const onRenderElement: OnPaperRenderElement = useCallback(
     (elementView) => {

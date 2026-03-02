@@ -1,5 +1,5 @@
-import type { dia } from '@joint/core';
 import { util } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import { useGraphStoreSelector } from './use-graph-store-selector';
 
@@ -9,8 +9,8 @@ import { useGraphStoreSelector } from './use-graph-store-selector';
  * @returns - The selected items.
  */
 function defaultSelector<ElementData = FlatElementData>(
-  items: Record<dia.Cell.ID, ElementData>
-): Record<dia.Cell.ID, ElementData> {
+  items: Record<CellId, ElementData>
+): Record<CellId, ElementData> {
   return items;
 }
 
@@ -32,7 +32,7 @@ function defaultSelector<ElementData = FlatElementData>(
  * Using without a selector (returns all elements as a Record):
  * ```tsx
  * const elements = useElements();
- * // elements is Record<dia.Cell.ID, FlatElementData>
+ * // elements is Record<CellId, FlatElementData>
  * ```
  * @example
  * Using with a selector (extract part of each element):
@@ -59,15 +59,15 @@ function defaultSelector<ElementData = FlatElementData>(
  */
 export function useElements<
   ElementData = FlatElementData,
-  SelectorReturnType = Record<dia.Cell.ID, ElementData>,
+  SelectorReturnType = Record<CellId, ElementData>,
 >(
-  selector: (items: Record<dia.Cell.ID, ElementData>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+  selector: (items: Record<CellId, ElementData>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual as (
     a: SelectorReturnType,
     b: SelectorReturnType
   ) => boolean
 ): SelectorReturnType {
   return useGraphStoreSelector((snapshot) => {
-    return selector(snapshot.elements as Record<dia.Cell.ID, ElementData>);
+    return selector(snapshot.elements as Record<CellId, ElementData>);
   }, isEqual);
 }

@@ -1,5 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { GraphStoreSnapshot, NodeLayout } from './graph-store';
 import type { MarkDeepReadOnly } from '../utils/create-state';
@@ -26,7 +27,7 @@ export interface NodeLayoutOptionalXY {
 export interface TransformOptions extends Required<NodeLayout> {
   /** The JointJS element instance */
   readonly element: dia.Element;
-  readonly id: dia.Cell.ID;
+  readonly id: CellId;
 }
 
 /**
@@ -44,7 +45,7 @@ export interface SetMeasuredNodeOptions {
   /** Optional callback to handle size updates before they're applied */
   readonly transform?: OnTransformElement;
   /** The ID of the cell in the graph that corresponds to this DOM element */
-  readonly id: dia.Cell.ID;
+  readonly id: CellId;
 }
 
 interface ObservedElement {
@@ -70,12 +71,12 @@ interface Options {
   readonly resizeObserverOptions?: ResizeObserverOptions;
   /** Function to get the current size of a cell from the graph */
   readonly getCellTransform: (
-    id: dia.Cell.ID
+    id: CellId
   ) => NodeLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the current public snapshot containing all elements */
   readonly getPublicSnapshot: () => MarkDeepReadOnly<GraphStoreSnapshot>;
   /** Callback function called when a batch of elements needs to be updated */
-  readonly onBatchUpdate: (elements: Record<dia.Cell.ID, FlatElementData>) => void;
+  readonly onBatchUpdate: (elements: Record<CellId, FlatElementData>) => void;
 }
 
 /**
@@ -99,7 +100,7 @@ export interface GraphStoreObserver {
    * @param id - The ID of the cell to check
    * @returns True if the node is being observed
    */
-  readonly has: (id: dia.Cell.ID) => boolean;
+  readonly has: (id: CellId) => boolean;
 }
 
 /**
@@ -115,12 +116,12 @@ function roundToTwoDecimals(value: number) {
  * Options for processing a single element's size change.
  */
 interface ProcessSizeChangeOptions {
-  readonly cellId: dia.Cell.ID;
+  readonly cellId: CellId;
   readonly measuredWidth: number;
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement | Partial<ObservedElement>;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly updatedElements: Record<dia.Cell.ID, FlatElementData>;
+  readonly updatedElements: Record<CellId, FlatElementData>;
 }
 
 /**
@@ -217,11 +218,11 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     onBatchUpdate,
     getPublicSnapshot,
   } = options;
-  const observedElementsByCellId = new Map<dia.Cell.ID, ObservedElement>();
-  const cellIdByDomElement = new Map<HTMLElement | SVGElement, dia.Cell.ID>();
+  const observedElementsByCellId = new Map<CellId, ObservedElement>();
+  const cellIdByDomElement = new Map<HTMLElement | SVGElement, CellId>();
 
   // Pending immediate measurements to batch
-  const pendingImmediateMeasurements = new Map<dia.Cell.ID, { width: number; height: number }>();
+  const pendingImmediateMeasurements = new Map<CellId, { width: number; height: number }>();
   let isImmediateBatchScheduled = false;
 
   /**
@@ -234,8 +235,8 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     }
 
     const publicSnapshot = getPublicSnapshot();
-    const elementsRecord = publicSnapshot.elements as Record<dia.Cell.ID, FlatElementData>;
-    const updatedElements: Record<dia.Cell.ID, FlatElementData> = { ...elementsRecord };
+    const elementsRecord = publicSnapshot.elements as Record<CellId, FlatElementData>;
+    const updatedElements: Record<CellId, FlatElementData> = { ...elementsRecord };
     let hasAnySizeChange = false;
 
     for (const [cellId, { width, height }] of pendingImmediateMeasurements) {
@@ -269,7 +270,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
   /**
    * Schedules an immediate measurement to be processed in the current microtask batch.
    */
-  function scheduleImmediateMeasurement(cellId: dia.Cell.ID, width: number, height: number) {
+  function scheduleImmediateMeasurement(cellId: CellId, width: number, height: number) {
     pendingImmediateMeasurements.set(cellId, { width, height });
 
     if (!isImmediateBatchScheduled) {
@@ -284,8 +285,8 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     let hasAnySizeChange = false;
     const publicSnapshot = getPublicSnapshot();
     // Convert Record to array for batch update (preserving compatibility)
-    const elementsRecord = publicSnapshot.elements as Record<dia.Cell.ID, FlatElementData>;
-    const updatedElements: Record<dia.Cell.ID, FlatElementData> = { ...elementsRecord };
+    const elementsRecord = publicSnapshot.elements as Record<CellId, FlatElementData>;
+    const updatedElements: Record<CellId, FlatElementData> = { ...elementsRecord };
 
     for (const entry of entries) {
       // We must be careful to not mutate the snapshot data.
@@ -367,7 +368,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       isImmediateBatchScheduled = false;
       observer.disconnect();
     },
-    has(id: dia.Cell.ID) {
+    has(id: CellId) {
       return observedElementsByCellId.has(id);
     },
   };

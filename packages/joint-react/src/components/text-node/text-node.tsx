@@ -1,6 +1,6 @@
-import type { dia } from '@joint/core';
 import { util, V, type Vectorizer } from '@joint/core';
 import React, { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
+import type { CellId } from '../../types/cell-id';
 import { useCombinedRef } from '../../hooks/use-combined-ref';
 import { isNumber } from '../../utils/is';
 import { useCellId, useGraph } from '../../hooks';
@@ -8,7 +8,7 @@ import { useCellId, useGraph } from '../../hooks';
 interface BreakTextWidthOptions {
   readonly width: number | undefined;
   readonly graph: ReturnType<typeof useGraph>;
-  readonly cellId: dia.Cell.ID;
+  readonly cellId: CellId;
 }
 
 interface TextWrapStylesOptions {

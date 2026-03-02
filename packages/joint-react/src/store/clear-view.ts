@@ -1,4 +1,5 @@
 import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 
 /**
  * Cache entry for batched clearView updates.
@@ -54,7 +55,7 @@ export function mergeClearViewValidators(
  */
 export function shouldClearLink(
   link: dia.Link,
-  cellId: dia.Cell.ID,
+  cellId: CellId,
   onValidateLink?: (link: dia.Link) => boolean
 ): boolean {
   const target = link.target();
@@ -73,7 +74,7 @@ export function shouldClearLink(
 export function clearConnectedLinkViews(
   paper: dia.Paper,
   graph: dia.Graph,
-  cellId: dia.Cell.ID,
+  cellId: CellId,
   onValidateLink?: (link: dia.Link) => boolean
 ): void {
   const cell = graph.getCell(cellId);
@@ -110,7 +111,7 @@ export function clearConnectedLinkViews(
 export function executeClearViewForCell(
   papers: Iterable<{ readonly paper?: dia.Paper }>,
   graph: dia.Graph,
-  cellId: dia.Cell.ID,
+  cellId: CellId,
   onValidateLink?: (link: dia.Link) => boolean
 ): void {
   for (const paperStore of papers) {
