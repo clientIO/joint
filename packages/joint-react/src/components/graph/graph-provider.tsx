@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
 import type { FlatLinkData } from '../../types/link-types';
-import { forwardRef, type Dispatch, type SetStateAction } from 'react';
+import React, { forwardRef, type Dispatch, type SetStateAction } from 'react';
 import type { FlatElementData } from '../../types/element-types';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
@@ -311,4 +311,11 @@ const GraphBaseRouter = forwardRef<dia.Graph, GraphProps>(
  * ```
  * @see GraphProps for all available props
  */
-export const GraphProvider = GraphBaseRouter;
+export const GraphProvider = GraphBaseRouter as <
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
+>(
+  props: GraphProps<ElementData, LinkData> & {
+    ref?: React.Ref<dia.Graph | null>;
+  }
+) => ReturnType<typeof GraphBaseRouter>;

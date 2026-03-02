@@ -18,12 +18,12 @@ const DEFAULT_ANCHOR: dia.Paper.Options['defaultAnchor'] = {
   args: { useModelGeometry: true },
 };
 
-interface PortElement extends FlatElementData {
+interface PortElementData extends FlatElementData {
   readonly label: string;
   readonly color: string;
 }
 
-const initialElements: Record<string, PortElement> = {
+const initialElements: Record<string, PortElementData> = {
   'node-1': {
     label: 'Node 1',
     color: PRIMARY,
@@ -64,8 +64,8 @@ const initialLinks: Record<string, FlatLinkData> = {
   },
 };
 
-function ElementShape({ label, color }: Readonly<PortElement>) {
-  const { width = 140, height = 60 } = useElement<PortElement>();
+function ElementShape({ label, color }: Readonly<PortElementData>) {
+  const { width = 140, height = 60 } = useElement<PortElementData>();
   return (
     <>
       <rect rx={8} ry={8} width={width} height={height} fill={color} stroke="#333" strokeWidth={2} />
@@ -85,7 +85,7 @@ function ElementShape({ label, color }: Readonly<PortElement>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<PortElement> = useCallback(
+  const renderElement: RenderElement<PortElementData> = useCallback(
     (props) => <ElementShape {...props} />,
     []
   );
@@ -151,7 +151,7 @@ const INPUT_PORTS = [
 
 const mapDataToElementAttributes = ({
   id, data, toAttributes,
-}: ElementToGraphOptions<FlatElementData>): dia.Cell.JSON => {
+}: ElementToGraphOptions<PortElementData>): dia.Cell.JSON => {
   if (id === 'node-1') return toAttributes({ ...data, ports: [...OUTPUT_PORTS] });
   if (id === 'node-2') return toAttributes({ ...data, ports: [...INPUT_PORTS] });
   throw new Error(`Unknown element id: ${id}`);
