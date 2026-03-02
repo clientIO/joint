@@ -6,7 +6,9 @@ export const defaultElementTheme = {
   portWidth: 10,
   portHeight: 10,
   portShape: 'ellipse' as 'ellipse' | 'rect',
-  portMagnet: true,
+  portStroke: 'transparent',
+  portStrokeWidth: 0,
+  portPassive: false,
   portLabelPosition: 'outside',
   portLabelColor: '#333333',
 } as const;

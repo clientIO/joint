@@ -9,8 +9,8 @@ This example demonstrates how to add custom interactive controls to elements usi
 
 ## Overview
 
-All 16 shapes from `@joint/shapes-general` are rendered as pure React SVG components inside `@joint/react`, each with a matching interactive control tool where applicable. This example shows how to:
-- Render JointJS general shapes as React SVG components
+All 16 shapes are rendered as pure React SVG components inside `@joint/react`, each with a matching interactive control tool where applicable. This example shows how to:
+- Render diagram shapes as React SVG components
 - Create custom control classes extending `elementTools.Control`
 - Position controls dynamically based on element geometry using `g.Line`, `g.Curve`, and `g.Point`
 - Update element data properties through drag interactions, triggering React re-renders
@@ -21,24 +21,33 @@ All 16 shapes from `@joint/shapes-general` are rendered as pure React SVG compon
 
 ## Shapes
 
-| Shape | Control | Property |
-|-------|---------|----------|
-| LinkedProcess | — | — |
-| Input | — | — |
-| Mark | — | — |
-| Actor | — | — |
-| Shipment | — | — |
-| Parallelogram | `ParallelogramOffsetControl` | `offset` |
-| Hexagon | `HexagonOffsetControl` | `offset` |
-| Step | `StepOffsetControl` | `offset` |
-| Trapezoid | `TrapezoidOffsetControl` | `offset` |
-| Document | `DocumentOffsetControl` | `offset` |
-| Plus | `PlusOffsetControl` | `offset` |
-| Arrow | `ArrowOffsetControl` | `arrowHeight`, `thickness` |
-| Note | `NoteOffsetControl` | `offset` |
-| Table | `TableDividerControl` | `dividerX`, `dividerY` |
-| Cube | `CubeCornerControl` | `cornerX`, `cornerY` |
-| Card | `CardOffsetControl` | `offset` |
+<table>
+  <thead>
+    <tr>
+      <th>Shape</th>
+      <th>Control</th>
+      <th>Property</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>LinkedProcess</td><td>—</td><td>—</td></tr>
+    <tr><td>Input</td><td>—</td><td>—</td></tr>
+    <tr><td>Mark</td><td>—</td><td>—</td></tr>
+    <tr><td>Actor</td><td>—</td><td>—</td></tr>
+    <tr><td>Shipment</td><td>—</td><td>—</td></tr>
+    <tr><td>Parallelogram</td><td><code>ParallelogramOffsetControl</code></td><td><code>offset</code></td></tr>
+    <tr><td>Hexagon</td><td><code>HexagonOffsetControl</code></td><td><code>offset</code></td></tr>
+    <tr><td>Step</td><td><code>StepOffsetControl</code></td><td><code>offset</code></td></tr>
+    <tr><td>Trapezoid</td><td><code>TrapezoidOffsetControl</code></td><td><code>offset</code></td></tr>
+    <tr><td>Document</td><td><code>DocumentOffsetControl</code></td><td><code>offset</code></td></tr>
+    <tr><td>Plus</td><td><code>PlusOffsetControl</code></td><td><code>offset</code></td></tr>
+    <tr><td>Arrow</td><td><code>ArrowOffsetControl</code></td><td><code>arrowHeight</code>, <code>thickness</code></td></tr>
+    <tr><td>Note</td><td><code>NoteOffsetControl</code></td><td><code>offset</code></td></tr>
+    <tr><td>Table</td><td><code>TableDividerControl</code></td><td><code>dividerX</code>, <code>dividerY</code></td></tr>
+    <tr><td>Cube</td><td><code>CubeCornerControl</code></td><td><code>cornerX</code>, <code>cornerY</code></td></tr>
+    <tr><td>Card</td><td><code>CardOffsetControl</code></td><td><code>offset</code></td></tr>
+  </tbody>
+</table>
 
 ## How It Works
 

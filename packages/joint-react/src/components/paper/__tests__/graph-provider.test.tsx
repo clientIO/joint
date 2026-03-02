@@ -46,7 +46,7 @@ describe('graph', () => {
         height: 100,
       },
     };
-    const link: GraphLink = { type: 'standard.Link', source: { id: 'element1' }, target: {} };
+    const link: GraphLink = { type: 'standard.Link', source: 'element1', target: { x: 0, y: 0 } };
     let linkCount = 0;
     let elementCount = 0;
     function TestComponent() {
@@ -240,7 +240,7 @@ describe('graph', () => {
         type: 'ReactElement',
       },
     };
-    const link: GraphLink = { type: 'standard.Link', source: { id: 'element1' }, target: {} };
+    const link: GraphLink = { type: 'standard.Link', source: 'element1', target: { x: 0, y: 0 } };
     let linkCount = 0;
     let elementCount = 0;
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -273,8 +273,8 @@ describe('graph', () => {
     };
     const initialLink: GraphLink = {
       type: 'standard.Link',
-      source: { id: 'element1' },
-      target: {},
+      source: 'element1',
+      target: { x: 0, y: 0 },
     };
     let linkCount = 0;
     let elementCount = 0;
@@ -341,13 +341,13 @@ describe('graph', () => {
       setLinksOutside?.({
         'link2': {
           type: 'standard.Link',
-          source: { id: 'element1' },
-          target: { id: 'element2' },
+          source: 'element1',
+          target: 'element2',
         },
         'link3': {
           type: 'standard.Link',
-          source: { id: 'element1' },
-          target: { id: 'element2' },
+          source: 'element1',
+          target: 'element2',
         },
       });
     });

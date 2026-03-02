@@ -67,18 +67,24 @@ const nodes: Record<string, NodeType> = {
 
 const links: Record<string, GraphLink> = {
   link1: {
-    source: { id: '1', port: '1' },
-    target: { id: '2', port: 'in' },
+    source: '1',
+    sourcePort: '1',
+    target: '2',
+    targetPort: 'in',
     z: 1,
   },
   link2: {
-    source: { id: '2', port: '1' },
-    target: { id: '3', port: 'in' },
+    source: '2',
+    sourcePort: '1',
+    target: '3',
+    targetPort: 'in',
     z: 1,
   },
   link3: {
-    source: { id: '3', port: '2' },
-    target: { id: '1', port: 'in' },
+    source: '3',
+    sourcePort: '2',
+    target: '1',
+    targetPort: 'in',
     z: 1,
   },
 };

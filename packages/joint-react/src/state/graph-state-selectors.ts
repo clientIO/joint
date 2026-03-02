@@ -1,33 +1,41 @@
 import { type dia } from '@joint/core';
 import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
+import type { LinkTheme } from '../theme/link-theme';
 
-export interface ElementToGraphOptions<Element extends GraphElement> {
-  readonly id: string;
-  readonly data: Element;
-  readonly graph: dia.Graph;
-  readonly toAttributes: (data: GraphElement) => dia.Cell.JSON;
+/**
+ * Options for the `toAttributes` callback on link mappers.
+ */
+export interface ToLinkAttributesOptions {
+  readonly theme?: LinkTheme;
 }
 
-export interface GraphToElementOptions<Element extends GraphElement> {
+export interface ElementToGraphOptions<ElementData = GraphElement> {
+  readonly id: string;
+  readonly data: ElementData;
+  readonly graph: dia.Graph;
+  readonly toAttributes: (data: ElementData) => dia.Cell.JSON;
+}
+
+export interface GraphToElementOptions<ElementData = GraphElement> {
   readonly id: string;
   readonly cell: dia.Element;
-  readonly previousData?: Element;
+  readonly previousData?: ElementData;
   readonly graph: dia.Graph;
   readonly toData: () => GraphElement;
 }
 
-export interface LinkToGraphOptions<Link extends GraphLink> {
+export interface LinkToGraphOptions<LinkData = GraphLink> {
   readonly id: string;
-  readonly data: Link;
+  readonly data: LinkData;
   readonly graph: dia.Graph;
-  readonly toAttributes: (data: GraphLink) => dia.Cell.JSON;
+  readonly toAttributes: (data: LinkData, options?: ToLinkAttributesOptions) => dia.Cell.JSON;
 }
 
-export interface GraphToLinkOptions<Link extends GraphLink> {
+export interface GraphToLinkOptions<LinkData = GraphLink> {
   readonly id: string;
   readonly cell: dia.Link;
-  readonly previousData?: Link;
+  readonly previousData?: LinkData;
   readonly graph: dia.Graph;
   readonly toData: () => GraphLink;
 }

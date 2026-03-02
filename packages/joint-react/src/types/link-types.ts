@@ -1,5 +1,19 @@
-import type { dia, shapes } from '@joint/core';
+import type { anchors, connectionPoints, dia, shapes } from '@joint/core';
 import type { MarkerPreset } from '../theme/link-theme';
+
+/**
+ * Link endpoint definition.
+ *
+ * - A string is an element ID (connects to the element's center).
+ * - An object with `x` and `y` connects to a fixed point on the canvas.
+ *
+ * Port, anchor, connectionPoint and magnet are specified via separate
+ * top-level properties on {@link GraphLink} (e.g. `sourcePort`, `sourceAnchor`).
+ * @group Graph
+ */
+export type GraphLinkEnd =
+  | dia.Cell.ID
+  | { readonly x: number; readonly y: number };
 
 export interface StandardLinkShapesTypeMapper {
   'standard.DoubleLink': shapes.standard.DoubleLinkSelectors;
@@ -38,9 +52,33 @@ export interface GraphLinkLabel {
    */
   readonly backgroundPadding?: number | { readonly x: number; readonly y: number };
   /**
+   * Font size of the label text.
+   */
+  readonly fontSize?: number;
+  /**
+   * Font family of the label text.
+   */
+  readonly fontFamily?: string;
+  /**
    * CSS class name applied to the label text element.
    */
   readonly className?: string;
+  /**
+   * Stroke color of the label background rectangle.
+   */
+  readonly backgroundStroke?: string;
+  /**
+   * Stroke width of the label background rectangle.
+   */
+  readonly backgroundStrokeWidth?: number;
+  /**
+   * Border radius of the label background rectangle.
+   */
+  readonly backgroundBorderRadius?: number;
+  /**
+   * Opacity of the label background rectangle (0–1).
+   */
+  readonly backgroundOpacity?: number;
   /**
    * CSS class name applied to the label background rectangle.
    */
@@ -55,13 +93,51 @@ export interface GraphLinkLabel {
  */
 export interface GraphLink extends Record<string, unknown> {
   /**
-   * Source element id or endpoint definition.
+   * Source element id or point.
    */
-  readonly source: dia.Cell.ID | dia.Link.EndJSON;
+  readonly source: GraphLinkEnd;
   /**
-   * Target element id or endpoint definition.
+   * Target element id or point.
    */
-  readonly target: dia.Cell.ID | dia.Link.EndJSON;
+  readonly target: GraphLinkEnd;
+  /**
+   * Source port id.
+   */
+  readonly sourcePort?: string;
+  /**
+   * Target port id.
+   */
+  readonly targetPort?: string;
+  /**
+   * Source anchor definition.
+   * @see https://docs.jointjs.com/learn/features/links/anchors
+   */
+  readonly sourceAnchor?: anchors.AnchorJSON;
+  /**
+   * Target anchor definition.
+   * @see https://docs.jointjs.com/learn/features/links/anchors
+   */
+  readonly targetAnchor?: anchors.AnchorJSON;
+  /**
+   * Source connection point definition.
+   * @see https://docs.jointjs.com/learn/features/links/connection-points
+   */
+  readonly sourceConnectionPoint?: connectionPoints.ConnectionPointJSON;
+  /**
+   * Target connection point definition.
+   * @see https://docs.jointjs.com/learn/features/links/connection-points
+   */
+  readonly targetConnectionPoint?: connectionPoints.ConnectionPointJSON;
+  /**
+   * Source magnet selector.
+   * CSS selector of the SVG element used as the connection magnet on the source.
+   */
+  readonly sourceMagnet?: string;
+  /**
+   * Target magnet selector.
+   * CSS selector of the SVG element used as the connection magnet on the target.
+   */
+  readonly targetMagnet?: string;
   /**
    * Optional link type.
    * @default 'standard.Link'
@@ -75,14 +151,6 @@ export interface GraphLink extends Record<string, unknown> {
    * Layer id for the link.
    */
   readonly layer?: string;
-  /**
-   * Optional link markup.
-   */
-  readonly markup?: dia.MarkupJSON;
-  /**
-   * Default label configuration.
-   */
-  readonly defaultLabel?: dia.Link.Label;
   /**
    * Link labels.
    */
@@ -100,10 +168,6 @@ export interface GraphLink extends Record<string, unknown> {
    */
   readonly connector?: unknown;
   /**
-   * Attributes of the link.
-   */
-  readonly attrs?: dia.Cell.Selectors;
-  /**
    * Stroke color of the link line.
    * @default '#333333'
    */
@@ -113,6 +177,16 @@ export interface GraphLink extends Record<string, unknown> {
    * @default 2
    */
   readonly width?: number;
+  /**
+   * Buffer in pixels added to the link's hit area for easier interaction.
+   */
+  readonly wrapperBuffer?: number;
+  /**
+   * Stroke color of the link wrapper (outline).
+   * Set to a visible color to create a double-line effect.
+   * @default 'transparent'
+   */
+  readonly wrapperColor?: string;
   /**
    * Source marker preset name or custom marker definition.
    * Use 'none' for no marker.
@@ -135,4 +209,14 @@ export interface GraphLink extends Record<string, unknown> {
    * @default ''
    */
   readonly pattern?: string;
+  /**
+   * Stroke line cap for the link line.
+   * @default ''
+   */
+  readonly lineCap?: 'butt' | 'round' | 'square';
+  /**
+   * Stroke line join for the link line.
+   * @default ''
+   */
+  readonly lineJoin?: 'miter' | 'round' | 'bevel';
 }

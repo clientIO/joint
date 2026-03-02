@@ -729,8 +729,8 @@ describe('stateSync - comprehensive edge cases', () => {
       await flushScheduler();
 
       const updatedLink = state.getSnapshot().links['link1'];
-      // Link target from JointJS is an object with id property
-      expect(updatedLink.target).toEqual({ id: '3' });
+      // Simple { id } ends are flattened to string by toLinkEndData
+      expect(updatedLink.target).toBe('3');
     });
   });
 

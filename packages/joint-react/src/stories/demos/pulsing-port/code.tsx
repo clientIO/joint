@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import { shapes } from '@joint/core';
-import type { ElementToGraphOptions, GraphElement } from '@joint/react';
+import type { GraphElement, GraphElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
 import {
   getCellId,
@@ -61,35 +61,15 @@ const Pulse = dia.HighlighterView.extend({
   },
 });
 
-const NODE_PORTS = {
-  items: [
-    {
-      id: 'in',
-      args: { x: NODE_WIDTH / 2, y: 0 },
-      attrs: { circle: { magnet: true }, text: { display: 'none' } },
-    },
-    {
-      id: 'out',
-      args: { x: NODE_WIDTH / 2, y: NODE_HEIGHT },
-      attrs: { circle: { magnet: true }, text: { display: 'none' } },
-    },
-  ],
-};
-
-const mapDataToElementAttributes = (
-  options: ElementToGraphOptions<GraphElement>
-): dia.Cell.JSON => {
-  const result = options.toAttributes(options.data);
-  return {
-    ...result,
-    ports: NODE_PORTS,
-  };
-};
+const NODE_PORTS: GraphElementPort[] = [
+  { id: 'in', cx: NODE_WIDTH / 2, cy: 0, width: PORT_SIZE, height: PORT_SIZE, color: LIGHT, passive: true },
+  { id: 'out', cx: NODE_WIDTH / 2, cy: NODE_HEIGHT, width: PORT_SIZE, height: PORT_SIZE, color: LIGHT },
+];
 
 const elements: Record<string, GraphElement> = {
-  '1': { x: 50, y: 50 },
-  '2': { x: 350, y: 50 },
-  '3': { x: 150, y: 250 },
+  '1': { x: 50, y: 50, ports: NODE_PORTS },
+  '2': { x: 350, y: 50, ports: NODE_PORTS },
+  '3': { x: 150, y: 250, ports: NODE_PORTS },
 };
 
 function NodeElement(_props: Readonly<GraphElement>) {
@@ -182,7 +162,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={elements} mapDataToElementAttributes={mapDataToElementAttributes}>
+    <GraphProvider elements={elements}>
       <Main />
     </GraphProvider>
   );

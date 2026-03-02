@@ -93,8 +93,8 @@ describe('GraphProvider Coverage Tests', () => {
     it('should handle only links controlled (not elements)', async () => {
       const initialLink: GraphLink = {
         type: 'standard.Link',
-        source: { id: '1' },
-        target: { id: '2' },
+        source: '1',
+        target: '2',
       };
 
       let elementCount = 0;

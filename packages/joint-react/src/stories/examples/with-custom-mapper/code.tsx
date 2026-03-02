@@ -66,12 +66,12 @@ const initialElements: Record<string, CenterElement> = {
 
 const initialLinks: Record<string, GraphLink> = {
   'link-1': {
-    source: { id: 'node-1' },
-    target: { id: 'node-2' },
+    source: 'node-1',
+    target: 'node-2',
   },
   'link-2': {
-    source: { id: 'node-1' },
-    target: { id: 'node-3' },
+    source: 'node-1',
+    target: 'node-3',
   },
 };
 

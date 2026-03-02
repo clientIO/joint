@@ -83,11 +83,11 @@ const links: Record<string, CustomLink> = {
 const mapDataToLinkAttributes = (
   options: LinkToGraphOptions<GraphLink>
 ): dia.Cell.JSON => {
-  // eslint-disable-next-line sonarjs/no-unused-vars
-  const { attrs: _, ...defaultAttributesRest } = options.toAttributes(options.data);
+
+  const attributes = options.toAttributes(options.data);
   const { color } = options.data as CustomLink;
   return {
-    ...defaultAttributesRest,
+    ...attributes,
     type: 'LinkModel',
     attrs: LinkModel.getPresentationAttributes(color),
   };

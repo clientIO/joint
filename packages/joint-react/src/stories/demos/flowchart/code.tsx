@@ -270,26 +270,29 @@ const StepNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StepNodeRaw);
 function RenderFlowchartNode(props: FlowchartNodeProps) {
   const { type } = props;
 
+  const highlighterRef = useRef<SVGRectElement | SVGPolygonElement>(null);
   const [isHighlighted, setIsHighlighted] = useState(false);
   useHighlighter({
     type: 'mask',
     isEnabled: isHighlighted,
-    target: 'root',
+    ref: highlighterRef,
     padding: 2,
     attrs: {
       stroke: SECONDARY,
-      'stroke-width': 2,
+      strokeWidth: 2,
     },
   });
   const content =
     type === 'decision' ? (
       <DecisionNode
+        ref={highlighterRef as React.ForwardedRef<SVGPolygonElement>}
         {...props}
         onMouseEnter={() => setIsHighlighted(true)}
         onMouseLeave={() => setIsHighlighted(false)}
       />
     ) : (
       <StepNode
+        ref={highlighterRef as React.ForwardedRef<SVGRectElement>}
         {...props}
         onMouseEnter={() => setIsHighlighted(true)}
         onMouseLeave={() => setIsHighlighted(false)}

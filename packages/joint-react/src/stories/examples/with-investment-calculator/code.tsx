@@ -11,7 +11,6 @@ import {
   type OnLoadOptions,
   type GraphElement,
   type GraphLink,
-  type LinkToGraphOptions,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCallback } from 'react';
@@ -185,83 +184,73 @@ const initialElements: Record<string, ShapeElement> = {
   },
 };
 
+const linkAppearance = {
+  width: 4,
+  wrapperColor: '#000000',
+  wrapperBuffer: 4,
+  lineCap: 'butt' as const,
+  targetMarker: {
+    d: 'M 10 -2 10 -10 -3 0 10 10 10 2',
+    stroke: '#000000',
+    strokeWidth: 2,
+  },
+};
+
 const initialLinks: Record<string, GraphLink> = {
   link1: {
-    source: { id: 'investment', anchor: { name: 'top', args: { dy: 1 } } },
-    target: { id: 'gold', anchor: { name: 'left', args: { dx: -5 } } },
+    source: 'investment',
+    sourceAnchor: { name: 'top', args: { dy: 1 } },
+    target: 'gold',
+    targetAnchor: { name: 'left', args: { dx: -5 } },
+    ...linkAppearance,
     color: MAIN_COLOR,
     z: 2,
   },
   link2: {
-    source: {
-      id: 'investment',
-      anchor: { name: 'right', args: { dx: -1 } },
-    },
-    target: { id: 'bitcoin', anchor: { name: 'left', args: { dx: -5 } } },
+    source: 'investment',
+    sourceAnchor: { name: 'right', args: { dx: -1 } },
+    target: 'bitcoin',
+    targetAnchor: { name: 'left', args: { dx: -5 } },
+    ...linkAppearance,
     color: MAIN_COLOR,
     z: 2,
   },
   link3: {
-    source: {
-      id: 'investment',
-      anchor: { name: 'bottom', args: { dy: -1 } },
-    },
-    target: { id: 'sp500', anchor: { name: 'left', args: { dx: -5 } } },
+    source: 'investment',
+    sourceAnchor: { name: 'bottom', args: { dy: -1 } },
+    target: 'sp500',
+    targetAnchor: { name: 'left', args: { dx: -5 } },
+    ...linkAppearance,
     color: MAIN_COLOR,
     z: 2,
   },
   link4: {
-    source: { id: 'gold', anchor: { name: 'right', args: { dx: -1 } } },
-    target: { id: 'goldPerf', anchor: { name: 'left', args: { dx: -5 } } },
+    source: 'gold',
+    sourceAnchor: { name: 'right', args: { dx: -1 } },
+    target: 'goldPerf',
+    targetAnchor: { name: 'left', args: { dx: -5 } },
+    ...linkAppearance,
     color: GOLD_COLOR,
     z: 4,
   },
   link5: {
-    source: { id: 'bitcoin', anchor: { name: 'right', args: { dx: -1 } } },
-    target: {
-      id: 'bitcoinPerf',
-      anchor: { name: 'left', args: { dx: -5 } },
-    },
+    source: 'bitcoin',
+    sourceAnchor: { name: 'right', args: { dx: -1 } },
+    target: 'bitcoinPerf',
+    targetAnchor: { name: 'left', args: { dx: -5 } },
+    ...linkAppearance,
     color: BTC_COLOR,
     z: 5,
   },
   link6: {
-    source: { id: 'sp500', anchor: { name: 'right', args: { dx: -1 } } },
-    target: { id: 'sp500Perf', anchor: { name: 'left', args: { dx: -5 } } },
+    source: 'sp500',
+    sourceAnchor: { name: 'right', args: { dx: -1 } },
+    target: 'sp500Perf',
+    targetAnchor: { name: 'left', args: { dx: -5 } },
+    ...linkAppearance,
     color: SP500_COLOR,
     z: 7,
   },
-};
-
-// ----------------------------------------------------------------------------
-// Custom Attribute Mapper for Links (standard.DoubleLink)
-// ----------------------------------------------------------------------------
-
-const mapDataToLinkAttributes = (
-  options: LinkToGraphOptions<GraphLink>
-): dia.Cell.JSON => {
-  const { color, z } = options.data;
-
-  return {
-    ...options.toAttributes(options.data),
-    type: 'standard.DoubleLink',
-    z,
-    attrs: {
-      line: {
-        connection: true,
-        stroke: color,
-        targetMarker: {
-          d: 'M 10 -2 10 -10 -3 0 10 10 10 2',
-          stroke: '#000000',
-          strokeWidth: 2,
-        },
-      },
-      outline: {
-        connection: true,
-        strokeWidth: 8,
-      },
-    },
-  };
 };
 
 // ----------------------------------------------------------------------------
@@ -683,7 +672,6 @@ export default function App() {
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapDataToLinkAttributes={mapDataToLinkAttributes}
     >
       <Main />
     </GraphProvider>
