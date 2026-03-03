@@ -2,6 +2,13 @@ import { dia } from '@joint/core';
 export const REACT_TYPE = 'ReactElement';
 
 /**
+ * Selector for the `<g>` element used as the React portal target inside ReactElement markup.
+ * @group Models
+ */
+export const REACT_PORTAL_SELECTOR = 'reactPortal';
+
+
+/**
  * A custom JointJS element that can render React components.
  * @group Models
  * @example
@@ -19,9 +26,15 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
   dia.Element.Attributes & Attributes
 > {
   /**
-   * Empty markup - React will render content via portal into view.el
+   * Markup containing a dedicated `<g>` group for React portal rendering.
+   * Ports and highlighters are appended after this group, ensuring correct stacking order.
    */
-  markup: dia.MarkupJSON = [];
+  markup: dia.MarkupJSON = [
+    {
+      tagName: 'g',
+      selector: REACT_PORTAL_SELECTOR,
+    },
+  ];
 
   /**
    * Sets the default attributes for the ReactElement.

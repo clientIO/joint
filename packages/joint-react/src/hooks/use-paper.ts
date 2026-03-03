@@ -1,5 +1,6 @@
 import type { dia } from '@joint/core';
 import { usePaperStoreById, usePaperStoreContext } from './use-paper-context';
+import type { ReactPaper } from '../models/react-paper';
 
 /**
  * Return JointJS `dia.Paper` instance from the current `Paper` context.
@@ -39,7 +40,7 @@ export function usePaper(): dia.Paper {
  * }
  * ```
  */
-export function usePaperById(id: string): dia.Paper | null {
+export function usePaperById(id: string): ReactPaper | null {
   const paperStoreById = usePaperStoreById(id);
   return paperStoreById?.paper ?? null;
 }

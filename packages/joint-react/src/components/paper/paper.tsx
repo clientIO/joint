@@ -68,6 +68,9 @@ function getReactLinkConstructor(graph: dia.Graph): ReactLinkConstructor {
 /**
  * Updates paper dimensions when width or height props change.
  * Handles partial updates (only width or only height specified).
+ * @param paper
+ * @param width
+ * @param height
  */
 function updatePaperDimensions(
   paper: dia.Paper,
@@ -92,7 +95,7 @@ function LinkItem({
   renderLink,
 }: {
   link: FlatLinkData;
-  portalElement: SVGAElement;
+  portalElement: SVGElement | HTMLElement;
   renderLink: RenderLink<FlatLinkData>;
 }) {
   if (!portalElement) {
@@ -374,12 +377,12 @@ function PaperBase<ElementData = FlatElementData>(
       }
 
       const elementView = paperElementViews[elementId];
-      if (!elementView) {
+      if (!elementView?.paper) {
         return null;
       }
 
-      const SVG = elementView.el;
-      if (!SVG) {
+      const portalNode = (elementView.paper as ReactPaper).getCellViewPortalNode(elementView);
+      if (!portalNode) {
         return null;
       }
 
@@ -397,7 +400,7 @@ function PaperBase<ElementData = FlatElementData>(
               {/* We need to render this element too, its kind of hack - placeholder */}
               <SVGElementItem
                 {...elementState}
-                portalElement={SVG as SVGAElement}
+                portalElement={portalNode}
                 renderElement={DefaultRectElement}
                 areElementsMeasured={areElementsMeasured}
                 id={elementId}
@@ -406,7 +409,7 @@ function PaperBase<ElementData = FlatElementData>(
           ) : (
             <SVGElementItem
               {...elementState}
-              portalElement={SVG as SVGAElement}
+              portalElement={portalNode}
               renderElement={renderElement}
               areElementsMeasured={areElementsMeasured}
               id={elementId}
@@ -438,12 +441,12 @@ function PaperBase<ElementData = FlatElementData>(
       }
 
       const linkView = paperLinkViews[linkId];
-      if (!linkView) {
+      if (!linkView?.paper) {
         return null;
       }
 
-      const SVG = linkView.el;
-      if (!SVG) {
+      const portalNode = (linkView.paper as ReactPaper).getCellViewPortalNode(linkView);
+      if (!portalNode) {
         return null;
       }
 
@@ -453,7 +456,7 @@ function PaperBase<ElementData = FlatElementData>(
 
       return (
         <CellIdContext.Provider key={linkId} value={linkId}>
-          <LinkItem link={linkState} portalElement={SVG as SVGAElement} renderLink={renderLink} />
+          <LinkItem link={linkState} portalElement={portalNode} renderLink={renderLink} />
         </CellIdContext.Provider>
       );
     });
