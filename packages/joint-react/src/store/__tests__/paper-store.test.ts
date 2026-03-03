@@ -270,11 +270,11 @@ describe('PaperStore', () => {
 
       // Elements must be in a live SVG DOM for V(node).getBBox() to work
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      document.body.appendChild(svg);
+      document.body.append(svg);
       const rootNode = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       const portMagnet = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      svg.appendChild(rootNode);
-      rootNode.appendChild(portMagnet);
+      svg.append(rootNode);
+      rootNode.append(portMagnet);
       portMagnet.getBBox = jest.fn(() => ({ x: -5, y: -5, width: 10, height: 10 }) as DOMRect);
 
       const element = new dia.Element({ size: { width: 200, height: 100 } });
@@ -289,7 +289,7 @@ describe('PaperStore', () => {
       expect(result.y).toBe(-5);
 
       paperStore.destroy();
-      document.body.removeChild(svg);
+      svg.remove();
     });
 
     it('should allow user to override measureNode', () => {

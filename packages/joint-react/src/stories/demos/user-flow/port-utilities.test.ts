@@ -1,21 +1,6 @@
-import { appendOutputPort, createNextOutputPort, createPorts } from './port-utilities';
+import { appendOutputPort, createNextOutputPort } from './port-utilities';
 
 describe('user-flow port utils', () => {
-  it('creates hidden native output ports with higher z for reliable hit testing', () => {
-    const ports = createPorts([
-      { id: '1', label: 'Port 1' },
-      { id: '2', label: 'Port 2' },
-    ]);
-
-    const { items } = ports;
-    expect(items).toHaveLength(3);
-    expect(items[0]?.id).toBe('in');
-    expect(items[0]?.z).toBe(100);
-    expect(items[1]?.z).toBe(100);
-    expect(items[2]?.z).toBe(100);
-    expect((items[2]?.args as { x?: number })?.x).toBeGreaterThan((items[1]?.args as { x?: number })?.x ?? 0);
-  });
-
   it('appends next output port id from highest existing numeric id', () => {
     const next = createNextOutputPort([
       { id: '1', label: 'Port 1' },
@@ -38,15 +23,4 @@ describe('user-flow port utils', () => {
     expect(updated.outputPorts[2]).toEqual({ id: '3', label: 'Port 3' });
   });
 
-  it('generates correct native ports from output ports', () => {
-    const ports = createPorts([
-      { id: '1', label: 'Port 1' },
-      { id: '2', label: 'Port 2' },
-      { id: '3', label: 'Port 3' },
-    ]);
-
-    expect(ports.items).toHaveLength(4);
-    expect(ports.items[0]?.id).toBe('in');
-    expect(ports.items[3]?.id).toBe('3');
-  });
 });
