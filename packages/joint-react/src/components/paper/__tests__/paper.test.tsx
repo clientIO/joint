@@ -564,11 +564,8 @@ describe('Paper Component', () => {
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
       const paperOptions = ref.current!.options;
-      // Default connection point should be rectangle with useModelGeometry
-      expect(paperOptions.defaultConnectionPoint).toEqual({
-        name: 'rectangle',
-        args: { useModelGeometry: true },
-      });
+      // Default connection point should be a function that dispatches between rectangle and boundary
+      expect(typeof paperOptions.defaultConnectionPoint).toBe('function');
       // Default measureNode should be defined
       expect(typeof paperOptions.measureNode).toBe('function');
     });
