@@ -32,8 +32,6 @@ function convertPort(port: FlatElementPort): dia.Element.Port {
     position: { args: { x: cx, y: cy }},
   };
 
-  const isEllipse = shape === 'ellipse';
-
   const portBodyAttributes: Record<string, unknown> = {
     fill: color,
     stroke,
@@ -41,14 +39,20 @@ function convertPort(port: FlatElementPort): dia.Element.Port {
     magnet: passive ? 'passive' : 'active',
   };
 
-  if (isEllipse) {
+  let bodyTagName: string;
+  if (shape === 'ellipse') {
+    bodyTagName = 'ellipse';
     portBodyAttributes.rx = width / 2;
     portBodyAttributes.ry = height / 2;
-  } else {
+  } else if (shape === 'rect') {
+    bodyTagName = 'rect';
     portBodyAttributes.width = width;
     portBodyAttributes.height = height;
     portBodyAttributes.x = -width / 2;
     portBodyAttributes.y = -height / 2;
+  } else {
+    bodyTagName = 'path';
+    portBodyAttributes.d = shape;
   }
 
   if (className) {
@@ -57,7 +61,7 @@ function convertPort(port: FlatElementPort): dia.Element.Port {
 
   result.markup = [
     {
-      tagName: isEllipse ? 'ellipse' : 'rect',
+      tagName: bodyTagName,
       selector: 'portBody',
     },
   ];

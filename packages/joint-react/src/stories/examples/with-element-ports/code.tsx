@@ -144,6 +144,7 @@ const INPUT_PORTS = [
     width: 16,
     height: 16,
     color: PRIMARY,
+    shape: 'M -8 -8 L 8 0 L -8 8 Z',
     label: 'In 2',
     labelColor: LIGHT,
   },
