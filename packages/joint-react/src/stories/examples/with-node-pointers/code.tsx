@@ -5,14 +5,13 @@ import {
   GraphProvider,
   Paper,
   useNodeSize,
+  useMarkup,
   type FlatElementData,
   type FlatLinkData,
   type RenderElement,
   type OnTransformElement,
   ReactElement,
   ReactLink,
-  usePaper,
-  useCellId,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
@@ -47,10 +46,10 @@ const initialElements: Record<string, StackedElement> = {
 
 const initialLinks: Record<string, FlatLinkData> = {
   'e1-2': {
-    // @ts-expect-error selector is not yet supported as a top-level link property
-    source: {id: '1', selector: 'item-2'},
-    // @ts-expect-error selector is not yet supported as a top-level link property
-    target: {id: '2', selector: 'item-2'},
+    source: '1',
+    sourceMagnet: 'item-2',
+    target: '2',
+    targetMagnet: 'item-2',
     color: LIGHT,
   },
 };
@@ -84,31 +83,11 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
   );
 });
 
-function useNodePointer() {
-  const paper = usePaper();
-  const id = useCellId();
-  return useCallback((selector: string) => {
-    return (node: SVGGElement | null) => {
-      const elementView = paper.findViewByModel(id) as
-        | (dia.ElementView & { selectors: Record<string, SVGElement> })
-        | undefined;
-      if (!elementView) return;
-      if (node) {
-        node.setAttribute('joint-selector', selector);
-        elementView.selectors[selector] = node;
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete elementView.selectors[selector];
-      }
-    };
-  }, [paper, id]);
-}
-
 function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const rows = labels?.length ?? 0;
   const totalHeight = HEADER_HEIGHT + rows * ROW_HEIGHT;
-  const nodePointer = useNodePointer();
+  const { selectorRef } = useMarkup();
 
   const transform: OnTransformElement = useCallback(() => {
     return {
@@ -145,7 +124,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
         return (
           <Item
             key={label}
-            ref={nodePointer(`item-${index}`)}
+            ref={selectorRef(`item-${index}`)}
             label={label}
             index={index}
             width={width}

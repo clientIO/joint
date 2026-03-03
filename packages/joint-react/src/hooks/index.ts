@@ -17,3 +17,4 @@ export * from './use-ref-value';
 export * from './use-link-layout';
 export * from './use-graph-store-selector';
 export * from './use-highlighter';
+export * from './use-markup';
