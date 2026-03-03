@@ -3,15 +3,12 @@
 import {
   GraphProvider,
   Paper,
-  useLinkLayout,
-  type GraphElement,
-  type GraphLink,
-  type RenderLink,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useRef, useState, startTransition, memo } from 'react';
-import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
-import { REACT_LINK_TYPE } from '../../../models/react-link';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 function initialElements(xNodes = 15, yNodes = 30) {
   const nodes: Record<
@@ -28,7 +25,6 @@ function initialElements(xNodes = 15, yNodes = 30) {
   const edges: Record<
     string,
     {
-      type: string;
       source: string;
       target: string;
       z: number;
@@ -55,7 +51,6 @@ function initialElements(xNodes = 15, yNodes = 30) {
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
         const edgeIdString = `edge-${edgeId.toString()}`;
         edges[edgeIdString] = {
-          type: REACT_LINK_TYPE,
           source: `stress-${recentNodeId.toString()}`,
           target: `stress-${nodeId.toString()}`,
           z: -1,
@@ -94,31 +89,20 @@ const RenderElement = memo(function RenderElement({
   );
 });
 
-function StressLinkPath() {
-  const layout = useLinkLayout();
-  if (!layout) return null;
-  return <path d={layout.d} stroke={LIGHT} strokeWidth={0.5} fill="none" />;
-}
-
 function Main({
   setElements,
 }: Readonly<{
-  setElements: React.Dispatch<React.SetStateAction<Record<string, GraphElement>>>;
+  setElements: React.Dispatch<React.SetStateAction<Record<string, FlatElementData>>>;
 }>) {
-  // Memoize the renderElement function to prevent unnecessary re-renders
   const renderElement = useCallback(
     (element: BaseElementWithData) => <RenderElement {...element} />,
     []
   );
 
-  const renderLink: RenderLink = useCallback(() => <StressLinkPath />, []);
-
   const updatePos = useCallback(() => {
-    // Use startTransition to mark this as a non-urgent update
-    // This allows React to keep the UI responsive during the update
     startTransition(() => {
       setElements((previousElements) => {
-        const newElements: Record<string, GraphElement> = {};
+        const newElements: Record<string, FlatElementData> = {};
         for (const [id, node] of Object.entries(previousElements)) {
           newElements[id] = {
             ...node,
@@ -139,7 +123,6 @@ function Main({
         className={PAPER_CLASSNAME}
         height={600}
         renderElement={renderElement}
-        renderLink={renderLink}
       />
       <div className="absolute top-4 right-4">
         <button
@@ -155,8 +138,8 @@ function Main({
 }
 
 export default function App() {
-  const [elements, setElements] = useState<Record<string, GraphElement>>(initialNodes);
-  const [links, setLinks] = useState<Record<string, GraphLink>>(initialEdges);
+  const [elements, setElements] = useState<Record<string, FlatElementData>>(initialNodes);
+  const [links, setLinks] = useState<Record<string, FlatLinkData>>(initialEdges);
 
   return (
     <GraphProvider

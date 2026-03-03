@@ -5,6 +5,7 @@ import { useRef } from 'react';
 import { shapes, util } from '@joint/core';
 import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import type { dia } from '../../../../../joint-core/types';
+import type { CellId } from '../../../types/cell-id';
 import { useCellChangeEffect } from '../../../hooks/use-cell-change-effect';
 
 const initialElements: Record<string, { label: string; x: number; y: number }> = {
@@ -39,13 +40,13 @@ class DashedLink extends shapes.standard.Link {
 
 const PROXIMITY_THRESHOLD = 60;
 
-function getLinkId(id: dia.Cell.ID | null, closeId: dia.Cell.ID | null) {
+function getLinkId(id: CellId | null, closeId: CellId | null) {
   return `${id}-${closeId}`;
 }
 
 function shouldReactToChange(
   change: { readonly cell?: dia.Cell } | undefined,
-  elementId: dia.Cell.ID
+  elementId: CellId
 ): boolean {
   if (!change) {
     return true;
@@ -80,8 +81,8 @@ function removeOldLinks(
 
 function createProximityLinks(
   graph: dia.Graph,
-  elementId: dia.Cell.ID,
-  closeIds: readonly dia.Cell.ID[],
+  elementId: CellId,
+  closeIds: readonly CellId[],
   managedLinks: Set<string>
 ): void {
   for (const closeId of closeIds) {
@@ -126,7 +127,7 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
       const proximityElements = graph
         .findElementsInArea(area)
         .filter((element_) => element_.id !== id);
-      const closeIds = proximityElements.map((element_) => element_.id);
+      const closeIds = proximityElements.map((element_) => element_.id as CellId);
 
       // Clean up old links that are no longer needed
       const currentLinkIds = new Set<string>();

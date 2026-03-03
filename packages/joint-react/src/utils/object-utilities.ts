@@ -3,32 +3,6 @@
 import { util } from '@joint/core';
 
 /**
- * Make options and avoid to generate undefined values.
- * @param options - An object containing options where keys are strings and values can be of any type.
- * @returns - A new object with the same properties as the input options, but without any properties that have undefined
- * @example
- * ```ts
- * import { makeOptions } from '@joint/react';
- *
- * const options = makeOptions({
- *   width: 100,
- *   height: 50,
- *   color: undefined, // This will be removed
- * });
- * // Result: { width: 100, height: 50 }
- * ```
- */
-export function makeOptions<T extends Record<string, any>>(options: T): T {
-  const result: T = {} as T;
-  for (const key in options) {
-    if (options[key] !== undefined) {
-      result[key] = options[key];
-    }
-  }
-  return result;
-}
-
-/**
  * Assign new properties to an instance, ignoring undefined values.
  * @param props - The instance to which new properties will be assigned.
  * @param newProps - An object containing new properties to assign to the instance.

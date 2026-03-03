@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
-import type { GraphElement } from '../../types/element-types';
+import type { FlatElementData } from '../../types/element-types';
 import type { OmitWithoutIndexSignature } from '../../types';
-import type { GraphLink } from '../../types/link-types';
+import type { FlatLinkData } from '../../types/link-types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import type { PaperEvents } from '../../types/event.types';
@@ -20,23 +20,23 @@ export interface ReactPaperOptions extends ReactPaperOptionsBase {
    * Default link for the paper - for example if there is new element added, this will be used as default.
    */
   readonly defaultLink?:
-    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | GraphLink)
+    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | FlatLinkData)
     | dia.Link
-    | GraphLink;
+    | FlatLinkData;
 }
 
-export type RenderElement<ElementItem extends GraphElement = GraphElement> = (
-  element: ElementItem
+export type RenderElement<ElementData = FlatElementData> = (
+  element: ElementData
 ) => ReactNode;
 
-export type RenderLink<LinkItem extends GraphLink = GraphLink> = (link: LinkItem) => ReactNode;
+export type RenderLink<LinkData = FlatLinkData> = (link: LinkData) => ReactNode;
 
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<ElementItem extends GraphElement = GraphElement>
+export interface PaperProps<ElementData = FlatElementData>
   extends ReactPaperOptions,
     PropsWithChildren,
     PaperEvents {
@@ -67,7 +67,7 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
    * ```
    */
 
-  readonly renderElement?: RenderElement<ElementItem>;
+  readonly renderElement?: RenderElement<ElementData>;
   /**
    * A function that renders the link.
    *
@@ -105,7 +105,7 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
    * )
    * ```
    */
-  readonly renderLink?: RenderLink<GraphLink>;
+  readonly renderLink?: RenderLink<FlatLinkData>;
   /**
    * Event called when all elements are properly measured (has all elements width and height greater than 1 - default).
    * In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.

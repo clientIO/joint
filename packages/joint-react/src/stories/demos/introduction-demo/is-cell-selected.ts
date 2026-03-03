@@ -1,8 +1,8 @@
-import type { dia } from '@joint/core';
+import type { CellId } from '../../../types/cell-id';
 
 export function isCellSelected(
-  cellId: dia.Cell.ID | null | undefined,
-  selectedId: dia.Cell.ID | null
+  cellId: CellId | null | undefined,
+  selectedId: CellId | null
 ): boolean {
   if (cellId == null || selectedId == null) {
     return false;

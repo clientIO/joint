@@ -10,8 +10,9 @@ import {
   usePaper,
   useNodeSize,
   useNodeLayout,
-  type GraphElement,
-  type GraphLink,
+  type CellId,
+  type FlatElementData,
+  type FlatLinkData,
   type PaperProps,
   type RenderElement,
   // ReactLinkView,
@@ -28,14 +29,14 @@ const PAPER_CLASSNAME = 'border-1 border-gray-300 rounded-lg shadow-md overflow-
 const MINIMAP_WIDTH = 200;
 const MINIMAP_HEIGHT = 150;
 
-interface ElementData extends GraphElement {
+interface ElementData extends FlatElementData {
   readonly type?: 'default' | 'error' | 'info';
   readonly title?: string;
   readonly color?: string;
   readonly jjType?: string;
 }
 
-interface LinkData extends GraphLink {
+interface LinkData extends FlatLinkData {
   readonly className?: string;
   readonly jjType?: string;
 }
@@ -240,7 +241,7 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
 // Selection
 // ============================================================================
 
-function Selection({ selectedId }: { selectedId: dia.Cell.ID | null }) {
+function Selection({ selectedId }: { selectedId: CellId | null }) {
   const paper = usePaper();
   const graph = useGraph();
 
@@ -308,7 +309,7 @@ function RenderElementWithBadge({
 function Main() {
   const [paper, setPaper] = useState<dia.Paper | null>(null);
   const [showMinimap, setShowMinimap] = useState(false);
-  const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(null);
+  const [selectedElement, setSelectedElement] = useState<CellId | null>(null);
 
   const renderElement = useCallback((data: ElementData) => {
     return <RenderElementWithBadge {...data} />;
@@ -331,7 +332,7 @@ function Main() {
         validateMagnet={(_, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         linkPinning={false}
         onElementPointerClick={({ elementView }) =>
-          setSelectedElement(elementView.model.id ?? null)
+          setSelectedElement((elementView.model.id as CellId) ?? null)
         }
         onElementPointerDblClick={({ elementView }) => {
           const cell = elementView.model;

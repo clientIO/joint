@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { GraphLink } from '../../types/link-types';
+import type { FlatLinkData } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
 import { REACT_LINK_TYPE } from '../../models/react-link';
 import type {
@@ -31,7 +31,7 @@ import { resolveCellDefaults } from './resolve-cell-defaults';
  * @param options - The link id, data, and optional theme to convert
  * @returns The JointJS cell JSON attributes
  */
-export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
+export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
   options: Pick<LinkToGraphOptions<Link>, 'id' | 'data'> & { readonly theme?: LinkTheme }
 ): dia.Cell.JSON {
   const { id, data, theme = defaultLinkTheme } = options;
@@ -133,7 +133,7 @@ export function defaultMapDataToLinkAttributes<Link extends GraphLink>(
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat link data
  */
-export function defaultMapLinkAttributesToData<Link extends GraphLink>(
+export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
   options: Pick<GraphToLinkOptions<Link>, 'cell' | 'previousData'>
 ): Link {
   const { cell } = options;

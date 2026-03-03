@@ -1,6 +1,7 @@
 import type { dia } from '@joint/core';
-import type { GraphElement } from './element-types';
-import type { GraphLink } from './link-types';
+import type { CellId } from './cell-id';
+import type { FlatElementData } from './element-types';
+import type { FlatLinkData } from './link-types';
 
 /**
  * Unified scheduler data structure for batching all JointJS to React updates.
@@ -9,31 +10,31 @@ import type { GraphLink } from './link-types';
  */
 export interface GraphSchedulerData {
   // Elements
-  readonly elementsToUpdate?: Map<dia.Cell.ID, GraphElement>;
-  readonly elementsToDelete?: Map<dia.Cell.ID, true>;
+  readonly elementsToUpdate?: Map<CellId, FlatElementData>;
+  readonly elementsToDelete?: Map<CellId, true>;
 
   // Links
-  readonly linksToUpdate?: Map<dia.Cell.ID, GraphLink>;
-  readonly linksToDelete?: Map<dia.Cell.ID, true>;
+  readonly linksToUpdate?: Map<CellId, FlatLinkData>;
+  readonly linksToDelete?: Map<CellId, true>;
 
   // Ports (nested by element ID)
-  readonly portsToUpdate?: Map<dia.Cell.ID, Map<string, dia.Element.Port>>;
-  readonly portsToDelete?: Map<dia.Cell.ID, Set<string>>;
+  readonly portsToUpdate?: Map<CellId, Map<string, dia.Element.Port>>;
+  readonly portsToDelete?: Map<CellId, Set<string>>;
 
   // Port Groups (nested by element ID)
-  readonly portGroupsToUpdate?: Map<dia.Cell.ID, Map<string, dia.Element.PortGroup>>;
-  readonly portGroupsToDelete?: Map<dia.Cell.ID, Set<string>>;
+  readonly portGroupsToUpdate?: Map<CellId, Map<string, dia.Element.PortGroup>>;
+  readonly portGroupsToDelete?: Map<CellId, Set<string>>;
 
   // Link attributes
-  readonly linkAttrsToUpdate?: Map<dia.Cell.ID, Record<string, unknown>>;
+  readonly linkAttrsToUpdate?: Map<CellId, Record<string, unknown>>;
 
   // Labels (nested by link ID)
-  readonly labelsToUpdate?: Map<dia.Cell.ID, Map<string, dia.Link.Label>>;
-  readonly labelsToDelete?: Map<dia.Cell.ID, Set<string>>;
+  readonly labelsToUpdate?: Map<CellId, Map<string, dia.Link.Label>>;
+  readonly labelsToDelete?: Map<CellId, Set<string>>;
 
   // Views (for React paper updates)
-  readonly viewsToUpdate?: Map<dia.Cell.ID, dia.CellView>;
-  readonly viewsToDelete?: Map<dia.Cell.ID, true>;
+  readonly viewsToUpdate?: Map<CellId, dia.CellView>;
+  readonly viewsToDelete?: Map<CellId, true>;
 
   // Paper update trigger
   readonly shouldUpdatePaper?: boolean;

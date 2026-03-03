@@ -18,7 +18,7 @@
  */
 import { render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, type GraphElement, type GraphLink } from '../../../index';
+import { GraphProvider, Paper, type FlatElementData, type FlatLinkData } from '../../../index';
 
 /**
  * Flushes the microtask queue by waiting for a microtask to complete.
@@ -29,7 +29,7 @@ async function flushMicrotasks(): Promise<void> {
   });
 }
 
-interface TestElement extends GraphElement {
+interface TestElement extends FlatElementData {
   readonly label: string;
 }
 
@@ -38,7 +38,7 @@ const TEST_ELEMENTS: Record<string, TestElement> = {
   '2': { label: 'Element2', x: 100, y: 200, width: 100, height: 50 },
 };
 
-const TEST_LINKS: Record<string, GraphLink> = {
+const TEST_LINKS: Record<string, FlatLinkData> = {
   'link-1': {
     source: '1',
     target: '2',

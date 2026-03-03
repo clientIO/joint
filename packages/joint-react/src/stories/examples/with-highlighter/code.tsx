@@ -1,12 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useHighlighter, type GraphElement, type GraphLink } from '@joint/react';
+import { GraphProvider, Paper, useHighlighter, type FlatElementData, type FlatLinkData } from '@joint/react';
 import { highlighters } from '@joint/core';
 import '../index.css';
 import { useRef, useState, type RefObject } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
-const initialElements: Record<string, GraphElement & { label: string }> = {
+const initialElements: Record<string, FlatElementData & { label: string }> = {
   '1': {
     label: 'Node 1',
     x: 100,
@@ -23,7 +23,7 @@ const initialElements: Record<string, GraphElement & { label: string }> = {
   },
 };
 
-const initialEdges: Record<string, GraphLink> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',

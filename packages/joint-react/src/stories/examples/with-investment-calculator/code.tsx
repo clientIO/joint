@@ -9,8 +9,8 @@ import {
   useElements,
   useGraph,
   type OnLoadOptions,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCallback } from 'react';
@@ -23,7 +23,7 @@ import '../index.css';
 
 type ShapeType = 'Investment' | 'Product' | 'ProductPerformance' | 'OverallPerformance';
 
-interface BaseElement extends GraphElement {
+interface BaseElement extends FlatElementData {
   readonly type: ShapeType;
   readonly width: number;
   readonly height: number;
@@ -196,7 +196,7 @@ const linkAppearance = {
   },
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   link1: {
     source: 'investment',
     sourceAnchor: { name: 'top', args: { dy: 1 } },

@@ -4,7 +4,7 @@ import { defaultMapLinkAttributesToData } from '../../state/data-mapping';
 import { ReactElement } from '../../models/react-element';
 import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
 import type { GraphToLinkOptions } from '../../state/graph-state-selectors';
-import type { GraphLink } from '../../types/link-types';
+import type { FlatLinkData } from '../../types/link-types';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 
@@ -37,7 +37,7 @@ describe('graph-state-selectors link mapping', () => {
         id,
         cell,
         graph,
-      } as unknown as GraphToLinkOptions<GraphLink>);
+      } as unknown as GraphToLinkOptions<FlatLinkData>);
 
       expect(link).toMatchObject({
         source: 'source-id',

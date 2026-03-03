@@ -1,7 +1,8 @@
 import type { dia } from '@joint/core';
-import type { GraphLink } from '../../types/link-types';
-import { forwardRef, type Dispatch, type SetStateAction } from 'react';
-import type { GraphElement } from '../../types/element-types';
+import type { CellId } from '../../types/cell-id';
+import type { FlatLinkData } from '../../types/link-types';
+import React, { forwardRef, type Dispatch, type SetStateAction } from 'react';
+import type { FlatElementData } from '../../types/element-types';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore, type ExternalGraphStore } from '../../store';
@@ -15,8 +16,8 @@ import type { GraphStateSelectors } from '../../state/graph-state-selectors';
  * @template Link - The type of links in the graph
  */
 interface GraphProviderProps<
-  Element extends GraphElement = GraphElement,
-  Link extends GraphLink = GraphLink,
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
 > {
   /**
    * Elements (nodes) to be added to the graph as a Record keyed by cell ID.
@@ -27,7 +28,7 @@ interface GraphProviderProps<
    * **Uncontrolled mode:** If `onElementsChange` is not provided, this is only used for initial elements.
    * The graph manages its own state internally.
    */
-  readonly elements?: Record<string, Element>;
+  readonly elements?: Record<CellId, ElementData>;
 
   /**
    * Links (edges) to be added to the graph as a Record keyed by cell ID.
@@ -38,7 +39,7 @@ interface GraphProviderProps<
    * **Uncontrolled mode:** If `onLinksChange` is not provided, this is only used for initial links.
    * The graph manages its own state internally.
    */
-  readonly links?: Record<string, Link>;
+  readonly links?: Record<CellId, LinkData>;
 
   /**
    * Callback triggered when elements (nodes) change in the graph.
@@ -52,7 +53,7 @@ interface GraphProviderProps<
    * - State persistence
    * - Integration with other React state management
    */
-  readonly onElementsChange?: Dispatch<SetStateAction<Record<string, Element>>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<CellId, ElementData>>>;
 
   /**
    * Callback triggered when links (edges) change in the graph.
@@ -66,7 +67,7 @@ interface GraphProviderProps<
    * - State persistence
    * - Integration with other React state management
    */
-  readonly onLinksChange?: Dispatch<SetStateAction<Record<dia.Cell.ID, Link>>>;
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, LinkData>>>;
 }
 
 /**
@@ -76,10 +77,10 @@ interface GraphProviderProps<
  * @template Link - The type of links in the graph
  */
 export interface GraphProps<
-  Element extends GraphElement = GraphElement,
-  Link extends GraphLink = GraphLink,
-> extends GraphProviderProps<Element, Link>,
-    GraphStateSelectors<Element, Link> {
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
+> extends GraphProviderProps<ElementData, LinkData>,
+    GraphStateSelectors<ElementData, LinkData> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    *
@@ -287,8 +288,8 @@ const GraphBaseRouter = forwardRef<dia.Graph, GraphProps>(
  *
  * 2. **React-controlled mode:**
  * ```tsx
- * const [elements, setElements] = useState<Record<string, GraphElement>>({});
- * const [links, setLinks] = useState<Record<string, GraphLink>>({});
+ * const [elements, setElements] = useState<Record<string, FlatElementData>>({});
+ * const [links, setLinks] = useState<Record<string, FlatLinkData>>({});
  *
  * <GraphProvider
  *   elements={elements}
@@ -310,4 +311,11 @@ const GraphBaseRouter = forwardRef<dia.Graph, GraphProps>(
  * ```
  * @see GraphProps for all available props
  */
-export const GraphProvider = GraphBaseRouter;
+export const GraphProvider = GraphBaseRouter as <
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
+>(
+  props: GraphProps<ElementData, LinkData> & {
+    ref?: React.Ref<dia.Graph | null>;
+  }
+) => ReturnType<typeof GraphBaseRouter>;

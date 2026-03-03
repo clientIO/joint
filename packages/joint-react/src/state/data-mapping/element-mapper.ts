@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { GraphElement } from '../../types/element-types';
+import type { FlatElementData } from '../../types/element-types';
 import { REACT_TYPE } from '../../models/react-element';
 import type {
   ElementToGraphOptions,
@@ -28,7 +28,7 @@ import { resolveCellDefaults } from './resolve-cell-defaults';
  * @param options - The element id and data to convert
  * @returns The JointJS cell JSON attributes
  */
-export function defaultMapDataToElementAttributes<Element extends GraphElement>(
+export function defaultMapDataToElementAttributes<Element extends FlatElementData>(
   options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'>
 ): dia.Cell.JSON {
   const { id, data } = options;
@@ -102,7 +102,7 @@ export function defaultMapDataToElementAttributes<Element extends GraphElement>(
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat element data
  */
-export function defaultMapElementAttributesToData<Element extends GraphElement>(
+export function defaultMapElementAttributesToData<Element extends FlatElementData>(
   options: Pick<GraphToElementOptions<Element>, 'cell' | 'previousData'>
 ): Element {
   const { cell } = options;

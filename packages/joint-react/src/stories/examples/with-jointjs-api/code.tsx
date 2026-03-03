@@ -11,7 +11,7 @@ import {
   useGraph,
   useNodeSize,
   useCellId,
-  type GraphElement,
+  type FlatElementData,
   usePaperById,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -20,7 +20,7 @@ import '../index.css';
 
 const COLORS = ['#ED2637', '#FF9505', '#3498db', '#2ecc71', '#9b59b6', '#1abc9c'];
 
-interface ElementData extends GraphElement {
+interface ElementData extends FlatElementData {
   readonly label: string;
   readonly color: string;
 }

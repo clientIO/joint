@@ -4,8 +4,8 @@
 import { dia, shapes } from '@joint/core';
 import { ReactElement } from '../../models/react-element';
 import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
-import type { GraphElement } from '../../types/element-types';
-import type { GraphLink } from '../../types/link-types';
+import type { FlatElementData } from '../../types/element-types';
+import type { FlatLinkData } from '../../types/link-types';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
@@ -22,7 +22,7 @@ import type {
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 
 // Helper functions to create options (no more defaultAttributes)
-const createElementToGraphOptions = <E extends GraphElement>(
+const createElementToGraphOptions = <E extends FlatElementData>(
   id: string,
   data: E,
   graph: dia.Graph
@@ -33,7 +33,7 @@ const createElementToGraphOptions = <E extends GraphElement>(
   toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData }),
 });
 
-const createGraphToElementOptions = <E extends GraphElement>(
+const createGraphToElementOptions = <E extends FlatElementData>(
   id: string,
   cell: dia.Element,
   graph: dia.Graph,
@@ -46,7 +46,7 @@ const createGraphToElementOptions = <E extends GraphElement>(
   toData: () => defaultMapElementAttributesToData({ cell }),
 });
 
-const createLinkToGraphOptions = <L extends GraphLink>(
+const createLinkToGraphOptions = <L extends FlatLinkData>(
   id: string,
   data: L,
   graph: dia.Graph
@@ -57,7 +57,7 @@ const createLinkToGraphOptions = <L extends GraphLink>(
   toAttributes: (newData) => defaultMapDataToLinkAttributes({ id, data: newData }),
 });
 
-const createGraphToLinkOptions = <L extends GraphLink>(
+const createGraphToLinkOptions = <L extends FlatLinkData>(
   id: string,
   cell: dia.Link,
   graph: dia.Graph,
@@ -84,7 +84,7 @@ describe('graph-state-selectors', () => {
   describe('defaultMapDataToElementAttributes', () => {
     it('should map element to graph cell JSON', () => {
       const id = 'element-1';
-      const data: GraphElement = {
+      const data: FlatElementData = {
         x: 10,
         y: 20,
         width: 100,
@@ -121,7 +121,7 @@ describe('graph-state-selectors', () => {
 
     it('should handle element without type (defaults to REACT_TYPE)', () => {
       const id = 'element-1';
-      const data: GraphElement = {
+      const data: FlatElementData = {
         x: 10,
         y: 20,
         width: 100,
@@ -152,7 +152,7 @@ describe('graph-state-selectors', () => {
 
     it('should preserve all element properties', () => {
       const id = 'element-1';
-      const data: GraphElement = {
+      const data: FlatElementData = {
         x: 10,
         y: 20,
         width: 100,
@@ -247,7 +247,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(elementAsGraphJson);
       const cell = graph.getCell('element-1') as dia.Element;
 
-      type ExtendedElement = GraphElement & {
+      type ExtendedElement = FlatElementData & {
         customProp?: string;
         extraProp?: string;
       };
@@ -289,7 +289,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(elementAsGraphJson);
       const cell = graph.getCell('element-1') as dia.Element;
 
-      type ExtendedElement = GraphElement & {
+      type ExtendedElement = FlatElementData & {
         customProp?: string;
       };
 
@@ -360,7 +360,7 @@ describe('graph-state-selectors', () => {
   describe('defaultMapDataToLinkAttributes', () => {
     it('should map link to graph cell JSON', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         type: REACT_LINK_TYPE,
@@ -392,7 +392,7 @@ describe('graph-state-selectors', () => {
 
     it('should handle link with ports', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         sourcePort: 'port-1',
@@ -428,7 +428,7 @@ describe('graph-state-selectors', () => {
 
     it('should use theme color property for stroke', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         color: 'red',
@@ -444,7 +444,7 @@ describe('graph-state-selectors', () => {
 
     it('should explicitly set targetMarker to null in line attrs when set to none', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         targetMarker: 'none',
@@ -458,7 +458,7 @@ describe('graph-state-selectors', () => {
 
     it('should normalize custom targetMarker with only d to path marker', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         targetMarker: { d: 'M 0 0 7 5 7 -5' } as dia.SVGMarkerJSON,
@@ -475,7 +475,7 @@ describe('graph-state-selectors', () => {
 
     it('should not include sourceMarker in line attrs when set to none', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         sourceMarker: 'none',
@@ -489,7 +489,7 @@ describe('graph-state-selectors', () => {
 
     it('should hide default targetMarker after round-trip through graph when set to none', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         targetMarker: 'none',
@@ -509,7 +509,7 @@ describe('graph-state-selectors', () => {
 
     it('should preserve all link properties', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         type: REACT_LINK_TYPE,
@@ -568,7 +568,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(linkAsGraphJson);
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      type ExtendedLink = GraphLink & {
+      type ExtendedLink = FlatLinkData & {
         customProp?: string;
         extraProp?: string;
       };
@@ -608,7 +608,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(linkAsGraphJson);
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      type ExtendedLink = GraphLink & {
+      type ExtendedLink = FlatLinkData & {
         customProp?: string;
       };
 
@@ -714,7 +714,7 @@ describe('graph-state-selectors', () => {
       const cell = graph.getCell('element-1') as dia.Element;
 
       // previousData state only has specific properties
-      const previousData: GraphElement = {
+      const previousData: FlatElementData = {
         x: 5,
         y: 15,
         width: 80,
@@ -742,7 +742,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(elementAsGraphJson);
       const cell = graph.getCell('element-1') as dia.Element;
 
-      type ExtendedElement = GraphElement & {
+      type ExtendedElement = FlatElementData & {
         customProp?: string;
       };
 
@@ -766,7 +766,7 @@ describe('graph-state-selectors', () => {
   describe('integration: links round-trip', () => {
     it('should handle link round-trip', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         type: REACT_LINK_TYPE,
@@ -800,7 +800,7 @@ describe('graph-state-selectors', () => {
 
     it('should handle link with complex properties', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         sourcePort: 'port-1',
@@ -842,7 +842,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should include all cell.data properties regardless of previousData', () => {
-      type ExtendedLink = GraphLink & {
+      type ExtendedLink = FlatLinkData & {
         customProp?: string;
         extraProp?: string;
         anotherProp?: number;
@@ -894,7 +894,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should handle multiple links with previousData state', () => {
-      type ExtendedLink = GraphLink & {
+      type ExtendedLink = FlatLinkData & {
         label?: string;
         metadata?: Record<string, unknown>;
       };
@@ -987,7 +987,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should only return properties that exist in cell.data', () => {
-      type ExtendedLink = GraphLink & {
+      type ExtendedLink = FlatLinkData & {
         optionalProp?: string;
         anotherOptionalProp?: number;
       };
@@ -1027,7 +1027,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should handle link updates including all cell.data properties', () => {
-      type ExtendedLink = GraphLink & {
+      type ExtendedLink = FlatLinkData & {
         status?: string;
         weight?: number;
         newProp?: string;
@@ -1093,7 +1093,7 @@ describe('graph-state-selectors', () => {
 
     it('should handle link with attrs merging', () => {
       const id = 'link-1';
-      const link: GraphLink = {
+      const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
         type: REACT_LINK_TYPE,
@@ -1128,7 +1128,7 @@ describe('graph-state-selectors', () => {
 
   describe('integration: new properties defined in state type', () => {
     it('should return new element property when it exists in previousData state (even if undefined)', () => {
-      type ExtendedElement = GraphElement & {
+      type ExtendedElement = FlatElementData & {
         newProperty?: string;
         anotherNewProperty?: number;
       };
@@ -1172,7 +1172,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should return new link property when it exists in previousData state (even if undefined)', () => {
-      type ExtendedLink = GraphLink & {
+      type ExtendedLink = FlatLinkData & {
         newLinkProperty?: string;
         priority?: number;
         metadata?: Record<string, unknown>;
@@ -1217,7 +1217,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should return multiple new element properties when all are defined in previousData state', () => {
-      type ExtendedElement = GraphElement & {
+      type ExtendedElement = FlatElementData & {
         status?: string;
         category?: string;
         tags?: string[];
@@ -1267,7 +1267,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should return new link properties with complex nested structures when defined in previousData state', () => {
-      type ExtendedLink = GraphLink & {
+      type ExtendedLink = FlatLinkData & {
         config?: {
           style?: string;
           animation?: boolean;
@@ -1327,7 +1327,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should return all cell.data properties regardless of whether they are in previousData', () => {
-      type ExtendedElement = GraphElement & {
+      type ExtendedElement = FlatElementData & {
         definedProperty?: string;
         undefinedProperty?: number;
         notInPreviousDataProperty?: boolean;
@@ -1373,8 +1373,8 @@ describe('graph-state-selectors', () => {
       expect((elementFromGraph as ExtendedElement).notInPreviousDataProperty).toBe(true);
     });
 
-    it('should return new link properties when mixed with existing GraphLink properties', () => {
-      type ExtendedLink = GraphLink & {
+    it('should return new link properties when mixed with existing FlatLinkData properties', () => {
+      type ExtendedLink = FlatLinkData & {
         customLabel?: string;
         weight?: number;
       };
@@ -1384,8 +1384,8 @@ describe('graph-state-selectors', () => {
         source: 'element-1',
         target: 'element-2',
         type: REACT_LINK_TYPE,
-        z: 5, // Existing GraphLink property
-        markup: [{ tagName: 'path' }], // Existing GraphLink property
+        z: 5, // Existing FlatLinkData property
+        markup: [{ tagName: 'path' }], // Existing FlatLinkData property
         customLabel: 'Custom', // New property
         weight: 10, // New property
       };
@@ -1418,7 +1418,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should properly return new properties after element update', () => {
-      type ExtendedElement = GraphElement & {
+      type ExtendedElement = FlatElementData & {
         version?: number;
         lastModified?: string;
       };
@@ -1481,7 +1481,7 @@ describe('graph-state-selectors', () => {
 
   describe('custom selector usage', () => {
     it('should allow using flatMapper functions directly', () => {
-      type CustomElement = GraphElement & { label: string };
+      type CustomElement = FlatElementData & { label: string };
       const id = 'node1';
       const element: CustomElement = {
         x: 100,
@@ -1498,7 +1498,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should allow custom selector to modify flatMapper result', () => {
-      type CustomElement = GraphElement & { label: string };
+      type CustomElement = FlatElementData & { label: string };
       const id = 'node1';
       const element: CustomElement = {
         x: 100,
@@ -1521,7 +1521,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should allow custom selector to ignore flatMapper and return custom result', () => {
-      type CustomElement = GraphElement & { label: string };
+      type CustomElement = FlatElementData & { label: string };
       const id = 'node1';
       const element: CustomElement = {
         x: 100,
@@ -1549,7 +1549,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should allow custom link selector to use flatMapper', () => {
-      type CustomLink = GraphLink & { weight: number };
+      type CustomLink = FlatLinkData & { weight: number };
       const id = 'link1';
       const data: CustomLink = {
         source: 'node1',
@@ -1578,7 +1578,7 @@ describe('graph-state-selectors', () => {
     });
 
     it('should allow custom link selector to modify flatMapper result', () => {
-      type CustomLink = GraphLink & { weight: number };
+      type CustomLink = FlatLinkData & { weight: number };
       const id = 'link1';
       const data: CustomLink = {
         source: 'node1',

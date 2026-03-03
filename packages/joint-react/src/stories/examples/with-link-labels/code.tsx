@@ -1,15 +1,15 @@
 import { useCallback } from 'react';
 import {
-  type GraphElement,
+  type FlatElementData,
   GraphProvider,
   Paper,
-  type GraphLink,
+  type FlatLinkData,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 
-interface ShapeElement extends GraphElement {
+interface ShapeElement extends FlatElementData {
   readonly label: string;
   readonly width: number;
   readonly height: number;
@@ -23,7 +23,7 @@ const initialElements: Record<string, ShapeElement> = {
   '4': { label: 'Node 4', x: 300, y: 200, width: 100, height: 40 },
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   'l1-2': {
     source: '1',
     target: '2',

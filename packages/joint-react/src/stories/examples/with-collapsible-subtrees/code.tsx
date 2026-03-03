@@ -1,8 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { GraphLink } from '@joint/react';
+import type { FlatLinkData } from '@joint/react';
 import {
-  type GraphElement,
+  type FlatElementData,
   GraphProvider,
   jsx,
   Paper,
@@ -19,7 +19,7 @@ import { DirectedGraph } from '@joint/layout-directed-graph';
 import '../index.css';
 
 // Base properties shared by all events
-interface BaseEvent extends GraphElement {
+interface BaseEvent extends FlatElementData {
   readonly label: string;
   readonly width: number;
   readonly height: number;
@@ -143,7 +143,7 @@ const initialElements: Record<string, FTAElement> = {
   },
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   'link-0': {
     source: 'ot8h17',
     target: 'd8jpey',

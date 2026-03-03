@@ -6,7 +6,7 @@ import type { LinkLayout } from '../store/graph-store';
 
 // Re-export LinkLayout for convenience
 export type { LinkLayout } from '../store/graph-store';
-import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import { CellIdContext } from '../context';
 
 /**
@@ -45,9 +45,9 @@ import { CellIdContext } from '../context';
  * }
  * ```
  */
-export function useLinkLayout<Id extends dia.Cell.ID | undefined = undefined>(
-  id?: Id
-): Id extends dia.Cell.ID ? LinkLayout | undefined : LinkLayout | undefined {
+export function useLinkLayout(): LinkLayout;
+export function useLinkLayout(id: CellId): LinkLayout | undefined;
+export function useLinkLayout(id?: CellId): LinkLayout | undefined {
   const contextId = useContext(CellIdContext);
   const { layoutState } = useGraphStore();
   const { paperId } = usePaperStoreContext();

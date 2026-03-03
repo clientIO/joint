@@ -20,10 +20,15 @@ import { useCellActions } from '../../hooks/use-cell-actions';
 import { useCellId } from '../../hooks/use-cell-id';
 import { Paper } from './paper';
 import type { RenderElement } from './paper.types';
-import type { GraphElement } from '../../types/element-types';
+import type { FlatElementData } from '../../types/element-types';
 import { GraphProvider } from '../graph/graph-provider';
 
 export type Story = StoryObj<typeof Paper>;
+
+interface StoryElementData extends FlatElementData {
+  readonly label: string;
+  readonly hoverColor: string;
+}
 
 const API_URL = getAPILink('Paper', 'variables');
 const meta: Meta<typeof Paper> = {
@@ -369,7 +374,7 @@ export const WithOnClickColorChange: Story = {
             x: 50,
             y: 50,
             hoverColor: 'red',
-          } as GraphElement & { label: string; hoverColor: string },
+          } satisfies StoryElementData,
           '2': {
             width: 100,
             height: 40,
@@ -377,7 +382,7 @@ export const WithOnClickColorChange: Story = {
             x: 100,
             y: 250,
             hoverColor: 'red',
-          } as GraphElement & { label: string; hoverColor: string },
+          } satisfies StoryElementData,
         }}
         links={{
           l1: {
@@ -448,11 +453,8 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
             label: 'Element 1',
             hoverColor: 'red',
             somethingMine: true,
-          } as GraphElement & { label: string; hoverColor: string },
-          '2': { label: 'Element 1', hoverColor: 'red' } as GraphElement & {
-            label: string;
-            hoverColor: string;
-          },
+          } satisfies StoryElementData,
+          '2': { label: 'Element 1', hoverColor: 'red' } satisfies StoryElementData,
         }}
         links={{
           l1: {

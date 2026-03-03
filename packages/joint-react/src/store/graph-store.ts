@@ -1,6 +1,7 @@
 import { dia, shapes, util } from '@joint/core';
-import type { GraphLink } from '../types/link-types';
-import type { GraphElement } from '../types/element-types';
+import type { CellId } from '../types/cell-id';
+import type { FlatLinkData } from '../types/link-types';
+import type { FlatElementData } from '../types/element-types';
 import type { AddPaperOptions, PaperStoreSnapshot } from './paper-store';
 import { PaperStore } from './paper-store';
 import {
@@ -52,11 +53,11 @@ export type GraphState = State<GraphStoreInternalSnapshot>;
  * Public snapshot of the graph store containing elements and links.
  */
 export interface GraphStoreSnapshot<
-  Element extends GraphElement = GraphElement,
-  Link extends GraphLink = GraphLink,
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
 > {
-  readonly elements: Record<dia.Cell.ID, Element>;
-  readonly links: Record<dia.Cell.ID, Link>;
+  readonly elements: Record<CellId, ElementData>;
+  readonly links: Record<CellId, LinkData>;
 }
 
 /**
@@ -85,8 +86,8 @@ export interface LinkLayout {
  * Snapshot containing layout data for all nodes and links (per paper).
  */
 export interface GraphStoreLayoutSnapshot {
-  readonly elements: Record<dia.Cell.ID, NodeLayout>;
-  readonly links: Record<string, Record<dia.Cell.ID, LinkLayout>>;
+  readonly elements: Record<CellId, NodeLayout>;
+  readonly links: Record<string, Record<CellId, LinkLayout>>;
   readonly wasEverMeasured: boolean;
 }
 
@@ -101,14 +102,14 @@ export interface GraphStoreInternalSnapshot {
  * Configuration options for creating a GraphStore instance.
  */
 export interface GraphStoreOptions<
-  Element extends GraphElement = GraphElement,
-  Link extends GraphLink = GraphLink,
-> extends GraphStateSelectors<Element, Link> {
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
+> extends GraphStateSelectors<ElementData, LinkData> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
-  readonly initialElements?: Record<dia.Cell.ID, GraphElement>;
-  readonly initialLinks?: Record<dia.Cell.ID, GraphLink>;
+  readonly initialElements?: Record<CellId, FlatElementData>;
+  readonly initialLinks?: Record<CellId, FlatLinkData>;
   readonly externalStore?: ExternalGraphStore;
 }
 
@@ -126,7 +127,7 @@ export class GraphStore {
   private observer: GraphStoreObserver;
   private stateSync: StateSync;
 
-  private clearViewCache: BatchCache<dia.Cell.ID, ClearViewCacheEntry>;
+  private clearViewCache: BatchCache<CellId, ClearViewCacheEntry>;
   private readonly scheduler: Scheduler<GraphSchedulerData>;
   private paperUpdateCallbacks = new Set<() => void>();
   private isGraphUpdateScheduled = false;
@@ -134,20 +135,20 @@ export class GraphStore {
 
   private readonly graphToElementSelector: (
     options: { readonly id: string; readonly cell: dia.Element; readonly graph: dia.Graph } & {
-      readonly previousData?: GraphElement;
+      readonly previousData?: FlatElementData;
     }
-  ) => GraphElement;
+  ) => FlatElementData;
   private readonly graphToLinkSelector: (
     options: { readonly id: string; readonly cell: dia.Link; readonly graph: dia.Graph } & {
-      readonly previousData?: GraphLink;
+      readonly previousData?: FlatLinkData;
     }
-  ) => GraphLink;
+  ) => FlatLinkData;
   public readonly mapDataToElementAttributes: (options: {
-    readonly data: GraphElement;
+    readonly data: FlatElementData;
     readonly graph: dia.Graph;
   }) => dia.Cell.JSON;
   private readonly mapDataToLinkAttributes: (options: {
-    readonly data: GraphLink;
+    readonly data: FlatLinkData;
     readonly graph: dia.Graph;
   }) => dia.Cell.JSON;
 
@@ -378,7 +379,7 @@ export class GraphStore {
     });
   }
 
-  public updatePaperElementView(paperId: string, cellId: dia.Cell.ID, view: dia.ElementView) {
+  public updatePaperElementView(paperId: string, cellId: CellId, view: dia.ElementView) {
     this.updatePaperSnapshot(paperId, (current) => {
       const base = current ?? { paperElementViews: {} };
       if (base.paperElementViews?.[cellId] === view) return base;
@@ -386,7 +387,7 @@ export class GraphStore {
     });
   }
 
-  public updatePaperLinkView(paperId: string, linkId: dia.Cell.ID, view: dia.LinkView) {
+  public updatePaperLinkView(paperId: string, linkId: CellId, view: dia.LinkView) {
     this.updatePaperSnapshot(paperId, (current) => {
       const base = current ?? { linkViews: {}, linksData: {} };
       if (base.linkViews?.[linkId] === view) return base;
@@ -425,7 +426,7 @@ export class GraphStore {
    * @param id - The ID of the node to check.
    * @returns True if the node is being observed, false otherwise.
    */
-  public hasMeasuredNode = (id: dia.Cell.ID) => this.observer.has(id);
+  public hasMeasuredNode = (id: CellId) => this.observer.has(id);
   /**
    * Registers a node to be observed for size changes. The observer will call the provided callback with batches of size updates, which are then synced to the graph and trigger layout updates.
    * @param options - Configuration options for the measured node, including its ID and a callback to receive size updates.
@@ -478,7 +479,7 @@ export class GraphStore {
   // --- ClearView API ---
 
   public scheduleClearView = (options: {
-    readonly cellId: dia.Cell.ID;
+    readonly cellId: CellId;
     readonly onValidateLink?: (link: dia.Link) => boolean;
   }) => {
     // check clear-view.ts for more info

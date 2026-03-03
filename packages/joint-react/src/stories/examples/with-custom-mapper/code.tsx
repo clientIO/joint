@@ -6,8 +6,8 @@ import {
   Paper,
   useElement,
   useElements,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   type ElementToGraphOptions,
   type GraphToElementOptions,
   type RenderElement,
@@ -24,7 +24,7 @@ const SECONDARY = '#6366f1';
  * Element data uses center position (cx, cy) instead of
  * JointJS's top-left position (x, y).
  */
-interface CenterElement extends GraphElement {
+interface CenterElement extends FlatElementData {
   readonly cx: number;
   readonly cy: number;
   readonly width: number;
@@ -64,7 +64,7 @@ const initialElements: Record<string, CenterElement> = {
   },
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   'link-1': {
     source: 'node-1',
     target: 'node-2',
@@ -84,7 +84,7 @@ const initialLinks: Record<string, GraphLink> = {
  */
 const mapDataToElementAttributes = ({
   data, toAttributes,
-}: ElementToGraphOptions<GraphElement>): dia.Cell.JSON => {
+}: ElementToGraphOptions<FlatElementData>): dia.Cell.JSON => {
   const { cx, cy, width = 100, height = 60, ...rest } = data as CenterElement;
   return toAttributes({ ...rest, x: cx - width / 2, y: cy - height / 2, width, height });
 };
@@ -94,7 +94,7 @@ const mapDataToElementAttributes = ({
  */
 const mapElementAttributesToData = ({
   toData,
-}: GraphToElementOptions<GraphElement>): GraphElement => {
+}: GraphToElementOptions<FlatElementData>): FlatElementData => {
   const { x = 0, y = 0, width = 100, height = 60, ...rest } = toData();
   return { ...rest, cx: x + width / 2, cy: y + height / 2, width, height };
 };

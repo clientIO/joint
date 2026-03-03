@@ -1,6 +1,7 @@
 import type { dia } from '@joint/core';
-import type { GraphElement } from '../types/element-types';
-import type { GraphLink } from '../types/link-types';
+import type { CellId } from '../types/cell-id';
+import type { FlatElementData } from '../types/element-types';
+import type { FlatLinkData } from '../types/link-types';
 import type {
   ElementToGraphOptions,
   GraphToElementOptions,
@@ -23,30 +24,30 @@ import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equal
  */
 export interface UpdateGraphOptions<
   Graph extends dia.Graph,
-  Element extends GraphElement,
-  Link extends GraphLink,
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
 > {
   /** The JointJS graph instance to update */
   readonly graph: Graph;
   /** The elements to sync to the graph (Record keyed by cell ID) */
-  readonly elements: Record<dia.Cell.ID, Element>;
+  readonly elements: Record<CellId, ElementData>;
   /** The links to sync to the graph (Record keyed by cell ID) */
-  readonly links: Record<dia.Cell.ID, Link>;
+  readonly links: Record<CellId, LinkData>;
   /** Selector to convert graph elements to Element format for comparison */
   readonly graphToElementSelector: (
-    options: GraphToElementOptions<Element> & { readonly graph: Graph }
-  ) => Element;
+    options: GraphToElementOptions<ElementData> & { readonly graph: Graph }
+  ) => ElementData;
   /** Selector to convert graph links to Link format for comparison */
   readonly graphToLinkSelector: (
-    options: GraphToLinkOptions<Link> & { readonly graph: Graph }
-  ) => Link;
+    options: GraphToLinkOptions<LinkData> & { readonly graph: Graph }
+  ) => LinkData;
   /** Selector to convert Element to JointJS Cell JSON format */
   readonly mapDataToElementAttributes: (
-    options: ElementToGraphOptions<Element> & { readonly graph: Graph }
+    options: ElementToGraphOptions<ElementData> & { readonly graph: Graph }
   ) => dia.Cell.JSON;
   /** Selector to convert Link to JointJS Cell JSON format */
   readonly mapDataToLinkAttributes: (
-    options: LinkToGraphOptions<Link> & { readonly graph: Graph }
+    options: LinkToGraphOptions<LinkData> & { readonly graph: Graph }
   ) => dia.Cell.JSON;
 
   readonly isUpdateFromReact?: boolean;
@@ -59,12 +60,12 @@ export interface UpdateGraphOptions<
  * @param selector
  * @param previousData
  */
-export function mapGraphElement<Graph extends dia.Graph, Element extends GraphElement>(
+export function mapGraphElement<Graph extends dia.Graph, ElementData = FlatElementData>(
   cell: dia.Element,
   graph: Graph,
-  selector: (options: GraphToElementOptions<Element> & { readonly graph: Graph }) => Element,
-  previousData?: Element
-): Element {
+  selector: (options: GraphToElementOptions<ElementData> & { readonly graph: Graph }) => ElementData,
+  previousData?: ElementData
+): ElementData {
   const id = cell.id as string;
   return selector({
     id, cell, graph, previousData,
@@ -79,12 +80,12 @@ export function mapGraphElement<Graph extends dia.Graph, Element extends GraphEl
  * @param selector
  * @param previousData
  */
-export function mapGraphLink<Graph extends dia.Graph, Link extends GraphLink>(
+export function mapGraphLink<Graph extends dia.Graph, LinkData = FlatLinkData>(
   cell: dia.Link,
   graph: Graph,
-  selector: (options: GraphToLinkOptions<Link> & { readonly graph: Graph }) => Link,
-  previousData?: Link
-): Link {
+  selector: (options: GraphToLinkOptions<LinkData> & { readonly graph: Graph }) => LinkData,
+  previousData?: LinkData
+): LinkData {
   const id = cell.id as string;
   return selector({
     id, cell, graph, previousData,
@@ -100,11 +101,11 @@ export function mapGraphLink<Graph extends dia.Graph, Link extends GraphLink>(
  * @param elements
  * @param links
  */
-function isGraphInSync<Element extends GraphElement, Link extends GraphLink>(
-  graphElements: Element[],
-  graphLinks: Link[],
-  elements: Element[],
-  links: Link[]
+function isGraphInSync<ElementData = FlatElementData, LinkData = FlatLinkData>(
+  graphElements: ElementData[],
+  graphLinks: LinkData[],
+  elements: ElementData[],
+  links: LinkData[]
 ): boolean {
   // Fast path: Check if arrays have same length first
   if (elements.length !== graphElements.length || links.length !== graphLinks.length) {
@@ -112,14 +113,18 @@ function isGraphInSync<Element extends GraphElement, Link extends GraphLink>(
   }
 
   // Position-only update: use fast equality check
-  if (isPositionOnlyUpdate(graphElements, elements)) {
+  if (isPositionOnlyUpdate(graphElements as FlatElementData[], elements as FlatElementData[])) {
     return (
-      fastElementArrayEqual(elements, graphElements) && fastElementArrayEqual(links, graphLinks)
+      fastElementArrayEqual(elements as Array<Record<string, unknown>>, graphElements as Array<Record<string, unknown>>) &&
+      fastElementArrayEqual(links as Array<Record<string, unknown>>, graphLinks as Array<Record<string, unknown>>)
     );
   }
 
   // General equality check
-  return fastElementArrayEqual(elements, graphElements) && fastElementArrayEqual(links, graphLinks);
+  return (
+    fastElementArrayEqual(elements as Array<Record<string, unknown>>, graphElements as Array<Record<string, unknown>>) &&
+    fastElementArrayEqual(links as Array<Record<string, unknown>>, graphLinks as Array<Record<string, unknown>>)
+  );
 }
 
 /**
@@ -133,9 +138,9 @@ function isGraphInSync<Element extends GraphElement, Link extends GraphLink>(
  */
 export function updateGraph<
   Graph extends dia.Graph,
-  Element extends GraphElement,
-  Link extends GraphLink,
->(options: UpdateGraphOptions<Graph, Element, Link>): boolean {
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
+>(options: UpdateGraphOptions<Graph, ElementData, LinkData>): boolean {
   const {
     graph,
     elements: elementsRecord,
@@ -175,7 +180,7 @@ export function updateGraph<
   const elementItems = Object.entries(elementsRecord).map(([id, data]) => {
     const attributes = mapDataToElementAttributes({
       id, data, graph,
-      toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData }),
+      toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData as FlatElementData }),
     });
     if ('id' in attributes && attributes.id !== id) {
       throw new Error(
@@ -190,7 +195,7 @@ export function updateGraph<
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
     const attributes = mapDataToLinkAttributes({
       id, data, graph,
-      toAttributes: (newData, attributeOptions) => defaultMapDataToLinkAttributes({ id, data: newData, ...attributeOptions }),
+      toAttributes: (newData, attributeOptions) => defaultMapDataToLinkAttributes({ id, data: newData as FlatLinkData, ...attributeOptions }),
     });
     if ('id' in attributes && attributes.id !== id) {
       throw new Error(

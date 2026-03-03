@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { useGraphStore } from './use-graph-store';
 import { useStoreSelector } from './use-graph-store-selector';
 import type { NodeLayout } from '../store/graph-store';
-import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import { CellIdContext } from '../context';
 
 /**
@@ -43,9 +43,9 @@ import { CellIdContext } from '../context';
  * }
  * ```
  */
-export function useNodeLayout<Id extends dia.Cell.ID | undefined = undefined>(
-  id?: Id
-): Id extends dia.Cell.ID ? NodeLayout | undefined : NodeLayout {
+export function useNodeLayout(): NodeLayout;
+export function useNodeLayout(id: CellId): NodeLayout | undefined;
+export function useNodeLayout(id?: CellId): NodeLayout | undefined {
   const contextId = useContext(CellIdContext);
   const { layoutState } = useGraphStore();
   const actualId = id ?? contextId;

@@ -1,12 +1,12 @@
 export * from './port-group-context';
 import { createContext } from 'react';
-import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { GraphStore, PaperStore } from '../store';
 
 export type StoreContext = GraphStore;
 export const GraphStoreContext = createContext<GraphStore | null>(null);
 export const PaperStoreContext = createContext<PaperStore | null>(null);
-export const CellIdContext = createContext<dia.Cell.ID | undefined>(undefined);
+export const CellIdContext = createContext<CellId | undefined>(undefined);
 export const CellIndexContext = createContext<number | undefined>(undefined);
 
 export interface OverWriteResult {

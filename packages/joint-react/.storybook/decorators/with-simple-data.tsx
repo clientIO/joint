@@ -4,7 +4,7 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
-import { GraphProvider, useCellId, useNodeSize, type GraphLink } from '@joint/react';
+import { GraphProvider, useCellId, useNodeSize, type FlatLinkData } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
@@ -48,7 +48,7 @@ export const testElements: Record<
 };
 
 export type SimpleElement = (typeof testElements)[string];
-export const testLinks: Record<string, GraphLink> = {
+export const testLinks: Record<string, FlatLinkData> = {
   'l-1': {
     source: '1',
     target: '2',

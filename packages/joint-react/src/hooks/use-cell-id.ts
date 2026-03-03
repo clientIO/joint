@@ -1,4 +1,4 @@
-import type { dia } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import { useContext } from 'react';
 import { CellIdContext } from '../context';
 
@@ -13,7 +13,7 @@ import { CellIdContext } from '../context';
  * const cellId = useCellId();
  * ```
  */
-export function useCellId(): dia.Cell.ID {
+export function useCellId(): CellId {
   const id = useContext(CellIdContext);
   if (id === undefined) {
     throw new Error('useCellId must be used inside Paper renderElement');

@@ -5,8 +5,8 @@ import {
   Paper,
   useCellActions,
   useElements,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   TextNode,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
@@ -22,14 +22,14 @@ const ShapeTypes = {
   bulb: 'bulb',
 } as const;
 
-interface GeneratorElement extends GraphElement {
+interface GeneratorElement extends FlatElementData {
   readonly type: typeof ShapeTypes.generator;
   readonly width: number;
   readonly height: number;
   readonly power: number;
 }
 
-interface BulbElement extends GraphElement {
+interface BulbElement extends FlatElementData {
   readonly type: typeof ShapeTypes.bulb;
   readonly width: number;
   readonly height: number;
@@ -105,7 +105,7 @@ const wireAppearance = {
   z: -1,
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   wire1: {
     source: 'generator',
     target: 'bulb1',

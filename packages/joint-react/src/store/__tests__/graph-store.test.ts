@@ -3,8 +3,8 @@
 import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { ReactElement } from '../../models/react-element';
-import type { GraphElement } from '../../types/element-types';
-import type { GraphLink } from '../../types/link-types';
+import type { FlatElementData } from '../../types/element-types';
+import type { FlatLinkData } from '../../types/link-types';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
@@ -40,7 +40,7 @@ describe('GraphStore', () => {
     });
 
     it('should initialize with initialElements', () => {
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         'element-1': {
           x: 10,
           y: 20,
@@ -58,7 +58,7 @@ describe('GraphStore', () => {
     });
 
     it('should initialize with initialLinks', () => {
-      const initialLinks: Record<string, GraphLink> = {
+      const initialLinks: Record<string, FlatLinkData> = {
         'link-1': { source: 'element-1', target: 'element-2', type: 'standard.Link' },
       };
       const store = new GraphStore({ initialLinks });
@@ -68,7 +68,7 @@ describe('GraphStore', () => {
     });
 
     it('should initialize with both initialElements and initialLinks', () => {
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         'element-1': {
           x: 10,
           y: 20,
@@ -77,7 +77,7 @@ describe('GraphStore', () => {
           type: 'ReactElement',
         },
       };
-      const initialLinks: Record<string, GraphLink> = {
+      const initialLinks: Record<string, FlatLinkData> = {
         'link-1': { source: 'element-1', target: 'element-2', type: 'standard.Link' },
       };
       const store = new GraphStore({ initialElements, initialLinks });
@@ -107,10 +107,10 @@ describe('GraphStore', () => {
     });
 
     it('should use custom selectors when provided', () => {
-      const customElementToGraph = jest.fn((options: ElementToGraphOptions<GraphElement>) => {
+      const customElementToGraph = jest.fn((options: ElementToGraphOptions<FlatElementData>) => {
         return defaultMapDataToElementAttributes(options);
       });
-      const customLinkToGraph = jest.fn((options: LinkToGraphOptions<GraphLink>) => {
+      const customLinkToGraph = jest.fn((options: LinkToGraphOptions<FlatLinkData>) => {
         return defaultMapDataToLinkAttributes(options);
       });
 
@@ -121,7 +121,7 @@ describe('GraphStore', () => {
 
       // Add an element to trigger the selector
       const id = 'test-element';
-      const data: GraphElement = {
+      const data: FlatElementData = {
         x: 10,
         y: 20,
         width: 100,
@@ -150,7 +150,7 @@ describe('GraphStore', () => {
       graph.addCell(existingElement);
       const cellCountBefore = graph.getCells().length;
 
-      const initialElements: Record<string, GraphElement> = {
+      const initialElements: Record<string, FlatElementData> = {
         'new-element': {
           x: 10,
           y: 20,
@@ -361,7 +361,7 @@ describe('GraphStore', () => {
     it('should return true for measured nodes', () => {
       const store = new GraphStore({});
       const id = 'measured-element';
-      const data: GraphElement = {
+      const data: FlatElementData = {
         x: 10,
         y: 20,
         width: 100,
@@ -388,7 +388,7 @@ describe('GraphStore', () => {
     it('should register a node for measurement and return cleanup', () => {
       const store = new GraphStore({});
       const id = 'measured-element';
-      const element: GraphElement = {
+      const element: FlatElementData = {
         x: 10,
         y: 20,
         width: 100,
@@ -519,7 +519,7 @@ describe('GraphStore', () => {
     it('should sync state changes to graph', (done) => {
       const store = new GraphStore({});
       const id = 'sync-element';
-      const element: GraphElement = {
+      const element: FlatElementData = {
         x: 10,
         y: 20,
         width: 100,

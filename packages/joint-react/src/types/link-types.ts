@@ -1,5 +1,6 @@
 import type { anchors, connectionPoints, dia, shapes } from '@joint/core';
 import type { MarkerPreset } from '../theme/link-theme';
+import type { CellId } from './cell-id';
 
 /**
  * Link endpoint definition.
@@ -8,11 +9,11 @@ import type { MarkerPreset } from '../theme/link-theme';
  * - An object with `x` and `y` connects to a fixed point on the canvas.
  *
  * Port, anchor, connectionPoint and magnet are specified via separate
- * top-level properties on {@link GraphLink} (e.g. `sourcePort`, `sourceAnchor`).
+ * top-level properties on {@link FlatLinkData} (e.g. `sourcePort`, `sourceAnchor`).
  * @group Graph
  */
-export type GraphLinkEnd =
-  | dia.Cell.ID
+export type FlatLinkEnd =
+  | CellId
   | { readonly x: number; readonly y: number };
 
 export interface StandardLinkShapesTypeMapper {
@@ -27,7 +28,7 @@ export type StandardLinkShapesType = keyof StandardLinkShapesTypeMapper;
  * Simplified label definition for graph links.
  * @group Graph
  */
-export interface GraphLinkLabel {
+export interface FlatLinkLabel {
   /**
    * Label text content.
    */
@@ -91,15 +92,15 @@ export interface GraphLinkLabel {
  * @group Graph
  * @see @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
-export interface GraphLink extends Record<string, unknown> {
+export interface FlatLinkData extends Record<string, unknown> {
   /**
    * Source element id or point.
    */
-  readonly source: GraphLinkEnd;
+  readonly source: FlatLinkEnd;
   /**
    * Target element id or point.
    */
-  readonly target: GraphLinkEnd;
+  readonly target: FlatLinkEnd;
   /**
    * Source port id.
    */
@@ -154,7 +155,7 @@ export interface GraphLink extends Record<string, unknown> {
   /**
    * Link labels.
    */
-  readonly labels?: GraphLinkLabel[];
+  readonly labels?: FlatLinkLabel[];
   /**
    * Link vertices (waypoints).
    */

@@ -3,6 +3,7 @@ import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/
 import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
+import type { FlatElementData } from '../types/element-types';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
@@ -30,7 +31,7 @@ The **useElements** hook provides access to all elements in the graph. It suppor
 \`\`\`tsx
 import { useElements } from '@joint/react';
 
-// Get all elements (returns Record<string, GraphElement>)
+// Get all elements (returns Record<string, FlatElementData>)
 function Component() {
   const elements = useElements();
   return <div>Total elements: {Object.keys(elements).length}</div>;
@@ -91,7 +92,7 @@ export const Default = makeStory<Story>({
   code: `import { useElements } from '@joint/react'
 
 function Component() {
-  const elements = useElements(); // returns Record<string, GraphElement>
+  const elements = useElements(); // returns Record<string, FlatElementData>
   return <div>elements are: {JSON.stringify(elements)}</div>;
 }`,
   description: 'Get all elements as a Record keyed by ID.',
@@ -100,7 +101,7 @@ function Component() {
 export const WithSelectedJustIds = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements) => Object.values(elements).map((element) => element.id)],
+    hookArgs: [(elements) => Object.values(elements).map((element) => (element as FlatElementData).id)],
     render: (result) => (
       <span>
         <Paper
@@ -155,8 +156,8 @@ export const WithJustPosition = makeStory<Story>({
     hookArgs: [
       (elements) =>
         Object.values(elements).map((element) => ({
-          x: element.x,
-          y: element.y,
+          x: (element as FlatElementData).x,
+          y: (element as FlatElementData).y,
         })),
     ],
     render: (result) => (
@@ -189,8 +190,8 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
     hookArgs: [
       (elements) =>
         Object.values(elements).map((element) => ({
-          x: element.x,
-          y: element.y,
+          x: (element as FlatElementData).x,
+          y: (element as FlatElementData).y,
         })),
       (_previous, _next) => true,
     ],
@@ -225,7 +226,7 @@ export const WithAdditionalData = makeStory<Story>({
     useHook: useElements,
     hookArgs: [
       (elements) =>
-        Object.values(elements).map((element) => ({ id: element.id, other: 'something' })),
+        Object.values(elements).map((element) => ({ id: (element as FlatElementData).id, other: 'something' })),
     ],
     render: (result) => (
       <div>

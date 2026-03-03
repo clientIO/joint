@@ -35,8 +35,8 @@
 import {
   GraphProvider,
   type GraphProps,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
   type ExternalGraphStore,
 } from '@joint/react';
@@ -54,14 +54,14 @@ import type { Update } from '../../../utils/create-state';
 /**
  * Custom element type with a label property.
  */
-type CustomElement = GraphElement & { label: string };
+type CustomElement = FlatElementData & { label: string };
 
 const defaultElements: Record<string, CustomElement> = {
   '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
   '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
 };
 
-const defaultLinks: Record<string, GraphLink> = {
+const defaultLinks: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -96,14 +96,14 @@ const jotaiStore = createStore();
  * Jotai atom for graph elements.
  * Atoms are the building blocks of Jotai - they hold state.
  */
-const elementsAtom = atom<Record<string, GraphElement>>(
-  defaultElements as Record<string, GraphElement>
+const elementsAtom = atom<Record<string, FlatElementData>>(
+  defaultElements as Record<string, FlatElementData>
 );
 
 /**
  * Jotai atom for graph links.
  */
-const linksAtom = atom<Record<string, GraphLink>>(defaultLinks as Record<string, GraphLink>);
+const linksAtom = atom<Record<string, FlatLinkData>>(defaultLinks as Record<string, FlatLinkData>);
 
 // ============================================================================
 // STEP 4: Create Jotai Adapter Hook
@@ -241,7 +241,7 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
             // This will automatically sync to the graph and update Jotai atoms
             store.setState({
               elements: { ...currentState.elements, [newId]: newElement },
-              links: currentState.links as Record<string, GraphLink>,
+              links: currentState.links as Record<string, FlatLinkData>,
             });
           }}
         >
@@ -269,7 +269,7 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
             const { [removedElementId]: _removed, ...newElements } = currentState.elements;
 
             // Remove links connected to the removed element
-            const newLinks: Record<string, GraphLink> = {};
+            const newLinks: Record<string, FlatLinkData> = {};
             for (const [id, link] of Object.entries(currentState.links)) {
               if (link.source !== removedElementId && link.target !== removedElementId) {
                 newLinks[id] = link;

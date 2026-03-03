@@ -2,8 +2,9 @@
 /* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable @typescript-eslint/no-require-imports */
 import type { dia } from '@joint/core';
+import type { CellId } from '../../types/cell-id';
 import type { GraphStoreSnapshot } from '../graph-store';
-import type { GraphElement } from '../../types/element-types';
+import type { FlatElementData } from '../../types/element-types';
 import type { GraphStoreObserver } from '../create-elements-size-observer';
 
 // Mock ResizeObserver for testing
@@ -85,7 +86,7 @@ describe('createElementsSizeObserver', () => {
   let mockOnBatchUpdate: jest.Mock;
   let mockGetCellTransform: jest.Mock;
   let mockGetPublicSnapshot: jest.Mock;
-  let mockElements: Record<dia.Cell.ID, GraphElement>;
+  let mockElements: Record<CellId, FlatElementData>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let createElementsSizeObserver: any;
 
@@ -106,7 +107,7 @@ describe('createElementsSizeObserver', () => {
     };
 
     mockOnBatchUpdate = jest.fn();
-    mockGetCellTransform = jest.fn((id: dia.Cell.ID) => ({
+    mockGetCellTransform = jest.fn((id: CellId) => ({
       width: 1,
       height: 1,
       x: 0,

@@ -1,6 +1,6 @@
 import { util } from '@joint/core';
 import { useCellId } from './use-cell-id';
-import type { GraphElement } from '../types/element-types';
+import type { FlatElementData } from '../types/element-types';
 import { useGraphStoreSelector } from './use-graph-store-selector';
 
 /**
@@ -31,14 +31,14 @@ import { useGraphStoreSelector } from './use-graph-store-selector';
  * @param isEqual The function used to check equality. @default util.isEqual
  * @returns The selected element based on the current cell id.
  */
-export function useElement<Element extends GraphElement, ReturnedElements = Element>(
-  selector: (item: Element) => ReturnedElements = (item) => item as unknown as ReturnedElements,
+export function useElement<ElementData = FlatElementData, ReturnedElements = ElementData>(
+  selector: (item: ElementData) => ReturnedElements = (item) => item as unknown as ReturnedElements,
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {
   const id = useCellId();
 
   return useGraphStoreSelector<ReturnedElements>((store) => {
-    const element = store.elements[id] as Element | undefined;
+    const element = store.elements[id] as ElementData | undefined;
     if (!element) {
       return undefined as ReturnedElements;
     }

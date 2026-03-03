@@ -2,10 +2,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { render, waitFor, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, useCellActions, type GraphElement, type GraphLink } from '../../../index';
+import { GraphProvider, Paper, useCellActions, type FlatElementData, type FlatLinkData } from '../../../index';
 import { useCallback } from 'react';
 
-interface TestElement extends GraphElement {
+interface TestElement extends FlatElementData {
   label: string;
 }
 
@@ -14,7 +14,7 @@ const elements: Record<string, TestElement> = {
   '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
 };
 
-const links: Record<string, GraphLink> = {
+const links: Record<string, FlatLinkData> = {
   'link-1': {
     source: '1',
     target: '2',

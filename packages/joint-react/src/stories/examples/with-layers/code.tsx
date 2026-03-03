@@ -9,13 +9,13 @@ import {
   ReactElement,
   ReactLink,
   useNodeSize,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
-interface LayeredElement extends GraphElement {
+interface LayeredElement extends FlatElementData {
   readonly label: string;
   readonly color?: string;
 }
@@ -67,7 +67,7 @@ const elements: Record<string, LayeredElement> = {
 };
 
 // Links assigned to layers
-const links: Record<string, GraphLink> = {
+const links: Record<string, FlatLinkData> = {
   'link-1': {
     source: 'main-1',
     target: 'main-2',

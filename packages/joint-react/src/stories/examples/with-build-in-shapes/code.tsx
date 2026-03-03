@@ -5,18 +5,18 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   type ElementToGraphOptions,
   type LinkToGraphOptions,
 } from '@joint/react';
 
-interface NativeElement extends GraphElement {
+interface NativeElement extends FlatElementData {
   readonly type: string;
   readonly attrs?: dia.Cell.Attributes;
 }
 
-interface NativeLink extends Omit<GraphLink, 'labels'> {
+interface NativeLink extends Omit<FlatLinkData, 'labels'> {
   readonly type: string;
   readonly attrs?: dia.Cell.Attributes;
   readonly labels?: dia.Link.Label[];
@@ -639,11 +639,8 @@ export default function App() {
   return (
     <GraphProvider
       elements={initialElements}
-      // @ts-expect-error NativeLink uses dia.Link.Label[] instead of GraphLinkLabel[]
       links={initialLinks}
-      // @ts-expect-error NativeElement uses a narrower type than GraphElement
       mapDataToElementAttributes={mapDataToElementAttributes}
-      // @ts-expect-error NativeLink uses dia.Link.Label[] instead of GraphLinkLabel[]
       mapDataToLinkAttributes={mapDataToLinkAttributes}
     >
       <Main />

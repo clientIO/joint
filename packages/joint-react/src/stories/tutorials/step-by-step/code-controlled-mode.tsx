@@ -40,8 +40,8 @@
 import {
   GraphProvider,
   type GraphProps,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -54,15 +54,15 @@ import { useState, type Dispatch, type SetStateAction } from 'react';
 
 /**
  * Custom element type with a label property.
- * Extends GraphElement with our custom 'label' property.
+ * Extends FlatElementData with our custom 'label' property.
  */
-type CustomElement = GraphElement & { label: string };
+type CustomElement = FlatElementData & { label: string };
 
 /**
  * Custom link type.
- * Uses GraphLink as the base type for our links.
+ * Uses FlatLinkData as the base type for our links.
  */
-type CustomLink = GraphLink;
+type CustomLink = FlatLinkData;
 
 /**
  * Initial elements (nodes) for the graph.
@@ -383,8 +383,8 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
 function Main(props: Readonly<GraphProps>) {
   // Create React state for elements and links
   // These are the single source of truth for the graph
-  const [elements, setElements] = useState<Record<string, GraphElement>>(defaultElements);
-  const [links, setLinks] = useState<Record<string, GraphLink>>(defaultLinks);
+  const [elements, setElements] = useState<Record<string, FlatElementData>>(defaultElements);
+  const [links, setLinks] = useState<Record<string, FlatLinkData>>(defaultLinks);
 
   return (
     <GraphProvider
@@ -400,7 +400,7 @@ function Main(props: Readonly<GraphProps>) {
       {/*
         Pass state setters to child component so it can update the graph
         by updating React state. The type assertions are needed because
-        GraphElement/GraphLink are more generic than CustomElement/CustomLink.
+        FlatElementData/FlatLinkData are more generic than CustomElement/CustomLink.
       */}
       <PaperApp
         onElementsChange={setElements as Dispatch<SetStateAction<Record<string, CustomElement>>>}

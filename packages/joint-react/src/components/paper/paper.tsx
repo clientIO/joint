@@ -26,8 +26,8 @@ import {
   type CSSProperties,
 } from 'react';
 import { useElements, useLinks } from '../../hooks';
-import type { GraphElement } from '../../types/element-types';
-import type { GraphLink } from '../../types/link-types';
+import type { FlatElementData } from '../../types/element-types';
+import type { FlatLinkData } from '../../types/link-types';
 import type { PaperProps, RenderElement, RenderLink } from './paper.types';
 import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
 import { PaperHTMLContainer } from './render-element/paper-html-container';
@@ -45,7 +45,7 @@ import {
 } from '../../hooks/use-graph-store-selector';
 import type { ReactPaper } from '../../models/react-paper';
 
-const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
+const EMPTY_OBJECT = {} as Record<string, dia.ElementView>;
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
 /**
@@ -91,9 +91,9 @@ function LinkItem({
   portalElement,
   renderLink,
 }: {
-  link: GraphLink;
+  link: FlatLinkData;
   portalElement: SVGAElement;
-  renderLink: RenderLink<GraphLink>;
+  renderLink: RenderLink<FlatLinkData>;
 }) {
   if (!portalElement) {
     return null;
@@ -125,8 +125,8 @@ function LinkItem({
  * }
  * ```
  */
-function PaperBase<ElementItem extends GraphElement = GraphElement>(
-  props: PaperProps<ElementItem>,
+function PaperBase<ElementData = FlatElementData>(
+  props: PaperProps<ElementData>,
   forwardedRef: React.ForwardedRef<ReactPaper | null>
 ) {
   const {
@@ -231,8 +231,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
         defaultLink: defaultLinkJointJS,
       },
       overWrite,
-      renderElement: renderElement as RenderElement<GraphElement>,
-      renderLink: renderLink as RenderLink<GraphLink> | undefined,
+      renderElement: renderElement as RenderElement<FlatElementData>,
+      renderLink: renderLink as RenderLink<FlatLinkData> | undefined,
       scale,
     });
     return () => {
@@ -518,8 +518,8 @@ function PaperBase<ElementItem extends GraphElement = GraphElement>(
  * }
  * ```
  */
-export const Paper = forwardRef(PaperBase) as <ElementItem extends GraphElement = GraphElement>(
-  props: Readonly<PaperProps<ElementItem>> & {
+export const Paper = forwardRef(PaperBase) as <ElementData = FlatElementData>(
+  props: Readonly<PaperProps<ElementData>> & {
     ref?: React.Ref<dia.Paper | null>;
   }
 ) => ReturnType<typeof PaperBase>;

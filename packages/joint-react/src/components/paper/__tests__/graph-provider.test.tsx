@@ -5,8 +5,8 @@ import { GraphStoreContext } from '../../../context';
 import { GraphStore, DEFAULT_CELL_NAMESPACE } from '../../../store';
 import { dia, shapes } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
-import type { GraphElement } from '../../../types/element-types';
-import type { GraphLink } from '../../../types/link-types';
+import type { FlatElementData } from '../../../types/element-types';
+import type { FlatLinkData } from '../../../types/link-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../../paper/paper';
 import type { RenderLink } from '../../paper/paper.types';
@@ -40,13 +40,13 @@ describe('graph', () => {
   });
 
   it('should render graph provider with links and elements', async () => {
-    const elements: Record<string, GraphElement> = {
+    const elements: Record<string, FlatElementData> = {
       'element1': {
         width: 100,
         height: 100,
       },
     };
-    const link: GraphLink = { type: 'standard.Link', source: 'element1', target: { x: 0, y: 0 } };
+    const link: FlatLinkData = { type: 'standard.Link', source: 'element1', target: { x: 0, y: 0 } };
     let linkCount = 0;
     let elementCount = 0;
     function TestComponent() {
@@ -109,7 +109,7 @@ describe('graph', () => {
   });
 
   it('should initialize with default elements', async () => {
-    const elements: Record<string, GraphElement> = {
+    const elements: Record<string, FlatElementData> = {
       'element1': { width: 100, height: 100 },
       'element2': { width: 200, height: 200 },
     };
@@ -149,7 +149,7 @@ describe('graph', () => {
     const graph = new dia.Graph({}, { cellNamespace: shapes });
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
-    let currentElements: Record<string, GraphElement> = {};
+    let currentElements: Record<string, FlatElementData> = {};
     function Elements() {
       const elements = useElements();
       currentElements = elements;
@@ -192,7 +192,7 @@ describe('graph', () => {
     const store = new GraphStore({ graph });
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
-    let currentElements: Record<string, GraphElement> = {};
+    let currentElements: Record<string, FlatElementData> = {};
     // eslint-disable-next-line sonarjs/no-identical-functions
     function Elements() {
       const elements = useElements();
@@ -233,14 +233,14 @@ describe('graph', () => {
   });
 
   it('should render graph provider with links and elements - with explicit react type', async () => {
-    const elements: Record<string, GraphElement> = {
+    const elements: Record<string, FlatElementData> = {
       'element1': {
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
     };
-    const link: GraphLink = { type: 'standard.Link', source: 'element1', target: { x: 0, y: 0 } };
+    const link: FlatLinkData = { type: 'standard.Link', source: 'element1', target: { x: 0, y: 0 } };
     let linkCount = 0;
     let elementCount = 0;
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -264,14 +264,14 @@ describe('graph', () => {
   });
 
   it('should update graph in controlled mode', async () => {
-    const initialElements: Record<string, GraphElement> = {
+    const initialElements: Record<string, FlatElementData> = {
       'element1': {
         width: 100,
         height: 100,
         type: 'ReactElement',
       },
     };
-    const initialLink: GraphLink = {
+    const initialLink: FlatLinkData = {
       type: 'standard.Link',
       source: 'element1',
       target: { x: 0, y: 0 },
@@ -288,16 +288,16 @@ describe('graph', () => {
       return null;
     }
 
-    let setElementsOutside: ((elements: Record<string, GraphElement>) => void) | null = null;
-    let setLinksOutside: ((links: Record<string, GraphLink>) => void) | null = null;
+    let setElementsOutside: ((elements: Record<string, FlatElementData>) => void) | null = null;
+    let setLinksOutside: ((links: Record<string, FlatLinkData>) => void) | null = null;
 
     function Graph() {
-      const [elements, setElements] = useState<Record<string, GraphElement>>(() => initialElements);
-      const [links, setLinks] = useState<Record<string, GraphLink>>(() => ({
+      const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
+      const [links, setLinks] = useState<Record<string, FlatLinkData>>(() => ({
         'link1': initialLink,
       }));
-      setElementsOutside = setElements as unknown as (elements: Record<string, GraphElement>) => void;
-      setLinksOutside = setLinks as unknown as (links: Record<string, GraphLink>) => void;
+      setElementsOutside = setElements as unknown as (elements: Record<string, FlatElementData>) => void;
+      setLinksOutside = setLinks as unknown as (links: Record<string, FlatLinkData>) => void;
       return (
         <GraphProvider
           elements={elements}
@@ -367,7 +367,7 @@ describe('graph', () => {
   });
 
   it('should pass correct link data to renderLink function', async () => {
-    const elements: Record<string, GraphElement> = {
+    const elements: Record<string, FlatElementData> = {
       'element-1': {
         x: 0,
         y: 0,
@@ -382,7 +382,7 @@ describe('graph', () => {
       },
     };
 
-    const links: Record<string, GraphLink> = {
+    const links: Record<string, FlatLinkData> = {
       'link-1': {
         source: 'element-1',
         target: 'element-2',
@@ -398,7 +398,7 @@ describe('graph', () => {
       },
     };
 
-    const receivedLinks: GraphLink[] = [];
+    const receivedLinks: FlatLinkData[] = [];
 
     function TestComponent() {
       const renderLink: RenderLink = useCallback((link) => {
@@ -441,7 +441,7 @@ describe('graph', () => {
   });
 
   it('should pass updated link data to renderLink when links change', async () => {
-    const elements: Record<string, GraphElement> = {
+    const elements: Record<string, FlatElementData> = {
       'element-1': {
         x: 0,
         y: 0,
@@ -456,7 +456,7 @@ describe('graph', () => {
       },
     };
 
-    const initialLinks: Record<string, GraphLink> = {
+    const initialLinks: Record<string, FlatLinkData> = {
       'link-1': {
         source: 'element-1',
         target: 'element-2',
@@ -464,13 +464,13 @@ describe('graph', () => {
       },
     };
 
-    const receivedLinks: GraphLink[] = [];
+    const receivedLinks: FlatLinkData[] = [];
 
-    let setLinksExternal: ((links: Record<string, GraphLink>) => void) | null = null;
+    let setLinksExternal: ((links: Record<string, FlatLinkData>) => void) | null = null;
 
     function ControlledGraph() {
-      const [links, setLinks] = useState<Record<string, GraphLink>>(() => initialLinks);
-      setLinksExternal = setLinks as unknown as (links: Record<string, GraphLink>) => void;
+      const [links, setLinks] = useState<Record<string, FlatLinkData>>(() => initialLinks);
+      setLinksExternal = setLinks as unknown as (links: Record<string, FlatLinkData>) => void;
 
       const renderLink: RenderLink = useCallback((link) => {
         receivedLinks.push(link);

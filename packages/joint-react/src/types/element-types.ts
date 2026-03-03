@@ -3,7 +3,7 @@
  * Converted to full JointJS port format by the default element mapper.
  * @group Graph
  */
-export interface GraphElementPort {
+export interface FlatElementPort {
   /**
    * Unique port identifier.
    */
@@ -77,11 +77,11 @@ export interface GraphElementPort {
   readonly labelClassName?: string;
 }
 
-export interface GraphElement extends Record<string, unknown> {
+export interface FlatElementData extends Record<string, unknown> {
   /**
    * Ports of the element.
    */
-  ports?: GraphElementPort[];
+  ports?: FlatElementPort[];
   /**
    * X position of the element.
    */

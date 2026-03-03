@@ -2,8 +2,8 @@ import type {
   GraphStoreSnapshot,
   GraphStoreInternalSnapshot,
 } from '../store';
-import type { GraphElement } from '../types/element-types';
-import type { GraphLink } from '../types/link-types';
+import type { FlatElementData } from '../types/element-types';
+import type { FlatLinkData } from '../types/link-types';
 import type { ExternalStoreLike, MarkDeepReadOnly } from '../utils/create-state';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
@@ -37,15 +37,15 @@ export function useStoreSelector<Snapshot, Selection>(
  */
 export function useGraphStoreSelector<
   Selection,
-  Element extends GraphElement = GraphElement,
-  Link extends GraphLink = GraphLink,
+  ElementData = FlatElementData,
+  LinkData = FlatLinkData,
 >(
-  selector: (snapshot: MarkDeepReadOnly<GraphStoreSnapshot<Element, Link>>) => Selection,
+  selector: (snapshot: MarkDeepReadOnly<GraphStoreSnapshot<ElementData, LinkData>>) => Selection,
   isEqual?: (a: Selection, b: Selection) => boolean
 ): Selection {
   const { publicState } = useGraphStore();
   return useStoreSelector(
-    publicState as unknown as ExternalStoreLike<GraphStoreSnapshot<Element, Link>>,
+    publicState as unknown as ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>,
     selector,
     isEqual
   );

@@ -5,8 +5,8 @@ import {
   GraphProvider,
   Paper,
   useNodeSize,
-  type GraphElement,
-  type GraphLink,
+  type FlatElementData,
+  type FlatLinkData,
   type RenderElement,
   type OnTransformElement,
   ReactElement,
@@ -23,7 +23,7 @@ const HEADER_HEIGHT = 32;
 const ELEMENT_WIDTH = 160;
 const HEADER_COLOR = '#f6c744';
 
-interface StackedElement extends GraphElement {
+interface StackedElement extends FlatElementData {
   readonly name: string;
   readonly labels: readonly string[];
   readonly x: number;
@@ -45,7 +45,7 @@ const initialElements: Record<string, StackedElement> = {
   },
 };
 
-const initialLinks: Record<string, GraphLink> = {
+const initialLinks: Record<string, FlatLinkData> = {
   'e1-2': {
     // @ts-expect-error selector is not yet supported as a top-level link property
     source: {id: '1', selector: 'item-2'},

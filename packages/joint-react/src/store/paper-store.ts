@@ -1,8 +1,9 @@
 import { dia, g } from '@joint/core';
+import type { CellId } from '../types/cell-id';
 import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
-import type { GraphElement } from '../types/element-types';
-import type { GraphLink } from '../types/link-types';
+import type { FlatElementData } from '../types/element-types';
+import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper as ReactPaperType } from '../types/paper.types';
 import type { GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
@@ -100,9 +101,9 @@ export interface AddPaperOptions {
   /** Optional initial scale for the paper */
   readonly scale?: number;
   /** Optional custom renderer for elements */
-  readonly renderElement?: RenderElement<GraphElement>;
+  readonly renderElement?: RenderElement<FlatElementData>;
   /** Optional custom renderer for links */
-  readonly renderLink?: RenderLink<GraphLink>;
+  readonly renderLink?: RenderLink<FlatLinkData>;
 }
 
 /**
@@ -122,9 +123,9 @@ export interface PaperStoreOptions extends AddPaperOptions {
  */
 export interface PaperStoreSnapshot {
   /** Map of cell IDs to their element views in this paper */
-  paperElementViews?: Record<dia.Cell.ID, dia.ElementView>;
+  paperElementViews?: Record<CellId, dia.ElementView>;
   /** Map of link IDs to their link views in this paper */
-  linkViews?: Record<dia.Cell.ID, dia.LinkView>;
+  linkViews?: Record<CellId, dia.LinkView>;
   /** Map of link label IDs to their SVG elements */
   linksData?: Record<string, SVGElement>;
 }
@@ -145,9 +146,9 @@ export class PaperStore {
   /** Reference to the overwrite result if custom rendering is used */
   public overWriteResultRef?: OverWriteResult;
   /** Optional custom element renderer */
-  public renderElement?: RenderElement<GraphElement>;
+  public renderElement?: RenderElement<FlatElementData>;
   /** Optional custom link renderer */
-  public renderLink?: RenderLink<GraphLink>;
+  public renderLink?: RenderLink<FlatLinkData>;
 
   /**
    * Cleanup function to unregister paper update callback from GraphStore.
@@ -184,8 +185,8 @@ export class PaperStore {
     this.renderElement = renderElement;
     this.renderLink = renderLink;
     const cache: {
-      elementViews: Record<dia.Cell.ID, dia.ElementView>;
-      linkViews: Record<dia.Cell.ID, dia.LinkView>;
+      elementViews: Record<CellId, dia.ElementView>;
+      linkViews: Record<CellId, dia.LinkView>;
       linksData: Record<string, SVGElement>;
     } = {
       elementViews: {},
@@ -333,7 +334,7 @@ export class PaperStore {
    * @param labelIndex - The index of the label in the labels array
    * @returns A unique identifier for the link label
    */
-  public getLinkLabelId(linkId: dia.Cell.ID, labelIndex: number) {
+  public getLinkLabelId(linkId: CellId, labelIndex: number) {
     return `${linkId}-label-${labelIndex}`;
   }
 

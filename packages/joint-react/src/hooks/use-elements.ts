@@ -1,6 +1,6 @@
-import type { dia } from '@joint/core';
 import { util } from '@joint/core';
-import type { GraphElement } from '../types/element-types';
+import type { CellId } from '../types/cell-id';
+import type { FlatElementData } from '../types/element-types';
 import { useGraphStoreSelector } from './use-graph-store-selector';
 
 /**
@@ -8,9 +8,9 @@ import { useGraphStoreSelector } from './use-graph-store-selector';
  * @param items - The items to select from.
  * @returns - The selected items.
  */
-function defaultSelector<Elements extends GraphElement = GraphElement>(
-  items: Record<dia.Cell.ID, Elements>
-): Record<dia.Cell.ID, Elements> {
+function defaultSelector<ElementData = FlatElementData>(
+  items: Record<CellId, ElementData>
+): Record<CellId, ElementData> {
   return items;
 }
 
@@ -32,7 +32,7 @@ function defaultSelector<Elements extends GraphElement = GraphElement>(
  * Using without a selector (returns all elements as a Record):
  * ```tsx
  * const elements = useElements();
- * // elements is Record<dia.Cell.ID, GraphElement>
+ * // elements is Record<CellId, FlatElementData>
  * ```
  * @example
  * Using with a selector (extract part of each element):
@@ -58,16 +58,16 @@ function defaultSelector<Elements extends GraphElement = GraphElement>(
  * @returns - The selected elements.
  */
 export function useElements<
-  Elements extends GraphElement = GraphElement,
-  SelectorReturnType = Record<dia.Cell.ID, Elements>,
+  ElementData = FlatElementData,
+  SelectorReturnType = Record<CellId, ElementData>,
 >(
-  selector: (items: Record<dia.Cell.ID, Elements>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+  selector: (items: Record<CellId, ElementData>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual as (
     a: SelectorReturnType,
     b: SelectorReturnType
   ) => boolean
 ): SelectorReturnType {
   return useGraphStoreSelector((snapshot) => {
-    return selector(snapshot.elements as Record<dia.Cell.ID, Elements>);
+    return selector(snapshot.elements as Record<CellId, ElementData>);
   }, isEqual);
 }

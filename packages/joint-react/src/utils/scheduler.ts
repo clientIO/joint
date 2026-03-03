@@ -81,15 +81,3 @@ export class Scheduler<Data extends object> {
     this.onFlush(dataToFlush);
   };
 }
-
-/**
- * Creates a simple scheduler function that batches multiple calls into a single flush.
- * @param callback The callback to invoke on flush
- * @returns A function to schedule updates
- */
-export function createScheduler(callback: () => void): () => void {
-  const scheduler = new Scheduler<Record<string, never>>({
-    onFlush: callback,
-  });
-  return () => scheduler.scheduleData((previous) => previous);
-}

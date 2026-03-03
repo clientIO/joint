@@ -1,6 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
 import { startTransition } from 'react';
+import type { CellId } from '../types/cell-id';
 import type { GraphSchedulerData } from '../types/scheduler.types';
 import type { ExternalStoreLike, State } from '../utils/create-state';
 import type {
@@ -112,8 +113,8 @@ function isLinkLayoutEqual(a: LinkLayout | undefined, b: LinkLayout): boolean {
  */
 export function flushLayoutState(options: FlushLayoutStateOptions): void {
   const { graph, layoutState, papers } = options;
-  const elementLayouts: Record<dia.Cell.ID, NodeLayout> = {};
-  const linkLayoutsPerPaper: Record<string, Record<dia.Cell.ID, LinkLayout>> = {};
+  const elementLayouts: Record<CellId, NodeLayout> = {};
+  const linkLayoutsPerPaper: Record<string, Record<CellId, LinkLayout>> = {};
   const elements = graph.getElements();
   const previousSnapshot = layoutState.getSnapshot();
   const previousElementLayouts = previousSnapshot.elements;
@@ -151,7 +152,7 @@ export function flushLayoutState(options: FlushLayoutStateOptions): void {
       const { paper, paperId } = paperStore;
       if (!paper) continue;
 
-      const paperLinkLayouts: Record<dia.Cell.ID, LinkLayout> = {};
+      const paperLinkLayouts: Record<CellId, LinkLayout> = {};
       const previousPaperLinkLayouts = previousLinkLayouts[paperId] ?? {};
 
       for (const link of links) {

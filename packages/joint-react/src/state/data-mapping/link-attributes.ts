@@ -1,5 +1,6 @@
 import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
-import type { GraphLinkEnd } from '../../types/link-types';
+import type { CellId } from '../../types/cell-id';
+import type { FlatLinkEnd } from '../../types/link-types';
 import type { MarkerPreset } from '../../theme/markers';
 import { resolveMarker } from '../../theme/markers';
 
@@ -21,7 +22,7 @@ export interface LinkEndAttributeOptions {
  * @param options
  */
 export function toLinkEndAttribute(
-  end: GraphLinkEnd,
+  end: FlatLinkEnd,
   options?: LinkEndAttributeOptions,
 ): dia.Link.EndJSON {
   const base = (typeof end === 'string' ? { id: end } : end) as dia.Link.EndJSON;
@@ -39,7 +40,7 @@ export function toLinkEndAttribute(
 }
 
 export interface LinkEndData {
-  end: GraphLinkEnd;
+  end: FlatLinkEnd;
   port?: string;
   anchor?: anchors.AnchorJSON;
   connectionPoint?: connectionPoints.ConnectionPointJSON;
@@ -60,9 +61,9 @@ export interface LinkEndData {
 export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
   const { port, anchor, connectionPoint, magnet } = end;
 
-  const endData: GraphLinkEnd = 'x' in end && 'y' in end
+  const endData: FlatLinkEnd = 'x' in end && 'y' in end
     ? { x: end.x!, y: end.y! }
-    : end.id!;
+    : end.id as CellId;
 
   const result: LinkEndData = { end: endData };
   if (port !== undefined) result.port = port;
