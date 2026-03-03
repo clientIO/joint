@@ -378,7 +378,7 @@ function PaperBase<ElementData = FlatElementData>(
         return null;
       }
 
-      const SVG = elementView.el;
+      const SVG = (paper as ReactPaper).getCellViewPortalNode(elementView);
       if (!SVG) {
         return null;
       }
@@ -420,6 +420,7 @@ function PaperBase<ElementData = FlatElementData>(
     deferredElementIds,
     deferredElementsState,
     paperElementViews,
+    paper,
     useHTMLOverlay,
     HTMLRendererContainer,
     renderElement,
@@ -442,7 +443,7 @@ function PaperBase<ElementData = FlatElementData>(
         return null;
       }
 
-      const SVG = linkView.el;
+      const SVG = (paper as ReactPaper).getCellViewPortalNode(linkView);
       if (!SVG) {
         return null;
       }
@@ -457,7 +458,7 @@ function PaperBase<ElementData = FlatElementData>(
         </CellIdContext.Provider>
       );
     });
-  }, [hasRenderLink, deferredLinkIds, deferredLinksState, paperLinkViews, renderLink]);
+  }, [hasRenderLink, deferredLinkIds, deferredLinksState, paperLinkViews, paper, renderLink]);
 
   const content = (
     <>

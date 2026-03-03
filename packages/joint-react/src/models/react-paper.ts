@@ -3,6 +3,7 @@ import type { CellId } from '../types/cell-id';
 import type { GraphStore } from '../store/graph-store';
 import type { ReactPaperOptions } from './react-paper.types';
 import type { ReactElementViewCache, ReactLinkViewCache } from '../types/paper.types';
+import { REACT_PORTAL_SELECTOR } from './react-element';
 
 /**
  * Extended Paper class that manages React view lifecycle.
@@ -40,6 +41,19 @@ export class ReactPaper extends dia.Paper {
   }
 
   /**
+   * Resolves the portal target node from a cell view.
+   * For views whose model markup contains the `reactPortal` selector this
+   * returns the dedicated `<g>` group; otherwise it falls back to the
+   * view's root element.
+   * Override this method to customize where React content is portaled.
+   * @param cellView - The cell view to resolve the portal node from.
+   * @returns The SVG or HTML element to use as a React portal target.
+   */
+  getCellViewPortalNode(cellView: dia.CellView): SVGElement | HTMLElement {
+    return cellView.findNode(REACT_PORTAL_SELECTOR) ?? cellView.el;
+  }
+
+  /**
    * Check if an element view has rendered its React content.
    * @param elementId - The element ID to check
    * @returns true if element view exists and has children
@@ -47,7 +61,9 @@ export class ReactPaper extends dia.Paper {
   private isElementReady(elementId: CellId | undefined): boolean {
     if (!elementId) return false;
     const elementView = this.reactElementCache.elementViews[elementId];
-    return !!elementView?.el && elementView.el.children.length > 0;
+    if (!elementView?.el) return false;
+    const portalNode = this.getCellViewPortalNode(elementView);
+    return portalNode.children.length > 0;
   }
 
   /**

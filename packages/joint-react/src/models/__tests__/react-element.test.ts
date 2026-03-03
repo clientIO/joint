@@ -1,4 +1,4 @@
-import { ReactElement, REACT_TYPE } from '../react-element';
+import { ReactElement, REACT_TYPE, REACT_PORTAL_SELECTOR } from '../react-element';
 import { dia } from '@joint/core';
 
 function createElement<Attributes = dia.Element.Attributes>(
@@ -54,9 +54,14 @@ describe('react-element', () => {
     });
 
     describe('markup', () => {
-      it('should have empty markup array', () => {
+      it('should have markup with a portal group', () => {
         const element = new ReactElement();
-        expect(element.markup).toEqual([]);
+        expect(element.markup).toEqual([
+          {
+            tagName: 'g',
+            selector: REACT_PORTAL_SELECTOR,
+          },
+        ]);
       });
     });
   });
