@@ -28,5 +28,6 @@ export const connectionPoint: connectionPoints.ConnectionPoint = (
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
     return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, rectangleArgs, endType, linkView);
   }
-  return connectionPoints.boundary(endPathSegmentLine, endView, endMagnet, {}, endType, linkView);
+  const boundaryArgs = {} as connectionPoints.ConnectionPointArgumentsMap['boundary'];
+  return connectionPoints.boundary(endPathSegmentLine, endView, endMagnet, boundaryArgs, endType, linkView);
 };

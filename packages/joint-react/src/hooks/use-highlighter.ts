@@ -13,6 +13,10 @@ interface HighlighterConfigBase<Element extends SVGElement = SVGElement> {
   readonly isEnabled?: boolean;
   readonly target?: dia.HighlighterView.NodeSelector;
   readonly ref?: React.RefObject<Element | null>;
+  /**
+   * CSS class name added to the highlighter's root element after instantiation.
+   */
+  readonly className?: string;
 }
 
 type ReservedCustomOptionKeys = keyof HighlighterConfigBase | 'type' | 'create';
@@ -141,6 +145,7 @@ function stripSharedConfigKeys<T extends Record<string, unknown>>(
   delete options.isEnabled;
   delete options.target;
   delete options.ref;
+  delete options.className;
   delete options.create;
   return options as Omit<T, keyof HighlighterConfigBase | 'type' | 'create'>;
 }
@@ -267,6 +272,10 @@ export function useHighlighter<
             highlighterId,
             options
           ) as unknown as dia.HighlighterView<Options>;
+        }
+
+        if (config.className) {
+          instance.el.classList.add(config.className);
         }
 
         return {

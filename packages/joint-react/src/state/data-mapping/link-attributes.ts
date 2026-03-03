@@ -84,6 +84,7 @@ interface LinkPresentationOptions {
   lineJoin: string;
   wrapperBuffer: number;
   wrapperColor: string;
+  wrapperClassName: string;
 }
 
 /**
@@ -99,7 +100,7 @@ interface LinkPresentationOptions {
 export function buildLinkPresentationAttributes(
   options: LinkPresentationOptions
 ): Record<string, attributes.SVGAttributes> {
-  const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor } = options;
+  const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor, wrapperClassName } = options;
 
   // Build line attributes
   const lineAttributes: attributes.SVGAttributes = {
@@ -136,6 +137,7 @@ export function buildLinkPresentationAttributes(
       connection: true,
       strokeWidth: wrapperBuffer + width,
       stroke: wrapperColor,
+      ...(wrapperClassName ? { class: wrapperClassName } : {}),
       ...strokeAttributes,
     },
   };
