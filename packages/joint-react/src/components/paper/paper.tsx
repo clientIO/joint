@@ -377,7 +377,7 @@ function PaperBase<ElementData = FlatElementData>(
       }
 
       const elementView = paperElementViews[elementId];
-      if (!elementView) {
+      if (!elementView?.paper) {
         return null;
       }
 
@@ -441,7 +441,7 @@ function PaperBase<ElementData = FlatElementData>(
       }
 
       const linkView = paperLinkViews[linkId];
-      if (!linkView) {
+      if (!linkView?.paper) {
         return null;
       }
 
