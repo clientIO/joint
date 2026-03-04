@@ -1,8 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useRef } from 'react';
+import { useId, useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
-import { shapes } from '@joint/core';
 import type { FlatElementData, FlatElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
 import {
@@ -11,6 +10,7 @@ import {
   jsx,
   Paper,
   TextNode,
+  usePaperEvents,
   useLinks,
   useNodeSize,
   useCellId,
@@ -62,8 +62,23 @@ const Pulse = dia.HighlighterView.extend({
 });
 
 const NODE_PORTS: FlatElementPort[] = [
-  { id: 'in', cx: NODE_WIDTH / 2, cy: 0, width: PORT_SIZE, height: PORT_SIZE, color: LIGHT, passive: true },
-  { id: 'out', cx: NODE_WIDTH / 2, cy: NODE_HEIGHT, width: PORT_SIZE, height: PORT_SIZE, color: LIGHT },
+  {
+    id: 'in',
+    cx: NODE_WIDTH / 2,
+    cy: 0,
+    width: PORT_SIZE,
+    height: PORT_SIZE,
+    color: LIGHT,
+    passive: true,
+  },
+  {
+    id: 'out',
+    cx: NODE_WIDTH / 2,
+    cy: NODE_HEIGHT,
+    width: PORT_SIZE,
+    height: PORT_SIZE,
+    color: LIGHT,
+  },
 ];
 
 const elements: Record<string, FlatElementData> = {
@@ -114,9 +129,19 @@ const toolsView = new dia.ToolsView({
 });
 
 function Main() {
+  const paperId = useId();
+  usePaperEvents(paperId, {
+    'link:mouseenter': (linkView) => linkView.addTools(toolsView),
+    'link:mouseleave': (linkView) => linkView.removeTools(),
+  });
+
   return (
     <Paper
-      defaultLink={() => new shapes.standard.Link({ attrs: { line: { stroke: LIGHT } } })}
+      id={paperId}
+      defaultLink={{
+        color: LIGHT,
+        targetMarker: 'arrow',
+      }}
       renderElement={NodeElement}
       className={PAPER_CLASSNAME}
       sorting={dia.Paper.sorting.APPROX}
@@ -127,8 +152,6 @@ function Main() {
         // Prevent linking to output ports.
         return magnetT.getAttribute('port') === 'in';
       }}
-      onLinkMouseEnter={({ linkView }) => linkView.addTools(toolsView)}
-      onLinkMouseLeave={({ linkView }) => linkView.removeTools()}
       markAvailable
       highlighting={{
         [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {

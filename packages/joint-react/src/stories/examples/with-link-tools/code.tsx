@@ -1,9 +1,15 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, linkTools } from '@joint/core';
 import '../index.css';
-import { GraphProvider, jsx, Paper, type RenderElement, type FlatLinkData } from '@joint/react';
-import { useCallback } from 'react';
+import {
+  GraphProvider,
+  jsx,
+  Paper,
+  usePaperEvents,
+  type RenderElement,
+  type FlatLinkData,
+} from '@joint/react';
+import { useCallback, useId } from 'react';
 import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialEdges: Record<string, FlatLinkData> = {
@@ -81,19 +87,24 @@ function RectElement({ width, height }: Readonly<BaseElementWithData>) {
 }
 
 function Main() {
+  const paperId = useId();
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
     (props) => <RectElement {...props} />,
     []
   );
+
+  usePaperEvents(paperId, {
+    'link:mouseenter': (linkView) => linkView.addTools(toolsView),
+    'link:mouseleave': (linkView) => linkView.removeTools(),
+  });
+
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper
+        id={paperId}
         className={PAPER_CLASSNAME}
         height={280}
         renderElement={renderElement}
-        // add listeners when show and hide tools
-        onLinkMouseEnter={({ linkView }) => linkView.addTools(toolsView)}
-        onLinkMouseLeave={({ linkView }) => linkView.removeTools()}
       />
       <div
         style={{

@@ -23,6 +23,7 @@ import {
   type FlatLinkData,
   type ReactPaper,
   type PaperProps,
+  usePaperEvents,
   useNodeLayout,
 } from '@joint/react';
 import { useCallback, useRef, useState } from 'react';
@@ -85,8 +86,6 @@ const PAPER_PROPS: PaperProps<Element> = {
   snapLinks: { radius: 25 },
   sorting: dia.Paper.sorting.APPROX,
   linkPinning: false,
-  onLinkMouseEnter: ({ linkView }) => linkView.addTools(toolsView),
-  onLinkMouseLeave: ({ linkView }) => linkView.removeTools(),
 };
 
 // Create initial elements and links with typing support as Records
@@ -493,6 +492,25 @@ function Main() {
     [selectedElement]
   );
 
+  usePaperEvents(
+    paperCtxRef,
+    {
+      'link:mouseenter': (linkView) => linkView.addTools(toolsView),
+      'link:mouseleave': (linkView) => linkView.removeTools(),
+      'cell:pointerclick': (cellView) => {
+        const cell = cellView.model;
+        setSelectedElement((cell.id as CellId) ?? null);
+      },
+      'link:pointerclick': () => {
+        setSelectedElement(null);
+      },
+      'blank:pointerclick': () => {
+        setSelectedElement(null);
+      },
+    },
+    [setSelectedElement]
+  );
+
   return (
     <div className="flex flex-col relative">
       <div className="flex flex-col relative">
@@ -531,16 +549,6 @@ function Main() {
           }}
           renderElement={renderElement}
           className={PAPER_CLASSNAME}
-          onCellPointerClick={({ cellView }) => {
-            const cell = cellView.model;
-            setSelectedElement((cell.id as CellId) ?? null);
-          }}
-          onLinkPointerClick={() => {
-            setSelectedElement(null);
-          }}
-          onBlankPointerClick={() => {
-            setSelectedElement(null);
-          }}
         />
 
         {isMinimapVisible && <MiniMap />}
@@ -552,10 +560,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
-      elements={elements}
-      links={links}
-    >
+    <GraphProvider elements={elements} links={links}>
       <Main />
     </GraphProvider>
   );

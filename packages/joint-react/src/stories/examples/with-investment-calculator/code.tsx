@@ -74,7 +74,8 @@ const PRODUCT_IDS = ['gold', 'bitcoin', 'sp500'] as const;
 
 const DEFAULT_ROI_VALUE = { value: 0, roi: 0 };
 
-const INPUT_CLASSNAME = 'box-border text-right my-1 w-full bg-white border border-gray-400 px-[2px] py-[1px] text-[13px] leading-none';
+const INPUT_CLASSNAME =
+  'box-border text-right my-1 w-full bg-white border border-gray-400 px-[2px] py-[1px] text-[13px] leading-none';
 
 // Historical price data (2013-2023)
 const historicalPrices: Record<string, Record<string, number>> = {
@@ -268,7 +269,7 @@ function calculateProductValue(investment: InvestmentElement, product: ProductEl
   const year = String(investment.year);
   const buyPrice = historicalPrices[year]?.[product.name] ?? 1;
   const sellPrice = historicalPrices[String(CURRENT_YEAR)]?.[product.name] ?? 1;
-  return (investment.funds * product.percentage) / 100 * (sellPrice / buyPrice);
+  return ((investment.funds * product.percentage) / 100) * (sellPrice / buyPrice);
 }
 
 function calculateROI(cost: number, value: number): number {
@@ -350,14 +351,7 @@ function InvestmentNode({ width, height, funds, year }: Readonly<InvestmentEleme
 // Product Node
 // ----------------------------------------------------------------------------
 
-function ProductNode({
-  width,
-  height,
-  name,
-  label,
-  percentage,
-  color,
-}: Readonly<ProductElement>) {
+function ProductNode({ width, height, name, label, percentage, color }: Readonly<ProductElement>) {
   const { set } = useCellActions<ShapeElement>();
 
   const handlePercentageChange = useCallback(
@@ -432,38 +426,32 @@ function ProductNode({
 // Product Performance Node
 // ----------------------------------------------------------------------------
 
-function ProductPerformanceNode({
-  width,
-  height,
-  label,
-}: Readonly<ProductPerformanceElement>) {
+function ProductPerformanceNode({ width, height, label }: Readonly<ProductPerformanceElement>) {
   const cellId = useCellId();
   const graph = useGraph();
 
   // Use graph topology to find the connected product (inbound neighbor via link)
-  const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>(
-    (elements) => {
-      const cell = graph.getCell(cellId);
-      if (!cell?.isElement()) {
-        return DEFAULT_ROI_VALUE;
-      }
-
-      const [productCell] = graph.getNeighbors(cell, { inbound: true });
-      if (!productCell) {
-        return DEFAULT_ROI_VALUE;
-      }
-
-      const investment = elements[INVESTMENT_ID];
-      const product = elements[productCell.id];
-      if (investment?.type !== 'Investment' || product?.type !== 'Product') {
-        return DEFAULT_ROI_VALUE;
-      }
-
-      const productValue = calculateProductValue(investment, product);
-      const cost = (investment.funds * product.percentage) / 100;
-      return { value: productValue, roi: calculateROI(cost, productValue) };
+  const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>((elements) => {
+    const cell = graph.getCell(cellId);
+    if (!cell?.isElement()) {
+      return DEFAULT_ROI_VALUE;
     }
-  );
+
+    const [productCell] = graph.getNeighbors(cell, { inbound: true });
+    if (!productCell) {
+      return DEFAULT_ROI_VALUE;
+    }
+
+    const investment = elements[INVESTMENT_ID];
+    const product = elements[productCell.id];
+    if (investment?.type !== 'Investment' || product?.type !== 'Product') {
+      return DEFAULT_ROI_VALUE;
+    }
+
+    const productValue = calculateProductValue(investment, product);
+    const cost = (investment.funds * product.percentage) / 100;
+    return { value: productValue, roi: calculateROI(cost, productValue) };
+  });
 
   return (
     <>
@@ -479,9 +467,7 @@ function ProductPerformanceNode({
       <foreignObject width={width} height={height}>
         <div className="p-2.5 flex flex-col text-center text-black font-sans text-sm">
           <fieldset className="border-none m-0 p-0">
-            <legend className="font-bold">
-              {label}
-            </legend>
+            <legend className="font-bold">{label}</legend>
             <div>
               <label className="flex items-center text-left">
                 <span className="w-[30%] shrink-0">Value</span>
@@ -517,42 +503,37 @@ function ProductPerformanceNode({
 // Overall Performance Node
 // ----------------------------------------------------------------------------
 
-function OverallPerformanceNode({
-  width,
-  height,
-}: Readonly<OverallPerformanceElement>) {
+function OverallPerformanceNode({ width, height }: Readonly<OverallPerformanceElement>) {
   const cellId = useCellId();
   const graph = useGraph();
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>(
-    (elements) => {
-      const investment = elements[INVESTMENT_ID];
-      if (investment?.type !== 'Investment') {
-        return DEFAULT_ROI_VALUE;
-      }
-
-      const cell = graph.getCell(cellId);
-      if (!cell?.isElement()) {
-        return DEFAULT_ROI_VALUE;
-      }
-
-      const embeddedCells = cell.getEmbeddedCells().filter((c): c is dia.Element => c.isElement());
-
-      let totalValue = 0;
-      for (const embeddedCell of embeddedCells) {
-        const [productCell] = graph.getNeighbors(embeddedCell, { inbound: true });
-        if (!productCell) continue;
-
-        const product = elements[productCell.id];
-        if (product?.type !== 'Product') continue;
-
-        totalValue += calculateProductValue(investment, product);
-      }
-
-      return { value: totalValue, roi: calculateROI(investment.funds, totalValue) };
+  const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>((elements) => {
+    const investment = elements[INVESTMENT_ID];
+    if (investment?.type !== 'Investment') {
+      return DEFAULT_ROI_VALUE;
     }
-  );
+
+    const cell = graph.getCell(cellId);
+    if (!cell?.isElement()) {
+      return DEFAULT_ROI_VALUE;
+    }
+
+    const embeddedCells = cell.getEmbeddedCells().filter((c): c is dia.Element => c.isElement());
+
+    let totalValue = 0;
+    for (const embeddedCell of embeddedCells) {
+      const [productCell] = graph.getNeighbors(embeddedCell, { inbound: true });
+      if (!productCell) continue;
+
+      const product = elements[productCell.id];
+      if (product?.type !== 'Product') continue;
+
+      totalValue += calculateProductValue(investment, product);
+    }
+
+    return { value: totalValue, roi: calculateROI(investment.funds, totalValue) };
+  });
 
   return (
     <>
@@ -571,9 +552,7 @@ function OverallPerformanceNode({
             This is your portfolio now in <strong className="font-bold">{CURRENT_YEAR}</strong>.
           </p>
           <fieldset className="border-none m-0 p-0">
-            <legend className="mb-2.5">
-              Your overall performance of investment is:
-            </legend>
+            <legend className="mb-2.5">Your overall performance of investment is:</legend>
             <div>
               <label className="flex items-center text-left">
                 <span className="w-[30%] shrink-0">Value</span>
@@ -669,10 +648,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
-      elements={initialElements}
-      links={initialLinks}
-    >
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Main />
     </GraphProvider>
   );

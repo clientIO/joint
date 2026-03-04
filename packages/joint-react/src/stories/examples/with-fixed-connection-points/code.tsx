@@ -1,8 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import type { FlatLinkData, FlatElementData } from '@joint/react';
-import { GraphProvider, jsx, Paper } from '@joint/react';
+import { GraphProvider, jsx, Paper, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
 
@@ -363,6 +363,7 @@ function getLinkTools(_linkView: dia.LinkView) {
 // Main Component
 // ----------------------------------------------------------------------------
 function Main() {
+  const paperId = useId();
   const currentToolsViewRef = useRef<dia.ToolsView | null>(null);
   const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -375,8 +376,55 @@ function Main() {
     };
   }, []);
 
+  usePaperEvents(
+    paperId,
+    {
+      'cell:mouseenter': (cellView) => {
+        const jointPaper = cellView.paper;
+        if (!jointPaper) {
+          return;
+        }
+
+        jointPaper.removeTools();
+
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+          timeoutIdRef.current = null;
+        }
+
+        const tools = cellView.model.isLink()
+          ? getLinkTools(cellView as dia.LinkView)
+          : getElementTools(cellView as dia.ElementView);
+
+        const toolsView = new dia.ToolsView({ tools });
+        cellView.addTools(toolsView);
+        currentToolsViewRef.current = toolsView;
+      },
+      'cell:mouseleave': () => {
+        timeoutIdRef.current = setTimeout(() => {
+          currentToolsViewRef.current?.remove();
+          currentToolsViewRef.current = null;
+          timeoutIdRef.current = null;
+        }, 1000);
+
+        currentToolsViewRef.current?.el.classList.add(
+          'opacity-0',
+          'transition-opacity',
+          'duration-300',
+          'delay-300'
+        );
+      },
+      'element:pointermove': (elementView) => {
+        if (elementView.hasTools()) {
+          elementView.removeTools();
+        }
+      },
+    }
+  );
+
   return (
     <Paper
+      id={paperId}
       width="100%"
       height={650}
       className={PAPER_CLASSNAME}
@@ -421,37 +469,6 @@ function Main() {
       validateConnection={(sourceView, _sourceMagnet, targetView) =>
         sourceView.model.isElement() && targetView.model.isElement() && sourceView !== targetView
       }
-      // Event handlers
-      onCellMouseEnter={({ cellView, paper }) => {
-        paper.removeTools();
-
-        if (timeoutIdRef.current) {
-          clearTimeout(timeoutIdRef.current);
-          timeoutIdRef.current = null;
-        }
-
-        const tools = cellView.model.isLink()
-          ? getLinkTools(cellView as dia.LinkView)
-          : getElementTools(cellView as dia.ElementView);
-
-        const toolsView = new dia.ToolsView({ tools });
-        cellView.addTools(toolsView);
-        currentToolsViewRef.current = toolsView;
-      }}
-      onCellMouseLeave={() => {
-        timeoutIdRef.current = setTimeout(() => {
-          currentToolsViewRef.current?.remove();
-          currentToolsViewRef.current = null;
-          timeoutIdRef.current = null;
-        }, 1000);
-
-        currentToolsViewRef.current?.el.classList.add('opacity-0','transition-opacity','duration-300', 'delay-300');
-      }}
-      onElementPointerMove={({ elementView }) => {
-        if (elementView.hasTools()) {
-          elementView.removeTools();
-        }
-      }}
     />
   );
 }

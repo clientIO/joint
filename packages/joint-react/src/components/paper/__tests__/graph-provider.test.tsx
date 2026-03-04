@@ -97,11 +97,6 @@ describe('graph', () => {
       ]);
     });
 
-    // Allow multiple scheduler ticks to flush
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    });
-
     await waitFor(() => {
       expect(linkCount).toBe(1);
       expect(elementCount).toBe(1);

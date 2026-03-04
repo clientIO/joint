@@ -73,6 +73,24 @@ describe('ReactPaper', () => {
     });
   });
 
+  describe('render', () => {
+    it('should mount paper element into provided host and unfreeze the paper', () => {
+      paper = createPaper({
+        frozen: true,
+      });
+      const host = document.createElement('div');
+      document.body.append(host);
+
+      const unfreezeSpy = jest.spyOn(paper, 'unfreeze');
+      paper.render(host);
+
+      expect(host.firstChild).toBe(paper.el);
+      expect(unfreezeSpy).toHaveBeenCalled();
+
+      host.remove();
+    });
+  });
+
   describe('insertView', () => {
     it('should add element view to reactElementCache when inserted', () => {
       paper = createPaper();

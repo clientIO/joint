@@ -2,12 +2,13 @@ import { type dia } from '@joint/core';
 import type { FlatLinkData } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
 import { REACT_LINK_TYPE } from '../../models/react-link';
-import type {
-  LinkToGraphOptions,
-  GraphToLinkOptions,
-} from '../graph-state-selectors';
+import type { LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
 import { convertLabel } from './convert-labels';
-import { toLinkEndAttribute, toLinkEndData, buildLinkPresentationAttributes } from './link-attributes';
+import {
+  toLinkEndAttribute,
+  toLinkEndData,
+  buildLinkPresentationAttributes,
+} from './link-attributes';
 import { resolveCellDefaults } from './resolve-cell-defaults';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -35,7 +36,6 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
   options: Pick<LinkToGraphOptions<Link>, 'id' | 'data'> & { readonly theme?: LinkTheme }
 ): dia.Cell.JSON {
   const { id, data, theme = defaultLinkTheme } = options;
-
   const {
     // ↔ Two-way: synced back from graph → React state
     source,
@@ -81,10 +81,32 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
     id,
     type: REACT_LINK_TYPE,
     // ↔ Two-way properties
-    source: toLinkEndAttribute(source, { port: sourcePort, anchor: sourceAnchor, connectionPoint: sourceConnectionPoint, magnet: sourceMagnet }),
-    target: toLinkEndAttribute(target, { port: targetPort, anchor: targetAnchor, connectionPoint: targetConnectionPoint, magnet: targetMagnet }),
+    source: toLinkEndAttribute(source, {
+      port: sourcePort,
+      anchor: sourceAnchor,
+      connectionPoint: sourceConnectionPoint,
+      magnet: sourceMagnet,
+    }),
+    target: toLinkEndAttribute(target, {
+      port: targetPort,
+      anchor: targetAnchor,
+      connectionPoint: targetConnectionPoint,
+      magnet: targetMagnet,
+    }),
     // → Presentation → attrs
-    attrs: buildLinkPresentationAttributes({ color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor, wrapperClassName }),
+    attrs: buildLinkPresentationAttributes({
+      color,
+      width,
+      sourceMarker,
+      targetMarker,
+      className,
+      pattern,
+      lineCap,
+      lineJoin,
+      wrapperBuffer,
+      wrapperColor,
+      wrapperClassName,
+    }),
   };
 
   // ↔ Two-way (optional)

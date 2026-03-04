@@ -34,7 +34,6 @@ describe('use-paper-context', () => {
 
     expect(capturedContext).toHaveProperty('paper');
     expect(capturedContext).toHaveProperty('paperId');
-    expect(capturedContext).toHaveProperty('renderPaper');
   });
 
   it('should throw error when used outside Paper and isNullable is false', () => {

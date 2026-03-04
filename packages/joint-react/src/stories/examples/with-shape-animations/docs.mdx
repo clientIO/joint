@@ -53,7 +53,7 @@ The generator toggles power by triggering a custom Paper event:
 paper.trigger('generator:power:change', newPower);
 ```
 
-The `Paper` listens via `customEvents` and updates the graph accordingly.
+`usePaperEvents()` listens to this custom event and updates the graph accordingly.
 
 ## How It Works
 
@@ -68,4 +68,4 @@ The `Paper` listens via `customEvents` and updates the graph accordingly.
 
 - **Separate concerns**: Keep persisted values under `data/*` and derived/presentation state (such as `light`) on separate properties.
 - **Clean up listeners**: When subscribing to cell events (e.g. `change:light`), always unsubscribe in `useEffect` cleanup.
-- **Prefer stable props**: In real apps, consider memoizing large `interactive`/`customEvents` objects to avoid unnecessary Paper updates.
+- **Prefer stable handlers**: In real apps, keep event handler references stable for predictable subscriptions.

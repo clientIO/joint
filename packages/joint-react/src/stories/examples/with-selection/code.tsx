@@ -8,6 +8,7 @@ import {
   Paper,
   useGraph,
   usePaper,
+  usePaperEvents,
   useNodeSize,
   useNodeLayout,
   type CellId,
@@ -18,7 +19,7 @@ import {
   // ReactLinkView,
   // type MarkerPreset,
 } from '@joint/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 // ============================================================================
 // Types & Constants
@@ -307,6 +308,7 @@ function RenderElementWithBadge({
 }
 
 function Main() {
+  const paperId = useId();
   const [paper, setPaper] = useState<dia.Paper | null>(null);
   const [showMinimap, setShowMinimap] = useState(false);
   const [selectedElement, setSelectedElement] = useState<CellId | null>(null);
@@ -317,9 +319,24 @@ function Main() {
 
   const graph = useGraph();
 
+  usePaperEvents(
+    paperId,
+    {
+      'element:pointerclick': (elementView) =>
+        setSelectedElement((elementView.model.id as CellId) ?? null),
+      'element:pointerdblclick': (elementView) => {
+        const cell = elementView.model;
+        cell.clone().translate(10, 10).addTo(cell.graph);
+      },
+      'blank:pointerclick': () => setSelectedElement(null),
+    },
+    [setSelectedElement]
+  );
+
   return (
     <div className="flex flex-col relative w-full h-full">
       <Paper
+        id={paperId}
         {...PAPER_PROPS}
         ref={setPaper}
         className={PAPER_CLASSNAME}
@@ -331,14 +348,6 @@ function Main() {
         // elementView={ReactElementView}
         validateMagnet={(_, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         linkPinning={false}
-        onElementPointerClick={({ elementView }) =>
-          setSelectedElement((elementView.model.id as CellId) ?? null)
-        }
-        onElementPointerDblClick={({ elementView }) => {
-          const cell = elementView.model;
-          cell.clone().translate(10, 10).addTo(cell.graph);
-        }}
-        onBlankPointerClick={() => setSelectedElement(null)}
       >
         <Selection selectedId={selectedElement} />
       </Paper>

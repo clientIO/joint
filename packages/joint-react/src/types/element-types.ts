@@ -40,8 +40,7 @@ export interface FlatElementPort {
    * - Any other string — interpreted as SVG path `d` commands
    * @default 'ellipse'
    */
-  // `(string & {})` preserves autocomplete for known literals while accepting arbitrary path strings
-  readonly shape?: 'ellipse' | 'rect' | (string & {});
+  readonly shape?: 'ellipse' | 'rect' | string;
   /**
    * Stroke color of the port shape.
    * @default 'transparent'

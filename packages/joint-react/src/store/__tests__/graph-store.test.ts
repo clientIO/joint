@@ -1,5 +1,6 @@
  
 /* eslint-disable unicorn/consistent-function-scoping */
+import { waitFor } from '@testing-library/react';
 import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { ReactElement } from '../../models/react-element';
@@ -285,14 +286,12 @@ describe('GraphStore', () => {
     it('should add a new paper and return cleanup function', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const paperElement = document.createElement('div');
       const cleanup = store.addPaper(paperId, {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
-        paperElement,
       });
 
       expect(store.getPaperStore(paperId)).toBeDefined();
@@ -302,14 +301,12 @@ describe('GraphStore', () => {
     it('should remove paper when cleanup is called', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const paperElement = document.createElement('div');
       const cleanup = store.addPaper(paperId, {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
-        paperElement,
       });
 
       expect(store.getPaperStore(paperId)).toBeDefined();
@@ -321,15 +318,12 @@ describe('GraphStore', () => {
 
     it('should handle multiple papers', () => {
       const store = new GraphStore({});
-      const paper1Element = document.createElement('div');
-      const paper2Element = document.createElement('div');
       const paper1 = store.addPaper('paper-1', {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
-        paperElement: paper1Element,
       });
       const paper2 = store.addPaper('paper-2', {
         paperOptions: {
@@ -337,7 +331,6 @@ describe('GraphStore', () => {
           width: 800,
           height: 600,
         },
-        paperElement: paper2Element,
       });
 
       expect(store.getPaperStore('paper-1')).toBeDefined();
@@ -425,14 +418,12 @@ describe('GraphStore', () => {
 
     it('should return paper store for existing paper', () => {
       const store = new GraphStore({});
-      const paperElement = document.createElement('div');
       store.addPaper('paper-1', {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
-        paperElement,
       });
 
       const paperStore = store.getPaperStore('paper-1');
@@ -477,13 +468,13 @@ describe('GraphStore', () => {
   });
 
   describe('areElementsMeasuredState', () => {
-    it('should track areElementsMeasured correctly', (done) => {
+    it('should track areElementsMeasured correctly', async () => {
       const store = new GraphStore({});
 
       // Initially, no elements, so should be false
       expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
 
-      // Test with measured elements - add to graph
+      // Add measured element to graph
       const measuredElement = new ReactElement({
         id: 'element-1',
         position: { x: 10, y: 20 },
@@ -491,27 +482,36 @@ describe('GraphStore', () => {
       });
       store.graph.addCell(measuredElement);
 
-      // Wait for layout state update (uses startTransition which defers updates)
-      setTimeout(() => {
-        // After adding measured element to graph, should be true
+      // Wait for scheduler/layout flush to include element layout
+      await waitFor(() => {
+        expect(store.layoutState.getSnapshot().elements['element-1']).toBeDefined();
+      });
+
+      // Without paper views rendered, measured state must stay false
+      expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
+
+      // Simulate paper becoming ready with rendered element views
+      store.updatePaperSnapshot('paper-1', () => ({
+        paperElementViews: {
+          'element-1': {} as dia.ElementView,
+        },
+      }));
+
+      await waitFor(() => {
         expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
+      });
 
-        // Once measured, it stays true even if we add unmeasured elements
-        const unmeasuredElement = new ReactElement({
-          id: 'element-2',
-          position: { x: 30, y: 40 },
-          size: { width: 0, height: 0 },
-        });
-        store.graph.addCell(unmeasuredElement);
+      // Adding an unmeasured element should make the state false again
+      const unmeasuredElement = new ReactElement({
+        id: 'element-2',
+        position: { x: 30, y: 40 },
+        size: { width: 0, height: 0 },
+      });
+      store.graph.addCell(unmeasuredElement);
 
-        // Wait for next update and check final state
-        // eslint-disable-next-line sonarjs/no-nested-functions
-        setTimeout(() => {
-          // Should remain true because wasElementsMeasuredBefore is true
-          expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
-          done();
-        }, 50);
-      }, 50);
+      await waitFor(() => {
+        expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
+      });
     });
   });
 

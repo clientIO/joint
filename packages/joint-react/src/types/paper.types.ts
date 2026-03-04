@@ -39,14 +39,3 @@ export interface ReactLinkViewGraphStoreRef {
 export interface ReactLinkViewPaperStoreRef {
   getLinkLabelId: (linkId: CellId, labelIndex: number) => string;
 }
-
-/**
- * Extended Paper interface with React-specific properties for both element and link views.
- */
-export interface ReactPaper extends dia.Paper {
-  reactElementCache: ReactElementViewCache;
-  reactElementGraphStore: ReactElementViewGraphStoreRef;
-  reactLinkCache: ReactLinkViewCache;
-  reactLinkGraphStore: ReactLinkViewGraphStoreRef;
-  reactLinkPaperStore: ReactLinkViewPaperStoreRef;
-}

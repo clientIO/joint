@@ -1,0 +1,501 @@
+import { dia } from '@joint/core';
+import {
+  useCallback,
+  useDebugValue,
+  useDeferredValue,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+  type ReactNode,
+} from 'react';
+import { createPortal } from 'react-dom';
+import { useGraphStore } from './use-graph-store';
+import { usePaperStoreById } from './use-paper-context';
+import { useElements } from './use-elements';
+import { useLinks } from './use-links';
+import { useAreElementsMeasured, useGraphInternalStoreSelector } from './use-graph-store-selector';
+import type { PaperStore } from '../store';
+import type { FlatElementData } from '../types/element-types';
+import type { FlatLinkData } from '../types/link-types';
+import type { ReactPaper } from '../models/react-paper';
+import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
+import { assignOptions } from '../utils/object-utilities';
+import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
+import { CellIdContext } from '../context';
+import {
+  DefaultRectElement,
+  HTMLElementItem,
+  SVGElementItem,
+} from '../components/paper/render-element/paper-element-item';
+
+const EMPTY_OBJECT = {} as Record<string, dia.ElementView>;
+
+type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
+
+/**
+ * Resolves the next paper dimension from measured host size with numeric fallback.
+ * @param measuredDimension - Current host dimension from the DOM.
+ * @param fallbackDimension - Current paper option dimension.
+ * @returns The resolved dimension or `null` when it should stay fluid.
+ */
+function resolveInferredDimension(
+  measuredDimension: number,
+  fallbackDimension: dia.Paper.Dimension | undefined
+): dia.Paper.Dimension {
+  if (measuredDimension > 0) {
+    return measuredDimension;
+  }
+  if (typeof fallbackDimension === 'number' && fallbackDimension > 0) {
+    return fallbackDimension;
+  }
+  return null;
+}
+
+export interface UseCreateReactPaperOptions<ElementData = FlatElementData>
+  extends PaperProps<ElementData> {
+  /**
+   * Host element ref where the paper should be mounted automatically.
+   * When omitted, paper rendering is manual (e.g. via `onReady` callback).
+   */
+  readonly elementRef?: RefObject<HTMLElement | SVGElement | null>;
+  /** Keep paper dimensions in sync with `width` / `height` options. */
+  readonly shouldSyncDimensions?: boolean;
+  /** Callback fired once when paper instance is created and ready. */
+  readonly onReady?: (paper: ReactPaper) => void;
+}
+
+export interface UseCreateReactPaperResult {
+  /** Effective paper id used in GraphStore. */
+  readonly id: string;
+  /** Created ReactPaper instance, available after store registration. */
+  readonly paper?: ReactPaper;
+  /** PaperStore for this paper id, available after registration. */
+  readonly paperStore?: PaperStore;
+  /** True when paper exists and is ready for content rendering. */
+  readonly isReady: boolean;
+  /** React portals content for elements/links/HTML overlay. */
+  readonly content: ReactNode;
+}
+
+/**
+ * Resolves the `ReactLink` constructor from graph cell namespace.
+ * @param graph - Graph instance with layer collection namespace.
+ * @returns The `ReactLink` constructor from graph namespace.
+ * @throws {Error} When `ReactLink` is missing in graph namespace.
+ */
+function getReactLinkConstructor(graph: dia.Graph): ReactLinkConstructor {
+  const cellNamespace = graph.layerCollection?.cellNamespace as Record<string, unknown> | undefined;
+  const reactLinkConstructor = cellNamespace?.ReactLink;
+  if (typeof reactLinkConstructor === 'function') {
+    return reactLinkConstructor as ReactLinkConstructor;
+  }
+  throw new Error(
+    'Paper: ReactLink constructor is missing in graph.layerCollection.cellNamespace.'
+  );
+}
+
+/**
+ * Portals custom link content into the resolved link view container.
+ * @param props - Link props.
+ * @param props.link - Link data object.
+ * @param props.portalElement - Link portal container element.
+ * @param props.renderLink - Callback used to render link content.
+ * @returns Portaled link content, or null when container is unavailable.
+ */
+function LinkItem({
+  link,
+  portalElement,
+  renderLink,
+}: {
+  readonly link: FlatLinkData;
+  readonly portalElement: SVGElement | HTMLElement;
+  readonly renderLink: RenderLink<FlatLinkData>;
+}) {
+  if (!portalElement) {
+    return null;
+  }
+
+  const linkContent = renderLink(link);
+  return createPortal(linkContent, portalElement);
+}
+
+/**
+ * Creates and manages a React-backed JointJS paper instance lifecycle.
+ * @param options - Hook options with paper settings and behavior overrides.
+ * @returns Hook state with paper instance and rendered portal content.
+ */
+export function useCreateReactPaper<ElementData = FlatElementData>(
+  options: Readonly<UseCreateReactPaperOptions<ElementData>>
+): UseCreateReactPaperResult {
+  const {
+    renderElement,
+    renderLink,
+    defaultLink,
+    onElementsSizeReady,
+    onElementsSizeChange,
+    useHTMLOverlay,
+    scale,
+    width,
+    height,
+    elementRef,
+    shouldSyncDimensions,
+    onReady,
+    ...paperOptions
+  } = options;
+
+  const shouldApplyDimensions = shouldSyncDimensions ?? true;
+
+  const areElementsMeasured = useAreElementsMeasured();
+  const elementsState = useElements();
+  const linksState = useLinks();
+  useDebugValue(elementsState);
+  useDebugValue(linksState);
+
+  const elementIds = useMemo(() => Object.keys(elementsState), [elementsState]);
+  const linkIds = useMemo(() => Object.keys(linksState), [linksState]);
+
+  const deferredElementsStateRaw = useDeferredValue(elementsState);
+  const deferredLinksStateRaw = useDeferredValue(linksState);
+  const shouldDefer = elementIds.length > 100 || linkIds.length > 100;
+  const deferredElementsState = shouldDefer ? deferredElementsStateRaw : elementsState;
+  const deferredLinksState = shouldDefer ? deferredLinksStateRaw : linksState;
+
+  const deferredElementIds = useMemo(
+    () => (shouldDefer ? Object.keys(deferredElementsState) : elementIds),
+    [shouldDefer, deferredElementsState, elementIds]
+  );
+  const deferredLinkIds = useMemo(
+    () => (shouldDefer ? Object.keys(deferredLinksState) : linkIds),
+    [shouldDefer, deferredLinksState, linkIds]
+  );
+
+  const reactId = useId();
+  const id = options.id ?? `paper-${reactId}`;
+
+  const paperElementViews = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.paperElementViews ?? EMPTY_OBJECT
+  );
+
+  const paperLinkViews = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.linkViews ?? EMPTY_OBJECT
+  );
+
+  const { addPaper, graph, mapDataToLinkAttributes } = useGraphStore();
+  const paperStore = usePaperStoreById(id);
+  const { paper } = paperStore ?? {};
+
+  const measuredRef = useRef(false);
+  const previousSizesRef = useRef<number[][]>([]);
+  const isReadyNotifiedRef = useRef(false);
+
+  const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
+
+  const hasRenderElement = !!renderElement;
+  const hasRenderLink = !!renderLink;
+
+  const defaultLinkJointJS = useCallback(
+    (cellView: dia.CellView, magnet: SVGElement) => {
+      const isDefaultLinkFactory = typeof defaultLink === 'function';
+      const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
+      const ReactLinkModel = getReactLinkConstructor(graph);
+      if (!link) {
+        const defaultAttributes = mapDataToLinkAttributes({
+          data: {} as FlatLinkData,
+          graph,
+        });
+        return new ReactLinkModel(defaultAttributes);
+      }
+      if (link instanceof dia.Link) {
+        if (isDefaultLinkFactory) {
+          return link;
+        }
+        return link.clone();
+      }
+      const attributes = mapDataToLinkAttributes({
+        data: link as FlatLinkData,
+        graph,
+      });
+      return new ReactLinkModel(attributes);
+    },
+    [defaultLink, graph, mapDataToLinkAttributes]
+  );
+
+  const isReady = !!paper && (!elementRef || !!elementRef.current);
+
+  useLayoutEffect(() => {
+    const remove = addPaper(id, {
+      paperOptions: {
+        ...paperOptions,
+        defaultLink: defaultLinkJointJS,
+      },
+      renderElement: renderElement as RenderElement<FlatElementData>,
+      renderLink: renderLink as RenderLink<FlatLinkData> | undefined,
+      scale,
+    });
+
+    return remove;
+    // We intentionally create paper store only once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!paper) {
+      isReadyNotifiedRef.current = false;
+      return;
+    }
+
+    if (onReady && !isReadyNotifiedRef.current) {
+      isReadyNotifiedRef.current = true;
+      onReady(paper);
+    }
+
+    const paperHostElement = elementRef?.current;
+    if (!paperHostElement) {
+      return;
+    }
+    paper.render(paperHostElement);
+  }, [elementRef, onReady, paper]);
+
+  useEffect(() => {
+    if (!paperStore) return;
+    if (!paper) return;
+
+    assignOptions(paper.options, {
+      defaultLink: defaultLinkJointJS,
+      ...paperOptions,
+    });
+
+    const { drawGrid, theme, gridSize } = paperOptions;
+
+    if (drawGrid !== undefined) {
+      paper.setGrid(drawGrid);
+    }
+    if (gridSize !== undefined) {
+      paper.setGridSize(gridSize);
+    }
+    if (theme !== undefined) {
+      paper.setTheme(theme);
+    }
+    if (scale !== undefined) {
+      paper.scale(scale);
+    }
+  }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
+
+  useLayoutEffect(() => {
+    if (!paper) return;
+    if (!shouldApplyDimensions) return;
+    const hostElement = elementRef?.current ?? null;
+
+    /**
+     * Resolves the next paper dimension from options and measured host size.
+     * When option dimension is provided, it takes precedence. When it's missing or invalid, tries to infer from host element size. When both are missing or invalid, returns null for fluid behavior.
+     * @param hostElementItem - Current paper host element from the DOM.
+     * @param dimension - Current paper option dimension.
+     * @returns The resolved dimension or `null` when it should stay fluid.
+     */
+    function resolveSize(
+      hostElementItem: HTMLElement | SVGElement | null,
+      dimension: dia.Paper.Dimension | undefined
+    ): dia.Paper.Dimension {
+      if (dimension !== undefined) {
+        return dimension;
+      }
+      if (!hostElementItem) {
+        return null;
+      }
+      const measuredDimension = hostElementItem.clientWidth;
+      return resolveInferredDimension(measuredDimension, dimension);
+    }
+    const nextWidth = resolveSize(hostElement, width);
+    const nextHeight = resolveSize(hostElement, height);
+    paper.setDimensions(nextWidth ?? null, nextHeight ?? null);
+
+    const hasMissingDimension = width === undefined || height === undefined;
+    if (!hasMissingDimension || !hostElement) {
+      return;
+    }
+
+    // For inferred dimensions, keep paper in sync with host element resize.
+  }, [elementRef, height, paper, shouldApplyDimensions, width]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (measuredRef.current) return;
+    if (!paper) return;
+
+    if (areElementsMeasured) {
+      measuredRef.current = true;
+      onElementsSizeReady?.({ paper, graph: paper.model });
+      return;
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      if (!areElementsMeasured) {
+        // eslint-disable-next-line no-console
+        console.error(
+          'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
+        );
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [areElementsMeasured, isReady, onElementsSizeReady, paper]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (!onElementsSizeChange) return;
+    if (!areElementsMeasured) return;
+    if (!paper) return;
+
+    const currentSizes = elementIds.map((elementId) => {
+      const element = elementsState[elementId];
+      return [element?.width ?? 0, element?.height ?? 0];
+    });
+    const previousSizes = previousSizesRef.current;
+    let changed = false;
+
+    if (previousSizes.length === currentSizes.length) {
+      for (const [index, currentSize] of currentSizes.entries()) {
+        if (
+          previousSizes[index][0] !== currentSize[0] ||
+          previousSizes[index][1] !== currentSize[1]
+        ) {
+          changed = true;
+          break;
+        }
+      }
+    } else {
+      changed = true;
+    }
+
+    if (!changed) {
+      return;
+    }
+
+    previousSizesRef.current = currentSizes;
+    onElementsSizeChange({ paper, graph: paper.model });
+  }, [areElementsMeasured, elementIds, elementsState, isReady, onElementsSizeChange, paper]);
+
+  const renderedElements = useMemo(() => {
+    if (!hasRenderElement) {
+      return null;
+    }
+
+    return deferredElementIds.map((elementId) => {
+      const elementState = deferredElementsState[elementId];
+      if (!elementState) {
+        return null;
+      }
+
+      const elementView = paperElementViews[elementId];
+      if (!elementView?.paper) {
+        return null;
+      }
+
+      const portalNode = (elementView.paper as ReactPaper).getCellViewPortalNode(elementView);
+      if (!portalNode) {
+        return null;
+      }
+
+      return (
+        <CellIdContext.Provider key={elementId} value={elementId}>
+          {useHTMLOverlay && HTMLRendererContainer ? (
+            <>
+              <HTMLElementItem
+                {...elementState}
+                portalElement={HTMLRendererContainer}
+                renderElement={renderElement}
+                areElementsMeasured={areElementsMeasured}
+                id={elementId}
+              />
+              <SVGElementItem
+                {...elementState}
+                portalElement={portalNode}
+                renderElement={DefaultRectElement}
+                areElementsMeasured={areElementsMeasured}
+                id={elementId}
+              />
+            </>
+          ) : (
+            <SVGElementItem
+              {...elementState}
+              portalElement={portalNode}
+              renderElement={renderElement}
+              areElementsMeasured={areElementsMeasured}
+              id={elementId}
+            />
+          )}
+        </CellIdContext.Provider>
+      );
+    });
+  }, [
+    HTMLRendererContainer,
+    areElementsMeasured,
+    deferredElementIds,
+    deferredElementsState,
+    hasRenderElement,
+    paperElementViews,
+    renderElement,
+    useHTMLOverlay,
+  ]);
+
+  const renderedLinks = useMemo(() => {
+    if (!hasRenderLink || !renderLink) {
+      return null;
+    }
+
+    return deferredLinkIds.map((linkId) => {
+      const linkState = deferredLinksState[linkId];
+      if (!linkState) {
+        return null;
+      }
+
+      const linkView = paperLinkViews[linkId];
+      if (!linkView?.paper) {
+        return null;
+      }
+
+      const portalNode = (linkView.paper as ReactPaper).getCellViewPortalNode(linkView);
+      if (!portalNode) {
+        return null;
+      }
+
+      return (
+        <CellIdContext.Provider key={linkId} value={linkId}>
+          <LinkItem link={linkState} portalElement={portalNode} renderLink={renderLink} />
+        </CellIdContext.Provider>
+      );
+    });
+  }, [deferredLinkIds, deferredLinksState, hasRenderLink, paperLinkViews, renderLink]);
+
+  const content = useMemo(
+    () => (
+      <>
+        {hasRenderElement && useHTMLOverlay && (
+          <PaperHTMLContainer onSetElement={setHTMLRendererContainer} />
+        )}
+        {renderedLinks}
+        {renderedElements}
+      </>
+    ),
+    [hasRenderElement, renderedElements, renderedLinks, useHTMLOverlay]
+  );
+
+  return {
+    id,
+    paper,
+    paperStore: paperStore ?? undefined,
+    isReady,
+    content,
+  };
+}

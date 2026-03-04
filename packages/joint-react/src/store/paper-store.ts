@@ -1,10 +1,8 @@
 import { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
-import type { ReactPaper as ReactPaperType } from '../types/paper.types';
 import type { GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
 import { connectionPoint } from './default-connection-point';
@@ -43,10 +41,6 @@ const DEFAULT_PORT_HIGHLIGHTING: PaperHighlighting = {
 export interface AddPaperOptions {
   /** JointJS Paper configuration options */
   readonly paperOptions: dia.Paper.Options;
-  /** Optional function to override the default paper element rendering */
-  readonly overWrite?: (paperStore: PaperStore) => OverWriteResult;
-  /** The DOM element (HTML or SVG) where the paper will be rendered */
-  readonly paperElement: HTMLElement | SVGElement;
   /** Optional initial scale for the paper */
   readonly scale?: number;
   /** Optional custom renderer for elements */
@@ -89,11 +83,9 @@ export interface PaperStoreSnapshot {
  */
 export class PaperStore {
   /** The underlying JointJS Paper instance with React-specific properties */
-  public paper: ReactPaper & ReactPaperType;
+  public paper: ReactPaper;
   /** Unique identifier for this paper instance */
   public paperId: string;
-  /** Reference to the overwrite result if custom rendering is used */
-  public overWriteResultRef?: OverWriteResult;
   /** Optional custom element renderer */
   public renderElement?: RenderElement<FlatElementData>;
   /** Optional custom link renderer */
@@ -109,8 +101,6 @@ export class PaperStore {
     const {
       graphStore,
       paperOptions = {},
-      overWrite,
-      paperElement,
       scale,
       renderElement,
       renderLink,
@@ -193,7 +183,7 @@ export class PaperStore {
         lazyInitialize: true,
       },
       graphStore,
-    }) as ReactPaper & ReactPaperType;
+    });
 
     // Attach React-specific properties to the paper for view access
     paper.reactElementCache = {
@@ -234,48 +224,15 @@ export class PaperStore {
 
     this.paper = paper;
 
-    if (!paperElement) {
-      throw new Error('Paper HTML element is not available');
-    }
-
     if (scale !== undefined) {
       this.paper.scale(scale);
     }
 
-    this.renderPaper({ overWrite, element: paperElement });
-
     if (width !== undefined && height !== undefined) {
       this.paper.setDimensions(width, height);
     }
-  }
-
-  renderPaper = (options: {
-    overWrite?: (ctx: PaperStore) => OverWriteResult;
-    element: HTMLElement | SVGElement;
-  }): OverWriteResult | undefined => {
-    const { overWrite, element } = options;
-    if (!this.paper) {
-      throw new Error('Paper is not created');
-    }
-    let elementToRender: HTMLElement | SVGElement = this.paper.el;
-    if (overWrite) {
-      const overWriteResult = overWrite(this);
-
-      elementToRender = overWriteResult?.element;
-      this.overWriteResultRef = overWriteResult;
-      if (overWriteResult?.contextUpdate) {
-        Object.assign(this, overWriteResult.contextUpdate);
-      }
-    }
-
-    if (!elementToRender) {
-      throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
-    }
-
-    element.replaceChildren(elementToRender);
     this.paper.unfreeze();
-    return this.overWriteResultRef;
-  };
+  }
 
   /**
    * Generates a unique link label ID by combining link ID and label index.
@@ -301,6 +258,5 @@ export class PaperStore {
     // - All cell views
     // - The paper's DOM element
     this.paper.remove();
-    this.overWriteResultRef?.cleanup?.();
   };
 }

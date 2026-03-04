@@ -1,11 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useId } from 'react';
 import { dia, elementTools } from '@joint/core';
 import {
   GraphProvider,
   Paper,
   useCellId,
   useGraph,
+  usePaperEvents,
   TextNode,
   type FlatElementData,
   type FlatLinkData,
@@ -377,6 +378,7 @@ function useContainerAutoResize() {
 
 function Main() {
   useContainerAutoResize();
+  const paperId = useId();
 
   const graph = useGraph();
 
@@ -422,41 +424,43 @@ function Main() {
     }
   }, [graph]);
 
-  const handleElementMouseEnter = useCallback(
-    ({ elementView }: { elementView: dia.ElementView }) => {
-      elementView.removeTools();
-      elementView.addTools(
-        new dia.ToolsView({
-          tools: [
-            new elementTools.Remove({
-              useModelGeometry: true,
-              y: 0,
-              x: 0,
-            }),
-          ],
-        })
-      );
-    },
-    []
-  );
+  const handleElementMouseEnter = useCallback((elementView: dia.ElementView) => {
+    elementView.removeTools();
+    elementView.addTools(
+      new dia.ToolsView({
+        tools: [
+          new elementTools.Remove({
+            useModelGeometry: true,
+            y: 0,
+            x: 0,
+          }),
+        ],
+      })
+    );
+  }, []);
 
-  const handleElementMouseLeave = useCallback(
-    ({ elementView }: { elementView: dia.ElementView }) => {
-      elementView.removeTools();
+  const handleElementMouseLeave = useCallback((elementView: dia.ElementView) => {
+    elementView.removeTools();
+  }, []);
+
+  usePaperEvents(
+    paperId,
+    {
+      'element:mouseenter': handleElementMouseEnter,
+      'element:mouseleave': handleElementMouseLeave,
     },
-    []
+    [handleElementMouseEnter, handleElementMouseLeave]
   );
 
   return (
     <Paper
+      id={paperId}
       height={500}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
       cellVisibility={cellVisibility}
       interactive={{ linkMove: false }}
       background={{ color: '#F3F7F6' }}
-      onElementMouseEnter={handleElementMouseEnter}
-      onElementMouseLeave={handleElementMouseLeave}
       async
     />
   );

@@ -13,7 +13,6 @@ export * from './models/react-element';
 export * from './models/react-link';
 
 export { ReactPaper } from './models/react-paper';
-export type { IReactPaper } from './models/react-paper.types';
 
 export * from './types/cell-id';
 export * from './types/element-types';

@@ -7,11 +7,9 @@ describe('PaperStore', () => {
     it('should create a PaperStore with paper instance', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
       });
@@ -24,11 +22,9 @@ describe('PaperStore', () => {
     it('should set up paper with correct options', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {
           width: 800,
           height: 600,
@@ -43,11 +39,9 @@ describe('PaperStore', () => {
     it('should apply scale when provided', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
         scale: 2,
@@ -61,11 +55,9 @@ describe('PaperStore', () => {
     it('should enable visible magnet highlighting while dragging links by default', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
       });
@@ -88,11 +80,9 @@ describe('PaperStore', () => {
     it('should allow overriding markAvailable and magnetAvailability highlighting', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {
           markAvailable: false,
           highlighting: {
@@ -119,11 +109,9 @@ describe('PaperStore', () => {
     it('should call paper.remove() when destroy is called', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
       });
@@ -138,11 +126,9 @@ describe('PaperStore', () => {
     it('should be safe to call destroy multiple times', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
       });
@@ -157,11 +143,9 @@ describe('PaperStore', () => {
     it('should unregister paper update callback on destroy', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
       });
@@ -184,10 +168,10 @@ describe('PaperStore', () => {
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
       });
+      paperStore.paper.render(paperElement);
 
       // Verify paper element has children (the paper's SVG)
       expect(paperElement.children.length).toBeGreaterThan(0);
@@ -207,11 +191,9 @@ describe('PaperStore', () => {
     it('should generate unique link label ID from link ID and index', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
       });
@@ -228,11 +210,9 @@ describe('PaperStore', () => {
     it('should return model geometry for root element node', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
       });
@@ -256,11 +236,9 @@ describe('PaperStore', () => {
     it('should return SVG bounding box for port magnet nodes, not model geometry', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {},
         id: 'test-paper',
       });
@@ -295,12 +273,10 @@ describe('PaperStore', () => {
     it('should allow user to override measureNode', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
       const customMeasureNode = jest.fn();
 
       const paperStore = new PaperStore({
         graphStore,
-        paperElement,
         paperOptions: {
           measureNode: customMeasureNode,
         },
@@ -318,10 +294,8 @@ describe('PaperStore', () => {
     it('should call paper.remove() when GraphStore removePaper is called', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       const cleanup = graphStore.addPaper('test-paper', {
-        paperElement,
         paperOptions: {},
       });
 
@@ -339,15 +313,11 @@ describe('PaperStore', () => {
     it('should call paper.remove() for all papers when GraphStore is destroyed', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement1 = document.createElement('div');
-      const paperElement2 = document.createElement('div');
 
       graphStore.addPaper('paper-1', {
-        paperElement: paperElement1,
         paperOptions: {},
       });
       graphStore.addPaper('paper-2', {
-        paperElement: paperElement2,
         paperOptions: {},
       });
 
@@ -366,10 +336,8 @@ describe('PaperStore', () => {
     it('should call paper.remove() when GraphStore is destroyed with external graph', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
-      const paperElement = document.createElement('div');
 
       graphStore.addPaper('test-paper', {
-        paperElement,
         paperOptions: {},
       });
 

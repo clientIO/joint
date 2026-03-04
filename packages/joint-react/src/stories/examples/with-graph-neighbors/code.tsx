@@ -8,6 +8,7 @@ import {
   useCellId,
   useGraph,
   useHighlighter,
+  usePaperEvents,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
@@ -275,7 +276,7 @@ function Main() {
   }, [graph, highlightState]);
 
   const handleElementClick = useCallback(
-    ({ elementView }: { elementView: dia.ElementView }) => {
+    (elementView: dia.ElementView) => {
       const clickedId = String(elementView.model.id);
 
       setHighlightState((previous) => {
@@ -304,6 +305,15 @@ function Main() {
     setHighlightState(INITIAL_STATE);
   }, []);
 
+  usePaperEvents(
+    paperRef,
+    {
+      'element:pointerclick': handleElementClick,
+      'blank:pointerclick': handleBlankClick,
+    },
+    [handleBlankClick, handleElementClick]
+  );
+
   const renderElement = useCallback(
     (props: NodeData) => (
       <RenderNode
@@ -324,8 +334,6 @@ function Main() {
       renderElement={renderElement}
       defaultRouter={{ name: 'normal' }}
       defaultConnector={{ name: 'rounded', args: { radius: 20 } }}
-      onElementPointerClick={handleElementClick}
-      onBlankPointerClick={handleBlankClick}
     />
   );
 }
