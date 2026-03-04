@@ -1,4 +1,3 @@
- 
 /* eslint-disable unicorn/consistent-function-scoping */
 import { waitFor } from '@testing-library/react';
 import { dia, shapes } from '@joint/core';
@@ -12,10 +11,7 @@ import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
 } from '../../state/data-mapping';
-import type {
-  ElementToGraphOptions,
-  LinkToGraphOptions,
-} from '../../state/graph-state-selectors';
+import type { ElementToGraphOptions, LinkToGraphOptions } from '../../state/graph-state-selectors';
 
 jest.mock('../../utils/dev-tools', () => ({
   sendToDevTool: jest.fn(),
@@ -439,9 +435,7 @@ describe('GraphStore', () => {
         'element-1': cyclicView as unknown as dia.ElementView,
       };
 
-      expect(() =>
-        store.flushPendingUpdates()
-      ).not.toThrow();
+      expect(() => store.flushPendingUpdates()).not.toThrow();
       expect(() =>
         store.addPaper('paper-minimap', {
           paperOptions: {
