@@ -1,4 +1,4 @@
-import { dia, g } from '@joint/core';
+import { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
@@ -7,9 +7,10 @@ import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper as ReactPaperType } from '../types/paper.types';
 import type { GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
+import { connectionPoint } from './default-connection-point';
+import { measureNode } from './default-measure-node';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
-const DEFAULT_CONNECTION_POINT = { name: 'rectangle', args: { useModelGeometry: true } };
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
 
 const DEFAULT_PORT_HIGHLIGHTING: PaperHighlighting = {
@@ -35,58 +36,6 @@ const DEFAULT_PORT_HIGHLIGHTING: PaperHighlighting = {
       className: 'available-cell',
     },
   },
-};
-/**
- * Default measureNode function that uses the model's bounding box for the root element node.
- * For sub-nodes (e.g. port magnets), falls back to the native SVG bounding box.
- * This ensures consistent measurement in React where elements are rendered via portals,
- * while still allowing port connection points to be calculated correctly.
- */
-const DEFAULT_MEASURE_NODE = (
-  node: SVGGraphicsElement,
-  view: dia.ElementView<dia.Element>
-): g.Rect => {
-  const getModelRect = (preservePosition: boolean) => {
-    if (typeof view.model.size === 'function') {
-      const { height, width } = view.model.size();
-      const position =
-        preservePosition && typeof view.model.position === 'function'
-          ? view.model.position()
-          : { x: 0, y: 0 };
-      return new g.Rect({ height, width, x: position.x, y: position.y });
-    }
-    if (typeof view.model.getBBox === 'function') {
-      const { height, width, x, y } = view.model.getBBox();
-      return new g.Rect({
-        height,
-        width,
-        x: preservePosition ? x : 0,
-        y: preservePosition ? y : 0,
-      });
-    }
-    return new g.Rect({ height: 0, width: 0, x: 0, y: 0 });
-  };
-
-  const getNodeRect = () => {
-    try {
-      const { height, width, x, y } = node.getBBox();
-      return new g.Rect({ height, width, x, y });
-    } catch {
-      return new g.Rect({ height: 0, width: 0, x: 0, y: 0 });
-    }
-  };
-
-  if (node === view.el) {
-    return getModelRect(false);
-  }
-
-  const nodeBox = getNodeRect();
-  if (nodeBox.width > 0 || nodeBox.height > 0 || nodeBox.x !== 0 || nodeBox.y !== 0) {
-    return nodeBox;
-  }
-
-  // In jsdom many SVG subnodes report empty bbox; fallback to model geometry.
-  return getModelRect(true);
 };
 /**
  * Options for adding a new paper instance to the graph store.
@@ -232,8 +181,8 @@ export class PaperStore {
           isProcessing = false;
         };
       })(),
-      defaultConnectionPoint: DEFAULT_CONNECTION_POINT,
-      measureNode: DEFAULT_MEASURE_NODE as unknown as dia.Paper.Options['measureNode'],
+      defaultConnectionPoint: connectionPoint,
+      measureNode: measureNode as unknown as dia.Paper.Options['measureNode'],
       ...paperOptions,
       highlighting: mergedHighlighting,
       markAvailable: paperOptions.markAvailable ?? true,

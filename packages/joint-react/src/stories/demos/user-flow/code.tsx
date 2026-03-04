@@ -5,22 +5,45 @@ import {
   GraphProvider,
   Paper,
   useCellId,
+  useMarkup,
+  useNodeSize,
   type CellId,
-  type ElementToGraphOptions,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
-import type { dia } from '@joint/core';
-import { useCallback, useState } from 'react';
-import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
+import { useCallback, useRef, useState } from 'react';
 import {
   appendOutputPort,
-  createPorts,
-  NODE_BASE_PADDING,
-  NODE_MIN_WIDTH,
-  NODE_PORT_PILL_SPACING,
   type OutputPort,
 } from './port-utilities';
+import { anchors } from '@joint/core';
+
+// Port pill dimensions
+const PORT_PILL_WIDTH = 80;
+const PORT_PILL_HEIGHT = 24;
+const PORT_PILL_RADIUS = PORT_PILL_HEIGHT / 2;
+const PORT_GAP = 8;
+const PORT_BOTTOM_MARGIN = 20;
+
+// Input port
+const INPUT_PORT_RADIUS = 8;
+const INPUT_PORT_CENTER_X = 20;
+
+// Node sizing
+const NODE_PADDING_LEFT = 10;
+const NODE_PADDING_RIGHT = 44;
+const NODE_MIN_WIDTH = 250;
+
+function getNodeWidth(portCount: number) {
+  return Math.max(
+    NODE_MIN_WIDTH,
+    NODE_PADDING_LEFT + portCount * PORT_PILL_WIDTH + (portCount - 1) * PORT_GAP + NODE_PADDING_RIGHT,
+  );
+}
+
+function getPortCenterX(index: number) {
+  return NODE_PADDING_LEFT + PORT_PILL_WIDTH / 2 + index * (PORT_PILL_WIDTH + PORT_GAP);
+}
 
 type NodeType = FlatElementData & {
   readonly title: string;
@@ -36,7 +59,7 @@ const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
   { id: '2', label: 'Port 2' },
 ];
 
-const nodes: Record<string, NodeType> = {
+const initialElements: Record<string, NodeType> = {
   '1': {
     title: 'User Action',
     description: 'Transfer funds',
@@ -52,7 +75,7 @@ const nodes: Record<string, NodeType> = {
     nodeType: 'entity',
     outputPorts: INITIAL_OUTPUT_PORTS,
     x: 120,
-    y: 200,
+    y: 240,
     z: 10,
   },
   '3': {
@@ -61,52 +84,45 @@ const nodes: Record<string, NodeType> = {
     nodeType: 'user-action',
     outputPorts: INITIAL_OUTPUT_PORTS,
     x: 190,
-    y: 350,
+    y: 440,
     z: 10,
   },
 };
 
-const links: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, FlatLinkData> = {
   link1: {
     source: '1',
-    sourcePort: '1',
+    sourceMagnet: '1',
     target: '2',
-    targetPort: 'in',
-    z: 1,
+    targetMagnet: 'in',
+    z: 11,
   },
   link2: {
     source: '2',
-    sourcePort: '1',
+    sourceMagnet: '1',
     target: '3',
-    targetPort: 'in',
-    z: 1,
+    targetMagnet: 'in',
+    z: 11,
   },
   link3: {
     source: '3',
-    sourcePort: '2',
+    sourceMagnet: '2',
     target: '1',
-    targetPort: 'in',
-    z: 1,
+    targetMagnet: 'in',
+    z: 11,
   },
-};
-
-const mapDataToElementAttributes = (
-  options: ElementToGraphOptions<FlatElementData>
-): dia.Cell.JSON => {
-  const result = options.toAttributes(options.data);
-  const { outputPorts } = options.data as NodeType;
-  return {
-    ...result,
-    ...(outputPorts && { ports: createPorts(outputPorts) }),
-  };
 };
 
 interface RenderElementProps extends NodeType {
   readonly onAddPort: (id: CellId) => void;
+  readonly onRemovePort: (id: CellId, portId: string) => void;
 }
 
-function RenderElement({ title, description, nodeType, outputPorts, onAddPort }: Readonly<RenderElementProps>) {
+function RenderElement({ title, description, nodeType, outputPorts, onAddPort, onRemovePort }: Readonly<RenderElementProps>) {
   const id = useCellId();
+  const { selectorRef } = useMarkup();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { width, height } = useNodeSize(contentRef);
 
   let icon: string;
   switch (nodeType) {
@@ -133,49 +149,107 @@ function RenderElement({ title, description, nodeType, outputPorts, onAddPort }:
   }
 
   return (
-    <HTMLNode
-      style={{
-        width: outputPorts.length * NODE_PORT_PILL_SPACING + NODE_BASE_PADDING,
-        minWidth: NODE_MIN_WIDTH,
-      }}
-      className="cursor-move text-white w-75 bg-white rounded-lg shadow-lg text-black px-4 py-2 flex flex-col border border-gray-100"
-    >
-      <div className="flex flex-1 flex-row items-center px-2 py-2  mb-2">
-        <i className={`fas fa-${icon} text-black`}></i>
-        <div className="flex flex-col flex-1 ml-4">
-          <div className="text-black">{title}</div>
-          <div className="text-black text-sm">{description}</div>
-        </div>
-      </div>
-      <div className="text-xs text-black/60 py-1">Ports: in + {outputPorts.length} outputs</div>
-      <div className="flex flex-wrap items-center gap-1 pb-1">
-        <div className="pointer-events-none flex flex-wrap gap-1">
-          {outputPorts.map((port) => (
-            <div key={port.id} className="px-2 py-1 rounded-full bg-black text-white text-xs">
-              {port.label}
-            </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          className="ml-1 flex size-6 items-center justify-center rounded-full bg-black text-white text-xs hover:opacity-80"
-          onPointerDown={(event) => {
-            event.stopPropagation();
+    <>
+      <style>{'.port-button { opacity: 1; } .port-button:hover { opacity: 0.6; }'}</style>
+      {/* Content of the node */}
+      <foreignObject width={width} height={height} overflow="visible">
+        <div
+          ref={contentRef}
+          style={{
+            width: getNodeWidth(outputPorts.length),
+            height: 'fit-content',
+            paddingBottom: PORT_PILL_HEIGHT + PORT_BOTTOM_MARGIN,
           }}
-          onClick={() => {
-            onAddPort(id);
-          }}
+          className="cursor-move text-white w-75 bg-white rounded-lg shadow-lg text-black px-4 py-2 flex flex-col border border-gray-100"
         >
-          +
-        </button>
-      </div>
-    </HTMLNode>
+          <div className="flex flex-1 flex-row items-center px-2 py-2  mb-2">
+            <i className={`fas fa-${icon} text-black`}></i>
+            <div className="flex flex-col flex-1 ml-4">
+              <div className="text-black">{title}</div>
+              <div className="text-black text-sm">{description}</div>
+            </div>
+          </div>
+          <div className="text-xs text-black/60 py-1">Ports: in + {outputPorts.length} outputs</div>
+        </div>
+      </foreignObject>
+      {/* Input port */}
+      <circle
+        ref={selectorRef('in')}
+        className="port-in"
+        magnet="passive"
+        cx={INPUT_PORT_CENTER_X}
+        cy={0}
+        r={INPUT_PORT_RADIUS}
+        fill="#FFFFFF"
+        stroke="#000000"
+        strokeWidth={2}
+      />
+      {/* Output ports */}
+      {outputPorts.map((port, index) => (
+        <g
+          key={port.id}
+          ref={selectorRef(port.id)}
+          className="port-out"
+          magnet="active"
+          cursor="crosshair"
+          transform={`translate(${getPortCenterX(index)}, ${height - PORT_BOTTOM_MARGIN})`}
+        >
+          <rect
+            x={-PORT_PILL_WIDTH / 2}
+            y={-PORT_PILL_HEIGHT / 2}
+            width={PORT_PILL_WIDTH}
+            height={PORT_PILL_HEIGHT}
+            rx={PORT_PILL_RADIUS}
+            fill="black"
+          />
+          <text
+            x={-6}
+            fill="white"
+            fontSize={11}
+            textAnchor="middle"
+            dominantBaseline="central"
+          >
+            {port.label}
+          </text>
+          {/* Remove port button */}
+          <g
+            className="port-button"
+            cursor="pointer"
+            transform={`translate(${PORT_PILL_WIDTH / 2 - PORT_PILL_RADIUS}, 0)`}
+            onPointerDown={(event) => {
+              event.stopPropagation();
+            }}
+            onClick={() => {
+              onRemovePort(id, port.id);
+            }}
+          >
+            <circle r={PORT_PILL_RADIUS - 3} fill="white" />
+            <path d="M -3 -3 L 3 3 M 3 -3 L -3 3" stroke="black" strokeWidth={1.5} />
+          </g>
+        </g>
+      ))}
+      {/* Add port button */}
+      <g
+        className="port-button"
+        cursor="pointer"
+        transform={`translate(${width - 20}, ${height - 20})`}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+        }}
+        onClick={() => {
+          onAddPort(id);
+        }}
+      >
+        <circle r={12} fill="black" />
+        <path d="M -5 0 H 5 M 0 -5 V 5" stroke="white" strokeWidth={2} />
+      </g>
+    </>
   );
 }
 
 function Main() {
-  const [elements, setElements] = useState<Record<string, FlatElementData>>(nodes);
-  const [controlledLinks, setControlledLinks] = useState<Record<string, FlatLinkData>>(links);
+  const [elements, setElements] = useState<Record<string, FlatElementData>>(initialElements);
+  const [links, setLinks] = useState<Record<string, FlatLinkData>>(initialLinks);
 
   const onAddPort = useCallback((id: CellId) => {
     setElements((previous) => {
@@ -188,33 +262,57 @@ function Main() {
     });
   }, []);
 
+  const onRemovePort = useCallback((id: CellId, portId: string) => {
+    setElements((previous) => {
+      const node = previous[id] as NodeType | undefined;
+      if (!node) return previous;
+      return {
+        ...previous,
+        [id]: {
+          ...node,
+          outputPorts: node.outputPorts.filter((p) => p.id !== portId),
+        },
+      };
+    });
+    setLinks((previous) => {
+      const next: Record<string, FlatLinkData> = {};
+      for (const [linkId, link] of Object.entries(previous)) {
+        const isSource = link.source === id && link.sourceMagnet === portId;
+        const isTarget = link.target === id && link.targetMagnet === portId;
+        if (!isSource && !isTarget) {
+          next[linkId] = link;
+        }
+      }
+      return next;
+    });
+  }, []);
+
   return (
     <GraphProvider
       elements={elements}
-      links={controlledLinks}
+      links={links}
       onElementsChange={setElements}
-      onLinksChange={setControlledLinks}
-      mapDataToElementAttributes={mapDataToElementAttributes}
+      onLinksChange={setLinks}
     >
       <Paper
         className="bg-gray-100"
         gridSize={5}
         height={670}
         width={900}
-        renderElement={(element) => <RenderElement {...(element as NodeType)} onAddPort={onAddPort} />}
+        renderElement={(element) => <RenderElement {...(element as NodeType)} onAddPort={onAddPort} onRemovePort={onRemovePort} />}
         clickThreshold={10}
         magnetThreshold={'onleave'}
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         linkPinning={false}
-        snapLinks={{ radius: 10 }}
+        snapLinks={{ radius: 50 }}
         validateMagnet={(_cellView, magnet) => {
           return magnet.getAttribute('magnet') !== 'passive';
         }}
         validateConnection={(cellViewS, magnetS, cellViewT, magnetT) => {
           if (cellViewS === cellViewT) return false;
           if (cellViewS.model.isLink() || cellViewT.model.isLink()) return false;
-          if (magnetS?.getAttribute('port') === 'in') return false;
-          return magnetT?.getAttribute('port') === 'in';
+          if (magnetS?.classList.contains('port-in')) return false;
+          return magnetT?.classList.contains('port-in') ?? false;
         }}
         defaultConnectionPoint={{
           name: 'boundary',
@@ -226,6 +324,10 @@ function Main() {
         defaultRouter={{
           name: 'rightAngle',
           args: { margin: 20 },
+        }}
+        defaultAnchor={(view, magnet, ref, opt, endType, linkView) => {
+          const anchor = endType === 'source' ? anchors.bottom : anchors.top;
+          return anchor(view, magnet, ref, opt, endType, linkView);
         }}
         defaultConnector={{
           name: 'straight',

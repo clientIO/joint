@@ -84,6 +84,15 @@ export interface FlatLinkLabel {
    * CSS class name applied to the label background rectangle.
    */
   readonly backgroundClassName?: string;
+  /**
+   * Shape of the label background.
+   * - `'rect'` — rectangle (default)
+   * - `'ellipse'` — ellipse
+   * - Any other string — interpreted as SVG path `d` commands (supports `calc()` expressions via `ref`)
+   * @default 'rect'
+   */
+  // `(string & {})` preserves autocomplete for known literals while accepting arbitrary path strings
+  readonly backgroundShape?: 'rect' | 'ellipse' | (string & {});
 }
 
 /**
@@ -188,6 +197,11 @@ export interface FlatLinkData extends Record<string, unknown> {
    * @default 'transparent'
    */
   readonly wrapperColor?: string;
+  /**
+   * CSS class name to apply to the link wrapper (outline).
+   * @default ''
+   */
+  readonly wrapperClassName?: string;
   /**
    * Source marker preset name or custom marker definition.
    * Use 'none' for no marker.
