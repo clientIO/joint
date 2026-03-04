@@ -79,7 +79,7 @@ export function defaultMapDataToElementAttributes<Element extends FlatElementDat
   }
 
   // User data stored for round-trip (graph → React)
-  attributes.data = userData;
+  attributes.data = { ...userData, ports };
 
   return attributes;
 }
@@ -105,7 +105,7 @@ export function defaultMapDataToElementAttributes<Element extends FlatElementDat
 export function defaultMapElementAttributesToData<Element extends FlatElementData>(
   options: Pick<GraphToElementOptions<Element>, 'cell' | 'previousData'>
 ): Element {
-  const { cell, previousData } = options;
+  const { cell } = options;
   const {
     // User data (saved during forward mapping)
     data: userData,
@@ -139,9 +139,6 @@ export function defaultMapElementAttributesToData<Element extends FlatElementDat
 
   return {
     ...userData,
-    // Preserve one-way properties that are not stored in cell.data
-    ports: previousData?.ports,
-    // Override with two-way synced properties (position, size, etc.)
     ...elementData,
   } as Element;
 }

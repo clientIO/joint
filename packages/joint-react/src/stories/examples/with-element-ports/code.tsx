@@ -7,7 +7,6 @@ import {
   GraphProvider,
   Paper,
   useCellActions,
-  useElement,
   useElements,
   type FlatElementData,
   type FlatElementPort,
@@ -53,7 +52,7 @@ const initialElements: Record<string, PortElementData> = {
     x: 50,
     y: 100,
     width: 140,
-    height: 60,
+    height: 80,
     ports: [
       {
         id: 'out-1',
@@ -87,7 +86,7 @@ const initialElements: Record<string, PortElementData> = {
     x: 350,
     y: 100,
     width: 140,
-    height: 60,
+    height: 80,
     ports: [
       {
         id: 'in-1',
@@ -125,6 +124,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetPort: 'in-1',
     color: LIGHT,
     z: -1,
+    router: { name: 'rightAngle' }
   },
   'link-2': {
     source: 'node-1',
@@ -133,6 +133,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetPort: 'in-2',
     color: LIGHT,
     z: -1,
+    router: { name: 'rightAngle' }
   },
 };
 
@@ -163,8 +164,7 @@ const rowStyle = {
 
 // --- Element Shape ---
 
-function ElementShape({ label, color }: Readonly<PortElementData>) {
-  const { width = 140, height = 60 } = useElement<PortElementData>();
+function ElementShape({ width = 0, height = 0, label, color }: Readonly<PortElementData>) {
   return (
     <>
       <rect rx={8} ry={8} width={width} height={height} fill={color} stroke="#333" strokeWidth={2} />
@@ -370,7 +370,12 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
 function Main() {
   const elements = useElements<PortElementData>();
   const renderElement: RenderElement<PortElementData> = useCallback(
-    (props) => <ElementShape {...props} />,
+    (props) => <ElementShape
+      width={props.width}
+      height={props.height}
+      label={props.label}
+      color={props.color}
+    />,
     []
   );
 

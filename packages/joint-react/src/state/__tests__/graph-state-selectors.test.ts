@@ -187,8 +187,8 @@ describe('graph-state-selectors', () => {
         height: 50,
         angle: 45,
       });
-      // ports is one-way — preserved from previousData (undefined when no previousData)
-      expect(elementFromGraph).toHaveProperty('ports', undefined);
+      // ports is stored in cell.data for round-trip preservation
+      expect(elementFromGraph).toHaveProperty('ports');
     });
   });
 
@@ -352,8 +352,9 @@ describe('graph-state-selectors', () => {
 
       const result = defaultMapElementAttributesToData(options);
 
-      // ports is one-way — preserved from previousData (undefined when no previousData)
-      expect(result).toHaveProperty('ports', undefined);
+      // JointJS-format ports on cell.attributes are not extracted by the reverse mapper.
+      // Only ports stored in cell.data (via forward mapper) are preserved.
+      expect(result).not.toHaveProperty('ports');
     });
   });
 
