@@ -305,9 +305,9 @@ describe('graph-state-selectors', () => {
 
       const result = defaultMapElementAttributesToData(options);
 
-      // Default mapper does not use previousData — only returns what's in cell.attributes + cell.data
-      // customProp was never stored in cell.data, so it won't appear
-      expect(result).not.toHaveProperty('customProp');
+      // previousData is spread as a base to preserve one-way properties (e.g. ports)
+      // customProp from previousData is preserved in the result
+      expect(result).toHaveProperty('customProp', undefined);
     });
 
     it('should handle element with non-REACT_TYPE', () => {

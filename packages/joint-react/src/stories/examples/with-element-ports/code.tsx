@@ -1,14 +1,18 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import '../index.css';
-import type { dia } from '@joint/core';
+import { V, type dia } from '@joint/core';
 import {
   GraphProvider,
   Paper,
+  useCellActions,
   useElement,
+  useElements,
   type FlatElementData,
+  type FlatElementPort,
   type FlatLinkData,
   type RenderElement,
-  type ElementToGraphOptions,
 } from '@joint/react';
 import { useCallback } from 'react';
 
@@ -17,6 +21,25 @@ const DEFAULT_ANCHOR: dia.Paper.Options['defaultAnchor'] = {
   name: 'center',
   args: { useModelGeometry: true },
 };
+
+const TRIANGLE = 'M -8 -8 L 8 0 L -8 8 Z';
+const ROUNDED_RECT = V.rectToPath({ x: -8, y: -8, width: 16, height: 16, rx: 4, ry: 4 });
+
+const SHAPE_OPTIONS = [
+  { value: 'ellipse', label: 'Ellipse' },
+  { value: 'rect', label: 'Rectangle' },
+  { value: TRIANGLE, label: 'Triangle' },
+  { value: ROUNDED_RECT, label: 'Rounded Rect' },
+] as const;
+
+const LABEL_POSITION_OPTIONS = [
+  'outside', 'inside', 'outsideOriented', 'insideOriented',
+  'left', 'right', 'top', 'bottom',
+] as const;
+
+function getShapeLabel(shape: string): string {
+  return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
+}
 
 interface PortElementData extends FlatElementData {
   readonly label: string;
@@ -31,9 +54,32 @@ const initialElements: Record<string, PortElementData> = {
     y: 100,
     width: 140,
     height: 60,
-    // Add ports in the mapDataToElementAttributes function
-    // useful when you don't want your data model to be coupled
-    // shape definition, and you want to add ports only for rendering purposes
+    ports: [
+      {
+        id: 'out-1',
+        cx: 'calc(w)',
+        cy: 'calc(0.33 * h)',
+        width: 16,
+        height: 16,
+        color: SECONDARY,
+        label: 'Out 1',
+        labelColor: LIGHT,
+        shape: ROUNDED_RECT,
+        labelOffsetY: -15,
+      },
+      {
+        id: 'out-2',
+        cx: 'calc(w)',
+        cy: 'calc(0.66 * h)',
+        width: 16,
+        height: 16,
+        color: SECONDARY,
+        label: 'Out 2',
+        labelColor: LIGHT,
+        labelOffsetX: 10,
+        labelOffsetY: 15,
+      },
+    ],
   },
   'node-2': {
     label: 'Node 2',
@@ -41,7 +87,33 @@ const initialElements: Record<string, PortElementData> = {
     x: 350,
     y: 100,
     width: 140,
-    height: 60
+    height: 60,
+    ports: [
+      {
+        id: 'in-1',
+        cx: 0,
+        cy: 'calc(0.33 * h)',
+        color: PRIMARY,
+        width: 16,
+        height: 16,
+        shape: 'rect',
+        label: 'In 1',
+        labelColor: LIGHT,
+        labelOffsetY: -15,
+      },
+      {
+        id: 'in-2',
+        cx: 0,
+        cy: 'calc(0.66 * h)',
+        width: 16,
+        height: 16,
+        color: PRIMARY,
+        shape: TRIANGLE,
+        label: 'In 2',
+        labelColor: LIGHT,
+        labelOffsetY: 15,
+      },
+    ],
   },
 };
 
@@ -60,9 +132,36 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'node-2',
     targetPort: 'in-2',
     color: LIGHT,
-    z: -1
+    z: -1,
   },
 };
+
+// --- Styles ---
+
+const inputStyle = {
+  padding: '6px 10px',
+  border: '1px solid rgba(0, 0, 0, 0.15)',
+  borderRadius: 8,
+  fontSize: 12,
+  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  color: '#1f2937',
+  outline: 'none',
+};
+
+const labelStyle = {
+  width: 45,
+  fontSize: 11,
+  color: '#6b7280',
+  fontWeight: 500,
+} as const;
+
+const rowStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+} as const;
+
+// --- Element Shape ---
 
 function ElementShape({ label, color }: Readonly<PortElementData>) {
   const { width = 140, height = 60 } = useElement<PortElementData>();
@@ -84,87 +183,253 @@ function ElementShape({ label, color }: Readonly<PortElementData>) {
   );
 }
 
+// --- Port Controls ---
+
+interface PortControlProps {
+  readonly elementId: string;
+  readonly portIndex: number;
+  readonly port: FlatElementPort;
+}
+
+function PortControl({ elementId, portIndex, port }: Readonly<PortControlProps>) {
+  const { set } = useCellActions<PortElementData>();
+
+  const updatePort = (updates: Partial<FlatElementPort>) => {
+    set(elementId, (previous) => ({
+      ...previous,
+      ports: previous.ports?.map((p, index) => (index === portIndex ? { ...p, ...updates } : p)),
+    }));
+  };
+
+  return (
+    <div
+      style={{
+        padding: '8px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+        borderRadius: 8,
+      }}
+    >
+      <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 12 }}>
+        {port.id}
+        <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
+          {getShapeLabel(port.shape ?? 'ellipse')}
+        </span>
+      </div>
+
+      {/* Color */}
+      <div style={rowStyle}>
+        <label style={labelStyle}>Color</label>
+        <input
+          type="color"
+          value={port.color ?? '#333333'}
+          onChange={(event) => updatePort({ color: event.target.value })}
+          style={{ width: 36, height: 28, border: 'none', cursor: 'pointer', borderRadius: 6, padding: 0 }}
+        />
+      </div>
+
+      {/* Shape */}
+      <div style={rowStyle}>
+        <label style={labelStyle}>Shape</label>
+        <select
+          value={port.shape ?? 'ellipse'}
+          onChange={(event) => updatePort({ shape: event.target.value })}
+          style={{ ...inputStyle, flex: 1, cursor: 'pointer' }}
+        >
+          {SHAPE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Size */}
+      <div style={rowStyle}>
+        <label style={labelStyle}>Size</label>
+        <input
+          type="number"
+          value={port.width ?? 10}
+          onChange={(event) => updatePort({ width: Number(event.target.value) })}
+          style={{ ...inputStyle, width: 55 }}
+          min={4}
+          max={40}
+        />
+        <span style={{ fontSize: 11, color: '#9ca3af' }}>&times;</span>
+        <input
+          type="number"
+          value={port.height ?? 10}
+          onChange={(event) => updatePort({ height: Number(event.target.value) })}
+          style={{ ...inputStyle, width: 55 }}
+          min={4}
+          max={40}
+        />
+      </div>
+
+      {/* Label */}
+      <div style={rowStyle}>
+        <label style={labelStyle}>Label</label>
+        <input
+          type="text"
+          value={port.label ?? ''}
+          onChange={(event) => updatePort({ label: event.target.value || undefined })}
+          style={{ ...inputStyle, flex: 1 }}
+          placeholder="None"
+        />
+      </div>
+
+      {/* Label Position */}
+      <div style={rowStyle}>
+        <label style={labelStyle}>Pos</label>
+        <select
+          value={port.labelPosition ?? 'outside'}
+          onChange={(event) => updatePort({ labelPosition: event.target.value })}
+          style={{ ...inputStyle, flex: 1, cursor: 'pointer' }}
+        >
+          {LABEL_POSITION_OPTIONS.map((pos) => (
+            <option key={pos} value={pos}>{pos}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Label Offset X */}
+      <div style={rowStyle}>
+        <label style={labelStyle}>dx</label>
+        <input
+          type="checkbox"
+          checked={port.labelOffsetX !== undefined}
+          onChange={(event) => updatePort({ labelOffsetX: event.target.checked ? 0 : undefined })}
+          style={{ accentColor: PRIMARY }}
+        />
+        <input
+          type="number"
+          value={port.labelOffsetX ?? 0}
+          disabled={port.labelOffsetX === undefined}
+          onChange={(event) => updatePort({ labelOffsetX: Number(event.target.value) })}
+          style={{ ...inputStyle, flex: 1, opacity: port.labelOffsetX === undefined ? 0.4 : 1 }}
+        />
+      </div>
+
+      {/* Label Offset Y */}
+      <div style={rowStyle}>
+        <label style={labelStyle}>dy</label>
+        <input
+          type="checkbox"
+          checked={port.labelOffsetY !== undefined}
+          onChange={(event) => updatePort({ labelOffsetY: event.target.checked ? 0 : undefined })}
+          style={{ accentColor: PRIMARY }}
+        />
+        <input
+          type="number"
+          value={port.labelOffsetY ?? 0}
+          disabled={port.labelOffsetY === undefined}
+          onChange={(event) => updatePort({ labelOffsetY: Number(event.target.value) })}
+          style={{ ...inputStyle, flex: 1, opacity: port.labelOffsetY === undefined ? 0.4 : 1 }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// --- Element Port Controls ---
+
+interface ElementPortControlsProps {
+  readonly id: string;
+  readonly element: PortElementData;
+}
+
+function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
+  const ports = element.ports ?? [];
+
+  return (
+    <div
+      style={{
+        padding: '12px 16px',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+      }}
+    >
+      <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 13 }}>
+        {element.label}
+        <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
+          {ports.length} port{ports.length === 1 ? '' : 's'}
+        </span>
+      </div>
+
+      {ports.map((port, index) => (
+        <PortControl key={port.id ?? index} elementId={id} portIndex={index} port={port} />
+      ))}
+    </div>
+  );
+}
+
+// --- Main ---
+
 function Main() {
+  const elements = useElements<PortElementData>();
   const renderElement: RenderElement<PortElementData> = useCallback(
     (props) => <ElementShape {...props} />,
     []
   );
+
   return (
-    <Paper
-      className={PAPER_CLASSNAME}
-      height={400}
-      renderElement={renderElement}
-      snapLinks={true}
-      linkPinning={true}
-      // @todo: the default measureNode should always return model bbox
-      defaultAnchor={DEFAULT_ANCHOR}
-    />
+    <div style={{ display: 'flex', flexDirection: 'row', height: 400, position: 'relative' }}>
+      <Paper
+        className={PAPER_CLASSNAME}
+        height={400}
+        renderElement={renderElement}
+        snapLinks={true}
+        linkPinning={false}
+        defaultAnchor={DEFAULT_ANCHOR}
+        defaultLink={{
+          color: LIGHT,
+        }}
+      />
+
+      {/* Control Panel */}
+      <div
+        style={{
+          position: 'absolute',
+          right: 16,
+          top: 16,
+          bottom: 16,
+          width: 260,
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderRadius: 16,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            padding: '16px 16px 12px',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#1f2937',
+            letterSpacing: '-0.01em',
+          }}
+        >
+          Port Properties
+        </div>
+
+        {Object.entries(elements).map(([id, element]) => (
+          <ElementPortControls key={id} id={id} element={element} />
+        ))}
+      </div>
+    </div>
   );
 }
 
-const OUTPUT_PORTS = [
-  {
-    id: 'out-1',
-    cx: 'calc(w)',
-    cy: 'calc(0.33 * h)',
-    width: 16,
-    height: 16,
-    color: SECONDARY,
-    label: 'Out 1',
-    labelColor: LIGHT,
-  },
-  {
-    id: 'out-2',
-    cx: 'calc(w)',
-    cy: 'calc(0.66 * h)',
-    width: 16,
-    height: 16,
-    color: SECONDARY,
-    label: 'Out 2',
-    labelColor: LIGHT,
-  },
-] as const;
-
-const INPUT_PORTS = [
-  {
-    id: 'in-1',
-    cx: -8,
-    cy: 'calc(0.33 * h)',
-    color: PRIMARY,
-    width: 16,
-    height: 16,
-    shape: 'rect',
-    label: 'In 1',
-    labelColor: LIGHT,
-  },
-  {
-    id: 'in-2',
-    cx: 0,
-    cy: 'calc(0.66 * h)',
-    width: 16,
-    height: 16,
-    color: PRIMARY,
-    shape: 'M -8 -8 L 8 0 L -8 8 Z',
-    label: 'In 2',
-    labelColor: LIGHT,
-  },
-] as const;
-
-const mapDataToElementAttributes = ({
-  id, data, toAttributes,
-}: ElementToGraphOptions<PortElementData>): dia.Cell.JSON => {
-  if (id === 'node-1') return toAttributes({ ...data, ports: [...OUTPUT_PORTS] });
-  if (id === 'node-2') return toAttributes({ ...data, ports: [...INPUT_PORTS] });
-  throw new Error(`Unknown element id: ${id}`);
-};
-
 export default function App() {
   return (
-    <GraphProvider
-      elements={initialElements}
-      links={initialLinks}
-      mapDataToElementAttributes={mapDataToElementAttributes}
-    >
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Main />
     </GraphProvider>
   );

@@ -22,7 +22,11 @@ function convertPort(port: FlatElementPort): dia.Element.Port {
     label,
     labelPosition = defaultElementTheme.portLabelPosition,
     labelColor = defaultElementTheme.portLabelColor,
+    labelFontSize,
+    labelFontFamily,
     labelClassName,
+    labelOffsetX,
+    labelOffsetY,
     passive = defaultElementTheme.portPassive,
   } = port;
 
@@ -69,16 +73,24 @@ function convertPort(port: FlatElementPort): dia.Element.Port {
 
   if (label) {
     result.label = {
-      position: { name: labelPosition },
+      position: { name: labelPosition, args: { x: labelOffsetX, y: labelOffsetY } },
       markup: [{ tagName: 'text', selector: 'text', attributes: {
         fill: labelColor,
       }}],
     };
     const labelAttributes: Record<string, unknown> = { text: label };
+    if (labelFontSize !== undefined) {
+      labelAttributes.fontSize = labelFontSize;
+    }
+    if (labelFontFamily !== undefined) {
+      labelAttributes.fontFamily = labelFontFamily;
+    }
     if (labelClassName) {
       labelAttributes.class = labelClassName;
     }
     result.attrs.text = labelAttributes;
+  } else {
+    result.label = { markup: [] };
   }
 
   if (id !== undefined) {

@@ -105,7 +105,7 @@ export function defaultMapDataToElementAttributes<Element extends FlatElementDat
 export function defaultMapElementAttributesToData<Element extends FlatElementData>(
   options: Pick<GraphToElementOptions<Element>, 'cell' | 'previousData'>
 ): Element {
-  const { cell } = options;
+  const { cell, previousData } = options;
   const {
     // User data (saved during forward mapping)
     data: userData,
@@ -138,7 +138,11 @@ export function defaultMapElementAttributesToData<Element extends FlatElementDat
   if (parent) elementData.parent = parent;
 
   return {
+    // Base: preserve one-way properties (e.g. ports) from previous state
+    ...previousData,
+    // Override with round-tripped user data from the model
     ...userData,
+    // Override with two-way synced properties (position, size, etc.)
     ...elementData,
   } as Element;
 }
