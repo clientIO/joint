@@ -211,7 +211,11 @@ function PaperBase<ElementData = FlatElementData>(
       const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
       const ReactLinkModel = getReactLinkConstructor(graph);
       if (!link) {
-        return new ReactLinkModel();
+        const defaultAttributes = mapDataToLinkAttributes({
+          data: {} as FlatLinkData,
+          graph,
+        });
+        return new ReactLinkModel(defaultAttributes);
       }
       if (link instanceof dia.Link) {
         if (isDefaultLinkFactory) {
