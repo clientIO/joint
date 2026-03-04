@@ -63,30 +63,6 @@ function getReactLinkConstructor(graph: dia.Graph): ReactLinkConstructor {
     'Paper: ReactLink constructor is missing in graph.layerCollection.cellNamespace.'
   );
 }
-
-/**
- * Updates paper dimensions when width or height props change.
- * Handles partial updates (only width or only height specified).
- * @param paper
- * @param width
- * @param height
- */
-function updatePaperDimensions(
-  paper: dia.Paper,
-  width: dia.Paper.Dimension | undefined,
-  height: dia.Paper.Dimension | undefined
-) {
-  const { width: paperWidth, height: paperHeight } = paper.options;
-  const shouldUpdateWidth = width !== undefined && width !== paperWidth;
-  const shouldUpdateHeight = height !== undefined && height !== paperHeight;
-  if (shouldUpdateWidth || shouldUpdateHeight) {
-    paper.setDimensions(
-      shouldUpdateWidth ? width : (paperWidth ?? 800),
-      shouldUpdateHeight ? height : (paperHeight ?? 600)
-    );
-  }
-}
-
 // eslint-disable-next-line jsdoc/require-jsdoc
 function LinkItem({
   link,
@@ -281,7 +257,7 @@ function PaperBase<ElementData = FlatElementData>(
 
     const { shouldIgnoreWidthAndHeightUpdates } = overWriteResultRef ?? {};
     if (!shouldIgnoreWidthAndHeightUpdates) {
-      updatePaperDimensions(paper, width, height);
+      paper.setDimensions(width ?? null, height ?? null);
     }
   }, [defaultLinkJointJS, height, paper, paperOptions, paperStore, scale, width]);
 

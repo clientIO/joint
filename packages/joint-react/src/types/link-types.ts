@@ -91,8 +91,7 @@ export interface FlatLinkLabel {
    * - Any other string — interpreted as SVG path `d` commands (supports `calc()` expressions via `ref`)
    * @default 'rect'
    */
-  // `(string & {})` preserves autocomplete for known literals while accepting arbitrary path strings
-  readonly backgroundShape?: 'rect' | 'ellipse' | (string & {});
+  readonly backgroundShape?: 'rect' | 'ellipse' | string;
 }
 
 /**

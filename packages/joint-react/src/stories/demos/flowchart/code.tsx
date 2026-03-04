@@ -1,11 +1,20 @@
+/* eslint-disable unicorn/consistent-function-scoping */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
 import type { FlatLinkData, FlatLinkLabel, RenderElement, TransformOptions } from '@joint/react';
-import { GraphProvider, Paper, useHighlighter, useMarkup, useNodeSize } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useHighlighter,
+  useMarkup,
+  useNodeSize,
+  usePaperById,
+  usePaperEvents,
+} from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useId, useRef, useState } from 'react';
 
 const unit = 4;
 const bevel = 2 * unit;
@@ -105,8 +114,11 @@ const labelPy = unit * 2;
 
 function bevelRectPath(px: number, py: number, bv: number): string {
   // Single-variable calc: calc(v), calc(v + n), calc(v - n)
-  const c1 = (v: string, offset: number) =>
-    offset === 0 ? `calc(${v})` : offset > 0 ? `calc(${v} + ${offset})` : `calc(${v} - ${-offset})`;
+  const c1 = (v: string, offset: number) => {
+    if (offset === 0) return `calc(${v})`;
+    if (offset > 0) return `calc(${v} + ${offset})`;
+    return `calc(${v} - ${-offset})`;
+  };
   // Two-variable calc via nesting: calc(v1 + calc(v2 + n))
   const c2 = (v1: string, v2: string, offset: number) => `calc(${v1} + ${c1(v2, offset)})`;
   return [
@@ -433,9 +445,16 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
 // Create link tools
 
 function Main() {
-  return (
-    <Paper
-      onLinkPointerClick={({ linkView, paper }) => {
+  const paperId = useId();
+  const paperInstance = usePaperById(paperId);
+
+  usePaperEvents(
+    paperId,
+    {
+      'link:pointerclick': (linkView) => {
+        const { paper } = linkView;
+        if (!paper) return;
+
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
         const snapAnchor: linkTools.AnchorCallback<dia.Point> = (
@@ -473,8 +492,8 @@ function Main() {
           nonScalingStroke: true,
         });
         strokeHighlighter.el.classList.add('jj-flow-selection');
-      }}
-      onLinkMouseEnter={({ linkView }) => {
+      },
+      'link:mouseenter': (linkView) => {
         if (highlighters.stroke.get(linkView, 'selection')) return;
         const frame = highlighters.mask.add(
           linkView,
@@ -490,14 +509,26 @@ function Main() {
           }
         );
         frame.el.classList.add('jj-frame');
-      }}
-      onLinkMouseLeave={({ paper }) => {
+      },
+      'link:mouseleave': (linkView) => {
+        const { paper } = linkView;
+        if (!paper) return;
+
         highlighters.mask.removeAll(paper, 'frame');
-      }}
-      onBlankPointerDown={({ paper }) => {
-        paper.removeTools();
-        dia.HighlighterView.removeAll(paper);
-      }}
+      },
+      'blank:pointerdown': () => {
+        if (!paperInstance) return;
+
+        paperInstance.removeTools();
+        dia.HighlighterView.removeAll(paperInstance);
+      },
+    },
+    [paperInstance]
+  );
+
+  return (
+    <Paper
+      id={paperId}
       gridSize={5}
       height={600}
       overflow={true}
@@ -534,7 +565,7 @@ function Main() {
   );
 }
 
-function ThemeSwitch({ onClick }: { readonly onClick: () => void }) {
+function ThemeSwitch({ onClick }: Readonly<{ onClick: () => void }>) {
   return (
     <div className="theme-switch" title="Switch between light and dark mode" onClick={onClick}>
       <svg
