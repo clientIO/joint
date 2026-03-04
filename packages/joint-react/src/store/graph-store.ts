@@ -117,7 +117,7 @@ export class GraphStore {
   public readonly layoutState: State<GraphStoreLayoutSnapshot>;
   public readonly graph: dia.Graph;
 
-  private papers = new Map<string, PaperStore>();
+  public paperStores = new Map<string, PaperStore>();
   private observer: GraphStoreObserver;
   private stateSync: StateSync;
 
@@ -249,14 +249,18 @@ export class GraphStore {
           flushLayoutState({
             graph: this.graph,
             layoutState: this.layoutState,
-            papers: this.papers,
+            papers: this.paperStores,
           });
         }
       },
     });
 
     // Initial layout update (direct, before scheduler is active)
-    flushLayoutState({ graph: this.graph, layoutState: this.layoutState, papers: this.papers });
+    flushLayoutState({
+      graph: this.graph,
+      layoutState: this.layoutState,
+      papers: this.paperStores,
+    });
 
     this.clearViewCache = createClearViewCache(() => this.scheduleGraphUpdate());
 
@@ -322,7 +326,11 @@ export class GraphStore {
     }
 
     // Update layout after initial sync (graph now has cells with sizes)
-    flushLayoutState({ graph: this.graph, layoutState: this.layoutState, papers: this.papers });
+    flushLayoutState({
+      graph: this.graph,
+      layoutState: this.layoutState,
+      papers: this.paperStores,
+    });
   }
 
   // --- Layout State ---
@@ -343,7 +351,7 @@ export class GraphStore {
 
   private flushClearViewInternal = () => {
     for (const [cellId, entry] of this.clearViewCache.entries()) {
-      executeClearViewForCell(this.papers.values(), this.graph, cellId, entry.onValidateLink);
+      executeClearViewForCell(this.paperStores.values(), this.graph, cellId, entry.onValidateLink);
     }
     this.clearViewCache.clear();
   };
@@ -351,10 +359,10 @@ export class GraphStore {
   // --- Public API ---
 
   public destroy = (isGraphExternal: boolean) => {
-    for (const paperStore of this.papers.values()) {
+    for (const paperStore of this.paperStores.values()) {
       paperStore.destroy();
     }
-    this.papers.clear();
+    this.paperStores.clear();
     this.internalState.clean();
     this.layoutState.clean();
     this.areElementsMeasuredState.clean();
@@ -397,9 +405,9 @@ export class GraphStore {
   }
 
   private removePaper = (id: string) => {
-    const paperStore = this.papers.get(id);
+    const paperStore = this.paperStores.get(id);
     paperStore?.destroy();
-    this.papers.delete(id);
+    this.paperStores.delete(id);
     this.internalState.setState((previous) => {
       const newPapers: Record<string, PaperStoreSnapshot> = {};
       for (const [key, value] of Object.entries(previous.papers)) {
@@ -411,7 +419,7 @@ export class GraphStore {
 
   public addPaper = (id: string, paperOptions: AddPaperOptions) => {
     const paperStore = new PaperStore({ ...paperOptions, graphStore: this, id });
-    this.papers.set(id, paperStore);
+    this.paperStores.set(id, paperStore);
     // Initialize paper snapshot in state if it doesn't exist
     this.internalState.setState((previous) => {
       if (previous.papers[id]) {
@@ -439,7 +447,7 @@ export class GraphStore {
    * @param id - The id of the paper to access.
    * @returns The paper snapshot or undefined if not found.
    */
-  public getPaperStore = (id: string) => this.papers.get(id);
+  public getPaperStore = (id: string) => this.paperStores.get(id);
 
   /**
    * Subscribes to cell changes in the graph and calls the provided callback with change details. This allows external code to react to changes in cells (elements and links) without directly subscribing to the entire graph state.

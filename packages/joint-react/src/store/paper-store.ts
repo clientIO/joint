@@ -313,9 +313,6 @@ export class PaperStore {
 
       elementToRender = overWriteResult?.element;
       this.overWriteResultRef = overWriteResult;
-      if (overWriteResult?.contextUpdate) {
-        Object.assign(this, overWriteResult.contextUpdate);
-      }
     }
 
     if (!elementToRender) {
