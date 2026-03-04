@@ -9,8 +9,9 @@ import type { dia } from '@joint/core';
 import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
-import { useGraph, usePaperStoreContext, useCellId } from '../../../hooks';
+import { useGraph, usePaperStoreContext, useCellId, useLinks } from '../../../hooks';
 import type { FlatElementData } from '../../../types/element-types';
+import type { FlatLinkData } from '../../../types/link-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 import { ReactLink, REACT_LINK_TYPE } from '../../../models/react-link';
@@ -32,6 +33,135 @@ function TestNode({ width, height }: Readonly<{ width?: number; height?: number 
 
 type Element = (typeof elements)[keyof typeof elements];
 const WIDTH = 200;
+const SOURCE_ELEMENT_ID = 'source';
+const TARGET_ELEMENT_ID = 'target';
+const SOURCE_PORT_ID = 'out';
+const TARGET_PORT_ID = 'in';
+
+type DefaultLinkProperty =
+  | dia.Link
+  | Partial<FlatLinkData>
+  | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<FlatLinkData>);
+
+type PortDragElementView = dia.ElementView & {
+  findPortNode: (portId: string, selector?: string) => SVGElement | null;
+  dragLinkStart: (event_: dia.Event, magnet: SVGElement, x: number, y: number) => void;
+  dragLink: (event_: dia.Event, x: number, y: number) => void;
+  dragLinkEnd: (event_: dia.Event, x: number, y: number) => void;
+};
+
+function getPortDragElements(): Record<string, FlatElementData> {
+  return {
+    [SOURCE_ELEMENT_ID]: {
+      x: 40,
+      y: 40,
+      width: 120,
+      height: 80,
+      ports: [{ id: SOURCE_PORT_ID, cx: 120, cy: 40 }],
+    },
+    [TARGET_ELEMENT_ID]: {
+      x: 320,
+      y: 40,
+      width: 120,
+      height: 80,
+      ports: [{ id: TARGET_PORT_ID, cx: 0, cy: 40 }],
+    },
+  };
+}
+
+function getPortAbsolutePosition(element: dia.Element, portId: string) {
+  const position = element.position();
+  const port = element.getPort(portId);
+  const portX = Number((port?.position as { args?: { x?: number } } | undefined)?.args?.x ?? 0);
+  const portY = Number((port?.position as { args?: { y?: number } } | undefined)?.args?.y ?? 0);
+  return { x: position.x + portX, y: position.y + portY };
+}
+
+function createJointPointerEvent(
+  type: 'mousedown' | 'mousemove' | 'mouseup',
+  target: SVGElement,
+  data: Record<string, unknown>
+) {
+  return { type, target, data } as unknown as dia.Event;
+}
+
+async function dragLinkFromSourcePortToTargetPort(paper: dia.Paper): Promise<dia.Link> {
+  await waitFor(() => {
+    const sourceView = paper.findViewByModel(SOURCE_ELEMENT_ID) as PortDragElementView | null;
+    const targetView = paper.findViewByModel(TARGET_ELEMENT_ID) as PortDragElementView | null;
+    expect(sourceView).not.toBeNull();
+    expect(targetView).not.toBeNull();
+    expect(sourceView?.findPortNode(SOURCE_PORT_ID)).not.toBeNull();
+    expect(targetView?.findPortNode(TARGET_PORT_ID)).not.toBeNull();
+  });
+
+  const sourceView = paper.findViewByModel(SOURCE_ELEMENT_ID) as PortDragElementView;
+  const targetView = paper.findViewByModel(TARGET_ELEMENT_ID) as PortDragElementView;
+  const sourcePortRoot = sourceView.findPortNode(SOURCE_PORT_ID);
+  const targetPortRoot = targetView.findPortNode(TARGET_PORT_ID);
+  const sourceMagnet = (sourcePortRoot?.querySelector('[magnet]') as SVGElement | null) ?? sourcePortRoot;
+  const targetMagnet = (targetPortRoot?.querySelector('[magnet]') as SVGElement | null) ?? targetPortRoot;
+
+  if (!(sourceMagnet instanceof SVGElement) || !(targetMagnet instanceof SVGElement)) {
+    throw new TypeError('Expected both source and target port magnets to exist before dragging.');
+  }
+
+  const sourcePoint = getPortAbsolutePosition(sourceView.model as dia.Element, SOURCE_PORT_ID);
+  const targetPoint = getPortAbsolutePosition(targetView.model as dia.Element, TARGET_PORT_ID);
+  const dragData: Record<string, unknown> = {};
+  const startEvent = createJointPointerEvent('mousedown', sourceMagnet, dragData);
+  const moveEvent = createJointPointerEvent('mousemove', targetMagnet, dragData);
+  const endEvent = createJointPointerEvent('mouseup', targetMagnet, dragData);
+  let addedLink: dia.Link | null = null;
+  const captureLink = (cell: dia.Cell) => {
+    if (!addedLink && cell.isLink()) {
+      addedLink = cell as dia.Link;
+    }
+  };
+
+  paper.model.on('add', captureLink);
+
+  act(() => {
+    sourceView.dragLinkStart(startEvent, sourceMagnet, sourcePoint.x, sourcePoint.y);
+    sourceView.dragLink(moveEvent, targetPoint.x, targetPoint.y);
+    sourceView.dragLinkEnd(endEvent, targetPoint.x, targetPoint.y);
+  });
+  paper.model.off('add', captureLink);
+
+  if (!addedLink) {
+    throw new Error('Expected a link to be created after dragging from source port.');
+  }
+
+  return addedLink;
+}
+
+function renderPortDragPaper(defaultLink: DefaultLinkProperty) {
+  const ref: RefObject<dia.Paper | null> = { current: null };
+  let linksSnapshot: Record<string, FlatLinkData> = {};
+
+  function CaptureLinksSnapshot() {
+    linksSnapshot = useLinks();
+    return null;
+  }
+
+  render(
+    <GraphProvider elements={getPortDragElements()}>
+      <Paper<FlatElementData>
+        ref={ref}
+        defaultLink={defaultLink}
+        renderElement={() => <div>Drag Node</div>}
+      />
+      <CaptureLinksSnapshot />
+    </GraphProvider>
+  );
+
+  return {
+    ref,
+    getLinksSnapshot() {
+      return linksSnapshot;
+    },
+  };
+}
 
 // we need to mock `new ResizeObserver`, to return the size width 50 and height 50 for test purposes
 // Mock ResizeObserver to return a size with width 50 and height 50
@@ -51,6 +181,14 @@ jest.mock('../../../store/create-elements-size-observer', () => {
     }),
   };
 });
+
+if (typeof document.elementFromPoint !== 'function') {
+  Object.defineProperty(document, 'elementFromPoint', {
+    configurable: true,
+    writable: true,
+    value: () => document.body,
+  });
+}
 
 describe('Paper Component', () => {
   it('renders elements correctly with correct measured node and onMeasured event', async () => {
@@ -701,104 +839,149 @@ describe('Paper Component', () => {
     expect(createdLink).toBeInstanceOf(CustomNamespaceReactLink);
   });
 
-  it('supports defaultLink as a dia.Link instance', async () => {
-    const ref: RefObject<dia.Paper | null> = { current: null };
-    const providedLink = new shapes.standard.Link({ attrs: { line: { stroke: '#123456' } } });
-
-    render(
-      <GraphProvider elements={elements}>
-        <Paper<Element>
-          ref={ref}
-          defaultLink={providedLink}
-          renderElement={() => <div>Test</div>}
-        />
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      expect(ref.current).not.toBeNull();
-    });
-
-    const defaultLinkFactory = ref.current!.options.defaultLink as (
-      cellView: dia.CellView,
-      magnet: SVGElement
-    ) => dia.Link;
-
-    const createdLink = defaultLinkFactory(
-      {} as dia.CellView,
-      document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-    );
-    expect(createdLink).toBe(providedLink);
-  });
-
-  it('supports defaultLink as a callback returning a dia.Link', async () => {
-    const ref: RefObject<dia.Paper | null> = { current: null };
-    const callbackResultLink = new shapes.standard.Link({ attrs: { line: { stroke: '#abcdef' } } });
-    const defaultLinkCallback = jest.fn(() => callbackResultLink);
-
-    render(
-      <GraphProvider elements={elements}>
-        <Paper<Element>
-          ref={ref}
-          defaultLink={defaultLinkCallback}
-          renderElement={() => <div>Test</div>}
-        />
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      expect(ref.current).not.toBeNull();
-    });
-
-    const defaultLinkFactory = ref.current!.options.defaultLink as (
-      cellView: dia.CellView,
-      magnet: SVGElement
-    ) => dia.Link;
-    const cellView = {} as dia.CellView;
-    const magnet = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-
-    const createdLink = defaultLinkFactory(cellView, magnet);
-    expect(defaultLinkCallback).toHaveBeenCalledWith(cellView, magnet);
-    expect(createdLink).toBe(callbackResultLink);
-  });
-
-  it('supports defaultLink as an attributes object by creating a ReactLink from namespace', async () => {
-    const ref: RefObject<dia.Paper | null> = { current: null };
-    const linkAttributes = {
-      source: { x: 10, y: 10 },
-      target: { x: 120, y: 20 },
-      attrs: {
-        line: {
-          stroke: '#ff5500',
+  describe('defaultLink drag integration', () => {
+    it('supports defaultLink as a dia.Link instance when dragging between ports', async () => {
+      const providedLink = new shapes.standard.Link({
+        attrs: {
+          line: {
+            stroke: '#123456',
+          },
         },
-      },
-    };
+      });
+      const { ref, getLinksSnapshot } = renderPortDragPaper(providedLink);
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper<Element>
-          ref={ref}
-          defaultLink={linkAttributes}
-          renderElement={() => <div>Test</div>}
-        />
-      </GraphProvider>
-    );
+      await waitFor(() => {
+        expect(ref.current).not.toBeNull();
+      });
 
-    await waitFor(() => {
-      expect(ref.current).not.toBeNull();
+      const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
+      expect(createdLink).toBeInstanceOf(shapes.standard.Link);
+      expect(createdLink).not.toBe(providedLink);
+      expect(createdLink.attr(['line', 'stroke'])).toBe('#123456');
+      expect(createdLink.getSourceCell()?.id).toBe(SOURCE_ELEMENT_ID);
+      expect(createdLink.getTargetCell()?.id).toBe(TARGET_ELEMENT_ID);
+      expect(createdLink.source().port).toBe(SOURCE_PORT_ID);
+      expect(createdLink.target().port).toBe(TARGET_PORT_ID);
+
+      await waitFor(() => {
+        expect(Object.keys(getLinksSnapshot())).toHaveLength(1);
+      });
     });
 
-    const defaultLinkFactory = ref.current!.options.defaultLink as (
-      cellView: dia.CellView,
-      magnet: SVGElement
-    ) => dia.Link;
+    it('supports defaultLink as a callback returning a dia.Link when dragging between ports', async () => {
+      const defaultLinkCallback = jest.fn(
+        (_cellView: dia.CellView, _magnet: SVGElement): dia.Link =>
+          new shapes.standard.Link({
+            attrs: {
+              line: {
+                stroke: '#abcdef',
+              },
+            },
+          })
+      );
+      const { ref } = renderPortDragPaper(defaultLinkCallback as DefaultLinkProperty);
 
-    const createdLink = defaultLinkFactory(
-      {} as dia.CellView,
-      document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-    );
-    expect(createdLink).toBeInstanceOf(ReactLink);
-    expect(createdLink.get('type')).toBe(REACT_LINK_TYPE);
-    expect(createdLink.attr(['line', 'stroke'])).toBe('#ff5500');
+      await waitFor(() => {
+        expect(ref.current).not.toBeNull();
+      });
+
+      const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
+      expect(defaultLinkCallback).toHaveBeenCalledTimes(1);
+      const [firstCall] = defaultLinkCallback.mock.calls;
+      if (!firstCall) {
+        throw new Error('Expected defaultLink callback to be called at least once.');
+      }
+      const [calledCellView, calledMagnet] = firstCall;
+      expect(calledCellView.model.id).toBe(SOURCE_ELEMENT_ID);
+      expect(calledMagnet.getAttribute('port')).toBe(SOURCE_PORT_ID);
+      expect(createdLink).toBeInstanceOf(shapes.standard.Link);
+      expect(createdLink.attr(['line', 'stroke'])).toBe('#abcdef');
+      expect(createdLink.getSourceCell()?.id).toBe(SOURCE_ELEMENT_ID);
+      expect(createdLink.getTargetCell()?.id).toBe(TARGET_ELEMENT_ID);
+    });
+
+    it('supports defaultLink as FlatLinkData object when dragging between ports', async () => {
+      const defaultLinkData: Partial<FlatLinkData> = {
+        color: '#ff5500',
+        width: 7,
+        className: 'custom-default-link',
+        targetMarker: 'none',
+        customProperty: 'flat-link-default',
+      };
+      const { ref, getLinksSnapshot } = renderPortDragPaper(defaultLinkData);
+
+      await waitFor(() => {
+        expect(ref.current).not.toBeNull();
+      });
+
+      const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
+      expect(createdLink).toBeInstanceOf(ReactLink);
+      expect(createdLink.get('type')).toBe(REACT_LINK_TYPE);
+      expect(createdLink.attr(['line', 'stroke'])).toBe('#ff5500');
+      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(7);
+      expect(createdLink.attr(['line', 'class'])).toBe('custom-default-link');
+      expect(createdLink.get('data')).toEqual(
+        expect.objectContaining({
+          color: '#ff5500',
+          width: 7,
+          customProperty: 'flat-link-default',
+        })
+      );
+
+      await waitFor(() => {
+        expect(Object.keys(getLinksSnapshot())).toHaveLength(1);
+      });
+
+      const [createdLinkData] = Object.values(getLinksSnapshot());
+      expect(createdLinkData.color).toBe('#ff5500');
+      expect(createdLinkData.width).toBe(7);
+      expect(createdLinkData.customProperty).toBe('flat-link-default');
+      expect(createdLinkData.source).toBe(SOURCE_ELEMENT_ID);
+      expect(createdLinkData.target).toBe(TARGET_ELEMENT_ID);
+      expect(createdLinkData.sourcePort).toBe(SOURCE_PORT_ID);
+      expect(createdLinkData.targetPort).toBe(TARGET_PORT_ID);
+    });
+
+    it('supports defaultLink callback returning FlatLinkData when dragging between ports', async () => {
+      const defaultLinkCallback = jest.fn(
+        (_cellView: dia.CellView, _magnet: SVGElement): Partial<FlatLinkData> => ({
+          color: '#22aa55',
+          width: 4,
+          wrapperBuffer: 16,
+          customProperty: 'callback-flat-link-default',
+        })
+      );
+      const { ref, getLinksSnapshot } = renderPortDragPaper(
+        defaultLinkCallback as DefaultLinkProperty
+      );
+
+      await waitFor(() => {
+        expect(ref.current).not.toBeNull();
+      });
+
+      const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
+      expect(defaultLinkCallback).toHaveBeenCalledTimes(1);
+      expect(createdLink).toBeInstanceOf(ReactLink);
+      expect(createdLink.get('type')).toBe(REACT_LINK_TYPE);
+      expect(createdLink.attr(['line', 'stroke'])).toBe('#22aa55');
+      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(4);
+      expect(createdLink.attr(['wrapper', 'strokeWidth'])).toBe(20);
+      expect(createdLink.get('data')).toEqual(
+        expect.objectContaining({
+          wrapperBuffer: 16,
+          customProperty: 'callback-flat-link-default',
+        })
+      );
+
+      await waitFor(() => {
+        expect(Object.keys(getLinksSnapshot())).toHaveLength(1);
+      });
+
+      const [createdLinkData] = Object.values(getLinksSnapshot());
+      expect(createdLinkData.color).toBe('#22aa55');
+      expect(createdLinkData.width).toBe(4);
+      expect(createdLinkData.wrapperBuffer).toBe(16);
+      expect(createdLinkData.customProperty).toBe('callback-flat-link-default');
+    });
   });
 });

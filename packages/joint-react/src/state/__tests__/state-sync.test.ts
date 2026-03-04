@@ -1,4 +1,5 @@
 /* eslint-disable sonarjs/no-nested-functions */
+import { waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE, type GraphStoreSnapshot } from '../../store/graph-store';
 import { stateSync } from '../state-sync';
@@ -74,8 +75,13 @@ function createMockScheduler() {
 
 // Helper to flush scheduler synchronously for tests
 async function flushScheduler(): Promise<void> {
-  // Use setTimeout to allow React scheduler to flush
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  const startedAt = Date.now();
+  await waitFor(
+    () => {
+      expect(Date.now()).toBeGreaterThan(startedAt);
+    },
+    { interval: 1, timeout: 100 }
+  );
 }
 
 describe('stateSync', () => {

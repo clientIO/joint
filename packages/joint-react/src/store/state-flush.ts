@@ -181,19 +181,10 @@ export function flushLayoutState(options: FlushLayoutStateOptions): void {
     }
   }
 
-  let areAllMeasured = Object.keys(elementLayouts).length > 0;
-  for (const layout of Object.values(elementLayouts)) {
-    if (layout.width <= 1 || layout.height <= 1) {
-      areAllMeasured = false;
-      break;
-    }
-  }
-
   startTransition(() => {
-    layoutState.setState((previous) => ({
+    layoutState.setState(() => ({
       elements: elementLayouts,
       links: linkLayoutsPerPaper,
-      wasEverMeasured: previous.wasEverMeasured || areAllMeasured,
     }));
   });
 }

@@ -1,5 +1,6 @@
  
 /* eslint-disable unicorn/consistent-function-scoping */
+import { waitFor } from '@testing-library/react';
 import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { ReactElement } from '../../models/react-element';
@@ -477,13 +478,13 @@ describe('GraphStore', () => {
   });
 
   describe('areElementsMeasuredState', () => {
-    it('should track areElementsMeasured correctly', (done) => {
+    it('should track areElementsMeasured correctly', async () => {
       const store = new GraphStore({});
 
       // Initially, no elements, so should be false
       expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
 
-      // Test with measured elements - add to graph
+      // Add measured element to graph
       const measuredElement = new ReactElement({
         id: 'element-1',
         position: { x: 10, y: 20 },
@@ -491,27 +492,36 @@ describe('GraphStore', () => {
       });
       store.graph.addCell(measuredElement);
 
-      // Wait for layout state update (uses startTransition which defers updates)
-      setTimeout(() => {
-        // After adding measured element to graph, should be true
+      // Wait for scheduler/layout flush to include element layout
+      await waitFor(() => {
+        expect(store.layoutState.getSnapshot().elements['element-1']).toBeDefined();
+      });
+
+      // Without paper views rendered, measured state must stay false
+      expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
+
+      // Simulate paper becoming ready with rendered element views
+      store.updatePaperSnapshot('paper-1', () => ({
+        paperElementViews: {
+          'element-1': {} as dia.ElementView,
+        },
+      }));
+
+      await waitFor(() => {
         expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
+      });
 
-        // Once measured, it stays true even if we add unmeasured elements
-        const unmeasuredElement = new ReactElement({
-          id: 'element-2',
-          position: { x: 30, y: 40 },
-          size: { width: 0, height: 0 },
-        });
-        store.graph.addCell(unmeasuredElement);
+      // Adding an unmeasured element should make the state false again
+      const unmeasuredElement = new ReactElement({
+        id: 'element-2',
+        position: { x: 30, y: 40 },
+        size: { width: 0, height: 0 },
+      });
+      store.graph.addCell(unmeasuredElement);
 
-        // Wait for next update and check final state
-        // eslint-disable-next-line sonarjs/no-nested-functions
-        setTimeout(() => {
-          // Should remain true because wasElementsMeasuredBefore is true
-          expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
-          done();
-        }, 50);
-      }, 50);
+      await waitFor(() => {
+        expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
+      });
     });
   });
 

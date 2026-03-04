@@ -4,7 +4,6 @@ import type { OverWriteResult } from '../context';
 import type { RenderElement, RenderLink } from '../components';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
-import type { ReactPaper as ReactPaperType } from '../types/paper.types';
 import type { GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
 
@@ -140,7 +139,7 @@ export interface PaperStoreSnapshot {
  */
 export class PaperStore {
   /** The underlying JointJS Paper instance with React-specific properties */
-  public paper: ReactPaper & ReactPaperType;
+  public paper: ReactPaper;
   /** Unique identifier for this paper instance */
   public paperId: string;
   /** Reference to the overwrite result if custom rendering is used */
@@ -244,7 +243,7 @@ export class PaperStore {
         lazyInitialize: true,
       },
       graphStore,
-    }) as ReactPaper & ReactPaperType;
+    });
 
     // Attach React-specific properties to the paper for view access
     paper.reactElementCache = {

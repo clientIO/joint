@@ -552,10 +552,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
-      elements={elements}
-      links={links}
-    >
+    <GraphProvider elements={elements} links={links}>
       <Main />
     </GraphProvider>
   );

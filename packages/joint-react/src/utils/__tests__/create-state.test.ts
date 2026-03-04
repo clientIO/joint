@@ -1,4 +1,5 @@
-import { createState } from '../create-state';
+/* eslint-disable sonarjs/no-nested-functions */
+import { createState, derivedState } from '../create-state';
 
 describe('createState', () => {
   describe('basic state management', () => {
@@ -308,6 +309,128 @@ describe('createState', () => {
       nameSelector.subscribe(subscriber);
       state.setState({ user: { profile: { name: 'Bob' } } });
       expect(nameSelector.getSnapshot()).toBe('Bob');
+      expect(subscriber).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('derivedState', () => {
+    it('should derive state from a single source store array', () => {
+      const sourceState = createState({
+        name: 'source',
+        newState: () => ({ count: 0 }),
+      });
+      const doubledState = derivedState({
+        name: 'source/doubled',
+        state: [sourceState],
+        selector: (snapshot) => snapshot.count * 2,
+      });
+      expect(doubledState.getSnapshot()).toBe(0);
+      sourceState.setState({ count: 3 });
+      expect(doubledState.getSnapshot()).toBe(6);
+    });
+
+    it('should derive state from multiple source stores and update from each source', () => {
+      const layoutState = createState({
+        name: 'layout',
+        newState: () => ({
+          elements: {
+            a: { width: 0, height: 0 },
+          },
+          wasEverMeasured: false,
+        }),
+      });
+      const overrideState = createState({
+        name: 'override',
+        newState: () => ({ forceMeasured: false }),
+      });
+
+      const areElementsMeasuredState = derivedState({
+        name: 'Jointjs/AreElementsMeasured',
+        state: [layoutState, overrideState],
+        selector: (layoutSnapshot, overrideSnapshot) => {
+          if (layoutSnapshot.wasEverMeasured || overrideSnapshot.forceMeasured) return true;
+          const layoutEntries = Object.values(layoutSnapshot.elements);
+          if (layoutEntries.length === 0) return false;
+          return layoutEntries.every((layout) => layout.width > 1 && layout.height > 1);
+        },
+      });
+
+      expect(areElementsMeasuredState.getSnapshot()).toBe(false);
+
+      layoutState.setState({
+        elements: {
+          a: { width: 2, height: 2 },
+        },
+        wasEverMeasured: false,
+      });
+      expect(areElementsMeasuredState.getSnapshot()).toBe(true);
+
+      layoutState.setState({
+        elements: {
+          a: { width: 0, height: 0 },
+        },
+        wasEverMeasured: false,
+      });
+      expect(areElementsMeasuredState.getSnapshot()).toBe(false);
+
+      overrideState.setState({ forceMeasured: true });
+      expect(areElementsMeasuredState.getSnapshot()).toBe(true);
+    });
+
+    it('should support deriving from any number of source stores', () => {
+      const firstState = createState({
+        name: 'first',
+        newState: () => 1,
+      });
+      const secondState = createState({
+        name: 'second',
+        newState: () => 2,
+      });
+      const thirdState = createState({
+        name: 'third',
+        newState: () => 3,
+      });
+
+      const sumState = derivedState({
+        name: 'sum',
+        state: [firstState, secondState, thirdState],
+        selector: (first, second, third) => first + second + third,
+      });
+
+      expect(sumState.getSnapshot()).toBe(6);
+      thirdState.setState(10);
+      expect(sumState.getSnapshot()).toBe(13);
+      firstState.setState(5);
+      expect(sumState.getSnapshot()).toBe(17);
+    });
+
+    it('should unsubscribe from all source stores on clean', () => {
+      const firstState = createState({
+        name: 'first',
+        newState: () => 1,
+      });
+      const secondState = createState({
+        name: 'second',
+        newState: () => 2,
+      });
+
+      const sumState = derivedState({
+        name: 'sum',
+        state: [firstState, secondState],
+        selector: (first, second) => first + second,
+      });
+      const subscriber = jest.fn();
+      sumState.subscribe(subscriber);
+
+      firstState.setState(5);
+      expect(sumState.getSnapshot()).toBe(7);
+      expect(subscriber).toHaveBeenCalledTimes(1);
+
+      sumState.clean();
+      firstState.setState(10);
+      secondState.setState(10);
+
+      expect(sumState.getSnapshot()).toBe(7);
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
   });

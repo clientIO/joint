@@ -188,7 +188,7 @@ function PaperBase<ElementData = FlatElementData>(
     (snapshot) => snapshot.papers[id]?.linkViews ?? EMPTY_OBJECT
   );
 
-  const { addPaper, graph } = useGraphStore();
+  const { addPaper, graph, mapDataToLinkAttributes } = useGraphStore();
   const paperStore = usePaperStoreById(id);
   const { paper } = paperStore ?? {};
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
@@ -208,17 +208,25 @@ function PaperBase<ElementData = FlatElementData>(
 
   const defaultLinkJointJS = useCallback(
     (cellView: dia.CellView, magnet: SVGElement) => {
-      const link = typeof defaultLink === 'function' ? defaultLink(cellView, magnet) : defaultLink;
+      const isDefaultLinkFactory = typeof defaultLink === 'function';
+      const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
       const ReactLinkModel = getReactLinkConstructor(graph);
       if (!link) {
         return new ReactLinkModel();
       }
       if (link instanceof dia.Link) {
-        return link;
+        if (isDefaultLinkFactory) {
+          return link;
+        }
+        return link.clone();
       }
-      return new ReactLinkModel(link as dia.Link.Attributes);
+      const attributes = mapDataToLinkAttributes({
+        data: link as FlatLinkData,
+        graph,
+      });
+      return new ReactLinkModel(attributes);
     },
-    [defaultLink, graph]
+    [defaultLink, graph, mapDataToLinkAttributes]
   );
 
   const isReady = !!paper && !!paperHTMLElementRef.current;
@@ -284,19 +292,21 @@ function PaperBase<ElementData = FlatElementData>(
     }
 
     // Handling dev warning check
-    if (process.env.NODE_ENV !== 'production') {
-      const timeout = setTimeout(() => {
-        if (!areElementsMeasured) {
-          // eslint-disable-next-line no-console
-          console.error(
-            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
-          );
-        }
-      }, 1000);
-      return () => {
-        clearTimeout(timeout);
-      };
+    if (process.env.NODE_ENV === 'production') {
+      return;
     }
+
+    const timeout = setTimeout(() => {
+      if (!areElementsMeasured) {
+        // eslint-disable-next-line no-console
+        console.error(
+          'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
+        );
+      }
+    }, 1000);
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [areElementsMeasured, isReady, onElementsSizeReady, paper]);
 
   // Whenever elements change (or we've just become measured) compare old ↔ new

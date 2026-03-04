@@ -52,10 +52,7 @@ export type GraphState = State<GraphStoreInternalSnapshot>;
 /**
  * Public snapshot of the graph store containing elements and links.
  */
-export interface GraphStoreSnapshot<
-  ElementData = FlatElementData,
-  LinkData = FlatLinkData,
-> {
+export interface GraphStoreSnapshot<ElementData = FlatElementData, LinkData = FlatLinkData> {
   readonly elements: Record<CellId, ElementData>;
   readonly links: Record<CellId, LinkData>;
 }
@@ -88,7 +85,6 @@ export interface LinkLayout {
 export interface GraphStoreLayoutSnapshot {
   readonly elements: Record<CellId, NodeLayout>;
   readonly links: Record<string, Record<CellId, LinkLayout>>;
-  readonly wasEverMeasured: boolean;
 }
 
 /**
@@ -101,10 +97,8 @@ export interface GraphStoreInternalSnapshot {
 /**
  * Configuration options for creating a GraphStore instance.
  */
-export interface GraphStoreOptions<
-  ElementData = FlatElementData,
-  LinkData = FlatLinkData,
-> extends GraphStateSelectors<ElementData, LinkData> {
+export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData>
+  extends GraphStateSelectors<ElementData, LinkData> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
@@ -147,7 +141,7 @@ export class GraphStore {
     readonly data: FlatElementData;
     readonly graph: dia.Graph;
   }) => dia.Cell.JSON;
-  private readonly mapDataToLinkAttributes: (options: {
+  public readonly mapDataToLinkAttributes: (options: {
     readonly data: FlatLinkData;
     readonly graph: dia.Graph;
   }) => dia.Cell.JSON;
@@ -208,10 +202,17 @@ export class GraphStore {
 
     this.areElementsMeasuredState = derivedState({
       name: 'Jointjs/AreElementsMeasured',
-      state: this.layoutState,
-      selector: (snapshot) => {
-        if (snapshot.wasEverMeasured) return true;
-        const layoutEntries = Object.values(snapshot.elements);
+      state: [this.layoutState, this.internalState],
+      selector: (layoutSnapshot, internalSnapshot) => {
+        // this is safe, because each time paper is rendered <paper, it crate state and paper cannot live without paperElementsViews,
+        // so we check if paper has already assigned paperElementsViews, this fix the delay between paper render and elements measurement.
+        // so in short, this fixed, on ready problem, where some elements could have size, but its not ready yet - because elements are also ready when elementView is mounted.
+        const papers = Object.values(internalSnapshot.papers);
+        if (papers.length === 0) return false;
+        for (const paper of papers) {
+          if (!paper.paperElementViews) return false;
+        }
+        const layoutEntries = Object.values(layoutSnapshot.elements);
         if (layoutEntries.length === 0) return false;
         return layoutEntries.every((layout) => layout.width > 1 && layout.height > 1);
       },

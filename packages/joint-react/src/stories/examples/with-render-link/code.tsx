@@ -1,14 +1,9 @@
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 
-import {
-  GraphProvider,
-  Paper,
-  type RenderLink,
-  useCellId,
-  useLinkLayout,
-} from '@joint/react';
+import { GraphProvider, Paper, type RenderLink, useCellId, useLinkLayout } from '@joint/react';
 import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { REACT_LINK_TYPE } from '../../../models/react-link';
@@ -42,9 +37,21 @@ function LinkPath() {
 
   return (
     <>
-      <path d={layout.d} stroke={LIGHT} opacity={0.05} strokeWidth={20} fill="none" strokeLinecap="round" />
+      <path
+        d={layout.d}
+        stroke={LIGHT}
+        opacity={0.05}
+        strokeWidth={20}
+        fill="none"
+        strokeLinecap="round"
+      />
       <foreignObject x={midX - 30} y={midY - 10} width={60} height={40}>
-        <div className="bg-blue-100 rounded px-2 py-1 text-xs text-center" style={{ color: PRIMARY }}>Link {id}</div>
+        <div
+          className="bg-blue-100 rounded px-2 py-1 text-xs text-center"
+          style={{ color: PRIMARY }}
+        >
+          Link {id}
+        </div>
       </foreignObject>
     </>
   );

@@ -20,14 +20,12 @@ export interface ReactPaperOptions extends ReactPaperOptionsBase {
    * Default link for the paper - for example if there is new element added, this will be used as default.
    */
   readonly defaultLink?:
-    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | FlatLinkData)
+    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<FlatLinkData>)
     | dia.Link
-    | FlatLinkData;
+    | Partial<FlatLinkData>;
 }
 
-export type RenderElement<ElementData = FlatElementData> = (
-  element: ElementData
-) => ReactNode;
+export type RenderElement<ElementData = FlatElementData> = (element: ElementData) => ReactNode;
 
 export type RenderLink<LinkData = FlatLinkData> = (link: LinkData) => ReactNode;
 

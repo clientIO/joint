@@ -3,7 +3,6 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { TextNode } from './text-node';
 import { PRIMARY } from 'storybook-config/theme';
-import { useElement } from '../../hooks';
 import { useNodeSize } from '../../hooks/use-node-size';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
@@ -26,13 +25,7 @@ function SVGDecorator(Story: any) {
   const PADDING = 10;
   return (
     <>
-      <rect
-        width={width}
-        height={height}
-        fill={PRIMARY}
-        rx={PADDING}
-        ry={PADDING}
-      />
+      <rect width={width} height={height} fill={PRIMARY} rx={PADDING} ry={PADDING} />
       <g ref={gRef} transform={`translate(${PADDING}, ${PADDING})`}>
         <Story />
       </g>

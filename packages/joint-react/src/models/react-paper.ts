@@ -2,7 +2,13 @@ import { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { GraphStore } from '../store/graph-store';
 import type { ReactPaperOptions } from './react-paper.types';
-import type { ReactElementViewCache, ReactLinkViewCache } from '../types/paper.types';
+import type {
+  ReactElementViewCache,
+  ReactElementViewGraphStoreRef,
+  ReactLinkViewCache,
+  ReactLinkViewGraphStoreRef,
+  ReactLinkViewPaperStoreRef,
+} from '../types/paper.types';
 import { REACT_PORTAL_SELECTOR } from './react-element';
 
 /**
@@ -29,8 +35,17 @@ export class ReactPaper extends dia.Paper {
   /** Cache for element views - set by PaperStore */
   public reactElementCache!: ReactElementViewCache;
 
+  /** Graph store bindings used by React element view layer */
+  public reactElementGraphStore!: ReactElementViewGraphStoreRef;
+
   /** Cache for link views - set by PaperStore */
   public reactLinkCache!: ReactLinkViewCache;
+
+  /** Graph store bindings used by React link view layer */
+  public reactLinkGraphStore!: ReactLinkViewGraphStoreRef;
+
+  /** Paper store bindings used by React link view layer */
+  public reactLinkPaperStore!: ReactLinkViewPaperStoreRef;
 
   /** Links waiting for source/target elements to render */
   private pendingLinks: Set<CellId> = new Set();
