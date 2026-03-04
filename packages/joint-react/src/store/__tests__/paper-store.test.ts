@@ -240,19 +240,13 @@ describe('PaperStore', () => {
       const { measureNode } = paperStore.paper.options;
       expect(typeof measureNode).toBe('function');
 
-      // Mock a cellView where node IS the root element
-      const rootElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      const mockCellView = {
-        el: rootElement,
-        model: {
-          getBBox: () => ({ x: 10, y: 20, width: 100, height: 50 }),
-        },
-      } as unknown as dia.CellView;
+      const element = new dia.Element({ size: { width: 100, height: 50 } });
+      const rootNode = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const cellView = { el: rootNode, model: element } as unknown as dia.CellView;
 
-      const result = measureNode!(rootElement as SVGGraphicsElement, mockCellView);
+      const result = measureNode!(rootNode as SVGGraphicsElement, cellView);
       expect(result.width).toBe(100);
       expect(result.height).toBe(50);
-      // Root node should return (0,0) origin with model dimensions
       expect(result.x).toBe(0);
       expect(result.y).toBe(0);
 
@@ -274,20 +268,19 @@ describe('PaperStore', () => {
       const { measureNode } = paperStore.paper.options;
       expect(typeof measureNode).toBe('function');
 
-      // Mock a cellView where node is NOT the root element (e.g. a port magnet)
-      const rootElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      // Elements must be in a live SVG DOM for V(node).getBBox() to work
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      document.body.append(svg);
+      const rootNode = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       const portMagnet = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      // Mock getBBox to simulate a small port circle at an offset
+      svg.append(rootNode);
+      rootNode.append(portMagnet);
       portMagnet.getBBox = jest.fn(() => ({ x: -5, y: -5, width: 10, height: 10 }) as DOMRect);
 
-      const mockCellView = {
-        el: rootElement,
-        model: {
-          getBBox: () => ({ x: 10, y: 20, width: 200, height: 100 }),
-        },
-      } as unknown as dia.CellView;
+      const element = new dia.Element({ size: { width: 200, height: 100 } });
+      const cellView = { el: rootNode, model: element } as unknown as dia.CellView;
 
-      const result = measureNode!(portMagnet as SVGGraphicsElement, mockCellView);
+      const result = measureNode!(portMagnet as SVGGraphicsElement, cellView);
 
       // Should return the port's own bbox, NOT the element's model bbox (200x100)
       expect(result.width).toBe(10);
@@ -296,6 +289,7 @@ describe('PaperStore', () => {
       expect(result.y).toBe(-5);
 
       paperStore.destroy();
+      svg.remove();
     });
 
     it('should allow user to override measureNode', () => {

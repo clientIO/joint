@@ -1572,6 +1572,7 @@ describe('graph-state-selectors', () => {
         lineJoin: '',
         wrapperBuffer: 8,
         wrapperColor: 'transparent',
+        wrapperClassName: '',
       });
       expect(result.source).toEqual({ id: 'node1' });
       expect(result.target).toEqual({ id: 'node2' });
@@ -1608,6 +1609,7 @@ describe('graph-state-selectors', () => {
         lineJoin: '',
         wrapperBuffer: 8,
         wrapperColor: 'transparent',
+        wrapperClassName: '',
       });
     });
   });
