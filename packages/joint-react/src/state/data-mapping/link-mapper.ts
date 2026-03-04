@@ -26,7 +26,7 @@ import { resolveCellDefaults } from './resolve-cell-defaults';
  * - **→ Presentation** — converted to `attrs.line` / `attrs.wrapper` via theme,
  *   then stored in `cell.data` for round-trip preservation
  *   (`color`, `width`, `sourceMarker`, `targetMarker`, `className`, `pattern`,
- *    `lineCap`, `lineJoin`, `wrapperBuffer`, `wrapperColor`)
+ *    `lineCap`, `lineJoin`, `wrapperBuffer`, `wrapperColor`, `wrapperClassName`)
  *
  * Any remaining properties are treated as user data and stored in `cell.data`.
  * @param options - The link id, data, and optional theme to convert
@@ -69,6 +69,7 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
     lineJoin = theme.lineJoin,
     wrapperBuffer = theme.wrapperBuffer,
     wrapperColor = theme.wrapperColor,
+    wrapperClassName = theme.wrapperClassName,
 
     // Everything else is user data
     ...userData
@@ -104,6 +105,7 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
       lineJoin,
       wrapperBuffer,
       wrapperColor,
+      wrapperClassName,
     }),
   };
 
@@ -133,6 +135,7 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
     lineJoin,
     wrapperBuffer,
     wrapperColor,
+    wrapperClassName,
   };
 
   return attributes;

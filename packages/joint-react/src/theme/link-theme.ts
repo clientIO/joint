@@ -14,6 +14,7 @@ export const defaultLinkTheme = {
   targetMarker: 'none' as MarkerPreset,
   wrapperBuffer: 8,
   wrapperColor: 'transparent',
+  wrapperClassName: '',
   className: '',
   pattern: '',
   lineCap: '' as '' | 'butt' | 'round' | 'square',

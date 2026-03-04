@@ -4,6 +4,7 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
+import type { FlatElementData} from '@joint/react';
 import { GraphProvider, useCellId, useNodeSize, type FlatLinkData } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
@@ -14,15 +15,10 @@ export type StoryCtx = StoryContext<any, any>;
 
 export const testElements: Record<
   string,
-  {
+  FlatElementData & {
     label: string;
     color: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
     hoverColor: string;
-    angle: number;
   }
 > = {
   '1': {
@@ -52,11 +48,7 @@ export const testLinks: Record<string, FlatLinkData> = {
   'l-1': {
     source: '1',
     target: '2',
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-      },
-    },
+    color: PRIMARY,
   },
 };
 
@@ -80,11 +72,13 @@ export function RenderItemDecorator(
   properties: Readonly<{
     renderElement: (element: SimpleElement) => JSX.Element;
     renderLink?: (link: any) => JSX.Element;
+    elements?: Record<string, FlatElementData>;
+    links?: Record<string, FlatLinkData>;
   }>
 ) {
   return (
     <div style={{ width: '100%', height: 450 }}>
-      <SimpleGraphProviderDecorator>
+      <GraphProvider elements={properties.elements ?? testElements} links={properties.links ?? testLinks}>
         <Paper
           height={450}
           className={PAPER_CLASSNAME}
@@ -92,7 +86,7 @@ export function RenderItemDecorator(
           renderLink={properties.renderLink}
           linkPinning={false}
         />
-      </SimpleGraphProviderDecorator>
+      </GraphProvider>
     </div>
   );
 }

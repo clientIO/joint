@@ -9,6 +9,7 @@ import {
   TextNode,
   useCellActions,
   useCellId,
+  useMarkup,
   usePaper,
   usePaperEvents,
 } from '@joint/react';
@@ -241,6 +242,7 @@ const initialLinks: Record<string, FlatLinkData> = {
   },
   'link-11': {
     source: 'ot8h17',
+    sourceMagnet: 'gate',
     sourceAnchor: {
       name: 'perpendicular',
     },
@@ -314,6 +316,7 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
   const id = useCellId();
   const { set } = useCellActions<IntermediateEvent>();
   const gatePatternUrl = useGatePattern();
+  const { selectorRef } = useMarkup();
 
   const gateSvgPath = useMemo(() => {
     // Add vertical line extending upward for better connection
@@ -363,6 +366,7 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
     <>
       {/* Gate */}
       <path
+        ref={selectorRef('gate')}
         stroke={LIGHT}
         strokeWidth={2}
         fill={gatePatternUrl}
@@ -758,7 +762,6 @@ function Main() {
       renderElement={RenderFTAElement}
       cellVisibility={cellVisibilityCallback}
       onElementsSizeReady={handleElementsSizeReady}
-      defaultConnectionPoint={{ name: 'rectangle', args: { useModelGeometry: true } }}
       defaultConnector={{
         name: 'straight',
         args: { cornerType: 'line', cornerRadius: 10 },

@@ -1,19 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { FlatLinkData, RenderElement, TransformOptions } from '@joint/react';
-import {
-  GraphProvider,
-  Paper,
-  useHighlighter,
-  useNodeSize,
-  usePaperEvents,
-} from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
-import { dia, linkTools } from '@joint/core';
-import { forwardRef, useId, useRef, useState } from 'react';
+import type { FlatLinkData, FlatLinkLabel, RenderElement, TransformOptions } from '@joint/react';
+import { GraphProvider, Paper, useHighlighter, useMarkup, useNodeSize } from '@joint/react';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { dia, highlighters, linkTools } from '@joint/core';
+import { forwardRef, useRef, useState } from 'react';
 
 const unit = 4;
+const bevel = 2 * unit;
+const nodeFontSize = 13;
+const labelFontSize = 15;
 
 type NodeElement = {
   label: string;
@@ -23,148 +20,218 @@ type NodeElement = {
 };
 
 const flowchartNodes: Record<string, NodeElement> = {
-  start: { label: 'Start', type: 'start', cx: 50, cy: 40 },
+  start: { label: 'Start', type: 'start', cx: 60, cy: 40 },
   addToCart: {
     label: 'Add to Cart',
     type: 'step',
-    cx: 200,
+    cx: 195,
     cy: 40,
   },
   checkoutItems: {
     label: 'Checkout Items',
     type: 'step',
-    cx: 350,
+    cx: 365,
     cy: 40,
   },
   addShippingInfo: {
     label: 'Add Shipping Info',
     type: 'step',
-    cx: 500,
+    cx: 550,
     cy: 40,
   },
   addPaymentInfo: {
     label: 'Add Payment Info',
     type: 'step',
-    cx: 500,
-    cy: 140,
+    cx: 550,
+    cy: 150,
   },
   validPayment: {
     label: 'Valid Payment?',
     type: 'decision',
-    cx: 500,
-    cy: 250,
+    cx: 550,
+    cy: 270,
   },
   presentErrorMessage: {
     label: 'Present Error Message',
     type: 'step',
-    cx: 750,
-    cy: 350,
+    cx: 810,
+    cy: 380,
   },
   sendOrder: {
     label: 'Send Order to Warehouse',
     type: 'step',
-    cx: 200,
-    cy: 250,
+    cx: 230,
+    cy: 270,
   },
   packOrder: {
     label: 'Pack Order',
     type: 'step',
     cx: 40,
-    cy: 350,
+    cy: 380,
   },
   qualityCheck: {
     label: 'Quality Check?',
     type: 'decision',
-    cx: 200,
-    cy: 460,
+    cx: 230,
+    cy: 500,
   },
   shipItems: {
     label: 'Ship Items to Customer',
     type: 'step',
-    cx: 500,
-    cy: 460,
+    cx: 550,
+    cy: 500,
   },
 };
-interface FlowchartLinkOptions extends FlatLinkData {
-  readonly label?: string;
+const TOP = { name: 'top', args: { useModelGeometry: true } } as const;
+const BOTTOM = { name: 'bottom', args: { useModelGeometry: true } } as const;
+const LEFT = { name: 'left', args: { useModelGeometry: true } } as const;
+const RIGHT = { name: 'right', args: { useModelGeometry: true } } as const;
+
+const LINK_OPTIONS: Partial<Required<FlatLinkData>> = {
+  z: 2,
+  width: 2,
+  className: 'jj-flow-line link',
+  wrapperClassName: 'jj-flow-outline',
+  sourceMagnet: 'body',
+  targetMagnet: 'body',
+  targetMarker: {
+    d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z`,
+    class: 'jj-flow-arrowhead',
+  },
+};
+
+const labelPx = unit * 3;
+const labelPy = unit * 2;
+
+function bevelRectPath(px: number, py: number, bv: number): string {
+  // Single-variable calc: calc(v), calc(v + n), calc(v - n)
+  const c1 = (v: string, offset: number) =>
+    offset === 0 ? `calc(${v})` : offset > 0 ? `calc(${v} + ${offset})` : `calc(${v} - ${-offset})`;
+  // Two-variable calc via nesting: calc(v1 + calc(v2 + n))
+  const c2 = (v1: string, v2: string, offset: number) => `calc(${v1} + ${c1(v2, offset)})`;
+  return [
+    `M ${c1('x', -(px - bv))} ${c1('y', -py)}`,
+    `L ${c2('x', 'w', px - bv)} ${c1('y', -py)}`,
+    `L ${c2('x', 'w', px)} ${c1('y', -(py - bv))}`,
+    `L ${c2('x', 'w', px)} ${c2('y', 'h', py - bv)}`,
+    `L ${c2('x', 'w', px - bv)} ${c2('y', 'h', py)}`,
+    `L ${c1('x', -(px - bv))} ${c2('y', 'h', py)}`,
+    `L ${c1('x', -px)} ${c2('y', 'h', py - bv)}`,
+    `L ${c1('x', -px)} ${c1('y', -(py - bv))}`,
+    'Z',
+  ].join(' ');
 }
 
-const LINK_OPTIONS: Partial<FlowchartLinkOptions> = {
-  z: 2,
-  color: PRIMARY,
-  width: 2,
-  className: 'link',
-  targetMarker: {
-    d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
-  },
-  defaultLabel: {
-    attrs: {
-      line: {
-        class: 'jj-flow-line',
-        targetMarker: {
-          class: 'jj-flow-arrowhead',
-          d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z`,
-        },
-      },
-      // The `outline` path is added to the `standard.Link` below in `markup``
-      // We want to keep the `wrapper` path to do its original job,
-      // which is the hit testing
-      outline: {
-        class: 'jj-flow-outline',
-        connection: true,
-      },
-    },
-    markup: [
-      {
-        tagName: 'path',
-        selector: 'labelBody',
-      },
-      {
-        tagName: 'text',
-        selector: 'labelText',
-      },
-    ],
-  },
+const LABEL: FlatLinkLabel = {
+  text: '',
+  className: 'jj-flow-label-text',
+  backgroundClassName: 'jj-flow-label-body',
+  backgroundStrokeWidth: unit,
+  backgroundPadding: { x: labelPx, y: labelPy },
+  fontSize: labelFontSize,
+  backgroundShape: bevelRectPath(labelPx, labelPy, bevel),
 };
 
-type FlowchartLink = FlowchartLinkOptions;
-
-const flowchartLinks: Record<string, FlowchartLink> = {
-  flow1: { ...LINK_OPTIONS, source: 'start', target: 'addToCart' },
-  flow2: { ...LINK_OPTIONS, source: 'addToCart', target: 'checkoutItems' },
-  flow3: { ...LINK_OPTIONS, source: 'checkoutItems', target: 'addShippingInfo' },
-  flow4: { ...LINK_OPTIONS, source: 'addShippingInfo', target: 'addPaymentInfo' },
-  flow5: { ...LINK_OPTIONS, source: 'addPaymentInfo', target: 'validPayment' },
+const flowchartLinks: Record<string, FlatLinkData> = {
+  // start(50,40) → addToCart(200,40): horizontal right
+  flow1: {
+    ...LINK_OPTIONS,
+    source: 'start',
+    target: 'addToCart',
+    sourceAnchor: RIGHT,
+    targetAnchor: LEFT,
+  },
+  // addToCart(200,40) → checkoutItems(350,40): horizontal right
+  flow2: {
+    ...LINK_OPTIONS,
+    source: 'addToCart',
+    target: 'checkoutItems',
+    sourceAnchor: RIGHT,
+    targetAnchor: LEFT,
+  },
+  // checkoutItems(350,40) → addShippingInfo(500,40): horizontal right
+  flow3: {
+    ...LINK_OPTIONS,
+    source: 'checkoutItems',
+    target: 'addShippingInfo',
+    sourceAnchor: RIGHT,
+    targetAnchor: LEFT,
+  },
+  // addShippingInfo(500,40) → addPaymentInfo(500,140): vertical down
+  flow4: {
+    ...LINK_OPTIONS,
+    source: 'addShippingInfo',
+    target: 'addPaymentInfo',
+    sourceAnchor: BOTTOM,
+    targetAnchor: TOP,
+  },
+  // addPaymentInfo(500,140) → validPayment(500,250): vertical down
+  flow5: {
+    ...LINK_OPTIONS,
+    source: 'addPaymentInfo',
+    target: 'validPayment',
+    sourceAnchor: BOTTOM,
+    targetAnchor: TOP,
+  },
+  // validPayment(500,250) → presentErrorMessage(750,350): down-right
   flow6: {
     ...LINK_OPTIONS,
     source: 'validPayment',
     target: 'presentErrorMessage',
-    label: 'No',
+    labels: [{ ...LABEL, text: 'No' }],
+    sourceAnchor: BOTTOM,
+    targetAnchor: LEFT,
   },
+  // presentErrorMessage(750,350) → addPaymentInfo(500,140): up-left
   flow7: {
     ...LINK_OPTIONS,
     source: 'presentErrorMessage',
     target: 'addPaymentInfo',
+    sourceAnchor: TOP,
+    targetAnchor: RIGHT,
   },
+  // validPayment(500,250) → sendOrder(200,250): horizontal left
   flow8: {
     ...LINK_OPTIONS,
     source: 'validPayment',
     target: 'sendOrder',
-    label: 'Yes',
+    labels: [{ ...LABEL, text: 'Yes' }],
+    sourceAnchor: LEFT,
+    targetAnchor: RIGHT,
   },
-  flow9: { ...LINK_OPTIONS, source: 'sendOrder', target: 'packOrder' },
-  flow10: { ...LINK_OPTIONS, source: 'packOrder', target: 'qualityCheck' },
+  // sendOrder(200,250) → packOrder(40,350): down-left
+  flow9: {
+    ...LINK_OPTIONS,
+    source: 'sendOrder',
+    target: 'packOrder',
+    sourceAnchor: LEFT,
+    targetAnchor: TOP,
+  },
+  // packOrder(40,350) → qualityCheck(200,460): down-right
+  flow10: {
+    ...LINK_OPTIONS,
+    source: 'packOrder',
+    target: 'qualityCheck',
+    sourceAnchor: BOTTOM,
+    targetAnchor: LEFT,
+  },
+  // qualityCheck(200,460) → shipItems(500,460): horizontal right
   flow11: {
     ...LINK_OPTIONS,
     source: 'qualityCheck',
     target: 'shipItems',
-    label: 'Ok',
+    labels: [{ ...LABEL, text: 'Ok' }],
+    sourceAnchor: RIGHT,
+    targetAnchor: LEFT,
   },
+  // qualityCheck(200,460) → sendOrder(200,250): vertical up
   flow12: {
     ...LINK_OPTIONS,
     source: 'qualityCheck',
     target: 'sendOrder',
-    label: 'Not Ok',
+    labels: [{ ...LABEL, text: 'Not Ok' }],
+    sourceAnchor: TOP,
+    targetAnchor: BOTTOM,
   },
 };
 
@@ -175,7 +242,7 @@ interface PropsWithClick {
 }
 type FlowchartNodeProps = (typeof flowchartNodes)[string] & PropsWithClick;
 
-function transform(options: TransformOptions & { padding: number; cx: number; cy: number }) {
+function computeNodeBBox(options: TransformOptions & { padding: number; cx: number; cy: number }) {
   const { width: nodeWidth, height: nodeHeight, padding, cx, cy } = options;
   const modelWidth = nodeWidth + 2 * padding;
   const modelHeight = nodeHeight + 2 * padding;
@@ -195,22 +262,23 @@ function DecisionNodeRaw(
 
   const textRef = useRef<SVGTextElement>(null);
   const { width, height } = useNodeSize(textRef, {
-    transform: (options) => transform({ ...options, padding, cx, cy }),
+    transform: (options) => computeNodeBBox({ ...options, padding, cx, cy }),
   });
 
   return (
     <>
       <polygon
+        className="jj-decision-body"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         ref={ref}
         points={`${width / 2},0 ${width},${height / 2} ${width / 2},${height} 0,${height / 2}`}
-        fill="transparent"
-        stroke={PRIMARY}
         strokeWidth="2"
+        strokeLinejoin="round"
       />
 
       <text
+        className="jj-decision-text"
         ref={textRef}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -218,8 +286,48 @@ function DecisionNodeRaw(
         y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="10"
-        fill={'white'}
+        fontSize={nodeFontSize}
+      >
+        {label}
+      </text>
+    </>
+  );
+}
+
+function StartNodeRaw(
+  { label, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+  ref: React.ForwardedRef<SVGRectElement>
+) {
+  const padding = 20;
+
+  const textRef = useRef<SVGTextElement>(null);
+  const { width, height } = useNodeSize(textRef, {
+    transform: (options) => computeNodeBBox({ ...options, padding, cx, cy }),
+  });
+
+  return (
+    <>
+      <rect
+        className="jj-start-body"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        ref={ref}
+        width={width}
+        height={height}
+        strokeWidth="2"
+        rx={25}
+        ry={25}
+      />
+      <text
+        className="jj-start-text"
+        ref={textRef}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        x={width / 2}
+        y={height / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={nodeFontSize}
       >
         {label}
       </text>
@@ -229,31 +337,28 @@ function DecisionNodeRaw(
 
 function StepNodeRaw(
   { label, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
-  ref: React.ForwardedRef<SVGRectElement>
+  ref: React.ForwardedRef<SVGPolygonElement>
 ) {
   const padding = 20;
 
   const textRef = useRef<SVGTextElement>(null);
   const { width, height } = useNodeSize(textRef, {
-    transform: (options) => transform({ ...options, padding, cx, cy }),
+    transform: (options) => computeNodeBBox({ ...options, padding, cx, cy }),
   });
 
   return (
     <>
-      <rect
+      <polygon
+        className="jj-step-body"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         ref={ref}
-        width={width}
-        height={height}
-        fill="transparent"
-        stroke="red"
+        points={`0,${bevel} ${bevel},0 ${width - bevel},0 ${width},${bevel} ${width},${height - bevel} ${width - bevel},${height} ${bevel},${height} 0,${height - bevel}`}
         strokeWidth="2"
-        strokeLinejoin="bevel"
-        rx={unit}
-        ry={unit}
+        strokeLinejoin="round"
       />
       <text
+        className="jj-step-text"
         ref={textRef}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -261,8 +366,7 @@ function StepNodeRaw(
         y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="10"
-        fill={'white'}
+        fontSize={nodeFontSize}
       >
         {label}
       </text>
@@ -270,11 +374,12 @@ function StepNodeRaw(
   );
 }
 const DecisionNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(DecisionNodeRaw);
-const StepNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StepNodeRaw);
+const StartNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StartNodeRaw);
+const StepNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(StepNodeRaw);
 
-// Custom render function that maps the node type to a CSS class for styling
 function RenderFlowchartNode(props: FlowchartNodeProps) {
   const { type } = props;
+  const { selectorRef } = useMarkup();
 
   const highlighterRef = useRef<SVGRectElement | SVGPolygonElement>(null);
   const [isHighlighted, setIsHighlighted] = useState(false);
@@ -282,56 +387,64 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
     type: 'mask',
     isEnabled: isHighlighted,
     ref: highlighterRef,
-    padding: 2,
+    padding: unit * 2,
+    className: 'jj-frame',
     attrs: {
-      stroke: SECONDARY,
-      strokeWidth: 2,
+      strokeWidth: 1.5,
+      strokeLinejoin: 'round',
     },
   });
-  const content =
-    type === 'decision' ? (
+
+  const bodyRef = (node: SVGRectElement | SVGPolygonElement | null) => {
+    selectorRef('body')(node);
+    highlighterRef.current = node;
+  };
+
+  if (type === 'decision') {
+    return (
       <DecisionNode
-        ref={highlighterRef as React.ForwardedRef<SVGPolygonElement>}
-        {...props}
-        onMouseEnter={() => setIsHighlighted(true)}
-        onMouseLeave={() => setIsHighlighted(false)}
-      />
-    ) : (
-      <StepNode
-        ref={highlighterRef as React.ForwardedRef<SVGRectElement>}
+        ref={bodyRef as React.ForwardedRef<SVGPolygonElement>}
         {...props}
         onMouseEnter={() => setIsHighlighted(true)}
         onMouseLeave={() => setIsHighlighted(false)}
       />
     );
-  return content;
+  }
+  if (type === 'start') {
+    return (
+      <StartNode
+        ref={bodyRef as React.ForwardedRef<SVGRectElement>}
+        {...props}
+        onMouseEnter={() => setIsHighlighted(true)}
+        onMouseLeave={() => setIsHighlighted(false)}
+      />
+    );
+  }
+  return (
+    <StepNode
+      ref={bodyRef as React.ForwardedRef<SVGPolygonElement>}
+      {...props}
+      onMouseEnter={() => setIsHighlighted(true)}
+      onMouseLeave={() => setIsHighlighted(false)}
+    />
+  );
 }
 
 // Create link tools
 
 function Main() {
-  const paperId = useId();
-
-  usePaperEvents(
-    paperId,
-    {
-      'link:mouseenter': (linkView) => {
-        const jointPaper = linkView.paper;
-        if (!jointPaper) {
-          return;
-        }
-
-        jointPaper.removeTools();
-        dia.HighlighterView.removeAll(jointPaper);
+  return (
+    <Paper
+      onLinkPointerClick={({ linkView, paper }) => {
+        paper.removeTools();
+        dia.HighlighterView.removeAll(paper);
         const snapAnchor: linkTools.AnchorCallback<dia.Point> = (
           coords: dia.Point,
           endView: dia.CellView
         ) => {
           const bbox = endView.model.getBBox();
-          // Find the closest point on the bbox border.
           const point = bbox.pointNearestToPoint(coords);
           const center = bbox.center();
-          // Snap the point to the center of the bbox if it's close enough.
           const snapRadius = 10;
           if (Math.abs(point.x - center.x) < snapRadius) {
             point.x = center.x;
@@ -355,41 +468,56 @@ function Main() {
         });
         toolsView.el.classList.add('jj-flow-tools');
         linkView.addTools(toolsView);
-      },
-      'link:mouseleave': (linkView) => {
-        linkView.removeTools();
-      },
-    }
-  );
-
-  return (
-    <Paper
-      id={paperId}
+        const strokeHighlighter = highlighters.stroke.add(linkView, 'line', 'selection', {
+          layer: dia.Paper.Layers.BACK,
+          nonScalingStroke: true,
+        });
+        strokeHighlighter.el.classList.add('jj-flow-selection');
+      }}
+      onLinkMouseEnter={({ linkView }) => {
+        if (highlighters.stroke.get(linkView, 'selection')) return;
+        const frame = highlighters.mask.add(
+          linkView,
+          { label: 0, selector: 'labelBody' },
+          'frame',
+          {
+            padding: unit / 2,
+            layer: dia.Paper.Layers.FRONT,
+            attrs: {
+              strokeWidth: 1.5,
+              strokeLinejoin: 'round',
+            },
+          }
+        );
+        frame.el.classList.add('jj-frame');
+      }}
+      onLinkMouseLeave={({ paper }) => {
+        highlighters.mask.removeAll(paper, 'frame');
+      }}
+      onBlankPointerDown={({ paper }) => {
+        paper.removeTools();
+        dia.HighlighterView.removeAll(paper);
+      }}
       gridSize={5}
       height={600}
-      onElementsSizeReady={({ paper: jointPaper }) => {
-        jointPaper.transformToFitContent({
+      overflow={true}
+      snapLabels={true}
+      onElementsSizeReady={({ paper }) => {
+        paper.transformToFitContent({
           padding: 40,
           useModelGeometry: true,
           verticalAlign: 'middle',
           horizontalAlign: 'middle',
         });
       }}
-      className={PAPER_CLASSNAME}
+      className={`${PAPER_CLASSNAME} flowchart-paper`}
       renderElement={RenderFlowchartNode as unknown as RenderElement}
       interactive={{ linkMove: false }}
       defaultConnectionPoint={{
-        name: 'anchor',
+        name: 'boundary',
         args: {
           offset: unit * 2,
           extrapolate: true,
-          useModelGeometry: true,
-        },
-      }}
-      defaultAnchor={{
-        name: 'midSide',
-        args: {
-          useModelGeometry: true,
         },
       }}
       defaultRouter={{
@@ -406,10 +534,52 @@ function Main() {
   );
 }
 
-export default function App() {
+function ThemeSwitch({ onClick }: { readonly onClick: () => void }) {
   return (
-    <GraphProvider elements={flowchartNodes} links={flowchartLinks}>
-      <Main />
-    </GraphProvider>
+    <div className="theme-switch" title="Switch between light and dark mode" onClick={onClick}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20px"
+        height="20px"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#dde6ed"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="light-icon"
+      >
+        <path
+          d="M12 18.5C15.5899 18.5 18.5 15.5899 18.5 12C18.5 8.41015 15.5899 5.5 12 5.5C8.41015 5.5 5.5 8.41015 5.5 12C5.5 15.5899 8.41015 18.5 12 18.5Z"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M19.14 19.14L19.01 19.01M19.01 4.99L19.14 4.86L19.01 4.99ZM4.86 19.14L4.99 19.01L4.86 19.14ZM12 2.08V2V2.08ZM12 22V21.92V22ZM2.08 12H2H2.08ZM22 12H21.92H22ZM4.99 4.99L4.86 4.86L4.99 4.99Z"
+          strokeWidth="2"
+        />
+      </svg>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20px"
+        height="20px"
+        viewBox="0 0 24 24"
+        fill="#131e29"
+        className="dark-icon"
+      >
+        <path d="M12.0557 3.59974C12.2752 3.2813 12.2913 2.86484 12.0972 2.53033C11.9031 2.19582 11.5335 2.00324 11.1481 2.03579C6.02351 2.46868 2 6.76392 2 12C2 17.5228 6.47715 22 12 22C17.236 22 21.5313 17.9764 21.9642 12.8518C21.9967 12.4664 21.8041 12.0968 21.4696 11.9027C21.1351 11.7086 20.7187 11.7248 20.4002 11.9443C19.4341 12.6102 18.2641 13 17 13C13.6863 13 11 10.3137 11 6.99996C11 5.73589 11.3898 4.56587 12.0557 3.59974Z" />
+      </svg>
+      <div className="switch" />
+    </div>
+  );
+}
+
+export default function App() {
+  const [isLight, setIsLight] = useState(false);
+  return (
+    <div className={`flowchart-wrapper${isLight ? ' light-theme' : ''}`}>
+      <GraphProvider elements={flowchartNodes} links={flowchartLinks}>
+        <Main />
+      </GraphProvider>
+      <ThemeSwitch onClick={() => setIsLight((v) => !v)} />
+    </div>
   );
 }
