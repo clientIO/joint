@@ -2,10 +2,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
 import type { FlatLinkData, RenderElement, TransformOptions } from '@joint/react';
-import { GraphProvider, Paper, useHighlighter, useNodeSize } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useHighlighter,
+  useNodeSize,
+  usePaperEvents,
+} from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { dia, linkTools } from '@joint/core';
-import { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useId, useRef, useState } from 'react';
 
 const unit = 4;
 
@@ -304,11 +310,19 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
 // Create link tools
 
 function Main() {
-  return (
-    <Paper
-      onLinkMouseEnter={({ linkView, paper }) => {
-        paper.removeTools();
-        dia.HighlighterView.removeAll(paper);
+  const paperId = useId();
+
+  usePaperEvents(
+    paperId,
+    {
+      'link:mouseenter': (linkView) => {
+        const jointPaper = linkView.paper;
+        if (!jointPaper) {
+          return;
+        }
+
+        jointPaper.removeTools();
+        dia.HighlighterView.removeAll(jointPaper);
         const snapAnchor: linkTools.AnchorCallback<dia.Point> = (
           coords: dia.Point,
           endView: dia.CellView
@@ -341,14 +355,20 @@ function Main() {
         });
         toolsView.el.classList.add('jj-flow-tools');
         linkView.addTools(toolsView);
-      }}
-      onLinkMouseLeave={({ linkView }) => {
+      },
+      'link:mouseleave': (linkView) => {
         linkView.removeTools();
-      }}
+      },
+    }
+  );
+
+  return (
+    <Paper
+      id={paperId}
       gridSize={5}
       height={600}
-      onElementsSizeReady={({ paper }) => {
-        paper.transformToFitContent({
+      onElementsSizeReady={({ paper: jointPaper }) => {
+        jointPaper.transformToFitContent({
           padding: 40,
           useModelGeometry: true,
           verticalAlign: 'middle',

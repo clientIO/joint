@@ -4,7 +4,6 @@ import type { OmitWithoutIndexSignature } from '../../types';
 import type { FlatLinkData } from '../../types/link-types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
-import type { PaperEvents } from '../../types/event.types';
 
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
@@ -36,8 +35,7 @@ export type RenderLink<LinkData = FlatLinkData> = (link: LinkData) => ReactNode;
  */
 export interface PaperProps<ElementData = FlatElementData>
   extends ReactPaperOptions,
-    PropsWithChildren,
-    PaperEvents {
+    PropsWithChildren {
   /**
    * A function that renders the element.
    * 

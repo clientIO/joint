@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useRef } from 'react';
+import { useId, useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import type { FlatElementData, FlatElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
@@ -10,6 +10,7 @@ import {
   jsx,
   Paper,
   TextNode,
+  usePaperEvents,
   useLinks,
   useNodeSize,
   useCellId,
@@ -128,8 +129,15 @@ const toolsView = new dia.ToolsView({
 });
 
 function Main() {
+  const paperId = useId();
+  usePaperEvents(paperId, {
+    'link:mouseenter': (linkView) => linkView.addTools(toolsView),
+    'link:mouseleave': (linkView) => linkView.removeTools(),
+  });
+
   return (
     <Paper
+      id={paperId}
       defaultLink={{
         color: LIGHT,
         targetMarker: 'arrow',
@@ -144,8 +152,6 @@ function Main() {
         // Prevent linking to output ports.
         return magnetT.getAttribute('port') === 'in';
       }}
-      onLinkMouseEnter={({ linkView }) => linkView.addTools(toolsView)}
-      onLinkMouseLeave={({ linkView }) => linkView.removeTools()}
       markAvailable
       highlighting={{
         [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {

@@ -44,7 +44,7 @@ export interface EventMap {
   ) => void;
   'link:pointerdown': (linkView: dia.LinkView, event: dia.Event, x: number, y: number) => void;
   'blank:pointerdown': (event: dia.Event, x: number, y: number) => void;
-  // pointerdown
+  // pointermove
   'cell:pointermove': (cellView: dia.CellView, event: dia.Event, x: number, y: number) => void;
   'element:pointermove': (
     elementView: dia.ElementView,
@@ -56,12 +56,7 @@ export interface EventMap {
   'blank:pointermove': (event: dia.Event, x: number, y: number) => void;
   // pointerup
   'cell:pointerup': (cellView: dia.CellView, event: dia.Event, x: number, y: number) => void;
-  'element:pointerup': (
-    elementView: dia.ElementView,
-    event: dia.Event,
-    x: number,
-    y: number
-  ) => void;
+  'element:pointerup': (elementView: dia.ElementView, event: dia.Event, x: number, y: number) => void;
   'link:pointerup': (linkView: dia.LinkView, event: dia.Event, x: number, y: number) => void;
   'blank:pointerup': (event: dia.Event, x: number, y: number) => void;
   // mouseover
@@ -179,700 +174,77 @@ export interface EventMap {
   ) => void;
   // render
   'render:done': (stats: dia.Paper.UpdateStats, opt: unknown) => void;
+  'render:idle': (opt: dia.Paper.UpdateViewsAsyncOptions) => void;
   // transformations
   translate: (tx: number, ty: number, data: unknown) => void;
   scale: (sx: number, sy: number, data: unknown) => void;
   resize: (width: number, height: number, data: unknown) => void;
   transform: (matrix: SVGMatrix, data: unknown) => void;
-  // custom
-
-  custom: (eventName: string, ...args: Parameters<mvc.EventHandler>) => void;
 }
 
-// Extract Paper Event Names
 export type PaperEventType = keyof EventMap;
 
-/**
- * Paper event handlers.
- * @see https://resources.jointjs.com/docs/jointjs#dia.Paper.events
- */
-
-export interface PaperEvents {
-  // Paper mouse events
-  onPaperMouseEnter?: (args: { graph: dia.Graph; event: dia.Event; paper: dia.Paper }) => void;
-  onPaperMouseLeave?: (args: { graph: dia.Graph; event: dia.Event; paper: dia.Paper }) => void;
-
-  // Click events
-  onCellPointerClick?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onElementPointerClick?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onLinkPointerClick?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onBlankPointerClick?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-
-  // Double click events
-  onCellPointerDblClick?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onElementPointerDblClick?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onLinkPointerDblClick?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onBlankPointerDblClick?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-
-  // Context menu events
-  onCellContextMenu?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onElementContextMenu?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onLinkContextMenu?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onBlankContextMenu?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-
-  // Pointer down events
-  onCellPointerDown?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onElementPointerDown?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onLinkPointerDown?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onBlankPointerDown?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-
-  // Pointer move events
-  onCellPointerMove?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onElementPointerMove?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onLinkPointerMove?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onBlankPointerMove?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-
-  // Pointer up events
-  onCellPointerUp?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onElementPointerUp?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onLinkPointerUp?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onBlankPointerUp?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-
-  // Mouse over events
-  onCellMouseOver?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onElementMouseOver?: (args: {
-    elementView: dia.ElementView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onLinkMouseOver?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onBlankMouseOver?: (args: { graph: dia.Graph; event: dia.Event; paper: dia.Paper }) => void;
-
-  // Mouse out events
-  onCellMouseOut?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onElementMouseOut?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onLinkMouseOut?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onBlankMouseOut?: (args: { graph: dia.Graph; event: dia.Event; paper: dia.Paper }) => void;
-
-  // Mouse enter events
-  onCellMouseEnter?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onElementMouseEnter?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onLinkMouseEnter?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onBlankMouseEnter?: (args: { graph: dia.Graph; event: dia.Event; paper: dia.Paper }) => void;
-
-  // Mouse leave events
-  onCellMouseLeave?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onElementMouseLeave?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onLinkMouseLeave?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    paper: dia.Paper;
-  }) => void;
-  onBlankMouseLeave?: (args: { graph: dia.Graph; event: dia.Event; paper: dia.Paper }) => void;
-
-  // Mouse wheel events
-  onCellMouseWheel?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    delta: number;
-    paper: dia.Paper;
-  }) => void;
-  onElementMouseWheel?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    delta: number;
-    paper: dia.Paper;
-  }) => void;
-  onLinkMouseWheel?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    x: number;
-    y: number;
-    delta: number;
-    paper: dia.Paper;
-  }) => void;
-  onBlankMouseWheel?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    x: number;
-    y: number;
-    delta: number;
-    paper: dia.Paper;
-  }) => void;
-
-  // Paper gestures
-  onPan?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    deltaX: number;
-    deltaY: number;
-    paper: dia.Paper;
-  }) => void;
-  onPinch?: (args: {
-    graph: dia.Graph;
-    event: dia.Event;
-    x: number;
-    y: number;
-    scale: number;
-    paper: dia.Paper;
-  }) => void;
-
-  // Magnet events
-  onElementMagnetPointerClick?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    magnetNode: SVGElement;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onElementMagnetPointerDblClick?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    magnetNode: SVGElement;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-  onElementMagnetContextMenu?: (args: {
-    graph: dia.Graph;
-    elementView: dia.ElementView;
-    event: dia.Event;
-    magnetNode: SVGElement;
-    x: number;
-    y: number;
-    paper: dia.Paper;
-  }) => void;
-
-  // Highlight events
-  onCellHighlight?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    node: SVGElement;
-    options: dia.CellView.EventHighlightOptions;
-    paper: dia.Paper;
-  }) => void;
-  onCellUnhighlight?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    node: SVGElement;
-    options: dia.CellView.EventHighlightOptions;
-    paper: dia.Paper;
-  }) => void;
-  onCellHighlightInvalid?: (args: {
-    graph: dia.Graph;
-    cellView: dia.CellView;
-    highlighterId: string;
-    highlighter: dia.HighlighterView;
-    paper: dia.Paper;
-  }) => void;
-
-  // Connection events
-  onLinkConnect?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    newCellView: dia.CellView;
-    newCellViewMagnet: SVGElement;
-    arrowhead: dia.LinkEnd;
-    paper: dia.Paper;
-  }) => void;
-  onLinkDisconnect?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    previousCellView: dia.CellView;
-    previousCellViewMagnet: SVGElement;
-    arrowhead: dia.LinkEnd;
-    paper: dia.Paper;
-  }) => void;
-  onLinkSnapConnect?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    newCellView: dia.CellView;
-    newCellViewMagnet: SVGElement;
-    arrowhead: dia.LinkEnd;
-    paper: dia.Paper;
-  }) => void;
-  onLinkSnapDisconnect?: (args: {
-    graph: dia.Graph;
-    linkView: dia.LinkView;
-    event: dia.Event;
-    previousCellView: dia.CellView;
-    previousCellViewMagnet: SVGElement;
-    arrowhead: dia.LinkEnd;
-    paper: dia.Paper;
-  }) => void;
-
-  // Render events
-  onRenderDone?: (args: {
-    graph: dia.Graph;
-    stats: dia.Paper.UpdateStats;
-    opt: unknown;
-    paper: dia.Paper;
-  }) => void;
-
-  // Transform events
-  onTranslate?: (args: {
-    graph: dia.Graph;
-    tx: number;
-    ty: number;
-    data: unknown;
-    paper: dia.Paper;
-  }) => void;
-  onScale?: (args: {
-    graph: dia.Graph;
-    sx: number;
-    sy: number;
-    data: unknown;
-    paper: dia.Paper;
-  }) => void;
-  onResize?: (args: {
-    graph: dia.Graph;
-    width: number;
-    height: number;
-    data: unknown;
-    paper: dia.Paper;
-  }) => void;
-  onTransform?: (args: {
-    graph: dia.Graph;
-    matrix: SVGMatrix;
-    data: unknown;
-    paper: dia.Paper;
-  }) => void;
-
-  customEvents?: Record<
-    string,
-    (args: {
-      graph: dia.Graph;
-      eventName: string;
-      args: Parameters<mvc.EventHandler>;
-      paper: dia.Paper;
-    }) => void
-  >;
-}
-
-export type GraphKnownEventName =
-  | 'add'
-  | 'remove'
-  | 'change'
-  | 'reset'
-  | 'sort'
-  | 'move'
-  | 'batch:start'
-  | 'batch:stop';
-
-export type GraphPatternEventName = `change:${string}` | `layer:${string}` | `layers:${string}`;
-
-export type GraphEventName = GraphKnownEventName | GraphPatternEventName;
-export type GraphKnownNormalizedEventName =
-  | 'add'
-  | 'remove'
-  | 'change'
-  | 'reset'
-  | 'sort'
-  | 'move'
-  | 'batchStart'
-  | 'batchStop';
-export type GraphPatternNormalizedEventName =
-  | `change${Capitalize<string>}`
-  | `layer${Capitalize<string>}`
-  | `layers${Capitalize<string>}`;
-export type GraphNormalizedEventName = GraphKnownNormalizedEventName | GraphPatternNormalizedEventName;
-
-export interface GraphEventPayloadBase<EventName extends string, Args extends unknown[]> {
-  readonly graph: dia.Graph;
-  readonly eventName: EventName;
-  readonly args: Args;
-}
+export type PaperEventHandlers = Partial<{
+  [EventName in PaperEventType]: (...args: Parameters<EventMap[EventName]>) => void;
+}> & {
+  [eventName: string]: ((...args: Parameters<mvc.EventHandler>) => void) | undefined;
+};
 
 export interface GraphEventOptions {
   readonly [key: string]: unknown;
 }
 
-export interface GraphEventPayloadMap {
-  readonly add: GraphEventPayloadBase<
-    'add',
-    [cell: dia.Cell, collection: mvc.Collection<dia.Cell>, options: GraphEventOptions]
-  > & {
-    readonly cell: dia.Cell;
-    readonly collection: mvc.Collection<dia.Cell>;
-    readonly options: GraphEventOptions;
-  };
-  readonly remove: GraphEventPayloadBase<
-    'remove',
-    [cell: dia.Cell, collection: mvc.Collection<dia.Cell>, options: GraphEventOptions]
-  > & {
-    readonly cell: dia.Cell;
-    readonly collection: mvc.Collection<dia.Cell>;
-    readonly options: GraphEventOptions;
-  };
-  readonly change: GraphEventPayloadBase<
-    'change',
-    [cell: dia.Cell, options: GraphEventOptions]
-  > & {
-    readonly cell: dia.Cell;
-    readonly options: GraphEventOptions;
-  };
-  readonly reset: GraphEventPayloadBase<
-    'reset',
-    [collection: mvc.Collection<dia.Cell>, options: GraphEventOptions]
-  > & {
-    readonly collection: mvc.Collection<dia.Cell>;
-    readonly cells: dia.Cell[];
-    readonly options: GraphEventOptions;
-  };
-  readonly sort: GraphEventPayloadBase<
-    'sort',
-    [collection: mvc.Collection<dia.Cell>, options: GraphEventOptions]
-  > & {
-    readonly collection: mvc.Collection<dia.Cell>;
-    readonly options: GraphEventOptions;
-  };
-  readonly move: GraphEventPayloadBase<
-    'move',
-    [cell: dia.Cell, options: GraphEventOptions]
-  > & {
-    readonly cell: dia.Cell;
-    readonly options: GraphEventOptions;
-  };
-  readonly 'batch:start': GraphEventPayloadBase<'batch:start', [data: GraphEventOptions]> & {
-    readonly data: GraphEventOptions;
-  };
-  readonly 'batch:stop': GraphEventPayloadBase<'batch:stop', [data: GraphEventOptions]> & {
-    readonly data: GraphEventOptions;
-  };
+export interface GraphKnownEventMap {
+  readonly add: (
+    cell: dia.Cell,
+    collection: mvc.Collection<dia.Cell>,
+    options: GraphEventOptions
+  ) => void;
+  readonly remove: (
+    cell: dia.Cell,
+    collection: mvc.Collection<dia.Cell>,
+    options: GraphEventOptions
+  ) => void;
+  readonly change: (cell: dia.Cell, options: GraphEventOptions) => void;
+  readonly reset: (
+    collection: mvc.Collection<dia.Cell>,
+    options: GraphEventOptions
+  ) => void;
+  readonly sort: (
+    collection: mvc.Collection<dia.Cell>,
+    options: GraphEventOptions
+  ) => void;
+  readonly move: (cell: dia.Cell, options: GraphEventOptions) => void;
+  readonly 'batch:start': (data: GraphEventOptions) => void;
+  readonly 'batch:stop': (data: GraphEventOptions) => void;
 }
 
-export type GraphPatternPayload<EventName extends GraphPatternEventName> =
+export type GraphKnownEventName = keyof GraphKnownEventMap;
+
+export type GraphPatternEventName = `change:${string}` | `layer:${string}` | `layers:${string}`;
+
+export type GraphEventName = GraphKnownEventName | GraphPatternEventName;
+
+type GraphPatternEventArgs<EventName extends GraphPatternEventName> =
   EventName extends `change:${string}`
-    ? GraphEventPayloadBase<EventName, [cell: dia.Cell, options: GraphEventOptions]> & {
-        readonly cell: dia.Cell;
-        readonly options: GraphEventOptions;
-      }
+    ? [cell: dia.Cell, options?: GraphEventOptions]
     : EventName extends `layer:${string}`
-      ? GraphEventPayloadBase<
-          EventName,
-          [
-            layer: dia.GraphLayer,
-            collectionOrOptions?: mvc.Collection<dia.GraphLayer> | GraphEventOptions,
-            options?: GraphEventOptions,
-          ]
-        > & {
-          readonly layer: dia.GraphLayer;
-          readonly collection: mvc.Collection<dia.GraphLayer> | null;
-          readonly options: GraphEventOptions;
-        }
-      : GraphEventPayloadBase<
-          EventName,
-          [layerCollection: dia.GraphLayerCollection, options?: GraphEventOptions]
-        > & {
-          readonly layerCollection: dia.GraphLayerCollection | null;
-          readonly options: GraphEventOptions;
-        };
+      ? [
+          layer: dia.GraphLayer,
+          collectionOrOptions?: mvc.Collection<dia.GraphLayer> | GraphEventOptions,
+          options?: GraphEventOptions,
+        ]
+      : [layerCollection: dia.GraphLayerCollection, options?: GraphEventOptions];
 
-export type GraphEventPayload<EventName extends GraphEventName> =
+export type GraphEventArgs<EventName extends GraphEventName> =
   EventName extends GraphKnownEventName
-    ? GraphEventPayloadMap[EventName]
-    : GraphPatternPayload<EventName & GraphPatternEventName>;
-
-type GraphRawPayload<EventName extends GraphEventName> = Omit<GraphEventPayload<EventName>, 'eventName'> & {
-  readonly eventName: EventName;
-  readonly jointEventName: EventName;
-};
-
-type GraphKnownNormalizedPayloadMap = {
-  readonly add: GraphRawPayload<'add'>;
-  readonly remove: GraphRawPayload<'remove'>;
-  readonly change: GraphRawPayload<'change'>;
-  readonly reset: GraphRawPayload<'reset'>;
-  readonly sort: GraphRawPayload<'sort'>;
-  readonly move: GraphRawPayload<'move'>;
-  readonly batchStart: Omit<GraphEventPayloadMap['batch:start'], 'eventName'> & {
-    readonly eventName: 'batchStart';
-    readonly jointEventName: 'batch:start';
-  };
-  readonly batchStop: Omit<GraphEventPayloadMap['batch:stop'], 'eventName'> & {
-    readonly eventName: 'batchStop';
-    readonly jointEventName: 'batch:stop';
-  };
-};
-
-type ToRawGraphPatternEventName<EventName extends GraphPatternNormalizedEventName> =
-  EventName extends `change${infer S}`
-    ? `change:${Uncapitalize<S>}`
-    : EventName extends `layer${infer S}`
-      ? `layer:${Uncapitalize<S>}`
-      : EventName extends `layers${infer S}`
-        ? `layers:${Uncapitalize<S>}`
-        : never;
-
-type GraphPatternNormalizedPayload<EventName extends GraphPatternNormalizedEventName> = Omit<
-  GraphPatternPayload<ToRawGraphPatternEventName<EventName>>,
-  'eventName'
-> & {
-  readonly eventName: EventName;
-  readonly jointEventName: ToRawGraphPatternEventName<EventName>;
-};
-
-export type GraphEventPayloadByHandlerName<EventName extends GraphNormalizedEventName> =
-  EventName extends GraphKnownNormalizedEventName
-    ? GraphKnownNormalizedPayloadMap[EventName]
-    : EventName extends GraphPatternNormalizedEventName
-      ? GraphPatternNormalizedPayload<EventName>
-      : never;
+    ? Parameters<GraphKnownEventMap[EventName]>
+    : EventName extends GraphPatternEventName
+      ? GraphPatternEventArgs<EventName>
+      : Parameters<mvc.EventHandler>;
 
 export type GraphEventHandlers = Partial<{
-  readonly [EventName in GraphNormalizedEventName]: (
-    payload: GraphEventPayloadByHandlerName<EventName>
-  ) => void;
-}>;
-
-export type PaperEventsHandlerKey = Exclude<keyof PaperEvents, 'customEvents'>;
-type NormalizedPaperEventName<EventName extends PaperEventsHandlerKey> = EventName extends `on${infer Rest}`
-  ? Uncapitalize<Rest>
-  : EventName;
-
-export type PaperListenerPayload<EventName extends PaperEventsHandlerKey> = Parameters<
-  NonNullable<PaperEvents[EventName]>
->[0] & {
-  readonly eventName: NormalizedPaperEventName<EventName>;
-};
-
-export type PaperEventHandlers = Partial<{
-  readonly [EventName in PaperEventsHandlerKey]: (
-    payload: PaperListenerPayload<EventName>
-  ) => void;
+  [EventName in GraphEventName]: (...args: GraphEventArgs<EventName>) => void;
 }> & {
-  readonly customEvents?: Record<
-    string,
-    (payload: {
-      readonly graph: dia.Graph;
-      readonly paper: dia.Paper;
-      readonly eventName: string;
-      readonly args: Parameters<mvc.EventHandler>;
-    }) => void
-  >;
+  [eventName: string]: ((...args: Parameters<mvc.EventHandler>) => void) | undefined;
 };

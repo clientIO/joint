@@ -9,7 +9,7 @@ import type { dia } from '@joint/core';
 import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
-import { useGraph, usePaperStoreContext, useCellId, useLinks } from '../../../hooks';
+import { useGraph, useCellId, useLinks } from '../../../hooks';
 import type { FlatElementData } from '../../../types/element-types';
 import type { FlatLinkData } from '../../../types/link-types';
 import { GraphProvider } from '../../graph/graph-provider';
@@ -278,35 +278,6 @@ describe('Paper Component', () => {
     });
   });
 
-  it('should fire custom event on the Paper', async () => {
-    const handleCustomEvent = jest.fn();
-
-    // eslint-disable-next-line unicorn/consistent-function-scoping
-    function FireEvent() {
-      const { paper } = usePaperStoreContext() ?? {};
-      useEffect(() => {
-        paper?.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
-      }, [paper]);
-      return null;
-    }
-
-    const customEvents = { MyCustomEventOnClick: handleCustomEvent };
-    render(
-      <GraphProvider elements={elements}>
-        <Paper<Element>
-          customEvents={customEvents}
-          renderElement={({ label }) => <div className="node">{label}</div>}
-        >
-          <FireEvent />
-        </Paper>
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      expect(handleCustomEvent).toHaveBeenCalledTimes(1);
-    });
-  });
-
   it('applies default clickThreshold and custom clickThreshold', () => {
     render(
       <GraphProvider elements={elements}>
@@ -472,47 +443,6 @@ describe('Paper Component', () => {
     });
   });
 
-  it('binds paper pointer events for empty graph', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
-    const onBlankPointerClick = jest.fn();
-
-    render(
-      <GraphProvider elements={{}}>
-        <Paper ref={ref} onBlankPointerClick={onBlankPointerClick} />
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      expect(ref.current).toBeDefined();
-    });
-
-    act(() => {
-      ref.current!.trigger('blank:pointerclick', {}, 0, 0);
-    });
-
-    expect(onBlankPointerClick).toHaveBeenCalledTimes(1);
-  });
-
-  it('binds onElementPointerClick for empty graph once paper is ready', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
-    const onElementPointerClick = jest.fn();
-
-    render(
-      <GraphProvider elements={{}}>
-        <Paper ref={ref} onElementPointerClick={onElementPointerClick} />
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      expect(ref.current).toBeDefined();
-    });
-
-    act(() => {
-      ref.current!.trigger('element:pointerclick', null, null, 0, 0);
-    });
-
-    expect(onElementPointerClick).toHaveBeenCalledTimes(1);
-  });
   it('should access paper via context and change scale', async () => {
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function ChangeScale({ paperRef }: { paperRef: RefObject<ReactPaper | null> }) {

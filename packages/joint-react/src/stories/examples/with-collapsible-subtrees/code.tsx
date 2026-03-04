@@ -10,9 +10,10 @@ import {
   useCellActions,
   useCellId,
   usePaper,
+  usePaperEvents,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useId, useMemo } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
@@ -687,16 +688,17 @@ function addExpandTools(paper: dia.Paper) {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
+  const paperId = useId();
   const cellVisibilityCallback = useCallback((cell: dia.Cell) => {
     return !cell.prop('hidden');
   }, []);
 
-  const handleElementsSizeReady = useCallback(({ paper }: { paper: dia.Paper }) => {
-    const graph = paper.model;
+  const handleElementsSizeReady = useCallback(({ paper: jointPaper }: { paper: dia.Paper }) => {
+    const graph = jointPaper.model;
     runLayout(graph);
-    addExpandTools(paper);
+    addExpandTools(jointPaper);
 
-    paper.transformToFitContent({
+    jointPaper.transformToFitContent({
       padding: 40,
       useModelGeometry: true,
       verticalAlign: 'middle',
@@ -704,8 +706,8 @@ function Main() {
     });
   }, []);
 
-  const handleExpand = useCallback((paper: dia.Paper, elementView: dia.ElementView) => {
-    const graph = paper.model;
+  const handleExpand = useCallback((jointPaper: dia.Paper, elementView: dia.ElementView) => {
+    const graph = jointPaper.model;
     const element = elementView.model;
     const successorElements = graph.getSuccessors(element);
     const [successor] = successorElements;
@@ -734,8 +736,23 @@ function Main() {
     runLayout(graph);
   }, []);
 
+  usePaperEvents(
+    paperId,
+    {
+      'element:expand': (elementView) => {
+        const jointPaper = elementView.paper;
+        if (!jointPaper) {
+          return;
+        }
+        handleExpand(jointPaper, elementView as dia.ElementView);
+      },
+    },
+    [handleExpand]
+  );
+
   return (
     <Paper
+      id={paperId}
       height={600}
       className={PAPER_CLASSNAME}
       renderElement={RenderFTAElement}
@@ -749,12 +766,6 @@ function Main() {
       defaultRouter={{ name: 'orthogonal' }}
       interactive={false}
       async
-      customEvents={{
-        'element:expand': ({ paper, args }) => {
-          const [elementView] = args;
-          handleExpand(paper, elementView);
-        },
-      }}
     />
   );
 }

@@ -29,7 +29,7 @@ import { useElements, useLinks } from '../../hooks';
 import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
 import type { PaperProps, RenderElement, RenderLink } from './paper.types';
-import { assignOptions, dependencyExtract } from '../../utils/object-utilities';
+import { assignOptions } from '../../utils/object-utilities';
 import { PaperHTMLContainer } from './render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext, PaperStoreContext } from '../../context';
 import {
@@ -38,7 +38,6 @@ import {
   SVGElementItem,
 } from './render-element/paper-element-item';
 import { createPortal } from 'react-dom';
-import { handlePaperEvents, PAPER_EVENT_KEYS } from '../../utils/events/handle-paper-events';
 import {
   useAreElementsMeasured,
   useGraphInternalStoreSelector,
@@ -367,13 +366,10 @@ function PaperBase<ElementData = FlatElementData>(
     // An object to keep track of the listeners. It's not exposed, so the users
     const controller = new mvc.Listener();
     controller.listenTo(paper, 'resize', resizePaperContainer);
-    const stopListening = handlePaperEvents(graph, paper, paperOptions);
     return () => {
       controller.stopListening();
-      stopListening();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graph, isReady, paper, ...dependencyExtract(paperOptions, PAPER_EVENT_KEYS)]);
+  }, [paper]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

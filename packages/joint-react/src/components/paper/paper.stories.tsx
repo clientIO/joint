@@ -1,9 +1,7 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import React, { useRef } from 'react';
+import React, { useId, useRef } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   SimpleGraphDecorator,
@@ -18,6 +16,7 @@ import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 import { useCellActions } from '../../hooks/use-cell-actions';
 import { useCellId } from '../../hooks/use-cell-id';
+import { usePaperEvents } from '../../hooks/use-paper-events';
 import { Paper } from './paper';
 import type { RenderElement } from './paper.types';
 import type { FlatElementData } from '../../types/element-types';
@@ -77,10 +76,8 @@ function MyDiagram() {
 - **width/height**: Paper dimensions (supports numbers or CSS strings)
 - **scale**: Zoom level (default: 1)
 - **className**: CSS class for styling
-- **onElementPointerClick**: Handler for element clicks
-- **onLinkMouseEnter**: Handler for link hover
 - **drawGrid**: Grid configuration for visual guides
-- And many more event handlers for full interactivity
+- **Events**: Subscribe with \`usePaperEvents\` using raw JointJS names (e.g. \`cell:pointerclick\`, \`link:mouseenter\`)
     `,
     apiURL: API_URL,
     code: `import { GraphProvider, Paper } from '@joint/react'
@@ -195,74 +192,56 @@ export const WithAutomaticLayoutSize: Story = {
 export const WithEvent: Story = {
   args: {
     renderElement: RenderHTMLElement as never,
-    onLinkMouseEnter: action('onLinkMouseenter'),
-    onCellMouseEnter: action('onCellMouseEnter'),
-    onBlankContextMenu: action('onBlankContextmenu'),
-    onBlankMouseEnter: action('onBlankMouseEnter'),
-    onBlankMouseLeave: action('onBlankMouseLeave'),
-    onBlankPointerMove: action('onBlankPointerMove'),
-    onBlankPointerUp: action('onBlankPointerUp'),
-    onBlankPointerDown: action('onBlankPointerDown'),
-    onBlankPointerClick: action('onBlankPointerClick'),
-    onBlankMouseOut: action('onBlankMouseOut'),
-    onBlankMouseOver: action('onBlankMouseOver'),
-    onBlankMouseWheel: action('onBlankMouseWheel'),
-    onBlankPointerDblClick: action('onBlankPointerDblClick'),
-    onCellContextMenu: action('onCellContextMenu'),
-    onCellHighlight: action('onCellHighlight'),
-    onCellHighlightInvalid: action('onCellHighlightInvalid'),
-    onCellUnhighlight: action('onCellUnhighlight'),
-    onCellMouseLeave: action('onCellMouseLeave'),
-    onCellMouseOut: action('onCellMouseOut'),
-    onCellMouseOver: action('onCellMouseOver'),
-    onCellMouseWheel: action('onCellMouseWheel'),
-    onCellPointerClick: action('onCellPointerClick'),
-    onCellPointerDblClick: action('onCellPointerDblClick'),
-    onCellPointerDown: action('onCellPointerDown'),
-    onCellPointerMove: action('onCellPointerMove'),
-    onCellPointerUp: action('onCellPointerUp'),
-    onElementContextMenu: action('onElementContextMenu'),
-    onElementMagnetContextMenu: action('onElementMagnetContextMenu'),
-    onElementMagnetPointerClick: action('onElementMagnetPointerClick'),
-    onElementMagnetPointerDblClick: action('onElementMagnetPointerDblClick'),
-    onElementMouseEnter: action('onElementMouseEnter'),
-    onElementMouseLeave: action('onElementMouseLeave'),
-    onElementMouseOut: action('onElementMouseOut'),
-    onElementMouseOver: action('onElementMouseOver'),
-    onElementMouseWheel: action('onElementMouseWheel'),
-    onElementPointerClick: action('onElementPointerClick'),
-    onElementPointerDblClick: action('onElementPointerDblClick'),
-    onElementPointerDown: action('onElementPointerDown'),
-    onElementPointerMove: action('onElementPointerMove'),
-    onElementPointerUp: action('onElementPointerUp'),
     onElementsSizeChange: action('onElementsSizeChange'),
-    onLinkContextMenu: action('onLinkContextMenu'),
     onElementsSizeReady: action('onElementsSizeReady'),
-    onLinkConnect: action('onLinkConnect'),
-    onLinkDisconnect: action('onLinkDisconnect'),
-    onLinkMouseLeave: action('onLinkMouseLeave'),
-    onLinkMouseOut: action('onLinkMouseOut'),
-    onLinkMouseOver: action('onLinkMouseOver'),
-    onLinkMouseWheel: action('onLinkMouseWheel'),
-    onLinkPointerClick: action('onLinkPointerClick'),
-    onLinkPointerDblClick: action('onLinkPointerDblClick'),
-    onLinkPointerDown: action('onLinkPointerDown'),
-    onLinkPointerMove: action('onLinkPointerMove'),
-    onLinkPointerUp: action('onLinkPointerUp'),
-    onLinkSnapConnect: action('onLinkSnapConnect'),
-    onLinkSnapDisconnect: action('onLinkSnapDisconnect'),
-    onPan: action('onPan'),
-    onPaperMouseEnter: action('onPaperMouseEnter'),
-    onPaperMouseLeave: action('onPaperMouseLeave'),
-    onPinch: action('onPinch'),
-    onRenderDone: action('onRenderDone'),
-    onResize: action('onResize'),
-    onScale: action('onScale'),
-    onTransform: action('onTransform'),
-    onTranslate: action('onTranslate'),
-
     width: '100%',
     className: PAPER_CLASSNAME,
+  },
+  render: (args) => {
+    const paperId = useId();
+    usePaperEvents(paperId, {
+      'link:mouseenter': action('link:mouseenter'),
+      'cell:mouseenter': action('cell:mouseenter'),
+      'blank:contextmenu': action('blank:contextmenu'),
+      'blank:pointermove': action('blank:pointermove'),
+      'blank:pointerup': action('blank:pointerup'),
+      'blank:pointerdown': action('blank:pointerdown'),
+      'blank:pointerclick': action('blank:pointerclick'),
+      'blank:pointerdblclick': action('blank:pointerdblclick'),
+      'cell:contextmenu': action('cell:contextmenu'),
+      'cell:pointerclick': action('cell:pointerclick'),
+      'cell:pointerdblclick': action('cell:pointerdblclick'),
+      'cell:pointerdown': action('cell:pointerdown'),
+      'cell:pointermove': action('cell:pointermove'),
+      'cell:pointerup': action('cell:pointerup'),
+      'element:contextmenu': action('element:contextmenu'),
+      'element:mouseenter': action('element:mouseenter'),
+      'element:mouseleave': action('element:mouseleave'),
+      'element:pointerclick': action('element:pointerclick'),
+      'element:pointerdblclick': action('element:pointerdblclick'),
+      'element:pointerdown': action('element:pointerdown'),
+      'element:pointermove': action('element:pointermove'),
+      'element:pointerup': action('element:pointerup'),
+      'link:contextmenu': action('link:contextmenu'),
+      'link:mouseleave': action('link:mouseleave'),
+      'link:pointerclick': action('link:pointerclick'),
+      'link:pointerdblclick': action('link:pointerdblclick'),
+      'link:pointerdown': action('link:pointerdown'),
+      'link:pointermove': action('link:pointermove'),
+      'link:pointerup': action('link:pointerup'),
+      'link:snap:connect': action('link:snap:connect'),
+      'link:snap:disconnect': action('link:snap:disconnect'),
+      'paper:pan': action('paper:pan'),
+      'paper:mouseenter': action('paper:mouseenter'),
+      'paper:mouseleave': action('paper:mouseleave'),
+      'paper:pinch': action('paper:pinch'),
+      'render:done': action('render:done'),
+      resize: action('resize'),
+      scale: action('scale'),
+      transform: action('transform'),
+      translate: action('translate'),
+    });
+    return <Paper {...args} id={paperId} />;
   },
 };
 
@@ -290,14 +269,20 @@ const toolsView = new dia.ToolsView({
 export const WithLinkTools: Story = {
   args: {
     renderElement: RenderHTMLElement as never,
-    onLinkMouseEnter: ({ linkView }) => {
-      linkView.addTools(toolsView);
-    },
-    onLinkMouseLeave: ({ linkView }) => {
-      linkView.removeTools();
-    },
     width: '100%',
     className: PAPER_CLASSNAME,
+  },
+  render: (args) => {
+    const paperId = useId();
+    usePaperEvents(paperId, {
+      'link:mouseenter': (linkView) => {
+        linkView.addTools(toolsView);
+      },
+      'link:mouseleave': (linkView) => {
+        linkView.removeTools();
+      },
+    });
+    return <Paper {...args} id={paperId} />;
   },
   parameters: {
     docs: {
@@ -311,21 +296,40 @@ export const WithLinkTools: Story = {
 
 export const WithCustomEvent: Story = {
   args: {
-    renderElement: RenderHTMLElement as never,
-    onElementPointerClick: ({ paper }) => {
-      paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
-    },
+    renderElement: RenderRectElement as never,
     width: '100%',
     className: PAPER_CLASSNAME,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Click a node to trigger `cell:pointerclick`, then emit `paper:test:custom` and inspect it in the Actions panel.',
+      },
+    },
+  },
+  render: (args) => {
+    const paperId = useId();
+    const onCellPointerClick = action('cell:pointerclick');
+    const onCustomEvent = action('paper:test:custom');
+
+    usePaperEvents(
+      paperId,
+      {
+        'cell:pointerclick': (cellView, event, x, y) => {
+          onCellPointerClick(cellView, event, x, y);
+          cellView.paper?.trigger('paper:test:custom', { target: 'cell', x, y });
+        },
+        'paper:test:custom': onCustomEvent,
+      }
+    );
+    return <Paper {...args} id={paperId} />;
   },
 };
 
 export const WithDrawGrid: Story = {
   args: {
     renderElement: RenderHTMLElement as never,
-    onElementPointerClick: ({ paper }) => {
-      paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
-    },
     className: PAPER_CLASSNAME,
     drawGrid: { name: 'dot', thickness: 2, color: 'white' },
     drawGridSize: 10,
