@@ -19,6 +19,7 @@ import { useElements } from './use-elements';
 import { useLinks } from './use-links';
 import { useAreElementsMeasured, useGraphInternalStoreSelector } from './use-graph-store-selector';
 import type { PaperStore } from '../store';
+import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
@@ -32,7 +33,7 @@ import {
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
 
-const EMPTY_OBJECT = {} as Record<string, dia.ElementView>;
+const EMPTY_VIEW_ID_RECORD = {} as Record<CellId, true>;
 
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
@@ -176,12 +177,15 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   const reactId = useId();
   const id = options.id ?? `paper-${reactId}`;
 
-  const paperElementViews = useGraphInternalStoreSelector(
-    (snapshot) => snapshot.papers[id]?.paperElementViews ?? EMPTY_OBJECT
+  const paperElementViewIds = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.elementViewIds ?? EMPTY_VIEW_ID_RECORD
   );
 
-  const paperLinkViews = useGraphInternalStoreSelector(
-    (snapshot) => snapshot.papers[id]?.linkViews ?? EMPTY_OBJECT
+  const paperLinkViewIds = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.linkViewIds ?? EMPTY_VIEW_ID_RECORD
+  );
+  const paperRevision = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.revision ?? 0
   );
 
   const { addPaper, graph, mapDataToLinkAttributes } = useGraphStore();
@@ -387,7 +391,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   }, [areElementsMeasured, elementIds, elementsState, isReady, onElementsSizeChange, paper]);
 
   const renderedElements = useMemo(() => {
-    if (!hasRenderElement) {
+    if (paperRevision === 0 || !hasRenderElement) {
       return null;
     }
 
@@ -397,7 +401,11 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
         return null;
       }
 
-      const elementView = paperElementViews[elementId];
+      if (!paperElementViewIds[elementId]) {
+        return null;
+      }
+
+      const elementView = paperStore?.getElementView(elementId);
       if (!elementView?.paper) {
         return null;
       }
@@ -444,13 +452,15 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     deferredElementIds,
     deferredElementsState,
     hasRenderElement,
-    paperElementViews,
+    paperElementViewIds,
+    paperRevision,
+    paperStore,
     renderElement,
     useHTMLOverlay,
   ]);
 
   const renderedLinks = useMemo(() => {
-    if (!hasRenderLink || !renderLink) {
+    if (paperRevision === 0 || !hasRenderLink || !renderLink) {
       return null;
     }
 
@@ -460,7 +470,11 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
         return null;
       }
 
-      const linkView = paperLinkViews[linkId];
+      if (!paperLinkViewIds[linkId]) {
+        return null;
+      }
+
+      const linkView = paperStore?.getLinkView(linkId);
       if (!linkView?.paper) {
         return null;
       }
@@ -476,7 +490,15 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
         </CellIdContext.Provider>
       );
     });
-  }, [deferredLinkIds, deferredLinksState, hasRenderLink, paperLinkViews, renderLink]);
+  }, [
+    deferredLinkIds,
+    deferredLinksState,
+    hasRenderLink,
+    paperLinkViewIds,
+    paperRevision,
+    paperStore,
+    renderLink,
+  ]);
 
   const content = useMemo(
     () => (

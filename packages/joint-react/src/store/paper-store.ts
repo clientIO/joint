@@ -62,15 +62,43 @@ export interface PaperStoreOptions extends AddPaperOptions {
 
 /**
  * Snapshot of paper-specific state.
- * Contains element and link views for this paper instance.
+ * Contains serializable metadata for paper view state.
  */
 export interface PaperStoreSnapshot {
-  /** Map of cell IDs to their element views in this paper */
-  paperElementViews?: Record<CellId, dia.ElementView>;
-  /** Map of link IDs to their link views in this paper */
-  linkViews?: Record<CellId, dia.LinkView>;
-  /** Map of link label IDs to their SVG elements */
-  linksData?: Record<string, SVGElement>;
+  /** Incremented when element/link view cache changes */
+  readonly revision: number;
+  /** True once this paper has emitted at least one view snapshot */
+  readonly hasElementViewSnapshot: boolean;
+  /** IDs of mounted element views in this paper */
+  readonly elementViewIds: Record<CellId, true>;
+  /** IDs of mounted link views in this paper */
+  readonly linkViewIds: Record<CellId, true>;
+}
+
+/**
+ * Creates an empty paper snapshot.
+ * @returns Empty serializable paper metadata snapshot.
+ */
+export function createPaperStoreSnapshot(): PaperStoreSnapshot {
+  return {
+    revision: 0,
+    hasElementViewSnapshot: false,
+    elementViewIds: {},
+    linkViewIds: {},
+  };
+}
+
+/**
+ * Creates a record map of `CellId -> true` from a keyed object.
+ * @param values - Object keyed by cell ids.
+ * @returns Plain lookup record with boolean markers.
+ */
+function toCellIdRecord(values: Record<CellId, unknown>): Record<CellId, true> {
+  const ids: Record<CellId, true> = {};
+  for (const id of Object.keys(values)) {
+    ids[id as CellId] = true;
+  }
+  return ids;
 }
 
 /**
@@ -132,15 +160,28 @@ export class PaperStore {
       linkViews: {},
       linksData: {},
     };
+    let previousElementViews = cache.elementViews;
+    let previousLinkViews = cache.linkViews;
     // Register paper update callback with GraphStore's unified scheduler
     // This ensures paper updates are batched together with link/port updates
     const paperUpdateCallback = () => {
+      const areElementViewsChanged = previousElementViews !== cache.elementViews;
+      const areLinkViewsChanged = previousLinkViews !== cache.linkViews;
+      if (!areElementViewsChanged && !areLinkViewsChanged) {
+        return;
+      }
+      previousElementViews = cache.elementViews;
+      previousLinkViews = cache.linkViews;
+      const elementViewIds = toCellIdRecord(cache.elementViews);
+      const linkViewIds = toCellIdRecord(cache.linkViews);
       graphStore.updatePaperSnapshot(options.id, (current) => {
+        const base = current ?? createPaperStoreSnapshot();
         return {
-          ...current,
-          paperElementViews: cache.elementViews,
-          linkViews: cache.linkViews,
-          linksData: cache.linksData,
+          ...base,
+          revision: base.revision + 1,
+          hasElementViewSnapshot: true,
+          elementViewIds,
+          linkViewIds,
         };
       });
     };
@@ -242,6 +283,22 @@ export class PaperStore {
    */
   public getLinkLabelId(linkId: CellId, labelIndex: number) {
     return `${linkId}-label-${labelIndex}`;
+  }
+
+  public getElementView(id: CellId): dia.ElementView | undefined {
+    return this.paper.reactElementCache.elementViews[id];
+  }
+
+  public getLinkView(id: CellId): dia.LinkView | undefined {
+    return this.paper.reactLinkCache.linkViews[id];
+  }
+
+  public hasElementView(id: CellId): boolean {
+    return !!this.getElementView(id);
+  }
+
+  public hasLinkView(id: CellId): boolean {
+    return !!this.getLinkView(id);
   }
 
   /**

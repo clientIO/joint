@@ -1,7 +1,18 @@
 /* eslint-disable sonarjs/no-nested-functions */
+import { sendToDevTool } from '../dev-tools';
 import { createState, derivedState } from '../create-state';
 
+jest.mock('../dev-tools', () => ({
+  sendToDevTool: jest.fn(),
+}));
+
+const sendToDevToolMock = sendToDevTool as jest.MockedFunction<typeof sendToDevTool>;
+
 describe('createState', () => {
+  beforeEach(() => {
+    sendToDevToolMock.mockClear();
+  });
+
   describe('basic state management', () => {
     it('should create state with initial value', () => {
       const state = createState({
@@ -588,6 +599,38 @@ describe('createState', () => {
       expect(snapshot.users).toHaveLength(2);
       expect(snapshot.metadata.version).toBe(2);
       expect(subscriber).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('dev tools integration', () => {
+    it('should not send updates when dev tools integration is disabled', () => {
+      const state = createState({
+        name: 'test',
+        newState: () => ({ count: 0 }),
+        isDevToolEnabled: false,
+      });
+
+      state.setState({ count: 1 });
+
+      expect(sendToDevToolMock).not.toHaveBeenCalled();
+    });
+
+    it('should avoid circular serialization crashes when dev tools integration is disabled', () => {
+      sendToDevToolMock.mockImplementation(({ value }) => {
+        JSON.stringify(value);
+      });
+
+      const state = createState<{ readonly payload?: unknown }>({
+        name: 'test',
+        newState: () => ({}),
+        isDevToolEnabled: false,
+      });
+
+      const payload: { self?: unknown } = {};
+      payload.self = payload;
+
+      expect(() => state.setState({ payload })).not.toThrow();
+      expect(sendToDevToolMock).not.toHaveBeenCalled();
     });
   });
 });

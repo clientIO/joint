@@ -114,14 +114,19 @@ interface Options<T> {
   /** Whether to enable dev tools integration for this state. Defaults to false. */
   readonly isDevToolEnabled?: boolean;
 }
-
+const IS_DEV_TOOL_ENABLED_BY_DEFAULT = process.env.NODE_ENV === 'development';
 /**
  * Creates a new state instance with subscription support.
  * @param options - The options for creating the state.
  * @returns A State instance with subscription and selection capabilities.
  */
 export function createState<T>(options: Options<T>): State<T> {
-  const { newState, isEqual = util.isEqual, name } = options;
+  const {
+    newState,
+    isEqual = util.isEqual,
+    name,
+    isDevToolEnabled = IS_DEV_TOOL_ENABLED_BY_DEFAULT,
+  } = options;
 
   const stateRef = {
     current: newState(),
@@ -158,7 +163,9 @@ export function createState<T>(options: Options<T>): State<T> {
         return;
       }
       stateRef.current = updatedState;
-      sendToDevTool({ name, type: 'set', value: updatedState });
+      if (isDevToolEnabled) {
+        sendToDevTool({ name, type: 'set', value: updatedState });
+      }
       notifySubscribers();
     },
 

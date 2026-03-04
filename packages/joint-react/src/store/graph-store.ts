@@ -3,7 +3,7 @@ import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
 import type { FlatElementData } from '../types/element-types';
 import type { AddPaperOptions, PaperStoreSnapshot } from './paper-store';
-import { PaperStore } from './paper-store';
+import { PaperStore, createPaperStoreSnapshot } from './paper-store';
 import {
   createElementsSizeObserver,
   type GraphStoreObserver,
@@ -184,33 +184,29 @@ export class GraphStore {
       createState<GraphStoreSnapshot>({
         name: 'JointJs/Data',
         newState: () => ({ elements: {}, links: {} }),
-        isDevToolEnabled: true,
       });
 
     this.internalState = createState<GraphStoreInternalSnapshot>({
       name: 'Jointjs/Internal',
       newState: () => ({ papers: {} }),
-      isDevToolEnabled: false,
     });
 
     this.layoutState = createState<GraphStoreLayoutSnapshot>({
       name: 'Jointjs/Layout',
       newState: () => ({ elements: {}, links: {}, wasEverMeasured: false }),
       isEqual: util.isEqual,
-      isDevToolEnabled: true,
     });
 
     this.areElementsMeasuredState = derivedState({
       name: 'Jointjs/AreElementsMeasured',
       state: [this.layoutState, this.internalState],
       selector: (layoutSnapshot, internalSnapshot) => {
-        // this is safe, because each time paper is rendered <paper, it crate state and paper cannot live without paperElementsViews,
-        // so we check if paper has already assigned paperElementsViews, this fix the delay between paper render and elements measurement.
-        // so in short, this fixed, on ready problem, where some elements could have size, but its not ready yet - because elements are also ready when elementView is mounted.
+        // Wait for each paper to publish at least one view metadata snapshot.
+        // This avoids reporting "ready" before ReactPaper has mounted views.
         const papers = Object.values(internalSnapshot.papers);
         if (papers.length === 0) return false;
         for (const paper of papers) {
-          if (!paper.paperElementViews) return false;
+          if (!paper.hasElementViewSnapshot) return false;
         }
         const layoutEntries = Object.values(layoutSnapshot.elements);
         if (layoutEntries.length === 0) return false;
@@ -388,19 +384,28 @@ export class GraphStore {
     });
   }
 
-  public updatePaperElementView(paperId: string, cellId: CellId, view: dia.ElementView) {
+  public updatePaperElementView(paperId: string, cellId: CellId, _view: dia.ElementView) {
     this.updatePaperSnapshot(paperId, (current) => {
-      const base = current ?? { paperElementViews: {} };
-      if (base.paperElementViews?.[cellId] === view) return base;
-      return { paperElementViews: { ...base.paperElementViews, [cellId]: view } };
+      const base = current ?? createPaperStoreSnapshot();
+      if (base.elementViewIds[cellId]) return base;
+      return {
+        ...base,
+        revision: base.revision + 1,
+        hasElementViewSnapshot: true,
+        elementViewIds: { ...base.elementViewIds, [cellId]: true },
+      };
     });
   }
 
-  public updatePaperLinkView(paperId: string, linkId: CellId, view: dia.LinkView) {
+  public updatePaperLinkView(paperId: string, linkId: CellId, _view: dia.LinkView) {
     this.updatePaperSnapshot(paperId, (current) => {
-      const base = current ?? { linkViews: {}, linksData: {} };
-      if (base.linkViews?.[linkId] === view) return base;
-      return { linkViews: { ...base.linkViews, [linkId]: view } };
+      const base = current ?? createPaperStoreSnapshot();
+      if (base.linkViewIds[linkId]) return base;
+      return {
+        ...base,
+        revision: base.revision + 1,
+        linkViewIds: { ...base.linkViewIds, [linkId]: true },
+      };
     });
   }
 
@@ -425,7 +430,7 @@ export class GraphStore {
       if (previous.papers[id]) {
         return previous;
       }
-      return { ...previous, papers: { ...previous.papers, [id]: {} } };
+      return { ...previous, papers: { ...previous.papers, [id]: createPaperStoreSnapshot() } };
     });
     return () => this.removePaper(id);
   };

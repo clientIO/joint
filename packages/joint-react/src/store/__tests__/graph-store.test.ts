@@ -3,7 +3,9 @@
 import { waitFor } from '@testing-library/react';
 import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
+import { createPaperStoreSnapshot } from '../paper-store';
 import { ReactElement } from '../../models/react-element';
+import { sendToDevTool } from '../../utils/dev-tools';
 import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
 import {
@@ -15,9 +17,20 @@ import type {
   LinkToGraphOptions,
 } from '../../state/graph-state-selectors';
 
+jest.mock('../../utils/dev-tools', () => ({
+  sendToDevTool: jest.fn(),
+}));
+
+const sendToDevToolMock = sendToDevTool as jest.MockedFunction<typeof sendToDevTool>;
+
 const DEFAULT_TEST_NAMESPACE = { ...shapes, ReactElement };
 
 describe('GraphStore', () => {
+  beforeEach(() => {
+    sendToDevToolMock.mockClear();
+    sendToDevToolMock.mockImplementation(() => {});
+  });
+
   describe('constructor', () => {
     it('should create a GraphStore with default graph instance', () => {
       const store = new GraphStore({});
@@ -207,12 +220,13 @@ describe('GraphStore', () => {
       const paperId = 'paper-1';
 
       store.updatePaperSnapshot(paperId, () => ({
-        paperElementViews: {},
+        ...createPaperStoreSnapshot(),
+        hasElementViewSnapshot: true,
       }));
 
       const internalSnapshot = store.internalState.getSnapshot();
       expect(internalSnapshot.papers[paperId]).toBeDefined();
-      expect(internalSnapshot.papers[paperId].paperElementViews).toEqual({});
+      expect(internalSnapshot.papers[paperId].hasElementViewSnapshot).toBe(true);
     });
 
     it('should update existing paper snapshot', () => {
@@ -220,22 +234,24 @@ describe('GraphStore', () => {
       const paperId = 'paper-1';
 
       store.updatePaperSnapshot(paperId, () => ({
-        paperElementViews: {},
+        ...createPaperStoreSnapshot(),
+        hasElementViewSnapshot: true,
       }));
 
       store.updatePaperSnapshot(paperId, (previous) => ({
         ...previous!,
-        paperElementViews: { 'element-1': {} as dia.ElementView },
+        revision: previous!.revision + 1,
+        elementViewIds: { ...previous!.elementViewIds, 'element-1': true },
       }));
 
       const internalSnapshot = store.internalState.getSnapshot();
-      expect(internalSnapshot.papers[paperId].paperElementViews).toHaveProperty('element-1');
+      expect(internalSnapshot.papers[paperId].elementViewIds).toHaveProperty('element-1');
     });
 
     it('should not update if snapshot is unchanged', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const snapshot = { paperElementViews: {} };
+      const snapshot = createPaperStoreSnapshot();
 
       store.updatePaperSnapshot(paperId, () => snapshot);
       const firstUpdate = store.internalState.getSnapshot().papers[paperId];
@@ -259,7 +275,9 @@ describe('GraphStore', () => {
 
       const internalSnapshot = store.internalState.getSnapshot();
       const paper = internalSnapshot.papers[paperId];
-      expect(paper?.paperElementViews?.[cellId]).toBe(mockView);
+      expect(paper?.elementViewIds[cellId]).toBe(true);
+      expect(paper?.hasElementViewSnapshot).toBe(true);
+      expect(paper?.revision).toBe(1);
     });
 
     it('should not update if view is unchanged', () => {
@@ -271,14 +289,49 @@ describe('GraphStore', () => {
       store.updatePaperElementView(paperId, cellId, mockView);
       const snapshot1 = store.internalState.getSnapshot();
       const paper1 = snapshot1.papers[paperId];
-      const firstUpdate = paper1?.paperElementViews?.[cellId];
+      const firstRevision = paper1?.revision;
 
       store.updatePaperElementView(paperId, cellId, mockView);
       const snapshot2 = store.internalState.getSnapshot();
       const paper2 = snapshot2.papers[paperId];
-      const secondUpdate = paper2?.paperElementViews?.[cellId];
+      const secondRevision = paper2?.revision;
 
-      expect(firstUpdate).toBe(secondUpdate);
+      expect(firstRevision).toBe(secondRevision);
+    });
+  });
+
+  describe('updatePaperLinkView', () => {
+    it('should update link view ids for given paper and link', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      const linkId = 'link-1';
+      const mockView = {} as dia.LinkView;
+
+      store.updatePaperLinkView(paperId, linkId, mockView);
+
+      const internalSnapshot = store.internalState.getSnapshot();
+      const paper = internalSnapshot.papers[paperId];
+      expect(paper?.linkViewIds[linkId]).toBe(true);
+      expect(paper?.revision).toBe(1);
+    });
+
+    it('should not update if link view id is unchanged', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      const linkId = 'link-1';
+      const mockView = {} as dia.LinkView;
+
+      store.updatePaperLinkView(paperId, linkId, mockView);
+      const snapshot1 = store.internalState.getSnapshot();
+      const paper1 = snapshot1.papers[paperId];
+      const firstRevision = paper1?.revision;
+
+      store.updatePaperLinkView(paperId, linkId, mockView);
+      const snapshot2 = store.internalState.getSnapshot();
+      const paper2 = snapshot2.papers[paperId];
+      const secondRevision = paper2?.revision;
+
+      expect(firstRevision).toBe(secondRevision);
     });
   });
 
@@ -296,6 +349,25 @@ describe('GraphStore', () => {
 
       expect(store.getPaperStore(paperId)).toBeDefined();
       expect(typeof cleanup).toBe('function');
+    });
+
+    it('should initialize serializable internal paper metadata', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      store.addPaper(paperId, {
+        paperOptions: {
+          model: store.graph,
+          width: 800,
+          height: 600,
+        },
+      });
+
+      const paperSnapshot = store.internalState.getSnapshot().papers[paperId];
+      expect(paperSnapshot.revision).toBe(0);
+      expect(paperSnapshot.hasElementViewSnapshot).toBe(false);
+      expect(paperSnapshot.elementViewIds).toEqual({});
+      expect(paperSnapshot.linkViewIds).toEqual({});
+      expect(() => JSON.stringify(store.internalState.getSnapshot())).not.toThrow();
     });
 
     it('should remove paper when cleanup is called', () => {
@@ -342,6 +414,45 @@ describe('GraphStore', () => {
 
       paper2();
       expect(store.getPaperStore('paper-2')).toBeUndefined();
+    });
+
+    it('should not crash when adding a paper with circular refs in runtime cache', () => {
+      sendToDevToolMock.mockImplementation(({ value }) => {
+        JSON.stringify(value);
+      });
+
+      const store = new GraphStore({});
+      const cleanupMain = store.addPaper('paper-main', {
+        paperOptions: {
+          model: store.graph,
+          width: 800,
+          height: 600,
+        },
+      });
+      const mainStore = store.getPaperStore('paper-main');
+      const cyclicView: { self?: unknown } = {};
+      cyclicView.self = cyclicView;
+      if (!mainStore) {
+        throw new Error('Main paper store not found');
+      }
+      mainStore.paper.reactElementCache.elementViews = {
+        'element-1': cyclicView as unknown as dia.ElementView,
+      };
+
+      expect(() =>
+        store.flushPendingUpdates()
+      ).not.toThrow();
+      expect(() =>
+        store.addPaper('paper-minimap', {
+          paperOptions: {
+            model: store.graph,
+            width: 800,
+            height: 600,
+          },
+        })
+      ).not.toThrow();
+
+      cleanupMain();
     });
   });
 
@@ -492,9 +603,10 @@ describe('GraphStore', () => {
 
       // Simulate paper becoming ready with rendered element views
       store.updatePaperSnapshot('paper-1', () => ({
-        paperElementViews: {
-          'element-1': {} as dia.ElementView,
-        },
+        ...createPaperStoreSnapshot(),
+        revision: 1,
+        hasElementViewSnapshot: true,
+        elementViewIds: { 'element-1': true },
       }));
 
       await waitFor(() => {
