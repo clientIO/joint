@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-useless-intersection */
 import type { anchors, connectionPoints, dia, shapes } from '@joint/core';
 import type { MarkerPreset } from '../theme/link-theme';
 import type { CellId } from './cell-id';
@@ -12,9 +13,7 @@ import type { CellId } from './cell-id';
  * top-level properties on {@link FlatLinkData} (e.g. `sourcePort`, `sourceAnchor`).
  * @group Graph
  */
-export type FlatLinkEnd =
-  | CellId
-  | { readonly x: number; readonly y: number };
+export type FlatLinkEnd = CellId | { readonly x: number; readonly y: number };
 
 export interface StandardLinkShapesTypeMapper {
   'standard.DoubleLink': shapes.standard.DoubleLinkSelectors;

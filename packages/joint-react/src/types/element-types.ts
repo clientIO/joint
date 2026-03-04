@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-useless-intersection */
 /**
  * Simplified port definition for declarative port configuration.
  * Converted to full JointJS port format by the default element mapper.

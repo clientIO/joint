@@ -1,3 +1,7 @@
+/* eslint-disable sonarjs/no-nested-conditional */
+/* eslint-disable unicorn/no-nested-ternary */
+/* eslint-disable no-nested-ternary */
+/* eslint-disable unicorn/consistent-function-scoping */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
@@ -108,8 +112,7 @@ function bevelRectPath(px: number, py: number, bv: number): string {
   const c1 = (v: string, offset: number) =>
     offset === 0 ? `calc(${v})` : offset > 0 ? `calc(${v} + ${offset})` : `calc(${v} - ${-offset})`;
   // Two-variable calc via nesting: calc(v1 + calc(v2 + n))
-  const c2 = (v1: string, v2: string, offset: number) =>
-    `calc(${v1} + ${c1(v2, offset)})`;
+  const c2 = (v1: string, v2: string, offset: number) => `calc(${v1} + ${c1(v2, offset)})`;
   return [
     `M ${c1('x', -(px - bv))} ${c1('y', -py)}`,
     `L ${c2('x', 'w', px - bv)} ${c1('y', -py)}`,
@@ -135,29 +138,105 @@ const LABEL: FlatLinkLabel = {
 
 const flowchartLinks: Record<string, FlatLinkData> = {
   // start(50,40) → addToCart(200,40): horizontal right
-  flow1: { ...LINK_OPTIONS, source: 'start', target: 'addToCart', sourceAnchor: RIGHT, targetAnchor: LEFT },
+  flow1: {
+    ...LINK_OPTIONS,
+    source: 'start',
+    target: 'addToCart',
+    sourceAnchor: RIGHT,
+    targetAnchor: LEFT,
+  },
   // addToCart(200,40) → checkoutItems(350,40): horizontal right
-  flow2: { ...LINK_OPTIONS, source: 'addToCart', target: 'checkoutItems', sourceAnchor: RIGHT, targetAnchor: LEFT },
+  flow2: {
+    ...LINK_OPTIONS,
+    source: 'addToCart',
+    target: 'checkoutItems',
+    sourceAnchor: RIGHT,
+    targetAnchor: LEFT,
+  },
   // checkoutItems(350,40) → addShippingInfo(500,40): horizontal right
-  flow3: { ...LINK_OPTIONS, source: 'checkoutItems', target: 'addShippingInfo', sourceAnchor: RIGHT, targetAnchor: LEFT },
+  flow3: {
+    ...LINK_OPTIONS,
+    source: 'checkoutItems',
+    target: 'addShippingInfo',
+    sourceAnchor: RIGHT,
+    targetAnchor: LEFT,
+  },
   // addShippingInfo(500,40) → addPaymentInfo(500,140): vertical down
-  flow4: { ...LINK_OPTIONS, source: 'addShippingInfo', target: 'addPaymentInfo', sourceAnchor: BOTTOM, targetAnchor: TOP },
+  flow4: {
+    ...LINK_OPTIONS,
+    source: 'addShippingInfo',
+    target: 'addPaymentInfo',
+    sourceAnchor: BOTTOM,
+    targetAnchor: TOP,
+  },
   // addPaymentInfo(500,140) → validPayment(500,250): vertical down
-  flow5: { ...LINK_OPTIONS, source: 'addPaymentInfo', target: 'validPayment', sourceAnchor: BOTTOM, targetAnchor: TOP },
+  flow5: {
+    ...LINK_OPTIONS,
+    source: 'addPaymentInfo',
+    target: 'validPayment',
+    sourceAnchor: BOTTOM,
+    targetAnchor: TOP,
+  },
   // validPayment(500,250) → presentErrorMessage(750,350): down-right
-  flow6: { ...LINK_OPTIONS, source: 'validPayment', target: 'presentErrorMessage', labels: [{ ...LABEL, text: 'No' }], sourceAnchor: BOTTOM, targetAnchor: LEFT },
+  flow6: {
+    ...LINK_OPTIONS,
+    source: 'validPayment',
+    target: 'presentErrorMessage',
+    labels: [{ ...LABEL, text: 'No' }],
+    sourceAnchor: BOTTOM,
+    targetAnchor: LEFT,
+  },
   // presentErrorMessage(750,350) → addPaymentInfo(500,140): up-left
-  flow7: { ...LINK_OPTIONS, source: 'presentErrorMessage', target: 'addPaymentInfo', sourceAnchor: TOP, targetAnchor: RIGHT },
+  flow7: {
+    ...LINK_OPTIONS,
+    source: 'presentErrorMessage',
+    target: 'addPaymentInfo',
+    sourceAnchor: TOP,
+    targetAnchor: RIGHT,
+  },
   // validPayment(500,250) → sendOrder(200,250): horizontal left
-  flow8: { ...LINK_OPTIONS, source: 'validPayment', target: 'sendOrder', labels: [{ ...LABEL, text: 'Yes' }], sourceAnchor: LEFT, targetAnchor: RIGHT },
+  flow8: {
+    ...LINK_OPTIONS,
+    source: 'validPayment',
+    target: 'sendOrder',
+    labels: [{ ...LABEL, text: 'Yes' }],
+    sourceAnchor: LEFT,
+    targetAnchor: RIGHT,
+  },
   // sendOrder(200,250) → packOrder(40,350): down-left
-  flow9: { ...LINK_OPTIONS, source: 'sendOrder', target: 'packOrder', sourceAnchor: LEFT, targetAnchor: TOP },
+  flow9: {
+    ...LINK_OPTIONS,
+    source: 'sendOrder',
+    target: 'packOrder',
+    sourceAnchor: LEFT,
+    targetAnchor: TOP,
+  },
   // packOrder(40,350) → qualityCheck(200,460): down-right
-  flow10: { ...LINK_OPTIONS, source: 'packOrder', target: 'qualityCheck', sourceAnchor: BOTTOM, targetAnchor: LEFT },
+  flow10: {
+    ...LINK_OPTIONS,
+    source: 'packOrder',
+    target: 'qualityCheck',
+    sourceAnchor: BOTTOM,
+    targetAnchor: LEFT,
+  },
   // qualityCheck(200,460) → shipItems(500,460): horizontal right
-  flow11: { ...LINK_OPTIONS, source: 'qualityCheck', target: 'shipItems', labels: [{ ...LABEL, text: 'Ok' }], sourceAnchor: RIGHT, targetAnchor: LEFT },
+  flow11: {
+    ...LINK_OPTIONS,
+    source: 'qualityCheck',
+    target: 'shipItems',
+    labels: [{ ...LABEL, text: 'Ok' }],
+    sourceAnchor: RIGHT,
+    targetAnchor: LEFT,
+  },
   // qualityCheck(200,460) → sendOrder(200,250): vertical up
-  flow12: { ...LINK_OPTIONS, source: 'qualityCheck', target: 'sendOrder', labels: [{ ...LABEL, text: 'Not Ok' }], sourceAnchor: TOP, targetAnchor: BOTTOM },
+  flow12: {
+    ...LINK_OPTIONS,
+    source: 'qualityCheck',
+    target: 'sendOrder',
+    labels: [{ ...LABEL, text: 'Not Ok' }],
+    sourceAnchor: TOP,
+    targetAnchor: BOTTOM,
+  },
 };
 
 interface PropsWithClick {
@@ -316,8 +395,8 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
     className: 'jj-frame',
     attrs: {
       strokeWidth: 1.5,
-      strokeLinejoin: 'round'
-    }
+      strokeLinejoin: 'round',
+    },
   });
 
   const bodyRef = (node: SVGRectElement | SVGPolygonElement | null) => {
@@ -443,7 +522,7 @@ function Main() {
         args: {
           offset: unit * 2,
           extrapolate: true,
-        }
+        },
       }}
       defaultRouter={{
         name: 'rightAngle',
@@ -459,14 +538,37 @@ function Main() {
   );
 }
 
-function ThemeSwitch({ onClick }: { readonly onClick: () => void }) {
+function ThemeSwitch({ onClick }: Readonly<{ onClick: () => void }>) {
   return (
     <div className="theme-switch" title="Switch between light and dark mode" onClick={onClick}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" fill="none" stroke="#dde6ed" strokeLinecap="round" strokeLinejoin="round" className="light-icon">
-        <path d="M12 18.5C15.5899 18.5 18.5 15.5899 18.5 12C18.5 8.41015 15.5899 5.5 12 5.5C8.41015 5.5 5.5 8.41015 5.5 12C5.5 15.5899 8.41015 18.5 12 18.5Z" strokeWidth="1.5" />
-        <path d="M19.14 19.14L19.01 19.01M19.01 4.99L19.14 4.86L19.01 4.99ZM4.86 19.14L4.99 19.01L4.86 19.14ZM12 2.08V2V2.08ZM12 22V21.92V22ZM2.08 12H2H2.08ZM22 12H21.92H22ZM4.99 4.99L4.86 4.86L4.99 4.99Z" strokeWidth="2" />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20px"
+        height="20px"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#dde6ed"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="light-icon"
+      >
+        <path
+          d="M12 18.5C15.5899 18.5 18.5 15.5899 18.5 12C18.5 8.41015 15.5899 5.5 12 5.5C8.41015 5.5 5.5 8.41015 5.5 12C5.5 15.5899 8.41015 18.5 12 18.5Z"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M19.14 19.14L19.01 19.01M19.01 4.99L19.14 4.86L19.01 4.99ZM4.86 19.14L4.99 19.01L4.86 19.14ZM12 2.08V2V2.08ZM12 22V21.92V22ZM2.08 12H2H2.08ZM22 12H21.92H22ZM4.99 4.99L4.86 4.86L4.99 4.99Z"
+          strokeWidth="2"
+        />
       </svg>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" fill="#131e29" className="dark-icon">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20px"
+        height="20px"
+        viewBox="0 0 24 24"
+        fill="#131e29"
+        className="dark-icon"
+      >
         <path d="M12.0557 3.59974C12.2752 3.2813 12.2913 2.86484 12.0972 2.53033C11.9031 2.19582 11.5335 2.00324 11.1481 2.03579C6.02351 2.46868 2 6.76392 2 12C2 17.5228 6.47715 22 12 22C17.236 22 21.5313 17.9764 21.9642 12.8518C21.9967 12.4664 21.8041 12.0968 21.4696 11.9027C21.1351 11.7086 20.7187 11.7248 20.4002 11.9443C19.4341 12.6102 18.2641 13 17 13C13.6863 13 11 10.3137 11 6.99996C11 5.73589 11.3898 4.56587 12.0557 3.59974Z" />
       </svg>
       <div className="switch" />
