@@ -130,10 +130,10 @@ const toolsView = new dia.ToolsView({
 function Main() {
   return (
     <Paper
-      defaultLink={{
-        color: LIGHT,
-        targetMarker: 'arrow',
-      }}
+      // defaultLink={{
+      //   color: LIGHT,
+      //   targetMarker: 'arrow',
+      // }}
       renderElement={NodeElement}
       className={PAPER_CLASSNAME}
       sorting={dia.Paper.sorting.APPROX}

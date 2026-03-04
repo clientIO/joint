@@ -135,7 +135,7 @@ async function dragLinkFromSourcePortToTargetPort(paper: dia.Paper): Promise<dia
   return addedLink;
 }
 
-function renderPortDragPaper(defaultLink: DefaultLinkProperty) {
+function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
   const ref: RefObject<dia.Paper | null> = { current: null };
   let linksSnapshot: Record<string, FlatLinkData> = {};
 
@@ -840,6 +840,29 @@ describe('Paper Component', () => {
   });
 
   describe('defaultLink drag integration', () => {
+    it('uses default ReactLink theme when defaultLink is not provided', async () => {
+      const { ref, getLinksSnapshot } = renderPortDragPaper();
+
+      await waitFor(() => {
+        expect(ref.current).not.toBeNull();
+      });
+
+      const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
+      expect(createdLink).toBeInstanceOf(ReactLink);
+      expect(createdLink.get('type')).toBe(REACT_LINK_TYPE);
+      expect(createdLink.attr(['line', 'stroke'])).toBe('#333333');
+      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(2);
+
+      await waitFor(() => {
+        expect(Object.keys(getLinksSnapshot())).toHaveLength(1);
+      });
+
+      const [createdLinkData] = Object.values(getLinksSnapshot());
+      expect(createdLinkData.color).toBe('#333333');
+      expect(createdLinkData.width).toBe(2);
+      expect(createdLinkData.targetMarker).toBe('none');
+    });
+
     it('supports defaultLink as a dia.Link instance when dragging between ports', async () => {
       const providedLink = new shapes.standard.Link({
         attrs: {
