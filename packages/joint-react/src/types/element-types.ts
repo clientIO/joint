@@ -88,12 +88,10 @@ export interface FlatElementPort {
   readonly labelClassName?: string;
   /**
    * Horizontal offset of the port label in pixels.
-   * @default 0
    */
   readonly labelOffsetX?: number;
   /**
    * Vertical offset of the port label in pixels.
-   * @default 0
    */
   readonly labelOffsetY?: number;
 }

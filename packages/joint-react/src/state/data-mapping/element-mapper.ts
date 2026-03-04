@@ -138,10 +138,9 @@ export function defaultMapElementAttributesToData<Element extends FlatElementDat
   if (parent) elementData.parent = parent;
 
   return {
-    // Base: preserve one-way properties (e.g. ports) from previous state
-    ...previousData,
-    // Override with round-tripped user data from the model
     ...userData,
+    // Preserve one-way properties that are not stored in cell.data
+    ports: previousData?.ports,
     // Override with two-way synced properties (position, size, etc.)
     ...elementData,
   } as Element;

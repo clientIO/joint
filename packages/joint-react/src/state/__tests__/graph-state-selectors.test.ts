@@ -187,8 +187,8 @@ describe('graph-state-selectors', () => {
         height: 50,
         angle: 45,
       });
-      // ports is one-way (consumed during forward mapping only), not returned by reverse mapper
-      expect(elementFromGraph).not.toHaveProperty('ports');
+      // ports is one-way — preserved from previousData (undefined when no previousData)
+      expect(elementFromGraph).toHaveProperty('ports', undefined);
     });
   });
 
@@ -305,9 +305,9 @@ describe('graph-state-selectors', () => {
 
       const result = defaultMapElementAttributesToData(options);
 
-      // previousData is spread as a base to preserve one-way properties (e.g. ports)
-      // customProp from previousData is preserved in the result
-      expect(result).toHaveProperty('customProp', undefined);
+      // Only specific one-way properties (ports) are preserved from previousData
+      // customProp was never stored in cell.data, so it won't appear
+      expect(result).not.toHaveProperty('customProp');
     });
 
     it('should handle element with non-REACT_TYPE', () => {
@@ -352,8 +352,8 @@ describe('graph-state-selectors', () => {
 
       const result = defaultMapElementAttributesToData(options);
 
-      // ports is one-way (consumed during forward mapping only), not returned by reverse mapper
-      expect(result).not.toHaveProperty('ports');
+      // ports is one-way — preserved from previousData (undefined when no previousData)
+      expect(result).toHaveProperty('ports', undefined);
     });
   });
 

@@ -160,7 +160,7 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
 export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
   options: Pick<GraphToLinkOptions<Link>, 'cell' | 'previousData'>
 ): Link {
-  const { cell } = options;
+  const { cell, previousData } = options;
   const {
     // User data + presentation props (saved during forward mapping)
     data: userData,
@@ -205,6 +205,11 @@ export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
 
   return {
     ...userData,
+    // Preserve one-way properties that are not stored in cell.data
+    labels: previousData?.labels,
+    router: previousData?.router,
+    connector: previousData?.connector,
+    // Override with two-way synced properties (source, target, etc.)
     ...linkData,
   } as Link;
 }
