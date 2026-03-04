@@ -160,9 +160,7 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({
-  elements,
-}: Readonly<{ elements: Record<string, EmbeddingElement> }>) {
+function ElementDataView({ elements }: Readonly<{ elements: Record<string, EmbeddingElement> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useElements() Data</h3>
@@ -211,7 +209,6 @@ function Main() {
     <div className="flex w-full h-full">
       <Paper
         className={PAPER_CLASSNAME}
-        height={400}
         renderElement={renderElement}
         style={PAPER_STYLE}
         embeddingMode

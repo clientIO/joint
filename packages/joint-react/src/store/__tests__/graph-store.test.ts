@@ -286,14 +286,12 @@ describe('GraphStore', () => {
     it('should add a new paper and return cleanup function', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const paperElement = document.createElement('div');
       const cleanup = store.addPaper(paperId, {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
-        paperElement,
       });
 
       expect(store.getPaperStore(paperId)).toBeDefined();
@@ -303,14 +301,12 @@ describe('GraphStore', () => {
     it('should remove paper when cleanup is called', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const paperElement = document.createElement('div');
       const cleanup = store.addPaper(paperId, {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
-        paperElement,
       });
 
       expect(store.getPaperStore(paperId)).toBeDefined();
@@ -322,15 +318,12 @@ describe('GraphStore', () => {
 
     it('should handle multiple papers', () => {
       const store = new GraphStore({});
-      const paper1Element = document.createElement('div');
-      const paper2Element = document.createElement('div');
       const paper1 = store.addPaper('paper-1', {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
-        paperElement: paper1Element,
       });
       const paper2 = store.addPaper('paper-2', {
         paperOptions: {
@@ -338,7 +331,6 @@ describe('GraphStore', () => {
           width: 800,
           height: 600,
         },
-        paperElement: paper2Element,
       });
 
       expect(store.getPaperStore('paper-1')).toBeDefined();
@@ -426,14 +418,12 @@ describe('GraphStore', () => {
 
     it('should return paper store for existing paper', () => {
       const store = new GraphStore({});
-      const paperElement = document.createElement('div');
       store.addPaper('paper-1', {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
-        paperElement,
       });
 
       const paperStore = store.getPaperStore('paper-1');

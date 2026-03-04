@@ -1,12 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useNodeSize, useCellId } from '@joint/react';
+import { GraphProvider, Paper, useNodeSize, useCellId, useElements, useGraph } from '@joint/react';
 import '../index.css';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { shapes, util } from '@joint/core';
 import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import type { dia } from '../../../../../joint-core/types';
-import type { CellId } from '../../../types/cell-id';
-import { useCellChangeEffect } from '../../../hooks/use-cell-change-effect';
 
 const initialElements: Record<string, { label: string; x: number; y: number }> = {
   '1': { label: 'Node 1', x: 100, y: 0 },
@@ -40,114 +38,46 @@ class DashedLink extends shapes.standard.Link {
 
 const PROXIMITY_THRESHOLD = 60;
 
-function getLinkId(id: CellId | null, closeId: CellId | null) {
+function getLinkId(id: dia.Cell.ID, closeId: dia.Cell.ID) {
   return `${id}-${closeId}`;
-}
-
-function shouldReactToChange(
-  change: { readonly cell?: dia.Cell } | undefined,
-  elementId: CellId
-): boolean {
-  if (!change) {
-    return true;
-  }
-
-  const changedCell = change.cell;
-  if (!changedCell) {
-    return true;
-  }
-
-  // Ignore changes to links (they are instances of Link, not Element)
-  if (changedCell.isLink()) {
-    return false;
-  }
-
-  // Only react if the changed cell is the element we're tracking
-  return changedCell.id === elementId;
-}
-
-function removeOldLinks(
-  graph: dia.Graph,
-  managedLinks: Set<string>,
-  currentLinkIds: Set<string>
-): void {
-  for (const linkId of managedLinks) {
-    if (!currentLinkIds.has(linkId)) {
-      graph.getCell(linkId)?.remove();
-      managedLinks.delete(linkId);
-    }
-  }
-}
-
-function createProximityLinks(
-  graph: dia.Graph,
-  elementId: CellId,
-  closeIds: readonly CellId[],
-  managedLinks: Set<string>
-): void {
-  for (const closeId of closeIds) {
-    const linkId = getLinkId(elementId, closeId);
-    const linkIdString = String(linkId);
-    // Check if the link or the reverse link already exists
-    if (graph.getCell(linkId)) {
-      managedLinks.add(linkIdString);
-      continue;
-    }
-    if (graph.getCell(getLinkId(closeId, elementId))) {
-      continue;
-    }
-
-    const link = new DashedLink({
-      id: linkId,
-      source: { id: elementId },
-      target: { id: closeId },
-    });
-    graph.addCell(link, { async: false });
-    managedLinks.add(linkIdString);
-  }
 }
 
 function ResizableNode({ label }: Readonly<BaseElementWithData>) {
   const id = useCellId();
   const nodeRef = useRef<HTMLDivElement>(null);
-  const managedLinksRef = useRef<Set<string>>(new Set());
 
-  useCellChangeEffect(
-    ({ graph, change }) => {
-      if (!shouldReactToChange(change, id)) {
-        return;
-      }
+  const graph = useGraph();
+  const element = graph.getCell(id);
+  const closeIds = useElements(() => {
+    const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
+    const proximityElements = graph
+      .findElementsInArea(area)
+      .filter((element_) => element_.id !== id);
+    return proximityElements.map((element_) => element_.id);
+  });
 
-      const element = graph.getCell(id);
-      if (!element || element.isLink()) {
-        return;
-      }
+  useEffect(() => {
+    for (const closeId of closeIds) {
+      const linkId = getLinkId(id, closeId);
+      // Check if the link or the reverse link already exists
+      if (graph.getCell(linkId)) continue;
+      // eslint-disable-next-line sonarjs/arguments-order
+      if (graph.getCell(getLinkId(closeId, id))) continue;
 
-      const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
-      const proximityElements = graph
-        .findElementsInArea(area)
-        .filter((element_) => element_.id !== id);
-      const closeIds = proximityElements.map((element_) => element_.id as CellId);
-
-      // Clean up old links that are no longer needed
-      const currentLinkIds = new Set<string>();
+      const link = new DashedLink({
+        id: linkId,
+        source: { id },
+        target: { id: closeId },
+      });
+      graph.addCell(link, { async: false });
+    }
+    return () => {
       for (const closeId of closeIds) {
         const linkId = getLinkId(id, closeId);
-        currentLinkIds.add(String(linkId));
+        graph.getCell(linkId)?.remove();
       }
-
-      removeOldLinks(graph, managedLinksRef.current, currentLinkIds);
-      createProximityLinks(graph, id, closeIds, managedLinksRef.current);
-
-      return () => {
-        for (const linkId of managedLinksRef.current) {
-          graph.getCell(linkId)?.remove();
-        }
-        managedLinksRef.current.clear();
-      };
-    },
-    [id]
-  );
+    };
+  }, [closeIds, graph, id]);
 
   const { width, height } = useNodeSize(nodeRef);
   return (

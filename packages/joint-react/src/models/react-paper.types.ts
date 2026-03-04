@@ -1,5 +1,4 @@
 import type { dia } from '@joint/core';
-import type { CellId } from '../types/cell-id';
 import type { GraphStore } from '../store/graph-store';
 
 /**
@@ -9,20 +8,4 @@ import type { GraphStore } from '../store/graph-store';
 export interface ReactPaperOptions extends dia.Paper.Options {
   /** Reference to the GraphStore for scheduling updates */
   readonly graphStore: GraphStore;
-}
-
-/**
- * Extended Paper class with React-specific view management.
- * Uses reactElementCache and reactLinkCache to track mounted views for portal rendering.
- */
-export interface IReactPaper extends dia.Paper {
-  /** Cache for element views - managed by ReactPaper */
-  readonly reactElementCache: {
-    elementViews: Record<CellId, dia.ElementView>;
-  };
-  /** Cache for link views - managed by ReactPaper */
-  readonly reactLinkCache: {
-    linkViews: Record<CellId, dia.LinkView>;
-    linksData: Record<string, SVGElement>;
-  };
 }

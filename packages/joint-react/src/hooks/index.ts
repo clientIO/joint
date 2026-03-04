@@ -19,3 +19,4 @@ export * from './use-link-layout';
 export * from './use-graph-store-selector';
 export * from './use-highlighter';
 export * from './use-markup';
+export * from './use-create-react-paper';

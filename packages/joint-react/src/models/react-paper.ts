@@ -56,6 +56,22 @@ export class ReactPaper extends dia.Paper {
   }
 
   /**
+   * Mounts the paper DOM element into the provided host element.
+   * This is used by React wrappers (`Paper`, `PaperScroller`) to control where
+   * JointJS paper DOM is attached.
+   * @param element - The host element where paper should be rendered.
+   * @returns The same ReactPaper instance for chaining.
+   */
+  public render(element?: HTMLElement | SVGElement): this {
+    if (!element) {
+      return super.render();
+    }
+    element.replaceChildren(this.el);
+    this.unfreeze();
+    return this;
+  }
+
+  /**
    * Resolves the portal target node from a cell view.
    * For views whose model markup contains the `reactPortal` selector this
    * returns the dedicated `<g>` group; otherwise it falls back to the
