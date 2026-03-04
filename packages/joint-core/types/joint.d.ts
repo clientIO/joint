@@ -1908,7 +1908,7 @@ export namespace dia {
         layers: SVGGElement;
 
         GUARDED_TAG_NAMES: string[];
-        FORM_CONTROLS_TAG_NAMES: string[];
+        FORM_CONTROL_TAG_NAMES: string[];
 
         matrix(): SVGMatrix;
         matrix(ctm: SVGMatrix | Vectorizer.Matrix, data?: any): this;
@@ -2094,9 +2094,9 @@ export namespace dia {
 
         removeLayerView(layerRef: Paper.LayerRef): void;
 
-        protected insertLayerView(layerView: LayerView, before?: Paper.LayerRef): void;
+        protected insertLayerView(layerView: LayerView, beforeLayerView?: LayerView): void;
 
-        protected requestLayerViewRemoval(layerRef: Paper.LayerRef): void;
+        protected requestLayerViewRemoval(layerRef: Paper.LayerRef, opt?: { [key: string]: any }): void;
 
         protected createLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
 
@@ -2185,9 +2185,9 @@ export namespace dia {
 
         protected updateViewsBatch(opt?: Paper.UpdateViewsBatchOptions): Paper.RenderBatchStats;
 
-        protected checkMountedViews(viewport: Paper.ViewportCallback, opt?: Paper.UnmountOptions): number;
+        protected checkMountedViews(viewport: Paper.ViewportCallback | Paper.CellVisibilityCallback | null, opt?: Paper.UnmountOptions): number;
 
-        protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: Paper.MountOptions): number;
+        protected checkUnmountedViews(viewport: Paper.ViewportCallback | Paper.CellVisibilityCallback | null, opt?: Paper.MountOptions): number;
 
         protected prioritizeCellViewMount(cellOrId: Graph.CellRef): boolean;
 
@@ -2201,9 +2201,9 @@ export namespace dia {
 
         protected isExactSorting(): boolean;
 
-        protected sortViews(): void;
+        protected sortLayerViews(): void;
 
-        protected sortViewsExact(): void;
+        protected sortLayerViewsExact(): void;
 
         protected pointerdblclick(evt: dia.Event): void;
 
@@ -2235,15 +2235,15 @@ export namespace dia {
 
         protected guard(evt: dia.Event, view: CellView): boolean;
 
-        protected drawBackgroundImage(img: HTMLImageElement, opt: { [key: string]: any }): void;
+        protected drawBackgroundImage(img: HTMLImageElement | null, opt?: { [key: string]: any }): void;
 
-        protected updateBackgroundColor(color: string): void;
+        protected updateBackgroundColor(color?: string): void;
 
         protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
 
-        protected createViewForModel(cell: Cell): CellView;
+        protected createViewForModel(cell: Cell, cid?: string): CellView;
 
-        protected cloneOptions(): Paper.Options;
+        protected cloneOptions(): void;
 
         protected onCellAdded(cell: Cell, collection: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
@@ -2258,13 +2258,13 @@ export namespace dia {
 
         protected onGraphLayerCollectionReset(layer: mvc.Collection<GraphLayer>, opt: dia.Graph.Options): void;
 
-        protected onGraphLayerCollectionSort(layer: GraphLayer[]): void;
+        protected onGraphLayerCollectionSort(layerCollection: mvc.Collection<GraphLayer>): void;
 
         protected onGraphReset(cells: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
         protected onGraphSort(): void;
 
-        protected onGraphBatchStop(): void;
+        protected onGraphBatchStop(data?: { batchName: string }): void;
 
         protected onCellHighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
@@ -2276,7 +2276,7 @@ export namespace dia {
 
         protected removeViews(): void;
 
-        protected renderView(cell: Cell): CellView;
+        protected renderView(cell: Cell, opt?: { [key: string]: any }): CellView;
 
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
 
