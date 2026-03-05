@@ -11,6 +11,7 @@ import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
 } from '../../state/data-mapping';
+import { scheduler } from '../../utils/scheduler';
 import type { ElementToGraphOptions, LinkToGraphOptions } from '../../state/graph-state-selectors';
 
 jest.mock('../../utils/dev-tools', () => ({
@@ -25,6 +26,10 @@ describe('GraphStore', () => {
   beforeEach(() => {
     sendToDevToolMock.mockClear();
     sendToDevToolMock.mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    scheduler.flushNowForTests();
   });
 
   describe('constructor', () => {
@@ -67,6 +72,23 @@ describe('GraphStore', () => {
       expect(snapshot.elements['element-2']).toBeDefined();
     });
 
+    it('should sync initial elements into graph immediately after construction', () => {
+      const initialElements: Record<string, FlatElementData> = {
+        'element-1': {
+          x: 10,
+          y: 20,
+          width: 100,
+          height: 50,
+          type: 'ReactElement',
+        },
+      };
+
+      const store = new GraphStore({ initialElements });
+
+      expect(store.graph.getCell('element-1')).toBeDefined();
+      expect(store.graph.getElements()).toHaveLength(1);
+    });
+
     it('should initialize with initialLinks', () => {
       const initialLinks: Record<string, FlatLinkData> = {
         'link-1': { source: 'element-1', target: 'element-2', type: 'standard.Link' },
@@ -107,13 +129,17 @@ describe('GraphStore', () => {
       function unsubscribe() {
         // Empty unsubscribe function
       }
+      const setState = jest.fn();
       const externalStore = {
         getSnapshot: () => ({ elements: {}, links: {} }),
         subscribe: () => unsubscribe,
-        setState: () => {},
+        setState,
       };
       const store = new GraphStore({ externalStore });
-      expect(store.publicState).toBe(externalStore);
+      expect(store.publicState).not.toBe(externalStore);
+      store.publicState.setState((previous) => previous);
+      scheduler.flushNowForTests();
+      expect(setState).toHaveBeenCalledTimes(1);
     });
 
     it('should use custom selectors when provided', () => {
@@ -279,14 +305,13 @@ describe('GraphStore', () => {
     });
   });
 
-  describe('updatePaperElementView', () => {
+  describe('markPaperElementViewMounted', () => {
     it('should update element view for given paper and cell', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
       const cellId = 'element-1';
-      const mockView = {} as dia.ElementView;
 
-      store.updatePaperElementView(paperId, cellId, mockView);
+      store.markPaperElementViewMounted(paperId, cellId);
 
       const internalSnapshot = store.internalState.getSnapshot();
       const paper = internalSnapshot.papers[paperId];
@@ -298,28 +323,39 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
       const cellId = 'element-1';
-      const mockView = {} as dia.ElementView;
 
-      store.updatePaperElementView(paperId, cellId, mockView);
+      store.markPaperElementViewMounted(paperId, cellId);
       const snapshot1 = store.internalState.getSnapshot();
       const paper1 = snapshot1.papers[paperId];
 
-      store.updatePaperElementView(paperId, cellId, mockView);
+      store.markPaperElementViewMounted(paperId, cellId);
       const snapshot2 = store.internalState.getSnapshot();
       const paper2 = snapshot2.papers[paperId];
 
       expect(paper2).toBe(paper1);
     });
+
+    it('should remove element view id on unmount', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      const cellId = 'element-1';
+
+      store.markPaperElementViewMounted(paperId, cellId);
+      store.markPaperElementViewUnmounted(paperId, cellId);
+
+      const paper = store.internalState.getSnapshot().papers[paperId];
+      expect(paper?.elementViewIds[cellId]).toBeUndefined();
+      expect(paper?.hasElementViewSnapshot).toBe(true);
+    });
   });
 
-  describe('updatePaperLinkView', () => {
+  describe('markPaperLinkViewMounted', () => {
     it('should update link view ids for given paper and link', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
       const linkId = 'link-1';
-      const mockView = {} as dia.LinkView;
 
-      store.updatePaperLinkView(paperId, linkId, mockView);
+      store.markPaperLinkViewMounted(paperId, linkId);
 
       const internalSnapshot = store.internalState.getSnapshot();
       const paper = internalSnapshot.papers[paperId];
@@ -330,17 +366,28 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
       const linkId = 'link-1';
-      const mockView = {} as dia.LinkView;
 
-      store.updatePaperLinkView(paperId, linkId, mockView);
+      store.markPaperLinkViewMounted(paperId, linkId);
       const snapshot1 = store.internalState.getSnapshot();
       const paper1 = snapshot1.papers[paperId];
 
-      store.updatePaperLinkView(paperId, linkId, mockView);
+      store.markPaperLinkViewMounted(paperId, linkId);
       const snapshot2 = store.internalState.getSnapshot();
       const paper2 = snapshot2.papers[paperId];
 
       expect(paper2).toBe(paper1);
+    });
+
+    it('should remove link view id on unmount', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      const linkId = 'link-1';
+
+      store.markPaperLinkViewMounted(paperId, linkId);
+      store.markPaperLinkViewUnmounted(paperId, linkId);
+
+      const paper = store.internalState.getSnapshot().papers[paperId];
+      expect(paper?.linkViewIds[linkId]).toBeUndefined();
     });
   });
 
@@ -424,7 +471,7 @@ describe('GraphStore', () => {
       expect(store.getPaperStore('paper-2')).toBeUndefined();
     });
 
-    it('should not crash when adding a paper with circular refs in runtime cache', () => {
+    it('should not crash when adding a second paper after view snapshot updates', () => {
       sendToDevToolMock.mockImplementation(({ value }) => {
         JSON.stringify(value);
       });
@@ -438,16 +485,11 @@ describe('GraphStore', () => {
         },
       });
       const mainStore = store.getPaperStore('paper-main');
-      const cyclicView: { self?: unknown } = {};
-      cyclicView.self = cyclicView;
       if (!mainStore) {
         throw new Error('Main paper store not found');
       }
-      mainStore.paper.reactElementCache.elementViews = {
-        'element-1': cyclicView as unknown as dia.ElementView,
-      };
 
-      expect(() => store.flushPendingUpdates()).not.toThrow();
+      expect(() => store.markPaperElementViewMounted('paper-main', 'element-1')).not.toThrow();
       expect(() =>
         store.addPaper('paper-minimap', {
           paperOptions: {
@@ -574,13 +616,16 @@ describe('GraphStore', () => {
       const newStore = {
         getSnapshot: () => ({ elements: {}, links: {} }),
         subscribe: () => unsubscribe,
-        setState: () => {},
+        setState: jest.fn(),
       };
 
       store.updateExternalStore(newStore);
 
-      expect(store.publicState).toBe(newStore);
+      expect(store.publicState).not.toBe(newStore);
       expect(store.publicState).not.toBe(originalStore);
+      store.publicState.setState((previous) => previous);
+      scheduler.flushNowForTests();
+      expect(newStore.setState).toHaveBeenCalledTimes(1);
     });
   });
 

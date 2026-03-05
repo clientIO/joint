@@ -1,1 +1,3 @@
-/// EMPTY FOR NOW< WILL BE ADDED LATER>
+describe('GraphStore syncing', () => {
+  it.todo('adds integration coverage for complex graph/store synchronization');
+});

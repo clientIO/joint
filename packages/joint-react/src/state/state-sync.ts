@@ -18,8 +18,6 @@ import {
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
 } from './data-mapping';
-import type { GraphSchedulerData } from '../types/scheduler.types';
-import type { Scheduler } from '../utils/scheduler';
 import { updateGraph, mapGraphElement, mapGraphLink } from './update-graph';
 
 export interface StateSync {
@@ -32,8 +30,7 @@ interface StateSyncOptions<
   LinkData = FlatLinkData,
 > extends GraphStateSelectors<ElementData, LinkData> {
   readonly graph: Graph;
-  readonly store: Omit<ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>, 'setState'>;
-  readonly scheduler: Scheduler<GraphSchedulerData>;
+  readonly store: ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>;
   readonly graphToElementSelector?: (
     options: GraphToElementOptions<ElementData> & { readonly graph: Graph }
   ) => ElementData;
@@ -45,29 +42,6 @@ interface StateSyncOptions<
    * Used to trigger layout updates when changes come from React state (e.g., useCellActions).
    */
   readonly onGraphUpdated?: () => void;
-}
-
-/**
- * Helper to update a Map immutably - add/set operation.
- * @param map
- * @param key
- * @param value
- */
-function mapSet<K, V>(map: Map<K, V> | undefined, key: K, value: V): Map<K, V> {
-  const newMap = new Map(map);
-  newMap.set(key, value);
-  return newMap;
-}
-
-/**
- * Helper to update a Map immutably - delete operation.
- * @param map
- * @param key
- */
-function mapDelete<K, V>(map: Map<K, V> | undefined, key: K): Map<K, V> {
-  const newMap = new Map(map);
-  newMap.delete(key);
-  return newMap;
 }
 
 /**
@@ -107,28 +81,8 @@ function mapCellsToData<
 }
 
 /**
- * Finds IDs to delete by comparing current snapshot with new IDs.
- * @param currentIds
- * @param newIds
- * @param existingDeletes
- */
-function findIdsToDelete(
-  currentIds: string[],
-  newIds: Set<CellId>,
-  existingDeletes: Map<CellId, true> | undefined
-): Map<CellId, true> {
-  const toDelete = new Map(existingDeletes);
-  for (const id of currentIds) {
-    if (!newIds.has(id)) {
-      toDelete.set(id, true);
-    }
-  }
-  return toDelete;
-}
-
-/**
- * GOLDEN RULE: This function NEVER calls setState directly.
- * All state updates are scheduled via the unified scheduler.
+ * Syncs graph and store state bidirectionally.
+ * Graph-originated changes write through `store.setState` directly.
  * @param options
  */
 export function stateSync<
@@ -139,7 +93,6 @@ export function stateSync<
   const {
     graph,
     store,
-    scheduler,
     mapDataToElementAttributes = defaultMapDataToElementAttributes,
     mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
     onGraphUpdated,
@@ -153,104 +106,134 @@ export function stateSync<
     options: GraphToLinkOptions<LinkData> & { readonly graph: Graph }
   ) => LinkData;
 
-  // --- Scheduling ---
-
-  const scheduleCellUpdate = (cell: dia.Cell) => {
-    scheduler.scheduleData((data) => {
+  const updateCellInStore = (cell: dia.Cell): void => {
+    store.setState((previousSnapshot) => {
       const id = cell.id as CellId;
-      const snapshot = store.getSnapshot();
+
       if (cell.isElement()) {
-        const previousData = snapshot.elements[id] as ElementData | undefined;
+        const previousData = previousSnapshot.elements[id] as ElementData | undefined;
+        const nextElement = mapGraphElement(cell, graph, elementSelector, previousData);
+        if (previousSnapshot.elements[id] === nextElement) {
+          return previousSnapshot;
+        }
         return {
-          ...data,
-          elementsToUpdate: mapSet(
-            data.elementsToUpdate,
-            id,
-            mapGraphElement(cell, graph, elementSelector, previousData) as FlatElementData
-          ),
+          ...previousSnapshot,
+          elements: {
+            ...previousSnapshot.elements,
+            [id]: nextElement,
+          },
         };
       }
+
       if (cell.isLink()) {
-        const previousData = snapshot.links[id] as LinkData | undefined;
+        const previousData = previousSnapshot.links[id] as LinkData | undefined;
+        const nextLink = mapGraphLink(cell, graph, linkSelector, previousData);
+        if (previousSnapshot.links[id] === nextLink) {
+          return previousSnapshot;
+        }
         return {
-          ...data,
-          linksToUpdate: mapSet(
-            data.linksToUpdate,
-            id,
-            mapGraphLink(cell, graph, linkSelector, previousData) as FlatLinkData
-          ),
+          ...previousSnapshot,
+          links: {
+            ...previousSnapshot.links,
+            [id]: nextLink,
+          },
         };
       }
-      return data;
+
+      return previousSnapshot;
     });
   };
 
-  const scheduleCellDelete = (cell: dia.Cell) => {
-    scheduler.scheduleData((data) => {
+  const deleteCellFromStore = (cell: dia.Cell): void => {
+    store.setState((previousSnapshot) => {
       const id = cell.id as CellId;
+
       if (cell.isElement()) {
+        if (!previousSnapshot.elements[id]) {
+          return previousSnapshot;
+        }
+        const elements = { ...previousSnapshot.elements };
+        Reflect.deleteProperty(elements, id);
         return {
-          ...data,
-          elementsToUpdate: mapDelete(data.elementsToUpdate, id),
-          elementsToDelete: mapSet(data.elementsToDelete, id, true),
+          ...previousSnapshot,
+          elements,
         };
       }
+
       if (cell.isLink()) {
+        if (!previousSnapshot.links[id]) {
+          return previousSnapshot;
+        }
+        const links = { ...previousSnapshot.links };
+        Reflect.deleteProperty(links, id);
         return {
-          ...data,
-          linksToUpdate: mapDelete(data.linksToUpdate, id),
-          linksToDelete: mapSet(data.linksToDelete, id, true),
+          ...previousSnapshot,
+          links,
         };
       }
-      return data;
+
+      return previousSnapshot;
     });
   };
 
-  const scheduleReset = (cells: dia.Cell[]) => {
-    scheduler.scheduleData((data) => {
-      const snapshot = store.getSnapshot();
+  const replaceStoreFromCells = (cells: dia.Cell[]): void => {
+    store.setState((previousSnapshot) => {
       const { elements, links } = mapCellsToData(
         cells,
         graph,
         elementSelector,
         linkSelector,
-        snapshot.elements as Record<CellId, ElementData>,
-        snapshot.links as Record<CellId, LinkData>
+        previousSnapshot.elements as Record<CellId, ElementData>,
+        previousSnapshot.links as Record<CellId, LinkData>
       );
 
       return {
-        ...data,
-        elementsToUpdate: elements as Map<CellId, FlatElementData>,
-        linksToUpdate: links as Map<CellId, FlatLinkData>,
-        elementsToDelete: findIdsToDelete(
-          Object.keys(snapshot.elements),
-          new Set(elements.keys()),
-          data.elementsToDelete
-        ),
-        linksToDelete: findIdsToDelete(
-          Object.keys(snapshot.links),
-          new Set(links.keys()),
-          data.linksToDelete
-        ),
+        ...previousSnapshot,
+        elements: Object.fromEntries(elements) as Record<CellId, ElementData>,
+        links: Object.fromEntries(links) as Record<CellId, LinkData>,
       };
     });
   };
 
-  const scheduleCellsUpdate = (cells: dia.Cell[]) => {
-    scheduler.scheduleData((data) => {
-      const snapshot = store.getSnapshot();
+  const mergeCellsIntoStore = (cells: dia.Cell[]): void => {
+    store.setState((previousSnapshot) => {
       const { elements, links } = mapCellsToData(
         cells,
         graph,
         elementSelector,
         linkSelector,
-        snapshot.elements as Record<CellId, ElementData>,
-        snapshot.links as Record<CellId, LinkData>
+        previousSnapshot.elements as Record<CellId, ElementData>,
+        previousSnapshot.links as Record<CellId, LinkData>
       );
+
+      let hasElementChanges = false;
+      const nextElements = { ...previousSnapshot.elements };
+      for (const [id, element] of elements) {
+        if (nextElements[id] === element) {
+          continue;
+        }
+        nextElements[id] = element;
+        hasElementChanges = true;
+      }
+
+      let hasLinkChanges = false;
+      const nextLinks = { ...previousSnapshot.links };
+      for (const [id, link] of links) {
+        if (nextLinks[id] === link) {
+          continue;
+        }
+        nextLinks[id] = link;
+        hasLinkChanges = true;
+      }
+
+      if (!hasElementChanges && !hasLinkChanges) {
+        return previousSnapshot;
+      }
+
       return {
-        ...data,
-        elementsToUpdate: new Map([...(data.elementsToUpdate ?? []), ...(elements as Map<CellId, FlatElementData>)]),
-        linksToUpdate: new Map([...(data.linksToUpdate ?? []), ...(links as Map<CellId, FlatLinkData>)]),
+        ...previousSnapshot,
+        elements: nextElements,
+        links: nextLinks,
       };
     });
   };
@@ -263,16 +246,16 @@ export function stateSync<
     }
 
     if (change.type === 'reset') {
-      scheduleReset(change.cells);
+      replaceStoreFromCells(change.cells);
       return;
     }
 
     if (change.type === 'remove') {
-      scheduleCellDelete(change.cell);
+      deleteCellFromStore(change.cell);
       return;
     }
 
-    scheduleCellUpdate(change.cell);
+    updateCellInStore(change.cell);
   };
 
   // --- Store Sync ---
@@ -282,7 +265,7 @@ export function stateSync<
     const elements = removeDeepReadOnly(snapshot.elements);
     const links = removeDeepReadOnly(snapshot.links);
 
-    // Skip sync if store is empty but graph has cells - the scheduler will populate store first
+    // Skip sync if store is empty but graph has cells - graph-to-store sync will populate store first.
     const isStoreEmpty = Object.keys(elements).length === 0 && Object.keys(links).length === 0;
     const graphHasCells = graph.getElements().length > 0 || graph.getLinks().length > 0;
     if (isStoreEmpty && graphHasCells) {
@@ -323,7 +306,7 @@ export function stateSync<
       return;
     }
 
-    scheduleCellsUpdate(allCells);
+    mergeCellsIntoStore(allCells);
   };
 
   // --- Setup & Cleanup ---

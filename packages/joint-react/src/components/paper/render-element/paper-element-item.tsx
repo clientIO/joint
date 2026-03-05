@@ -33,7 +33,6 @@ function SVGElementItemComponent<Data = FlatElementData>(
     graphStore.scheduleClearView({
       cellId: id,
     });
-    graphStore.flushPendingUpdates();
   }, [id, graphStore, areElementsMeasured]);
 
   if (!portalElement) {
@@ -87,7 +86,6 @@ function HTMLElementItemComponent<Data = FlatElementData>(
     graphStore.scheduleClearView({
       cellId: id,
     });
-    graphStore.flushPendingUpdates();
   }, [id, graphStore, areElementsMeasured]);
 
   // WE NEED TO COMPARE WHAT IS CHANGED HERE...

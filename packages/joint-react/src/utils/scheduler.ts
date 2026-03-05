@@ -1,83 +1,146 @@
 import {
-  unstable_getCurrentPriorityLevel as getCurrentPriorityLevel,
+  unstable_cancelCallback as cancelCallback,
   unstable_scheduleCallback as scheduleCallback,
+  unstable_getCurrentPriorityLevel as getCurrentPriorityLevel,
 } from 'scheduler';
+import { startTransition } from 'react';
+import { getValue, type ExternalStoreLike, type Update } from './create-state';
 
 /**
- * Options for creating a graph updates scheduler.
+ * Internal pending state for a wrapped external store.
  */
-export interface GraphUpdatesSchedulerOptions<Data extends object> {
-  /**
-   * Callback invoked when scheduled updates are flushed.
-   * Receives all accumulated data since the last flush.
-   */
-  readonly onFlush: (data: Data) => void;
-
-  /**
-   * Optional React scheduler priority level.
-   * If not specified, uses the current priority level.
-   */
-  readonly priorityLevel?: number;
+interface WrappedStoreState<T> {
+  readonly baseStore: ExternalStoreLike<T>;
+  pendingSnapshot?: T;
+  hasPendingSnapshot: boolean;
 }
 
 /**
- * Scheduler that batches data updates and flushes them together.
- * Uses React's internal scheduler for timing, batching multiple calls
- * within the same synchronous execution cycle into a single flush.
- * Data starts as empty object `{}` and resets after each flush.
- * @example
- * ```ts
- * interface MyData {
- *   elementsToUpdate?: Map<string, { id: string; label: string }>;
- *   elementsToDelete?: Map<string, true>;
- * }
- *
- * const scheduler = new Scheduler<MyData>({
- *   onFlush: (data) => {
- *     console.log(data.elementsToUpdate, data.elementsToDelete);
- *   },
- * });
- *
- * // Multiple calls are batched
- * const updateMap = new Map([['el1', { id: 'el1', label: 'Element 1' }]]);
- * scheduler.scheduleData((prev) => ({ ...prev, elementsToUpdate: updateMap }));
- * const deleteMap = new Map([['el2', true as const]]);
- * scheduler.scheduleData((prev) => ({ ...prev, elementsToDelete: deleteMap }));
- * // onFlush called once with combined result
- * ```
+ * Global scheduler runtime for all wrapped stores.
+ * It batches writes in the same tick and flushes them in one scheduler callback.
  */
-export class Scheduler<Data extends object> {
-  private readonly onFlush: (data: Data) => void;
-  private readonly effectivePriority: number;
+class GlobalScheduler {
+  private readonly wrappedByBaseStore = new WeakMap<object, ExternalStoreLike<unknown>>();
+  private readonly pendingStores = new Set<WrappedStoreState<unknown>>();
   private callbackId: unknown | null = null;
-  private currentData: Data = {} as Data;
+  private isFlushing = false;
 
-  constructor(options: GraphUpdatesSchedulerOptions<Data>) {
-    const { onFlush, priorityLevel } = options;
-    this.onFlush = onFlush;
-    this.effectivePriority =
-      priorityLevel === undefined ? getCurrentPriorityLevel() : priorityLevel;
+  private scheduleFlush(): void {
+    if (this.callbackId !== null) {
+      return;
+    }
+    this.callbackId = scheduleCallback(getCurrentPriorityLevel(), this.flushScheduledWork);
   }
 
-  /**
-   * Schedule a data update using an updater function.
-   * Multiple calls are batched and flushed together.
-   * @param updater Function that receives previous data and returns updated data.
-   */
-  scheduleData = (updater: (previousData: Data) => Data): void => {
-    this.currentData = updater(this.currentData);
-
-    if (this.callbackId === null) {
-      this.callbackId = scheduleCallback(this.effectivePriority, this.flushScheduledWork);
+  private flushStores(): void {
+    if (this.pendingStores.size === 0) {
+      return;
     }
-  };
+
+    const storesToFlush = [...this.pendingStores];
+    this.pendingStores.clear();
+
+    for (const storeState of storesToFlush) {
+      if (!storeState.hasPendingSnapshot) {
+        continue;
+      }
+      const nextSnapshot = storeState.pendingSnapshot as unknown;
+      storeState.baseStore.setState(nextSnapshot);
+      storeState.pendingSnapshot = undefined;
+      storeState.hasPendingSnapshot = false;
+    }
+  }
 
   private flushScheduledWork = (): void => {
     this.callbackId = null;
+    if (this.isFlushing) {
+      return;
+    }
 
-    const dataToFlush = this.currentData;
-    this.currentData = {} as Data;
-
-    this.onFlush(dataToFlush);
+    this.isFlushing = true;
+    try {
+      while (this.pendingStores.size > 0) {
+        this.flushStores();
+      }
+    } finally {
+      this.isFlushing = false;
+    }
   };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  wrap<TStore extends ExternalStoreLike<any>>(store: TStore): TStore {
+    type Snapshot = TStore extends ExternalStoreLike<infer TSnapshot> ? TSnapshot : never;
+    const baseStoreObject = store as unknown as object;
+    const existingWrappedStore = this.wrappedByBaseStore.get(baseStoreObject);
+    if (existingWrappedStore) {
+      return existingWrappedStore as TStore;
+    }
+
+    const storeState: WrappedStoreState<Snapshot> = {
+      baseStore: store as unknown as ExternalStoreLike<Snapshot>,
+      hasPendingSnapshot: false,
+      pendingSnapshot: undefined,
+    };
+
+    const wrappedStore = {
+      ...store,
+      getSnapshot: () => {
+        if (storeState.hasPendingSnapshot) {
+          return storeState.pendingSnapshot as Snapshot;
+        }
+        return store.getSnapshot() as Snapshot;
+      },
+      subscribe: (listener: () => void) => store.subscribe(listener),
+      setState: (updater: Update<Snapshot>) => {
+        const previousSnapshot = storeState.hasPendingSnapshot
+          ? (storeState.pendingSnapshot as Snapshot)
+          : (store.getSnapshot() as Snapshot);
+        storeState.pendingSnapshot = getValue(previousSnapshot, updater);
+        storeState.hasPendingSnapshot = true;
+        this.pendingStores.add(storeState as WrappedStoreState<unknown>);
+        this.scheduleFlush();
+      },
+    } as TStore;
+
+    if (
+      'setStateTransition' in store &&
+      typeof (store as { readonly setStateTransition?: unknown }).setStateTransition === 'function'
+    ) {
+      (
+        wrappedStore as TStore & {
+          setStateTransition: (updater: Update<Snapshot>) => void;
+        }
+      ).setStateTransition = (updater: Update<Snapshot>) => {
+        startTransition(() => {
+          wrappedStore.setState(updater);
+        });
+      };
+    }
+
+    if ('clean' in store && typeof (store as { readonly clean?: unknown }).clean === 'function') {
+      (
+        wrappedStore as TStore & {
+          clean: () => void;
+        }
+      ).clean = () => {
+        storeState.pendingSnapshot = undefined;
+        storeState.hasPendingSnapshot = false;
+        this.pendingStores.delete(storeState as WrappedStoreState<unknown>);
+        (store as { clean: () => void }).clean();
+      };
+    }
+
+    this.wrappedByBaseStore.set(baseStoreObject, wrappedStore as ExternalStoreLike<unknown>);
+    return wrappedStore;
+  }
+
+  flushNowForTests(): void {
+    if (this.callbackId !== null) {
+      cancelCallback(this.callbackId as never);
+      this.callbackId = null;
+    }
+    this.flushScheduledWork();
+  }
 }
+
+export const scheduler = new GlobalScheduler();

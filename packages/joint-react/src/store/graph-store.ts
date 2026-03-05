@@ -22,15 +22,9 @@ import {
   defaultMapLinkAttributesToData,
 } from '../state/data-mapping';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
-import { Scheduler } from '../utils/scheduler';
-import type { GraphSchedulerData } from '../types/scheduler.types';
-import { createClearViewCache, type BatchCache } from './batch-cache';
-import {
-  type ClearViewCacheEntry,
-  mergeClearViewValidators,
-  executeClearViewForCell,
-} from './clear-view';
-import { flushElements, flushLinks, flushLayoutState } from './state-flush';
+import { scheduler } from '../utils/scheduler';
+import { executeClearViewForCell } from './clear-view';
+import { updateLayoutState } from './update-layout-state';
 import { updateGraph } from '../state/update-graph';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
@@ -119,13 +113,8 @@ export class GraphStore {
 
   public paperStores = new Map<string, PaperStore>();
   private observer: GraphStoreObserver;
-  private stateSync: StateSync;
-
-  private clearViewCache: BatchCache<CellId, ClearViewCacheEntry>;
-  private readonly scheduler: Scheduler<GraphSchedulerData>;
-  private paperUpdateCallbacks = new Set<() => void>();
-  private isGraphUpdateScheduled = false;
-  private isLayoutUpdateScheduled = false;
+  private stateSync!: StateSync;
+  private unsubscribePublicState?: () => void;
 
   private readonly graphToElementSelector: (
     options: { readonly id: string; readonly cell: dia.Element; readonly graph: dia.Graph } & {
@@ -179,23 +168,28 @@ export class GraphStore {
         }
       );
 
-    this.publicState =
+    this.publicState = scheduler.wrap(
       externalStore ??
-      createState<GraphStoreSnapshot>({
-        name: 'JointJs/Data',
+        createState<GraphStoreSnapshot>({
+          name: 'JointJs/Data',
+          newState: () => ({ elements: {}, links: {} }),
+        })
+    );
+
+    this.internalState = scheduler.wrap(
+      createState<GraphStoreInternalSnapshot>({
+        name: 'Jointjs/Internal',
+        newState: () => ({ papers: {} }),
+      })
+    );
+
+    this.layoutState = scheduler.wrap(
+      createState<GraphStoreLayoutSnapshot>({
+        name: 'Jointjs/Layout',
         newState: () => ({ elements: {}, links: {} }),
-      });
-
-    this.internalState = createState<GraphStoreInternalSnapshot>({
-      name: 'Jointjs/Internal',
-      newState: () => ({ papers: {} }),
-    });
-
-    this.layoutState = createState<GraphStoreLayoutSnapshot>({
-      name: 'Jointjs/Layout',
-      newState: () => ({ elements: {}, links: {}, wasEverMeasured: false }),
-      isEqual: util.isEqual,
-    });
+        isEqual: util.isEqual,
+      })
+    );
 
     this.areElementsMeasuredState = derivedState({
       name: 'Jointjs/AreElementsMeasured',
@@ -214,64 +208,11 @@ export class GraphStore {
       },
     });
 
-    // Single scheduler for all updates - GOLDEN RULE: setState ONLY in state-flush.ts
-    this.scheduler = new Scheduler<GraphSchedulerData>({
-      onFlush: (data) => {
-        // Capture flags before resetting them
-        const hadGraphUpdate = this.isGraphUpdateScheduled;
-        const hadLayoutUpdate = this.isLayoutUpdateScheduled;
-
-        // 1. Flush state updates (uses state-flush.ts - GOLDEN RULE compliant)
-        flushElements(this.publicState, data);
-        flushLinks(this.publicState, data);
-
-        // 2. Flush graph updates (clearView cache)
-        if (hadGraphUpdate) {
-          this.isGraphUpdateScheduled = false;
-          for (const callback of this.paperUpdateCallbacks) {
-            callback();
-          }
-          this.flushGraphUpdates();
-        }
-
-        // 3. Flush layout state when there are changes (uses state-flush.ts)
-        // Also flush after graph updates since papers may have rendered new link views
-        const hasElementChanges = data.elementsToUpdate || data.elementsToDelete;
-        const hasLinkChanges = data.linksToUpdate || data.linksToDelete;
-        const shouldFlushLayout =
-          hadLayoutUpdate || hasElementChanges || hasLinkChanges || hadGraphUpdate;
-        if (shouldFlushLayout) {
-          this.isLayoutUpdateScheduled = false;
-          flushLayoutState({
-            graph: this.graph,
-            layoutState: this.layoutState,
-            papers: this.paperStores,
-          });
-        }
-      },
-    });
-
-    // Initial layout update (direct, before scheduler is active)
-    flushLayoutState({
+    // Initial layout update.
+    updateLayoutState({
       graph: this.graph,
       layoutState: this.layoutState,
       papers: this.paperStores,
-    });
-
-    this.clearViewCache = createClearViewCache(() => this.scheduleGraphUpdate());
-
-    this.stateSync = stateSync({
-      graph: this.graph,
-      scheduler: this.scheduler,
-      mapDataToElementAttributes,
-      mapDataToLinkAttributes,
-      graphToElementSelector: this.graphToElementSelector,
-      graphToLinkSelector: this.graphToLinkSelector,
-      onGraphUpdated: () => this.scheduleLayoutUpdate(),
-      store: {
-        getSnapshot: () => this.publicState.getSnapshot(),
-        subscribe: this.publicState.subscribe,
-      },
     });
 
     this.observer = createElementsSizeObserver({
@@ -310,9 +251,10 @@ export class GraphStore {
     // Initial sync
     const graphHasCells = this.graph.getElements().length > 0 || this.graph.getLinks().length > 0;
     if (
-      !graphHasCells ||
-      Object.keys(initialElements).length > 0 ||
-      Object.keys(initialLinks).length > 0
+      !externalStore &&
+      (!graphHasCells ||
+        Object.keys(initialElements).length > 0 ||
+        Object.keys(initialLinks).length > 0)
     ) {
       this.publicState.setState((previous) => ({
         ...previous,
@@ -321,36 +263,44 @@ export class GraphStore {
       }));
     }
 
+    // Bind sync after initial seed so stateSync can hydrate graph from pending snapshot immediately.
+    this.bindPublicState();
+
     // Update layout after initial sync (graph now has cells with sizes)
-    flushLayoutState({
-      graph: this.graph,
-      layoutState: this.layoutState,
-      papers: this.paperStores,
-    });
+    this.scheduleLayoutUpdate();
   }
 
   // --- Layout State ---
 
   /**
-   * Schedules a layout state update via the single scheduler.
+   * Updates layout state from current graph and paper view snapshots.
    */
   private scheduleLayoutUpdate = () => {
-    this.isLayoutUpdateScheduled = true;
-    this.scheduler.scheduleData((data) => data);
+    updateLayoutState({
+      graph: this.graph,
+      layoutState: this.layoutState,
+      papers: this.paperStores,
+    });
   };
 
-  // --- Graph Updates Flush ---
+  private bindPublicState(): void {
+    this.stateSync = stateSync({
+      graph: this.graph,
+      mapDataToElementAttributes: this.mapDataToElementAttributes,
+      mapDataToLinkAttributes: this.mapDataToLinkAttributes,
+      graphToElementSelector: this.graphToElementSelector,
+      graphToLinkSelector: this.graphToLinkSelector,
+      onGraphUpdated: this.scheduleLayoutUpdate,
+      store: this.publicState,
+    });
+    this.unsubscribePublicState = this.publicState.subscribe(this.scheduleLayoutUpdate);
+  }
 
-  private flushGraphUpdates = () => {
-    this.flushClearViewInternal();
-  };
-
-  private flushClearViewInternal = () => {
-    for (const [cellId, entry] of this.clearViewCache.entries()) {
-      executeClearViewForCell(this.paperStores.values(), this.graph, cellId, entry.onValidateLink);
-    }
-    this.clearViewCache.clear();
-  };
+  private unbindPublicState(): void {
+    this.stateSync.cleanup();
+    this.unsubscribePublicState?.();
+    this.unsubscribePublicState = undefined;
+  }
 
   // --- Public API ---
 
@@ -366,7 +316,7 @@ export class GraphStore {
       this.publicState.clean();
     }
     this.observer.clean();
-    this.stateSync.cleanup();
+    this.unbindPublicState();
     if (!isGraphExternal) {
       this.graph.clear();
     }
@@ -384,27 +334,99 @@ export class GraphStore {
     });
   }
 
-  public updatePaperElementView(paperId: string, cellId: CellId, _view: dia.ElementView) {
-    this.updatePaperSnapshot(paperId, (current) => {
-      const base = current ?? createPaperStoreSnapshot();
-      if (base.elementViewIds[cellId]) return base;
-      return {
-        ...base,
-        hasElementViewSnapshot: true,
-        elementViewIds: { ...base.elementViewIds, [cellId]: true },
+  private setPaperElementViewMountedState(
+    paperId: string,
+    cellId: CellId,
+    isMounted: boolean
+  ): boolean {
+    let isChanged = false;
+    this.internalState.setState((previous) => {
+      const currentPaper = previous.papers[paperId];
+      if (!currentPaper && !isMounted) {
+        return previous;
+      }
+
+      const basePaper = currentPaper ?? createPaperStoreSnapshot();
+      const hadCell = !!basePaper.elementViewIds[cellId];
+      if ((isMounted && hadCell) || (!isMounted && !hadCell)) {
+        return previous;
+      }
+
+      const nextElementViewIds = { ...basePaper.elementViewIds };
+      if (isMounted) {
+        nextElementViewIds[cellId] = true;
+      } else {
+        Reflect.deleteProperty(nextElementViewIds, cellId);
+      }
+
+      isChanged = true;
+      const nextPaper: PaperStoreSnapshot = {
+        ...basePaper,
+        hasElementViewSnapshot: basePaper.hasElementViewSnapshot || isMounted,
+        elementViewIds: nextElementViewIds,
       };
+      return { ...previous, papers: { ...previous.papers, [paperId]: nextPaper } };
     });
+    return isChanged;
   }
 
-  public updatePaperLinkView(paperId: string, linkId: CellId, _view: dia.LinkView) {
-    this.updatePaperSnapshot(paperId, (current) => {
-      const base = current ?? createPaperStoreSnapshot();
-      if (base.linkViewIds[linkId]) return base;
-      return {
-        ...base,
-        linkViewIds: { ...base.linkViewIds, [linkId]: true },
+  private setPaperLinkViewMountedState(paperId: string, linkId: CellId, isMounted: boolean): boolean {
+    let isChanged = false;
+    this.internalState.setState((previous) => {
+      const currentPaper = previous.papers[paperId];
+      if (!currentPaper && !isMounted) {
+        return previous;
+      }
+
+      const basePaper = currentPaper ?? createPaperStoreSnapshot();
+      const hadLink = !!basePaper.linkViewIds[linkId];
+      if ((isMounted && hadLink) || (!isMounted && !hadLink)) {
+        return previous;
+      }
+
+      const nextLinkViewIds = { ...basePaper.linkViewIds };
+      if (isMounted) {
+        nextLinkViewIds[linkId] = true;
+      } else {
+        Reflect.deleteProperty(nextLinkViewIds, linkId);
+      }
+
+      isChanged = true;
+      const nextPaper: PaperStoreSnapshot = {
+        ...basePaper,
+        linkViewIds: nextLinkViewIds,
       };
+      return { ...previous, papers: { ...previous.papers, [paperId]: nextPaper } };
     });
+    return isChanged;
+  }
+
+  public markPaperElementViewMounted(paperId: string, cellId: CellId): void {
+    const isChanged = this.setPaperElementViewMountedState(paperId, cellId, true);
+    if (isChanged) {
+      this.scheduleLayoutUpdate();
+    }
+  }
+
+  public markPaperElementViewUnmounted(paperId: string, cellId: CellId): void {
+    const isChanged = this.setPaperElementViewMountedState(paperId, cellId, false);
+    if (isChanged) {
+      this.scheduleLayoutUpdate();
+    }
+  }
+
+  public markPaperLinkViewMounted(paperId: string, linkId: CellId): void {
+    const isChanged = this.setPaperLinkViewMountedState(paperId, linkId, true);
+    if (isChanged) {
+      this.scheduleLayoutUpdate();
+    }
+  }
+
+  public markPaperLinkViewUnmounted(paperId: string, linkId: CellId): void {
+    const isChanged = this.setPaperLinkViewMountedState(paperId, linkId, false);
+    if (isChanged) {
+      this.scheduleLayoutUpdate();
+    }
   }
 
   private removePaper = (id: string) => {
@@ -466,27 +488,10 @@ export class GraphStore {
    * @param newStore - The new graph store snapshot to replace the current state.
    */
   public updateExternalStore = (newStore: ExternalStoreLike<GraphStoreSnapshot>) => {
-    this.publicState = newStore;
+    this.unbindPublicState();
+    this.publicState = scheduler.wrap(newStore);
+    this.bindPublicState();
   };
-
-  // --- Paper API ---
-
-  public registerPaperUpdate = (callback: () => void): (() => void) => {
-    this.paperUpdateCallbacks.add(callback);
-    return () => this.paperUpdateCallbacks.delete(callback);
-  };
-
-  /**
-   * Schedules graph updates (clearView and paper updates) via the single scheduler.
-   * Marks that graph updates need to be flushed in the next onFlush.
-   */
-  private scheduleGraphUpdate = () => {
-    this.isGraphUpdateScheduled = true;
-    // Schedule an empty update to trigger onFlush
-    this.scheduler.scheduleData((data) => data);
-  };
-
-  public schedulePaperUpdate = () => this.scheduleGraphUpdate();
 
   // --- ClearView API ---
 
@@ -494,23 +499,7 @@ export class GraphStore {
     readonly cellId: CellId;
     readonly onValidateLink?: (link: dia.Link) => boolean;
   }) => {
-    // check clear-view.ts for more info
-    const existing = this.clearViewCache.get(options.cellId);
-    const merged = mergeClearViewValidators(existing, { onValidateLink: options.onValidateLink });
-    this.clearViewCache.set(options.cellId, merged);
-    this.scheduleGraphUpdate();
-  };
-
-  public flushClearView = () => {
-    if (this.clearViewCache.isEmpty) return;
-    this.flushClearViewInternal();
-  };
-
-  public flushPendingUpdates = () => {
-    if (this.clearViewCache.isEmpty) return;
-    for (const callback of this.paperUpdateCallbacks) {
-      callback();
-    }
-    this.flushGraphUpdates();
+    executeClearViewForCell(this.paperStores.values(), this.graph, options.cellId, options.onValidateLink);
+    this.scheduleLayoutUpdate();
   };
 }
