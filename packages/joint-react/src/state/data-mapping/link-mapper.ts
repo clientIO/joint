@@ -9,7 +9,7 @@ import {
   toLinkEndData,
   buildLinkPresentationAttributes,
 } from './link-attributes';
-import { resolveCellDefaults } from './resolve-cell-defaults';
+
 
 // ────────────────────────────────────────────────────────────────────────────
 // React → JointJS
@@ -159,9 +159,9 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
  * @returns The flat link data
  */
 export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
-  options: Pick<GraphToLinkOptions<Link>, 'cell' | 'previousData'>
+  options: GraphToLinkOptions<Link>
 ): Link {
-  const { cell } = options;
+  const { attributes, defaultAttributes } = options;
   const {
     // User data + presentation props (saved during forward mapping)
     data: userData,
@@ -174,9 +174,7 @@ export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
     vertices,
     router,
     connector,
-  } = cell.attributes;
-
-  const defaults = resolveCellDefaults(cell);
+  } = attributes;
 
   const sourceData = toLinkEndData(source);
   const targetData = toLinkEndData(target);
@@ -197,16 +195,16 @@ export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
   if (targetData.magnet) linkData.targetMagnet = targetData.magnet;
 
   // ↔ Two-way (skip when matching model defaults)
-  if (z !== undefined && z !== defaults.z) linkData.z = z;
-  if (layer !== undefined && layer !== defaults.layer) linkData.layer = layer;
+  if (z !== undefined && z !== defaultAttributes.z) linkData.z = z;
+  if (layer !== undefined && layer !== defaultAttributes.layer) linkData.layer = layer;
   if (parent) {
     linkData.parent = parent;
   }
   if (Array.isArray(vertices) && vertices.length > 0) {
     linkData.vertices = vertices;
   }
-  if (router !== undefined && !util.isEqual(router, defaults.router)) linkData.router = router;
-  if (connector !== undefined && !util.isEqual(connector, defaults.connector)) linkData.connector = connector;
+  if (router !== undefined && !util.isEqual(router, defaultAttributes.router)) linkData.router = router;
+  if (connector !== undefined && !util.isEqual(connector, defaultAttributes.connector)) linkData.connector = connector;
 
   return {
     ...userData,

@@ -2611,7 +2611,7 @@ export namespace dia {
 
 export namespace highlighters {
 
-    type HighlighterView = dia.HighlighterView; 
+    type HighlighterView = dia.HighlighterView;
 
     interface AddClassHighlighterArguments extends dia.HighlighterView.Options {
         className?: string;

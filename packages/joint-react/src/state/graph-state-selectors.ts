@@ -19,10 +19,12 @@ export interface ElementToGraphOptions<ElementData = FlatElementData> {
 
 export interface GraphToElementOptions<ElementData = FlatElementData> {
   readonly id: string;
-  readonly cell: dia.Element;
+  readonly attributes: dia.Element.Attributes;
+  readonly defaultAttributes: dia.Element.Attributes;
+  readonly element: dia.Element;
   readonly previousData?: ElementData;
   readonly graph: dia.Graph;
-  readonly toData: () => FlatElementData;
+  readonly toData: (attributes: dia.Element.Attributes) => ElementData;
 }
 
 export interface LinkToGraphOptions<LinkData = FlatLinkData> {
@@ -34,10 +36,12 @@ export interface LinkToGraphOptions<LinkData = FlatLinkData> {
 
 export interface GraphToLinkOptions<LinkData = FlatLinkData> {
   readonly id: string;
-  readonly cell: dia.Link;
+  readonly attributes: dia.Link.Attributes;
+  readonly defaultAttributes: dia.Link.Attributes;
+  readonly link: dia.Link;
   readonly previousData?: LinkData;
   readonly graph: dia.Graph;
-  readonly toData: () => FlatLinkData;
+  readonly toData: (attributes: dia.Link.Attributes) => LinkData;
 }
 
 export type LinkFromGraphSelector<LinkData = FlatLinkData> = (

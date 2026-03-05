@@ -15,11 +15,11 @@ const initialElements: Record<string, { label: string; x: number; y: number }> =
 
 type BaseElementWithData = (typeof initialElements)[string];
 
-class DashedLink extends shapes.standard.Link {
+class ReactLink extends shapes.standard.Link {
   defaults() {
     return util.defaultsDeep(
       {
-        type: 'DashedLink',
+        type: 'ReactLink',
         attrs: {
           line: {
             stroke: SECONDARY,
@@ -61,10 +61,10 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
       const linkId = getLinkId(id, closeId);
       // Check if the link or the reverse link already exists
       if (graph.getCell(linkId)) continue;
-      // eslint-disable-next-line sonarjs/arguments-order
+
       if (graph.getCell(getLinkId(closeId, id))) continue;
 
-      const link = new DashedLink({
+      const link = new ReactLink({
         id: linkId,
         source: { id },
         target: { id: closeId },
@@ -107,7 +107,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} cellNamespace={{ DashedLink }}>
+    <GraphProvider elements={initialElements} cellNamespace={{ ReactLink }}>
       <Main />
     </GraphProvider>
   );

@@ -12,6 +12,7 @@ import {
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
 } from '../data-mapping';
+import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
 import type {
   GraphToElementOptions,
   ElementToGraphOptions,
@@ -38,13 +39,18 @@ const createGraphToElementOptions = <E extends FlatElementData>(
   cell: dia.Element,
   graph: dia.Graph,
   previousData?: E
-): GraphToElementOptions<E> => ({
-  id,
-  cell,
-  graph,
-  previousData,
-  toData: () => defaultMapElementAttributesToData({ cell }),
-});
+): GraphToElementOptions<E> => {
+  const defaultAttributes = resolveCellDefaults(cell);
+  return {
+    id,
+    attributes: cell.attributes,
+    defaultAttributes,
+    element: cell,
+    graph,
+    previousData,
+    toData: (attributes) => defaultMapElementAttributesToData({ attributes, defaultAttributes }),
+  };
+};
 
 const createLinkToGraphOptions = <L extends FlatLinkData>(
   id: string,
@@ -62,13 +68,18 @@ const createGraphToLinkOptions = <L extends FlatLinkData>(
   cell: dia.Link,
   graph: dia.Graph,
   previousData?: L
-): GraphToLinkOptions<L> => ({
-  id,
-  cell,
-  graph,
-  previousData,
-  toData: () => defaultMapLinkAttributesToData({ cell }),
-});
+): GraphToLinkOptions<L> => {
+  const defaultAttributes = resolveCellDefaults(cell);
+  return {
+    id,
+    attributes: cell.attributes,
+    defaultAttributes,
+    link: cell,
+    graph,
+    previousData,
+    toData: (attributes) => defaultMapLinkAttributesToData({ attributes, defaultAttributes }),
+  };
+};
 
 describe('graph-state-selectors', () => {
   let graph: dia.Graph;

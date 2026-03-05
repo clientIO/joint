@@ -391,7 +391,7 @@ function ToolBar(props: Readonly<ToolbarProps>) {
           const clone = cell.clone();
           clone.translate(20, 20);
           graph.addCell(clone);
-          setSelectedId(clone.id as CellId);
+          // setSelectedId(clone.id as CellId);
         }}
       >
         <i className="fa-solid fa-clone"></i>

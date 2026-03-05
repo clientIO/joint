@@ -6,22 +6,25 @@ import { ReactElement } from '../../models/react-element';
 import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
 import type { FlatElementData, FlatElementPort } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
-import type { ElementToGraphOptions, LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
+import type { ElementToGraphOptions, GraphToElementOptions, LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
 import { defaultMapDataToElementAttributes, defaultMapDataToLinkAttributes, defaultMapElementAttributesToData, defaultMapLinkAttributesToData } from '../data-mapping';
+import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 
 function elementToGraphOpts(id: string, data: FlatElementData, graph: dia.Graph): ElementToGraphOptions<FlatElementData> {
   return { id, data, graph, toAttributes: (d) => defaultMapDataToElementAttributes({ id, data: d }) };
 }
-function graphToElementOpts(id: string, cell: dia.Element, graph: dia.Graph, previousData?: FlatElementData) {
-  return { id, cell, graph, previousData, toData: () => defaultMapElementAttributesToData({ cell }) };
+function graphToElementOpts(id: string, cell: dia.Element, graph: dia.Graph, previousData?: FlatElementData): GraphToElementOptions<FlatElementData> {
+  const defaultAttributes = resolveCellDefaults(cell);
+  return { id, attributes: cell.attributes, defaultAttributes, element: cell, graph, previousData, toData: (attributes) => defaultMapElementAttributesToData({ attributes, defaultAttributes }) };
 }
 function linkToGraphOpts(id: string, data: FlatLinkData, graph: dia.Graph): LinkToGraphOptions<FlatLinkData> {
   return { id, data, graph, toAttributes: (d) => defaultMapDataToLinkAttributes({ id, data: d }) };
 }
 function graphToLinkOpts(id: string, cell: dia.Link, graph: dia.Graph, previousData?: FlatLinkData): GraphToLinkOptions<FlatLinkData> {
-  return { id, cell, graph, previousData, toData: () => defaultMapLinkAttributesToData({ cell }) };
+  const defaultAttributes = resolveCellDefaults(cell);
+  return { id, attributes: cell.attributes, defaultAttributes, link: cell, graph, previousData, toData: (attributes) => defaultMapLinkAttributesToData({ attributes, defaultAttributes }) };
 }
 
 describe('dataMapper', () => {

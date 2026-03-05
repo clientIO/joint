@@ -13,6 +13,7 @@ import {
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
 } from '../data-mapping';
+import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
 import type {
   ElementToGraphOptions,
   LinkToGraphOptions,
@@ -896,7 +897,8 @@ describe('updateGraph', () => {
     const [graphElement] = graph.getElements();
     const id = graphElement.id as string;
     const graphElementData = defaultMapElementAttributesToData({
-      cell: graphElement,
+      attributes: graphElement.attributes,
+      defaultAttributes: resolveCellDefaults(graphElement),
     });
 
     // Second sync with the actual graph state should return false
