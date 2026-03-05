@@ -1284,7 +1284,7 @@ describe('graph-state-selectors', () => {
           style?: string;
           animation?: boolean;
         };
-        labels?: Array<{ text: string; position?: number }>;
+        labels?: Record<string, { text: string; position?: number }>;
         customData?: Record<string, unknown>;
       };
 
@@ -1297,10 +1297,10 @@ describe('graph-state-selectors', () => {
           style: 'dashed',
           animation: true,
         },
-        labels: [
-          { text: 'Label 1', position: 0.3 },
-          { text: 'Label 2', position: 0.7 },
-        ],
+        labels: {
+          lbl1: { text: 'Label 1', position: 0.3 },
+          lbl2: { text: 'Label 2', position: 0.7 },
+        },
         customData: {
           source: 'api',
           timestamp: 1_234_567_890,

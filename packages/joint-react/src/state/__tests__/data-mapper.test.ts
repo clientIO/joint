@@ -207,6 +207,47 @@ describe('dataMapper', () => {
       expect(result).toHaveProperty('extra', 'also-included');
     });
 
+    it('should convert labels Record to JointJS labels array', () => {
+      const id = 'link-1';
+      const data: FlatLinkData = {
+        source: 'a',
+        target: 'b',
+        labels: {
+          lbl1: { text: 'Yes', position: 0.3 },
+          lbl2: { text: 'No', position: 0.7, offset: 20 },
+        },
+      };
+
+      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      expect(cellJson.labels).toHaveLength(2);
+      expect(cellJson.labels[0]).toMatchObject({ id: 'lbl1', position: { distance: 0.3 } });
+      expect(cellJson.labels[1]).toMatchObject({ id: 'lbl2', position: { distance: 0.7, offset: 20 } });
+    });
+
+    it('should round-trip labels with position and offset changes', () => {
+      const id = 'link-1';
+      const data: FlatLinkData = {
+        source: 'a',
+        target: 'b',
+        labels: {
+          lbl1: { text: 'Yes', position: 0.3 },
+        },
+      };
+
+      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      graph.addCell(cellJson);
+      const cell = graph.getCell(id) as dia.Link;
+
+      // Simulate labelMove updating position and offset
+      const labels = cell.labels();
+      labels[0].position = { distance: 0.6, offset: 15 };
+      cell.labels(labels);
+
+      const result = defaultMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
+      expect(result.labels).toBeDefined();
+      expect(result.labels!['lbl1']).toMatchObject({ text: 'Yes', position: 0.6, offset: 15 });
+    });
+
     it('should handle source/target with ports', () => {
       const id = 'link-1';
       const data: FlatLinkData = {

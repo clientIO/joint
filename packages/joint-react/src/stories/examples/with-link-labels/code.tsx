@@ -29,43 +29,48 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: '2',
     color: 'blue',
     targetMarker: 'arrow',
-    labels: [
-      {
+    labels: {
+      main: {
         position: 0.5,
         text: 'Link 1-2',
         color: 'yellow',
         backgroundColor: 'gray',
         backgroundPadding: 10
       },
-    ],
+    },
   },
   'l1-4': {
     source: '1',
     target: '4',
-    labels: [{
-      text: 'Link 1-4',
-    }],
+    labels: {
+      main: {
+        text: 'Link 1-4',
+      },
+    },
   },
   'l3-4': {
     source: '3',
     target: '4',
-    labels: [{
-      text: '+',
-      position: 15,
-      color: LIGHT,
-      backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
-      backgroundStroke: SECONDARY,
-      backgroundStrokeWidth: 2,
-      backgroundColor: BG,
-    }, {
-      text: '-',
-      position: -15,
-      color: LIGHT,
-      backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
-      backgroundStroke: PRIMARY,
-      backgroundStrokeWidth: 2,
-      backgroundColor: BG,
-    }],
+    labels: {
+      plus: {
+        text: '+',
+        position: 15,
+        color: LIGHT,
+        backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
+        backgroundStroke: SECONDARY,
+        backgroundStrokeWidth: 2,
+        backgroundColor: BG,
+      },
+      minus: {
+        text: '-',
+        position: -15,
+        color: LIGHT,
+        backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
+        backgroundStroke: PRIMARY,
+        backgroundStrokeWidth: 2,
+        backgroundColor: BG,
+      },
+    },
   }
 };
 
