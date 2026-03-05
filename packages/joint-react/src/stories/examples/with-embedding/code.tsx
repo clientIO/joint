@@ -8,6 +8,7 @@ import {
   useElement,
   useElements,
   useGraph,
+  useGraphEvents,
   type FlatElementData,
   type RenderElement,
 } from '@joint/react';
@@ -103,13 +104,7 @@ function snapshot(graph: dia.Graph) {
 function useRawAttributes() {
   const graph = useGraph();
   const [attributes, setAttributes] = useState(() => snapshot(graph));
-  useEffect(() => {
-    const update = () => setAttributes(snapshot(graph));
-    graph.on('change', update);
-    return () => {
-      graph.off('change', update);
-    };
-  }, [graph]);
+  useGraphEvents(graph, { change: () => setAttributes(snapshot(graph)) });
   return attributes;
 }
 
