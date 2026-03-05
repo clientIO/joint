@@ -6,7 +6,7 @@ import {
   type FlatLinkData,
   type RenderElement,
 } from '@joint/react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 
 interface ShapeElement extends FlatElementData {
@@ -51,10 +51,20 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: '4',
     labels: [{
       text: '+',
-      position: 10,
+      position: 15,
+      color: LIGHT,
+      backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
+      backgroundStroke: SECONDARY,
+      backgroundStrokeWidth: 2,
+      backgroundColor: BG,
     }, {
       text: '-',
-      position: -10,
+      position: -15,
+      color: LIGHT,
+      backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
+      backgroundStroke: PRIMARY,
+      backgroundStrokeWidth: 2,
+      backgroundColor: BG,
     }],
   }
 };

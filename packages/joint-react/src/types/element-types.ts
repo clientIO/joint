@@ -75,9 +75,25 @@ export interface FlatElementPort {
    */
   readonly labelColor?: string;
   /**
+   * Font size of the port label text.
+   */
+  readonly labelFontSize?: number;
+  /**
+   * Font family of the port label text.
+   */
+  readonly labelFontFamily?: string;
+  /**
    * CSS class name to apply to the port label.
    */
   readonly labelClassName?: string;
+  /**
+   * Horizontal offset of the port label in pixels.
+   */
+  readonly labelOffsetX?: number;
+  /**
+   * Vertical offset of the port label in pixels.
+   */
+  readonly labelOffsetY?: number;
 }
 
 export interface FlatElementData extends Record<string, unknown> {
