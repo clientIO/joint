@@ -95,9 +95,9 @@ describe('dataMapper', () => {
 
   describe('element ports conversion', () => {
     it('should convert simplified ports to JointJS format', () => {
-      const ports: FlatElementPort[] = [
-        { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue', id: 'p1' },
-      ];
+      const ports: Record<string, FlatElementPort> = {
+        p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
+      };
       const id = 'el-1';
       const data: FlatElementData = { x: 0, y: 0, width: 100, height: 100, ports };
 
@@ -109,9 +109,9 @@ describe('dataMapper', () => {
     });
 
     it('should convert port with label', () => {
-      const ports: FlatElementPort[] = [
-        { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red', id: 'p1' },
-      ];
+      const ports: Record<string, FlatElementPort> = {
+        p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
+      };
       const id = 'el-1';
       const data: FlatElementData = { x: 0, y: 0, width: 100, height: 100, ports };
 
@@ -123,9 +123,9 @@ describe('dataMapper', () => {
     });
 
     it('should handle rect shape ports', () => {
-      const ports: FlatElementPort[] = [
-        { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect', id: 'p1' },
-      ];
+      const ports: Record<string, FlatElementPort> = {
+        p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
+      };
       const id = 'el-1';
       const data: FlatElementData = { x: 0, y: 0, width: 100, height: 100, ports };
 

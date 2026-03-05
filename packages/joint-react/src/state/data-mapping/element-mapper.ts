@@ -28,7 +28,7 @@ import { convertPorts, createPortDefaults } from './convert-ports';
  * @returns The JointJS cell JSON attributes
  */
 export function defaultMapDataToElementAttributes<Element extends FlatElementData>(
-  options: ElementToGraphOptions<Element>
+  options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'>
 ): dia.Cell.JSON {
   const { id, data } = options;
 

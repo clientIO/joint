@@ -4,7 +4,7 @@ import { defaultMapLinkAttributesToData } from '../../state/data-mapping';
 import { resolveCellDefaults } from '../../state/data-mapping/resolve-cell-defaults';
 import { ReactElement } from '../../models/react-element';
 import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
-import type { FlatLinkData } from '../../types/link-types';
+
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 

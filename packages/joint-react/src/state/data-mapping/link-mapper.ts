@@ -159,7 +159,7 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
  * @returns The flat link data
  */
 export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
-  options: GraphToLinkOptions<Link>
+  options: Pick<GraphToLinkOptions<Link>, 'attributes' | 'defaultAttributes'>
 ): Link {
   const { attributes, defaultAttributes } = options;
   const {

@@ -169,7 +169,7 @@ describe('graph-state-selectors', () => {
         width: 100,
         height: 50,
         type: 'ReactElement',
-        ports: [],
+        ports: {},
         angle: 45,
       };
 
