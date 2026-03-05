@@ -63,12 +63,17 @@ export interface UpdateGraphOptions<
 export function mapGraphElement<Graph extends dia.Graph, ElementData = FlatElementData>(
   cell: dia.Element,
   graph: Graph,
-  selector: (options: GraphToElementOptions<ElementData> & { readonly graph: Graph }) => ElementData,
+  selector: (
+    options: GraphToElementOptions<ElementData> & { readonly graph: Graph }
+  ) => ElementData,
   previousData?: ElementData
 ): ElementData {
   const id = cell.id as string;
   return selector({
-    id, cell, graph, previousData,
+    id,
+    cell,
+    graph,
+    previousData,
     toData: () => defaultMapElementAttributesToData({ cell }),
   });
 }
@@ -88,7 +93,10 @@ export function mapGraphLink<Graph extends dia.Graph, LinkData = FlatLinkData>(
 ): LinkData {
   const id = cell.id as string;
   return selector({
-    id, cell, graph, previousData,
+    id,
+    cell,
+    graph,
+    previousData,
     toData: () => defaultMapLinkAttributesToData({ cell }),
   });
 }
@@ -115,15 +123,27 @@ function isGraphInSync<ElementData = FlatElementData, LinkData = FlatLinkData>(
   // Position-only update: use fast equality check
   if (isPositionOnlyUpdate(graphElements as FlatElementData[], elements as FlatElementData[])) {
     return (
-      fastElementArrayEqual(elements as Array<Record<string, unknown>>, graphElements as Array<Record<string, unknown>>) &&
-      fastElementArrayEqual(links as Array<Record<string, unknown>>, graphLinks as Array<Record<string, unknown>>)
+      fastElementArrayEqual(
+        elements as Array<Record<string, unknown>>,
+        graphElements as Array<Record<string, unknown>>
+      ) &&
+      fastElementArrayEqual(
+        links as Array<Record<string, unknown>>,
+        graphLinks as Array<Record<string, unknown>>
+      )
     );
   }
 
   // General equality check
   return (
-    fastElementArrayEqual(elements as Array<Record<string, unknown>>, graphElements as Array<Record<string, unknown>>) &&
-    fastElementArrayEqual(links as Array<Record<string, unknown>>, graphLinks as Array<Record<string, unknown>>)
+    fastElementArrayEqual(
+      elements as Array<Record<string, unknown>>,
+      graphElements as Array<Record<string, unknown>>
+    ) &&
+    fastElementArrayEqual(
+      links as Array<Record<string, unknown>>,
+      graphLinks as Array<Record<string, unknown>>
+    )
   );
 }
 
@@ -179,13 +199,16 @@ export function updateGraph<
   // attributes — custom mappers don't need to (and can't) change the cell id.
   const elementItems = Object.entries(elementsRecord).map(([id, data]) => {
     const attributes = mapDataToElementAttributes({
-      id, data, graph,
-      toAttributes: (newData) => defaultMapDataToElementAttributes({ id, data: newData as FlatElementData }),
+      id,
+      data,
+      graph,
+      toAttributes: (newData) =>
+        defaultMapDataToElementAttributes({ id, data: newData as FlatElementData }),
     });
     if ('id' in attributes && attributes.id !== id) {
       throw new Error(
         `mapDataToElementAttributes returned id "${String(attributes.id)}" but the record key is "${id}". ` +
-        'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
+          'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
       );
     }
     attributes.id = id;
@@ -194,19 +217,25 @@ export function updateGraph<
 
   const linkItems = Object.entries(linksRecord).map(([id, data]) => {
     const attributes = mapDataToLinkAttributes({
-      id, data, graph,
-      toAttributes: (newData, attributeOptions) => defaultMapDataToLinkAttributes({ id, data: newData as FlatLinkData, ...attributeOptions }),
+      id,
+      data,
+      graph,
+      toAttributes: (newData, attributeOptions) =>
+        defaultMapDataToLinkAttributes({ id, data: newData as FlatLinkData, ...attributeOptions }),
     });
     if ('id' in attributes && attributes.id !== id) {
       throw new Error(
         `mapDataToLinkAttributes returned id "${String(attributes.id)}" but the record key is "${id}". ` +
-        'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
+          'Cell id is immutable and determined by the record key. Do not set id in the mapper return value.'
       );
     }
     attributes.id = id;
     return attributes;
   });
 
+  console.log('Syncing graph with elements:', elementItems, 'and links:', linkItems, {
+    isUpdateFromReact,
+  });
   graph.syncCells([...elementItems, ...linkItems], { remove: true, isUpdateFromReact });
   return true;
 }
