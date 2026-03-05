@@ -103,9 +103,9 @@ const mapDataToElementAttributes = ({
  * Reverse mapper: pick only the keys defined in the data format.
  */
 const mapElementAttributesToData = ({
-  element,
+  attributes,
 }: GraphToElementOptions<FlatElementData>): FlatElementData => {
-  return util.pick(element.attributes, ELEMENT_KEYS) as FlatElementData;
+  return util.pick(attributes, ELEMENT_KEYS) as FlatElementData;
 };
 
 /**
@@ -122,9 +122,9 @@ const mapDataToLinkAttributes = ({
  * Reverse mapper: pick only the keys defined in the data format.
  */
 const mapLinkAttributesToData = ({
-  link,
+  attributes,
 }: GraphToLinkOptions<FlatLinkData>): FlatLinkData => {
-  return util.pick(link.attributes, LINK_KEYS) as FlatLinkData;
+  return util.pick(attributes, LINK_KEYS) as FlatLinkData;
 };
 
 // ============================================================================
