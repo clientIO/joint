@@ -1,25 +1,33 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useNodeSize, useCellId, useElements, useGraph } from '@joint/react';
+import {
+  createElements,
+  GraphProvider,
+  MeasuredNode,
+  Paper,
+  useElements,
+  useGraph,
+  type InferElement,
+} from '@joint/react';
 import '../index.css';
 import { useEffect, useRef } from 'react';
 import { shapes, util } from '@joint/core';
 import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import type { dia } from '../../../../../joint-core/types';
 
-const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 0 },
-  '2': { label: 'Node 2', x: 100, y: 200 },
-  '3': { label: 'Node 3', x: 280, y: 100 },
-  '4': { label: 'Node 4', x: 0, y: 100 },
-};
+const initialElements = createElements([
+  { id: '1', label: 'Node 1', x: 100, y: 0 },
+  { id: '2', label: 'Node 2', x: 100, y: 200 },
+  { id: '3', label: 'Node 3', x: 280, y: 100 },
+  { id: '4', label: 'Node 4', x: 0, y: 100 },
+]);
 
-type BaseElementWithData = (typeof initialElements)[string];
+type BaseElementWithData = InferElement<typeof initialElements>;
 
-class ReactLink extends shapes.standard.Link {
+class DashedLink extends shapes.standard.Link {
   defaults() {
     return util.defaultsDeep(
       {
-        type: 'ReactLink',
+        type: 'DashedLink',
         attrs: {
           line: {
             stroke: SECONDARY,
@@ -38,16 +46,15 @@ class ReactLink extends shapes.standard.Link {
 
 const PROXIMITY_THRESHOLD = 60;
 
-function getLinkId(id: dia.Cell.ID, closeId: dia.Cell.ID) {
+function getLinkId(id: dia.Cell.ID | null, closeId: dia.Cell.ID | null) {
   return `${id}-${closeId}`;
 }
 
-function ResizableNode({ label }: Readonly<BaseElementWithData>) {
-  const id = useCellId();
-  const nodeRef = useRef<HTMLDivElement>(null);
-
+function ResizableNode({ id, label, width, height }: Readonly<BaseElementWithData>) {
   const graph = useGraph();
+  const nodeRef = useRef<HTMLDivElement>(null);
   const element = graph.getCell(id);
+
   const closeIds = useElements(() => {
     const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
     const proximityElements = graph
@@ -61,10 +68,9 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
       const linkId = getLinkId(id, closeId);
       // Check if the link or the reverse link already exists
       if (graph.getCell(linkId)) continue;
-
       if (graph.getCell(getLinkId(closeId, id))) continue;
 
-      const link = new ReactLink({
+      const link = new DashedLink({
         id: linkId,
         source: { id },
         target: { id: closeId },
@@ -79,12 +85,11 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
     };
   }, [closeIds, graph, id]);
 
-  const { width, height } = useNodeSize(nodeRef);
   return (
     <foreignObject width={width} height={height}>
-      <div ref={nodeRef} className="node">
-        {label}
-      </div>
+      <MeasuredNode ref={nodeRef}>
+        <div className="node">{label}</div>
+      </MeasuredNode>
     </foreignObject>
   );
 }
@@ -93,6 +98,7 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper
+        width="100%"
         className={PAPER_CLASSNAME}
         height={280}
         renderElement={ResizableNode}
@@ -107,7 +113,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} cellNamespace={{ ReactLink }}>
+    <GraphProvider initialElements={initialElements} cellNamespace={{ DashedLink }}>
       <Main />
     </GraphProvider>
   );
