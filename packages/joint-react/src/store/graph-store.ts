@@ -390,7 +390,6 @@ export class GraphStore {
       if (base.elementViewIds[cellId]) return base;
       return {
         ...base,
-        revision: base.revision + 1,
         hasElementViewSnapshot: true,
         elementViewIds: { ...base.elementViewIds, [cellId]: true },
       };
@@ -403,7 +402,6 @@ export class GraphStore {
       if (base.linkViewIds[linkId]) return base;
       return {
         ...base,
-        revision: base.revision + 1,
         linkViewIds: { ...base.linkViewIds, [linkId]: true },
       };
     });

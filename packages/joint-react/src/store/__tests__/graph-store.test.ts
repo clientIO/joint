@@ -236,7 +236,6 @@ describe('GraphStore', () => {
 
       store.updatePaperSnapshot(paperId, (previous) => ({
         ...previous!,
-        revision: previous!.revision + 1,
         elementViewIds: { ...previous!.elementViewIds, 'element-1': true },
       }));
 
@@ -258,6 +257,26 @@ describe('GraphStore', () => {
       // Should return same reference if unchanged
       expect(firstUpdate).toBe(secondUpdate);
     });
+
+    it('should propagate when snapshot reference changes even if deep-equal', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+
+      store.updatePaperSnapshot(paperId, () => ({
+        ...createPaperStoreSnapshot(),
+        hasElementViewSnapshot: true,
+        elementViewIds: { 'element-1': true },
+      }));
+      const firstUpdate = store.internalState.getSnapshot().papers[paperId];
+
+      store.updatePaperSnapshot(paperId, (previous) => ({
+        ...previous!,
+      }));
+      const secondUpdate = store.internalState.getSnapshot().papers[paperId];
+
+      expect(secondUpdate).not.toBe(firstUpdate);
+      expect(secondUpdate).toEqual(firstUpdate);
+    });
   });
 
   describe('updatePaperElementView', () => {
@@ -273,7 +292,6 @@ describe('GraphStore', () => {
       const paper = internalSnapshot.papers[paperId];
       expect(paper?.elementViewIds[cellId]).toBe(true);
       expect(paper?.hasElementViewSnapshot).toBe(true);
-      expect(paper?.revision).toBe(1);
     });
 
     it('should not update if view is unchanged', () => {
@@ -285,14 +303,12 @@ describe('GraphStore', () => {
       store.updatePaperElementView(paperId, cellId, mockView);
       const snapshot1 = store.internalState.getSnapshot();
       const paper1 = snapshot1.papers[paperId];
-      const firstRevision = paper1?.revision;
 
       store.updatePaperElementView(paperId, cellId, mockView);
       const snapshot2 = store.internalState.getSnapshot();
       const paper2 = snapshot2.papers[paperId];
-      const secondRevision = paper2?.revision;
 
-      expect(firstRevision).toBe(secondRevision);
+      expect(paper2).toBe(paper1);
     });
   });
 
@@ -308,7 +324,6 @@ describe('GraphStore', () => {
       const internalSnapshot = store.internalState.getSnapshot();
       const paper = internalSnapshot.papers[paperId];
       expect(paper?.linkViewIds[linkId]).toBe(true);
-      expect(paper?.revision).toBe(1);
     });
 
     it('should not update if link view id is unchanged', () => {
@@ -320,14 +335,12 @@ describe('GraphStore', () => {
       store.updatePaperLinkView(paperId, linkId, mockView);
       const snapshot1 = store.internalState.getSnapshot();
       const paper1 = snapshot1.papers[paperId];
-      const firstRevision = paper1?.revision;
 
       store.updatePaperLinkView(paperId, linkId, mockView);
       const snapshot2 = store.internalState.getSnapshot();
       const paper2 = snapshot2.papers[paperId];
-      const secondRevision = paper2?.revision;
 
-      expect(firstRevision).toBe(secondRevision);
+      expect(paper2).toBe(paper1);
     });
   });
 
@@ -359,7 +372,6 @@ describe('GraphStore', () => {
       });
 
       const paperSnapshot = store.internalState.getSnapshot().papers[paperId];
-      expect(paperSnapshot.revision).toBe(0);
       expect(paperSnapshot.hasElementViewSnapshot).toBe(false);
       expect(paperSnapshot.elementViewIds).toEqual({});
       expect(paperSnapshot.linkViewIds).toEqual({});
@@ -598,7 +610,6 @@ describe('GraphStore', () => {
       // Simulate paper becoming ready with rendered element views
       store.updatePaperSnapshot('paper-1', () => ({
         ...createPaperStoreSnapshot(),
-        revision: 1,
         hasElementViewSnapshot: true,
         elementViewIds: { 'element-1': true },
       }));

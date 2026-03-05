@@ -65,8 +65,6 @@ export interface PaperStoreOptions extends AddPaperOptions {
  * Contains serializable metadata for paper view state.
  */
 export interface PaperStoreSnapshot {
-  /** Incremented when element/link view cache changes */
-  readonly revision: number;
   /** True once this paper has emitted at least one view snapshot */
   readonly hasElementViewSnapshot: boolean;
   /** IDs of mounted element views in this paper */
@@ -81,7 +79,6 @@ export interface PaperStoreSnapshot {
  */
 export function createPaperStoreSnapshot(): PaperStoreSnapshot {
   return {
-    revision: 0,
     hasElementViewSnapshot: false,
     elementViewIds: {},
     linkViewIds: {},
@@ -126,14 +123,7 @@ export class PaperStore {
   private unregisterPaperUpdate?: () => void;
 
   constructor(options: PaperStoreOptions) {
-    const {
-      graphStore,
-      paperOptions = {},
-      scale,
-      renderElement,
-      renderLink,
-      id,
-    } = options;
+    const { graphStore, paperOptions = {}, scale, renderElement, renderLink, id } = options;
     const { width, height } = paperOptions;
     const { graph } = graphStore;
     const hasHighlightingOverride = typeof paperOptions.highlighting === 'object';
@@ -178,7 +168,6 @@ export class PaperStore {
         const base = current ?? createPaperStoreSnapshot();
         return {
           ...base,
-          revision: base.revision + 1,
           hasElementViewSnapshot: true,
           elementViewIds,
           linkViewIds,
