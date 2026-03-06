@@ -79,7 +79,7 @@ export function defaultMapDataToElementAttributes<Element extends FlatElementDat
   }
 
   // User data stored for round-trip (graph → React)
-  attributes.data = userData;
+  attributes.data = { ...userData, ports };
 
   return attributes;
 }

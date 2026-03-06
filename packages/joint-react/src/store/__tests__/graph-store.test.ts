@@ -654,9 +654,9 @@ describe('GraphStore', () => {
 
       // Simulate paper becoming ready with rendered element views
       store.updatePaperSnapshot('paper-1', () => ({
-        ...createPaperStoreSnapshot(),
-        hasElementViewSnapshot: true,
-        elementViewIds: { 'element-1': true },
+        paperElementViews: {
+          'element-1': {} as dia.ElementView,
+        },
       }));
 
       await waitFor(() => {

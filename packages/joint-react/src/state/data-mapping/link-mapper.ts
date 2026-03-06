@@ -1,4 +1,4 @@
-import { type dia } from '@joint/core';
+import { type dia, util } from '@joint/core';
 import type { FlatLinkData } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
 import { REACT_LINK_TYPE } from '../../models/react-link';
@@ -20,9 +20,9 @@ import { resolveCellDefaults } from './resolve-cell-defaults';
  *
  * Properties are grouped by sync direction:
  * - **↔ Two-way** — synced back to React state when the graph changes
- *   (`source`, `target`, `z`, `layer`, `parent`, `vertices`)
+ *   (`source`, `target`, `z`, `layer`, `parent`, `vertices`, `router`, `connector`)
  * - **→ One-way** — consumed during forward mapping only
- *   (`labels`, `router`, `connector`)
+ *   (`labels`)
  * - **→ Presentation** — converted to `attrs.line` / `attrs.wrapper` via theme,
  *   then stored in `cell.data` for round-trip preservation
  *   (`color`, `width`, `sourceMarker`, `targetMarker`, `className`, `pattern`,
@@ -52,11 +52,11 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
     layer,
     parent,
     vertices,
+    router,
+    connector,
 
     // → One-way: consumed here, not synced back
     labels,
-    router,
-    connector,
 
     // → Presentation: theme-driven, stored in cell.data for round-trip
     color = theme.color,
@@ -114,17 +114,18 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
   if (layer !== undefined) attributes.layer = layer;
   if (parent !== undefined) attributes.parent = parent;
   if (vertices !== undefined) attributes.vertices = vertices;
+  if (router !== undefined) attributes.router = router;
+  if (connector !== undefined) attributes.connector = connector;
 
   // → One-way
   if (Array.isArray(labels)) {
     attributes.labels = labels.map((label) => convertLabel(label, theme));
   }
-  if (router !== undefined) attributes.router = router;
-  if (connector !== undefined) attributes.connector = connector;
 
-  // Presentation props + user data stored for round-trip (graph → React)
+  // Presentation props + one-way props + user data stored for round-trip (graph → React)
   attributes.data = {
     ...userData,
+    labels,
     color,
     width,
     sourceMarker,
@@ -152,8 +153,8 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
  * `vertices`) from `cell.attributes` and merges them with `cell.data`
  * (which holds presentation props + user data saved during forward mapping).
  *
- * One-way properties (`labels`, `router`, `connector`) and internal
- * properties (`type`, `attrs`, `markup`) are not mapped back.
+ * One-way properties (`labels`) and internal properties (`type`, `attrs`,
+ * `markup`) are not mapped back.
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat link data
  */
@@ -171,6 +172,8 @@ export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
     layer,
     parent,
     vertices,
+    router,
+    connector,
   } = cell.attributes;
 
   const defaults = resolveCellDefaults(cell);
@@ -202,6 +205,8 @@ export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
   if (Array.isArray(vertices) && vertices.length > 0) {
     linkData.vertices = vertices;
   }
+  if (router !== undefined && !util.isEqual(router, defaults.router)) linkData.router = router;
+  if (connector !== undefined && !util.isEqual(connector, defaults.connector)) linkData.connector = connector;
 
   return {
     ...userData,

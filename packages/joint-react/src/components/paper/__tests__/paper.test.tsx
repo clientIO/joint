@@ -195,8 +195,10 @@ async function dragLinkFromSourcePortToTargetPort(paper: dia.Paper): Promise<dia
   const targetView = paper.findViewByModel(TARGET_ELEMENT_ID) as PortDragElementView;
   const sourcePortRoot = sourceView.findPortNode(SOURCE_PORT_ID);
   const targetPortRoot = targetView.findPortNode(TARGET_PORT_ID);
-  const sourceMagnet = (sourcePortRoot?.querySelector('[magnet]') as SVGElement | null) ?? sourcePortRoot;
-  const targetMagnet = (targetPortRoot?.querySelector('[magnet]') as SVGElement | null) ?? targetPortRoot;
+  const sourceMagnet =
+    (sourcePortRoot?.querySelector('[magnet]') as SVGElement | null) ?? sourcePortRoot;
+  const targetMagnet =
+    (targetPortRoot?.querySelector('[magnet]') as SVGElement | null) ?? targetPortRoot;
 
   if (!(sourceMagnet instanceof SVGElement) || !(targetMagnet instanceof SVGElement)) {
     throw new TypeError('Expected both source and target port magnets to exist before dragging.');

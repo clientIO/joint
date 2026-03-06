@@ -52,7 +52,9 @@ interface UseCreateReactPaperNoSizeHostProps {
   readonly onPaperChange: (paper: ReactPaper) => void;
 }
 
-function UseCreateReactPaperNoSizeHost({ onPaperChange }: Readonly<UseCreateReactPaperNoSizeHostProps>) {
+function UseCreateReactPaperNoSizeHost({
+  onPaperChange,
+}: Readonly<UseCreateReactPaperNoSizeHostProps>) {
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
   const { paper, paperStore, isReady, content } = useCreateReactPaper({
     id: 'paper-no-size-under-test',

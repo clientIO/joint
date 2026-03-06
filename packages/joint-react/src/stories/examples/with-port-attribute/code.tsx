@@ -173,6 +173,9 @@ function Main() {
           }
         }
       }}
+      defaultLink={{
+        color: LIGHT,
+      }}
       validateConnection={(sourceView, _sourceMagnet, targetView) =>
         sourceView.model.id !== targetView.model.id
       }
