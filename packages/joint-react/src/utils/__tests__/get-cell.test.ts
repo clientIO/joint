@@ -1,10 +1,10 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 import { dia, shapes } from '@joint/core';
 import { defaultMapLinkAttributesToData } from '../../state/data-mapping';
+import { resolveCellDefaults } from '../../state/data-mapping/resolve-cell-defaults';
 import { ReactElement } from '../../models/react-element';
 import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
-import type { GraphToLinkOptions } from '../../state/graph-state-selectors';
-import type { FlatLinkData } from '../../types/link-types';
+
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 
@@ -34,10 +34,9 @@ describe('graph-state-selectors link mapping', () => {
       const cell = graph.getCell(id) as dia.Link;
 
       const link = defaultMapLinkAttributesToData({
-        id,
-        cell,
-        graph,
-      } as unknown as GraphToLinkOptions<FlatLinkData>);
+        attributes: cell.attributes,
+        defaultAttributes: resolveCellDefaults(cell),
+      });
 
       expect(link).toMatchObject({
         source: 'source-id',

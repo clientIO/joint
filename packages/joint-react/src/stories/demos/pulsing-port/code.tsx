@@ -61,9 +61,8 @@ const Pulse = dia.HighlighterView.extend({
   },
 });
 
-const NODE_PORTS: FlatElementPort[] = [
-  {
-    id: 'in',
+const NODE_PORTS: Record<string, FlatElementPort> = {
+  in: {
     cx: NODE_WIDTH / 2,
     cy: 0,
     width: PORT_SIZE,
@@ -71,15 +70,14 @@ const NODE_PORTS: FlatElementPort[] = [
     color: LIGHT,
     passive: true,
   },
-  {
-    id: 'out',
+  out: {
     cx: NODE_WIDTH / 2,
     cy: NODE_HEIGHT,
     width: PORT_SIZE,
     height: PORT_SIZE,
     color: LIGHT,
   },
-];
+};
 
 const elements: Record<string, FlatElementData> = {
   '1': { x: 50, y: 50, ports: NODE_PORTS },

@@ -6,10 +6,10 @@ import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 0 },
+  '1': { label: 'Node 1', x: 100, y: 15 },
   '2': { label: 'Node 2', x: 100, y: 200 },
   '3': { label: 'Node 3', x: 200, y: 100 },
-  '4': { label: 'Node 4', x: 0, y: 100 },
+  '4': { label: 'Node 4', x: 15, y: 100 },
 };
 
 type BaseElementWithData = (typeof initialElements)[string];

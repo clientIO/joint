@@ -14,7 +14,7 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 
 const initialElements: Record<string, { label: string; inputs: string[]; x: number; y: number }> = {
-  '1': { label: 'Node 1', inputs: [] as string[], x: 100, y: 0 },
+  '1': { label: 'Node 1', inputs: [] as string[], x: 100, y: 15 },
   '2': { label: 'Node 2', inputs: [] as string[], x: 500, y: 200 },
 };
 const initialEdges: Record<string, { source: string; target: string; color: string }> = {

@@ -1,16 +1,19 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { type dia, util } from '@joint/core';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatLinkData, FlatLinkLabel } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
 import { REACT_LINK_TYPE } from '../../models/react-link';
 import type { LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
 import { convertLabel } from './convert-labels';
+import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 import {
+  assignEndDataProperties,
+  SOURCE_KEYS,
+  TARGET_KEYS,
   toLinkEndAttribute,
   toLinkEndData,
   buildLinkPresentationAttributes,
 } from './link-attributes';
-import { resolveCellDefaults } from './resolve-cell-defaults';
 
 // ────────────────────────────────────────────────────────────────────────────
 // React → JointJS
@@ -21,9 +24,7 @@ import { resolveCellDefaults } from './resolve-cell-defaults';
  *
  * Properties are grouped by sync direction:
  * - **↔ Two-way** — synced back to React state when the graph changes
- *   (`source`, `target`, `z`, `layer`, `parent`, `vertices`, `router`, `connector`)
- * - **→ One-way** — consumed during forward mapping only
- *   (`labels`)
+ *   (`source`, `target`, `z`, `layer`, `parent`, `vertices`, `router`, `connector`, `labels`)
  * - **→ Presentation** — converted to `attrs.line` / `attrs.wrapper` via theme,
  *   then stored in `cell.data` for round-trip preservation
  *   (`color`, `width`, `sourceMarker`, `targetMarker`, `className`, `pattern`,
@@ -56,7 +57,7 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
     router,
     connector,
 
-    // → One-way: consumed here, not synced back
+    // ↔ Two-way: position/offset synced back from graph → React state
     labels,
 
     // → Presentation: theme-driven, stored in cell.data for round-trip
@@ -118,9 +119,11 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
   if (router !== undefined) attributes.router = router;
   if (connector !== undefined) attributes.connector = connector;
 
-  // → One-way
-  if (Array.isArray(labels)) {
-    attributes.labels = labels.map((label) => convertLabel(label, theme));
+  // ↔ Two-way (labels)
+  if (labels !== undefined) {
+    attributes.labels = Object.entries(labels).map(([labelId, label]) =>
+      convertLabel(labelId, label, theme)
+    );
   }
 
   // Presentation props + one-way props + user data stored for round-trip (graph → React)
@@ -151,18 +154,21 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
  * Maps JointJS link attributes back to flat link data.
  *
  * Picks the two-way properties (`source`, `target`, `z`, `layer`, `parent`,
- * `vertices`) from `cell.attributes` and merges them with `cell.data`
+ * `vertices`, `labels`) from `cell.attributes` and merges them with `cell.data`
  * (which holds presentation props + user data saved during forward mapping).
  *
- * One-way properties (`labels`) and internal properties (`type`, `attrs`,
- * `markup`) are not mapped back.
+ * For labels, position and offset from `attributes.labels` (which may be
+ * updated by interactive `labelMove`) are merged with the styling data
+ * stored in `cell.data.labels`.
+ *
+ * Internal properties (`type`, `attrs`, `markup`) are not mapped back.
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat link data
  */
 export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
-  options: Pick<GraphToLinkOptions<Link>, 'cell' | 'previousData'>
+  options: Pick<GraphToLinkOptions<Link>, 'attributes' | 'defaultAttributes'>
 ): Link {
-  const { cell } = options;
+  const { attributes, defaultAttributes } = options;
   const {
     // User data + presentation props (saved during forward mapping)
     data: userData,
@@ -175,9 +181,8 @@ export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
     vertices,
     router,
     connector,
-  } = cell.attributes;
-
-  const defaults = resolveCellDefaults(cell);
+    labels: attributeLabels,
+  } = attributes;
 
   const sourceData = toLinkEndData(source);
   const targetData = toLinkEndData(target);
@@ -188,27 +193,28 @@ export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
   };
 
   // ↔ Two-way (endpoint details — only when present)
-  if (sourceData.port) linkData.sourcePort = sourceData.port;
-  if (sourceData.anchor) linkData.sourceAnchor = sourceData.anchor;
-  if (sourceData.connectionPoint) linkData.sourceConnectionPoint = sourceData.connectionPoint;
-  if (sourceData.magnet) linkData.sourceMagnet = sourceData.magnet;
-  if (targetData.port) linkData.targetPort = targetData.port;
-  if (targetData.anchor) linkData.targetAnchor = targetData.anchor;
-  if (targetData.connectionPoint) linkData.targetConnectionPoint = targetData.connectionPoint;
-  if (targetData.magnet) linkData.targetMagnet = targetData.magnet;
+  assignEndDataProperties(linkData, sourceData, SOURCE_KEYS);
+  assignEndDataProperties(linkData, targetData, TARGET_KEYS);
 
   // ↔ Two-way (skip when matching model defaults)
-  if (z !== undefined && z !== defaults.z) linkData.z = z;
-  if (layer !== undefined && layer !== defaults.layer) linkData.layer = layer;
+  if (z !== undefined && z !== defaultAttributes.z) linkData.z = z;
+  if (layer !== undefined && layer !== defaultAttributes.layer) linkData.layer = layer;
   if (parent) {
     linkData.parent = parent;
   }
   if (Array.isArray(vertices) && vertices.length > 0) {
     linkData.vertices = vertices;
   }
-  if (router !== undefined && !util.isEqual(router, defaults.router)) linkData.router = router;
-  if (connector !== undefined && !util.isEqual(connector, defaults.connector))
+  if (router !== undefined && !util.isEqual(router, defaultAttributes.router))
+    linkData.router = router;
+  if (connector !== undefined && !util.isEqual(connector, defaultAttributes.connector))
     linkData.connector = connector;
+
+  // ↔ Two-way (labels): merge position/offset from attributes back into data
+  const dataLabels = userData?.labels as Record<string, FlatLinkLabel> | undefined;
+  if (dataLabels && Array.isArray(attributeLabels)) {
+    linkData.labels = mergeLabelsFromAttributes(dataLabels, attributeLabels);
+  }
 
   return {
     ...userData,

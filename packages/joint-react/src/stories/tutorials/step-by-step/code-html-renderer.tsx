@@ -16,7 +16,7 @@ type CustomElement = FlatElementData & { data: { label: string } };
 
 // Define initial elements as Record
 const initialElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, x: 100, y: 0, width: 100, height: 25 },
+  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 25 },
   '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 25 },
 };
 

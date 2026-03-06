@@ -93,9 +93,9 @@ const mapDataToElementAttributes = ({
  * Reverse mapper: converts JointJS top-left position back to center-based data.
  */
 const mapElementAttributesToData = ({
-  toData,
+  attributes, toData,
 }: GraphToElementOptions<FlatElementData>): FlatElementData => {
-  const { x = 0, y = 0, width = 100, height = 60, ...rest } = toData();
+  const { x = 0, y = 0, width = 100, height = 60, ...rest } = toData(attributes);
   return { ...rest, cx: x + width / 2, cy: y + height / 2, width, height };
 };
 

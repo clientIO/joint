@@ -5,10 +5,6 @@
  */
 export interface FlatElementPort {
   /**
-   * Unique port identifier.
-   */
-  readonly id?: string;
-  /**
    * X position of the port (absolute positioning).
    * Supports calc() expressions (e.g., 'calc(w)').
    */
@@ -100,7 +96,7 @@ export interface FlatElementData extends Record<string, unknown> {
   /**
    * Ports of the element.
    */
-  ports?: FlatElementPort[];
+  ports?: Record<string, FlatElementPort>;
   /**
    * X position of the element.
    */

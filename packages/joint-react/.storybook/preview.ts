@@ -6,6 +6,7 @@ export const decorators = [withStrictMode];
 
 const preview: Preview = {
   parameters: {
+    layout: 'padded',
     docs: {
       theme,
     },

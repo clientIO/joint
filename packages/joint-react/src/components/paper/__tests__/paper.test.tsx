@@ -153,14 +153,14 @@ function getPortDragElements(): Record<string, FlatElementData> {
       y: 40,
       width: 120,
       height: 80,
-      ports: [{ id: SOURCE_PORT_ID, cx: 120, cy: 40 }],
+      ports: { [SOURCE_PORT_ID]: { cx: 120, cy: 40 } },
     },
     [TARGET_ELEMENT_ID]: {
       x: 320,
       y: 40,
       width: 120,
       height: 80,
-      ports: [{ id: TARGET_PORT_ID, cx: 0, cy: 40 }],
+      ports: { [TARGET_PORT_ID]: { cx: 0, cy: 40 } },
     },
   };
 }

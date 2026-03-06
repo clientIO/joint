@@ -9,10 +9,11 @@ import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
  * @param theme - The link theme providing label styling defaults
  * @returns The full JointJS label definition
  */
-export function convertLabel(label: FlatLinkLabel, theme: LinkTheme = defaultLinkTheme): dia.Link.Label {
+export function convertLabel(id: string, label: FlatLinkLabel, theme: LinkTheme = defaultLinkTheme): dia.Link.Label & { id: string } {
   const {
     text,
     position = theme.labelPosition,
+    offset,
     color = theme.labelColor,
     fontSize = theme.labelFontSize,
     fontFamily = theme.labelFontFamily,
@@ -81,7 +82,11 @@ export function convertLabel(label: FlatLinkLabel, theme: LinkTheme = defaultLin
     labelBodyAttributes.class = backgroundClassName;
   }
 
+  const labelPosition: Record<string, unknown> = { distance: position };
+  if (offset !== undefined) labelPosition.offset = offset;
+
   return {
+    id,
     markup: [
       { tagName: bodyTagName, selector: 'labelBody' },
       { tagName: 'text', selector: 'labelText' },
@@ -90,6 +95,6 @@ export function convertLabel(label: FlatLinkLabel, theme: LinkTheme = defaultLin
       labelText: labelTextAttributes,
       labelBody: labelBodyAttributes,
     },
-    position: { distance: position },
+    position: labelPosition,
   };
 }

@@ -7,10 +7,10 @@ import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import type { dia } from '../../../../../joint-core/types';
 
 const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 0 },
+  '1': { label: 'Node 1', x: 100, y: 15 },
   '2': { label: 'Node 2', x: 100, y: 200 },
   '3': { label: 'Node 3', x: 280, y: 100 },
-  '4': { label: 'Node 4', x: 0, y: 100 },
+  '4': { label: 'Node 4', x: 15, y: 100 },
 };
 
 type BaseElementWithData = (typeof initialElements)[string];
@@ -61,7 +61,6 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
       const linkId = getLinkId(id, closeId);
       // Check if the link or the reverse link already exists
       if (graph.getCell(linkId)) continue;
-      // eslint-disable-next-line sonarjs/arguments-order
       if (graph.getCell(getLinkId(closeId, id))) continue;
 
       const link = new DashedLink({

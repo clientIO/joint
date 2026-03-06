@@ -116,12 +116,12 @@ export class GraphStore {
   private unsubscribePublicState?: () => void;
 
   private readonly graphToElementSelector: (
-    options: { readonly id: string; readonly cell: dia.Element; readonly graph: dia.Graph } & {
+    options: { readonly id: string; readonly element: dia.Element; readonly graph: dia.Graph } & {
       readonly previousData?: FlatElementData;
     }
   ) => FlatElementData;
   private readonly graphToLinkSelector: (
-    options: { readonly id: string; readonly cell: dia.Link; readonly graph: dia.Graph } & {
+    options: { readonly id: string; readonly link: dia.Link; readonly graph: dia.Graph } & {
       readonly previousData?: FlatLinkData;
     }
   ) => FlatLinkData;

@@ -60,15 +60,19 @@ const BUTTON_CLASSNAME =
 const ROW_HEIGHT_OFFSET = 45;
 const PORT_START_Y = 65;
 
-function buildTablePorts(rows: string[][]): FlatElementPort[] {
-  return rows.map((_, index) => ({
-    id: `out-3-${index}`,
-    cx: 400,
-    cy: index * ROW_HEIGHT_OFFSET + PORT_START_Y,
-    width: 20,
-    height: 20,
-    color: 'transparent',
-  }));
+function buildTablePorts(rows: string[][]): Record<string, FlatElementPort> {
+  return Object.fromEntries(
+    rows.map((_, index) => [
+      `out-3-${index}`,
+      {
+        cx: 400,
+        cy: index * ROW_HEIGHT_OFFSET + PORT_START_Y,
+        width: 20,
+        height: 20,
+        color: 'transparent',
+      },
+    ])
+  );
 }
 
 // Define static properties for the view's Paper - used by minimap and main view

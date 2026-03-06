@@ -248,7 +248,10 @@ describe('updateGraph', () => {
 
     const [graphElement] = graph.getElements();
     const id = graphElement.id as string;
-    const graphElementData = defaultMapElementAttributesToData({ cell: graphElement });
+    const graphElementData = defaultMapElementAttributesToData({
+      attributes: graphElement.attributes,
+      defaultAttributes: graphElement.defaults() as dia.Element.Attributes,
+    });
 
     const result = updateGraph({
       graph,

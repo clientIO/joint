@@ -6,7 +6,6 @@ import type {
   GraphToElementOptions,
 } from '../graph-state-selectors';
 import { convertPorts, createPortDefaults } from './convert-ports';
-import { resolveCellDefaults } from './resolve-cell-defaults';
 
 // ────────────────────────────────────────────────────────────────────────────
 // React → JointJS
@@ -103,9 +102,9 @@ export function defaultMapDataToElementAttributes<Element extends FlatElementDat
  * @returns The flat element data
  */
 export function defaultMapElementAttributesToData<Element extends FlatElementData>(
-  options: Pick<GraphToElementOptions<Element>, 'cell' | 'previousData'>
+  options: Pick<GraphToElementOptions<Element>, 'attributes' | 'defaultAttributes'>
 ): Element {
-  const { cell } = options;
+  const { attributes, defaultAttributes } = options;
   const {
     // User data (saved during forward mapping)
     data: userData,
@@ -116,9 +115,8 @@ export function defaultMapElementAttributesToData<Element extends FlatElementDat
     z,
     layer,
     parent,
-  } = cell.attributes;
+  } = attributes;
 
-  const defaults = resolveCellDefaults(cell);
   const elementData: Record<string, unknown> = {};
 
   // ↔ Two-way (nested → flat)
@@ -130,11 +128,11 @@ export function defaultMapElementAttributesToData<Element extends FlatElementDat
     elementData.width = size.width;
     elementData.height = size.height;
   }
-  if (angle !== undefined && angle !== defaults.angle) elementData.angle = angle;
+  if (angle !== undefined && angle !== defaultAttributes.angle) elementData.angle = angle;
 
   // ↔ Two-way (skip when matching model defaults)
-  if (z !== undefined && z !== defaults.z) elementData.z = z;
-  if (layer !== undefined && layer !== defaults.layer) elementData.layer = layer;
+  if (z !== undefined && z !== defaultAttributes.z) elementData.z = z;
+  if (layer !== undefined && layer !== defaultAttributes.layer) elementData.layer = layer;
   if (parent) elementData.parent = parent;
 
   return {

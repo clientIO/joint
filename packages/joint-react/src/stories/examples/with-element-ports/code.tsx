@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import '../index.css';
-import { V, type dia } from '@joint/core';
+import { V } from '@joint/core';
 import {
   GraphProvider,
   Paper,
@@ -16,11 +16,6 @@ import {
 import { useCallback } from 'react';
 
 const SECONDARY = '#6366f1';
-const DEFAULT_ANCHOR: dia.Paper.Options['defaultAnchor'] = {
-  name: 'center',
-  args: { useModelGeometry: true },
-};
-
 const TRIANGLE = 'M -8 -8 L 8 0 L -8 8 Z';
 const ROUNDED_RECT = V.rectToPath({ x: -8, y: -8, width: 16, height: 16, rx: 4, ry: 4 });
 
@@ -53,9 +48,8 @@ const initialElements: Record<string, PortElementData> = {
     y: 100,
     width: 140,
     height: 80,
-    ports: [
-      {
-        id: 'out-1',
+    ports: {
+      'out-1': {
         cx: 'calc(w)',
         cy: 'calc(0.33 * h)',
         width: 16,
@@ -66,8 +60,7 @@ const initialElements: Record<string, PortElementData> = {
         shape: ROUNDED_RECT,
         labelOffsetY: -15,
       },
-      {
-        id: 'out-2',
+      'out-2': {
         cx: 'calc(w)',
         cy: 'calc(0.66 * h)',
         width: 16,
@@ -78,7 +71,7 @@ const initialElements: Record<string, PortElementData> = {
         labelOffsetX: 10,
         labelOffsetY: 15,
       },
-    ],
+    },
   },
   'node-2': {
     label: 'Node 2',
@@ -87,9 +80,8 @@ const initialElements: Record<string, PortElementData> = {
     y: 100,
     width: 140,
     height: 80,
-    ports: [
-      {
-        id: 'in-1',
+    ports: {
+      'in-1': {
         cx: 0,
         cy: 'calc(0.33 * h)',
         color: PRIMARY,
@@ -100,8 +92,7 @@ const initialElements: Record<string, PortElementData> = {
         labelColor: LIGHT,
         labelOffsetY: -15,
       },
-      {
-        id: 'in-2',
+      'in-2': {
         cx: 0,
         cy: 'calc(0.66 * h)',
         width: 16,
@@ -112,7 +103,7 @@ const initialElements: Record<string, PortElementData> = {
         labelColor: LIGHT,
         labelOffsetY: 15,
       },
-    ],
+    },
   },
 };
 
@@ -120,20 +111,24 @@ const initialLinks: Record<string, FlatLinkData> = {
   'link-1': {
     source: 'node-1',
     sourcePort: 'out-1',
+    sourceAnchor: { name: 'right', args: { useModelGeometry: true }},
     target: 'node-2',
     targetPort: 'in-1',
+    targetAnchor: { name: 'left', args: { useModelGeometry: true }},
     color: LIGHT,
     z: -1,
-    router: { name: 'rightAngle' }
+    connector: { name: 'curve' }
   },
   'link-2': {
     source: 'node-1',
     sourcePort: 'out-2',
+    sourceAnchor: { name: 'right', args: { useModelGeometry: true }},
     target: 'node-2',
     targetPort: 'in-2',
+    targetAnchor: { name: 'left', args: { useModelGeometry: true }},
     color: LIGHT,
     z: -1,
-    router: { name: 'rightAngle' }
+    connector: { name: 'curve' }
   },
 };
 
@@ -187,17 +182,17 @@ function ElementShape({ width = 0, height = 0, label, color }: Readonly<PortElem
 
 interface PortControlProps {
   readonly elementId: string;
-  readonly portIndex: number;
+  readonly portId: string;
   readonly port: FlatElementPort;
 }
 
-function PortControl({ elementId, portIndex, port }: Readonly<PortControlProps>) {
+function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
   const { set } = useCellActions<PortElementData>();
 
   const updatePort = (updates: Partial<FlatElementPort>) => {
     set(elementId, (previous) => ({
       ...previous,
-      ports: previous.ports?.map((p, index) => (index === portIndex ? { ...p, ...updates } : p)),
+      ports: previous.ports ? { ...previous.ports, [portId]: { ...previous.ports[portId], ...updates } } : previous.ports,
     }));
   };
 
@@ -213,7 +208,7 @@ function PortControl({ elementId, portIndex, port }: Readonly<PortControlProps>)
       }}
     >
       <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 12 }}>
-        {port.id}
+        {portId}
         <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
           {getShapeLabel(port.shape ?? 'ellipse')}
         </span>
@@ -339,7 +334,7 @@ interface ElementPortControlsProps {
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
-  const ports = element.ports ?? [];
+  const portEntries = Object.entries(element.ports ?? {});
 
   return (
     <div
@@ -354,12 +349,12 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
       <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 13 }}>
         {element.label}
         <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
-          {ports.length} port{ports.length === 1 ? '' : 's'}
+          {portEntries.length} port{portEntries.length === 1 ? '' : 's'}
         </span>
       </div>
 
-      {ports.map((port, index) => (
-        <PortControl key={port.id ?? index} elementId={id} portIndex={index} port={port} />
+      {portEntries.map(([portId, port]) => (
+        <PortControl key={portId} elementId={id} portId={portId} port={port} />
       ))}
     </div>
   );
@@ -387,7 +382,9 @@ function Main() {
         renderElement={renderElement}
         snapLinks={true}
         linkPinning={false}
-        defaultAnchor={DEFAULT_ANCHOR}
+        defaultConnectionPoint={{
+          name: 'anchor'
+        }}
         defaultLink={{
           color: LIGHT,
         }}
