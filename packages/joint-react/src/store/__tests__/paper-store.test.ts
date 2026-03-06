@@ -170,7 +170,9 @@ describe('PaperStore', () => {
         paperOptions: {},
         id: 'test-paper',
       });
-      paperStore.paper.render(paperElement);
+      paperStore.paper.setElement(paperElement);
+      paperStore.paper.render();
+      paperStore.paper.unfreeze();
 
       // Verify paper element has children (the paper's SVG)
       expect(paperElement.children.length).toBeGreaterThan(0);

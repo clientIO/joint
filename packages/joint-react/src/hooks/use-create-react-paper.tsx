@@ -140,13 +140,18 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     onElementsSizeChange,
     useHTMLOverlay,
     scale,
-    width,
-    height,
+    // These are React host props and must not be forwarded to dia.Paper options.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    className,
+    style,
     elementRef,
     shouldSyncDimensions,
     onReady,
     ...paperOptions
   } = options;
+
+  const height = paperOptions.height ?? style?.height;
+  const width = paperOptions.width ?? style?.width;
 
   const shouldApplyDimensions = shouldSyncDimensions ?? true;
 
@@ -183,6 +188,10 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
   const paperLinkViewIds = useGraphInternalStoreSelector(
     (snapshot) => snapshot.papers[id]?.linkViewIds ?? EMPTY_VIEW_ID_RECORD
+  );
+
+  const hasElementViewSnapshot = useGraphInternalStoreSelector(
+    (snapshot) => snapshot.papers[id]?.hasElementViewSnapshot
   );
 
   const { addPaper, graph, mapDataToLinkAttributes } = useGraphStore();
@@ -228,9 +237,11 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   const isReady = !!paper && (!elementRef || !!elementRef.current);
 
   useLayoutEffect(() => {
+    const hostElementForCreation = elementRef?.current;
     const remove = addPaper(id, {
       paperOptions: {
         ...paperOptions,
+        el: hostElementForCreation ?? paperOptions.el,
         defaultLink: defaultLinkJointJS,
       },
       renderElement: renderElement as RenderElement<FlatElementData>,
@@ -253,12 +264,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       isReadyNotifiedRef.current = true;
       onReady(paper);
     }
-
-    const paperHostElement = elementRef?.current;
-    if (!paperHostElement) {
-      return;
-    }
-    paper.render(paperHostElement);
+    paper.unfreeze();
   }, [elementRef, onReady, paper]);
 
   useEffect(() => {
@@ -300,7 +306,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
      */
     function resolveSize(
       hostElementItem: HTMLElement | SVGElement | null,
-      dimension: dia.Paper.Dimension | undefined
+      dimension: dia.Paper.Dimension | undefined,
+      axis: 'width' | 'height'
     ): dia.Paper.Dimension {
       if (dimension !== undefined) {
         return dimension;
@@ -308,11 +315,12 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       if (!hostElementItem) {
         return null;
       }
-      const measuredDimension = hostElementItem.clientWidth;
+      const measuredDimension =
+        axis === 'width' ? hostElementItem.clientWidth : hostElementItem.clientHeight;
       return resolveInferredDimension(measuredDimension, dimension);
     }
-    const nextWidth = resolveSize(hostElement, width);
-    const nextHeight = resolveSize(hostElement, height);
+    const nextWidth = resolveSize(hostElement, width, 'width');
+    const nextHeight = resolveSize(hostElement, height, 'height');
     paper.setDimensions(nextWidth ?? null, nextHeight ?? null);
 
     const hasMissingDimension = width === undefined || height === undefined;
@@ -324,6 +332,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   }, [elementRef, height, paper, shouldApplyDimensions, width]);
 
   useEffect(() => {
+    if (!hasElementViewSnapshot) return;
     if (!isReady) return;
     if (measuredRef.current) return;
     if (!paper) return;
@@ -350,9 +359,10 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     return () => {
       clearTimeout(timeout);
     };
-  }, [areElementsMeasured, isReady, onElementsSizeReady, paper]);
+  }, [areElementsMeasured, hasElementViewSnapshot, isReady, onElementsSizeReady, paper]);
 
   useEffect(() => {
+    if (!hasElementViewSnapshot) return;
     if (!isReady) return;
     if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
@@ -363,6 +373,14 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       return [element?.width ?? 0, element?.height ?? 0];
     });
     const previousSizes = previousSizesRef.current;
+
+    // Prime baseline snapshot first to avoid an initial stale layout pass.
+    // `onElementsSizeChange` should react to size deltas, not first observation.
+    if (previousSizes.length === 0) {
+      previousSizesRef.current = currentSizes;
+      return;
+    }
+
     let changed = false;
 
     if (previousSizes.length === currentSizes.length) {
@@ -385,7 +403,15 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
     previousSizesRef.current = currentSizes;
     onElementsSizeChange({ paper, graph: paper.model });
-  }, [areElementsMeasured, elementIds, elementsState, isReady, onElementsSizeChange, paper]);
+  }, [
+    areElementsMeasured,
+    elementIds,
+    elementsState,
+    hasElementViewSnapshot,
+    isReady,
+    onElementsSizeChange,
+    paper,
+  ]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

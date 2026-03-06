@@ -38,7 +38,7 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper className={PAPER_CLASSNAME} height={280} renderElement={ResizableNode} />
+      <Paper className={PAPER_CLASSNAME} renderElement={ResizableNode} />
     </div>
   );
 }

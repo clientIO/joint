@@ -18,6 +18,7 @@ export class ReactPaper extends dia.Paper {
     cellId: CellId,
     isMounted: boolean
   ) => void;
+  private readonly shouldPreserveHostElementOnRemove: boolean;
   private pendingLinks: Set<CellId> = new Set();
 
   constructor(options: ReactPaperOptions) {
@@ -25,20 +26,17 @@ export class ReactPaper extends dia.Paper {
 
     super(paperOptions);
     this.onViewMountChange = onViewMountChange ?? noopViewMountChange;
+    this.shouldPreserveHostElementOnRemove = !!paperOptions.el;
   }
 
   /**
-   * Mounts the paper DOM element into the provided host element.
-   * @param element - The host element where paper should be rendered.
-   * @returns The same ReactPaper instance for chaining.
+   * Preserves externally managed host elements (e.g. React refs) on cleanup.
    */
-  public render(element?: HTMLElement | SVGElement): this {
-    if (!element) {
-      return super.render();
+  protected _removeElement(): void {
+    if (this.shouldPreserveHostElementOnRemove) {
+      return;
     }
-    element.replaceChildren(this.el);
-    this.unfreeze();
-    return this;
+    super._removeElement();
   }
 
   public getElementView(id: CellId): dia.ElementView | undefined {

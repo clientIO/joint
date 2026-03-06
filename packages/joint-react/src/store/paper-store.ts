@@ -190,7 +190,6 @@ export class PaperStore {
     if (width !== undefined && height !== undefined) {
       this.paper.setDimensions(width, height);
     }
-    this.paper.unfreeze();
   }
 
   /**

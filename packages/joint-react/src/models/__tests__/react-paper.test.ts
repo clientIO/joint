@@ -95,8 +95,8 @@ describe('ReactPaper', () => {
     });
   });
 
-  describe('render', () => {
-    it('should mount paper element into provided host and unfreeze the paper', () => {
+  describe('mounting', () => {
+    it('should mount paper into provided host via setElement/render and unfreeze', () => {
       paper = createPaper({
         frozen: true,
       });
@@ -104,9 +104,12 @@ describe('ReactPaper', () => {
       document.body.append(host);
 
       const unfreezeSpy = jest.spyOn(paper, 'unfreeze');
-      paper.render(host);
+      paper.setElement(host);
+      paper.render();
+      paper.unfreeze();
 
-      expect(host.firstChild).toBe(paper.el);
+      expect(paper.el).toBe(host);
+      expect(host.querySelector('svg')).not.toBeNull();
       expect(unfreezeSpy).toHaveBeenCalled();
 
       host.remove();

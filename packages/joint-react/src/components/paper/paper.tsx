@@ -1,9 +1,18 @@
 import type { dia } from '@joint/core';
-import { forwardRef, useImperativeHandle, useMemo, useRef, type CSSProperties } from 'react';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { PaperStoreContext } from '../../context';
 import { useCreateReactPaper } from '../../hooks/use-create-react-paper';
 import type { FlatElementData } from '../../types/element-types';
 import type { PaperProps } from './paper.types';
+
+function resolveStyleDimension(
+  dimension: React.CSSProperties['width'] | React.CSSProperties['height']
+): dia.Paper.Dimension | undefined {
+  if (dimension === undefined) {
+    return undefined;
+  }
+  return dimension as dia.Paper.Dimension;
+}
 
 /**
  * Internal Paper implementation used by forwarded `Paper` component.
@@ -16,9 +25,13 @@ function PaperBase<ElementData = FlatElementData>(
   forwardedRef: React.ForwardedRef<dia.Paper | null>
 ) {
   const { className, style, children, width, height } = props;
+  const resolvedWidth = width ?? resolveStyleDimension(style?.width);
+  const resolvedHeight = height ?? resolveStyleDimension(style?.height);
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
   const { paper, paperStore, isReady, content } = useCreateReactPaper({
     ...props,
+    width: resolvedWidth,
+    height: resolvedHeight,
     elementRef: paperHTMLElementRef,
   });
 
@@ -26,19 +39,9 @@ function PaperBase<ElementData = FlatElementData>(
     paper,
   ]);
 
-  const paperContainerStyle = useMemo((): CSSProperties => {
-    if (style) {
-      return style;
-    }
-    return {
-      width: width ?? '100%',
-      height: height ?? '100%',
-    };
-  }, [height, style, width]);
-
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
-      <div className={className} ref={paperHTMLElementRef} style={paperContainerStyle}>
+      <div className={className} ref={paperHTMLElementRef} style={style}>
         {isReady && content}
       </div>
       {isReady && children}

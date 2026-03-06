@@ -70,8 +70,7 @@ function Main() {
         const { width, height } = element.size();
         const x = col * (width + gap);
         const y = row * (height + gap);
-
-        element.position(x, y);
+        element.position(gap + x, gap + y);
       }
     },
     []

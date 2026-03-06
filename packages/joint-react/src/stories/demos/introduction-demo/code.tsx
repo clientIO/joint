@@ -356,7 +356,6 @@ function ToolBar(props: Readonly<ToolbarProps>) {
     paperCtxRef,
   } = props;
   const graph = useGraph();
-  console.log(graph.getElements(), useElements());
   const paper = paperCtxRef.current;
   return (
     <div className="flex flex-row absolute top-2 left-2 z-10 bg-gray-900  rounded-lg p-2 shadow-md gap-2">
@@ -537,7 +536,7 @@ function Main() {
             },
           }}
           renderElement={renderElement}
-          className={PAPER_CLASSNAME}
+          className={`${PAPER_CLASSNAME} h-[600px]`}
         />
 
         {isMinimapVisible && <MiniMap />}

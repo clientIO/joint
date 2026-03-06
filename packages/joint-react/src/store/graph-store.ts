@@ -25,7 +25,6 @@ import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-t
 import { scheduler } from '../utils/scheduler';
 import { executeClearViewForCell } from './clear-view';
 import { updateLayoutState } from './update-layout-state';
-import { updateGraph } from '../state/update-graph';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -218,18 +217,8 @@ export class GraphStore {
     this.observer = createElementsSizeObserver({
       getPublicSnapshot: this.publicState.getSnapshot,
       onBatchUpdate: (newElements) => {
-        const snapshot = this.publicState.getSnapshot();
-
-        // 1. Sync new sizes to dia.Graph
-        updateGraph({
-          graph: this.graph,
-          elements: newElements,
-          links: snapshot.links,
-          graphToElementSelector: this.graphToElementSelector,
-          graphToLinkSelector: this.graphToLinkSelector,
-          mapDataToElementAttributes: this.mapDataToElementAttributes,
-          mapDataToLinkAttributes: this.mapDataToLinkAttributes,
-          isUpdateFromReact: false,
+        this.publicState.setState((previous) => {
+          return { ...previous, elements: newElements };
         });
       },
       getCellTransform: (id) => {
@@ -370,7 +359,11 @@ export class GraphStore {
     return isChanged;
   }
 
-  private setPaperLinkViewMountedState(paperId: string, linkId: CellId, isMounted: boolean): boolean {
+  private setPaperLinkViewMountedState(
+    paperId: string,
+    linkId: CellId,
+    isMounted: boolean
+  ): boolean {
     let isChanged = false;
     this.internalState.setState((previous) => {
       const currentPaper = previous.papers[paperId];
@@ -499,7 +492,12 @@ export class GraphStore {
     readonly cellId: CellId;
     readonly onValidateLink?: (link: dia.Link) => boolean;
   }) => {
-    executeClearViewForCell(this.paperStores.values(), this.graph, options.cellId, options.onValidateLink);
+    executeClearViewForCell(
+      this.paperStores.values(),
+      this.graph,
+      options.cellId,
+      options.onValidateLink
+    );
     this.scheduleLayoutUpdate();
   };
 }

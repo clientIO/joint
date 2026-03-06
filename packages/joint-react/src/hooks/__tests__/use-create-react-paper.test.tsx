@@ -115,7 +115,7 @@ function UseCreateReactPaperSingleSizeHost({
 }
 
 describe('use-create-react-paper', () => {
-  it('auto-renders when elementRef is provided and onReady exists', async () => {
+  it('uses the elementRef host as the paper element when onReady is provided', async () => {
     const onReady = jest.fn((_paper: ReactPaper) => {});
     const wrapper = createGraphWrapper();
 
@@ -126,8 +126,10 @@ describe('use-create-react-paper', () => {
     });
 
     await waitFor(() => {
+      const [paper] = onReady.mock.calls.at(-1) as [ReactPaper];
       const host = screen.getByTestId('hook-paper-host');
-      expect(host.querySelector('.joint-paper')).not.toBeNull();
+      expect(paper.el).toBe(host);
+      expect(host.classList.contains('joint-paper')).toBe(true);
     });
   });
 
@@ -138,16 +140,18 @@ describe('use-create-react-paper', () => {
 
     await waitFor(() => {
       const host = screen.getByTestId('hook-paper-host');
+      expect(host.classList.contains('joint-paper')).toBe(false);
       expect(host.querySelector('.joint-paper')).toBeNull();
     });
   });
 
   it('allows custom onReady to mount paper manually when elementRef is omitted', async () => {
+    const externalHost = document.createElement('div');
+    document.body.append(externalHost);
     const onReady = jest.fn((paper: ReactPaper) => {
-      const host = document.querySelector('[data-testid="hook-paper-host"]');
-      if (host instanceof HTMLElement) {
-        paper.render(host);
-      }
+      paper.setElement(externalHost);
+      paper.render();
+      paper.unfreeze();
     });
     const wrapper = createGraphWrapper();
 
@@ -158,9 +162,9 @@ describe('use-create-react-paper', () => {
     });
 
     await waitFor(() => {
-      const host = screen.getByTestId('hook-paper-host');
-      expect(host.querySelector('.joint-paper')).not.toBeNull();
+      expect(externalHost.querySelector('svg')).not.toBeNull();
     });
+    externalHost.remove();
   });
 
   it('keeps non-zero default dimensions when width/height options are omitted', async () => {
@@ -198,6 +202,33 @@ describe('use-create-react-paper', () => {
     const [paper] = onPaperChange.mock.calls.at(-1) as [ReactPaper];
     expect(paper.options.height).toBe(280);
     expect(paper.options.width).toBeNull();
+  });
+
+  it('infers width and height independently from host element when omitted', async () => {
+    const widthGetterSpy = jest
+      .spyOn(HTMLElement.prototype, 'clientWidth', 'get')
+      .mockReturnValue(640);
+    const heightGetterSpy = jest
+      .spyOn(HTMLElement.prototype, 'clientHeight', 'get')
+      .mockReturnValue(200);
+
+    try {
+      const onPaperChange = jest.fn((_paper: ReactPaper) => {});
+      const wrapper = createGraphWrapper();
+
+      render(<UseCreateReactPaperNoSizeHost onPaperChange={onPaperChange} />, { wrapper });
+
+      await waitFor(() => {
+        expect(onPaperChange).toHaveBeenCalled();
+      });
+
+      const [paper] = onPaperChange.mock.calls.at(-1) as [ReactPaper];
+      expect(paper.options.width).toBe(640);
+      expect(paper.options.height).toBe(200);
+    } finally {
+      widthGetterSpy.mockRestore();
+      heightGetterSpy.mockRestore();
+    }
   });
 
   it('keeps inferred non-zero height when only width is provided', async () => {
