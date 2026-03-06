@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { type dia, util } from '@joint/core';
 import type { FlatLinkData } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
@@ -206,7 +207,8 @@ export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
     linkData.vertices = vertices;
   }
   if (router !== undefined && !util.isEqual(router, defaults.router)) linkData.router = router;
-  if (connector !== undefined && !util.isEqual(connector, defaults.connector)) linkData.connector = connector;
+  if (connector !== undefined && !util.isEqual(connector, defaults.connector))
+    linkData.connector = connector;
 
   return {
     ...userData,

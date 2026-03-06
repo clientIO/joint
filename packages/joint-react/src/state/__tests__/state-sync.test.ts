@@ -1,5 +1,4 @@
 /* eslint-disable sonarjs/no-nested-functions */
-import { waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE, type GraphStoreSnapshot } from '../../store/graph-store';
 import { stateSync } from '../state-sync';
