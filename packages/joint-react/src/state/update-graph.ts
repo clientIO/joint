@@ -232,9 +232,7 @@ export function updateGraph<
     attributes.id = id;
     return attributes;
   });
-  console.log('Syncing graph with elements:', elementItems, 'and links:', linkItems, {
-    isUpdateFromReact,
-  });
+
   graph.syncCells([...elementItems, ...linkItems], { remove: true, isUpdateFromReact });
   return true;
 }
