@@ -61,7 +61,6 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
       const linkId = getLinkId(id, closeId);
       // Check if the link or the reverse link already exists
       if (graph.getCell(linkId)) continue;
-      // eslint-disable-next-line sonarjs/arguments-order
       if (graph.getCell(getLinkId(closeId, id))) continue;
 
       const link = new DashedLink({

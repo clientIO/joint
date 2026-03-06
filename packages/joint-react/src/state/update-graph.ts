@@ -14,6 +14,7 @@ import {
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
 } from './data-mapping';
+import { resolveCellDefaults } from './data-mapping/resolve-cell-defaults';
 import { fastElementArrayEqual, isPositionOnlyUpdate } from '../utils/fast-equality';
 
 /**
@@ -67,9 +68,10 @@ export function mapGraphElement<Graph extends dia.Graph, ElementData = FlatEleme
   previousData?: ElementData
 ): ElementData {
   const id = cell.id as string;
+  const defaultAttributes = resolveCellDefaults(cell);
   return selector({
-    id, cell, graph, previousData,
-    toData: () => defaultMapElementAttributesToData({ cell }),
+    id, attributes: cell.attributes, defaultAttributes, element: cell, graph, previousData,
+    toData: (attributes) => defaultMapElementAttributesToData({ attributes, defaultAttributes }) as ElementData,
   });
 }
 
@@ -87,9 +89,10 @@ export function mapGraphLink<Graph extends dia.Graph, LinkData = FlatLinkData>(
   previousData?: LinkData
 ): LinkData {
   const id = cell.id as string;
+  const defaultAttributes = resolveCellDefaults(cell);
   return selector({
-    id, cell, graph, previousData,
-    toData: () => defaultMapLinkAttributesToData({ cell }),
+    id, attributes: cell.attributes, defaultAttributes, link: cell, graph, previousData,
+    toData: (attributes) => defaultMapLinkAttributesToData({ attributes, defaultAttributes }) as LinkData,
   });
 }
 

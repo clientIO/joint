@@ -73,6 +73,26 @@ export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
   return result;
 }
 
+/**
+ * Copies the optional endpoint detail properties (port, anchor, connectionPoint,
+ * magnet) from a {@link LinkEndData} into a flat data record.
+ */
+export function assignEndDataProperties(
+  linkData: Record<string, unknown>,
+  endData: LinkEndData,
+  keys: { port: string; anchor: string; connectionPoint: string; magnet: string },
+): void {
+  if (endData.port) linkData[keys.port] = endData.port;
+  if (endData.anchor) linkData[keys.anchor] = endData.anchor;
+  if (endData.connectionPoint) linkData[keys.connectionPoint] = endData.connectionPoint;
+  if (endData.magnet) linkData[keys.magnet] = endData.magnet;
+}
+
+const SOURCE_KEYS = { port: 'sourcePort', anchor: 'sourceAnchor', connectionPoint: 'sourceConnectionPoint', magnet: 'sourceMagnet' } as const;
+const TARGET_KEYS = { port: 'targetPort', anchor: 'targetAnchor', connectionPoint: 'targetConnectionPoint', magnet: 'targetMagnet' } as const;
+
+export { SOURCE_KEYS, TARGET_KEYS };
+
 interface LinkPresentationOptions {
   color: string;
   width: number;

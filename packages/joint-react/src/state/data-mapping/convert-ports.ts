@@ -4,12 +4,12 @@ import { defaultElementTheme } from '../../theme/element-theme';
 
 /**
  * Converts a simplified FlatElementPort to a full JointJS port definition.
+ * @param id - The port identifier
  * @param port - The simplified port definition
  * @returns The full JointJS port definition
  */
-function convertPort(port: FlatElementPort): dia.Element.Port {
+function convertPort(id: string, port: FlatElementPort): dia.Element.Port {
   const {
-    id,
     cx,
     cy,
     width = defaultElementTheme.portWidth,
@@ -93,9 +93,7 @@ function convertPort(port: FlatElementPort): dia.Element.Port {
     result.label = { markup: [] };
   }
 
-  if (id !== undefined) {
-    result.id = id;
-  }
+  result.id = id;
 
   return result;
 }
@@ -117,16 +115,16 @@ export function createPortDefaults(): { groups: Record<string, dia.Element.PortG
 }
 
 /**
- * Converts a simplified FlatElementPort array to the full JointJS ports object.
- * @param ports - The array of simplified port definitions
+ * Converts a simplified FlatElementPort record to the full JointJS ports object.
+ * @param ports - Record of simplified port definitions keyed by port ID
  * @returns The full JointJS ports object with groups and items
  */
-export function convertPorts(ports: FlatElementPort[]): {
+export function convertPorts(ports: Record<string, FlatElementPort>): {
   groups: Record<string, dia.Element.PortGroup>;
   items: dia.Element.Port[];
 } {
   return {
     ...createPortDefaults(),
-    items: ports.map(convertPort),
+    items: Object.entries(ports).map(([id, port]) => convertPort(id, port)),
   };
 }

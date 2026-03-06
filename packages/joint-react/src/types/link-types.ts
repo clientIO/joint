@@ -39,6 +39,12 @@ export interface FlatLinkLabel {
    */
   readonly position?: number;
   /**
+   * Offset perpendicular to the link path.
+   * A number is a perpendicular distance; an object `{ x, y }` is an absolute offset.
+   * Updated when the user drags a label interactively.
+   */
+  readonly offset?: number | { readonly x: number; readonly y: number };
+  /**
    * Text color.
    */
   readonly color?: string;
@@ -163,7 +169,7 @@ export interface FlatLinkData extends Record<string, unknown> {
   /**
    * Link labels.
    */
-  readonly labels?: FlatLinkLabel[];
+  readonly labels?: Record<string, FlatLinkLabel>;
   /**
    * Link vertices (waypoints).
    */

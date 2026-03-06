@@ -12,6 +12,7 @@ import {
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
 } from '../data-mapping';
+import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
 import type {
   GraphToElementOptions,
   ElementToGraphOptions,
@@ -38,13 +39,18 @@ const createGraphToElementOptions = <E extends FlatElementData>(
   cell: dia.Element,
   graph: dia.Graph,
   previousData?: E
-): GraphToElementOptions<E> => ({
-  id,
-  cell,
-  graph,
-  previousData,
-  toData: () => defaultMapElementAttributesToData({ cell }),
-});
+): GraphToElementOptions<E> => {
+  const defaultAttributes = resolveCellDefaults(cell);
+  return {
+    id,
+    attributes: cell.attributes,
+    defaultAttributes,
+    element: cell,
+    graph,
+    previousData,
+    toData: (attributes) => defaultMapElementAttributesToData({ attributes, defaultAttributes }),
+  };
+};
 
 const createLinkToGraphOptions = <L extends FlatLinkData>(
   id: string,
@@ -62,13 +68,18 @@ const createGraphToLinkOptions = <L extends FlatLinkData>(
   cell: dia.Link,
   graph: dia.Graph,
   previousData?: L
-): GraphToLinkOptions<L> => ({
-  id,
-  cell,
-  graph,
-  previousData,
-  toData: () => defaultMapLinkAttributesToData({ cell }),
-});
+): GraphToLinkOptions<L> => {
+  const defaultAttributes = resolveCellDefaults(cell);
+  return {
+    id,
+    attributes: cell.attributes,
+    defaultAttributes,
+    link: cell,
+    graph,
+    previousData,
+    toData: (attributes) => defaultMapLinkAttributesToData({ attributes, defaultAttributes }),
+  };
+};
 
 describe('graph-state-selectors', () => {
   let graph: dia.Graph;
@@ -158,7 +169,7 @@ describe('graph-state-selectors', () => {
         width: 100,
         height: 50,
         type: 'ReactElement',
-        ports: [],
+        ports: {},
         angle: 45,
       };
 
@@ -1273,7 +1284,7 @@ describe('graph-state-selectors', () => {
           style?: string;
           animation?: boolean;
         };
-        labels?: Array<{ text: string; position?: number }>;
+        labels?: Record<string, { text: string; position?: number }>;
         customData?: Record<string, unknown>;
       };
 
@@ -1286,10 +1297,10 @@ describe('graph-state-selectors', () => {
           style: 'dashed',
           animation: true,
         },
-        labels: [
-          { text: 'Label 1', position: 0.3 },
-          { text: 'Label 2', position: 0.7 },
-        ],
+        labels: {
+          lbl1: { text: 'Label 1', position: 0.3 },
+          lbl2: { text: 'Label 2', position: 0.7 },
+        },
         customData: {
           source: 'api',
           timestamp: 1_234_567_890,

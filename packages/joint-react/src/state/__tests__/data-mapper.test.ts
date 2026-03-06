@@ -6,22 +6,25 @@ import { ReactElement } from '../../models/react-element';
 import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
 import type { FlatElementData, FlatElementPort } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
-import type { ElementToGraphOptions, LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
+import type { ElementToGraphOptions, GraphToElementOptions, LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
 import { defaultMapDataToElementAttributes, defaultMapDataToLinkAttributes, defaultMapElementAttributesToData, defaultMapLinkAttributesToData } from '../data-mapping';
+import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 
 function elementToGraphOpts(id: string, data: FlatElementData, graph: dia.Graph): ElementToGraphOptions<FlatElementData> {
   return { id, data, graph, toAttributes: (d) => defaultMapDataToElementAttributes({ id, data: d }) };
 }
-function graphToElementOpts(id: string, cell: dia.Element, graph: dia.Graph, previousData?: FlatElementData) {
-  return { id, cell, graph, previousData, toData: () => defaultMapElementAttributesToData({ cell }) };
+function graphToElementOpts(id: string, cell: dia.Element, graph: dia.Graph, previousData?: FlatElementData): GraphToElementOptions<FlatElementData> {
+  const defaultAttributes = resolveCellDefaults(cell);
+  return { id, attributes: cell.attributes, defaultAttributes, element: cell, graph, previousData, toData: (attributes) => defaultMapElementAttributesToData({ attributes, defaultAttributes }) };
 }
 function linkToGraphOpts(id: string, data: FlatLinkData, graph: dia.Graph): LinkToGraphOptions<FlatLinkData> {
   return { id, data, graph, toAttributes: (d) => defaultMapDataToLinkAttributes({ id, data: d }) };
 }
 function graphToLinkOpts(id: string, cell: dia.Link, graph: dia.Graph, previousData?: FlatLinkData): GraphToLinkOptions<FlatLinkData> {
-  return { id, cell, graph, previousData, toData: () => defaultMapLinkAttributesToData({ cell }) };
+  const defaultAttributes = resolveCellDefaults(cell);
+  return { id, attributes: cell.attributes, defaultAttributes, link: cell, graph, previousData, toData: (attributes) => defaultMapLinkAttributesToData({ attributes, defaultAttributes }) };
 }
 
 describe('dataMapper', () => {
@@ -92,9 +95,9 @@ describe('dataMapper', () => {
 
   describe('element ports conversion', () => {
     it('should convert simplified ports to JointJS format', () => {
-      const ports: FlatElementPort[] = [
-        { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue', id: 'p1' },
-      ];
+      const ports: Record<string, FlatElementPort> = {
+        p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
+      };
       const id = 'el-1';
       const data: FlatElementData = { x: 0, y: 0, width: 100, height: 100, ports };
 
@@ -106,9 +109,9 @@ describe('dataMapper', () => {
     });
 
     it('should convert port with label', () => {
-      const ports: FlatElementPort[] = [
-        { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red', id: 'p1' },
-      ];
+      const ports: Record<string, FlatElementPort> = {
+        p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
+      };
       const id = 'el-1';
       const data: FlatElementData = { x: 0, y: 0, width: 100, height: 100, ports };
 
@@ -120,9 +123,9 @@ describe('dataMapper', () => {
     });
 
     it('should handle rect shape ports', () => {
-      const ports: FlatElementPort[] = [
-        { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect', id: 'p1' },
-      ];
+      const ports: Record<string, FlatElementPort> = {
+        p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
+      };
       const id = 'el-1';
       const data: FlatElementData = { x: 0, y: 0, width: 100, height: 100, ports };
 
@@ -202,6 +205,47 @@ describe('dataMapper', () => {
       const result = defaultMapLinkAttributesToData(graphToLinkOpts(id, cell, graph, previousData));
       expect(result).toHaveProperty('known', 'value');
       expect(result).toHaveProperty('extra', 'also-included');
+    });
+
+    it('should convert labels Record to JointJS labels array', () => {
+      const id = 'link-1';
+      const data: FlatLinkData = {
+        source: 'a',
+        target: 'b',
+        labels: {
+          lbl1: { text: 'Yes', position: 0.3 },
+          lbl2: { text: 'No', position: 0.7, offset: 20 },
+        },
+      };
+
+      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      expect(cellJson.labels).toHaveLength(2);
+      expect(cellJson.labels[0]).toMatchObject({ id: 'lbl1', position: { distance: 0.3 } });
+      expect(cellJson.labels[1]).toMatchObject({ id: 'lbl2', position: { distance: 0.7, offset: 20 } });
+    });
+
+    it('should round-trip labels with position and offset changes', () => {
+      const id = 'link-1';
+      const data: FlatLinkData = {
+        source: 'a',
+        target: 'b',
+        labels: {
+          lbl1: { text: 'Yes', position: 0.3 },
+        },
+      };
+
+      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      graph.addCell(cellJson);
+      const cell = graph.getCell(id) as dia.Link;
+
+      // Simulate labelMove updating position and offset
+      const labels = cell.labels();
+      labels[0].position = { distance: 0.6, offset: 15 };
+      cell.labels(labels);
+
+      const result = defaultMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
+      expect(result.labels).toBeDefined();
+      expect(result.labels!['lbl1']).toMatchObject({ text: 'Yes', position: 0.6, offset: 15 });
     });
 
     it('should handle source/target with ports', () => {
