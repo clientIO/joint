@@ -1,23 +1,37 @@
- 
 /* eslint-disable unicorn/consistent-function-scoping */
 import { waitFor } from '@testing-library/react';
 import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
+import { createPaperStoreSnapshot } from '../paper-store';
 import { ReactElement } from '../../models/react-element';
+import { sendToDevTool } from '../../utils/dev-tools';
 import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
 } from '../../state/data-mapping';
-import type {
-  ElementToGraphOptions,
-  LinkToGraphOptions,
-} from '../../state/graph-state-selectors';
+import { scheduler } from '../../utils/scheduler';
+import type { ElementToGraphOptions, LinkToGraphOptions } from '../../state/graph-state-selectors';
+
+jest.mock('../../utils/dev-tools', () => ({
+  sendToDevTool: jest.fn(),
+}));
+
+const sendToDevToolMock = sendToDevTool as jest.MockedFunction<typeof sendToDevTool>;
 
 const DEFAULT_TEST_NAMESPACE = { ...shapes, ReactElement };
 
 describe('GraphStore', () => {
+  beforeEach(() => {
+    sendToDevToolMock.mockClear();
+    sendToDevToolMock.mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    scheduler.flushNowForTests();
+  });
+
   describe('constructor', () => {
     it('should create a GraphStore with default graph instance', () => {
       const store = new GraphStore({});
@@ -56,6 +70,23 @@ describe('GraphStore', () => {
       expect(Object.keys(snapshot.elements)).toHaveLength(2);
       expect(snapshot.elements['element-1']).toBeDefined();
       expect(snapshot.elements['element-2']).toBeDefined();
+    });
+
+    it('should sync initial elements into graph immediately after construction', () => {
+      const initialElements: Record<string, FlatElementData> = {
+        'element-1': {
+          x: 10,
+          y: 20,
+          width: 100,
+          height: 50,
+          type: 'ReactElement',
+        },
+      };
+
+      const store = new GraphStore({ initialElements });
+
+      expect(store.graph.getCell('element-1')).toBeDefined();
+      expect(store.graph.getElements()).toHaveLength(1);
     });
 
     it('should initialize with initialLinks', () => {
@@ -98,13 +129,17 @@ describe('GraphStore', () => {
       function unsubscribe() {
         // Empty unsubscribe function
       }
+      const setState = jest.fn();
       const externalStore = {
         getSnapshot: () => ({ elements: {}, links: {} }),
         subscribe: () => unsubscribe,
-        setState: () => {},
+        setState,
       };
       const store = new GraphStore({ externalStore });
-      expect(store.publicState).toBe(externalStore);
+      expect(store.publicState).not.toBe(externalStore);
+      store.publicState.setState((previous) => previous);
+      scheduler.flushNowForTests();
+      expect(setState).toHaveBeenCalledTimes(1);
     });
 
     it('should use custom selectors when provided', () => {
@@ -207,12 +242,13 @@ describe('GraphStore', () => {
       const paperId = 'paper-1';
 
       store.updatePaperSnapshot(paperId, () => ({
-        paperElementViews: {},
+        ...createPaperStoreSnapshot(),
+        hasElementViewSnapshot: true,
       }));
 
       const internalSnapshot = store.internalState.getSnapshot();
       expect(internalSnapshot.papers[paperId]).toBeDefined();
-      expect(internalSnapshot.papers[paperId].paperElementViews).toEqual({});
+      expect(internalSnapshot.papers[paperId].hasElementViewSnapshot).toBe(true);
     });
 
     it('should update existing paper snapshot', () => {
@@ -220,22 +256,23 @@ describe('GraphStore', () => {
       const paperId = 'paper-1';
 
       store.updatePaperSnapshot(paperId, () => ({
-        paperElementViews: {},
+        ...createPaperStoreSnapshot(),
+        hasElementViewSnapshot: true,
       }));
 
       store.updatePaperSnapshot(paperId, (previous) => ({
         ...previous!,
-        paperElementViews: { 'element-1': {} as dia.ElementView },
+        elementViewIds: { ...previous!.elementViewIds, 'element-1': true },
       }));
 
       const internalSnapshot = store.internalState.getSnapshot();
-      expect(internalSnapshot.papers[paperId].paperElementViews).toHaveProperty('element-1');
+      expect(internalSnapshot.papers[paperId].elementViewIds).toHaveProperty('element-1');
     });
 
     it('should not update if snapshot is unchanged', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const snapshot = { paperElementViews: {} };
+      const snapshot = createPaperStoreSnapshot();
 
       store.updatePaperSnapshot(paperId, () => snapshot);
       const firstUpdate = store.internalState.getSnapshot().papers[paperId];
@@ -246,39 +283,111 @@ describe('GraphStore', () => {
       // Should return same reference if unchanged
       expect(firstUpdate).toBe(secondUpdate);
     });
+
+    it('should propagate when snapshot reference changes even if deep-equal', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+
+      store.updatePaperSnapshot(paperId, () => ({
+        ...createPaperStoreSnapshot(),
+        hasElementViewSnapshot: true,
+        elementViewIds: { 'element-1': true },
+      }));
+      const firstUpdate = store.internalState.getSnapshot().papers[paperId];
+
+      store.updatePaperSnapshot(paperId, (previous) => ({
+        ...previous!,
+      }));
+      const secondUpdate = store.internalState.getSnapshot().papers[paperId];
+
+      expect(secondUpdate).not.toBe(firstUpdate);
+      expect(secondUpdate).toEqual(firstUpdate);
+    });
   });
 
-  describe('updatePaperElementView', () => {
+  describe('markPaperElementViewMounted', () => {
     it('should update element view for given paper and cell', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
       const cellId = 'element-1';
-      const mockView = {} as dia.ElementView;
 
-      store.updatePaperElementView(paperId, cellId, mockView);
+      store.markPaperElementViewMounted(paperId, cellId);
 
       const internalSnapshot = store.internalState.getSnapshot();
       const paper = internalSnapshot.papers[paperId];
-      expect(paper?.paperElementViews?.[cellId]).toBe(mockView);
+      expect(paper?.elementViewIds[cellId]).toBe(true);
+      expect(paper?.hasElementViewSnapshot).toBe(true);
     });
 
     it('should not update if view is unchanged', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
       const cellId = 'element-1';
-      const mockView = {} as dia.ElementView;
 
-      store.updatePaperElementView(paperId, cellId, mockView);
+      store.markPaperElementViewMounted(paperId, cellId);
       const snapshot1 = store.internalState.getSnapshot();
       const paper1 = snapshot1.papers[paperId];
-      const firstUpdate = paper1?.paperElementViews?.[cellId];
 
-      store.updatePaperElementView(paperId, cellId, mockView);
+      store.markPaperElementViewMounted(paperId, cellId);
       const snapshot2 = store.internalState.getSnapshot();
       const paper2 = snapshot2.papers[paperId];
-      const secondUpdate = paper2?.paperElementViews?.[cellId];
 
-      expect(firstUpdate).toBe(secondUpdate);
+      expect(paper2).toBe(paper1);
+    });
+
+    it('should remove element view id on unmount', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      const cellId = 'element-1';
+
+      store.markPaperElementViewMounted(paperId, cellId);
+      store.markPaperElementViewUnmounted(paperId, cellId);
+
+      const paper = store.internalState.getSnapshot().papers[paperId];
+      expect(paper?.elementViewIds[cellId]).toBeUndefined();
+      expect(paper?.hasElementViewSnapshot).toBe(true);
+    });
+  });
+
+  describe('markPaperLinkViewMounted', () => {
+    it('should update link view ids for given paper and link', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      const linkId = 'link-1';
+
+      store.markPaperLinkViewMounted(paperId, linkId);
+
+      const internalSnapshot = store.internalState.getSnapshot();
+      const paper = internalSnapshot.papers[paperId];
+      expect(paper?.linkViewIds[linkId]).toBe(true);
+    });
+
+    it('should not update if link view id is unchanged', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      const linkId = 'link-1';
+
+      store.markPaperLinkViewMounted(paperId, linkId);
+      const snapshot1 = store.internalState.getSnapshot();
+      const paper1 = snapshot1.papers[paperId];
+
+      store.markPaperLinkViewMounted(paperId, linkId);
+      const snapshot2 = store.internalState.getSnapshot();
+      const paper2 = snapshot2.papers[paperId];
+
+      expect(paper2).toBe(paper1);
+    });
+
+    it('should remove link view id on unmount', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      const linkId = 'link-1';
+
+      store.markPaperLinkViewMounted(paperId, linkId);
+      store.markPaperLinkViewUnmounted(paperId, linkId);
+
+      const paper = store.internalState.getSnapshot().papers[paperId];
+      expect(paper?.linkViewIds[linkId]).toBeUndefined();
     });
   });
 
@@ -296,6 +405,24 @@ describe('GraphStore', () => {
 
       expect(store.getPaperStore(paperId)).toBeDefined();
       expect(typeof cleanup).toBe('function');
+    });
+
+    it('should initialize serializable internal paper metadata', () => {
+      const store = new GraphStore({});
+      const paperId = 'paper-1';
+      store.addPaper(paperId, {
+        paperOptions: {
+          model: store.graph,
+          width: 800,
+          height: 600,
+        },
+      });
+
+      const paperSnapshot = store.internalState.getSnapshot().papers[paperId];
+      expect(paperSnapshot.hasElementViewSnapshot).toBe(false);
+      expect(paperSnapshot.elementViewIds).toEqual({});
+      expect(paperSnapshot.linkViewIds).toEqual({});
+      expect(() => JSON.stringify(store.internalState.getSnapshot())).not.toThrow();
     });
 
     it('should remove paper when cleanup is called', () => {
@@ -342,6 +469,38 @@ describe('GraphStore', () => {
 
       paper2();
       expect(store.getPaperStore('paper-2')).toBeUndefined();
+    });
+
+    it('should not crash when adding a second paper after view snapshot updates', () => {
+      sendToDevToolMock.mockImplementation(({ value }) => {
+        JSON.stringify(value);
+      });
+
+      const store = new GraphStore({});
+      const cleanupMain = store.addPaper('paper-main', {
+        paperOptions: {
+          model: store.graph,
+          width: 800,
+          height: 600,
+        },
+      });
+      const mainStore = store.getPaperStore('paper-main');
+      if (!mainStore) {
+        throw new Error('Main paper store not found');
+      }
+
+      expect(() => store.markPaperElementViewMounted('paper-main', 'element-1')).not.toThrow();
+      expect(() =>
+        store.addPaper('paper-minimap', {
+          paperOptions: {
+            model: store.graph,
+            width: 800,
+            height: 600,
+          },
+        })
+      ).not.toThrow();
+
+      cleanupMain();
     });
   });
 
@@ -457,13 +616,16 @@ describe('GraphStore', () => {
       const newStore = {
         getSnapshot: () => ({ elements: {}, links: {} }),
         subscribe: () => unsubscribe,
-        setState: () => {},
+        setState: jest.fn(),
       };
 
       store.updateExternalStore(newStore);
 
-      expect(store.publicState).toBe(newStore);
+      expect(store.publicState).not.toBe(newStore);
       expect(store.publicState).not.toBe(originalStore);
+      store.publicState.setState((previous) => previous);
+      scheduler.flushNowForTests();
+      expect(newStore.setState).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -492,9 +654,9 @@ describe('GraphStore', () => {
 
       // Simulate paper becoming ready with rendered element views
       store.updatePaperSnapshot('paper-1', () => ({
-        paperElementViews: {
-          'element-1': {} as dia.ElementView,
-        },
+        ...createPaperStoreSnapshot(),
+        hasElementViewSnapshot: true,
+        elementViewIds: { 'element-1': true },
       }));
 
       await waitFor(() => {

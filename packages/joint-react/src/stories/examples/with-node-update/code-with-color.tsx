@@ -10,7 +10,7 @@ const initialElements: Record<
   string,
   { label: string; color: string; x: number; y: number; width: number; height: number }
 > = {
-  '1': { label: 'Node 1', color: PRIMARY, x: 100, y: 0, width: 100, height: 50 },
+  '1': { label: 'Node 1', color: PRIMARY, x: 100, y: 15, width: 100, height: 50 },
   '2': { label: 'Node 2', color: PRIMARY, x: 100, y: 200, width: 100, height: 50 },
 };
 

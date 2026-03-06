@@ -136,7 +136,7 @@ describe('PaperStore', () => {
       // First destroy should work
       expect(() => paperStore.destroy()).not.toThrow();
 
-      // Second destroy should also not throw (unregisterPaperUpdate is undefined now)
+      // Second destroy should also not throw
       expect(() => paperStore.destroy()).not.toThrow();
     });
 
@@ -155,8 +155,7 @@ describe('PaperStore', () => {
 
       paperStore.destroy();
 
-      // The unregisterPaperUpdate is set to undefined after calling
-      // We verify this by ensuring multiple destroy calls don't throw
+      // We verify idempotent cleanup by ensuring multiple destroy calls don't throw
       expect(() => paperStore.destroy()).not.toThrow();
     });
 

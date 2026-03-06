@@ -12,7 +12,7 @@ import {
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 0 },
+  '1': { label: 'Node 1', x: 100, y: 10 },
   '2': { label: 'Node 2 with longer text', x: 250, y: 150 },
 };
 
@@ -53,7 +53,9 @@ function Card({ label }: Readonly<Partial<BaseElementWithData>>) {
   return (
     <>
       <rect width={width} height={height} fill="#333" stroke="#eee" strokeWidth="2"></rect>
-      {(imageHeight > 0) && <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />}
+      {imageHeight > 0 && (
+        <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />
+      )}
       <foreignObject x={gap + imageWidth + gap} y={gap} width={foWidth} height={foHeight}>
         <div
           ref={contentRef}

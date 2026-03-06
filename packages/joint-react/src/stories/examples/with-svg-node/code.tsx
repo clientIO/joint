@@ -19,7 +19,7 @@ const initialEdges: Record<string, { source: string; target: string; color: stri
 };
 
 const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 0 },
+  '1': { label: 'Node 1', x: 100, y: 15 },
   '2': { label: 'Node 2', x: 100, y: 200 },
 };
 

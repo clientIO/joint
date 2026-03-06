@@ -37,6 +37,11 @@ const SOURCE_ELEMENT_ID = 'source';
 const TARGET_ELEMENT_ID = 'target';
 const SOURCE_PORT_ID = 'out';
 const TARGET_PORT_ID = 'in';
+const CUSTOM_PAPER_CLASSNAME = 'custom-paper-class flowchart-paper';
+const STYLE_WIDTH = '620px';
+const STYLE_HEIGHT = '240px';
+const PROP_WIDTH = 480;
+const PROP_HEIGHT = 180;
 
 type DefaultLinkProperty =
   | dia.Link
@@ -49,6 +54,97 @@ type PortDragElementView = dia.ElementView & {
   dragLink: (event_: dia.Event, x: number, y: number) => void;
   dragLinkEnd: (event_: dia.Event, x: number, y: number) => void;
 };
+
+interface PaperPropsCombination {
+  readonly name: string;
+  readonly withClassName: boolean;
+  readonly withStyle: boolean;
+  readonly withWidth: boolean;
+  readonly withHeight: boolean;
+}
+
+const PAPER_PROPS_COMBINATIONS: readonly PaperPropsCombination[] = Array.from(
+  { length: 16 },
+  (_, index) => {
+    const withClassName = (index & 1) !== 0;
+    const withStyle = (index & 2) !== 0;
+    const withWidth = (index & 4) !== 0;
+    const withHeight = (index & 8) !== 0;
+    return {
+      name: `class:${withClassName ? 'on' : 'off'} style:${withStyle ? 'on' : 'off'} width:${withWidth ? 'on' : 'off'} height:${withHeight ? 'on' : 'off'}`,
+      withClassName,
+      withStyle,
+      withWidth,
+      withHeight,
+    };
+  }
+);
+
+const BASE_COMBINATION_STYLE: React.CSSProperties = {
+  width: STYLE_WIDTH,
+  height: STYLE_HEIGHT,
+  backgroundColor: 'rgb(10, 20, 30)',
+  border: '2px solid rgb(5, 6, 7)',
+};
+
+function getPaperStyleForCombination(withStyle: boolean): React.CSSProperties | undefined {
+  if (!withStyle) {
+    return undefined;
+  }
+  return BASE_COMBINATION_STYLE;
+}
+
+function getExpectedDimensionForCombination(options: {
+  readonly withDimensionProp: boolean;
+  readonly propDimension: number;
+  readonly withStyle: boolean;
+  readonly styleDimension: string;
+}): dia.Paper.Dimension {
+  const { withDimensionProp, propDimension, withStyle, styleDimension } = options;
+
+  if (withDimensionProp) {
+    return propDimension;
+  }
+  if (withStyle) {
+    return styleDimension;
+  }
+  return null;
+}
+
+function assertPaperDimension(options: {
+  readonly paper: ReactPaper;
+  readonly expectedDimension: dia.Paper.Dimension;
+  readonly axis: 'width' | 'height';
+}) {
+  const { paper, expectedDimension, axis } = options;
+  const optionDimension = axis === 'width' ? paper.options.width : paper.options.height;
+  const elementDimension = paper.el.style[axis];
+
+  expect(optionDimension).toBe(expectedDimension);
+
+  if (expectedDimension === null) {
+    return;
+  }
+
+  if (typeof expectedDimension === 'number') {
+    expect(elementDimension).toBe(`${expectedDimension}px`);
+    return;
+  }
+
+  expect(elementDimension).toBe(expectedDimension);
+}
+
+function assertCustomPaperClasses(paperElement: HTMLElement) {
+  expect(paperElement).toHaveClass('custom-paper-class');
+  expect(paperElement).toHaveClass('flowchart-paper');
+  expect(paperElement).not.toHaveClass('joint-custom-paper-class');
+  expect(paperElement).not.toHaveClass('joint-flowchart-paper');
+}
+
+function assertCustomPaperStyle(paperElement: HTMLElement) {
+  expect(paperElement.style.backgroundColor).toBe('rgb(10, 20, 30)');
+  expect(paperElement.style.borderTopWidth).toBe('2px');
+}
 
 function getPortDragElements(): Record<string, FlatElementData> {
   return {
@@ -99,8 +195,10 @@ async function dragLinkFromSourcePortToTargetPort(paper: dia.Paper): Promise<dia
   const targetView = paper.findViewByModel(TARGET_ELEMENT_ID) as PortDragElementView;
   const sourcePortRoot = sourceView.findPortNode(SOURCE_PORT_ID);
   const targetPortRoot = targetView.findPortNode(TARGET_PORT_ID);
-  const sourceMagnet = (sourcePortRoot?.querySelector('[magnet]') as SVGElement | null) ?? sourcePortRoot;
-  const targetMagnet = (targetPortRoot?.querySelector('[magnet]') as SVGElement | null) ?? targetPortRoot;
+  const sourceMagnet =
+    (sourcePortRoot?.querySelector('[magnet]') as SVGElement | null) ?? sourcePortRoot;
+  const targetMagnet =
+    (targetPortRoot?.querySelector('[magnet]') as SVGElement | null) ?? targetPortRoot;
 
   if (!(sourceMagnet instanceof SVGElement) || !(targetMagnet instanceof SVGElement)) {
     throw new TypeError('Expected both source and target port magnets to exist before dragging.');
@@ -254,7 +352,38 @@ describe('Paper Component', () => {
       '2': { label: 'Node 2', width: 150, height: 75 },
     };
 
-    const { rerender } = render(
+    function ControlledPaperHost() {
+      const [controlledElements, setControlledElements] = useState(elements);
+      const hasUpdatedRef = useRef(false);
+
+      return (
+        <GraphProvider elements={controlledElements} onElementsChange={setControlledElements}>
+          <Paper<Element>
+            onElementsSizeReady={() => {
+              if (hasUpdatedRef.current) {
+                return;
+              }
+              hasUpdatedRef.current = true;
+              setControlledElements(updatedElements);
+            }}
+            onElementsSizeChange={onElementsSizeChangeMock}
+            renderElement={({ label }) => <div className="node">{label}</div>}
+          />
+        </GraphProvider>
+      );
+    }
+
+    render(<ControlledPaperHost />);
+
+    await waitFor(() => {
+      expect(onElementsSizeChangeMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not call onElementsSizeChange for the initial size snapshot only', async () => {
+    const onElementsSizeChangeMock = jest.fn();
+
+    render(
       <GraphProvider elements={elements}>
         <Paper<Element>
           onElementsSizeChange={onElementsSizeChangeMock}
@@ -263,19 +392,12 @@ describe('Paper Component', () => {
       </GraphProvider>
     );
 
-    // Simulate element size change by rerendering with updated elements
-    rerender(
-      <GraphProvider elements={updatedElements}>
-        <Paper<Element>
-          onElementsSizeChange={onElementsSizeChangeMock}
-          renderElement={({ label }) => <div className="node">{label}</div>}
-        />
-      </GraphProvider>
-    );
-
     await waitFor(() => {
-      expect(onElementsSizeChangeMock).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('Node 1')).toBeInTheDocument();
+      expect(screen.getByText('Node 2')).toBeInTheDocument();
     });
+
+    expect(onElementsSizeChangeMock).not.toHaveBeenCalled();
   });
 
   it('applies default clickThreshold and custom clickThreshold', () => {
@@ -715,7 +837,120 @@ describe('Paper Component', () => {
     });
   });
 
-  it('does not overwrite container percentage width with pixel values from resizePaperContainer', async () => {
+  it('preserves custom className and style with renderElement', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          className="custom-paper-class flowchart-paper"
+          width={720}
+          height={320}
+          style={{ backgroundColor: 'rgb(10, 20, 30)', border: '1px solid rgb(10, 20, 30)' }}
+          renderElement={({ label }) => <div>{label}</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      expect(screen.getByText('Node 1')).toBeInTheDocument();
+      expect(screen.getByText('Node 2')).toBeInTheDocument();
+    });
+
+    const paperElement = ref.current!.el;
+
+    expect(paperElement).toHaveClass('custom-paper-class');
+    expect(paperElement).toHaveClass('flowchart-paper');
+    expect(paperElement).toHaveClass('joint-paper');
+    expect(paperElement).not.toHaveClass('joint-custom-paper-class');
+    expect(paperElement).not.toHaveClass('joint-flowchart-paper');
+    expect(paperElement.style.width).toBe('720px');
+    expect(paperElement.style.height).toBe('320px');
+    expect(paperElement.style.backgroundColor).toBe('rgb(10, 20, 30)');
+    expect(paperElement.style.borderTopWidth).toBe('1px');
+  });
+
+  it('extracts width and height from style when paper props are not provided', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+
+    render(
+      <GraphProvider elements={elements}>
+        <Paper<Element>
+          ref={ref}
+          style={{ width: '640px', height: '360px' }}
+          renderElement={({ label }) => <div>{label}</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(ref.current).not.toBeNull();
+      expect(screen.getByText('Node 1')).toBeInTheDocument();
+      expect(screen.getByText('Node 2')).toBeInTheDocument();
+    });
+
+    expect(ref.current!.options.width).toBe('640px');
+    expect(ref.current!.options.height).toBe('360px');
+    expect(ref.current!.el.style.width).toBe('640px');
+    expect(ref.current!.el.style.height).toBe('360px');
+  });
+
+  test.each(PAPER_PROPS_COMBINATIONS)(
+    'supports Paper props combination ($name)',
+    async ({ withClassName, withStyle, withWidth, withHeight }) => {
+      const ref: RefObject<ReactPaper | null> = { current: null };
+      const style = getPaperStyleForCombination(withStyle);
+
+      render(
+        <GraphProvider elements={elements}>
+          <Paper<Element>
+            ref={ref}
+            className={withClassName ? CUSTOM_PAPER_CLASSNAME : undefined}
+            style={style}
+            width={withWidth ? PROP_WIDTH : undefined}
+            height={withHeight ? PROP_HEIGHT : undefined}
+            renderElement={({ label }) => <div>{label}</div>}
+          />
+        </GraphProvider>
+      );
+
+      await waitFor(() => {
+        expect(ref.current).not.toBeNull();
+        expect(screen.getByText('Node 1')).toBeInTheDocument();
+        expect(screen.getByText('Node 2')).toBeInTheDocument();
+      });
+
+      const paper = ref.current!;
+      const paperElement = paper.el;
+      const expectedWidth = getExpectedDimensionForCombination({
+        withDimensionProp: withWidth,
+        propDimension: PROP_WIDTH,
+        withStyle,
+        styleDimension: STYLE_WIDTH,
+      });
+      const expectedHeight = getExpectedDimensionForCombination({
+        withDimensionProp: withHeight,
+        propDimension: PROP_HEIGHT,
+        withStyle,
+        styleDimension: STYLE_HEIGHT,
+      });
+
+      assertPaperDimension({ paper, expectedDimension: expectedWidth, axis: 'width' });
+      assertPaperDimension({ paper, expectedDimension: expectedHeight, axis: 'height' });
+
+      if (withClassName) {
+        assertCustomPaperClasses(paperElement);
+      }
+
+      if (withStyle) {
+        assertCustomPaperStyle(paperElement);
+      }
+    }
+  );
+
+  it('does not overwrite paper percentage width with pixel values from resizePaperContainer', async () => {
     const ref: RefObject<ReactPaper | null> = { current: null };
 
     render(
@@ -731,10 +966,9 @@ describe('Paper Component', () => {
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
-      // The paper container div should maintain percentage width
-      const paperContainer = ref.current!.el.parentElement;
-      expect(paperContainer).not.toBeNull();
-      expect(paperContainer!.style.width).not.toBe('800px');
+      expect(ref.current!.el.style.width).toBe('100%');
+      expect(ref.current!.el.style.height).toBe('100%');
+      expect(ref.current!.el.style.width).not.toBe('800px');
     });
   });
 

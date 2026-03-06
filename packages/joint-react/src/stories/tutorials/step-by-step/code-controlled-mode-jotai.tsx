@@ -57,7 +57,7 @@ import type { Update } from '../../../utils/create-state';
 type CustomElement = FlatElementData & { label: string };
 
 const defaultElements: Record<string, CustomElement> = {
-  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  '1': { label: 'Hello', x: 100, y: 15, width: 100, height: 50 },
   '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
 };
 

@@ -1,58 +1,58 @@
 import { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { GraphStore } from '../store/graph-store';
 import type { ReactPaperOptions } from './react-paper.types';
-import type {
-  ReactElementViewCache,
-  ReactElementViewGraphStoreRef,
-  ReactLinkViewCache,
-  ReactLinkViewGraphStoreRef,
-  ReactLinkViewPaperStoreRef,
-} from '../types/paper.types';
 import { REACT_PORTAL_SELECTOR } from './react-element';
+
+const noopViewMountChange = (_kind: 'element' | 'link', _cellId: CellId, _isMounted: boolean) => {};
 
 /**
  * Extended Paper class that manages React view lifecycle.
  *
  * ReactPaper centralizes view management by:
- * - Tracking mounted views in React caches for portal rendering
- * - Scheduling React updates when views mount/unmount
- * - Disabling magnets on React elements
+ * - Emitting view mount/unmount callbacks for graph-store snapshot sync
  * - Hiding links until their source/target elements have rendered
- * @example
- * ```typescript
- * const paper = new ReactPaper({
- *   el: container,
- *   model: graph,
- *   graphStore,
- * });
- * ```
  */
 export class ReactPaper extends dia.Paper {
-  /** Reference to GraphStore for scheduling updates */
-  private graphStore: GraphStore;
-
-  /** Cache for element views - set by PaperStore */
-  public reactElementCache!: ReactElementViewCache;
-
-  /** Graph store bindings used by React element view layer */
-  public reactElementGraphStore!: ReactElementViewGraphStoreRef;
-
-  /** Cache for link views - set by PaperStore */
-  public reactLinkCache!: ReactLinkViewCache;
-
-  /** Graph store bindings used by React link view layer */
-  public reactLinkGraphStore!: ReactLinkViewGraphStoreRef;
-
-  /** Paper store bindings used by React link view layer */
-  public reactLinkPaperStore!: ReactLinkViewPaperStoreRef;
-
-  /** Links waiting for source/target elements to render */
+  private readonly onViewMountChange: (
+    kind: 'element' | 'link',
+    cellId: CellId,
+    isMounted: boolean
+  ) => void;
+  private readonly shouldPreserveHostElementOnRemove: boolean;
   private pendingLinks: Set<CellId> = new Set();
 
   constructor(options: ReactPaperOptions) {
-    super(options);
-    this.graphStore = options.graphStore;
+    const { onViewMountChange, ...paperOptions } = options;
+
+    super(paperOptions);
+    this.onViewMountChange = onViewMountChange ?? noopViewMountChange;
+    this.shouldPreserveHostElementOnRemove = !!paperOptions.el;
+  }
+
+  /**
+   * Preserves externally managed host elements (e.g. React refs) on cleanup.
+   */
+  protected _removeElement(): void {
+    if (this.shouldPreserveHostElementOnRemove) {
+      return;
+    }
+    super._removeElement();
+  }
+
+  public getElementView(id: CellId): dia.ElementView | undefined {
+    const view = this.findViewByModel(id);
+    if (!view?.model?.isElement()) {
+      return undefined;
+    }
+    return view as dia.ElementView;
+  }
+
+  public getLinkView(id: CellId): dia.LinkView | undefined {
+    const view = this.findViewByModel(id);
+    if (!view?.model?.isLink()) {
+      return undefined;
+    }
+    return view as dia.LinkView;
   }
 
   /**
@@ -73,12 +73,6 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Resolves the portal target node from a cell view.
-   * For views whose model markup contains the `reactPortal` selector this
-   * returns the dedicated `<g>` group; otherwise it falls back to the
-   * view's root element.
-   * Override this method to customize where React content is portaled.
-   * @param cellView - The cell view to resolve the portal node from.
-   * @returns The SVG or HTML element to use as a React portal target.
    */
   getCellViewPortalNode(cellView: dia.CellView): SVGElement | HTMLElement {
     return cellView.findNode(REACT_PORTAL_SELECTOR) ?? cellView.el;
@@ -86,12 +80,10 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Check if an element view has rendered its React content.
-   * @param elementId - The element ID to check
-   * @returns true if element view exists and has children
    */
   private isElementReady(elementId: CellId | undefined): boolean {
     if (!elementId) return false;
-    const elementView = this.reactElementCache.elementViews[elementId];
+    const elementView = this.getElementView(elementId);
     if (!elementView?.el) return false;
     const portalNode = this.getCellViewPortalNode(elementView);
     return portalNode.children.length > 0;
@@ -99,9 +91,6 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Check whether a link end can be rendered immediately.
-   * Endpoints defined as coordinates do not depend on element view readiness.
-   * @param end - Link endpoint descriptor.
-   * @returns true when the endpoint is ready for link rendering.
    */
   private isLinkEndReady(end: dia.Link.EndJSON): boolean {
     if (!end.id) return true;
@@ -110,7 +99,6 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Check pending links and show them if their source/target are ready.
-   * Called after React renders element content.
    */
   public checkPendingLinks(): void {
     if (this.pendingLinks.size === 0) return;
@@ -118,9 +106,8 @@ export class ReactPaper extends dia.Paper {
     const linksToShow: CellId[] = [];
 
     for (const linkId of this.pendingLinks) {
-      const linkView = this.reactLinkCache.linkViews[linkId];
+      const linkView = this.getLinkView(linkId);
       if (!linkView) {
-        // Link was removed, clean up
         this.pendingLinks.delete(linkId);
         continue;
       }
@@ -131,10 +118,9 @@ export class ReactPaper extends dia.Paper {
       }
     }
 
-    // Show ready links
     for (const linkId of linksToShow) {
       this.pendingLinks.delete(linkId);
-      const linkView = this.reactLinkCache.linkViews[linkId];
+      const linkView = this.getLinkView(linkId);
       if (linkView?.el) {
         linkView.el.style.visibility = '';
       }
@@ -142,92 +128,65 @@ export class ReactPaper extends dia.Paper {
   }
 
   /**
-   * Remove a cell from the appropriate cache.
-   * Uses Reflect.deleteProperty to satisfy `@typescript-eslint/no-dynamic-delete` rule.
-   * Performance is identical to `delete` operator.
-   * @param cell - The cell to remove from cache
+   * Notify graph-store that a mounted view has been unmounted.
    */
-  private removeFromCache(cell: dia.Cell): void {
+  private notifyViewUnmount(cell: dia.Cell): void {
     const cellId = cell.id as CellId;
 
     if (cell.isElement()) {
-      const newElementViews = { ...this.reactElementCache.elementViews };
-      Reflect.deleteProperty(newElementViews, cellId);
-      this.reactElementCache.elementViews = newElementViews;
-    } else if (cell.isLink()) {
-      const newLinkViews = { ...this.reactLinkCache.linkViews };
-      Reflect.deleteProperty(newLinkViews, cellId);
-      this.reactLinkCache.linkViews = newLinkViews;
+      this.onViewMountChange('element', cellId, false);
+      return;
+    }
+
+    if (cell.isLink()) {
       this.pendingLinks.delete(cellId);
+      this.onViewMountChange('link', cellId, false);
     }
   }
 
   /**
    * Called when a view is mounted into the DOM.
-   * Adds view to appropriate cache and schedules React update.
-   * For links, hides them until source/target elements have rendered.
-   * @param view - The cell view being inserted
-   * @param isInitialInsert - Whether this is the initial insert
    */
   insertView(view: dia.CellView, isInitialInsert: boolean): void {
-    // Call parent implementation first
     super.insertView(view, isInitialInsert);
 
     const cellId = view.model.id as CellId;
 
     if (view.model.isElement()) {
-      // Add to element views cache
-      this.reactElementCache.elementViews = {
-        ...this.reactElementCache.elementViews,
-        [cellId]: view as dia.ElementView,
-      };
-
-      // Check if any pending links can now be shown
+      this.onViewMountChange('element', cellId, true);
       this.checkPendingLinks();
-    } else if (view.model.isLink()) {
+      return;
+    }
+
+    if (view.model.isLink()) {
       const linkView = view as dia.LinkView;
       const link = linkView.model;
       const isSourceReady = this.isLinkEndReady(link.source());
       const isTargetReady = this.isLinkEndReady(link.target());
 
       if (!isSourceReady || !isTargetReady) {
-        // Hide link until source/target are ready
         view.el.style.visibility = 'hidden';
         this.pendingLinks.add(cellId);
       }
 
-      // Add to link views cache
-      this.reactLinkCache.linkViews = {
-        ...this.reactLinkCache.linkViews,
-        [cellId]: linkView,
-      };
+      this.onViewMountChange('link', cellId, true);
     }
-
-    // Schedule React update
-    this.graphStore.schedulePaperUpdate();
   }
 
   /**
    * Called when a cell is deleted from the graph.
-   * Removes view from appropriate cache and schedules React update.
-   * @param cell - The cell being removed
-   * @returns The removed cell view
    */
   removeView(cell: dia.Cell): dia.CellView {
-    this.removeFromCache(cell);
-    this.graphStore.schedulePaperUpdate();
+    this.notifyViewUnmount(cell);
     return super.removeView(cell);
   }
 
   /**
    * Called when a view is hidden (viewport culling).
-   * Removes view from appropriate cache and schedules React update.
-   * @param cellView - The cell view being hidden
    * @internal
    */
   _hideCellView(cellView: dia.CellView): void {
-    this.removeFromCache(cellView.model);
-    this.graphStore.schedulePaperUpdate();
+    this.notifyViewUnmount(cellView.model);
     super._hideCellView(cellView);
   }
 }

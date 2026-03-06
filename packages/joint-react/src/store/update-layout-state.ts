@@ -2,14 +2,8 @@
 import type { dia } from '@joint/core';
 import { startTransition } from 'react';
 import type { CellId } from '../types/cell-id';
-import type { GraphSchedulerData } from '../types/scheduler.types';
-import type { ExternalStoreLike, State } from '../utils/create-state';
-import type {
-  GraphStoreSnapshot,
-  GraphStoreLayoutSnapshot,
-  NodeLayout,
-  LinkLayout,
-} from './graph-store';
+import type { State } from '../utils/create-state';
+import type { GraphStoreLayoutSnapshot, LinkLayout, NodeLayout } from './graph-store';
 import type { PaperStore } from './paper-store';
 
 /**
@@ -18,72 +12,9 @@ import type { PaperStore } from './paper-store';
 const DEFAULT_POINT = { x: 0, y: 0 } as const;
 
 /**
- * GOLDEN RULE: All setState calls must happen through these flush functions.
- * This module isolates state mutations to ensure they only happen in scheduler's onFlush.
- *
- * DO NOT call setState directly in graph-store.ts - use these functions instead.
+ * Options for updating layout state.
  */
-
-/**
- * Flushes element updates to public state.
- * Called from scheduler's onFlush callback.
- * @param publicState - The public state store
- * @param data - The scheduler data containing updates
- */
-export function flushElements(
-  publicState: ExternalStoreLike<GraphStoreSnapshot>,
-  data: GraphSchedulerData
-): void {
-  if (!data.elementsToUpdate && !data.elementsToDelete) return;
-
-  publicState.setState((previous) => {
-    const elements = { ...previous.elements };
-    if (data.elementsToUpdate) {
-      for (const [id, element] of data.elementsToUpdate) {
-        elements[id] = element;
-      }
-    }
-    if (data.elementsToDelete) {
-      for (const id of data.elementsToDelete.keys()) {
-        Reflect.deleteProperty(elements, id);
-      }
-    }
-    return { ...previous, elements };
-  });
-}
-
-/**
- * Flushes link updates to public state.
- * Called from scheduler's onFlush callback.
- * @param publicState - The public state store
- * @param data - The scheduler data containing updates
- */
-export function flushLinks(
-  publicState: ExternalStoreLike<GraphStoreSnapshot>,
-  data: GraphSchedulerData
-): void {
-  if (!data.linksToUpdate && !data.linksToDelete) return;
-
-  publicState.setState((previous) => {
-    const links = { ...previous.links };
-    if (data.linksToUpdate) {
-      for (const [id, link] of data.linksToUpdate) {
-        links[id] = link;
-      }
-    }
-    if (data.linksToDelete) {
-      for (const id of data.linksToDelete.keys()) {
-        Reflect.deleteProperty(links, id);
-      }
-    }
-    return { ...previous, links };
-  });
-}
-
-/**
- * Options for flushing layout state.
- */
-export interface FlushLayoutStateOptions {
+export interface UpdateLayoutStateOptions {
   readonly graph: dia.Graph;
   readonly layoutState: State<GraphStoreLayoutSnapshot>;
   readonly papers?: Map<string, PaperStore>;
@@ -107,11 +38,10 @@ function isLinkLayoutEqual(a: LinkLayout | undefined, b: LinkLayout): boolean {
 }
 
 /**
- * Flushes layout state updates (element layouts and per-paper link layouts).
- * Called from scheduler's onFlush callback.
- * @param options - The flush options
+ * Updates layout state (element layouts and per-paper link layouts).
+ * @param options - The update options
  */
-export function flushLayoutState(options: FlushLayoutStateOptions): void {
+export function updateLayoutState(options: UpdateLayoutStateOptions): void {
   const { graph, layoutState, papers } = options;
   const elementLayouts: Record<CellId, NodeLayout> = {};
   const linkLayoutsPerPaper: Record<string, Record<CellId, LinkLayout>> = {};
@@ -145,7 +75,6 @@ export function flushLayoutState(options: FlushLayoutStateOptions): void {
         : newLayout;
   }
 
-  // Flush link layouts from each paper
   if (papers) {
     const links = graph.getLinks();
     for (const paperStore of papers.values()) {

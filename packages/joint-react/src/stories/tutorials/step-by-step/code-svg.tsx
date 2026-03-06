@@ -14,7 +14,7 @@ type CustomElement = FlatElementData & { color: string };
 
 // define initial elements as Record
 const initialElements: Record<string, CustomElement> = {
-  '1': { color: PRIMARY, x: 100, y: 0, width: 100, height: 25 },
+  '1': { color: PRIMARY, x: 100, y: 15, width: 100, height: 25 },
   '2': { color: PRIMARY, x: 100, y: 200, width: 100, height: 25 },
 };
 

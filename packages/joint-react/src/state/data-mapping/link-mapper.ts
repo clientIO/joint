@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { type dia, util } from '@joint/core';
 import type { FlatLinkData, FlatLinkLabel } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
@@ -13,7 +14,6 @@ import {
   toLinkEndData,
   buildLinkPresentationAttributes,
 } from './link-attributes';
-
 
 // ────────────────────────────────────────────────────────────────────────────
 // React → JointJS
@@ -121,7 +121,9 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
 
   // ↔ Two-way (labels)
   if (labels !== undefined) {
-    attributes.labels = Object.entries(labels).map(([labelId, label]) => convertLabel(labelId, label, theme));
+    attributes.labels = Object.entries(labels).map(([labelId, label]) =>
+      convertLabel(labelId, label, theme)
+    );
   }
 
   // Presentation props + one-way props + user data stored for round-trip (graph → React)
@@ -203,8 +205,10 @@ export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
   if (Array.isArray(vertices) && vertices.length > 0) {
     linkData.vertices = vertices;
   }
-  if (router !== undefined && !util.isEqual(router, defaultAttributes.router)) linkData.router = router;
-  if (connector !== undefined && !util.isEqual(connector, defaultAttributes.connector)) linkData.connector = connector;
+  if (router !== undefined && !util.isEqual(router, defaultAttributes.router))
+    linkData.router = router;
+  if (connector !== undefined && !util.isEqual(connector, defaultAttributes.connector))
+    linkData.connector = connector;
 
   // ↔ Two-way (labels): merge position/offset from attributes back into data
   const dataLabels = userData?.labels as Record<string, FlatLinkLabel> | undefined;
