@@ -1,4 +1,6 @@
 import type {
+  GraphStoreContextId,
+  GraphStoreContextSnapshot,
   GraphStoreSnapshot,
   GraphStoreInternalSnapshot,
 } from '../store';
@@ -73,4 +75,19 @@ export function useGraphInternalStoreSelector<Selection>(
 export function useAreElementsMeasured(): boolean {
   const { areElementsMeasuredState } = useGraphStore();
   return useStoreSelector(areElementsMeasuredState, (value) => value);
+}
+
+/**
+ * Hook to access the current value of a registered context from the graph store by its ID. This allows components to access shared context values that have been registered with the graph store, enabling communication and data sharing across different parts of the application without relying on React's context API directly.
+ * @param id - The unique identifier of the context to access.
+ * @returns The current value of the context with the specified ID, or null if the context is not found.
+ */
+export function useGraphStoreContext<ContextValue>(id: GraphStoreContextId): ContextValue | null {
+  const graphStore = useGraphStore();
+  useStoreSelector(graphStore.contextsState, (snapshot) => {
+    return (snapshot as GraphStoreContextSnapshot).get(id) ?? null;
+  });
+
+  const context = graphStore.getContext(id);
+  return context ? (context.value as ContextValue) : null;
 }
