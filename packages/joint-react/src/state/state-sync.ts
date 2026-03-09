@@ -1,7 +1,7 @@
 import type { GraphStoreSnapshot } from '../store/graph-store';
 import { listenToCellChange, type OnChangeOptions } from '../utils/cell/listen-to-cell-change';
 import { removeDeepReadOnly, type ExternalStoreLike } from '../utils/create-state';
-import type { dia } from '@joint/core';
+import { mvc, type dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
@@ -38,20 +38,21 @@ interface StateSyncOptions<
     options: GraphToLinkOptions<LinkData> & { readonly graph: Graph }
   ) => LinkData;
   /**
-   * Callback invoked after the graph is successfully updated from the store.
-   * Used to trigger layout updates when changes come from React state (e.g., useCellActions).
+   * Callback invoked after the graph geometry should be re-read.
+   * Used to keep layout state live for React-originated updates and batched graph changes.
    */
   readonly onGraphUpdated?: () => void;
 }
 
 /**
- * Maps all cells to their typed representations.
- * @param cells
- * @param graph
- * @param elementSelector
- * @param linkSelector
- * @param previousElements
- * @param previousLinks
+ * Maps cells to their typed element and link representations.
+ * @param cells Cells to map from the graph.
+ * @param graph Graph that owns the cells.
+ * @param elementSelector Selector used to map element cells to external data.
+ * @param linkSelector Selector used to map link cells to external data.
+ * @param previousElements Previous element snapshot used for structural sharing.
+ * @param previousLinks Previous link snapshot used for structural sharing.
+ * @returns Mapped element and link data keyed by cell id.
  */
 function mapCellsToData<
   Graph extends dia.Graph,
@@ -82,8 +83,9 @@ function mapCellsToData<
 
 /**
  * Syncs graph and store state bidirectionally.
- * Graph-originated changes write through `store.setState` directly.
- * @param options
+ * Graph-originated changes write through `store.setState` directly unless the graph is inside an active batch.
+ * @param options Graph, store, selectors, and callbacks used to synchronize state.
+ * @returns Cleanup functions for the graph and store subscriptions created by the sync bridge.
  */
 export function stateSync<
   Graph extends dia.Graph,
@@ -105,6 +107,25 @@ export function stateSync<
   const linkSelector = (options.graphToLinkSelector ?? defaultMapLinkAttributesToData) as (
     options: GraphToLinkOptions<LinkData> & { readonly graph: Graph }
   ) => LinkData;
+
+  let hasDeferredPublicStateUpdate = false;
+  let hasQueuedLayoutUpdate = false;
+  let isDestroyed = false;
+
+  const scheduleLayoutUpdate = (): void => {
+    if (!onGraphUpdated || hasQueuedLayoutUpdate) {
+      return;
+    }
+
+    hasQueuedLayoutUpdate = true;
+    queueMicrotask(() => {
+      hasQueuedLayoutUpdate = false;
+      if (isDestroyed) {
+        return;
+      }
+      onGraphUpdated();
+    });
+  };
 
   const updateCellInStore = (cell: dia.Cell): void => {
     store.setState((previousSnapshot) => {
@@ -238,10 +259,25 @@ export function stateSync<
     });
   };
 
+  const flushDeferredPublicStateUpdate = (): void => {
+    if (!hasDeferredPublicStateUpdate) {
+      return;
+    }
+
+    hasDeferredPublicStateUpdate = false;
+    replaceStoreFromCells([...graph.getElements(), ...graph.getLinks()]);
+  };
+
   // --- Event Handlers ---
 
   const handleCellChange = (change: OnChangeOptions): void => {
     if (change.options?.isUpdateFromReact) {
+      return;
+    }
+
+    if (graph.hasActiveBatch()) {
+      hasDeferredPublicStateUpdate = true;
+      scheduleLayoutUpdate();
       return;
     }
 
@@ -256,6 +292,14 @@ export function stateSync<
     }
 
     updateCellInStore(change.cell);
+  };
+
+  const handleBatchStop = (): void => {
+    if (graph.hasActiveBatch()) {
+      return;
+    }
+
+    flushDeferredPublicStateUpdate();
   };
 
   // --- Store Sync ---
@@ -312,6 +356,8 @@ export function stateSync<
   // --- Setup & Cleanup ---
 
   const destroyCellListener = listenToCellChange(graph, handleCellChange);
+  const batchListener = new mvc.Listener();
+  batchListener.listenTo(graph, 'batch:stop', handleBatchStop);
   const destroyStoreSubscription = store.subscribe(updateGraphFromStore);
 
   syncExistingGraphCellsToStore();
@@ -319,7 +365,9 @@ export function stateSync<
 
   return {
     cleanup: () => {
+      isDestroyed = true;
       destroyCellListener();
+      batchListener.stopListening();
       destroyStoreSubscription();
     },
   };

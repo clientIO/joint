@@ -724,5 +724,56 @@ describe('GraphStore', () => {
         done();
       }, 50);
     });
+
+    it('should keep layout state live but defer public state during active graph batches', async () => {
+      const store = new GraphStore({
+        initialElements: {
+          'batched-element': {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 50,
+            type: 'ReactElement',
+          },
+        },
+      });
+
+      await waitFor(() => {
+        expect(store.layoutState.getSnapshot().elements['batched-element']).toBeDefined();
+      });
+
+      const element = store.graph.getCell('batched-element');
+      if (!element?.isElement()) {
+        throw new Error('Expected batched-element to exist in graph');
+      }
+
+      store.graph.startBatch('test');
+      element.set('position', { x: 120, y: 180 });
+      element.set('size', { width: 240, height: 160 });
+
+      await waitFor(() => {
+        const layout = store.layoutState.getSnapshot().elements['batched-element'];
+        expect(layout?.x).toBe(120);
+        expect(layout?.y).toBe(180);
+        expect(layout?.width).toBe(240);
+        expect(layout?.height).toBe(160);
+      });
+
+      const publicSnapshotDuringBatch = store.publicState.getSnapshot().elements['batched-element'];
+      expect(publicSnapshotDuringBatch?.x).toBe(0);
+      expect(publicSnapshotDuringBatch?.y).toBe(0);
+      expect(publicSnapshotDuringBatch?.width).toBe(100);
+      expect(publicSnapshotDuringBatch?.height).toBe(50);
+
+      store.graph.stopBatch('test');
+
+      await waitFor(() => {
+        const publicSnapshotAfterBatch = store.publicState.getSnapshot().elements['batched-element'];
+        expect(publicSnapshotAfterBatch?.x).toBe(120);
+        expect(publicSnapshotAfterBatch?.y).toBe(180);
+        expect(publicSnapshotAfterBatch?.width).toBe(240);
+        expect(publicSnapshotAfterBatch?.height).toBe(160);
+      });
+    });
   });
 });
