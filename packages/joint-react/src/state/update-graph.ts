@@ -163,7 +163,7 @@ function isGraphInSync<ElementData = FlatElementData, LinkData = FlatLinkData>(
  * @template Element - The type of elements in the graph
  * @template Link - The type of links in the graph
  * @param options - Configuration options for updating the graph
- * @returns true if the graph was synced, false if it was already in sync or skipped due to active batch
+ * @returns true if the graph was synced, false if it was already in sync
  */
 export function updateGraph<
   Graph extends dia.Graph,

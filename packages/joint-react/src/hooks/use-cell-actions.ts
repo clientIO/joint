@@ -150,7 +150,6 @@ export function useCellActions<
         }
 
         publicState.setState((previous: GraphStoreSnapshot) => {
-          console.log('set', newElements, newLinks);
           return {
             ...previous,
             elements: newElements,

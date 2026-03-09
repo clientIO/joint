@@ -266,7 +266,7 @@ describe('updateGraph', () => {
     expect(result).toBe(false);
   });
 
-  it('should return false when graph has active batch', () => {
+  it('should sync graph changes even when graph has active batch', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 
     const elements: Record<string, FlatElementData> = {
@@ -285,8 +285,9 @@ describe('updateGraph', () => {
       mapDataToLinkAttributes: (options) => defaultMapDataToLinkAttributes(options),
     });
 
-    expect(result).toBe(false);
-    expect(graph.getElements()).toHaveLength(0);
+    expect(result).toBe(true);
+    expect(graph.getElements()).toHaveLength(1);
+    expect(graph.getCell('1')).toBeDefined();
 
     graph.stopBatch('test');
   });
