@@ -394,9 +394,8 @@ function HookSetAndRemoveLink({ label }: Readonly<SimpleElement>) {
           set('l-1', {
             source: id,
             target: id === '1' ? '2' : '1',
-            attrs: {
-              line: { stroke: PRIMARY, strokeDasharray: '5 5' },
-            },
+            color: PRIMARY,
+            strokeDasharray: '5 5',
           })
         }
       >

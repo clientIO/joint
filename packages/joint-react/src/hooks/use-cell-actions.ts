@@ -9,14 +9,11 @@ import { useGraphStore } from './use-graph-store';
  * Normalizes element attributes to the FlatElementData format.
  * Converts nested JointJS format (position: {x, y}, size: {width, height})
  * to flat format (x, y, width, height).
- * @param attributes
+ * @param attributes - Element attributes in either flat or nested JointJS form.
+ * @returns The same attributes normalized into the flat element data shape.
  */
 function normalizeElementAttributes<T>(attributes: T): T {
-  const {
-    position,
-    size,
-    ...rest
-  } = attributes as T & {
+  const { position, size, ...rest } = attributes as T & {
     position?: { x: number; y: number };
     size?: { width: number; height: number };
   };
@@ -50,7 +47,10 @@ interface CellActions<Attributes = FlatElementData> {
    * 2. With ID and updater: `set('1', (prev) => ({ ...prev, label: 'New' }))`
    * If the cell doesn't exist, it will be added.
    */
-  set: (id: CellId, attributesOrUpdater: Attributes | ((previous: Attributes) => Attributes)) => void;
+  set: (
+    id: CellId,
+    attributesOrUpdater: Attributes | ((previous: Attributes) => Attributes)
+  ) => void;
   /**
    * Removes a cell from the graph by its ID.
    * @param id - The ID of the cell to remove
@@ -104,7 +104,7 @@ function isLink(cell: FlatElementData | FlatLinkData): cell is FlatLinkData {
 export function useCellActions<
   Attributes = FlatElementData | FlatLinkData,
 >(): CellActions<Attributes> {
-  const { graph, publicState } = useGraphStore();
+  const { publicState } = useGraphStore();
 
   return useMemo(
     (): CellActions<Attributes> => ({
@@ -119,7 +119,9 @@ export function useCellActions<
           const cell: FlatElementData | FlatLinkData | undefined = elements[id] || links[id];
 
           if (!cell) throw new Error(`Cell with id "${id}" not found.`);
-          attributes = (attributesOrUpdater as (previous: Attributes) => Attributes)(cell as Attributes);
+          attributes = (attributesOrUpdater as (previous: Attributes) => Attributes)(
+            cell as Attributes
+          );
         } else {
           attributes = attributesOrUpdater;
         }
@@ -147,17 +149,43 @@ export function useCellActions<
           }
         }
 
-        publicState.setState((previous: GraphStoreSnapshot) => ({
-          ...previous,
-          elements: newElements,
-          links: newLinks,
-        }));
+        publicState.setState((previous: GraphStoreSnapshot) => {
+          console.log('set', newElements, newLinks);
+          return {
+            ...previous,
+            elements: newElements,
+            links: newLinks,
+          };
+        });
       },
 
       remove(id) {
-        graph.getCell(id)?.remove();
+        publicState.setState((previous: GraphStoreSnapshot) => {
+          const hasElement = id in previous.elements;
+          const hasLink = id in previous.links;
+
+          if (!hasElement && !hasLink) {
+            return previous;
+          }
+
+          if (hasElement) {
+            const elements = { ...previous.elements };
+            Reflect.deleteProperty(elements, id);
+            return {
+              ...previous,
+              elements,
+            };
+          }
+
+          const links = { ...previous.links };
+          Reflect.deleteProperty(links, id);
+          return {
+            ...previous,
+            links,
+          };
+        });
       },
     }),
-    [graph, publicState]
+    [publicState]
   );
 }

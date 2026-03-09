@@ -68,10 +68,12 @@ const initialLinks: Record<string, FlatLinkData> = {
   'link-1': {
     source: 'node-1',
     target: 'node-2',
+    color: PRIMARY,
   },
   'link-2': {
     source: 'node-1',
     target: 'node-3',
+    color: PRIMARY,
   },
 };
 
@@ -83,7 +85,8 @@ const initialLinks: Record<string, FlatLinkData> = {
  * Forward mapper: converts center-based data to JointJS top-left position.
  */
 const mapDataToElementAttributes = ({
-  data, toAttributes,
+  data,
+  toAttributes,
 }: ElementToGraphOptions<FlatElementData>): dia.Cell.JSON => {
   const { cx, cy, width = 100, height = 60, ...rest } = data as CenterElement;
   return toAttributes({ ...rest, x: cx - width / 2, y: cy - height / 2, width, height });
@@ -93,7 +96,8 @@ const mapDataToElementAttributes = ({
  * Reverse mapper: converts JointJS top-left position back to center-based data.
  */
 const mapElementAttributesToData = ({
-  attributes, toData,
+  attributes,
+  toData,
 }: GraphToElementOptions<FlatElementData>): FlatElementData => {
   const { x = 0, y = 0, width = 100, height = 60, ...rest } = toData(attributes);
   return { ...rest, cx: x + width / 2, cy: y + height / 2, width, height };

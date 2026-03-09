@@ -442,6 +442,111 @@ describe('useCellActions', () => {
     });
   });
 
+  it('should remove a pending link before it is synced to the graph', async () => {
+    const { result } = renderHook(
+      () => {
+        return {
+          actions: useCellActions(),
+          graph: useGraph(),
+          links: useLinks(),
+        };
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getLinks().length).toBe(1);
+      expect(result.current.links['3']).toBeDefined();
+    });
+
+    act(() => {
+      result.current.actions.set('pending-link', {
+        source: '2',
+        target: '1',
+        color: '#FF9505',
+      });
+      result.current.actions.remove('pending-link');
+    });
+
+    await waitFor(() => {
+      expect(result.current.links['pending-link']).toBeUndefined();
+      expect(result.current.graph.getCell('pending-link')).toBeUndefined();
+      expect(result.current.graph.getLinks().length).toBe(1);
+    });
+  });
+
+  it('should sync a new link to the graph even when the graph is in an active batch', async () => {
+    const { result } = renderHook(
+      () => {
+        return {
+          actions: useCellActions(),
+          graph: useGraph(),
+          links: useLinks(),
+        };
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getLinks().length).toBe(1);
+    });
+
+    act(() => {
+      result.current.graph.startBatch('test');
+      result.current.actions.set('batched-link', {
+        source: '2',
+        target: '1',
+        color: '#FF9505',
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.links['batched-link']).toBeDefined();
+      expect(result.current.graph.getCell('batched-link')).toBeDefined();
+    });
+
+    act(() => {
+      result.current.graph.stopBatch('test');
+    });
+  });
+
+  it('should sync an element update to the graph even when the graph is in an active batch', async () => {
+    const { result } = renderHook(
+      () => {
+        return {
+          actions: useCellActions(),
+          graph: useGraph(),
+          elements: useElements(),
+        };
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.elements['1']).toBeDefined();
+      expect(result.current.graph.getCell('1')).toBeDefined();
+    });
+
+    act(() => {
+      result.current.graph.startBatch('test');
+      result.current.actions.set('1', {
+        x: 125,
+        y: 175,
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.elements['1']?.x).toBe(125);
+      expect(result.current.elements['1']?.y).toBe(175);
+      const graphElement = result.current.graph.getCell('1');
+      expect(graphElement?.get('position')).toEqual({ x: 125, y: 175 });
+    });
+
+    act(() => {
+      result.current.graph.stopBatch('test');
+    });
+  });
+
   it('should update layout state when size is changed via set', async () => {
     const { result } = renderHook(
       () => {

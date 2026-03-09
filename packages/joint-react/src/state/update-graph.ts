@@ -181,10 +181,6 @@ export function updateGraph<
     isUpdateFromReact,
   } = options;
 
-  if (graph.hasActiveBatch()) {
-    return false;
-  }
-
   // Convert records to arrays
   const elements = Object.values(elementsRecord);
   const links = Object.values(linksRecord);
@@ -241,7 +237,6 @@ export function updateGraph<
     attributes.id = id;
     return attributes;
   });
-
   graph.syncCells([...elementItems, ...linkItems], { remove: true, isUpdateFromReact });
   return true;
 }

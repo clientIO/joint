@@ -1,8 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useNodeSize, useCellId, useElements, useGraph } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useNodeSize,
+  useCellId,
+  useElements,
+  useGraph,
+  useCellActions,
+} from '@joint/react';
 import '../index.css';
 import { useEffect, useRef } from 'react';
-import { shapes, util } from '@joint/core';
 import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import type { dia } from '../../../../../joint-core/types';
 
@@ -15,31 +22,17 @@ const initialElements: Record<string, { label: string; x: number; y: number }> =
 
 type BaseElementWithData = (typeof initialElements)[string];
 
-class DashedLink extends shapes.standard.Link {
-  defaults() {
-    return util.defaultsDeep(
-      {
-        type: 'DashedLink',
-        attrs: {
-          line: {
-            stroke: SECONDARY,
-            strokeWidth: 2,
-            strokeDasharray: '5,5',
-            sourceMarker: {
-              d: 'M 10 -5 0 0 10 5 z',
-            },
-          },
-        },
-      },
-      super.defaults
-    );
-  }
-}
-
 const PROXIMITY_THRESHOLD = 60;
 
-function getLinkId(id: dia.Cell.ID, closeId: dia.Cell.ID) {
-  return `${id}-${closeId}`;
+function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
+  const [source, target] = [String(id), String(closeId)].toSorted((first, second) =>
+    first.localeCompare(second)
+  );
+  return {
+    linkId: `${source}-${target}`,
+    source,
+    target,
+  };
 }
 
 function ResizableNode({ label }: Readonly<BaseElementWithData>) {
@@ -55,28 +48,25 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
       .filter((element_) => element_.id !== id);
     return proximityElements.map((element_) => element_.id);
   });
+  const { set, remove } = useCellActions();
 
   useEffect(() => {
     for (const closeId of closeIds) {
-      const linkId = getLinkId(id, closeId);
-      // Check if the link or the reverse link already exists
-      if (graph.getCell(linkId)) continue;
-      if (graph.getCell(getLinkId(closeId, id))) continue;
-
-      const link = new DashedLink({
-        id: linkId,
-        source: { id },
-        target: { id: closeId },
+      const { linkId, source, target } = getProximityLink(id, closeId);
+      set(linkId, {
+        source,
+        target,
+        color: SECONDARY,
+        pattern: '5 5',
       });
-      graph.addCell(link, { async: false });
     }
     return () => {
       for (const closeId of closeIds) {
-        const linkId = getLinkId(id, closeId);
-        graph.getCell(linkId)?.remove();
+        const { linkId } = getProximityLink(id, closeId);
+        remove(linkId);
       }
     };
-  }, [closeIds, graph, id]);
+  }, [closeIds, id, remove, set]);
 
   const { width, height } = useNodeSize(nodeRef);
   return (
@@ -106,7 +96,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} cellNamespace={{ DashedLink }}>
+    <GraphProvider elements={initialElements}>
       <Main />
     </GraphProvider>
   );

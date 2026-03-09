@@ -230,8 +230,6 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
         interactive={false}
         height="100%"
         scale={scale}
-        className={PAPER_CLASSNAME}
-        // elementView={ReactElementView}
         renderElement={renderElement}
       />
     </div>
@@ -356,7 +354,7 @@ function Main() {
 
       <button
         type="button"
-        className="absolute top-2 right-2 z-10 bg-gray-900 rounded-lg p-2 shadow-md text-white text-sm"
+        className="absolute top-2 right-6 z-10 bg-gray-900 rounded-lg p-2 shadow-md text-white text-sm"
         onClick={() => setShowMinimap((v) => !v)}
       >
         {showMinimap ? 'Hide Minimap' : 'Show Minimap'}
@@ -456,9 +454,7 @@ function mapDataToLinkAttributesExample(options: LinkToGraphOptions<LinkData>) {
   return attributes;
 }
 
-function mapDataToElementAttributesExample(
-  options: ElementToGraphOptions<ElementData>
-) {
+function mapDataToElementAttributesExample(options: ElementToGraphOptions<ElementData>) {
   const { jjType, color = 'lightgray' } = options.data;
   if (!jjType) return options.toAttributes(options.data);
   const attributes = {
