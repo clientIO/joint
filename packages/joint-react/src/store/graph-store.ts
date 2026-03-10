@@ -476,19 +476,6 @@ export class GraphStore {
 
   // --- ClearView API ---
 
-  public getContext = (id: GraphStoreContextId): GraphStoreContextRegister | null => {
-    return this.registeredContexts.get(id) ?? null;
-  };
-
-  private updateContextRevision = (id: GraphStoreContextId) => {
-    this.contextsState.setState((previous) => {
-      const nextState = new Map(previous);
-      const previousUpdateNumber = nextState.get(id) ?? 0;
-      nextState.set(id, previousUpdateNumber + 1);
-      return nextState;
-    });
-  };
-
   public scheduleClearView = (options: {
     readonly cellId: CellId;
     readonly onValidateLink?: (link: dia.Link) => boolean;
@@ -528,5 +515,18 @@ export class GraphStore {
     this.registeredContexts.get(id)?.cleanup?.();
     this.registeredContexts.delete(id);
     this.updateContextRevision(id);
+  };
+
+  public getContext = (id: GraphStoreContextId): GraphStoreContextRegister | null => {
+    return this.registeredContexts.get(id) ?? null;
+  };
+
+  private updateContextRevision = (id: GraphStoreContextId) => {
+    this.contextsState.setState((previous) => {
+      const nextState = new Map(previous);
+      const previousUpdateNumber = nextState.get(id) ?? 0;
+      nextState.set(id, previousUpdateNumber + 1);
+      return nextState;
+    });
   };
 }

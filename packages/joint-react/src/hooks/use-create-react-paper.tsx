@@ -321,7 +321,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     }
     const nextWidth = resolveSize(hostElement, width, 'width');
     const nextHeight = resolveSize(hostElement, height, 'height');
-    paper.setDimensions(nextWidth ?? null, nextHeight ?? null);
+    // @ts-expect-error - JointJS types are not up to date with the actual implementation that allows undefined for fluid behavior.
+    paper.setDimensions(nextWidth ?? undefined, nextHeight ?? undefined);
 
     const hasMissingDimension = width === undefined || height === undefined;
     if (!hasMissingDimension || !hostElement) {

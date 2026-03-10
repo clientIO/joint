@@ -186,7 +186,6 @@ export class PaperStore {
     if (scale !== undefined) {
       this.paper.scale(scale);
     }
-
     if (width !== undefined && height !== undefined) {
       this.paper.setDimensions(width, height);
     }
