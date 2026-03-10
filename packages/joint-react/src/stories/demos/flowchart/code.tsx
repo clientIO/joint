@@ -531,6 +531,7 @@ function Main() {
       id={paperId}
       gridSize={5}
       height={600}
+      width="100%"
       overflow={true}
       snapLabels={true}
       onElementsSizeReady={({ paper }) => {

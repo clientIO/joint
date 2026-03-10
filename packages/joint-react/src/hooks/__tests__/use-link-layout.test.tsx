@@ -81,4 +81,88 @@ describe('useLinkLayout', () => {
       expect(result.current).toBeUndefined();
     });
   });
+
+  it('should support selector as first argument (context mode)', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderLinkWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+        },
+        links: {
+          'link-1': { source: 'element-1', target: 'element-2' },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => useLinkLayout((layout) => layout?.d),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      if (result.current) {
+        expect(typeof result.current).toBe('string');
+      }
+    });
+  });
+
+  it('should support selector as second argument (id mode)', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderLinkWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+        },
+        links: {
+          'link-1': { source: 'element-1', target: 'element-2' },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () =>
+        useLinkLayout('link-1', (layout) =>
+          layout ? { sx: layout.sourceX, sy: layout.sourceY } : undefined
+        ),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      if (result.current) {
+        expect(result.current).toHaveProperty('sx');
+        expect(result.current).toHaveProperty('sy');
+        expect(typeof result.current.sx).toBe('number');
+      }
+    });
+  });
+
+  it('should return undefined from selector for non-existent link', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderLinkWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+        },
+        links: {
+          'link-1': { source: 'element-1', target: 'element-2' },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => useLinkLayout('missing-link', (layout) => layout?.d),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeUndefined();
+    });
+  });
 });

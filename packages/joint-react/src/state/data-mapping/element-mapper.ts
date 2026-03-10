@@ -1,10 +1,7 @@
 import { type dia } from '@joint/core';
 import type { FlatElementData } from '../../types/element-types';
 import { REACT_TYPE } from '../../models/react-element';
-import type {
-  ElementToGraphOptions,
-  GraphToElementOptions,
-} from '../graph-state-selectors';
+import type { ElementToGraphOptions, GraphToElementOptions } from '../graph-state-selectors';
 import { convertPorts, createPortDefaults } from './convert-ports';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -72,7 +69,7 @@ export function defaultMapDataToElementAttributes<Element extends FlatElementDat
   if (parent !== undefined) attributes.parent = parent;
 
   // → One-way
-  if (ports !== undefined) {
+  if (ports) {
     attributes.ports = convertPorts(ports);
     attributes.portDefaults = createPortDefaults();
   }

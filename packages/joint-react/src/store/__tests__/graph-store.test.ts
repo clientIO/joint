@@ -7,12 +7,6 @@ import { ReactElement } from '../../models/react-element';
 import { sendToDevTool } from '../../utils/dev-tools';
 import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
-import {
-  defaultMapDataToElementAttributes,
-  defaultMapDataToLinkAttributes,
-} from '../../state/data-mapping';
-import { scheduler } from '../../utils/scheduler';
-import type { ElementToGraphOptions, LinkToGraphOptions } from '../../state/graph-state-selectors';
 
 jest.mock('../../utils/dev-tools', () => ({
   sendToDevTool: jest.fn(),
@@ -26,10 +20,6 @@ describe('GraphStore', () => {
   beforeEach(() => {
     sendToDevToolMock.mockClear();
     sendToDevToolMock.mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    scheduler.flushNowForTests();
   });
 
   describe('constructor', () => {
@@ -123,56 +113,6 @@ describe('GraphStore', () => {
       const store = new GraphStore({ cellNamespace: customNamespace });
       // The graph should have both default and custom namespaces
       expect(store.graph).toBeDefined();
-    });
-
-    it('should use external store when provided', () => {
-      function unsubscribe() {
-        // Empty unsubscribe function
-      }
-      const setState = jest.fn();
-      const externalStore = {
-        getSnapshot: () => ({ elements: {}, links: {} }),
-        subscribe: () => unsubscribe,
-        setState,
-      };
-      const store = new GraphStore({ externalStore });
-      expect(store.publicState).not.toBe(externalStore);
-      store.publicState.setState((previous) => previous);
-      scheduler.flushNowForTests();
-      expect(setState).toHaveBeenCalledTimes(1);
-    });
-
-    it('should use custom selectors when provided', () => {
-      const customElementToGraph = jest.fn((options: ElementToGraphOptions<FlatElementData>) => {
-        return defaultMapDataToElementAttributes(options);
-      });
-      const customLinkToGraph = jest.fn((options: LinkToGraphOptions<FlatLinkData>) => {
-        return defaultMapDataToLinkAttributes(options);
-      });
-
-      const store = new GraphStore({
-        mapDataToElementAttributes: customElementToGraph,
-        mapDataToLinkAttributes: customLinkToGraph,
-      });
-
-      // Add an element to trigger the selector
-      const id = 'test-element';
-      const data: FlatElementData = {
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
-        type: 'ReactElement',
-      };
-      store.publicState.setState((previous) => ({
-        ...previous,
-        elements: { ...previous.elements, [id]: data },
-      }));
-
-      // Wait a bit for sync to happen
-      setTimeout(() => {
-        expect(customElementToGraph).toHaveBeenCalled();
-      }, 10);
     });
 
     it('should handle graph with existing cells', () => {
@@ -284,7 +224,7 @@ describe('GraphStore', () => {
       expect(firstUpdate).toBe(secondUpdate);
     });
 
-    it('should propagate when snapshot reference changes even if deep-equal', () => {
+    it('should skip update when snapshot is deep-equal', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
 
@@ -300,8 +240,8 @@ describe('GraphStore', () => {
       }));
       const secondUpdate = store.internalState.getSnapshot().papers[paperId];
 
-      expect(secondUpdate).not.toBe(firstUpdate);
-      expect(secondUpdate).toEqual(firstUpdate);
+      // Deep-equal snapshots are treated as no change
+      expect(secondUpdate).toBe(firstUpdate);
     });
   });
 
@@ -513,17 +453,11 @@ describe('GraphStore', () => {
     it('should return true for measured nodes', () => {
       const store = new GraphStore({});
       const id = 'measured-element';
-      const data: FlatElementData = {
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
-        type: 'ReactElement',
-      };
 
-      store.publicState.setState((previous) => ({
-        ...previous,
-        elements: { ...previous.elements, [id]: data },
+      store.graph.addCell(new ReactElement({
+        id,
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
       }));
 
       const domElement = document.createElement('div');
@@ -540,17 +474,11 @@ describe('GraphStore', () => {
     it('should register a node for measurement and return cleanup', () => {
       const store = new GraphStore({});
       const id = 'measured-element';
-      const element: FlatElementData = {
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
-        type: 'ReactElement',
-      };
 
-      store.publicState.setState((previous) => ({
-        ...previous,
-        elements: { ...previous.elements, [id]: element },
+      store.graph.addCell(new ReactElement({
+        id,
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
       }));
 
       const domElement = document.createElement('div');
@@ -587,45 +515,6 @@ describe('GraphStore', () => {
 
       const paperStore = store.getPaperStore('paper-1');
       expect(paperStore).toBeDefined();
-    });
-  });
-
-  describe('subscribeToCellChange', () => {
-    it('should subscribe to cell changes and return unsubscribe', () => {
-      const store = new GraphStore({});
-      function unsubscribeCallback() {
-        // Empty unsubscribe callback
-      }
-      const callback = jest.fn(() => unsubscribeCallback);
-      const unsubscribe = store.subscribeToCellChange(callback);
-
-      expect(typeof unsubscribe).toBe('function');
-
-      unsubscribe();
-    });
-  });
-
-  describe('updateExternalStore', () => {
-    it('should update the external store reference', () => {
-      const store = new GraphStore({});
-      const originalStore = store.publicState;
-
-      function unsubscribe() {
-        // Empty unsubscribe function
-      }
-      const newStore = {
-        getSnapshot: () => ({ elements: {}, links: {} }),
-        subscribe: () => unsubscribe,
-        setState: jest.fn(),
-      };
-
-      store.updateExternalStore(newStore);
-
-      expect(store.publicState).not.toBe(newStore);
-      expect(store.publicState).not.toBe(originalStore);
-      store.publicState.setState((previous) => previous);
-      scheduler.flushNowForTests();
-      expect(newStore.setState).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -689,10 +578,11 @@ describe('GraphStore', () => {
         type: 'ReactElement',
       };
 
-      store.publicState.setState((previous) => ({
-        ...previous,
-        elements: { ...previous.elements, [id]: element },
-      }));
+      store.graphState.updateGraph({
+        elements: { [id]: element },
+        links: {},
+        flag: 'updateFromReact',
+      });
 
       // Wait for sync
       setTimeout(() => {
@@ -727,6 +617,7 @@ describe('GraphStore', () => {
 
     it('should keep layout state live but defer public state during active graph batches', async () => {
       const store = new GraphStore({
+        enableBatchUpdates: true,
         initialElements: {
           'batched-element': {
             x: 0,
@@ -768,7 +659,8 @@ describe('GraphStore', () => {
       store.graph.stopBatch('test');
 
       await waitFor(() => {
-        const publicSnapshotAfterBatch = store.publicState.getSnapshot().elements['batched-element'];
+        const publicSnapshotAfterBatch =
+          store.publicState.getSnapshot().elements['batched-element'];
         expect(publicSnapshotAfterBatch?.x).toBe(120);
         expect(publicSnapshotAfterBatch?.y).toBe(180);
         expect(publicSnapshotAfterBatch?.width).toBe(240);

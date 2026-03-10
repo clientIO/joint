@@ -500,13 +500,17 @@ describe('useCellActions', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.links['batched-link']).toBeDefined();
-      expect(result.current.graph.getCell('batched-link')).toBeDefined();
-    });
+    // Cell is in the graph immediately, but publicState is deferred until batch:stop
+    expect(result.current.graph.getCell('batched-link')).toBeDefined();
 
     act(() => {
       result.current.graph.stopBatch('test');
+    });
+
+    // After batch:stop, publicState should reflect the new link
+    await waitFor(() => {
+      expect(result.current.links['batched-link']).toBeDefined();
+      expect(result.current.graph.getCell('batched-link')).toBeDefined();
     });
   });
 
@@ -535,15 +539,63 @@ describe('useCellActions', () => {
       });
     });
 
-    await waitFor(() => {
-      expect(result.current.elements['1']?.x).toBe(125);
-      expect(result.current.elements['1']?.y).toBe(175);
-      const graphElement = result.current.graph.getCell('1');
-      expect(graphElement?.get('position')).toEqual({ x: 125, y: 175 });
-    });
+    // During batch: graph is updated but publicState (useElements) is deferred
+    const graphElement = result.current.graph.getCell('1');
+    expect(graphElement?.get('position')).toEqual({ x: 125, y: 175 });
 
     act(() => {
       result.current.graph.stopBatch('test');
+    });
+
+    // After batch:stop: useElements reflects the change
+    await waitFor(() => {
+      expect(result.current.elements['1']?.x).toBe(125);
+      expect(result.current.elements['1']?.y).toBe(175);
+    });
+  });
+
+  it('should update custom data fields (e.g. label) and reflect in useElements', async () => {
+    const customWrapper = graphProviderWrapper({
+      elements: {
+        '1': {
+          label: 'Initial Label',
+          x: 50,
+          y: 50,
+          width: 100,
+          height: 50,
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => {
+        return {
+          actions: useCellActions(),
+          elements: useElements(),
+        };
+      },
+      { wrapper: customWrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.elements['1']).toBeDefined();
+      expect(result.current.elements['1'].label).toBe('Initial Label');
+    });
+
+    act(() => {
+      result.current.actions.set('1', (previous) => ({
+        ...previous,
+        label: 'Updated Label',
+      }));
+    });
+
+    await waitFor(() => {
+      expect(result.current.elements['1'].label).toBe('Updated Label');
+      // Other fields should be preserved
+      expect(result.current.elements['1'].width).toBe(100);
+      expect(result.current.elements['1'].height).toBe(50);
+      expect(result.current.elements['1'].x).toBe(50);
+      expect(result.current.elements['1'].y).toBe(50);
     });
   });
 

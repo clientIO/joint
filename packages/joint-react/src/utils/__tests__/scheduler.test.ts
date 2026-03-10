@@ -1,104 +1,106 @@
-import { createState } from '../create-state';
 import { scheduler } from '../scheduler';
 
-describe('global scheduler.wrap', () => {
-  afterEach(() => {
+describe('GlobalScheduler', () => {
+  it('batches multiple schedule calls into a single flush', () => {
+    const calls: string[] = [];
+    scheduler.schedule(() => calls.push('a'));
+    scheduler.schedule(() => calls.push('b'));
+    scheduler.schedule(() => calls.push('c'));
+
+    expect(calls).toEqual([]);
     scheduler.flushNowForTests();
+    expect(calls).toEqual(['a', 'b', 'c']);
   });
 
-  it('should apply queued updaters in order using pending snapshot', () => {
-    const baseStore = createState<{ readonly value: number }>({
-      name: 'scheduler/order',
-      newState: () => ({ value: 0 }),
-      isEqual: (a, b) => a.value === b.value,
-    });
-    const wrappedStore = scheduler.wrap(baseStore);
+  it('deduplicates the same callback reference', () => {
+    let count = 0;
+    const callback = () => {
+      count += 1;
+    };
 
-    wrappedStore.setState(() => ({ value: 1 }));
-    wrappedStore.setState((previous: { readonly value: number }) => ({ value: previous.value + 1 }));
-    wrappedStore.setState((previous: { readonly value: number }) => ({ value: previous.value * 2 }));
-
-    expect(wrappedStore.getSnapshot().value).toBe(4);
-    expect(baseStore.getSnapshot().value).toBe(0);
+    scheduler.schedule(callback);
+    scheduler.schedule(callback);
+    scheduler.schedule(callback);
 
     scheduler.flushNowForTests();
-
-    expect(baseStore.getSnapshot().value).toBe(4);
-    expect(wrappedStore.getSnapshot().value).toBe(4);
+    expect(count).toBe(1);
   });
 
-  it('should batch multiple writes into one subscriber notification', () => {
-    const baseStore = createState<{ readonly value: number }>({
-      name: 'scheduler/notifications',
-      newState: () => ({ value: 0 }),
-      isEqual: (a, b) => a.value === b.value,
-    });
-    const wrappedStore = scheduler.wrap(baseStore);
+  it('drains callbacks added during flush', () => {
+    const calls: number[] = [];
 
-    let notifications = 0;
-    const unsubscribe = wrappedStore.subscribe(() => {
-      notifications += 1;
+    scheduler.schedule(() => {
+      calls.push(1);
+      // Schedule more work during flush — should be drained in the same pass
+      scheduler.schedule(() => calls.push(2));
+      scheduler.schedule(() => calls.push(3));
     });
-
-    wrappedStore.setState(() => ({ value: 1 }));
-    wrappedStore.setState(() => ({ value: 2 }));
-    wrappedStore.setState(() => ({ value: 3 }));
 
     scheduler.flushNowForTests();
-
-    expect(notifications).toBe(1);
-    expect(wrappedStore.getSnapshot().value).toBe(3);
-    unsubscribe();
+    expect(calls).toEqual([1, 2, 3]);
   });
 
-  it('should batch updates across multiple wrapped stores in one flush cycle', () => {
-    const firstStore = scheduler.wrap(
-      createState<{ readonly value: number }>({
-        name: 'scheduler/first',
-        newState: () => ({ value: 0 }),
-        isEqual: (a, b) => a.value === b.value,
-      })
-    );
-    const secondStore = scheduler.wrap(
-      createState<{ readonly value: number }>({
-        name: 'scheduler/second',
-        newState: () => ({ value: 0 }),
-        isEqual: (a, b) => a.value === b.value,
-      })
-    );
+  it('handles nested drain loops (derived state pattern)', () => {
+    const calls: string[] = [];
+    const pushDerived2 = () => calls.push('derived-2');
+    const pushDerived1 = () => {
+      calls.push('derived-1');
+      scheduler.schedule(pushDerived2);
+    };
 
-    let firstNotifications = 0;
-    let secondNotifications = 0;
-    const unsubscribeFirst = firstStore.subscribe(() => {
-      firstNotifications += 1;
+    scheduler.schedule(() => {
+      calls.push('source');
+      scheduler.schedule(pushDerived1);
     });
-    const unsubscribeSecond = secondStore.subscribe(() => {
-      secondNotifications += 1;
-    });
-
-    firstStore.setState(() => ({ value: 10 }));
-    secondStore.setState(() => ({ value: 20 }));
 
     scheduler.flushNowForTests();
-
-    expect(firstStore.getSnapshot().value).toBe(10);
-    expect(secondStore.getSnapshot().value).toBe(20);
-    expect(firstNotifications).toBe(1);
-    expect(secondNotifications).toBe(1);
-    unsubscribeFirst();
-    unsubscribeSecond();
+    expect(calls).toEqual(['source', 'derived-1', 'derived-2']);
   });
 
-  it('should return same wrapped instance for same base store', () => {
-    const baseStore = createState<{ readonly value: number }>({
-      name: 'scheduler/identity',
-      newState: () => ({ value: 0 }),
-      isEqual: (a, b) => a.value === b.value,
+  it('is a no-op when flushing with nothing pending', () => {
+    expect(() => scheduler.flushNowForTests()).not.toThrow();
+  });
+
+  it('recovers from errors thrown during flush', () => {
+    const calls: string[] = [];
+
+    scheduler.schedule(() => {
+      throw new Error('boom');
+    });
+    scheduler.schedule(() => calls.push('after-error'));
+
+    expect(() => scheduler.flushNowForTests()).toThrow('boom');
+
+    // Scheduler should be usable again after error
+    scheduler.schedule(() => calls.push('recovered'));
+    scheduler.flushNowForTests();
+    expect(calls).toEqual(['recovered']);
+  });
+
+  it('does not re-enter flush if already flushing', () => {
+    const calls: string[] = [];
+
+    scheduler.schedule(() => {
+      calls.push('outer');
+      // flushNowForTests during an active flush should be a no-op
+      // because isFlushing is true, but it cancels + calls flush which returns early
+      scheduler.flushNowForTests();
+      calls.push('outer-done');
     });
 
-    const wrappedA = scheduler.wrap(baseStore);
-    const wrappedB = scheduler.wrap(baseStore);
+    scheduler.flushNowForTests();
+    expect(calls).toEqual(['outer', 'outer-done']);
+  });
 
-    expect(wrappedA).toBe(wrappedB);
+  it('processes independent batches separately', () => {
+    const calls: string[] = [];
+
+    scheduler.schedule(() => calls.push('batch-1'));
+    scheduler.flushNowForTests();
+
+    scheduler.schedule(() => calls.push('batch-2'));
+    scheduler.flushNowForTests();
+
+    expect(calls).toEqual(['batch-1', 'batch-2']);
   });
 });

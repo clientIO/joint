@@ -90,6 +90,7 @@ const PAPER_PROPS: PaperProps<Element> = {
   snapLinks: { radius: 25 },
   sorting: dia.Paper.sorting.APPROX,
   linkPinning: false,
+  width: '100%',
 };
 
 // Create initial elements and links with typing support as Records

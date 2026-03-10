@@ -61,7 +61,9 @@ export function useElements<
   ElementData = FlatElementData,
   SelectorReturnType = Record<CellId, ElementData>,
 >(
-  selector: (items: Record<CellId, ElementData>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+  selector: (
+    items: Record<CellId, ElementData>
+  ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual as (
     a: SelectorReturnType,
     b: SelectorReturnType

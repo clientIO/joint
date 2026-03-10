@@ -1,10 +1,12 @@
 import { render, waitFor } from '@testing-library/react';
 import type { dia } from '@joint/core';
 import { useRef } from 'react';
+import { act } from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import type { FlatElementData } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
+import { scheduler } from '../../../utils/scheduler';
 
 const INITIAL_NODE_WIDTH = 100;
 const INITIAL_NODE_HEIGHT = 50;
@@ -128,6 +130,16 @@ describe('Paper automatic layout', () => {
         />
       </GraphProvider>
     );
+
+    // Flush microtasks (mock observer) and scheduler (state notifications)
+    // Multiple rounds needed: 1) queueMicrotask fires observer, 2) scheduler flushes state, 3) React re-renders
+    for (let index = 0; index < 5; index++) {
+      // eslint-disable-next-line no-await-in-loop
+      await act(async () => {
+        await new Promise((resolve) => { setTimeout(resolve, 0); });
+        scheduler.flushNowForTests();
+      });
+    }
 
     await waitFor(() => {
       expect(fourthNodeYPositions.length).toBeGreaterThan(0);

@@ -18,8 +18,8 @@
  * 2. **State Synchronization**: When one peer updates the graph, the change
  *    is sent to all connected peers via PeerJS data channels.
  *
- * 3. **Controlled Mode**: We use React-controlled mode to manage state,
- *    and sync that state across peers using PeerJS.
+ * 3. **Controlled Mode**: We use React-controlled mode (onElementsChange/onLinksChange)
+ *    to manage state, and sync that state across peers using PeerJS.
  *
  * 4. **Connection Flow**:
  *    - Each peer gets a unique ID when they load the page
@@ -28,11 +28,11 @@
  *
  * HOW IT WORKS:
  *
- * 1. Peer A loads page → Gets ID "abc123"
- * 2. Peer B loads page → Gets ID "xyz789"
- * 3. Peer A enters "xyz789" → Connects to Peer B
- * 4. Peer A adds element → State updates → Sent to Peer B via PeerJS
- * 5. Peer B receives update → Updates local state → Graph updates
+ * 1. Peer A loads page -> Gets ID "abc123"
+ * 2. Peer B loads page -> Gets ID "xyz789"
+ * 3. Peer A enters "xyz789" -> Connects to Peer B
+ * 4. Peer A adds element -> State updates -> Sent to Peer B via PeerJS
+ * 5. Peer B receives update -> Updates local state -> Graph updates
  *
  * ============================================================================
  */
@@ -43,14 +43,11 @@ import {
   type FlatElementData,
   type FlatLinkData,
   Paper,
-  type ExternalGraphStore,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import Peer, { type DataConnection } from 'peerjs';
-import type { GraphStoreSnapshot } from '../../../store/graph-store';
-import type { Update } from '../../../utils/create-state';
 
 // ============================================================================
 // STEP 1: Define Initial Graph Data
@@ -88,7 +85,7 @@ function RenderItem(props: CustomElement) {
 }
 
 // ============================================================================
-// STEP 3: PeerJS External Store
+// STEP 3: PeerJS State Manager
 // ============================================================================
 
 /**
@@ -102,70 +99,47 @@ interface StateSyncMessage {
 }
 
 /**
- * Creates an ExternalGraphStore that syncs state via PeerJS.
+ * Creates a PeerJS state manager that syncs graph state across peers.
  *
- * This store:
- * 1. Manages local state (elements and links)
- * 2. Sends state updates to connected peers when state changes
- * 3. Receives state updates from peers and updates local state
- * 4. Implements ExternalStoreLike interface for GraphProvider
+ * This manager:
+ * 1. Manages PeerJS connections
+ * 2. Sends state updates to connected peers when local state changes
+ * 3. Receives state updates from peers and notifies React via callbacks
  *
  * The key advantage: ALL state changes (including position changes from dragging)
- * are automatically captured and synced, because GraphProvider calls setState
- * on the external store for every change.
+ * are automatically captured and synced, because GraphProvider calls
+ * onElementsChange/onLinksChange for every change.
  */
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
-function createPeerJSStore(
-  initialElements: Record<string, FlatElementData>,
-  initialLinks: Record<string, FlatLinkData>,
-  callbacks: {
-    onPeerIdChange: (id: string | null) => void;
-    onConnectionStatusChange: (status: ConnectionStatus) => void;
-    onConnectedPeerIdChange: (id: string | null) => void;
-  }
-): {
-  store: ExternalGraphStore;
-  peerId: string | null;
-  connectedPeerId: string | null;
-  connectionStatus: ConnectionStatus;
+function createPeerJSManager(callbacks: {
+  onPeerIdChange: (id: string | null) => void;
+  onConnectionStatusChange: (status: ConnectionStatus) => void;
+  onConnectedPeerIdChange: (id: string | null) => void;
+  onRemoteStateUpdate: (elements: Record<string, FlatElementData>, links: Record<string, FlatLinkData>) => void;
+}): {
   connectToPeer: (remotePeerId: string) => void;
+  sendStateUpdate: (elements: Record<string, FlatElementData>, links: Record<string, FlatLinkData>) => void;
+  isReceivingUpdate: () => boolean;
 } {
-  // Local state
-  let currentState: GraphStoreSnapshot = {
-    elements: initialElements,
-    links: initialLinks,
-  };
-
-  // Subscribers (for ExternalStoreLike interface)
-  const subscribers = new Set<() => void>();
-
   // PeerJS connection management
-  let peerId: string | null = null;
-  let connectedPeerId: string | null = null;
-  let connectionStatus: ConnectionStatus = 'disconnected';
   let peerRef: Peer | null = null;
   const connectionsRef: DataConnection[] = [];
-  const isReceivingUpdateRef = { current: false };
+  let isReceiving = false;
 
-  // Notify subscribers of state changes
-  const notifySubscribers = () => {
-    for (const subscriber of subscribers) {
-      subscriber();
-    }
-  };
+  const { onPeerIdChange, onConnectionStatusChange, onConnectedPeerIdChange, onRemoteStateUpdate } = callbacks;
 
   // Send state update to all connected peers
-  const sendStateUpdate = (state: GraphStoreSnapshot) => {
+  const sendStateUpdate = (elements: Record<string, FlatElementData>, links: Record<string, FlatLinkData>) => {
     // Don't send if we're currently receiving an update (prevent loops)
-    if (isReceivingUpdateRef.current) {
+    if (isReceiving) {
       return;
     }
 
     const message: StateSyncMessage = {
       type: 'state-update',
-      elements: state.elements,
-      links: state.links,
+      elements,
+      links,
     };
 
     // Send to all connected peers
@@ -179,106 +153,53 @@ function createPeerJSStore(
   // Handle incoming state update from peer
   const handlePeerUpdate = (message: StateSyncMessage) => {
     if (message.type === 'state-update') {
-      isReceivingUpdateRef.current = true;
-      currentState = {
-        elements: message.elements,
-        links: message.links,
-      };
-      notifySubscribers();
+      isReceiving = true;
+      onRemoteStateUpdate(message.elements, message.links);
       // Reset flag after a short delay
       setTimeout(() => {
-        isReceivingUpdateRef.current = false;
+        isReceiving = false;
       }, 100);
     }
   };
 
-  // Create the external store
-  const store: ExternalGraphStore = {
-    getSnapshot: (): GraphStoreSnapshot => {
-      return currentState;
-    },
-
-    subscribe: (listener: () => void) => {
-      subscribers.add(listener);
-      return () => {
-        subscribers.delete(listener);
-      };
-    },
-
-    setState: (updater: Update<GraphStoreSnapshot>) => {
-      // Update local state
-      const newState = typeof updater === 'function' ? updater(currentState) : updater;
-      currentState = newState;
-
-      // Notify subscribers
-      notifySubscribers();
-
-      // eslint-disable-next-line no-console
-      console.log(
-        '[PeerJS] setState called, connectionStatus:',
-        connectionStatus,
-        'connections:',
-        connectionsRef.length
-      );
-
-      // Send to peers (if connected and not receiving an update)
-      if (connectionStatus === 'connected' && !isReceivingUpdateRef.current) {
-        sendStateUpdate(newState);
-      }
-    },
-  };
-
-  // Callbacks for React state updates (provided at creation time to avoid race conditions)
-  const { onPeerIdChange, onConnectionStatusChange, onConnectedPeerIdChange } = callbacks;
-
   // Initialize PeerJS peer
-  const initializePeer = () => {
-    const peer = new Peer();
-    peerRef = peer;
+  const peer = new Peer();
+  peerRef = peer;
 
-    peer.on('open', (id) => {
-      peerId = id;
-      onPeerIdChange(id);
+  peer.on('open', (id) => {
+    onPeerIdChange(id);
+  });
+
+  // Handle incoming connections
+  peer.on('connection', (conn) => {
+    connectionsRef.push(conn);
+    onConnectionStatusChange('connected');
+    onConnectedPeerIdChange(conn.peer);
+
+    conn.on('data', (data) => {
+      handlePeerUpdate(data as StateSyncMessage);
     });
 
-    // Handle incoming connections
-    peer.on('connection', (conn) => {
-      connectionStatus = 'connected';
-      connectedPeerId = conn.peer;
-      connectionsRef.push(conn);
-      onConnectionStatusChange('connected');
-      onConnectedPeerIdChange(conn.peer);
-
-      // Handle incoming data
-      conn.on('data', (data) => {
-        handlePeerUpdate(data as StateSyncMessage);
-      });
-
-      // Handle connection close
-      conn.on('close', () => {
-        const index = connectionsRef.indexOf(conn);
-        if (index !== -1) {
-          connectionsRef.splice(index, 1);
-        }
-        if (connectionsRef.length === 0) {
-          connectionStatus = 'disconnected';
-          connectedPeerId = null;
-          onConnectionStatusChange('disconnected');
-          onConnectedPeerIdChange(null);
-        }
-      });
-    });
-
-    peer.on('error', (error) => {
-      // eslint-disable-next-line no-console
-      console.error('PeerJS error:', error);
-      if (error.type === 'peer-unavailable') {
-        connectionStatus = 'disconnected';
+    conn.on('close', () => {
+      const index = connectionsRef.indexOf(conn);
+      if (index !== -1) {
+        connectionsRef.splice(index, 1);
+      }
+      if (connectionsRef.length === 0) {
         onConnectionStatusChange('disconnected');
-        alert('Peer not found. Make sure the peer ID is correct and the peer is online.');
+        onConnectedPeerIdChange(null);
       }
     });
-  };
+  });
+
+  peer.on('error', (error) => {
+    // eslint-disable-next-line no-console
+    console.error('PeerJS error:', error);
+    if (error.type === 'peer-unavailable') {
+      onConnectionStatusChange('disconnected');
+      alert('Peer not found. Make sure the peer ID is correct and the peer is online.');
+    }
+  });
 
   // Connect to another peer
   const connectToPeer = (remotePeerId: string) => {
@@ -286,70 +207,27 @@ function createPeerJSStore(
       return;
     }
 
-    connectionStatus = 'connecting';
     onConnectionStatusChange('connecting');
-
-    // eslint-disable-next-line no-console
-    console.log('[PeerJS] Attempting to connect to:', remotePeerId, 'peerRef.open:', peerRef.open);
 
     const conn = peerRef.connect(remotePeerId);
 
-    // eslint-disable-next-line no-console
-    console.log('[PeerJS] Connection object created, conn.open:', conn.open);
-
-    // Check underlying WebRTC connection state
-    if (conn.peerConnection) {
-      // eslint-disable-next-line no-console
-      console.log('[PeerJS] RTCPeerConnection state:', conn.peerConnection.connectionState);
-      conn.peerConnection.onconnectionstatechange = () => {
-        // eslint-disable-next-line no-console
-        console.log(
-          '[PeerJS] RTCPeerConnection state changed:',
-          conn.peerConnection?.connectionState
-        );
-      };
-      conn.peerConnection.oniceconnectionstatechange = () => {
-        // eslint-disable-next-line no-console
-        console.log('[PeerJS] ICE connection state:', conn.peerConnection?.iceConnectionState);
-      };
-    } else {
-      // eslint-disable-next-line no-console
-      console.log('[PeerJS] peerConnection not yet available');
-    }
-
     const handleConnectionOpen = () => {
-      // eslint-disable-next-line no-console
-      console.log('[PeerJS] Connection opened to:', remotePeerId);
-      connectionStatus = 'connected';
-      connectedPeerId = remotePeerId;
       connectionsRef.push(conn);
       onConnectionStatusChange('connected');
       onConnectedPeerIdChange(remotePeerId);
-
-      // Send current state to the newly connected peer
-      sendStateUpdate(currentState);
     };
 
-    // Check if connection is already open (can happen before listener is attached)
     if (conn.open) {
-      // eslint-disable-next-line no-console
-      console.log('[PeerJS] Connection already open, calling handler immediately');
       handleConnectionOpen();
     } else {
-      // eslint-disable-next-line no-console
-      console.log('[PeerJS] Connection not yet open, waiting for open event');
       conn.on('open', handleConnectionOpen);
 
       // Workaround: PeerJS sometimes doesn't fire 'open' event - poll connection state
       let connectionHandled = false;
       const pollInterval = setInterval(() => {
-        // eslint-disable-next-line no-console
-        console.log('[PeerJS] Polling connection state, conn.open:', conn.open);
         if (conn.open && !connectionHandled) {
           connectionHandled = true;
           clearInterval(pollInterval);
-          // eslint-disable-next-line no-console
-          console.log('[PeerJS] Connection opened via polling');
           handleConnectionOpen();
         }
       }, 500);
@@ -361,21 +239,15 @@ function createPeerJSStore(
     }
 
     conn.on('data', (data) => {
-      // eslint-disable-next-line no-console
-      console.log('[PeerJS] Received data from peer:', data);
       handlePeerUpdate(data as StateSyncMessage);
     });
 
     conn.on('close', () => {
-      // eslint-disable-next-line no-console
-      console.log('[PeerJS] Connection closed');
       const index = connectionsRef.indexOf(conn);
       if (index !== -1) {
         connectionsRef.splice(index, 1);
       }
       if (connectionsRef.length === 0) {
-        connectionStatus = 'disconnected';
-        connectedPeerId = null;
         onConnectionStatusChange('disconnected');
         onConnectedPeerIdChange(null);
       }
@@ -384,26 +256,14 @@ function createPeerJSStore(
     conn.on('error', (error) => {
       // eslint-disable-next-line no-console
       console.error('Connection error:', error);
-      connectionStatus = 'disconnected';
       onConnectionStatusChange('disconnected');
     });
   };
 
-  // Initialize peer
-  initializePeer();
-
   return {
-    store,
-    get peerId() {
-      return peerId;
-    },
-    get connectedPeerId() {
-      return connectedPeerId;
-    },
-    get connectionStatus() {
-      return connectionStatus;
-    },
     connectToPeer,
+    sendStateUpdate,
+    isReceivingUpdate: () => isReceiving,
   };
 }
 
@@ -412,10 +272,11 @@ function createPeerJSStore(
 // ============================================================================
 
 interface PaperAppProps {
-  readonly store: ExternalGraphStore;
+  readonly onAddElement: () => void;
+  readonly onRemoveLast: () => void;
 }
 
-function PaperApp({ store }: Readonly<PaperAppProps>) {
+function PaperApp({ onAddElement, onRemoveLast }: Readonly<PaperAppProps>) {
   return (
     <div className="flex flex-col gap-4">
       <Paper className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
@@ -424,66 +285,14 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
         <button
           type="button"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
-          onClick={() => {
-            // Get current state from the store
-            const currentState = store.getSnapshot();
-
-            // Create a new element
-            const newId = Math.random().toString(36).slice(7);
-            const newElement: CustomElement = {
-              id: newId,
-              label: 'New Node',
-              x: Math.random() * 200,
-              y: Math.random() * 200,
-              width: 100,
-              height: 50,
-            } as CustomElement;
-
-            // Update the store with the new element
-            // This will automatically sync to peers via PeerJS
-            store.setState({
-              elements: { ...currentState.elements, [newId]: newElement },
-              links: { ...currentState.links },
-            });
-          }}
+          onClick={onAddElement}
         >
           Add Element
         </button>
         <button
           type="button"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
-          onClick={() => {
-            // Get current state from the store
-            const currentState = store.getSnapshot();
-
-            const elementIds = Object.keys(currentState.elements);
-            if (elementIds.length === 0) {
-              return;
-            }
-
-            // Remove the last element
-            const removedElementId = elementIds.at(-1);
-            if (!removedElementId) {
-              return;
-            }
-            // eslint-disable-next-line sonarjs/no-unused-vars
-            const { [removedElementId]: _removed, ...newElements } = currentState.elements;
-
-            // Remove links connected to the removed element
-            const newLinks: Record<string, FlatLinkData> = {};
-            for (const [id, link] of Object.entries(currentState.links)) {
-              if (link.source !== removedElementId && link.target !== removedElementId) {
-                newLinks[id] = link;
-              }
-            }
-
-            // Update the store
-            // This will automatically sync to peers via PeerJS
-            store.setState({
-              elements: newElements,
-              links: newLinks,
-            });
-          }}
+          onClick={onRemoveLast}
         >
           Remove Last
         </button>
@@ -503,19 +312,66 @@ function Main(props: Readonly<GraphProps>) {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [copyFeedback, setCopyFeedback] = useState(false);
 
-  // Create PeerJS store (only once) with callbacks passed at creation time
-  // This avoids the race condition where peer.on('open') fires before useEffect runs
-  const [peerJSStore] = useState(() =>
-    createPeerJSStore(defaultElements, defaultLinks, {
+  // Graph state managed by React
+  const [elements, setElements] = useState<Record<string, FlatElementData>>(
+    defaultElements as Record<string, FlatElementData>
+  );
+  const [links, setLinks] = useState<Record<string, FlatLinkData>>(defaultLinks);
+
+  // Refs to track latest state — avoids stale closures in callbacks
+  // captured once by GraphStore at creation time.
+  const elementsRef = useRef(elements);
+  const linksRef = useRef(links);
+  elementsRef.current = elements;
+  linksRef.current = links;
+
+  // Create PeerJS manager (only once) with callbacks passed at creation time
+  const [peerManager] = useState(() =>
+    createPeerJSManager({
       onPeerIdChange: setPeerId,
       onConnectionStatusChange: setConnectionStatus,
       onConnectedPeerIdChange: setConnectedPeerId,
+      onRemoteStateUpdate: (remoteElements, remoteLinks) => {
+        setElements(remoteElements);
+        setLinks(remoteLinks);
+      },
     })
+  );
+
+  // When graph changes locally, send to peers.
+  // These callbacks are stable (no state in deps) because they use refs.
+  // GraphStore captures them once at creation — stability is critical.
+  const handleElementsChange = useCallback(
+    (action: React.SetStateAction<Record<string, FlatElementData>>) => {
+      setElements((previous) => {
+        const next = typeof action === 'function' ? action(previous) : action;
+        elementsRef.current = next;
+        if (!peerManager.isReceivingUpdate()) {
+          peerManager.sendStateUpdate(next, linksRef.current);
+        }
+        return next;
+      });
+    },
+    [peerManager]
+  );
+
+  const handleLinksChange = useCallback(
+    (action: React.SetStateAction<Record<string, FlatLinkData>>) => {
+      setLinks((previous) => {
+        const next = typeof action === 'function' ? action(previous) : action;
+        linksRef.current = next;
+        if (!peerManager.isReceivingUpdate()) {
+          peerManager.sendStateUpdate(elementsRef.current, next);
+        }
+        return next;
+      });
+    },
+    [peerManager]
   );
 
   const handleConnect = () => {
     if (remotePeerId.trim()) {
-      peerJSStore.connectToPeer(remotePeerId.trim());
+      peerManager.connectToPeer(remotePeerId.trim());
       setConnectionStatus('connecting');
     }
   };
@@ -524,7 +380,6 @@ function Main(props: Readonly<GraphProps>) {
     if (peerId) {
       try {
         await navigator.clipboard.writeText(peerId);
-        // Show feedback
         setCopyFeedback(true);
         setTimeout(() => {
           setCopyFeedback(false);
@@ -535,6 +390,52 @@ function Main(props: Readonly<GraphProps>) {
       }
     }
   };
+
+  const handleAddElement = useCallback(() => {
+    const newId = Math.random().toString(36).slice(7);
+    const newElement: CustomElement = {
+      label: 'New Node',
+      x: Math.random() * 200,
+      y: Math.random() * 200,
+      width: 100,
+      height: 50,
+    };
+    setElements((previous) => {
+      const next = { ...previous, [newId]: newElement };
+      elementsRef.current = next;
+      peerManager.sendStateUpdate(next, linksRef.current);
+      return next;
+    });
+  }, [peerManager]);
+
+  const handleRemoveLast = useCallback(() => {
+    setElements((previousElements) => {
+      const elementIds = Object.keys(previousElements);
+      if (elementIds.length === 0) return previousElements;
+
+      const removedElementId = elementIds.at(-1);
+      if (!removedElementId) return previousElements;
+
+      // eslint-disable-next-line sonarjs/no-unused-vars
+      const { [removedElementId]: _removed, ...newElements } = previousElements;
+
+      // Remove connected links
+      setLinks((previousLinks) => {
+        const newLinks: Record<string, FlatLinkData> = {};
+        for (const [id, link] of Object.entries(previousLinks)) {
+          if (link.source !== removedElementId && link.target !== removedElementId) {
+            newLinks[id] = link;
+          }
+        }
+        elementsRef.current = newElements;
+        linksRef.current = newLinks;
+        peerManager.sendStateUpdate(newElements, newLinks);
+        return newLinks;
+      });
+
+      return newElements;
+    });
+  }, [peerManager]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -612,8 +513,14 @@ function Main(props: Readonly<GraphProps>) {
       </div>
 
       {/* Graph */}
-      <GraphProvider {...props} externalStore={peerJSStore.store}>
-        <PaperApp store={peerJSStore.store} />
+      <GraphProvider
+        {...props}
+        elements={elements}
+        links={links}
+        onElementsChange={handleElementsChange}
+        onLinksChange={handleLinksChange}
+      >
+        <PaperApp onAddElement={handleAddElement} onRemoveLast={handleRemoveLast} />
       </GraphProvider>
     </div>
   );
@@ -637,7 +544,7 @@ function Main(props: Readonly<GraphProps>) {
  *
  * - Each peer creates a PeerJS connection with a unique ID
  * - When connected, state changes are sent via WebRTC data channels
- * - Received updates are applied to local state
+ * - Received updates are applied to local React state
  * - GraphProvider syncs state changes to the JointJS graph
  *
  * Benefits:

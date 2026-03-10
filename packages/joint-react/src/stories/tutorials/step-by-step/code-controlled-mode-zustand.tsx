@@ -15,8 +15,9 @@
  * 1. **Zustand Store**: A simple store created with `create()` that manages
  *    state and provides actions to update it.
  *
- * 2. **ExternalGraphStore Interface**: We adapt the Zustand store to the
- *    ExternalGraphStore interface, which allows GraphProvider to work with it.
+ * 2. **React-Controlled Mode**: We read elements/links from the Zustand store
+ *    and pass them as props to GraphProvider with onElementsChange/onLinksChange
+ *    callbacks to sync graph changes back to Zustand.
  *
  * 3. **Simple API**: Zustand has a very simple API - just create a store,
  *    define state and actions, and use hooks to access them.
@@ -25,9 +26,9 @@
  *
  * 1. Create a Zustand store with elements and links state
  * 2. Create actions to update the state (addElement, removeLastElement, etc.)
- * 3. Adapt the store to ExternalGraphStore using zustandAdapter
- * 4. Pass the externalStore to GraphProvider
- * 5. All state changes automatically sync to the graph
+ * 3. Read elements/links from the store via useGraphStore hooks
+ * 4. Pass them as props to GraphProvider with onElementsChange/onLinksChange
+ * 5. All state changes automatically sync between the graph and Zustand
  *
  * ============================================================================
  */
@@ -38,14 +39,10 @@ import {
   type FlatElementData,
   type FlatLinkData,
   Paper,
-  type ExternalGraphStore,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { useMemo } from 'react';
 import { create } from 'zustand';
-import type { GraphStoreSnapshot } from '../../../store/graph-store';
-import type { Update } from '../../../utils/create-state';
 
 // ============================================================================
 // STEP 1: Define Initial Graph Data
@@ -94,12 +91,14 @@ interface GraphStore {
   elements: Record<string, FlatElementData>;
   /** Record of all links (edges) in the graph keyed by ID */
   links: Record<string, FlatLinkData>;
+  /** Action to set elements (used by onElementsChange callback) */
+  setElements: (updater: React.SetStateAction<Record<string, FlatElementData>>) => void;
+  /** Action to set links (used by onLinksChange callback) */
+  setLinks: (updater: React.SetStateAction<Record<string, FlatLinkData>>) => void;
   /** Action to add a new element */
   addElement: (id: string, data: FlatElementData) => void;
   /** Action to remove the last element */
   removeLastElement: () => void;
-  /** Action to update the graph state (used by adapter) */
-  setGraphState: (snapshot: GraphStoreSnapshot) => void;
 }
 
 /**
@@ -109,6 +108,18 @@ interface GraphStore {
 const useGraphStore = create<GraphStore>((set) => ({
   elements: defaultElements as Record<string, FlatElementData>,
   links: defaultLinks as Record<string, FlatLinkData>,
+
+  setElements: (updater: React.SetStateAction<Record<string, FlatElementData>>) => {
+    set((state) => ({
+      elements: typeof updater === 'function' ? updater(state.elements) : updater,
+    }));
+  },
+
+  setLinks: (updater: React.SetStateAction<Record<string, FlatLinkData>>) => {
+    set((state) => ({
+      links: typeof updater === 'function' ? updater(state.links) : updater,
+    }));
+  },
 
   addElement: (id: string, element: FlatElementData) => {
     set((state) => ({
@@ -142,96 +153,10 @@ const useGraphStore = create<GraphStore>((set) => ({
       };
     });
   },
-
-  setGraphState: (snapshot) => {
-    set({
-      elements: snapshot.elements,
-      links: snapshot.links,
-    });
-  },
 }));
 
 // ============================================================================
-// STEP 4: Create Zustand Adapter Hook
-// ============================================================================
-
-/**
- * Hook that creates an ExternalGraphStore adapter from the Zustand store.
- *
- * This adapter is the bridge between Zustand and @joint/react's GraphProvider.
- * It uses the Zustand store and adapts it to the ExternalStoreLike interface,
- * which allows GraphStore to:
- * - Read the current state (getSnapshot)
- * - Subscribe to state changes (subscribe)
- * - Update the state (setState)
- *
- * The adapter automatically reads from the Zustand store, so no parameters
- * are needed. Just call this hook inside a component.
- * @returns An ExternalGraphStore compatible with GraphProvider
- * @example
- * ```tsx
- * <GraphProvider externalStore={useZustandAdapter()}>
- *   <Paper />
- * </GraphProvider>
- * ```
- */
-function useZustandAdapter(): ExternalGraphStore {
-  const store = useGraphStore;
-
-  return useMemo(() => {
-    return {
-      /**
-       * Returns the current snapshot of the graph state.
-       * GraphStore calls this to read the current elements and links.
-       */
-      getSnapshot: (): GraphStoreSnapshot => {
-        const state = store.getState();
-        return {
-          elements: state.elements,
-          links: state.links,
-        };
-      },
-
-      /**
-       * Subscribes to Zustand store changes.
-       * When the Zustand state changes, the listener is called, which notifies
-       * GraphStore to re-read the state and sync with JointJS.
-       * @param listener - Callback function to call when state changes
-       * @returns Unsubscribe function to remove the listener
-       */
-      subscribe: (listener: () => void) => {
-        // Zustand's subscribe method subscribes to all state changes
-        return store.subscribe(listener);
-      },
-
-      /**
-       * Updates the Zustand store state.
-       * GraphStore calls this when JointJS graph changes (e.g., user drags a node).
-       *
-       * The updater can be:
-       * - A direct value: { elements: [...], links: [...] }
-       * - A function: (previous) => ({ elements: [...], links: [...] })
-       * @param updater - The new state or a function to compute new state
-       */
-      setState: (updater: Update<GraphStoreSnapshot>) => {
-        const currentState = store.getState();
-        const currentSnapshot: GraphStoreSnapshot = {
-          elements: currentState.elements,
-          links: currentState.links,
-        };
-
-        // Handle both function and direct value updaters
-        const newSnapshot = typeof updater === 'function' ? updater(currentSnapshot) : updater;
-
-        // Update Zustand store
-        store.getState().setGraphState(newSnapshot);
-      },
-    };
-  }, [store]);
-}
-
-// ============================================================================
-// STEP 5: Component Implementation
+// STEP 4: Component Implementation
 // ============================================================================
 
 /**
@@ -280,15 +205,26 @@ function PaperApp() {
 }
 
 /**
- * Main component that sets up Zustand and connects it to GraphProvider.
+ * Main component that reads state from Zustand and connects it to GraphProvider
+ * using React-controlled mode.
  */
 function Main(props: Readonly<GraphProps>) {
-  // Get the adapter from Zustand store
-  // This hook automatically reads from the Zustand store
-  const externalStore = useZustandAdapter();
+  // Read elements and links from Zustand store
+  const elements = useGraphStore((state) => state.elements);
+  const links = useGraphStore((state) => state.links);
+
+  // Get setter actions from Zustand store for onElementsChange/onLinksChange callbacks
+  const setElements = useGraphStore((state) => state.setElements);
+  const setLinks = useGraphStore((state) => state.setLinks);
 
   return (
-    <GraphProvider {...props} externalStore={externalStore}>
+    <GraphProvider
+      {...props}
+      elements={elements}
+      links={links}
+      onElementsChange={setElements}
+      onLinksChange={setLinks}
+    >
       <PaperApp />
     </GraphProvider>
   );
@@ -303,8 +239,8 @@ function Main(props: Readonly<GraphProps>) {
  *
  * 1. Create a Zustand store with create() containing elements and links
  * 2. Define actions to update the state (addElement, removeLastElement, etc.)
- * 3. Use useZustandAdapter() hook to get ExternalGraphStore (no parameters needed!)
- * 4. Pass the externalStore to GraphProvider
+ * 3. Read elements/links from the store via useGraphStore hooks
+ * 4. Pass them as props to GraphProvider with onElementsChange/onLinksChange
  * 5. Use Zustand hooks (useGraphStore) to access actions in components
  *
  * Benefits:

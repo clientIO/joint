@@ -1,6 +1,5 @@
 import { dia } from '@joint/core';
 import { GraphStore } from '../graph-store';
-import { scheduler } from '../../utils/scheduler';
 
 describe('GraphStore clearView scheduling', () => {
   let graphStore: GraphStore;
@@ -10,7 +9,6 @@ describe('GraphStore clearView scheduling', () => {
   });
 
   afterEach(() => {
-    scheduler.flushNowForTests();
     graphStore.destroy(false);
   });
 
@@ -31,7 +29,6 @@ describe('GraphStore clearView scheduling', () => {
       graphStore.scheduleClearView({ cellId: 'el1' });
       graphStore.scheduleClearView({ cellId: 'el1' });
       graphStore.scheduleClearView({ cellId: 'el1' });
-      scheduler.flushNowForTests();
     }).not.toThrow();
   });
 
@@ -48,7 +45,6 @@ describe('GraphStore clearView scheduling', () => {
 
     expect(() => {
       graphStore.scheduleClearView({ cellId: 'el1', onValidateLink: validator });
-      scheduler.flushNowForTests();
     }).not.toThrow();
   });
 
@@ -74,7 +70,6 @@ describe('GraphStore clearView scheduling', () => {
     graphStore.graph.addCells([source, target, link]);
 
     graphStore.scheduleClearView({ cellId: 'source' });
-    scheduler.flushNowForTests();
 
     expect(graphStore.graph.getCell('link1')).toBeDefined();
   });
@@ -82,7 +77,6 @@ describe('GraphStore clearView scheduling', () => {
   it('should handle non-existent cells gracefully', () => {
     expect(() => {
       graphStore.scheduleClearView({ cellId: 'non-existent' });
-      scheduler.flushNowForTests();
     }).not.toThrow();
   });
 });

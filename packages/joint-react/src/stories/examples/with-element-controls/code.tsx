@@ -1,5 +1,5 @@
 import type { OnLoadOptions } from '@joint/react';
-import { GraphProvider, Paper, type FlatElementData } from '@joint/react';
+import { GraphProvider, Paper, useNodeLayout, type FlatElementData } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia } from '@joint/core';
@@ -162,11 +162,8 @@ const initialElements: Record<string, ControlledElement> = {
 // ----------------------------------------------------------------------------
 // Label Component
 // ----------------------------------------------------------------------------
-function Label({
-  width,
-  height,
-  label,
-}: Readonly<{ width: number; height: number; label: string }>) {
+function Label({ label }: Readonly<{ width: number; height: number; label: string }>) {
+  const { width, height } = useNodeLayout();
   return (
     <text
       textAnchor="middle"
@@ -185,7 +182,9 @@ function Label({
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function LinkedProcess({ width, height, label }: Readonly<BaseElement>) {
+function LinkedProcess({ label }: Readonly<BaseElement>) {
+  const { width, height } = useNodeLayout();
+
   return (
     <>
       <rect width={width} height={height} fill="transparent" stroke={PRIMARY} strokeWidth={2} />
@@ -196,7 +195,8 @@ function LinkedProcess({ width, height, label }: Readonly<BaseElement>) {
   );
 }
 
-function InputShape({ width, height, label }: Readonly<BaseElement>) {
+function InputShape({ label }: Readonly<BaseElement>) {
+  const { width, height } = useNodeLayout();
   return (
     <>
       <path
@@ -210,7 +210,8 @@ function InputShape({ width, height, label }: Readonly<BaseElement>) {
   );
 }
 
-function MarkShape({ width, height, label }: Readonly<BaseElement>) {
+function MarkShape({ label }: Readonly<BaseElement>) {
+  const { width, height } = useNodeLayout();
   const hh = height * 0.5;
   return (
     <>
@@ -225,7 +226,8 @@ function MarkShape({ width, height, label }: Readonly<BaseElement>) {
   );
 }
 
-function ActorShape({ width, height, label }: Readonly<BaseElement>) {
+function ActorShape({ label }: Readonly<BaseElement>) {
+  const { width, height } = useNodeLayout();
   const headY = 0.2;
   const bodyY = 0.4;
   const legsY = 0.7;
@@ -247,7 +249,8 @@ function ActorShape({ width, height, label }: Readonly<BaseElement>) {
   );
 }
 
-function Parallelogram({ width, height, offset = 0, label }: Readonly<OffsetElement>) {
+function Parallelogram({ offset = 0, label }: Readonly<OffsetElement>) {
+  const { width, height } = useNodeLayout();
   return (
     <>
       <path
@@ -261,7 +264,8 @@ function Parallelogram({ width, height, offset = 0, label }: Readonly<OffsetElem
   );
 }
 
-function Hexagon({ width, height, offset = 0, label }: Readonly<OffsetElement>) {
+function Hexagon({ offset = 0, label }: Readonly<OffsetElement>) {
+  const { width, height } = useNodeLayout();
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -276,7 +280,8 @@ function Hexagon({ width, height, offset = 0, label }: Readonly<OffsetElement>) 
   );
 }
 
-function StepShape({ width, height, offset = 0, label }: Readonly<OffsetElement>) {
+function StepShape({ offset = 0, label }: Readonly<OffsetElement>) {
+  const { width, height } = useNodeLayout();
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -291,7 +296,8 @@ function StepShape({ width, height, offset = 0, label }: Readonly<OffsetElement>
   );
 }
 
-function TrapezoidShape({ width, height, offset = 0, label }: Readonly<OffsetElement>) {
+function TrapezoidShape({ offset = 0, label }: Readonly<OffsetElement>) {
+  const { width, height } = useNodeLayout();
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -306,7 +312,8 @@ function TrapezoidShape({ width, height, offset = 0, label }: Readonly<OffsetEle
   );
 }
 
-function DocumentShape({ width, height, offset = 0, label }: Readonly<OffsetElement>) {
+function DocumentShape({ offset = 0, label }: Readonly<OffsetElement>) {
+  const { width, height } = useNodeLayout();
   const o = Math.max(0, Math.min(offset, height / 2));
   return (
     <>
@@ -321,7 +328,8 @@ function DocumentShape({ width, height, offset = 0, label }: Readonly<OffsetElem
   );
 }
 
-function ShipmentShape({ width, height, label }: Readonly<BaseElement>) {
+function ShipmentShape({ label }: Readonly<BaseElement>) {
+  const { width, height } = useNodeLayout();
   const scale = Math.min(width / 256, height / 256);
   const tx = (width - 256 * scale) / 2;
   const ty = (height - 256 * scale) / 2;
@@ -339,7 +347,8 @@ function ShipmentShape({ width, height, label }: Readonly<BaseElement>) {
   );
 }
 
-function PlusShape({ width, height, offset = 0, label }: Readonly<OffsetElement>) {
+function PlusShape({ offset = 0, label }: Readonly<OffsetElement>) {
+  const { width, height } = useNodeLayout();
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -354,7 +363,8 @@ function PlusShape({ width, height, offset = 0, label }: Readonly<OffsetElement>
   );
 }
 
-function Arrow({ width, height, label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>) {
+function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>) {
+  const { width, height } = useNodeLayout();
   return (
     <>
       <path
@@ -368,7 +378,8 @@ function Arrow({ width, height, label, arrowHeight = 0, thickness = 0 }: Readonl
   );
 }
 
-function NoteShape({ width, height, offset = 0, label }: Readonly<OffsetElement>) {
+function NoteShape({ offset = 0, label }: Readonly<OffsetElement>) {
+  const { width, height } = useNodeLayout();
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -379,24 +390,32 @@ function NoteShape({ width, height, offset = 0, label }: Readonly<OffsetElement>
         strokeWidth={2}
         strokeLinejoin="round"
       />
-      <path d={`M 0 ${o} H ${o} V 0`} fill="none" stroke={PRIMARY} strokeWidth={2} strokeLinejoin="round" />
+      <path
+        d={`M 0 ${o} H ${o} V 0`}
+        fill="none"
+        stroke={PRIMARY}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
       <Label width={width} height={height} label={label} />
     </>
   );
 }
 
-function TableShape({
-  width,
-  height,
-  dividerX = 25,
-  dividerY = 25,
-  label,
-}: Readonly<TableElement>) {
+function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableElement>) {
+  const { width, height } = useNodeLayout();
   const dx = Math.max(0, Math.min(dividerX, width));
   const dy = Math.max(0, Math.min(dividerY, height));
   return (
     <>
-      <rect width={width} height={height} fill="transparent" stroke={PRIMARY} strokeWidth={2} strokeLinejoin="round" />
+      <rect
+        width={width}
+        height={height}
+        fill="transparent"
+        stroke={PRIMARY}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
       <path
         d={`M 0 ${dy} H ${width} M ${dx} 0 V ${height}`}
         fill="none"
@@ -409,7 +428,8 @@ function TableShape({
   );
 }
 
-function CubeShape({ width, height, cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>) {
+function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>) {
+  const { width, height } = useNodeLayout();
   const cx = Math.max(0, Math.min(cornerX, width));
   const cy = Math.max(0, Math.min(cornerY, height));
   return (
@@ -457,7 +477,8 @@ function CubeShape({ width, height, cornerX = 33, cornerY = 40, label }: Readonl
   );
 }
 
-function CardShape({ width, height, offset = 0, label }: Readonly<OffsetElement>) {
+function CardShape({ offset = 0, label }: Readonly<OffsetElement>) {
+  const { width, height } = useNodeLayout();
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
