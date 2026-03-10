@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-functions */
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE, type GraphStoreSnapshot } from '../../store/graph-store';
 import { stateSync } from '../state-sync';
@@ -203,6 +202,73 @@ describe('stateSync', () => {
     sync.cleanup();
 
     expect(unsubscribeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should defer public store updates until the batch stops and keep layout callback live', async () => {
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+    const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
+      newState: () => ({ elements: {}, links: {} }),
+      name: 'state-sync/batch-stop-flush',
+    });
+
+    const onGraphUpdated = jest.fn();
+
+    stateSync({ graph, store: state, onGraphUpdated });
+
+    graph.startBatch('test');
+    graph.addCell(
+      new dia.Element({
+        id: 'batched-element',
+        type: 'ReactElement',
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 100 },
+      })
+    );
+
+    expect(state.getSnapshot().elements['batched-element']).toBeUndefined();
+    await Promise.resolve();
+    expect(onGraphUpdated).toHaveBeenCalledTimes(1);
+
+    graph.stopBatch('test');
+
+    expect(state.getSnapshot().elements['batched-element']).toBeDefined();
+    expect(state.getSnapshot().elements['batched-element'].x).toBe(10);
+    expect(state.getSnapshot().elements['batched-element'].y).toBe(20);
+  });
+
+  it('should flush deferred public state only after the outermost batch stops', () => {
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+
+    const state = createState<GraphStoreSnapshot<FlatElementData, FlatLinkData>>({
+      newState: () => ({ elements: {}, links: {} }),
+      name: 'state-sync/nested-batch-flush',
+    });
+
+    stateSync({ graph, store: state });
+
+    graph.startBatch('outer');
+    graph.startBatch('inner');
+    graph.addCell(
+      new dia.Element({
+        id: 'nested-batch-element',
+        type: 'ReactElement',
+        position: { x: 15, y: 25 },
+        size: { width: 120, height: 80 },
+      })
+    );
+
+    expect(state.getSnapshot().elements['nested-batch-element']).toBeUndefined();
+
+    graph.stopBatch('inner');
+
+    expect(state.getSnapshot().elements['nested-batch-element']).toBeUndefined();
+
+    graph.stopBatch('outer');
+
+    expect(state.getSnapshot().elements['nested-batch-element']).toBeDefined();
+    expect(state.getSnapshot().elements['nested-batch-element'].x).toBe(15);
+    expect(state.getSnapshot().elements['nested-batch-element'].y).toBe(25);
   });
 });
 
