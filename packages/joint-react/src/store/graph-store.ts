@@ -444,17 +444,10 @@ export class GraphStore {
     return () => this.removePaper(id);
   };
 
-  /**
-   * Checks if a node with the given ID is currently being observed for size changes.
-   */
   public hasMeasuredNode = (id: CellId) => this.observer.has(id);
-  /**
-   * Registers a node to be observed for size changes.
-   */
+
   public setMeasuredNode = (options: SetMeasuredNodeOptions) => this.observer.add(options);
-  /**
-   * Get not-reactive paper snapshot for a given paper ID.
-   */
+
   public getPaperStore = (id: string) => this.paperStores.get(id);
 
   // --- ClearView API ---
