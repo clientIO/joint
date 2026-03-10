@@ -78,6 +78,16 @@ export interface GraphStoreLayoutSnapshot {
 export interface GraphStoreInternalSnapshot {
   papers: Record<string, PaperStoreSnapshot>;
 }
+/**
+ * Graph store context with incremental state for updates.
+ */
+export type GraphStoreContextId = string | number | symbol;
+export type GraphStoreContextSnapshot = ReadonlyMap<GraphStoreContextId, number>;
+
+export interface GraphStoreContextRegister {
+  readonly value: unknown;
+  readonly cleanup?: () => void;
+}
 
 /**
  * Configuration options for creating a GraphStore instance.
@@ -107,6 +117,8 @@ export class GraphStore {
   public readonly internalState: State<GraphStoreInternalSnapshot>;
   public readonly publicState: ExternalStoreLike<GraphStoreSnapshot>;
   public readonly areElementsMeasuredState: ExternalStoreLike<boolean>;
+  public readonly contextsState: State<GraphStoreContextSnapshot>;
+  public readonly registeredContexts = new Map<GraphStoreContextId, GraphStoreContextRegister>();
   public readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
   public readonly graph: dia.Graph;
   public readonly graphState: ListenOutput;
@@ -223,6 +235,11 @@ export class GraphStore {
     this.publicState = this.graphState.publicState;
     this.layoutState = this.graphState.layoutState;
 
+    this.contextsState = createState<GraphStoreContextSnapshot>({
+      name: 'Jointjs/Contexts',
+      newState: () => new Map<GraphStoreContextId, number>(),
+    });
+
     this.areElementsMeasuredState = derivedState({
       state: [this.graphState.layoutState, this.internalState] as const,
       selector: (
@@ -306,6 +323,13 @@ export class GraphStore {
     if (!isGraphExternal) {
       this.graph.clear();
     }
+
+    // also cleanup registered contexts
+    for (const context of this.registeredContexts.values()) {
+      context.cleanup?.();
+    }
+    this.registeredContexts.clear();
+    this.contextsState.clean();
   };
 
   public updatePaperSnapshot(
@@ -452,6 +476,19 @@ export class GraphStore {
 
   // --- ClearView API ---
 
+  public getContext = (id: GraphStoreContextId): GraphStoreContextRegister | null => {
+    return this.registeredContexts.get(id) ?? null;
+  };
+
+  private updateContextRevision = (id: GraphStoreContextId) => {
+    this.contextsState.setState((previous) => {
+      const nextState = new Map(previous);
+      const previousUpdateNumber = nextState.get(id) ?? 0;
+      nextState.set(id, previousUpdateNumber + 1);
+      return nextState;
+    });
+  };
+
   public scheduleClearView = (options: {
     readonly cellId: CellId;
     readonly onValidateLink?: (link: dia.Link) => boolean;
@@ -463,5 +500,33 @@ export class GraphStore {
       options.onValidateLink
     );
     this.graph.trigger(LAYOUT_UPDATE_EVENT);
+  };
+
+  /**
+   * Registers a context value with the graph store, which can be accessed by paper views and other components. This allows for sharing arbitrary data across the graph without putting it in the reactive state. The optional cleanup function can be used to perform any necessary cleanup when the context is unregistered.
+   * @param id - The unique identifier for the context.
+   * @param value - The context value to register.
+   * @param cleanup - An optional function to clean up the context when it is unregistered.
+   * @returns The registered context object, which includes the value and cleanup function.
+   */
+  public setContext = (id: GraphStoreContextId, value: unknown, cleanup?: () => void) => {
+    const context = {
+      value,
+      cleanup,
+    };
+    this.registeredContexts.set(id, context);
+    this.updateContextRevision(id);
+
+    return context;
+  };
+
+  /**
+   * Unregisters a context from the graph store by its ID. This will call the cleanup function associated with the context if it exists, and then remove the context from the registered contexts and update the contexts state to trigger any necessary updates in components that depend on this context.
+   * @param id - The unique identifier of the context to unregister.
+   */
+  public removeContext = (id: GraphStoreContextId) => {
+    this.registeredContexts.get(id)?.cleanup?.();
+    this.registeredContexts.delete(id);
+    this.updateContextRevision(id);
   };
 }

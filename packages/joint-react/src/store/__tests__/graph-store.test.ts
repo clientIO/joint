@@ -566,6 +566,50 @@ describe('GraphStore', () => {
     });
   });
 
+  describe('context registry', () => {
+    it('should keep string, number, and symbol context ids distinct', () => {
+      const store = new GraphStore({});
+      const stringId = '1';
+      const numberId = 1;
+      const symbolId = Symbol('context');
+
+      store.setContext(stringId, 'string-value');
+      store.setContext(numberId, 'number-value');
+      store.setContext(symbolId, 'symbol-value');
+
+      expect(store.registeredContexts).toBeInstanceOf(Map);
+      expect(store.registeredContexts.get(stringId)?.value).toBe('string-value');
+      expect(store.registeredContexts.get(numberId)?.value).toBe('number-value');
+      expect(store.registeredContexts.get(symbolId)?.value).toBe('symbol-value');
+
+      const snapshot = store.contextsState.getSnapshot() as unknown as ReadonlyMap<
+        string | number | symbol,
+        number
+      >;
+      expect(snapshot).toBeInstanceOf(Map);
+      expect(snapshot.get(stringId)).toBe(1);
+      expect(snapshot.get(numberId)).toBe(1);
+      expect(snapshot.get(symbolId)).toBe(1);
+    });
+
+    it('should call cleanup, remove the context value, and bump its revision', () => {
+      const store = new GraphStore({});
+      const cleanup = jest.fn();
+      const contextId = Symbol('context-to-remove');
+
+      store.setContext(contextId, 'value', cleanup);
+      store.removeContext(contextId);
+
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(store.registeredContexts.has(contextId)).toBe(false);
+      expect(
+        (
+          store.contextsState.getSnapshot() as unknown as ReadonlyMap<string | number | symbol, number>
+        ).get(contextId)
+      ).toBe(2);
+    });
+  });
+
   describe('state synchronization', () => {
     it('should sync state changes to graph', (done) => {
       const store = new GraphStore({});
