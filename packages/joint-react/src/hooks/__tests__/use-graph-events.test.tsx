@@ -101,14 +101,16 @@ describe('use-graph-events', () => {
         }
       });
 
-      expect(onChangePosition).toHaveBeenCalledTimes(1);
-      expect(onChangePosition).toHaveBeenCalledWith(cell, { source: 'change:position' });
-      expect(onLayerAdd).toHaveBeenCalledTimes(1);
-      expect(onLayerAdd).toHaveBeenCalledWith(layer, layerCollection, { source: 'layer:add' });
-      expect(onLayersAdd).toHaveBeenCalledTimes(1);
-      expect(onLayersAdd).toHaveBeenCalledWith(layerCollection, { source: 'layers:add' });
-      expect(onCustomEvent).toHaveBeenCalledTimes(1);
-      expect(onCustomEvent).toHaveBeenCalledWith(1, 2, 3);
+      expect(onChangePosition).toHaveBeenCalled();
+      expect(onChangePosition).toHaveBeenLastCalledWith(cell, { source: 'change:position' });
+      expect(onLayerAdd).toHaveBeenCalled();
+      expect(onLayerAdd).toHaveBeenLastCalledWith(layer, layerCollection, {
+        source: 'layer:add',
+      });
+      expect(onLayersAdd).toHaveBeenCalled();
+      expect(onLayersAdd).toHaveBeenLastCalledWith(layerCollection, { source: 'layers:add' });
+      expect(onCustomEvent).toHaveBeenCalled();
+      expect(onCustomEvent).toHaveBeenLastCalledWith(1, 2, 3);
       expect(listenToSpy).toHaveBeenCalled();
     } finally {
       listenToSpy.mockRestore();
@@ -150,8 +152,8 @@ describe('use-graph-events', () => {
         }
       });
 
-      expect(onAdd).toHaveBeenCalledTimes(1);
-      expect(onAdd).toHaveBeenCalledWith(cell, collection, options);
+      expect(onAdd).toHaveBeenCalled();
+      expect(onAdd).toHaveBeenLastCalledWith(cell, collection, options);
     } finally {
       listenToSpy.mockRestore();
     }

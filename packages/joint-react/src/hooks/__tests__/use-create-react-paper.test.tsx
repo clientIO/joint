@@ -56,18 +56,18 @@ function UseCreateReactPaperNoSizeHost({
   onPaperChange,
 }: Readonly<UseCreateReactPaperNoSizeHostProps>) {
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
-  const { paper, paperStore, isReady, content } = useCreateReactPaper({
+  const { paperRef, paperStore, isReady, content } = useCreateReactPaper({
     id: 'paper-no-size-under-test',
     renderElement: renderTestElement,
     elementRef: paperHTMLElementRef,
   });
 
   useEffect(() => {
-    if (!paper) {
+    if (!isReady || !paperRef.current) {
       return;
     }
-    onPaperChange(paper);
-  }, [onPaperChange, paper]);
+    onPaperChange(paperRef.current);
+  }, [isReady, onPaperChange, paperRef]);
 
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
@@ -92,7 +92,7 @@ function UseCreateReactPaperSingleSizeHost({
   id,
 }: Readonly<UseCreateReactPaperSingleSizeHostProps>) {
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
-  const { paper, paperStore, isReady, content } = useCreateReactPaper({
+  const { paperRef, paperStore, isReady, content } = useCreateReactPaper({
     id,
     width,
     height,
@@ -101,11 +101,11 @@ function UseCreateReactPaperSingleSizeHost({
   });
 
   useEffect(() => {
-    if (!paper) {
+    if (!isReady || !paperRef.current) {
       return;
     }
-    onPaperChange(paper);
-  }, [onPaperChange, paper]);
+    onPaperChange(paperRef.current);
+  }, [isReady, onPaperChange, paperRef]);
 
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>

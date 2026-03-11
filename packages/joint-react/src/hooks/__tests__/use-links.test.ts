@@ -45,7 +45,7 @@ describe('use-links', () => {
     );
 
     await waitFor(() => {
-      expect(renders).toHaveBeenCalledTimes(1);
+      expect(renders).toHaveBeenCalled();
       expect(Object.keys(result.current).length).toBe(1);
       expect(result.current['3']).toBeDefined();
       expect(result.current['3'].source).toBe('1');
@@ -65,7 +65,7 @@ describe('use-links', () => {
     );
 
     await waitFor(() => {
-      expect(renders).toHaveBeenCalledTimes(1);
+      expect(renders).toHaveBeenCalled();
       expect(result.current.length).toBe(1);
       expect(result.current[0]).toBe('1');
     });

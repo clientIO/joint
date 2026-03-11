@@ -28,16 +28,14 @@ function PaperBase<ElementData = FlatElementData>(
   const resolvedWidth = width ?? resolveStyleDimension(style?.width);
   const resolvedHeight = height ?? resolveStyleDimension(style?.height);
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
-  const { paper, paperStore, isReady, content } = useCreateReactPaper({
+  const { paperRef, paperStore, isReady, content } = useCreateReactPaper({
     ...props,
     width: resolvedWidth,
     height: resolvedHeight,
     elementRef: paperHTMLElementRef,
   });
 
-  useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paper ?? null, [
-    paper,
-  ]);
+  useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paperRef.current);
 
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>

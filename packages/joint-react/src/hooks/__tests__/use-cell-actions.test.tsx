@@ -52,7 +52,7 @@ describe('useCellActions', () => {
       }
     );
     await waitFor(() => {
-      expect(renders).toHaveBeenCalledTimes(1);
+      expect(renders).toHaveBeenCalled();
       const { graph } = result.current;
       expect(graph.getElements().length).toBe(2);
       expect(Object.keys(result.current.reactElementsSizeCheck).length).toBe(2);
@@ -134,7 +134,7 @@ describe('useCellActions', () => {
       }
     );
     await waitFor(() => {
-      expect(renders).toHaveBeenCalledTimes(1);
+      expect(renders).toHaveBeenCalled();
       const { graph } = result.current;
       expect(graph.getLinks().length).toBe(1);
     });

@@ -52,8 +52,8 @@ export interface UseCreateReactPaperOptions<ElementData = FlatElementData>
 export interface UseCreateReactPaperResult {
   /** Effective paper id used in GraphStore. */
   readonly id: string;
-  /** Created ReactPaper instance, available after store registration. */
-  readonly paper?: ReactPaper;
+  /** Current paper instance, available synchronously after mount and kept in sync afterwards. */
+  readonly paperRef: RefObject<ReactPaper | null>;
   /** PaperStore for this paper id, available after registration. */
   readonly paperStore?: PaperStore;
   /** True when paper exists and is ready for content rendering. */
@@ -169,10 +169,11 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     (snapshot) => snapshot.papers[id]?.hasElementViewSnapshot
   );
 
-  const { addPaper, graph, mapDataToLinkAttributes } = useGraphStore();
+  const { addPaper, getPaperStore, graph, mapDataToLinkAttributes } = useGraphStore();
   const paperStore = usePaperStoreById(id);
   const { paper } = paperStore ?? {};
 
+  const paperRef = useRef<ReactPaper | null>(null);
   const measuredRef = useRef(false);
   const previousSizesRef = useRef<number[][]>([]);
   const isReadyNotifiedRef = useRef(false);
@@ -224,8 +225,12 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       renderLink: renderLink as RenderLink<FlatLinkData> | undefined,
       scale,
     });
+    paperRef.current = getPaperStore(id)?.paper ?? null;
 
-    return remove;
+    return () => {
+      paperRef.current = null;
+      remove();
+    };
     // We intentionally create paper store only once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -477,7 +482,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
   return {
     id,
-    paper,
+    paperRef,
     paperStore: paperStore ?? undefined,
     isReady,
     content,
