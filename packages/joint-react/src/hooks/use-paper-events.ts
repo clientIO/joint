@@ -1,4 +1,4 @@
-import { mvc, type dia } from '@joint/core';
+import { dia, mvc } from '@joint/core';
 import {
   useLayoutEffect,
   type DependencyList,
@@ -11,15 +11,26 @@ import { useRefValue } from './use-ref-value';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
 
-type PaperTarget = RefObject<dia.Paper | null> | string;
+type PaperValueTarget = dia.Paper | null | undefined;
+type PaperRefTarget = RefObject<dia.Paper | null | undefined>;
+type PaperTarget = PaperRefTarget | PaperValueTarget | string;
 
 /**
  * Checks if value is a paper ref object.
  * @param value - Candidate value.
  * @returns True when value is a ref object with `current`.
  */
-function isPaperRef(value: unknown): value is RefObject<dia.Paper | null> {
+function isPaperRef(value: unknown): value is PaperRefTarget {
   return !!value && typeof value === 'object' && 'current' in value;
+}
+
+/**
+ * Checks if value is a JointJS paper instance.
+ * @param value - Candidate value.
+ * @returns True when value is a paper instance.
+ */
+function isPaperInstance(value: unknown): value is dia.Paper {
+  return value instanceof dia.Paper;
 }
 
 /**
@@ -36,6 +47,10 @@ function resolvePaperTarget(
 ): dia.Paper | null {
   if (isPaperRef(target)) {
     return paperFromRef ?? null;
+  }
+
+  if (isPaperInstance(target)) {
+    return target;
   }
 
   if (typeof target === 'string') {
@@ -77,7 +92,7 @@ export function usePaperEvents(
   dependencies?: DependencyList
 ): void;
 export function usePaperEvents(
-  target: RefObject<dia.Paper | null> | string,
+  target: PaperRefTarget | PaperValueTarget | string,
   handlers: PaperEventHandlers,
   dependencies?: DependencyList
 ): void;

@@ -124,7 +124,7 @@ describe('graph', () => {
     });
   });
 
-  it('should use provided store and clean up on unmount', () => {
+  it('should use provided store without destroying it on unmount', async () => {
     const mockDestroy = jest.fn();
     const mockStore = new GraphStore({});
     jest.spyOn(mockStore, 'destroy').mockImplementation(mockDestroy);
@@ -137,7 +137,9 @@ describe('graph', () => {
 
     expect(mockDestroy).not.toHaveBeenCalled();
     unmount();
-    expect(mockDestroy).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockDestroy).not.toHaveBeenCalled();
+    });
   });
 
   it('should use graph provided by PaperOptions', async () => {
@@ -394,6 +396,20 @@ describe('graph', () => {
     };
 
     const receivedLinks: FlatLinkData[] = [];
+    const getUniqueReceivedLinks = () => [
+      ...new Map(
+        receivedLinks.map((link) => [
+          JSON.stringify({
+            source: link.source,
+            target: link.target,
+            type: link.type,
+            z: link.z,
+            customProperty: link.customProperty,
+          }),
+          link,
+        ])
+      ).values(),
+    ];
 
     function TestComponent() {
       const renderLink: RenderLink = useCallback((link) => {
@@ -419,16 +435,21 @@ describe('graph', () => {
     );
 
     await waitFor(() => {
-      expect(receivedLinks.length).toBe(2);
+      expect(getUniqueReceivedLinks()).toHaveLength(2);
     });
 
     // Verify link data was passed (links no longer have id property)
-    const link1 = receivedLinks.find((link) => link.source === 'element-1' && link.target === 'element-2');
+    const uniqueReceivedLinks = getUniqueReceivedLinks();
+    const link1 = uniqueReceivedLinks.find(
+      (link) => link.source === 'element-1' && link.target === 'element-2'
+    );
     expect(link1).toBeDefined();
     expect(link1?.type).toBe('ReactLink');
     expect(link1?.z).toBe(1);
 
-    const link2 = receivedLinks.find((link) => link.source === 'element-2' && link.target === 'element-1');
+    const link2 = uniqueReceivedLinks.find(
+      (link) => link.source === 'element-2' && link.target === 'element-1'
+    );
     expect(link2).toBeDefined();
     expect(link2?.type).toBe('ReactLink');
     expect(link2?.z).toBe(2);

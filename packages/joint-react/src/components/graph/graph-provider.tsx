@@ -1,7 +1,12 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
 import type { FlatLinkData } from '../../types/link-types';
-import React, { forwardRef, useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
+import React, {
+  forwardRef,
+  useLayoutEffect,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import type { FlatElementData } from '../../types/element-types';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
@@ -131,7 +136,10 @@ const GraphBase = forwardRef<dia.Graph, GraphProps>(function GraphBase(props, fo
 
         return {
           cleanup() {
-            graphStore.destroy(!!rest.graph || !!store?.graph);
+            if (store) {
+              return;
+            }
+            graphStore.destroy(!!rest.graph);
           },
           instance: graphStore,
         };

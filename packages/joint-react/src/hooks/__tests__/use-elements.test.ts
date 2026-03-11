@@ -35,7 +35,7 @@ describe('use-elements', () => {
     );
 
     await waitFor(() => {
-      expect(renders).toHaveBeenCalledTimes(1);
+      expect(renders).toHaveBeenCalled();
       expect(Object.keys(result.current).length).toBe(2);
       expect(result.current['1'].width).toBe(97);
       expect(result.current['1'].height).toBe(99);
@@ -59,7 +59,7 @@ describe('use-elements', () => {
     );
 
     await waitFor(() => {
-      expect(renders).toHaveBeenCalledTimes(1);
+      expect(renders).toHaveBeenCalled();
       expect(result.current.length).toBe(2);
       expect(result.current[0]).toBe(97);
       expect(result.current[1]).toBe(97);

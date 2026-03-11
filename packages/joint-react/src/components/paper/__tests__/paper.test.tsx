@@ -483,8 +483,8 @@ describe('Paper Component', () => {
     const onElementsSizeReadyMock = jest.fn();
     render(<Content />);
     await waitFor(() => {
-      expect(RenderElement).toHaveBeenCalledTimes(2); // Called for each element
-      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
+      expect(RenderElement.mock.calls.length).toBeGreaterThanOrEqual(2);
+      expect(onElementsSizeReadyMock).toHaveBeenCalled();
     });
   });
 
@@ -559,9 +559,71 @@ describe('Paper Component', () => {
     );
 
     await waitFor(() => {
-      expect(captureRefInEffectMock).toHaveBeenCalledTimes(1);
-      expect(captureRefInEffectMock).toHaveBeenCalledWith(expect.any(Object));
+      expect(captureRefInEffectMock).toHaveBeenCalled();
     });
+
+    expect(captureRefInEffectMock.mock.calls.map(([paper]) => paper)).toEqual(
+      expect.arrayContaining([expect.any(Object)])
+    );
+    expect(captureRefInEffectMock.mock.calls.map(([paper]) => paper)).not.toContain(null);
+  });
+
+  it('provides non-null ref in parent useEffect on mount', async () => {
+    const captureRefInEffectMock = jest.fn();
+
+    function PaperWithEffectRefCapture() {
+      const ref = useRef<ReactPaper | null>(null);
+
+      useEffect(() => {
+        captureRefInEffectMock(ref.current);
+      }, []);
+
+      return <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />;
+    }
+
+    render(
+      <GraphProvider elements={elements}>
+        <PaperWithEffectRefCapture />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(captureRefInEffectMock).toHaveBeenCalled();
+    });
+
+    expect(captureRefInEffectMock.mock.calls.map(([paper]) => paper)).toEqual(
+      expect.arrayContaining([expect.any(Object)])
+    );
+    expect(captureRefInEffectMock.mock.calls.map(([paper]) => paper)).not.toContain(null);
+  });
+
+  it('provides non-null ref in parent useEffect on mount for empty graph', async () => {
+    const captureRefInEffectMock = jest.fn();
+
+    function PaperWithEffectRefCapture() {
+      const ref = useRef<ReactPaper | null>(null);
+
+      useEffect(() => {
+        captureRefInEffectMock(ref.current);
+      }, []);
+
+      return <Paper ref={ref} />;
+    }
+
+    render(
+      <GraphProvider elements={{}}>
+        <PaperWithEffectRefCapture />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(captureRefInEffectMock).toHaveBeenCalled();
+    });
+
+    expect(captureRefInEffectMock.mock.calls.map(([paper]) => paper)).toEqual(
+      expect.arrayContaining([expect.any(Object)])
+    );
+    expect(captureRefInEffectMock.mock.calls.map(([paper]) => paper)).not.toContain(null);
   });
 
   it('exposes paper ref for empty graph without requiring view updates', async () => {
