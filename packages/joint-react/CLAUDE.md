@@ -36,68 +36,110 @@ yarn storybook
 yarn build-storybook
 ```
 
-## Architecture
 
-### Three Control Modes
 
-The library supports three state management modes, determined by props on `GraphProvider`:
+# Clean Code & Style Guidelines
 
-1. **Uncontrolled** — Pass `elements`/`links` as initial data. The internal `GraphStore` owns state. No `onElementsChange`/`onLinksChange` callbacks.
-2. **React-controlled** — Pass `onElementsChange`/`onLinksChange`. Changes flow through React state (`useState` setter pattern).
-3. **External-store-controlled** — Pass `externalStore` prop. Integrates with Redux, Zustand, Jotai, etc.
+## General
 
-### Component Tree
+- Prefer clear, explicit code over clever one-liners. Maintainability > brevity.
+- When editing existing code, preserve the existing style unless I explicitly ask for a refactor.
+- Leave code cleaner than you found it. Continuously refactor small things instead of accumulating technical debt.
 
-```
-GraphProvider (provides GraphStoreContext)
-  └── Paper (provides PaperStoreContext, renders canvas)
-        ├── Element portals (React components rendered into SVG via foreignObject)
-        └── Link portals (React components for link rendering)
-```
+## Constants Over Magic Numbers
 
-### Key Source Directories
+- Replace hard-coded values with named constants.
+- Use descriptive constant names that explain the value's purpose.
+- Keep constants at the top of the file
 
-- **`src/components/`** — `GraphProvider` and `Paper` (the two public components), plus internal `Link`, `Port`, `TextNode`, `Highlighters`
-- **`src/hooks/`** — Public hooks (`useGraph`, `usePaper`, `useElements`, `useLinks`, `useElement`, `useCellActions`, `useNodeSize`, `usePaperEvents`, etc.)
-- **`src/store/`** — `GraphStore` (central state: elements, links, sync) and `PaperStore` (per-paper view state, portals, element sizing)
-- **`src/models/`** — `ReactElement` (empty markup, React renders via portal), `ReactLink`, `ReactPaper` (extended `dia.Paper` with React view lifecycle)
-- **`src/state/`** — Selectors (`mapElementAttributesToData`, `mapLinkAttributesToData`) and sync logic between JointJS models and React state
-- **`src/types/`** — `GraphElement`, `GraphLink`, `PaperProps`, event types
-- **`src/utils/`** — Joint JSX→markup conversion, event handling, scheduling, equality checks
-- **`src/theme/`** — Default link theme and marker presets (arrow, circle, diamond, etc.)
+## Meaningful Names
 
-### Data Flow
+- Variables, functions, and classes should reveal their purpose.
+- Names should explain **why** something exists and **how** it is used.
+- Avoid abbreviations unless they are truly universal (e.g. `id`, `URL`, `HTML`).
+- Boolean names must be self-descriptive and read like conditions:
+  - Use prefixes: `is`, `has`, `should`, `can`, `must`, `needs` (e.g. `isOpen`, `hasError`, `shouldRetry`).
+  - Avoid generic names like `flag`, `ok`, `state`, `enabled` without context.
+- Function names should describe behavior, not implementation details.
 
-Elements and links are `Record<dia.Cell.ID, Data>` objects. GraphStore syncs these with JointJS `dia.Graph` models bidirectionally:
+## File Naming (TypeScript / JavaScript)
 
-1. **React → JointJS:** `updateGraph()` diffs incoming records against current graph cells
-2. **JointJS → React:** `stateSync` listens to model `change:*` events, maps attributes back to data via selectors, and flushes updates
+- All `.ts`, `.tsx`, `.js`, `.jsx` files must use **kebab-case**:
+  - Examples: `user-profile.ts`, `trade-table.tsx`, `use-wallet-state.ts`.
+- React component files:
+  - File name: kebab-case (e.g. `user-profile-card.tsx`).
+  - Component name inside: `PascalCase` (e.g. `UserProfileCard`).
 
-### Rendering Pipeline
+## Smart Comments
 
-`Paper` renders elements via React portals into SVG `<foreignObject>` nodes managed by JointJS. `ReactElement` has empty `markup` — all visual content comes from the `renderElement` callback prop. Large graphs (>100 cells) use `useDeferredValue` for performance.
+- Do **not** comment on what the code does if the code can be made self-explanatory instead.
+- Prefer to improve the code so it reads clearly without comments.
+- Use comments to explain:
+  - Why something is done in a non-obvious way.
+  - Important constraints, assumptions, or business rules.
+  - Non-obvious side effects.
+- Document APIs, complex algorithms, and tricky edge cases.
 
-### Build Output
+## Single Responsibility
 
-`build.ts` uses esbuild to produce:
-- `dist/cjs/` — CommonJS (bundled)
-- `dist/esm/` — ES modules (bundled)
-- `dist/types/` — TypeScript declarations (via `tsc --project tsconfig.types.json`)
+- Each function should do exactly one thing.
+- Functions should be small and focused.
+- If a function needs a long comment to explain what it does, consider splitting it into smaller functions.
+- JSDoc is mandatory for all exported functions.
 
-External deps (react, react-dom, @joint/core, use-sync-external-store) are excluded from bundles.
+## DRY (Don't Repeat Yourself)
 
-## Test Setup
+- Extract repeated code into reusable functions or utilities.
+- Share common logic through proper abstractions.
+- Maintain single sources of truth for configuration, constants, and shared logic.
 
-- **Framework:** Jest 30 with jsdom environment
-- **Transform:** @swc/jest for TypeScript/JSX
-- **Test location:** `src/**/__tests__/*.test.ts(x)`
-- **Mocks:** `__mocks__/jest-setup.ts` provides SVG DOM stubs (SVGPathElement, SVGAngle, SVGMatrix, ResizeObserver)
-- **Module aliases:** `@joint/react` → `src/index.ts`, `src/*` → `<rootDir>/src/*`
+## Clean Structure
 
-## Key Patterns
+- Keep related code together.
+- Organize code in a logical hierarchy (modules, domains, features).
+- Use consistent file and folder naming conventions.
+- Avoid "god" files that own too many responsibilities.
 
-- **Portal-based rendering:** React components render into SVG foreignObject nodes owned by JointJS Paper
-- **Context hierarchy:** `GraphStoreContext` → `PaperStoreContext` → `CellIdContext` (nested providers)
-- **Selector subscriptions:** Hooks accept `selector` and `equalityFn` params for fine-grained reactivity (similar to Redux `useSelector`)
-- **Imperative escape hatch:** `Paper` forwards ref to expose `PaperStore` for imperative operations
-- **Scheduler-based batching:** State flushes are batched via a microtask scheduler to avoid excessive re-renders
+## Encapsulation
+
+- Hide implementation details behind clear interfaces.
+- Expose only what is needed from a module.
+- Move nested conditionals or complex logic into well-named helper functions.
+
+## TypeScript
+
+- Never use `any` in new code:
+  - Prefer proper types, generics, unions, or `unknown` + narrowing.
+  - If `any` is unavoidable at a boundary (e.g. 3rd-party library), isolate it and add a clear `TODO` explaining why.
+- Write `strict`-friendly code:
+  - No implicit `any`.
+  - Avoid sloppy or unnecessary `as` casts.
+  - Avoid `as any` and non-null assertions (`!`) unless absolutely necessary; justify them with a short comment.
+- Use `interface`/`type` aliases for data structures instead of loose objects.
+- Keep function signatures explicit and well-typed, especially for exported functions and public APIs.
+- Prefer readonly/immutable data where reasonable (e.g. `readonly` props, avoid mutating function arguments).
+
+## Performance Mindset
+
+- Avoid unnecessary allocations and copies:
+  - No pointless spreading (`{ ...obj }`) or `JSON.parse(JSON.stringify(...))` in hot paths.
+- Avoid creating new functions/objects inside tight loops or very frequently rendered components unless memoized.
+- Use `useMemo` / `useCallback` **only** when they prevent real, recurring work or re-renders, not everywhere by default.
+- Be careful not to introduce extra re-renders by changing prop shapes unnecessarily.
+- Prefer algorithmic improvements and proper data structures over micro-optimizations when performance is a concern.
+
+## Code Quality Maintenance
+
+- Refactor continuously in small, safe steps.
+- Fix technical debt early when you touch a piece of code.
+- Prefer explicit, predictable behavior over clever tricks.
+- Keep the codebase internally consistent.
+
+## Testing & Safety
+
+- For non-trivial logic changes, prefer adding or updating tests.
+- Write tests before fixing bugs when possible (regression tests).
+- Keep tests readable, deterministic, and maintainable.
+- Test edge cases, error conditions, and boundary values.
+- Avoid relying on implementation details; test behavior and contracts.
+- Performance is must have, so test it.
