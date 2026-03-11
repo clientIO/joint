@@ -12,7 +12,7 @@ import {
   type FlatElementData,
   type RenderElement,
 } from '@joint/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 // ============================================================================
 // Types

@@ -11,49 +11,32 @@ import {
   useState,
   type RefObject,
   type ReactNode,
+  useContext,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
 import { usePaperStoreById } from './use-paper-context';
 import { useElements } from './use-elements';
 import { useLinks } from './use-links';
-import { useAreElementsMeasured, useGraphInternalStoreSelector } from './use-graph-store-selector';
+import { useAreElementsMeasured, useInternalData } from './use-stores';
 import type { PaperStore } from '../store';
+import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
 import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
-import { CellIdContext } from '../context';
+import { CellIdContext, PaperConfigContext } from '../context';
 import {
   DefaultRectElement,
   HTMLElementItem,
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
 
-const EMPTY_OBJECT = {} as Record<string, dia.ElementView>;
+const EMPTY_VIEW_ID_RECORD = {} as Record<CellId, true>;
 
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
-
-/**
- * Resolves the next paper dimension from measured host size with numeric fallback.
- * @param measuredDimension - Current host dimension from the DOM.
- * @param fallbackDimension - Current paper option dimension.
- * @returns The resolved dimension or `null` when it should stay fluid.
- */
-function resolveInferredDimension(
-  measuredDimension: number,
-  fallbackDimension: dia.Paper.Dimension | undefined
-): dia.Paper.Dimension {
-  if (measuredDimension > 0) {
-    return measuredDimension;
-  }
-  if (typeof fallbackDimension === 'number' && fallbackDimension > 0) {
-    return fallbackDimension;
-  }
-  return null;
-}
 
 export interface UseCreateReactPaperOptions<ElementData = FlatElementData>
   extends PaperProps<ElementData> {
@@ -62,8 +45,6 @@ export interface UseCreateReactPaperOptions<ElementData = FlatElementData>
    * When omitted, paper rendering is manual (e.g. via `onReady` callback).
    */
   readonly elementRef?: RefObject<HTMLElement | SVGElement | null>;
-  /** Keep paper dimensions in sync with `width` / `height` options. */
-  readonly shouldSyncDimensions?: boolean;
   /** Callback fired once when paper instance is created and ready. */
   readonly onReady?: (paper: ReactPaper) => void;
 }
@@ -139,19 +120,19 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     onElementsSizeChange,
     useHTMLOverlay,
     scale,
-    width,
-    height,
+    // These are React host props and must not be forwarded to dia.Paper options.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    className,
     elementRef,
-    shouldSyncDimensions,
     onReady,
     ...paperOptions
   } = options;
 
-  const shouldApplyDimensions = shouldSyncDimensions ?? true;
-
   const areElementsMeasured = useAreElementsMeasured();
   const elementsState = useElements();
   const linksState = useLinks();
+
+  const config = useContext(PaperConfigContext);
   useDebugValue(elementsState);
   useDebugValue(linksState);
 
@@ -176,12 +157,16 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   const reactId = useId();
   const id = options.id ?? `paper-${reactId}`;
 
-  const paperElementViews = useGraphInternalStoreSelector(
-    (snapshot) => snapshot.papers[id]?.paperElementViews ?? EMPTY_OBJECT
+  const paperElementViewIds = useInternalData(
+    (snapshot) => snapshot.papers[id]?.elementViewIds ?? EMPTY_VIEW_ID_RECORD
   );
 
-  const paperLinkViews = useGraphInternalStoreSelector(
-    (snapshot) => snapshot.papers[id]?.linkViews ?? EMPTY_OBJECT
+  const paperLinkViewIds = useInternalData(
+    (snapshot) => snapshot.papers[id]?.linkViewIds ?? EMPTY_VIEW_ID_RECORD
+  );
+
+  const hasElementViewSnapshot = useInternalData(
+    (snapshot) => snapshot.papers[id]?.hasElementViewSnapshot
   );
 
   const { addPaper, graph, mapDataToLinkAttributes } = useGraphStore();
@@ -227,11 +212,14 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   const isReady = !!paper && (!elementRef || !!elementRef.current);
 
   useLayoutEffect(() => {
+    const hostElementForCreation = elementRef?.current;
     const remove = addPaper(id, {
       paperOptions: {
         ...paperOptions,
+        el: hostElementForCreation ?? paperOptions.el,
         defaultLink: defaultLinkJointJS,
       },
+      alternateId: config?.alternateId,
       renderElement: renderElement as RenderElement<FlatElementData>,
       renderLink: renderLink as RenderLink<FlatLinkData> | undefined,
       scale,
@@ -252,12 +240,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       isReadyNotifiedRef.current = true;
       onReady(paper);
     }
-
-    const paperHostElement = elementRef?.current;
-    if (!paperHostElement) {
-      return;
-    }
-    paper.render(paperHostElement);
+    paper.unfreeze();
   }, [elementRef, onReady, paper]);
 
   useEffect(() => {
@@ -285,44 +268,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     }
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
 
-  useLayoutEffect(() => {
-    if (!paper) return;
-    if (!shouldApplyDimensions) return;
-    const hostElement = elementRef?.current ?? null;
-
-    /**
-     * Resolves the next paper dimension from options and measured host size.
-     * When option dimension is provided, it takes precedence. When it's missing or invalid, tries to infer from host element size. When both are missing or invalid, returns null for fluid behavior.
-     * @param hostElementItem - Current paper host element from the DOM.
-     * @param dimension - Current paper option dimension.
-     * @returns The resolved dimension or `null` when it should stay fluid.
-     */
-    function resolveSize(
-      hostElementItem: HTMLElement | SVGElement | null,
-      dimension: dia.Paper.Dimension | undefined
-    ): dia.Paper.Dimension {
-      if (dimension !== undefined) {
-        return dimension;
-      }
-      if (!hostElementItem) {
-        return null;
-      }
-      const measuredDimension = hostElementItem.clientWidth;
-      return resolveInferredDimension(measuredDimension, dimension);
-    }
-    const nextWidth = resolveSize(hostElement, width);
-    const nextHeight = resolveSize(hostElement, height);
-    paper.setDimensions(nextWidth ?? null, nextHeight ?? null);
-
-    const hasMissingDimension = width === undefined || height === undefined;
-    if (!hasMissingDimension || !hostElement) {
-      return;
-    }
-
-    // For inferred dimensions, keep paper in sync with host element resize.
-  }, [elementRef, height, paper, shouldApplyDimensions, width]);
-
   useEffect(() => {
+    if (!hasElementViewSnapshot) return;
     if (!isReady) return;
     if (measuredRef.current) return;
     if (!paper) return;
@@ -349,9 +296,10 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     return () => {
       clearTimeout(timeout);
     };
-  }, [areElementsMeasured, isReady, onElementsSizeReady, paper]);
+  }, [areElementsMeasured, hasElementViewSnapshot, isReady, onElementsSizeReady, paper]);
 
   useEffect(() => {
+    if (!hasElementViewSnapshot) return;
     if (!isReady) return;
     if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
@@ -362,6 +310,14 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       return [element?.width ?? 0, element?.height ?? 0];
     });
     const previousSizes = previousSizesRef.current;
+
+    // Prime baseline snapshot first to avoid an initial stale layout pass.
+    // `onElementsSizeChange` should react to size deltas, not first observation.
+    if (previousSizes.length === 0) {
+      previousSizesRef.current = currentSizes;
+      return;
+    }
+
     let changed = false;
 
     if (previousSizes.length === currentSizes.length) {
@@ -384,7 +340,15 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
     previousSizesRef.current = currentSizes;
     onElementsSizeChange({ paper, graph: paper.model });
-  }, [areElementsMeasured, elementIds, elementsState, isReady, onElementsSizeChange, paper]);
+  }, [
+    areElementsMeasured,
+    elementIds,
+    elementsState,
+    hasElementViewSnapshot,
+    isReady,
+    onElementsSizeChange,
+    paper,
+  ]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {
@@ -397,12 +361,20 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
         return null;
       }
 
-      const elementView = paperElementViews[elementId];
+      if (!paperElementViewIds[elementId]) {
+        return null;
+      }
+
+      const elementView = paperStore?.getElementView(elementId);
       if (!elementView?.paper) {
         return null;
       }
 
       const portalNode = (elementView.paper as ReactPaper).getCellViewPortalNode(elementView);
+
+      if (!portalNode.isConnected) {
+        return null;
+      }
       if (!portalNode) {
         return null;
       }
@@ -444,7 +416,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     deferredElementIds,
     deferredElementsState,
     hasRenderElement,
-    paperElementViews,
+    paperElementViewIds,
+    paperStore,
     renderElement,
     useHTMLOverlay,
   ]);
@@ -460,7 +433,11 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
         return null;
       }
 
-      const linkView = paperLinkViews[linkId];
+      if (!paperLinkViewIds[linkId]) {
+        return null;
+      }
+
+      const linkView = paperStore?.getLinkView(linkId);
       if (!linkView?.paper) {
         return null;
       }
@@ -476,7 +453,14 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
         </CellIdContext.Provider>
       );
     });
-  }, [deferredLinkIds, deferredLinksState, hasRenderLink, paperLinkViews, renderLink]);
+  }, [
+    deferredLinkIds,
+    deferredLinksState,
+    hasRenderLink,
+    paperLinkViewIds,
+    paperStore,
+    renderLink,
+  ]);
 
   const content = useMemo(
     () => (

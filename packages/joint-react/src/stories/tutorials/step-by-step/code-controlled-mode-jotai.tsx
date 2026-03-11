@@ -15,8 +15,9 @@
  * 1. **Atoms**: Jotai uses atoms - small, independent pieces of state.
  *    Each atom can be read and written independently.
  *
- * 2. **ExternalGraphStore Interface**: We adapt Jotai atoms to the
- *    ExternalGraphStore interface, which allows GraphProvider to work with it.
+ * 2. **React-Controlled Mode**: We read elements/links from Jotai atoms
+ *    and pass them as props to GraphProvider with onElementsChange/onLinksChange
+ *    callbacks that update the atoms.
  *
  * 3. **Atomic State**: Jotai's atomic approach means you can split state
  *    into small pieces and compose them together.
@@ -24,10 +25,9 @@
  * HOW IT WORKS:
  *
  * 1. Create Jotai atoms for elements and links
- * 2. Create derived atoms or use them directly
- * 3. Adapt the atoms to ExternalGraphStore using jotaiAdapter
- * 4. Pass the externalStore to GraphProvider
- * 5. All state changes automatically sync to the graph
+ * 2. Read atom values and pass them as props to GraphProvider
+ * 3. Use onElementsChange/onLinksChange to update atoms when graph changes
+ * 4. All state changes automatically sync to the graph
  *
  * ============================================================================
  */
@@ -38,14 +38,11 @@ import {
   type FlatElementData,
   type FlatLinkData,
   Paper,
-  type ExternalGraphStore,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { useMemo } from 'react';
-import { atom, createStore } from 'jotai';
-import type { GraphStoreSnapshot } from '../../../store/graph-store';
-import type { Update } from '../../../utils/create-state';
+import { useCallback } from 'react';
+import { atom, createStore, useAtomValue, useSetAtom, Provider as JotaiProvider } from 'jotai';
 
 // ============================================================================
 // STEP 1: Define Initial Graph Data
@@ -57,7 +54,7 @@ import type { Update } from '../../../utils/create-state';
 type CustomElement = FlatElementData & { label: string };
 
 const defaultElements: Record<string, CustomElement> = {
-  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  '1': { label: 'Hello', x: 100, y: 15, width: 100, height: 50 },
   '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
 };
 
@@ -106,114 +103,16 @@ const elementsAtom = atom<Record<string, FlatElementData>>(
 const linksAtom = atom<Record<string, FlatLinkData>>(defaultLinks as Record<string, FlatLinkData>);
 
 // ============================================================================
-// STEP 4: Create Jotai Adapter Hook
+// STEP 4: Component Implementation
 // ============================================================================
 
 /**
- * Hook that creates an ExternalGraphStore adapter from Jotai atoms.
- *
- * This adapter is the bridge between Jotai and @joint/react's GraphProvider.
- * It uses Jotai atoms and adapts them to the ExternalStoreLike interface,
- * which allows GraphStore to:
- * - Read the current state (getSnapshot)
- * - Subscribe to state changes (subscribe)
- * - Update the state (setState)
- *
- * The adapter automatically reads from the Jotai atoms, so no parameters
- * are needed. Just call this hook inside a component.
- * @returns An ExternalGraphStore compatible with GraphProvider
- * @example
- * ```tsx
- * <GraphProvider externalStore={useJotaiAdapter()}>
- *   <Paper />
- * </GraphProvider>
- * ```
+ * PaperApp component that uses Jotai atoms for graph actions.
  */
-function useJotaiAdapter(): ExternalGraphStore {
-  return useMemo(() => {
-    // Track subscribers
-    const subscribers = new Set<() => void>();
+function PaperApp() {
+  const setElements = useSetAtom(elementsAtom);
+  const setLinks = useSetAtom(linksAtom);
 
-    const notifySubscribers = () => {
-      for (const subscriber of subscribers) subscriber();
-    };
-
-    return {
-      /**
-       * Returns the current snapshot of the graph state.
-       * GraphStore calls this to read the current elements and links.
-       */
-      getSnapshot: (): GraphStoreSnapshot => {
-        return {
-          elements: jotaiStore.get(elementsAtom),
-          links: jotaiStore.get(linksAtom),
-        };
-      },
-
-      /**
-       * Subscribes to Jotai atom changes.
-       * When the atoms change, the listener is called, which notifies
-       * GraphStore to re-read the state and sync with JointJS.
-       * @param listener - Callback function to call when state changes
-       * @returns Unsubscribe function to remove the listener
-       */
-      subscribe: (listener: () => void) => {
-        subscribers.add(listener);
-
-        // Subscribe to both atoms using Jotai's store.sub method
-        // The sub method signature is: sub(atom, callback) -> unsubscribe
-        const unsubscribeElements = jotaiStore.sub(elementsAtom, () => {
-          notifySubscribers();
-        });
-
-        const unsubscribeLinks = jotaiStore.sub(linksAtom, () => {
-          notifySubscribers();
-        });
-
-        return () => {
-          subscribers.delete(listener);
-          unsubscribeElements();
-          unsubscribeLinks();
-        };
-      },
-
-      /**
-       * Updates the Jotai atoms.
-       * GraphStore calls this when JointJS graph changes (e.g., user drags a node).
-       *
-       * The updater can be:
-       * - A direct value: { elements: [...], links: [...] }
-       * - A function: (previous) => ({ elements: [...], links: [...] })
-       * @param updater - The new state or a function to compute new state
-       */
-      setState: (updater: Update<GraphStoreSnapshot>) => {
-        const currentSnapshot: GraphStoreSnapshot = {
-          elements: jotaiStore.get(elementsAtom),
-          links: jotaiStore.get(linksAtom),
-        };
-
-        const newSnapshot = typeof updater === 'function' ? updater(currentSnapshot) : updater;
-
-        // Update atoms using the store
-        jotaiStore.set(elementsAtom, newSnapshot.elements);
-        jotaiStore.set(linksAtom, newSnapshot.links);
-      },
-    };
-  }, []);
-}
-
-// ============================================================================
-// STEP 5: Component Implementation
-// ============================================================================
-
-/**
- * PaperApp component that uses the external store.
- */
-interface PaperAppProps {
-  readonly store: ExternalGraphStore;
-}
-
-function PaperApp({ store }: Readonly<PaperAppProps>) {
   return (
     <div className="flex flex-col gap-4">
       <Paper className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
@@ -223,26 +122,20 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
           type="button"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
           onClick={() => {
-            // Get current state from the store
-            const currentState = store.getSnapshot();
-
-            // Create a new element
+            // Create a new element and add it to the elements atom
             const newId = Math.random().toString(36).slice(7);
             const newElement: CustomElement = {
-              id: newId,
               label: 'New Node',
               x: Math.random() * 200,
               y: Math.random() * 200,
               width: 100,
               height: 50,
-            } as CustomElement;
+            };
 
-            // Update the store with the new element
-            // This will automatically sync to the graph and update Jotai atoms
-            store.setState({
-              elements: { ...currentState.elements, [newId]: newElement },
-              links: currentState.links as Record<string, FlatLinkData>,
-            });
+            setElements((currentElements) => ({
+              ...currentElements,
+              [newId]: newElement,
+            }));
           }}
         >
           Add Element
@@ -251,10 +144,10 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
           type="button"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
           onClick={() => {
-            // Get current state from the store
-            const currentState = store.getSnapshot();
+            const currentElements = jotaiStore.get(elementsAtom);
+            const currentLinks = jotaiStore.get(linksAtom);
 
-            const elementIds = Object.keys(currentState.elements);
+            const elementIds = Object.keys(currentElements);
             if (elementIds.length === 0) {
               return;
             }
@@ -266,22 +159,20 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
             }
 
             // eslint-disable-next-line sonarjs/no-unused-vars
-            const { [removedElementId]: _removed, ...newElements } = currentState.elements;
+            const { [removedElementId]: _removed, ...newElements } = currentElements;
 
             // Remove links connected to the removed element
             const newLinks: Record<string, FlatLinkData> = {};
-            for (const [id, link] of Object.entries(currentState.links)) {
-              if (link.source !== removedElementId && link.target !== removedElementId) {
-                newLinks[id] = link;
+            for (const [id, link] of Object.entries(currentLinks)) {
+              const typedLink = link as FlatLinkData;
+              if (typedLink.source !== removedElementId && typedLink.target !== removedElementId) {
+                newLinks[id] = typedLink;
               }
             }
 
-            // Update the store
-            // This will automatically sync to the graph and update Jotai atoms
-            store.setState({
-              elements: newElements,
-              links: newLinks,
-            });
+            // Update both atoms
+            setElements(newElements);
+            setLinks(newLinks);
           }}
         >
           Remove Last
@@ -293,15 +184,45 @@ function PaperApp({ store }: Readonly<PaperAppProps>) {
 
 /**
  * Main component that sets up Jotai and connects it to GraphProvider.
+ * Reads elements/links from Jotai atoms and passes them as props.
  */
 function Main(props: Readonly<GraphProps>) {
-  // Get the adapter from Jotai atoms
-  // This hook automatically reads from the Jotai store
-  const externalStore = useJotaiAdapter();
+  // Read elements and links from Jotai atoms
+  const elements = useAtomValue(elementsAtom);
+  const links = useAtomValue(linksAtom);
+  const jotaiSetElements = useSetAtom(elementsAtom);
+  const jotaiSetLinks = useSetAtom(linksAtom);
+
+  // Callbacks to sync graph changes back to Jotai atoms
+  const handleElementsChange = useCallback(
+    (updater: React.SetStateAction<Record<string, FlatElementData>>) => {
+      const newElements = typeof updater === 'function'
+        ? updater(jotaiStore.get(elementsAtom))
+        : updater;
+      jotaiSetElements(newElements);
+    },
+    [jotaiSetElements]
+  );
+
+  const handleLinksChange = useCallback(
+    (updater: React.SetStateAction<Record<string, FlatLinkData>>) => {
+      const newLinks = typeof updater === 'function'
+        ? updater(jotaiStore.get(linksAtom))
+        : updater;
+      jotaiSetLinks(newLinks);
+    },
+    [jotaiSetLinks]
+  );
 
   return (
-    <GraphProvider {...props} externalStore={externalStore}>
-      <PaperApp store={externalStore} />
+    <GraphProvider
+      {...props}
+      elements={elements}
+      links={links}
+      onElementsChange={handleElementsChange}
+      onLinksChange={handleLinksChange}
+    >
+      <PaperApp />
     </GraphProvider>
   );
 }
@@ -314,10 +235,9 @@ function Main(props: Readonly<GraphProps>) {
  * To use Jotai with @joint/react:
  *
  * 1. Create Jotai atoms for elements and links using atom()
- * 2. Use useAtom() hook to read and write atom values
- * 3. Create an ExternalGraphStore adapter that uses the atoms
- * 4. Pass the externalStore to GraphProvider
- * 5. Use useAtom() hooks in components to access and update state
+ * 2. Read atom values with useAtomValue() and pass as props to GraphProvider
+ * 3. Use onElementsChange/onLinksChange callbacks to update atoms
+ * 4. Use useSetAtom() in components to update atoms directly for custom actions
  *
  * Benefits:
  * - Atomic state management - split state into small pieces
@@ -330,5 +250,9 @@ function Main(props: Readonly<GraphProps>) {
  */
 
 export default function App(props: Readonly<GraphProps>) {
-  return <Main {...props} />;
+  return (
+    <JotaiProvider store={jotaiStore}>
+      <Main {...props} />
+    </JotaiProvider>
+  );
 }

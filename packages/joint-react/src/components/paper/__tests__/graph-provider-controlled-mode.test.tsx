@@ -560,6 +560,64 @@ describe('GraphProvider Controlled Mode', () => {
     });
   });
 
+  describe('React state to graph position sync', () => {
+    it('should update graph position when React state x,y changes via setElements', async () => {
+      const initialElements: Record<string, FlatElementData> = {
+        '1': { width: 100, height: 100, x: 0, y: 0 },
+      };
+
+      let reactStateElements: Record<string, FlatElementData> = {};
+      let graphRef: dia.Graph | null = null;
+
+      function TestComponent() {
+        const graph = useGraph();
+        graphRef = graph;
+        return null;
+      }
+
+      let setElementsExternal: ((elements: Record<string, FlatElementData>) => void) | null = null;
+
+      function ControlledGraph() {
+        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
+        reactStateElements = elements;
+        setElementsExternal = setElements as (elements: Record<string, FlatElementData>) => void;
+        return (
+          <GraphProvider elements={elements} onElementsChange={setElements}>
+            <TestComponent />
+          </GraphProvider>
+        );
+      }
+
+      render(<ControlledGraph />);
+
+      await waitFor(() => {
+        expect(reactStateElements['1']?.x).toBe(0);
+        expect(reactStateElements['1']?.y).toBe(0);
+        expect(graphRef).not.toBeNull();
+      });
+
+      // Update position via React state
+      act(() => {
+        setElementsExternal?.({
+          '1': { width: 100, height: 100, x: 150, y: 250 },
+        });
+      });
+
+      // Graph should reflect the new position
+      await waitFor(
+        () => {
+          const cell = graphRef!.getCell('1');
+          expect(cell).toBeDefined();
+          expect(cell!.get('position')).toEqual({ x: 150, y: 250 });
+          // React state should also reflect it
+          expect(reactStateElements['1']?.x).toBe(150);
+          expect(reactStateElements['1']?.y).toBe(250);
+        },
+        { timeout: 3000 }
+      );
+    });
+  });
+
   describe('Edge cases', () => {
     it('should handle empty records correctly', async () => {
       const initialElements: Record<string, FlatElementData> = {

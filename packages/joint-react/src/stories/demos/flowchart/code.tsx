@@ -541,7 +541,7 @@ function Main() {
           horizontalAlign: 'middle',
         });
       }}
-      className={`${PAPER_CLASSNAME} flowchart-paper`}
+      className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
       renderElement={RenderFlowchartNode as unknown as RenderElement}
       interactive={{ linkMove: false }}
       defaultConnectionPoint={{

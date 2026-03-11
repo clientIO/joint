@@ -9,7 +9,7 @@ const initialElements: Record<
   string,
   { color: string; x: number; y: number; width: number; height: number }
 > = {
-  '1': { color: PRIMARY, x: 100, y: 0, width: 130, height: 35 },
+  '1': { color: PRIMARY, x: 100, y: 15, width: 130, height: 35 },
   '2': { color: PRIMARY, x: 100, y: 200, width: 130, height: 35 },
 };
 

@@ -1,83 +1,70 @@
 import {
-  unstable_getCurrentPriorityLevel as getCurrentPriorityLevel,
+  unstable_cancelCallback as cancelCallback,
   unstable_scheduleCallback as scheduleCallback,
+  unstable_getCurrentPriorityLevel as getCurrentPriorityLevel,
 } from 'scheduler';
 
 /**
- * Options for creating a graph updates scheduler.
- */
-export interface GraphUpdatesSchedulerOptions<Data extends object> {
-  /**
-   * Callback invoked when scheduled updates are flushed.
-   * Receives all accumulated data since the last flush.
-   */
-  readonly onFlush: (data: Data) => void;
-
-  /**
-   * Optional React scheduler priority level.
-   * If not specified, uses the current priority level.
-   */
-  readonly priorityLevel?: number;
-}
-
-/**
- * Scheduler that batches data updates and flushes them together.
- * Uses React's internal scheduler for timing, batching multiple calls
- * within the same synchronous execution cycle into a single flush.
- * Data starts as empty object `{}` and resets after each flush.
- * @example
- * ```ts
- * interface MyData {
- *   elementsToUpdate?: Map<string, { id: string; label: string }>;
- *   elementsToDelete?: Map<string, true>;
- * }
+ * Global scheduler that batches all state notifications into a single flush.
  *
- * const scheduler = new Scheduler<MyData>({
- *   onFlush: (data) => {
- *     console.log(data.elementsToUpdate, data.elementsToDelete);
- *   },
- * });
- *
- * // Multiple calls are batched
- * const updateMap = new Map([['el1', { id: 'el1', label: 'Element 1' }]]);
- * scheduler.scheduleData((prev) => ({ ...prev, elementsToUpdate: updateMap }));
- * const deleteMap = new Map([['el2', true as const]]);
- * scheduler.scheduleData((prev) => ({ ...prev, elementsToDelete: deleteMap }));
- * // onFlush called once with combined result
- * ```
+ * Instead of each VersionedState scheduling its own queueMicrotask,
+ * all notifications go through this scheduler. This ensures:
+ * 1. All state updates in the same synchronous block flush together
+ * 2. Derived states recompute and notify in the same flush (drain loop)
+ * 3. Tests can flush synchronously via `flushNowForTests()`
  */
-export class Scheduler<Data extends object> {
-  private readonly onFlush: (data: Data) => void;
-  private readonly effectivePriority: number;
+class GlobalScheduler {
+  private readonly pending = new Set<() => void>();
   private callbackId: unknown | null = null;
-  private currentData: Data = {} as Data;
+  private isFlushing = false;
 
-  constructor(options: GraphUpdatesSchedulerOptions<Data>) {
-    const { onFlush, priorityLevel } = options;
-    this.onFlush = onFlush;
-    this.effectivePriority =
-      priorityLevel === undefined ? getCurrentPriorityLevel() : priorityLevel;
+  /**
+   * Schedule a callback to run in the next flush.
+   * Multiple calls in the same tick are batched.
+   * @param callback - The callback to schedule.
+   */
+  schedule(callback: () => void): void {
+    this.pending.add(callback);
+    if (this.callbackId !== null) {
+      return;
+    }
+    this.callbackId = scheduleCallback(getCurrentPriorityLevel(), this.flush);
   }
 
   /**
-   * Schedule a data update using an updater function.
-   * Multiple calls are batched and flushed together.
-   * @param updater Function that receives previous data and returns updated data.
+   * Flush all pending callbacks, draining the queue until empty.
+   * The drain loop ensures derived state listeners (added during flush)
+   * are also processed in the same pass.
    */
-  scheduleData = (updater: (previousData: Data) => Data): void => {
-    this.currentData = updater(this.currentData);
-
-    if (this.callbackId === null) {
-      this.callbackId = scheduleCallback(this.effectivePriority, this.flushScheduledWork);
+  private flush = (): void => {
+    this.callbackId = null;
+    if (this.isFlushing) {
+      return;
+    }
+    this.isFlushing = true;
+    try {
+      while (this.pending.size > 0) {
+        const batch = [...this.pending];
+        this.pending.clear();
+        for (const callback of batch) {
+          callback();
+        }
+      }
+    } finally {
+      this.isFlushing = false;
     }
   };
 
-  private flushScheduledWork = (): void => {
-    this.callbackId = null;
-
-    const dataToFlush = this.currentData;
-    this.currentData = {} as Data;
-
-    this.onFlush(dataToFlush);
-  };
+  /**
+   * Immediately flush all pending work. For use in tests only.
+   */
+  flushNowForTests(): void {
+    if (this.callbackId !== null) {
+      cancelCallback(this.callbackId as never);
+      this.callbackId = null;
+    }
+    this.flush();
+  }
 }
+
+export const scheduler = new GlobalScheduler();

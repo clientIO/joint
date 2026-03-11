@@ -37,6 +37,30 @@ export interface PaperProps<ElementData = FlatElementData>
   extends ReactPaperOptions,
     PropsWithChildren {
   /**
+   * Width of the paper host element.
+   *
+   * Precedence for width is:
+   * 1. `width` prop
+   * 2. `style.width`
+   * 3. CSS width from `className`
+   *
+   * When this prop is omitted, the Paper component falls back to `style.width`.
+   * If both are omitted, width is left unset so host CSS can size the paper.
+   */
+  readonly width?: dia.Paper.Dimension;
+  /**
+   * Height of the paper host element.
+   *
+   * Precedence for height is:
+   * 1. `height` prop
+   * 2. `style.height`
+   * 3. CSS height from `className`
+   *
+   * When this prop is omitted, the Paper component falls back to `style.height`.
+   * If both are omitted, height is left unset so host CSS can size the paper.
+   */
+  readonly height?: dia.Paper.Dimension;
+  /**
    * A function that renders the element.
    * 
    * Note: JointJS works with SVG by default, so `renderElement` is appended inside an SVG node.
@@ -116,11 +140,17 @@ export interface PaperProps<ElementData = FlatElementData>
   readonly onElementsSizeChange?: (options: OnLoadOptions) => void;
 
   /**
-   * The style of the paper element.
+   * Inline styles applied to the paper host element.
+   *
+   * For sizing, `style.width` and `style.height` are used only when the matching
+   * `width` / `height` props are not provided.
    */
   readonly style?: CSSProperties;
   /**
-   * Class name of the paper element.
+   * CSS classes applied to the paper host element.
+   *
+   * Class-based sizing is lowest priority and is used only when the matching
+   * `width` / `height` prop and `style.width` / `style.height` are omitted.
    */
   readonly className?: string;
   /**

@@ -1,11 +1,13 @@
 import type { dia } from '@joint/core';
-import type { GraphStore } from '../store/graph-store';
+import type { CellId } from '../types/cell-id';
 
 /**
- * Options for creating a ReactPaper instance.
- * Extends dia.Paper.Options with required graphStore reference.
+ * Options for creating a ReactPaper instance with lifecycle callbacks.
  */
 export interface ReactPaperOptions extends dia.Paper.Options {
-  /** Reference to the GraphStore for scheduling updates */
-  readonly graphStore: GraphStore;
+  readonly onViewMountChange?: (
+    kind: 'element' | 'link',
+    cellId: CellId,
+    isMounted: boolean
+  ) => void;
 }

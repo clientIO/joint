@@ -3,7 +3,6 @@ import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { GraphStoreSnapshot, NodeLayout } from './graph-store';
-import type { MarkDeepReadOnly } from '../utils/create-state';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // Epsilon value to avoid jitter due to sub-pixel rendering
@@ -74,7 +73,7 @@ interface Options {
     id: CellId
   ) => NodeLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the current public snapshot containing all elements */
-  readonly getPublicSnapshot: () => MarkDeepReadOnly<GraphStoreSnapshot>;
+  readonly getPublicSnapshot: () => GraphStoreSnapshot;
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (elements: Record<CellId, FlatElementData>) => void;
 }

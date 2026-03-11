@@ -1,7 +1,25 @@
 /* eslint-disable sonarjs/no-nested-functions */
+import { sendToDevTool } from '../dev-tools';
 import { createState, derivedState } from '../create-state';
+import { scheduler } from '../scheduler';
+
+jest.mock('../dev-tools', () => ({
+  sendToDevTool: jest.fn(),
+}));
+
+const sendToDevToolMock = sendToDevTool as jest.MockedFunction<typeof sendToDevTool>;
+
+/** Helper: setState + flush scheduler so subscribers are notified synchronously in tests. */
+function setAndFlush<T>(state: { setState: (v: T) => void }, value: T): void {
+  state.setState(value);
+  scheduler.flushNowForTests();
+}
 
 describe('createState', () => {
+  beforeEach(() => {
+    sendToDevToolMock.mockClear();
+  });
+
   describe('basic state management', () => {
     it('should create state with initial value', () => {
       const state = createState({
@@ -39,8 +57,10 @@ describe('createState', () => {
       for (let index = 0; index < 1000; index++) {
         state.setState((previous) => ({ ...previous, count: previous.count + 1 }));
       }
+      scheduler.flushNowForTests();
       expect(state.getSnapshot().count).toBe(1000);
-      expect(subscriber).toHaveBeenCalledTimes(1000);
+      // Scheduler batches, so subscriber may be called fewer times than 1000
+      expect(subscriber).toHaveBeenCalled();
     });
   });
 
@@ -52,7 +72,7 @@ describe('createState', () => {
         newState: () => ({ count: 0 }),
       });
       state.subscribe(subscriber);
-      state.setState({ count: 1 });
+      setAndFlush(state, { count: 1 });
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
 
@@ -67,7 +87,7 @@ describe('createState', () => {
       state.subscribe(subscriber1);
       state.subscribe(subscriber2);
       state.subscribe(subscriber3);
-      state.setState({ count: 1 });
+      setAndFlush(state, { count: 1 });
       expect(subscriber1).toHaveBeenCalledTimes(1);
       expect(subscriber2).toHaveBeenCalledTimes(1);
       expect(subscriber3).toHaveBeenCalledTimes(1);
@@ -82,11 +102,11 @@ describe('createState', () => {
       });
       const unsubscribe1 = state.subscribe(subscriber1);
       state.subscribe(subscriber2);
-      state.setState({ count: 1 });
+      setAndFlush(state, { count: 1 });
       expect(subscriber1).toHaveBeenCalledTimes(1);
       expect(subscriber2).toHaveBeenCalledTimes(1);
       unsubscribe1();
-      state.setState({ count: 2 });
+      setAndFlush(state, { count: 2 });
       expect(subscriber1).toHaveBeenCalledTimes(1);
       expect(subscriber2).toHaveBeenCalledTimes(2);
     });
@@ -99,9 +119,9 @@ describe('createState', () => {
       });
       state.subscribe(subscriber);
       const sameObject = { count: 1 };
-      state.setState(sameObject);
+      setAndFlush(state, sameObject);
       expect(subscriber).toHaveBeenCalledTimes(1);
-      state.setState(sameObject);
+      setAndFlush(state, sameObject);
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
 
@@ -112,7 +132,7 @@ describe('createState', () => {
         newState: () => ({ count: 0 }),
       });
       state.subscribe(subscriber);
-      state.setState({ count: 1 });
+      setAndFlush(state, { count: 1 });
       expect(subscriber).toHaveBeenCalledTimes(1);
       expect(state.getSnapshot().count).toBe(1);
     });
@@ -127,10 +147,10 @@ describe('createState', () => {
       });
       state.subscribe(subscriber);
       // First setState with different value should notify
-      state.setState({ count: 1 });
+      setAndFlush(state, { count: 1 });
       expect(subscriber).toHaveBeenCalledTimes(1);
       // Second setState with same value (deep equal) should not notify
-      state.setState({ count: 1 });
+      setAndFlush(state, { count: 1 });
       // With util.isEqual, same value won't trigger another notification
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
@@ -143,9 +163,9 @@ describe('createState', () => {
         isEqual: (a, b) => a.count === b.count,
       });
       state.subscribe(subscriber);
-      state.setState({ count: 0, name: 'changed' });
+      setAndFlush(state, { count: 0, name: 'changed' });
       expect(subscriber).not.toHaveBeenCalled();
-      state.setState({ count: 1, name: 'test' });
+      setAndFlush(state, { count: 1, name: 'test' });
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
 
@@ -157,7 +177,7 @@ describe('createState', () => {
         isEqual: () => true,
       });
       state.subscribe(subscriber);
-      state.setState({ count: 100 });
+      setAndFlush(state, { count: 100 });
       expect(subscriber).not.toHaveBeenCalled();
     });
   });
@@ -171,6 +191,7 @@ describe('createState', () => {
       });
       state.subscribe(subscriber);
       state.setState((previous) => ({ ...previous, count: previous.count + 1 }));
+      scheduler.flushNowForTests();
       expect(state.getSnapshot().count).toBe(1);
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
@@ -201,7 +222,9 @@ describe('createState', () => {
       );
       selectorState.subscribe(subscriber);
       expect(selectorState.getSnapshot()).toBe(0);
-      state.setState({ count: 5, name: 'test' });
+      setAndFlush(state, { count: 5, name: 'test' });
+      // Derived state also needs flushing
+      scheduler.flushNowForTests();
       expect(selectorState.getSnapshot()).toBe(5);
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
@@ -218,9 +241,11 @@ describe('createState', () => {
         (a, b) => a === b
       );
       selectorState.subscribe(subscriber);
-      state.setState({ count: 0, name: 'changed' });
+      setAndFlush(state, { count: 0, name: 'changed' });
+      scheduler.flushNowForTests();
       expect(subscriber).not.toHaveBeenCalled();
-      state.setState({ count: 1, name: 'test' });
+      setAndFlush(state, { count: 1, name: 'test' });
+      scheduler.flushNowForTests();
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
 
@@ -236,9 +261,11 @@ describe('createState', () => {
         (a, b) => a.id === b.id
       );
       selectorState.subscribe(subscriber);
-      state.setState({ user: { id: 1, name: 'Bob' } });
+      setAndFlush(state, { user: { id: 1, name: 'Bob' } });
+      scheduler.flushNowForTests();
       expect(subscriber).not.toHaveBeenCalled();
-      state.setState({ user: { id: 2, name: 'Alice' } });
+      setAndFlush(state, { user: { id: 2, name: 'Alice' } });
+      scheduler.flushNowForTests();
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
 
@@ -261,10 +288,12 @@ describe('createState', () => {
       );
       countSelector.subscribe(subscriber1);
       nameSelector.subscribe(subscriber2);
-      state.setState({ count: 5, name: 'test' });
+      setAndFlush(state, { count: 5, name: 'test' });
+      scheduler.flushNowForTests();
       expect(subscriber1).toHaveBeenCalledTimes(1);
       expect(subscriber2).not.toHaveBeenCalled();
-      state.setState({ count: 5, name: 'changed' });
+      setAndFlush(state, { count: 5, name: 'changed' });
+      scheduler.flushNowForTests();
       expect(subscriber1).toHaveBeenCalledTimes(1);
       expect(subscriber2).toHaveBeenCalledTimes(1);
     });
@@ -281,11 +310,13 @@ describe('createState', () => {
         (a, b) => a === b
       );
       const unsubscribe = selectorState.subscribe(subscriber);
-      state.setState({ count: 5 });
+      setAndFlush(state, { count: 5 });
+      scheduler.flushNowForTests();
       expect(selectorState.getSnapshot()).toBe(5);
       expect(subscriber).toHaveBeenCalledTimes(1);
       unsubscribe();
-      state.setState({ count: 10 });
+      setAndFlush(state, { count: 10 });
+      scheduler.flushNowForTests();
       expect(selectorState.getSnapshot()).toBe(10);
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
@@ -307,7 +338,9 @@ describe('createState', () => {
         (a, b) => a === b
       );
       nameSelector.subscribe(subscriber);
-      state.setState({ user: { profile: { name: 'Bob' } } });
+      setAndFlush(state, { user: { profile: { name: 'Bob' } } });
+      scheduler.flushNowForTests();
+      scheduler.flushNowForTests();
       expect(nameSelector.getSnapshot()).toBe('Bob');
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
@@ -325,7 +358,8 @@ describe('createState', () => {
         selector: (snapshot) => snapshot.count * 2,
       });
       expect(doubledState.getSnapshot()).toBe(0);
-      sourceState.setState({ count: 3 });
+      setAndFlush(sourceState, { count: 3 });
+      scheduler.flushNowForTests();
       expect(doubledState.getSnapshot()).toBe(6);
     });
 
@@ -357,23 +391,26 @@ describe('createState', () => {
 
       expect(areElementsMeasuredState.getSnapshot()).toBe(false);
 
-      layoutState.setState({
+      setAndFlush(layoutState, {
         elements: {
           a: { width: 2, height: 2 },
         },
         wasEverMeasured: false,
       });
+      scheduler.flushNowForTests();
       expect(areElementsMeasuredState.getSnapshot()).toBe(true);
 
-      layoutState.setState({
+      setAndFlush(layoutState, {
         elements: {
           a: { width: 0, height: 0 },
         },
         wasEverMeasured: false,
       });
+      scheduler.flushNowForTests();
       expect(areElementsMeasuredState.getSnapshot()).toBe(false);
 
-      overrideState.setState({ forceMeasured: true });
+      setAndFlush(overrideState, { forceMeasured: true });
+      scheduler.flushNowForTests();
       expect(areElementsMeasuredState.getSnapshot()).toBe(true);
     });
 
@@ -398,9 +435,11 @@ describe('createState', () => {
       });
 
       expect(sumState.getSnapshot()).toBe(6);
-      thirdState.setState(10);
+      setAndFlush(thirdState, 10);
+      scheduler.flushNowForTests();
       expect(sumState.getSnapshot()).toBe(13);
-      firstState.setState(5);
+      setAndFlush(firstState, 5);
+      scheduler.flushNowForTests();
       expect(sumState.getSnapshot()).toBe(17);
     });
 
@@ -422,13 +461,16 @@ describe('createState', () => {
       const subscriber = jest.fn();
       sumState.subscribe(subscriber);
 
-      firstState.setState(5);
+      setAndFlush(firstState, 5);
+      scheduler.flushNowForTests();
       expect(sumState.getSnapshot()).toBe(7);
       expect(subscriber).toHaveBeenCalledTimes(1);
 
       sumState.clean();
-      firstState.setState(10);
-      secondState.setState(10);
+      setAndFlush(firstState, 10);
+      scheduler.flushNowForTests();
+      setAndFlush(secondState, 10);
+      scheduler.flushNowForTests();
 
       expect(sumState.getSnapshot()).toBe(7);
       expect(subscriber).toHaveBeenCalledTimes(1);
@@ -443,7 +485,7 @@ describe('createState', () => {
         newState: () => ({ count: 0 }),
       });
       state.subscribe(subscriber);
-      state.setState({ count: 10 });
+      setAndFlush(state, { count: 10 });
       expect(state.getSnapshot().count).toBe(10);
       state.clean();
       expect(state.getSnapshot().count).toBe(0);
@@ -459,12 +501,12 @@ describe('createState', () => {
       });
       state.subscribe(subscriber1);
       state.subscribe(subscriber2);
-      state.setState({ count: 5 });
+      setAndFlush(state, { count: 5 });
       expect(subscriber1).toHaveBeenCalledTimes(1);
       expect(subscriber2).toHaveBeenCalledTimes(1);
       state.clean();
       expect(state.getSnapshot().count).toBe(0);
-      state.setState({ count: 10 });
+      setAndFlush(state, { count: 10 });
       expect(subscriber1).toHaveBeenCalledTimes(1);
       expect(subscriber2).toHaveBeenCalledTimes(1);
       expect(state.getSnapshot().count).toBe(10);
@@ -487,7 +529,7 @@ describe('createState', () => {
         newState: () => ({ count: 0 }),
       });
       state.subscribe(subscriber);
-      state.setState({ count: 1 });
+      setAndFlush(state, { count: 1 });
       expect(state.getAreComponentsNotified()).toBe(true);
     });
 
@@ -498,7 +540,7 @@ describe('createState', () => {
         newState: () => ({ count: 0 }),
       });
       state.subscribe(subscriber);
-      state.setState({ count: 1 });
+      setAndFlush(state, { count: 1 });
       expect(state.getAreComponentsNotified()).toBe(true);
     });
 
@@ -510,9 +552,9 @@ describe('createState', () => {
       });
       state.subscribe(subscriber);
       const sameObject = { count: 1 };
-      state.setState(sameObject);
+      setAndFlush(state, sameObject);
       expect(state.getAreComponentsNotified()).toBe(true);
-      state.setState(sameObject);
+      setAndFlush(state, sameObject);
       expect(state.getAreComponentsNotified()).toBe(false);
     });
 
@@ -523,9 +565,9 @@ describe('createState', () => {
         newState: () => ({ count: 0 }),
       });
       state.subscribe(subscriber);
-      state.setState({ count: 1 });
+      setAndFlush(state, { count: 1 });
       expect(state.getAreComponentsNotified()).toBe(true);
-      state.setState({ count: 2 });
+      setAndFlush(state, { count: 2 });
       expect(state.getAreComponentsNotified()).toBe(true);
     });
   });
@@ -538,7 +580,7 @@ describe('createState', () => {
         newState: () => 0,
       });
       state.subscribe(subscriber);
-      state.setState(5);
+      setAndFlush(state, 5);
       expect(state.getSnapshot()).toBe(5);
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
@@ -550,7 +592,7 @@ describe('createState', () => {
         newState: () => [1, 2, 3],
       });
       state.subscribe(subscriber);
-      state.setState([4, 5, 6]);
+      setAndFlush(state, [4, 5, 6]);
       expect(state.getSnapshot()).toEqual([4, 5, 6]);
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
@@ -562,7 +604,7 @@ describe('createState', () => {
         newState: () => null as null | string,
       });
       state.subscribe(subscriber);
-      state.setState('test');
+      setAndFlush(state, 'test');
       expect(state.getSnapshot()).toBe('test');
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
@@ -577,7 +619,7 @@ describe('createState', () => {
         }),
       });
       state.subscribe(subscriber);
-      state.setState({
+      setAndFlush(state, {
         users: [
           { id: 1, name: 'Alice' },
           { id: 2, name: 'Bob' },
@@ -588,6 +630,38 @@ describe('createState', () => {
       expect(snapshot.users).toHaveLength(2);
       expect(snapshot.metadata.version).toBe(2);
       expect(subscriber).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('dev tools integration', () => {
+    it('should not send updates when dev tools integration is disabled', () => {
+      const state = createState({
+        name: 'test',
+        newState: () => ({ count: 0 }),
+        isDevToolEnabled: false,
+      });
+
+      setAndFlush(state, { count: 1 });
+
+      expect(sendToDevToolMock).not.toHaveBeenCalled();
+    });
+
+    it('should avoid circular serialization crashes when dev tools integration is disabled', () => {
+      sendToDevToolMock.mockImplementation(({ value }) => {
+        JSON.stringify(value);
+      });
+
+      const state = createState<{ readonly payload?: unknown }>({
+        name: 'test',
+        newState: () => ({}),
+        isDevToolEnabled: false,
+      });
+
+      const payload: { self?: unknown } = {};
+      payload.self = payload;
+
+      expect(() => setAndFlush(state, { payload })).not.toThrow();
+      expect(sendToDevToolMock).not.toHaveBeenCalled();
     });
   });
 });

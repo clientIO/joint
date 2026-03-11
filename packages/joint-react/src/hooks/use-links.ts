@@ -1,7 +1,7 @@
 import { util } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
-import { useGraphStoreSelector } from './use-graph-store-selector';
+import { useData } from './use-stores';
 
 /**
  * Default selector function that returns all links unchanged.
@@ -67,10 +67,12 @@ function defaultSelector<LinkData = FlatLinkData>(
  * ```
  */
 export function useLinks<LinkData = FlatLinkData, SelectorReturnType = Record<CellId, LinkData>>(
-  selector: (items: Record<CellId, LinkData>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+  selector: (
+    items: Record<CellId, LinkData>
+  ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
 ): SelectorReturnType {
-  return useGraphStoreSelector((snapshot) => {
+  return useData((snapshot) => {
     return selector(snapshot.links as Record<CellId, LinkData>);
   }, isEqual);
 }

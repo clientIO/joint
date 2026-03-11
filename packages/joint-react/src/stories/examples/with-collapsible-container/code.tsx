@@ -10,6 +10,7 @@ import {
   TextNode,
   type FlatElementData,
   type FlatLinkData,
+  useNodeLayout,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
@@ -232,12 +233,13 @@ function ExpandButton({
   );
 }
 
-function ContainerNode({
-  title,
-  collapsed = false,
-  width = 140,
-  height = 100,
-}: Readonly<ContainerElement>) {
+function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>) {
+  const { width, height } = useNodeLayout((layout) => {
+    return {
+      width: layout?.width ?? 140,
+      height: layout?.height ?? 100,
+    };
+  });
   const id = useCellId();
   const graph = useGraph();
 
@@ -299,7 +301,8 @@ function ContainerNode({
   );
 }
 
-function ChildNode({ label, width = 50, height = 50 }: Readonly<ChildElement>) {
+function ChildNode({ label }: Readonly<ChildElement>) {
+  const { width = 50, height = 50 } = useNodeLayout();
   return (
     <>
       {/* Body */}
@@ -336,7 +339,7 @@ function useContainerAutoResize() {
   useEffect(() => {
     const updateContainerSize = (cell: dia.Cell | null) => {
       if (!cell?.isElement()) return;
-      const container = cell as dia.Element;
+      const container = cell;
 
       // Check if this is a container by looking at its embeds
       const embeds = container.getEmbeddedCells().filter((c) => c.isElement());

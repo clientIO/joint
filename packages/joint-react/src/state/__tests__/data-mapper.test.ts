@@ -6,25 +6,74 @@ import { ReactElement } from '../../models/react-element';
 import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
 import type { FlatElementData, FlatElementPort } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
-import type { ElementToGraphOptions, GraphToElementOptions, LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
-import { defaultMapDataToElementAttributes, defaultMapDataToLinkAttributes, defaultMapElementAttributesToData, defaultMapLinkAttributesToData } from '../data-mapping';
+import type {
+  ElementToGraphOptions,
+  GraphToElementOptions,
+  LinkToGraphOptions,
+  GraphToLinkOptions,
+} from '../graph-mappings';
+import {
+  defaultMapDataToElementAttributes,
+  defaultMapDataToLinkAttributes,
+  defaultMapElementAttributesToData,
+  defaultMapLinkAttributesToData,
+} from '../data-mapping';
 import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 
-function elementToGraphOpts(id: string, data: FlatElementData, graph: dia.Graph): ElementToGraphOptions<FlatElementData> {
-  return { id, data, graph, toAttributes: (d) => defaultMapDataToElementAttributes({ id, data: d }) };
+function elementToGraphOpts(
+  id: string,
+  data: FlatElementData,
+  graph: dia.Graph
+): ElementToGraphOptions<FlatElementData> {
+  return {
+    id,
+    data,
+    graph,
+    toAttributes: (d) => defaultMapDataToElementAttributes({ id, data: d }),
+  };
 }
-function graphToElementOpts(id: string, cell: dia.Element, graph: dia.Graph, previousData?: FlatElementData): GraphToElementOptions<FlatElementData> {
+function graphToElementOpts(
+  id: string,
+  cell: dia.Element,
+  graph: dia.Graph,
+  previousData?: FlatElementData
+): GraphToElementOptions<FlatElementData> {
   const defaultAttributes = resolveCellDefaults(cell);
-  return { id, attributes: cell.attributes, defaultAttributes, element: cell, graph, previousData, toData: (attributes) => defaultMapElementAttributesToData({ attributes, defaultAttributes }) };
+  return {
+    id,
+    attributes: cell.attributes,
+    defaultAttributes,
+    element: cell,
+    graph,
+    previousData,
+    toData: (attributes) => defaultMapElementAttributesToData({ attributes, defaultAttributes }),
+  };
 }
-function linkToGraphOpts(id: string, data: FlatLinkData, graph: dia.Graph): LinkToGraphOptions<FlatLinkData> {
+function linkToGraphOpts(
+  id: string,
+  data: FlatLinkData,
+  graph: dia.Graph
+): LinkToGraphOptions<FlatLinkData> {
   return { id, data, graph, toAttributes: (d) => defaultMapDataToLinkAttributes({ id, data: d }) };
 }
-function graphToLinkOpts(id: string, cell: dia.Link, graph: dia.Graph, previousData?: FlatLinkData): GraphToLinkOptions<FlatLinkData> {
+function graphToLinkOpts(
+  id: string,
+  cell: dia.Link,
+  graph: dia.Graph,
+  previousData?: FlatLinkData
+): GraphToLinkOptions<FlatLinkData> {
   const defaultAttributes = resolveCellDefaults(cell);
-  return { id, attributes: cell.attributes, defaultAttributes, link: cell, graph, previousData, toData: (attributes) => defaultMapLinkAttributesToData({ attributes, defaultAttributes }) };
+  return {
+    id,
+    attributes: cell.attributes,
+    defaultAttributes,
+    link: cell,
+    graph,
+    previousData,
+    toData: (attributes) => defaultMapLinkAttributesToData({ attributes, defaultAttributes }),
+  };
 }
 
 describe('dataMapper', () => {
@@ -86,7 +135,9 @@ describe('dataMapper', () => {
       type E = FlatElementData & { known?: string; extra?: string };
       const previousData: E = { x: 0, y: 0, width: 0, height: 0, known: undefined };
 
-      const result = defaultMapElementAttributesToData(graphToElementOpts(id, cell, graph, previousData));
+      const result = defaultMapElementAttributesToData(
+        graphToElementOpts(id, cell, graph, previousData)
+      );
       // previousData is passed through but the default mapper does not filter by it
       expect(result).toHaveProperty('known', 'value');
       expect(result).toHaveProperty('extra', 'also-included');
@@ -168,7 +219,13 @@ describe('dataMapper', () => {
 
     it('should apply custom theme props', () => {
       const id = 'link-1';
-      const data: FlatLinkData = { source: 'a', target: 'b', color: 'red', width: 4, pattern: '5 5' };
+      const data: FlatLinkData = {
+        source: 'a',
+        target: 'b',
+        color: 'red',
+        width: 4,
+        pattern: '5 5',
+      };
 
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.attrs?.line?.stroke).toBe('red');
@@ -221,7 +278,10 @@ describe('dataMapper', () => {
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.labels).toHaveLength(2);
       expect(cellJson.labels[0]).toMatchObject({ id: 'lbl1', position: { distance: 0.3 } });
-      expect(cellJson.labels[1]).toMatchObject({ id: 'lbl2', position: { distance: 0.7, offset: 20 } });
+      expect(cellJson.labels[1]).toMatchObject({
+        id: 'lbl2',
+        position: { distance: 0.7, offset: 20 },
+      });
     });
 
     it('should round-trip labels with position and offset changes', () => {

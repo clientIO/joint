@@ -140,8 +140,9 @@ function Main() {
         color: LIGHT,
         targetMarker: 'arrow',
       }}
+      width="100%"
       renderElement={NodeElement}
-      className={PAPER_CLASSNAME}
+      className={`${PAPER_CLASSNAME} h-[400px]`}
       sorting={dia.Paper.sorting.APPROX}
       linkPinning={false}
       validateConnection={(cellViewS, magnetS, cellViewT, magnetT) => {

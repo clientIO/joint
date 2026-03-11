@@ -2,30 +2,19 @@ import { dia, shapes } from '@joint/core';
 import { ReactPaper } from '../react-paper';
 import { ReactElement } from '../react-element';
 import { GraphStore } from '../../store/graph-store';
-import type { ReactElementViewCache, ReactLinkViewCache } from '../../types/paper.types';
-
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
+const TEST_PAPER_ID = 'test-paper';
+const toCellId = (id: dia.Cell.ID): string => id as string;
 
 describe('ReactPaper', () => {
   let graphStore: GraphStore;
   let paper: ReactPaper;
   let container: HTMLElement;
-  let elementCache: ReactElementViewCache;
-  let linkCache: ReactLinkViewCache;
 
   beforeEach(() => {
     container = document.createElement('div');
     document.body.append(container);
     graphStore = new GraphStore({});
-
-    // Initialize caches that PaperStore would normally set up
-    elementCache = {
-      elementViews: {},
-    };
-    linkCache = {
-      linkViews: {},
-      linksData: {},
-    };
   });
 
   afterEach(() => {
@@ -35,20 +24,36 @@ describe('ReactPaper', () => {
   });
 
   /**
-   * Helper to create a ReactPaper with caches properly initialized
+   * Helper to create a ReactPaper with GraphStore callbacks wired.
    */
   function createPaper(options: Partial<dia.Paper.Options> = {}): ReactPaper {
-    const p = new ReactPaper({
+    return new ReactPaper({
       el: container,
       model: graphStore.graph,
-      graphStore,
+      onViewMountChange: (kind, cellId, isMounted) => {
+        switch (kind) {
+          case 'element': {
+            if (isMounted) {
+              graphStore.markPaperElementViewMounted(TEST_PAPER_ID, cellId);
+            } else {
+              graphStore.markPaperElementViewUnmounted(TEST_PAPER_ID, cellId);
+            }
+            return;
+          }
+          case 'link': {
+            if (isMounted) {
+              graphStore.markPaperLinkViewMounted(TEST_PAPER_ID, cellId);
+            } else {
+              graphStore.markPaperLinkViewUnmounted(TEST_PAPER_ID, cellId);
+            }
+            return;
+          }
+        }
+      },
       cellNamespace: DEFAULT_CELL_NAMESPACE,
       async: false, // Synchronous for testing
       ...options,
     });
-    p.reactElementCache = elementCache;
-    p.reactLinkCache = linkCache;
-    return p;
   }
 
   /**
@@ -58,18 +63,56 @@ describe('ReactPaper', () => {
     return (p as unknown as { pendingLinks: Set<string> }).pendingLinks;
   }
 
+  function getElementViewOrThrow(id: dia.Cell.ID): dia.ElementView {
+    const view = paper.getElementView(toCellId(id));
+    if (!view) {
+      throw new Error(`Expected element view for ${String(id)}`);
+    }
+    return view;
+  }
+
+  function getLinkViewOrThrow(id: dia.Cell.ID): dia.LinkView {
+    const view = paper.getLinkView(toCellId(id));
+    if (!view) {
+      throw new Error(`Expected link view for ${String(id)}`);
+    }
+    return view;
+  }
+
+  function findViewOrThrow(cell: dia.Cell): dia.CellView {
+    const view = paper.findViewByModel(cell);
+    if (!view) {
+      throw new Error(`Expected cell view for ${String(cell.id)}`);
+    }
+    return view;
+  }
+
   describe('constructor', () => {
     it('should create a paper instance', () => {
       paper = createPaper();
 
       expect(paper).toBeInstanceOf(dia.Paper);
     });
+  });
 
-    it('should store graphStore reference', () => {
-      paper = createPaper();
+  describe('mounting', () => {
+    it('should mount paper into provided host via setElement/render and unfreeze', () => {
+      paper = createPaper({
+        frozen: true,
+      });
+      const host = document.createElement('div');
+      document.body.append(host);
 
-      // Access private property for testing
-      expect((paper as unknown as { graphStore: GraphStore }).graphStore).toBe(graphStore);
+      const unfreezeSpy = jest.spyOn(paper, 'unfreeze');
+      paper.setElement(host);
+      paper.render();
+      paper.unfreeze();
+
+      expect(paper.el).toBe(host);
+      expect(host.querySelector('svg')).not.toBeNull();
+      expect(unfreezeSpy).toHaveBeenCalled();
+
+      host.remove();
     });
   });
 
@@ -92,7 +135,7 @@ describe('ReactPaper', () => {
   });
 
   describe('insertView', () => {
-    it('should add element view to reactElementCache when inserted', () => {
+    it('should expose element view through getElementView when inserted', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
@@ -101,12 +144,11 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCell(element);
 
-      // After adding cell, view should be in elementCache
-      expect(elementCache.elementViews[element.id]).toBeDefined();
-      expect(elementCache.elementViews[element.id].model).toBe(element);
+      expect(paper.getElementView(toCellId(element.id))).toBeDefined();
+      expect(getElementViewOrThrow(element.id).model).toBe(element);
     });
 
-    it('should add link view to reactLinkCache when inserted', () => {
+    it('should expose link view through getLinkView when inserted', () => {
       paper = createPaper();
 
       const element1 = new shapes.standard.Rectangle({
@@ -123,8 +165,8 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCells([element1, element2, link]);
 
-      expect(linkCache.linkViews[link.id]).toBeDefined();
-      expect(linkCache.linkViews[link.id].model).toBe(link);
+      expect(paper.getLinkView(toCellId(link.id))).toBeDefined();
+      expect(getLinkViewOrThrow(link.id).model).toBe(link);
     });
 
     it('should NOT set magnet=false on link views', () => {
@@ -144,12 +186,12 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCells([element1, element2, link]);
 
-      const linkView = linkCache.linkViews[link.id];
+      const linkView = getLinkViewOrThrow(link.id);
       expect(linkView.el.getAttribute('magnet')).not.toBe('false');
     });
 
-    it('should call schedulePaperUpdate when view is inserted', () => {
-      const scheduleSpy = jest.spyOn(graphStore, 'schedulePaperUpdate');
+    it('should mark element view as mounted when view is inserted', () => {
+      const mountSpy = jest.spyOn(graphStore, 'markPaperElementViewMounted');
 
       paper = createPaper();
 
@@ -159,12 +201,12 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCell(element);
 
-      expect(scheduleSpy).toHaveBeenCalled();
+      expect(mountSpy).toHaveBeenCalledWith(TEST_PAPER_ID, element.id as string);
     });
   });
 
   describe('removeView', () => {
-    it('should remove view from reactElementCache when cell is removed', () => {
+    it('should remove element view from getElementView when cell is removed', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
@@ -172,13 +214,13 @@ describe('ReactPaper', () => {
         size: { width: 100, height: 100 },
       });
       graphStore.graph.addCell(element);
-      expect(elementCache.elementViews[element.id]).toBeDefined();
+      expect(paper.getElementView(toCellId(element.id))).toBeDefined();
 
       graphStore.graph.removeCells([element]);
-      expect(elementCache.elementViews[element.id]).toBeUndefined();
+      expect(paper.getElementView(toCellId(element.id))).toBeUndefined();
     });
 
-    it('should remove view from reactLinkCache when link is removed', () => {
+    it('should remove link view from getLinkView when link is removed', () => {
       paper = createPaper();
 
       const element1 = new shapes.standard.Rectangle({
@@ -194,13 +236,13 @@ describe('ReactPaper', () => {
         target: { id: element2.id },
       });
       graphStore.graph.addCells([element1, element2, link]);
-      expect(linkCache.linkViews[link.id]).toBeDefined();
+      expect(paper.getLinkView(toCellId(link.id))).toBeDefined();
 
       graphStore.graph.removeCells([link]);
-      expect(linkCache.linkViews[link.id]).toBeUndefined();
+      expect(paper.getLinkView(toCellId(link.id))).toBeUndefined();
     });
 
-    it('should call schedulePaperUpdate when view is removed', () => {
+    it('should mark element view as unmounted when view is removed', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
@@ -209,16 +251,16 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCell(element);
 
-      const scheduleSpy = jest.spyOn(graphStore, 'schedulePaperUpdate');
-      scheduleSpy.mockClear();
+      const unmountSpy = jest.spyOn(graphStore, 'markPaperElementViewUnmounted');
+      unmountSpy.mockClear();
 
       graphStore.graph.removeCells([element]);
-      expect(scheduleSpy).toHaveBeenCalled();
+      expect(unmountSpy).toHaveBeenCalledWith(TEST_PAPER_ID, element.id as string);
     });
   });
 
   describe('_hideCellView (viewport culling)', () => {
-    it('should remove element view from reactElementCache when hidden', () => {
+    it('should remove element id from internal mounted snapshot when hidden', () => {
       paper = createPaper({
         width: 100,
         height: 100,
@@ -229,16 +271,24 @@ describe('ReactPaper', () => {
         size: { width: 50, height: 50 },
       });
       graphStore.graph.addCell(element);
-      expect(elementCache.elementViews[element.id]).toBeDefined();
+      expect(
+        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.elementViewIds[
+          toCellId(element.id)
+        ]
+      ).toBe(true);
 
       // Get the view and call _hideCellView directly
-      const view = paper.findViewByModel(element);
+      const view = findViewOrThrow(element);
       paper._hideCellView(view);
 
-      expect(elementCache.elementViews[element.id]).toBeUndefined();
+      expect(
+        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.elementViewIds[
+          toCellId(element.id)
+        ]
+      ).toBeUndefined();
     });
 
-    it('should remove link view from reactLinkCache when hidden', () => {
+    it('should remove link id from internal mounted snapshot when hidden', () => {
       paper = createPaper({
         width: 100,
         height: 100,
@@ -257,16 +307,20 @@ describe('ReactPaper', () => {
         target: { id: element2.id },
       });
       graphStore.graph.addCells([element1, element2, link]);
-      expect(linkCache.linkViews[link.id]).toBeDefined();
+      expect(
+        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.linkViewIds[toCellId(link.id)]
+      ).toBe(true);
 
       // Get the link view and call _hideCellView directly
-      const linkView = paper.findViewByModel(link);
+      const linkView = findViewOrThrow(link);
       paper._hideCellView(linkView);
 
-      expect(linkCache.linkViews[link.id]).toBeUndefined();
+      expect(
+        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.linkViewIds[toCellId(link.id)]
+      ).toBeUndefined();
     });
 
-    it('should call schedulePaperUpdate when view is hidden', () => {
+    it('should mark element view as unmounted when view is hidden', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
@@ -275,13 +329,13 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCell(element);
 
-      const scheduleSpy = jest.spyOn(graphStore, 'schedulePaperUpdate');
-      scheduleSpy.mockClear();
+      const unmountSpy = jest.spyOn(graphStore, 'markPaperElementViewUnmounted');
+      unmountSpy.mockClear();
 
-      const view = paper.findViewByModel(element);
+      const view = findViewOrThrow(element);
       paper._hideCellView(view);
 
-      expect(scheduleSpy).toHaveBeenCalled();
+      expect(unmountSpy).toHaveBeenCalledWith(TEST_PAPER_ID, element.id as string);
     });
 
     it('should remove link from pendingLinks when hidden', () => {
@@ -308,7 +362,7 @@ describe('ReactPaper', () => {
       expect(pendingLinks.has(link.id as string)).toBe(true);
 
       // Hide the link
-      const linkView = paper.findViewByModel(link);
+      const linkView = findViewOrThrow(link);
       paper._hideCellView(linkView);
 
       // Should be removed from pending
@@ -335,7 +389,7 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCells([element1, element2, link]);
 
-      const linkView = linkCache.linkViews[link.id];
+      const linkView = getLinkViewOrThrow(link.id);
 
       // Link should be hidden (ReactElement has empty markup, no children)
       expect(linkView.el.style.visibility).toBe('hidden');
@@ -359,7 +413,7 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCells([element1, element2, link]);
 
-      const linkView = linkCache.linkViews[link.id];
+      const linkView = getLinkViewOrThrow(link.id);
       const pendingLinks = getPendingLinks(paper);
 
       // Standard shapes have children, so link should NOT be hidden or pending
@@ -404,7 +458,7 @@ describe('ReactPaper', () => {
       graphStore.graph.addCells([sourceElement, dragLink]);
 
       const pendingLinks = getPendingLinks(paper);
-      const linkView = linkCache.linkViews[dragLink.id];
+      const linkView = getLinkViewOrThrow(dragLink.id);
 
       expect(linkView.el.style.visibility).toBe('');
       expect(pendingLinks.has(dragLink.id as string)).toBe(false);
@@ -428,9 +482,9 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCells([element1, element2, link]);
 
-      const linkView = linkCache.linkViews[link.id];
-      const element1View = elementCache.elementViews[element1.id];
-      const element2View = elementCache.elementViews[element2.id];
+      const linkView = getLinkViewOrThrow(link.id);
+      const element1View = getElementViewOrThrow(element1.id);
+      const element2View = getElementViewOrThrow(element2.id);
 
       // Initially hidden
       expect(linkView.el.style.visibility).toBe('hidden');
@@ -467,8 +521,8 @@ describe('ReactPaper', () => {
       graphStore.graph.addCells([element1, element2, link]);
 
       const pendingLinks = getPendingLinks(paper);
-      const element1View = elementCache.elementViews[element1.id];
-      const element2View = elementCache.elementViews[element2.id];
+      const element1View = getElementViewOrThrow(element1.id);
+      const element2View = getElementViewOrThrow(element2.id);
 
       // Initially in pending
       expect(pendingLinks.has(link.id as string)).toBe(true);
@@ -501,8 +555,8 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCells([element1, element2, link]);
 
-      const linkView = linkCache.linkViews[link.id];
-      const element1View = elementCache.elementViews[element1.id];
+      const linkView = getLinkViewOrThrow(link.id);
+      const element1View = getElementViewOrThrow(element1.id);
 
       // Only add children to source element's portal node
       paper.getCellViewPortalNode(element1View).append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
@@ -562,18 +616,22 @@ describe('ReactPaper', () => {
       graphStore.graph.addCells([element1, element2, link]);
 
       const pendingLinks = getPendingLinks(paper);
+      const linkId = link.id as string;
 
       // Link should be in pending
-      expect(pendingLinks.has(link.id as string)).toBe(true);
+      expect(pendingLinks.has(linkId)).toBe(true);
 
-      // Manually remove from linkCache but keep in pendingLinks (simulating race condition)
-      Reflect.deleteProperty(linkCache.linkViews, link.id);
+      const originalGetLinkView = paper.getLinkView.bind(paper);
+      const getLinkViewSpy = jest
+        .spyOn(paper, 'getLinkView')
+        .mockImplementation((id) => (id === linkId ? undefined : originalGetLinkView(id)));
 
       // Should not throw
       expect(() => paper.checkPendingLinks()).not.toThrow();
+      getLinkViewSpy.mockRestore();
 
       // Should clean up the orphaned pending link
-      expect(pendingLinks.has(link.id as string)).toBe(false);
+      expect(pendingLinks.has(linkId)).toBe(false);
     });
   });
 });

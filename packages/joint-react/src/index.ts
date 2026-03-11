@@ -16,12 +16,11 @@ export { ReactPaper } from './models/react-paper';
 
 export * from './types/cell-id';
 export * from './types/element-types';
-export * from './types/paper.types';
 export * from './types/link-types';
 export * from './types/event.types';
-export * from './types/scheduler.types';
 
 export * from './context';
 export * from './store';
-export * from './state/graph-state-selectors';
+export * from './state/graph-mappings';
+export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
 export * from './theme/link-theme';

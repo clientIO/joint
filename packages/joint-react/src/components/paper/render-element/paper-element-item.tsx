@@ -19,9 +19,7 @@ export interface ElementItemProps<Data = FlatElementData> {
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function SVGElementItemComponent<Data = FlatElementData>(
-  props: ElementItemProps<Data>
-) {
+function SVGElementItemComponent<Data = FlatElementData>(props: ElementItemProps<Data>) {
   const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
   const cell = rest as Data;
   const graphStore = useGraphStore();
@@ -33,7 +31,6 @@ function SVGElementItemComponent<Data = FlatElementData>(
     graphStore.scheduleClearView({
       cellId: id,
     });
-    graphStore.flushPendingUpdates();
   }, [id, graphStore, areElementsMeasured]);
 
   if (!portalElement) {
@@ -70,9 +67,7 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
  * @returns The rendered element inside the portal.
  * @internal
  */
-function HTMLElementItemComponent<Data = FlatElementData>(
-  props: ElementItemProps<Data>
-) {
+function HTMLElementItemComponent<Data = FlatElementData>(props: ElementItemProps<Data>) {
   const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
   const cell = rest as Data;
   // we must use renderElement and not cell data, because user can select different data, so then, the width and height do not have to be inside the cell data.
@@ -87,7 +82,6 @@ function HTMLElementItemComponent<Data = FlatElementData>(
     graphStore.scheduleClearView({
       cellId: id,
     });
-    graphStore.flushPendingUpdates();
   }, [id, graphStore, areElementsMeasured]);
 
   // WE NEED TO COMPARE WHAT IS CHANGED HERE...

@@ -47,6 +47,8 @@ export interface AddPaperOptions {
   readonly renderElement?: RenderElement<FlatElementData>;
   /** Optional custom renderer for links */
   readonly renderLink?: RenderLink<FlatLinkData>;
+  /** Optional alias id */
+  readonly alternateId?: string;
 }
 
 /**
@@ -62,15 +64,27 @@ export interface PaperStoreOptions extends AddPaperOptions {
 
 /**
  * Snapshot of paper-specific state.
- * Contains element and link views for this paper instance.
+ * Contains serializable metadata for paper view state.
  */
 export interface PaperStoreSnapshot {
-  /** Map of cell IDs to their element views in this paper */
-  paperElementViews?: Record<CellId, dia.ElementView>;
-  /** Map of link IDs to their link views in this paper */
-  linkViews?: Record<CellId, dia.LinkView>;
-  /** Map of link label IDs to their SVG elements */
-  linksData?: Record<string, SVGElement>;
+  /** True once this paper has emitted at least one view snapshot */
+  readonly hasElementViewSnapshot: boolean;
+  /** IDs of mounted element views in this paper */
+  readonly elementViewIds: Record<CellId, true>;
+  /** IDs of mounted link views in this paper */
+  readonly linkViewIds: Record<CellId, true>;
+}
+
+/**
+ * Creates an empty paper snapshot.
+ * @returns Empty serializable paper metadata snapshot.
+ */
+export function createPaperStoreSnapshot(): PaperStoreSnapshot {
+  return {
+    hasElementViewSnapshot: false,
+    elementViewIds: {},
+    linkViewIds: {},
+  };
 }
 
 /**
@@ -90,23 +104,11 @@ export class PaperStore {
   public renderElement?: RenderElement<FlatElementData>;
   /** Optional custom link renderer */
   public renderLink?: RenderLink<FlatLinkData>;
-
-  /**
-   * Cleanup function to unregister paper update callback from GraphStore.
-   * @internal
-   */
-  private unregisterPaperUpdate?: () => void;
+  /** Optional alias id */
+  public alternateId?: string;
 
   constructor(options: PaperStoreOptions) {
-    const {
-      graphStore,
-      paperOptions = {},
-      scale,
-      renderElement,
-      renderLink,
-      id,
-    } = options;
-    const { width, height } = paperOptions;
+    const { graphStore, paperOptions = {}, scale, renderElement, renderLink, id } = options;
     const { graph } = graphStore;
     const hasHighlightingOverride = typeof paperOptions.highlighting === 'object';
     const highlightingOverride = hasHighlightingOverride
@@ -123,28 +125,6 @@ export class PaperStore {
     this.paperId = id;
     this.renderElement = renderElement;
     this.renderLink = renderLink;
-    const cache: {
-      elementViews: Record<CellId, dia.ElementView>;
-      linkViews: Record<CellId, dia.LinkView>;
-      linksData: Record<string, SVGElement>;
-    } = {
-      elementViews: {},
-      linkViews: {},
-      linksData: {},
-    };
-    // Register paper update callback with GraphStore's unified scheduler
-    // This ensures paper updates are batched together with link/port updates
-    const paperUpdateCallback = () => {
-      graphStore.updatePaperSnapshot(options.id, (current) => {
-        return {
-          ...current,
-          paperElementViews: cache.elementViews,
-          linkViews: cache.linkViews,
-          linksData: cache.linksData,
-        };
-      });
-    };
-    this.unregisterPaperUpdate = graphStore.registerPaperUpdate(paperUpdateCallback);
     // Create a new ReactPaper instance
     // ReactPaper handles view lifecycle internally via insertView/removeView
     // NOTE: We don't use cellVisibility to hide links because JointJS's
@@ -182,56 +162,33 @@ export class PaperStore {
         disposeHidden: true,
         lazyInitialize: true,
       },
-      graphStore,
+      onViewMountChange: (kind, cellId, isMounted) => {
+        switch (kind) {
+          case 'element': {
+            if (isMounted) {
+              graphStore.markPaperElementViewMounted(id, cellId);
+            } else {
+              graphStore.markPaperElementViewUnmounted(id, cellId);
+            }
+            return;
+          }
+          case 'link': {
+            if (isMounted) {
+              graphStore.markPaperLinkViewMounted(id, cellId);
+            } else {
+              graphStore.markPaperLinkViewUnmounted(id, cellId);
+            }
+            return;
+          }
+        }
+      },
     });
-
-    // Attach React-specific properties to the paper for view access
-    paper.reactElementCache = {
-      get elementViews() {
-        return cache.elementViews;
-      },
-      set elementViews(value) {
-        cache.elementViews = value;
-      },
-    };
-    paper.reactElementGraphStore = {
-      schedulePaperUpdate: () => graphStore.schedulePaperUpdate(),
-      get internalState() {
-        return graphStore.internalState;
-      },
-    };
-    paper.reactLinkCache = {
-      get linkViews() {
-        return cache.linkViews;
-      },
-      set linkViews(value) {
-        cache.linkViews = value;
-      },
-      get linksData() {
-        return cache.linksData;
-      },
-      set linksData(value) {
-        cache.linksData = value;
-      },
-    };
-    paper.reactLinkGraphStore = {
-      schedulePaperUpdate: () => graphStore.schedulePaperUpdate(),
-      flushPendingUpdates: () => graphStore.flushPendingUpdates(),
-    };
-    paper.reactLinkPaperStore = {
-      getLinkLabelId: this.getLinkLabelId,
-    };
 
     this.paper = paper;
 
     if (scale !== undefined) {
       this.paper.scale(scale);
     }
-
-    if (width !== undefined && height !== undefined) {
-      this.paper.setDimensions(width, height);
-    }
-    this.paper.unfreeze();
   }
 
   /**
@@ -244,15 +201,27 @@ export class PaperStore {
     return `${linkId}-label-${labelIndex}`;
   }
 
+  public getElementView(id: CellId): dia.ElementView | undefined {
+    return this.paper.getElementView(id);
+  }
+
+  public getLinkView(id: CellId): dia.LinkView | undefined {
+    return this.paper.getLinkView(id);
+  }
+
+  public hasElementView(id: CellId): boolean {
+    return !!this.getElementView(id);
+  }
+
+  public hasLinkView(id: CellId): boolean {
+    return !!this.getLinkView(id);
+  }
+
   /**
    * Cleans up the paper instance and all associated resources.
    * Should be called when the paper is being removed from the graph store.
    */
   public destroy = () => {
-    // Unregister from GraphStore's update scheduler
-    this.unregisterPaperUpdate?.();
-    this.unregisterPaperUpdate = undefined;
-
     // Remove the JointJS paper instance - this cleans up:
     // - All event listeners on the paper
     // - All cell views

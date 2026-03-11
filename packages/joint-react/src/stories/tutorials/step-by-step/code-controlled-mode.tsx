@@ -73,7 +73,7 @@ type CustomLink = FlatLinkData;
  * - width, height: dimensions
  */
 const defaultElements: Record<string, CustomElement> = {
-  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  '1': { label: 'Hello', x: 100, y: 15, width: 100, height: 50 },
   '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
 };
 

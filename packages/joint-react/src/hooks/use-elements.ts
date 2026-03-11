@@ -1,7 +1,7 @@
 import { util } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
-import { useGraphStoreSelector } from './use-graph-store-selector';
+import { useData } from './use-stores';
 
 /**
  * Default selector function to return all elements.
@@ -61,13 +61,15 @@ export function useElements<
   ElementData = FlatElementData,
   SelectorReturnType = Record<CellId, ElementData>,
 >(
-  selector: (items: Record<CellId, ElementData>) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+  selector: (
+    items: Record<CellId, ElementData>
+  ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual as (
     a: SelectorReturnType,
     b: SelectorReturnType
   ) => boolean
 ): SelectorReturnType {
-  return useGraphStoreSelector((snapshot) => {
+  return useData((snapshot) => {
     return selector(snapshot.elements as Record<CellId, ElementData>);
   }, isEqual);
 }

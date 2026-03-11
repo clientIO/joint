@@ -1,42 +1,9 @@
 import { useMemo } from 'react';
+import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
-import type { GraphStoreSnapshot } from '../store';
 import { useGraphStore } from './use-graph-store';
-
-/**
- * Normalizes element attributes to the FlatElementData format.
- * Converts nested JointJS format (position: {x, y}, size: {width, height})
- * to flat format (x, y, width, height).
- * @param attributes
- */
-function normalizeElementAttributes<T>(attributes: T): T {
-  const {
-    position,
-    size,
-    ...rest
-  } = attributes as T & {
-    position?: { x: number; y: number };
-    size?: { width: number; height: number };
-  };
-
-  const normalized = { ...rest } as T;
-
-  // Convert position to flat x, y (prefer position over existing x, y)
-  if (position !== undefined) {
-    (normalized as FlatElementData).x = position.x;
-    (normalized as FlatElementData).y = position.y;
-  }
-
-  // Convert size to flat width, height (prefer size over existing width, height)
-  if (size !== undefined) {
-    (normalized as FlatElementData).width = size.width;
-    (normalized as FlatElementData).height = size.height;
-  }
-
-  return normalized;
-}
 
 /**
  * Actions for manipulating cells (elements and links) in the graph.
@@ -50,7 +17,10 @@ interface CellActions<Attributes = FlatElementData> {
    * 2. With ID and updater: `set('1', (prev) => ({ ...prev, label: 'New' }))`
    * If the cell doesn't exist, it will be added.
    */
-  set: (id: CellId, attributesOrUpdater: Attributes | ((previous: Attributes) => Attributes)) => void;
+  set: (
+    id: CellId,
+    attributesOrUpdater: Attributes | ((previous: Attributes) => Attributes)
+  ) => void;
   /**
    * Removes a cell from the graph by its ID.
    * @param id - The ID of the cell to remove
@@ -70,41 +40,24 @@ function isLink(cell: FlatElementData | FlatLinkData): cell is FlatLinkData {
 /**
  * Hook that provides imperative actions for manipulating cells (elements and links) in the graph.
  *
- * This hook allows you to programmatically add, update, and remove cells without directly
- * manipulating the graph instance. All changes go through the store, ensuring proper
- * synchronization with React state.
- *
- * **Features:**
- * - Type-safe cell manipulation
- * - Automatic synchronization with React state
- * - Support for both elements and links
- * - Updater function pattern for safe updates
- *
- * **Usage:**
- * - Use `set` to add or update cells
- * - Use `remove` to delete cells by ID
- * - Must be used within a GraphProvider context
+ * All changes go through the JointJS graph API. graphState automatically picks up
+ * the changes and updates dataState.
  * @group Hooks
- * @template Attributes - The type of cell attributes, which can be an element or a link
+ * @template Attributes - The type of cell attributes
  * @returns An object containing methods to set and remove cells
  * @example
  * ```tsx
  * const { set, remove } = useCellActions<FlatElementData | FlatLinkData<"standard.Link">>();
  *
- * // Add or update element with ID and attributes
  * set('1', { x: 100, y: 150, width: 100, height: 50 });
- *
- * // Update element with updater function (safer, preserves other properties)
  * set('1', (cell) => ({ ...cell, x: 200, y: 250 }));
- *
- * // Remove element
  * remove('1');
  * ```
  */
 export function useCellActions<
   Attributes = FlatElementData | FlatLinkData,
 >(): CellActions<Attributes> {
-  const { graph, publicState } = useGraphStore();
+  const graphStore = useGraphStore();
 
   return useMemo(
     (): CellActions<Attributes> => ({
@@ -112,52 +65,54 @@ export function useCellActions<
         id: CellId,
         attributesOrUpdater: Attributes | ((previousAttributes: Attributes) => Attributes)
       ) {
-        let attributes: Attributes;
-        const { elements, links } = publicState.getSnapshot();
+        const { graph, graphState, mapDataToElementAttributes, mapDataToLinkAttributes } =
+          graphStore;
+        const snapshot = graphState.dataState.getSnapshot();
+        const { elements, links } = snapshot;
 
+        let attributes: Attributes;
         if (typeof attributesOrUpdater === 'function') {
           const cell: FlatElementData | FlatLinkData | undefined = elements[id] || links[id];
-
           if (!cell) throw new Error(`Cell with id "${id}" not found.`);
-          attributes = (attributesOrUpdater as (previous: Attributes) => Attributes)(cell as Attributes);
+          attributes = (attributesOrUpdater as (previous: Attributes) => Attributes)(
+            cell as Attributes
+          );
         } else {
           attributes = attributesOrUpdater;
         }
 
         const cellData = attributes as FlatElementData | FlatLinkData;
+        const existingCell: dia.Cell | undefined = graph.getCell(id);
+
+        // Merge new data with existing data from dataState to preserve unspecified fields
+        const existingData = existingCell?.isElement() ? elements[id] : links[id];
+        const mergedData = existingData
+          ? { ...existingData, ...cellData }
+          : { x: 0, y: 0, width: 1, height: 1, ...cellData };
         const areAttributesLink = isLink(cellData);
-        const targetId = id;
-
-        const hasElement = targetId in elements;
-        const hasLink = targetId in links;
-        const isFound = hasElement || hasLink;
-
-        const newElements = { ...elements };
-        const newLinks = { ...links };
-
-        if (hasElement) {
-          newElements[targetId] = normalizeElementAttributes(cellData as FlatElementData);
-        } else if (hasLink) {
-          newLinks[targetId] = cellData as FlatLinkData;
-        } else if (!isFound) {
-          if (areAttributesLink) {
-            newLinks[targetId] = cellData as FlatLinkData;
-          } else {
-            newElements[targetId] = normalizeElementAttributes(cellData as FlatElementData);
-          }
-        }
-
-        publicState.setState((previous: GraphStoreSnapshot) => ({
-          ...previous,
-          elements: newElements,
-          links: newLinks,
-        }));
+        const cellAttributes =
+          (existingCell?.isElement() ?? !areAttributesLink)
+            ? mapDataToElementAttributes({
+                id: String(id),
+                data: mergedData as FlatElementData,
+                graph,
+              })
+            : mapDataToLinkAttributes({
+                id: String(id),
+                data: mergedData as FlatLinkData,
+                graph,
+              });
+        cellAttributes.id = id;
+        graph.syncCells([cellAttributes], { remove: false });
+        // Collect all current cells, replacing the one being updated
       },
 
       remove(id) {
-        graph.getCell(id)?.remove();
+        const { graph } = graphStore;
+        const cell = graph.getCell(id);
+        cell?.remove();
       },
     }),
-    [graph, publicState]
+    [graphStore]
   );
 }

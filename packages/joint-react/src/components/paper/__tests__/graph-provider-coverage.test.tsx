@@ -108,7 +108,7 @@ describe('GraphProvider Coverage Tests', () => {
 
       function ControlledGraph() {
         const [links, setLinks] = useState<Record<string, FlatLinkData>>(() => ({
-          'link1': initialLink,
+          link1: initialLink,
         }));
         return (
           <GraphProvider links={links} onLinksChange={setLinks}>
@@ -150,7 +150,8 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(unmeasuredElements);
+        const [elements, setElements] =
+          useState<Record<string, FlatElementData>>(unmeasuredElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -178,7 +179,7 @@ describe('GraphProvider Coverage Tests', () => {
 
       // Store should work before unmount
       expect(() => {
-        const { elements } = store.publicState.getSnapshot();
+        const { elements } = store.dataState.getSnapshot();
         expect(elements).toBeDefined();
       }).not.toThrow();
 
@@ -186,7 +187,7 @@ describe('GraphProvider Coverage Tests', () => {
 
       // Store should still work after unmount (it's not destroyed)
       expect(() => {
-        const { elements } = store.publicState.getSnapshot();
+        const { elements } = store.dataState.getSnapshot();
         expect(elements).toBeDefined();
       }).not.toThrow();
     });

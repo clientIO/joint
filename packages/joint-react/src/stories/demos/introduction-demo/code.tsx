@@ -5,7 +5,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import React from 'react';
-import { dia, highlighters, linkTools, shapes } from '@joint/core';
+import { dia, highlighters, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
 import './index.css';
 import {
@@ -90,6 +90,7 @@ const PAPER_PROPS: PaperProps<Element> = {
   snapLinks: { radius: 25 },
   sorting: dia.Paper.sorting.APPROX,
   linkPinning: false,
+  width: '100%',
 };
 
 // Create initial elements and links with typing support as Records
@@ -530,29 +531,17 @@ function Main() {
         <Paper
           ref={paperCtxRef}
           {...PAPER_PROPS}
-          defaultLink={() => {
-            return new shapes.standard.Link({
-              attrs: {
-                line: {
-                  stroke: LIGHT,
-                  strokeWidth: 2,
-                  strokeDasharray: '5,5',
-                  targetMarker: {
-                    d: 'M 0 0 L 8 4 L 8 -4 Z',
-                  },
-                },
-              },
-              color: LIGHT,
-              width: 2,
-              className: 'link',
-              pattern: '5,5',
-              targetMarker: {
-                d: 'M 0 0 L 8 4 L 8 -4 Z',
-              },
-            } as shapes.standard.LinkAttributes);
+          defaultLink={{
+            color: LIGHT,
+            width: 2,
+            className: 'link',
+            pattern: '5,5',
+            targetMarker: {
+              d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
+            },
           }}
           renderElement={renderElement}
-          className={PAPER_CLASSNAME}
+          className={`${PAPER_CLASSNAME} h-[600px]`}
         />
 
         {isMinimapVisible && <MiniMap />}
