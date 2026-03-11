@@ -109,7 +109,6 @@ export class PaperStore {
 
   constructor(options: PaperStoreOptions) {
     const { graphStore, paperOptions = {}, scale, renderElement, renderLink, id } = options;
-    const { width, height } = paperOptions;
     const { graph } = graphStore;
     const hasHighlightingOverride = typeof paperOptions.highlighting === 'object';
     const highlightingOverride = hasHighlightingOverride
@@ -189,9 +188,6 @@ export class PaperStore {
 
     if (scale !== undefined) {
       this.paper.scale(scale);
-    }
-    if (width !== undefined && height !== undefined) {
-      this.paper.setDimensions(width, height);
     }
   }
 

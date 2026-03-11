@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
-import { forwardRef, useContext, useImperativeHandle, useRef } from 'react';
-import { PaperConfigContext, PaperStoreContext } from '../../context';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { PaperStoreContext } from '../../context';
 import { useCreateReactPaper } from '../../hooks/use-create-react-paper';
 import type { FlatElementData } from '../../types/element-types';
 import type { PaperProps } from './paper.types';
@@ -34,24 +34,16 @@ function PaperBase<ElementData = FlatElementData>(
     height: resolvedHeight,
     elementRef: paperHTMLElementRef,
   });
-  const config = useContext(PaperConfigContext);
 
   useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paper ?? null, [
     paper,
   ]);
 
-  const hasConfig = !!config?.alternateId;
-  const htmlContent = hasConfig ? (
-    <>{content}</>
-  ) : (
-    <div className={className} ref={paperHTMLElementRef} style={style}>
-      {isReady && content}
-    </div>
-  );
-
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
-      {htmlContent}
+      <div className={className} ref={paperHTMLElementRef} style={style}>
+        {isReady && content}
+      </div>
       {isReady && children}
     </PaperStoreContext.Provider>
   );

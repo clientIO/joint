@@ -45,8 +45,6 @@ export interface UseCreateReactPaperOptions<ElementData = FlatElementData>
    * When omitted, paper rendering is manual (e.g. via `onReady` callback).
    */
   readonly elementRef?: RefObject<HTMLElement | SVGElement | null>;
-  /** Keep paper dimensions in sync with `width` / `height` options. */
-  readonly shouldSyncDimensions?: boolean;
   /** Callback fired once when paper instance is created and ready. */
   readonly onReady?: (paper: ReactPaper) => void;
 }
@@ -125,17 +123,10 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     // These are React host props and must not be forwarded to dia.Paper options.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     className,
-    style,
     elementRef,
-    shouldSyncDimensions,
     onReady,
     ...paperOptions
   } = options;
-
-  const height = paperOptions.height ?? style?.height;
-  const width = paperOptions.width ?? style?.width;
-
-  const shouldApplyDimensions = shouldSyncDimensions ?? true;
 
   const areElementsMeasured = useAreElementsMeasured();
   const elementsState = useElements();
@@ -276,19 +267,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       paper.scale(scale);
     }
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
-
-  useLayoutEffect(() => {
-    if (!paper) return;
-    if (!shouldApplyDimensions) return;
-    const hostElement = elementRef?.current ?? null;
-
-    const hasMissingDimension = width === undefined || height === undefined;
-    if (!hasMissingDimension || !hostElement) {
-      return;
-    }
-
-    // For inferred dimensions, keep paper in sync with host element resize.
-  }, [elementRef, height, paper, shouldApplyDimensions, width]);
 
   useEffect(() => {
     if (!hasElementViewSnapshot) return;
