@@ -500,14 +500,14 @@ describe('useCellActions', () => {
       });
     });
 
-    // Cell is in the graph immediately, but publicState is deferred until batch:stop
+    // Cell is in the graph immediately, but dataState is deferred until batch:stop
     expect(result.current.graph.getCell('batched-link')).toBeDefined();
 
     act(() => {
       result.current.graph.stopBatch('test');
     });
 
-    // After batch:stop, publicState should reflect the new link
+    // After batch:stop, dataState should reflect the new link
     await waitFor(() => {
       expect(result.current.links['batched-link']).toBeDefined();
       expect(result.current.graph.getCell('batched-link')).toBeDefined();
@@ -539,7 +539,7 @@ describe('useCellActions', () => {
       });
     });
 
-    // During batch: graph is updated but publicState (useElements) is deferred
+    // During batch: graph is updated but dataState (useElements) is deferred
     const graphElement = result.current.graph.getCell('1');
     expect(graphElement?.get('position')).toEqual({ x: 125, y: 175 });
 

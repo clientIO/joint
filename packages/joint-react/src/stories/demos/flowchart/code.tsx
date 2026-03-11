@@ -531,7 +531,6 @@ function Main() {
       id={paperId}
       gridSize={5}
       height={600}
-      width="100%"
       overflow={true}
       snapLabels={true}
       onElementsSizeReady={({ paper }) => {
@@ -542,7 +541,7 @@ function Main() {
           horizontalAlign: 'middle',
         });
       }}
-      className={`${PAPER_CLASSNAME} flowchart-paper`}
+      className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
       renderElement={RenderFlowchartNode as unknown as RenderElement}
       interactive={{ linkMove: false }}
       defaultConnectionPoint={{

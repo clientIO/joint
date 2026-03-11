@@ -99,7 +99,7 @@ function getExpectedDimensionForCombination(options: {
   readonly propDimension: number;
   readonly withStyle: boolean;
   readonly styleDimension: string;
-}): dia.Paper.Dimension {
+}): dia.Paper.Dimension | undefined {
   const { withDimensionProp, propDimension, withStyle, styleDimension } = options;
 
   if (withDimensionProp) {
@@ -108,12 +108,12 @@ function getExpectedDimensionForCombination(options: {
   if (withStyle) {
     return styleDimension;
   }
-  return null;
+  return undefined;
 }
 
 function assertPaperDimension(options: {
   readonly paper: ReactPaper;
-  readonly expectedDimension: dia.Paper.Dimension;
+  readonly expectedDimension: dia.Paper.Dimension | undefined;
   readonly axis: 'width' | 'height';
 }) {
   const { paper, expectedDimension, axis } = options;
@@ -122,7 +122,7 @@ function assertPaperDimension(options: {
 
   expect(optionDimension).toBe(expectedDimension);
 
-  if (expectedDimension === null) {
+  if (expectedDimension == null) {
     return;
   }
 
@@ -144,6 +144,20 @@ function assertCustomPaperClasses(paperElement: HTMLElement) {
 function assertCustomPaperStyle(paperElement: HTMLElement) {
   expect(paperElement.style.backgroundColor).toBe('rgb(10, 20, 30)');
   expect(paperElement.style.borderTopWidth).toBe('2px');
+}
+
+function appendPaperHostSizeStyle(options: {
+  readonly className: string;
+  readonly width: string;
+  readonly height: string;
+}) {
+  const { className, width, height } = options;
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `.${className} { width: ${width}; height: ${height}; }`;
+  document.head.append(styleElement);
+  return () => {
+    styleElement.remove();
+  };
 }
 
 function getPortDragElements(): Record<string, FlatElementData> {
@@ -895,6 +909,112 @@ describe('Paper Component', () => {
     expect(ref.current!.options.height).toBe('360px');
     expect(ref.current!.el.style.width).toBe('640px');
     expect(ref.current!.el.style.height).toBe('360px');
+  });
+
+  it('uses className CSS dimensions when width, height, and style dimensions are omitted', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+    const cleanupPaperHostStyle = appendPaperHostSizeStyle({
+      className: 'paper-host-sized-by-class',
+      width: '200px',
+      height: '120px',
+    });
+
+    try {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper<Element>
+            ref={ref}
+            className="paper-host-sized-by-class"
+            renderElement={({ label }) => <div>{label}</div>}
+          />
+        </GraphProvider>
+      );
+
+      await waitFor(() => {
+        expect(ref.current).not.toBeNull();
+      });
+
+      expect(ref.current!.options.width).toBeUndefined();
+      expect(ref.current!.options.height).toBeUndefined();
+      expect(ref.current!.el.style.width).toBe('');
+      expect(ref.current!.el.style.height).toBe('');
+      expect(getComputedStyle(ref.current!.el).width).toBe('200px');
+      expect(getComputedStyle(ref.current!.el).height).toBe('120px');
+    } finally {
+      cleanupPaperHostStyle();
+    }
+  });
+
+  it('gives style dimensions precedence over className CSS dimensions', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+    const cleanupPaperHostStyle = appendPaperHostSizeStyle({
+      className: 'paper-host-size-conflict',
+      width: '200px',
+      height: '120px',
+    });
+
+    try {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper<Element>
+            ref={ref}
+            className="paper-host-size-conflict"
+            style={{ width: '320px', height: '180px' }}
+            renderElement={({ label }) => <div>{label}</div>}
+          />
+        </GraphProvider>
+      );
+
+      await waitFor(() => {
+        expect(ref.current).not.toBeNull();
+      });
+
+      expect(ref.current!.options.width).toBe('320px');
+      expect(ref.current!.options.height).toBe('180px');
+      expect(ref.current!.el.style.width).toBe('320px');
+      expect(ref.current!.el.style.height).toBe('180px');
+      expect(getComputedStyle(ref.current!.el).width).toBe('320px');
+      expect(getComputedStyle(ref.current!.el).height).toBe('180px');
+    } finally {
+      cleanupPaperHostStyle();
+    }
+  });
+
+  it('gives width and height props precedence over style and className CSS dimensions', async () => {
+    const ref: RefObject<ReactPaper | null> = { current: null };
+    const cleanupPaperHostStyle = appendPaperHostSizeStyle({
+      className: 'paper-host-size-priority',
+      width: '200px',
+      height: '120px',
+    });
+
+    try {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper<Element>
+            ref={ref}
+            className="paper-host-size-priority"
+            width={480}
+            height={260}
+            style={{ width: '320px', height: '180px' }}
+            renderElement={({ label }) => <div>{label}</div>}
+          />
+        </GraphProvider>
+      );
+
+      await waitFor(() => {
+        expect(ref.current).not.toBeNull();
+      });
+
+      expect(ref.current!.options.width).toBe(480);
+      expect(ref.current!.options.height).toBe(260);
+      expect(ref.current!.el.style.width).toBe('480px');
+      expect(ref.current!.el.style.height).toBe('260px');
+      expect(getComputedStyle(ref.current!.el).width).toBe('480px');
+      expect(getComputedStyle(ref.current!.el).height).toBe('260px');
+    } finally {
+      cleanupPaperHostStyle();
+    }
   });
 
   test.each(PAPER_PROPS_COMBINATIONS)(

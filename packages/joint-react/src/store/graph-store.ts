@@ -11,7 +11,7 @@ import {
 } from './create-elements-size-observer';
 import { ReactElement } from '../models/react-element';
 import { ReactLink } from '../models/react-link';
-import type { GraphStateSelectors } from '../state/graph-state-selectors';
+import type { GraphMappings } from '../state/graph-mappings';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
@@ -27,6 +27,8 @@ import {
   type State,
 } from '../utils/create-state';
 import type { IncrementalStateChanges } from '../state/incremental.types';
+import { GraphExternalContextStore } from './graph-external-context-store';
+import { PaperStores } from './papers-store';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -78,22 +80,12 @@ export interface GraphStoreLayoutSnapshot {
 export interface GraphStoreInternalSnapshot {
   papers: Record<string, PaperStoreSnapshot>;
 }
-/**
- * Graph store context with incremental state for updates.
- */
-export type GraphStoreContextId = string | number | symbol;
-export type GraphStoreContextSnapshot = ReadonlyMap<GraphStoreContextId, number>;
-
-export interface GraphStoreContextRegister {
-  readonly value: unknown;
-  readonly cleanup?: () => void;
-}
 
 /**
  * Configuration options for creating a GraphStore instance.
  */
 export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData>
-  extends GraphStateSelectors<ElementData, LinkData> {
+  extends GraphMappings<ElementData, LinkData> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
@@ -109,16 +101,14 @@ export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = Fla
    */
   readonly enableBatchUpdates?: boolean;
 }
-
 /**
  * Central store for managing graph state, synchronization, and paper instances.
  */
 export class GraphStore {
   public readonly internalState: State<GraphStoreInternalSnapshot>;
-  public readonly publicState: ExternalStoreLike<GraphStoreSnapshot>;
+  public readonly dataState: ExternalStoreLike<GraphStoreSnapshot>;
   public readonly areElementsMeasuredState: ExternalStoreLike<boolean>;
-  public readonly contextsState: State<GraphStoreContextSnapshot>;
-  public readonly registeredContexts = new Map<GraphStoreContextId, GraphStoreContextRegister>();
+  public readonly externalStore = new GraphExternalContextStore();
   public readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
   public readonly graph: dia.Graph;
   public readonly graphState: ListenOutput;
@@ -133,7 +123,7 @@ export class GraphStore {
     readonly graph: dia.Graph;
   }) => dia.Cell.JSON;
 
-  public paperStores = new Map<string, PaperStore>();
+  public paperStores = new PaperStores();
   private observer: GraphStoreObserver;
 
   constructor(config: GraphStoreOptions) {
@@ -232,13 +222,8 @@ export class GraphStore {
       },
     });
 
-    this.publicState = this.graphState.publicState;
+    this.dataState = this.graphState.dataState;
     this.layoutState = this.graphState.layoutState;
-
-    this.contextsState = createState<GraphStoreContextSnapshot>({
-      name: 'Jointjs/Contexts',
-      newState: () => new Map<GraphStoreContextId, number>(),
-    });
 
     this.areElementsMeasuredState = derivedState({
       state: [this.graphState.layoutState, this.internalState] as const,
@@ -260,7 +245,7 @@ export class GraphStore {
     });
 
     this.observer = createElementsSizeObserver({
-      getPublicSnapshot: () => this.publicState.getSnapshot(),
+      getPublicSnapshot: () => this.dataState.getSnapshot(),
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('resize');
         for (const [id, data] of Object.entries(updatedElements)) {
@@ -302,7 +287,7 @@ export class GraphStore {
       });
     } else if (this.graph.getCells().length > 0) {
       // External graph already has cells — re-trigger reset so graphState
-      // picks them up and populates publicState/layoutState
+      // picks them up and populates dataState/layoutState
       this.graph.resetCells(this.graph.getCells());
     }
   }
@@ -323,13 +308,7 @@ export class GraphStore {
     if (!isGraphExternal) {
       this.graph.clear();
     }
-
-    // also cleanup registered contexts
-    for (const context of this.registeredContexts.values()) {
-      context.cleanup?.();
-    }
-    this.registeredContexts.clear();
-    this.contextsState.clean();
+    this.externalStore.destroy();
   };
 
   public updatePaperSnapshot(
@@ -458,7 +437,7 @@ export class GraphStore {
 
   public addPaper = (id: string, paperOptions: AddPaperOptions) => {
     const paperStore = new PaperStore({ ...paperOptions, graphStore: this, id });
-    this.paperStores.set(id, paperStore);
+    this.paperStores.set(id, paperStore, paperOptions.alternateId);
     this.internalState.setState((previous) => {
       if (previous.papers[id]) {
         return previous;
@@ -472,7 +451,9 @@ export class GraphStore {
 
   public setMeasuredNode = (options: SetMeasuredNodeOptions) => this.observer.add(options);
 
-  public getPaperStore = (id: string) => this.paperStores.get(id);
+  public getPaperStore = (id: string) => {
+    return this.paperStores.get(id);
+  };
 
   // --- ClearView API ---
 
@@ -487,46 +468,5 @@ export class GraphStore {
       options.onValidateLink
     );
     this.graph.trigger(LAYOUT_UPDATE_EVENT);
-  };
-
-  /**
-   * Registers a context value with the graph store, which can be accessed by paper views and other components. This allows for sharing arbitrary data across the graph without putting it in the reactive state. The optional cleanup function can be used to perform any necessary cleanup when the context is unregistered.
-   * @param id - The unique identifier for the context.
-   * @param value - The context value to register.
-   * @param cleanup - An optional function to clean up the context when it is unregistered.
-   * @returns The registered context object, which includes the value and cleanup function.
-   */
-  public setContext = (id: GraphStoreContextId, value: unknown, cleanup?: () => void) => {
-    const context = {
-      value,
-      cleanup,
-    };
-    this.registeredContexts.set(id, context);
-    this.updateContextRevision(id);
-
-    return context;
-  };
-
-  /**
-   * Unregisters a context from the graph store by its ID. This will call the cleanup function associated with the context if it exists, and then remove the context from the registered contexts and update the contexts state to trigger any necessary updates in components that depend on this context.
-   * @param id - The unique identifier of the context to unregister.
-   */
-  public removeContext = (id: GraphStoreContextId) => {
-    this.registeredContexts.get(id)?.cleanup?.();
-    this.registeredContexts.delete(id);
-    this.updateContextRevision(id);
-  };
-
-  public getContext = (id: GraphStoreContextId): GraphStoreContextRegister | null => {
-    return this.registeredContexts.get(id) ?? null;
-  };
-
-  private updateContextRevision = (id: GraphStoreContextId) => {
-    this.contextsState.setState((previous) => {
-      const nextState = new Map(previous);
-      const previousUpdateNumber = nextState.get(id) ?? 0;
-      nextState.set(id, previousUpdateNumber + 1);
-      return nextState;
-    });
   };
 }

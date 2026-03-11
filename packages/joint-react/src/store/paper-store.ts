@@ -47,6 +47,8 @@ export interface AddPaperOptions {
   readonly renderElement?: RenderElement<FlatElementData>;
   /** Optional custom renderer for links */
   readonly renderLink?: RenderLink<FlatLinkData>;
+  /** Optional alias id */
+  readonly alternateId?: string;
 }
 
 /**
@@ -102,6 +104,8 @@ export class PaperStore {
   public renderElement?: RenderElement<FlatElementData>;
   /** Optional custom link renderer */
   public renderLink?: RenderLink<FlatLinkData>;
+  /** Optional alias id */
+  public alternateId?: string;
 
   constructor(options: PaperStoreOptions) {
     const { graphStore, paperOptions = {}, scale, renderElement, renderLink, id } = options;

@@ -1,16 +1,16 @@
-import { render, waitFor } from '@testing-library/react';
-import { useEffect } from 'react';
+import { act, render, renderHook, waitFor } from '@testing-library/react';
+import { useEffect, type ReactNode } from 'react';
 import { GraphProvider } from '../../components';
-import { useGraphStore, useGraphStoreContext } from '../../hooks';
-import type { GraphStoreContextId } from '../../store';
+import { useExternalContext, useGraphStore } from '../../hooks';
+import { GraphStore, type GraphExternalContextId } from '../../store';
 
 interface AccessComponentProps {
-  readonly contextId: GraphStoreContextId;
+  readonly contextId: GraphExternalContextId;
   readonly testId: string;
 }
 
 interface CreateContextComponentProps {
-  readonly contextId: GraphStoreContextId;
+  readonly contextId: GraphExternalContextId;
   readonly value: string;
 }
 
@@ -24,7 +24,7 @@ interface MountedTestCaseProps {
 }
 
 function AccessComponent({ contextId, testId }: Readonly<AccessComponentProps>) {
-  const value = useGraphStoreContext<string>(contextId);
+  const value = useExternalContext<string>(contextId);
   return <div data-testid={testId}>{value ?? 'null'}</div>;
 }
 
@@ -32,16 +32,52 @@ function CreateContextComponent({ contextId, value }: Readonly<CreateContextComp
   const store = useGraphStore();
 
   useEffect(() => {
-    store.setContext(contextId, value);
+    store.externalStore.setExternalContext(contextId, value);
     return () => {
-      store.removeContext(contextId);
+      store.externalStore.removeExternalContext(contextId);
     };
   }, [contextId, store, value]);
 
   return null;
 }
 
-describe('use-graph-store-context', () => {
+describe('use-external-context', () => {
+  it('should react to setExternalContext and removeExternalContext updates in renderHook', async () => {
+    const contextId = 'render-hook-external-context';
+    const store = new GraphStore({});
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <GraphProvider store={store}>{children}</GraphProvider>
+    );
+
+    const { result } = renderHook(() => useExternalContext<string>(contextId), { wrapper });
+
+    expect(result.current).toBeNull();
+
+    act(() => {
+      store.externalStore.setExternalContext(contextId, 'first-value');
+    });
+
+    await waitFor(() => {
+      expect(result.current).toBe('first-value');
+    });
+
+    act(() => {
+      store.externalStore.setExternalContext(contextId, 'second-value');
+    });
+
+    await waitFor(() => {
+      expect(result.current).toBe('second-value');
+    });
+
+    act(() => {
+      store.externalStore.removeExternalContext(contextId);
+    });
+
+    await waitFor(() => {
+      expect(result.current).toBeNull();
+    });
+  });
+
   it('should update a consumer that renders before the context is registered', async () => {
     const contextId = 'late-context';
 

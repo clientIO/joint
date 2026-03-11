@@ -9,7 +9,7 @@ import {
   type FlatLinkData,
 } from '@joint/react';
 import '../../examples/index.css';
-import { BUTTON_CLASSNAME } from 'storybook-config/theme';
+import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Define element type with custom properties
 type CustomElement = FlatElementData & { data: { label: string } };
@@ -89,7 +89,12 @@ function Main() {
   );
 
   return (
-    <Paper useHTMLOverlay={isHTMLEnabled} width={400} height={400} renderElement={renderItem}>
+    <Paper
+      useHTMLOverlay={isHTMLEnabled}
+      height={400}
+      renderElement={renderItem}
+      className={PAPER_CLASSNAME}
+    >
       <Controls />
       <button
         type="button"
@@ -107,11 +112,7 @@ function Main() {
 
 export default function App(props: Readonly<GraphProps>) {
   return (
-    <GraphProvider
-      {...props}
-      links={initialEdges}
-      elements={initialElements}
-    >
+    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
       <Main />
     </GraphProvider>
   );

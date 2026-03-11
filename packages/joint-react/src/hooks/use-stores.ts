@@ -1,14 +1,18 @@
+import { util } from '@joint/core';
 import type {
-  GraphStoreContextId,
-  GraphStoreContextSnapshot,
+  GraphExternalContextId,
+  GraphExternalContextSnapshot,
   GraphStoreSnapshot,
   GraphStoreInternalSnapshot,
+  GraphStoreLayoutSnapshot,
 } from '../store';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ExternalStoreLike, MarkDeepReadOnly } from '../utils/create-state';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+
+const DEFAULT_LAYOUTS_SELECTOR = (snapshot: GraphStoreLayoutSnapshot) => snapshot;
 
 /**
  * Generic hook to select data from an external store.
@@ -17,7 +21,7 @@ import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-s
  * @param isEqual - The equality function.
  * @returns The selected data.
  */
-export function useStoreSelector<Snapshot, Selection>(
+export function useStore<Snapshot, Selection>(
   store: ExternalStoreLike<Snapshot>,
   selector: (snapshot: MarkDeepReadOnly<Snapshot>) => Selection,
   isEqual: (a: Selection, b: Selection) => boolean = Object.is
@@ -37,17 +41,13 @@ export function useStoreSelector<Snapshot, Selection>(
  * @param isEqual - The equality function.
  * @returns The selected data.
  */
-export function useGraphStoreSelector<
-  Selection,
-  ElementData = FlatElementData,
-  LinkData = FlatLinkData,
->(
+export function useData<Selection, ElementData = FlatElementData, LinkData = FlatLinkData>(
   selector: (snapshot: MarkDeepReadOnly<GraphStoreSnapshot<ElementData, LinkData>>) => Selection,
   isEqual?: (a: Selection, b: Selection) => boolean
 ): Selection {
-  const { publicState } = useGraphStore();
-  return useStoreSelector(
-    publicState as unknown as ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>,
+  const { dataState } = useGraphStore();
+  return useStore(
+    dataState as unknown as ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>,
     selector,
     isEqual
   );
@@ -59,12 +59,12 @@ export function useGraphStoreSelector<
  * @param isEqual - The equality function.
  * @returns The selected data.
  */
-export function useGraphInternalStoreSelector<Selection>(
+export function useInternalData<Selection>(
   selector: (snapshot: MarkDeepReadOnly<GraphStoreInternalSnapshot>) => Selection,
   isEqual?: (a: Selection, b: Selection) => boolean
 ): Selection {
   const { internalState } = useGraphStore();
-  return useStoreSelector(internalState, selector, isEqual);
+  return useStore(internalState, selector, isEqual);
 }
 
 /**
@@ -74,20 +74,39 @@ export function useGraphInternalStoreSelector<Selection>(
  */
 export function useAreElementsMeasured(): boolean {
   const { areElementsMeasuredState } = useGraphStore();
-  return useStoreSelector(areElementsMeasuredState, (value) => value);
+  return useStore(areElementsMeasuredState, (value) => value);
 }
 
 /**
- * Hook to access the current value of a registered context from the graph store by its ID. This allows components to access shared context values that have been registered with the graph store, enabling communication and data sharing across different parts of the application without relying on React's context API directly.
- * @param id - The unique identifier of the context to access.
- * @returns The current value of the context with the specified ID, or null if the context is not found.
+ * Hook to select layout-related data from the graph store.
+ * @param selector - The selector function to select layout data from the graph store snapshot.
+ * @param isEqual - Optional equality function to optimize re-renders.
+ * @returns The selected layout data.
+ * @group Hooks
  */
-export function useGraphStoreContext<ContextValue>(id: GraphStoreContextId): ContextValue | null {
+export function useLayouts<Selected>(
+  selector: (
+    snapshot: GraphStoreLayoutSnapshot
+  ) => Selected = DEFAULT_LAYOUTS_SELECTOR as unknown as (
+    snapshot: GraphStoreLayoutSnapshot
+  ) => Selected,
+  isEqual: (a: Selected, b: Selected) => boolean = util.isEqual
+): Selected {
+  const { layoutState } = useGraphStore();
+  return useStore(layoutState, selector, isEqual);
+}
+
+/**
+ * Hook to access an external context value stored on the graph store by its ID.
+ * @param id - The unique identifier of the external context to access.
+ * @returns The current value of the external context with the specified ID, or null if not found.
+ */
+export function useExternalContext<ContextValue>(id: GraphExternalContextId): ContextValue | null {
   const graphStore = useGraphStore();
-  useStoreSelector(graphStore.contextsState, (snapshot) => {
-    return (snapshot as GraphStoreContextSnapshot).get(id) ?? null;
+  useStore(graphStore.externalStore.versionState, (snapshot) => {
+    return (snapshot as GraphExternalContextSnapshot).get(id) ?? null;
   });
 
-  const context = graphStore.getContext(id);
-  return context ? (context.value as ContextValue) : null;
+  const externalContext = graphStore.externalStore.getExternalContext(id);
+  return externalContext ? (externalContext.value as ContextValue) : null;
 }

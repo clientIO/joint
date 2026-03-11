@@ -10,7 +10,10 @@ import type { FlatLinkData } from '../../types/link-types';
 describe('graphState', () => {
   it('emits added, changed, and removed records for element changes', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
-    const onIncrementalChange = jest.fn<void, [IncrementalStateChanges<FlatElementData, FlatLinkData>]>();
+    const onIncrementalChange = jest.fn<
+      void,
+      [IncrementalStateChanges<FlatElementData, FlatLinkData>]
+    >();
 
     const listener = graphState({
       graph,
@@ -81,7 +84,10 @@ describe('graphState', () => {
 
   it('emits reset records with the replacement snapshot', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
-    const onIncrementalChange = jest.fn<void, [IncrementalStateChanges<FlatElementData, FlatLinkData>]>();
+    const onIncrementalChange = jest.fn<
+      void,
+      [IncrementalStateChanges<FlatElementData, FlatLinkData>]
+    >();
 
     const listener = graphState({
       graph,
@@ -128,7 +134,10 @@ describe('graphState', () => {
 
   it('applies react-originated updates once without emitting graph-to-react changes', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
-    const onIncrementalChange = jest.fn<void, [IncrementalStateChanges<FlatElementData, FlatLinkData>]>();
+    const onIncrementalChange = jest.fn<
+      void,
+      [IncrementalStateChanges<FlatElementData, FlatLinkData>]
+    >();
     const syncCellsSpy = jest.spyOn(graph, 'syncCells');
 
     const listener = graphState({
@@ -157,9 +166,12 @@ describe('graphState', () => {
     listener.destroy();
   });
 
-  it('defers publicState until batch:stop but keeps layoutState realtime', () => {
+  it('defers dataState until batch:stop but keeps layoutState realtime', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
-    const onIncrementalChange = jest.fn<void, [IncrementalStateChanges<FlatElementData, FlatLinkData>]>();
+    const onIncrementalChange = jest.fn<
+      void,
+      [IncrementalStateChanges<FlatElementData, FlatLinkData>]
+    >();
 
     const listener = graphState({
       graph,
@@ -178,7 +190,7 @@ describe('graphState', () => {
     });
     onIncrementalChange.mockClear();
 
-    const publicSnapshotBefore = listener.publicState.getSnapshot();
+    const publicSnapshotBefore = listener.dataState.getSnapshot();
 
     // Start a batch and make multiple changes
     graph.startBatch('test');
@@ -187,8 +199,8 @@ describe('graphState', () => {
     (element as dia.Element).position(10, 20);
     (element as dia.Element).resize(200, 200);
 
-    // During batch: publicState should NOT have been updated
-    expect(listener.publicState.getSnapshot()).toBe(publicSnapshotBefore);
+    // During batch: dataState should NOT have been updated
+    expect(listener.dataState.getSnapshot()).toBe(publicSnapshotBefore);
     expect(onIncrementalChange).not.toHaveBeenCalled();
 
     // But layoutState IS updated in realtime
@@ -200,8 +212,8 @@ describe('graphState', () => {
 
     graph.stopBatch('test');
 
-    // After batch:stop: publicState updates
-    expect(listener.publicState.getSnapshot()).not.toBe(publicSnapshotBefore);
+    // After batch:stop: dataState updates
+    expect(listener.dataState.getSnapshot()).not.toBe(publicSnapshotBefore);
     expect(onIncrementalChange).toHaveBeenCalledTimes(1);
 
     listener.destroy();
@@ -209,7 +221,10 @@ describe('graphState', () => {
 
   it('emits graph-originated changes once and ignores the immediate react echo', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
-    const onIncrementalChange = jest.fn<void, [IncrementalStateChanges<FlatElementData, FlatLinkData>]>();
+    const onIncrementalChange = jest.fn<
+      void,
+      [IncrementalStateChanges<FlatElementData, FlatLinkData>]
+    >();
     const syncCellsSpy = jest.spyOn(graph, 'syncCells');
 
     const listener = graphState({
@@ -229,7 +244,7 @@ describe('graphState', () => {
     expect(onIncrementalChange).toHaveBeenCalledTimes(1);
     expect(syncCellsSpy).toHaveBeenCalledTimes(0);
 
-    const publicSnapshot = listener.publicState.getSnapshot();
+    const publicSnapshot = listener.dataState.getSnapshot();
     listener.updateGraph({
       elements: publicSnapshot.elements,
       links: publicSnapshot.links,

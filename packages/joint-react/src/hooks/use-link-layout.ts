@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { useGraphStore } from './use-graph-store';
 import { usePaperStoreContext } from './use-paper-context';
-import { useStoreSelector } from './use-graph-store-selector';
+import { useStore } from './use-stores';
 import type { LinkLayout } from '../store/graph-store';
 
 const IS_EQUAL = (a: LinkLayout | undefined, b: LinkLayout | undefined): boolean => {
@@ -89,7 +89,7 @@ export function useLinkLayout<S>(
     throw new Error('useLinkLayout must be used inside Paper renderLink or provide an id');
   }
 
-  return useStoreSelector(
+  return useStore(
     layoutState,
     (snapshot) => {
       const paperLinkLayouts = snapshot.links[paperId];

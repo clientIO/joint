@@ -18,7 +18,7 @@ import type {
   ElementToGraphOptions,
   GraphToLinkOptions,
   LinkToGraphOptions,
-} from '../graph-state-selectors';
+} from '../graph-mappings';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
 
@@ -393,7 +393,9 @@ describe('graph-state-selectors', () => {
       graph.addCell(linkAsGraphJson);
 
       const linkCell = graph.getCell('link-1') as dia.Link<dia.Link.Attributes>;
-      const linkFromGraph = defaultMapLinkAttributesToData(createGraphToLinkOptions(id, linkCell, graph));
+      const linkFromGraph = defaultMapLinkAttributesToData(
+        createGraphToLinkOptions(id, linkCell, graph)
+      );
 
       expect(linkFromGraph).toMatchObject({
         source: 'element-1',
@@ -427,7 +429,9 @@ describe('graph-state-selectors', () => {
       graph.addCell(linkAsGraphJson);
 
       const linkCell = graph.getCell('link-1') as dia.Link<dia.Link.Attributes>;
-      const linkFromGraph = defaultMapLinkAttributesToData(createGraphToLinkOptions(id, linkCell, graph));
+      const linkFromGraph = defaultMapLinkAttributesToData(
+        createGraphToLinkOptions(id, linkCell, graph)
+      );
 
       expect(linkFromGraph).toMatchObject({
         source: 'element-1',
@@ -1503,7 +1507,9 @@ describe('graph-state-selectors', () => {
         label: 'Test',
       };
 
-      const result = defaultMapDataToElementAttributes(createElementToGraphOptions(id, element, graph));
+      const result = defaultMapDataToElementAttributes(
+        createElementToGraphOptions(id, element, graph)
+      );
 
       expect(result.data).toEqual({ label: 'Test' });
       expect(result.position).toEqual({ x: 100, y: 50 });

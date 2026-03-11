@@ -6,7 +6,7 @@ import type { FlatElementData } from '../../types/element-types';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
-import type { GraphStateSelectors } from '../../state/graph-state-selectors';
+import type { GraphMappings } from '../../state/graph-mappings';
 import type { IncrementalStateChanges } from '../../state/incremental.types';
 
 /**
@@ -60,7 +60,7 @@ interface GraphProviderProps<ElementData = FlatElementData, LinkData = FlatLinkD
  */
 export interface GraphProps<ElementData = FlatElementData, LinkData = FlatLinkData>
   extends GraphProviderProps<ElementData, LinkData>,
-    GraphStateSelectors<ElementData, LinkData> {
+    GraphMappings<ElementData, LinkData> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph

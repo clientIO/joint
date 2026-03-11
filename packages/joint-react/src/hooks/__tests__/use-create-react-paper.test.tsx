@@ -169,7 +169,7 @@ describe('use-create-react-paper', () => {
     externalHost.remove();
   });
 
-  it('keeps non-zero default dimensions when width/height options are omitted', async () => {
+  it('uses JointJS default dimensions when width/height options are omitted', async () => {
     const onPaperChange = jest.fn((_paper: ReactPaper) => {});
     const wrapper = createGraphWrapper();
 
@@ -180,11 +180,11 @@ describe('use-create-react-paper', () => {
     });
 
     const [paper] = onPaperChange.mock.calls.at(-1) as [ReactPaper];
-    expect(paper.options.width).toBeNull();
-    expect(paper.options.height).toBeNull();
+    expect(paper.options.width).toBe(800);
+    expect(paper.options.height).toBe(600);
   });
 
-  it('keeps inferred non-zero width when only height is provided', async () => {
+  it('leaves width undefined when only height is provided', async () => {
     const onPaperChange = jest.fn((_paper: ReactPaper) => {});
     const wrapper = createGraphWrapper();
 
@@ -203,10 +203,10 @@ describe('use-create-react-paper', () => {
 
     const [paper] = onPaperChange.mock.calls.at(-1) as [ReactPaper];
     expect(paper.options.height).toBe(280);
-    expect(paper.options.width).toBeNull();
+    expect(paper.options.width).toBeUndefined();
   });
 
-  it('infers width and height independently from host element when omitted', async () => {
+  it('does not infer dimensions from host element size when width/height are omitted', async () => {
     const widthGetterSpy = jest
       .spyOn(HTMLElement.prototype, 'clientWidth', 'get')
       .mockReturnValue(640);
@@ -225,15 +225,15 @@ describe('use-create-react-paper', () => {
       });
 
       const [paper] = onPaperChange.mock.calls.at(-1) as [ReactPaper];
-      expect(paper.options.width).toBe(640);
-      expect(paper.options.height).toBe(200);
+      expect(paper.options.width).toBe(800);
+      expect(paper.options.height).toBe(600);
     } finally {
       widthGetterSpy.mockRestore();
       heightGetterSpy.mockRestore();
     }
   });
 
-  it('keeps inferred non-zero height when only width is provided', async () => {
+  it('leaves height undefined when only width is provided', async () => {
     const onPaperChange = jest.fn((_paper: ReactPaper) => {});
     const wrapper = createGraphWrapper();
 
@@ -252,6 +252,6 @@ describe('use-create-react-paper', () => {
 
     const [paper] = onPaperChange.mock.calls.at(-1) as [ReactPaper];
     expect(paper.options.width).toBe(640);
-    expect(paper.options.height).toBeNull();
+    expect(paper.options.height).toBeUndefined();
   });
 });

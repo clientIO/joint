@@ -3,7 +3,7 @@ import { type dia, util } from '@joint/core';
 import type { FlatLinkData, FlatLinkLabel } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
 import { REACT_LINK_TYPE } from '../../models/react-link';
-import type { LinkToGraphOptions, GraphToLinkOptions } from '../graph-state-selectors';
+import type { LinkToGraphOptions, GraphToLinkOptions } from '../graph-mappings';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 import {

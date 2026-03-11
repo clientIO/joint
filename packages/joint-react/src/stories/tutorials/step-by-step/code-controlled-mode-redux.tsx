@@ -268,6 +268,7 @@ function GraphWithRedux(props: Readonly<GraphProps>) {
       {...props}
       elements={elements}
       links={links}
+      enableBatchUpdates
       onIncrementalChange={handleIncrementalChange}
     >
       <ReduxConnectedPaperApp />

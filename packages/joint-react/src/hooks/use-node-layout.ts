@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { useGraphStore } from './use-graph-store';
-import { useStoreSelector } from './use-graph-store-selector';
+import { useStore } from './use-stores';
 import type { NodeLayout } from '../store/graph-store';
 import type { CellId } from '../types/cell-id';
 import { CellIdContext } from '../context';
@@ -84,7 +84,7 @@ export function useNodeLayout<S>(
     throw new Error('useNodeLayout must be used inside Paper renderElement');
   }
 
-  return useStoreSelector(
+  return useStore(
     layoutState,
     (snapshot) => {
       const layout = snapshot.elements[actualId];

@@ -48,9 +48,13 @@ export type LinkFromGraphSelector<LinkData = FlatLinkData> = (
   options: GraphToLinkOptions<LinkData>
 ) => LinkData;
 
-export interface GraphStateSelectors<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  readonly mapDataToElementAttributes?: (options: ElementToGraphOptions<ElementData>) => dia.Cell.JSON;
+export interface GraphMappings<ElementData = FlatElementData, LinkData = FlatLinkData> {
+  readonly mapDataToElementAttributes?: (
+    options: ElementToGraphOptions<ElementData>
+  ) => dia.Cell.JSON;
   readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<LinkData>) => dia.Cell.JSON;
-  readonly mapElementAttributesToData?: (options: GraphToElementOptions<ElementData>) => ElementData;
+  readonly mapElementAttributesToData?: (
+    options: GraphToElementOptions<ElementData>
+  ) => ElementData;
   readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<LinkData>) => LinkData;
 }

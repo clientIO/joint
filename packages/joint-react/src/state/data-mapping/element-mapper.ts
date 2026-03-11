@@ -1,7 +1,7 @@
 import { type dia } from '@joint/core';
 import type { FlatElementData } from '../../types/element-types';
 import { REACT_TYPE } from '../../models/react-element';
-import type { ElementToGraphOptions, GraphToElementOptions } from '../graph-state-selectors';
+import type { ElementToGraphOptions, GraphToElementOptions } from '../graph-mappings';
 import { convertPorts, createPortDefaults } from './convert-ports';
 
 // ────────────────────────────────────────────────────────────────────────────

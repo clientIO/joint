@@ -1,7 +1,7 @@
 import { util } from '@joint/core';
 import { useCellId } from './use-cell-id';
 import type { FlatElementData } from '../types/element-types';
-import { useGraphStoreSelector } from './use-graph-store-selector';
+import { useData } from './use-stores';
 
 /**
  * A hook to access a specific graph element from the current `Paper` context.
@@ -37,7 +37,7 @@ export function useElement<ElementData = FlatElementData, ReturnedElements = Ele
 ): ReturnedElements {
   const id = useCellId();
 
-  return useGraphStoreSelector<ReturnedElements>((store) => {
+  return useData<ReturnedElements>((store) => {
     const element = store.elements[id] as ElementData | undefined;
     if (!element) {
       return undefined as ReturnedElements;

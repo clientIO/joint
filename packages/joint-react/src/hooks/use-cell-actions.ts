@@ -41,7 +41,7 @@ function isLink(cell: FlatElementData | FlatLinkData): cell is FlatLinkData {
  * Hook that provides imperative actions for manipulating cells (elements and links) in the graph.
  *
  * All changes go through the JointJS graph API. graphState automatically picks up
- * the changes and updates publicState.
+ * the changes and updates dataState.
  * @group Hooks
  * @template Attributes - The type of cell attributes
  * @returns An object containing methods to set and remove cells
@@ -67,7 +67,7 @@ export function useCellActions<
       ) {
         const { graph, graphState, mapDataToElementAttributes, mapDataToLinkAttributes } =
           graphStore;
-        const snapshot = graphState.publicState.getSnapshot();
+        const snapshot = graphState.dataState.getSnapshot();
         const { elements, links } = snapshot;
 
         let attributes: Attributes;
@@ -84,7 +84,7 @@ export function useCellActions<
         const cellData = attributes as FlatElementData | FlatLinkData;
         const existingCell: dia.Cell | undefined = graph.getCell(id);
 
-        // Merge new data with existing data from publicState to preserve unspecified fields
+        // Merge new data with existing data from dataState to preserve unspecified fields
         const existingData = existingCell?.isElement() ? elements[id] : links[id];
         const mergedData = existingData
           ? { ...existingData, ...cellData }

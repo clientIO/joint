@@ -5,7 +5,7 @@
  *
  * Data flow:
  *
- *   [optional user state] ──► updateGraph() ──► dia.Graph ──► publicState / layoutState
+ *   [optional user state] ──► updateGraph() ──► dia.Graph ──► dataState / layoutState
  *                                                   │
  *                                                   └──► onElementsChange / onLinksChange / onIncrementalChange
  *                                                        (triggers optional user state update)
@@ -13,7 +13,7 @@
  * 1. User state (React useState, Redux, Zustand, etc.) is optional.
  *    When present, changes flow into `updateGraph()` which syncs `dia.Graph`.
  * 2. `dia.Graph` is the central model. All changes (add/change/remove/reset)
- *    are captured by event listeners and written to `publicState` and `layoutState`.
+ *    are captured by event listeners and written to `dataState` and `layoutState`.
  * 3. When `dia.Graph` changes (e.g. user drags a node), the optional callbacks
  *    (`onElementsChange`, `onLinksChange`, `onIncrementalChange`) are fired, allowing
  *    the user state to stay in sync.
@@ -22,7 +22,7 @@ import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange, IncrementalStateChanges } from './incremental.types';
 import type { GraphStoreLayoutSnapshot, GraphStoreSnapshot, PaperStore } from '../store';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
-import type { GraphStateSelectors } from './graph-state-selectors';
+import type { GraphMappings } from './graph-mappings';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import { resolveCellDefaults } from './data-mapping/resolve-cell-defaults';
@@ -42,7 +42,7 @@ interface JointJSEventOptions {
 interface Options<ElementData = FlatElementData, LinkData = FlatLinkData> {
   readonly graph: dia.Graph;
   readonly papers: Map<string, PaperStore>;
-  readonly mappers: GraphStateSelectors<ElementData, LinkData>;
+  readonly mappers: GraphMappings<ElementData, LinkData>;
   readonly onIncrementalChange?: (changes: IncrementalStateChanges<ElementData, LinkData>) => void;
   readonly onElementsChange?: (elements: Record<string, ElementData>) => void;
   readonly onLinksChange?: (links: Record<string, LinkData>) => void;
@@ -61,7 +61,7 @@ interface UpdateGraphOptions<ElementData = FlatElementData, LinkData = FlatLinkD
 }
 
 export interface ListenOutput<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  readonly publicState: ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>;
+  readonly dataState: ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>;
   readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
   readonly clear: () => void;
   readonly destroy: () => void;
@@ -102,16 +102,16 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   enableBatchUpdates = false,
   mappers: {
     mapElementAttributesToData = defaultMapElementAttributesToData as unknown as NonNullable<
-      GraphStateSelectors<ElementData, LinkData>['mapElementAttributesToData']
+      GraphMappings<ElementData, LinkData>['mapElementAttributesToData']
     >,
     mapLinkAttributesToData = defaultMapLinkAttributesToData as unknown as NonNullable<
-      GraphStateSelectors<ElementData, LinkData>['mapLinkAttributesToData']
+      GraphMappings<ElementData, LinkData>['mapLinkAttributesToData']
     >,
     mapDataToElementAttributes = defaultMapDataToElementAttributes as unknown as NonNullable<
-      GraphStateSelectors<ElementData, LinkData>['mapDataToElementAttributes']
+      GraphMappings<ElementData, LinkData>['mapDataToElementAttributes']
     >,
     mapDataToLinkAttributes = defaultMapDataToLinkAttributes as unknown as NonNullable<
-      GraphStateSelectors<ElementData, LinkData>['mapDataToLinkAttributes']
+      GraphMappings<ElementData, LinkData>['mapDataToLinkAttributes']
     >,
   },
 }: Options<ElementData, LinkData>): ListenOutput<ElementData, LinkData> {
@@ -119,7 +119,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   let batchDepth = 0;
   let isSyncedWithReact = true;
 
-  const publicState = createState<GraphStoreSnapshot<ElementData, LinkData>>({
+  const dataState = createState<GraphStoreSnapshot<ElementData, LinkData>>({
     newState: () => ({
       elements: {},
       links: {},
@@ -242,7 +242,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   }
 
   function onStateUpdate() {
-    publicState.setState((previous) => {
+    dataState.setState((previous) => {
       const nextElements = { ...previous.elements };
       const nextLinks = { ...previous.links };
       const stateChanges: IncrementalStateChanges<ElementData, LinkData> = {
@@ -329,7 +329,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     });
 
     if (onElementsChange || onLinksChange) {
-      const snapshot = publicState.getSnapshot() as GraphStoreSnapshot<ElementData, LinkData>;
+      const snapshot = dataState.getSnapshot() as GraphStoreSnapshot<ElementData, LinkData>;
       onElementsChange?.(snapshot.elements);
       onLinksChange?.(snapshot.links);
     }
@@ -418,7 +418,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   }
 
   return {
-    publicState,
+    dataState,
     layoutState,
     clear() {
       changes.clear();
@@ -427,7 +427,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       controller.stopListening();
       this.clear();
       layoutState.setState(() => ({ elements: {}, links: {} }));
-      publicState.setState(() => {
+      dataState.setState(() => {
         return { elements: {}, links: {} };
       });
     },
@@ -452,7 +452,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       });
 
       // Updates are skipped so we have to manually update the state and layout here:
-      publicState.setState(() => {
+      dataState.setState(() => {
         return {
           elements: elements as Record<string, ElementData>,
           links: links as Record<string, LinkData>,

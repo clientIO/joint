@@ -11,13 +11,14 @@ import {
   useState,
   type RefObject,
   type ReactNode,
+  useContext,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
 import { usePaperStoreById } from './use-paper-context';
 import { useElements } from './use-elements';
 import { useLinks } from './use-links';
-import { useAreElementsMeasured, useGraphInternalStoreSelector } from './use-graph-store-selector';
+import { useAreElementsMeasured, useInternalData } from './use-stores';
 import type { PaperStore } from '../store';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
@@ -26,7 +27,7 @@ import type { ReactPaper } from '../models/react-paper';
 import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
-import { CellIdContext } from '../context';
+import { CellIdContext, PaperConfigContext } from '../context';
 import {
   DefaultRectElement,
   HTMLElementItem,
@@ -36,25 +37,6 @@ import {
 const EMPTY_VIEW_ID_RECORD = {} as Record<CellId, true>;
 
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
-
-/**
- * Resolves the next paper dimension from measured host size with numeric fallback.
- * @param measuredDimension - Current host dimension from the DOM.
- * @param fallbackDimension - Current paper option dimension.
- * @returns The resolved dimension or `null` when it should stay fluid.
- */
-function resolveInferredDimension(
-  measuredDimension: number,
-  fallbackDimension: dia.Paper.Dimension | undefined
-): dia.Paper.Dimension {
-  if (measuredDimension > 0) {
-    return measuredDimension;
-  }
-  if (typeof fallbackDimension === 'number' && fallbackDimension > 0) {
-    return fallbackDimension;
-  }
-  return null;
-}
 
 export interface UseCreateReactPaperOptions<ElementData = FlatElementData>
   extends PaperProps<ElementData> {
@@ -158,6 +140,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   const areElementsMeasured = useAreElementsMeasured();
   const elementsState = useElements();
   const linksState = useLinks();
+
+  const config = useContext(PaperConfigContext);
   useDebugValue(elementsState);
   useDebugValue(linksState);
 
@@ -182,15 +166,15 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   const reactId = useId();
   const id = options.id ?? `paper-${reactId}`;
 
-  const paperElementViewIds = useGraphInternalStoreSelector(
+  const paperElementViewIds = useInternalData(
     (snapshot) => snapshot.papers[id]?.elementViewIds ?? EMPTY_VIEW_ID_RECORD
   );
 
-  const paperLinkViewIds = useGraphInternalStoreSelector(
+  const paperLinkViewIds = useInternalData(
     (snapshot) => snapshot.papers[id]?.linkViewIds ?? EMPTY_VIEW_ID_RECORD
   );
 
-  const hasElementViewSnapshot = useGraphInternalStoreSelector(
+  const hasElementViewSnapshot = useInternalData(
     (snapshot) => snapshot.papers[id]?.hasElementViewSnapshot
   );
 
@@ -244,6 +228,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
         el: hostElementForCreation ?? paperOptions.el,
         defaultLink: defaultLinkJointJS,
       },
+      alternateId: config?.alternateId,
       renderElement: renderElement as RenderElement<FlatElementData>,
       renderLink: renderLink as RenderLink<FlatLinkData> | undefined,
       scale,
@@ -296,33 +281,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     if (!paper) return;
     if (!shouldApplyDimensions) return;
     const hostElement = elementRef?.current ?? null;
-
-    /**
-     * Resolves the next paper dimension from options and measured host size.
-     * When option dimension is provided, it takes precedence. When it's missing or invalid, tries to infer from host element size. When both are missing or invalid, returns null for fluid behavior.
-     * @param hostElementItem - Current paper host element from the DOM.
-     * @param dimension - Current paper option dimension.
-     * @returns The resolved dimension or `null` when it should stay fluid.
-     */
-    function resolveSize(
-      hostElementItem: HTMLElement | SVGElement | null,
-      dimension: dia.Paper.Dimension | undefined,
-      axis: 'width' | 'height'
-    ): dia.Paper.Dimension {
-      if (dimension !== undefined) {
-        return dimension;
-      }
-      if (!hostElementItem) {
-        return null;
-      }
-      const measuredDimension =
-        axis === 'width' ? hostElementItem.clientWidth : hostElementItem.clientHeight;
-      return resolveInferredDimension(measuredDimension, dimension);
-    }
-    const nextWidth = resolveSize(hostElement, width, 'width');
-    const nextHeight = resolveSize(hostElement, height, 'height');
-    // @ts-expect-error - JointJS types are not up to date with the actual implementation that allows undefined for fluid behavior.
-    paper.setDimensions(nextWidth ?? undefined, nextHeight ?? undefined);
 
     const hasMissingDimension = width === undefined || height === undefined;
     if (!hasMissingDimension || !hostElement) {
@@ -435,6 +393,10 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       }
 
       const portalNode = (elementView.paper as ReactPaper).getCellViewPortalNode(elementView);
+
+      if (!portalNode.isConnected) {
+        return null;
+      }
       if (!portalNode) {
         return null;
       }

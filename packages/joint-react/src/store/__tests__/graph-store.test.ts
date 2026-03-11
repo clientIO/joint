@@ -27,7 +27,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       expect(store).toBeDefined();
       expect(store.graph).toBeInstanceOf(dia.Graph);
-      expect(store.publicState).toBeDefined();
+      expect(store.dataState).toBeDefined();
       expect(store.internalState).toBeDefined();
     });
 
@@ -39,7 +39,7 @@ describe('GraphStore', () => {
 
     it('should initialize with empty elements and links by default', () => {
       const store = new GraphStore({});
-      const snapshot = store.publicState.getSnapshot();
+      const snapshot = store.dataState.getSnapshot();
       expect(snapshot.elements).toEqual({});
       expect(snapshot.links).toEqual({});
     });
@@ -56,7 +56,7 @@ describe('GraphStore', () => {
         'element-2': { x: 30, y: 40, width: 80, height: 60, type: 'ReactElement' },
       };
       const store = new GraphStore({ initialElements });
-      const snapshot = store.publicState.getSnapshot();
+      const snapshot = store.dataState.getSnapshot();
       expect(Object.keys(snapshot.elements)).toHaveLength(2);
       expect(snapshot.elements['element-1']).toBeDefined();
       expect(snapshot.elements['element-2']).toBeDefined();
@@ -84,7 +84,7 @@ describe('GraphStore', () => {
         'link-1': { source: 'element-1', target: 'element-2', type: 'standard.Link' },
       };
       const store = new GraphStore({ initialLinks });
-      const snapshot = store.publicState.getSnapshot();
+      const snapshot = store.dataState.getSnapshot();
       expect(Object.keys(snapshot.links)).toHaveLength(1);
       expect(snapshot.links['link-1']).toBeDefined();
     });
@@ -103,7 +103,7 @@ describe('GraphStore', () => {
         'link-1': { source: 'element-1', target: 'element-2', type: 'standard.Link' },
       };
       const store = new GraphStore({ initialElements, initialLinks });
-      const snapshot = store.publicState.getSnapshot();
+      const snapshot = store.dataState.getSnapshot();
       expect(Object.keys(snapshot.elements)).toHaveLength(1);
       expect(Object.keys(snapshot.links)).toHaveLength(1);
     });
@@ -173,6 +173,17 @@ describe('GraphStore', () => {
       // Graph should not be cleared
       expect(graph.getCells()).toHaveLength(cellCountBefore);
       expect(graph.getCell('test-element')).toBeDefined();
+    });
+
+    it('should destroy the external context store', () => {
+      const store = new GraphStore({});
+      const cleanup = jest.fn();
+
+      store.externalStore.setExternalContext('external-context', 'value', cleanup);
+      store.destroy(true);
+
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(store.externalStore.getExternalContext('external-context')).toBeNull();
     });
   });
 
@@ -454,11 +465,13 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       const id = 'measured-element';
 
-      store.graph.addCell(new ReactElement({
-        id,
-        position: { x: 10, y: 20 },
-        size: { width: 100, height: 50 },
-      }));
+      store.graph.addCell(
+        new ReactElement({
+          id,
+          position: { x: 10, y: 20 },
+          size: { width: 100, height: 50 },
+        })
+      );
 
       const domElement = document.createElement('div');
       store.setMeasuredNode({
@@ -475,11 +488,13 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       const id = 'measured-element';
 
-      store.graph.addCell(new ReactElement({
-        id,
-        position: { x: 10, y: 20 },
-        size: { width: 100, height: 50 },
-      }));
+      store.graph.addCell(
+        new ReactElement({
+          id,
+          position: { x: 10, y: 20 },
+          size: { width: 100, height: 50 },
+        })
+      );
 
       const domElement = document.createElement('div');
       const setSize = jest.fn();
@@ -566,50 +581,6 @@ describe('GraphStore', () => {
     });
   });
 
-  describe('context registry', () => {
-    it('should keep string, number, and symbol context ids distinct', () => {
-      const store = new GraphStore({});
-      const stringId = '1';
-      const numberId = 1;
-      const symbolId = Symbol('context');
-
-      store.setContext(stringId, 'string-value');
-      store.setContext(numberId, 'number-value');
-      store.setContext(symbolId, 'symbol-value');
-
-      expect(store.registeredContexts).toBeInstanceOf(Map);
-      expect(store.registeredContexts.get(stringId)?.value).toBe('string-value');
-      expect(store.registeredContexts.get(numberId)?.value).toBe('number-value');
-      expect(store.registeredContexts.get(symbolId)?.value).toBe('symbol-value');
-
-      const snapshot = store.contextsState.getSnapshot() as unknown as ReadonlyMap<
-        string | number | symbol,
-        number
-      >;
-      expect(snapshot).toBeInstanceOf(Map);
-      expect(snapshot.get(stringId)).toBe(1);
-      expect(snapshot.get(numberId)).toBe(1);
-      expect(snapshot.get(symbolId)).toBe(1);
-    });
-
-    it('should call cleanup, remove the context value, and bump its revision', () => {
-      const store = new GraphStore({});
-      const cleanup = jest.fn();
-      const contextId = Symbol('context-to-remove');
-
-      store.setContext(contextId, 'value', cleanup);
-      store.removeContext(contextId);
-
-      expect(cleanup).toHaveBeenCalledTimes(1);
-      expect(store.registeredContexts.has(contextId)).toBe(false);
-      expect(
-        (
-          store.contextsState.getSnapshot() as unknown as ReadonlyMap<string | number | symbol, number>
-        ).get(contextId)
-      ).toBe(2);
-    });
-  });
-
   describe('state synchronization', () => {
     it('should sync state changes to graph', (done) => {
       const store = new GraphStore({});
@@ -652,7 +623,7 @@ describe('GraphStore', () => {
 
       // Wait for sync
       setTimeout(() => {
-        const snapshot = store.publicState.getSnapshot();
+        const snapshot = store.dataState.getSnapshot();
         const stateElement = snapshot.elements['graph-element'];
         expect(stateElement).toBeDefined();
         done();
@@ -694,7 +665,7 @@ describe('GraphStore', () => {
         expect(layout?.height).toBe(160);
       });
 
-      const publicSnapshotDuringBatch = store.publicState.getSnapshot().elements['batched-element'];
+      const publicSnapshotDuringBatch = store.dataState.getSnapshot().elements['batched-element'];
       expect(publicSnapshotDuringBatch?.x).toBe(0);
       expect(publicSnapshotDuringBatch?.y).toBe(0);
       expect(publicSnapshotDuringBatch?.width).toBe(100);
@@ -703,8 +674,7 @@ describe('GraphStore', () => {
       store.graph.stopBatch('test');
 
       await waitFor(() => {
-        const publicSnapshotAfterBatch =
-          store.publicState.getSnapshot().elements['batched-element'];
+        const publicSnapshotAfterBatch = store.dataState.getSnapshot().elements['batched-element'];
         expect(publicSnapshotAfterBatch?.x).toBe(120);
         expect(publicSnapshotAfterBatch?.y).toBe(180);
         expect(publicSnapshotAfterBatch?.width).toBe(240);
