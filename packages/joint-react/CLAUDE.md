@@ -65,7 +65,7 @@ yarn build-storybook
 ## File Naming (TypeScript / JavaScript)
 
 - All `.ts`, `.tsx`, `.js`, `.jsx` files must use **kebab-case**:
-  - Examples: `user-profile.ts`, `trade-table.tsx`, `use-wallet-state.ts`.
+  - Examples: `user-profile.ts`, `something-table.tsx`
 - React component files:
   - File name: kebab-case (e.g. `user-profile-card.tsx`).
   - Component name inside: `PascalCase` (e.g. `UserProfileCard`).
