@@ -18,7 +18,7 @@
  *    (`onElementsChange`, `onLinksChange`, `onIncrementalChange`) are fired, allowing
  *    the user state to stay in sync.
  */
-import { mvc, type dia } from '@joint/core';
+import { mvc, util, type dia } from '@joint/core';
 import type { IncrementalChange, IncrementalStateChanges } from './incremental.types';
 import type { GraphStoreLayoutSnapshot, GraphStoreSnapshot, PaperStore } from '../store';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
@@ -60,12 +60,36 @@ interface UpdateGraphOptions<ElementData = FlatElementData, LinkData = FlatLinkD
   readonly flag?: 'updateFromReact';
 }
 
-export interface ListenOutput<ElementData = FlatElementData, LinkData = FlatLinkData> {
+export interface ElementToData<ElementData = FlatElementData> {
+  readonly element: dia.Element;
+  readonly previousData?: ElementData;
+}
+
+export interface LinkToData<LinkData = FlatLinkData> {
+  readonly link: dia.Link;
+  readonly previousData?: LinkData;
+}
+
+export interface ElementToAttributes<ElementData = FlatElementData> {
+  readonly id: string;
+  readonly data: ElementData;
+}
+
+export interface LinkToAttributes<LinkData = FlatLinkData> {
+  readonly id?: string;
+  readonly data: LinkData;
+}
+
+export interface GraphState<ElementData = FlatElementData, LinkData = FlatLinkData> {
   readonly dataState: ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>;
   readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
   readonly clear: () => void;
   readonly destroy: () => void;
   readonly updateGraph: (options: UpdateGraphOptions) => void;
+  readonly elementToData: (options: ElementToData<ElementData>) => ElementData;
+  readonly linkToData: (options: LinkToData<LinkData>) => LinkData;
+  readonly elementToAttributes: (options: ElementToAttributes<ElementData>) => dia.Cell.JSON;
+  readonly linkToAttributes: (options: LinkToAttributes<LinkData>) => dia.Cell.JSON;
 }
 
 interface MutableIncrementalStateChange<T> {
@@ -101,20 +125,12 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   onLinksChange,
   enableBatchUpdates = false,
   mappers: {
-    mapElementAttributesToData = defaultMapElementAttributesToData as unknown as NonNullable<
-      GraphMappings<ElementData, LinkData>['mapElementAttributesToData']
-    >,
-    mapLinkAttributesToData = defaultMapLinkAttributesToData as unknown as NonNullable<
-      GraphMappings<ElementData, LinkData>['mapLinkAttributesToData']
-    >,
-    mapDataToElementAttributes = defaultMapDataToElementAttributes as unknown as NonNullable<
-      GraphMappings<ElementData, LinkData>['mapDataToElementAttributes']
-    >,
-    mapDataToLinkAttributes = defaultMapDataToLinkAttributes as unknown as NonNullable<
-      GraphMappings<ElementData, LinkData>['mapDataToLinkAttributes']
-    >,
+    mapDataToElementAttributes = defaultMapDataToElementAttributes,
+    mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
+    mapElementAttributesToData = defaultMapElementAttributesToData,
+    mapLinkAttributesToData = defaultMapLinkAttributesToData,
   },
-}: Options<ElementData, LinkData>): ListenOutput<ElementData, LinkData> {
+}: Options<ElementData, LinkData>): GraphState<ElementData, LinkData> {
   const controller = new mvc.Listener();
   let batchDepth = 0;
   let isSyncedWithReact = true;
@@ -133,21 +149,31 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
 
   const changes = new Map<string, IncrementalChange<dia.Cell>>();
 
-  function elementToData(cell: dia.Element, previousData?: ElementData): ElementData {
-    const defaultAttributes = resolveCellDefaults(cell);
+  function getPreviousLinkData(cell: dia.Link): LinkData | undefined {
     const id = String(cell.id);
+    return dataState.getSnapshot().links[id] as LinkData | undefined;
+  }
+  function getPreviousElementData(cell: dia.Element): ElementData | undefined {
+    const id = String(cell.id);
+    return dataState.getSnapshot().elements[id] as ElementData | undefined;
+  }
+
+  function elementToData({ element, previousData }: ElementToData<ElementData>): ElementData {
+    previousData = previousData ?? getPreviousElementData(element);
+    const defaultAttributes = resolveCellDefaults(element);
+    const id = String(element.id);
     return mapElementAttributesToData({
       id,
-      attributes: cell.attributes,
+      attributes: element.attributes,
       defaultAttributes,
-      element: cell,
+      element,
       graph,
       previousData,
       toData: (attributes) =>
         defaultMapElementAttributesToData({ attributes, defaultAttributes }) as ElementData,
     });
   }
-  function elementToAttributes(id: string, data: ElementData) {
+  function elementToAttributes({ id, data }: ElementToAttributes<ElementData>) {
     return mapDataToElementAttributes({
       id,
       data,
@@ -157,27 +183,29 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     });
   }
 
-  function linkToData(cell: dia.Link, previousData?: LinkData): LinkData {
-    const defaultAttributes = resolveCellDefaults(cell);
-    const id = String(cell.id);
+  function linkToData({ link, previousData }: LinkToData<LinkData>): LinkData {
+    previousData = previousData ?? getPreviousLinkData(link);
+    const defaultAttributes = resolveCellDefaults(link);
+    const id = String(link.id);
     return mapLinkAttributesToData({
       id,
-      attributes: cell.attributes,
+      attributes: link.attributes,
       defaultAttributes,
-      link: cell,
+      link,
       graph,
       previousData,
       toData: (attributes) =>
         defaultMapLinkAttributesToData({ attributes, defaultAttributes }) as LinkData,
     });
   }
-  function linkToAttributes(id: string, data: LinkData) {
+  function linkToAttributes({ id, data }: LinkToAttributes<LinkData>): dia.Cell.JSON {
+    const mapperId = id ?? util.uuid();
     return mapDataToLinkAttributes({
-      id,
+      id: mapperId,
       data,
       graph,
       toAttributes: (newData) =>
-        defaultMapDataToLinkAttributes({ id, data: newData as FlatLinkData }),
+        defaultMapDataToLinkAttributes({ id: mapperId, data: newData as FlatLinkData }),
     });
   }
 
@@ -255,7 +283,10 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
           case 'change': {
             const cell = change.data;
             if (cell.isElement()) {
-              const newData = elementToData(cell, previous.elements[id]);
+              const newData = elementToData({
+                element: cell,
+                previousData: previous.elements[id],
+              });
               nextElements[id] = newData;
               setIncrementalChangeRecord(
                 stateChanges.elements as MutableIncrementalStateChange<ElementData>,
@@ -264,7 +295,10 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
                 newData
               );
             } else if (cell.isLink()) {
-              const newData = linkToData(cell, previous.links[id]);
+              const newData = linkToData({
+                link: cell,
+                previousData: previous.links[id],
+              });
               nextLinks[id] = newData;
               setIncrementalChangeRecord(
                 stateChanges.links as MutableIncrementalStateChange<LinkData>,
@@ -304,10 +338,10 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
             const resetLinks: Record<string, LinkData> = {};
             for (const cell of change.data) {
               if (cell.isElement()) {
-                const newData = elementToData(cell);
+                const newData = elementToData({ element: cell });
                 resetElements[String(cell.id)] = newData;
               } else if (cell.isLink()) {
-                const newData = linkToData(cell);
+                const newData = linkToData({ link: cell });
                 resetLinks[String(cell.id)] = newData;
               }
             }
@@ -418,6 +452,10 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   }
 
   return {
+    elementToData,
+    linkToData,
+    elementToAttributes,
+    linkToAttributes,
     dataState,
     layoutState,
     clear() {
@@ -439,11 +477,11 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
         return;
       }
       const graphElements = Object.entries(elements).map(([id, data]) => ({
-        ...elementToAttributes(id, data as ElementData),
+        ...elementToAttributes({ id, data: data as ElementData }),
         id,
       }));
       const graphLinks = Object.entries(links).map(([id, data]) => ({
-        ...linkToAttributes(id, data as LinkData),
+        ...linkToAttributes({ id, data: data as LinkData }),
         id,
       }));
       graph.syncCells([...graphElements, ...graphLinks], {

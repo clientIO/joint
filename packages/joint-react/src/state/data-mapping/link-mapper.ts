@@ -3,7 +3,7 @@ import { type dia, util } from '@joint/core';
 import type { FlatLinkData, FlatLinkLabel } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
 import { REACT_LINK_TYPE } from '../../models/react-link';
-import type { LinkToGraphOptions, GraphToLinkOptions } from '../graph-mappings';
+import type { GraphToLinkOptions, LinkToGraphOptions } from '../graph-mappings';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 import {
@@ -19,6 +19,9 @@ import {
 // React → JointJS
 // ────────────────────────────────────────────────────────────────────────────
 
+function isLinkData(data: unknown): data is FlatLinkData {
+  return typeof data === 'object' && data !== null;
+}
 /**
  * Maps flat link data to JointJS cell attributes.
  *
@@ -34,10 +37,13 @@ import {
  * @param options - The link id, data, and optional theme to convert
  * @returns The JointJS cell JSON attributes
  */
-export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
+export function defaultMapDataToLinkAttributes<Link = FlatLinkData>(
   options: Pick<LinkToGraphOptions<Link>, 'id' | 'data'> & { readonly theme?: LinkTheme }
 ): dia.Cell.JSON {
   const { id, data, theme = defaultLinkTheme } = options;
+  if (!isLinkData(data)) {
+    throw new Error(`Invalid link data for id "${id}": expected an object with link properties.`);
+  }
   const {
     // ↔ Two-way: synced back from graph → React state
     source,
@@ -165,7 +171,7 @@ export function defaultMapDataToLinkAttributes<Link extends FlatLinkData>(
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat link data
  */
-export function defaultMapLinkAttributesToData<Link extends FlatLinkData>(
+export function defaultMapLinkAttributesToData<Link = FlatLinkData>(
   options: Pick<GraphToLinkOptions<Link>, 'attributes' | 'defaultAttributes'>
 ): Link {
   const { attributes, defaultAttributes } = options;

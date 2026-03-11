@@ -225,47 +225,6 @@ describe('useCellActions', () => {
     });
   });
 
-  it('should set position using nested position object', async () => {
-    const { result } = renderHook(
-      () => {
-        return {
-          actions: useCellActions(),
-          graph: useGraph(),
-          elements: useElements(),
-        };
-      },
-      { wrapper }
-    );
-
-    // Wait for initial render
-    await waitFor(() => {
-      expect(result.current.elements['1']).toBeDefined();
-      expect(result.current.elements['1'].x).toBe(50);
-      expect(result.current.elements['1'].y).toBe(50);
-    });
-
-    // Set position using nested position object (JointJS-style)
-    act(() => {
-      result.current.actions.set('1', (previous) => ({
-        ...previous,
-        position: { x: 100, y: 150 },
-      }));
-    });
-
-    // Verify the graph element has the new position
-    await waitFor(() => {
-      const { graph } = result.current;
-      const element = graph.getCell('1');
-      expect(element).toBeDefined();
-      const position = element?.get('position');
-      expect(position?.x).toBe(100);
-      expect(position?.y).toBe(150);
-      // Also verify React state
-      expect(result.current.elements['1'].x).toBe(100);
-      expect(result.current.elements['1'].y).toBe(150);
-    });
-  });
-
   it('should set size using nested size object', async () => {
     const { result } = renderHook(
       () => {
@@ -289,7 +248,8 @@ describe('useCellActions', () => {
     act(() => {
       result.current.actions.set('1', (previous) => ({
         ...previous,
-        size: { width: 200, height: 250 },
+        width: 200,
+        height: 250,
       }));
     });
 

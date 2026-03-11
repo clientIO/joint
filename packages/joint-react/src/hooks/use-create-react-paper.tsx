@@ -169,7 +169,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     (snapshot) => snapshot.papers[id]?.hasElementViewSnapshot
   );
 
-  const { addPaper, getPaperStore, graph, mapDataToLinkAttributes } = useGraphStore();
+  const { addPaper, getPaperStore, graph, graphState } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
@@ -189,9 +189,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
       const ReactLinkModel = getReactLinkConstructor(graph);
       if (!link) {
-        const defaultAttributes = mapDataToLinkAttributes({
+        const defaultAttributes = graphState.linkToAttributes({
           data: {} as FlatLinkData,
-          graph,
         });
         return new ReactLinkModel(defaultAttributes);
       }
@@ -201,13 +200,12 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
         }
         return link.clone();
       }
-      const attributes = mapDataToLinkAttributes({
+      const attributes = graphState.linkToAttributes({
         data: link as FlatLinkData,
-        graph,
       });
       return new ReactLinkModel(attributes);
     },
-    [defaultLink, graph, mapDataToLinkAttributes]
+    [defaultLink, graph, graphState]
   );
 
   const isReady = !!paper && (!elementRef || !!elementRef.current);

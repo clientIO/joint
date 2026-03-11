@@ -22,5 +22,6 @@ export * from './types/event.types';
 export * from './context';
 export * from './store';
 export * from './state/graph-mappings';
+export * from './state/data-mapping';
 export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
 export * from './theme/link-theme';
