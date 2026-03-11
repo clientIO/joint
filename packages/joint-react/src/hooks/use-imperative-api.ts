@@ -1,5 +1,4 @@
 import {
-  useCallback,
   useImperativeHandle,
   useLayoutEffect,
   useRef,
@@ -99,41 +98,44 @@ export function useImperativeApi<Instance, InstanceSelector = Instance>(
   const { onLoad, onUpdate, onReadyChange, instanceSelector, isDisabled, forwardedRef } = options;
   const [isReady, setIsReady] = useState(false);
   const instanceRef = useRef<Instance | null>(null);
-  const cleanupRef = useRef<(() => void) | null>(null);
-  const hasMounted = useRef(false); // Track initial render
+  const instanceCleanupRef = useRef<(() => void) | null>(null);
+  const previousDependenciesRef = useRef<DependencyList | null>(null);
 
-  const onLoadCallback = useCallback(() => {
-    if (isDisabled) {
-      if (cleanupRef.current) {
-        cleanupRef.current();
-        cleanupRef.current = null;
-      }
-      if (instanceRef.current) {
-        instanceRef.current = null;
-      }
-      setIsReady(false); // Explicitly set isReady to false
-      onReadyChange?.(false, null);
-      return;
-    }
+  const notifyReadyState = (nextIsReady: boolean, instance: Instance | null) => {
+    setIsReady(nextIsReady);
+    onReadyChange?.(nextIsReady, instance);
+  };
+
+  const disposeCurrentInstance = () => {
+    instanceCleanupRef.current?.();
+    instanceCleanupRef.current = null;
+    instanceRef.current = null;
+  };
+
+  const createInstance = () => {
     const { instance, cleanup } = onLoad();
     instanceRef.current = instance;
-    cleanupRef.current = cleanup;
-    setIsReady(true);
-    onReadyChange?.(true, instance);
-    return () => {
-      cleanup();
-    };
-    // we update cache only by dependencies change and isDisabled
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDisabled, ...dependencies]);
+    instanceCleanupRef.current = cleanup;
+    notifyReadyState(true, instance);
+  };
+
+  const resetInstance = () => {
+    disposeCurrentInstance();
+
+    if (isDisabled) {
+      notifyReadyState(false, null);
+      return;
+    }
+
+    createInstance();
+  };
 
   // Load and cleanup
   useLayoutEffect(() => {
-    const cleanup = onLoadCallback();
+    resetInstance();
+
     return () => {
-      if (cleanup) {
-        cleanup();
-      }
+      disposeCurrentInstance();
     };
     // this is called only when disabled - disabled mean, we remove the instance and cleanup
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,15 +143,26 @@ export function useImperativeApi<Instance, InstanceSelector = Instance>(
 
   // Update
   useLayoutEffect(() => {
-    if (!onUpdate || !hasMounted.current) {
-      hasMounted.current = true; // Skip first render
+    const previousDependencies = previousDependenciesRef.current;
+    previousDependenciesRef.current = dependencies;
+
+    if (!onUpdate || !previousDependencies) {
       return;
     }
+
+    const hasDependencyChange =
+      previousDependencies.length !== dependencies.length ||
+      previousDependencies.some((dependency, index) => !Object.is(dependency, dependencies[index]));
+
+    if (!hasDependencyChange) {
+      return;
+    }
+
     const { current: instance } = instanceRef;
     if (!instance) {
       return;
     }
-    const cleanup = onUpdate(instance, onLoadCallback);
+    const cleanup = onUpdate(instance, resetInstance);
     return () => {
       if (typeof cleanup === 'function') {
         cleanup();

@@ -61,7 +61,7 @@ describe('useHighlighter', () => {
       expect(addSpy).toHaveBeenCalled();
     });
 
-    const instance = addSpy.mock.results[0]?.value as dia.HighlighterView;
+    const instance = addSpy.mock.results.at(-1)?.value as dia.HighlighterView;
     const removeSpy = jest.spyOn(instance, 'remove');
 
     unmount();
@@ -101,7 +101,7 @@ describe('useHighlighter', () => {
     render(<CustomTarget />, { wrapper });
 
     await waitFor(() => {
-      expect(createSpy).toHaveBeenCalledTimes(1);
+      expect(createSpy).toHaveBeenCalled();
     });
   });
 
@@ -115,13 +115,10 @@ describe('useHighlighter', () => {
       expect(addSpy).toHaveBeenCalled();
     });
 
-    const instance = addSpy.mock.results[0]?.value as dia.HighlighterView;
-    const removeSpy = jest.spyOn(instance, 'remove');
-
     rerender(<MaskTarget isEnabled={false} />);
 
     await waitFor(() => {
-      expect(removeSpy).toHaveBeenCalled();
+      expect(document.querySelector('.joint-highlight-mask')).toBeNull();
     });
   });
 

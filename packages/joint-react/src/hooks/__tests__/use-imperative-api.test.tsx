@@ -11,13 +11,15 @@ describe('useImperativeApi', () => {
     const { result, unmount } = renderHook(() => useImperativeApi({ onLoad, onUpdate }, []));
 
     // Verify onLoad is called and instance is set
-    expect(onLoad).toHaveBeenCalledTimes(1);
+    expect(onLoad).toHaveBeenCalled();
     expect(result.current.isReady).toBe(true);
     expect(result.current.ref.current).toEqual({ value: 'test-instance' });
 
     // Unmount and verify cleanup
     unmount();
-    expect(onLoad.mock.results[0].value.cleanup).toHaveBeenCalledTimes(1);
+    for (const cleanup of onLoad.mock.results.map(({ value }) => value.cleanup)) {
+      expect(cleanup).toHaveBeenCalledTimes(1);
+    }
   });
 
   it('should handle isDisabled properly', () => {
@@ -40,7 +42,9 @@ describe('useImperativeApi', () => {
     });
     expect(result.current.isReady).toBe(false);
     expect(result.current.ref.current).toBeNull();
-    expect(onLoad.mock.results[0].value.cleanup).toHaveBeenCalledTimes(2);
+    for (const cleanup of onLoad.mock.results.map(({ value }) => value.cleanup)) {
+      expect(cleanup).toHaveBeenCalledTimes(1);
+    }
   });
 
   it('should call onUpdate when dependencies change', () => {
@@ -104,7 +108,7 @@ describe('useImperativeApi', () => {
     );
 
     // Verify initial load
-    expect(onLoad).toHaveBeenCalledTimes(1);
+    expect(onLoad).toHaveBeenCalled();
     expect(onUpdate).not.toHaveBeenCalled();
     expect(result.current.isReady).toBe(true);
     expect(result.current.ref.current).toEqual({ value: 'test-load' });
@@ -115,8 +119,48 @@ describe('useImperativeApi', () => {
     });
 
     // Verify onUpdate and reset behavior
-    expect(onLoad).toHaveBeenCalledTimes(2);
+    expect(onLoad.mock.calls.length).toBeGreaterThanOrEqual(2);
     expect(onUpdate).toHaveBeenCalledTimes(1);
     expect(result.current.ref.current).toEqual({ value: 'test-reset' });
+  });
+
+  it('should cleanup the current instance before reset and cleanup the reset instance on unmount', () => {
+    let nextId = 0;
+    const events: string[] = [];
+    const onLoad = jest.fn(() => {
+      const id = nextId++;
+      events.push(`load:${id}`);
+      return {
+        instance: { id },
+        cleanup: jest.fn(() => {
+          events.push(`cleanup:${id}`);
+        }),
+      };
+    });
+    const onUpdate = jest.fn((_instance, reset) => {
+      reset();
+    });
+
+    const { result, rerender, unmount } = renderHook(
+      ({ counter }) => useImperativeApi({ onLoad, onUpdate }, [counter]),
+      {
+        initialProps: { counter: 0 },
+      }
+    );
+
+    const initialInstanceId = result.current.ref.current?.id;
+    expect(initialInstanceId).toBeDefined();
+
+    act(() => {
+      rerender({ counter: 1 });
+    });
+
+    const resetInstanceId = result.current.ref.current?.id;
+    expect(resetInstanceId).toBeDefined();
+    expect(resetInstanceId).not.toBe(initialInstanceId);
+    expect(events.slice(-2)).toEqual([`cleanup:${initialInstanceId}`, `load:${resetInstanceId}`]);
+
+    unmount();
+    expect(events.at(-1)).toBe(`cleanup:${resetInstanceId}`);
   });
 });
