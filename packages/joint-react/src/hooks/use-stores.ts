@@ -101,12 +101,16 @@ export function useLayouts<Selected>(
  * @param id - The unique identifier of the external context to access.
  * @returns The current value of the external context with the specified ID, or null if not found.
  */
-export function useExternalContext<ContextValue>(id: GraphExternalContextId): ContextValue | null {
+export function useExternalContext<ContextValue>(id?: GraphExternalContextId): ContextValue | null {
   const graphStore = useGraphStore();
-  useStore(graphStore.externalStore.versionState, (snapshot) => {
+  const version = useStore(graphStore.externalStore.versionState, (snapshot) => {
+    if (!id) return null;
     return (snapshot as GraphExternalContextSnapshot).get(id) ?? null;
   });
 
+  if (!version || !id) {
+    return null;
+  }
   const externalContext = graphStore.externalStore.getExternalContext(id);
   return externalContext ? (externalContext.value as ContextValue) : null;
 }

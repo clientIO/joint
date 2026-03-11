@@ -13,7 +13,7 @@ import {
 } from 'react';
 import { GraphProvider, Paper } from '../../components';
 import { usePaperEvents } from '../use-paper-events';
-import { usePaper, usePaperById } from '../use-paper';
+import { usePaper } from '../use-paper';
 import type { EventMap, PaperEventHandlers, PaperEventType } from '../../types/event.types';
 
 const EMPTY_ELEMENTS = {};
@@ -234,7 +234,7 @@ describe('use-paper-events', () => {
 
     const { result } = renderHook(
       () => {
-        const paper = usePaperById('paper-by-id');
+        const paper = usePaper('paper-by-id');
         usePaperEvents('paper-by-id', { 'element:contextmenu': onContextMenu });
         return paper;
       },
@@ -291,13 +291,13 @@ describe('use-paper-events', () => {
     }).not.toThrow();
   });
 
-  it('supports direct paper target overload when paper comes from usePaperById', async () => {
+  it('supports direct paper target overload when paper comes from usePaper(id)', async () => {
     const wrapper = createPaperWrapper('paper-direct');
     const onScale = jest.fn();
 
     const { result } = renderHook(
       () => {
-        const paper = usePaperById('paper-direct');
+        const paper = usePaper('paper-direct');
         usePaperEvents(paper, { scale: onScale });
         return paper;
       },
@@ -428,9 +428,10 @@ describe('use-paper-events', () => {
 
   it('throws when context target is used outside Paper', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const wrapper = createGraphWrapper();
 
     expect(() => {
-      renderHook(() => usePaperEvents({ translate: jest.fn() }));
+      renderHook(() => usePaperEvents({ translate: jest.fn() }), { wrapper });
     }).toThrow('usePaperEvents without a target must be used within a Paper.');
 
     consoleError.mockRestore();

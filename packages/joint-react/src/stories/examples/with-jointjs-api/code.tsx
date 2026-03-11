@@ -12,7 +12,7 @@ import {
   useNodeSize,
   useCellId,
   type FlatElementData,
-  usePaperById,
+  usePaper,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
@@ -113,7 +113,7 @@ function Node({ label, color }: Readonly<Partial<ElementData>>) {
 }
 
 function Main() {
-  const paper = usePaperById('my-paper');
+  const paper = usePaper('my-paper');
 
   useEffect(() => {
     if (!paper) return;

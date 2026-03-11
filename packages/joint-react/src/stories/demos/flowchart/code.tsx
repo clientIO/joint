@@ -9,7 +9,7 @@ import {
   useHighlighter,
   useMarkup,
   useNodeSize,
-  usePaperById,
+  usePaper,
   usePaperEvents,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -446,7 +446,7 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
 
 function Main() {
   const paperId = useId();
-  const paperInstance = usePaperById(paperId);
+  const paperInstance = usePaper(paperId);
 
   usePaperEvents(
     paperId,

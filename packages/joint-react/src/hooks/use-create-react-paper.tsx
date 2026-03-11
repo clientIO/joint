@@ -15,7 +15,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
-import { usePaperStoreById } from './use-paper-context';
+import { usePaperStore } from './use-paper';
 import { useElements } from './use-elements';
 import { useLinks } from './use-links';
 import { useAreElementsMeasured, useInternalData } from './use-stores';
@@ -170,7 +170,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   );
 
   const { addPaper, getPaperStore, graph, mapDataToLinkAttributes } = useGraphStore();
-  const paperStore = usePaperStoreById(id);
+  const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
   const paperRef = useRef<ReactPaper | null>(null);
