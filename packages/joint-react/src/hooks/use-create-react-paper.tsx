@@ -274,6 +274,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
 
   useEffect(() => {
+    if (!hasElementViewSnapshot) return;
     if (!isReady) return;
     if (measuredRef.current) return;
     if (!paper) return;
@@ -286,18 +287,26 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       return;
     }
 
-    if (process.env.NODE_ENV !== 'production') {
-      const timeout = setTimeout(() => {
+    if (process.env.NODE_ENV === 'production') {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      if (!areElementsMeasured) {
         // eslint-disable-next-line no-console
         console.error(
           'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
         );
-      }, 1000);
-      return () => clearTimeout(timeout);
-    }
-  }, [areElementsMeasured, isReady, onElementsMeasured, paper]);
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [areElementsMeasured, hasElementViewSnapshot, isReady, onElementsMeasured, paper]);
 
   useEffect(() => {
+    if (!hasElementViewSnapshot) return;
     if (!isReady) return;
     if (!areElementsMeasured) return;
     if (!paper) return;
@@ -307,15 +316,17 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       return [element?.width ?? 0, element?.height ?? 0];
     });
     const previousSizes = previousSizesRef.current;
-    previousSizesRef.current = currentSizes;
 
-    // First run: store baseline without firing.
+    // Prime baseline snapshot first to avoid an initial stale layout pass.
+    // `onElementsMeasured` should react to size deltas, not first observation.
     if (previousSizes.length === 0) {
+      previousSizesRef.current = currentSizes;
       return;
     }
 
-    let changed = previousSizes.length !== currentSizes.length;
-    if (!changed) {
+    let changed = false;
+
+    if (previousSizes.length === currentSizes.length) {
       for (const [index, currentSize] of currentSizes.entries()) {
         if (
           previousSizes[index][0] !== currentSize[0] ||
@@ -325,14 +336,27 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
           break;
         }
       }
+    } else {
+      changed = true;
     }
 
-    if (changed) {
-      const event: ElementsMeasuredEvent = { isInitial: false, paper, graph: paper.model };
-      paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-      onElementsMeasured?.(event);
+    if (!changed) {
+      return;
     }
-  }, [areElementsMeasured, elementIds, elementsState, isReady, onElementsMeasured, paper]);
+
+    previousSizesRef.current = currentSizes;
+    const event: ElementsMeasuredEvent = { isInitial: false, paper, graph: paper.model };
+    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+    onElementsMeasured?.(event);
+  }, [
+    areElementsMeasured,
+    elementIds,
+    elementsState,
+    hasElementViewSnapshot,
+    isReady,
+    onElementsMeasured,
+    paper,
+  ]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {
