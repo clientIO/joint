@@ -120,6 +120,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     onElementsSizeChange,
     useHTMLOverlay,
     scale,
+    portalSelector,
     // These are React host props and must not be forwarded to dia.Paper options.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     className,
@@ -223,6 +224,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       renderElement: renderElement as RenderElement<FlatElementData>,
       renderLink: renderLink as RenderLink<FlatLinkData> | undefined,
       scale,
+      portalSelector,
     });
 
     return remove;
@@ -372,10 +374,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
       const portalNode = (elementView.paper as ReactPaper).getCellViewPortalNode(elementView);
 
-      if (!portalNode.isConnected) {
-        return null;
-      }
-      if (!portalNode) {
+      if (!portalNode || !portalNode.isConnected) {
         return null;
       }
 

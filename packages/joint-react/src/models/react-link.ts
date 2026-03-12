@@ -1,4 +1,5 @@
 import { dia } from '@joint/core';
+import { REACT_PORTAL_SELECTOR } from './react-element';
 
 export const REACT_LINK_TYPE = 'ReactLink';
 
@@ -64,6 +65,10 @@ export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
         pointerEvents: 'none',
         strokeLinejoin: 'round',
       },
+    },
+    {
+      tagName: 'g',
+      selector: REACT_PORTAL_SELECTOR,
     },
   ];
 }

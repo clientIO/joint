@@ -7,7 +7,7 @@ import CodeRaw from './code?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
-  title: 'Examples/Selection & Minimap',
+  title: 'Examples/Portal Selectors',
   component: Code,
   tags: ['example'],
   parameters: makeRootDocumentation({
