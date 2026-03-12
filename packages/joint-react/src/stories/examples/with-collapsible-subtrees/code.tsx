@@ -14,7 +14,7 @@ import {
   usePaperEvents,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
+import { useCallback, useId, useMemo, useRef } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
@@ -698,20 +698,17 @@ function Main() {
     return !cell.prop('hidden');
   }, []);
 
-  useEffect(() => {
-    const paperInstance = paperRef.current;
-    if (!paperInstance) return;
-    const graph = paperInstance.model;
+  const handleElementsMeasured = useCallback(({ isInitial, paper, graph }: { isInitial: boolean; paper: dia.Paper; graph: dia.Graph }) => {
+    if (!isInitial) return;
     runLayout(graph);
-    addExpandTools(paperInstance);
-
-    paperInstance.transformToFitContent({
+    addExpandTools(paper);
+    paper.transformToFitContent({
       padding: 40,
       useModelGeometry: true,
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
     });
-  });
+  }, []);
 
   const handleExpand = useCallback((jointPaper: dia.Paper, elementView: dia.ElementView) => {
     const graph = jointPaper.model;
@@ -765,6 +762,7 @@ function Main() {
       className={PAPER_CLASSNAME}
       renderElement={RenderFTAElement}
       cellVisibility={cellVisibilityCallback}
+      onElementsMeasured={handleElementsMeasured}
       defaultConnector={{
         name: 'straight',
         args: { cornerType: 'line', cornerRadius: 10 },

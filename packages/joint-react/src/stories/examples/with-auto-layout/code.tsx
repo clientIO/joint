@@ -7,7 +7,6 @@ import {
   GraphProvider,
   Paper,
   useElements,
-  useOnElementsMeasured,
   useGraph,
   useNodeSize,
   type RenderElement,
@@ -77,9 +76,12 @@ function Main() {
     []
   );
 
-  useOnElementsMeasured(() => {
-    makeLayoutWithGrid({ graph, gridXSize });
-  }, [makeLayoutWithGrid, graph, gridXSize]);
+  const makeLayout = useCallback(
+    () => {
+      makeLayoutWithGrid({ graph, gridXSize });
+    },
+    [makeLayoutWithGrid, graph, gridXSize]
+  );
 
   const elementsLength = useElements((items) => Object.keys(items).length);
   return (
@@ -121,6 +123,7 @@ function Main() {
         className={PAPER_CLASSNAME}
         height={450}
         renderElement={renderElement}
+        onElementsMeasured={makeLayout}
       />
     </div>
   );

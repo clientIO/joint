@@ -26,7 +26,7 @@ import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
 import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
-import { PAPER_ELEMENTS_MEASURED } from '../types/event.types';
+import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext } from '../context';
 import {
@@ -117,6 +117,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     renderElement,
     renderLink,
     defaultLink,
+    onElementsMeasured,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -279,7 +280,9 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
     if (areElementsMeasured) {
       measuredRef.current = true;
-      paper.trigger(PAPER_ELEMENTS_MEASURED, { isInitial: true, paper, graph: paper.model });
+      const event: ElementsMeasuredEvent = { isInitial: true, paper, graph: paper.model };
+      paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+      onElementsMeasured?.(event);
       return;
     }
 
@@ -292,7 +295,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       }, 1000);
       return () => clearTimeout(timeout);
     }
-  }, [areElementsMeasured, isReady, paper]);
+  }, [areElementsMeasured, isReady, onElementsMeasured, paper]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -325,9 +328,11 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     }
 
     if (changed) {
-      paper.trigger(PAPER_ELEMENTS_MEASURED, { isInitial: false, paper, graph: paper.model });
+      const event: ElementsMeasuredEvent = { isInitial: false, paper, graph: paper.model };
+      paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+      onElementsMeasured?.(event);
     }
-  }, [areElementsMeasured, elementIds, elementsState, isReady, paper]);
+  }, [areElementsMeasured, elementIds, elementsState, isReady, onElementsMeasured, paper]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

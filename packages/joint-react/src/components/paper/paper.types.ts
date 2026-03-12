@@ -4,6 +4,7 @@ import type { OmitWithoutIndexSignature } from '../../types';
 import type { FlatLinkData } from '../../types/link-types';
 import type { PortalSelector } from '../../models/react-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
+import type { ElementsMeasuredEvent } from '../../types/event.types';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 
 type ReactPaperOptionsBase = OmitWithoutIndexSignature<
@@ -122,6 +123,18 @@ export interface PaperProps<ElementData = FlatElementData>
    * ```
    */
   readonly renderLink?: RenderLink<FlatLinkData>;
+  /**
+   * Called when element sizes are measured or re-measured.
+   *
+   * Fires on initial measurement (all elements have `width` and `height` greater than 1)
+   * and on subsequent size changes detected by the paper.
+   *
+   * The callback receives `{ isInitial, paper, graph }` to distinguish the
+   * first measurement from subsequent ones.
+   *
+   * Also available as the `'elements:measured'` paper event via `usePaperEvents`.
+   */
+  readonly onElementsMeasured?: (event: ElementsMeasuredEvent) => void;
   /**
    * Inline styles applied to the paper host element.
    *
