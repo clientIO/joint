@@ -18,5 +18,5 @@ export * from './use-link-layout';
 export * from './use-stores';
 export * from './use-highlighter';
 export * from './use-markup';
-export * from './use-elements-measured';
+export * from './use-on-elements-measured';
 export * from './use-create-react-paper';

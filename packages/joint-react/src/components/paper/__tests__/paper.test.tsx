@@ -10,12 +10,20 @@ import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import { useGraph, useCellId, useLinks } from '../../../hooks';
+import { useOnElementsMeasured } from '../../../hooks/use-on-elements-measured';
+import type { ElementsMeasuredEvent } from '../../../types/event.types';
 import type { FlatElementData } from '../../../types/element-types';
 import type { FlatLinkData } from '../../../types/link-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 import { ReactLink, REACT_LINK_TYPE } from '../../../models/react-link';
 import type { ReactPaper } from '../../../models/react-paper';
+
+/** Test helper: listens to `elements:measured` event via hook and forwards to callback. */
+function MeasuredListener({ paperId, callback }: Readonly<{ paperId: string; callback: (event: ElementsMeasuredEvent) => void }>) {
+  useOnElementsMeasured(paperId, callback);
+  return null;
+}
 
 const elements: Record<string, { label: string; width: number; height: number }> = {
   '1': { label: 'Node 1', width: 10, height: 10 },
@@ -322,12 +330,14 @@ describe('Paper Component', () => {
       );
     };
 
+    const PAPER_ID = 'test-measured';
     render(
       <GraphProvider elements={elements}>
+        <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
         <Paper
+          id={PAPER_ID}
           width={WIDTH}
           height={150}
-          onElementsMeasured={onMeasuredMock}
           renderElement={renderElement}
         />
       </GraphProvider>
@@ -366,20 +376,22 @@ describe('Paper Component', () => {
       '2': { label: 'Node 2', width: 150, height: 75 },
     };
 
+    const PAPER_ID = 'test-size-change';
     function ControlledPaperHost() {
       const [controlledElements, setControlledElements] = useState(elements);
       const hasUpdatedRef = useRef(false);
 
       return (
         <GraphProvider elements={controlledElements} onElementsChange={setControlledElements}>
+          <MeasuredListener paperId={PAPER_ID} callback={({ isInitial }) => {
+            onMeasuredMock();
+            if (isInitial && !hasUpdatedRef.current) {
+              hasUpdatedRef.current = true;
+              setControlledElements(updatedElements);
+            }
+          }} />
           <Paper<Element>
-            onElementsMeasured={({ isInitial }) => {
-              onMeasuredMock();
-              if (isInitial && !hasUpdatedRef.current) {
-                hasUpdatedRef.current = true;
-                setControlledElements(updatedElements);
-              }
-            }}
+            id={PAPER_ID}
             renderElement={({ label }) => <div className="node">{label}</div>}
           />
         </GraphProvider>
@@ -427,11 +439,13 @@ describe('Paper Component', () => {
 
   it('calls onElementsMeasured when elements are measured', async () => {
     const onMeasuredMock = jest.fn();
+    const PAPER_ID = 'test-measured-basic';
 
     render(
       <GraphProvider elements={elements}>
+        <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
         <Paper<Element>
-          onElementsMeasured={onMeasuredMock}
+          id={PAPER_ID}
           renderElement={() => <div>Test</div>}
         />
       </GraphProvider>
@@ -444,6 +458,7 @@ describe('Paper Component', () => {
   it('calls onElementsMeasured when elements are measured - conditional render', async () => {
     const RenderElement = jest.fn(({ label }) => <div className="node">{label}</div>);
     const onMeasuredMock = jest.fn();
+    const PAPER_ID = 'test-measured-conditional';
 
     function Content() {
       const [isReady, setIsReady] = useState(false);
@@ -455,10 +470,13 @@ describe('Paper Component', () => {
       return (
         <GraphProvider elements={elements}>
           {isReady && (
-            <Paper<Element>
-              renderElement={RenderElement}
-              onElementsMeasured={onMeasuredMock}
-            />
+            <>
+              <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
+              <Paper<Element>
+                id={PAPER_ID}
+                renderElement={RenderElement}
+              />
+            </>
           )}
         </GraphProvider>
       );
@@ -490,15 +508,17 @@ describe('Paper Component', () => {
   it('provides non-null ref inside onElementsMeasured callback', async () => {
     const ref: RefObject<ReactPaper | null> = { current: null };
     const onMeasuredMock = jest.fn();
+    const PAPER_ID = 'test-measured-ref';
 
     render(
       <GraphProvider elements={elements}>
+        <MeasuredListener paperId={PAPER_ID} callback={() => {
+          onMeasuredMock(ref.current);
+        }} />
         <Paper<Element>
+          id={PAPER_ID}
           ref={ref}
           renderElement={() => <div>Test</div>}
-          onElementsMeasured={() => {
-            onMeasuredMock(ref.current);
-          }}
         />
       </GraphProvider>
     );

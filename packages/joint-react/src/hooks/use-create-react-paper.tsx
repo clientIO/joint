@@ -117,7 +117,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     renderElement,
     renderLink,
     defaultLink,
-    onElementsMeasured,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -283,7 +282,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       measuredRef.current = true;
       const event: ElementsMeasuredEvent = { isInitial: true, paper, graph: paper.model };
       paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-      onElementsMeasured?.(event);
       return;
     }
 
@@ -303,7 +301,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     return () => {
       clearTimeout(timeout);
     };
-  }, [areElementsMeasured, hasElementViewSnapshot, isReady, onElementsMeasured, paper]);
+  }, [areElementsMeasured, hasElementViewSnapshot, isReady, paper]);
 
   useEffect(() => {
     if (!hasElementViewSnapshot) return;
@@ -318,7 +316,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     const previousSizes = previousSizesRef.current;
 
     // Prime baseline snapshot first to avoid an initial stale layout pass.
-    // `onElementsMeasured` should react to size deltas, not first observation.
+    // The callback should react to size deltas, not first observation.
     if (previousSizes.length === 0) {
       previousSizesRef.current = currentSizes;
       return;
@@ -347,14 +345,12 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     previousSizesRef.current = currentSizes;
     const event: ElementsMeasuredEvent = { isInitial: false, paper, graph: paper.model };
     paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-    onElementsMeasured?.(event);
   }, [
     areElementsMeasured,
     elementIds,
     elementsState,
     hasElementViewSnapshot,
     isReady,
-    onElementsMeasured,
     paper,
   ]);
 
