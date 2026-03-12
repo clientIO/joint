@@ -28,7 +28,7 @@ import {
   type State,
 } from '../utils/create-state';
 import type { IncrementalStateChanges } from '../state/incremental.types';
-import { GraphExternalContextStore } from './graph-external-context-store';
+import { GraphExternalContextStore } from './external-context-store';
 import { PaperStores } from './papers-store';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
@@ -109,7 +109,7 @@ export class GraphStore {
   public readonly internalState: State<GraphStoreInternalSnapshot>;
   public readonly dataState: ExternalStoreLike<GraphStoreSnapshot>;
   public readonly areElementsMeasuredState: ExternalStoreLike<boolean>;
-  public readonly externalStore = new GraphExternalContextStore();
+  public readonly externalStoreContext = new GraphExternalContextStore();
   public readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
   public readonly graph: dia.Graph;
   public readonly graphState: GraphState;
@@ -279,7 +279,7 @@ export class GraphStore {
     if (!isGraphExternal) {
       this.graph.clear();
     }
-    this.externalStore.destroy();
+    this.externalStoreContext.destroy();
   };
 
   public updatePaperSnapshot(

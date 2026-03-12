@@ -2,7 +2,7 @@ import { startTransition } from 'react';
 import { sendToDevTool } from './dev-tools';
 import { util } from '@joint/core';
 import { isUpdater } from './is';
-import { scheduler } from './scheduler';
+import { simpleScheduler } from './scheduler';
 
 /**
  * Update function or direct value for state updates.
@@ -137,6 +137,7 @@ export function createState<T>(options: Options<T>): State<T> {
   if (isDevToolEnabled) {
     sendToDevTool({ name, type: 'set', value: stateRef.current });
   }
+
   const notifySubscribers = () => {
     if (isDevToolEnabled) {
       sendToDevTool({ name, type: 'set', value: stateRef.current });
@@ -166,7 +167,9 @@ export function createState<T>(options: Options<T>): State<T> {
         return;
       }
       stateRef.current = updatedState;
-      scheduler.schedule(notifySubscribers);
+
+      // queueMicrotask(notifySubscribers);
+      simpleScheduler(notifySubscribers);
     },
 
     setStateTransition: (updater: Update<T>) => {

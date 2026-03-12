@@ -4,6 +4,7 @@ import type { RenderElement, RenderLink } from '../components';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { GraphStore } from './graph-store';
+import { GraphExternalContextStore } from './external-context-store';
 import { ReactPaper } from '../models/react-paper';
 import { connectionPoint } from './default-connection-point';
 import { measureNode } from './default-measure-node';
@@ -106,6 +107,8 @@ export class PaperStore {
   public renderLink?: RenderLink<FlatLinkData>;
   /** Optional alias id */
   public alternateId?: string;
+  /** External context store scoped to this paper instance */
+  public readonly externalStoreContext = new GraphExternalContextStore();
 
   constructor(options: PaperStoreOptions) {
     const { graphStore, paperOptions = {}, scale, renderElement, renderLink, id } = options;
@@ -222,6 +225,7 @@ export class PaperStore {
    * Should be called when the paper is being removed from the graph store.
    */
   public destroy = () => {
+    this.externalStoreContext.destroy();
     // Remove the JointJS paper instance - this cleans up:
     // - All event listeners on the paper
     // - All cell views

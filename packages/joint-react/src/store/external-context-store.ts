@@ -1,7 +1,7 @@
 import { createState, type State } from '../utils/create-state';
 
-export type GraphExternalContextId = string | number | symbol;
-export type GraphExternalContextSnapshot = ReadonlyMap<GraphExternalContextId, number>;
+export type ExternalContextId = string | number | symbol;
+export type GraphExternalContextSnapshot = ReadonlyMap<ExternalContextId, number>;
 
 export interface GraphExternalContextEntry {
   readonly value: unknown;
@@ -10,12 +10,12 @@ export interface GraphExternalContextEntry {
 
 export class GraphExternalContextStore {
   public readonly versionState: State<GraphExternalContextSnapshot>;
-  public readonly entries = new Map<GraphExternalContextId, GraphExternalContextEntry>();
+  public readonly entries = new Map<ExternalContextId, GraphExternalContextEntry>();
 
   constructor() {
     this.versionState = createState<GraphExternalContextSnapshot>({
       name: 'Jointjs/ExternalContexts',
-      newState: () => new Map<GraphExternalContextId, number>(),
+      newState: () => new Map<ExternalContextId, number>(),
     });
   }
 
@@ -28,7 +28,7 @@ export class GraphExternalContextStore {
   };
 
   public setExternalContext = (
-    id: GraphExternalContextId,
+    id: ExternalContextId,
     value: unknown,
     cleanup?: () => void
   ) => {
@@ -43,17 +43,17 @@ export class GraphExternalContextStore {
     };
   };
 
-  public removeExternalContext = (id: GraphExternalContextId) => {
+  public removeExternalContext = (id: ExternalContextId) => {
     this.entries.get(id)?.cleanup?.();
     this.entries.delete(id);
     this.bumpVersion(id);
   };
 
-  public getExternalContext = (id: GraphExternalContextId): GraphExternalContextEntry | null => {
+  public getExternalContext = (id: ExternalContextId): GraphExternalContextEntry | null => {
     return this.entries.get(id) ?? null;
   };
 
-  private bumpVersion = (id: GraphExternalContextId) => {
+  private bumpVersion = (id: ExternalContextId) => {
     this.versionState.setState((previous) => {
       const nextState = new Map(previous);
       const previousUpdateNumber = nextState.get(id) ?? 0;
