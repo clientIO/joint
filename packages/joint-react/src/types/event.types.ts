@@ -13,13 +13,6 @@ export const PAPER_ELEMENTS_SIZE_READY = 'paper:elements:size:ready' as const;
  */
 export const PAPER_ELEMENTS_SIZE_CHANGE = 'paper:elements:size:change' as const;
 
-/**
- * Event triggered when React element portals are rendered.
- * Called once with all currently rendered element IDs.
- * Use with `usePaperEvents` or `paper.on()` to listen for this event.
- */
-export const PAPER_ELEMENTS_RENDER = 'paper:elements:render' as const;
-
 export interface EventMap {
   // paper
   'paper:mouseenter': (event: dia.Event) => void;
@@ -198,7 +191,6 @@ export interface EventMap {
   // react paper events
   [PAPER_ELEMENTS_SIZE_READY]: () => void;
   [PAPER_ELEMENTS_SIZE_CHANGE]: () => void;
-  [PAPER_ELEMENTS_RENDER]: () => void;
   // transformations
   translate: (tx: number, ty: number, data: unknown) => void;
   scale: (sx: number, sy: number, data: unknown) => void;

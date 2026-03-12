@@ -15,7 +15,7 @@ import { GraphProvider, Paper } from '../../components';
 import { usePaperEvents } from '../use-paper-events';
 import { usePaper } from '../use-paper';
 import type { EventMap, PaperEventHandlers, PaperEventType } from '../../types/event.types';
-import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE, PAPER_ELEMENTS_RENDER } from '../../types/event.types';
+import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE } from '../../types/event.types';
 
 const EMPTY_ELEMENTS = {};
 const EMPTY_LINKS = {};
@@ -109,7 +109,6 @@ const PAPER_EVENT_ARGS: {
   'render:idle': [IDLE_OPTIONS],
   [PAPER_ELEMENTS_SIZE_READY]: [],
   [PAPER_ELEMENTS_SIZE_CHANGE]: [],
-  [PAPER_ELEMENTS_RENDER]: [],
   translate: [10, 20, { source: 'translate' }],
   scale: [2, 2, { source: 'scale' }],
   resize: [100, 200, { source: 'resize' }],
@@ -526,31 +525,4 @@ describe('use-paper-events', () => {
     expect(onSizeChange).toHaveBeenCalledTimes(1);
   });
 
-  it('catches paper:elements:render event via usePaperEvents', async () => {
-    const wrapper = createPaperWrapper('paper-el-render');
-    const onElementsRender = jest.fn();
-
-    const { result } = renderHook(
-      () => {
-        const paper = usePaper('paper-el-render');
-        usePaperEvents('paper-el-render', {
-          [PAPER_ELEMENTS_RENDER]: onElementsRender,
-        });
-        return paper;
-      },
-      { wrapper }
-    );
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-    });
-
-    const callsBefore = onElementsRender.mock.calls.length;
-
-    act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_RENDER);
-    });
-
-    expect(onElementsRender).toHaveBeenCalledTimes(callsBefore + 1);
-  });
 });

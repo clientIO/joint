@@ -26,7 +26,7 @@ import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
 import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
-import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE, PAPER_ELEMENTS_RENDER } from '../types/event.types';
+import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext } from '../context';
 import {
@@ -352,11 +352,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     paper,
   ]);
 
-  useEffect(() => {
-    if (!paper) return;
 
-    paper.trigger(PAPER_ELEMENTS_RENDER);
-  }, [paper, paperElementViewIds]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {
