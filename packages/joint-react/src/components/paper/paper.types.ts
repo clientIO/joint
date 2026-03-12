@@ -123,12 +123,6 @@ export interface PaperProps<ElementData = FlatElementData>
    */
   readonly renderLink?: RenderLink<FlatLinkData>;
   /**
-   * Event called when element sizes change after the initial measurement.
-   * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
-   */
-  readonly onElementsSizeChange?: () => void;
-
-  /**
    * Event called when element portals are rendered.
    */
   readonly onElementsRender?: () => void;

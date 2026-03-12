@@ -9,7 +9,7 @@ import type { dia } from '@joint/core';
 import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
-import { useGraph, useCellId, useLinks, useElementsMeasured } from '../../../hooks';
+import { useGraph, useCellId, useLinks, useElementsMeasured, useElementsResized } from '../../../hooks';
 import type { FlatElementData } from '../../../types/element-types';
 import type { FlatLinkData } from '../../../types/link-types';
 import { GraphProvider } from '../../graph/graph-provider';
@@ -365,15 +365,16 @@ describe('Paper Component', () => {
     });
   });
 
-  it('calls onElementsSizeChange when element sizes change', async () => {
-    const onElementsSizeChangeMock = jest.fn();
+  it('calls useElementsResized when element sizes change', async () => {
+    const onResizedMock = jest.fn();
     const updatedElements: Record<string, { label: string; width: number; height: number }> = {
       '1': { label: 'Node 1', width: 100, height: 50 },
       '2': { label: 'Node 2', width: 150, height: 75 },
     };
 
-    function MeasuredObserver({ onReady }: { readonly onReady: () => void }) {
+    function SizeObservers({ onReady }: { readonly onReady: () => void }) {
       useElementsMeasured(onReady);
+      useElementsResized(onResizedMock);
       return null;
     }
 
@@ -384,10 +385,9 @@ describe('Paper Component', () => {
       return (
         <GraphProvider elements={controlledElements} onElementsChange={setControlledElements}>
           <Paper<Element>
-            onElementsSizeChange={onElementsSizeChangeMock}
             renderElement={({ label }) => <div className="node">{label}</div>}
           >
-            <MeasuredObserver onReady={() => {
+            <SizeObservers onReady={() => {
               if (hasUpdatedRef.current) {
                 return;
               }
@@ -402,19 +402,25 @@ describe('Paper Component', () => {
     render(<ControlledPaperHost />);
 
     await waitFor(() => {
-      expect(onElementsSizeChangeMock).toHaveBeenCalledTimes(1);
+      expect(onResizedMock).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('does not call onElementsSizeChange for the initial size snapshot only', async () => {
-    const onElementsSizeChangeMock = jest.fn();
+  it('does not call useElementsResized for the initial size snapshot only', async () => {
+    const onResizedMock = jest.fn();
+
+    function ResizeObserver() {
+      useElementsResized(onResizedMock);
+      return null;
+    }
 
     render(
       <GraphProvider elements={elements}>
         <Paper<Element>
-          onElementsSizeChange={onElementsSizeChangeMock}
           renderElement={({ label }) => <div className="node">{label}</div>}
-        />
+        >
+          <ResizeObserver />
+        </Paper>
       </GraphProvider>
     );
 
@@ -423,7 +429,7 @@ describe('Paper Component', () => {
       expect(screen.getByText('Node 2')).toBeInTheDocument();
     });
 
-    expect(onElementsSizeChangeMock).not.toHaveBeenCalled();
+    expect(onResizedMock).not.toHaveBeenCalled();
   });
 
   it('applies default clickThreshold and custom clickThreshold', () => {

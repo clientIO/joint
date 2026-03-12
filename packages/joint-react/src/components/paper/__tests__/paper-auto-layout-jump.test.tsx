@@ -3,6 +3,7 @@ import type { dia } from '@joint/core';
 import { useCallback, useRef } from 'react';
 import { act } from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
+import { useElementsResized } from '../../../hooks/use-elements-measured';
 import type { FlatElementData } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
@@ -115,14 +116,17 @@ function handleElementsSizeChange(graph: dia.Graph) {
   }
 }
 
-function AutoLayoutTestHost() {
-  const paperRef = useRef<dia.Paper | null>(null);
-
-  const onSizeChange = useCallback(() => {
+function ResizeObserver({ paperRef }: { readonly paperRef: React.RefObject<dia.Paper | null> }) {
+  useElementsResized(() => {
     if (paperRef.current) {
       handleElementsSizeChange(paperRef.current.model);
     }
-  }, []);
+  });
+  return null;
+}
+
+function AutoLayoutTestHost() {
+  const paperRef = useRef<dia.Paper | null>(null);
 
   return (
     <GraphProvider elements={initialElements}>
@@ -130,8 +134,9 @@ function AutoLayoutTestHost() {
         ref={paperRef}
         height={450}
         renderElement={renderMeasuredNode}
-        onElementsSizeChange={onSizeChange}
-      />
+      >
+        <ResizeObserver paperRef={paperRef} />
+      </Paper>
     </GraphProvider>
   );
 }

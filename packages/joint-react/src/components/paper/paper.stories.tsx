@@ -192,7 +192,6 @@ export const WithAutomaticLayoutSize: Story = {
 export const WithEvent: Story = {
   args: {
     renderElement: RenderHTMLElement as never,
-    onElementsSizeChange: action('onElementsSizeChange'),
     width: '100%',
     className: PAPER_CLASSNAME,
   },

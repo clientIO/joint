@@ -117,7 +117,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     renderElement,
     renderLink,
     defaultLink,
-    onElementsSizeChange,
     onElementsRender,
     useHTMLOverlay,
     scale,
@@ -345,14 +344,12 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
     previousSizesRef.current = currentSizes;
     paper.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
-    onElementsSizeChange?.();
   }, [
     areElementsMeasured,
     elementIds,
     elementsState,
     hasElementViewSnapshot,
     isReady,
-    onElementsSizeChange,
     paper,
   ]);
 
