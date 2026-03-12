@@ -24,7 +24,7 @@ import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
-import type { OnLoadOptions, PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
+import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE, PAPER_ELEMENTS_RENDER } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
@@ -281,9 +281,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
     if (areElementsMeasured) {
       measuredRef.current = true;
-      const sizeReadyOptions: OnLoadOptions = { paper, graph: paper.model };
-      paper.trigger(PAPER_ELEMENTS_SIZE_READY, sizeReadyOptions);
-      onElementsSizeReady?.(sizeReadyOptions);
+      paper.trigger(PAPER_ELEMENTS_SIZE_READY);
+      onElementsSizeReady?.();
       return;
     }
 
@@ -345,9 +344,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     }
 
     previousSizesRef.current = currentSizes;
-    const sizeChangeOptions: OnLoadOptions = { paper, graph: paper.model };
-    paper.trigger(PAPER_ELEMENTS_SIZE_CHANGE, sizeChangeOptions);
-    onElementsSizeChange?.(sizeChangeOptions);
+    paper.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
+    onElementsSizeChange?.();
   }, [
     areElementsMeasured,
     elementIds,
@@ -361,8 +359,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   useEffect(() => {
     if (!paper) return;
 
-    paper.trigger(PAPER_ELEMENTS_RENDER, paperElementViewIds);
-    onElementsRender?.(paperElementViewIds);
+    paper.trigger(PAPER_ELEMENTS_RENDER);
+    onElementsRender?.();
   }, [onElementsRender, paper, paperElementViewIds]);
 
   const renderedElements = useMemo(() => {

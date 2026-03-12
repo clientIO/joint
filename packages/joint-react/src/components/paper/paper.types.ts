@@ -2,14 +2,8 @@ import type { dia } from '@joint/core';
 import type { FlatElementData } from '../../types/element-types';
 import type { OmitWithoutIndexSignature } from '../../types';
 import type { FlatLinkData } from '../../types/link-types';
-import type { CellId } from '../../types/cell-id';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
-
-export interface OnLoadOptions {
-  readonly paper: dia.Paper;
-  readonly graph: dia.Graph;
-}
 
 type ReactPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
@@ -132,19 +126,18 @@ export interface PaperProps<ElementData = FlatElementData>
    * In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
    * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
    */
-  readonly onElementsSizeReady?: (options: OnLoadOptions) => void;
+  readonly onElementsSizeReady?: () => void;
 
   /**
    * Event called when element sizes change after the initial measurement.
    * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
    */
-  readonly onElementsSizeChange?: (options: OnLoadOptions) => void;
+  readonly onElementsSizeChange?: () => void;
 
   /**
    * Event called when element portals are rendered.
-   * Called with the record of currently rendered element view IDs.
    */
-  readonly onElementsRender?: (elementViewIds: Record<CellId, true>) => void;
+  readonly onElementsRender?: () => void;
 
   /**
    * Inline styles applied to the paper host element.

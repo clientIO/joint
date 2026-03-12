@@ -513,25 +513,17 @@ describe('Paper Component', () => {
         <Paper<Element>
           ref={ref}
           renderElement={() => <div>Test</div>}
-          onElementsSizeReady={({ paper }) => {
-            onElementsSizeReadyMock({
-              paperFromCallback: paper,
-              paperFromRef: ref.current,
-            });
+          onElementsSizeReady={() => {
+            onElementsSizeReadyMock(ref.current);
           }}
         />
       </GraphProvider>
     );
 
     await waitFor(() => {
-      expect(onElementsSizeReadyMock).toHaveBeenCalledWith({
-        paperFromCallback: expect.any(Object),
-        paperFromRef: expect.any(Object),
-      });
       expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
-      expect(onElementsSizeReadyMock.mock.calls[0][0].paperFromRef).toBe(
-        onElementsSizeReadyMock.mock.calls[0][0].paperFromCallback
-      );
+      expect(onElementsSizeReadyMock).toHaveBeenCalledWith(expect.any(Object));
+      expect(onElementsSizeReadyMock.mock.calls[0][0]).not.toBeNull();
     });
   });
 

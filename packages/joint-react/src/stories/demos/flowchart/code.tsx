@@ -446,6 +446,7 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
 
 function Main() {
   const paperId = useId();
+  const paperRef = useRef<dia.Paper | null>(null);
   const paperInstance = usePaper(paperId);
 
   usePaperEvents(
@@ -528,12 +529,15 @@ function Main() {
 
   return (
     <Paper
+      ref={paperRef}
       id={paperId}
       gridSize={5}
       height={600}
       overflow={true}
       snapLabels={true}
-      onElementsSizeReady={({ paper }) => {
+      onElementsSizeReady={() => {
+        const paper = paperRef.current;
+        if (!paper) return;
         paper.transformToFitContent({
           padding: 40,
           useModelGeometry: true,

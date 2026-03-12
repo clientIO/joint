@@ -16,7 +16,6 @@ import { usePaperEvents } from '../use-paper-events';
 import { usePaper } from '../use-paper';
 import type { EventMap, PaperEventHandlers, PaperEventType } from '../../types/event.types';
 import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE, PAPER_ELEMENTS_RENDER } from '../../types/event.types';
-import type { OnLoadOptions } from '../../components/paper/paper.types';
 
 const EMPTY_ELEMENTS = {};
 const EMPTY_LINKS = {};
@@ -44,7 +43,6 @@ const LINK_END = 'target' as dia.LinkEnd;
 const UPDATE_STATS = {} as dia.Paper.UpdateStats;
 const IDLE_OPTIONS = {} as dia.Paper.UpdateViewsAsyncOptions;
 const MATRIX = {} as SVGMatrix;
-const ON_LOAD_OPTIONS = {} as OnLoadOptions;
 
 const PAPER_EVENT_ARGS: {
   readonly [EventName in PaperEventType]: Parameters<EventMap[EventName]>;
@@ -109,9 +107,9 @@ const PAPER_EVENT_ARGS: {
   'link:snap:disconnect': [LINK_VIEW, JOINT_EVENT, CELL_VIEW, SVG_NODE, LINK_END],
   'render:done': [UPDATE_STATS, { source: 'render-done' }],
   'render:idle': [IDLE_OPTIONS],
-  [PAPER_ELEMENTS_SIZE_READY]: [ON_LOAD_OPTIONS],
-  [PAPER_ELEMENTS_SIZE_CHANGE]: [ON_LOAD_OPTIONS],
-  [PAPER_ELEMENTS_RENDER]: [{ 'element-1': true, 'element-2': true }],
+  [PAPER_ELEMENTS_SIZE_READY]: [],
+  [PAPER_ELEMENTS_SIZE_CHANGE]: [],
+  [PAPER_ELEMENTS_RENDER]: [],
   translate: [10, 20, { source: 'translate' }],
   scale: [2, 2, { source: 'scale' }],
   resize: [100, 200, { source: 'resize' }],
@@ -495,17 +493,11 @@ describe('use-paper-events', () => {
       expect(result.current).toBeDefined();
     });
 
-    const mockOptions: OnLoadOptions = {
-      paper: result.current!,
-      graph: result.current!.model,
-    };
-
     act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_SIZE_READY, mockOptions);
+      result.current?.trigger(PAPER_ELEMENTS_SIZE_READY);
     });
 
     expect(onSizeReady).toHaveBeenCalledTimes(1);
-    expect(onSizeReady).toHaveBeenCalledWith(mockOptions);
   });
 
   it('catches paper:elements:size:change event via usePaperEvents', async () => {
@@ -527,17 +519,11 @@ describe('use-paper-events', () => {
       expect(result.current).toBeDefined();
     });
 
-    const mockOptions: OnLoadOptions = {
-      paper: result.current!,
-      graph: result.current!.model,
-    };
-
     act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_SIZE_CHANGE, mockOptions);
+      result.current?.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
     });
 
     expect(onSizeChange).toHaveBeenCalledTimes(1);
-    expect(onSizeChange).toHaveBeenCalledWith(mockOptions);
   });
 
   it('catches paper:elements:render event via usePaperEvents', async () => {
@@ -559,14 +545,12 @@ describe('use-paper-events', () => {
       expect(result.current).toBeDefined();
     });
 
-    const mockViewIds = { 'el-1': true as const, 'el-2': true as const };
     const callsBefore = onElementsRender.mock.calls.length;
 
     act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_RENDER, mockViewIds);
+      result.current?.trigger(PAPER_ELEMENTS_RENDER);
     });
 
     expect(onElementsRender).toHaveBeenCalledTimes(callsBefore + 1);
-    expect(onElementsRender).toHaveBeenLastCalledWith(mockViewIds);
   });
 });

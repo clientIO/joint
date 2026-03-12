@@ -1,6 +1,6 @@
 import { render, waitFor } from '@testing-library/react';
 import type { dia } from '@joint/core';
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { act } from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import type { FlatElementData } from '../../../types/element-types';
@@ -99,7 +99,7 @@ function renderMeasuredNode(props: AutoLayoutElementData) {
   return <MeasuredNode {...props} />;
 }
 
-function handleElementsSizeChange({ graph }: { readonly graph: dia.Graph }) {
+function handleElementsSizeChange(graph: dia.Graph) {
   const elements = graph.getElements();
 
   for (const [index, element] of elements.entries()) {
@@ -115,21 +115,34 @@ function handleElementsSizeChange({ graph }: { readonly graph: dia.Graph }) {
   }
 }
 
+function AutoLayoutTestHost() {
+  const paperRef = useRef<dia.Paper | null>(null);
+
+  const onSizeChange = useCallback(() => {
+    if (paperRef.current) {
+      handleElementsSizeChange(paperRef.current.model);
+    }
+  }, []);
+
+  return (
+    <GraphProvider elements={initialElements}>
+      <Paper<AutoLayoutElementData>
+        ref={paperRef}
+        height={450}
+        renderElement={renderMeasuredNode}
+        onElementsSizeChange={onSizeChange}
+      />
+    </GraphProvider>
+  );
+}
+
 describe('Paper automatic layout', () => {
   it('does not apply an initial stale layout pass before measured sizes are available', async () => {
     const fourthNodeYPositions: number[] = [];
     const expectedRowTwoY = MEASURED_NODE_HEIGHT + GAP;
     currentFourthNodeYPositions = fourthNodeYPositions;
 
-    render(
-      <GraphProvider elements={initialElements}>
-        <Paper<AutoLayoutElementData>
-          height={450}
-          renderElement={renderMeasuredNode}
-          onElementsSizeChange={handleElementsSizeChange}
-        />
-      </GraphProvider>
-    );
+    render(<AutoLayoutTestHost />);
 
     // Flush microtasks (mock observer) and scheduler (state notifications)
     // Multiple rounds needed: 1) queueMicrotask fires observer, 2) scheduler flushes state, 3) React re-renders

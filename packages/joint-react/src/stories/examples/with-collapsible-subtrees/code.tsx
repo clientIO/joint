@@ -14,7 +14,7 @@ import {
   usePaperEvents,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
-import { useCallback, useId, useMemo } from 'react';
+import { useCallback, useId, useMemo, useRef } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
@@ -693,11 +693,14 @@ function addExpandTools(paper: dia.Paper) {
 // ----------------------------------------------------------------------------
 function Main() {
   const paperId = useId();
+  const paperRef = useRef<dia.Paper | null>(null);
   const cellVisibilityCallback = useCallback((cell: dia.Cell) => {
     return !cell.prop('hidden');
   }, []);
 
-  const handleElementsSizeReady = useCallback(({ paper: jointPaper }: { paper: dia.Paper }) => {
+  const handleElementsSizeReady = useCallback(() => {
+    const jointPaper = paperRef.current;
+    if (!jointPaper) return;
     const graph = jointPaper.model;
     runLayout(graph);
     addExpandTools(jointPaper);
@@ -756,6 +759,7 @@ function Main() {
 
   return (
     <Paper
+      ref={paperRef}
       id={paperId}
       height={600}
       className={PAPER_CLASSNAME}

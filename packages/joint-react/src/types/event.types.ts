@@ -1,6 +1,4 @@
 import type { dia, mvc } from '@joint/core';
-import type { OnLoadOptions } from '../components/paper/paper.types';
-import type { CellId } from './cell-id';
 import type { AnyString } from './index';
 
 /**
@@ -198,9 +196,9 @@ export interface EventMap {
   'render:done': (stats: dia.Paper.UpdateStats, opt: unknown) => void;
   'render:idle': (opt: dia.Paper.UpdateViewsAsyncOptions) => void;
   // react paper events
-  [PAPER_ELEMENTS_SIZE_READY]: (options: OnLoadOptions) => void;
-  [PAPER_ELEMENTS_SIZE_CHANGE]: (options: OnLoadOptions) => void;
-  [PAPER_ELEMENTS_RENDER]: (elementViewIds: Record<CellId, true>) => void;
+  [PAPER_ELEMENTS_SIZE_READY]: () => void;
+  [PAPER_ELEMENTS_SIZE_CHANGE]: () => void;
+  [PAPER_ELEMENTS_RENDER]: () => void;
   // transformations
   translate: (tx: number, ty: number, data: unknown) => void;
   scale: (sx: number, sy: number, data: unknown) => void;
