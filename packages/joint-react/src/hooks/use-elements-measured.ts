@@ -2,9 +2,16 @@ import { useEffect, useRef, type DependencyList, type RefObject } from 'react';
 import { mvc, type dia } from '@joint/core';
 import { usePaperStore } from './use-paper';
 import { useRefValue } from './use-ref-value';
-import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE } from '../types/event.types';
+import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
 
 type PaperTarget = string | dia.Paper | RefObject<dia.Paper | null>;
+
+export interface UseOnElementsMeasuredOptions {
+  /** When true, the callback fires only once and then unsubscribes. */
+  readonly once?: boolean;
+}
+
+type Callback = (event: ElementsMeasuredEvent) => void;
 
 /**
  * Resolves a paper instance from supported target forms.
@@ -21,23 +28,77 @@ function resolvePaper(
 }
 
 /**
- * Shared implementation for paper-event callback hooks.
+ * Calls a callback when element sizes are measured or re-measured.
+ *
+ * Fires on initial measurement (all elements have `width` and `height`)
+ * and on subsequent size changes detected by the paper.
+ *
+ * The callback receives `{ isInitial: boolean }` to distinguish the
+ * first measurement from subsequent ones.
+ *
+ * Pass `{ once: true }` to automatically unsubscribe after the first call.
+ *
+ * Wraps the `elements:measured` paper event.
+ *
+ * @param callback - Called each time element sizes are measured.
+ * @param dependencies - Optional dependency array controlling re-subscription.
+ * @param options - Optional settings (e.g. `{ once: true }`).
+ * @group Hooks
+ *
+ * @example
+ * ```tsx
+ * // React to every measurement (inside a <Paper> component)
+ * useOnElementsMeasured(({ isInitial }) => {
+ *   if (isInitial) runLayout(graph);
+ * });
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Fire once, then stop listening
+ * useOnElementsMeasured(() => {
+ *   paper.transformToFitContent({ padding: 20 });
+ * }, [], { once: true });
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Using a paper ref
+ * const paperRef = useRef<dia.Paper>(null);
+ * useOnElementsMeasured(paperRef, () => {
+ *   paperRef.current?.transformToFitContent({ padding: 20 });
+ * });
+ * ```
  */
-function usePaperEventCallback(
-  eventName: string,
-  targetOrCallback: PaperTarget | (() => void),
-  callbackOrDependencies?: (() => void) | DependencyList,
-  dependenciesArgument?: DependencyList
+export function useOnElementsMeasured(
+  callback: Callback,
+  dependencies?: DependencyList,
+  options?: UseOnElementsMeasuredOptions
+): void;
+export function useOnElementsMeasured(
+  target: PaperTarget,
+  callback: Callback,
+  dependencies?: DependencyList,
+  options?: UseOnElementsMeasuredOptions
+): void;
+export function useOnElementsMeasured(
+  targetOrCallback: PaperTarget | Callback,
+  callbackOrDependencies?: Callback | DependencyList,
+  dependenciesOrOptions?: DependencyList | UseOnElementsMeasuredOptions,
+  optionsArgument?: UseOnElementsMeasuredOptions
 ): void {
   const isContextForm = typeof targetOrCallback === 'function';
 
   const target = isContextForm ? undefined : (targetOrCallback as PaperTarget);
   const callback = isContextForm
-    ? (targetOrCallback as () => void)
-    : (callbackOrDependencies as () => void);
+    ? (targetOrCallback as Callback)
+    : (callbackOrDependencies as Callback);
   const dependencies = isContextForm
     ? (callbackOrDependencies as DependencyList | undefined)
-    : dependenciesArgument;
+    : (dependenciesOrOptions as DependencyList | undefined);
+  const options = isContextForm
+    ? (dependenciesOrOptions as UseOnElementsMeasuredOptions | undefined)
+    : optionsArgument;
 
   const contextStore = usePaperStore(true);
   const targetRef = target && typeof target === 'object' && 'current' in target ? target : undefined;
@@ -50,100 +111,19 @@ function usePaperEventCallback(
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
 
+  const once = options?.once ?? false;
+
   useEffect(() => {
     if (!paper) return;
 
     const controller = new mvc.Listener();
-    controller.listenTo(paper, eventName, () => callbackRef.current());
+    controller.listenTo(paper, PAPER_ELEMENTS_MEASURED, (event: ElementsMeasuredEvent) => {
+      callbackRef.current(event);
+      if (once) {
+        controller.stopListening();
+      }
+    });
     return () => controller.stopListening();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paper, ...(dependencies ?? [])]);
-}
-
-/**
- * Calls a callback once when all elements on the paper have been measured
- * (i.e. every element has `width` and `height` greater than the minimum threshold).
- *
- * This is a convenience hook wrapping the `paper:elements:size:ready` event.
- *
- * @param callback - Called once when all elements are measured.
- * @param dependencies - Optional dependency array controlling re-subscription.
- * @group Hooks
- *
- * @example
- * ```tsx
- * // Using paper context (inside a <Paper> component)
- * useElementsMeasured(() => {
- *   paper.transformToFitContent({ padding: 20 });
- * });
- * ```
- *
- * @example
- * ```tsx
- * // Using a paper ref
- * const paperRef = useRef<dia.Paper>(null);
- * useElementsMeasured(paperRef, () => {
- *   paperRef.current?.transformToFitContent({ padding: 20 });
- * });
- * ```
- */
-export function useElementsMeasured(
-  callback: () => void,
-  dependencies?: DependencyList
-): void;
-export function useElementsMeasured(
-  target: PaperTarget,
-  callback: () => void,
-  dependencies?: DependencyList
-): void;
-export function useElementsMeasured(
-  targetOrCallback: PaperTarget | (() => void),
-  callbackOrDependencies?: (() => void) | DependencyList,
-  dependenciesArgument?: DependencyList
-): void {
-  usePaperEventCallback(PAPER_ELEMENTS_SIZE_READY, targetOrCallback, callbackOrDependencies, dependenciesArgument);
-}
-
-/**
- * Calls a callback when element sizes change after the initial measurement.
- *
- * This is a convenience hook wrapping the `paper:elements:size:change` event.
- * It does not fire for the initial size snapshot — only for subsequent changes.
- *
- * @param callback - Called when element sizes change.
- * @param dependencies - Optional dependency array controlling re-subscription.
- * @group Hooks
- *
- * @example
- * ```tsx
- * // Re-run layout when elements resize
- * useElementsResized(() => {
- *   runLayout(graph);
- * });
- * ```
- *
- * @example
- * ```tsx
- * // Using a paper ref
- * const paperRef = useRef<dia.Paper>(null);
- * useElementsResized(paperRef, () => {
- *   runLayout(paperRef.current?.model);
- * });
- * ```
- */
-export function useElementsResized(
-  callback: () => void,
-  dependencies?: DependencyList
-): void;
-export function useElementsResized(
-  target: PaperTarget,
-  callback: () => void,
-  dependencies?: DependencyList
-): void;
-export function useElementsResized(
-  targetOrCallback: PaperTarget | (() => void),
-  callbackOrDependencies?: (() => void) | DependencyList,
-  dependenciesArgument?: DependencyList
-): void {
-  usePaperEventCallback(PAPER_ELEMENTS_SIZE_CHANGE, targetOrCallback, callbackOrDependencies, dependenciesArgument);
+  }, [paper, once, ...(dependencies ?? [])]);
 }

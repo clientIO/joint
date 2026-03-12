@@ -2,16 +2,20 @@ import type { dia, mvc } from '@joint/core';
 import type { AnyString } from './index';
 
 /**
- * Event triggered when all elements have been properly measured (width and height > 1).
+ * Event triggered when element sizes are measured or re-measured.
+ * Fires on initial measurement and on subsequent size changes.
  * Use with `usePaperEvents` or `paper.on()` to listen for this event.
  */
-export const PAPER_ELEMENTS_SIZE_READY = 'paper:elements:size:ready' as const;
+export const PAPER_ELEMENTS_MEASURED = 'elements:measured' as const;
 
-/**
- * Event triggered when element sizes change after the initial measurement.
- * Use with `usePaperEvents` or `paper.on()` to listen for this event.
- */
-export const PAPER_ELEMENTS_SIZE_CHANGE = 'paper:elements:size:change' as const;
+export interface ElementsMeasuredEvent {
+  /** True when this is the first measurement (all elements sized for the first time). */
+  readonly isInitial: boolean;
+  /** The paper instance that triggered the event. */
+  readonly paper: dia.Paper;
+  /** The graph model associated with the paper. */
+  readonly graph: dia.Graph;
+}
 
 export interface EventMap {
   // paper
@@ -189,8 +193,7 @@ export interface EventMap {
   'render:done': (stats: dia.Paper.UpdateStats, opt: unknown) => void;
   'render:idle': (opt: dia.Paper.UpdateViewsAsyncOptions) => void;
   // react paper events
-  [PAPER_ELEMENTS_SIZE_READY]: () => void;
-  [PAPER_ELEMENTS_SIZE_CHANGE]: () => void;
+  [PAPER_ELEMENTS_MEASURED]: (event: ElementsMeasuredEvent) => void;
   // transformations
   translate: (tx: number, ty: number, data: unknown) => void;
   scale: (sx: number, sy: number, data: unknown) => void;

@@ -523,9 +523,9 @@ function Main() {
         paperInstance.removeTools();
         dia.HighlighterView.removeAll(paperInstance);
       },
-      'paper:elements:size:ready': () => {
-        if (!paperInstance) return;
-        paperInstance.transformToFitContent({
+      'elements:measured': ({ isInitial, paper }) => {
+        if (!isInitial) return;
+        paper.transformToFitContent({
           padding: 40,
           useModelGeometry: true,
           verticalAlign: 'middle',

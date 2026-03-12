@@ -26,7 +26,7 @@ import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
 import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
-import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE } from '../types/event.types';
+import { PAPER_ELEMENTS_MEASURED } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext } from '../context';
 import {
@@ -273,37 +273,28 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
 
   useEffect(() => {
-    if (!hasElementViewSnapshot) return;
     if (!isReady) return;
     if (measuredRef.current) return;
     if (!paper) return;
 
     if (areElementsMeasured) {
       measuredRef.current = true;
-      paper.trigger(PAPER_ELEMENTS_SIZE_READY);
+      paper.trigger(PAPER_ELEMENTS_MEASURED, { isInitial: true, paper, graph: paper.model });
       return;
     }
 
-    if (process.env.NODE_ENV === 'production') {
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      if (!areElementsMeasured) {
+    if (process.env.NODE_ENV !== 'production') {
+      const timeout = setTimeout(() => {
         // eslint-disable-next-line no-console
         console.error(
           'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
         );
-      }
-    }, 1000);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [areElementsMeasured, hasElementViewSnapshot, isReady, paper]);
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [areElementsMeasured, isReady, paper]);
 
   useEffect(() => {
-    if (!hasElementViewSnapshot) return;
     if (!isReady) return;
     if (!areElementsMeasured) return;
     if (!paper) return;
@@ -313,17 +304,15 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       return [element?.width ?? 0, element?.height ?? 0];
     });
     const previousSizes = previousSizesRef.current;
+    previousSizesRef.current = currentSizes;
 
-    // Prime baseline snapshot first to avoid an initial stale layout pass.
-    // `onElementsSizeChange` should react to size deltas, not first observation.
+    // First run: store baseline without firing.
     if (previousSizes.length === 0) {
-      previousSizesRef.current = currentSizes;
       return;
     }
 
-    let changed = false;
-
-    if (previousSizes.length === currentSizes.length) {
+    let changed = previousSizes.length !== currentSizes.length;
+    if (!changed) {
       for (const [index, currentSize] of currentSizes.entries()) {
         if (
           previousSizes[index][0] !== currentSize[0] ||
@@ -333,26 +322,12 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
           break;
         }
       }
-    } else {
-      changed = true;
     }
 
-    if (!changed) {
-      return;
+    if (changed) {
+      paper.trigger(PAPER_ELEMENTS_MEASURED, { isInitial: false, paper, graph: paper.model });
     }
-
-    previousSizesRef.current = currentSizes;
-    paper.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
-  }, [
-    areElementsMeasured,
-    elementIds,
-    elementsState,
-    hasElementViewSnapshot,
-    isReady,
-    paper,
-  ]);
-
-
+  }, [areElementsMeasured, elementIds, elementsState, isReady, paper]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

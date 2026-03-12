@@ -17,7 +17,7 @@ import {
   useHighlighter,
   useNodeSize,
   useLinks,
-  useElementsMeasured,
+  useOnElementsMeasured,
   type CellId,
   type FlatElementData,
   type FlatElementPort,
@@ -302,15 +302,10 @@ function MiniMap() {
   const minimapPaperRef = useRef<dia.Paper | null>(null);
 
   // On change, the minimap will be resized to fit the content automatically
-  useElementsMeasured(minimapPaperRef, () => {
-    const paper = minimapPaperRef.current;
-    if (!paper) return;
-    const { model: graph } = paper;
-
-    const contentArea = graph.getCellsBBox(graph.getElements());
-    if (!contentArea) {
-      return;
-    }
+  useOnElementsMeasured(minimapPaperRef, ({ isInitial, paper, graph }) => {
+    console.log(isInitial)
+    const contentArea = graph.getBBox();
+    if (!contentArea) return;
     paper.transformToFitContent({
       contentArea,
       verticalAlign: 'middle',

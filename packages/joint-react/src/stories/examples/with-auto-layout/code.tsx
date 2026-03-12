@@ -7,7 +7,7 @@ import {
   GraphProvider,
   Paper,
   useElements,
-  useElementsResized,
+  useOnElementsMeasured,
   useGraph,
   useNodeSize,
   type RenderElement,
@@ -77,7 +77,7 @@ function Main() {
     []
   );
 
-  useElementsResized(() => {
+  useOnElementsMeasured(() => {
     makeLayoutWithGrid({ graph, gridXSize });
   }, [makeLayoutWithGrid, graph, gridXSize]);
 
