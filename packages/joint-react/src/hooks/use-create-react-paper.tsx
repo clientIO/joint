@@ -24,8 +24,9 @@ import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
-import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
+import type { OnLoadOptions, PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
+import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE, PAPER_ELEMENTS_RENDER } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext } from '../context';
 import {
@@ -118,6 +119,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     defaultLink,
     onElementsSizeReady,
     onElementsSizeChange,
+    onElementsRender,
     useHTMLOverlay,
     scale,
     // These are React host props and must not be forwarded to dia.Paper options.
@@ -279,7 +281,9 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
     if (areElementsMeasured) {
       measuredRef.current = true;
-      onElementsSizeReady?.({ paper, graph: paper.model });
+      const sizeReadyOptions: OnLoadOptions = { paper, graph: paper.model };
+      paper.trigger(PAPER_ELEMENTS_SIZE_READY, sizeReadyOptions);
+      onElementsSizeReady?.(sizeReadyOptions);
       return;
     }
 
@@ -304,7 +308,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   useEffect(() => {
     if (!hasElementViewSnapshot) return;
     if (!isReady) return;
-    if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
     if (!paper) return;
 
@@ -342,7 +345,9 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     }
 
     previousSizesRef.current = currentSizes;
-    onElementsSizeChange({ paper, graph: paper.model });
+    const sizeChangeOptions: OnLoadOptions = { paper, graph: paper.model };
+    paper.trigger(PAPER_ELEMENTS_SIZE_CHANGE, sizeChangeOptions);
+    onElementsSizeChange?.(sizeChangeOptions);
   }, [
     areElementsMeasured,
     elementIds,
@@ -352,6 +357,13 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     onElementsSizeChange,
     paper,
   ]);
+
+  useEffect(() => {
+    if (!paper) return;
+
+    paper.trigger(PAPER_ELEMENTS_RENDER, paperElementViewIds);
+    onElementsRender?.(paperElementViewIds);
+  }, [onElementsRender, paper, paperElementViewIds]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

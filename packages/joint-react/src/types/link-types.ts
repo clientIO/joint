@@ -1,4 +1,5 @@
 import type { anchors, connectionPoints, dia, shapes } from '@joint/core';
+import type { AnyString } from './index';
 import type { MarkerPreset } from '../theme/link-theme';
 import type { CellId } from './cell-id';
 
@@ -97,7 +98,7 @@ export interface FlatLinkLabel {
    * - Any other string — interpreted as SVG path `d` commands (supports `calc()` expressions via `ref`)
    * @default 'rect'
    */
-  readonly backgroundShape?: 'rect' | 'ellipse' | string;
+  readonly backgroundShape?: 'rect' | 'ellipse' | AnyString;
 }
 
 /**

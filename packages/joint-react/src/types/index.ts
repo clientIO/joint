@@ -6,5 +6,12 @@ export type OmitWithoutIndexSignature<T, K extends keyof T> = Omit<RemoveIndexSi
 
 export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
+/**
+ * A string type that preserves intellisense for known literal unions.
+ * Use instead of `| string` or `[key: string]` to keep autocomplete working.
+ */
+// eslint-disable-next-line sonarjs/no-useless-intersection
+export type AnyString = string & {};
+
 export * from './event.types';
 export * from './port.types';

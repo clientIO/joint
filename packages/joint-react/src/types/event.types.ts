@@ -1,4 +1,26 @@
 import type { dia, mvc } from '@joint/core';
+import type { OnLoadOptions } from '../components/paper/paper.types';
+import type { CellId } from './cell-id';
+import type { AnyString } from './index';
+
+/**
+ * Event triggered when all elements have been properly measured (width and height > 1).
+ * Use with `usePaperEvents` or `paper.on()` to listen for this event.
+ */
+export const PAPER_ELEMENTS_SIZE_READY = 'paper:elements:size:ready' as const;
+
+/**
+ * Event triggered when element sizes change after the initial measurement.
+ * Use with `usePaperEvents` or `paper.on()` to listen for this event.
+ */
+export const PAPER_ELEMENTS_SIZE_CHANGE = 'paper:elements:size:change' as const;
+
+/**
+ * Event triggered when React element portals are rendered.
+ * Called once with all currently rendered element IDs.
+ * Use with `usePaperEvents` or `paper.on()` to listen for this event.
+ */
+export const PAPER_ELEMENTS_RENDER = 'paper:elements:render' as const;
 
 export interface EventMap {
   // paper
@@ -175,6 +197,10 @@ export interface EventMap {
   // render
   'render:done': (stats: dia.Paper.UpdateStats, opt: unknown) => void;
   'render:idle': (opt: dia.Paper.UpdateViewsAsyncOptions) => void;
+  // react paper events
+  [PAPER_ELEMENTS_SIZE_READY]: (options: OnLoadOptions) => void;
+  [PAPER_ELEMENTS_SIZE_CHANGE]: (options: OnLoadOptions) => void;
+  [PAPER_ELEMENTS_RENDER]: (elementViewIds: Record<CellId, true>) => void;
   // transformations
   translate: (tx: number, ty: number, data: unknown) => void;
   scale: (sx: number, sy: number, data: unknown) => void;
@@ -187,7 +213,7 @@ export type PaperEventType = keyof EventMap;
 export type PaperEventHandlers = Partial<{
   [EventName in PaperEventType]: (...args: Parameters<EventMap[EventName]>) => void;
 }> & {
-  [eventName: string]: ((...args: Parameters<mvc.EventHandler>) => void) | undefined;
+  [eventName: AnyString]: ((...args: Parameters<mvc.EventHandler>) => void) | undefined;
 };
 
 export interface GraphEventOptions {
@@ -246,5 +272,5 @@ export type GraphEventArgs<EventName extends GraphEventName> =
 export type GraphEventHandlers = Partial<{
   [EventName in GraphEventName]: (...args: GraphEventArgs<EventName>) => void;
 }> & {
-  [eventName: string]: ((...args: Parameters<mvc.EventHandler>) => void) | undefined;
+  [eventName: AnyString]: ((...args: Parameters<mvc.EventHandler>) => void) | undefined;
 };

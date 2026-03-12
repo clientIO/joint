@@ -14,6 +14,7 @@ export * from './models/react-link';
 
 export { ReactPaper } from './models/react-paper';
 
+export * from './types';
 export * from './types/cell-id';
 export * from './types/element-types';
 export * from './types/link-types';
