@@ -2,6 +2,7 @@ import type { dia } from '@joint/core';
 import type { FlatElementData } from '../../types/element-types';
 import type { OmitWithoutIndexSignature } from '../../types';
 import type { FlatLinkData } from '../../types/link-types';
+import type { PortalSelector } from '../../models/react-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 
@@ -185,4 +186,30 @@ export interface PaperProps<ElementData = FlatElementData>
    * @returns
    */
   readonly onRenderElement?: OnPaperRenderElement;
+
+  /**
+   * Selector used to locate the React portal target node inside a cell view.
+   *
+   * By default, only cells whose markup contains the `'__portal__'` selector
+   * (i.e. {@link ReactElement}) are rendered via `renderElement`.
+   * Set this to a different selector (e.g. `'root'`) to render into
+   * built-in or custom JointJS shapes.
+   *
+   * A function receives the cell view and the default selector, and returns
+   * a selector string or `null` to skip rendering for that cell.
+   * @example
+   * ```tsx
+   * // Render into the 'root' selector of all shapes
+   * <Paper portalSelector="root" renderElement={...} />
+   * ```
+   * @example
+   * ```tsx
+   * // Use a function for conditional rendering
+   * <Paper portalSelector={(cellView, defaultSelector) => {
+   *   if (cellView.model.get('type') === 'standard.Rectangle') return 'root';
+   *   return defaultSelector;
+   * }} renderElement={...} />
+   * ```
+   */
+  readonly portalSelector?: PortalSelector;
 }

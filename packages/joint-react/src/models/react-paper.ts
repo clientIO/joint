@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { ReactPaperOptions } from './react-paper.types';
+import type { PortalSelector, ReactPaperOptions } from './react-paper.types';
 import { REACT_PORTAL_SELECTOR } from './react-element';
 
 const noopViewMountChange = (_kind: 'element' | 'link', _cellId: CellId, _isMounted: boolean) => {};
@@ -19,14 +19,16 @@ export class ReactPaper extends dia.Paper {
     isMounted: boolean
   ) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
+  private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();
 
   constructor(options: ReactPaperOptions) {
-    const { onViewMountChange, ...paperOptions } = options;
+    const { onViewMountChange, portalSelector, ...paperOptions } = options;
 
     super(paperOptions);
     this.onViewMountChange = onViewMountChange ?? noopViewMountChange;
     this.shouldPreserveHostElementOnRemove = !!paperOptions.el;
+    this.portalSelector = portalSelector;
   }
 
   /**
@@ -73,9 +75,23 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Resolves the portal target node from a cell view.
+   *
+   * When {@link ReactPaperOptions.portalSelector | portalSelector} is set,
+   * it overrides the default `'__portal__'` selector lookup.
    */
-  getCellViewPortalNode(cellView: dia.CellView): SVGElement | HTMLElement {
-    return cellView.findNode(REACT_PORTAL_SELECTOR) ?? cellView.el;
+  getCellViewPortalNode(cellView: dia.CellView): SVGElement | HTMLElement | null {
+    const { portalSelector } = this;
+    if (portalSelector !== undefined) {
+      if (typeof portalSelector === 'function') {
+        const result = portalSelector(cellView, REACT_PORTAL_SELECTOR);
+        if (result === null) return null;
+        if (result instanceof Element) return result as SVGElement | HTMLElement;
+        return cellView.findNode(result);
+      }
+      if (portalSelector === null) return null;
+      return cellView.findNode(portalSelector);
+    }
+    return cellView.findNode(REACT_PORTAL_SELECTOR);
   }
 
   /**
@@ -86,6 +102,7 @@ export class ReactPaper extends dia.Paper {
     const elementView = this.getElementView(elementId);
     if (!elementView?.el) return false;
     const portalNode = this.getCellViewPortalNode(elementView);
+    if (!portalNode) return true;
     return portalNode.children.length > 0;
   }
 

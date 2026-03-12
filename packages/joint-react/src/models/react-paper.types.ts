@@ -2,6 +2,17 @@ import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 
 /**
+ * Resolves the JointJS selector used to find the React portal target node
+ * inside a cell view.
+ *
+ * - A **string** is used directly as the selector for `cellView.findNode()`.
+ * - **`null`** disables all portal rendering.
+ * - A **function** receives the cell view and the default selector (`'__portal__'`),
+ *   and returns a selector string, an `Element` node directly, or `null` to skip rendering.
+ */
+export type PortalSelector = string | null | ((cellView: dia.CellView, defaultSelector: string) => string | Element | null);
+
+/**
  * Options for creating a ReactPaper instance with lifecycle callbacks.
  */
 export interface ReactPaperOptions extends dia.Paper.Options {
@@ -10,4 +21,16 @@ export interface ReactPaperOptions extends dia.Paper.Options {
     cellId: CellId,
     isMounted: boolean
   ) => void;
+  /**
+   * Selector used to locate the React portal target node inside a cell view.
+   *
+   * By default, only cells whose markup contains the `'__portal__'` selector
+   * (i.e. {@link ReactElement}) are rendered via `renderElement`.
+   * Set this to a different selector (e.g. `'root'`) to render into
+   * built-in or custom JointJS shapes.
+   *
+   * A function receives the cell view and the default selector, and returns
+   * a selector string or `null` to skip rendering for that cell.
+   */
+  readonly portalSelector?: PortalSelector;
 }

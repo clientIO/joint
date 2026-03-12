@@ -16,6 +16,7 @@ import {
   type FlatLinkData,
   type PaperProps,
   type RenderElement,
+  REACT_TYPE,
   // ReactLinkView,
   // type MarkerPreset,
 } from '@joint/react';
@@ -296,11 +297,10 @@ function RenderElementWithBadge({
   title = 'No Title',
 }: Readonly<ElementData>) {
   const layout = useNodeLayout();
-  const width = layout?.width ?? 100;
   return (
     <>
       {jjType ?? <Shape color={color} title={title} />}
-      <Badge x={width + 10} y={-10} size={10} color={color} />
+      <Badge x={layout.width + 10} y={-10} size={10} color={color} />
     </>
   );
 }
@@ -346,6 +346,10 @@ function Main() {
         // elementView={ReactElementView}
         validateMagnet={(_, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         linkPinning={false}
+        portalSelector={(cellView, defaultSelector) => {
+          const type = cellView.model.get('type');
+          return type === REACT_TYPE ? defaultSelector : 'root';
+        }}
       >
         <Selection selectedId={selectedElement} />
       </Paper>

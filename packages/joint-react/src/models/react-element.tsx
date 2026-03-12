@@ -5,7 +5,7 @@ export const REACT_TYPE = 'ReactElement';
  * Selector for the `<g>` element used as the React portal target inside ReactElement markup.
  * @group Models
  */
-export const REACT_PORTAL_SELECTOR = 'reactPortal';
+export const REACT_PORTAL_SELECTOR = '__portal__';
 
 
 /**
