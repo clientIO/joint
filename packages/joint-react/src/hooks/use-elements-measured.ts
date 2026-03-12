@@ -22,7 +22,7 @@ function resolvePaper(
   contextPaper: dia.Paper | null
 ): dia.Paper | null {
   if (!target) return contextPaper;
-  if (typeof target === 'string') return null;
+  if (typeof target === 'string') return contextPaper;
   if ('current' in target) return paperFromRef ?? null;
   return target;
 }
@@ -100,7 +100,8 @@ export function useOnElementsMeasured(
     ? (dependenciesOrOptions as UseOnElementsMeasuredOptions | undefined)
     : optionsArgument;
 
-  const contextStore = usePaperStore(true);
+  const isStringTarget = typeof target === 'string';
+  const contextStore = usePaperStore(isStringTarget ? target : true);
   const targetRef = target && typeof target === 'object' && 'current' in target ? target : undefined;
   const paperFromRef = useRefValue(targetRef);
 
