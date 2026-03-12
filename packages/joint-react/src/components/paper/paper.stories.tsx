@@ -193,7 +193,6 @@ export const WithEvent: Story = {
   args: {
     renderElement: RenderHTMLElement as never,
     onElementsSizeChange: action('onElementsSizeChange'),
-    onElementsSizeReady: action('onElementsSizeReady'),
     width: '100%',
     className: PAPER_CLASSNAME,
   },

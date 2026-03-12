@@ -2,7 +2,7 @@ import { GraphProvider, Paper, useNodeLayout, type FlatElementData } from '@join
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 // ----------------------------------------------------------------------------
 // Type Definitions
@@ -788,11 +788,11 @@ function addElementControls(paper: dia.Paper) {
 function Main() {
   const paperRef = useRef<dia.Paper | null>(null);
 
-  const handleSizeReady = useCallback(() => {
-    const paper = paperRef.current;
-    if (!paper) return;
-    addElementControls(paper);
-  }, []);
+  useEffect(() => {
+    if (paperRef.current) {
+      addElementControls(paperRef.current);
+    }
+  });
 
   return (
     <Paper
@@ -801,7 +801,6 @@ function Main() {
       height={600}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
-      onElementsSizeReady={handleSizeReady}
     />
   );
 }

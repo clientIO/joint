@@ -117,7 +117,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     renderElement,
     renderLink,
     defaultLink,
-    onElementsSizeReady,
     onElementsSizeChange,
     onElementsRender,
     useHTMLOverlay,
@@ -284,7 +283,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     if (areElementsMeasured) {
       measuredRef.current = true;
       paper.trigger(PAPER_ELEMENTS_SIZE_READY);
-      onElementsSizeReady?.();
       return;
     }
 
@@ -304,7 +302,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     return () => {
       clearTimeout(timeout);
     };
-  }, [areElementsMeasured, hasElementViewSnapshot, isReady, onElementsSizeReady, paper]);
+  }, [areElementsMeasured, hasElementViewSnapshot, isReady, paper]);
 
   useEffect(() => {
     if (!hasElementViewSnapshot) return;

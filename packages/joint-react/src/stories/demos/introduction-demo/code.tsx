@@ -17,6 +17,7 @@ import {
   useHighlighter,
   useNodeSize,
   useLinks,
+  useElementsMeasured,
   type CellId,
   type FlatElementData,
   type FlatElementPort,
@@ -299,8 +300,9 @@ function MinimapRenderElement() {
 // Minimap component
 function MiniMap() {
   const minimapPaperRef = useRef<dia.Paper | null>(null);
+
   // On change, the minimap will be resized to fit the content automatically
-  const onElementReady = useCallback(() => {
+  useElementsMeasured(minimapPaperRef, () => {
     const paper = minimapPaperRef.current;
     if (!paper) return;
     const { model: graph } = paper;
@@ -315,7 +317,7 @@ function MiniMap() {
       horizontalAlign: 'middle',
       padding: 20,
     });
-  }, []);
+  });
 
   return (
     <div className="absolute bg-black bottom-6 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
@@ -327,7 +329,6 @@ function MiniMap() {
         className={PAPER_CLASSNAME}
         height={'100%'}
         renderElement={MinimapRenderElement}
-        onElementsSizeReady={onElementReady}
       />
     </div>
   );

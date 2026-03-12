@@ -231,8 +231,17 @@ function Main() {
   useInterval(setRandomStatuses);
 
   useEffect(() => {
+    if (!paperRef.current) return;
+    for (const element of graph.getElements()) {
+      StatusList.add(element.findView(paperRef.current), 'root', 'status', {
+        attribute: 'status',
+        position: 'top-right',
+        margin: { right: 5, top: 5 },
+        gap: 3,
+        direction: 'row',
+      });
+    }
     setRandomStatuses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -244,19 +253,6 @@ function Main() {
       async
       gridSize={20}
       drawGrid={{ name: 'mesh' }}
-      onElementsSizeReady={() => {
-        const paper = paperRef.current;
-        if (!paper) return;
-        for (const element of graph.getElements()) {
-          StatusList.add(element.findView(paper), 'root', 'status', {
-            attribute: 'status',
-            position: 'top-right',
-            margin: { right: 5, top: 5 },
-            gap: 3,
-            direction: 'row',
-          });
-        }
-      }}
     />
   );
 }
