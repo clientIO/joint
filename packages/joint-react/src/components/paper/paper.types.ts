@@ -123,11 +123,6 @@ export interface PaperProps<ElementData = FlatElementData>
    */
   readonly renderLink?: RenderLink<FlatLinkData>;
   /**
-   * Event called when element portals are rendered.
-   */
-  readonly onElementsRender?: () => void;
-
-  /**
    * Inline styles applied to the paper host element.
    *
    * For sizing, `style.width` and `style.height` are used only when the matching

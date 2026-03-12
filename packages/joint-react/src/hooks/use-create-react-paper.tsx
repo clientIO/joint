@@ -117,7 +117,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     renderElement,
     renderLink,
     defaultLink,
-    onElementsRender,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -357,8 +356,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     if (!paper) return;
 
     paper.trigger(PAPER_ELEMENTS_RENDER);
-    onElementsRender?.();
-  }, [onElementsRender, paper, paperElementViewIds]);
+  }, [paper, paperElementViewIds]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {
