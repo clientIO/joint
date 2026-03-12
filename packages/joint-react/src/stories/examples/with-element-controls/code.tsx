@@ -1,9 +1,8 @@
-import type { OnLoadOptions } from '@joint/react';
 import { GraphProvider, Paper, useNodeLayout, type FlatElementData } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
-import { dia } from '@joint/core';
-import { elementTools, g } from '@joint/core';
+import { dia, elementTools, g } from '@joint/core';
+import { useCallback, useRef } from 'react';
 
 // ----------------------------------------------------------------------------
 // Type Definitions
@@ -772,7 +771,8 @@ const controlMap: Partial<Record<ElementType, () => elementTools.Control>> = {
   card: () => new CardOffsetControl(),
 };
 
-function addElementControls({ paper, graph }: OnLoadOptions) {
+function addElementControls(paper: dia.Paper) {
+  const graph = paper.model;
   for (const element of graph.getElements()) {
     const type = element.prop('data/type') as ElementType;
     const factory = controlMap[type];
@@ -786,13 +786,22 @@ function addElementControls({ paper, graph }: OnLoadOptions) {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
+  const paperRef = useRef<dia.Paper | null>(null);
+
+  const handleSizeReady = useCallback(() => {
+    const paper = paperRef.current;
+    if (!paper) return;
+    addElementControls(paper);
+  }, []);
+
   return (
     <Paper
+      ref={paperRef}
       width="100%"
       height={600}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
-      onElementsSizeReady={addElementControls}
+      onElementsSizeReady={handleSizeReady}
     />
   );
 }

@@ -1,8 +1,8 @@
 import {
   GraphExternalContextStore,
-  type GraphExternalContextId,
+  type ExternalContextId,
   type GraphExternalContextSnapshot,
-} from '../graph-external-context-store';
+} from '../external-context-store';
 
 describe('GraphExternalContextStore', () => {
   it('should keep string, number, and symbol external context ids distinct', () => {
@@ -46,7 +46,7 @@ describe('GraphExternalContextStore', () => {
   it('should call cleanup, remove the external context value, and bump its revision', () => {
     const store = new GraphExternalContextStore();
     const cleanup = jest.fn();
-    const contextId: GraphExternalContextId = Symbol('external-context-to-remove');
+    const contextId: ExternalContextId = Symbol('external-context-to-remove');
 
     store.setExternalContext(contextId, 'value', cleanup);
     store.removeExternalContext(contextId);

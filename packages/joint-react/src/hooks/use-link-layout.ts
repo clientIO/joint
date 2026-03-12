@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { useGraphStore } from './use-graph-store';
-import { usePaperStoreContext } from './use-paper-context';
+import { usePaperStore } from './use-paper';
 import { useStore } from './use-stores';
 import type { LinkLayout } from '../store/graph-store';
 
@@ -67,7 +67,7 @@ export function useLinkLayout<S>(
 ): LinkLayout | S | undefined {
   const contextId = useContext(CellIdContext);
   const { layoutState } = useGraphStore();
-  const { paperId } = usePaperStoreContext();
+  const { paperId } = usePaperStore();
 
   const isFirstArgumentSelector = typeof idOrSelector === 'function';
   const actualId = isFirstArgumentSelector ? contextId : (idOrSelector ?? contextId);

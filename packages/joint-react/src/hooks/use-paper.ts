@@ -1,46 +1,131 @@
+/* eslint-disable @typescript-eslint/unified-signatures */
+import { useContext } from 'react';
+import { PaperStoreContext } from '../context';
+import type { PaperStore } from '../store';
+import { useStore } from './use-stores';
+import { useGraphStore } from './use-graph-store';
 import type { dia } from '@joint/core';
-import { usePaperStoreById, usePaperStoreContext } from './use-paper-context';
-import type { ReactPaper } from '../models/react-paper';
 
 /**
- * Return JointJS `dia.Paper` instance from the current `Paper` context.
+ * Returns the active paper store.
+ * All overloads must be used inside a `GraphProvider`.
+ * Use this hook in one of three modes:
+ * - with no arguments, read the current `PaperStore` from `Paper` context
+ * - with `true`, still read the current `PaperStore` from `Paper` context but return `null` instead of throwing when the context is missing
+ * - with a paper id, read a specific paper store from the graph store
+ * @group Hooks
+ * @returns The resolved paper store for the current context or requested id.
+ * @example
+ * ```tsx
+ * import { usePaperStore } from '@joint/react';
+ *
+ * function PaperToolbar() {
+ *   const paperStore = usePaperStore();
+ *
+ *   return <span>{paperStore.paperId}</span>;
+ * }
+ * ```
+ * @example
+ * ```tsx
+ * import { usePaperStore } from '@joint/react';
+ *
+ * function OptionalOverlay() {
+ *   const paperStore = usePaperStore(true);
+ *
+ *   if (!paperStore) return null;
+ *
+ *   return <span>{paperStore.paper.svg.tagName}</span>;
+ * }
+ * ```
+ * @example
+ * ```tsx
+ * import { usePaperStore } from '@joint/react';
+ *
+ * function Inspector() {
+ *   const paperStore = usePaperStore('main-paper');
+ *
+ *   return paperStore ? <span>{paperStore.paperId}</span> : null;
+ * }
+ * ```
+ */
+export function usePaperStore(): PaperStore;
+export function usePaperStore(isNullable: true): PaperStore | null;
+export function usePaperStore(id: string): PaperStore | null;
+export function usePaperStore(idOrNullable?: string | true): PaperStore | null;
+export function usePaperStore(idOrNullable?: string | true): PaperStore | null {
+  const contextStore = useContext(PaperStoreContext);
+  const { internalState, paperStores, getPaperStore } = useGraphStore();
+  const paperStoreById = useStore(internalState, (snapshot) => {
+    if (typeof idOrNullable !== 'string') {
+      return null;
+    }
+    const resolvedId = paperStores.resolveId(idOrNullable);
+    if (!snapshot.papers[resolvedId]) {
+      return null;
+    }
+    return getPaperStore(idOrNullable) ?? null;
+  });
+
+  if (typeof idOrNullable === 'string') {
+    return paperStoreById;
+  }
+
+  if (!contextStore && idOrNullable !== true) {
+    throw new Error('usePaperStore must be used within a Paper or RenderElement');
+  }
+
+  return contextStore ?? null;
+}
+
+/**
+ * Returns a JointJS `dia.Paper` instance from context or by paper id.
+ *
+ * All overloads must be used inside a `GraphProvider`.
+ * Use this hook in one of three modes:
+ * - with no arguments, read the current `dia.Paper` from `Paper` context
+ * - with `true`, still read the current `dia.Paper` from `Paper` context, but return `null` instead of throwing when the context is missing
+ * - with a paper id, read a specific paper from the graph store
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
- * @returns - The jointjs paper instance.
+ * @returns The resolved JointJS paper instance.
  * @example
  * ```tsx
  * import { usePaper } from '@joint/react';
  *
- * function MyComponent() {
+ * function PaperCanvasInfo() {
  *   const paper = usePaper();
- *   // Use paper instance to interact with the JointJS paper
- *   return null;
+ *
+ *   return <span>{paper.svg.tagName}</span>;
  * }
  * ```
- */
-export function usePaper(): dia.Paper {
-  const paperStore = usePaperStoreContext();
-  return paperStore.paper;
-}
-
-/**
- * Return JointJS `dia.Paper` instance from a specific `Paper` context by id.
- * @see https://docs.jointjs.com/learn/quickstart/paper
- * @group Hooks
- * @param id - The id of the Paper context to access.
- * @returns - The jointjs paper instance or null if not found.
  * @example
  * ```tsx
- * import { usePaperById } from '@joint/react';
+ * import { usePaper } from '@joint/react';
  *
- * function MyComponent() {
- *   const paper = usePaperById('my-paper-id');
- *   // Use paper instance to interact with the JointJS paper
- *   return null;
+ * function OptionalPaperInfo() {
+ *   const paper = usePaper(true);
+ *
+ *   if (!paper) return null;
+ *
+ *   return <span>{paper.svg.tagName}</span>;
+ * }
+ * ```
+ * @example
+ * ```tsx
+ * import { usePaper } from '@joint/react';
+ *
+ * function SecondaryPaperInfo() {
+ *   const paper = usePaper('secondary-paper');
+ *
+ *   return paper ? <span>{paper.svg.tagName}</span> : null;
  * }
  * ```
  */
-export function usePaperById(id: string): ReactPaper | null {
-  const paperStoreById = usePaperStoreById(id);
-  return paperStoreById?.paper ?? null;
+export function usePaper(): dia.Paper;
+export function usePaper(isNullable: true): dia.Paper | null;
+export function usePaper(id: string): dia.Paper | null;
+export function usePaper(idOrNullable?: string | true): dia.Paper | null;
+export function usePaper(idOrNullable?: string | true): dia.Paper | null {
+  const paperStore = usePaperStore(idOrNullable);
+  return paperStore?.paper ?? null;
 }

@@ -33,7 +33,7 @@ import { useData } from './use-stores';
  */
 export function useElement<ElementData = FlatElementData, ReturnedElements = ElementData>(
   selector: (item: ElementData) => ReturnedElements = (item) => item as unknown as ReturnedElements,
-  isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
+  isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean
 ): ReturnedElements {
   const id = useCellId();
 

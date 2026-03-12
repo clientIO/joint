@@ -9,7 +9,6 @@ import {
   useElements,
   useGraph,
   useNodeSize,
-  type OnLoadOptions,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useRef, useState } from 'react';
@@ -52,6 +51,7 @@ function Main() {
   );
   const graph = useGraph();
   const { set } = useCellActions<BaseElementWithData>();
+  const paperRef = useRef<dia.Paper | null>(null);
 
   // Number of elements per row
   const [gridXSize, setGridXSize] = useState(3);
@@ -77,10 +77,10 @@ function Main() {
   );
 
   const makeLayout = useCallback(
-    (options: OnLoadOptions) => {
-      makeLayoutWithGrid({ ...options, gridXSize });
+    () => {
+      makeLayoutWithGrid({ graph, gridXSize });
     },
-    [makeLayoutWithGrid, gridXSize]
+    [makeLayoutWithGrid, graph, gridXSize]
   );
 
   const elementsLength = useElements((items) => Object.keys(items).length);
@@ -119,6 +119,7 @@ function Main() {
         </button>
       </div>
       <Paper
+        ref={paperRef}
         className={PAPER_CLASSNAME}
         height={450}
         renderElement={renderElement}

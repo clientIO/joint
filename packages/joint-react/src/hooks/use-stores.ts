@@ -1,18 +1,29 @@
-import { util } from '@joint/core';
+/* eslint-disable unicorn/consistent-function-scoping */
+import { util, type dia } from '@joint/core';
+import type { RefObject } from 'react';
 import type {
-  GraphExternalContextId,
+  ExternalContextId,
   GraphExternalContextSnapshot,
   GraphStoreSnapshot,
   GraphStoreInternalSnapshot,
   GraphStoreLayoutSnapshot,
+  PaperStore,
 } from '../store';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ExternalStoreLike, MarkDeepReadOnly } from '../utils/create-state';
 import { useGraphStore } from './use-graph-store';
+import { usePaperStore } from './use-paper';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 
 const DEFAULT_LAYOUTS_SELECTOR = (snapshot: GraphStoreLayoutSnapshot) => snapshot;
+
+const EMPTY_SNAPSHOT = new Map() as GraphExternalContextSnapshot;
+const EMPTY_VERSION_STATE: ExternalStoreLike<GraphExternalContextSnapshot> = {
+  subscribe: () => () => {},
+  getSnapshot: () => EMPTY_SNAPSHOT,
+  setState: () => {},
+};
 
 /**
  * Generic hook to select data from an external store.
@@ -101,12 +112,76 @@ export function useLayouts<Selected>(
  * @param id - The unique identifier of the external context to access.
  * @returns The current value of the external context with the specified ID, or null if not found.
  */
-export function useExternalContext<ContextValue>(id: GraphExternalContextId): ContextValue | null {
+export function useExternalContext<ContextValue>(id?: ExternalContextId): ContextValue | null {
   const graphStore = useGraphStore();
-  useStore(graphStore.externalStore.versionState, (snapshot) => {
+  const version = useStore(graphStore.externalStoreContext.versionState, (snapshot) => {
+    if (!id) return null;
     return (snapshot as GraphExternalContextSnapshot).get(id) ?? null;
   });
 
-  const externalContext = graphStore.externalStore.getExternalContext(id);
+  if (!version || !id) {
+    return null;
+  }
+  const externalContext = graphStore.externalStoreContext.getExternalContext(id);
+  return externalContext ? (externalContext.value as ContextValue) : null;
+}
+
+/**
+ * Resolves a paper argument to a PaperStore.
+ * @param paper - A paper id string, a dia.Paper instance, or a React ref to a dia.Paper.
+ * @param graphStore - The graph store to look up paper stores from.
+ * @returns The resolved PaperStore, or null if not found.
+ */
+function resolvePaperStore(
+  paper: string | dia.Paper | RefObject<dia.Paper | null>,
+  graphStore: ReturnType<typeof useGraphStore>
+): PaperStore | null {
+  if (typeof paper === 'string') {
+    return graphStore.getPaperStore(paper) ?? null;
+  }
+
+  const paperInstance = 'current' in paper ? paper.current : paper;
+
+  if (!paperInstance) {
+    return null;
+  }
+
+  for (const store of graphStore.paperStores.values()) {
+    if (store.paper === paperInstance) {
+      return store;
+    }
+  }
+  return null;
+}
+
+/**
+ * Hook to access an external context value stored on a specific paper's store by its ID.
+ * @param paper - Paper ID string, dia.Paper instance, or React ref to dia.Paper. If omitted, uses current paper context.
+ * @param id - The unique identifier of the external context to access.
+ * @returns The current value of the external context with the specified ID, or null if not found.
+ * @group Hooks
+ */
+export function usePaperExternalContext<ContextValue>(
+  paper?: string | dia.Paper | RefObject<dia.Paper | null>,
+  id?: ExternalContextId
+): ContextValue | null {
+  const graphStore = useGraphStore();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const contextPaperStore = paper ? null : usePaperStore(true);
+
+  const paperStore = paper ? resolvePaperStore(paper, graphStore) : contextPaperStore;
+
+  const version = useStore(
+    paperStore?.externalStoreContext.versionState ?? EMPTY_VERSION_STATE,
+    (snapshot) => {
+      if (!id) return null;
+      return (snapshot as GraphExternalContextSnapshot).get(id) ?? null;
+    }
+  );
+
+  if (!version || !id || !paperStore) {
+    return null;
+  }
+  const externalContext = paperStore.externalStoreContext.getExternalContext(id);
   return externalContext ? (externalContext.value as ContextValue) : null;
 }

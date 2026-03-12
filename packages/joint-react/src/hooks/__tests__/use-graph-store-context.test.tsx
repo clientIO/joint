@@ -2,15 +2,15 @@ import { act, render, renderHook, waitFor } from '@testing-library/react';
 import { useEffect, type ReactNode } from 'react';
 import { GraphProvider } from '../../components';
 import { useExternalContext, useGraphStore } from '../../hooks';
-import { GraphStore, type GraphExternalContextId } from '../../store';
+import { GraphStore, type ExternalContextId } from '../../store';
 
 interface AccessComponentProps {
-  readonly contextId: GraphExternalContextId;
+  readonly contextId: ExternalContextId;
   readonly testId: string;
 }
 
 interface CreateContextComponentProps {
-  readonly contextId: GraphExternalContextId;
+  readonly contextId: ExternalContextId;
   readonly value: string;
 }
 
@@ -32,9 +32,9 @@ function CreateContextComponent({ contextId, value }: Readonly<CreateContextComp
   const store = useGraphStore();
 
   useEffect(() => {
-    store.externalStore.setExternalContext(contextId, value);
+    store.externalStoreContext.setExternalContext(contextId, value);
     return () => {
-      store.externalStore.removeExternalContext(contextId);
+      store.externalStoreContext.removeExternalContext(contextId);
     };
   }, [contextId, store, value]);
 
@@ -54,7 +54,7 @@ describe('use-external-context', () => {
     expect(result.current).toBeNull();
 
     act(() => {
-      store.externalStore.setExternalContext(contextId, 'first-value');
+      store.externalStoreContext.setExternalContext(contextId, 'first-value');
     });
 
     await waitFor(() => {
@@ -62,7 +62,7 @@ describe('use-external-context', () => {
     });
 
     act(() => {
-      store.externalStore.setExternalContext(contextId, 'second-value');
+      store.externalStoreContext.setExternalContext(contextId, 'second-value');
     });
 
     await waitFor(() => {
@@ -70,7 +70,7 @@ describe('use-external-context', () => {
     });
 
     act(() => {
-      store.externalStore.removeExternalContext(contextId);
+      store.externalStoreContext.removeExternalContext(contextId);
     });
 
     await waitFor(() => {

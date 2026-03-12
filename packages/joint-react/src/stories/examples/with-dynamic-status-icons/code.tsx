@@ -1,10 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import { g, highlighters, V } from '@joint/core';
+import { type dia, g, highlighters, V } from '@joint/core';
 import type { FlatElementData } from '@joint/react';
 import { GraphProvider, Paper, TextNode, useGraph } from '@joint/react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 
 const ShapeTypes = {
@@ -219,6 +219,7 @@ function useInterval(action: () => void, interval: number = 1000) {
 // ----------------------------------------------------------------------------
 function Main() {
   const graph = useGraph();
+  const paperRef = useRef<dia.Paper | null>(null);
 
   const setRandomStatuses = useCallback(() => {
     for (const element of graph.getElements()) {
@@ -236,13 +237,16 @@ function Main() {
 
   return (
     <Paper
+      ref={paperRef}
       height={500}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
       async
       gridSize={20}
       drawGrid={{ name: 'mesh' }}
-      onElementsSizeReady={({ paper }) => {
+      onElementsSizeReady={() => {
+        const paper = paperRef.current;
+        if (!paper) return;
         for (const element of graph.getElements()) {
           StatusList.add(element.findView(paper), 'root', 'status', {
             attribute: 'status',

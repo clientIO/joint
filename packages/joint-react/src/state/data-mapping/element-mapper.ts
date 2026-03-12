@@ -8,6 +8,9 @@ import { convertPorts, createPortDefaults } from './convert-ports';
 // React → JointJS
 // ────────────────────────────────────────────────────────────────────────────
 
+function isElementData(data: unknown): data is FlatElementData {
+  return typeof data === 'object' && data !== null;
+}
 /**
  * Maps flat element data to JointJS cell attributes.
  *
@@ -24,11 +27,15 @@ import { convertPorts, createPortDefaults } from './convert-ports';
  * @param options - The element id and data to convert
  * @returns The JointJS cell JSON attributes
  */
-export function defaultMapDataToElementAttributes<Element extends FlatElementData>(
+export function defaultMapDataToElementAttributes<Element = FlatElementData>(
   options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'>
 ): dia.Cell.JSON {
   const { id, data } = options;
-
+  if (!isElementData(data)) {
+    throw new Error(
+      `Invalid element data for id "${id}": expected an object with at least "x" and "y" properties.`
+    );
+  }
   const {
     // ↔ Two-way: synced back from graph → React state
     x,
@@ -98,7 +105,7 @@ export function defaultMapDataToElementAttributes<Element extends FlatElementDat
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat element data
  */
-export function defaultMapElementAttributesToData<Element extends FlatElementData>(
+export function defaultMapElementAttributesToData<Element = FlatElementData>(
   options: Pick<GraphToElementOptions<Element>, 'attributes' | 'defaultAttributes'>
 ): Element {
   const { attributes, defaultAttributes } = options;

@@ -65,8 +65,7 @@ export function useCellActions<
         id: CellId,
         attributesOrUpdater: Attributes | ((previousAttributes: Attributes) => Attributes)
       ) {
-        const { graph, graphState, mapDataToElementAttributes, mapDataToLinkAttributes } =
-          graphStore;
+        const { graph, graphState } = graphStore;
         const snapshot = graphState.dataState.getSnapshot();
         const { elements, links } = snapshot;
 
@@ -92,15 +91,13 @@ export function useCellActions<
         const areAttributesLink = isLink(cellData);
         const cellAttributes =
           (existingCell?.isElement() ?? !areAttributesLink)
-            ? mapDataToElementAttributes({
+            ? graphState.elementToAttributes({
                 id: String(id),
                 data: mergedData as FlatElementData,
-                graph,
               })
-            : mapDataToLinkAttributes({
+            : graphState.linkToAttributes({
                 id: String(id),
                 data: mergedData as FlatLinkData,
-                graph,
               });
         cellAttributes.id = id;
         graph.syncCells([cellAttributes], { remove: false });

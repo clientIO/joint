@@ -15,7 +15,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
-import { usePaperStoreById } from './use-paper-context';
+import { usePaperStore } from './use-paper';
 import { useElements } from './use-elements';
 import { useLinks } from './use-links';
 import { useAreElementsMeasured, useInternalData } from './use-stores';
@@ -26,6 +26,7 @@ import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
 import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
+import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE, PAPER_ELEMENTS_RENDER } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext } from '../context';
 import {
@@ -118,6 +119,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     defaultLink,
     onElementsSizeReady,
     onElementsSizeChange,
+    onElementsRender,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -170,8 +172,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     (snapshot) => snapshot.papers[id]?.hasElementViewSnapshot
   );
 
-  const { addPaper, getPaperStore, graph, mapDataToLinkAttributes } = useGraphStore();
-  const paperStore = usePaperStoreById(id);
+  const { addPaper, getPaperStore, graph, graphState } = useGraphStore();
+  const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
   const paperRef = useRef<ReactPaper | null>(null);
@@ -190,9 +192,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
       const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
       const ReactLinkModel = getReactLinkConstructor(graph);
       if (!link) {
-        const defaultAttributes = mapDataToLinkAttributes({
+        const defaultAttributes = graphState.linkToAttributes({
           data: {} as FlatLinkData,
-          graph,
         });
         return new ReactLinkModel(defaultAttributes);
       }
@@ -202,13 +203,12 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
         }
         return link.clone();
       }
-      const attributes = mapDataToLinkAttributes({
+      const attributes = graphState.linkToAttributes({
         data: link as FlatLinkData,
-        graph,
       });
       return new ReactLinkModel(attributes);
     },
-    [defaultLink, graph, mapDataToLinkAttributes]
+    [defaultLink, graph, graphState]
   );
 
   const isReady = !!paper && (!elementRef || !!elementRef.current);
@@ -283,7 +283,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
     if (areElementsMeasured) {
       measuredRef.current = true;
-      onElementsSizeReady?.({ paper, graph: paper.model });
+      paper.trigger(PAPER_ELEMENTS_SIZE_READY);
+      onElementsSizeReady?.();
       return;
     }
 
@@ -308,7 +309,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   useEffect(() => {
     if (!hasElementViewSnapshot) return;
     if (!isReady) return;
-    if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
     if (!paper) return;
 
@@ -346,7 +346,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     }
 
     previousSizesRef.current = currentSizes;
-    onElementsSizeChange({ paper, graph: paper.model });
+    paper.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
+    onElementsSizeChange?.();
   }, [
     areElementsMeasured,
     elementIds,
@@ -356,6 +357,13 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     onElementsSizeChange,
     paper,
   ]);
+
+  useEffect(() => {
+    if (!paper) return;
+
+    paper.trigger(PAPER_ELEMENTS_RENDER);
+    onElementsRender?.();
+  }, [onElementsRender, paper, paperElementViewIds]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

@@ -1,12 +1,7 @@
 import { dia, mvc } from '@joint/core';
-import {
-  useLayoutEffect,
-  type DependencyList,
-  type RefObject,
-} from 'react';
+import { useLayoutEffect, type DependencyList, type RefObject } from 'react';
 import type { PaperEventHandlers } from '../types/event.types';
-import { usePaperById } from './use-paper';
-import { usePaperStoreContext } from './use-paper-context';
+import { usePaper, usePaperStore } from './use-paper';
 import { useRefValue } from './use-ref-value';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
@@ -87,10 +82,7 @@ function subscribeToPaperEvents(paper: dia.Paper, handlers: PaperEventHandlers):
  * @param dependencies - Optional dependencies controlling re-subscription.
  * @group Hooks
  */
-export function usePaperEvents(
-  handlers: PaperEventHandlers,
-  dependencies?: DependencyList
-): void;
+export function usePaperEvents(handlers: PaperEventHandlers, dependencies?: DependencyList): void;
 export function usePaperEvents(
   target: PaperRefTarget | PaperValueTarget | string,
   handlers: PaperEventHandlers,
@@ -102,7 +94,7 @@ export function usePaperEvents(
   dependenciesArgument: DependencyList = EMPTY_DEPENDENCIES
 ): void {
   const isContextForm = Array.isArray(handlersOrDependencies);
-  const contextStore = usePaperStoreContext(true);
+  const contextStore = usePaperStore(true);
 
   if (isContextForm && !contextStore) {
     throw new Error('usePaperEvents without a target must be used within a Paper.');
@@ -111,7 +103,8 @@ export function usePaperEvents(
   const target = isContextForm ? null : (targetOrHandlers as PaperTarget);
   const targetRef = target && isPaperRef(target) ? target : undefined;
   const paperFromRef = useRefValue(targetRef);
-  const paperById = usePaperById(target && typeof target === 'string' ? target : '');
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const paperById = typeof target === 'string' ? usePaper(target) : usePaper(true);
   const handlers = isContextForm
     ? (targetOrHandlers as PaperEventHandlers)
     : (handlersOrDependencies as PaperEventHandlers);

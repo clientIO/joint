@@ -13,8 +13,9 @@ import {
 } from 'react';
 import { GraphProvider, Paper } from '../../components';
 import { usePaperEvents } from '../use-paper-events';
-import { usePaper, usePaperById } from '../use-paper';
+import { usePaper } from '../use-paper';
 import type { EventMap, PaperEventHandlers, PaperEventType } from '../../types/event.types';
+import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE, PAPER_ELEMENTS_RENDER } from '../../types/event.types';
 
 const EMPTY_ELEMENTS = {};
 const EMPTY_LINKS = {};
@@ -106,6 +107,9 @@ const PAPER_EVENT_ARGS: {
   'link:snap:disconnect': [LINK_VIEW, JOINT_EVENT, CELL_VIEW, SVG_NODE, LINK_END],
   'render:done': [UPDATE_STATS, { source: 'render-done' }],
   'render:idle': [IDLE_OPTIONS],
+  [PAPER_ELEMENTS_SIZE_READY]: [],
+  [PAPER_ELEMENTS_SIZE_CHANGE]: [],
+  [PAPER_ELEMENTS_RENDER]: [],
   translate: [10, 20, { source: 'translate' }],
   scale: [2, 2, { source: 'scale' }],
   resize: [100, 200, { source: 'resize' }],
@@ -234,7 +238,7 @@ describe('use-paper-events', () => {
 
     const { result } = renderHook(
       () => {
-        const paper = usePaperById('paper-by-id');
+        const paper = usePaper('paper-by-id');
         usePaperEvents('paper-by-id', { 'element:contextmenu': onContextMenu });
         return paper;
       },
@@ -291,13 +295,13 @@ describe('use-paper-events', () => {
     }).not.toThrow();
   });
 
-  it('supports direct paper target overload when paper comes from usePaperById', async () => {
+  it('supports direct paper target overload when paper comes from usePaper(id)', async () => {
     const wrapper = createPaperWrapper('paper-direct');
     const onScale = jest.fn();
 
     const { result } = renderHook(
       () => {
-        const paper = usePaperById('paper-direct');
+        const paper = usePaper('paper-direct');
         usePaperEvents(paper, { scale: onScale });
         return paper;
       },
@@ -428,9 +432,10 @@ describe('use-paper-events', () => {
 
   it('throws when context target is used outside Paper', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const wrapper = createGraphWrapper();
 
     expect(() => {
-      renderHook(() => usePaperEvents({ translate: jest.fn() }));
+      renderHook(() => usePaperEvents({ translate: jest.fn() }), { wrapper });
     }).toThrow('usePaperEvents without a target must be used within a Paper.');
 
     consoleError.mockRestore();
@@ -467,5 +472,85 @@ describe('use-paper-events', () => {
 
     expect(onCustomEvent).toHaveBeenCalledTimes(1);
     expect(onCustomEvent).toHaveBeenCalledWith(elementViewWithPaper, JOINT_EVENT, 40, 60);
+  });
+
+  it('catches paper:elements:size:ready event via usePaperEvents', async () => {
+    const wrapper = createPaperWrapper('paper-size-ready');
+    const onSizeReady = jest.fn();
+
+    const { result } = renderHook(
+      () => {
+        const paper = usePaper('paper-size-ready');
+        usePaperEvents('paper-size-ready', {
+          [PAPER_ELEMENTS_SIZE_READY]: onSizeReady,
+        });
+        return paper;
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+
+    act(() => {
+      result.current?.trigger(PAPER_ELEMENTS_SIZE_READY);
+    });
+
+    expect(onSizeReady).toHaveBeenCalledTimes(1);
+  });
+
+  it('catches paper:elements:size:change event via usePaperEvents', async () => {
+    const wrapper = createPaperWrapper('paper-size-change');
+    const onSizeChange = jest.fn();
+
+    const { result } = renderHook(
+      () => {
+        const paper = usePaper('paper-size-change');
+        usePaperEvents('paper-size-change', {
+          [PAPER_ELEMENTS_SIZE_CHANGE]: onSizeChange,
+        });
+        return paper;
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+
+    act(() => {
+      result.current?.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
+    });
+
+    expect(onSizeChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('catches paper:elements:render event via usePaperEvents', async () => {
+    const wrapper = createPaperWrapper('paper-el-render');
+    const onElementsRender = jest.fn();
+
+    const { result } = renderHook(
+      () => {
+        const paper = usePaper('paper-el-render');
+        usePaperEvents('paper-el-render', {
+          [PAPER_ELEMENTS_RENDER]: onElementsRender,
+        });
+        return paper;
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+
+    const callsBefore = onElementsRender.mock.calls.length;
+
+    act(() => {
+      result.current?.trigger(PAPER_ELEMENTS_RENDER);
+    });
+
+    expect(onElementsRender).toHaveBeenCalledTimes(callsBefore + 1);
   });
 });

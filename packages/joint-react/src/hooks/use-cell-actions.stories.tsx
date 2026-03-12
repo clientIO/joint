@@ -148,7 +148,7 @@ function HookSetPosition({ label }: Readonly<SimpleElement>) {
     <HTMLNode className="node">
       <button
         className={BUTTON_CLASSNAME}
-        onClick={() => set(id, (previous) => ({ ...previous, position: { x: 100, y: 100 } }))}
+        onClick={() => set(id, (previous) => ({ ...previous, x: 100, y: 100 }))}
       >
         Set position
       </button>
@@ -188,7 +188,7 @@ function HookSetSize({ label }: Readonly<SimpleElement>) {
     <HTMLNode className="node">
       <button
         className={BUTTON_CLASSNAME}
-        onClick={() => set(id, (previous) => ({ ...previous, size: { width: 100, height: 100 } }))}
+        onClick={() => set(id, (previous) => ({ ...previous, width: 100, height: 100 }))}
       >
         Set size
       </button>
@@ -208,7 +208,7 @@ function HookSetSize({  label , id }: SimpleElement) {
   return (
     <HTMLNode className="node">
       <button
-        onClick={() => set(id, (previous) => ({ ...previous, size: { width: 100, height: 100 } }))}
+        onClick={() => set(id, (previous) => ({ ...previous, width: 100, height: 100 }))}
       >
         Set size
       </button>
@@ -277,10 +277,8 @@ function HookSetAny({ label }: Readonly<SimpleElement>) {
         onClick={() =>
           set(id, (previous) => ({
             ...previous,
-            position: {
-              x: ((previous?.x as number) ?? 0) + 10,
-              y: ((previous?.y as number) ?? 0) + 10,
-            },
+            x: ((previous?.x as number) ?? 0) + 10,
+            y: ((previous?.y as number) ?? 0) + 10,
           }))
         }
       >
@@ -291,10 +289,8 @@ function HookSetAny({ label }: Readonly<SimpleElement>) {
         onClick={() =>
           set(id, (previous) => ({
             ...previous,
-            size: {
-              width: (typeof previous?.width === 'number' ? previous.width : 0) + 10,
-              height: (typeof previous?.height === 'number' ? previous.height : 0) + 10,
-            },
+            width: (typeof previous?.width === 'number' ? previous.width : 0) + 10,
+            height: (typeof previous?.height === 'number' ? previous.height : 0) + 10,
           }))
         }
       >
@@ -319,7 +315,8 @@ function HookSetAny({  label , id }: SimpleElement) {
         onClick={() =>
           set(id, (previous) => ({
             ...previous,
-            position: { x: ((previous?.x as number) ?? 0) + 10, y: ((previous?.y as number) ?? 0) + 10 },
+            x: ((previous?.x as number) ?? 0) + 10,
+            y: ((previous?.y as number) ?? 0) + 10,
           }))
         }
       >
@@ -329,10 +326,8 @@ function HookSetAny({  label , id }: SimpleElement) {
         onClick={() =>
           set(id, (previous) => ({
             ...previous,
-            size: {
-              width: (typeof previous?.width === 'number' ? previous.width : 0) + 10,
-              height: (typeof previous?.height === 'number' ? previous.height : 0) + 10,
-            },
+            width: (typeof previous?.width === 'number' ? previous.width : 0) + 10,
+            height: (typeof previous?.height === 'number' ? previous.height : 0) + 10,
           }))
         }
       >

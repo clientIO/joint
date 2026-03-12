@@ -9,7 +9,7 @@ import {
   useHighlighter,
   useMarkup,
   useNodeSize,
-  usePaperById,
+  usePaper,
   usePaperEvents,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -446,7 +446,8 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
 
 function Main() {
   const paperId = useId();
-  const paperInstance = usePaperById(paperId);
+  const paperRef = useRef<dia.Paper | null>(null);
+  const paperInstance = usePaper(paperId);
 
   usePaperEvents(
     paperId,
@@ -528,12 +529,15 @@ function Main() {
 
   return (
     <Paper
+      ref={paperRef}
       id={paperId}
       gridSize={5}
       height={600}
       overflow={true}
       snapLabels={true}
-      onElementsSizeReady={({ paper }) => {
+      onElementsSizeReady={() => {
+        const paper = paperRef.current;
+        if (!paper) return;
         paper.transformToFitContent({
           padding: 40,
           useModelGeometry: true,

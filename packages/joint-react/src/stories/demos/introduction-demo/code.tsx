@@ -298,8 +298,11 @@ function MinimapRenderElement() {
 }
 // Minimap component
 function MiniMap() {
+  const minimapPaperRef = useRef<dia.Paper | null>(null);
   // On change, the minimap will be resized to fit the content automatically
-  const onElementReady = useCallback(({ paper }: { paper: dia.Paper }) => {
+  const onElementReady = useCallback(() => {
+    const paper = minimapPaperRef.current;
+    if (!paper) return;
     const { model: graph } = paper;
 
     const contentArea = graph.getCellsBBox(graph.getElements());
@@ -317,6 +320,7 @@ function MiniMap() {
   return (
     <div className="absolute bg-black bottom-6 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
       <Paper
+        ref={minimapPaperRef}
         {...PAPER_PROPS}
         interactive={false}
         width={'100%'}

@@ -79,6 +79,7 @@ function HTMLElementItemComponent<Data = FlatElementData>(props: ElementItemProp
     if (!areElementsMeasured) {
       return;
     }
+    // HERE TO TRIGGER:
     graphStore.scheduleClearView({
       cellId: id,
     });

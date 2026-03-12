@@ -8,12 +8,11 @@ import {
   useCellId,
   useElements,
   useGraph,
-  type OnLoadOptions,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 import '../index.css';
 
@@ -610,7 +609,12 @@ function RenderElement(props: Readonly<ShapeElement>) {
 // ----------------------------------------------------------------------------
 
 function Main() {
-  const handleReady = useCallback(({ paper, graph }: OnLoadOptions) => {
+  const paperRef = useRef<dia.Paper | null>(null);
+
+  const handleReady = useCallback(() => {
+    const paper = paperRef.current;
+    if (!paper) return;
+    const graph = paper.model;
     const performance = graph.getCell('performance');
     if (performance?.isElement()) {
       performance.fitEmbeds({
@@ -629,6 +633,7 @@ function Main() {
 
   return (
     <Paper
+      ref={paperRef}
       width="100%"
       height={800}
       className={PAPER_CLASSNAME}

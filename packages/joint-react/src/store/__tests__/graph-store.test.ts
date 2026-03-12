@@ -179,11 +179,11 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       const cleanup = jest.fn();
 
-      store.externalStore.setExternalContext('external-context', 'value', cleanup);
+      store.externalStoreContext.setExternalContext('external-context', 'value', cleanup);
       store.destroy(true);
 
       expect(cleanup).toHaveBeenCalledTimes(1);
-      expect(store.externalStore.getExternalContext('external-context')).toBeNull();
+      expect(store.externalStoreContext.getExternalContext('external-context')).toBeNull();
     });
   });
 

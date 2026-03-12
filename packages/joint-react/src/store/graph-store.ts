@@ -19,7 +19,8 @@ import {
   defaultMapLinkAttributesToData,
 } from '../state/data-mapping';
 import { executeClearViewForCell } from './clear-view';
-import { graphState, LAYOUT_UPDATE_EVENT, type ListenOutput } from '../state/graph-state';
+import { graphState, LAYOUT_UPDATE_EVENT, type GraphState } from '../state/graph-state';
+import { getLayout } from './update-layout-state';
 import {
   createState,
   derivedState,
@@ -27,7 +28,7 @@ import {
   type State,
 } from '../utils/create-state';
 import type { IncrementalStateChanges } from '../state/incremental.types';
-import { GraphExternalContextStore } from './graph-external-context-store';
+import { GraphExternalContextStore } from './external-context-store';
 import { PaperStores } from './papers-store';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
@@ -108,25 +109,15 @@ export class GraphStore {
   public readonly internalState: State<GraphStoreInternalSnapshot>;
   public readonly dataState: ExternalStoreLike<GraphStoreSnapshot>;
   public readonly areElementsMeasuredState: ExternalStoreLike<boolean>;
-  public readonly externalStore = new GraphExternalContextStore();
+  public readonly externalStoreContext = new GraphExternalContextStore();
   public readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
   public readonly graph: dia.Graph;
-  public readonly graphState: ListenOutput;
-  public readonly mapDataToElementAttributes: (options: {
-    readonly data: FlatElementData;
-    readonly id?: string;
-    readonly graph: dia.Graph;
-  }) => dia.Cell.JSON;
-  public readonly mapDataToLinkAttributes: (options: {
-    readonly data: FlatLinkData;
-    readonly id?: string;
-    readonly graph: dia.Graph;
-  }) => dia.Cell.JSON;
+  public readonly graphState: GraphState;
 
   public paperStores = new PaperStores();
   private observer: GraphStoreObserver;
 
-  constructor(config: GraphStoreOptions) {
+  constructor(public readonly config: GraphStoreOptions) {
     const {
       initialElements = {},
       initialLinks = {},
@@ -155,48 +146,6 @@ export class GraphStore {
           cellModel,
         }
       );
-
-    this.mapDataToElementAttributes = ((options: {
-      data: FlatElementData;
-      id?: string;
-      graph: dia.Graph;
-    }) => {
-      // Normalize nested JointJS format (position/size) to flat format (x/y/width/height)
-      const { position, size, ...rest } = options.data as FlatElementData & {
-        position?: { x: number; y: number };
-        size?: { width: number; height: number };
-      };
-      const normalized: FlatElementData = { ...rest };
-      if (position) {
-        normalized.x = position.x;
-        normalized.y = position.y;
-      }
-      if (size) {
-        normalized.width = size.width;
-        normalized.height = size.height;
-      }
-      return mapDataToElementAttributes({
-        ...options,
-        id: options.id ?? '',
-        data: normalized,
-        toAttributes: (data) =>
-          defaultMapDataToElementAttributes({
-            id: options.id ?? '',
-            data: data as FlatElementData,
-          }),
-      });
-    }) as typeof this.mapDataToElementAttributes;
-
-    this.mapDataToLinkAttributes = ((options: {
-      data: FlatLinkData;
-      id: string;
-      graph: dia.Graph;
-    }) =>
-      mapDataToLinkAttributes({
-        ...options,
-        toAttributes: (data) =>
-          defaultMapDataToLinkAttributes({ id: options.id, data: data as FlatLinkData }),
-      })) as typeof this.mapDataToLinkAttributes;
 
     this.internalState = createState<GraphStoreInternalSnapshot>({
       newState: () => ({ papers: {} }),
@@ -286,9 +235,31 @@ export class GraphStore {
         flag: 'updateFromReact',
       });
     } else if (this.graph.getCells().length > 0) {
-      // External graph already has cells — re-trigger reset so graphState
-      // picks them up and populates dataState/layoutState
-      this.graph.resetCells(this.graph.getCells());
+      // External graph already has cells — populate dataState/layoutState
+      // directly without calling resetCells(). resetCells() would destroy
+      // and recreate all paper element views, breaking any external
+      // references to those views (e.g. stencil drag's cloneView).
+      const existingElements: Record<string, FlatElementData> = {};
+      const existingLinks: Record<string, FlatLinkData> = {};
+      for (const cell of this.graph.getCells()) {
+        const id = String(cell.id);
+        if (cell.isElement()) {
+          existingElements[id] = this.graphState.elementToData({
+            element: cell,
+          }) as FlatElementData;
+        } else if (cell.isLink()) {
+          existingLinks[id] = this.graphState.linkToData({ link: cell }) as FlatLinkData;
+        }
+      }
+      this.dataState.setState(() => ({
+        elements: existingElements,
+        links: existingLinks,
+      }));
+      const layout = getLayout({ graph: this.graph, papers: this.paperStores });
+      this.layoutState.setState(() => ({
+        elements: layout.elements,
+        links: layout.links,
+      }));
     }
   }
 
@@ -308,7 +279,7 @@ export class GraphStore {
     if (!isGraphExternal) {
       this.graph.clear();
     }
-    this.externalStore.destroy();
+    this.externalStoreContext.destroy();
   };
 
   public updatePaperSnapshot(

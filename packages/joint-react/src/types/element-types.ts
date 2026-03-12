@@ -1,3 +1,5 @@
+import type { AnyString } from './index';
+
 /**
  * Simplified port definition for declarative port configuration.
  * Converted to full JointJS port format by the default element mapper.
@@ -36,7 +38,7 @@ export interface FlatElementPort {
    * - Any other string — interpreted as SVG path `d` commands
    * @default 'ellipse'
    */
-  readonly shape?: 'ellipse' | 'rect' | string;
+  readonly shape?: 'ellipse' | 'rect' | AnyString;
   /**
    * Stroke color of the port shape.
    * @default 'transparent'
