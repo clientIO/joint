@@ -8,11 +8,12 @@ import {
   useCellId,
   useElements,
   useGraph,
+  useOnElementsMeasured,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { useCallback, useRef } from 'react';
+import { useCallback, useId } from 'react';
 
 import '../index.css';
 
@@ -604,6 +605,8 @@ function RenderElement(props: Readonly<ShapeElement>) {
 // ----------------------------------------------------------------------------
 
 function Main() {
+  const paperId = useId();
+
   const handleElementsMeasured = useCallback(({ isInitial, paper, graph }: { isInitial: boolean; paper: dia.Paper; graph: dia.Graph }) => {
     if (!isInitial) return;
 
@@ -626,8 +629,11 @@ function Main() {
     });
   }, []);
 
+  useOnElementsMeasured(paperId, handleElementsMeasured);
+
   return (
     <Paper
+      id={paperId}
       width="100%"
       height={800}
       className={PAPER_CLASSNAME}
@@ -636,7 +642,6 @@ function Main() {
       defaultConnectionPoint={{ name: 'anchor' }}
       background={{ color: '#f6f4f4' }}
       interactive={{ stopDelegation: false }}
-      onElementsMeasured={handleElementsMeasured}
     />
   );
 }

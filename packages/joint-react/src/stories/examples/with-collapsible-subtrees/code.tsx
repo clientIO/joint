@@ -10,6 +10,7 @@ import {
   useCellActions,
   useCellId,
   useMarkup,
+  useOnElementsMeasured,
   usePaper,
   usePaperEvents,
 } from '@joint/react';
@@ -754,6 +755,8 @@ function Main() {
     [handleExpand]
   );
 
+  useOnElementsMeasured(paperId, handleElementsMeasured);
+
   return (
     <Paper
       ref={paperRef}
@@ -762,7 +765,6 @@ function Main() {
       className={PAPER_CLASSNAME}
       renderElement={RenderFTAElement}
       cellVisibility={cellVisibilityCallback}
-      onElementsMeasured={handleElementsMeasured}
       defaultConnector={{
         name: 'straight',
         args: { cornerType: 'line', cornerRadius: 10 },

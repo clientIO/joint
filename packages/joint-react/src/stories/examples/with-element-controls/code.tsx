@@ -1,8 +1,8 @@
-import { GraphProvider, Paper, useNodeLayout, type FlatElementData } from '@joint/react';
+import { GraphProvider, Paper, useNodeLayout, useOnElementsMeasured, type FlatElementData } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
-import { useCallback, useRef } from 'react';
+import { useCallback, useId } from 'react';
 
 // ----------------------------------------------------------------------------
 // Type Definitions
@@ -786,18 +786,22 @@ function addElementControls(paper: dia.Paper) {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
+  const paperId = useId();
+
   const handleElementsMeasured = useCallback(({ isInitial, paper }: { isInitial: boolean; paper: dia.Paper }) => {
     if (!isInitial) return;
     addElementControls(paper);
   }, []);
 
+  useOnElementsMeasured(paperId, handleElementsMeasured);
+
   return (
     <Paper
+      id={paperId}
       width="100%"
       height={600}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
-      onElementsMeasured={handleElementsMeasured}
     />
   );
 }
