@@ -6,6 +6,7 @@ import { forwardRef, useId, useImperativeHandle, useRef } from 'react';
 import { PaperStoreContext } from '../../context';
 import { useCreateReactPaper } from '../../hooks/use-create-react-paper';
 import type { FlatElementData } from '../../types/element-types';
+import type { FlatLinkData } from '../../types/link-types';
 import type { PaperProps } from './paper.types';
 
 function resolveStyleDimension(
@@ -23,8 +24,11 @@ function resolveStyleDimension(
  * @param forwardedRef - Ref receiving the created JointJS paper instance.
  * @returns JSX for paper host and portaled paper content.
  */
-function PaperBase<ElementData = FlatElementData>(
-  props: Readonly<PaperProps<ElementData>>,
+function PaperBase<
+  ElementData extends FlatElementData = FlatElementData,
+  LinkData extends FlatLinkData = FlatLinkData,
+>(
+  props: Readonly<PaperProps<ElementData, LinkData>>,
   forwardedRef: React.ForwardedRef<dia.Paper | null>
 ) {
   const { className, style, children, width, height } = props;
@@ -54,8 +58,11 @@ function PaperBase<ElementData = FlatElementData>(
   );
 }
 
-export const Paper = forwardRef(PaperBase) as <ElementData = FlatElementData>(
-  props: Readonly<PaperProps<ElementData>> & {
+export const Paper = forwardRef(PaperBase) as <
+  ElementData extends FlatElementData = FlatElementData,
+  LinkData extends FlatLinkData = FlatLinkData,
+>(
+  props: Readonly<PaperProps<ElementData, LinkData>> & {
     ref?: React.Ref<dia.Paper | null>;
   }
 ) => ReturnType<typeof PaperBase>;

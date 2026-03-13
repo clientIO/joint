@@ -44,8 +44,8 @@ const EMPTY_VIEW_ID_RECORD = {} as Record<CellId, true>;
 
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
-export interface UseCreateReactPaperOptions<ElementData = FlatElementData>
-  extends PaperProps<ElementData> {
+export interface UseCreateReactPaperOptions<ElementData extends FlatElementData = FlatElementData, LinkData extends FlatLinkData = FlatLinkData>
+  extends PaperProps<ElementData, LinkData> {
   /**
    * Host element ref where the paper should be mounted automatically.
    * When omitted, paper rendering is manual (e.g. via `onReady` callback).
@@ -93,14 +93,14 @@ function getReactLinkConstructor(graph: dia.Graph): ReactLinkConstructor {
  * @param props.renderLink - Callback used to render link content.
  * @returns Portaled link content, or null when container is unavailable.
  */
-function LinkItem({
+function LinkItem<LinkData = FlatLinkData>({
   link,
   portalElement,
   renderLink,
 }: {
-  readonly link: FlatLinkData;
+  readonly link: LinkData;
   readonly portalElement: SVGElement | HTMLElement;
-  readonly renderLink: RenderLink<FlatLinkData>;
+  readonly renderLink: RenderLink<LinkData>;
 }) {
   if (!portalElement) {
     return null;
@@ -115,8 +115,8 @@ function LinkItem({
  * @param options - Hook options with paper settings and behavior overrides.
  * @returns Hook state with paper instance and rendered portal content.
  */
-export function useCreateReactPaper<ElementData = FlatElementData>(
-  options: Readonly<UseCreateReactPaperOptions<ElementData>>
+export function useCreateReactPaper<ElementData extends FlatElementData = FlatElementData, LinkData extends FlatLinkData = FlatLinkData>(
+  options: Readonly<UseCreateReactPaperOptions<ElementData, LinkData>>
 ): UseCreateReactPaperResult {
   const {
     renderElement,
@@ -141,8 +141,8 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   }
 
   const areElementsMeasured = useAreElementsMeasured();
-  const elementsState = useElements();
-  const linksState = useLinks();
+  const elementsState = useElements<ElementData>();
+  const linksState = useLinks<LinkData>();
   const graphStore = useGraphStore();
 
   useDebugValue(elementsState);

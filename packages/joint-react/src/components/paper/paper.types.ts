@@ -29,7 +29,7 @@ export type RenderLink<LinkData = FlatLinkData> = (link: LinkData) => ReactNode;
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<ElementData = FlatElementData>
+export interface PaperProps<ElementData extends FlatElementData = FlatElementData, LinkData extends FlatLinkData = FlatLinkData>
   extends ReactPaperOptions,
     PropsWithChildren {
   /**
@@ -121,7 +121,7 @@ export interface PaperProps<ElementData = FlatElementData>
    * )
    * ```
    */
-  readonly renderLink?: RenderLink<FlatLinkData>;
+  readonly renderLink?: RenderLink<LinkData>;
   /**
    * Event called when all elements are properly measured (has all elements width and height greater than 1 - default).
    * In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
