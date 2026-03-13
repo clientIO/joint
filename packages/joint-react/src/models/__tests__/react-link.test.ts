@@ -1,4 +1,5 @@
 import { ReactLink, REACT_LINK_TYPE } from '../react-link';
+import { REACT_PORTAL_SELECTOR } from '../react-element';
 
 describe('ReactLink', () => {
   describe('markup', () => {
@@ -24,6 +25,10 @@ describe('ReactLink', () => {
             pointerEvents: 'none',
             strokeLinejoin: 'round',
           },
+        },
+        {
+          tagName: 'g',
+          selector: REACT_PORTAL_SELECTOR,
         },
       ]);
     });

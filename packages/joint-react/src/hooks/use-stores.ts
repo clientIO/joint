@@ -2,13 +2,22 @@ import type {
   GraphStoreSnapshot,
   GraphStoreInternalSnapshot,
   GraphStoreLayoutSnapshot,
+  PaperStore,
 } from '../store';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ExternalStoreLike, MarkDeepReadOnly } from '../utils/create-state';
 import { useGraphStore } from './use-graph-store';
+import { usePaperStore } from './use-paper';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { defaultIsEqual, defaultSelector } from '../utils/selector-utils';
+
+const EMPTY_SNAPSHOT = new Map() as GraphExternalContextSnapshot;
+const EMPTY_VERSION_STATE: ExternalStoreLike<GraphExternalContextSnapshot> = {
+  subscribe: () => () => {},
+  getSnapshot: () => EMPTY_SNAPSHOT,
+  setState: () => {},
+};
 
 /**
  * Generic hook to select data from an external store.

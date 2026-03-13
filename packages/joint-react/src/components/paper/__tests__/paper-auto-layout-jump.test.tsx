@@ -153,13 +153,18 @@ describe('Paper automatic layout', () => {
     for (let index = 0; index < 10; index++) {
       // eslint-disable-next-line no-await-in-loop
       await act(async () => {
-        await new Promise((resolve) => { setTimeout(resolve, 0); });
+        await new Promise((resolve) => {
+          setTimeout(resolve, 0);
+        });
       });
     }
 
-    await waitFor(() => {
-      expect(fourthNodeYPositions.length).toBeGreaterThan(0);
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(fourthNodeYPositions.length).toBeGreaterThan(0);
+      },
+      { timeout: 3000 }
+    );
 
     expect(fourthNodeYPositions).toEqual([expectedRowTwoY]);
   });

@@ -492,8 +492,8 @@ describe('ReactPaper', () => {
       // Simulate React rendering children by adding child elements to portal nodes
       const child1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       const child2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      paper.getCellViewPortalNode(element1View).append(child1);
-      paper.getCellViewPortalNode(element2View).append(child2);
+      paper.getCellViewPortalNode(element1View)!.append(child1);
+      paper.getCellViewPortalNode(element2View)!.append(child2);
 
       // Call checkPendingLinks to process
       paper.checkPendingLinks();
@@ -528,8 +528,8 @@ describe('ReactPaper', () => {
       expect(pendingLinks.has(link.id as string)).toBe(true);
 
       // Simulate React rendering children into portal nodes
-      paper.getCellViewPortalNode(element1View).append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
-      paper.getCellViewPortalNode(element2View).append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
+      paper.getCellViewPortalNode(element1View)!.append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
+      paper.getCellViewPortalNode(element2View)!.append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
 
       paper.checkPendingLinks();
 
@@ -559,7 +559,7 @@ describe('ReactPaper', () => {
       const element1View = getElementViewOrThrow(element1.id);
 
       // Only add children to source element's portal node
-      paper.getCellViewPortalNode(element1View).append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
+      paper.getCellViewPortalNode(element1View)!.append(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
 
       paper.checkPendingLinks();
 

@@ -414,12 +414,87 @@ describe('use-paper-events', () => {
     });
 
     expect(onCustomEvent).toHaveBeenCalledTimes(1);
-    expect(onCustomEvent).toHaveBeenCalledWith(
-      elementViewWithPaper,
-      JOINT_EVENT,
-      40,
-      60
+    expect(onCustomEvent).toHaveBeenCalledWith(elementViewWithPaper, JOINT_EVENT, 40, 60);
+  });
+
+  it('catches paper:elements:size:ready event via usePaperEvents', async () => {
+    const wrapper = createPaperWrapper('paper-size-ready');
+    const onSizeReady = jest.fn();
+
+    const { result } = renderHook(
+      () => {
+        const paper = usePaper('paper-size-ready');
+        usePaperEvents('paper-size-ready', {
+          [PAPER_ELEMENTS_SIZE_READY]: onSizeReady,
+        });
+        return paper;
+      },
+      { wrapper }
     );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+
+    act(() => {
+      result.current?.trigger(PAPER_ELEMENTS_SIZE_READY);
+    });
+
+    expect(onSizeReady).toHaveBeenCalledTimes(1);
+  });
+
+  it('catches paper:elements:size:change event via usePaperEvents', async () => {
+    const wrapper = createPaperWrapper('paper-size-change');
+    const onSizeChange = jest.fn();
+
+    const { result } = renderHook(
+      () => {
+        const paper = usePaper('paper-size-change');
+        usePaperEvents('paper-size-change', {
+          [PAPER_ELEMENTS_SIZE_CHANGE]: onSizeChange,
+        });
+        return paper;
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+
+    act(() => {
+      result.current?.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
+    });
+
+    expect(onSizeChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('catches paper:elements:render event via usePaperEvents', async () => {
+    const wrapper = createPaperWrapper('paper-el-render');
+    const onElementsRender = jest.fn();
+
+    const { result } = renderHook(
+      () => {
+        const paper = usePaper('paper-el-render');
+        usePaperEvents('paper-el-render', {
+          [PAPER_ELEMENTS_RENDER]: onElementsRender,
+        });
+        return paper;
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+
+    const callsBefore = onElementsRender.mock.calls.length;
+
+    act(() => {
+      result.current?.trigger(PAPER_ELEMENTS_RENDER);
+    });
+
+    expect(onElementsRender).toHaveBeenCalledTimes(callsBefore + 1);
   });
 
   it('catches paper:elements:size:ready event via usePaperEvents', async () => {

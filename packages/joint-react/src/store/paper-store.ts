@@ -4,6 +4,7 @@ import type { CellId } from '../types/cell-id';
 import type { RenderElement, RenderLink } from '../components';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
+import type { PortalSelector } from '../models/react-paper.types';
 import type { GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
 import { connectionPoint } from './default-connection-point';
@@ -49,6 +50,9 @@ export interface AddPaperOptions {
   readonly renderElement?: RenderElement<FlatElementData>;
   /** Optional custom renderer for links */
   readonly renderLink?: RenderLink<FlatLinkData>;
+
+  /** Optional selector for locating React portal targets within cell views */
+  readonly portalSelector?: PortalSelector;
 }
 
 /**
@@ -111,7 +115,15 @@ export class PaperStore {
   public features: Record<string, Feature> = {};
 
   constructor(options: PaperStoreOptions) {
-    const { graphStore, paperOptions = {}, scale, renderElement, renderLink, id } = options;
+    const {
+      graphStore,
+      paperOptions = {},
+      scale,
+      renderElement,
+      renderLink,
+      id,
+      portalSelector,
+    } = options;
     const { graph } = graphStore;
     const hasHighlightingOverride = isRecord(paperOptions.highlighting);
     const highlightingOverride = hasHighlightingOverride
@@ -140,6 +152,7 @@ export class PaperStore {
       frozen: true,
       model: graph,
       id,
+      portalSelector,
       afterRender: (() => {
         // Re-entrance guard to prevent infinite loops
         let isProcessing = false;

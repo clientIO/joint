@@ -53,7 +53,9 @@ describe('use-paper-context', () => {
   });
 
   it('should return null when used outside Paper and isNullable is true', () => {
-    const { result } = renderHook(() => usePaperStore({ isNullable: true }), { wrapper: graphWrapper });
+    const { result } = renderHook(() => usePaperStore({ isNullable: true }), {
+      wrapper: graphWrapper,
+    });
 
     expect(result.current).toBeNull();
   });
