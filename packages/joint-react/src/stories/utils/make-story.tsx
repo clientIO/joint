@@ -104,19 +104,19 @@ export function makeRootDocumentation(options: MakeRootDocsOptions) {
   let componentDescription = '';
 
   if (apiURL) {
-    componentDescription += `[📚 API reference](${apiURL})<br/><br/>`;
+    componentDescription += `[📚 API reference](${apiURL})\n\n`;
   }
 
   if (description) {
-    componentDescription += `${description}<br/><br/>`;
+    componentDescription += `${description}\n\n`;
   }
 
   if (usage) {
-    componentDescription += `### Usage\n\n${usage}<br/><br/>`;
+    componentDescription += `### Usage\n\n${usage}\n\n`;
   }
 
   if (props) {
-    componentDescription += `### Props\n\n${props}<br/><br/>`;
+    componentDescription += `### Props\n\n${props}\n\n`;
   }
 
   if (examples) {

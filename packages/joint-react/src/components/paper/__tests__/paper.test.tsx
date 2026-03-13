@@ -10,12 +10,20 @@ import React from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import { useGraph, useCellId, useLinks } from '../../../hooks';
+import { useOnElementsMeasured } from '../../../hooks/use-on-elements-measured';
+import type { ElementsMeasuredEvent } from '../../../types/event.types';
 import type { FlatElementData } from '../../../types/element-types';
 import type { FlatLinkData } from '../../../types/link-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 import { ReactLink, REACT_LINK_TYPE } from '../../../models/react-link';
 import type { ReactPaper } from '../../../models/react-paper';
+
+/** Test helper: listens to `elements:measured` event via hook and forwards to callback. */
+function MeasuredListener({ paperId, callback }: Readonly<{ paperId: string; callback: (event: ElementsMeasuredEvent) => void }>) {
+  useOnElementsMeasured(paperId, callback);
+  return null;
+}
 
 const elements: Record<string, { label: string; width: number; height: number }> = {
   '1': { label: 'Node 1', width: 10, height: 10 },
@@ -322,12 +330,14 @@ describe('Paper Component', () => {
       );
     };
 
+    const PAPER_ID = 'test-measured';
     render(
       <GraphProvider elements={elements}>
+        <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
         <Paper
+          id={PAPER_ID}
           width={WIDTH}
           height={150}
-          onElementsSizeReady={onMeasuredMock}
           renderElement={renderElement}
         />
       </GraphProvider>
@@ -359,28 +369,29 @@ describe('Paper Component', () => {
     });
   });
 
-  it('calls onElementsSizeChange when element sizes change', async () => {
-    const onElementsSizeChangeMock = jest.fn();
+  it('calls onElementsMeasured when element sizes change', async () => {
+    const onMeasuredMock = jest.fn();
     const updatedElements: Record<string, { label: string; width: number; height: number }> = {
       '1': { label: 'Node 1', width: 100, height: 50 },
       '2': { label: 'Node 2', width: 150, height: 75 },
     };
 
+    const PAPER_ID = 'test-size-change';
     function ControlledPaperHost() {
       const [controlledElements, setControlledElements] = useState(elements);
       const hasUpdatedRef = useRef(false);
 
       return (
         <GraphProvider elements={controlledElements} onElementsChange={setControlledElements}>
-          <Paper<Element>
-            onElementsSizeReady={() => {
-              if (hasUpdatedRef.current) {
-                return;
-              }
+          <MeasuredListener paperId={PAPER_ID} callback={({ isInitial }) => {
+            onMeasuredMock();
+            if (isInitial && !hasUpdatedRef.current) {
               hasUpdatedRef.current = true;
               setControlledElements(updatedElements);
-            }}
-            onElementsSizeChange={onElementsSizeChangeMock}
+            }
+          }} />
+          <Paper<Element>
+            id={PAPER_ID}
             renderElement={({ label }) => <div className="node">{label}</div>}
           />
         </GraphProvider>
@@ -390,28 +401,9 @@ describe('Paper Component', () => {
     render(<ControlledPaperHost />);
 
     await waitFor(() => {
-      expect(onElementsSizeChangeMock).toHaveBeenCalledTimes(1);
+      // First call: initial measurement, second call: after size change.
+      expect(onMeasuredMock).toHaveBeenCalledTimes(2);
     });
-  });
-
-  it('does not call onElementsSizeChange for the initial size snapshot only', async () => {
-    const onElementsSizeChangeMock = jest.fn();
-
-    render(
-      <GraphProvider elements={elements}>
-        <Paper<Element>
-          onElementsSizeChange={onElementsSizeChangeMock}
-          renderElement={({ label }) => <div className="node">{label}</div>}
-        />
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Node 1')).toBeInTheDocument();
-      expect(screen.getByText('Node 2')).toBeInTheDocument();
-    });
-
-    expect(onElementsSizeChangeMock).not.toHaveBeenCalled();
   });
 
   it('applies default clickThreshold and custom clickThreshold', () => {
@@ -445,23 +437,29 @@ describe('Paper Component', () => {
     });
   });
 
-  it('calls onElementsSizeReady when elements are measured', async () => {
-    const onElementsSizeReadyMock = jest.fn();
+  it('calls onElementsMeasured when elements are measured', async () => {
+    const onMeasuredMock = jest.fn();
+    const PAPER_ID = 'test-measured-basic';
+
     render(
       <GraphProvider elements={elements}>
+        <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
         <Paper<Element>
-          onElementsSizeReady={onElementsSizeReadyMock}
+          id={PAPER_ID}
           renderElement={() => <div>Test</div>}
         />
       </GraphProvider>
     );
     await waitFor(() => {
-      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
+      expect(onMeasuredMock).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('calls onElementsSizeReady when elements are measured - conditional render', async () => {
+  it('calls onElementsMeasured when elements are measured - conditional render', async () => {
     const RenderElement = jest.fn(({ label }) => <div className="node">{label}</div>);
+    const onMeasuredMock = jest.fn();
+    const PAPER_ID = 'test-measured-conditional';
+
     function Content() {
       const [isReady, setIsReady] = useState(false);
       useEffect(() => {
@@ -472,19 +470,22 @@ describe('Paper Component', () => {
       return (
         <GraphProvider elements={elements}>
           {isReady && (
-            <Paper<Element>
-              renderElement={RenderElement}
-              onElementsSizeReady={onElementsSizeReadyMock}
-            />
+            <>
+              <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
+              <Paper<Element>
+                id={PAPER_ID}
+                renderElement={RenderElement}
+              />
+            </>
           )}
         </GraphProvider>
       );
     }
-    const onElementsSizeReadyMock = jest.fn();
+
     render(<Content />);
     await waitFor(() => {
       expect(RenderElement.mock.calls.length).toBeGreaterThanOrEqual(2);
-      expect(onElementsSizeReadyMock).toHaveBeenCalled();
+      expect(onMeasuredMock).toHaveBeenCalled();
     });
   });
 
@@ -504,26 +505,28 @@ describe('Paper Component', () => {
     );
   });
 
-  it('provides non-null ref inside onElementsSizeReady', async () => {
+  it('provides non-null ref inside onElementsMeasured callback', async () => {
     const ref: RefObject<ReactPaper | null> = { current: null };
-    const onElementsSizeReadyMock = jest.fn();
+    const onMeasuredMock = jest.fn();
+    const PAPER_ID = 'test-measured-ref';
 
     render(
       <GraphProvider elements={elements}>
+        <MeasuredListener paperId={PAPER_ID} callback={() => {
+          onMeasuredMock(ref.current);
+        }} />
         <Paper<Element>
+          id={PAPER_ID}
           ref={ref}
           renderElement={() => <div>Test</div>}
-          onElementsSizeReady={() => {
-            onElementsSizeReadyMock(ref.current);
-          }}
         />
       </GraphProvider>
     );
 
     await waitFor(() => {
-      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
-      expect(onElementsSizeReadyMock).toHaveBeenCalledWith(expect.any(Object));
-      expect(onElementsSizeReadyMock.mock.calls[0][0]).not.toBeNull();
+      expect(onMeasuredMock).toHaveBeenCalledTimes(1);
+      expect(onMeasuredMock).toHaveBeenCalledWith(expect.any(Object));
+      expect(onMeasuredMock.mock.calls[0][0]).not.toBeNull();
     });
   });
 

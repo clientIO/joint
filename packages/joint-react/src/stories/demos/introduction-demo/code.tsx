@@ -17,6 +17,7 @@ import {
   useHighlighter,
   useNodeSize,
   useLinks,
+  useOnElementsMeasured,
   type CellId,
   type FlatElementData,
   type FlatElementPort,
@@ -26,7 +27,7 @@ import {
   usePaperEvents,
   useNodeLayout,
 } from '@joint/react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 import { getMessageNodeClassName } from './get-message-node-class-name';
@@ -298,36 +299,29 @@ function MinimapRenderElement() {
 }
 // Minimap component
 function MiniMap() {
-  const minimapPaperRef = useRef<dia.Paper | null>(null);
-  // On change, the minimap will be resized to fit the content automatically
-  const onElementReady = useCallback(() => {
-    const paper = minimapPaperRef.current;
-    if (!paper) return;
-    const { model: graph } = paper;
+  const minimapId = useId();
 
-    const contentArea = graph.getCellsBBox(graph.getElements());
-    if (!contentArea) {
-      return;
-    }
+  useOnElementsMeasured(minimapId, ({ paper, graph }) => {
+    const contentArea = graph.getBBox();
+    if (!contentArea) return;
     paper.transformToFitContent({
       contentArea,
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
       padding: 20,
     });
-  }, []);
+  });
 
   return (
     <div className="absolute bg-black bottom-6 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
       <Paper
-        ref={minimapPaperRef}
+        id={minimapId}
         {...PAPER_PROPS}
         interactive={false}
         width={'100%'}
         className={PAPER_CLASSNAME}
         height={'100%'}
         renderElement={MinimapRenderElement}
-        onElementsSizeReady={onElementReady}
       />
     </div>
   );

@@ -10,6 +10,7 @@ import {
   useCellActions,
   useCellId,
   useMarkup,
+  useOnElementsMeasured,
   usePaper,
   usePaperEvents,
 } from '@joint/react';
@@ -698,14 +699,11 @@ function Main() {
     return !cell.prop('hidden');
   }, []);
 
-  const handleElementsSizeReady = useCallback(() => {
-    const jointPaper = paperRef.current;
-    if (!jointPaper) return;
-    const graph = jointPaper.model;
+  const handleElementsMeasured = useCallback(({ isInitial, paper, graph }: { isInitial: boolean; paper: dia.Paper; graph: dia.Graph }) => {
+    if (!isInitial) return;
     runLayout(graph);
-    addExpandTools(jointPaper);
-
-    jointPaper.transformToFitContent({
+    addExpandTools(paper);
+    paper.transformToFitContent({
       padding: 40,
       useModelGeometry: true,
       verticalAlign: 'middle',
@@ -757,6 +755,8 @@ function Main() {
     [handleExpand]
   );
 
+  useOnElementsMeasured(paperId, handleElementsMeasured);
+
   return (
     <Paper
       ref={paperRef}
@@ -765,7 +765,6 @@ function Main() {
       className={PAPER_CLASSNAME}
       renderElement={RenderFTAElement}
       cellVisibility={cellVisibilityCallback}
-      onElementsSizeReady={handleElementsSizeReady}
       defaultConnector={{
         name: 'straight',
         args: { cornerType: 'line', cornerRadius: 10 },

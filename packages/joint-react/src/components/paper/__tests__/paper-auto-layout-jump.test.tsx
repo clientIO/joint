@@ -1,12 +1,12 @@
 import { render, waitFor } from '@testing-library/react';
 import type { dia } from '@joint/core';
-import { useCallback, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { act } from 'react';
 import { useNodeSize } from '../../../hooks/use-node-size';
+import { useOnElementsMeasured } from '../../../hooks/use-on-elements-measured';
 import type { FlatElementData } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
-import { scheduler } from '../../../utils/scheduler';
 
 const INITIAL_NODE_WIDTH = 100;
 const INITIAL_NODE_HEIGHT = 50;
@@ -115,23 +115,25 @@ function handleElementsSizeChange(graph: dia.Graph) {
   }
 }
 
+function AutoLayoutPaper() {
+  const paperId = useId();
+  useOnElementsMeasured(paperId, ({ isInitial, graph }) => {
+    if (isInitial) return;
+    handleElementsSizeChange(graph);
+  });
+  return (
+    <Paper<AutoLayoutElementData>
+      id={paperId}
+      height={450}
+      renderElement={renderMeasuredNode}
+    />
+  );
+}
+
 function AutoLayoutTestHost() {
-  const paperRef = useRef<dia.Paper | null>(null);
-
-  const onSizeChange = useCallback(() => {
-    if (paperRef.current) {
-      handleElementsSizeChange(paperRef.current.model);
-    }
-  }, []);
-
   return (
     <GraphProvider elements={initialElements}>
-      <Paper<AutoLayoutElementData>
-        ref={paperRef}
-        height={450}
-        renderElement={renderMeasuredNode}
-        onElementsSizeChange={onSizeChange}
-      />
+      <AutoLayoutPaper />
     </GraphProvider>
   );
 }
@@ -150,7 +152,6 @@ describe('Paper automatic layout', () => {
       // eslint-disable-next-line no-await-in-loop
       await act(async () => {
         await new Promise((resolve) => { setTimeout(resolve, 0); });
-        scheduler.flushNowForTests();
       });
     }
 

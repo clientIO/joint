@@ -26,7 +26,7 @@ import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
 import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
-import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE, PAPER_ELEMENTS_RENDER } from '../types/event.types';
+import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperConfigContext } from '../context';
 import {
@@ -117,9 +117,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     renderElement,
     renderLink,
     defaultLink,
-    onElementsSizeReady,
-    onElementsSizeChange,
-    onElementsRender,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -278,52 +275,49 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   useEffect(() => {
     if (!hasElementViewSnapshot) return;
     if (!isReady) return;
-    if (measuredRef.current) return;
     if (!paper) return;
 
-    if (areElementsMeasured) {
-      measuredRef.current = true;
-      paper.trigger(PAPER_ELEMENTS_SIZE_READY);
-      onElementsSizeReady?.();
-      return;
-    }
-
-    if (process.env.NODE_ENV === 'production') {
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      if (!areElementsMeasured) {
-        // eslint-disable-next-line no-console
-        console.error(
-          'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
-        );
+    // Phase 1: Wait for initial measurement.
+    if (!measuredRef.current) {
+      if (areElementsMeasured) {
+        measuredRef.current = true;
+        const event: ElementsMeasuredEvent = { isInitial: true, paper, graph: paper.model };
+        paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+        // Prime baseline snapshot so the next run detects deltas, not the first observation.
+        previousSizesRef.current = elementIds.map((elementId) => {
+          const element = elementsState[elementId];
+          return [element?.width ?? 0, element?.height ?? 0];
+        });
+        return;
       }
-    }, 1000);
 
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [areElementsMeasured, hasElementViewSnapshot, isReady, onElementsSizeReady, paper]);
+      if (process.env.NODE_ENV === 'production') {
+        return;
+      }
 
-  useEffect(() => {
-    if (!hasElementViewSnapshot) return;
-    if (!isReady) return;
+      // DEV-only: warn if elements are not measured within 1 second.
+      const timeout = setTimeout(() => {
+        if (!areElementsMeasured) {
+          // eslint-disable-next-line no-console
+          console.error(
+            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
+          );
+        }
+      }, 1000);
+
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+
+    // Phase 2: Detect size changes after initial measurement.
     if (!areElementsMeasured) return;
-    if (!paper) return;
 
     const currentSizes = elementIds.map((elementId) => {
       const element = elementsState[elementId];
       return [element?.width ?? 0, element?.height ?? 0];
     });
     const previousSizes = previousSizesRef.current;
-
-    // Prime baseline snapshot first to avoid an initial stale layout pass.
-    // `onElementsSizeChange` should react to size deltas, not first observation.
-    if (previousSizes.length === 0) {
-      previousSizesRef.current = currentSizes;
-      return;
-    }
 
     let changed = false;
 
@@ -346,24 +340,16 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     }
 
     previousSizesRef.current = currentSizes;
-    paper.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
-    onElementsSizeChange?.();
+    const event: ElementsMeasuredEvent = { isInitial: false, paper, graph: paper.model };
+    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
   }, [
     areElementsMeasured,
     elementIds,
     elementsState,
     hasElementViewSnapshot,
     isReady,
-    onElementsSizeChange,
     paper,
   ]);
-
-  useEffect(() => {
-    if (!paper) return;
-
-    paper.trigger(PAPER_ELEMENTS_RENDER);
-    onElementsRender?.();
-  }, [onElementsRender, paper, paperElementViewIds]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

@@ -14,7 +14,7 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { forwardRef, useId, useRef, useState } from 'react';
+import { forwardRef, useEffect, useId, useRef, useState } from 'react';
 
 const unit = 4;
 const bevel = 2 * unit;
@@ -523,6 +523,15 @@ function Main() {
         paperInstance.removeTools();
         dia.HighlighterView.removeAll(paperInstance);
       },
+      'elements:measured': ({ isInitial, paper }) => {
+        if (!isInitial) return;
+        paper.transformToFitContent({
+          padding: 40,
+          useModelGeometry: true,
+          verticalAlign: 'middle',
+          horizontalAlign: 'middle',
+        });
+      }
     },
     [paperInstance]
   );
@@ -535,16 +544,6 @@ function Main() {
       height={600}
       overflow={true}
       snapLabels={true}
-      onElementsSizeReady={() => {
-        const paper = paperRef.current;
-        if (!paper) return;
-        paper.transformToFitContent({
-          padding: 40,
-          useModelGeometry: true,
-          verticalAlign: 'middle',
-          horizontalAlign: 'middle',
-        });
-      }}
       className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
       renderElement={RenderFlowchartNode as unknown as RenderElement}
       interactive={{ linkMove: false }}

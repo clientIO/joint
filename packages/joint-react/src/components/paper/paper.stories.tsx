@@ -16,6 +16,7 @@ import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 import { useCellActions } from '../../hooks/use-cell-actions';
 import { useCellId } from '../../hooks/use-cell-id';
+import { useOnElementsMeasured } from '../../hooks/use-on-elements-measured';
 import { usePaperEvents } from '../../hooks/use-paper-events';
 import { Paper } from './paper';
 import type { RenderElement } from './paper.types';
@@ -192,13 +193,12 @@ export const WithAutomaticLayoutSize: Story = {
 export const WithEvent: Story = {
   args: {
     renderElement: RenderHTMLElement as never,
-    onElementsSizeChange: action('onElementsSizeChange'),
-    onElementsSizeReady: action('onElementsSizeReady'),
     width: '100%',
     className: PAPER_CLASSNAME,
   },
   render: (args) => {
     const paperId = useId();
+    useOnElementsMeasured(paperId, action('onElementsMeasured'));
     usePaperEvents(paperId, {
       'link:mouseenter': action('link:mouseenter'),
       'cell:mouseenter': action('cell:mouseenter'),

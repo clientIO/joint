@@ -3,8 +3,8 @@
 
 import { type dia, g, highlighters, V } from '@joint/core';
 import type { FlatElementData } from '@joint/react';
-import { GraphProvider, Paper, TextNode, useGraph } from '@joint/react';
-import { useCallback, useEffect, useRef } from 'react';
+import { GraphProvider, Paper, TextNode, useGraph, useOnElementsMeasured } from '@joint/react';
+import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 
 const ShapeTypes = {
@@ -219,6 +219,7 @@ function useInterval(action: () => void, interval: number = 1000) {
 // ----------------------------------------------------------------------------
 function Main() {
   const graph = useGraph();
+  const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
   const setRandomStatuses = useCallback(() => {
@@ -230,33 +231,30 @@ function Main() {
 
   useInterval(setRandomStatuses);
 
-  useEffect(() => {
+  useOnElementsMeasured(paperId, ({ isInitial, paper }) => {
+    if (!isInitial) return;
+    for (const element of graph.getElements()) {
+      StatusList.add(element.findView(paper), 'root', 'status', {
+        attribute: 'status',
+        position: 'top-right',
+        margin: { right: 5, top: 5 },
+        gap: 3,
+        direction: 'row',
+      });
+    }
     setRandomStatuses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   return (
     <Paper
       ref={paperRef}
+      id={paperId}
       height={500}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
       async
       gridSize={20}
       drawGrid={{ name: 'mesh' }}
-      onElementsSizeReady={() => {
-        const paper = paperRef.current;
-        if (!paper) return;
-        for (const element of graph.getElements()) {
-          StatusList.add(element.findView(paper), 'root', 'status', {
-            attribute: 'status',
-            position: 'top-right',
-            margin: { right: 5, top: 5 },
-            gap: 3,
-            direction: 'row',
-          });
-        }
-      }}
     />
   );
 }
