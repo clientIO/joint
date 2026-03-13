@@ -107,6 +107,38 @@ describe('use-paper-features', () => {
       });
     });
 
+    it('calls onLoad when feature instance becomes available', async () => {
+      const onLoad = jest.fn();
+      const mockInstance = { loaded: true };
+
+      function TestComponent() {
+        useCreatePaperFeature({
+          id: 'loadable-feature',
+          onAddFeature: () => ({
+            id: 'loadable-feature',
+            instance: mockInstance,
+          }),
+          onLoad,
+        });
+        return null;
+      }
+
+      const Wrapper = createWrapper();
+      render(<TestComponent />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(onLoad).toHaveBeenCalled();
+      });
+
+      expect(onLoad).toHaveBeenCalledWith(
+        expect.objectContaining({
+          graphStore: expect.any(Object),
+          paperStore: expect.any(Object),
+          instance: mockInstance,
+        })
+      );
+    });
+
     it('calls onUpdateFeature when dependencies change', async () => {
       const onUpdateFeature = jest.fn();
       const mockInstance = { count: 0 };

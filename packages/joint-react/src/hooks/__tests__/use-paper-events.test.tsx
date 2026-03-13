@@ -186,7 +186,7 @@ describe('use-paper-events', () => {
     try {
       const { result } = renderHook(
         () => {
-          const paper = usePaper();
+          const paper = usePaper({ isNullable: true });
           usePaperEvents(handlers);
           return paper;
         },
@@ -259,7 +259,7 @@ describe('use-paper-events', () => {
 
     const { result } = renderHook(
       () => {
-        const paper = usePaper();
+        const paper = usePaper({ isNullable: true });
         usePaperEvents(({ graph, paper: ctxPaper }) => ({
           scale: (...args) => {
             onScale({ graph, paper: ctxPaper }, ...args);
@@ -275,7 +275,7 @@ describe('use-paper-events', () => {
     });
 
     act(() => {
-      result.current.trigger('scale', 2, 2, { source: 'ctx-test' });
+      result.current!.trigger('scale', 2, 2, { source: 'ctx-test' });
     });
 
     expect(onScale).toHaveBeenCalledTimes(1);
@@ -347,7 +347,7 @@ describe('use-paper-events', () => {
 
     const { result, unmount } = renderHook(
       () => {
-        const paper = usePaper();
+        const paper = usePaper({ isNullable: true });
         usePaperEvents({ resize: onResize });
         return paper;
       },
@@ -359,7 +359,7 @@ describe('use-paper-events', () => {
     });
 
     act(() => {
-      result.current.trigger('resize', 100, 200, { source: 'before-unmount' });
+      result.current!.trigger('resize', 100, 200, { source: 'before-unmount' });
     });
     const callsBeforeUnmount = onResize.mock.calls.length;
     expect(callsBeforeUnmount).toBeGreaterThan(0);
@@ -367,7 +367,7 @@ describe('use-paper-events', () => {
     unmount();
 
     act(() => {
-      result.current.trigger('resize', 100, 200, { source: 'after-unmount' });
+      result.current!.trigger('resize', 100, 200, { source: 'after-unmount' });
     });
 
     expect(onResize).toHaveBeenCalledTimes(callsBeforeUnmount);

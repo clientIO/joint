@@ -30,7 +30,7 @@ describe('use-paper', () => {
 
   it('returns paper instance from Paper context', async () => {
     const wrapper = createPaperWrapper('paper-context');
-    const { result } = renderHook(() => usePaper(), { wrapper });
+    const { result } = renderHook(() => usePaper({ isNullable: true }), { wrapper });
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
