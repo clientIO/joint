@@ -19,10 +19,10 @@ type Callback = (event: ElementsMeasuredEvent) => void;
 function resolvePaper(
   target: PaperTarget | undefined,
   paperFromRef: dia.Paper | null | undefined,
-  contextPaper: dia.Paper | null
+  paperFromCtx: dia.Paper | null
 ): dia.Paper | null {
-  if (!target) return contextPaper;
-  if (typeof target === 'string') return contextPaper;
+  if (!target) return paperFromCtx;
+  if (typeof target === 'string') return paperFromCtx;
   if ('current' in target) return paperFromRef ?? null;
   return target;
 }
@@ -105,7 +105,7 @@ export function useOnElementsMeasured(
   const targetRef = target && typeof target === 'object' && 'current' in target ? target : undefined;
   const paperFromRef = useRefValue(targetRef);
 
-  const paper = isContextForm
+  const paperView = isContextForm
     ? (contextStore?.paper ?? null)
     : resolvePaper(target, paperFromRef, contextStore?.paper ?? null);
 
@@ -115,10 +115,10 @@ export function useOnElementsMeasured(
   const once = options?.once ?? false;
 
   useEffect(() => {
-    if (!paper) return;
+    if (!paperView) return;
 
     const controller = new mvc.Listener();
-    controller.listenTo(paper, PAPER_ELEMENTS_MEASURED, (event: ElementsMeasuredEvent) => {
+    controller.listenTo(paperView, PAPER_ELEMENTS_MEASURED, (event: ElementsMeasuredEvent) => {
       callbackRef.current(event);
       if (once) {
         controller.stopListening();
@@ -126,5 +126,5 @@ export function useOnElementsMeasured(
     });
     return () => controller.stopListening();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paper, once, ...(dependencies ?? [])]);
+  }, [paperView, once, ...(dependencies ?? [])]);
 }

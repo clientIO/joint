@@ -275,52 +275,49 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   useEffect(() => {
     if (!hasElementViewSnapshot) return;
     if (!isReady) return;
-    if (measuredRef.current) return;
     if (!paper) return;
 
-    if (areElementsMeasured) {
-      measuredRef.current = true;
-      const event: ElementsMeasuredEvent = { isInitial: true, paper, graph: paper.model };
-      paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-      return;
-    }
-
-    if (process.env.NODE_ENV === 'production') {
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      if (!areElementsMeasured) {
-        // eslint-disable-next-line no-console
-        console.error(
-          'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
-        );
+    // Phase 1: Wait for initial measurement.
+    if (!measuredRef.current) {
+      if (areElementsMeasured) {
+        measuredRef.current = true;
+        const event: ElementsMeasuredEvent = { isInitial: true, paper, graph: paper.model };
+        paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+        // Prime baseline snapshot so the next run detects deltas, not the first observation.
+        previousSizesRef.current = elementIds.map((elementId) => {
+          const element = elementsState[elementId];
+          return [element?.width ?? 0, element?.height ?? 0];
+        });
+        return;
       }
-    }, 1000);
 
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [areElementsMeasured, hasElementViewSnapshot, isReady, paper]);
+      if (process.env.NODE_ENV === 'production') {
+        return;
+      }
 
-  useEffect(() => {
-    if (!hasElementViewSnapshot) return;
-    if (!isReady) return;
+      // DEV-only: warn if elements are not measured within 1 second.
+      const timeout = setTimeout(() => {
+        if (!areElementsMeasured) {
+          // eslint-disable-next-line no-console
+          console.error(
+            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
+          );
+        }
+      }, 1000);
+
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+
+    // Phase 2: Detect size changes after initial measurement.
     if (!areElementsMeasured) return;
-    if (!paper) return;
 
     const currentSizes = elementIds.map((elementId) => {
       const element = elementsState[elementId];
       return [element?.width ?? 0, element?.height ?? 0];
     });
     const previousSizes = previousSizesRef.current;
-
-    // Prime baseline snapshot first to avoid an initial stale layout pass.
-    // The callback should react to size deltas, not first observation.
-    if (previousSizes.length === 0) {
-      previousSizesRef.current = currentSizes;
-      return;
-    }
 
     let changed = false;
 
