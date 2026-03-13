@@ -406,7 +406,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
       const portalNode = (elementView.paper as ReactPaper).getCellViewPortalNode(elementView);
 
-      if (!portalNode || !portalNode.isConnected) {
+      if (!portalNode?.isConnected) {
         return null;
       }
 
