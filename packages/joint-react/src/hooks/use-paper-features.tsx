@@ -99,7 +99,7 @@ export function useCreatePaperFeature<T>(
       return;
     }
     graphStore.setPaperFeature(paperStore.paperId, existingFeature);
-  }, [graphStore, paperStore, ...dependencies]);
+  }, [graphStore, resolvedFeature, paperStore, ...dependencies]);
 
   return featureContext;
 }
