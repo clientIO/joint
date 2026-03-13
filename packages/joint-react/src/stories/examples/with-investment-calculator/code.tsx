@@ -13,7 +13,7 @@ import {
   type FlatLinkData,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { useCallback, useId } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
 
 import '../index.css';
 
@@ -605,17 +605,19 @@ function RenderElement(props: Readonly<ShapeElement>) {
 // ----------------------------------------------------------------------------
 
 function Main() {
-  const paperId = useId();
 
-  const handleElementsMeasured = useCallback(({ isInitial, paper, graph }: { isInitial: boolean; paper: dia.Paper; graph: dia.Graph }) => {
-    if (!isInitial) return;
+  const paperRef = useRef<dia.Paper | null>(null);
+  const graph = useGraph();
 
+  useEffect(() => {
+    const paper = paperRef.current;
+    if (!paper) return;
     // Resize the container elements to fit their content
     // (performance nodes should fit their embedded product nodes)
     graph.getElements().forEach((element) => {
       if (element.getEmbeddedCells().length > 0) {
         element.fitEmbeds({
-          padding: { left: 30, right: 30, top: 50, bottom: 130 }
+          padding: { left: 30, right: 30, top: 50, bottom: 130 },
         });
       }
     });
@@ -629,11 +631,10 @@ function Main() {
     });
   }, []);
 
-  useOnElementsMeasured(paperId, handleElementsMeasured);
 
   return (
     <Paper
-      id={paperId}
+      ref={paperRef}
       width="100%"
       height={800}
       className={PAPER_CLASSNAME}
