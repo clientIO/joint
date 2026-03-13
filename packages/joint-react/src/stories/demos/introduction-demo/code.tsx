@@ -26,7 +26,7 @@ import {
   usePaperEvents,
   useNodeLayout,
 } from '@joint/react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
 import { useCellActions } from '../../../hooks/use-cell-actions';
 import { getMessageNodeClassName } from './get-message-node-class-name';
@@ -501,8 +501,10 @@ function Main() {
     [selectedElement]
   );
 
+  const paperId = useId();
+
   usePaperEvents(
-    paperCtxRef,
+    paperId,
     {
       'link:mouseenter': (linkView) => linkView.addTools(toolsView),
       'link:mouseleave': (linkView) => linkView.removeTools(),
@@ -533,6 +535,7 @@ function Main() {
           paperCtxRef={paperCtxRef}
         />
         <Paper
+          id={paperId}
           ref={paperCtxRef}
           {...PAPER_PROPS}
           defaultLink={{

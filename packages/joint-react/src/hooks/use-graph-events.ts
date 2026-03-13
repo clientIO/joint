@@ -2,6 +2,7 @@ import { mvc, type dia } from '@joint/core';
 import { useContext, useLayoutEffect, type DependencyList } from 'react';
 import { GraphStoreContext } from '../context';
 import type { GraphEventHandlers } from '../types/event.types';
+import { isRecord } from '../utils/is';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
 
@@ -11,7 +12,7 @@ const EMPTY_DEPENDENCIES: DependencyList = [];
  * @returns True when value behaves like `dia.Graph`.
  */
 function isGraphInstance(value: unknown): value is dia.Graph {
-  return !!value && typeof value === 'object' && 'addCell' in (value as object);
+  return isRecord(value) && 'addCell' in value;
 }
 
 /**

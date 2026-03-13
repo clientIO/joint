@@ -3,13 +3,14 @@ import type { FlatElementData } from '../../types/element-types';
 import { REACT_TYPE } from '../../models/react-element';
 import type { ElementToGraphOptions, GraphToElementOptions } from '../graph-mappings';
 import { convertPorts, createPortDefaults } from './convert-ports';
+import { isRecord } from '../../utils/is';
 
 // ────────────────────────────────────────────────────────────────────────────
 // React → JointJS
 // ────────────────────────────────────────────────────────────────────────────
 
 function isElementData(data: unknown): data is FlatElementData {
-  return typeof data === 'object' && data !== null;
+  return isRecord(data);
 }
 /**
  * Maps flat element data to JointJS cell attributes.

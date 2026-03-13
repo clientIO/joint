@@ -2,11 +2,11 @@ import { render, waitFor } from '@testing-library/react';
 import type { dia } from '@joint/core';
 import { useCallback, useRef } from 'react';
 import { act } from 'react';
+import { useGraph } from '../../../hooks/use-graph';
 import { useNodeSize } from '../../../hooks/use-node-size';
 import type { FlatElementData } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
-import { scheduler } from '../../../utils/scheduler';
 
 const INITIAL_NODE_WIDTH = 100;
 const INITIAL_NODE_HEIGHT = 50;
@@ -115,23 +115,26 @@ function handleElementsSizeChange(graph: dia.Graph) {
   }
 }
 
-function AutoLayoutTestHost() {
-  const paperRef = useRef<dia.Paper | null>(null);
+function AutoLayoutPaper() {
+  const graph = useGraph();
 
   const onSizeChange = useCallback(() => {
-    if (paperRef.current) {
-      handleElementsSizeChange(paperRef.current.model);
-    }
-  }, []);
+    handleElementsSizeChange(graph);
+  }, [graph]);
 
   return (
+    <Paper<AutoLayoutElementData>
+      height={450}
+      renderElement={renderMeasuredNode}
+      onElementsSizeChange={onSizeChange}
+    />
+  );
+}
+
+function AutoLayoutTestHost() {
+  return (
     <GraphProvider elements={initialElements}>
-      <Paper<AutoLayoutElementData>
-        ref={paperRef}
-        height={450}
-        renderElement={renderMeasuredNode}
-        onElementsSizeChange={onSizeChange}
-      />
+      <AutoLayoutPaper />
     </GraphProvider>
   );
 }
@@ -144,19 +147,19 @@ describe('Paper automatic layout', () => {
 
     render(<AutoLayoutTestHost />);
 
-    // Flush microtasks (mock observer) and scheduler (state notifications)
-    // Multiple rounds needed: 1) queueMicrotask fires observer, 2) scheduler flushes state, 3) React re-renders
-    for (let index = 0; index < 5; index++) {
+    // Flush microtasks and scheduler (state notifications)
+    // Multiple rounds needed: 1) queueMicrotask fires observer, 2) scheduler flushes state via queueMicrotask,
+    // 3) React re-renders, 4) useLayoutEffect detects size change
+    for (let index = 0; index < 10; index++) {
       // eslint-disable-next-line no-await-in-loop
       await act(async () => {
         await new Promise((resolve) => { setTimeout(resolve, 0); });
-        scheduler.flushNowForTests();
       });
     }
 
     await waitFor(() => {
       expect(fourthNodeYPositions.length).toBeGreaterThan(0);
-    });
+    }, { timeout: 3000 });
 
     expect(fourthNodeYPositions).toEqual([expectedRowTwoY]);
   });

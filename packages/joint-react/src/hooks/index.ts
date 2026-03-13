@@ -19,3 +19,4 @@ export * from './use-stores';
 export * from './use-highlighter';
 export * from './use-markup';
 export * from './use-create-react-paper';
+export * from './use-paper-features';

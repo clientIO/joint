@@ -1,18 +1,7 @@
-import { util } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import { useData } from './use-stores';
-
-/**
- * Default selector function to return all elements.
- * @param items - The items to select from.
- * @returns - The selected items.
- */
-function defaultSelector<ElementData = FlatElementData>(
-  items: Record<CellId, ElementData>
-): Record<CellId, ElementData> {
-  return items;
-}
+import { defaultIsEqual, defaultSelector } from '../utils/selector-utils';
 
 /**
  * A hook to access `dia.graph` elements
@@ -64,7 +53,7 @@ export function useElements<
   selector: (
     items: Record<CellId, ElementData>
   ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual as (
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = defaultIsEqual as (
     a: SelectorReturnType,
     b: SelectorReturnType
   ) => boolean

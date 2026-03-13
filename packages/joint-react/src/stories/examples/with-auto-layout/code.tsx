@@ -8,7 +8,7 @@ import {
   Paper,
   useElements,
   useGraph,
-  useNodeSize,
+  useNodeLayout,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useRef, useState } from 'react';
@@ -32,9 +32,9 @@ type BaseElementWithData = (typeof initialElements)[string];
 
 const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
-function RenderedRect({ width, height, label }: Readonly<BaseElementWithData>) {
+function RenderedRect({ label }: Readonly<BaseElementWithData>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  const { width, height } = useNodeLayout();
   return (
     <foreignObject width={width} height={height}>
       <div ref={elementRef} className="node">
@@ -76,12 +76,9 @@ function Main() {
     []
   );
 
-  const makeLayout = useCallback(
-    () => {
-      makeLayoutWithGrid({ graph, gridXSize });
-    },
-    [makeLayoutWithGrid, graph, gridXSize]
-  );
+  const makeLayout = useCallback(() => {
+    makeLayoutWithGrid({ graph, gridXSize });
+  }, [makeLayoutWithGrid, graph, gridXSize]);
 
   const elementsLength = useElements((items) => Object.keys(items).length);
   return (
@@ -108,8 +105,8 @@ function Main() {
             const newId = `${Math.random()}`;
             set(newId, {
               label: `Node ${elementsLength + 1}`,
-              height: 0, // we recompute the size after the element is added
-              width: 0, // we recompute the size after the element is added
+              width: 100,
+              height: 50,
             });
           }}
           type="button"
@@ -123,7 +120,9 @@ function Main() {
         className={PAPER_CLASSNAME}
         height={450}
         renderElement={renderElement}
-        onElementsSizeChange={makeLayout}
+        onElementsRender={() => {
+          makeLayout();
+        }}
       />
     </div>
   );

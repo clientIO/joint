@@ -76,7 +76,12 @@ export interface EventMap {
   'blank:pointermove': (event: dia.Event, x: number, y: number) => void;
   // pointerup
   'cell:pointerup': (cellView: dia.CellView, event: dia.Event, x: number, y: number) => void;
-  'element:pointerup': (elementView: dia.ElementView, event: dia.Event, x: number, y: number) => void;
+  'element:pointerup': (
+    elementView: dia.ElementView,
+    event: dia.Event,
+    x: number,
+    y: number
+  ) => void;
   'link:pointerup': (linkView: dia.LinkView, event: dia.Event, x: number, y: number) => void;
   'blank:pointerup': (event: dia.Event, x: number, y: number) => void;
   // mouseover
@@ -230,14 +235,8 @@ export interface GraphKnownEventMap {
     options: GraphEventOptions
   ) => void;
   readonly change: (cell: dia.Cell, options: GraphEventOptions) => void;
-  readonly reset: (
-    collection: mvc.Collection<dia.Cell>,
-    options: GraphEventOptions
-  ) => void;
-  readonly sort: (
-    collection: mvc.Collection<dia.Cell>,
-    options: GraphEventOptions
-  ) => void;
+  readonly reset: (collection: mvc.Collection<dia.Cell>, options: GraphEventOptions) => void;
+  readonly sort: (collection: mvc.Collection<dia.Cell>, options: GraphEventOptions) => void;
   readonly move: (cell: dia.Cell, options: GraphEventOptions) => void;
   readonly 'batch:start': (data: GraphEventOptions) => void;
   readonly 'batch:stop': (data: GraphEventOptions) => void;
@@ -260,12 +259,11 @@ type GraphPatternEventArgs<EventName extends GraphPatternEventName> =
         ]
       : [layerCollection: dia.GraphLayerCollection, options?: GraphEventOptions];
 
-export type GraphEventArgs<EventName extends GraphEventName> =
-  EventName extends GraphKnownEventName
-    ? Parameters<GraphKnownEventMap[EventName]>
-    : EventName extends GraphPatternEventName
-      ? GraphPatternEventArgs<EventName>
-      : Parameters<mvc.EventHandler>;
+export type GraphEventArgs<EventName extends GraphEventName> = EventName extends GraphKnownEventName
+  ? Parameters<GraphKnownEventMap[EventName]>
+  : EventName extends GraphPatternEventName
+    ? GraphPatternEventArgs<EventName>
+    : Parameters<mvc.EventHandler>;
 
 export type GraphEventHandlers = Partial<{
   [EventName in GraphEventName]: (...args: GraphEventArgs<EventName>) => void;

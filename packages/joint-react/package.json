@@ -68,6 +68,7 @@
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
     "@types/react-test-renderer": "19.1.0",
+    "@types/scheduler": "^0",
     "@types/use-sync-external-store": "1.5.0",
     "@vitejs/plugin-react": "^5.0.2",
     "canvas": "^3.1.0",
@@ -107,6 +108,7 @@
   },
   "dependencies": {
     "@joint/core": "workspace:*",
+    "scheduler": "^0.27.0",
     "use-sync-external-store": "^1.4.0"
   },
   "peerDependencies": {

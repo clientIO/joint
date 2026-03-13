@@ -14,13 +14,14 @@ import {
   toLinkEndData,
   buildLinkPresentationAttributes,
 } from './link-attributes';
+import { isRecord } from '../../utils/is';
 
 // ────────────────────────────────────────────────────────────────────────────
 // React → JointJS
 // ────────────────────────────────────────────────────────────────────────────
 
 function isLinkData(data: unknown): data is FlatLinkData {
-  return typeof data === 'object' && data !== null;
+  return isRecord(data);
 }
 /**
  * Maps flat link data to JointJS cell attributes.

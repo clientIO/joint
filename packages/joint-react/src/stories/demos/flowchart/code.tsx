@@ -9,7 +9,6 @@ import {
   useHighlighter,
   useMarkup,
   useNodeSize,
-  usePaper,
   usePaperEvents,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -447,13 +446,11 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
 function Main() {
   const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
-  const paperInstance = usePaper(paperId);
 
   usePaperEvents(
     paperId,
-    {
+    ({ paper }) => ({
       'link:pointerclick': (linkView) => {
-        const { paper } = linkView;
         if (!paper) return;
 
         paper.removeTools();
@@ -511,20 +508,17 @@ function Main() {
         );
         frame.el.classList.add('jj-frame');
       },
-      'link:mouseleave': (linkView) => {
-        const { paper } = linkView;
+      'link:mouseleave': () => {
         if (!paper) return;
 
         highlighters.mask.removeAll(paper, 'frame');
       },
       'blank:pointerdown': () => {
-        if (!paperInstance) return;
-
-        paperInstance.removeTools();
-        dia.HighlighterView.removeAll(paperInstance);
+        paper.removeTools();
+        dia.HighlighterView.removeAll(paper);
       },
-    },
-    [paperInstance]
+    }),
+    []
   );
 
   return (

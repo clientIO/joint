@@ -1,4 +1,4 @@
-export function simpleQue(): (callback: () => void) => void {
+export function createScheduler(): (callback: () => void) => void {
   let scheduled = false;
   let callbacks = new Set<() => void>();
 
@@ -30,4 +30,4 @@ export function simpleQue(): (callback: () => void) => void {
   };
 }
 
-export const simpleScheduler = simpleQue();
+export const simpleScheduler = createScheduler();

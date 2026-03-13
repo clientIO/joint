@@ -83,8 +83,8 @@ describe('use-paper', () => {
     });
   });
 
-  it('returns null when usePaper(true) is used outside Paper context', () => {
-    const { result } = renderHook(() => usePaper(true), { wrapper: graphWrapper });
+  it('returns null when usePaper({ isNullable: true }) is used outside Paper context', () => {
+    const { result } = renderHook(() => usePaper({ isNullable: true }), { wrapper: graphWrapper });
 
     expect(result.current).toBeNull();
   });

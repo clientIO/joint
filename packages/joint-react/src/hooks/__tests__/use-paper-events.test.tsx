@@ -1,21 +1,18 @@
-/* eslint-disable sonarjs/no-identical-functions */
+/* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { mvc, type dia } from '@joint/core';
 import { render, renderHook, waitFor, act } from '@testing-library/react';
-import {
-  StrictMode,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  type ReactNode,
-  type RefObject,
-} from 'react';
+import { useCallback, useId, type ReactNode } from 'react';
 import { GraphProvider, Paper } from '../../components';
 import { usePaperEvents } from '../use-paper-events';
+import type { EventContext } from '../use-paper-events';
 import { usePaper } from '../use-paper';
 import type { EventMap, PaperEventHandlers, PaperEventType } from '../../types/event.types';
-import { PAPER_ELEMENTS_SIZE_READY, PAPER_ELEMENTS_SIZE_CHANGE, PAPER_ELEMENTS_RENDER } from '../../types/event.types';
+import {
+  PAPER_ELEMENTS_SIZE_READY,
+  PAPER_ELEMENTS_SIZE_CHANGE,
+  PAPER_ELEMENTS_RENDER,
+} from '../../types/event.types';
 
 const EMPTY_ELEMENTS = {};
 const EMPTY_LINKS = {};
@@ -116,10 +113,10 @@ const PAPER_EVENT_ARGS: {
   transform: [MATRIX, { source: 'transform' }],
 };
 
-function createPaperWrapper(paperId: string, ref?: RefObject<dia.Paper | null>) {
+function createPaperWrapper(paperId: string) {
   return ({ children }: { children: ReactNode }) => (
     <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
-      <Paper id={paperId} ref={ref} width={100} height={100} renderElement={renderTestElement}>
+      <Paper id={paperId} width={100} height={100} renderElement={renderTestElement}>
         {children}
       </Paper>
     </GraphProvider>
@@ -141,12 +138,12 @@ function UsePaperEventsWithPaperIdPattern(
     [paperHolder]
   );
 
-  usePaperEvents(paperId, {
+  usePaperEvents(paperId, ({ paper }) => ({
     'element:pointerclick': (elementView, event, x, y) => {
-      elementView.paper?.trigger('paper:test:custom', elementView, event, x, y);
+      paper?.trigger('paper:test:custom', elementView, event, x, y);
     },
     'paper:test:custom': onCustomEvent,
-  });
+  }));
 
   return (
     <Paper
@@ -160,7 +157,7 @@ function UsePaperEventsWithPaperIdPattern(
 }
 
 describe('use-paper-events', () => {
-  it('binds all supported paper events with raw JointJS arguments and supports custom events', async () => {
+  it('binds all supported paper events with raw JointJS arguments', async () => {
     const wrapper = createPaperWrapper('paper-context');
     const handlers: PaperEventHandlers = {};
     const listenerHandlers = new Map<
@@ -232,6 +229,64 @@ describe('use-paper-events', () => {
     }
   });
 
+  it('provides graph, paper, and features in callback form context', async () => {
+    const wrapper = createPaperWrapper('paper-ctx');
+    let captured: EventContext | null = null;
+
+    renderHook(
+      () => {
+        usePaperEvents((ctx) => {
+          captured = ctx;
+          return {
+            'render:done': () => {},
+          };
+        });
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(captured).not.toBeNull();
+    });
+
+    expect(captured).toHaveProperty('graph');
+    expect(captured).toHaveProperty('paper');
+  });
+
+  it('supports callback form in context and receives events with raw args', async () => {
+    const wrapper = createPaperWrapper('paper-ctx-cb');
+    const onScale = jest.fn();
+
+    const { result } = renderHook(
+      () => {
+        const paper = usePaper();
+        usePaperEvents(({ graph, paper: ctxPaper }) => ({
+          scale: (...args) => {
+            onScale({ graph, paper: ctxPaper }, ...args);
+          },
+        }));
+        return paper;
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+    });
+
+    act(() => {
+      result.current.trigger('scale', 2, 2, { source: 'ctx-test' });
+    });
+
+    expect(onScale).toHaveBeenCalledTimes(1);
+    expect(onScale).toHaveBeenCalledWith(
+      expect.objectContaining({ graph: expect.any(Object), paper: expect.any(Object) }),
+      2,
+      2,
+      { source: 'ctx-test' }
+    );
+  });
+
   it('supports paper id target overload', async () => {
     const wrapper = createPaperWrapper('paper-by-id');
     const onContextMenu = jest.fn();
@@ -257,52 +312,18 @@ describe('use-paper-events', () => {
     expect(onContextMenu).toHaveBeenCalledWith(ELEMENT_VIEW, JOINT_EVENT, 30, 50);
   });
 
-  it('supports paper ref target overload and binds when ref becomes available', async () => {
-    const paperRef: RefObject<dia.Paper | null> = { current: null };
-    const wrapper = createPaperWrapper('paper-ref', paperRef);
-    const onScale = jest.fn();
-
-    renderHook(
-      () => {
-        usePaperEvents(paperRef, { scale: onScale });
-      },
-      { wrapper }
-    );
-
-    await waitFor(() => {
-      expect(paperRef.current).toBeDefined();
-    });
-
-    act(() => {
-      paperRef.current?.trigger('scale', 3, 4, { source: 'ref' });
-    });
-
-    expect(onScale).toHaveBeenCalledTimes(1);
-    expect(onScale).toHaveBeenCalledWith(3, 4, { source: 'ref' });
-  });
-
-  it('supports paper ref target overload when ref current can be undefined', () => {
-    const paperRef: RefObject<dia.Paper | null | undefined> = { current: undefined };
-    const wrapper = createGraphWrapper();
-
-    expect(() => {
-      renderHook(
-        () => {
-          usePaperEvents(paperRef, { scale: jest.fn() });
-        },
-        { wrapper }
-      );
-    }).not.toThrow();
-  });
-
-  it('supports direct paper target overload when paper comes from usePaper(id)', async () => {
-    const wrapper = createPaperWrapper('paper-direct');
+  it('supports callback form with paper id', async () => {
+    const wrapper = createPaperWrapper('paper-cb-id');
     const onScale = jest.fn();
 
     const { result } = renderHook(
       () => {
-        const paper = usePaper('paper-direct');
-        usePaperEvents(paper, { scale: onScale });
+        const paper = usePaper('paper-cb-id');
+        usePaperEvents('paper-cb-id', ({ graph }) => ({
+          scale: (...args) => {
+            onScale(graph, ...args);
+          },
+        }));
         return paper;
       },
       { wrapper }
@@ -313,89 +334,11 @@ describe('use-paper-events', () => {
     });
 
     act(() => {
-      result.current?.trigger('scale', 5, 6, { source: 'paper-direct' });
+      result.current?.trigger('scale', 3, 4, { source: 'cb' });
     });
 
     expect(onScale).toHaveBeenCalledTimes(1);
-    expect(onScale).toHaveBeenCalledWith(5, 6, { source: 'paper-direct' });
-  });
-
-  it('provides non-null paper ref in mount effect when using usePaperEvents in the same component', async () => {
-    const capturePaperRefInEffect = jest.fn();
-
-    function PaperWithEventsAndEffect() {
-      const paperRef = useRef<dia.Paper | null>(null);
-
-      usePaperEvents(
-        paperRef,
-        {
-          'element:pointermove': jest.fn(),
-          'element:pointerup': jest.fn(),
-        },
-        []
-      );
-
-      useEffect(() => {
-        capturePaperRefInEffect(paperRef.current);
-      }, []);
-
-      return <Paper ref={paperRef} width={100} height={100} renderElement={renderTestElement} />;
-    }
-
-    render(
-      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
-        <PaperWithEventsAndEffect />
-      </GraphProvider>
-    );
-
-    await waitFor(() => {
-      expect(capturePaperRefInEffect).toHaveBeenCalled();
-    });
-
-    expect(capturePaperRefInEffect.mock.calls.map(([paper]) => paper)).toEqual(
-      expect.arrayContaining([expect.any(Object)])
-    );
-    expect(capturePaperRefInEffect.mock.calls.map(([paper]) => paper)).not.toContain(null);
-  });
-
-  it('provides non-null paper ref in mount effect in StrictMode when using usePaperEvents in the same component', async () => {
-    const capturePaperRefInEffect = jest.fn();
-
-    function PaperWithEventsAndEffect() {
-      const paperRef = useRef<dia.Paper | null>(null);
-
-      usePaperEvents(
-        paperRef,
-        {
-          'element:pointermove': jest.fn(),
-          'element:pointerup': jest.fn(),
-        },
-        []
-      );
-
-      useEffect(() => {
-        capturePaperRefInEffect(paperRef.current);
-      }, []);
-
-      return <Paper ref={paperRef} width={100} height={100} renderElement={renderTestElement} />;
-    }
-
-    render(
-      <StrictMode>
-        <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
-          <PaperWithEventsAndEffect />
-        </GraphProvider>
-      </StrictMode>
-    );
-
-    await waitFor(() => {
-      expect(capturePaperRefInEffect).toHaveBeenCalled();
-    });
-
-    expect(capturePaperRefInEffect.mock.calls.map(([paper]) => paper)).toEqual(
-      expect.arrayContaining([expect.any(Object)])
-    );
-    expect(capturePaperRefInEffect.mock.calls.map(([paper]) => paper)).not.toContain(null);
+    expect(onScale).toHaveBeenCalledWith(expect.any(Object), 3, 4, { source: 'cb' });
   });
 
   it('cleans up listeners on unmount', async () => {
@@ -471,7 +414,12 @@ describe('use-paper-events', () => {
     });
 
     expect(onCustomEvent).toHaveBeenCalledTimes(1);
-    expect(onCustomEvent).toHaveBeenCalledWith(elementViewWithPaper, JOINT_EVENT, 40, 60);
+    expect(onCustomEvent).toHaveBeenCalledWith(
+      elementViewWithPaper,
+      JOINT_EVENT,
+      40,
+      60
+    );
   });
 
   it('catches paper:elements:size:ready event via usePaperEvents', async () => {

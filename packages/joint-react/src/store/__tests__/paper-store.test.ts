@@ -294,16 +294,15 @@ describe('PaperStore', () => {
       const graph = new dia.Graph();
       const graphStore = new GraphStore({ graph });
 
-      const cleanup = graphStore.addPaper('test-paper', {
+      const { paperStore, remove } = graphStore.addPaper('test-paper', {
         paperOptions: {},
       });
 
-      const paperStore = graphStore.getPaperStore('test-paper');
       expect(paperStore).toBeDefined();
 
-      const removeSpy = jest.spyOn(paperStore!.paper, 'remove');
+      const removeSpy = jest.spyOn(paperStore.paper, 'remove');
 
-      cleanup();
+      remove();
 
       expect(removeSpy).toHaveBeenCalled();
       expect(graphStore.getPaperStore('test-paper')).toBeUndefined();

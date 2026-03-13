@@ -1,5 +1,8 @@
+/* eslint-disable sonarjs/no-dead-store */
+/* eslint-disable sonarjs/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { dia } from '@joint/core';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useId, useImperativeHandle, useRef } from 'react';
 import { PaperStoreContext } from '../../context';
 import { useCreateReactPaper } from '../../hooks/use-create-react-paper';
 import type { FlatElementData } from '../../types/element-types';
@@ -28,15 +31,19 @@ function PaperBase<ElementData = FlatElementData>(
   const resolvedWidth = width ?? resolveStyleDimension(style?.width);
   const resolvedHeight = height ?? resolveStyleDimension(style?.height);
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
+  const reactId = useId();
+  const id = props.id ?? `paper-${reactId}`;
   const { paperRef, paperStore, isReady, content } = useCreateReactPaper({
     ...props,
     width: resolvedWidth,
     height: resolvedHeight,
     elementRef: paperHTMLElementRef,
+    id,
+    style,
+    className,
   });
 
   useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paperRef.current);
-
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
       <div className={className} ref={paperHTMLElementRef} style={style}>

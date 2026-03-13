@@ -1,21 +1,7 @@
-import { util } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
 import { useData } from './use-stores';
-
-/**
- * Default selector function that returns all links unchanged.
- * Used when no custom selector is provided to useLinks.
- * @template Link - The type of links
- * @param items - The links record to select from
- * @returns The same links record
- * @internal
- */
-function defaultSelector<LinkData = FlatLinkData>(
-  items: Record<CellId, LinkData>
-): Record<CellId, LinkData> {
-  return items;
-}
+import { defaultIsEqual, defaultSelector } from '../utils/selector-utils';
 
 /**
  * Hook to access and subscribe to links (edges) from the graph store.
@@ -70,7 +56,7 @@ export function useLinks<LinkData = FlatLinkData, SelectorReturnType = Record<Ce
   selector: (
     items: Record<CellId, LinkData>
   ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = defaultIsEqual
 ): SelectorReturnType {
   return useData((snapshot) => {
     return selector(snapshot.links as Record<CellId, LinkData>);
