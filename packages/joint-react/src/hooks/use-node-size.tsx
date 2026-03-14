@@ -17,27 +17,29 @@ export type VisibilityStrategy = 'show-all' | 'hide-node' | 'hide-all';
 /**
  * Options for configuring how the node size is measured and applied.
  */
-export interface MeasureNodeOptions {
+export interface UseNodeSizeOptions {
   /**
    * Custom transform function to modify the measured size before applying it to the graph element.
    *
-   * This function receives the measured dimensions from the DOM element and the current graph element,
+   * This function receives the measured dimensions from the DOM node and the current graph element,
    * allowing you to add padding, apply scaling, or perform other transformations.
-   * @param options - The measured size and the graph element instance
-   * @param options.width - The measured width of the DOM element in pixels
-   * @param options.height - The measured height of the DOM element in pixels
-   * @param options.x - The current x position of the graph element (optional)
-   * @param options.y - The current y position of the graph element (optional)
-   * @param options.element - The JointJS element instance that will be updated
-   * @returns The size values to apply to the graph element. Must include `width` and `height`.
-   * @default By default, the measured size is applied directly via `element.set('size', {width, height})`
+   * @param options - The measured size and the current graph element state
+   * @param options.width - The measured width of the DOM node in pixels
+   * @param options.height - The measured height of the DOM node in pixels
+   * @param options.x - The current x position of the graph element
+   * @param options.y - The current y position of the graph element
+   * @param options.angle - The current rotation angle of the graph element
+   * @param options.element - The JointJS element instance (`dia.Element`)
+   * @param options.id - The cell ID
+   * @returns The layout values to apply. Must include `width` and `height`; `x` and `y` are optional.
+   * @default Identity — returns `{ width, height, x, y }` unchanged.
    * @example
    * ```tsx
    * const transform = ({ width, height }) => ({
    *   width: width + 20, // Add 10px padding on each side
    *   height: height + 20,
    * });
-   * useNodeSize(elementRef, { transform });
+   * useNodeSize(nodeRef, { transform });
    * ```
    */
   readonly transform?: OnTransformElement;
@@ -52,7 +54,7 @@ export interface MeasureNodeOptions {
   readonly visibility?: VisibilityStrategy;
 }
 
-const EMPTY_OBJECT: MeasureNodeOptions = {};
+const EMPTY_OBJECT: UseNodeSizeOptions = {};
 const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 0 };
 
 /**
@@ -64,7 +66,7 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  * `transform` function is provided).
  *
  * **How it works:**
- * 1. Observes the DOM element referenced by `elementRef` for size changes
+ * 1. Observes the DOM element referenced by `nodeRef` for size changes
  * 2. When the DOM element's size changes, applies the size (or transformed size) to the graph element
  * 3. Returns the current graph element's dimensions, which are always defined
  *
@@ -124,7 +126,7 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  * import { useRef, useCallback } from 'react';
  *
  * function ListElement() {
- *   const elementRef = useRef<HTMLDivElement>(null);
+ *   const nodeRef = useRef<HTMLDivElement>(null);
  *   const padding = 10;
  *   const headerHeight = 50;
  *
@@ -138,13 +140,13 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  *     []
  *   );
  *
- *   const { width, height } = useNodeSize(elementRef, { transform });
+ *   const { width, height } = useNodeSize(nodeRef, { transform });
  *
  *   return (
  *     <>
  *       <rect width={width} height={height} fill="#121826" />
  *       <foreignObject x={padding} y={headerHeight} width={width - 2 * padding} height={height - headerHeight - padding}>
- *         <div ref={elementRef}>Content</div>
+ *         <div ref={nodeRef}>Content</div>
  *       </foreignObject>
  *     </>
  *   );
@@ -153,7 +155,7 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  */
 export function useNodeSize(
   nodeRef: RefObject<HTMLElement | SVGElement | null>,
-  options?: MeasureNodeOptions
+  options?: UseNodeSizeOptions
 ): NodeLayout {
   const { transform, visibility } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
