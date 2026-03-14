@@ -1,3 +1,6 @@
+import { dia } from '@joint/core';
+import { isString } from '../utils/is';
+
 export type RemoveIndexSignature<T> = {
   [K in keyof T as string extends K ? never : K]: T[K];
 };
@@ -20,6 +23,33 @@ export interface Nullable {
  */
 // eslint-disable-next-line sonarjs/no-useless-intersection
 export type AnyString = string & {};
+
+export type PaperReference = string | React.RefObject<dia.Paper | null> | dia.Paper | Nullable;
+
+export function getPaperFromReference(ref: PaperReference): dia.Paper | null {
+  if (isString(ref)) {
+    // ID form is not supported here since we don't have access to the paper store.
+    return null;
+  }
+  if (ref instanceof dia.Paper) {
+    return ref;
+  }
+  if ('current' in ref) {
+    return ref.current;
+  }
+  return null;
+}
+
+export function getPaperIdFromReference(ref?: PaperReference): string | null {
+  if (!ref) {
+    return null;
+  }
+  if (isString(ref)) {
+    return ref;
+  }
+  const paper = getPaperFromReference(ref);
+  return paper ? (paper.id ?? null) : null;
+}
 
 export * from './event.types';
 export * from './port.types';

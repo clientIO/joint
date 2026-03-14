@@ -28,7 +28,7 @@ import {
   type State,
 } from '../utils/create-state';
 import type { IncrementalStateChanges } from '../state/incremental.types';
-import type { Feature } from '../hooks/use-paper-features';
+import type { Feature } from '../hooks/use-create-paper-features';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
