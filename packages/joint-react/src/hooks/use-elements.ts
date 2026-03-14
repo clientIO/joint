@@ -1,7 +1,7 @@
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import { useData } from './use-stores';
-import { defaultIsEqual, defaultSelector } from '../utils/selector-utils';
+import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 
 /**
  * A hook to access `dia.graph` elements
@@ -52,8 +52,8 @@ export function useElements<
 >(
   selector: (
     items: Record<CellId, ElementData>
-  ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = defaultIsEqual as (
+  ) => SelectorReturnType = identitySelector as () => SelectorReturnType,
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual as (
     a: SelectorReturnType,
     b: SelectorReturnType
   ) => boolean

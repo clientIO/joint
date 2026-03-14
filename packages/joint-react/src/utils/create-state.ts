@@ -2,7 +2,7 @@ import { startTransition } from 'react';
 import { sendToDevTool } from './dev-tools';
 import { isUpdater } from './is';
 import { simpleScheduler } from './scheduler';
-import { defaultIsEqual } from './selector-utils';
+import { isStrictEqual } from './selector-utils';
 
 /**
  * Update function or direct value for state updates.
@@ -123,7 +123,7 @@ const IS_DEV_TOOL_ENABLED_BY_DEFAULT = process.env.NODE_ENV === 'development';
 export function createState<T>(options: Options<T>): State<T> {
   const {
     newState,
-    isEqual = defaultIsEqual,
+    isEqual = isStrictEqual,
     name,
     isDevToolEnabled = IS_DEV_TOOL_ENABLED_BY_DEFAULT,
   } = options;
@@ -252,7 +252,7 @@ interface DerivedStatesOptions<TStates extends readonly DerivedStoreLike[], S>
 export function derivedState<const TStates extends readonly DerivedStoreLike[], S>(
   options: DerivedStatesOptions<TStates, S>
 ): State<S> {
-  const { state, isEqual = defaultIsEqual, name } = options;
+  const { state, isEqual = isStrictEqual, name } = options;
   const stateSources = state as readonly DerivedStoreLike[];
   const getSnapshot = (): S => {
     const snapshots = stateSources.map((source) => source.getSnapshot());

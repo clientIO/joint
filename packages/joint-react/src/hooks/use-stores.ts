@@ -8,7 +8,7 @@ import type { FlatLinkData } from '../types/link-types';
 import type { ExternalStoreLike, MarkDeepReadOnly } from '../utils/create-state';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { defaultIsEqual, defaultSelector } from '../utils/selector-utils';
+import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 
 /**
  * Generic hook to select data from an external store.
@@ -81,10 +81,10 @@ export function useAreElementsMeasured(): boolean {
  * @group Hooks
  */
 export function useLayouts<Selected>(
-  selector: (snapshot: GraphStoreLayoutSnapshot) => Selected = defaultSelector as unknown as (
+  selector: (snapshot: GraphStoreLayoutSnapshot) => Selected = identitySelector as unknown as (
     snapshot: GraphStoreLayoutSnapshot
   ) => Selected,
-  isEqual: (a: Selected, b: Selected) => boolean = defaultIsEqual
+  isEqual: (a: Selected, b: Selected) => boolean = isStrictEqual
 ): Selected {
   const { layoutState } = useGraphStore();
   return useStore(layoutState, selector, isEqual);

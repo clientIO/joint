@@ -1,7 +1,7 @@
 import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
 import { useData } from './use-stores';
-import { defaultIsEqual, defaultSelector } from '../utils/selector-utils';
+import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 
 /**
  * Hook to access and subscribe to links (edges) from the graph store.
@@ -55,8 +55,8 @@ import { defaultIsEqual, defaultSelector } from '../utils/selector-utils';
 export function useLinks<LinkData = FlatLinkData, SelectorReturnType = Record<CellId, LinkData>>(
   selector: (
     items: Record<CellId, LinkData>
-  ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = defaultIsEqual
+  ) => SelectorReturnType = identitySelector as () => SelectorReturnType,
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual
 ): SelectorReturnType {
   return useData((snapshot) => {
     return selector(snapshot.links as Record<CellId, LinkData>);

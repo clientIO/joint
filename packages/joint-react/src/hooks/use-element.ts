@@ -1,7 +1,7 @@
 import { useCellId } from './use-cell-id';
 import type { FlatElementData } from '../types/element-types';
 import { useData } from './use-stores';
-import { defaultIsEqual, defaultSelector } from '../utils/selector-utils';
+import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 
 /**
  * A hook to access a specific graph element from the current `Paper` context.
@@ -32,10 +32,10 @@ import { defaultIsEqual, defaultSelector } from '../utils/selector-utils';
  * @returns The selected element based on the current cell id.
  */
 export function useElement<ElementData = FlatElementData, ReturnedElements = ElementData>(
-  selector: (item: ElementData) => ReturnedElements = defaultSelector as (
+  selector: (item: ElementData) => ReturnedElements = identitySelector as (
     item: ElementData
   ) => ReturnedElements,
-  isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = defaultIsEqual
+  isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = isStrictEqual
 ): ReturnedElements {
   const id = useCellId();
 

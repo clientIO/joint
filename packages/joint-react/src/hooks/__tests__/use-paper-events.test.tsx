@@ -5,7 +5,7 @@ import { render, renderHook, waitFor, act } from '@testing-library/react';
 import { useCallback, useId, type ReactNode } from 'react';
 import { GraphProvider, Paper } from '../../components';
 import { usePaperEvents } from '../use-paper-events';
-import type { EventContext } from '../use-paper-events';
+import type { PaperEventsContext } from '../use-paper-events';
 import { usePaper } from '../use-paper';
 import type { EventMap, PaperEventHandlers, PaperEventType } from '../../types/event.types';
 import { PAPER_ELEMENTS_MEASURED } from '../../types/event.types';
@@ -227,7 +227,7 @@ describe('use-paper-events', () => {
 
   it('provides graph, paper, and features in callback form context', async () => {
     const wrapper = createPaperWrapper('paper-ctx');
-    let captured: EventContext | null = null;
+    let captured: PaperEventsContext | null = null;
 
     renderHook(
       () => {

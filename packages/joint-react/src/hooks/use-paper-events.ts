@@ -9,18 +9,20 @@ import { useGraphStore } from './use-graph-store';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
 
-interface EventContextBase {
+interface PaperEventsContextBase {
   readonly graph: dia.Graph;
   readonly paper: dia.Paper;
 }
-export type EventContext<T = Record<AnyString, unknown>> = EventContextBase & T;
+export type PaperEventsContext<T = Record<AnyString, unknown>> = PaperEventsContextBase & T;
 
-type HandlersOrFactory<T> = PaperEventHandlers | ((ctx: EventContext<T>) => PaperEventHandlers);
+type HandlersOrFactory<T> =
+  | PaperEventHandlers
+  | ((ctx: PaperEventsContext<T>) => PaperEventHandlers);
 
 /**
  * Builds the EventContext from paperStore and graph.
  */
-function buildEventContext<T>(paperStore: PaperStore, graph: dia.Graph): EventContext<T> {
+function buildEventContext<T>(paperStore: PaperStore, graph: dia.Graph): PaperEventsContext<T> {
   const featureInstances: Record<string, unknown> = {};
   for (const featureId in paperStore.features) {
     const { instance } = paperStore.features[featureId] ?? {};
@@ -32,7 +34,7 @@ function buildEventContext<T>(paperStore: PaperStore, graph: dia.Graph): EventCo
     graph,
     paper: paperStore.paper,
     ...featureInstances,
-  } as EventContext<T>;
+  } as PaperEventsContext<T>;
 }
 
 /**
