@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
 import { dia } from '@joint/core';
@@ -27,11 +28,7 @@ import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
 import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
 import { assignOptions } from '../utils/object-utilities';
-import {
-  PAPER_ELEMENTS_SIZE_READY,
-  PAPER_ELEMENTS_SIZE_CHANGE,
-  PAPER_ELEMENTS_RENDER,
-} from '../types/event.types';
+import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
 import {
@@ -44,8 +41,10 @@ const EMPTY_VIEW_ID_RECORD = {} as Record<CellId, true>;
 
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
-export interface UseCreateReactPaperOptions<ElementData extends FlatElementData = FlatElementData, LinkData extends FlatLinkData = FlatLinkData>
-  extends PaperProps<ElementData, LinkData> {
+export interface UseCreateReactPaperOptions<
+  ElementData extends FlatElementData = FlatElementData,
+  LinkData extends FlatLinkData = FlatLinkData,
+> extends PaperProps<ElementData, LinkData> {
   /**
    * Host element ref where the paper should be mounted automatically.
    * When omitted, paper rendering is manual (e.g. via `onReady` callback).
@@ -115,16 +114,14 @@ function LinkItem<LinkData = FlatLinkData>({
  * @param options - Hook options with paper settings and behavior overrides.
  * @returns Hook state with paper instance and rendered portal content.
  */
-export function useCreateReactPaper<ElementData extends FlatElementData = FlatElementData, LinkData extends FlatLinkData = FlatLinkData>(
-  options: Readonly<UseCreateReactPaperOptions<ElementData, LinkData>>
-): UseCreateReactPaperResult {
+export function useCreateReactPaper<
+  ElementData extends FlatElementData = FlatElementData,
+  LinkData extends FlatLinkData = FlatLinkData,
+>(options: Readonly<UseCreateReactPaperOptions<ElementData, LinkData>>): UseCreateReactPaperResult {
   const {
     renderElement,
     renderLink,
     defaultLink,
-    onElementsSizeReady,
-    onElementsSizeChange,
-    onElementsRender,
     useHTMLOverlay,
     scale,
     portalSelector,
@@ -295,54 +292,49 @@ export function useCreateReactPaper<ElementData extends FlatElementData = FlatEl
   useEffect(() => {
     if (!hasElementViewSnapshot) return;
     if (!isReady) return;
-    if (measuredRef.current) return;
     if (!paper) return;
 
-    if (areElementsMeasured) {
-      measuredRef.current = true;
-      paper.trigger(PAPER_ELEMENTS_SIZE_READY);
-      onElementsSizeReady?.();
-      return;
-    }
-
-    if (process.env.NODE_ENV === 'production') {
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      if (!areElementsMeasured) {
-        // eslint-disable-next-line no-console
-        console.error(
-          'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
-        );
+    // Phase 1: Wait for initial measurement.
+    if (!measuredRef.current) {
+      if (areElementsMeasured) {
+        measuredRef.current = true;
+        const event: ElementsMeasuredEvent = { isInitial: true, paper, graph: paper.model };
+        paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+        // Prime baseline snapshot so the next run detects deltas, not the first observation.
+        previousSizesRef.current = elementIds.map((elementId) => {
+          const element = elementsState[elementId];
+          return [element?.width ?? 0, element?.height ?? 0];
+        });
+        return;
       }
-    }, 1000);
 
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [areElementsMeasured, hasElementViewSnapshot, isReady, onElementsSizeReady, paper]);
+      if (process.env.NODE_ENV === 'production') {
+        return;
+      }
 
-  // useLayoutEffect ensures layout runs before the browser paints,
-  // preventing flicker when new elements appear at (0,0) before being positioned.
-  useLayoutEffect(() => {
-    if (!hasElementViewSnapshot) return;
-    if (!isReady) return;
+      // DEV-only: warn if elements are not measured within 1 second.
+      const timeout = setTimeout(() => {
+        if (!areElementsMeasured) {
+          // eslint-disable-next-line no-console
+          console.error(
+            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
+          );
+        }
+      }, 1000);
+
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+
+    // Phase 2: Detect size changes after initial measurement.
     if (!areElementsMeasured) return;
-    if (!paper) return;
 
     const currentSizes = elementIds.map((elementId) => {
       const element = elementsState[elementId];
       return [element?.width ?? 0, element?.height ?? 0];
     });
     const previousSizes = previousSizesRef.current;
-
-    // Prime baseline snapshot first to avoid an initial stale layout pass.
-    // `onElementsSizeChange` should react to size deltas, not first observation.
-    if (previousSizes.length === 0) {
-      previousSizesRef.current = currentSizes;
-      return;
-    }
 
     let changed = false;
 
@@ -365,24 +357,9 @@ export function useCreateReactPaper<ElementData extends FlatElementData = FlatEl
     }
 
     previousSizesRef.current = currentSizes;
-    paper.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
-    onElementsSizeChange?.();
-  }, [
-    areElementsMeasured,
-    elementIds,
-    elementsState,
-    hasElementViewSnapshot,
-    isReady,
-    onElementsSizeChange,
-    paper,
-  ]);
-
-  useEffect(() => {
-    if (!paper) return;
-
-    paper.trigger(PAPER_ELEMENTS_RENDER);
-    onElementsRender?.();
-  }, [onElementsRender, paper, paperElementViewIds]);
+    const event: ElementsMeasuredEvent = { isInitial: false, paper, graph: paper.model };
+    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+  }, [areElementsMeasured, elementIds, elementsState, hasElementViewSnapshot, isReady, paper]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

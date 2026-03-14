@@ -1,9 +1,9 @@
 import { render, waitFor } from '@testing-library/react';
 import type { dia } from '@joint/core';
-import { useCallback, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { act } from 'react';
-import { useGraph } from '../../../hooks/use-graph';
 import { useNodeSize } from '../../../hooks/use-node-size';
+import { useOnElementsMeasured } from '../../../hooks/use-on-elements-measured';
 import type { FlatElementData } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
@@ -116,18 +116,13 @@ function handleElementsSizeChange(graph: dia.Graph) {
 }
 
 function AutoLayoutPaper() {
-  const graph = useGraph();
-
-  const onSizeChange = useCallback(() => {
+  const paperId = useId();
+  useOnElementsMeasured(paperId, ({ isInitial, graph }) => {
+    if (isInitial) return;
     handleElementsSizeChange(graph);
-  }, [graph]);
-
+  });
   return (
-    <Paper<AutoLayoutElementData>
-      height={450}
-      renderElement={renderMeasuredNode}
-      onElementsSizeChange={onSizeChange}
-    />
+    <Paper<AutoLayoutElementData> id={paperId} height={450} renderElement={renderMeasuredNode} />
   );
 }
 

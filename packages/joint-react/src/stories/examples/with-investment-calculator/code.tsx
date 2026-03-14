@@ -12,7 +12,7 @@ import {
   type FlatLinkData,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import '../index.css';
 
@@ -24,8 +24,6 @@ type ShapeType = 'Investment' | 'Product' | 'ProductPerformance' | 'OverallPerfo
 
 interface BaseElement extends FlatElementData {
   readonly type: ShapeType;
-  readonly width: number;
-  readonly height: number;
 }
 
 interface InvestmentElement extends BaseElement {
@@ -176,10 +174,7 @@ const initialElements: Record<string, ShapeElement> = {
   },
   performance: {
     type: 'OverallPerformance',
-    x: 500,
-    y: 300,
-    width: 340,
-    height: 400,
+    // The position and size of this element will be adjusted to fit its embedded performance nodes
     z: -1,
   },
 };
@@ -609,17 +604,21 @@ function RenderElement(props: Readonly<ShapeElement>) {
 // ----------------------------------------------------------------------------
 
 function Main() {
-  const paperRef = useRef<dia.Paper | null>(null);
 
-  const handleReady = useCallback(() => {
+  const paperRef = useRef<dia.Paper | null>(null);
+  const graph = useGraph();
+
+  useEffect(() => {
     const paper = paperRef.current;
     if (!paper) return;
-    const graph = paper.model;
-    const performance = graph.getCell('performance');
-    if (performance?.isElement()) {
-      performance.fitEmbeds({
-        padding: { left: 30, right: 30, top: 50, bottom: 130 },
-      });
+    // Resize the container elements to fit their content
+    // (performance nodes should fit their embedded product nodes)
+    for (const element of graph.getElements()) {
+      if (element.getEmbeddedCells().length > 0) {
+        element.fitEmbeds({
+          padding: { left: 30, right: 30, top: 50, bottom: 130 },
+        });
+      }
     }
 
     paper.transformToFitContent({
@@ -629,7 +628,8 @@ function Main() {
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
     });
-  }, []);
+  }, [graph]);
+
 
   return (
     <Paper
@@ -642,7 +642,6 @@ function Main() {
       defaultConnectionPoint={{ name: 'anchor' }}
       background={{ color: '#f6f4f4' }}
       interactive={{ stopDelegation: false }}
-      onElementsSizeReady={handleReady}
     />
   );
 }

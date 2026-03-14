@@ -1,9 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useHighlighter, type FlatElementData, type FlatLinkData } from '@joint/react';
-import { highlighters } from '@joint/core';
+import { GraphProvider, Paper, useMarkup, type FlatElementData, type FlatLinkData, type ReactPaper, usePaperEvents } from '@joint/react';
+import { type dia, highlighters } from '@joint/core';
 import '../index.css';
-import { useRef, useState, type RefObject } from 'react';
+import { useId, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 const initialElements: Record<string, FlatElementData & { label: string }> = {
@@ -31,101 +30,83 @@ const initialEdges: Record<string, FlatLinkData> = {
   },
 };
 
-type HighlighterVariant = 'mask' | 'opacity' | 'custom';
+type HighlighterVariant = 'mask' | 'opacity';
 
-interface RenderItemWithChildrenProps {
-  readonly width?: number;
-  readonly height?: number;
-  readonly label?: string;
+function RenderElement({
+  width = 0,
+  height = 0,
+  label,
+}: Readonly<FlatElementData & { label: string }>) {
+  const { selectorRef } = useMarkup();
+  return (
+    <g width={width} height={height} className="node">
+      <rect ref={selectorRef('body')} rx={10} ry={10} width={width} height={height} fill={PRIMARY} />
+      <text x={width / 2} y={height / 2} textAnchor="middle" dominantBaseline="middle" fill="#fff">
+        {label ?? 'Node'}
+      </text>
+    </g>
+  );
+}
+
+interface MainProps {
   readonly variant: HighlighterVariant;
 }
 
-function createHighlighterConfig(
-  variant: HighlighterVariant,
-  isEnabled: boolean,
-  highlighterRef: RefObject<SVGRectElement | null>
-): {
-  readonly config: Parameters<typeof useHighlighter>[0];
-} {
-  if (variant === 'mask') {
-    return {
-      config: {
-        type: 'mask',
-        isEnabled,
+function addHighlighter(variant: HighlighterVariant, elementView: dia.ElementView) {
+  switch (variant) {
+    case 'mask': {
+      highlighters.mask.add(elementView, 'body', 'hover', {
         padding: 5,
         attrs: {
           stroke: SECONDARY,
           'stroke-width': 2,
         },
-        ref: highlighterRef,
-      },
-    };
-  }
-
-  if (variant === 'opacity') {
-    return {
-      config: {
-        type: 'opacity',
-        isEnabled,
+      });
+      break;
+    }
+    case 'opacity': {
+      highlighters.opacity.add(elementView, 'root', 'hover', {
         alphaValue: 0.5,
-        target: 'root',
-      },
-    };
+      });
+      break;
+    }
   }
-
-  return {
-    config: {
-      type: 'custom',
-      isEnabled,
-      padding: 6,
-      attrs: {
-        stroke: '#f97316',
-        'stroke-width': 2,
-      },
-      ref: highlighterRef,
-      create: ({ cellView, element, highlighterId, options }) =>
-        highlighters.mask.add(cellView, element, highlighterId, options),
-    },
-  };
 }
 
-function RenderItemWithChildren({
-  height = 0,
-  width = 0,
-  label,
-  variant,
-}: Readonly<RenderItemWithChildrenProps>) {
-  const [isHighlighted, setIsHighlighted] = useState(false);
-  const highlighterRef = useRef<SVGRectElement | null>(null);
-  const { config } = createHighlighterConfig(variant, isHighlighted, highlighterRef);
-  useHighlighter(config);
-
-  return (
-    <g
-      width={width}
-      height={height}
-      onMouseEnter={() => setIsHighlighted(true)}
-      onMouseLeave={() => setIsHighlighted(false)}
-      className="node"
-    >
-      <rect ref={highlighterRef} rx={10} ry={10} width={width} height={height} fill={PRIMARY} />
-      <text x={width / 2} y={height / 2} textAnchor="middle" dominantBaseline="middle" fill="#fff">
-        {label ?? 'Node'} ({variant})
-      </text>
-    </g>
-  );
-}
-interface MainProps {
-  readonly variant: HighlighterVariant;
+function removeHighlighter(variant: HighlighterVariant, elementView: dia.ElementView) {
+  switch (variant) {
+    case 'mask': {
+      highlighters.mask.remove(elementView, 'hover');
+      break;
+    }
+    case 'opacity': {
+      highlighters.opacity.remove(elementView, 'hover');
+      break;
+    }
+  }
 }
 
 function Main({ variant }: Readonly<MainProps>) {
+  const paperId = useId();
+  const paperRef = useRef<ReactPaper | null>(null);
+
+  usePaperEvents(
+    paperId,
+    {
+      'element:mouseenter': (elementView) => addHighlighter(variant, elementView),
+      'element:mouseleave': (elementView) => removeHighlighter(variant, elementView),
+    },
+    [variant]
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
+        id={paperId}
+        ref={paperRef}
         className={PAPER_CLASSNAME}
         height={280}
-        renderElement={(data) => <RenderItemWithChildren {...data} variant={variant} />}
+        renderElement={RenderElement}
       />
     </div>
   );

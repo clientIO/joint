@@ -123,24 +123,6 @@ export interface PaperProps<ElementData extends FlatElementData = FlatElementDat
    */
   readonly renderLink?: RenderLink<LinkData>;
   /**
-   * Event called when all elements are properly measured (has all elements width and height greater than 1 - default).
-   * In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
-   * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
-   */
-  readonly onElementsSizeReady?: () => void;
-
-  /**
-   * Event called when element sizes change after the initial measurement.
-   * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
-   */
-  readonly onElementsSizeChange?: () => void;
-
-  /**
-   * Event called when element portals are rendered.
-   */
-  readonly onElementsRender?: () => void;
-
-  /**
    * Inline styles applied to the paper host element.
    *
    * For sizing, `style.width` and `style.height` are used only when the matching

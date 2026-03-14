@@ -8,11 +8,7 @@ import { usePaperEvents } from '../use-paper-events';
 import type { EventContext } from '../use-paper-events';
 import { usePaper } from '../use-paper';
 import type { EventMap, PaperEventHandlers, PaperEventType } from '../../types/event.types';
-import {
-  PAPER_ELEMENTS_SIZE_READY,
-  PAPER_ELEMENTS_SIZE_CHANGE,
-  PAPER_ELEMENTS_RENDER,
-} from '../../types/event.types';
+import { PAPER_ELEMENTS_MEASURED } from '../../types/event.types';
 
 const EMPTY_ELEMENTS = {};
 const EMPTY_LINKS = {};
@@ -40,6 +36,8 @@ const LINK_END = 'target' as dia.LinkEnd;
 const UPDATE_STATS = {} as dia.Paper.UpdateStats;
 const IDLE_OPTIONS = {} as dia.Paper.UpdateViewsAsyncOptions;
 const MATRIX = {} as SVGMatrix;
+const PAPER = {} as dia.Paper;
+const GRAPH = {} as dia.Graph;
 
 const PAPER_EVENT_ARGS: {
   readonly [EventName in PaperEventType]: Parameters<EventMap[EventName]>;
@@ -104,9 +102,7 @@ const PAPER_EVENT_ARGS: {
   'link:snap:disconnect': [LINK_VIEW, JOINT_EVENT, CELL_VIEW, SVG_NODE, LINK_END],
   'render:done': [UPDATE_STATS, { source: 'render-done' }],
   'render:idle': [IDLE_OPTIONS],
-  [PAPER_ELEMENTS_SIZE_READY]: [],
-  [PAPER_ELEMENTS_SIZE_CHANGE]: [],
-  [PAPER_ELEMENTS_RENDER]: [],
+  [PAPER_ELEMENTS_MEASURED]: [{ isInitial: true, paper: PAPER, graph: GRAPH }],
   translate: [10, 20, { source: 'translate' }],
   scale: [2, 2, { source: 'scale' }],
   resize: [100, 200, { source: 'resize' }],
@@ -417,15 +413,15 @@ describe('use-paper-events', () => {
     expect(onCustomEvent).toHaveBeenCalledWith(elementViewWithPaper, JOINT_EVENT, 40, 60);
   });
 
-  it('catches paper:elements:size:ready event via usePaperEvents', async () => {
-    const wrapper = createPaperWrapper('paper-size-ready');
-    const onSizeReady = jest.fn();
+  it('catches elements:measured event via usePaperEvents', async () => {
+    const wrapper = createPaperWrapper('paper-measured');
+    const onMeasured = jest.fn();
 
     const { result } = renderHook(
       () => {
-        const paper = usePaper('paper-size-ready');
-        usePaperEvents('paper-size-ready', {
-          [PAPER_ELEMENTS_SIZE_READY]: onSizeReady,
+        const paper = usePaper('paper-measured');
+        usePaperEvents('paper-measured', {
+          [PAPER_ELEMENTS_MEASURED]: onMeasured,
         });
         return paper;
       },
@@ -437,143 +433,9 @@ describe('use-paper-events', () => {
     });
 
     act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_SIZE_READY);
+      result.current?.trigger(PAPER_ELEMENTS_MEASURED);
     });
 
-    expect(onSizeReady).toHaveBeenCalledTimes(1);
-  });
-
-  it('catches paper:elements:size:change event via usePaperEvents', async () => {
-    const wrapper = createPaperWrapper('paper-size-change');
-    const onSizeChange = jest.fn();
-
-    const { result } = renderHook(
-      () => {
-        const paper = usePaper('paper-size-change');
-        usePaperEvents('paper-size-change', {
-          [PAPER_ELEMENTS_SIZE_CHANGE]: onSizeChange,
-        });
-        return paper;
-      },
-      { wrapper }
-    );
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-    });
-
-    act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
-    });
-
-    expect(onSizeChange).toHaveBeenCalledTimes(1);
-  });
-
-  it('catches paper:elements:render event via usePaperEvents', async () => {
-    const wrapper = createPaperWrapper('paper-el-render');
-    const onElementsRender = jest.fn();
-
-    const { result } = renderHook(
-      () => {
-        const paper = usePaper('paper-el-render');
-        usePaperEvents('paper-el-render', {
-          [PAPER_ELEMENTS_RENDER]: onElementsRender,
-        });
-        return paper;
-      },
-      { wrapper }
-    );
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-    });
-
-    const callsBefore = onElementsRender.mock.calls.length;
-
-    act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_RENDER);
-    });
-
-    expect(onElementsRender).toHaveBeenCalledTimes(callsBefore + 1);
-  });
-
-  it('catches paper:elements:size:ready event via usePaperEvents', async () => {
-    const wrapper = createPaperWrapper('paper-size-ready');
-    const onSizeReady = jest.fn();
-
-    const { result } = renderHook(
-      () => {
-        const paper = usePaper('paper-size-ready');
-        usePaperEvents('paper-size-ready', {
-          [PAPER_ELEMENTS_SIZE_READY]: onSizeReady,
-        });
-        return paper;
-      },
-      { wrapper }
-    );
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-    });
-
-    act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_SIZE_READY);
-    });
-
-    expect(onSizeReady).toHaveBeenCalledTimes(1);
-  });
-
-  it('catches paper:elements:size:change event via usePaperEvents', async () => {
-    const wrapper = createPaperWrapper('paper-size-change');
-    const onSizeChange = jest.fn();
-
-    const { result } = renderHook(
-      () => {
-        const paper = usePaper('paper-size-change');
-        usePaperEvents('paper-size-change', {
-          [PAPER_ELEMENTS_SIZE_CHANGE]: onSizeChange,
-        });
-        return paper;
-      },
-      { wrapper }
-    );
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-    });
-
-    act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_SIZE_CHANGE);
-    });
-
-    expect(onSizeChange).toHaveBeenCalledTimes(1);
-  });
-
-  it('catches paper:elements:render event via usePaperEvents', async () => {
-    const wrapper = createPaperWrapper('paper-el-render');
-    const onElementsRender = jest.fn();
-
-    const { result } = renderHook(
-      () => {
-        const paper = usePaper('paper-el-render');
-        usePaperEvents('paper-el-render', {
-          [PAPER_ELEMENTS_RENDER]: onElementsRender,
-        });
-        return paper;
-      },
-      { wrapper }
-    );
-
-    await waitFor(() => {
-      expect(result.current).toBeDefined();
-    });
-
-    const callsBefore = onElementsRender.mock.calls.length;
-
-    act(() => {
-      result.current?.trigger(PAPER_ELEMENTS_RENDER);
-    });
-
-    expect(onElementsRender).toHaveBeenCalledTimes(callsBefore + 1);
+    expect(onMeasured).toHaveBeenCalledTimes(1);
   });
 });

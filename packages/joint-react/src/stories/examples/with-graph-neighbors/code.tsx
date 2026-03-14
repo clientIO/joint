@@ -5,9 +5,8 @@ import {
   GraphProvider,
   Paper,
   TextNode,
-  useCellId,
   useGraph,
-  useHighlighter,
+  useMarkup,
   usePaperEvents,
   type FlatElementData,
   type FlatLinkData,
@@ -162,47 +161,21 @@ const LINK_OPACITY_ID = 'neighbor-link-opacity';
 const LINK_HIGHLIGHT_ID = 'neighbor-link-highlight';
 const LINK_HIGHLIGHT_CLASS = 'highlighted-link';
 
+const ELEMENT_OPACITY_ID = 'neighbor-element-opacity';
+const ELEMENT_MASK_ID = 'neighbor-element-mask';
+
 const DIMMED_OPACITY = 0.3;
 
 // ============================================================================
 // RenderNode
 // ============================================================================
 
-interface RenderNodeProps extends NodeData {
-  readonly selectedId: string | null;
-  readonly neighborIds: ReadonlySet<string>;
-}
-
-function RenderNode({ label, width, height, selectedId, neighborIds }: Readonly<RenderNodeProps>) {
-  const id = String(useCellId());
-  const opacityRef = useRef<SVGGElement | null>(null);
-  const maskRef = useRef<SVGRectElement | null>(null);
-
-  const isSelected = selectedId === id;
-  const isNeighbor = neighborIds.has(id);
-  const isDimmed = selectedId !== null && !isSelected && !isNeighbor;
-  useHighlighter({
-    type: 'opacity',
-    isEnabled: isDimmed,
-    alphaValue: DIMMED_OPACITY,
-    ref: opacityRef,
-  });
-  useHighlighter({
-    type: 'mask',
-    isEnabled: isSelected || isNeighbor,
-    padding: 6,
-    ref: maskRef,
-    attrs: {
-      stroke: isSelected ? PRIMARY : SECONDARY,
-      'stroke-width': 3,
-      fill: 'none',
-    },
-  });
-
+function RenderNode({ label, width, height }: Readonly<NodeData>) {
+  const { selectorRef } = useMarkup();
   return (
-    <g ref={opacityRef} className="cursor-pointer">
+    <g className="cursor-pointer">
       <rect
-        ref={maskRef}
+        ref={selectorRef('body')}
         rx={8}
         ry={8}
         width={width}
@@ -228,6 +201,65 @@ function RenderNode({ label, width, height, selectedId, neighborIds }: Readonly<
 }
 
 // ============================================================================
+// Highlight Helpers
+// ============================================================================
+
+function highlightLinks(paper: dia.Paper, state: HighlightState) {
+  const graph = paper.model;
+  for (const linkId of state.connectedLinkIds) {
+    const cell = graph.getCell(linkId);
+    if (!cell?.isLink()) continue;
+    const view = paper.findViewByModel(cell);
+    if (!view) continue;
+    highlighters.addClass.add(view, 'line', LINK_HIGHLIGHT_ID, {
+      className: LINK_HIGHLIGHT_CLASS,
+    });
+  }
+
+  const otherLinks = graph
+    .getLinks()
+    .filter((l) => !state.connectedLinkIds.has(String(l.id)));
+  for (const link of otherLinks) {
+    const view = paper.findViewByModel(link);
+    if (!view) continue;
+    highlighters.opacity.add(view, 'root', LINK_OPACITY_ID, {
+      alphaValue: DIMMED_OPACITY,
+    });
+  }
+}
+
+function highlightElements(paper: dia.Paper, state: HighlightState) {
+  const graph = paper.model;
+  for (const element of graph.getElements()) {
+    const elementId = String(element.id);
+    const view = paper.findViewByModel(element);
+    if (!view) continue;
+
+    if (elementId === state.selectedId || state.neighborIds.has(elementId)) {
+      highlighters.mask.add(view, 'body', ELEMENT_MASK_ID, {
+        padding: 6,
+        attrs: {
+          stroke: elementId === state.selectedId ? PRIMARY : SECONDARY,
+          'stroke-width': 3,
+          fill: 'none',
+        },
+      });
+    } else {
+      highlighters.opacity.add(view, 'root', ELEMENT_OPACITY_ID, {
+        alphaValue: DIMMED_OPACITY,
+      });
+    }
+  }
+}
+
+function clearHighlighters(paper: dia.Paper) {
+  highlighters.addClass.removeAll(paper, LINK_HIGHLIGHT_ID);
+  highlighters.opacity.removeAll(paper, LINK_OPACITY_ID);
+  highlighters.opacity.removeAll(paper, ELEMENT_OPACITY_ID);
+  highlighters.mask.removeAll(paper, ELEMENT_MASK_ID);
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -242,89 +274,46 @@ function Main() {
     const paper = paperRef.current;
     if (!paper) return;
 
-    highlighters.addClass.removeAll(paper, LINK_HIGHLIGHT_ID);
-    highlighters.opacity.removeAll(paper, LINK_OPACITY_ID);
-
-    for (const linkId of highlightState.connectedLinkIds) {
-      const cell = graph.getCell(linkId);
-      if (!cell?.isLink()) continue;
-      const view = paper.findViewByModel(cell);
-      if (!view) continue;
-
-      highlighters.addClass.add(view, 'line', LINK_HIGHLIGHT_ID, {
-        className: LINK_HIGHLIGHT_CLASS,
-      });
-    }
+    clearHighlighters(paper);
 
     if (highlightState.selectedId) {
-      const otherLinks = graph
-        .getLinks()
-        .filter((l) => !highlightState.connectedLinkIds.has(String(l.id)));
-      for (const link of otherLinks) {
-        const view = paper.findViewByModel(link);
-        if (!view) continue;
-
-        highlighters.opacity.add(view, 'root', LINK_OPACITY_ID, {
-          alphaValue: DIMMED_OPACITY,
-        });
-      }
+      highlightLinks(paper, highlightState);
+      highlightElements(paper, highlightState);
     }
-
-    return () => {
-      highlighters.addClass.removeAll(paper, LINK_HIGHLIGHT_ID);
-      highlighters.opacity.removeAll(paper, LINK_OPACITY_ID);
-    };
-  }, [graph, highlightState]);
-
-  const handleElementClick = useCallback(
-    (elementView: dia.ElementView) => {
-      const clickedId = String(elementView.model.id);
-
-      setHighlightState((previous) => {
-        if (previous.selectedId === clickedId) {
-          return INITIAL_STATE;
-        }
-
-        const element = graph.getCell(clickedId) as dia.Element;
-        const neighbors = graph.getNeighbors(element);
-        const nextNeighborIds = new Set(neighbors.map((n) => String(n.id)));
-
-        const connectedLinks = graph.getConnectedLinks(element);
-        const nextConnectedLinkIds = new Set(connectedLinks.map((l) => String(l.id)));
-
-        return {
-          selectedId: clickedId,
-          neighborIds: nextNeighborIds,
-          connectedLinkIds: nextConnectedLinkIds,
-        };
-      });
-    },
-    [graph]
-  );
-
-  const handleBlankClick = useCallback(() => {
-    setHighlightState(INITIAL_STATE);
-  }, []);
+  }, [highlightState]);
 
   usePaperEvents(
     paperId,
     {
-      'element:pointerclick': handleElementClick,
-      'blank:pointerclick': handleBlankClick,
+      'element:pointerclick': (elementView: dia.ElementView) => {
+        const clickedId = String(elementView.model.id);
+
+        setHighlightState((previous) => {
+          if (previous.selectedId === clickedId) {
+            // Deselect if the same element is clicked again
+            return INITIAL_STATE;
+          }
+
+          const element = graph.getCell(clickedId) as dia.Element;
+          const neighbors = graph.getNeighbors(element);
+          const nextNeighborIds = new Set(neighbors.map((n) => String(n.id)));
+
+          const connectedLinks = graph.getConnectedLinks(element);
+          const nextConnectedLinkIds = new Set(connectedLinks.map((l) => String(l.id)));
+
+          return {
+            selectedId: clickedId,
+            neighborIds: nextNeighborIds,
+            connectedLinkIds: nextConnectedLinkIds,
+          };
+        });
+      },
+      'blank:pointerclick': () => setHighlightState(INITIAL_STATE),
     },
-    [handleBlankClick, handleElementClick]
+    [graph]
   );
 
-  const renderElement = useCallback(
-    (props: NodeData) => (
-      <RenderNode
-        {...props}
-        selectedId={highlightState.selectedId}
-        neighborIds={highlightState.neighborIds}
-      />
-    ),
-    [highlightState]
-  );
+  const renderElement = useCallback((props: NodeData) => <RenderNode {...props} />, []);
 
   return (
     <Paper

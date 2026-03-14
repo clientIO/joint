@@ -9,9 +9,10 @@ import {
   useElements,
   useGraph,
   useNodeLayout,
+  useOnElementsMeasured,
   type RenderElement,
 } from '@joint/react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCellActions } from '../../../hooks/use-cell-actions';
@@ -51,6 +52,7 @@ function Main() {
   );
   const graph = useGraph();
   const { set } = useCellActions<BaseElementWithData>();
+  const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
   // Number of elements per row
@@ -79,6 +81,8 @@ function Main() {
   const makeLayout = useCallback(() => {
     makeLayoutWithGrid({ graph, gridXSize });
   }, [makeLayoutWithGrid, graph, gridXSize]);
+
+  useOnElementsMeasured(paperId, makeLayout);
 
   const elementsLength = useElements((items) => Object.keys(items).length);
   return (
@@ -117,12 +121,10 @@ function Main() {
       </div>
       <Paper
         ref={paperRef}
+        id={paperId}
         className={PAPER_CLASSNAME}
         height={450}
         renderElement={renderElement}
-        onElementsRender={() => {
-          makeLayout();
-        }}
       />
     </div>
   );
