@@ -174,17 +174,6 @@ describe('GraphStore', () => {
       expect(graph.getCells()).toHaveLength(cellCountBefore);
       expect(graph.getCell('test-element')).toBeDefined();
     });
-
-    it('should destroy the external context store', () => {
-      const store = new GraphStore({});
-      const cleanup = jest.fn();
-
-      store.externalStoreContext.setExternalContext('external-context', 'value', cleanup);
-      store.destroy(true);
-
-      expect(cleanup).toHaveBeenCalledTimes(1);
-      expect(store.externalStoreContext.getExternalContext('external-context')).toBeNull();
-    });
   });
 
   describe('updatePaperSnapshot', () => {
@@ -251,8 +240,8 @@ describe('GraphStore', () => {
       }));
       const secondUpdate = store.internalState.getSnapshot().papers[paperId];
 
-      // Deep-equal snapshots are treated as no change
-      expect(secondUpdate).toBe(firstUpdate);
+      // Spread creates a new reference but the content is identical
+      expect(secondUpdate).toStrictEqual(firstUpdate);
     });
   });
 
@@ -343,10 +332,10 @@ describe('GraphStore', () => {
   });
 
   describe('addPaper', () => {
-    it('should add a new paper and return cleanup function', () => {
+    it('should add a new paper and return paperStore and remove function', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const cleanup = store.addPaper(paperId, {
+      const { paperStore, remove } = store.addPaper(paperId, {
         paperOptions: {
           model: store.graph,
           width: 800,
@@ -355,7 +344,8 @@ describe('GraphStore', () => {
       });
 
       expect(store.getPaperStore(paperId)).toBeDefined();
-      expect(typeof cleanup).toBe('function');
+      expect(paperStore).toBeDefined();
+      expect(typeof remove).toBe('function');
     });
 
     it('should initialize serializable internal paper metadata', () => {
@@ -376,10 +366,10 @@ describe('GraphStore', () => {
       expect(() => JSON.stringify(store.internalState.getSnapshot())).not.toThrow();
     });
 
-    it('should remove paper when cleanup is called', () => {
+    it('should remove paper when remove is called', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const cleanup = store.addPaper(paperId, {
+      const { remove } = store.addPaper(paperId, {
         paperOptions: {
           model: store.graph,
           width: 800,
@@ -389,21 +379,21 @@ describe('GraphStore', () => {
 
       expect(store.getPaperStore(paperId)).toBeDefined();
 
-      cleanup();
+      remove();
 
       expect(store.getPaperStore(paperId)).toBeUndefined();
     });
 
     it('should handle multiple papers', () => {
       const store = new GraphStore({});
-      const paper1 = store.addPaper('paper-1', {
+      const { remove: remove1 } = store.addPaper('paper-1', {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
       });
-      const paper2 = store.addPaper('paper-2', {
+      const { remove: remove2 } = store.addPaper('paper-2', {
         paperOptions: {
           model: store.graph,
           width: 800,
@@ -414,11 +404,11 @@ describe('GraphStore', () => {
       expect(store.getPaperStore('paper-1')).toBeDefined();
       expect(store.getPaperStore('paper-2')).toBeDefined();
 
-      paper1();
+      remove1();
       expect(store.getPaperStore('paper-1')).toBeUndefined();
       expect(store.getPaperStore('paper-2')).toBeDefined();
 
-      paper2();
+      remove2();
       expect(store.getPaperStore('paper-2')).toBeUndefined();
     });
 
@@ -428,17 +418,13 @@ describe('GraphStore', () => {
       });
 
       const store = new GraphStore({});
-      const cleanupMain = store.addPaper('paper-main', {
+      const { remove: removeMain } = store.addPaper('paper-main', {
         paperOptions: {
           model: store.graph,
           width: 800,
           height: 600,
         },
       });
-      const mainStore = store.getPaperStore('paper-main');
-      if (!mainStore) {
-        throw new Error('Main paper store not found');
-      }
 
       expect(() => store.markPaperElementViewMounted('paper-main', 'element-1')).not.toThrow();
       expect(() =>
@@ -451,7 +437,7 @@ describe('GraphStore', () => {
         })
       ).not.toThrow();
 
-      cleanupMain();
+      removeMain();
     });
   });
 

@@ -1,8 +1,12 @@
+/* eslint-disable sonarjs/no-dead-store */
+/* eslint-disable sonarjs/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { dia } from '@joint/core';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useId, useImperativeHandle, useRef } from 'react';
 import { PaperStoreContext } from '../../context';
 import { useCreateReactPaper } from '../../hooks/use-create-react-paper';
 import type { FlatElementData } from '../../types/element-types';
+import type { FlatLinkData } from '../../types/link-types';
 import type { PaperProps } from './paper.types';
 
 function resolveStyleDimension(
@@ -20,23 +24,30 @@ function resolveStyleDimension(
  * @param forwardedRef - Ref receiving the created JointJS paper instance.
  * @returns JSX for paper host and portaled paper content.
  */
-function PaperBase<ElementData = FlatElementData>(
-  props: Readonly<PaperProps<ElementData>>,
+function PaperBase<
+  ElementData extends FlatElementData = FlatElementData,
+  LinkData extends FlatLinkData = FlatLinkData,
+>(
+  props: Readonly<PaperProps<ElementData, LinkData>>,
   forwardedRef: React.ForwardedRef<dia.Paper | null>
 ) {
   const { className, style, children, width, height } = props;
   const resolvedWidth = width ?? resolveStyleDimension(style?.width);
   const resolvedHeight = height ?? resolveStyleDimension(style?.height);
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
+  const reactId = useId();
+  const id = props.id ?? `paper-${reactId}`;
   const { paperRef, paperStore, isReady, content } = useCreateReactPaper({
     ...props,
     width: resolvedWidth,
     height: resolvedHeight,
     elementRef: paperHTMLElementRef,
+    id,
+    style,
+    className,
   });
 
   useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paperRef.current);
-
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
       <div className={className} ref={paperHTMLElementRef} style={style}>
@@ -47,8 +58,11 @@ function PaperBase<ElementData = FlatElementData>(
   );
 }
 
-export const Paper = forwardRef(PaperBase) as <ElementData = FlatElementData>(
-  props: Readonly<PaperProps<ElementData>> & {
+export const Paper = forwardRef(PaperBase) as <
+  ElementData extends FlatElementData = FlatElementData,
+  LinkData extends FlatLinkData = FlatLinkData,
+>(
+  props: Readonly<PaperProps<ElementData, LinkData>> & {
     ref?: React.Ref<dia.Paper | null>;
   }
 ) => ReturnType<typeof PaperBase>;

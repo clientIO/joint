@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import {
   GraphProvider,
   Paper,
@@ -265,6 +265,7 @@ function clearHighlighters(paper: dia.Paper) {
 
 function Main() {
   const graph = useGraph();
+  const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
   const [highlightState, setHighlightState] = useState<HighlightState>(INITIAL_STATE);
@@ -282,7 +283,7 @@ function Main() {
   }, [highlightState]);
 
   usePaperEvents(
-    paperRef,
+    paperId,
     {
       'element:pointerclick': (elementView: dia.ElementView) => {
         const clickedId = String(elementView.model.id);
@@ -317,6 +318,7 @@ function Main() {
   return (
     <Paper
       ref={paperRef}
+      id={paperId}
       width="100%"
       className={PAPER_CLASSNAME}
       height={500}

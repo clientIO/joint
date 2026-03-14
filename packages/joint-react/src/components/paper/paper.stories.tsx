@@ -1,3 +1,5 @@
+/* eslint-disable no-shadow */
+/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
@@ -200,46 +202,46 @@ export const WithEvent: Story = {
     const paperId = useId();
     useOnElementsMeasured(paperId, action('onElementsMeasured'));
     usePaperEvents(paperId, {
-      'link:mouseenter': action('link:mouseenter'),
-      'cell:mouseenter': action('cell:mouseenter'),
-      'blank:contextmenu': action('blank:contextmenu'),
-      'blank:pointermove': action('blank:pointermove'),
-      'blank:pointerup': action('blank:pointerup'),
-      'blank:pointerdown': action('blank:pointerdown'),
-      'blank:pointerclick': action('blank:pointerclick'),
-      'blank:pointerdblclick': action('blank:pointerdblclick'),
-      'cell:contextmenu': action('cell:contextmenu'),
-      'cell:pointerclick': action('cell:pointerclick'),
-      'cell:pointerdblclick': action('cell:pointerdblclick'),
-      'cell:pointerdown': action('cell:pointerdown'),
-      'cell:pointermove': action('cell:pointermove'),
-      'cell:pointerup': action('cell:pointerup'),
-      'element:contextmenu': action('element:contextmenu'),
-      'element:mouseenter': action('element:mouseenter'),
-      'element:mouseleave': action('element:mouseleave'),
-      'element:pointerclick': action('element:pointerclick'),
-      'element:pointerdblclick': action('element:pointerdblclick'),
-      'element:pointerdown': action('element:pointerdown'),
-      'element:pointermove': action('element:pointermove'),
-      'element:pointerup': action('element:pointerup'),
-      'link:contextmenu': action('link:contextmenu'),
-      'link:mouseleave': action('link:mouseleave'),
-      'link:pointerclick': action('link:pointerclick'),
-      'link:pointerdblclick': action('link:pointerdblclick'),
-      'link:pointerdown': action('link:pointerdown'),
-      'link:pointermove': action('link:pointermove'),
-      'link:pointerup': action('link:pointerup'),
-      'link:snap:connect': action('link:snap:connect'),
-      'link:snap:disconnect': action('link:snap:disconnect'),
-      'paper:pan': action('paper:pan'),
-      'paper:mouseenter': action('paper:mouseenter'),
-      'paper:mouseleave': action('paper:mouseleave'),
-      'paper:pinch': action('paper:pinch'),
-      'render:done': action('render:done'),
-      resize: action('resize'),
-      scale: action('scale'),
-      transform: action('transform'),
-      translate: action('translate'),
+      'link:mouseenter': (...args) => action('link:mouseenter')(...args),
+      'cell:mouseenter': (...args) => action('cell:mouseenter')(...args),
+      'blank:contextmenu': (...args) => action('blank:contextmenu')(...args),
+      'blank:pointermove': (...args) => action('blank:pointermove')(...args),
+      'blank:pointerup': (...args) => action('blank:pointerup')(...args),
+      'blank:pointerdown': (...args) => action('blank:pointerdown')(...args),
+      'blank:pointerclick': (...args) => action('blank:pointerclick')(...args),
+      'blank:pointerdblclick': (...args) => action('blank:pointerdblclick')(...args),
+      'cell:contextmenu': (...args) => action('cell:contextmenu')(...args),
+      'cell:pointerclick': (...args) => action('cell:pointerclick')(...args),
+      'cell:pointerdblclick': (...args) => action('cell:pointerdblclick')(...args),
+      'cell:pointerdown': (...args) => action('cell:pointerdown')(...args),
+      'cell:pointermove': (...args) => action('cell:pointermove')(...args),
+      'cell:pointerup': (...args) => action('cell:pointerup')(...args),
+      'element:contextmenu': (...args) => action('element:contextmenu')(...args),
+      'element:mouseenter': (...args) => action('element:mouseenter')(...args),
+      'element:mouseleave': (...args) => action('element:mouseleave')(...args),
+      'element:pointerclick': (...args) => action('element:pointerclick')(...args),
+      'element:pointerdblclick': (...args) => action('element:pointerdblclick')(...args),
+      'element:pointerdown': (...args) => action('element:pointerdown')(...args),
+      'element:pointermove': (...args) => action('element:pointermove')(...args),
+      'element:pointerup': (...args) => action('element:pointerup')(...args),
+      'link:contextmenu': (...args) => action('link:contextmenu')(...args),
+      'link:mouseleave': (...args) => action('link:mouseleave')(...args),
+      'link:pointerclick': (...args) => action('link:pointerclick')(...args),
+      'link:pointerdblclick': (...args) => action('link:pointerdblclick')(...args),
+      'link:pointerdown': (...args) => action('link:pointerdown')(...args),
+      'link:pointermove': (...args) => action('link:pointermove')(...args),
+      'link:pointerup': (...args) => action('link:pointerup')(...args),
+      'link:snap:connect': (...args) => action('link:snap:connect')(...args),
+      'link:snap:disconnect': (...args) => action('link:snap:disconnect')(...args),
+      'paper:pan': (...args) => action('paper:pan')(...args),
+      'paper:mouseenter': (...args) => action('paper:mouseenter')(...args),
+      'paper:mouseleave': (...args) => action('paper:mouseleave')(...args),
+      'paper:pinch': (...args) => action('paper:pinch')(...args),
+      'render:done': (...args) => action('render:done')(...args),
+      resize: (...args) => action('resize')(...args),
+      scale: (...args) => action('scale')(...args),
+      transform: (...args) => action('transform')(...args),
+      translate: (...args) => action('translate')(...args),
     });
     return <Paper {...args} id={paperId} />;
   },
@@ -275,10 +277,10 @@ export const WithLinkTools: Story = {
   render: (args) => {
     const paperId = useId();
     usePaperEvents(paperId, {
-      'link:mouseenter': (linkView) => {
+      'link:mouseenter': (linkView: dia.LinkView) => {
         linkView.addTools(toolsView);
       },
-      'link:mouseleave': (linkView) => {
+      'link:mouseleave': (linkView: dia.LinkView) => {
         linkView.removeTools();
       },
     });
@@ -313,16 +315,13 @@ export const WithCustomEvent: Story = {
     const onCellPointerClick = action('cell:pointerclick');
     const onCustomEvent = action('paper:test:custom');
 
-    usePaperEvents(
-      paperId,
-      {
-        'cell:pointerclick': (cellView, event, x, y) => {
-          onCellPointerClick(cellView, event, x, y);
-          cellView.paper?.trigger('paper:test:custom', { target: 'cell', x, y });
-        },
-        'paper:test:custom': onCustomEvent,
-      }
-    );
+    usePaperEvents(paperId, {
+      'cell:pointerclick': (cellView: dia.CellView, event: dia.Event, x: number, y: number) => {
+        onCellPointerClick(cellView, event, x, y);
+        cellView.paper?.trigger('paper:test:custom', { target: 'cell', x, y });
+      },
+      'paper:test:custom': (...args: unknown[]) => onCustomEvent(...args),
+    });
     return <Paper {...args} id={paperId} />;
   },
 };

@@ -1,10 +1,12 @@
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable no-shadow */
+/* eslint-disable @typescript-eslint/no-shadow */
 import { dia } from '@joint/core';
 import {
   useCallback,
   useDebugValue,
   useDeferredValue,
   useEffect,
-  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -28,7 +30,7 @@ import type { PaperProps, RenderElement, RenderLink } from '../components/paper/
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
-import { CellIdContext, PaperConfigContext } from '../context';
+import { CellIdContext, PaperFeaturesContext } from '../context';
 import {
   DefaultRectElement,
   HTMLElementItem,
@@ -39,8 +41,10 @@ const EMPTY_VIEW_ID_RECORD = {} as Record<CellId, true>;
 
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
-export interface UseCreateReactPaperOptions<ElementData = FlatElementData>
-  extends PaperProps<ElementData> {
+export interface UseCreateReactPaperOptions<
+  ElementData extends FlatElementData = FlatElementData,
+  LinkData extends FlatLinkData = FlatLinkData,
+> extends PaperProps<ElementData, LinkData> {
   /**
    * Host element ref where the paper should be mounted automatically.
    * When omitted, paper rendering is manual (e.g. via `onReady` callback).
@@ -88,14 +92,14 @@ function getReactLinkConstructor(graph: dia.Graph): ReactLinkConstructor {
  * @param props.renderLink - Callback used to render link content.
  * @returns Portaled link content, or null when container is unavailable.
  */
-function LinkItem({
+function LinkItem<LinkData = FlatLinkData>({
   link,
   portalElement,
   renderLink,
 }: {
-  readonly link: FlatLinkData;
+  readonly link: LinkData;
   readonly portalElement: SVGElement | HTMLElement;
-  readonly renderLink: RenderLink<FlatLinkData>;
+  readonly renderLink: RenderLink<LinkData>;
 }) {
   if (!portalElement) {
     return null;
@@ -110,9 +114,10 @@ function LinkItem({
  * @param options - Hook options with paper settings and behavior overrides.
  * @returns Hook state with paper instance and rendered portal content.
  */
-export function useCreateReactPaper<ElementData = FlatElementData>(
-  options: Readonly<UseCreateReactPaperOptions<ElementData>>
-): UseCreateReactPaperResult {
+export function useCreateReactPaper<
+  ElementData extends FlatElementData = FlatElementData,
+  LinkData extends FlatLinkData = FlatLinkData,
+>(options: Readonly<UseCreateReactPaperOptions<ElementData, LinkData>>): UseCreateReactPaperResult {
   const {
     renderElement,
     renderLink,
@@ -125,14 +130,18 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     className,
     elementRef,
     onReady,
+    id,
     ...paperOptions
   } = options;
+  if (!id) {
+    throw new Error('Paper id is required. Please provide an id prop to the Paper component.');
+  }
 
   const areElementsMeasured = useAreElementsMeasured();
-  const elementsState = useElements();
-  const linksState = useLinks();
+  const elementsState = useElements<ElementData>();
+  const linksState = useLinks<LinkData>();
+  const graphStore = useGraphStore();
 
-  const config = useContext(PaperConfigContext);
   useDebugValue(elementsState);
   useDebugValue(linksState);
 
@@ -144,6 +153,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
   const shouldDefer = elementIds.length > 100 || linkIds.length > 100;
   const deferredElementsState = shouldDefer ? deferredElementsStateRaw : elementsState;
   const deferredLinksState = shouldDefer ? deferredLinksStateRaw : linksState;
+  const featuresContext = useContext(PaperFeaturesContext);
 
   const deferredElementIds = useMemo(
     () => (shouldDefer ? Object.keys(deferredElementsState) : elementIds),
@@ -153,9 +163,6 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     () => (shouldDefer ? Object.keys(deferredLinksState) : linkIds),
     [shouldDefer, deferredLinksState, linkIds]
   );
-
-  const reactId = useId();
-  const id = options.id ?? `paper-${reactId}`;
 
   const paperElementViewIds = useInternalData(
     (snapshot) => snapshot.papers[id]?.elementViewIds ?? EMPTY_VIEW_ID_RECORD
@@ -169,7 +176,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     (snapshot) => snapshot.papers[id]?.hasElementViewSnapshot
   );
 
-  const { addPaper, getPaperStore, graph, graphState } = useGraphStore();
+  const { addPaper, graph, graphState } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
@@ -212,19 +219,29 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
   useLayoutEffect(() => {
     const hostElementForCreation = elementRef?.current;
-    const remove = addPaper(id, {
+
+    const { paperStore, remove } = addPaper(id, {
       paperOptions: {
         ...paperOptions,
-        el: hostElementForCreation ?? paperOptions.el,
+        id,
+        el: hostElementForCreation,
         defaultLink: defaultLinkJointJS,
       },
-      alternateId: config?.alternateId,
       renderElement: renderElement as RenderElement<FlatElementData>,
       renderLink: renderLink as RenderLink<FlatLinkData> | undefined,
       scale,
       portalSelector,
     });
-    paperRef.current = getPaperStore(id)?.paper ?? null;
+
+    paperRef.current = paperStore.paper ?? null;
+
+    // call the features.
+    if (featuresContext) {
+      for (const [, onAddFeature] of featuresContext.features) {
+        const feature = onAddFeature({ graphStore, paperStore, asChildren: true });
+        graphStore.setPaperFeature(id, feature);
+      }
+    }
 
     return () => {
       paperRef.current = null;
@@ -342,14 +359,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
     previousSizesRef.current = currentSizes;
     const event: ElementsMeasuredEvent = { isInitial: false, paper, graph: paper.model };
     paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-  }, [
-    areElementsMeasured,
-    elementIds,
-    elementsState,
-    hasElementViewSnapshot,
-    isReady,
-    paper,
-  ]);
+  }, [areElementsMeasured, elementIds, elementsState, hasElementViewSnapshot, isReady, paper]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {
@@ -373,7 +383,7 @@ export function useCreateReactPaper<ElementData = FlatElementData>(
 
       const portalNode = (elementView.paper as ReactPaper).getCellViewPortalNode(elementView);
 
-      if (!portalNode || !portalNode.isConnected) {
+      if (!portalNode?.isConnected) {
         return null;
       }
 

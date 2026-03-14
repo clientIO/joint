@@ -1,5 +1,6 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
+import { isString } from './is';
 
 /**
  * Get the link id from the given id.
@@ -17,8 +18,8 @@ import type { CellId } from '../types/cell-id';
  * ```
  */
 export function getCellId(id: CellId | dia.Link.EndJSON): CellId | undefined {
-  if (typeof id === 'object') {
-    return id.id as CellId | undefined;
+  if (isString(id)) {
+    return id;
   }
-  return id;
+  return id.id as CellId | undefined;
 }

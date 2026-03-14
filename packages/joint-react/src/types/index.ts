@@ -7,6 +7,14 @@ export type OmitWithoutIndexSignature<T, K extends keyof T> = Omit<RemoveIndexSi
 export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**
+ * Pass `{ isNullable: true }` to hooks like `usePaper` or `usePaperStore`
+ * so they return `null` instead of throwing when context is missing.
+ */
+export interface Nullable {
+  readonly isNullable: true;
+}
+
+/**
  * A string type that preserves intellisense for known literal unions.
  * Use instead of `| string` or `[key: string]` to keep autocomplete working.
  */

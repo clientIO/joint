@@ -8,12 +8,11 @@ import {
   useCellId,
   useElements,
   useGraph,
-  useOnElementsMeasured,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { useCallback, useEffect, useId, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import '../index.css';
 
@@ -614,13 +613,13 @@ function Main() {
     if (!paper) return;
     // Resize the container elements to fit their content
     // (performance nodes should fit their embedded product nodes)
-    graph.getElements().forEach((element) => {
+    for (const element of graph.getElements()) {
       if (element.getEmbeddedCells().length > 0) {
         element.fitEmbeds({
           padding: { left: 30, right: 30, top: 50, bottom: 130 },
         });
       }
-    });
+    }
 
     paper.transformToFitContent({
       useModelGeometry: true,
@@ -629,7 +628,7 @@ function Main() {
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
     });
-  }, []);
+  }, [graph]);
 
 
   return (

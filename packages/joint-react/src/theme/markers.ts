@@ -1,4 +1,5 @@
 import { util, type dia } from '@joint/core';
+import { isString } from '../utils/is';
 
 /**
  * Built-in marker presets for links.
@@ -39,7 +40,7 @@ export function resolveMarker(
   marker: MarkerPreset | dia.SVGMarkerJSON | undefined
 ): dia.SVGMarkerJSON | null {
   if (marker === undefined || marker === 'none') return null;
-  if (typeof marker === 'string') {
+  if (isString(marker)) {
     return defaultMarkers[marker as keyof typeof defaultMarkers] ?? null;
   }
   const markerAsRecord = marker as Record<string, unknown>;

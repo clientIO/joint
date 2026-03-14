@@ -3,17 +3,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
 import type { FlatLinkData, FlatLinkLabel, RenderElement, TransformOptions } from '@joint/react';
-import {
-  GraphProvider,
-  Paper,
-  useMarkup,
-  useNodeSize,
-  usePaper,
-  usePaperEvents,
-} from '@joint/react';
+import { GraphProvider, Paper, useMarkup, useNodeSize, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { forwardRef, useEffect, useId, useRef, useState } from 'react';
+import { forwardRef, useId, useRef, useState } from 'react';
 
 const unit = 4;
 const bevel = 2 * unit;
@@ -408,13 +401,11 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
 function Main() {
   const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
-  const paperInstance = usePaper(paperId);
 
   usePaperEvents(
     paperId,
-    {
+    ({ paper }) => ({
       'link:pointerclick': (linkView) => {
-        const { paper } = linkView;
         if (!paper) return;
 
         paper.removeTools();
@@ -485,19 +476,16 @@ function Main() {
         );
         frame.el.classList.add('jj-frame');
       },
-      'link:mouseleave': (linkView) => {
-        const { paper } = linkView;
+      'link:mouseleave': () => {
         if (!paper) return;
 
         highlighters.mask.removeAll(paper, 'frame');
       },
       'blank:pointerdown': () => {
-        if (!paperInstance) return;
-
-        paperInstance.removeTools();
-        dia.HighlighterView.removeAll(paperInstance);
+        paper.removeTools();
+        dia.HighlighterView.removeAll(paper);
       },
-      'elements:measured': ({ isInitial, paper }) => {
+      'elements:measured': ({ isInitial }) => {
         if (!isInitial) return;
         paper.transformToFitContent({
           padding: 40,
@@ -505,9 +493,9 @@ function Main() {
           verticalAlign: 'middle',
           horizontalAlign: 'middle',
         });
-      }
-    },
-    [paperInstance]
+      },
+    }),
+    []
   );
 
   return (

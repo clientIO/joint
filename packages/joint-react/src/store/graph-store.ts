@@ -28,8 +28,7 @@ import {
   type State,
 } from '../utils/create-state';
 import type { IncrementalStateChanges } from '../state/incremental.types';
-import { GraphExternalContextStore } from './external-context-store';
-import { PaperStores } from './papers-store';
+import type { Feature } from '../hooks/use-paper-features';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -109,12 +108,11 @@ export class GraphStore {
   public readonly internalState: State<GraphStoreInternalSnapshot>;
   public readonly dataState: ExternalStoreLike<GraphStoreSnapshot>;
   public readonly areElementsMeasuredState: ExternalStoreLike<boolean>;
-  public readonly externalStoreContext = new GraphExternalContextStore();
   public readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
   public readonly graph: dia.Graph;
   public readonly graphState: GraphState;
 
-  public paperStores = new PaperStores();
+  public paperStores = new Map<string, PaperStore>();
   private observer: GraphStoreObserver;
 
   constructor(public readonly config: GraphStoreOptions) {
@@ -279,7 +277,6 @@ export class GraphStore {
     if (!isGraphExternal) {
       this.graph.clear();
     }
-    this.externalStoreContext.destroy();
   };
 
   public updatePaperSnapshot(
@@ -365,6 +362,42 @@ export class GraphStore {
     return isChanged;
   }
 
+  public setPaperFeature(paperId: string, feature: Feature) {
+    const paperStore = this.paperStores.get(paperId);
+    if (!paperStore) {
+      throw new Error(`Paper with id ${paperId} not found`);
+    }
+    paperStore.features[feature.id] = feature;
+    // bump version to trigger re-render of paper content with new feature
+    this.updatePaperSnapshot(paperId, (previous) => {
+      if (!previous) {
+        throw new Error(`Paper snapshot with id ${paperId} not found`);
+      }
+      return { ...previous, version: previous.version + 1 };
+    });
+  }
+
+  public removePaperFeature(paperId: string, featureId: string) {
+    const paperStore = this.paperStores.get(paperId);
+    if (!paperStore) {
+      return;
+    }
+
+    const feature = paperStore.features[featureId];
+    if (!feature) {
+      return;
+    }
+    feature.clean?.();
+    Reflect.deleteProperty(paperStore.features, featureId);
+    // bump version to trigger re-render of paper content without removed feature
+    this.updatePaperSnapshot(paperId, (previous) => {
+      if (!previous) {
+        throw new Error(`Paper snapshot with id ${paperId} not found`);
+      }
+      return { ...previous, version: previous.version + 1 };
+    });
+  }
+
   public markPaperElementViewMounted(paperId: string, cellId: CellId): void {
     const isChanged = this.setPaperElementViewMountedState(paperId, cellId, true);
     if (isChanged) {
@@ -408,14 +441,14 @@ export class GraphStore {
 
   public addPaper = (id: string, paperOptions: AddPaperOptions) => {
     const paperStore = new PaperStore({ ...paperOptions, graphStore: this, id });
-    this.paperStores.set(id, paperStore, paperOptions.alternateId);
+    this.paperStores.set(id, paperStore);
     this.internalState.setState((previous) => {
       if (previous.papers[id]) {
         return previous;
       }
       return { papers: { ...previous.papers, [id]: createPaperStoreSnapshot() } };
     });
-    return () => this.removePaper(id);
+    return { paperStore, remove: () => this.removePaper(id) };
   };
 
   public hasMeasuredNode = (id: CellId) => this.observer.has(id);

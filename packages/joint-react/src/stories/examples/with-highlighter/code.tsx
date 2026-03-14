@@ -2,7 +2,7 @@
 import { GraphProvider, Paper, useMarkup, type FlatElementData, type FlatLinkData, type ReactPaper, usePaperEvents } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
 import '../index.css';
-import { useRef } from 'react';
+import { useId, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 const initialElements: Record<string, FlatElementData & { label: string }> = {
@@ -87,10 +87,11 @@ function removeHighlighter(variant: HighlighterVariant, elementView: dia.Element
 }
 
 function Main({ variant }: Readonly<MainProps>) {
+  const paperId = useId();
   const paperRef = useRef<ReactPaper | null>(null);
 
   usePaperEvents(
-    paperRef,
+    paperId,
     {
       'element:mouseenter': (elementView) => addHighlighter(variant, elementView),
       'element:mouseleave': (elementView) => removeHighlighter(variant, elementView),
@@ -101,6 +102,7 @@ function Main({ variant }: Readonly<MainProps>) {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
+        id={paperId}
         ref={paperRef}
         className={PAPER_CLASSNAME}
         height={280}

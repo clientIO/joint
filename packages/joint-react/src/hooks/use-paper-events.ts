@@ -1,74 +1,64 @@
-import { dia, mvc } from '@joint/core';
-import { useLayoutEffect, type DependencyList, type RefObject } from 'react';
+import type { dia } from '@joint/core';
+import { mvc } from '@joint/core';
+import { useLayoutEffect, type DependencyList } from 'react';
 import type { PaperEventHandlers } from '../types/event.types';
-import { usePaper, usePaperStore } from './use-paper';
-import { useRefValue } from './use-ref-value';
+import { usePaperStore } from './use-paper';
+import type { PaperStore } from '../store';
+import type { AnyString } from '../types';
+import { useGraphStore } from './use-graph-store';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
 
-type PaperValueTarget = dia.Paper | null | undefined;
-type PaperRefTarget = RefObject<dia.Paper | null | undefined>;
-type PaperTarget = PaperRefTarget | PaperValueTarget | string;
-
-/**
- * Checks if value is a paper ref object.
- * @param value - Candidate value.
- * @returns True when value is a ref object with `current`.
- */
-function isPaperRef(value: unknown): value is PaperRefTarget {
-  return !!value && typeof value === 'object' && 'current' in value;
+interface PaperEventsBaseContext {
+  readonly graph: dia.Graph;
+  readonly paper: dia.Paper;
 }
+export type PaperEventsContext<T = Record<AnyString, unknown>> = PaperEventsBaseContext & T;
+
+type HandlersOrFactory<T> =
+  | PaperEventHandlers
+  | ((ctx: PaperEventsContext<T>) => PaperEventHandlers);
 
 /**
- * Checks if value is a JointJS paper instance.
- * @param value - Candidate value.
- * @returns True when value is a paper instance.
+ * Builds the EventContext from paperStore and graph.
  */
-function isPaperInstance(value: unknown): value is dia.Paper {
-  return value instanceof dia.Paper;
-}
-
-/**
- * Resolves the active paper instance from supported target forms.
- * @param target - Explicit paper target (ref or id).
- * @param paperFromRef - Paper resolved from ref mode.
- * @param paperById - Paper resolved from id mode.
- * @returns Resolved paper instance or null.
- */
-function resolvePaperTarget(
-  target: PaperTarget,
-  paperFromRef: dia.Paper | null | undefined,
-  paperById: dia.Paper | null
-): dia.Paper | null {
-  if (isPaperRef(target)) {
-    return paperFromRef ?? null;
+function buildEventContext<T>(paperStore: PaperStore, graph: dia.Graph): PaperEventsContext<T> {
+  const featureInstances: Record<string, unknown> = {};
+  for (const featureId in paperStore.features) {
+    const { instance } = paperStore.features[featureId] ?? {};
+    if (instance) {
+      featureInstances[featureId] = instance;
+    }
   }
-
-  if (isPaperInstance(target)) {
-    return target;
-  }
-
-  if (typeof target === 'string') {
-    return paperById;
-  }
-
-  return null;
+  return {
+    graph,
+    paper: paperStore.paper,
+    ...featureInstances,
+  } as PaperEventsContext<T>;
 }
 
 /**
  * Subscribes all handlers to a paper using mvc.Listener.
- * @param paper - Paper instance to subscribe on.
- * @param handlers - Event handlers keyed by JointJS event names.
+ * @param paperStore - Paper store to subscribe on.
+ * @param graph - JointJS graph instance.
+ * @param handlersOrFactory - Event handlers map or factory function returning handlers.
  * @returns Cleanup callback that stops all listeners.
  */
-function subscribeToPaperEvents(paper: dia.Paper, handlers: PaperEventHandlers): () => void {
+function subscribeToPaperEvents<T>(
+  paperStore: PaperStore,
+  graph: dia.Graph,
+  handlersOrFactory: HandlersOrFactory<T>
+): () => void {
   const controller = new mvc.Listener();
+  const ctx = buildEventContext<T>(paperStore, graph);
+
+  const handlers =
+    typeof handlersOrFactory === 'function' ? handlersOrFactory(ctx) : handlersOrFactory;
 
   for (const eventName in handlers) {
     const handler = handlers[eventName];
     if (!handler) continue;
-
-    controller.listenTo(paper, eventName, (...args: Parameters<mvc.EventHandler>) => {
+    controller.listenTo(paperStore.paper, eventName, (...args: Parameters<mvc.EventHandler>) => {
       handler(...args);
     });
   }
@@ -78,52 +68,62 @@ function subscribeToPaperEvents(paper: dia.Paper, handlers: PaperEventHandlers):
 
 /**
  * Subscribes to paper events using original JointJS event names.
- * @param handlers - Event handlers map keyed by JointJS paper event names.
- * @param dependencies - Optional dependencies controlling re-subscription.
+ *
+ * **Context form** (must be inside a `Paper`):
+ * ```tsx
+ * usePaperEvents({ 'element:pointerclick': (view, event, x, y) => {} });
+ * ```
+ *
+ * **Callback form** (access to graph, paper, and features via context):
+ * ```tsx
+ * usePaperEvents(({ graph, paper }) => ({
+ *   'element:pointerclick': (view, event, x, y) => {}
+ * }));
+ * ```
+ *
+ * **ID form** (outside Paper, by paper id):
+ * ```tsx
+ * usePaperEvents(paperId, { 'element:pointerclick': (view, event, x, y) => {} });
+ * ```
+ *
  * @group Hooks
  */
-export function usePaperEvents(handlers: PaperEventHandlers, dependencies?: DependencyList): void;
-export function usePaperEvents(
-  target: PaperRefTarget | PaperValueTarget | string,
-  handlers: PaperEventHandlers,
+export function usePaperEvents<T = Record<AnyString, unknown>>(
+  handlers: HandlersOrFactory<T>,
   dependencies?: DependencyList
 ): void;
-export function usePaperEvents(
-  targetOrHandlers: PaperTarget | PaperEventHandlers,
-  handlersOrDependencies: PaperEventHandlers | DependencyList = EMPTY_DEPENDENCIES,
-  dependenciesArgument: DependencyList = EMPTY_DEPENDENCIES
+export function usePaperEvents<T = Record<AnyString, unknown>>(
+  id: string,
+  handlers: HandlersOrFactory<T>,
+  dependencies?: DependencyList
+): void;
+export function usePaperEvents<T = Record<AnyString, unknown>>(
+  idOrHandlers: string | HandlersOrFactory<T>,
+  handlersOrDeps?: HandlersOrFactory<T> | DependencyList,
+  dependencies: DependencyList = EMPTY_DEPENDENCIES
 ): void {
-  const isContextForm = Array.isArray(handlersOrDependencies);
-  const contextStore = usePaperStore(true);
+  const isIdForm = typeof idOrHandlers === 'string';
 
-  if (isContextForm && !contextStore) {
+  const paperStore = usePaperStore(isIdForm ? idOrHandlers : { isNullable: true });
+  const graphStore = useGraphStore();
+
+  if (!isIdForm && !paperStore) {
     throw new Error('usePaperEvents without a target must be used within a Paper.');
   }
 
-  const target = isContextForm ? null : (targetOrHandlers as PaperTarget);
-  const targetRef = target && isPaperRef(target) ? target : undefined;
-  const paperFromRef = useRefValue(targetRef);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const paperById = typeof target === 'string' ? usePaper(target) : usePaper(true);
-  const handlers = isContextForm
-    ? (targetOrHandlers as PaperEventHandlers)
-    : (handlersOrDependencies as PaperEventHandlers);
+  const handlers: HandlersOrFactory<T> = isIdForm
+    ? (handlersOrDeps as HandlersOrFactory<T>)
+    : (idOrHandlers as HandlersOrFactory<T>);
 
-  const dependencies = isContextForm
-    ? (handlersOrDependencies as DependencyList)
-    : dependenciesArgument;
-
-  const paper = isContextForm
-    ? (contextStore?.paper ?? null)
-    : resolvePaperTarget(target as PaperTarget, paperFromRef, paperById);
+  const deps: DependencyList = isIdForm
+    ? dependencies
+    : ((handlersOrDeps as DependencyList) ?? EMPTY_DEPENDENCIES);
 
   useLayoutEffect(() => {
-    if (!paper) {
-      return;
-    }
+    if (!paperStore) return;
 
-    return subscribeToPaperEvents(paper, handlers);
+    return subscribeToPaperEvents(paperStore, graphStore.graph, handlers);
     // Dependencies are explicit API contract for this hook.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paper, handlers, ...dependencies]);
+  }, [graphStore, paperStore, ...deps]);
 }

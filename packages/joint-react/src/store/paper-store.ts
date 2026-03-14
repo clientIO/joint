@@ -1,14 +1,15 @@
 import { dia } from '@joint/core';
+import { isRecord } from '../utils/is';
 import type { CellId } from '../types/cell-id';
 import type { RenderElement, RenderLink } from '../components';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { PortalSelector } from '../models/react-paper.types';
 import type { GraphStore } from './graph-store';
-import { GraphExternalContextStore } from './external-context-store';
 import { ReactPaper } from '../models/react-paper';
 import { connectionPoint } from './default-connection-point';
 import { measureNode } from './default-measure-node';
+import type { Feature } from '../hooks/use-paper-features';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
@@ -49,9 +50,8 @@ export interface AddPaperOptions {
   readonly renderElement?: RenderElement<FlatElementData>;
   /** Optional custom renderer for links */
   readonly renderLink?: RenderLink<FlatLinkData>;
-  /** Optional alias id */
-  readonly alternateId?: string;
-  /** Optional portal selector override for cell view rendering */
+
+  /** Optional selector for locating React portal targets within cell views */
   readonly portalSelector?: PortalSelector;
 }
 
@@ -77,6 +77,8 @@ export interface PaperStoreSnapshot {
   readonly elementViewIds: Record<CellId, true>;
   /** IDs of mounted link views in this paper */
   readonly linkViewIds: Record<CellId, true>;
+  /** Incremented on every paper snapshot to trigger updates in derived state */
+  readonly version: number;
 }
 
 /**
@@ -88,6 +90,7 @@ export function createPaperStoreSnapshot(): PaperStoreSnapshot {
     hasElementViewSnapshot: false,
     elementViewIds: {},
     linkViewIds: {},
+    version: 0,
   };
 }
 
@@ -108,15 +111,21 @@ export class PaperStore {
   public renderElement?: RenderElement<FlatElementData>;
   /** Optional custom link renderer */
   public renderLink?: RenderLink<FlatLinkData>;
-  /** Optional alias id */
-  public alternateId?: string;
-  /** External context store scoped to this paper instance */
-  public readonly externalStoreContext = new GraphExternalContextStore();
+
+  public features: Record<string, Feature> = {};
 
   constructor(options: PaperStoreOptions) {
-    const { graphStore, paperOptions = {}, scale, renderElement, renderLink, id, portalSelector } = options;
+    const {
+      graphStore,
+      paperOptions = {},
+      scale,
+      renderElement,
+      renderLink,
+      id,
+      portalSelector,
+    } = options;
     const { graph } = graphStore;
-    const hasHighlightingOverride = typeof paperOptions.highlighting === 'object';
+    const hasHighlightingOverride = isRecord(paperOptions.highlighting);
     const highlightingOverride = hasHighlightingOverride
       ? (paperOptions.highlighting as PaperHighlighting)
       : undefined;
@@ -142,6 +151,7 @@ export class PaperStore {
       preventDefaultBlankAction: false,
       frozen: true,
       model: graph,
+      id,
       portalSelector,
       afterRender: (() => {
         // Re-entrance guard to prevent infinite loops
@@ -229,11 +239,15 @@ export class PaperStore {
    * Should be called when the paper is being removed from the graph store.
    */
   public destroy = () => {
-    this.externalStoreContext.destroy();
     // Remove the JointJS paper instance - this cleans up:
     // - All event listeners on the paper
     // - All cell views
     // - The paper's DOM element
     this.paper.remove();
+
+    // Clear registered features
+    for (const feature of Object.values(this.features)) {
+      feature.clean?.();
+    }
   };
 }

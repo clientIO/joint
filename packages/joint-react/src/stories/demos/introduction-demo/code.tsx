@@ -6,7 +6,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { PAPER_CLASSNAME, LIGHT, PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
 import './index.css';
 import {
   GraphProvider,
@@ -147,7 +147,12 @@ const links: Record<string, FlatLinkData> = {
 };
 
 // Define the message component
-function MessageComponent({ elementType, title, description, inputText }: Readonly<MessageElement>) {
+function MessageComponent({
+  elementType,
+  title,
+  description,
+  inputText,
+}: Readonly<MessageElement>) {
   let iconContent;
   let titleText;
   switch (elementType) {
@@ -473,8 +478,10 @@ function Main() {
     });
   }, [selectedElementId]);
 
+  const paperId = useId();
+
   usePaperEvents(
-    paperCtxRef,
+    paperId,
     {
       'link:mouseenter': (linkView) => linkView.addTools(toolsView),
       'link:mouseleave': (linkView) => linkView.removeTools(),
@@ -504,6 +511,7 @@ function Main() {
           paperCtxRef={paperCtxRef}
         />
         <Paper
+          id={paperId}
           ref={paperCtxRef}
           {...PAPER_PROPS}
           defaultLink={{

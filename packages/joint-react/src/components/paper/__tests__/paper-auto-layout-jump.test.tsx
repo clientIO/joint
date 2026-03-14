@@ -122,11 +122,7 @@ function AutoLayoutPaper() {
     handleElementsSizeChange(graph);
   });
   return (
-    <Paper<AutoLayoutElementData>
-      id={paperId}
-      height={450}
-      renderElement={renderMeasuredNode}
-    />
+    <Paper<AutoLayoutElementData> id={paperId} height={450} renderElement={renderMeasuredNode} />
   );
 }
 
@@ -146,18 +142,24 @@ describe('Paper automatic layout', () => {
 
     render(<AutoLayoutTestHost />);
 
-    // Flush microtasks (mock observer) and scheduler (state notifications)
-    // Multiple rounds needed: 1) queueMicrotask fires observer, 2) scheduler flushes state, 3) React re-renders
-    for (let index = 0; index < 5; index++) {
+    // Flush microtasks and scheduler (state notifications)
+    // Multiple rounds needed: 1) queueMicrotask fires observer, 2) scheduler flushes state via queueMicrotask,
+    // 3) React re-renders, 4) useLayoutEffect detects size change
+    for (let index = 0; index < 10; index++) {
       // eslint-disable-next-line no-await-in-loop
       await act(async () => {
-        await new Promise((resolve) => { setTimeout(resolve, 0); });
+        await new Promise((resolve) => {
+          setTimeout(resolve, 0);
+        });
       });
     }
 
-    await waitFor(() => {
-      expect(fourthNodeYPositions.length).toBeGreaterThan(0);
-    });
+    await waitFor(
+      () => {
+        expect(fourthNodeYPositions.length).toBeGreaterThan(0);
+      },
+      { timeout: 3000 }
+    );
 
     expect(fourthNodeYPositions).toEqual([expectedRowTwoY]);
   });

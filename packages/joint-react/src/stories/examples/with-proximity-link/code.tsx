@@ -8,6 +8,7 @@ import {
   useGraph,
   useCellActions,
 } from '@joint/react';
+import { util } from '@joint/core';
 import '../index.css';
 import { useEffect, useRef } from 'react';
 import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
@@ -47,7 +48,7 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
       .findElementsInArea(area)
       .filter((element_) => element_.id !== id);
     return proximityElements.map((element_) => element_.id);
-  });
+  }, util.isEqual);
   const { set, remove } = useCellActions();
 
   useEffect(() => {

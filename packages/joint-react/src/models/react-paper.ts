@@ -23,9 +23,9 @@ export class ReactPaper extends dia.Paper {
   private pendingLinks: Set<CellId> = new Set();
 
   constructor(options: ReactPaperOptions) {
-    const { onViewMountChange, portalSelector, ...paperOptions } = options;
-
+    const { onViewMountChange, portalSelector, id, ...paperOptions } = options;
     super(paperOptions);
+    this.id = id;
     this.onViewMountChange = onViewMountChange ?? noopViewMountChange;
     this.shouldPreserveHostElementOnRemove = !!paperOptions.el;
     this.portalSelector = portalSelector;

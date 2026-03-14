@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
@@ -9,16 +8,8 @@ const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // especially on Safari
 const EPSILON = 0.5;
 
-export interface NodeLayoutOptionalXY {
-  /** X position of the node */
-  readonly x?: number;
-  /** Y position of the node */
-  readonly y?: number;
-  /** Width of the node */
-  readonly width: number;
-  /** Height of the node */
-  readonly height: number;
-}
+export type NodeLayoutOptionalXY = Pick<NodeLayout, 'width' | 'height'> &
+  Partial<Pick<NodeLayout, 'x' | 'y'>>;
 
 /**
  * Options passed to the setSize callback when an element's size changes.
@@ -48,10 +39,12 @@ export interface SetMeasuredNodeOptions {
 }
 
 interface ObservedElement {
+  readonly id: CellId;
   readonly element: HTMLElement | SVGElement;
   readonly transform?: OnTransformElement;
   lastWidth?: number;
   lastHeight?: number;
+  isMeasured: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -59,9 +52,6 @@ function defaultTransform(options: TransformOptions) {
   const { width, height, x, y } = options;
   return { width, height, x, y };
 }
-const DEFAULT_OBSERVED_ELEMENT: Partial<ObservedElement> = {
-  transform: defaultTransform,
-};
 /**
  * Options for creating an elements size observer.
  */
@@ -115,10 +105,9 @@ function roundToTwoDecimals(value: number) {
  * Options for processing a single element's size change.
  */
 interface ProcessSizeChangeOptions {
-  readonly cellId: CellId;
   readonly measuredWidth: number;
   readonly measuredHeight: number;
-  readonly observedElement: ObservedElement | Partial<ObservedElement>;
+  readonly observedElement: ObservedElement;
   readonly getCellTransform: Options['getCellTransform'];
   readonly updatedElements: Record<CellId, FlatElementData>;
 }
@@ -128,66 +117,44 @@ interface ProcessSizeChangeOptions {
  * Returns true if the element was updated, false otherwise.
  */
 function processSizeChange(options: ProcessSizeChangeOptions): boolean {
-  const {
-    cellId,
-    measuredWidth,
-    measuredHeight,
-    observedElement,
-    getCellTransform,
-    updatedElements,
-  } = options;
+  const { measuredWidth, measuredHeight, observedElement, getCellTransform, updatedElements } =
+    options;
+  const currentCellTransform = getCellTransform(observedElement.id);
+  const graphElement = updatedElements[observedElement.id];
 
-  const currentCellTransform = getCellTransform(cellId);
-
-  // Compare the measured size with the current cell size using epsilon to avoid jitter
-  const hasSizeChanged =
-    Math.abs(currentCellTransform.width - measuredWidth) > EPSILON ||
-    Math.abs(currentCellTransform.height - measuredHeight) > EPSILON;
-
-  if (!hasSizeChanged) {
-    return false;
-  }
-
-  // We observe just width and height, not x and y
-  if (
-    currentCellTransform.width === measuredWidth &&
-    currentCellTransform.height === measuredHeight
-  ) {
-    return false;
-  }
-
-  const graphElement = updatedElements[cellId];
   if (!graphElement) {
     return false;
   }
 
-  const { transform: sizeTransformFunction = defaultTransform } = observedElement;
-
-  const lastWidth = roundToTwoDecimals(observedElement.lastWidth ?? 0);
-  const lastHeight = roundToTwoDecimals(observedElement.lastHeight ?? 0);
-
-  // Check if the change is significant compared to the last observed size
-  const widthDifference = Math.abs(lastWidth - measuredWidth);
-  const heightDifference = Math.abs(lastHeight - measuredHeight);
-  if (widthDifference <= EPSILON && heightDifference <= EPSILON) {
+  if (
+    Math.abs(currentCellTransform.width - measuredWidth) <= EPSILON &&
+    Math.abs(currentCellTransform.height - measuredHeight) <= EPSILON
+  ) {
     return false;
   }
 
-  // Update cached size values
+  if (
+    Math.abs((observedElement.lastWidth ?? 0) - measuredWidth) <= EPSILON &&
+    Math.abs((observedElement.lastHeight ?? 0) - measuredHeight) <= EPSILON
+  ) {
+    return false;
+  }
+
   observedElement.lastWidth = measuredWidth;
   observedElement.lastHeight = measuredHeight;
 
   const { x, y, angle, element: cell } = currentCellTransform;
-  updatedElements[cellId] = {
+  const transform = observedElement.transform ?? defaultTransform;
+  updatedElements[observedElement.id] = {
     ...graphElement,
-    ...sizeTransformFunction({
+    ...transform({
       x: x ?? 0,
       y: y ?? 0,
       angle: angle ?? 0,
       element: cell,
       width: measuredWidth,
       height: measuredHeight,
-      id: cellId,
+      id: observedElement.id,
     }),
   };
 
@@ -203,10 +170,8 @@ function processSizeChange(options: ProcessSizeChangeOptions): boolean {
  *
  * **Features:**
  * - Uses ResizeObserver for efficient size tracking
- * - Batches multiple size changes together for performance
  * - Compares sizes with epsilon to avoid jitter from sub-pixel rendering
  * - Supports custom size update handlers
- * - Performs immediate synchronous measurement on add to prevent flickering
  * @param options - The options for creating the size observer
  * @returns A GraphStoreObserver instance with methods to add/remove observers
  */
@@ -218,83 +183,23 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     getPublicSnapshot,
   } = options;
   const observedElementsByCellId = new Map<CellId, ObservedElement>();
-  const cellIdByDomElement = new Map<HTMLElement | SVGElement, CellId>();
-
-  // Pending immediate measurements to batch
-  const pendingImmediateMeasurements = new Map<CellId, { width: number; height: number }>();
-  let isImmediateBatchScheduled = false;
-
-  /**
-   * Flushes all pending immediate measurements in a single batch update.
-   */
-  function flushImmediateMeasurements() {
-    if (pendingImmediateMeasurements.size === 0) {
-      isImmediateBatchScheduled = false;
-      return;
-    }
-
-    const publicSnapshot = getPublicSnapshot();
-    const elementsRecord = publicSnapshot.elements as Record<CellId, FlatElementData>;
-    const updatedElements: Record<CellId, FlatElementData> = { ...elementsRecord };
-    let hasAnySizeChange = false;
-
-    for (const [cellId, { width, height }] of pendingImmediateMeasurements) {
-      const observedElement = observedElementsByCellId.get(cellId) ?? DEFAULT_OBSERVED_ELEMENT;
-
-      const measuredWidth = roundToTwoDecimals(width);
-      const measuredHeight = roundToTwoDecimals(height);
-
-      const wasUpdated = processSizeChange({
-        cellId,
-        measuredWidth,
-        measuredHeight,
-        observedElement,
-        getCellTransform,
-        updatedElements,
-      });
-
-      if (wasUpdated) {
-        hasAnySizeChange = true;
-      }
-    }
-
-    pendingImmediateMeasurements.clear();
-    isImmediateBatchScheduled = false;
-
-    if (hasAnySizeChange) {
-      onBatchUpdate(updatedElements);
-    }
-  }
-
-  /**
-   * Schedules an immediate measurement to be processed in the current microtask batch.
-   */
-  function scheduleImmediateMeasurement(cellId: CellId, width: number, height: number) {
-    pendingImmediateMeasurements.set(cellId, { width, height });
-
-    if (!isImmediateBatchScheduled) {
-      isImmediateBatchScheduled = true;
-      // Use queueMicrotask for synchronous-like batching within the same execution context
-      queueMicrotask(flushImmediateMeasurements);
-    }
-  }
+  const observedElementsByDomElement = new WeakMap<HTMLElement | SVGElement, ObservedElement>();
 
   const observer = new ResizeObserver((entries) => {
-    // Process all entries as a single batch
     let hasAnySizeChange = false;
     const publicSnapshot = getPublicSnapshot();
-    // Convert Record to array for batch update (preserving compatibility)
     const elementsRecord = publicSnapshot.elements as Record<CellId, FlatElementData>;
     const updatedElements: Record<CellId, FlatElementData> = { ...elementsRecord };
 
     for (const entry of entries) {
       // We must be careful to not mutate the snapshot data.
       const { target, borderBoxSize } = entry;
+      const observedElement = observedElementsByDomElement.get(target as HTMLElement | SVGElement);
+      if (!observedElement) continue;
 
-      const cellId = cellIdByDomElement.get(target as HTMLElement | SVGElement);
-      if (!cellId) {
-        throw new Error('DOM element not found in resize observer');
-      }
+      if (!observedElement) continue;
+      const { element } = observedElement;
+      element.style.removeProperty('visibility');
 
       // If borderBoxSize is not available or empty, continue to the next entry.
       if (!borderBoxSize || borderBoxSize.length === 0) {
@@ -312,10 +217,8 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       if (measuredWidth <= 0 || measuredHeight <= 0) {
         continue;
       }
-      const observedElement = observedElementsByCellId.get(cellId) ?? DEFAULT_OBSERVED_ELEMENT;
 
       const wasUpdated = processSizeChange({
-        cellId,
         measuredWidth,
         measuredHeight,
         observedElement,
@@ -332,29 +235,26 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       return;
     }
 
-    // Pass updated elements as Record
     onBatchUpdate(updatedElements);
   });
 
   return {
     add({ id, element, transform }: SetMeasuredNodeOptions) {
-      // Register with ResizeObserver for future changes
+      element.style.setProperty('visibility', 'hidden');
+      const observedElement: ObservedElement = {
+        id,
+        element,
+        transform,
+        isMeasured: false,
+      };
       observer.observe(element, resizeObserverOptions);
-      observedElementsByCellId.set(id, { element, transform });
-      cellIdByDomElement.set(element, id);
-
-      // Perform immediate synchronous measurement to prevent flickering
-      // This eliminates the 2ms delay from ResizeObserver callback
-      const rect = element.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        scheduleImmediateMeasurement(id, rect.width, rect.height);
-      }
+      observedElementsByCellId.set(id, observedElement);
+      observedElementsByDomElement.set(element, observedElement);
 
       return () => {
         observer.unobserve(element);
         observedElementsByCellId.delete(id);
-        cellIdByDomElement.delete(element);
-        pendingImmediateMeasurements.delete(id);
+        observedElementsByDomElement.delete(element);
       };
     },
     clean() {
@@ -362,9 +262,6 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         observer.unobserve(element);
       }
       observedElementsByCellId.clear();
-      cellIdByDomElement.clear();
-      pendingImmediateMeasurements.clear();
-      isImmediateBatchScheduled = false;
       observer.disconnect();
     },
     has(id: CellId) {

@@ -3,6 +3,7 @@ import type { CellId } from '../../types/cell-id';
 import type { FlatLinkEnd } from '../../types/link-types';
 import type { MarkerPreset } from '../../theme/markers';
 import { resolveMarker } from '../../theme/markers';
+import { isString } from '../../utils/is';
 
 export interface LinkEndAttributeOptions {
   port?: string;
@@ -25,7 +26,7 @@ export function toLinkEndAttribute(
   end: FlatLinkEnd,
   options?: LinkEndAttributeOptions,
 ): dia.Link.EndJSON {
-  const base = (typeof end === 'string' ? { id: end } : end) as dia.Link.EndJSON;
+  const base = (isString(end) ? { id: end } : end) as dia.Link.EndJSON;
   if (!options) return base;
 
   const { port, anchor, connectionPoint, magnet } = options;

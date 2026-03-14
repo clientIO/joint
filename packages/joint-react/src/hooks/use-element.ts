@@ -1,7 +1,7 @@
-import { util } from '@joint/core';
 import { useCellId } from './use-cell-id';
 import type { FlatElementData } from '../types/element-types';
 import { useData } from './use-stores';
+import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 
 /**
  * A hook to access a specific graph element from the current `Paper` context.
@@ -27,13 +27,15 @@ import { useData } from './use-stores';
  *   (element) => element,
  *   (prev, next) => prev.width === next.width
  * );
- * @param selector The selector function to pick part of the element. @default identity
- * @param isEqual The function used to check equality. @default util.isEqual
+ * @param selector The selector function to pick part of the element. @default returns the entire element.
+ * @param isEqual The function used to check equality. @default shallow equality (===)
  * @returns The selected element based on the current cell id.
  */
 export function useElement<ElementData = FlatElementData, ReturnedElements = ElementData>(
-  selector: (item: ElementData) => ReturnedElements = (item) => item as unknown as ReturnedElements,
-  isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean
+  selector: (item: ElementData) => ReturnedElements = identitySelector as (
+    item: ElementData
+  ) => ReturnedElements,
+  isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = isStrictEqual
 ): ReturnedElements {
   const id = useCellId();
 

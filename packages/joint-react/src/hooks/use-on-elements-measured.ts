@@ -101,7 +101,7 @@ export function useOnElementsMeasured(
     : optionsArgument;
 
   const isStringTarget = typeof target === 'string';
-  const contextStore = usePaperStore(isStringTarget ? target : true);
+  const contextStore = usePaperStore(isStringTarget ? target : { isNullable: true });
   const targetRef = target && typeof target === 'object' && 'current' in target ? target : undefined;
   const paperFromRef = useRefValue(targetRef);
 

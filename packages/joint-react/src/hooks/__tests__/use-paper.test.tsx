@@ -30,7 +30,7 @@ describe('use-paper', () => {
 
   it('returns paper instance from Paper context', async () => {
     const wrapper = createPaperWrapper('paper-context');
-    const { result } = renderHook(() => usePaper(), { wrapper });
+    const { result } = renderHook(() => usePaper({ isNullable: true }), { wrapper });
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
@@ -83,8 +83,8 @@ describe('use-paper', () => {
     });
   });
 
-  it('returns null when usePaper(true) is used outside Paper context', () => {
-    const { result } = renderHook(() => usePaper(true), { wrapper: graphWrapper });
+  it('returns null when usePaper({ isNullable: true }) is used outside Paper context', () => {
+    const { result } = renderHook(() => usePaper({ isNullable: true }), { wrapper: graphWrapper });
 
     expect(result.current).toBeNull();
   });
