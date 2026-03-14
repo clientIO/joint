@@ -4,6 +4,15 @@ import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
 import { useNodeLayout } from './use-node-layout';
 import type { NodeLayout } from '../store/graph-store';
+import { usePaper } from './use-paper';
+
+/**
+ * Controls element visibility until the first measurement completes.
+ * - `'show-all'` — hides nothing; the element is visible immediately
+ * - `'hide-node'` — hides the observed DOM element (default)
+ * - `'hide-all'` — hides the entire element view (`cellView.el`)
+ */
+export type VisibilityStrategy = 'show-all' | 'hide-node' | 'hide-all';
 
 /**
  * Options for configuring how the node size is measured and applied.
@@ -32,6 +41,15 @@ export interface MeasureNodeOptions {
    * ```
    */
   readonly transform?: OnTransformElement;
+
+  /**
+   * Controls element visibility until the first measurement completes.
+   * - `'show-all'` — hides nothing; the element is visible immediately
+   * - `'hide-node'` — hides the observed DOM element
+   * - `'hide-all'` — hides the entire element view (`cellView.el`)
+   * @default 'hide-all'
+   */
+  readonly visibility?: VisibilityStrategy;
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
@@ -55,7 +73,7 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  * will throw an error and cause unexpected behavior.
  * - Must be used within a `renderElement` function or a component rendered from within it.
  * - The returned values are always defined (width and height default to 0 if not set).
- * @param elementRef - A reference to the HTML or SVG element to measure. The element must be rendered
+ * @param nodeRef - A reference to the HTML or SVG element to measure. The element must be rendered
  *                     in the DOM when the hook runs.
  * @param options - Optional configuration for measuring and transforming the node size.
  * @returns An object containing the current graph element's dimensions:
@@ -134,16 +152,17 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  * ```
  */
 export function useNodeSize(
-  elementRef: RefObject<HTMLElement | SVGElement | null>,
+  nodeRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
 ): NodeLayout {
-  const { transform } = options ?? EMPTY_OBJECT;
+  const { transform, visibility } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
+  const paper = usePaper();
   const id = useCellId();
   const layout = useNodeLayout(id) ?? EMPTY_NODE_LAYOUT;
 
   useLayoutEffect(() => {
-    const element = elementRef.current;
+    const element = nodeRef.current;
     if (!element) return;
 
     const cell = graph.getCell(id);
@@ -163,16 +182,26 @@ export function useNodeSize(
 
       throw new Error(errorMessage);
     }
-    if (!elementRef.current) {
+    if (!nodeRef.current) {
       return;
     }
-    const clean = setMeasuredNode({ id, element: elementRef.current, transform });
+
+    // DOM node to hide (visibility: hidden) until the first measurement completes.
+    let visibilityNode: HTMLElement | SVGElement | undefined;
+    if (visibility === 'hide-node') {
+      visibilityNode = nodeRef.current;
+    } else if (visibility !== 'show-all') {
+      // 'hide-all' (default)
+      visibilityNode = paper.findViewByModel(id)?.el;
+    }
+
+    const clean = setMeasuredNode({ id, node: nodeRef.current, transform, visibilityNode });
     return () => {
       clean();
     };
-    // transform is not a dependency because it is a function
+    // transform and visibility are not dependencies because they don't change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [elementRef, graph, hasMeasuredNode, id, setMeasuredNode]);
+  }, [nodeRef, graph, hasMeasuredNode, id, paper, setMeasuredNode]);
 
   // This hook itself does not return anything.
   return layout;
