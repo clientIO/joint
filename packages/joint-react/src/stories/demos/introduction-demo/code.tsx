@@ -6,7 +6,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, LIGHT, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import './index.css';
 import {
   GraphProvider,
@@ -14,7 +14,6 @@ import {
   useCellId,
   useElements,
   useGraph,
-  useHighlighter,
   useNodeSize,
   useLinks,
   useOnElementsMeasured,
@@ -27,11 +26,9 @@ import {
   usePaperEvents,
   useNodeLayout,
 } from '@joint/react';
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
 import { useCellActions } from '../../../hooks/use-cell-actions';
-import { getMessageNodeClassName } from './get-message-node-class-name';
-import { isCellSelected } from './is-cell-selected';
 
 // Define types for the elements
 interface ElementBase extends FlatElementData {
@@ -53,7 +50,8 @@ interface TableElement extends ElementBase {
 
 type Element = MessageElement | TableElement;
 
-type ElementWithSelected<T> = { readonly selectedId: CellId | null } & T;
+const MESSAGE_NODE_CLASSNAME =
+  'flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm';
 
 const BUTTON_CLASSNAME =
   'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm flex items-center';
@@ -149,13 +147,7 @@ const links: Record<string, FlatLinkData> = {
 };
 
 // Define the message component
-function MessageComponent({
-  elementType,
-  title,
-  description,
-  inputText,
-  selectedId,
-}: ElementWithSelected<MessageElement>) {
+function MessageComponent({ elementType, title, description, inputText }: Readonly<MessageElement>) {
   let iconContent;
   let titleText;
   switch (elementType) {
@@ -176,10 +168,9 @@ function MessageComponent({
   const { set } = useCellActions<MessageElement>();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useNodeSize(elementRef);
-  const isSelected = isCellSelected(id, selectedId);
   return (
     <foreignObject width={width} height={height} overflow="visible" magnet="passive">
-      <div ref={elementRef} className={getMessageNodeClassName(isSelected)}>
+      <div ref={elementRef} className={MESSAGE_NODE_CLASSNAME}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 items-start">
             <div className="text-2xl">{iconContent}</div>
@@ -208,41 +199,12 @@ function MessageComponent({
 const ROW_HEIGHT = 45;
 const ROW_START = 65;
 // Define the table element
-function TableElement({
-  columnNames,
-  rows,
-  width,
-  height,
-  selectedId,
-}: ElementWithSelected<TableElement>) {
+function TableElement({ columnNames, rows, width, height }: Readonly<TableElement>) {
   const tableWidth = width ?? 0;
   const tableHeight = height ?? 0;
-  const id = useCellId();
-  const isSelected = isCellSelected(id, selectedId);
-  const highlighterRef = useRef<SVGForeignObjectElement | null>(null);
-  useHighlighter({
-    type: 'custom',
-    isEnabled: isSelected,
-    padding: 25,
-    rx: 5,
-    ry: 5,
-    attrs: {
-      stroke: LIGHT,
-      strokeWidth: 3,
-    },
-    create: ({ cellView, element, highlighterId, options }) => {
-      return highlighters.stroke.add(cellView, element, highlighterId, options);
-    },
-    ref: highlighterRef,
-  });
   return (
     <>
-      <foreignObject
-        ref={highlighterRef}
-        width={tableWidth}
-        height={tableHeight}
-        overflow="visible"
-      >
+      <foreignObject width={tableWidth} height={tableHeight} overflow="visible">
         <div
           style={{ width: tableWidth, height: tableHeight }}
           className="flex flex-col border-1 border-solid border-white/20 text-white rounded-lg p-4 w-full h-full bg-gray-900 shadow-sm"
@@ -475,34 +437,49 @@ function ElementsInfo() {
 // Define main view component and render elements
 function Main() {
   const [isMinimapVisible, setIsMinimapVisible] = useState(false);
-  const [selectedElement, setSelectedElement] = useState<CellId | null>(null);
+  const [selectedElementId, setSelectedElement] = useState<CellId | null>(null);
   const [showElementsInfo, setShowElementsInfo] = useState(false);
   const paperCtxRef = useRef<ReactPaper | null>(null);
 
-  const renderElement = useCallback(
-    (element: Element) => {
-      const { elementType } = element;
-      switch (elementType) {
-        case 'alert':
-        case 'info': {
-          return <MessageComponent {...element} selectedId={selectedElement} />;
-        }
-        case 'table': {
-          return <TableElement {...element} selectedId={selectedElement} />;
-        }
+  const renderElement = useCallback((element: Element) => {
+    const { elementType } = element;
+    switch (elementType) {
+      case 'alert':
+      case 'info': {
+        return <MessageComponent {...element} />;
       }
-    },
-    [selectedElement]
-  );
+      case 'table': {
+        return <TableElement {...element} />;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const paper = paperCtxRef.current;
+    if (!paper) return;
+    highlighters.stroke.removeAll(paper, 'selection');
+    if (!selectedElementId) return;
+    const cellView = paper.findViewByModel(selectedElementId);
+    if (!cellView) return;
+    highlighters.stroke.add(cellView, 'root', 'selection', {
+      z: -1,
+      padding: 10,
+      rx: 10,
+      ry: 10,
+      attrs: {
+        stroke: SECONDARY,
+        strokeWidth: 3,
+      },
+    });
+  }, [selectedElementId]);
 
   usePaperEvents(
     paperCtxRef,
     {
       'link:mouseenter': (linkView) => linkView.addTools(toolsView),
       'link:mouseleave': (linkView) => linkView.removeTools(),
-      'cell:pointerclick': (cellView) => {
-        const cell = cellView.model;
-        setSelectedElement((cell.id as CellId) ?? null);
+      'element:pointerclick': (elementView) => {
+        setSelectedElement(elementView.model.id as CellId);
       },
       'link:pointerclick': () => {
         setSelectedElement(null);
@@ -520,7 +497,7 @@ function Main() {
         <ToolBar
           onToggleMinimap={setIsMinimapVisible}
           isMinimapVisible={isMinimapVisible}
-          selectedId={selectedElement}
+          selectedId={selectedElementId}
           setSelectedId={setSelectedElement}
           showElementsInfo={showElementsInfo}
           setShowElementsInfo={setShowElementsInfo}

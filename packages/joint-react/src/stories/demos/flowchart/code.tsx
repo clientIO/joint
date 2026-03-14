@@ -6,7 +6,6 @@ import type { FlatLinkData, FlatLinkLabel, RenderElement, TransformOptions } fro
 import {
   GraphProvider,
   Paper,
-  useHighlighter,
   useMarkup,
   useNodeSize,
   usePaper,
@@ -393,53 +392,15 @@ function RenderFlowchartNode(props: FlowchartNodeProps) {
   const { type } = props;
   const { selectorRef } = useMarkup();
 
-  const highlighterRef = useRef<SVGRectElement | SVGPolygonElement>(null);
-  const [isHighlighted, setIsHighlighted] = useState(false);
-  useHighlighter({
-    type: 'mask',
-    isEnabled: isHighlighted,
-    ref: highlighterRef,
-    padding: unit * 2,
-    className: 'jj-frame',
-    attrs: {
-      strokeWidth: 1.5,
-      strokeLinejoin: 'round',
-    },
-  });
-
-  const bodyRef = (node: SVGRectElement | SVGPolygonElement | null) => {
-    selectorRef('body')(node);
-    highlighterRef.current = node;
-  };
+  const bodyRef = selectorRef('body');
 
   if (type === 'decision') {
-    return (
-      <DecisionNode
-        ref={bodyRef as React.ForwardedRef<SVGPolygonElement>}
-        {...props}
-        onMouseEnter={() => setIsHighlighted(true)}
-        onMouseLeave={() => setIsHighlighted(false)}
-      />
-    );
+    return <DecisionNode ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...props} />;
   }
   if (type === 'start') {
-    return (
-      <StartNode
-        ref={bodyRef as React.ForwardedRef<SVGRectElement>}
-        {...props}
-        onMouseEnter={() => setIsHighlighted(true)}
-        onMouseLeave={() => setIsHighlighted(false)}
-      />
-    );
+    return <StartNode ref={bodyRef as React.ForwardedRef<SVGRectElement>} {...props} />;
   }
-  return (
-    <StepNode
-      ref={bodyRef as React.ForwardedRef<SVGPolygonElement>}
-      {...props}
-      onMouseEnter={() => setIsHighlighted(true)}
-      onMouseLeave={() => setIsHighlighted(false)}
-    />
-  );
+  return <StepNode ref={bodyRef as React.ForwardedRef<SVGPolygonElement>} {...props} />;
 }
 
 // Create link tools
@@ -493,6 +454,19 @@ function Main() {
           nonScalingStroke: true,
         });
         strokeHighlighter.el.classList.add('jj-flow-selection');
+      },
+      'element:mouseenter': (elementView) => {
+        const hl = highlighters.mask.add(elementView, 'body', 'frame', {
+          padding: unit * 1.5,
+          attrs: {
+            strokeWidth: 1.5,
+            strokeLinejoin: 'round',
+          },
+        });
+        hl.el.classList.add('jj-frame');
+      },
+      'element:mouseleave': (elementView) => {
+        highlighters.mask.remove(elementView, 'frame');
       },
       'link:mouseenter': (linkView) => {
         if (highlighters.stroke.get(linkView, 'selection')) return;

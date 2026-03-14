@@ -6,7 +6,7 @@ import Code from './code?raw';
 
 # Using Highlighters
 
-This example demonstrates how to use the `useHighlighter` hook to create visual emphasis on elements in your diagram.
+This example demonstrates how to use JointJS highlighters to create visual emphasis on elements in your diagram.
 
 ## Overview
 
@@ -20,7 +20,6 @@ Highlighters are useful for:
 
 <Canvas of={Stories.Mask} />
 <Canvas of={Stories.Opacity} />
-<Canvas of={Stories.Custom} />
 
 ## Implementation
 
@@ -30,65 +29,48 @@ ${Code}
 \`\`\``}
 </Markdown>
 
-## Available Highlighter Types (Hook API)
+## Available Highlighter Types
 
 ### Mask
 Creates a border/mask around the element.
 
 ```tsx
-import { useRef } from 'react';
-import { useHighlighter } from '@joint/react';
-
-const ref = useRef<SVGRectElement>(null);
-useHighlighter({
-  type: 'mask',
-  isEnabled: true,
+highlighters.mask.add(elementView, 'root', 'my-highlighter', {
   padding: 5,
   attrs: { stroke: 'blue', 'stroke-width': 2 },
-  ref,
 });
+
+highlighters.mask.remove(elementView, 'my-highlighter');
 ```
 
 ### Opacity
 Changes the opacity of the element.
 
 ```tsx
-import { useRef } from 'react';
-import { useHighlighter } from '@joint/react';
-
-const ref = useRef<SVGRectElement>(null);
-useHighlighter({
-  type: 'opacity',
-  isEnabled: true,
+highlighters.opacity.add(elementView, 'root', 'my-highlighter', {
   alphaValue: 0.5,
-  ref,
 });
+
+highlighters.opacity.remove(elementView, 'my-highlighter');
 ```
 
-### Custom Highlighter
-Create your own custom highlighting effect.
+### Stroke
+Adds a stroke outline around the element.
 
 ```tsx
-import { useRef } from 'react';
-import { useHighlighter } from '@joint/react';
-import { highlighters } from '@joint/core';
-
-const ref = useRef<SVGRectElement>(null);
-useHighlighter({
-  type: 'custom',
-  isEnabled: true,
+highlighters.stroke.add(elementView, 'root', 'my-highlighter', {
   padding: 10,
   rx: 5,
   ry: 5,
-  create: ({ cellView, element, highlighterId, options }) =>
-    highlighters.mask.add(cellView, element, highlighterId, options),
-  ref,
+  attrs: { stroke: '#333', strokeWidth: 3 },
 });
+
+highlighters.stroke.remove(elementView, 'my-highlighter');
 ```
 
 ## Best Practices
 
-1. **Use refs**: Attach a stable ref to the SVG element you want to highlight
-2. **Conditional behavior**: Use `isEnabled` to toggle highlighting
-3. **Performance**: Highlighters are lightweight and don't impact rendering performance
-4. **Accessibility**: Consider color contrast and visual indicators for accessibility
+1. **Use paper events**: Subscribe to `element:mouseenter` / `element:mouseleave` via `usePaperEvents` for hover effects
+2. **Use state + useEffect**: For selection-driven highlighting, store selected ID in state and manage highlighters in a `useEffect`
+3. **Unique IDs**: Use a consistent highlighter ID (e.g. `'hover'`, `'selection'`) so adding a new one replaces the previous
+4. **Cleanup**: Use `highlighters.*.remove(elementView, id)` or `highlighters.*.removeAll(paper, id)` for cleanup

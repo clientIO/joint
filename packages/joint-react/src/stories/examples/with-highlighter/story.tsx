@@ -27,8 +27,3 @@ export const Opacity: Story = {
   },
 };
 
-export const Custom: Story = {
-  args: {
-    variant: 'custom',
-  },
-};
