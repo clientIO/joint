@@ -10,7 +10,7 @@ import {
   useCellActions,
   useCellId,
   useMarkup,
-  useOnElementsMeasured,
+  useOnNodesMeasured,
   usePaper,
   usePaperEvents,
 } from '@joint/react';
@@ -751,7 +751,7 @@ function Main() {
     [handleExpand]
   );
 
-  useOnElementsMeasured(paperId, handleElementsMeasured);
+  useOnNodesMeasured(paperId, handleElementsMeasured);
 
   return (
     <Paper

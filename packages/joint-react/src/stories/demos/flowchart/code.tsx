@@ -3,7 +3,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
 import type { FlatLinkData, FlatLinkLabel, RenderElement, TransformOptions } from '@joint/react';
-import { GraphProvider, Paper, useMarkup, useNodeSize, usePaperEvents } from '@joint/react';
+import { GraphProvider, Paper, useMarkup, useMeasureNode, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { forwardRef, useId, useRef, useState } from 'react';
@@ -265,7 +265,7 @@ function DecisionNodeRaw(
   const padding = 30;
 
   const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useNodeSize(textRef, {
+  const { width, height } = useMeasureNode(textRef, {
     transform: (options) => computeNodeBBox({ ...options, padding, cx, cy }),
   });
 
@@ -305,7 +305,7 @@ function StartNodeRaw(
   const padding = 20;
 
   const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useNodeSize(textRef, {
+  const { width, height } = useMeasureNode(textRef, {
     transform: (options) => computeNodeBBox({ ...options, padding, cx, cy }),
   });
 
@@ -346,7 +346,7 @@ function StepNodeRaw(
   const padding = 20;
 
   const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useNodeSize(textRef, {
+  const { width, height } = useMeasureNode(textRef, {
     transform: (options) => computeNodeBBox({ ...options, padding, cx, cy }),
   });
 

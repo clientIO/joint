@@ -12,7 +12,7 @@ import {
   TextNode,
   usePaperEvents,
   useLinks,
-  useNodeSize,
+  useMeasureNode,
   useCellId,
 } from '@joint/react';
 
@@ -88,7 +88,7 @@ const elements: Record<string, FlatElementData> = {
 function NodeElement(_props: Readonly<FlatElementData>) {
   const id = useCellId();
   const rectRef = useRef<SVGRectElement>(null);
-  const { width, height } = useNodeSize(rectRef);
+  const { width, height } = useMeasureNode(rectRef);
 
   const isConnected = useLinks((links) =>
     Object.values(links).some((link) => {

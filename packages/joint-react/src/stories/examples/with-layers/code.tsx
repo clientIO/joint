@@ -8,7 +8,7 @@ import {
   Paper,
   ReactElement,
   ReactLink,
-  useNodeSize,
+  useMeasureNode,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
@@ -106,7 +106,7 @@ function BackgroundNode({ label, width, height, color }: Readonly<LayeredElement
 
 function ElementNode({ label, color }: Readonly<LayeredElement>) {
   const ref = useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeSize(ref);
+  const { width, height } = useMeasureNode(ref);
 
   return (
     <foreignObject width={width} height={height} className="fade-in">

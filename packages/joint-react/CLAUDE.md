@@ -58,7 +58,7 @@ GraphProvider (provides GraphStoreContext)
 ### Key Source Directories
 
 - **`src/components/`** — `GraphProvider` and `Paper` (the two public components), plus internal `Link`, `Port`, `TextNode`, `Highlighters`
-- **`src/hooks/`** — Public hooks (`useGraph`, `usePaper`, `useElements`, `useLinks`, `useElement`, `useCellActions`, `useNodeSize`, `usePaperEvents`, etc.)
+- **`src/hooks/`** — Public hooks (`useGraph`, `usePaper`, `useElements`, `useLinks`, `useElement`, `useCellActions`, `useMeasureNode`, `usePaperEvents`, etc.)
 - **`src/store/`** — `GraphStore` (central state: elements, links, sync) and `PaperStore` (per-paper view state, portals, element sizing)
 - **`src/models/`** — `ReactElement` (empty markup, React renders via portal), `ReactLink`, `ReactPaper` (extended `dia.Paper` with React view lifecycle)
 - **`src/state/`** — Selectors (`mapElementAttributesToData`, `mapLinkAttributesToData`) and sync logic between JointJS models and React state
