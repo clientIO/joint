@@ -9,11 +9,11 @@ import { useGraphStore } from './use-graph-store';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
 
-interface PaperEventsContextBase {
+interface PaperEventsBaseContext {
   readonly graph: dia.Graph;
   readonly paper: dia.Paper;
 }
-export type PaperEventsContext<T = Record<AnyString, unknown>> = PaperEventsContextBase & T;
+export type PaperEventsContext<T = Record<AnyString, unknown>> = PaperEventsBaseContext & T;
 
 type HandlersOrFactory<T> =
   | PaperEventHandlers
