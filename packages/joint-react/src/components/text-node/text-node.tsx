@@ -31,7 +31,7 @@ function getBreakTextWidth({ width, graph, cellId }: BreakTextWidthOptions) {
 
   const element = graph.getCell(cellId);
   if (!element.isElement()) {
-    throw new TypeError('TextNode must be used with useNodeSize hook to measure the element size');
+    throw new TypeError('TextNode must be used with useMeasureNode hook to measure the element size');
   }
 
   return element.size().width ?? 0;

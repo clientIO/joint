@@ -6,7 +6,7 @@ import {
   useCellId,
   useElements,
   useGraph,
-  useNodeSize,
+  useMeasureNode,
   type FlatLinkData,
 } from '@joint/react';
 import '../index.css';
@@ -53,7 +53,7 @@ function RenderElement({ label }: Readonly<BaseElementWithData>) {
   const graph = useGraph();
   const id = useCellId();
   const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeSize(elementRef);
+  const { width, height } = useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height}>
       <div ref={elementRef} className="node flex flex-1 justify-center items-center w-30">

@@ -2,8 +2,8 @@ import { render, waitFor } from '@testing-library/react';
 import type { dia } from '@joint/core';
 import { useId, useRef } from 'react';
 import { act } from 'react';
-import { useNodeSize } from '../../../hooks/use-node-size';
-import { useOnElementsMeasured } from '../../../hooks/use-on-elements-measured';
+import { useMeasureNode } from '../../../hooks/use-measure-node';
+import { useOnNodesMeasured } from '../../../hooks/use-on-nodes-measured';
 import type { FlatElementData } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
@@ -87,7 +87,7 @@ let currentFourthNodeYPositions: number[] = [];
 
 function MeasuredNode({ width, height, label }: Readonly<AutoLayoutElementData>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height}>
       <div ref={elementRef}>{label}</div>
@@ -117,7 +117,7 @@ function handleElementsSizeChange(graph: dia.Graph) {
 
 function AutoLayoutPaper() {
   const paperId = useId();
-  useOnElementsMeasured(paperId, ({ isInitial, graph }) => {
+  useOnNodesMeasured(paperId, ({ isInitial, graph }) => {
     if (isInitial) return;
     handleElementsSizeChange(graph);
   });

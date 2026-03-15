@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useElements, useNodeSize, type FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, useElements, useMeasureNode, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -38,7 +38,7 @@ function ElementInput({ id, label }: Readonly<BaseElementWithData & { id: string
 
 function RenderElement({ label }: Readonly<BaseElementWithData>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeSize(elementRef);
+  const { width, height } = useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height}>
       <div ref={elementRef} className="node">

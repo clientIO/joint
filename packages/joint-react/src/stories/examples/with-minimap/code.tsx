@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import { GraphProvider, Paper, useNodeSize, type RenderElement } from '@joint/react';
+import { GraphProvider, Paper, useMeasureNode, type RenderElement } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements: Record<
@@ -45,7 +45,7 @@ function MiniMap() {
 
 function RenderElement({ width, height, label, color }: Readonly<BaseElementWithData>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height}>
       <div

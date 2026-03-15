@@ -12,13 +12,13 @@ import {
 import { action } from 'storybook/actions';
 import { dia, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { useNodeSize } from '../../hooks/use-node-size';
+import { useMeasureNode } from '../../hooks/use-measure-node';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 import { useCellActions } from '../../hooks/use-cell-actions';
 import { useCellId } from '../../hooks/use-cell-id';
-import { useOnElementsMeasured } from '../../hooks/use-on-elements-measured';
+import { useOnNodesMeasured } from '../../hooks/use-on-nodes-measured';
 import { usePaperEvents } from '../../hooks/use-paper-events';
 import { Paper } from './paper';
 import type { RenderElement } from './paper.types';
@@ -106,7 +106,7 @@ function RenderRectElement({ width, height }: Readonly<SimpleElement>) {
 
 function RenderHTMLElement({ width, height }: Readonly<SimpleElement>) {
   const elementRef = React.useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height}>
       <div
@@ -200,7 +200,7 @@ export const WithEvent: Story = {
   },
   render: (args) => {
     const paperId = useId();
-    useOnElementsMeasured(paperId, action('onElementsMeasured'));
+    useOnNodesMeasured(paperId, action('onElementsMeasured'));
     usePaperEvents(paperId, {
       'link:mouseenter': (...args) => action('link:mouseenter')(...args),
       'cell:mouseenter': (...args) => action('cell:mouseenter')(...args),
@@ -424,7 +424,7 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
   render: () => {
     const renderElement: RenderElement<SimpleElement> = ({ hoverColor }) => {
       const ref = useRef<SVGRectElement>(null);
-      useNodeSize(ref, {
+      useMeasureNode(ref, {
         transform: ({ x, y, width, height, id }) => {
           if (id === '1') {
             return {
