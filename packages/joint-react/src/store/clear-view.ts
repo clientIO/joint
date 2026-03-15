@@ -1,5 +1,6 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
+import type { IncrementalChange } from '../state/incremental.types';
 
 /**
  * Cache entry for batched clearView updates.
@@ -76,11 +77,13 @@ export function clearConnectedLinkViews(
   graph: dia.Graph,
   cellId: CellId,
   onValidateLink?: (link: dia.Link) => boolean
-): void {
+) {
+  const changes: Map<string, IncrementalChange<dia.Cell>> = new Map();
   const cell = graph.getCell(cellId);
   if (!cell) {
     return;
   }
+  changes.set(String(cell.id), { type: 'change', data: cell });
 
   for (const link of graph.getConnectedLinks(cell)) {
     if (!shouldClearLink(link, cellId, onValidateLink)) {
@@ -98,7 +101,9 @@ export function clearConnectedLinkViews(
     linkView._targetMagnet = null;
     // @ts-expect-error we use private jointjs api method
     linkView.requestConnectionUpdate({ async: false });
+    changes.set(String(link.id), { type: 'change', data: link });
   }
+  return changes;
 }
 
 /**

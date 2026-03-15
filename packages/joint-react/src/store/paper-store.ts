@@ -10,6 +10,7 @@ import { ReactPaper } from '../models/react-paper';
 import { connectionPoint } from './default-connection-point';
 import { measureNode } from './default-measure-node';
 import type { Feature } from '../hooks/use-create-paper-features';
+import type { IncrementalChange } from '../state/incremental.types';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
@@ -179,25 +180,8 @@ export class PaperStore {
         disposeHidden: true,
         lazyInitialize: true,
       },
-      onViewMountChange: (kind, cellId, isMounted) => {
-        switch (kind) {
-          case 'element': {
-            if (isMounted) {
-              graphStore.markPaperElementViewMounted(id, cellId);
-            } else {
-              graphStore.markPaperElementViewUnmounted(id, cellId);
-            }
-            return;
-          }
-          case 'link': {
-            if (isMounted) {
-              graphStore.markPaperLinkViewMounted(id, cellId);
-            } else {
-              graphStore.markPaperLinkViewUnmounted(id, cellId);
-            }
-            return;
-          }
-        }
+      onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
+        graphStore.setPaperViews(this.paperId, changes);
       },
     });
 

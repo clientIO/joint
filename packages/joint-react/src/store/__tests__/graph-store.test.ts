@@ -245,89 +245,69 @@ describe('GraphStore', () => {
     });
   });
 
-  describe('markPaperElementViewMounted', () => {
-    it('should update element view for given paper and cell', () => {
+  describe('setPaperViews', () => {
+    function ensurePaperSnapshot(store: GraphStore, paperId: string) {
+      store.internalState.setState((previous) => {
+        if (previous.papers[paperId]) return previous;
+        return {
+          papers: {
+            ...previous.papers,
+            [paperId]: createPaperStoreSnapshot(),
+          },
+        };
+      });
+    }
+
+    it('should update element and link view ids in a single batch', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const cellId = 'element-1';
+      ensurePaperSnapshot(store, paperId);
 
-      store.markPaperElementViewMounted(paperId, cellId);
+      const element = new shapes.standard.Rectangle({ id: 'element-1' });
+      const link = new shapes.standard.Link({ id: 'link-1' });
+
+      const changes = new Map<string, { type: 'add'; data: dia.Cell }>([
+        ['element-1', { type: 'add', data: element }],
+        ['link-1', { type: 'add', data: link }],
+      ]);
+      store.setPaperViews(paperId, changes);
 
       const internalSnapshot = store.internalState.getSnapshot();
       const paper = internalSnapshot.papers[paperId];
-      expect(paper?.elementViewIds[cellId]).toBe(true);
+      expect(paper?.elementViewIds['element-1']).toBe(true);
+      expect(paper?.linkViewIds['link-1']).toBe(true);
       expect(paper?.hasElementViewSnapshot).toBe(true);
-    });
-
-    it('should not update if view is unchanged', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      const cellId = 'element-1';
-
-      store.markPaperElementViewMounted(paperId, cellId);
-      const snapshot1 = store.internalState.getSnapshot();
-      const paper1 = snapshot1.papers[paperId];
-
-      store.markPaperElementViewMounted(paperId, cellId);
-      const snapshot2 = store.internalState.getSnapshot();
-      const paper2 = snapshot2.papers[paperId];
-
-      expect(paper2).toBe(paper1);
     });
 
     it('should remove element view id on unmount', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const cellId = 'element-1';
+      ensurePaperSnapshot(store, paperId);
 
-      store.markPaperElementViewMounted(paperId, cellId);
-      store.markPaperElementViewUnmounted(paperId, cellId);
+      const element = new shapes.standard.Rectangle({ id: 'element-1' });
+
+      store.setPaperViews(
+        paperId,
+        new Map([['element-1', { type: 'add' as const, data: element }]])
+      );
+      store.setPaperViews(paperId, new Map([['element-1', { type: 'remove' as const }]]));
 
       const paper = store.internalState.getSnapshot().papers[paperId];
-      expect(paper?.elementViewIds[cellId]).toBeUndefined();
-      expect(paper?.hasElementViewSnapshot).toBe(true);
-    });
-  });
-
-  describe('markPaperLinkViewMounted', () => {
-    it('should update link view ids for given paper and link', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      const linkId = 'link-1';
-
-      store.markPaperLinkViewMounted(paperId, linkId);
-
-      const internalSnapshot = store.internalState.getSnapshot();
-      const paper = internalSnapshot.papers[paperId];
-      expect(paper?.linkViewIds[linkId]).toBe(true);
-    });
-
-    it('should not update if link view id is unchanged', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      const linkId = 'link-1';
-
-      store.markPaperLinkViewMounted(paperId, linkId);
-      const snapshot1 = store.internalState.getSnapshot();
-      const paper1 = snapshot1.papers[paperId];
-
-      store.markPaperLinkViewMounted(paperId, linkId);
-      const snapshot2 = store.internalState.getSnapshot();
-      const paper2 = snapshot2.papers[paperId];
-
-      expect(paper2).toBe(paper1);
+      expect(paper?.elementViewIds['element-1']).toBeUndefined();
     });
 
     it('should remove link view id on unmount', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const linkId = 'link-1';
+      ensurePaperSnapshot(store, paperId);
 
-      store.markPaperLinkViewMounted(paperId, linkId);
-      store.markPaperLinkViewUnmounted(paperId, linkId);
+      const link = new shapes.standard.Link({ id: 'link-1' });
+
+      store.setPaperViews(paperId, new Map([['link-1', { type: 'add' as const, data: link }]]));
+      store.setPaperViews(paperId, new Map([['link-1', { type: 'remove' as const }]]));
 
       const paper = store.internalState.getSnapshot().papers[paperId];
-      expect(paper?.linkViewIds[linkId]).toBeUndefined();
+      expect(paper?.linkViewIds['link-1']).toBeUndefined();
     });
   });
 
@@ -426,7 +406,13 @@ describe('GraphStore', () => {
         },
       });
 
-      expect(() => store.markPaperElementViewMounted('paper-main', 'element-1')).not.toThrow();
+      const element = new shapes.standard.Rectangle({ id: 'element-1' });
+      expect(() =>
+        store.setPaperViews(
+          'paper-main',
+          new Map([['element-1', { type: 'add' as const, data: element }]])
+        )
+      ).not.toThrow();
       expect(() =>
         store.addPaper('paper-minimap', {
           paperOptions: {
