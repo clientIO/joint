@@ -17,14 +17,6 @@ function renderTestElement() {
   return <rect width={10} height={10} />;
 }
 
-function createGraphWrapper() {
-  return ({ children }: { children: ReactNode }) => (
-    <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
-      {children}
-    </GraphProvider>
-  );
-}
-
 const CELL_VIEW = {} as dia.CellView;
 const ELEMENT_VIEW = {} as dia.ElementView;
 const LINK_VIEW = {} as dia.LinkView;
@@ -183,7 +175,7 @@ describe('use-paper-events', () => {
       const { result } = renderHook(
         () => {
           const paper = usePaper({ isNullable: true });
-          usePaperEvents(handlers);
+          usePaperEvents({ isNullable: true }, handlers);
           return paper;
         },
         { wrapper }
@@ -231,7 +223,7 @@ describe('use-paper-events', () => {
 
     renderHook(
       () => {
-        usePaperEvents((ctx) => {
+        usePaperEvents({ isNullable: true }, (ctx: PaperEventsContext) => {
           captured = ctx;
           return {
             'render:done': () => {},
@@ -256,8 +248,8 @@ describe('use-paper-events', () => {
     const { result } = renderHook(
       () => {
         const paper = usePaper({ isNullable: true });
-        usePaperEvents(({ graph, paper: ctxPaper }) => ({
-          scale: (...args) => {
+        usePaperEvents({ isNullable: true }, ({ graph, paper: ctxPaper }: PaperEventsContext) => ({
+          scale: (...args: unknown[]) => {
             onScale({ graph, paper: ctxPaper }, ...args);
           },
         }));
@@ -344,7 +336,7 @@ describe('use-paper-events', () => {
     const { result, unmount } = renderHook(
       () => {
         const paper = usePaper({ isNullable: true });
-        usePaperEvents({ resize: onResize });
+        usePaperEvents({ isNullable: true }, { resize: onResize });
         return paper;
       },
       { wrapper }
@@ -367,17 +359,6 @@ describe('use-paper-events', () => {
     });
 
     expect(onResize).toHaveBeenCalledTimes(callsBeforeUnmount);
-  });
-
-  it('throws when context target is used outside Paper', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const wrapper = createGraphWrapper();
-
-    expect(() => {
-      renderHook(() => usePaperEvents({ translate: jest.fn() }), { wrapper });
-    }).toThrow('usePaperEvents without a target must be used within a Paper.');
-
-    consoleError.mockRestore();
   });
 
   it('supports the useId + paperId overload pattern used in stories', async () => {

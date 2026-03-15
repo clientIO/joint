@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { dia, shapes } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
@@ -18,7 +19,7 @@ import {
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
 } from '../state/data-mapping';
-import { executeClearViewForCell } from './clear-view';
+import { clearConnectedLinkViews } from './clear-view';
 import { graphState, LAYOUT_UPDATE_EVENT, type GraphState } from '../state/graph-state';
 import { getLayout } from './update-layout-state';
 import {
@@ -27,8 +28,8 @@ import {
   type ExternalStoreLike,
   type State,
 } from '../utils/create-state';
-import type { IncrementalStateChanges } from '../state/incremental.types';
-import type { Feature } from '../hooks/use-paper-features';
+import type { IncrementalChange, IncrementalStateChanges } from '../state/incremental.types';
+import type { Feature } from '../hooks/use-create-paper-features';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -291,77 +292,6 @@ export class GraphStore {
     });
   }
 
-  private setPaperElementViewMountedState(
-    paperId: string,
-    cellId: CellId,
-    isMounted: boolean
-  ): boolean {
-    let isChanged = false;
-    this.internalState.setState((previous) => {
-      const currentPaper = previous.papers[paperId];
-      if (!currentPaper && !isMounted) {
-        return previous;
-      }
-
-      const basePaper = currentPaper ?? createPaperStoreSnapshot();
-      const hadCell = !!basePaper.elementViewIds[cellId];
-      if ((isMounted && hadCell) || (!isMounted && !hadCell)) {
-        return previous;
-      }
-
-      const nextElementViewIds = { ...basePaper.elementViewIds };
-      if (isMounted) {
-        nextElementViewIds[cellId] = true;
-      } else {
-        Reflect.deleteProperty(nextElementViewIds, cellId);
-      }
-
-      isChanged = true;
-      const nextPaper: PaperStoreSnapshot = {
-        ...basePaper,
-        hasElementViewSnapshot: basePaper.hasElementViewSnapshot || isMounted,
-        elementViewIds: nextElementViewIds,
-      };
-      return { papers: { ...previous.papers, [paperId]: nextPaper } };
-    });
-    return isChanged;
-  }
-
-  private setPaperLinkViewMountedState(
-    paperId: string,
-    linkId: CellId,
-    isMounted: boolean
-  ): boolean {
-    let isChanged = false;
-    this.internalState.setState((previous) => {
-      const currentPaper = previous.papers[paperId];
-      if (!currentPaper && !isMounted) {
-        return previous;
-      }
-
-      const basePaper = currentPaper ?? createPaperStoreSnapshot();
-      const hadLink = !!basePaper.linkViewIds[linkId];
-      if ((isMounted && hadLink) || (!isMounted && !hadLink)) {
-        return previous;
-      }
-
-      const nextLinkViewIds = { ...basePaper.linkViewIds };
-      if (isMounted) {
-        nextLinkViewIds[linkId] = true;
-      } else {
-        Reflect.deleteProperty(nextLinkViewIds, linkId);
-      }
-
-      isChanged = true;
-      const nextPaper: PaperStoreSnapshot = {
-        ...basePaper,
-        linkViewIds: nextLinkViewIds,
-      };
-      return { papers: { ...previous.papers, [paperId]: nextPaper } };
-    });
-    return isChanged;
-  }
-
   public setPaperFeature(paperId: string, feature: Feature) {
     const paperStore = this.paperStores.get(paperId);
     if (!paperStore) {
@@ -398,32 +328,60 @@ export class GraphStore {
     });
   }
 
-  public markPaperElementViewMounted(paperId: string, cellId: CellId): void {
-    const isChanged = this.setPaperElementViewMountedState(paperId, cellId, true);
-    if (isChanged) {
-      this.graph.trigger(LAYOUT_UPDATE_EVENT);
-    }
-  }
+  public setPaperViews(paperId: string, changes: Map<string, IncrementalChange<dia.Cell>>) {
+    this.internalState.setState((previous) => {
+      const currentPaper = previous.papers[paperId];
+      if (!currentPaper) {
+        return previous;
+      }
 
-  public markPaperElementViewUnmounted(paperId: string, cellId: CellId): void {
-    const isChanged = this.setPaperElementViewMountedState(paperId, cellId, false);
-    if (isChanged) {
-      this.graph.trigger(LAYOUT_UPDATE_EVENT);
-    }
-  }
+      const basePaper = currentPaper;
+      let nextElementViewIds = { ...basePaper.elementViewIds };
+      let nextLinkViewIds = { ...basePaper.linkViewIds };
+      for (const [cellId, change] of changes) {
+        switch (change.type) {
+          case 'add':
+          case 'change': {
+            {
+              if (change.data.isElement()) {
+                nextElementViewIds[cellId] = true;
+              } else {
+                nextLinkViewIds[cellId] = true;
+              }
+            }
+            break;
+          }
+          case 'remove': {
+            Reflect.deleteProperty(nextElementViewIds, cellId);
+            Reflect.deleteProperty(nextLinkViewIds, cellId);
+            break;
+          }
+          case 'reset': {
+            nextElementViewIds = {};
+            nextLinkViewIds = {};
+            for (const item of change.data) {
+              if (item.isElement()) {
+                Reflect.deleteProperty(nextElementViewIds, String(item.id));
+              } else {
+                Reflect.deleteProperty(nextLinkViewIds, String(item.id));
+              }
+            }
+            break;
+          }
+        }
+      }
 
-  public markPaperLinkViewMounted(paperId: string, linkId: CellId): void {
-    const isChanged = this.setPaperLinkViewMountedState(paperId, linkId, true);
-    if (isChanged) {
-      this.graph.trigger(LAYOUT_UPDATE_EVENT);
-    }
-  }
-
-  public markPaperLinkViewUnmounted(paperId: string, linkId: CellId): void {
-    const isChanged = this.setPaperLinkViewMountedState(paperId, linkId, false);
-    if (isChanged) {
-      this.graph.trigger(LAYOUT_UPDATE_EVENT);
-    }
+      const nextPaper: PaperStoreSnapshot = {
+        ...basePaper,
+        hasElementViewSnapshot:
+          // TODO: idk, if this is also fast, Object.keys() on hot paths.
+          basePaper.hasElementViewSnapshot || Object.keys(nextElementViewIds).length > 0,
+        elementViewIds: nextElementViewIds,
+        linkViewIds: nextLinkViewIds,
+      };
+      return { papers: { ...previous.papers, [paperId]: nextPaper } };
+    });
+    this.graph.trigger(LAYOUT_UPDATE_EVENT, { changes });
   }
 
   private removePaper = (id: string) => {
@@ -459,18 +417,25 @@ export class GraphStore {
     return this.paperStores.get(id);
   };
 
-  // --- ClearView API ---
-
-  public scheduleClearView = (options: {
+  /**
+   * This method clears the cached view for a given element and its connected links on the specified paper.
+   * It is used to force re-rendering of the element and its links when their layout might have changed.
+   * The method accepts an optional `onValidateLink` callback to filter which connected links should be cleared.
+   * @param options - An object containing the cellId of the element, an optional onValidateLink callback, and the paper instance.
+   */
+  public clearViewForElementAndLinks = (options: {
     readonly cellId: CellId;
     readonly onValidateLink?: (link: dia.Link) => boolean;
+    readonly paper: dia.Paper;
   }) => {
-    executeClearViewForCell(
-      this.paperStores.values(),
-      this.graph,
-      options.cellId,
-      options.onValidateLink
-    );
-    this.graph.trigger(LAYOUT_UPDATE_EVENT);
+    const { cellId, onValidateLink, paper } = options;
+    const elementView = paper.findViewByModel(cellId);
+    if (!elementView) {
+      return;
+    }
+
+    elementView.cleanNodesCache();
+    const changes = clearConnectedLinkViews(paper, this.graph, cellId, onValidateLink);
+    this.graph.trigger(LAYOUT_UPDATE_EVENT, { changes });
   };
 }

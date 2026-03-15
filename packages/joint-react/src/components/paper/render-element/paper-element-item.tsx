@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 're
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
 import type { FlatElementData } from '../../../types/element-types';
-import { useGraphStore, useNodeLayout } from '../../../hooks';
+import { useGraphStore, useNodeLayout, usePaper } from '../../../hooks';
 
 export interface ElementItemProps<Data = FlatElementData> {
   /**
@@ -23,15 +23,17 @@ function SVGElementItemComponent<Data = FlatElementData>(props: ElementItemProps
   const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
   const cell = rest as Data;
   const graphStore = useGraphStore();
+  const paper = usePaper();
 
   useLayoutEffect(() => {
     if (!areElementsMeasured) {
       return;
     }
-    graphStore.scheduleClearView({
+    graphStore.clearViewForElementAndLinks({
       cellId: id,
+      paper,
     });
-  }, [id, graphStore, areElementsMeasured]);
+  }, [id, graphStore, areElementsMeasured, paper]);
 
   if (!portalElement) {
     return null;
@@ -74,16 +76,18 @@ function HTMLElementItemComponent<Data = FlatElementData>(props: ElementItemProp
   const element = renderElement(cell);
   const { width, height, x, y } = cell as FlatElementData;
   const graphStore = useGraphStore();
+  const paper = usePaper();
 
   useLayoutEffect(() => {
     if (!areElementsMeasured) {
       return;
     }
     // HERE TO TRIGGER:
-    graphStore.scheduleClearView({
+    graphStore.clearViewForElementAndLinks({
       cellId: id,
+      paper,
     });
-  }, [id, graphStore, areElementsMeasured]);
+  }, [id, graphStore, areElementsMeasured, paper]);
 
   // WE NEED TO COMPARE WHAT IS CHANGED HERE...
 

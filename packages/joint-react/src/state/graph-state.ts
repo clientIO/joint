@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable no-shadow */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable @typescript-eslint/no-dynamic-delete */
 /**
@@ -20,7 +22,13 @@
  */
 import { mvc, util, type dia } from '@joint/core';
 import type { IncrementalChange, IncrementalStateChanges } from './incremental.types';
-import type { GraphStoreLayoutSnapshot, GraphStoreSnapshot, PaperStore } from '../store';
+import type {
+  GraphStoreLayoutSnapshot,
+  GraphStoreSnapshot,
+  LinkLayout,
+  NodeLayout,
+  PaperStore,
+} from '../store';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
 import type { GraphMappings } from './graph-mappings';
 import type { FlatElementData } from '../types/element-types';
@@ -223,47 +231,58 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       layout.links[paperId][String(link.id)] = getLinkLayout(linkView);
     }
   }
-  function onLayoutUpdateHandler() {
+
+  function handleElementLayoutChange(
+    id: string,
+    change: IncrementalChange<dia.Cell>,
+    nextElements: Record<string, NodeLayout>,
+    nextLinks: Record<string, Record<string, LinkLayout>>
+  ) {
+    switch (change.type) {
+      case 'add':
+      case 'change': {
+        const cell = change.data;
+        if (cell.isElement()) {
+          const layout = getElementLayout(cell);
+          if (!layout) {
+            return;
+          }
+          nextElements[id] = layout;
+          const connectedLinks = graph.getConnectedLinks(cell);
+          for (const link of connectedLinks) {
+            updateLinkLayout({ elements: nextElements, links: nextLinks }, link);
+          }
+        } else if (cell.isLink()) {
+          updateLinkLayout({ elements: nextElements, links: nextLinks }, cell);
+        }
+        break;
+      }
+
+      case 'remove': {
+        delete nextElements[id];
+        for (const paperLinks of Object.values(nextLinks)) {
+          delete paperLinks[id];
+        }
+        break;
+      }
+
+      case 'reset': {
+        const layout = getLayout({ graph, papers });
+        return { elements: layout.elements, links: layout.links };
+      }
+    }
+  }
+  /**
+   * Handles layout updates by processing the accumulated changes and updating the layout state accordingly.
+   * @param changes - A map of cell ID to incremental change that has occurred since the last layout update.
+   */
+  function onLayoutUpdateHandler(changes: Map<string, IncrementalChange<dia.Cell>>) {
     layoutState.setState((previous) => {
       const nextElements = { ...previous.elements };
       const nextLinks = { ...previous.links };
 
       for (const [id, change] of changes) {
-        switch (change.type) {
-          case 'add':
-          case 'change': {
-            const cell = change.data;
-            if (cell.isElement()) {
-              const layout = getElementLayout(cell);
-              if (!layout) {
-                continue;
-              }
-              nextElements[id] = layout;
-              const connectedLinks = graph.getConnectedLinks(cell);
-              for (const link of connectedLinks) {
-                updateLinkLayout({ elements: nextElements, links: nextLinks }, link);
-              }
-            } else if (cell.isLink()) {
-              updateLinkLayout({ elements: nextElements, links: nextLinks }, cell);
-            }
-            break;
-          }
-
-          case 'remove': {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete nextElements[id];
-            for (const paperLinks of Object.values(nextLinks)) {
-              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-              delete paperLinks[id];
-            }
-            break;
-          }
-
-          case 'reset': {
-            const layout = getLayout({ graph, papers });
-            return { elements: layout.elements, links: layout.links };
-          }
-        }
+        handleElementLayoutChange(id, change, nextElements, nextLinks);
       }
       return { elements: nextElements, links: nextLinks };
     });
@@ -380,7 +399,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     } else {
       changes.set(String(cell.id), { type, data: cell });
     }
-    onLayoutUpdateHandler();
+    onLayoutUpdateHandler(changes);
     if (enableBatchUpdates && batchDepth > 0) {
       return;
     }
@@ -426,15 +445,14 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       if (isUpdateFromReact) return;
       changes.clear();
       changes.set('reset', { type: 'reset', data: collection.models });
-      onLayoutUpdateHandler();
+      onLayoutUpdateHandler(changes);
       if (enableBatchUpdates && batchDepth > 0) return;
       onStateUpdate();
     }
   );
 
-  controller.listenTo(graph, LAYOUT_UPDATE_EVENT, () => {
-    const layout = getLayout({ graph, papers });
-    layoutState.setState(() => ({ elements: layout.elements, links: layout.links }));
+  controller.listenTo(graph, LAYOUT_UPDATE_EVENT, ({ changes: changesFrom }) => {
+    onLayoutUpdateHandler(changesFrom);
   });
 
   if (enableBatchUpdates) {

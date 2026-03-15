@@ -19,4 +19,4 @@ export * from './use-stores';
 export * from './use-markup';
 export * from './use-on-elements-measured';
 export * from './use-create-react-paper';
-export * from './use-paper-features';
+export * from './use-create-paper-features';

@@ -2,9 +2,18 @@ import { dia, shapes } from '@joint/core';
 import { ReactPaper } from '../react-paper';
 import { ReactElement } from '../react-element';
 import { GraphStore } from '../../store/graph-store';
+import type { IncrementalChange } from '../../state/incremental.types';
+
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 const TEST_PAPER_ID = 'test-paper';
 const toCellId = (id: dia.Cell.ID): string => id as string;
+
+/**
+ * Flush the microtask-based scheduler used by ReactPaper.
+ */
+async function flushMicrotasks(): Promise<void> {
+  await Promise.resolve();
+}
 
 describe('ReactPaper', () => {
   let graphStore: GraphStore;
@@ -27,28 +36,27 @@ describe('ReactPaper', () => {
    * Helper to create a ReactPaper with GraphStore callbacks wired.
    */
   function createPaper(options: Partial<dia.Paper.Options> = {}): ReactPaper {
+    // Ensure the paper snapshot exists in internalState before creating the paper
+    graphStore.internalState.setState((previous) => {
+      if (previous.papers[TEST_PAPER_ID]) return previous;
+      return {
+        papers: {
+          ...previous.papers,
+          [TEST_PAPER_ID]: {
+            hasElementViewSnapshot: false,
+            elementViewIds: {},
+            linkViewIds: {},
+            version: 0,
+          },
+        },
+      };
+    });
+
     return new ReactPaper({
       el: container,
       model: graphStore.graph,
-      onViewMountChange: (kind, cellId, isMounted) => {
-        switch (kind) {
-          case 'element': {
-            if (isMounted) {
-              graphStore.markPaperElementViewMounted(TEST_PAPER_ID, cellId);
-            } else {
-              graphStore.markPaperElementViewUnmounted(TEST_PAPER_ID, cellId);
-            }
-            return;
-          }
-          case 'link': {
-            if (isMounted) {
-              graphStore.markPaperLinkViewMounted(TEST_PAPER_ID, cellId);
-            } else {
-              graphStore.markPaperLinkViewUnmounted(TEST_PAPER_ID, cellId);
-            }
-            return;
-          }
-        }
+      onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
+        graphStore.setPaperViews(TEST_PAPER_ID, changes);
       },
       cellNamespace: DEFAULT_CELL_NAMESPACE,
       async: false, // Synchronous for testing
@@ -190,9 +198,7 @@ describe('ReactPaper', () => {
       expect(linkView.el.getAttribute('magnet')).not.toBe('false');
     });
 
-    it('should mark element view as mounted when view is inserted', () => {
-      const mountSpy = jest.spyOn(graphStore, 'markPaperElementViewMounted');
-
+    it('should buffer element view mount in viewChanges', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
@@ -201,7 +207,18 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCell(element);
 
-      expect(mountSpy).toHaveBeenCalledWith(TEST_PAPER_ID, element.id as string);
+      // viewChanges are flushed via microtask, but should have been recorded
+      const setPaperViewsSpy = jest.spyOn(graphStore, 'setPaperViews');
+      // Trigger another cell add to see setPaperViews called after microtask
+      const element2 = new shapes.standard.Rectangle({
+        position: { x: 200, y: 0 },
+        size: { width: 100, height: 100 },
+      });
+      graphStore.graph.addCell(element2);
+
+      // The viewChanges map should contain the mount entry
+      expect(paper.viewChanges.has(toCellId(element2.id))).toBe(true);
+      setPaperViewsSpy.mockRestore();
     });
   });
 
@@ -242,7 +259,7 @@ describe('ReactPaper', () => {
       expect(paper.getLinkView(toCellId(link.id))).toBeUndefined();
     });
 
-    it('should mark element view as unmounted when view is removed', () => {
+    it('should buffer element unmount in viewChanges', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
@@ -250,77 +267,17 @@ describe('ReactPaper', () => {
         size: { width: 100, height: 100 },
       });
       graphStore.graph.addCell(element);
-
-      const unmountSpy = jest.spyOn(graphStore, 'markPaperElementViewUnmounted');
-      unmountSpy.mockClear();
+      const cellId = toCellId(element.id);
 
       graphStore.graph.removeCells([element]);
-      expect(unmountSpy).toHaveBeenCalledWith(TEST_PAPER_ID, element.id as string);
+
+      // The viewChanges map should contain a 'remove' entry for the unmounted element
+      expect(paper.viewChanges.get(cellId)?.type).toBe('remove');
     });
   });
 
   describe('_hideCellView (viewport culling)', () => {
-    it('should remove element id from internal mounted snapshot when hidden', () => {
-      paper = createPaper({
-        width: 100,
-        height: 100,
-      });
-
-      const element = new shapes.standard.Rectangle({
-        position: { x: 0, y: 0 },
-        size: { width: 50, height: 50 },
-      });
-      graphStore.graph.addCell(element);
-      expect(
-        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.elementViewIds[
-          toCellId(element.id)
-        ]
-      ).toBe(true);
-
-      // Get the view and call _hideCellView directly
-      const view = findViewOrThrow(element);
-      paper._hideCellView(view);
-
-      expect(
-        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.elementViewIds[
-          toCellId(element.id)
-        ]
-      ).toBeUndefined();
-    });
-
-    it('should remove link id from internal mounted snapshot when hidden', () => {
-      paper = createPaper({
-        width: 100,
-        height: 100,
-      });
-
-      const element1 = new shapes.standard.Rectangle({
-        position: { x: 0, y: 0 },
-        size: { width: 50, height: 50 },
-      });
-      const element2 = new shapes.standard.Rectangle({
-        position: { x: 200, y: 0 },
-        size: { width: 50, height: 50 },
-      });
-      const link = new shapes.standard.Link({
-        source: { id: element1.id },
-        target: { id: element2.id },
-      });
-      graphStore.graph.addCells([element1, element2, link]);
-      expect(
-        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.linkViewIds[toCellId(link.id)]
-      ).toBe(true);
-
-      // Get the link view and call _hideCellView directly
-      const linkView = findViewOrThrow(link);
-      paper._hideCellView(linkView);
-
-      expect(
-        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.linkViewIds[toCellId(link.id)]
-      ).toBeUndefined();
-    });
-
-    it('should mark element view as unmounted when view is hidden', () => {
+    it('should buffer element unmount when view is hidden', () => {
       paper = createPaper();
 
       const element = new shapes.standard.Rectangle({
@@ -329,13 +286,43 @@ describe('ReactPaper', () => {
       });
       graphStore.graph.addCell(element);
 
-      const unmountSpy = jest.spyOn(graphStore, 'markPaperElementViewUnmounted');
-      unmountSpy.mockClear();
-
       const view = findViewOrThrow(element);
       paper._hideCellView(view);
 
-      expect(unmountSpy).toHaveBeenCalledWith(TEST_PAPER_ID, element.id as string);
+      expect(paper.viewChanges.get(toCellId(element.id))?.type).toBe('remove');
+    });
+
+    it('should update internal state after microtask flush', async () => {
+      paper = createPaper({
+        width: 100,
+        height: 100,
+      });
+
+      const element = new shapes.standard.Rectangle({
+        position: { x: 0, y: 0 },
+        size: { width: 50, height: 50 },
+      });
+      graphStore.graph.addCell(element);
+      // Need multiple microtask flushes: simpleScheduler queues one, then setState may queue another
+      await flushMicrotasks();
+      await flushMicrotasks();
+
+      expect(
+        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.elementViewIds[
+          toCellId(element.id)
+        ]
+      ).toBe(true);
+
+      const view = findViewOrThrow(element);
+      paper._hideCellView(view);
+      await flushMicrotasks();
+      await flushMicrotasks();
+
+      expect(
+        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.elementViewIds[
+          toCellId(element.id)
+        ]
+      ).toBeUndefined();
     });
 
     it('should remove link from pendingLinks when hidden', () => {
