@@ -9,7 +9,7 @@ import type { GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
 import { connectionPoint } from './default-connection-point';
 import { measureNode } from './default-measure-node';
-import type { Feature } from '../hooks/use-paper-features';
+import type { Feature } from '../hooks/use-create-paper-features';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;

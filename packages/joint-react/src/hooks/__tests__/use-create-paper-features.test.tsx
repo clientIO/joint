@@ -8,8 +8,8 @@
 import { render, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { GraphProvider, Paper } from '../../components';
-import { PaperFeaturesProvider, useCreatePaperFeature } from '../use-paper-features';
-import type { Feature, OnAddFeature } from '../use-paper-features';
+import { PaperFeaturesProvider, useCreatePaperFeature } from '../use-create-paper-features';
+import type { Feature, OnAddFeature } from '../use-create-paper-features';
 import { usePaperStore } from '../use-paper';
 
 const EMPTY_ELEMENTS = {};

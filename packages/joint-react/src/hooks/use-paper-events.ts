@@ -4,7 +4,7 @@ import { useLayoutEffect, type DependencyList } from 'react';
 import type { PaperEventHandlers } from '../types/event.types';
 import { usePaperStore } from './use-paper';
 import type { PaperStore } from '../store';
-import type { AnyString } from '../types';
+import { getPaperIdFromReference, type AnyString, type PaperReference } from '../types';
 import { useGraphStore } from './use-graph-store';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
@@ -22,7 +22,10 @@ type HandlersOrFactory<T> =
 /**
  * Builds the EventContext from paperStore and graph.
  */
-function buildEventContext<T>(paperStore: PaperStore, graph: dia.Graph): PaperEventsContext<T> {
+export function buildEventContext<T>(
+  paperStore: PaperStore,
+  graph: dia.Graph
+): PaperEventsContext<T> {
   const featureInstances: Record<string, unknown> = {};
   for (const featureId in paperStore.features) {
     const { instance } = paperStore.features[featureId] ?? {};
@@ -44,7 +47,7 @@ function buildEventContext<T>(paperStore: PaperStore, graph: dia.Graph): PaperEv
  * @param handlersOrFactory - Event handlers map or factory function returning handlers.
  * @returns Cleanup callback that stops all listeners.
  */
-function subscribeToPaperEvents<T>(
+export function subscribeToPaperEvents<T>(
   paperStore: PaperStore,
   graph: dia.Graph,
   handlersOrFactory: HandlersOrFactory<T>
@@ -88,36 +91,16 @@ function subscribeToPaperEvents<T>(
  *
  * @group Hooks
  */
+
 export function usePaperEvents<T = Record<AnyString, unknown>>(
+  paper: PaperReference,
   handlers: HandlersOrFactory<T>,
-  dependencies?: DependencyList
-): void;
-export function usePaperEvents<T = Record<AnyString, unknown>>(
-  id: string,
-  handlers: HandlersOrFactory<T>,
-  dependencies?: DependencyList
-): void;
-export function usePaperEvents<T = Record<AnyString, unknown>>(
-  idOrHandlers: string | HandlersOrFactory<T>,
-  handlersOrDeps?: HandlersOrFactory<T> | DependencyList,
   dependencies: DependencyList = EMPTY_DEPENDENCIES
 ): void {
-  const isIdForm = typeof idOrHandlers === 'string';
+  const extractedPaper = getPaperIdFromReference(paper);
 
-  const paperStore = usePaperStore(isIdForm ? idOrHandlers : { isNullable: true });
+  const paperStore = usePaperStore(extractedPaper ?? { isNullable: true });
   const graphStore = useGraphStore();
-
-  if (!isIdForm && !paperStore) {
-    throw new Error('usePaperEvents without a target must be used within a Paper.');
-  }
-
-  const handlers: HandlersOrFactory<T> = isIdForm
-    ? (handlersOrDeps as HandlersOrFactory<T>)
-    : (idOrHandlers as HandlersOrFactory<T>);
-
-  const deps: DependencyList = isIdForm
-    ? dependencies
-    : ((handlersOrDeps as DependencyList) ?? EMPTY_DEPENDENCIES);
 
   useLayoutEffect(() => {
     if (!paperStore) return;
@@ -125,5 +108,5 @@ export function usePaperEvents<T = Record<AnyString, unknown>>(
     return subscribeToPaperEvents(paperStore, graphStore.graph, handlers);
     // Dependencies are explicit API contract for this hook.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graphStore, paperStore, ...deps]);
+  }, [graphStore, paperStore, ...dependencies]);
 }
