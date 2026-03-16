@@ -278,4 +278,226 @@ describe('graphState', () => {
 
     listener.destroy();
   });
+
+  describe('layoutState count and measuredElements', () => {
+    it('increments count and measuredElements on add', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+      const listener = graphState({
+        graph,
+        papers: new Map<string, PaperStore>(),
+        onReset: jest.fn(),
+        mappers: {},
+      });
+
+      const layout = () => listener.layoutState.getSnapshot().elements;
+
+      expect(layout().count).toBe(0);
+      expect(layout().measuredElements).toBe(0);
+
+      graph.addCell({
+        id: 'el-1',
+        type: 'ReactElement',
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+      });
+
+      expect(layout().count).toBe(1);
+      expect(layout().measuredElements).toBe(1);
+
+      graph.addCell({
+        id: 'el-2',
+        type: 'ReactElement',
+        position: { x: 10, y: 10 },
+        size: { width: 200, height: 200 },
+      });
+
+      expect(layout().count).toBe(2);
+      expect(layout().measuredElements).toBe(2);
+
+      listener.destroy();
+    });
+
+    it('does not count unmeasured elements (width/height <= 1)', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+      const listener = graphState({
+        graph,
+        papers: new Map<string, PaperStore>(),
+        onReset: jest.fn(),
+        mappers: {},
+      });
+
+      const layout = () => listener.layoutState.getSnapshot().elements;
+
+      graph.addCell({
+        id: 'el-unmeasured',
+        type: 'ReactElement',
+        position: { x: 0, y: 0 },
+        size: { width: 1, height: 1 },
+      });
+
+      expect(layout().count).toBe(1);
+      expect(layout().measuredElements).toBe(0);
+
+      // Resize to measured
+      const element = graph.getCell('el-unmeasured') as dia.Element;
+      element.resize(50, 50);
+
+      expect(layout().count).toBe(1);
+      expect(layout().measuredElements).toBe(1);
+
+      // Resize back to unmeasured
+      element.resize(1, 1);
+
+      expect(layout().count).toBe(1);
+      expect(layout().measuredElements).toBe(0);
+
+      listener.destroy();
+    });
+
+    it('decrements count and measuredElements on remove', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+      const listener = graphState({
+        graph,
+        papers: new Map<string, PaperStore>(),
+        onReset: jest.fn(),
+        mappers: {},
+      });
+
+      const layout = () => listener.layoutState.getSnapshot().elements;
+
+      graph.addCell({
+        id: 'el-1',
+        type: 'ReactElement',
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+      });
+      graph.addCell({
+        id: 'el-2',
+        type: 'ReactElement',
+        position: { x: 10, y: 10 },
+        size: { width: 80, height: 60 },
+      });
+
+      expect(layout().count).toBe(2);
+      expect(layout().measuredElements).toBe(2);
+
+      graph.removeCells([graph.getCell('el-1')!]);
+
+      expect(layout().count).toBe(1);
+      expect(layout().measuredElements).toBe(1);
+
+      graph.removeCells([graph.getCell('el-2')!]);
+
+      expect(layout().count).toBe(0);
+      expect(layout().measuredElements).toBe(0);
+
+      listener.destroy();
+    });
+
+    it('does not count links in element count or measuredElements', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+      const listener = graphState({
+        graph,
+        papers: new Map<string, PaperStore>(),
+        onReset: jest.fn(),
+        mappers: {},
+      });
+
+      const layout = () => listener.layoutState.getSnapshot().elements;
+
+      graph.addCell({
+        id: 'el-1',
+        type: 'ReactElement',
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+      });
+      graph.addCell({
+        id: 'link-1',
+        type: 'standard.Link',
+        source: { id: 'el-1' },
+        target: { x: 100, y: 100 },
+      });
+
+      expect(layout().count).toBe(1);
+      expect(layout().measuredElements).toBe(1);
+
+      listener.destroy();
+    });
+
+    it('position change does not create new sizes reference', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+      const listener = graphState({
+        graph,
+        papers: new Map<string, PaperStore>(),
+        onReset: jest.fn(),
+        mappers: {},
+      });
+
+      graph.addCell({
+        id: 'el-1',
+        type: 'ReactElement',
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+      });
+
+      const sizesBefore = listener.layoutState.getSnapshot().elements.sizes;
+      const anglesBefore = listener.layoutState.getSnapshot().elements.angles;
+
+      // Change position only
+      const element = graph.getCell('el-1') as dia.Element;
+      element.position(50, 60);
+
+      const sizesAfter = listener.layoutState.getSnapshot().elements.sizes;
+      const anglesAfter = listener.layoutState.getSnapshot().elements.angles;
+
+      // Sizes and angles references must be preserved (unchanged)
+      expect(sizesAfter).toBe(sizesBefore);
+      expect(anglesAfter).toBe(anglesBefore);
+
+      // Positions reference must be new
+      const positionsAfter = listener.layoutState.getSnapshot().elements.positions;
+      expect(positionsAfter['el-1']?.x).toBe(50);
+      expect(positionsAfter['el-1']?.y).toBe(60);
+
+      listener.destroy();
+    });
+
+    it('size change does not create new positions reference', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+      const listener = graphState({
+        graph,
+        papers: new Map<string, PaperStore>(),
+        onReset: jest.fn(),
+        mappers: {},
+      });
+
+      graph.addCell({
+        id: 'el-1',
+        type: 'ReactElement',
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
+      });
+
+      const positionsBefore = listener.layoutState.getSnapshot().elements.positions;
+      const anglesBefore = listener.layoutState.getSnapshot().elements.angles;
+
+      // Change size only
+      const element = graph.getCell('el-1') as dia.Element;
+      element.resize(200, 200);
+
+      const positionsAfter = listener.layoutState.getSnapshot().elements.positions;
+      const anglesAfter = listener.layoutState.getSnapshot().elements.angles;
+
+      // Positions and angles references must be preserved
+      expect(positionsAfter).toBe(positionsBefore);
+      expect(anglesAfter).toBe(anglesBefore);
+
+      // Sizes reference must be new
+      const sizesAfter = listener.layoutState.getSnapshot().elements.sizes;
+      expect(sizesAfter['el-1']?.width).toBe(200);
+      expect(sizesAfter['el-1']?.height).toBe(200);
+
+      listener.destroy();
+    });
+  });
 });
