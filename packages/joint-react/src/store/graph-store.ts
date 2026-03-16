@@ -422,6 +422,9 @@ export class GraphStore {
    * It is used to force re-rendering of the element and its links when their layout might have changed.
    * The method accepts an optional `onValidateLink` callback to filter which connected links should be cleared.
    * @param options - An object containing the cellId of the element, an optional onValidateLink callback, and the paper instance.
+   * @param options.cellId - The ID of the element whose view should be cleared.
+   * @param options.onValidateLink - Optional callback to filter which connected links should be cleared.
+   * @param options.paper - The paper instance to clear views from.
    */
   public clearViewForElementAndLinks = (options: {
     readonly cellId: CellId;

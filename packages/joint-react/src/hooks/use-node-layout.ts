@@ -20,9 +20,7 @@ const IS_EQUAL = (a: NodeLayout | undefined, b: NodeLayout | undefined): boolean
 /**
  * Hook to get layout data (geometry) for a specific node.
  * Returns width, height, x, and y from the actual graph cell.
- * @param idOrSelector - Optional ID of the node, or a selector function when used without ID.
- * @param selector - Optional selector to extract a portion of the layout data.
- * @returns The layout data (x, y, width, height), selected data, or undefined if not found
+ * @returns The layout data (x, y, width, height, angle), selected data, or undefined if not found.
  * @group Hooks
  * @example
  * ```tsx

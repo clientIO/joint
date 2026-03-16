@@ -107,6 +107,13 @@ interface MutableIncrementalStateChange<T> {
   reset?: Record<string, T>;
 }
 
+/**
+ * Sets a record entry in an incremental state change object.
+ * @param change - The mutable incremental state change to update
+ * @param type - The type of change (added, changed, or removed)
+ * @param id - The cell identifier
+ * @param data - The data to set
+ */
 function setIncrementalChangeRecord<T>(
   change: MutableIncrementalStateChange<T>,
   type: 'added' | 'changed' | 'removed',
@@ -120,10 +127,19 @@ function setIncrementalChangeRecord<T>(
 }
 /**
  * Creates the graph state manager that listens to graph changes and syncs state.
- * @group Cell
- * @param graph The JointJS graph instance.
- * @param onIncrementalChange The callback function to handle cell changes.
- * @returns A function to stop listening to cell changes.
+ * @param options - Configuration including graph, papers, change callbacks, and mapping functions.
+ * @param options.graph - The JointJS graph instance to observe
+ * @param options.papers - Map of paper stores for layout tracking
+ * @param options.onIncrementalChange - Optional callback for incremental state changes
+ * @param options.onElementsChange - Optional callback when elements change
+ * @param options.onLinksChange - Optional callback when links change
+ * @param options.enableBatchUpdates - Whether to defer updates during batch operations
+ * @param options.mappers - Custom mapping functions for data conversion
+ * @param options.mappers.mapDataToElementAttributes - Maps element data to JointJS attributes
+ * @param options.mappers.mapDataToLinkAttributes - Maps link data to JointJS attributes
+ * @param options.mappers.mapElementAttributesToData - Maps JointJS element attributes to data
+ * @param options.mappers.mapLinkAttributesToData - Maps JointJS link attributes to data
+ * @returns A GraphState object with state stores, update methods, and cleanup functions.
  */
 export function graphState<ElementData = FlatElementData, LinkData = FlatLinkData>({
   graph,
@@ -157,15 +173,32 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
 
   const changes = new Map<string, IncrementalChange<dia.Cell>>();
 
+  /**
+   * Returns the previous link data for the given cell, if available.
+   * @param cell - The link cell to look up
+   * @returns The previous link data or undefined
+   */
   function getPreviousLinkData(cell: dia.Link): LinkData | undefined {
     const id = String(cell.id);
     return dataState.getSnapshot().links[id] as LinkData | undefined;
   }
+  /**
+   * Returns the previous element data for the given cell, if available.
+   * @param cell - The element cell to look up
+   * @returns The previous element data or undefined
+   */
   function getPreviousElementData(cell: dia.Element): ElementData | undefined {
     const id = String(cell.id);
     return dataState.getSnapshot().elements[id] as ElementData | undefined;
   }
 
+  /**
+   * Converts a JointJS element to its React data representation.
+   * @param root0 - The element conversion options
+   * @param root0.element - The JointJS element to convert
+   * @param root0.previousData - The previous data for diffing
+   * @returns The converted element data
+   */
   function elementToData({ element, previousData }: ElementToData<ElementData>): ElementData {
     previousData = previousData ?? getPreviousElementData(element);
     const defaultAttributes = resolveCellDefaults(element);
@@ -181,6 +214,13 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
         defaultMapElementAttributesToData({ attributes, defaultAttributes }) as ElementData,
     });
   }
+  /**
+   * Converts React element data to JointJS cell attributes.
+   * @param root0 - The element attributes options
+   * @param root0.id - The element identifier
+   * @param root0.data - The element data to convert
+   * @returns The JointJS cell attributes
+   */
   function elementToAttributes({ id, data }: ElementToAttributes<ElementData>) {
     return mapDataToElementAttributes({
       id,
@@ -191,6 +231,13 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     });
   }
 
+  /**
+   * Converts a JointJS link to its React data representation.
+   * @param root0 - The link conversion options
+   * @param root0.link - The JointJS link to convert
+   * @param root0.previousData - The previous data for diffing
+   * @returns The converted link data
+   */
   function linkToData({ link, previousData }: LinkToData<LinkData>): LinkData {
     previousData = previousData ?? getPreviousLinkData(link);
     const defaultAttributes = resolveCellDefaults(link);
@@ -206,6 +253,13 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
         defaultMapLinkAttributesToData({ attributes, defaultAttributes }) as LinkData,
     });
   }
+  /**
+   * Converts React link data to JointJS cell attributes.
+   * @param root0 - The link attributes options
+   * @param root0.id - The link identifier
+   * @param root0.data - The link data to convert
+   * @returns The JointJS cell attributes
+   */
   function linkToAttributes({ id, data }: LinkToAttributes<LinkData>): dia.Cell.JSON {
     const mapperId = id ?? util.uuid();
     return mapDataToLinkAttributes({
@@ -217,6 +271,11 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     });
   }
 
+  /**
+   * Updates the link layout for all papers that contain a view of the given link.
+   * @param layout - The layout snapshot to update
+   * @param link - The link whose layout to update
+   */
   function updateLinkLayout(layout: GraphStoreLayoutSnapshot, link: dia.Link) {
     for (const [paperId, paperStore] of papers) {
       const { paper } = paperStore;
@@ -232,6 +291,14 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     }
   }
 
+  /**
+   * Processes a layout change for a single element or link.
+   * @param id - The cell identifier
+   * @param change - The incremental change to process
+   * @param nextElements - The mutable elements layout record
+   * @param nextLinks - The mutable links layout record
+   * @returns Updated layout for reset changes, or undefined
+   */
   function handleElementLayoutChange(
     id: string,
     change: IncrementalChange<dia.Cell>,
@@ -288,6 +355,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     });
   }
 
+  /** Flushes accumulated changes to the data state and notifies change callbacks. */
   function onStateUpdate() {
     dataState.setState((previous) => {
       const nextElements = { ...previous.elements };
@@ -392,7 +460,11 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     changes.clear();
   }
 
-  /** Handles a graph cell event by recording the change and triggering updates. */
+  /**
+   * Handles a graph cell event by recording the change and triggering updates.
+   * @param cell - The cell that changed
+   * @param type - The type of change
+   */
   function onCellEvent(cell: dia.Cell, type: 'change' | 'add' | 'remove') {
     if (type === 'remove') {
       changes.set(String(cell.id), { type: 'remove' });

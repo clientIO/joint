@@ -3,9 +3,9 @@ import type { CellId } from '../types/cell-id';
 import { isString } from './is';
 
 /**
- * Get the link id from the given id.
- * @param id - The id to get the link id from.
- * @returns The link id or undefined if not found.
+ * Get the cell id from the given id or link endpoint definition.
+ * @param id - The id or link endpoint to extract the cell id from.
+ * @returns The cell id or undefined if not found.
  * @example
  * ```ts
  * import { getCellId } from '@joint/react';

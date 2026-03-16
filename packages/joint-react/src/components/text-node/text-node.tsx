@@ -5,6 +5,7 @@ import { useCombinedRef } from '../../hooks/use-combined-ref';
 import { isNumber } from '../../utils/is';
 import { useCellId, useGraph } from '../../hooks';
 
+/** Options for resolving text wrap width. */
 interface BreakTextWidthOptions {
   readonly width: number | undefined;
   readonly graph: ReturnType<typeof useGraph>;
@@ -20,6 +21,14 @@ interface TextWrapStylesOptions {
   readonly style?: React.CSSProperties;
 }
 
+/**
+ * Resolves the effective break-text width for text wrapping.
+ * @param options - The break text width options.
+ * @param options.width - Explicit width override.
+ * @param options.graph - The graph instance.
+ * @param options.cellId - The cell identifier.
+ * @returns The resolved width value.
+ */
 function getBreakTextWidth({ width, graph, cellId }: BreakTextWidthOptions) {
   if (isNumber(width)) {
     return Math.max(0, width);
@@ -37,6 +46,17 @@ function getBreakTextWidth({ width, graph, cellId }: BreakTextWidthOptions) {
   return element.size().width ?? 0;
 }
 
+/**
+ * Builds a style object for text wrapping from component props.
+ * @param options - The text wrap style options.
+ * @param options.lineHeight - Line height value.
+ * @param options.fontWeight - Font weight value.
+ * @param options.fontFamily - Font family value.
+ * @param options.fontSize - Font size value.
+ * @param options.letterSpacing - Letter spacing value.
+ * @param options.style - Optional inline CSS styles as fallback.
+ * @returns A record of CSS property names to values for text wrapping.
+ */
 function getTextWrapStyles({
   lineHeight,
   fontWeight,

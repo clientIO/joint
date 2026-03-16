@@ -1,3 +1,7 @@
+/**
+ * Creates a microtask-based scheduler that batches callbacks.
+ * @returns A function that queues callbacks for batched execution.
+ */
 export function createScheduler(): (callback: () => void) => void {
   let scheduled = false;
   let callbacks = new Set<() => void>();

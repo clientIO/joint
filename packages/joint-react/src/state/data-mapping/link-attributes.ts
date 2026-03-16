@@ -19,8 +19,9 @@ export interface LinkEndAttributeOptions {
  * - `{ x: 100, y: 200 }` → `{ x: 100, y: 200 }`
  *
  * Optionally merges `port`, `anchor`, `connectionPoint`, and `magnet`.
- * @param end
- * @param options
+ * @param end - The link end value (element ID string or point object)
+ * @param options - Optional endpoint detail properties to merge
+ * @returns The JointJS link end attribute object
  */
 export function toLinkEndAttribute(
   end: FlatLinkEnd,
@@ -56,7 +57,7 @@ export interface LinkEndData {
  *
  * `port`, `anchor`, `connectionPoint`, and `magnet` are extracted as
  * separate properties.
- * @param end
+ * @param end - The JointJS link end attribute to convert
  * @returns React-friendly link end data with optional port, anchor, connectionPoint, and magnet properties
  */
 export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
@@ -77,6 +78,13 @@ export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
 /**
  * Copies the optional endpoint detail properties (port, anchor, connectionPoint,
  * magnet) from a {@link LinkEndData} into a flat data record.
+ * @param linkData - The flat data record to write properties into
+ * @param endData - The link end data containing optional properties
+ * @param keys - Mapping of property names to their flat data keys
+ * @param keys.port - Key for the port property
+ * @param keys.anchor - Key for the anchor property
+ * @param keys.connectionPoint - Key for the connectionPoint property
+ * @param keys.magnet - Key for the magnet property
  */
 export function assignEndDataProperties(
   linkData: Record<string, unknown>,

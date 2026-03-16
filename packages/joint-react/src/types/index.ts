@@ -26,6 +26,11 @@ export type AnyString = string & {};
 
 export type PaperReference = string | React.RefObject<dia.Paper | null> | dia.Paper | Nullable;
 
+/**
+ * Resolves a Paper instance from a PaperReference.
+ * @param ref - The paper reference to resolve.
+ * @returns The resolved Paper instance, or null.
+ */
 export function getPaperFromReference(ref: PaperReference): dia.Paper | null {
   if (isString(ref)) {
     // ID form is not supported here since we don't have access to the paper store.
@@ -40,6 +45,11 @@ export function getPaperFromReference(ref: PaperReference): dia.Paper | null {
   return null;
 }
 
+/**
+ * Extracts the paper ID from a PaperReference.
+ * @param ref - The paper reference to extract the ID from.
+ * @returns The paper ID string, or null.
+ */
 export function getPaperIdFromReference(ref?: PaperReference): string | null {
   if (!ref) {
     return null;

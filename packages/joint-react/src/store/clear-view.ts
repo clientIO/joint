@@ -71,6 +71,7 @@ export function shouldClearLink(
  * @param graph - The JointJS Graph instance
  * @param cellId - The cell ID whose connected links to clear
  * @param onValidateLink - Optional callback to determine which links to keep
+ * @returns A map of changes for the cleared link views
  */
 export function clearConnectedLinkViews(
   paper: dia.Paper,

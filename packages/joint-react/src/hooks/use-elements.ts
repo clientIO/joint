@@ -15,7 +15,7 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
  * 1. The hook subscribes to the elements of the graph store.
  * 2. It fetches the elements from the store and then applies the selector.
  * 3. To avoid unnecessary re-renders (especially since the selector could produce new
- * references on each call), the `isEqual` comparator (defaulting to a deep comparison)
+ * references on each call), the `isEqual` comparator (defaulting to strict equality via `Object.is`)
  * checks if the selected value really changed.
  * @example
  * Using without a selector (returns all elements as a Record):

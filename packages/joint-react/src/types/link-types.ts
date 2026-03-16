@@ -105,7 +105,7 @@ export interface FlatLinkLabel {
  * Base interface for graph link.
  * It's a subset of `dia.Link` with some additional properties.
  * @group Graph
- * @see @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
+ * @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
 export interface FlatLinkData extends Record<string, unknown> {
   /**
@@ -156,7 +156,7 @@ export interface FlatLinkData extends Record<string, unknown> {
   readonly targetMagnet?: string;
   /**
    * Optional link type.
-   * @default 'standard.Link'
+   * @default 'ReactLink'
    */
   readonly type?: string;
   /**

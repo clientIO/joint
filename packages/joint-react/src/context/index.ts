@@ -7,7 +7,6 @@ export const GraphStoreContext = createContext<GraphStore | null>(null);
 export const PaperStoreContext = createContext<PaperStore | null>(null);
 
 export const CellIdContext = createContext<CellId | undefined>(undefined);
-export const CellIndexContext = createContext<number | undefined>(undefined);
 export interface PaperFeaturesContext {
   features: Map<string, OnAddFeature<unknown>>;
 }

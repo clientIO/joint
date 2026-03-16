@@ -21,6 +21,9 @@ type HandlersOrFactory<T> =
 
 /**
  * Builds the EventContext from paperStore and graph.
+ * @param paperStore - The paper store containing paper and features.
+ * @param graph - The JointJS graph instance.
+ * @returns The event context with graph, paper, and feature instances.
  */
 export function buildEventContext<T>(
   paperStore: PaperStore,
@@ -88,10 +91,11 @@ export function subscribeToPaperEvents<T>(
  * ```tsx
  * usePaperEvents(paperId, { 'element:pointerclick': (view, event, x, y) => {} });
  * ```
- *
+ * @param paper - Paper reference (string ID, dia.Paper instance, ref, or Nullable).
+ * @param handlers - Event handlers map or factory function receiving context.
+ * @param dependencies - Optional dependency array controlling re-subscription.
  * @group Hooks
  */
-
 export function usePaperEvents<T = Record<AnyString, unknown>>(
   paper: PaperReference,
   handlers: HandlersOrFactory<T>,

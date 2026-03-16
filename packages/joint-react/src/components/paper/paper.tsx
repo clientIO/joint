@@ -9,6 +9,11 @@ import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
 import type { PaperProps } from './paper.types';
 
+/**
+ * Resolves a CSS dimension value to a JointJS Paper dimension.
+ * @param dimension - The CSS width or height value.
+ * @returns The resolved dimension or undefined.
+ */
 function resolveStyleDimension(
   dimension: React.CSSProperties['width'] | React.CSSProperties['height']
 ): dia.Paper.Dimension | undefined {
