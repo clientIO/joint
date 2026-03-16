@@ -10,7 +10,7 @@ import React from 'react';
 import { useMeasureNode } from '../../../hooks/use-measure-node';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import { useGraph, useCellId, useLinks } from '../../../hooks';
-import { useOnNodesMeasured } from '../../../hooks/use-on-nodes-measured';
+import { useElementsMeasuredEffect } from '../../../hooks/use-elements-measured-effect';
 import type { ElementsMeasuredEvent } from '../../../types/event.types';
 import type { FlatElementData } from '../../../types/element-types';
 import type { FlatLinkData } from '../../../types/link-types';
@@ -21,7 +21,7 @@ import type { ReactPaper } from '../../../models/react-paper';
 
 /** Test helper: listens to `elements:measured` event via hook and forwards to callback. */
 function MeasuredListener({ paperId, callback }: Readonly<{ paperId: string; callback: (event: ElementsMeasuredEvent) => void }>) {
-  useOnNodesMeasured(paperId, callback);
+  useElementsMeasuredEffect(paperId, callback);
   return null;
 }
 

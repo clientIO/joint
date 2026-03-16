@@ -1,4 +1,4 @@
-import { GraphProvider, Paper, useNodeLayout, useOnNodesMeasured, type FlatElementData } from '@joint/react';
+import { GraphProvider, Paper, useNodeLayout, useElementsMeasuredEffect, type FlatElementData } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
@@ -793,7 +793,7 @@ function Main() {
     addElementControls(paper);
   }, []);
 
-  useOnNodesMeasured(paperId, handleElementsMeasured);
+  useElementsMeasuredEffect(paperId, handleElementsMeasured);
 
   return (
     <Paper

@@ -40,10 +40,10 @@ describe('ReactPaper', () => {
     graphStore.internalState.setState((previous) => {
       if (previous.papers[TEST_PAPER_ID]) return previous;
       return {
+        ...previous,
         papers: {
           ...previous.papers,
           [TEST_PAPER_ID]: {
-            hasElementViewSnapshot: false,
             elementViewIds: {},
             linkViewIds: {},
             version: 0,

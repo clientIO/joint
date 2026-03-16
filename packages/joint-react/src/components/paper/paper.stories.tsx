@@ -18,7 +18,7 @@ import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 import { useCellActions } from '../../hooks/use-cell-actions';
 import { useCellId } from '../../hooks/use-cell-id';
-import { useOnNodesMeasured } from '../../hooks/use-on-nodes-measured';
+import { useElementsMeasuredEffect } from '../../hooks/use-elements-measured-effect';
 import { usePaperEvents } from '../../hooks/use-paper-events';
 import { Paper } from './paper';
 import type { RenderElement } from './paper.types';
@@ -200,7 +200,7 @@ export const WithEvent: Story = {
   },
   render: (args) => {
     const paperId = useId();
-    useOnNodesMeasured(paperId, action('onElementsMeasured'));
+    useElementsMeasuredEffect(paperId, action('onElementsMeasured'));
     usePaperEvents(paperId, {
       'link:mouseenter': (...args) => action('link:mouseenter')(...args),
       'cell:mouseenter': (...args) => action('cell:mouseenter')(...args),

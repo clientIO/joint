@@ -23,10 +23,11 @@
 import { mvc, util, type dia } from '@joint/core';
 import type { IncrementalChange, IncrementalStateChanges } from './incremental.types';
 import type {
+  ElementPosition,
+  ElementSize,
   GraphStoreLayoutSnapshot,
   GraphStoreSnapshot,
   LinkLayout,
-  NodeLayout,
   PaperStore,
 } from '../store';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
@@ -54,6 +55,10 @@ interface Options<ElementData = FlatElementData, LinkData = FlatLinkData> {
   readonly onIncrementalChange?: (changes: IncrementalStateChanges<ElementData, LinkData>) => void;
   readonly onElementsChange?: (elements: Record<string, ElementData>) => void;
   readonly onLinksChange?: (links: Record<string, LinkData>) => void;
+  readonly onReset: () => void;
+  /** Called when an element's size changes on the graph. */
+  readonly onSizeChange?: () => void;
+
   /**
    * When enabled, state updates are deferred during JointJS batch operations
    * and flushed once the batch completes. Disabled by default.
@@ -128,17 +133,6 @@ function setIncrementalChangeRecord<T>(
 /**
  * Creates the graph state manager that listens to graph changes and syncs state.
  * @param options - Configuration including graph, papers, change callbacks, and mapping functions.
- * @param options.graph - The JointJS graph instance to observe
- * @param options.papers - Map of paper stores for layout tracking
- * @param options.onIncrementalChange - Optional callback for incremental state changes
- * @param options.onElementsChange - Optional callback when elements change
- * @param options.onLinksChange - Optional callback when links change
- * @param options.enableBatchUpdates - Whether to defer updates during batch operations
- * @param options.mappers - Custom mapping functions for data conversion
- * @param options.mappers.mapDataToElementAttributes - Maps element data to JointJS attributes
- * @param options.mappers.mapDataToLinkAttributes - Maps link data to JointJS attributes
- * @param options.mappers.mapElementAttributesToData - Maps JointJS element attributes to data
- * @param options.mappers.mapLinkAttributesToData - Maps JointJS link attributes to data
  * @returns A GraphState object with state stores, update methods, and cleanup functions.
  */
 export function graphState<ElementData = FlatElementData, LinkData = FlatLinkData>({
@@ -147,6 +141,8 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   onIncrementalChange,
   onElementsChange,
   onLinksChange,
+  onReset,
+  onSizeChange,
   enableBatchUpdates = false,
   mappers: {
     mapDataToElementAttributes = defaultMapDataToElementAttributes,
@@ -167,7 +163,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     name: 'JointJs/Data',
   });
   const layoutState = createState<GraphStoreLayoutSnapshot>({
-    newState: () => ({ elements: {}, links: {} }),
+    newState: () => ({ elements: { sizes: {}, positions: {}, angles: {}, count: 0, measuredElements: 0 }, links: {} }),
     name: 'JointJs/Layout',
   });
 
@@ -276,7 +272,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
    * @param layout - The layout snapshot to update
    * @param link - The link whose layout to update
    */
-  function updateLinkLayout(layout: GraphStoreLayoutSnapshot, link: dia.Link) {
+  function updateLinkLayout(nextLinks: Record<string, Record<string, LinkLayout>>, link: dia.Link) {
     for (const [paperId, paperStore] of papers) {
       const { paper } = paperStore;
       if (!paper) continue;
@@ -284,25 +280,48 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       const linkView = paper.findViewByModel(link) as dia.LinkView | null;
       if (!linkView) continue;
 
-      if (!layout.links[paperId]) {
-        layout.links[paperId] = {};
+      if (!nextLinks[paperId]) {
+        nextLinks[paperId] = {};
       }
-      layout.links[paperId][String(link.id)] = getLinkLayout(linkView);
+      nextLinks[paperId][String(link.id)] = getLinkLayout(linkView);
     }
   }
 
   /**
    * Processes a layout change for a single element or link.
-   * @param id - The cell identifier
-   * @param change - The incremental change to process
-   * @param nextElements - The mutable elements layout record
-   * @param nextLinks - The mutable links layout record
-   * @returns Updated layout for reset changes, or undefined
+   * Preserves object references when sub-values haven't changed.
    */
-  function handleElementLayoutChange(
+  /**
+   * Mutable container that lazily copies sub-records on first write.
+   * Tracks which sub-records have been mutated via dirty flags.
+   */
+  interface MutableElementsLayout {
+    sizes: Record<string, ElementSize>;
+    positions: Record<string, ElementPosition>;
+    angles: Record<string, number>;
+    count: number;
+    measuredElements: number;
+    dirtySizes: boolean;
+    dirtyPositions: boolean;
+    dirtyAngles: boolean;
+    dirtyCount: boolean;
+  }
+
+  /**
+   * Returns whether an element size is considered "measured" (both dimensions > 1).
+   */
+  function isMeasuredSize(size: ElementSize): boolean {
+    return size.width > 1 && size.height > 1;
+  }
+
+  /**
+   * Processes a layout change for a single element or link.
+   * Preserves object references when sub-values haven't changed.
+   */
+  function handleCellLayoutChange(
     id: string,
     change: IncrementalChange<dia.Cell>,
-    nextElements: Record<string, NodeLayout>,
+    elements: MutableElementsLayout,
     nextLinks: Record<string, Record<string, LinkLayout>>
   ) {
     switch (change.type) {
@@ -314,19 +333,82 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
           if (!layout) {
             return;
           }
-          nextElements[id] = layout;
+          const previousSize = elements.sizes[id];
+          const isNew = !previousSize;
+
+          if (isNew) {
+            elements.count += 1;
+            elements.dirtyCount = true;
+          }
+
+          if (previousSize?.width !== layout.width || previousSize?.height !== layout.height) {
+            if (!elements.dirtySizes) {
+              elements.sizes = { ...elements.sizes };
+              elements.dirtySizes = true;
+            }
+            const newSize: ElementSize = { width: layout.width, height: layout.height };
+            elements.sizes[id] = newSize;
+
+            // Update measuredElements counter (O(1))
+            const wasMeasured = previousSize ? isMeasuredSize(previousSize) : false;
+            const isMeasured = isMeasuredSize(newSize);
+            if (wasMeasured !== isMeasured) {
+              elements.measuredElements += isMeasured ? 1 : -1;
+              elements.dirtyCount = true;
+            }
+          }
+
+          const previousPosition = elements.positions[id];
+          if (previousPosition?.x !== layout.x || previousPosition?.y !== layout.y) {
+            if (!elements.dirtyPositions) {
+              elements.positions = { ...elements.positions };
+              elements.dirtyPositions = true;
+            }
+            elements.positions[id] = { x: layout.x, y: layout.y };
+          }
+          if (elements.angles[id] !== layout.angle) {
+            if (!elements.dirtyAngles) {
+              elements.angles = { ...elements.angles };
+              elements.dirtyAngles = true;
+            }
+            elements.angles[id] = layout.angle;
+          }
           const connectedLinks = graph.getConnectedLinks(cell);
           for (const link of connectedLinks) {
-            updateLinkLayout({ elements: nextElements, links: nextLinks }, link);
+            updateLinkLayout(nextLinks, link);
           }
         } else if (cell.isLink()) {
-          updateLinkLayout({ elements: nextElements, links: nextLinks }, cell);
+          updateLinkLayout(nextLinks, cell);
         }
         break;
       }
 
       case 'remove': {
-        delete nextElements[id];
+        // Update count/measured before removing size record
+        const removedSize = elements.sizes[id];
+        if (removedSize) {
+          elements.count -= 1;
+          if (isMeasuredSize(removedSize)) {
+            elements.measuredElements -= 1;
+          }
+          elements.dirtyCount = true;
+        }
+
+        if (!elements.dirtySizes) {
+          elements.sizes = { ...elements.sizes };
+          elements.dirtySizes = true;
+        }
+        if (!elements.dirtyPositions) {
+          elements.positions = { ...elements.positions };
+          elements.dirtyPositions = true;
+        }
+        if (!elements.dirtyAngles) {
+          elements.angles = { ...elements.angles };
+          elements.dirtyAngles = true;
+        }
+        delete elements.sizes[id];
+        delete elements.positions[id];
+        delete elements.angles[id];
         for (const paperLinks of Object.values(nextLinks)) {
           delete paperLinks[id];
         }
@@ -334,8 +416,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       }
 
       case 'reset': {
-        const layout = getLayout({ graph, papers });
-        return { elements: layout.elements, links: layout.links };
+        return getLayout({ graph, papers });
       }
     }
   }
@@ -345,13 +426,40 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
    */
   function onLayoutUpdateHandler(changes: Map<string, IncrementalChange<dia.Cell>>) {
     layoutState.setState((previous) => {
-      const nextElements = { ...previous.elements };
+      const mutableElements: MutableElementsLayout = {
+        sizes: previous.elements.sizes,
+        positions: previous.elements.positions,
+        angles: previous.elements.angles,
+        count: previous.elements.count,
+        measuredElements: previous.elements.measuredElements,
+        dirtySizes: false,
+        dirtyPositions: false,
+        dirtyAngles: false,
+        dirtyCount: false,
+      };
       const nextLinks = { ...previous.links };
 
       for (const [id, change] of changes) {
-        handleElementLayoutChange(id, change, nextElements, nextLinks);
+        const resetResult = handleCellLayoutChange(id, change, mutableElements, nextLinks);
+        if (resetResult) return resetResult;
       }
-      return { elements: nextElements, links: nextLinks };
+
+      const { dirtySizes, dirtyPositions, dirtyAngles, dirtyCount } = mutableElements;
+      const elementsChanged = dirtySizes || dirtyPositions || dirtyAngles || dirtyCount;
+      if (dirtySizes && onSizeChange) {
+        onSizeChange();
+      }
+      const elements = elementsChanged
+        ? {
+            sizes: mutableElements.sizes,
+            positions: mutableElements.positions,
+            angles: mutableElements.angles,
+            count: mutableElements.count,
+            measuredElements: mutableElements.measuredElements,
+          }
+        : previous.elements;
+
+      return { elements, links: nextLinks };
     });
   }
 
@@ -520,6 +628,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       onLayoutUpdateHandler(changes);
       if (enableBatchUpdates && batchDepth > 0) return;
       onStateUpdate();
+      onReset();
     }
   );
 
@@ -554,7 +663,10 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     destroy() {
       controller.stopListening();
       this.clear();
-      layoutState.setState(() => ({ elements: {}, links: {} }));
+      layoutState.setState(() => ({
+        elements: { sizes: {}, positions: {}, angles: {}, count: 0, measuredElements: 0 },
+        links: {},
+      }));
       dataState.setState(() => {
         return { elements: {}, links: {} };
       });
@@ -588,9 +700,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       });
 
       const layout = getLayout({ graph, papers });
-      layoutState.setState(() => {
-        return { elements: layout.elements, links: layout.links };
-      });
+      layoutState.setState(() => layout);
     },
   };
 }

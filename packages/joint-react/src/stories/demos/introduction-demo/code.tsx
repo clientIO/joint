@@ -16,7 +16,7 @@ import {
   useGraph,
   useMeasureNode,
   useLinks,
-  useOnNodesMeasured,
+  useElementsMeasuredEffect,
   type CellId,
   type FlatElementData,
   type FlatElementPort,
@@ -268,7 +268,7 @@ function MinimapRenderElement() {
 function MiniMap() {
   const minimapId = useId();
 
-  useOnNodesMeasured(minimapId, ({ paper, graph }) => {
+  useElementsMeasuredEffect(minimapId, ({ paper, graph }) => {
     const contentArea = graph.getBBox();
     if (!contentArea) return;
     paper.transformToFitContent({

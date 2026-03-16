@@ -183,12 +183,10 @@ describe('GraphStore', () => {
 
       store.updatePaperSnapshot(paperId, () => ({
         ...createPaperStoreSnapshot(),
-        hasElementViewSnapshot: true,
       }));
 
       const internalSnapshot = store.internalState.getSnapshot();
       expect(internalSnapshot.papers[paperId]).toBeDefined();
-      expect(internalSnapshot.papers[paperId].hasElementViewSnapshot).toBe(true);
     });
 
     it('should update existing paper snapshot', () => {
@@ -197,7 +195,6 @@ describe('GraphStore', () => {
 
       store.updatePaperSnapshot(paperId, () => ({
         ...createPaperStoreSnapshot(),
-        hasElementViewSnapshot: true,
       }));
 
       store.updatePaperSnapshot(paperId, (previous) => ({
@@ -230,7 +227,6 @@ describe('GraphStore', () => {
 
       store.updatePaperSnapshot(paperId, () => ({
         ...createPaperStoreSnapshot(),
-        hasElementViewSnapshot: true,
         elementViewIds: { 'element-1': true },
       }));
       const firstUpdate = store.internalState.getSnapshot().papers[paperId];
@@ -250,6 +246,7 @@ describe('GraphStore', () => {
       store.internalState.setState((previous) => {
         if (previous.papers[paperId]) return previous;
         return {
+          ...previous,
           papers: {
             ...previous.papers,
             [paperId]: createPaperStoreSnapshot(),
@@ -276,7 +273,6 @@ describe('GraphStore', () => {
       const paper = internalSnapshot.papers[paperId];
       expect(paper?.elementViewIds['element-1']).toBe(true);
       expect(paper?.linkViewIds['link-1']).toBe(true);
-      expect(paper?.hasElementViewSnapshot).toBe(true);
     });
 
     it('should remove element view id on unmount', () => {
@@ -340,7 +336,6 @@ describe('GraphStore', () => {
       });
 
       const paperSnapshot = store.internalState.getSnapshot().papers[paperId];
-      expect(paperSnapshot.hasElementViewSnapshot).toBe(false);
       expect(paperSnapshot.elementViewIds).toEqual({});
       expect(paperSnapshot.linkViewIds).toEqual({});
       expect(() => JSON.stringify(store.internalState.getSnapshot())).not.toThrow();
@@ -505,54 +500,6 @@ describe('GraphStore', () => {
     });
   });
 
-  describe('areElementsMeasuredState', () => {
-    it('should track areElementsMeasured correctly', async () => {
-      const store = new GraphStore({});
-
-      // Initially, no elements, so should be false
-      expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
-
-      // Add measured element to graph
-      const measuredElement = new ReactElement({
-        id: 'element-1',
-        position: { x: 10, y: 20 },
-        size: { width: 100, height: 50 },
-      });
-      store.graph.addCell(measuredElement);
-
-      // Wait for scheduler/layout flush to include element layout
-      await waitFor(() => {
-        expect(store.layoutState.getSnapshot().elements['element-1']).toBeDefined();
-      });
-
-      // Without paper views rendered, measured state must stay false
-      expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
-
-      // Simulate paper becoming ready with rendered element views
-      store.updatePaperSnapshot('paper-1', () => ({
-        ...createPaperStoreSnapshot(),
-        hasElementViewSnapshot: true,
-        elementViewIds: { 'element-1': true },
-      }));
-
-      await waitFor(() => {
-        expect(store.areElementsMeasuredState.getSnapshot()).toBe(true);
-      });
-
-      // Adding an unmeasured element should make the state false again
-      const unmeasuredElement = new ReactElement({
-        id: 'element-2',
-        position: { x: 30, y: 40 },
-        size: { width: 0, height: 0 },
-      });
-      store.graph.addCell(unmeasuredElement);
-
-      await waitFor(() => {
-        expect(store.areElementsMeasuredState.getSnapshot()).toBe(false);
-      });
-    });
-  });
-
   describe('state synchronization', () => {
     it('should sync state changes to graph', (done) => {
       const store = new GraphStore({});
@@ -617,7 +564,7 @@ describe('GraphStore', () => {
       });
 
       await waitFor(() => {
-        expect(store.layoutState.getSnapshot().elements['batched-element']).toBeDefined();
+        expect(store.layoutState.getSnapshot().elements.sizes['batched-element']).toBeDefined();
       });
 
       const element = store.graph.getCell('batched-element');
@@ -630,11 +577,11 @@ describe('GraphStore', () => {
       element.set('size', { width: 240, height: 160 });
 
       await waitFor(() => {
-        const layout = store.layoutState.getSnapshot().elements['batched-element'];
-        expect(layout?.x).toBe(120);
-        expect(layout?.y).toBe(180);
-        expect(layout?.width).toBe(240);
-        expect(layout?.height).toBe(160);
+        const { positions, sizes } = store.layoutState.getSnapshot().elements;
+        expect(positions['batched-element']?.x).toBe(120);
+        expect(positions['batched-element']?.y).toBe(180);
+        expect(sizes['batched-element']?.width).toBe(240);
+        expect(sizes['batched-element']?.height).toBe(160);
       });
 
       const publicSnapshotDuringBatch = store.dataState.getSnapshot().elements['batched-element'];

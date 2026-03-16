@@ -19,6 +19,7 @@ describe('graphState', () => {
       graph,
       papers: new Map<string, PaperStore>(),
       onIncrementalChange,
+      onReset: jest.fn(),
       mappers: {},
     });
 
@@ -93,6 +94,7 @@ describe('graphState', () => {
       graph,
       papers: new Map<string, PaperStore>(),
       onIncrementalChange,
+      onReset: jest.fn(),
       mappers: {},
     });
 
@@ -144,6 +146,7 @@ describe('graphState', () => {
       graph,
       papers: new Map<string, PaperStore>(),
       onIncrementalChange,
+      onReset: jest.fn(),
       mappers: {},
     });
 
@@ -177,6 +180,7 @@ describe('graphState', () => {
       graph,
       papers: new Map<string, PaperStore>(),
       onIncrementalChange,
+      onReset: jest.fn(),
       enableBatchUpdates: true,
       mappers: {},
     });
@@ -204,11 +208,11 @@ describe('graphState', () => {
     expect(onIncrementalChange).not.toHaveBeenCalled();
 
     // But layoutState IS updated in realtime
-    const layout = listener.layoutState.getSnapshot().elements['el-1'];
-    expect(layout?.x).toBe(10);
-    expect(layout?.y).toBe(20);
-    expect(layout?.width).toBe(200);
-    expect(layout?.height).toBe(200);
+    const { positions, sizes } = listener.layoutState.getSnapshot().elements;
+    expect(positions['el-1']?.x).toBe(10);
+    expect(positions['el-1']?.y).toBe(20);
+    expect(sizes['el-1']?.width).toBe(200);
+    expect(sizes['el-1']?.height).toBe(200);
 
     graph.stopBatch('test');
 
@@ -231,6 +235,7 @@ describe('graphState', () => {
       graph,
       papers: new Map<string, PaperStore>(),
       onIncrementalChange,
+      onReset: jest.fn(),
       mappers: {},
     });
 

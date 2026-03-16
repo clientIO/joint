@@ -20,7 +20,7 @@ import { useGraphStore } from './use-graph-store';
 import { usePaperStore } from './use-paper';
 import { useElements } from './use-elements';
 import { useLinks } from './use-links';
-import { useAreElementsMeasured, useInternalData } from './use-stores';
+import { useInternalData, useLayouts } from './use-stores';
 import type { PaperStore } from '../store';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
@@ -137,10 +137,17 @@ export function useCreateReactPaper<
     throw new Error('Paper id is required. Please provide an id prop to the Paper component.');
   }
 
-  const areElementsMeasured = useAreElementsMeasured();
   const elementsState = useElements<ElementData>();
   const linksState = useLinks<LinkData>();
   const graphStore = useGraphStore();
+  const areElementsMeasured = useLayouts(
+    (snapshot) =>
+      snapshot.elements.count > 0 &&
+      snapshot.elements.measuredElements === snapshot.elements.count
+  );
+  const sizes = useLayouts((snapshot) => snapshot.elements.sizes);
+  const resetVersion = useInternalData((snapshot) => snapshot.resetVersion);
+  const previousResetVersionRef = useRef(-1);
 
   useDebugValue(elementsState);
   useDebugValue(linksState);
@@ -172,17 +179,11 @@ export function useCreateReactPaper<
     (snapshot) => snapshot.papers[id]?.linkViewIds ?? EMPTY_VIEW_ID_RECORD
   );
 
-  const hasElementViewSnapshot = useInternalData(
-    (snapshot) => snapshot.papers[id]?.hasElementViewSnapshot
-  );
-
   const { addPaper, graph, graphState } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
   const paperRef = useRef<ReactPaper | null>(null);
-  const measuredRef = useRef(false);
-  const previousSizesRef = useRef<number[][]>([]);
   const isReadyNotifiedRef = useRef(false);
 
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
@@ -290,76 +291,22 @@ export function useCreateReactPaper<
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
 
   useEffect(() => {
-    if (!hasElementViewSnapshot) return;
-    if (!isReady) return;
     if (!paper) return;
-
-    // Phase 1: Wait for initial measurement.
-    if (!measuredRef.current) {
-      if (areElementsMeasured) {
-        measuredRef.current = true;
-        const event: ElementsMeasuredEvent = { isInitial: true, paper, graph: paper.model };
-        paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-        // Prime baseline snapshot so the next run detects deltas, not the first observation.
-        previousSizesRef.current = elementIds.map((elementId) => {
-          const element = elementsState[elementId];
-          return [element?.width ?? 0, element?.height ?? 0];
-        });
-        return;
-      }
-
-      if (process.env.NODE_ENV === 'production') {
-        return;
-      }
-
-      // DEV-only: warn if elements are not measured within 1 second.
-      const timeout = setTimeout(() => {
-        if (!areElementsMeasured) {
-          // eslint-disable-next-line no-console
-          console.error(
-            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useMeasureNode` hook.'
-          );
-        }
-      }, 1000);
-
-      return () => {
-        clearTimeout(timeout);
-      };
-    }
-
-    // Phase 2: Detect size changes after initial measurement.
     if (!areElementsMeasured) return;
 
-    const currentSizes = elementIds.map((elementId) => {
-      const element = elementsState[elementId];
-      return [element?.width ?? 0, element?.height ?? 0];
-    });
-    const previousSizes = previousSizesRef.current;
-
-    let changed = false;
-
-    if (previousSizes.length === currentSizes.length) {
-      for (const [index, currentSize] of currentSizes.entries()) {
-        if (
-          previousSizes[index][0] !== currentSize[0] ||
-          previousSizes[index][1] !== currentSize[1]
-        ) {
-          changed = true;
-          break;
-        }
-      }
-    } else {
-      changed = true;
+    let isInitial = false;
+    if (resetVersion !== previousResetVersionRef.current) {
+      isInitial = true;
+      previousResetVersionRef.current = resetVersion;
     }
-
-    if (!changed) {
-      return;
-    }
-
-    previousSizesRef.current = currentSizes;
-    const event: ElementsMeasuredEvent = { isInitial: false, paper, graph: paper.model };
+    const event: ElementsMeasuredEvent = {
+      paper,
+      graph: paper.model,
+      isInitial,
+    };
     paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-  }, [areElementsMeasured, elementIds, elementsState, hasElementViewSnapshot, isReady, paper]);
+    // we must have here sizes, as its called each time reference of size changes.
+  }, [areElementsMeasured, sizes, paper, resetVersion]);
 
   const renderedElements = useMemo(() => {
     if (!hasRenderElement) {

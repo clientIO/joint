@@ -22,12 +22,7 @@ import {
 import { clearConnectedLinkViews } from './clear-view';
 import { graphState, LAYOUT_UPDATE_EVENT, type GraphState } from '../state/graph-state';
 import { getLayout } from './update-layout-state';
-import {
-  createState,
-  derivedState,
-  type ExternalStoreLike,
-  type State,
-} from '../utils/create-state';
+import { createState, type ExternalStoreLike, type State } from '../utils/create-state';
 import type { IncrementalChange, IncrementalStateChanges } from '../state/incremental.types';
 import type { Feature } from '../hooks/use-create-paper-features';
 
@@ -66,13 +61,43 @@ export interface LinkLayout {
   readonly targetY: number;
   readonly d: string;
 }
+/**
+ * Size of a single element.
+ */
+export interface ElementSize {
+  readonly width: number;
+  readonly height: number;
+}
 
 /**
- * Snapshot containing layout data for all nodes and links (per paper).
+ * Position of a single element.
+ */
+export interface ElementPosition {
+  readonly x: number;
+  readonly y: number;
+}
+
+/**
+ * Layout snapshot for all elements, split into sizes, positions, and angles.
+ * Each record preserves its reference when unrelated properties change —
+ * e.g. a position-only change does not create a new `sizes` object.
+ */
+export interface ElementsLayoutSnapshot {
+  readonly sizes: Record<CellId, ElementSize>;
+  readonly positions: Record<CellId, ElementPosition>;
+  readonly angles: Record<CellId, number>;
+  /** Total number of elements in the graph. */
+  readonly count: number;
+  /** Number of elements whose width and height are both > 1 (considered measured). */
+  readonly measuredElements: number;
+}
+
+/**
+ * Snapshot containing layout data for all elements and links (per paper).
  */
 export interface GraphStoreLayoutSnapshot {
-  elements: Record<CellId, NodeLayout>;
-  links: Record<string, Record<CellId, LinkLayout>>;
+  readonly elements: ElementsLayoutSnapshot;
+  readonly links: Record<string, Record<CellId, LinkLayout>>;
 }
 
 /**
@@ -80,6 +105,7 @@ export interface GraphStoreLayoutSnapshot {
  */
 export interface GraphStoreInternalSnapshot {
   papers: Record<string, PaperStoreSnapshot>;
+  resetVersion: number;
 }
 
 /**
@@ -108,7 +134,6 @@ export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = Fla
 export class GraphStore {
   public readonly internalState: State<GraphStoreInternalSnapshot>;
   public readonly dataState: ExternalStoreLike<GraphStoreSnapshot>;
-  public readonly areElementsMeasuredState: ExternalStoreLike<boolean>;
   public readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
   public readonly graph: dia.Graph;
   public readonly graphState: GraphState;
@@ -147,13 +172,20 @@ export class GraphStore {
       );
 
     this.internalState = createState<GraphStoreInternalSnapshot>({
-      newState: () => ({ papers: {} }),
+      newState: () => ({ papers: {}, resetVersion: 0 }),
       name: 'JointJs/Internal',
     });
 
     this.graphState = graphState({
       graph: this.graph,
       papers: this.paperStores,
+
+      onReset: () => {
+        this.internalState.setState((previous) => ({
+          ...previous,
+          resetVersion: previous.resetVersion + 1,
+        }));
+      },
       onIncrementalChange: onIncrementalChange as
         | ((changes: IncrementalStateChanges) => void)
         | undefined,
@@ -172,25 +204,6 @@ export class GraphStore {
 
     this.dataState = this.graphState.dataState;
     this.layoutState = this.graphState.layoutState;
-
-    this.areElementsMeasuredState = derivedState({
-      state: [this.graphState.layoutState, this.internalState] as const,
-      selector: (
-        layoutSnapshot: GraphStoreLayoutSnapshot,
-        internalSnapshot: GraphStoreInternalSnapshot
-      ) => {
-        const papers = Object.values(internalSnapshot.papers);
-        if (papers.length === 0) return false;
-        for (const paper of papers) {
-          if (!paper.hasElementViewSnapshot) return false;
-        }
-        const layoutEntries = Object.values(layoutSnapshot.elements);
-        if (layoutEntries.length === 0) return false;
-        return layoutEntries.every((layout) => layout.width > 1 && layout.height > 1);
-      },
-      isEqual: (a, b) => a === b,
-      name: 'JointJs/AreElementsMeasured',
-    });
 
     this.observer = createElementsSizeObserver({
       getPublicSnapshot: () => this.dataState.getSnapshot(),
@@ -255,10 +268,7 @@ export class GraphStore {
         links: existingLinks,
       }));
       const layout = getLayout({ graph: this.graph, papers: this.paperStores });
-      this.layoutState.setState(() => ({
-        elements: layout.elements,
-        links: layout.links,
-      }));
+      this.layoutState.setState(() => layout);
     }
   }
 
@@ -271,9 +281,6 @@ export class GraphStore {
     this.paperStores.clear();
     this.graphState.destroy();
     this.internalState.clean();
-    if ('clean' in this.areElementsMeasuredState) {
-      (this.areElementsMeasuredState as State<boolean>).clean();
-    }
     this.observer.clean();
     if (!isGraphExternal) {
       this.graph.clear();
@@ -288,7 +295,7 @@ export class GraphStore {
       const currentPaper = previous.papers[paperId];
       const nextPaper = updater(currentPaper);
       if (currentPaper === nextPaper) return previous;
-      return { papers: { ...previous.papers, [paperId]: nextPaper } };
+      return { ...previous, papers: { ...previous.papers, [paperId]: nextPaper } };
     });
   }
 
@@ -373,13 +380,10 @@ export class GraphStore {
 
       const nextPaper: PaperStoreSnapshot = {
         ...basePaper,
-        hasElementViewSnapshot:
-          // TODO: idk, if this is also fast, Object.keys() on hot paths.
-          basePaper.hasElementViewSnapshot || Object.keys(nextElementViewIds).length > 0,
         elementViewIds: nextElementViewIds,
         linkViewIds: nextLinkViewIds,
       };
-      return { papers: { ...previous.papers, [paperId]: nextPaper } };
+      return { ...previous, papers: { ...previous.papers, [paperId]: nextPaper } };
     });
     this.graph.trigger(LAYOUT_UPDATE_EVENT, { changes });
   }
@@ -393,7 +397,7 @@ export class GraphStore {
       for (const [key, value] of Object.entries(previous.papers)) {
         if (key !== id) newPapers[key] = value;
       }
-      return { papers: newPapers };
+      return { ...previous, papers: newPapers };
     });
   };
 
@@ -404,7 +408,7 @@ export class GraphStore {
       if (previous.papers[id]) {
         return previous;
       }
-      return { papers: { ...previous.papers, [id]: createPaperStoreSnapshot() } };
+      return { ...previous, papers: { ...previous.papers, [id]: createPaperStoreSnapshot() } };
     });
     return { paperStore, remove: () => this.removePaper(id) };
   };

@@ -85,11 +85,28 @@ export function useNodeLayout<S>(
   return useStore(
     layoutState,
     (snapshot) => {
-      const layout = snapshot.elements[actualId];
-      if (actualSelector) {
-        return actualSelector(layout);
+      const angle = snapshot.elements.angles[actualId];
+      const size = snapshot.elements.sizes[actualId];
+      const position = snapshot.elements.positions[actualId];
+      if (!size || !position) {
+        return undefined as S;
       }
-      return layout as S;
+      if (actualSelector) {
+        return actualSelector({
+          x: position.x,
+          y: position.y,
+          width: size.width,
+          height: size.height,
+          angle: angle ?? 0,
+        });
+      }
+      return {
+        x: position.x,
+        y: position.y,
+        width: size.width,
+        height: size.height,
+        angle: angle ?? 0,
+      } as S;
     },
     actualIsEqual
   );

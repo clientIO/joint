@@ -3,7 +3,7 @@
 
 import { type dia, g, highlighters, V } from '@joint/core';
 import type { FlatElementData } from '@joint/react';
-import { GraphProvider, Paper, TextNode, useGraph, useOnNodesMeasured } from '@joint/react';
+import { GraphProvider, Paper, TextNode, useGraph, useElementsMeasuredEffect } from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 
@@ -231,7 +231,7 @@ function Main() {
 
   useInterval(setRandomStatuses);
 
-  useOnNodesMeasured(paperId, ({ isInitial, paper }) => {
+  useElementsMeasuredEffect(paperId, ({ isInitial, paper }) => {
     if (!isInitial) return;
     for (const element of graph.getElements()) {
       StatusList.add(element.findView(paper), 'root', 'status', {

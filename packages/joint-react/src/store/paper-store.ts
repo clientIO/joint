@@ -72,8 +72,6 @@ export interface PaperStoreOptions extends AddPaperOptions {
  * Contains serializable metadata for paper view state.
  */
 export interface PaperStoreSnapshot {
-  /** True once this paper has emitted at least one view snapshot */
-  readonly hasElementViewSnapshot: boolean;
   /** IDs of mounted element views in this paper */
   readonly elementViewIds: Record<CellId, true>;
   /** IDs of mounted link views in this paper */
@@ -88,7 +86,6 @@ export interface PaperStoreSnapshot {
  */
 export function createPaperStoreSnapshot(): PaperStoreSnapshot {
   return {
-    hasElementViewSnapshot: false,
     elementViewIds: {},
     linkViewIds: {},
     version: 0,

@@ -17,6 +17,6 @@ export * from './use-ref-value';
 export * from './use-link-layout';
 export * from './use-stores';
 export * from './use-markup';
-export * from './use-on-nodes-measured';
+export * from './use-elements-measured-effect';
 export * from './use-create-react-paper';
 export * from './use-create-paper-features';
