@@ -14,12 +14,7 @@ export interface MeasureNodeOptions {
    *
    * This function receives the measured dimensions from the DOM element and the current graph element,
    * allowing you to add padding, apply scaling, or perform other transformations.
-   * @param options - The measured size and the graph element instance
-   * @param options.width - The measured width of the DOM element in pixels
-   * @param options.height - The measured height of the DOM element in pixels
-   * @param options.x - The current x position of the graph element (optional)
-   * @param options.y - The current y position of the graph element (optional)
-   * @param options.element - The JointJS element instance that will be updated
+   * @param options - The measured size and the graph element instance (width, height, x, y, element)
    * @returns The size values to apply to the graph element. Must include `width` and `height`.
    * @default By default, the measured size is applied directly via `element.set('size', {width, height})`
    * @example
@@ -59,10 +54,11 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  *                     in the DOM when the hook runs.
  * @param options - Optional configuration for measuring and transforming the node size.
  * @returns An object containing the current graph element's dimensions:
- *   - `width`: The current width of the graph element in pixels (always defined, defaults to 0)
- *   - `height`: The current height of the graph element in pixels (always defined, defaults to 0)
- *   - `x`: The current x position of the graph element (optional, may be undefined)
- *   - `y`: The current y position of the graph element (optional, may be undefined)
+ *   - `width`: The current width of the graph element in pixels (defaults to 0)
+ *   - `height`: The current height of the graph element in pixels (defaults to 0)
+ *   - `x`: The current x position of the graph element (defaults to 0)
+ *   - `y`: The current y position of the graph element (defaults to 0)
+ *   - `angle`: The current angle of the graph element (defaults to 0)
  * @throws {Error} If multiple `useNodeSize` hooks are used for the same element.
  * @throws {Error} If the cell is not a valid element.
  * @group Hooks
@@ -174,6 +170,5 @@ export function useNodeSize(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elementRef, graph, hasMeasuredNode, id, setMeasuredNode]);
 
-  // This hook itself does not return anything.
   return layout;
 }

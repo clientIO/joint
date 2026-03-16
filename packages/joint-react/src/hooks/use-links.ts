@@ -24,7 +24,7 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
  * @template Link - The type of links in the graph
  * @template SelectorReturnType - The return type of the selector function
  * @param selector - Optional function to select/extract a portion of the links. Defaults to returning all links.
- * @param isEqual - Optional function to compare previous and new values. Defaults to deep equality.
+ * @param isEqual - Optional function to compare previous and new values. Defaults to strict equality (`Object.is`).
  * @returns The selected links data (or all links if no selector provided)
  * @group Hooks
  * @example

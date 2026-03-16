@@ -6,7 +6,7 @@ import { CellIdContext } from '../context';
  * Returns the current cell id within `Paper` element rendering.
  * Use this only inside the `renderElement` function.
  * @returns The current cell id.
- * @throws If called outside the view context.
+ * @throws {Error} If called outside the view context.
  * @group hooks
  * @example
  * ```ts

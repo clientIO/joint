@@ -5,6 +5,7 @@ import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
 /**
  * Converts a simplified FlatLinkLabel into a JointJS dia.Link.Label
  * using the ReactLink's defaultLabel selectors (labelText, labelBody).
+ * @param id - The unique identifier for the label
  * @param label - The simplified label definition
  * @param theme - The link theme providing label styling defaults
  * @returns The full JointJS label definition

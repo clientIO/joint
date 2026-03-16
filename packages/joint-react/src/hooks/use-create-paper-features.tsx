@@ -43,6 +43,12 @@ interface AddFeatureOptions<T> {
   forwardedRef?: React.Ref<unknown>;
 }
 
+/**
+ * Creates and manages a paper feature lifecycle.
+ * @param options - Feature configuration including callbacks and id.
+ * @param dependencies - Optional dependency array to trigger feature updates.
+ * @returns The paper features context.
+ */
 export function useCreatePaperFeature<T>(
   options: AddFeatureOptions<T>,
   dependencies: unknown[] = EMPTY_DEPENDENCIES
@@ -106,6 +112,11 @@ export function useCreatePaperFeature<T>(
 
 interface Props<T> extends AddFeatureOptions<T>, PropsWithChildren<Record<string, unknown>> {}
 
+/**
+ * Provider component that wraps children with a paper feature context.
+ * @param props - The feature provider props including id, onAddFeature, and children.
+ * @returns The provider element wrapping children.
+ */
 function PaperFeaturesProviderBase<T>(props: Readonly<Props<T>>) {
   const { id, onAddFeature, children, onUpdateFeature, forwardedRef, onLoad, ...rest } = props;
   const ctx = useCreatePaperFeature<T>(

@@ -27,8 +27,8 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
  *   (element) => element,
  *   (prev, next) => prev.width === next.width
  * );
- * @param selector The selector function to pick part of the element. @default returns the entire element.
- * @param isEqual The function used to check equality. @default shallow equality (===)
+ * @param selector - The selector function to pick part of the element. Defaults to returning the entire element.
+ * @param isEqual - The function used to check equality. Defaults to strict equality (`Object.is`).
  * @returns The selected element based on the current cell id.
  */
 export function useElement<ElementData = FlatElementData, ReturnedElements = ElementData>(

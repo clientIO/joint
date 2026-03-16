@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
 import type { FlatElementData } from '../../../types/element-types';
@@ -24,6 +24,10 @@ function SVGElementItemComponent<Data = FlatElementData>(props: ElementItemProps
   const cell = rest as Data;
   const graphStore = useGraphStore();
   const paper = usePaper();
+
+  useEffect(() => {
+    console.log('SVGElementItemComponent rendered', { id });
+  }, []);
 
   useLayoutEffect(() => {
     if (!areElementsMeasured) {

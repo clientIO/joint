@@ -190,30 +190,28 @@ export function Controlled() {
 }
 ```
 
-### 5) External store integration (Redux, Zustand, etc.)
-Use `externalStore` prop to integrate with external state management libraries.
+### 5) Incremental change mode (Redux, Zustand, etc.)
+Use `onIncrementalChange` to get granular change events for integration with external stores.
 
 ```tsx
-import { GraphProvider } from '@joint/react'
-import { createStore } from 'zustand'
+import React from 'react'
+import { GraphProvider, type IncrementalStateChanges } from '@joint/react'
 
-// Create a store compatible with ExternalStoreLike interface
-const useGraphStore = createStore((set) => ({
-  elements: {},
-  links: {},
-  setState: (updater) => set(updater),
-  getSnapshot: () => useGraphStore.getState(),
-  subscribe: (listener) => {
-    const unsubscribe = useGraphStore.subscribe(listener)
-    return unsubscribe
+const initialElements = {
+  'n1': { label: 'Item', x: 60, y: 60, width: 100, height: 40 },
+} as const
+
+export function IncrementalExample() {
+  const handleChange = (changes: IncrementalStateChanges) => {
+    // Dispatch granular changes to your external store
+    console.log('Changes:', changes)
   }
-}))
 
-export function ExternalStoreExample() {
-  const store = useGraphStore()
-  
   return (
-    <GraphProvider externalStore={store}>
+    <GraphProvider
+      elements={initialElements}
+      onIncrementalChange={handleChange}
+    >
       <Paper height={320} />
     </GraphProvider>
   )
@@ -293,34 +291,11 @@ export function FitOnMount() {
 - **Prefer declarative first**: Reach for hooks/props; use imperative APIs (refs/graph methods) for targeted operations only.
 - **Test in Safari early** when using `<foreignObject>`; fall back to `useHTMLOverlay` if needed.
 - **Accessing component instances via refs**: Any component that accepts a `ref` (such as `Paper` or `GraphProvider`) exposes its instance/context via the ref. For `Paper`, the instance (including the underlying JointJS Paper) can be accessed via the `paperCtx` property on the ref object.
-- **Choose the right mode**: Use uncontrolled mode for simple cases, React-controlled for full state control, and external-store for integration with Redux/Zustand.
+- **Choose the right mode**: Use uncontrolled mode for simple cases, React-controlled (`onElementsChange`/`onLinksChange`) for full state control, and incremental-controlled (`onIncrementalChange`) for integration with Redux/Zustand.
 - **Use selectors efficiently**: When using `useElements` or `useLinks`, provide custom selectors and equality functions to minimize re-renders.
 - **Batch updates**: The library automatically batches updates, but be mindful of rapid state changes in controlled mode.
 
 ---
-
-## ⚙️ API Surface (at a glance)
-
-- **Components**
-  - `GraphProvider` — provides the shared graph context
-  - `Paper` — renders the graph (Paper view)
-
-- **Hooks**
-  - `useElements()` / `useLinks()` — subscribe to elements/links with optional selectors
-  - `useGraph()` — access the underlying JointJS graph instance
-  - `usePaper()` — access the underlying Paper instance (from within a Paper view)
-  - `useCellActions()` — programmatically add, update, and remove cells
-
-- **Controlled mode props** (React-controlled)
-  - `elements`, `links` — current state
-  - `onElementsChange`, `onLinksChange` — state update callbacks
-
-- **External store mode**
-  - `externalStore` — external state management store (Redux, Zustand, etc.)
-
-- **Uncontrolled mode** (default)
-  - `initialElements`, `initialLinks` — initial values only
-  - Graph manages its own state internally
 
 > **Tip:** You can pass an existing JointJS `dia.Graph` into `GraphProvider` if you need to integrate with external data lifecycles or share a graph across multiple providers.
 

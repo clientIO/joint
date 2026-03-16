@@ -9,6 +9,11 @@ import { isRecord } from '../../utils/is';
 // React → JointJS
 // ────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Checks if the given data is a valid element data object.
+ * @param data - The data to validate
+ * @returns True if the data is a valid element data record
+ */
 function isElementData(data: unknown): data is FlatElementData {
   return isRecord(data);
 }

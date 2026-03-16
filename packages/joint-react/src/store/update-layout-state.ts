@@ -17,6 +17,11 @@ export interface UpdateLayoutStateOptions {
   readonly papers?: Map<string, PaperStore>;
 }
 
+/**
+ * Extracts the layout (position, size, angle) from a JointJS element.
+ * @param element - The JointJS element to extract layout from
+ * @returns The node layout or null if the element has no size
+ */
 export function getElementLayout(element: dia.Element): NodeLayout | null {
   const size = element.get('size');
   const position = element.get('position') ?? DEFAULT_POINT;
@@ -33,6 +38,11 @@ export function getElementLayout(element: dia.Element): NodeLayout | null {
   };
 }
 
+/**
+ * Extracts the layout (source/target points and path) from a JointJS link view.
+ * @param linkView - The JointJS link view to extract layout from
+ * @returns The link layout with source, target coordinates and path data
+ */
 export function getLinkLayout(linkView: dia.LinkView): LinkLayout {
   const sourcePoint = linkView.sourcePoint ?? DEFAULT_POINT;
   const targetPoint = linkView.targetPoint ?? DEFAULT_POINT;
@@ -50,6 +60,7 @@ export function getLinkLayout(linkView: dia.LinkView): LinkLayout {
 /**
  * Updates layout state (element layouts and per-paper link layouts).
  * @param options - The update options
+ * @returns A snapshot of the current graph layout
  */
 export function getLayout(options: UpdateLayoutStateOptions): GraphStoreLayoutSnapshot {
   const { graph, papers } = options;

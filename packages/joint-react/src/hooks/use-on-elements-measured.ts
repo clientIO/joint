@@ -15,6 +15,10 @@ type Callback = (event: ElementsMeasuredEvent) => void;
 
 /**
  * Resolves a paper instance from supported target forms.
+ * @param target - The paper target (string, Paper instance, or ref).
+ * @param paperFromRef - Paper instance from a ref object.
+ * @param paperFromCtx - Paper instance from context.
+ * @returns The resolved paper instance or null.
  */
 function resolvePaper(
   target: PaperTarget | undefined,
@@ -39,12 +43,10 @@ function resolvePaper(
  * Pass `{ once: true }` to automatically unsubscribe after the first call.
  *
  * Wraps the `elements:measured` paper event.
- *
  * @param callback - Called each time element sizes are measured.
  * @param dependencies - Optional dependency array controlling re-subscription.
  * @param options - Optional settings (e.g. `{ once: true }`).
  * @group Hooks
- *
  * @example
  * ```tsx
  * // React to every measurement (inside a <Paper> component)
@@ -52,7 +54,6 @@ function resolvePaper(
  *   if (isInitial) runLayout(graph);
  * });
  * ```
- *
  * @example
  * ```tsx
  * // Fire once, then stop listening
@@ -60,7 +61,6 @@ function resolvePaper(
  *   paper.transformToFitContent({ padding: 20 });
  * }, [], { once: true });
  * ```
- *
  * @example
  * ```tsx
  * // Using a paper ref

@@ -20,6 +20,11 @@ import { isRecord } from '../../utils/is';
 // React → JointJS
 // ────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Type guard to check if data is link data.
+ * @param data - The data to check.
+ * @returns True if the data is a record (link data).
+ */
 function isLinkData(data: unknown): data is FlatLinkData {
   return isRecord(data);
 }

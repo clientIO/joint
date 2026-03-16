@@ -6,7 +6,7 @@
  * ZUSTAND INTEGRATION GUIDE
  * ============================================================================
  *
- * This example demonstrates how to integrate @joint/react with Zustand for
+ * This example demonstrates how to integrate `@joint/react` with Zustand for
  * state management. Zustand is a lightweight, unopinionated state management
  * library that's perfect for React applications.
  *
@@ -235,7 +235,7 @@ function Main(props: Readonly<GraphProps>) {
  * USAGE SUMMARY
  * ============================================================================
  *
- * To use Zustand with @joint/react:
+ * To use Zustand with `@joint/react`:
  *
  * 1. Create a Zustand store with create() containing elements and links
  * 2. Define actions to update the state (addElement, removeLastElement, etc.)

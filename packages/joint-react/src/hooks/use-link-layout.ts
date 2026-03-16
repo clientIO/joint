@@ -24,9 +24,7 @@ import { CellIdContext } from '../context';
 /**
  * Hook to get layout data (geometry) for a specific link.
  * Returns sourceX, sourceY, targetX, targetY, and d (path) from the link view.
- * @param idOrSelector - Optional ID of the link, or a selector function when used without ID.
- * @param selector - Optional selector to extract a portion of the layout data.
- * @returns The layout data or undefined if not found
+ * @returns The layout data, selected data, or undefined if not found.
  * @group Hooks
  * @example
  * ```tsx

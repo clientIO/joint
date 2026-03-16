@@ -79,6 +79,8 @@ export class ReactPaper extends dia.Paper {
    *
    * When {@link ReactPaperOptions.portalSelector | portalSelector} is set,
    * it overrides the default `'__portal__'` selector lookup.
+   * @param cellView - The cell view to resolve the portal node for.
+   * @returns The portal DOM node, or null if not found.
    */
   getCellViewPortalNode(cellView: dia.CellView): SVGElement | HTMLElement | null {
     const { portalSelector } = this;
@@ -97,6 +99,8 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Check if an element view has rendered its React content.
+   * @param elementId - The element identifier to check.
+   * @returns True if the element view has rendered content.
    */
   private isElementReady(elementId: CellId | undefined): boolean {
     if (!elementId) return false;
@@ -109,6 +113,8 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Check whether a link end can be rendered immediately.
+   * @param end - The link end JSON descriptor.
+   * @returns True if the link end's target element is ready.
    */
   private isLinkEndReady(end: dia.Link.EndJSON): boolean {
     if (!end.id) return true;
@@ -157,6 +163,7 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Notify graph-store that a mounted view has been unmounted.
+   * @param cell - The cell whose view was unmounted.
    */
   private notifyViewUnmount(cell: dia.Cell): void {
     const cellId = cell.id as CellId;
@@ -176,6 +183,8 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Called when a view is mounted into the DOM.
+   * @param view - The cell view being inserted.
+   * @param isInitialInsert - Whether this is the initial insert during rendering.
    */
   insertView(view: dia.CellView, isInitialInsert: boolean): void {
     super.insertView(view, isInitialInsert);
@@ -207,6 +216,8 @@ export class ReactPaper extends dia.Paper {
 
   /**
    * Called when a cell is deleted from the graph.
+   * @param cell - The cell being removed.
+   * @returns The removed cell view.
    */
   removeView(cell: dia.Cell): dia.CellView {
     this.notifyViewUnmount(cell);
@@ -216,6 +227,7 @@ export class ReactPaper extends dia.Paper {
   /**
    * Called when a view is hidden (viewport culling).
    * @internal
+   * @param cellView - The cell view being hidden.
    */
   _hideCellView(cellView: dia.CellView): void {
     this.notifyViewUnmount(cellView.model);

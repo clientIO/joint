@@ -115,6 +115,8 @@ interface ProcessSizeChangeOptions {
 /**
  * Processes a size change for a single element.
  * Returns true if the element was updated, false otherwise.
+ * @param options - The options containing size data and element references
+ * @returns True if the element was updated, false otherwise
  */
 function processSizeChange(options: ProcessSizeChangeOptions): boolean {
   const { measuredWidth, measuredHeight, observedElement, getCellTransform, updatedElements } =

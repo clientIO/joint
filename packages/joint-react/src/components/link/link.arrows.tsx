@@ -13,7 +13,6 @@ export interface LinkArrowMarker {
 
 /**
  * Predefined arrow markers for links.
- * Use these with BaseLink's startMarker and endMarker props.
  * @group Components
  * @category Link
  */
@@ -103,7 +102,7 @@ export const LINK_ARROWS = {
 } as const;
 
 /**
- * Arrow marker names that can be used with BaseLink.
+ * Arrow marker names that can be used with links.
  * @group Components
  * @category Link
  */

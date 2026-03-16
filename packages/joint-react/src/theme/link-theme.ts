@@ -5,7 +5,8 @@ export { defaultMarkers, resolveMarker, type MarkerPreset } from './markers';
 
 /**
  * Default link theme with all properties filled.
- * No fallbacks needed in createDefaultLinkMapper.
+ * No fallbacks needed in the default link mapper.
+ *
  */
 export const defaultLinkTheme = {
   color: '#333333',

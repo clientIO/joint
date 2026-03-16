@@ -4,8 +4,8 @@ import { g, V } from '@joint/core';
 /**
  * Default measureNode function that uses the model's bounding box for the root element node.
  * For sub-nodes (e.g. referenced by selectors), we use the actual SVG bounding box measurement.
- * @param node
- * @param view
+ * @param node - The SVG element node to measure
+ * @param view - The cell view containing the node
  * @returns A rectangle representing the measured bounds of the node.
  */
 export const measureNode: dia.Paper.MeasureNodeCallback = (node, view): g.Rect => {

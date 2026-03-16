@@ -62,7 +62,7 @@ export interface PaperProps<ElementData extends FlatElementData = FlatElementDat
    * Note: JointJS works with SVG by default, so `renderElement` is appended inside an SVG node.
    * To render HTML elements, use the experimental `useHTMLOverlay` prop or an SVG `foreignObject`.
    * 
-   * This is called when the data from `elementSelector` changes.
+   * This is called when the element data changes.
    * @example
    * Example with `global component`:
    * ```tsx
@@ -94,29 +94,15 @@ export interface PaperProps<ElementData extends FlatElementData = FlatElementDat
    * @example
    * Example with `global component`:
    * ```tsx
-   * function RenderLink({ id, ...data }) {
-   *   return (
-   *     <>
-   *       <BaseLink attrs={{ line: { stroke: 'blue' } }} />
-   *       <LinkLabel position={{ distance: 0.5 }}>
-   *         <text>Label</text>
-   *       </LinkLabel>
-   *     </>
-   *   );
+   * function RenderLink({ id, ...data }: FlatLinkData) {
+   *   return <text>Link {id}</text>;
    * }
    * ```
    * @example
    * Example with `local component`:
    * ```tsx
-   * const renderLink: RenderLink<BaseLinkWithData> = useCallback(
-   *   (link) => (
-   *     <>
-   *       <BaseLink attrs={{ line: { stroke: link.color } }} />
-   *       <LinkLabel position={{ distance: 0.5 }}>
-   *         <text>{link.label}</text>
-   *       </LinkLabel>
-   *     </>
-   *   ),
+   * const renderLink: RenderLink<FlatLinkData> = useCallback(
+   *   (link) => <text>{link.source} → {link.target}</text>,
    *   []
    * )
    * ```
@@ -157,15 +143,14 @@ export interface PaperProps<ElementData extends FlatElementData = FlatElementDat
    */
   readonly useHTMLOverlay?: boolean;
   /**
-   *
+   * When enabled, renders elements as SVG elements instead of foreignObject.
+   * @default false
    */
   readonly useSVGElements?: boolean;
 
   /**
-   * A function that is called when the paper is ready.
-   * @param element - The element that is being rendered
-   * @param portalElement  - The portal element that is being rendered
-   * @returns
+   * Callback called when an element view is rendered in the paper.
+   * @param elementView - The element view that was rendered.
    */
   readonly onRenderElement?: OnPaperRenderElement;
 

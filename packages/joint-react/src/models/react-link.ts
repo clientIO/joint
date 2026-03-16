@@ -5,7 +5,7 @@ export const REACT_LINK_TYPE = 'ReactLink';
 
 /**
  * A custom JointJS link that can render React components.
- * Uses empty markup - React renders content via portal using useLinkPath hook.
+ * Provides wrapper, line, and portal markup. React renders additional content via portal.
  *
  * Theme-derived visual properties (colors, stroke widths, defaultLabel) are not
  * set here — they are applied at mapping time by the link mapper, so the theme

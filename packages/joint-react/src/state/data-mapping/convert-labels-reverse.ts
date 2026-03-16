@@ -10,7 +10,6 @@ import type { Mutable } from '../../types';
  * `labelMove`) are merged into the corresponding {@link FlatLinkLabel}.
  * When `offset` is absent in the JointJS label, it is removed from the
  * flat label to avoid stale values.
- *
  * @param dataLabels - The original flat label Record (from `cell.data.labels`)
  * @param attributeLabels - The JointJS labels array (from `cell.attributes.labels`)
  * @returns A new Record with merged position/offset values
