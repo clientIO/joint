@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useElements, usePaper, useNodeSize, useCellId } from '@joint/react';
+import { GraphProvider, Paper, useElements, usePaper, useMeasureNode, useCellId } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -64,7 +64,7 @@ function RotatableNode({ label }: Readonly<BaseElementWithData>) {
   );
 
   const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeSize(elementRef);
+  const { width, height } = useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div ref={elementRef} className="node">

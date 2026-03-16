@@ -3,7 +3,7 @@ import {
   GraphProvider,
   Paper,
   usePaper,
-  useNodeSize,
+  useMeasureNode,
   type GraphProps,
   type FlatElementData,
   type FlatLinkData,
@@ -76,7 +76,7 @@ function Main() {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const elementRef = useRef<HTMLDivElement>(null);
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        useNodeSize(elementRef);
+        useMeasureNode(elementRef);
         return (
           <div ref={elementRef} className="node">
             <div>{label}</div>

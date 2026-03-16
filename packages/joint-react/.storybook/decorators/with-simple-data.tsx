@@ -5,7 +5,7 @@
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
 import type { FlatElementData} from '@joint/react';
-import { GraphProvider, useCellId, useNodeSize, type FlatLinkData } from '@joint/react';
+import { GraphProvider, useCellId, useMeasureNode, type FlatLinkData } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
@@ -136,7 +136,7 @@ export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryC
 
 export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeSize(elementRef);
+  const { width, height } = useMeasureNode(elementRef);
 
   return (
     <foreignObject width={width} height={height} overflow="visible">

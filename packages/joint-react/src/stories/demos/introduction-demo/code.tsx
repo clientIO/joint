@@ -14,9 +14,9 @@ import {
   useCellId,
   useElements,
   useGraph,
-  useNodeSize,
+  useMeasureNode,
   useLinks,
-  useOnElementsMeasured,
+  useOnNodesMeasured,
   type CellId,
   type FlatElementData,
   type FlatElementPort,
@@ -172,7 +172,7 @@ function MessageComponent({
   const id = useCellId();
   const { set } = useCellActions<MessageElement>();
   const elementRef = React.useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeSize(elementRef);
+  const { width, height } = useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height} overflow="visible" magnet="passive">
       <div ref={elementRef} className={MESSAGE_NODE_CLASSNAME}>
@@ -268,7 +268,7 @@ function MinimapRenderElement() {
 function MiniMap() {
   const minimapId = useId();
 
-  useOnElementsMeasured(minimapId, ({ paper, graph }) => {
+  useOnNodesMeasured(minimapId, ({ paper, graph }) => {
     const contentArea = graph.getBBox();
     if (!contentArea) return;
     paper.transformToFitContent({

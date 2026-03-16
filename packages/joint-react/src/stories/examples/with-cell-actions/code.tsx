@@ -8,7 +8,7 @@ import {
   useElements,
   useLinks,
   useNodeLayout,
-  useNodeSize,
+  useMeasureNode,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
@@ -45,7 +45,7 @@ const initialLinks: Record<string, FlatLinkData> = {
 
 function RenderElement({ label, color }: Readonly<NodeData>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeSize(elementRef);
+  const { width, height } = useMeasureNode(elementRef);
 
   return (
     <foreignObject width={width} height={height}>

@@ -5,7 +5,7 @@ import {
     Paper,
     useGraph,
     usePaper,
-    useNodeSize,
+    useMeasureNode,
     useNodeLayout,
     type GraphElement,
     type GraphLink,
@@ -171,7 +171,7 @@ function Shape({
   title?: string;
 }) {
     const textRef = useRef<SVGTextElement>(null);
-    const { width, height } = useNodeSize(textRef, {
+    const { width, height } = useMeasureNode(textRef, {
         transform: nodeSizeToModelSize,
     });
 

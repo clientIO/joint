@@ -4,7 +4,7 @@ import { forwardRef, useCallback, useRef } from 'react';
 import {
   GraphProvider,
   Paper,
-  useNodeSize,
+  useMeasureNode,
   useMarkup,
   type FlatElementData,
   type FlatLinkData,
@@ -96,7 +96,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
     };
   }, [totalHeight]);
 
-  const { width, height } = useNodeSize(contentRef, { transform });
+  const { width, height } = useMeasureNode(contentRef, { transform });
 
   return (
     <>

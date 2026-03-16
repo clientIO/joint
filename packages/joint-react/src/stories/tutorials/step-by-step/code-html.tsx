@@ -6,7 +6,7 @@ import {
   type GraphProps,
   type FlatElementData,
   type FlatLinkData,
-  useNodeSize,
+  useMeasureNode,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -32,7 +32,7 @@ const initialEdges: Record<string, FlatLinkData> = {
 function RenderItem(props: CustomElement) {
   const { label, width, height } = props;
   const elementRef = React.useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height}>
       <div ref={elementRef} className="node">

@@ -138,7 +138,7 @@ describe('createElementsSizeObserver', () => {
     it('should register element with ResizeObserver', () => {
       const element = document.createElement('div');
 
-      observer.add({ id: 'element-1', element });
+      observer.add({ id: 'element-1', node: element });
 
       expect(observer.has('element-1')).toBe(true);
     });
@@ -146,7 +146,7 @@ describe('createElementsSizeObserver', () => {
     it('should return cleanup function that unregisters element', () => {
       const element = document.createElement('div');
 
-      const cleanup = observer.add({ id: 'element-1', element });
+      const cleanup = observer.add({ id: 'element-1', node: element });
       expect(observer.has('element-1')).toBe(true);
 
       cleanup();
@@ -157,8 +157,8 @@ describe('createElementsSizeObserver', () => {
       const element1 = document.createElement('div');
       const element2 = document.createElement('div');
 
-      observer.add({ id: 'element-1', element: element1 });
-      observer.add({ id: 'element-2', element: element2 });
+      observer.add({ id: 'element-1', node: element1 });
+      observer.add({ id: 'element-2', node: element2 });
 
       expect(observer.has('element-1')).toBe(true);
       expect(observer.has('element-2')).toBe(true);
@@ -167,7 +167,7 @@ describe('createElementsSizeObserver', () => {
     it('should process ResizeObserver callback when element is added', () => {
       const element = document.createElement('div');
 
-      observer.add({ id: 'element-1', element });
+      observer.add({ id: 'element-1', node: element });
 
       // Trigger resize via ResizeObserver (simulates browser behavior)
       const resizeObserver = MockResizeObserver.getLastInstance();
@@ -186,8 +186,8 @@ describe('createElementsSizeObserver', () => {
       const element1 = document.createElement('div');
       const element2 = document.createElement('div');
 
-      observer.add({ id: 'element-1', element: element1 });
-      observer.add({ id: 'element-2', element: element2 });
+      observer.add({ id: 'element-1', node: element1 });
+      observer.add({ id: 'element-2', node: element2 });
 
       // Trigger resize for both elements
       const resizeObserver = MockResizeObserver.getLastInstance();
@@ -202,7 +202,7 @@ describe('createElementsSizeObserver', () => {
     it('should process size changes from ResizeObserver', () => {
       const element = document.createElement('div');
 
-      observer.add({ id: 'element-1', element });
+      observer.add({ id: 'element-1', node: element });
 
       const resizeObserver = MockResizeObserver.getLastInstance();
       expect(resizeObserver).toBeDefined();
@@ -221,7 +221,7 @@ describe('createElementsSizeObserver', () => {
     it('should not update if size has not changed significantly', () => {
       const element = document.createElement('div');
 
-      observer.add({ id: 'element-1', element });
+      observer.add({ id: 'element-1', node: element });
 
       const resizeObserver = MockResizeObserver.getLastInstance();
 
@@ -244,7 +244,7 @@ describe('createElementsSizeObserver', () => {
         height: height + 20,
       }));
 
-      observer.add({ id: 'element-1', element, transform });
+      observer.add({ id: 'element-1', node: element, transform });
 
       const resizeObserver = MockResizeObserver.getLastInstance();
       resizeObserver?.triggerResize(element, 100, 50);
@@ -262,8 +262,8 @@ describe('createElementsSizeObserver', () => {
       const element1 = document.createElement('div');
       const element2 = document.createElement('div');
 
-      observer.add({ id: 'element-1', element: element1 });
-      observer.add({ id: 'element-2', element: element2 });
+      observer.add({ id: 'element-1', node: element1 });
+      observer.add({ id: 'element-2', node: element2 });
 
       expect(observer.has('element-1')).toBe(true);
       expect(observer.has('element-2')).toBe(true);
@@ -278,7 +278,7 @@ describe('createElementsSizeObserver', () => {
   describe('has', () => {
     it('should return true for registered elements', () => {
       const element = document.createElement('div');
-      observer.add({ id: 'element-1', element });
+      observer.add({ id: 'element-1', node: element });
 
       expect(observer.has('element-1')).toBe(true);
     });
