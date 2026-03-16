@@ -9,7 +9,7 @@ import {
   ReactElement,
   ReactLink,
   useGraph,
-  useNodeSize,
+  useMeasureNode,
   useCellId,
   type FlatElementData,
   usePaper,
@@ -61,7 +61,7 @@ function createGraph(): dia.Graph {
 
 function Node({ label, color }: Readonly<Partial<ElementData>>) {
   const ref = useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeSize(ref);
+  const { width, height } = useMeasureNode(ref);
   const id = useCellId();
   const graph = useGraph();
 

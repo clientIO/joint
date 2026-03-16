@@ -6,7 +6,7 @@ import React, { useCallback, useRef, type PropsWithChildren } from 'react';
 import {
   GraphProvider,
   Paper,
-  useNodeSize,
+  useMeasureNode,
   type OnTransformElement,
   useCellId,
 } from '@joint/react';
@@ -45,7 +45,7 @@ function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData
     []
   );
 
-  const { width, height } = useNodeSize(elementRef, { transform });
+  const { width, height } = useMeasureNode(elementRef, { transform });
 
   const { set } = useCellActions<BaseElementWithData>();
 

@@ -6,7 +6,7 @@ import {
   Paper,
   useCellId,
   useMarkup,
-  useNodeSize,
+  useMeasureNode,
   type CellId,
   type FlatElementData,
   type FlatLinkData,
@@ -122,7 +122,7 @@ function RenderElement({ title, description, nodeType, outputPorts, onAddPort, o
   const id = useCellId();
   const { selectorRef } = useMarkup();
   const contentRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeSize(contentRef);
+  const { width, height } = useMeasureNode(contentRef);
 
   let icon: string;
   switch (nodeType) {

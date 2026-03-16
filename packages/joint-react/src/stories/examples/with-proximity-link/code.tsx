@@ -2,7 +2,7 @@
 import {
   GraphProvider,
   Paper,
-  useNodeSize,
+  useMeasureNode,
   useCellId,
   useElements,
   useGraph,
@@ -70,7 +70,7 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
     };
   }, [closeIds, id, remove, set]);
 
-  const { width, height } = useNodeSize(nodeRef);
+  const { width, height } = useMeasureNode(nodeRef);
   return (
     <foreignObject width={width} height={height}>
       <div ref={nodeRef} className="node">

@@ -30,17 +30,23 @@ export type OnTransformElement = (options: TransformOptions) => NodeLayoutOption
  * Options for registering an element to be measured for size changes.
  */
 export interface SetMeasuredNodeOptions {
-  /** The DOM element (HTML or SVG) to observe for size changes */
-  readonly element: HTMLElement | SVGElement;
+  /** The DOM node (HTML or SVG) to observe for size changes */
+  readonly node: HTMLElement | SVGElement;
   /** Optional callback to handle size updates before they're applied */
   readonly transform?: OnTransformElement;
-  /** The ID of the cell in the graph that corresponds to this DOM element */
+  /** The ID of the cell in the graph that corresponds to this DOM node */
   readonly id: CellId;
+  /**
+   * DOM node to hide until measurement is complete.
+   * When `undefined`, nothing is hidden.
+   */
+  readonly visibilityNode?: HTMLElement | SVGElement;
 }
 
 interface ObservedElement {
   readonly id: CellId;
-  readonly element: HTMLElement | SVGElement;
+  readonly node: HTMLElement | SVGElement;
+  readonly visibilityNode?: HTMLElement | SVGElement;
   readonly transform?: OnTransformElement;
   lastWidth?: number;
   lastHeight?: number;
@@ -48,7 +54,7 @@ interface ObservedElement {
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function defaultTransform(options: TransformOptions) {
+function identityTransform(options: TransformOptions) {
   const { width, height, x, y } = options;
   return { width, height, x, y };
 }
@@ -65,7 +71,7 @@ interface Options {
   /** Function to get the current public snapshot containing all elements */
   readonly getPublicSnapshot: () => GraphStoreSnapshot;
   /** Callback function called when a batch of elements needs to be updated */
-  readonly onBatchUpdate: (elements: Record<CellId, FlatElementData>) => void;
+  readonly onBatchUpdate: (data: Record<CellId, FlatElementData>) => void;
 }
 
 /**
@@ -109,7 +115,7 @@ interface ProcessSizeChangeOptions {
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly updatedElements: Record<CellId, FlatElementData>;
+  readonly updatedElementsData: Record<CellId, FlatElementData>;
 }
 
 /**
@@ -119,10 +125,10 @@ interface ProcessSizeChangeOptions {
  * @returns True if the element was updated, false otherwise
  */
 function processSizeChange(options: ProcessSizeChangeOptions): boolean {
-  const { measuredWidth, measuredHeight, observedElement, getCellTransform, updatedElements } =
+  const { measuredWidth, measuredHeight, observedElement, getCellTransform, updatedElementsData } =
     options;
   const currentCellTransform = getCellTransform(observedElement.id);
-  const graphElement = updatedElements[observedElement.id];
+  const graphElement = updatedElementsData[observedElement.id];
 
   if (!graphElement) {
     return false;
@@ -146,8 +152,8 @@ function processSizeChange(options: ProcessSizeChangeOptions): boolean {
   observedElement.lastHeight = measuredHeight;
 
   const { x, y, angle, element: cell } = currentCellTransform;
-  const transform = observedElement.transform ?? defaultTransform;
-  updatedElements[observedElement.id] = {
+  const transform = observedElement.transform ?? identityTransform;
+  updatedElementsData[observedElement.id] = {
     ...graphElement,
     ...transform({
       x: x ?? 0,
@@ -191,7 +197,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     let hasAnySizeChange = false;
     const publicSnapshot = getPublicSnapshot();
     const elementsRecord = publicSnapshot.elements as Record<CellId, FlatElementData>;
-    const updatedElements: Record<CellId, FlatElementData> = { ...elementsRecord };
+    const updatedElementsData: Record<CellId, FlatElementData> = { ...elementsRecord };
 
     for (const entry of entries) {
       // We must be careful to not mutate the snapshot data.
@@ -200,8 +206,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       if (!observedElement) continue;
 
       if (!observedElement) continue;
-      const { element } = observedElement;
-      element.style.removeProperty('visibility');
+      observedElement.visibilityNode?.style.removeProperty('visibility');
 
       // If borderBoxSize is not available or empty, continue to the next entry.
       if (!borderBoxSize || borderBoxSize.length === 0) {
@@ -225,7 +230,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         measuredHeight,
         observedElement,
         getCellTransform,
-        updatedElements,
+        updatedElementsData,
       });
 
       if (wasUpdated) {
@@ -237,31 +242,32 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       return;
     }
 
-    onBatchUpdate(updatedElements);
+    onBatchUpdate(updatedElementsData);
   });
 
   return {
-    add({ id, element, transform }: SetMeasuredNodeOptions) {
-      element.style.setProperty('visibility', 'hidden');
+    add({ id, node, transform, visibilityNode }: SetMeasuredNodeOptions) {
+      visibilityNode?.style.setProperty('visibility', 'hidden');
       const observedElement: ObservedElement = {
         id,
-        element,
+        node,
+        visibilityNode,
         transform,
         isMeasured: false,
       };
-      observer.observe(element, resizeObserverOptions);
+      observer.observe(node, resizeObserverOptions);
       observedElementsByCellId.set(id, observedElement);
-      observedElementsByDomElement.set(element, observedElement);
+      observedElementsByDomElement.set(node, observedElement);
 
       return () => {
-        observer.unobserve(element);
+        observer.unobserve(node);
         observedElementsByCellId.delete(id);
-        observedElementsByDomElement.delete(element);
+        observedElementsByDomElement.delete(node);
       };
     },
     clean() {
-      for (const [, { element }] of observedElementsByCellId.entries()) {
-        observer.unobserve(element);
+      for (const [, { node }] of observedElementsByCellId.entries()) {
+        observer.unobserve(node);
       }
       observedElementsByCellId.clear();
       observer.disconnect();

@@ -50,14 +50,14 @@ function resolvePaper(
  * @example
  * ```tsx
  * // React to every measurement (inside a <Paper> component)
- * useOnElementsMeasured(({ isInitial }) => {
+ * useOnNodesMeasured(({ isInitial }) => {
  *   if (isInitial) runLayout(graph);
  * });
  * ```
  * @example
  * ```tsx
  * // Fire once, then stop listening
- * useOnElementsMeasured(() => {
+ * useOnNodesMeasured(() => {
  *   paper.transformToFitContent({ padding: 20 });
  * }, [], { once: true });
  * ```
@@ -65,23 +65,23 @@ function resolvePaper(
  * ```tsx
  * // Using a paper ref
  * const paperRef = useRef<dia.Paper>(null);
- * useOnElementsMeasured(paperRef, () => {
+ * useOnNodesMeasured(paperRef, () => {
  *   paperRef.current?.transformToFitContent({ padding: 20 });
  * });
  * ```
  */
-export function useOnElementsMeasured(
+export function useOnNodesMeasured(
   callback: Callback,
   dependencies?: DependencyList,
   options?: UseOnElementsMeasuredOptions
 ): void;
-export function useOnElementsMeasured(
+export function useOnNodesMeasured(
   target: PaperTarget,
   callback: Callback,
   dependencies?: DependencyList,
   options?: UseOnElementsMeasuredOptions
 ): void;
-export function useOnElementsMeasured(
+export function useOnNodesMeasured(
   targetOrCallback: PaperTarget | Callback,
   callbackOrDependencies?: Callback | DependencyList,
   dependenciesOrOptions?: DependencyList | UseOnElementsMeasuredOptions,

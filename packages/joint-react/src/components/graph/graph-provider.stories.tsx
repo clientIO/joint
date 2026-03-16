@@ -8,7 +8,7 @@ import {
 } from '../../../.storybook/decorators/with-simple-data';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useEffect, useRef, useState } from 'react';
-import { useNodeSize } from '../../hooks/use-node-size';
+import { useMeasureNode } from '../../hooks/use-measure-node';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { GraphProvider } from './graph-provider';
@@ -77,7 +77,7 @@ export default meta;
 
 function RenderHTMLElement({ width, height }: Readonly<SimpleElement>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  useNodeSize(elementRef);
+  useMeasureNode(elementRef);
   return (
     <foreignObject joint-selector="placeholder" width={width} height={height}>
       <div

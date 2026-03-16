@@ -9,7 +9,7 @@ import {
   useGraph,
   usePaper,
   usePaperEvents,
-  useNodeSize,
+  useMeasureNode,
   useNodeLayout,
   type CellId,
   type FlatElementData,
@@ -174,7 +174,7 @@ function Shape({
   title?: string;
 }>) {
   const textRef = useRef<SVGTextElement>(null);
-  const { width, height } = useNodeSize(textRef, {
+  const { width, height } = useMeasureNode(textRef, {
     transform: nodeSizeToModelSize,
   });
 

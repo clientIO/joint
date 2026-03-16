@@ -7,10 +7,10 @@ import '@testing-library/jest-dom';
 import { shapes } from '@joint/core';
 import type { dia } from '@joint/core';
 import React from 'react';
-import { useNodeSize } from '../../../hooks/use-node-size';
+import { useMeasureNode } from '../../../hooks/use-measure-node';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import { useGraph, useCellId, useLinks } from '../../../hooks';
-import { useOnElementsMeasured } from '../../../hooks/use-on-elements-measured';
+import { useOnNodesMeasured } from '../../../hooks/use-on-nodes-measured';
 import type { ElementsMeasuredEvent } from '../../../types/event.types';
 import type { FlatElementData } from '../../../types/element-types';
 import type { FlatLinkData } from '../../../types/link-types';
@@ -21,7 +21,7 @@ import type { ReactPaper } from '../../../models/react-paper';
 
 /** Test helper: listens to `elements:measured` event via hook and forwards to callback. */
 function MeasuredListener({ paperId, callback }: Readonly<{ paperId: string; callback: (event: ElementsMeasuredEvent) => void }>) {
-  useOnElementsMeasured(paperId, callback);
+  useOnNodesMeasured(paperId, callback);
   return null;
 }
 
@@ -320,7 +320,7 @@ describe('Paper Component', () => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const elementRef = React.useRef<HTMLDivElement>(null);
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      useNodeSize(elementRef);
+      useMeasureNode(elementRef);
       return (
         <foreignObject width={width} height={height}>
           <div ref={elementRef} className="node">

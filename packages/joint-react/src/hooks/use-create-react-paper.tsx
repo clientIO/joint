@@ -317,7 +317,7 @@ export function useCreateReactPaper<
         if (!areElementsMeasured) {
           // eslint-disable-next-line no-console
           console.error(
-            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useNodeSize` hook.'
+            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `useMeasureNode` hook.'
           );
         }
       }, 1000);

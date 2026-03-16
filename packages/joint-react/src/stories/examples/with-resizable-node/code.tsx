@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useElements, useNodeSize } from '@joint/react';
+import { GraphProvider, Paper, useElements, useMeasureNode } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -40,7 +40,7 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
     }
   }, []);
 
-  const { width, height } = useNodeSize(nodeRef);
+  const { width, height } = useMeasureNode(nodeRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <div

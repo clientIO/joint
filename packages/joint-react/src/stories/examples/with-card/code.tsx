@@ -5,7 +5,7 @@ import type { OnTransformElement } from '@joint/react';
 import {
   GraphProvider,
   Paper,
-  useNodeSize,
+  useMeasureNode,
   type FlatLinkData,
   type RenderElement,
 } from '@joint/react';
@@ -41,7 +41,7 @@ function Card({ label }: Readonly<Partial<BaseElementWithData>>) {
     },
     []
   );
-  const { width, height } = useNodeSize(contentRef, {
+  const { width, height } = useMeasureNode(contentRef, {
     transform: transformSize,
   });
 

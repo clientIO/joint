@@ -1,9 +1,19 @@
+/* eslint-disable quotes */
 import { useLayoutEffect, type RefObject } from 'react';
 import { useCellId } from './use-cell-id';
 import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
 import { useNodeLayout } from './use-node-layout';
 import type { NodeLayout } from '../store/graph-store';
+import { usePaper } from './use-paper';
+
+/**
+ * Controls element visibility until the first measurement completes.
+ * - `'show-all'` — hides nothing; the element is visible immediately
+ * - `'hide-node'` — hides the observed DOM element (default)
+ * - `'hide-all'` — hides the entire element view (`cellView.el`)
+ */
+export type VisibilityStrategy = 'show-all' | 'hide-node' | 'hide-all';
 
 /**
  * Options for configuring how the node size is measured and applied.
@@ -12,7 +22,7 @@ export interface MeasureNodeOptions {
   /**
    * Custom transform function to modify the measured size before applying it to the graph element.
    *
-   * This function receives the measured dimensions from the DOM element and the current graph element,
+   * This function receives the measured dimensions from the DOM node and the current graph element,
    * allowing you to add padding, apply scaling, or perform other transformations.
    * @param options - The measured size and the graph element instance (width, height, x, y, element)
    * @returns The size values to apply to the graph element. Must include `width` and `height`.
@@ -23,10 +33,19 @@ export interface MeasureNodeOptions {
    *   width: width + 20, // Add 10px padding on each side
    *   height: height + 20,
    * });
-   * useNodeSize(elementRef, { transform });
+   * useMeasureNode(nodeRef, { transform });
    * ```
    */
   readonly transform?: OnTransformElement;
+
+  /**
+   * Controls element visibility until the first measurement completes.
+   * - `'show-all'` — hides nothing; the element is visible immediately
+   * - `'hide-node'` — hides the observed DOM element
+   * - `'hide-all'` — hides the entire element view (`cellView.el`)
+   * @default 'hide-all'
+   */
+  readonly visibility?: VisibilityStrategy;
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
@@ -41,16 +60,16 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  * `transform` function is provided).
  *
  * **How it works:**
- * 1. Observes the DOM element referenced by `elementRef` for size changes
+ * 1. Observes the DOM element referenced by `nodeRef` for size changes
  * 2. When the DOM element's size changes, applies the size (or transformed size) to the graph element
  * 3. Returns the current graph element's dimensions, which are always defined
  *
  * **Important constraints:**
- * - Only one `useNodeSize` hook can be used per element. Using multiple hooks for the same element
+ * - Only one `useMeasureNode` hook can be used per element. Using multiple hooks for the same element
  * will throw an error and cause unexpected behavior.
  * - Must be used within a `renderElement` function or a component rendered from within it.
  * - The returned values are always defined (width and height default to 0 if not set).
- * @param elementRef - A reference to the HTML or SVG element to measure. The element must be rendered
+ * @param nodeRef - A reference to the HTML or SVG element to measure. The element must be rendered
  *                     in the DOM when the hook runs.
  * @param options - Optional configuration for measuring and transforming the node size.
  * @returns An object containing the current graph element's dimensions:
@@ -65,12 +84,12 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  * @example
  * Basic usage with SVG element:
  * ```tsx
- * import { useNodeSize } from '@joint/react';
+ * import { useMeasureNode } from '@joint/react';
  * import { useRef } from 'react';
  *
  * function RenderElement() {
  *   const rectRef = useRef<SVGRectElement>(null);
- *   const { width, height } = useNodeSize(rectRef);
+ *   const { width, height } = useMeasureNode(rectRef);
  *
  *   return (
  *     <rect ref={rectRef} width={80} height={120} fill="#333" />
@@ -82,7 +101,7 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  * ```tsx
  * function Card() {
  *   const frameRef = useRef<SVGRectElement>(null);
- *   const { width, height } = useNodeSize(frameRef);
+ *   const { width, height } = useMeasureNode(frameRef);
  *   const gap = 10;
  *   const imageWidth = Math.max(width - gap * 2, 0);
  *   const imageHeight = Math.max(height - gap * 2, 0);
@@ -98,11 +117,11 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  * @example
  * With custom transform to add padding:
  * ```tsx
- * import { useNodeSize, type OnTransformElement } from '@joint/react';
+ * import { useMeasureNode, type OnTransformElement } from '@joint/react';
  * import { useRef, useCallback } from 'react';
  *
  * function ListElement() {
- *   const elementRef = useRef<HTMLDivElement>(null);
+ *   const nodeRef = useRef<HTMLDivElement>(null);
  *   const padding = 10;
  *   const headerHeight = 50;
  *
@@ -116,59 +135,75 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  *     []
  *   );
  *
- *   const { width, height } = useNodeSize(elementRef, { transform });
+ *   const { width, height } = useMeasureNode(nodeRef, { transform });
  *
  *   return (
  *     <>
  *       <rect width={width} height={height} fill="#121826" />
  *       <foreignObject x={padding} y={headerHeight} width={width - 2 * padding} height={height - headerHeight - padding}>
- *         <div ref={elementRef}>Content</div>
+ *         <div ref={nodeRef}>Content</div>
  *       </foreignObject>
  *     </>
  *   );
  * }
  * ```
  */
-export function useNodeSize(
-  elementRef: RefObject<HTMLElement | SVGElement | null>,
+export function useMeasureNode(
+  nodeRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
 ): NodeLayout {
-  const { transform } = options ?? EMPTY_OBJECT;
+  const { transform, visibility } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
+  const paper = usePaper();
   const id = useCellId();
   const layout = useNodeLayout(id) ?? EMPTY_NODE_LAYOUT;
 
   useLayoutEffect(() => {
-    const element = elementRef.current;
+    const element = nodeRef.current;
     if (!element) return;
 
     const cell = graph.getCell(id);
-    if (!cell?.isElement()) throw new Error('Cell not valid');
-    // Check if another useNodeSize hook is already measuring this element
+    if (!cell?.isElement()) {
+      throw new Error(
+        '`useMeasureNode` can only be used with elements, not links. ' +
+          `The cell with id "${id}" is not an element.`
+      );
+    }
+    // Check if another useMeasureNode hook is already measuring this element
     if (hasMeasuredNode(id) && process.env.NODE_ENV !== 'production') {
       const errorMessage =
         process.env.NODE_ENV === 'production'
-          ? `Multiple useNodeSize hooks detected for element "${id}". Only one useNodeSize hook can be used per element.`
-          : `Multiple useNodeSize hooks detected for element with id "${id}".\n\n` +
-            'Only one useNodeSize hook can be used per element. Multiple useNodeSize hooks ' +
+          ? `Multiple useMeasureNode hooks detected for element "${id}". Only one useMeasureNode hook can be used per element.`
+          : `Multiple useMeasureNode hooks detected for element with id "${id}".\n\n` +
+            'Only one useMeasureNode hook can be used per element. Multiple useMeasureNode hooks ' +
             'trying to set the size for the same element will cause conflicts and unexpected behavior.\n\n' +
             'Solution:\n' +
-            '- Use only one useNodeSize hook per element\n' +
-            '- If you need multiple measurements, use a single useNodeSize hook with a custom `transform` handler\n' +
-            '- Check your renderElement function to ensure you\'re not using multiple useNodeSize hooks for the same element';
+            '- Use only one useMeasureNode hook per element\n' +
+            '- If you need multiple measurements, use a single useMeasureNode hook with a custom `transform` handler\n' +
+            "- Check your renderElement function to ensure you're not using multiple useMeasureNode hooks for the same element";
 
       throw new Error(errorMessage);
     }
-    if (!elementRef.current) {
+    if (!nodeRef.current) {
       return;
     }
-    const clean = setMeasuredNode({ id, element: elementRef.current, transform });
+
+    // DOM node to hide (visibility: hidden) until the first measurement completes.
+    let visibilityNode: HTMLElement | SVGElement | undefined;
+    if (visibility === 'hide-node') {
+      visibilityNode = nodeRef.current;
+    } else if (visibility !== 'show-all') {
+      // 'hide-all' (default)
+      visibilityNode = paper.findViewByModel(id)?.el;
+    }
+
+    const clean = setMeasuredNode({ id, node: nodeRef.current, transform, visibilityNode });
     return () => {
       clean();
     };
-    // transform is not a dependency because it is a function
+    // transform and visibility are not dependencies because they don't change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [elementRef, graph, hasMeasuredNode, id, setMeasuredNode]);
+  }, [nodeRef, graph, hasMeasuredNode, id, paper, setMeasuredNode]);
 
   return layout;
 }

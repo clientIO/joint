@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, useElements, useGraph, Paper, useNodeSize, useCellId } from '@joint/react';
+import { GraphProvider, useElements, useGraph, Paper, useMeasureNode, useCellId } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
 import type { dia } from '@joint/core';
@@ -24,7 +24,7 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
     return graph.findElementsUnderElement(element).length > 0;
   });
 
-  const { width, height } = useNodeSize(nodeRef);
+  const { width, height } = useMeasureNode(nodeRef);
 
   return (
     <foreignObject width={width} height={height}>

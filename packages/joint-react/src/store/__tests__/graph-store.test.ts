@@ -448,7 +448,7 @@ describe('GraphStore', () => {
       const domElement = document.createElement('div');
       store.setMeasuredNode({
         id,
-        element: domElement,
+        node: domElement,
       });
 
       expect(store.hasMeasuredNode(id)).toBe(true);
@@ -472,7 +472,7 @@ describe('GraphStore', () => {
       const setSize = jest.fn();
       const cleanup = store.setMeasuredNode({
         id,
-        element: domElement,
+        node: domElement,
         transform: setSize,
       });
 

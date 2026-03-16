@@ -4,7 +4,7 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useNodeSize,
+  useMeasureNode,
   type OnTransformElement,
   type RenderElement,
 } from '@joint/react';
@@ -40,7 +40,7 @@ function RenderedRect({ label }: Readonly<BaseElementWithData>) {
     [textMargin]
   );
 
-  const { width, height } = useNodeSize(textRef, { transform });
+  const { width, height } = useMeasureNode(textRef, { transform });
 
   return (
     <>
