@@ -32,7 +32,7 @@ import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/ev
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
 import {
-  DefaultRectElement,
+  ElementHitArea,
   HTMLElementItem,
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
@@ -395,7 +395,7 @@ export function useCreateReactPaper(options: Readonly<UseCreateReactPaperOptions
               <SVGElementItem
                 {...elementState}
                 portalElement={portalNode}
-                renderElement={DefaultRectElement}
+                renderElement={ElementHitArea}
                 areElementsMeasured={areElementsMeasured}
                 id={elementId}
               />
