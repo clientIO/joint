@@ -89,15 +89,14 @@ function getReactLinkConstructor(graph: dia.Graph): ReactLinkConstructor {
  * @param props.renderLink - Callback used to render link content.
  * @returns Portaled link content, or null when container is unavailable.
  */
-function LinkItem({
+function LinkItem<LinkData = FlatLinkData>({
   link,
   portalElement,
   renderLink,
 }: {
-  readonly link: FlatLinkData;
+  readonly link: LinkData;
   readonly portalElement: SVGElement | HTMLElement;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly renderLink: RenderLink<any>;
+  readonly renderLink: RenderLink<LinkData>;
 }) {
   if (!portalElement) {
     return null;
