@@ -1,22 +1,29 @@
+/* eslint-disable unicorn/no-useless-undefined */
 import { dia } from '@joint/core';
 import { GraphStore } from '../graph-store';
 
 describe('GraphStore clearView scheduling', () => {
   let graphStore: GraphStore;
+  let mockPaper: dia.Paper;
 
   beforeEach(() => {
     graphStore = new GraphStore({});
+    // Create a minimal mock paper — clearViewForElementAndLinks calls paper.findViewByModel
+    // which returns undefined when no real paper views exist, causing early return
+    mockPaper = {
+      findViewByModel: () => undefined,
+    } as unknown as dia.Paper;
   });
 
   afterEach(() => {
     graphStore.destroy(false);
   });
 
-  it('should have scheduleClearView method', () => {
-    expect(typeof graphStore.scheduleClearView).toBe('function');
+  it('should have clearViewForElementAndLinks method', () => {
+    expect(typeof graphStore.clearViewForElementAndLinks).toBe('function');
   });
 
-  it('should accept repeated scheduleClearView calls without errors', () => {
+  it('should accept repeated clearViewForElementAndLinks calls without errors', () => {
     const element = new dia.Element({
       id: 'el1',
       type: 'ReactElement',
@@ -26,13 +33,13 @@ describe('GraphStore clearView scheduling', () => {
     graphStore.graph.addCell(element);
 
     expect(() => {
-      graphStore.scheduleClearView({ cellId: 'el1' });
-      graphStore.scheduleClearView({ cellId: 'el1' });
-      graphStore.scheduleClearView({ cellId: 'el1' });
+      graphStore.clearViewForElementAndLinks({ cellId: 'el1', paper: mockPaper });
+      graphStore.clearViewForElementAndLinks({ cellId: 'el1', paper: mockPaper });
+      graphStore.clearViewForElementAndLinks({ cellId: 'el1', paper: mockPaper });
     }).not.toThrow();
   });
 
-  it('should accept scheduleClearView with onValidateLink callback', () => {
+  it('should accept clearViewForElementAndLinks with onValidateLink callback', () => {
     const element = new dia.Element({
       id: 'el1',
       type: 'ReactElement',
@@ -44,11 +51,15 @@ describe('GraphStore clearView scheduling', () => {
     const validator = jest.fn().mockReturnValue(true);
 
     expect(() => {
-      graphStore.scheduleClearView({ cellId: 'el1', onValidateLink: validator });
+      graphStore.clearViewForElementAndLinks({
+        cellId: 'el1',
+        onValidateLink: validator,
+        paper: mockPaper,
+      });
     }).not.toThrow();
   });
 
-  it('should handle clearView for elements with connected links (no paper)', () => {
+  it('should handle clearView for elements with connected links', () => {
     const source = new dia.Element({
       id: 'source',
       type: 'ReactElement',
@@ -69,14 +80,14 @@ describe('GraphStore clearView scheduling', () => {
     });
     graphStore.graph.addCells([source, target, link]);
 
-    graphStore.scheduleClearView({ cellId: 'source' });
+    graphStore.clearViewForElementAndLinks({ cellId: 'source', paper: mockPaper });
 
     expect(graphStore.graph.getCell('link1')).toBeDefined();
   });
 
   it('should handle non-existent cells gracefully', () => {
     expect(() => {
-      graphStore.scheduleClearView({ cellId: 'non-existent' });
+      graphStore.clearViewForElementAndLinks({ cellId: 'non-existent', paper: mockPaper });
     }).not.toThrow();
   });
 });

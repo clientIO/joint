@@ -2,8 +2,12 @@ import { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { PortalSelector, ReactPaperOptions } from './react-paper.types';
 import { REACT_PORTAL_SELECTOR } from './react-element';
+import type { IncrementalChange } from '../state/incremental.types';
+import { simpleScheduler } from '../utils/scheduler';
 
-const noopViewMountChange = (_kind: 'element' | 'link', _cellId: CellId, _isMounted: boolean) => {};
+const noopViewMountChange = (): void => {
+  // No-op default for onViewMountChange callback
+};
 
 /**
  * Extended Paper class that manages React view lifecycle.
@@ -13,11 +17,8 @@ const noopViewMountChange = (_kind: 'element' | 'link', _cellId: CellId, _isMoun
  * - Hiding links until their source/target elements have rendered
  */
 export class ReactPaper extends dia.Paper {
-  private readonly onViewMountChange: (
-    kind: 'element' | 'link',
-    cellId: CellId,
-    isMounted: boolean
-  ) => void;
+  public viewChanges: Map<string, IncrementalChange<dia.Cell>> = new Map();
+  private readonly onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();
@@ -144,6 +145,16 @@ export class ReactPaper extends dia.Paper {
     }
   }
 
+  public onViewMountChangeFlush() {
+    simpleScheduler(() => {
+      if (this.viewChanges.size === 0) {
+        return;
+      }
+      this.onViewMountChange(this.viewChanges);
+      this.viewChanges = new Map();
+    });
+  }
+
   /**
    * Notify graph-store that a mounted view has been unmounted.
    */
@@ -151,13 +162,15 @@ export class ReactPaper extends dia.Paper {
     const cellId = cell.id as CellId;
 
     if (cell.isElement()) {
-      this.onViewMountChange('element', cellId, false);
+      this.viewChanges.set(cellId, { type: 'remove' });
+      this.onViewMountChangeFlush();
       return;
     }
 
     if (cell.isLink()) {
       this.pendingLinks.delete(cellId);
-      this.onViewMountChange('link', cellId, false);
+      this.viewChanges.set(cellId, { type: 'remove' });
+      this.onViewMountChangeFlush();
     }
   }
 
@@ -170,7 +183,8 @@ export class ReactPaper extends dia.Paper {
     const cellId = view.model.id as CellId;
 
     if (view.model.isElement()) {
-      this.onViewMountChange('element', cellId, true);
+      this.viewChanges.set(cellId, { type: 'add', data: view.model });
+      this.onViewMountChangeFlush();
       this.checkPendingLinks();
       return;
     }
@@ -186,7 +200,8 @@ export class ReactPaper extends dia.Paper {
         this.pendingLinks.add(cellId);
       }
 
-      this.onViewMountChange('link', cellId, true);
+      this.viewChanges.set(cellId, { type: 'add', data: view.model });
+      this.onViewMountChangeFlush();
     }
   }
 
