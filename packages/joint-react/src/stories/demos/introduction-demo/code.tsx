@@ -75,7 +75,7 @@ function buildTablePorts(rows: string[][]): Record<string, FlatElementPort> {
 }
 
 // Define static properties for the view's Paper - used by minimap and main view
-const PAPER_PROPS: PaperProps<Element> = {
+const PAPER_PROPS: PaperProps = {
   defaultRouter: {
     name: 'rightAngle',
     args: {

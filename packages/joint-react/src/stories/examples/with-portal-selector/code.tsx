@@ -43,7 +43,7 @@ interface LinkData extends FlatLinkData {
   readonly jjType?: string;
 }
 
-const PAPER_PROPS: PaperProps<ElementData> = {
+const PAPER_PROPS: PaperProps = {
   defaultAnchor: {
     name: 'midSide',
     args: {
