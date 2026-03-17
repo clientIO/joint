@@ -21,8 +21,9 @@ interface AutoLayoutElementData extends FlatElementData {
 }
 
 type CreateElementsSizeObserverOptions = {
-  readonly getPublicSnapshot: () => { readonly elements: Record<string, AutoLayoutElementData> };
+  readonly getLayoutSnapshot: () => { readonly elements: { readonly sizes: Record<string, { width: number; height: number }> } };
   readonly onBatchUpdate: (elements: Record<string, AutoLayoutElementData>) => void;
+  readonly onObserveElement: (options: { id: string; isRemoved: boolean; observedElements: number }) => void;
 };
 
 jest.mock('../../../store/create-elements-size-observer', () => {
@@ -37,22 +38,23 @@ jest.mock('../../../store/create-elements-size-observer', () => {
       return {
         add: ({ id }: { readonly id: string }) => {
           observedIds.add(id);
+          options.onObserveElement({ id, isRemoved: false, observedElements: observedIds.size });
 
           if (!isScheduled) {
             isScheduled = true;
             queueMicrotask(() => {
               isScheduled = false;
-              const snapshot = options.getPublicSnapshot();
-              const nextElements = { ...snapshot.elements };
+              const snapshot = options.getLayoutSnapshot();
+              const nextElements: Record<string, AutoLayoutElementData> = {};
               for (const observedId of observedIds) {
-                const element = nextElements[observedId];
-                if (!element) {
+                const size = snapshot.elements.sizes[observedId];
+                if (!size) {
                   continue;
                 }
                 nextElements[observedId] = {
-                  ...element,
+                  ...size,
                   height: MEASURED_NODE_HEIGHT,
-                };
+                } as AutoLayoutElementData;
               }
               options.onBatchUpdate(nextElements);
             });
@@ -60,6 +62,7 @@ jest.mock('../../../store/create-elements-size-observer', () => {
 
           return () => {
             observedIds.delete(id);
+            options.onObserveElement({ id, isRemoved: true, observedElements: observedIds.size });
           };
         },
         clean: () => {

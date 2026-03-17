@@ -35,6 +35,7 @@ import {
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
 import {
+  selectAreElementsSized,
   selectAreElementsMeasured,
   selectElementSizes,
   selectResetVersion,
@@ -142,9 +143,10 @@ export function useCreatePortalPaper(
   const elementsState = useElements();
   const linksState = useLinks();
   const graphStore = useGraphStore();
+  const areElementsSized = useElementsLayout(selectAreElementsSized);
   const areElementsMeasured = useElementsLayout(selectAreElementsMeasured);
-  const sizes = useElementsLayout(selectElementSizes);
   const resetVersion = useInternalData(selectResetVersion);
+  const sizes = useElementsLayout(selectElementSizes);
   const previousResetVersionRef = useRef(-1);
 
   useDebugValue(elementsState);
@@ -173,7 +175,6 @@ export function useCreatePortalPaper(
 
   // Subscribe to paper version to trigger re-renders on view mount/unmount changes
   const version = useInternalData(selectPaperVersion);
-  console.log('Paper re-render');
   const { addPaper, graph, graphState } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
@@ -286,29 +287,10 @@ export function useCreatePortalPaper(
     }
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
 
-  useEffect(() => {
-    if (!paper) return;
-    if (!areElementsMeasured) return;
-
-    let isInitial = false;
-    if (resetVersion !== previousResetVersionRef.current) {
-      isInitial = true;
-      previousResetVersionRef.current = resetVersion;
-    }
-    const event: ElementsMeasuredEvent = {
-      paper,
-      graph: paper.model,
-      isInitial,
-    };
-    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-    // we must have here sizes, as its called each time reference of size changes.
-  }, [areElementsMeasured, sizes, paper, resetVersion]);
-
-  const renderedElements = useMemo(() => {
+  const elements = useMemo(() => {
     if (!hasRenderElement) {
       return null;
     }
-
     return deferredElementIds.map((elementId) => {
       const elementState = deferredElementsState[elementId];
       if (!elementState) {
@@ -369,6 +351,23 @@ export function useCreatePortalPaper(
     useHTMLOverlay,
   ]);
 
+  useEffect(() => {
+    if (!paper) return;
+    if (!areElementsSized) return;
+    let isInitial = false;
+    if (resetVersion !== previousResetVersionRef.current) {
+      isInitial = true;
+      previousResetVersionRef.current = resetVersion;
+    }
+    const event: ElementsMeasuredEvent = {
+      paper,
+      graph: paper.model,
+      isInitial,
+    };
+    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+    // we must have here sizes, as its called each time reference of size changes.
+  }, [areElementsSized, sizes, paper, resetVersion]);
+
   const renderedLinks = useMemo(() => {
     if (!hasRenderLink || !renderLink) {
       return null;
@@ -398,7 +397,6 @@ export function useCreatePortalPaper(
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deferredLinkIds, version, deferredLinksState, hasRenderLink, paperStore, renderLink]);
-
   const content = useMemo(
     () => (
       <>
@@ -406,11 +404,11 @@ export function useCreatePortalPaper(
           <PaperHTMLContainer onSetElement={setHTMLRendererContainer} />
         )}
         {renderedLinks}
-        {renderedElements}
+        {elements}
       </>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hasRenderElement, version, renderedElements, renderedLinks, useHTMLOverlay]
+    [hasRenderElement, version, elements, renderedLinks, useHTMLOverlay]
   );
 
   return {

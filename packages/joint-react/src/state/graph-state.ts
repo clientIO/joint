@@ -186,7 +186,17 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     name: 'JointJs/Data',
   });
   const layoutState = createState<GraphStoreLayoutSnapshot>({
-    newState: () => ({ elements: { sizes: {}, positions: {}, angles: {}, count: 0, measuredElements: 0 }, links: {} }),
+    newState: () => ({
+      elements: {
+        sizes: {},
+        positions: {},
+        angles: {},
+        count: 0,
+        measuredObservedElements: 0,
+        observedElements: 0,
+      },
+      links: {},
+    }),
     name: 'JointJs/Layout',
   });
 
@@ -324,19 +334,12 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     positions: Record<string, ElementPosition>;
     angles: Record<string, number>;
     count: number;
-    measuredElements: number;
+    observedElements: number;
+    measuredObservedElements: number;
     dirtySizes: boolean;
     dirtyPositions: boolean;
     dirtyAngles: boolean;
     dirtyCount: boolean;
-  }
-
-  /**
-   * Returns whether an element size is considered "measured" (both dimensions > 1).
-   * @param size
-   */
-  function isMeasuredSize(size: ElementSize): boolean {
-    return size.width > 1 && size.height > 1;
   }
 
   /**
@@ -377,14 +380,6 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
             }
             const newSize: ElementSize = { width: layout.width, height: layout.height };
             elements.sizes[id] = newSize;
-
-            // Update measuredElements counter (O(1))
-            const wasMeasured = previousSize ? isMeasuredSize(previousSize) : false;
-            const isMeasured = isMeasuredSize(newSize);
-            if (wasMeasured !== isMeasured) {
-              elements.measuredElements += isMeasured ? 1 : -1;
-              elements.dirtyCount = true;
-            }
           }
 
           const previousPosition = elements.positions[id];
@@ -417,9 +412,6 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
         const removedSize = elements.sizes[id];
         if (removedSize) {
           elements.count -= 1;
-          if (isMeasuredSize(removedSize)) {
-            elements.measuredElements -= 1;
-          }
           elements.dirtyCount = true;
         }
 
@@ -445,7 +437,15 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       }
 
       case 'reset': {
-        return getLayout({ graph, papers });
+        const resetLayout = getLayout({ graph, papers });
+        return {
+          ...resetLayout,
+          elements: {
+            ...resetLayout.elements,
+            observedElements: elements.observedElements,
+            measuredObservedElements: elements.measuredObservedElements,
+          },
+        };
       }
     }
   }
@@ -460,7 +460,8 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
         positions: previous.elements.positions,
         angles: previous.elements.angles,
         count: previous.elements.count,
-        measuredElements: previous.elements.measuredElements,
+        measuredObservedElements: previous.elements.measuredObservedElements,
+        observedElements: previous.elements.observedElements,
         dirtySizes: false,
         dirtyPositions: false,
         dirtyAngles: false,
@@ -484,7 +485,8 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
             positions: mutableElements.positions,
             angles: mutableElements.angles,
             count: mutableElements.count,
-            measuredElements: mutableElements.measuredElements,
+            observedElements: mutableElements.observedElements,
+            measuredObservedElements: mutableElements.measuredObservedElements,
           }
         : previous.elements;
 
@@ -693,7 +695,14 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       controller.stopListening();
       this.clear();
       layoutState.setState(() => ({
-        elements: { sizes: {}, positions: {}, angles: {}, count: 0, measuredElements: 0 },
+        elements: {
+          sizes: {},
+          positions: {},
+          angles: {},
+          count: 0,
+          measuredObservedElements: 0,
+          observedElements: 0,
+        },
         links: {},
       }));
       dataState.setState(() => {
@@ -729,7 +738,14 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       });
 
       const layout = getLayout({ graph, papers });
-      layoutState.setState(() => layout);
+      layoutState.setState((previous) => ({
+        ...layout,
+        elements: {
+          ...layout.elements,
+          observedElements: previous.elements.observedElements,
+          measuredObservedElements: previous.elements.measuredObservedElements,
+        },
+      }));
     },
   };
 }

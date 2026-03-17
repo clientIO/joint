@@ -3,8 +3,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import type { dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
-import type { GraphStoreSnapshot } from '../graph-store';
-import type { FlatElementData } from '../../types/element-types';
+import type { ElementsLayoutSnapshot, GraphStoreLayoutSnapshot } from '../graph-store';
 import type { GraphStoreObserver } from '../create-elements-size-observer';
 
 // Mock ResizeObserver for testing
@@ -85,8 +84,9 @@ describe('createElementsSizeObserver', () => {
   let observer: GraphStoreObserver;
   let mockOnBatchUpdate: jest.Mock;
   let mockGetCellTransform: jest.Mock;
-  let mockGetPublicSnapshot: jest.Mock;
-  let mockElements: Record<CellId, FlatElementData>;
+  let mockGetLayoutSnapshot: jest.Mock;
+  let mockOnObserveElement: jest.Mock;
+  let mockElementSizes: Record<CellId, { width: number; height: number }>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let createElementsSizeObserver: any;
 
@@ -97,16 +97,17 @@ describe('createElementsSizeObserver', () => {
     jest.resetModules();
     // Re-assign the mock after reset to ensure it's used
     globalThis.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
-     
+
     createElementsSizeObserver =
       require('../create-elements-size-observer').createElementsSizeObserver;
 
-    mockElements = {
-      'element-1': { x: 0, y: 0, width: 1, height: 1, type: 'PortalElement' },
-      'element-2': { x: 100, y: 100, width: 1, height: 1, type: 'PortalElement' },
+    mockElementSizes = {
+      'element-1': { width: 1, height: 1 },
+      'element-2': { width: 1, height: 1 },
     };
 
     mockOnBatchUpdate = jest.fn();
+    mockOnObserveElement = jest.fn();
     mockGetCellTransform = jest.fn((id: CellId) => ({
       width: 1,
       height: 1,
@@ -115,18 +116,26 @@ describe('createElementsSizeObserver', () => {
       angle: 0,
       element: { id } as dia.Element,
     }));
-    mockGetPublicSnapshot = jest.fn(
+    mockGetLayoutSnapshot = jest.fn(
       () =>
         ({
-          elements: mockElements,
+          elements: {
+            sizes: mockElementSizes,
+            positions: {},
+            angles: {},
+            count: Object.keys(mockElementSizes).length,
+            observedElements: 0,
+            measuredObservedElements: 0,
+          } as ElementsLayoutSnapshot,
           links: {},
-        }) as GraphStoreSnapshot
+        }) as GraphStoreLayoutSnapshot
     );
 
     observer = createElementsSizeObserver({
       onBatchUpdate: mockOnBatchUpdate,
       getCellTransform: mockGetCellTransform,
-      getPublicSnapshot: mockGetPublicSnapshot,
+      getLayoutSnapshot: mockGetLayoutSnapshot,
+      onObserveElement: mockOnObserveElement,
     });
   });
 

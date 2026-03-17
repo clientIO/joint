@@ -279,8 +279,8 @@ describe('graphState', () => {
     listener.destroy();
   });
 
-  describe('layoutState count and measuredElements', () => {
-    it('increments count and measuredElements on add', () => {
+  describe('layoutState count', () => {
+    it('increments count on add', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
       const listener = graphState({
         graph,
@@ -292,7 +292,6 @@ describe('graphState', () => {
       const layout = () => listener.layoutState.getSnapshot().elements;
 
       expect(layout().count).toBe(0);
-      expect(layout().measuredElements).toBe(0);
 
       graph.addCell({
         id: 'el-1',
@@ -302,7 +301,6 @@ describe('graphState', () => {
       });
 
       expect(layout().count).toBe(1);
-      expect(layout().measuredElements).toBe(1);
 
       graph.addCell({
         id: 'el-2',
@@ -312,12 +310,11 @@ describe('graphState', () => {
       });
 
       expect(layout().count).toBe(2);
-      expect(layout().measuredElements).toBe(2);
 
       listener.destroy();
     });
 
-    it('does not count unmeasured elements (width/height <= 1)', () => {
+    it('counts elements regardless of size', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
       const listener = graphState({
         graph,
@@ -329,32 +326,27 @@ describe('graphState', () => {
       const layout = () => listener.layoutState.getSnapshot().elements;
 
       graph.addCell({
-        id: 'el-unmeasured',
+        id: 'el-small',
         type: 'PortalElement',
         position: { x: 0, y: 0 },
         size: { width: 1, height: 1 },
       });
 
       expect(layout().count).toBe(1);
-      expect(layout().measuredElements).toBe(0);
 
-      // Resize to measured
-      const element = graph.getCell('el-unmeasured') as dia.Element;
-      element.resize(50, 50);
+      graph.addCell({
+        id: 'el-large',
+        type: 'PortalElement',
+        position: { x: 10, y: 10 },
+        size: { width: 100, height: 100 },
+      });
 
-      expect(layout().count).toBe(1);
-      expect(layout().measuredElements).toBe(1);
-
-      // Resize back to unmeasured
-      element.resize(1, 1);
-
-      expect(layout().count).toBe(1);
-      expect(layout().measuredElements).toBe(0);
+      expect(layout().count).toBe(2);
 
       listener.destroy();
     });
 
-    it('decrements count and measuredElements on remove', () => {
+    it('decrements count on remove', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
       const listener = graphState({
         graph,
@@ -379,22 +371,19 @@ describe('graphState', () => {
       });
 
       expect(layout().count).toBe(2);
-      expect(layout().measuredElements).toBe(2);
 
       graph.removeCells([graph.getCell('el-1')!]);
 
       expect(layout().count).toBe(1);
-      expect(layout().measuredElements).toBe(1);
 
       graph.removeCells([graph.getCell('el-2')!]);
 
       expect(layout().count).toBe(0);
-      expect(layout().measuredElements).toBe(0);
 
       listener.destroy();
     });
 
-    it('does not count links in element count or measuredElements', () => {
+    it('does not count links in element count', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
       const listener = graphState({
         graph,
@@ -419,7 +408,6 @@ describe('graphState', () => {
       });
 
       expect(layout().count).toBe(1);
-      expect(layout().measuredElements).toBe(1);
 
       listener.destroy();
     });

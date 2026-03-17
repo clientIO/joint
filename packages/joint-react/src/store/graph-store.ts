@@ -92,7 +92,8 @@ export interface ElementsLayoutSnapshot {
   /** Total number of elements in the graph. */
   readonly count: number;
   /** Number of elements whose width and height are both > 1 (considered measured). */
-  readonly measuredElements: number;
+  readonly observedElements: number;
+  readonly measuredObservedElements: number;
 }
 
 /**
@@ -219,14 +220,28 @@ export class GraphStore {
 
     this.dataState = this.graphState.dataState;
     this.layoutState = this.graphState.layoutState;
-
+    const measuredElementIds = new Set<CellId>();
     this.observer = createElementsSizeObserver({
-      getPublicSnapshot: () => this.dataState.getSnapshot(),
+      onObserveElement: ({ id, isRemoved, observedElements }) => {
+        if (isRemoved) {
+          measuredElementIds.delete(id);
+        }
+        this.graphState.layoutState.setState((state) => ({
+          ...state,
+          elements: {
+            ...state.elements,
+            observedElements,
+            measuredObservedElements: measuredElementIds.size,
+          },
+        }));
+      },
+      getLayoutSnapshot: () => this.layoutState.getSnapshot(),
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('resize');
         for (const [id, data] of Object.entries(updatedElements)) {
           const cell = this.graph.getCell(id);
           if (cell?.isElement()) {
+            measuredElementIds.add(id);
             cell.set('size', { width: data.width, height: data.height });
             if (data.x !== undefined && data.y !== undefined) {
               cell.set('position', { x: data.x, y: data.y });
@@ -234,6 +249,13 @@ export class GraphStore {
           }
         }
         this.graph.stopBatch('resize');
+        this.graphState.layoutState.setState((state) => ({
+          ...state,
+          elements: {
+            ...state.elements,
+            measuredObservedElements: measuredElementIds.size,
+          },
+        }));
       },
       getCellTransform: (id) => {
         const cell = this.graph.getCell(id);
