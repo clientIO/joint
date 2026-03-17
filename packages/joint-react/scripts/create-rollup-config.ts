@@ -1,7 +1,5 @@
 import { defineConfig, type RollupOptions } from 'rollup';
 import esbuild from 'rollup-plugin-esbuild';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
 
 interface CreateRollupConfigOptions {
   /** Entry points to build (e.g. ['src/index.ts', 'src/internal.ts']) */
@@ -17,19 +15,15 @@ function createPlugins() {
       target: 'es2020',
       jsx: 'automatic',
     }),
-    nodeResolve({
-      extensions: ['.js', '.ts', '.tsx'],
-      preferBuiltins: false,
-      browser: true,
-      mainFields: ['module', 'main'],
-    }),
-    commonjs(),
   ];
 }
 
 export function createRollupConfig(options: CreateRollupConfigOptions): RollupOptions[] {
-  const { entries, external } = options;
+  const { entries, external: externalList } = options;
   const plugins = createPlugins();
+
+  const external = (id: string) =>
+    externalList.some((dep) => id === dep || id.startsWith(`${dep}/`));
 
   return defineConfig([
     // ESM build (preserve modules)
