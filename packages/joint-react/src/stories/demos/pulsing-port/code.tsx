@@ -5,7 +5,6 @@ import { dia, highlighters, linkTools, V } from '@joint/core';
 import type { FlatElementData, FlatElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
 import {
-  getCellId,
   GraphProvider,
   jsx,
   Paper,
@@ -92,9 +91,7 @@ function NodeElement(_props: Readonly<FlatElementData>) {
 
   const isConnected = useLinks((links) =>
     Object.values(links).some((link) => {
-      const sourceId = getCellId(link.source);
-      const targetId = getCellId(link.target);
-      return sourceId === id || targetId === id;
+      return link.source === id || link.target === id;
     })
   );
 

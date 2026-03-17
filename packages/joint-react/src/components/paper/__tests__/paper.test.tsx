@@ -266,7 +266,7 @@ function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
 
   render(
     <GraphProvider elements={getPortDragElements()}>
-      <Paper<FlatElementData>
+      <Paper
         ref={ref}
         defaultLink={defaultLink}
         renderElement={() => <div>Drag Node</div>}
@@ -354,7 +354,7 @@ describe('Paper Component', () => {
   it('renders elements correctly with useHTMLOverlay enabled', async () => {
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => {
             return <div className="html-node">{label}</div>;
@@ -390,7 +390,7 @@ describe('Paper Component', () => {
               setControlledElements(updatedElements);
             }
           }} />
-          <Paper<Element>
+          <Paper
             id={PAPER_ID}
             renderElement={({ label }) => <div className="node">{label}</div>}
           />
@@ -409,7 +409,7 @@ describe('Paper Component', () => {
   it('applies default clickThreshold and custom clickThreshold', () => {
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> renderElement={() => <div>Test</div>} />
+        <Paper renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
     const PaperElement = document.querySelector('.joint-paper');
@@ -417,7 +417,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> clickThreshold={20} renderElement={() => <div>Test</div>} />
+        <Paper clickThreshold={20} renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
     // Ensure no errors occur when custom clickThreshold is applied
@@ -427,7 +427,7 @@ describe('Paper Component', () => {
   it('applies scale to the Paper', async () => {
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> scale={2} renderElement={() => <div>Test</div>} />
+        <Paper scale={2} renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
 
@@ -444,7 +444,7 @@ describe('Paper Component', () => {
     render(
       <GraphProvider elements={elements}>
         <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
-        <Paper<Element>
+        <Paper
           id={PAPER_ID}
           renderElement={() => <div>Test</div>}
         />
@@ -472,7 +472,7 @@ describe('Paper Component', () => {
           {isReady && (
             <>
               <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
-              <Paper<Element>
+              <Paper
                 id={PAPER_ID}
                 renderElement={RenderElement}
               />
@@ -494,7 +494,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
+        <Paper ref={ref} renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
     await waitFor(
@@ -515,7 +515,7 @@ describe('Paper Component', () => {
         <MeasuredListener paperId={PAPER_ID} callback={() => {
           onMeasuredMock(ref.current);
         }} />
-        <Paper<Element>
+        <Paper
           id={PAPER_ID}
           ref={ref}
           renderElement={() => <div>Test</div>}
@@ -548,7 +548,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
+        <Paper ref={ref} renderElement={() => <div>Test</div>} />
         <CapturePaperRef paperRef={ref} />
       </GraphProvider>
     );
@@ -573,7 +573,7 @@ describe('Paper Component', () => {
         captureRefInEffectMock(ref.current);
       }, []);
 
-      return <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />;
+      return <Paper ref={ref} renderElement={() => <div>Test</div>} />;
     }
 
     render(
@@ -659,7 +659,7 @@ describe('Paper Component', () => {
       const ref = useRef<ReactPaper | null>(null);
       return (
         <GraphProvider elements={elements}>
-          <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
+          <Paper ref={ref} renderElement={() => <div>Test</div>} />
           <ChangeScale paperRef={ref} />
         </GraphProvider>
       );
@@ -696,7 +696,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
+        <Paper ref={ref} renderElement={() => <div>Test</div>} />
         <ChangeScale />
       </GraphProvider>
     );
@@ -736,7 +736,7 @@ describe('Paper Component', () => {
       currentOutsideElements = currentElements as Record<string, Element>;
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
-          <Paper<Element> renderElement={() => <div>Test</div>} />
+          <Paper renderElement={() => <div>Test</div>} />
           <UpdatePosition />
         </GraphProvider>
       );
@@ -758,7 +758,7 @@ describe('Paper Component', () => {
 
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
-          <Paper<Element>
+          <Paper
             renderElement={({ width, height }) => {
               return <TestNode width={width} height={height} />;
             }}
@@ -798,8 +798,8 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> ref={view1Ref} renderElement={() => <div>Test</div>} />
-        <Paper<Element> ref={view2Ref} renderElement={() => <div>Test</div>} />
+        <Paper ref={view1Ref} renderElement={() => <div>Test</div>} />
+        <Paper ref={view2Ref} renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
 
@@ -818,7 +818,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
+        <Paper ref={ref} renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
 
@@ -838,7 +838,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element>
+        <Paper
           ref={ref}
           defaultConnectionPoint={{ name: 'boundary' }}
           measureNode={customMeasureNode}
@@ -860,7 +860,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> ref={ref} width="100%" renderElement={() => <div>Test</div>} />
+        <Paper ref={ref} width="100%" renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
 
@@ -876,7 +876,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> ref={ref} height="100%" renderElement={() => <div>Test</div>} />
+        <Paper ref={ref} height="100%" renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
 
@@ -892,7 +892,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element>
+        <Paper
           ref={ref}
           width="100%"
           height="100%"
@@ -913,7 +913,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element>
+        <Paper
           ref={ref}
           className="custom-paper-class flowchart-paper"
           width={720}
@@ -948,7 +948,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element>
+        <Paper
           ref={ref}
           style={{ width: '640px', height: '360px' }}
           renderElement={({ label }) => <div>{label}</div>}
@@ -979,7 +979,7 @@ describe('Paper Component', () => {
     try {
       render(
         <GraphProvider elements={elements}>
-          <Paper<Element>
+          <Paper
             ref={ref}
             className="paper-host-sized-by-class"
             renderElement={({ label }) => <div>{label}</div>}
@@ -1013,7 +1013,7 @@ describe('Paper Component', () => {
     try {
       render(
         <GraphProvider elements={elements}>
-          <Paper<Element>
+          <Paper
             ref={ref}
             className="paper-host-size-conflict"
             style={{ width: '320px', height: '180px' }}
@@ -1048,7 +1048,7 @@ describe('Paper Component', () => {
     try {
       render(
         <GraphProvider elements={elements}>
-          <Paper<Element>
+          <Paper
             ref={ref}
             className="paper-host-size-priority"
             width={480}
@@ -1082,7 +1082,7 @@ describe('Paper Component', () => {
 
       render(
         <GraphProvider elements={elements}>
-          <Paper<Element>
+          <Paper
             ref={ref}
             className={withClassName ? CUSTOM_PAPER_CLASSNAME : undefined}
             style={style}
@@ -1132,7 +1132,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element>
+        <Paper
           ref={ref}
           width="100%"
           height="100%"
@@ -1154,7 +1154,7 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper<Element> ref={ref} renderElement={() => <div>Test</div>} />
+        <Paper ref={ref} renderElement={() => <div>Test</div>} />
       </GraphProvider>
     );
 

@@ -25,7 +25,7 @@ describe('Paper with useHTMLOverlay and links', () => {
   it('renders links when useHTMLOverlay is enabled', async () => {
     const { container } = render(
       <GraphProvider elements={elements} links={links}>
-        <Paper<TestElement>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => <div className="html-node">{label}</div>}
         />
@@ -61,7 +61,7 @@ describe('Paper with useHTMLOverlay and links', () => {
   it('renders placeholder rect in SVG element when useHTMLOverlay is enabled', async () => {
     const { container } = render(
       <GraphProvider elements={elements} links={links}>
-        <Paper<TestElement>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => <div className="html-node">{label}</div>}
         />
@@ -109,7 +109,7 @@ describe('Paper with useHTMLOverlay and links', () => {
 
     const { container } = render(
       <GraphProvider elements={initialElements}>
-        <Paper<TestElement>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => <div className="html-node">{label}</div>}
         />
@@ -172,7 +172,7 @@ describe('Paper with useHTMLOverlay and links', () => {
 
     const { container } = render(
       <GraphProvider elements={elements} links={links}>
-        <Paper<TestElement>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => <div className="html-node">{label}</div>}
         />

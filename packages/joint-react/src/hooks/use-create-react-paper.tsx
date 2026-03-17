@@ -23,16 +23,16 @@ import { useLinks } from './use-links';
 import { useAreElementsMeasured, useInternalData } from './use-stores';
 import type { PaperStore } from '../store';
 import type { CellId } from '../types/cell-id';
-import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ReactPaper } from '../models/react-paper';
-import type { PaperProps, RenderElement, RenderLink } from '../components/paper/paper.types';
+import type { PaperProps, RenderLink } from '../components/paper/paper.types';
+
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
 import {
-  DefaultRectElement,
+  ElementHitArea,
   HTMLElementItem,
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
@@ -41,10 +41,7 @@ const EMPTY_VIEW_ID_RECORD = {} as Record<CellId, true>;
 
 type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
-export interface UseCreateReactPaperOptions<
-  ElementData extends FlatElementData = FlatElementData,
-  LinkData extends FlatLinkData = FlatLinkData,
-> extends PaperProps<ElementData, LinkData> {
+export interface UseCreateReactPaperOptions extends PaperProps {
   /**
    * Host element ref where the paper should be mounted automatically.
    * When omitted, paper rendering is manual (e.g. via `onReady` callback).
@@ -114,10 +111,7 @@ function LinkItem<LinkData = FlatLinkData>({
  * @param options - Hook options with paper settings and behavior overrides.
  * @returns Hook state with paper instance and rendered portal content.
  */
-export function useCreateReactPaper<
-  ElementData extends FlatElementData = FlatElementData,
-  LinkData extends FlatLinkData = FlatLinkData,
->(options: Readonly<UseCreateReactPaperOptions<ElementData, LinkData>>): UseCreateReactPaperResult {
+export function useCreateReactPaper(options: Readonly<UseCreateReactPaperOptions>): UseCreateReactPaperResult {
   const {
     renderElement,
     renderLink,
@@ -138,8 +132,8 @@ export function useCreateReactPaper<
   }
 
   const areElementsMeasured = useAreElementsMeasured();
-  const elementsState = useElements<ElementData>();
-  const linksState = useLinks<LinkData>();
+  const elementsState = useElements();
+  const linksState = useLinks();
   const graphStore = useGraphStore();
 
   useDebugValue(elementsState);
@@ -227,8 +221,8 @@ export function useCreateReactPaper<
         el: hostElementForCreation,
         defaultLink: defaultLinkJointJS,
       },
-      renderElement: renderElement as RenderElement<FlatElementData>,
-      renderLink: renderLink as RenderLink<FlatLinkData> | undefined,
+      renderElement,
+      renderLink,
       scale,
       portalSelector,
     });
@@ -401,7 +395,7 @@ export function useCreateReactPaper<
               <SVGElementItem
                 {...elementState}
                 portalElement={portalNode}
-                renderElement={DefaultRectElement}
+                renderElement={ElementHitArea}
                 areElementsMeasured={areElementsMeasured}
                 id={elementId}
               />

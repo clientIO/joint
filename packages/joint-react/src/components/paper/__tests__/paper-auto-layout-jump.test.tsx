@@ -122,7 +122,7 @@ function AutoLayoutPaper() {
     handleElementsSizeChange(graph);
   });
   return (
-    <Paper<AutoLayoutElementData> id={paperId} height={450} renderElement={renderMeasuredNode} />
+    <Paper id={paperId} height={450} renderElement={renderMeasuredNode} />
   );
 }
 

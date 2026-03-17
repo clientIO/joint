@@ -78,7 +78,7 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
  *   - `x`: The current x position of the graph element (defaults to 0)
  *   - `y`: The current y position of the graph element (defaults to 0)
  *   - `angle`: The current angle of the graph element (defaults to 0)
- * @throws {Error} If multiple `useNodeSize` hooks are used for the same element.
+ * @throws {Error} If multiple `useMeasureNode` hooks are used for the same element.
  * @throws {Error} If the cell is not a valid element.
  * @group Hooks
  * @example

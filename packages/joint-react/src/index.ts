@@ -6,7 +6,6 @@ export * from './components';
 export * from './hooks';
 
 export * from './utils/joint-jsx/jsx-to-markup';
-export * from './utils/link-utilities';
 export * from './utils/object-utilities';
 
 export * from './models/react-element';
