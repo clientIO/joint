@@ -45,21 +45,21 @@ interface CellJsonLink extends FlatLinkData {
 
 const initialElements: Record<string, CellJsonElement> = {
   'node-1': {
-    type: 'ReactElement',
+    type: 'PortalElement',
     position: { x: 70, y: 100 },
     size: { width: 160, height: 60 },
     label: 'Node 1',
     color: PRIMARY,
   },
   'node-2': {
-    type: 'ReactElement',
+    type: 'PortalElement',
     position: { x: 370, y: 70 },
     size: { width: 160, height: 60 },
     label: 'Node 2',
     color: SECONDARY,
   },
   'node-3': {
-    type: 'ReactElement',
+    type: 'PortalElement',
     position: { x: 220, y: 250 },
     size: { width: 160, height: 60 },
     label: 'Node 3',
@@ -69,12 +69,12 @@ const initialElements: Record<string, CellJsonElement> = {
 
 const initialLinks: Record<string, CellJsonLink> = {
   'link-1': {
-    type: 'ReactLink',
+    type: 'PortalLink',
     source: 'node-1',
     target: 'node-2',
   },
   'link-2': {
-    type: 'ReactLink',
+    type: 'PortalLink',
     source: 'node-1',
     target: 'node-3',
   },

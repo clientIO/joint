@@ -1,9 +1,25 @@
 import { type dia } from '@joint/core';
 import type { FlatElementData } from '../../types/element-types';
-import { REACT_TYPE } from '../../models/react-element';
-import type { ElementToGraphOptions, GraphToElementOptions } from '../graph-mappings';
+import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortDefaults } from './convert-ports';
 import { isRecord } from '../../utils/is';
+
+export interface ElementToGraphOptions<ElementData = FlatElementData> {
+  readonly id: string;
+  readonly data: ElementData;
+  readonly graph: dia.Graph;
+  readonly toAttributes: (data: ElementData) => dia.Cell.JSON;
+}
+
+export interface GraphToElementOptions<ElementData = FlatElementData> {
+  readonly id: string;
+  readonly attributes: dia.Element.Attributes;
+  readonly defaultAttributes: dia.Element.Attributes;
+  readonly element: dia.Element;
+  readonly previousData?: ElementData;
+  readonly graph: dia.Graph;
+  readonly toData: (attributes: dia.Element.Attributes) => ElementData;
+}
 
 // ────────────────────────────────────────────────────────────────────────────
 // React → JointJS
@@ -64,7 +80,7 @@ export function defaultMapDataToElementAttributes<Element = FlatElementData>(
 
   const attributes: dia.Cell.JSON = {
     id,
-    type: REACT_TYPE,
+    type: PORTAL_ELEMENT_TYPE,
   };
 
   // ↔ Two-way (flat → nested JointJS format)

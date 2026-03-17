@@ -1,11 +1,11 @@
 import { useContext } from 'react';
 import { useGraphStore } from './use-graph-store';
 import { useStore } from './use-stores';
-import type { NodeLayout } from '../store/graph-store';
+import type { ElementLayout } from '../store/graph-store';
 import type { CellId } from '../types/cell-id';
 import { CellIdContext } from '../context';
 
-const IS_EQUAL = (a: NodeLayout | undefined, b: NodeLayout | undefined): boolean => {
+const IS_EQUAL = (a: ElementLayout | undefined, b: ElementLayout | undefined): boolean => {
   if (a === b) return true;
   if (!a || !b) return false;
   return (
@@ -25,47 +25,47 @@ const IS_EQUAL = (a: NodeLayout | undefined, b: NodeLayout | undefined): boolean
  * @example
  * ```tsx
  * // With explicit ID
- * const layout = useNodeLayout('element-1');
+ * const layout = useElementLayout('element-1');
  * ```
  * @example
  * ```tsx
  * // Using context (inside renderElement)
- * const layout = useNodeLayout();
+ * const layout = useElementLayout();
  * ```
  * @example
  * ```tsx
  * // With selector (inside renderElement)
- * const x = useNodeLayout((layout) => layout?.x);
+ * const x = useElementLayout((layout) => layout?.x);
  * ```
  * @example
  * ```tsx
  * // With explicit ID and selector
- * const x = useNodeLayout('element-1', (layout) => layout?.x);
+ * const x = useElementLayout('element-1', (layout) => layout?.x);
  * ```
  */
-export function useNodeLayout(): NodeLayout;
-export function useNodeLayout<S>(
-  selector: (layout: NodeLayout | undefined) => S,
+export function useElementLayout(): ElementLayout;
+export function useElementLayout<S>(
+  selector: (layout: ElementLayout | undefined) => S,
   isEqual?: (a: S, b: S) => boolean
 ): S;
-export function useNodeLayout(id: CellId): NodeLayout | undefined;
-export function useNodeLayout<S>(
+export function useElementLayout(id: CellId): ElementLayout | undefined;
+export function useElementLayout<S>(
   id: CellId,
-  selector: (layout: NodeLayout | undefined) => S,
+  selector: (layout: ElementLayout | undefined) => S,
   isEqual?: (a: S, b: S) => boolean
 ): S;
-export function useNodeLayout<S>(
-  idOrSelector?: CellId | ((layout: NodeLayout | undefined) => S),
-  selectorOrIsEqual?: ((layout: NodeLayout | undefined) => S) | ((a: S, b: S) => boolean),
+export function useElementLayout<S>(
+  idOrSelector?: CellId | ((layout: ElementLayout | undefined) => S),
+  selectorOrIsEqual?: ((layout: ElementLayout | undefined) => S) | ((a: S, b: S) => boolean),
   isEqual?: (a: S, b: S) => boolean
-): NodeLayout | S | undefined {
+): ElementLayout | S | undefined {
   const contextId = useContext(CellIdContext);
   const { layoutState } = useGraphStore();
 
   const isFirstArgumentSelector = typeof idOrSelector === 'function';
   const actualId = isFirstArgumentSelector ? contextId : (idOrSelector ?? contextId);
 
-  let actualSelector: ((layout: NodeLayout | undefined) => S) | undefined;
+  let actualSelector: ((layout: ElementLayout | undefined) => S) | undefined;
   let actualIsEqual: ((a: S, b: S) => boolean) | undefined;
 
   if (isFirstArgumentSelector) {
@@ -74,12 +74,12 @@ export function useNodeLayout<S>(
       (selectorOrIsEqual as ((a: S, b: S) => boolean) | undefined) ??
       (IS_EQUAL as (a: S, b: S) => boolean);
   } else {
-    actualSelector = selectorOrIsEqual as ((layout: NodeLayout | undefined) => S) | undefined;
+    actualSelector = selectorOrIsEqual as ((layout: ElementLayout | undefined) => S) | undefined;
     actualIsEqual = isEqual ?? (IS_EQUAL as (a: S, b: S) => boolean);
   }
 
   if (!actualId) {
-    throw new Error('useNodeLayout must be used inside Paper renderElement');
+    throw new Error('useElementLayout must be used inside Paper renderElement');
   }
 
   return useStore(

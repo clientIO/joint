@@ -10,9 +10,10 @@ import {
   type GraphStoreObserver,
   type SetMeasuredNodeOptions,
 } from './create-elements-size-observer';
-import { ReactElement } from '../models/react-element';
-import { ReactLink } from '../models/react-link';
-import type { GraphMappings } from '../state/graph-mappings';
+import { PortalElement } from '../models/portal-element';
+import { PortalLink } from '../models/portal-link';
+import type { ElementToGraphOptions, GraphToElementOptions } from '../state/data-mapping/element-mapper';
+import type { LinkToGraphOptions, GraphToLinkOptions } from '../state/data-mapping/link-mapper';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
@@ -28,8 +29,8 @@ import type { Feature } from '../hooks/use-create-paper-features';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
-  ReactElement,
-  ReactLink,
+  PortalElement,
+  PortalLink,
 };
 
 /**
@@ -43,7 +44,7 @@ export interface GraphStoreSnapshot<ElementData = FlatElementData, LinkData = Fl
 /**
  * Layout data for a single node (element).
  */
-export interface NodeLayout {
+export interface ElementLayout {
   readonly x: number;
   readonly y: number;
   readonly width: number;
@@ -111,8 +112,15 @@ export interface GraphStoreInternalSnapshot {
 /**
  * Configuration options for creating a GraphStore instance.
  */
-export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData>
-  extends GraphMappings<ElementData, LinkData> {
+export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData> {
+  readonly mapDataToElementAttributes?: (
+    options: ElementToGraphOptions<ElementData>
+  ) => dia.Cell.JSON;
+  readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<LinkData>) => dia.Cell.JSON;
+  readonly mapElementAttributesToData?: (
+    options: GraphToElementOptions<ElementData>
+  ) => ElementData;
+  readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<LinkData>) => LinkData;
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;

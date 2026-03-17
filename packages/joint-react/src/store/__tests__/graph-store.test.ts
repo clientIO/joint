@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react';
 import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { createPaperStoreSnapshot } from '../paper-store';
-import { ReactElement } from '../../models/react-element';
+import { PortalElement } from '../../models/portal-element';
 import { sendToDevTool } from '../../utils/dev-tools';
 import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
@@ -14,7 +14,7 @@ jest.mock('../../utils/dev-tools', () => ({
 
 const sendToDevToolMock = sendToDevTool as jest.MockedFunction<typeof sendToDevTool>;
 
-const DEFAULT_TEST_NAMESPACE = { ...shapes, ReactElement };
+const DEFAULT_TEST_NAMESPACE = { ...shapes, PortalElement };
 
 describe('GraphStore', () => {
   beforeEach(() => {
@@ -51,9 +51,9 @@ describe('GraphStore', () => {
           y: 20,
           width: 100,
           height: 50,
-          type: 'ReactElement',
+          type: 'PortalElement',
         },
-        'element-2': { x: 30, y: 40, width: 80, height: 60, type: 'ReactElement' },
+        'element-2': { x: 30, y: 40, width: 80, height: 60, type: 'PortalElement' },
       };
       const store = new GraphStore({ initialElements });
       const snapshot = store.dataState.getSnapshot();
@@ -69,7 +69,7 @@ describe('GraphStore', () => {
           y: 20,
           width: 100,
           height: 50,
-          type: 'ReactElement',
+          type: 'PortalElement',
         },
       };
 
@@ -96,7 +96,7 @@ describe('GraphStore', () => {
           y: 20,
           width: 100,
           height: 50,
-          type: 'ReactElement',
+          type: 'PortalElement',
         },
       };
       const initialLinks: Record<string, FlatLinkData> = {
@@ -119,7 +119,7 @@ describe('GraphStore', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_TEST_NAMESPACE });
       const existingElement = new dia.Element({
         id: 'existing-element',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });
@@ -132,7 +132,7 @@ describe('GraphStore', () => {
           y: 20,
           width: 100,
           height: 50,
-          type: 'ReactElement',
+          type: 'PortalElement',
         },
       };
       const store = new GraphStore({ graph, initialElements });
@@ -159,7 +159,7 @@ describe('GraphStore', () => {
       const graph = new dia.Graph({}, { cellNamespace: DEFAULT_TEST_NAMESPACE });
       const element = new dia.Element({
         id: 'test-element',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });
@@ -433,7 +433,7 @@ describe('GraphStore', () => {
       const id = 'measured-element';
 
       store.graph.addCell(
-        new ReactElement({
+        new PortalElement({
           id,
           position: { x: 10, y: 20 },
           size: { width: 100, height: 50 },
@@ -456,7 +456,7 @@ describe('GraphStore', () => {
       const id = 'measured-element';
 
       store.graph.addCell(
-        new ReactElement({
+        new PortalElement({
           id,
           position: { x: 10, y: 20 },
           size: { width: 100, height: 50 },
@@ -509,7 +509,7 @@ describe('GraphStore', () => {
         y: 20,
         width: 100,
         height: 50,
-        type: 'ReactElement',
+        type: 'PortalElement',
       };
 
       store.graphState.updateGraph({
@@ -533,7 +533,7 @@ describe('GraphStore', () => {
 
       const element = new dia.Element({
         id: 'graph-element',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });
@@ -558,7 +558,7 @@ describe('GraphStore', () => {
             y: 0,
             width: 100,
             height: 50,
-            type: 'ReactElement',
+            type: 'PortalElement',
           },
         },
       });

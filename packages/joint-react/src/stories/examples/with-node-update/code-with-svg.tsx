@@ -3,7 +3,7 @@
 import { GraphProvider, Paper, useElements, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { useCellActions } from '../../../hooks/use-cell-actions';
+import { useGraph } from '@joint/react';
 
 const initialElements: Record<
   string,
@@ -28,13 +28,13 @@ interface ElementInputProps extends BaseElementWithData {
 }
 
 function ElementInput({ id, color }: Readonly<ElementInputProps>) {
-  const { set } = useCellActions<BaseElementWithData>();
+  const { setElement } = useGraph();
   return (
     <input
       className="nodrag"
       type="color"
       value={color}
-      onChange={(event) => set(id, (previous) => ({ ...previous, color: event.target.value }))}
+      onChange={(event) => setElement(id, (previous) => ({ ...previous, color: event.target.value }))}
     />
   );
 }

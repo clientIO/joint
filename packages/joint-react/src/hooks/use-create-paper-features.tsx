@@ -4,7 +4,7 @@ import { setForwardRef, useGraphStore, useInternalData, usePaperStore } from '.'
 import type { GraphStore } from '../store/graph-store';
 import type { PaperStore } from '../store/paper-store';
 import { PaperFeaturesContext } from '../context';
-import { dependencyExtract } from '../utils/object-utilities';
+import { pickValues } from '../utils/object-utilities';
 import typedMemo from '../utils/typed-react';
 const EMPTY_DEPENDENCIES: unknown[] = [];
 
@@ -121,7 +121,7 @@ function PaperFeaturesProviderBase<T>(props: Readonly<Props<T>>) {
   const { id, onAddFeature, children, onUpdateFeature, forwardedRef, onLoad, ...rest } = props;
   const ctx = useCreatePaperFeature<T>(
     { id, onAddFeature, onUpdateFeature, forwardedRef, onLoad },
-    dependencyExtract(rest)
+    pickValues(rest)
   );
   return <PaperFeaturesContext.Provider value={ctx}>{children}</PaperFeaturesContext.Provider>;
 }

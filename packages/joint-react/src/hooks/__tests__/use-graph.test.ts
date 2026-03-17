@@ -1,53 +1,378 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import { useGraph } from '../use-graph';
+import { useElements } from '../use-elements';
+import { useLinks } from '../use-links';
+import { useElementLayout } from '../use-element-layout';
+import { act } from 'react';
+import type { ReducerType } from '@reduxjs/toolkit';
 
-describe('use-graph', () => {
-  const wrapper = graphProviderWrapper({
-    elements: {
-      '1': {
-        width: 100,
-        height: 100,
-      },
-    },
+describe('useGraph', () => {
+  const simpleWrapper = graphProviderWrapper({
+    elements: { '1': { width: 100, height: 100 } },
   });
 
-  it('should return graph instance', async () => {
-    const { result } = renderHook(() => useGraph(), {
-      wrapper,
-    });
+  it('should return graph instance and mutation methods', async () => {
+    const { result } = renderHook(() => useGraph(), { wrapper: simpleWrapper });
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
-      expect(result.current).toHaveProperty('getCells');
-      expect(result.current).toHaveProperty('addCell');
-      expect(result.current).toHaveProperty('getCell');
+      expect(result.current.graph).toHaveProperty('getCells');
+      expect(result.current.graph).toHaveProperty('addCell');
+      expect(result.current.graph).toHaveProperty('getCell');
+      expect(result.current.setElement).toBeInstanceOf(Function);
+      expect(result.current.removeElement).toBeInstanceOf(Function);
+      expect(result.current.setLink).toBeInstanceOf(Function);
+      expect(result.current.removeLink).toBeInstanceOf(Function);
     });
   });
 
-  it('should return the same graph instance on re-render', async () => {
-    const { result, rerender } = renderHook(() => useGraph(), {
-      wrapper,
-    });
+  it('should return the same result on re-render', async () => {
+    const { result, rerender } = renderHook(() => useGraph(), { wrapper: simpleWrapper });
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
     });
 
-    const firstGraph = result.current;
+    const firstResult = result.current;
     rerender();
 
     await waitFor(() => {
-      expect(result.current).toBe(firstGraph);
+      expect(result.current).toBe(firstResult);
     });
   });
 });
 
+describe('useGraph element mutations', () => {
+  // @ts-expect-error - We setup in beforeEach
+  let wrapper: ReducerType<React.JSX.Element, unknown>;
+  beforeEach(() => {
+    wrapper = graphProviderWrapper({
+      elements: {
+        '1': { x: 50, y: 50, width: 97, height: 99 },
+        '2': { x: 200, y: 200, width: 97, height: 99 },
+      },
+      links: {
+        '3': { source: '1', target: '2' },
+      },
+    });
+  });
 
+  it('should set and remove elements', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), elements: useElements() }),
+      { wrapper }
+    );
 
+    await waitFor(() => {
+      expect(result.current.graph.getElements().length).toBe(2);
+      expect(result.current.elements['1'].width).toBe(97);
+    });
 
+    act(() => result.current.setElement('1', { width: 1000 }));
 
+    await waitFor(() => {
+      expect(result.current.graph.getElements().length).toBe(2);
+      expect(result.current.elements['1'].width).toBe(1000);
+    });
 
+    act(() => result.current.setElement('10', { width: 999 }));
 
+    await waitFor(() => {
+      expect(result.current.graph.getElements().length).toBe(3);
+      expect(result.current.elements['10'].width).toBe(999);
+    });
 
+    act(() => result.current.setElement('2', (previous) => ({ ...previous, width: 500 })));
 
+    await waitFor(() => {
+      expect(result.current.elements['2'].width).toBe(500);
+    });
+
+    act(() => result.current.removeElement('1'));
+
+    await waitFor(() => {
+      expect(result.current.graph.getElements().length).toBe(2);
+      expect(result.current.elements['1']).toBeUndefined();
+      expect(result.current.elements['2']?.width).toBe(500);
+    });
+  });
+
+  it('should set size using updater', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), elements: useElements() }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.elements['1'].width).toBe(97);
+    });
+
+    act(() => result.current.setElement('1', (previous) => ({ ...previous, width: 200, height: 250 })));
+
+    await waitFor(() => {
+      const size = result.current.graph.getCell('1')?.get('size');
+      expect(size?.width).toBe(200);
+      expect(size?.height).toBe(250);
+      expect(result.current.elements['1'].width).toBe(200);
+      expect(result.current.elements['1'].height).toBe(250);
+    });
+  });
+
+  it('should set angle correctly', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), elements: useElements() }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.elements['1']).toBeDefined();
+    });
+
+    act(() => result.current.setElement('1', (previous) => ({ ...previous, angle: 45 })));
+
+    await waitFor(() => {
+      expect(result.current.graph.getCell('1')?.get('angle')).toBe(45);
+      expect(result.current.elements['1'].angle).toBe(45);
+    });
+  });
+
+  it('should update custom data fields and reflect in useElements', async () => {
+    const customWrapper = graphProviderWrapper({
+      elements: { '1': { label: 'Initial Label', x: 50, y: 50, width: 100, height: 50 } },
+    });
+
+    const { result } = renderHook(
+      () => ({ ...useGraph(), elements: useElements() }),
+      { wrapper: customWrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.elements['1'].label).toBe('Initial Label');
+    });
+
+    act(() => result.current.setElement('1', (previous) => ({ ...previous, label: 'Updated Label' })));
+
+    await waitFor(() => {
+      expect(result.current.elements['1'].label).toBe('Updated Label');
+      expect(result.current.elements['1'].width).toBe(100);
+    });
+  });
+
+  it('should update layout state when size is changed', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), elements: useElements(), layout: useElementLayout('1') }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.layout?.width).toBe(97);
+      expect(result.current.layout?.height).toBe(99);
+    });
+
+    act(() => result.current.setElement('1', (previous) => ({ ...previous, width: 400, height: 450 })));
+
+    await waitFor(() => {
+      expect(result.current.layout?.width).toBe(400);
+      expect(result.current.layout?.height).toBe(450);
+      expect(result.current.elements['1'].width).toBe(400);
+    });
+  });
+
+  it('should create a new element via updater when it does not exist', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), elements: useElements() }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.elements['new-el']).toBeUndefined();
+    });
+
+    act(() => result.current.setElement('new-el', (previous) => ({ ...previous, label: 'Created' })));
+
+    await waitFor(() => {
+      expect(result.current.elements['new-el']).toBeDefined();
+      expect(result.current.elements['new-el'].label).toBe('Created');
+      expect(result.current.elements['new-el'].x).toBe(0);
+      expect(result.current.elements['new-el'].y).toBe(0);
+      expect(result.current.elements['new-el'].width).toBe(1);
+      expect(result.current.elements['new-el'].height).toBe(1);
+    });
+  });
+
+  it('should sync element update during active batch', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), elements: useElements() }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.elements['1']).toBeDefined();
+    });
+
+    act(() => {
+      result.current.graph.startBatch('test');
+      result.current.setElement('1', { x: 125, y: 175 });
+    });
+
+    expect(result.current.graph.getCell('1')?.get('position')).toEqual({ x: 125, y: 175 });
+
+    act(() => result.current.graph.stopBatch('test'));
+
+    await waitFor(() => {
+      expect(result.current.elements['1']?.x).toBe(125);
+      expect(result.current.elements['1']?.y).toBe(175);
+    });
+  });
+});
+
+describe('useGraph link mutations', () => {
+  // @ts-expect-error - We setup in beforeEach
+  let wrapper: ReducerType<React.JSX.Element, unknown>;
+  beforeEach(() => {
+    wrapper = graphProviderWrapper({
+      elements: {
+        '1': { x: 50, y: 50, width: 97, height: 99 },
+        '2': { x: 200, y: 200, width: 97, height: 99 },
+      },
+      links: {
+        '3': { source: '1', target: '2' },
+      },
+    });
+  });
+
+  it('should set, update, and remove links', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), links: useLinks() }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getLinks().length).toBe(1);
+    });
+
+    act(() => result.current.setLink('3', { source: '1', target: '2', color: '#001DFF' }));
+
+    await waitFor(() => {
+      const link = result.current.graph.getCell('3');
+      expect(link?.get('attrs')?.line?.stroke ?? '').toBe('#001DFF');
+    });
+
+    act(() => result.current.setLink('3', (previous) => ({ ...previous, color: '#FF0000' })));
+
+    await waitFor(() => {
+      const link = result.current.graph.getCell('3');
+      expect(link?.get('attrs')?.line?.stroke ?? '').toBe('#FF0000');
+    });
+
+    act(() => result.current.setLink('30', { source: '2', target: '1', color: '#00FF00' }));
+
+    await waitFor(() => {
+      expect(result.current.graph.getLinks().length).toBe(2);
+      const link = result.current.graph.getCell('30');
+      expect(link?.get('attrs')?.line?.stroke ?? '').toBe('#00FF00');
+    });
+
+    act(() => result.current.removeLink('3'));
+
+    await waitFor(() => {
+      expect(result.current.graph.getLinks().length).toBe(1);
+      expect(result.current.graph.getCell('3')).toBeUndefined();
+    });
+
+    act(() => result.current.removeLink('30'));
+
+    await waitFor(() => {
+      expect(result.current.graph.getLinks().length).toBe(0);
+    });
+  });
+
+  it('should create a new link and make it visible in graph', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), links: useLinks() }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.links['3']).toBeDefined();
+    });
+
+    act(() => result.current.setLink('new-link', { source: '2', target: '1' }));
+
+    await waitFor(() => {
+      expect(Object.keys(result.current.links).length).toBe(2);
+      expect(result.current.links['new-link'].source).toBe('2');
+      expect(result.current.graph.getLinks().length).toBe(2);
+    });
+  });
+
+  it('should remove a pending link before it is synced', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), links: useLinks() }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getLinks().length).toBe(1);
+    });
+
+    act(() => {
+      result.current.setLink('pending-link', { source: '2', target: '1', color: '#FF9505' });
+      result.current.removeLink('pending-link');
+    });
+
+    await waitFor(() => {
+      expect(result.current.links['pending-link']).toBeUndefined();
+      expect(result.current.graph.getLinks().length).toBe(1);
+    });
+  });
+
+  it('should create a new link via updater when it does not exist', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), links: useLinks() }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.links['new-link-updater']).toBeUndefined();
+    });
+
+    act(() => result.current.setLink('new-link-updater', (previous) => ({
+      ...previous,
+      source: '1',
+      target: '2',
+      color: '#123456',
+    })));
+
+    await waitFor(() => {
+      expect(result.current.links['new-link-updater']).toBeDefined();
+      expect(result.current.links['new-link-updater'].source).toBe('1');
+      expect(result.current.links['new-link-updater'].target).toBe('2');
+    });
+  });
+
+  it('should sync a new link during active batch', async () => {
+    const { result } = renderHook(
+      () => ({ ...useGraph(), links: useLinks() }),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.graph.getLinks().length).toBe(1);
+    });
+
+    act(() => {
+      result.current.graph.startBatch('test');
+      result.current.setLink('batched-link', { source: '2', target: '1', color: '#FF9505' });
+    });
+
+    expect(result.current.graph.getCell('batched-link')).toBeDefined();
+
+    act(() => result.current.graph.stopBatch('test'));
+
+    await waitFor(() => {
+      expect(result.current.links['batched-link']).toBeDefined();
+    });
+  });
+});

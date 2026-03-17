@@ -1,9 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { paperRenderElementWrapper } from '../../utils/test-wrappers';
-import { useCellId } from '../use-cell-id';
+import { useElementId } from '../use-element-id';
 
-describe('use-cell-id', () => {
-  it('should return cell id when used inside renderElement', async () => {
+describe('use-element-id', () => {
+  it('should return element id when used inside renderElement', async () => {
     const wrapper = paperRenderElementWrapper({
       graphProviderProps: {
         elements: {
@@ -18,10 +18,7 @@ describe('use-cell-id', () => {
       },
     });
 
-    // useCellId can only be used inside renderElement callback
-    // But we can test it by using renderHook with the wrapper
-    // The wrapper provides the CellIdContext through the Paper component
-    const { result } = renderHook(() => useCellId(), {
+    const { result } = renderHook(() => useElementId(), {
       wrapper,
     });
 
@@ -33,10 +30,10 @@ describe('use-cell-id', () => {
   it('should throw error when used outside renderElement', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => {
-      renderHook(() => useCellId(), {
+      renderHook(() => useElementId(), {
         wrapper: ({ children }) => <>{children}</>,
       });
-    }).toThrow('useCellId must be used inside Paper renderElement');
+    }).toThrow('useElementId must be used inside Paper renderElement');
     consoleError.mockRestore();
   });
 });

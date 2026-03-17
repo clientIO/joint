@@ -3,20 +3,21 @@ import { useContext } from 'react';
 import { CellIdContext } from '../context';
 
 /**
- * Returns the current cell id within `Paper` element rendering.
- * Use this only inside the `renderElement` function.
- * @returns The current cell id.
+ * Returns the current link id within `Paper` link rendering.
+ * Use this only inside the `renderLink` function.
+ * @returns The current link id.
  * @throws {Error} If called outside the view context.
  * @group hooks
+ * @experimental
  * @example
  * ```ts
- * const cellId = useCellId();
+ * const linkId = useLinkId();
  * ```
  */
-export function useCellId(): CellId {
+export function useLinkId(): CellId {
   const id = useContext(CellIdContext);
   if (id === undefined) {
-    throw new Error('useCellId must be used inside Paper renderElement');
+    throw new Error('useLinkId must be used inside Paper renderLink');
   }
   return id;
 }

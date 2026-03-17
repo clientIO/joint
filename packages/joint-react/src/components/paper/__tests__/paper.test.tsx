@@ -9,15 +9,15 @@ import type { dia } from '@joint/core';
 import React from 'react';
 import { useMeasureNode } from '../../../hooks/use-measure-node';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
-import { useGraph, useCellId, useLinks } from '../../../hooks';
+import { useGraph, useElementId, useLinks } from '../../../hooks';
 import { useElementsMeasuredEffect } from '../../../hooks/use-elements-measured-effect';
 import type { ElementsMeasuredEvent } from '../../../types/event.types';
 import type { FlatElementData } from '../../../types/element-types';
 import type { FlatLinkData } from '../../../types/link-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
-import { ReactLink, REACT_LINK_TYPE } from '../../../models/react-link';
-import type { ReactPaper } from '../../../models/react-paper';
+import { PortalLink, PORTAL_LINK_TYPE } from '../../../models/portal-link';
+import type { PortalPaper } from '../../../models/portal-paper';
 
 /** Test helper: listens to `elements:measured` event via hook and forwards to callback. */
 function MeasuredListener({ paperId, callback }: Readonly<{ paperId: string; callback: (event: ElementsMeasuredEvent) => void }>) {
@@ -31,7 +31,7 @@ const elements: Record<string, { label: string; width: number; height: number }>
 };
 
 function TestNode({ width, height }: Readonly<{ width?: number; height?: number }>) {
-  const id = useCellId();
+  const id = useElementId();
   return (
     <div id={`node-${id}`} style={{ width, height }} className="test-node">
       {id}
@@ -120,7 +120,7 @@ function getExpectedDimensionForCombination(options: {
 }
 
 function assertPaperDimension(options: {
-  readonly paper: ReactPaper;
+  readonly paper: PortalPaper;
   readonly expectedDimension: dia.Paper.Dimension | undefined;
   readonly axis: 'width' | 'height';
 }) {
@@ -506,7 +506,7 @@ describe('Paper Component', () => {
   });
 
   it('provides non-null ref inside onElementsMeasured callback', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
     const onMeasuredMock = jest.fn();
     const PAPER_ID = 'test-measured-ref';
 
@@ -531,13 +531,13 @@ describe('Paper Component', () => {
   });
 
   it('provides non-null ref in child useEffect on mount', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
     const captureRefInEffectMock = jest.fn();
 
     function CapturePaperRef({
       paperRef,
     }: Readonly<{
-      paperRef: RefObject<ReactPaper | null>;
+      paperRef: RefObject<PortalPaper | null>;
     }>) {
       useEffect(() => {
         captureRefInEffectMock(paperRef.current);
@@ -567,7 +567,7 @@ describe('Paper Component', () => {
     const captureRefInEffectMock = jest.fn();
 
     function PaperWithEffectRefCapture() {
-      const ref = useRef<ReactPaper | null>(null);
+      const ref = useRef<PortalPaper | null>(null);
 
       useEffect(() => {
         captureRefInEffectMock(ref.current);
@@ -596,7 +596,7 @@ describe('Paper Component', () => {
     const captureRefInEffectMock = jest.fn();
 
     function PaperWithEffectRefCapture() {
-      const ref = useRef<ReactPaper | null>(null);
+      const ref = useRef<PortalPaper | null>(null);
 
       useEffect(() => {
         captureRefInEffectMock(ref.current);
@@ -622,7 +622,7 @@ describe('Paper Component', () => {
   });
 
   it('exposes paper ref for empty graph without requiring view updates', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={{}}>
@@ -638,7 +638,7 @@ describe('Paper Component', () => {
 
   it('should access paper via context and change scale', async () => {
     // eslint-disable-next-line unicorn/consistent-function-scoping
-    function ChangeScale({ paperRef }: { paperRef: RefObject<ReactPaper | null> }) {
+    function ChangeScale({ paperRef }: { paperRef: RefObject<PortalPaper | null> }) {
       useEffect(() => {
         const checkAndScale = () => {
           if (paperRef.current) {
@@ -656,7 +656,7 @@ describe('Paper Component', () => {
     }
 
     function Component() {
-      const ref = useRef<ReactPaper | null>(null);
+      const ref = useRef<PortalPaper | null>(null);
       return (
         <GraphProvider elements={elements}>
           <Paper ref={ref} renderElement={() => <div>Test</div>} />
@@ -676,7 +676,7 @@ describe('Paper Component', () => {
     );
   });
   it('should access paper via ref and change scale', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
     function ChangeScale() {
       useEffect(() => {
         const checkAndScale = () => {
@@ -720,7 +720,7 @@ describe('Paper Component', () => {
     };
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function UpdatePosition() {
-      const graph = useGraph();
+      const { graph } = useGraph();
       useEffect(() => {
         setTimeout(() => {
           const element = graph.getCell('1');
@@ -793,8 +793,8 @@ describe('Paper Component', () => {
     });
   });
   it('should test two separate Paper with same paper, and get their data via ref', async () => {
-    const view1Ref: RefObject<ReactPaper | null> = { current: null };
-    const view2Ref: RefObject<ReactPaper | null> = { current: null };
+    const view1Ref: RefObject<PortalPaper | null> = { current: null };
+    const view2Ref: RefObject<PortalPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -814,7 +814,7 @@ describe('Paper Component', () => {
   });
 
   it('applies default defaultConnectionPoint and measureNode options', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -833,7 +833,7 @@ describe('Paper Component', () => {
   });
 
   it('allows user to override defaultConnectionPoint and measureNode', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
     const customMeasureNode = jest.fn();
 
     render(
@@ -856,7 +856,7 @@ describe('Paper Component', () => {
   });
 
   it('applies percentage width to JointJS paper when only width="100%" is set', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -872,7 +872,7 @@ describe('Paper Component', () => {
   });
 
   it('applies percentage height to JointJS paper when only height="100%" is set', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -888,7 +888,7 @@ describe('Paper Component', () => {
   });
 
   it('applies percentage dimensions to JointJS paper when both width and height are "100%"', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -909,7 +909,7 @@ describe('Paper Component', () => {
   });
 
   it('preserves custom className and style with renderElement', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -944,7 +944,7 @@ describe('Paper Component', () => {
   });
 
   it('extracts width and height from style when paper props are not provided', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -969,7 +969,7 @@ describe('Paper Component', () => {
   });
 
   it('uses className CSS dimensions when width, height, and style dimensions are omitted', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
     const cleanupPaperHostStyle = appendPaperHostSizeStyle({
       className: 'paper-host-sized-by-class',
       width: '200px',
@@ -1003,7 +1003,7 @@ describe('Paper Component', () => {
   });
 
   it('gives style dimensions precedence over className CSS dimensions', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
     const cleanupPaperHostStyle = appendPaperHostSizeStyle({
       className: 'paper-host-size-conflict',
       width: '200px',
@@ -1038,7 +1038,7 @@ describe('Paper Component', () => {
   });
 
   it('gives width and height props precedence over style and className CSS dimensions', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
     const cleanupPaperHostStyle = appendPaperHostSizeStyle({
       className: 'paper-host-size-priority',
       width: '200px',
@@ -1077,7 +1077,7 @@ describe('Paper Component', () => {
   test.each(PAPER_PROPS_COMBINATIONS)(
     'supports Paper props combination ($name)',
     async ({ withClassName, withStyle, withWidth, withHeight }) => {
-      const ref: RefObject<ReactPaper | null> = { current: null };
+      const ref: RefObject<PortalPaper | null> = { current: null };
       const style = getPaperStyleForCombination(withStyle);
 
       render(
@@ -1128,7 +1128,7 @@ describe('Paper Component', () => {
   );
 
   it('does not overwrite paper percentage width with pixel values from resizePaperContainer', async () => {
-    const ref: RefObject<ReactPaper | null> = { current: null };
+    const ref: RefObject<PortalPaper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -1149,7 +1149,7 @@ describe('Paper Component', () => {
     });
   });
 
-  it('uses ReactLink from graph namespace when defaultLink is not provided', async () => {
+  it('uses PortalLink from graph namespace when defaultLink is not provided', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
@@ -1162,8 +1162,8 @@ describe('Paper Component', () => {
       expect(ref.current).not.toBeNull();
     });
 
-    class CustomNamespaceReactLink extends ReactLink {}
-    ref.current!.model.layerCollection.cellNamespace.ReactLink = CustomNamespaceReactLink;
+    class CustomNamespacePortalLink extends PortalLink {}
+    ref.current!.model.layerCollection.cellNamespace.PortalLink = CustomNamespacePortalLink;
 
     const defaultLinkFactory = ref.current!.options.defaultLink as (
       cellView: dia.CellView,
@@ -1174,11 +1174,11 @@ describe('Paper Component', () => {
       {} as dia.CellView,
       document.createElementNS('http://www.w3.org/2000/svg', 'circle')
     );
-    expect(createdLink).toBeInstanceOf(CustomNamespaceReactLink);
+    expect(createdLink).toBeInstanceOf(CustomNamespacePortalLink);
   });
 
   describe('defaultLink drag integration', () => {
-    it('uses default ReactLink theme when defaultLink is not provided', async () => {
+    it('uses default PortalLink theme when defaultLink is not provided', async () => {
       const { ref, getLinksSnapshot } = renderPortDragPaper();
 
       await waitFor(() => {
@@ -1186,8 +1186,8 @@ describe('Paper Component', () => {
       });
 
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
-      expect(createdLink).toBeInstanceOf(ReactLink);
-      expect(createdLink.get('type')).toBe(REACT_LINK_TYPE);
+      expect(createdLink).toBeInstanceOf(PortalLink);
+      expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
       expect(createdLink.attr(['line', 'stroke'])).toBe('#333333');
       expect(createdLink.attr(['line', 'strokeWidth'])).toBe(2);
 
@@ -1276,8 +1276,8 @@ describe('Paper Component', () => {
       });
 
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
-      expect(createdLink).toBeInstanceOf(ReactLink);
-      expect(createdLink.get('type')).toBe(REACT_LINK_TYPE);
+      expect(createdLink).toBeInstanceOf(PortalLink);
+      expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
       expect(createdLink.attr(['line', 'stroke'])).toBe('#ff5500');
       expect(createdLink.attr(['line', 'strokeWidth'])).toBe(7);
       expect(createdLink.attr(['line', 'class'])).toBe('custom-default-link');
@@ -1322,8 +1322,8 @@ describe('Paper Component', () => {
 
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
       expect(defaultLinkCallback).toHaveBeenCalledTimes(1);
-      expect(createdLink).toBeInstanceOf(ReactLink);
-      expect(createdLink.get('type')).toBe(REACT_LINK_TYPE);
+      expect(createdLink).toBeInstanceOf(PortalLink);
+      expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
       expect(createdLink.attr(['line', 'stroke'])).toBe('#22aa55');
       expect(createdLink.attr(['line', 'strokeWidth'])).toBe(4);
       expect(createdLink.attr(['wrapper', 'strokeWidth'])).toBe(20);

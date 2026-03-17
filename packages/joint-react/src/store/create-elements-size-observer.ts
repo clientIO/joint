@@ -1,20 +1,20 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
-import type { GraphStoreSnapshot, NodeLayout } from './graph-store';
+import type { GraphStoreSnapshot, ElementLayout } from './graph-store';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // Epsilon value to avoid jitter due to sub-pixel rendering
 // especially on Safari
 const EPSILON = 0.5;
 
-export type NodeLayoutOptionalXY = Pick<NodeLayout, 'width' | 'height'> &
-  Partial<Pick<NodeLayout, 'x' | 'y'>>;
+export type ElementLayoutOptionalXY = Pick<ElementLayout, 'width' | 'height'> &
+  Partial<Pick<ElementLayout, 'x' | 'y'>>;
 
 /**
  * Options passed to the setSize callback when an element's size changes.
  */
-export interface TransformOptions extends Required<NodeLayout> {
+export interface TransformOptions extends Required<ElementLayout> {
   /** The JointJS element instance */
   readonly element: dia.Element;
   readonly id: CellId;
@@ -24,7 +24,7 @@ export interface TransformOptions extends Required<NodeLayout> {
  * Callback function called when an element's size is measured.
  * Allows custom handling of size updates before they're applied to the graph.
  */
-export type OnTransformElement = (options: TransformOptions) => NodeLayoutOptionalXY;
+export type OnTransformElement = (options: TransformOptions) => ElementLayoutOptionalXY;
 
 /**
  * Options for registering an element to be measured for size changes.
@@ -67,7 +67,7 @@ interface Options {
   /** Function to get the current size of a cell from the graph */
   readonly getCellTransform: (
     id: CellId
-  ) => NodeLayoutOptionalXY & { element: dia.Element; angle: number };
+  ) => ElementLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the current public snapshot containing all elements */
   readonly getPublicSnapshot: () => GraphStoreSnapshot;
   /** Callback function called when a batch of elements needs to be updated */

@@ -31,9 +31,10 @@ import type {
   PaperStore,
 } from '../store';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
-import type { GraphMappings } from './graph-mappings';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
+import type { ElementToGraphOptions, GraphToElementOptions } from './data-mapping/element-mapper';
+import type { LinkToGraphOptions, GraphToLinkOptions } from './data-mapping/link-mapper';
 import { resolveCellDefaults } from './data-mapping/resolve-cell-defaults';
 import {
   defaultMapDataToElementAttributes,
@@ -51,7 +52,16 @@ interface JointJSEventOptions {
 interface Options<ElementData = FlatElementData, LinkData = FlatLinkData> {
   readonly graph: dia.Graph;
   readonly papers: Map<string, PaperStore>;
-  readonly mappers: GraphMappings<ElementData, LinkData>;
+  readonly mappers: {
+    readonly mapDataToElementAttributes?: (
+      options: ElementToGraphOptions<ElementData>
+    ) => dia.Cell.JSON;
+    readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<LinkData>) => dia.Cell.JSON;
+    readonly mapElementAttributesToData?: (
+      options: GraphToElementOptions<ElementData>
+    ) => ElementData;
+    readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<LinkData>) => LinkData;
+  };
   readonly onIncrementalChange?: (changes: IncrementalStateChanges<ElementData, LinkData>) => void;
   readonly onElementsChange?: (elements: Record<string, ElementData>) => void;
   readonly onLinksChange?: (links: Record<string, LinkData>) => void;
@@ -133,6 +143,19 @@ function setIncrementalChangeRecord<T>(
 /**
  * Creates the graph state manager that listens to graph changes and syncs state.
  * @param options - Configuration including graph, papers, change callbacks, and mapping functions.
+ * @param options.graph
+ * @param options.papers
+ * @param options.onIncrementalChange
+ * @param options.onElementsChange
+ * @param options.onLinksChange
+ * @param options.onReset
+ * @param options.onSizeChange
+ * @param options.enableBatchUpdates
+ * @param options.mappers
+ * @param options.mappers.mapDataToElementAttributes
+ * @param options.mappers.mapDataToLinkAttributes
+ * @param options.mappers.mapElementAttributesToData
+ * @param options.mappers.mapLinkAttributesToData
  * @returns A GraphState object with state stores, update methods, and cleanup functions.
  */
 export function graphState<ElementData = FlatElementData, LinkData = FlatLinkData>({
@@ -270,6 +293,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   /**
    * Updates the link layout for all papers that contain a view of the given link.
    * @param layout - The layout snapshot to update
+   * @param nextLinks
    * @param link - The link whose layout to update
    */
   function updateLinkLayout(nextLinks: Record<string, Record<string, LinkLayout>>, link: dia.Link) {
@@ -309,6 +333,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
 
   /**
    * Returns whether an element size is considered "measured" (both dimensions > 1).
+   * @param size
    */
   function isMeasuredSize(size: ElementSize): boolean {
     return size.width > 1 && size.height > 1;
@@ -317,6 +342,10 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   /**
    * Processes a layout change for a single element or link.
    * Preserves object references when sub-values haven't changed.
+   * @param id
+   * @param change
+   * @param elements
+   * @param nextLinks
    */
   function handleCellLayoutChange(
     id: string,

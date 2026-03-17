@@ -25,7 +25,7 @@ Graph neighbor highlighting is useful for:
 The `useGraph()` hook provides access to the JointJS graph instance. From there, `getNeighbors()` and `getConnectedLinks()` compute the highlight sets:
 
 ```tsx
-const graph = useGraph();
+const { graph } = useGraph();
 const element = graph.getCell(clickedId) as dia.Element;
 const neighbors = graph.getNeighbors(element);
 const connectedLinks = graph.getConnectedLinks(element);

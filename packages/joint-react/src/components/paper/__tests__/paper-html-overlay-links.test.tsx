@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { render, waitFor, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, useCellActions, type FlatElementData, type FlatLinkData } from '../../../index';
+import { GraphProvider, Paper, useGraph, type FlatElementData, type FlatLinkData } from '../../../index';
 import { useCallback } from 'react';
 
 interface TestElement extends FlatElementData {
@@ -39,9 +39,9 @@ describe('Paper with useHTMLOverlay and links', () => {
     });
 
     await waitFor(() => {
-      // ReactLink has SVG markup for the link
+      // PortalLink has SVG markup for the link
       // Check that the link view container exists in the DOM
-      const linkView = container.querySelector('.joint-type-reactlink');
+      const linkView = container.querySelector('.joint-type-portallink');
       expect(linkView).toBeInTheDocument();
     });
 
@@ -73,8 +73,8 @@ describe('Paper with useHTMLOverlay and links', () => {
     });
 
     await waitFor(() => {
-      // Each ReactElement should have a placeholder rect
-      const reactElements = container.querySelectorAll('.joint-type-reactelement');
+      // Each PortalElement should have a placeholder rect
+      const reactElements = container.querySelectorAll('.joint-type-portalelement');
       expect(reactElements.length).toBe(2);
 
       for (const element of reactElements) {
@@ -87,18 +87,18 @@ describe('Paper with useHTMLOverlay and links', () => {
     });
   });
 
-  it('renders link with valid path when adding a new link dynamically via useCellActions', async () => {
+  it('renders link with valid path when adding a new link dynamically via useGraph', async () => {
     let setLinkAction: (() => void) | null = null;
 
     function AddLinkButton() {
-      const { set } = useCellActions();
+      const { setLink } = useGraph();
       setLinkAction = useCallback(() => {
-        set('new-link', {
+        setLink('new-link', {
           source: '1',
           target: '2',
           color: '#FF0000',
         });
-      }, [set]);
+      }, [setLink]);
       return null;
     }
 
@@ -159,14 +159,14 @@ describe('Paper with useHTMLOverlay and links', () => {
     );
   });
 
-  it('removes link correctly when using useCellActions.remove', async () => {
+  it('removes link correctly when using useGraph.removeLink', async () => {
     let removeLinkAction: (() => void) | null = null;
 
     function RemoveLinkButton() {
-      const { remove } = useCellActions();
+      const { removeLink } = useGraph();
       removeLinkAction = useCallback(() => {
-        remove('link-1');
-      }, [remove]);
+        removeLink('link-1');
+      }, [removeLink]);
       return null;
     }
 

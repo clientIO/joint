@@ -61,7 +61,7 @@ describe('GraphProvider Coverage Tests', () => {
 
     it('should handle only elements controlled (not links)', async () => {
       const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100, type: 'ReactElement' },
+        '1': { width: 100, height: 100, type: 'PortalElement' },
       };
 
       let elementCount = 0;
@@ -138,8 +138,8 @@ describe('GraphProvider Coverage Tests', () => {
   describe('GraphProvider edge cases', () => {
     it('should handle unmeasured elements (width/height <= 1)', async () => {
       const unmeasuredElements: Record<string, FlatElementData> = {
-        '1': { width: 0, height: 0, type: 'ReactElement' },
-        '2': { width: 1, height: 1, type: 'ReactElement' },
+        '1': { width: 0, height: 0, type: 'PortalElement' },
+        '2': { width: 1, height: 1, type: 'PortalElement' },
       };
 
       let elementCount = 0;

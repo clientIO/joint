@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { usePaper } from './use-paper';
-import { useCellId } from './use-cell-id';
+import { useElementId } from './use-element-id';
 import type { dia } from '@joint/core';
-import { REACT_PORTAL_SELECTOR } from '../models/react-element';
+import { PORTAL_SELECTOR } from '../models/portal-element';
 
 /**
  * Provides utilities for working with JointJS markup selectors in React-rendered elements.
@@ -31,12 +31,12 @@ import { REACT_PORTAL_SELECTOR } from '../models/react-element';
  * ```
  */
 export function useMarkup() {
-    const paper = usePaper();
-    const id = useCellId();
+    const { paper } = usePaper();
+    const id = useElementId();
     const selectorRef = useCallback((selector: string) => {
-        if (selector === REACT_PORTAL_SELECTOR) {
+        if (selector === PORTAL_SELECTOR) {
             throw new Error(
-                `Selector name "${REACT_PORTAL_SELECTOR}" is reserved for the React portal target. Please choose a different selector name.`
+                `Selector name "${PORTAL_SELECTOR}" is reserved for the React portal target. Please choose a different selector name.`
             );
         }
         return (node: Element | null) => {

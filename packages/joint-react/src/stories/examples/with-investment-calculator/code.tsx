@@ -4,10 +4,9 @@ import type { dia } from '@joint/core';
 import {
   GraphProvider,
   Paper,
-  useCellActions,
-  useCellId,
-  useElements,
   useGraph,
+  useElementId,
+  useElements,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
@@ -275,23 +274,23 @@ function calculateROI(cost: number, value: number): number {
 // ----------------------------------------------------------------------------
 
 function InvestmentNode({ width, height, funds, year }: Readonly<InvestmentElement>) {
-  const { set } = useCellActions<ShapeElement>();
+  const { setElement } = useGraph();
 
   const handleFundsChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!event.target.validity.valid) return;
       const newFunds = Number(event.target.value);
-      set(INVESTMENT_ID, (previous) => ({ ...previous, funds: newFunds }));
+      setElement(INVESTMENT_ID, (previous) => ({ ...previous, funds: newFunds }));
     },
-    [set]
+    [setElement]
   );
 
   const handleYearChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
       const newYear = Number(event.target.value);
-      set(INVESTMENT_ID, (previous) => ({ ...previous, year: newYear }));
+      setElement(INVESTMENT_ID, (previous) => ({ ...previous, year: newYear }));
     },
-    [set]
+    [setElement]
   );
 
   return (
@@ -346,7 +345,7 @@ function InvestmentNode({ width, height, funds, year }: Readonly<InvestmentEleme
 // ----------------------------------------------------------------------------
 
 function ProductNode({ width, height, name, label, percentage, color }: Readonly<ProductElement>) {
-  const { set } = useCellActions<ShapeElement>();
+  const { setElement } = useGraph();
 
   const handlePercentageChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -354,7 +353,7 @@ function ProductNode({ width, height, name, label, percentage, color }: Readonly
       const newPercentage = Number(event.target.value);
 
       // Read all current product percentages for redistribution
-      set(name, (previous) => ({ ...previous, percentage: newPercentage }));
+      setElement(name, (previous) => ({ ...previous, percentage: newPercentage }));
 
       // Redistribute the difference among other products
       const currentPercentage = percentage;
@@ -369,15 +368,16 @@ function ProductNode({ width, height, name, label, percentage, color }: Readonly
 
       for (const productId of sortedIds) {
         if (diff === 0) break;
-        set(productId, (previous) => {
+        setElement(productId, (previous) => {
           if (previous.type !== 'Product') return previous;
-          const adjusted = Math.max(previous.percentage + diff, 0);
-          diff = Math.min(previous.percentage + diff, 0);
+          const previousPercentage = Number(previous.percentage);
+          const adjusted = Math.max(previousPercentage + diff, 0);
+          diff = Math.min(previousPercentage + diff, 0);
           return { ...previous, percentage: adjusted };
         });
       }
     },
-    [set, name, percentage]
+    [setElement, name, percentage]
   );
 
   return (
@@ -421,8 +421,8 @@ function ProductNode({ width, height, name, label, percentage, color }: Readonly
 // ----------------------------------------------------------------------------
 
 function ProductPerformanceNode({ width, height, label }: Readonly<ProductPerformanceElement>) {
-  const cellId = useCellId();
-  const graph = useGraph();
+  const cellId = useElementId();
+  const { graph } = useGraph();
 
   // Use graph topology to find the connected product (inbound neighbor via link)
   const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>((elements) => {
@@ -498,8 +498,8 @@ function ProductPerformanceNode({ width, height, label }: Readonly<ProductPerfor
 // ----------------------------------------------------------------------------
 
 function OverallPerformanceNode({ width, height }: Readonly<OverallPerformanceElement>) {
-  const cellId = useCellId();
-  const graph = useGraph();
+  const cellId = useElementId();
+  const { graph } = useGraph();
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
   const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>((elements) => {
@@ -606,7 +606,7 @@ function RenderElement(props: Readonly<ShapeElement>) {
 function Main() {
 
   const paperRef = useRef<dia.Paper | null>(null);
-  const graph = useGraph();
+  const { graph } = useGraph();
 
   useEffect(() => {
     const paper = paperRef.current;

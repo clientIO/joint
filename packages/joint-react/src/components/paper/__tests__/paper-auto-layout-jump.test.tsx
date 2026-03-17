@@ -146,7 +146,7 @@ describe('Paper automatic layout', () => {
     // Multiple rounds needed: 1) queueMicrotask fires observer, 2) scheduler flushes state via queueMicrotask,
     // 3) React re-renders, 4) useLayoutEffect detects size change
     for (let index = 0; index < 10; index++) {
-      // eslint-disable-next-line no-await-in-loop
+       
       await act(async () => {
         await new Promise((resolve) => {
           setTimeout(resolve, 0);

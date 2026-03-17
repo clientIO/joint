@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import {
   GraphProvider,
   Paper,
-  TextNode,
+  SvgText,
   useGraph,
   useMarkup,
   usePaperEvents,
@@ -185,7 +185,7 @@ function RenderNode({ label, width, height }: Readonly<NodeData>) {
         strokeWidth={1.5}
       />
 
-      <TextNode
+      <SvgText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -195,7 +195,7 @@ function RenderNode({ label, width, height }: Readonly<NodeData>) {
         fontWeight={500}
       >
         {label}
-      </TextNode>
+      </SvgText>
     </g>
   );
 }
@@ -264,7 +264,7 @@ function clearHighlighters(paper: dia.Paper) {
 // ============================================================================
 
 function Main() {
-  const graph = useGraph();
+  const { graph } = useGraph();
   const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 

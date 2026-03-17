@@ -10,8 +10,8 @@ import {
   type FlatLinkData,
   type RenderElement,
   type OnTransformElement,
-  ReactElement,
-  ReactLink,
+  PortalElement,
+  PortalLink,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
@@ -183,7 +183,7 @@ function Main() {
   );
 }
 
-class MyReactElement extends ReactElement {
+class MyPortalElement extends PortalElement {
 
   defaults() {
     return {
@@ -203,8 +203,8 @@ export default function App() {
   const graph = new dia.Graph({}, {
     cellNamespace: {
       ...shapes,
-      ReactElement: MyReactElement,
-      ReactLink
+      PortalElement: MyPortalElement,
+      PortalLink
     }
   });
   return (

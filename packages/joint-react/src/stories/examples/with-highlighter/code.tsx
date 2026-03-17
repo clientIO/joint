@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useMarkup, type FlatElementData, type FlatLinkData, type ReactPaper, usePaperEvents } from '@joint/react';
+import { GraphProvider, Paper, useMarkup, type FlatElementData, type FlatLinkData, type PortalPaper, usePaperEvents } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
 import '../index.css';
 import { useId, useRef } from 'react';
@@ -88,7 +88,7 @@ function removeHighlighter(variant: HighlighterVariant, elementView: dia.Element
 
 function Main({ variant }: Readonly<MainProps>) {
   const paperId = useId();
-  const paperRef = useRef<ReactPaper | null>(null);
+  const paperRef = useRef<PortalPaper | null>(null);
 
   usePaperEvents(
     paperId,

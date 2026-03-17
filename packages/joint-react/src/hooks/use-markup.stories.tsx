@@ -4,7 +4,7 @@ import { RenderItemDecorator, type SimpleElement } from '../../.storybook/decora
 import '../stories/examples/index.css';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../stories/utils/make-story';
-import { useNodeLayout } from './use-node-layout';
+import { useElementLayout } from './use-element-layout';
 import { useCallback } from 'react';
 import type { FlatLinkData } from '../types/link-types';
 import { PRIMARY } from '../../.storybook/theme';
@@ -39,7 +39,7 @@ const links: Record<string, FlatLinkData> = {
 };
 
 function Hook() {
-    const { width, height } = useNodeLayout();
+    const { width, height } = useElementLayout();
     const { selectorRef } = useMarkup();
     return (
         <>

@@ -3,13 +3,13 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import { graphProviderWrapper, getTestGraph } from '../../utils/test-wrappers';
 import type {
   GraphEventHandlers,
-  GraphKnownEventMap,
-  GraphKnownEventName,
+  GraphEventMap,
+  GraphBaseEventName,
 } from '../../types/event.types';
 import { useGraphEvents } from '../use-graph-events';
 import { useGraph } from '../use-graph';
 
-const GRAPH_EVENT_ARGS: { readonly [EventName in GraphKnownEventName]: Parameters<GraphKnownEventMap[EventName]> } = {
+const GRAPH_EVENT_ARGS: { readonly [EventName in GraphBaseEventName]: Parameters<GraphEventMap[EventName]> } = {
   add: [{} as dia.Cell, {} as never, { source: 'add' }],
   remove: [{} as dia.Cell, {} as never, { source: 'remove' }],
   change: [{} as dia.Cell, { source: 'change' }],
@@ -64,7 +64,7 @@ describe('use-graph-events', () => {
       });
 
       for (const [eventName, args] of Object.entries(GRAPH_EVENT_ARGS) as Array<
-        [GraphKnownEventName, Parameters<GraphKnownEventMap[GraphKnownEventName]>]
+        [GraphBaseEventName, Parameters<GraphEventMap[GraphBaseEventName]>]
       >) {
         const callbacks = listenerHandlers.get(eventName) ?? [];
         expect(callbacks.length).toBeGreaterThan(0);
@@ -169,7 +169,7 @@ describe('use-graph-events', () => {
 
     const { result, unmount } = renderHook(
       () => {
-        const graph = useGraph();
+        const { graph } = useGraph();
         useGraphEvents({ 'batch:start': onBatchStart });
         return graph;
       },

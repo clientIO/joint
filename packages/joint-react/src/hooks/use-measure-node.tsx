@@ -1,10 +1,10 @@
 /* eslint-disable quotes */
 import { useLayoutEffect, type RefObject } from 'react';
-import { useCellId } from './use-cell-id';
+import { useElementId } from './use-element-id';
 import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
-import { useNodeLayout } from './use-node-layout';
-import type { NodeLayout } from '../store/graph-store';
+import { useElementLayout } from './use-element-layout';
+import type { ElementLayout } from '../store/graph-store';
 import { usePaper } from './use-paper';
 
 /**
@@ -49,7 +49,7 @@ export interface MeasureNodeOptions {
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
-const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 0 };
+const EMPTY_NODE_LAYOUT: ElementLayout = { x: 0, y: 0, width: 0, height: 0, angle: 0 };
 
 /**
  * Custom hook to automatically measure the size of a DOM element and synchronize it with the graph element's size.
@@ -151,12 +151,12 @@ const EMPTY_NODE_LAYOUT: NodeLayout = { x: 0, y: 0, width: 0, height: 0, angle: 
 export function useMeasureNode(
   nodeRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
-): NodeLayout {
+): ElementLayout {
   const { transform, visibility } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
-  const paper = usePaper();
-  const id = useCellId();
-  const layout = useNodeLayout(id) ?? EMPTY_NODE_LAYOUT;
+  const { paper } = usePaper();
+  const id = useElementId();
+  const layout = useElementLayout(id) ?? EMPTY_NODE_LAYOUT;
 
   useLayoutEffect(() => {
     const element = nodeRef.current;

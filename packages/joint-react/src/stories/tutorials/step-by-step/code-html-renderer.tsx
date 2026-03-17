@@ -33,7 +33,7 @@ const initialEdges: Record<string, FlatLinkData> = {
 let zoomLevel = 1;
 
 function Controls() {
-  const paper = usePaper();
+  const { paper } = usePaper();
   return (
     <div className="flex flex-row">
       <button

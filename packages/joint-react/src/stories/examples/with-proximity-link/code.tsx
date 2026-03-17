@@ -3,10 +3,9 @@ import {
   GraphProvider,
   Paper,
   useMeasureNode,
-  useCellId,
+  useElementId,
   useElements,
   useGraph,
-  useCellActions,
 } from '@joint/react';
 import { util } from '@joint/core';
 import '../index.css';
@@ -37,10 +36,10 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
 }
 
 function ResizableNode({ label }: Readonly<BaseElementWithData>) {
-  const id = useCellId();
+  const id = useElementId();
   const nodeRef = useRef<HTMLDivElement>(null);
 
-  const graph = useGraph();
+  const { graph } = useGraph();
   const element = graph.getCell(id);
   const closeIds = useElements(() => {
     const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
@@ -49,12 +48,12 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
       .filter((element_) => element_.id !== id);
     return proximityElements.map((element_) => element_.id);
   }, util.isEqual);
-  const { set, remove } = useCellActions();
+  const { setLink, removeLink } = useGraph();
 
   useEffect(() => {
     for (const closeId of closeIds) {
       const { linkId, source, target } = getProximityLink(id, closeId);
-      set(linkId, {
+      setLink(linkId, {
         source,
         target,
         color: SECONDARY,
@@ -65,10 +64,10 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
     return () => {
       for (const closeId of closeIds) {
         const { linkId } = getProximityLink(id, closeId);
-        remove(linkId);
+        removeLink(linkId);
       }
     };
-  }, [closeIds, id, remove, set]);
+  }, [closeIds, id, removeLink, setLink]);
 
   const { width, height } = useMeasureNode(nodeRef);
   return (

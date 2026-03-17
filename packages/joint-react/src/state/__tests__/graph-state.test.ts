@@ -25,7 +25,7 @@ describe('graphState', () => {
 
     graph.addCell({
       id: 'element-1',
-      type: 'ReactElement',
+      type: 'PortalElement',
       position: { x: 10, y: 20 },
       size: { width: 100, height: 100 },
     });
@@ -100,7 +100,7 @@ describe('graphState', () => {
 
     graph.addCell({
       id: 'old-element',
-      type: 'ReactElement',
+      type: 'PortalElement',
       position: { x: 0, y: 0 },
       size: { width: 10, height: 10 },
     });
@@ -109,7 +109,7 @@ describe('graphState', () => {
     graph.resetCells([
       {
         id: 'reset-element',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 50, y: 60 },
         size: { width: 120, height: 80 },
       },
@@ -152,7 +152,7 @@ describe('graphState', () => {
 
     listener.updateGraph({
       elements: {
-        'react-element': { x: 15, y: 25, width: 100, height: 60, type: 'ReactElement' },
+        'portal-element': { x: 15, y: 25, width: 100, height: 60, type: 'PortalElement' },
       },
       links: {},
       flag: 'updateFromReact',
@@ -163,7 +163,7 @@ describe('graphState', () => {
       expect.any(Array),
       expect.objectContaining({ isUpdateFromReact: true })
     );
-    expect(graph.getCell('react-element')).toBeDefined();
+    expect(graph.getCell('portal-element')).toBeDefined();
     expect(onIncrementalChange).toHaveBeenCalledTimes(0);
 
     listener.destroy();
@@ -188,7 +188,7 @@ describe('graphState', () => {
     // Add initial element outside batch
     graph.addCell({
       id: 'el-1',
-      type: 'ReactElement',
+      type: 'PortalElement',
       position: { x: 0, y: 0 },
       size: { width: 50, height: 50 },
     });
@@ -241,7 +241,7 @@ describe('graphState', () => {
 
     graph.addCell({
       id: 'graph-element',
-      type: 'ReactElement',
+      type: 'PortalElement',
       position: { x: 10, y: 20 },
       size: { width: 100, height: 100 },
     });
@@ -296,7 +296,7 @@ describe('graphState', () => {
 
       graph.addCell({
         id: 'el-1',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });
@@ -306,7 +306,7 @@ describe('graphState', () => {
 
       graph.addCell({
         id: 'el-2',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 10 },
         size: { width: 200, height: 200 },
       });
@@ -330,7 +330,7 @@ describe('graphState', () => {
 
       graph.addCell({
         id: 'el-unmeasured',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 0, y: 0 },
         size: { width: 1, height: 1 },
       });
@@ -367,13 +367,13 @@ describe('graphState', () => {
 
       graph.addCell({
         id: 'el-1',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });
       graph.addCell({
         id: 'el-2',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 10 },
         size: { width: 80, height: 60 },
       });
@@ -407,7 +407,7 @@ describe('graphState', () => {
 
       graph.addCell({
         id: 'el-1',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });
@@ -435,7 +435,7 @@ describe('graphState', () => {
 
       graph.addCell({
         id: 'el-1',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 0, y: 0 },
         size: { width: 100, height: 50 },
       });
@@ -473,7 +473,7 @@ describe('graphState', () => {
 
       graph.addCell({
         id: 'el-1',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });

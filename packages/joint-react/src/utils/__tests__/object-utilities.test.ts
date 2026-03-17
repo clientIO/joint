@@ -1,4 +1,4 @@
-import { assignOptions, dependencyExtract } from '../object-utilities';
+import { assignOptions, pickValues } from '../object-utilities';
 
 describe('object-utilities', () => {
   describe('assignOptions', () => {
@@ -48,36 +48,36 @@ describe('object-utilities', () => {
     });
   });
 
-  describe('dependencyExtract', () => {
+  describe('pickValues', () => {
     it('should extract all values when no picked set is provided', () => {
       const object = { width: 100, height: 50, color: 'red' };
-      const values = dependencyExtract(object);
+      const values = pickValues(object);
 
       expect(values).toEqual([100, 50, 'red']);
     });
 
     it('should extract only picked values', () => {
       const object = { width: 100, height: 50, color: 'red' };
-      const values = dependencyExtract(object, new Set(['width', 'height']));
+      const values = pickValues(object, new Set(['width', 'height']));
 
       expect(values).toEqual([100, 50]);
     });
 
     it('should return empty array for null object', () => {
-      const values = dependencyExtract(null as never);
+      const values = pickValues(null as never);
 
       expect(values).toEqual([]);
     });
 
     it('should return empty array for undefined object', () => {
-      const values = dependencyExtract(undefined as never);
+      const values = pickValues(undefined as never);
 
       expect(values).toEqual([]);
     });
 
     it('should extract values in object key order', () => {
       const object = { a: 1, b: 2, c: 3, d: 4 };
-      const values = dependencyExtract(object, new Set(['c', 'a', 'd']));
+      const values = pickValues(object, new Set(['c', 'a', 'd']));
 
       // The function iterates over object keys in insertion order (a, b, c, d)
       // and filters by Set membership, so result is in object key order: a (1), c (3), d (4)

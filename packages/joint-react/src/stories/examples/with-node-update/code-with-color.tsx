@@ -1,10 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useCellId, type FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, useElementId, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
-import { useCellActions } from '../../../hooks/use-cell-actions';
+import { useGraph } from '@joint/react';
 
 const initialElements: Record<
   string,
@@ -25,8 +25,8 @@ const initialEdges: Record<string, FlatLinkData> = {
 type BaseElementWithData = (typeof initialElements)[string];
 
 function RenderElement({ color }: Readonly<BaseElementWithData>) {
-  const id = useCellId();
-  const { set } = useCellActions<BaseElementWithData>();
+  const id = useElementId();
+  const { setElement } = useGraph();
   return (
     <HTMLNode
       style={{
@@ -41,7 +41,7 @@ function RenderElement({ color }: Readonly<BaseElementWithData>) {
         className="nodrag"
         type="color"
         onChange={(event) => {
-          set(id, (previous) => ({ ...previous, color: event.target.value }));
+          setElement(id, (previous) => ({ ...previous, color: event.target.value }));
         }}
         defaultValue={color}
       />

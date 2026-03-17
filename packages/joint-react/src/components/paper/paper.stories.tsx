@@ -16,8 +16,8 @@ import { useMeasureNode } from '../../hooks/use-measure-node';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
-import { useCellActions } from '../../hooks/use-cell-actions';
-import { useCellId } from '../../hooks/use-cell-id';
+import { useGraph } from '../../hooks/use-graph';
+import { useElementId } from '../../hooks/use-element-id';
 import { useElementsMeasuredEffect } from '../../hooks/use-elements-measured-effect';
 import { usePaperEvents } from '../../hooks/use-paper-events';
 import { Paper } from './paper';
@@ -349,19 +349,19 @@ export const WithOnClickColorChange: Story = {
     docs: {
       description: {
         story:
-          'Demonstrates interactive element updates using `useCellActions`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
+          'Demonstrates interactive element updates using `useGraph`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
       },
     },
   },
   render: () => {
     const renderElement: RenderElement<SimpleElement> = ({ width, height, hoverColor }) => {
-      const id = useCellId();
-      const { set } = useCellActions();
+      const id = useElementId();
+      const { setElement } = useGraph();
       return (
         <div
           className="node"
           onClick={() => {
-            set(id, (previous) => ({ ...previous, hoverColor: 'blue' }));
+            setElement(id, (previous) => ({ ...previous, hoverColor: 'blue' }));
           }}
           style={{ width, height, backgroundColor: hoverColor }}
         ></div>
@@ -417,7 +417,7 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
     docs: {
       description: {
         story:
-          'Demonstrates interactive element updates using `useCellActions`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
+          'Demonstrates interactive element updates using `useGraph`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
       },
     },
   },

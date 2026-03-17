@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/cognitive-complexity */
+ 
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
 import { dia } from '@joint/core';
@@ -22,9 +22,8 @@ import { useElements } from './use-elements';
 import { useLinks } from './use-links';
 import { useInternalData, useLayouts } from './use-stores';
 import type { PaperStore } from '../store';
-import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
-import type { ReactPaper } from '../models/react-paper';
+import type { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
 
 import { assignOptions } from '../utils/object-utilities';
@@ -36,26 +35,31 @@ import {
   HTMLElementItem,
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
+import {
+  selectAreElementsMeasured,
+  selectElementSizes,
+  selectResetVersion,
+  createSelectPaperElementViewIds,
+  createSelectPaperLinkViewIds,
+} from '../selectors';
 
-const EMPTY_VIEW_ID_RECORD = {} as Record<CellId, true>;
+type PortalLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
-type ReactLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
-
-export interface UseCreateReactPaperOptions extends PaperProps {
+export interface UseCreatePortalPaperOptions extends PaperProps {
   /**
    * Host element ref where the paper should be mounted automatically.
    * When omitted, paper rendering is manual (e.g. via `onReady` callback).
    */
   readonly elementRef?: RefObject<HTMLElement | SVGElement | null>;
   /** Callback fired once when paper instance is created and ready. */
-  readonly onReady?: (paper: ReactPaper) => void;
+  readonly onReady?: (paper: PortalPaper) => void;
 }
 
-export interface UseCreateReactPaperResult {
+export interface UseCreatePortalPaperResult {
   /** Effective paper id used in GraphStore. */
   readonly id: string;
   /** Current paper instance, available synchronously after mount and kept in sync afterwards. */
-  readonly paperRef: RefObject<ReactPaper | null>;
+  readonly paperRef: RefObject<PortalPaper | null>;
   /** PaperStore for this paper id, available after registration. */
   readonly paperStore?: PaperStore;
   /** True when paper exists and is ready for content rendering. */
@@ -65,19 +69,19 @@ export interface UseCreateReactPaperResult {
 }
 
 /**
- * Resolves the `ReactLink` constructor from graph cell namespace.
+ * Resolves the `PortalLink` constructor from graph cell namespace.
  * @param graph - Graph instance with layer collection namespace.
- * @returns The `ReactLink` constructor from graph namespace.
- * @throws {Error} When `ReactLink` is missing in graph namespace.
+ * @returns The `PortalLink` constructor from graph namespace.
+ * @throws {Error} When `PortalLink` is missing in graph namespace.
  */
-function getReactLinkConstructor(graph: dia.Graph): ReactLinkConstructor {
+function getPortalLinkConstructor(graph: dia.Graph): PortalLinkConstructor {
   const cellNamespace = graph.layerCollection?.cellNamespace as Record<string, unknown> | undefined;
-  const reactLinkConstructor = cellNamespace?.ReactLink;
+  const reactLinkConstructor = cellNamespace?.PortalLink;
   if (typeof reactLinkConstructor === 'function') {
-    return reactLinkConstructor as ReactLinkConstructor;
+    return reactLinkConstructor as PortalLinkConstructor;
   }
   throw new Error(
-    'Paper: ReactLink constructor is missing in graph.layerCollection.cellNamespace.'
+    'Paper: PortalLink constructor is missing in graph.layerCollection.cellNamespace.'
   );
 }
 
@@ -111,9 +115,9 @@ function LinkItem<LinkData = FlatLinkData>({
  * @param options - Hook options with paper settings and behavior overrides.
  * @returns Hook state with paper instance and rendered portal content.
  */
-export function useCreateReactPaper(
-  options: Readonly<UseCreateReactPaperOptions>
-): UseCreateReactPaperResult {
+export function useCreatePortalPaper(
+  options: Readonly<UseCreatePortalPaperOptions>
+): UseCreatePortalPaperResult {
   const {
     renderElement,
     renderLink,
@@ -136,12 +140,9 @@ export function useCreateReactPaper(
   const elementsState = useElements();
   const linksState = useLinks();
   const graphStore = useGraphStore();
-  const areElementsMeasured = useLayouts(
-    (snapshot) =>
-      snapshot.elements.count > 0 && snapshot.elements.measuredElements === snapshot.elements.count
-  );
-  const sizes = useLayouts((snapshot) => snapshot.elements.sizes);
-  const resetVersion = useInternalData((snapshot) => snapshot.resetVersion);
+  const areElementsMeasured = useLayouts(selectAreElementsMeasured);
+  const sizes = useLayouts(selectElementSizes);
+  const resetVersion = useInternalData(selectResetVersion);
   const previousResetVersionRef = useRef(-1);
 
   useDebugValue(elementsState);
@@ -166,19 +167,17 @@ export function useCreateReactPaper(
     [shouldDefer, deferredLinksState, linkIds]
   );
 
-  const paperElementViewIds = useInternalData(
-    (snapshot) => snapshot.papers[id]?.elementViewIds ?? EMPTY_VIEW_ID_RECORD
-  );
+  const selectPaperElementViewIds = useMemo(() => createSelectPaperElementViewIds(id), [id]);
+  const selectPaperLinkViewIds = useMemo(() => createSelectPaperLinkViewIds(id), [id]);
 
-  const paperLinkViewIds = useInternalData(
-    (snapshot) => snapshot.papers[id]?.linkViewIds ?? EMPTY_VIEW_ID_RECORD
-  );
+  const paperElementViewIds = useInternalData(selectPaperElementViewIds);
+  const paperLinkViewIds = useInternalData(selectPaperLinkViewIds);
 
   const { addPaper, graph, graphState } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
-  const paperRef = useRef<ReactPaper | null>(null);
+  const paperRef = useRef<PortalPaper | null>(null);
   const isReadyNotifiedRef = useRef(false);
 
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
@@ -190,12 +189,12 @@ export function useCreateReactPaper(
     (cellView: dia.CellView, magnet: SVGElement) => {
       const isDefaultLinkFactory = typeof defaultLink === 'function';
       const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
-      const ReactLinkModel = getReactLinkConstructor(graph);
+      const PortalLinkModel = getPortalLinkConstructor(graph);
       if (!link) {
         const defaultAttributes = graphState.linkToAttributes({
           data: {} as FlatLinkData,
         });
-        return new ReactLinkModel(defaultAttributes);
+        return new PortalLinkModel(defaultAttributes);
       }
       if (link instanceof dia.Link) {
         if (isDefaultLinkFactory) {
@@ -206,7 +205,7 @@ export function useCreateReactPaper(
       const attributes = graphState.linkToAttributes({
         data: link as FlatLinkData,
       });
-      return new ReactLinkModel(attributes);
+      return new PortalLinkModel(attributes);
     },
     [defaultLink, graph, graphState]
   );
@@ -323,7 +322,7 @@ export function useCreateReactPaper(
         return null;
       }
 
-      const portalNode = (elementView.paper as ReactPaper).getCellViewPortalNode(elementView);
+      const portalNode = (elementView.paper as PortalPaper).getCellViewPortalNode(elementView);
 
       if (!portalNode?.isConnected) {
         return null;
@@ -392,7 +391,7 @@ export function useCreateReactPaper(
         return null;
       }
 
-      const portalNode = (linkView.paper as ReactPaper).getCellViewPortalNode(linkView);
+      const portalNode = (linkView.paper as PortalPaper).getCellViewPortalNode(linkView);
       if (!portalNode) {
         return null;
       }

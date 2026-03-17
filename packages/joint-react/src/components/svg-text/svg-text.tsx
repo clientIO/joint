@@ -1,14 +1,14 @@
-import { util, V, type Vectorizer } from '@joint/core';
+import { type dia, util, V, type Vectorizer } from '@joint/core';
 import React, { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
 import type { CellId } from '../../types/cell-id';
 import { useCombinedRef } from '../../hooks/use-combined-ref';
 import { isNumber } from '../../utils/is';
-import { useCellId, useGraph } from '../../hooks';
+import { useElementId, useGraph } from '../../hooks';
 
 /** Options for resolving text wrap width. */
 interface BreakTextWidthOptions {
   readonly width: number | undefined;
-  readonly graph: ReturnType<typeof useGraph>;
+  readonly graph: dia.Graph;
   readonly cellId: CellId;
 }
 
@@ -40,7 +40,7 @@ function getBreakTextWidth({ width, graph, cellId }: BreakTextWidthOptions) {
 
   const element = graph.getCell(cellId);
   if (!element.isElement()) {
-    throw new TypeError('TextNode must be used with useMeasureNode hook to measure the element size');
+    throw new TypeError('SvgText must be used with useMeasureNode hook to measure the element size');
   }
 
   return element.size().width ?? 0;
@@ -104,7 +104,7 @@ function getTextWrapStyles({
   return textWrapStyles;
 }
 
-export interface TextNodeProps
+export interface SvgTextProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
   readonly eol?: string;
@@ -114,7 +114,7 @@ export interface TextNodeProps
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>) {
+function Component(props: SvgTextProps, ref: React.ForwardedRef<SVGTextElement>) {
   const {
     children,
     eol,
@@ -137,15 +137,15 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
   } = props;
 
   const textRef = useCombinedRef<SVGTextElement>(ref);
-  const cellId = useCellId();
-  const graph = useGraph();
+  const cellId = useElementId();
+  const { graph } = useGraph();
   useEffect(() => {
     if (!textRef.current) {
       return;
     }
 
     if (typeof children !== 'string') {
-      throw new TypeError('TextNode children must be a string');
+      throw new TypeError('SvgText children must be a string');
     }
 
     let text = children;
@@ -210,7 +210,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
 }
 
 /**
- * TextNode component is a wrapper around the SVG text element that provides additional functionality for rendering text.
+ * SvgText component is a wrapper around the SVG text element that provides additional functionality for rendering text.
  * It uses the Vectorizer library to handle text rendering and annotations.
  * It allows you to specify various text options such as end-of-line characters, vertical alignment, line height, and more.
  * @see Vectorizer
@@ -220,37 +220,37 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
  * @example
  * Basic usage:
  * ```tsx
- * import { TextNode } from '@joint/react';
+ * import { SvgText } from '@joint/react';
  *
  * function RenderElement() {
  *   return (
- *     <TextNode x={10} y={20}>
+ *     <SvgText x={10} y={20}>
  *       Hello World
- *     </TextNode>
+ *     </SvgText>
  *   );
  * }
  * ```
  * @example
  * With text wrapping:
  * ```tsx
- * import { TextNode } from '@joint/react';
+ * import { SvgText } from '@joint/react';
  *
  * function RenderElement() {
  *   return (
- *     <TextNode x={10} y={20} width={100} textWrap>
+ *     <SvgText x={10} y={20} width={100} textWrap>
  *       This is a long text that will wrap to multiple lines
- *     </TextNode>
+ *     </SvgText>
  *   );
  * }
  * ```
  * @example
  * With custom text options:
  * ```tsx
- * import { TextNode } from '@joint/react';
+ * import { SvgText } from '@joint/react';
  *
  * function RenderElement() {
  *   return (
- *     <TextNode
+ *     <SvgText
  *       x={10}
  *       y={20}
  *       textVerticalAnchor="middle"
@@ -258,9 +258,9 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
  *       eol="\n"
  *     >
  *       Line 1\nLine 2
- *     </TextNode>
+ *     </SvgText>
  *   );
  * }
  * ```
  */
-export const TextNode = forwardRef(Component);
+export const SvgText = forwardRef(Component);

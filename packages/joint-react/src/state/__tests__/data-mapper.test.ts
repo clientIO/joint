@@ -1,17 +1,13 @@
 /* eslint-disable unicorn/prevent-abbreviations */
-/* eslint-disable sonarjs/no-nested-functions */
-/* eslint-disable sonarjs/no-alphabetical-sort */
+ 
+ 
 import { dia, shapes } from '@joint/core';
-import { ReactElement } from '../../models/react-element';
-import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
+import { PortalElement } from '../../models/portal-element';
+import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
 import type { FlatElementData, FlatElementPort } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
-import type {
-  ElementToGraphOptions,
-  GraphToElementOptions,
-  LinkToGraphOptions,
-  GraphToLinkOptions,
-} from '../graph-mappings';
+import type { ElementToGraphOptions, GraphToElementOptions } from '../data-mapping/element-mapper';
+import type { LinkToGraphOptions, GraphToLinkOptions } from '../data-mapping/link-mapper';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
@@ -20,7 +16,7 @@ import {
 } from '../data-mapping';
 import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement, PortalLink };
 
 function elementToGraphOpts(
   id: string,
@@ -95,7 +91,7 @@ describe('dataMapper', () => {
       const cellJson = defaultMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       expect(cellJson.position).toEqual({ x: 10, y: 20 });
       expect(cellJson.size).toEqual({ width: 100, height: 50 });
-      expect(cellJson.type).toBe('ReactElement');
+      expect(cellJson.type).toBe('PortalElement');
 
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Element;
@@ -123,7 +119,7 @@ describe('dataMapper', () => {
     it('should include all cell.data properties regardless of previousData', () => {
       const id = 'el-1';
       const cellJson = {
-        type: 'ReactElement',
+        type: 'PortalElement',
         id,
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
@@ -194,7 +190,7 @@ describe('dataMapper', () => {
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.source).toEqual({ id: 'el-1' });
       expect(cellJson.target).toEqual({ id: 'el-2' });
-      expect(cellJson.type).toBe(REACT_LINK_TYPE);
+      expect(cellJson.type).toBe(PORTAL_LINK_TYPE);
       expect(cellJson.attrs?.line).toBeDefined();
 
       graph.addCell(cellJson);

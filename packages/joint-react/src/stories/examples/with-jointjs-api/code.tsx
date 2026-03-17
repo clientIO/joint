@@ -6,11 +6,11 @@ import { dia, linkTools, mvc, shapes } from '@joint/core';
 import {
   GraphProvider,
   Paper,
-  ReactElement,
-  ReactLink,
+  PortalElement,
+  PortalLink,
   useGraph,
   useMeasureNode,
-  useCellId,
+  useElementId,
   type FlatElementData,
   usePaper,
 } from '@joint/react';
@@ -26,16 +26,16 @@ interface ElementData extends FlatElementData {
 }
 
 function createGraph(): dia.Graph {
-  const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ReactElement, ReactLink } });
+  const graph = new dia.Graph({}, { cellNamespace: { ...shapes, PortalElement, PortalLink } });
 
-  const element1 = new ReactElement({
+  const element1 = new PortalElement({
     id: 'el1',
     position: { x: 50, y: 50 },
     size: { width: 180, height: 70 },
     data: { label: 'Element A', color: PRIMARY },
   });
 
-  const element2 = new ReactElement({
+  const element2 = new PortalElement({
     id: 'el2',
     position: { x: 350, y: 200 },
     size: { width: 180, height: 70 },
@@ -62,8 +62,8 @@ function createGraph(): dia.Graph {
 function Node({ label, color }: Readonly<Partial<ElementData>>) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(ref);
-  const id = useCellId();
-  const graph = useGraph();
+  const id = useElementId();
+  const { graph } = useGraph();
 
   const handleClick = () => {
     const element = graph.getCell(id);
@@ -113,7 +113,7 @@ function Node({ label, color }: Readonly<Partial<ElementData>>) {
 }
 
 function Main() {
-  const paper = usePaper('my-paper');
+  const { paper } = usePaper('my-paper');
 
   useEffect(() => {
     if (!paper) return;

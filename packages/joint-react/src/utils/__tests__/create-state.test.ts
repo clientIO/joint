@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/no-nested-functions */
+ 
 import { sendToDevTool } from '../dev-tools';
 import { createState } from '../create-state';
 

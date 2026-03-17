@@ -8,14 +8,13 @@ import {
   Paper,
   useElements,
   useGraph,
-  useNodeLayout,
+  useElementLayout,
   useElementsMeasuredEffect,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { useCellActions } from '../../../hooks/use-cell-actions';
 
 const initialElements: Record<string, { label: string; width: number; height: number }> = {
   '1': { label: 'Node 1', width: 100, height: 50 },
@@ -35,7 +34,7 @@ const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 function RenderedRect({ label }: Readonly<BaseElementWithData>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   return (
     <foreignObject width={width} height={height}>
       <div ref={elementRef} className="node">
@@ -50,8 +49,8 @@ function Main() {
     (props) => <RenderedRect {...props} />,
     []
   );
-  const graph = useGraph();
-  const { set } = useCellActions<BaseElementWithData>();
+  const { graph } = useGraph();
+  const { setElement } = useGraph();
   const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
@@ -107,7 +106,7 @@ function Main() {
         <button
           onClick={() => {
             const newId = `${Math.random()}`;
-            set(newId, {
+            setElement(newId, {
               label: `Node ${elementsLength + 1}`,
               width: 100,
               height: 50,

@@ -80,22 +80,22 @@ export function usePaperStore(idOrOptions?: string | Nullable): PaperStore | nul
 }
 
 /**
- * Returns a JointJS `dia.Paper` instance from context or by paper id.
+ * Returns a JointJS `dia.Paper` instance wrapped in an object, from context or by paper id.
  *
  * All overloads must be used inside a `GraphProvider`.
  * Use this hook in one of three modes:
  * - with no arguments, read the current `dia.Paper` from `Paper` context
- * - with `{ isNullable: true }`, still read the current `dia.Paper` from `Paper` context, but return `null` instead of throwing when the context is missing
+ * - with `{ isNullable: true }`, still read the current `dia.Paper` from `Paper` context, but return `null` paper instead of throwing when the context is missing
  * - with a paper id, read a specific paper from the graph store
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
- * @returns The resolved JointJS paper instance.
+ * @returns An object containing the resolved JointJS paper instance.
  * @example
  * ```tsx
  * import { usePaper } from '@joint/react';
  *
  * function PaperCanvasInfo() {
- *   const paper = usePaper();
+ *   const { paper } = usePaper();
  *
  *   return <span>{paper.svg.tagName}</span>;
  * }
@@ -105,7 +105,7 @@ export function usePaperStore(idOrOptions?: string | Nullable): PaperStore | nul
  * import { usePaper } from '@joint/react';
  *
  * function OptionalPaperInfo() {
- *   const paper = usePaper({ isNullable: true });
+ *   const { paper } = usePaper({ isNullable: true });
  *
  *   if (!paper) return null;
  *
@@ -117,17 +117,17 @@ export function usePaperStore(idOrOptions?: string | Nullable): PaperStore | nul
  * import { usePaper } from '@joint/react';
  *
  * function SecondaryPaperInfo() {
- *   const paper = usePaper('secondary-paper');
+ *   const { paper } = usePaper('secondary-paper');
  *
  *   return paper ? <span>{paper.svg.tagName}</span> : null;
  * }
  * ```
  */
-export function usePaper(): dia.Paper;
-export function usePaper(options: Nullable): dia.Paper | null;
-export function usePaper(id: string): dia.Paper | null;
-export function usePaper(idOrOptions?: string | Nullable): dia.Paper | null;
-export function usePaper(idOrOptions?: string | Nullable): dia.Paper | null {
+export function usePaper(): { paper: dia.Paper };
+export function usePaper(options: Nullable): { paper: dia.Paper | null };
+export function usePaper(id: string): { paper: dia.Paper | null };
+export function usePaper(idOrOptions?: string | Nullable): { paper: dia.Paper | null };
+export function usePaper(idOrOptions?: string | Nullable): { paper: dia.Paper | null } {
   const paperStore = usePaperStore(idOrOptions);
-  return paperStore?.paper ?? null;
+  return { paper: paperStore?.paper ?? null };
 }

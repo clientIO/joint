@@ -62,4 +62,3 @@ export function getPaperIdFromReference(ref?: PaperReference): string | null {
 }
 
 export * from './event.types';
-export * from './port.types';

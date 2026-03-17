@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { ElementPosition, ElementSize, GraphStoreLayoutSnapshot, LinkLayout, NodeLayout } from './graph-store';
+import type { ElementPosition, ElementSize, GraphStoreLayoutSnapshot, LinkLayout, ElementLayout } from './graph-store';
 import type { PaperStore } from './paper-store';
 
 /**
@@ -22,7 +22,7 @@ export interface UpdateLayoutStateOptions {
  * @param element - The JointJS element to extract layout from
  * @returns The node layout or null if the element has no size
  */
-export function getElementLayout(element: dia.Element): NodeLayout | null {
+export function getElementLayout(element: dia.Element): ElementLayout | null {
   const size = element.get('size');
   const position = element.get('position') ?? DEFAULT_POINT;
   const angle = element.get('angle') ?? 0;
@@ -64,7 +64,7 @@ export function getLinkLayout(linkView: dia.LinkView): LinkLayout {
  */
 export function getLayout(options: UpdateLayoutStateOptions): GraphStoreLayoutSnapshot {
   const { graph, papers } = options;
-  const elementLayouts: Record<CellId, NodeLayout> = {};
+  const elementLayouts: Record<CellId, ElementLayout> = {};
   const linkLayoutsPerPaper: Record<string, Record<CellId, LinkLayout>> = {};
   const elements = graph.getElements();
   let count = 0;

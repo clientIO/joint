@@ -34,7 +34,7 @@ describe('use-paper', () => {
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
-      expect(result.current).toHaveProperty('trigger');
+      expect(result.current.paper).toHaveProperty('trigger');
     });
   });
 
@@ -53,17 +53,17 @@ describe('use-paper', () => {
     const { result } = renderHook(() => usePaper('paper-by-id'), { wrapper });
 
     await waitFor(() => {
-      expect(result.current).not.toBeNull();
-      expect(result.current).toHaveProperty('trigger');
+      expect(result.current.paper).not.toBeNull();
+      expect(result.current.paper).toHaveProperty('trigger');
     });
   });
 
-  it('returns null when paper id is not found', async () => {
+  it('returns null paper when paper id is not found', async () => {
     const wrapper = createPaperWrapper('existing-paper');
     const { result } = renderHook(() => usePaper('missing-paper'), { wrapper });
 
     await waitFor(() => {
-      expect(result.current).toBeNull();
+      expect(result.current.paper).toBeNull();
     });
   });
 
@@ -72,21 +72,21 @@ describe('use-paper', () => {
     const { result, rerender } = renderHook(() => usePaper('paper-stable'), { wrapper });
 
     await waitFor(() => {
-      expect(result.current).not.toBeNull();
+      expect(result.current.paper).not.toBeNull();
     });
 
-    const firstPaper = result.current as dia.Paper;
+    const firstPaper = result.current.paper as dia.Paper;
     rerender();
 
     await waitFor(() => {
-      expect(result.current).toBe(firstPaper);
+      expect(result.current.paper).toBe(firstPaper);
     });
   });
 
-  it('returns null when usePaper({ isNullable: true }) is used outside Paper context', () => {
+  it('returns null paper when usePaper({ isNullable: true }) is used outside Paper context', () => {
     const { result } = renderHook(() => usePaper({ isNullable: true }), { wrapper: graphWrapper });
 
-    expect(result.current).toBeNull();
+    expect(result.current.paper).toBeNull();
   });
 
   it('throws when usePaper(id) is used outside GraphProvider', () => {

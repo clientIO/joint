@@ -2,12 +2,12 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, shapes } from '@joint/core';
-import type { ReactPaper } from '@joint/react';
+import type { PortalPaper } from '@joint/react';
 import {
   GraphProvider,
   Paper,
-  ReactElement,
-  ReactLink,
+  PortalElement,
+  PortalLink,
   useMeasureNode,
   type FlatElementData,
   type FlatLinkData,
@@ -145,7 +145,7 @@ interface MainProps {
 
 function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
   const layers = ['background', 'main', 'foreground'];
-  const paperRef = useRef<ReactPaper>(null);
+  const paperRef = useRef<PortalPaper>(null);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -229,8 +229,8 @@ export default function App() {
       {
         cellNamespace: {
           ...shapes,
-          ReactElement,
-          ReactLink,
+          PortalElement,
+          PortalLink,
           standard: {
             ...shapes.standard,
             Link: FadingLink,

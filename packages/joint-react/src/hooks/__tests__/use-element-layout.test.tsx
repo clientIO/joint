@@ -1,8 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { paperRenderElementWrapper, getTestGraph } from '../../utils/test-wrappers';
-import { useNodeLayout } from '../use-node-layout';
+import { useElementLayout } from '../use-element-layout';
 
-describe('useNodeLayout', () => {
+describe('useElementLayout', () => {
   it('should return node layout when used inside renderElement', async () => {
     const graph = getTestGraph();
     const wrapper = paperRenderElementWrapper({
@@ -14,7 +14,7 @@ describe('useNodeLayout', () => {
       },
     });
 
-    const { result } = renderHook(() => useNodeLayout(), { wrapper });
+    const { result } = renderHook(() => useElementLayout(), { wrapper });
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
@@ -36,7 +36,7 @@ describe('useNodeLayout', () => {
       },
     });
 
-    const { result } = renderHook(() => useNodeLayout('element-1'), { wrapper });
+    const { result } = renderHook(() => useElementLayout('element-1'), { wrapper });
 
     await waitFor(() => {
       if (result.current) {
@@ -59,7 +59,7 @@ describe('useNodeLayout', () => {
       },
     });
 
-    const { result } = renderHook(() => useNodeLayout('non-existent'), { wrapper });
+    const { result } = renderHook(() => useElementLayout('non-existent'), { wrapper });
 
     await waitFor(() => {
       expect(result.current).toBeUndefined();
@@ -78,7 +78,7 @@ describe('useNodeLayout', () => {
     });
 
     const { result } = renderHook(
-      () => useNodeLayout((layout) => layout?.width),
+      () => useElementLayout((layout) => layout?.width),
       { wrapper }
     );
 
@@ -99,7 +99,7 @@ describe('useNodeLayout', () => {
     });
 
     const { result } = renderHook(
-      () => useNodeLayout('element-1', (layout) => ({ w: layout?.width, h: layout?.height })),
+      () => useElementLayout('element-1', (layout) => ({ w: layout?.width, h: layout?.height })),
       { wrapper }
     );
 
@@ -120,7 +120,7 @@ describe('useNodeLayout', () => {
     });
 
     const { result } = renderHook(
-      () => useNodeLayout('missing', (layout) => layout?.x),
+      () => useElementLayout('missing', (layout) => layout?.x),
       { wrapper }
     );
 

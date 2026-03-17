@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 import { useMemo } from 'react';
 import { dia } from '@joint/core';
 import '../../stories/examples/index.css';

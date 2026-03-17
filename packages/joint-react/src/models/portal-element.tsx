@@ -1,11 +1,11 @@
 import { dia } from '@joint/core';
-export const REACT_TYPE = 'ReactElement';
+export const PORTAL_ELEMENT_TYPE = 'PortalElement';
 
 /**
- * Selector for the `<g>` element used as the React portal target inside ReactElement markup.
+ * Selector for the `<g>` element used as the React portal target inside PortalElement markup.
  * @group Models
  */
-export const REACT_PORTAL_SELECTOR = '__portal__';
+export const PORTAL_SELECTOR = '__portal__';
 
 
 /**
@@ -13,16 +13,16 @@ export const REACT_PORTAL_SELECTOR = '__portal__';
  * @group Models
  * @example
  * ```ts
- * import { ReactElement } from '@joint/react';
+ * import { PortalElement } from '@joint/react';
  *
- * const element = new ReactElement({
+ * const element = new PortalElement({
  *   id: '1',
  *   position: { x: 10, y: 20 },
  *   size: { width: 100, height: 50 },
  * });
  * ```
  */
-export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Element<
+export class PortalElement<Attributes = dia.Element.Attributes> extends dia.Element<
   dia.Element.Attributes & Attributes
 > {
   /**
@@ -32,18 +32,18 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
   markup: dia.MarkupJSON = [
     {
       tagName: 'g',
-      selector: REACT_PORTAL_SELECTOR,
+      selector: PORTAL_SELECTOR,
     },
   ];
 
   /**
-   * Sets the default attributes for the ReactElement.
+   * Sets the default attributes for the PortalElement.
    * @returns The default attributes.
    */
   defaults() {
     return {
       ...super.defaults,
-      type: REACT_TYPE,
+      type: PORTAL_ELEMENT_TYPE,
     } as unknown as dia.Element.Attributes & Attributes;
   }
 }

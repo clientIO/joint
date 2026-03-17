@@ -4,10 +4,10 @@ import { useRef, useState } from 'react';
 import {
   GraphProvider,
   Paper,
-  useCellActions,
+  useGraph,
   useElements,
   useLinks,
-  useNodeLayout,
+  useElementLayout,
   useMeasureNode,
   type FlatElementData,
   type FlatLinkData,
@@ -79,8 +79,8 @@ interface ElementControlsProps {
 }
 
 function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
-  const { set, remove } = useCellActions<NodeData>();
-  const layout = useNodeLayout(id);
+  const { setElement, removeElement } = useGraph();
+  const layout = useElementLayout(id);
 
   const inputStyle = {
     padding: '6px 10px',
@@ -116,7 +116,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         <input
           type="text"
           value={element.label}
-          onChange={(event) => set(id, (previous) => ({ ...previous, label: event.target.value }))}
+          onChange={(event) => setElement(id, (previous) => ({ ...previous, label: event.target.value }))}
           style={{ ...inputStyle, flex: 1 }}
         />
       </div>
@@ -127,7 +127,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         <input
           type="color"
           value={element.color}
-          onChange={(event) => set(id, (previous) => ({ ...previous, color: event.target.value }))}
+          onChange={(event) => setElement(id, (previous) => ({ ...previous, color: event.target.value }))}
           style={{
             width: 36,
             height: 28,
@@ -146,7 +146,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           type="number"
           value={layout?.x ?? element.x}
           onChange={(event) =>
-            set(id, (previous) => ({ ...previous, x: Number(event.target.value) }))
+            setElement(id, (previous) => ({ ...previous, x: Number(event.target.value) }))
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="X"
@@ -155,7 +155,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           type="number"
           value={layout?.y ?? element.y}
           onChange={(event) =>
-            set(id, (previous) => ({ ...previous, y: Number(event.target.value) }))
+            setElement(id, (previous) => ({ ...previous, y: Number(event.target.value) }))
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="Y"
@@ -169,7 +169,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           type="number"
           value={layout?.width ?? element.width}
           onChange={(event) =>
-            set(id, (previous) => ({ ...previous, width: Number(event.target.value) }))
+            setElement(id, (previous) => ({ ...previous, width: Number(event.target.value) }))
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="W"
@@ -178,7 +178,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           type="number"
           value={layout?.height ?? element.height}
           onChange={(event) =>
-            set(id, (previous) => ({ ...previous, height: Number(event.target.value) }))
+            setElement(id, (previous) => ({ ...previous, height: Number(event.target.value) }))
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="H"
@@ -194,7 +194,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           max="360"
           value={layout?.angle ?? 0}
           onChange={(event) =>
-            set(id, (previous) => ({ ...previous, angle: Number(event.target.value) }))
+            setElement(id, (previous) => ({ ...previous, angle: Number(event.target.value) }))
           }
           style={{ flex: 1, accentColor: PRIMARY }}
         />
@@ -203,7 +203,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
 
       {/* Remove */}
       <button
-        onClick={() => remove(id)}
+        onClick={() => removeElement(id)}
         style={{
           marginTop: 4,
           padding: '8px 12px',
@@ -237,7 +237,7 @@ interface LinkControlsProps {
 }
 
 function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
-  const { set, remove } = useCellActions<FlatLinkData>();
+  const { setLink, removeLink } = useGraph();
   const sourceId = getLinkEndpointId(link.source);
   const targetId = getLinkEndpointId(link.target);
 
@@ -262,7 +262,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
           type="color"
           value={(link.color as string) ?? '#000000'}
           onChange={(event) =>
-            set(id, (previous) => ({
+            setLink(id, (previous) => ({
               ...previous,
               color: event.target.value,
             }))
@@ -280,7 +280,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 
       {/* Remove */}
       <button
-        onClick={() => remove(id)}
+        onClick={() => removeLink(id)}
         style={{
           marginTop: 4,
           padding: '8px 12px',
@@ -301,7 +301,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 }
 
 function AddElementForm() {
-  const { set } = useCellActions<NodeData>();
+  const { setElement } = useGraph();
   const elements = useElements<NodeData>();
   const [label, setLabel] = useState('');
 
@@ -318,7 +318,7 @@ function AddElementForm() {
     // eslint-disable-next-line sonarjs/pseudo-random -- Random position for demo purposes
     const randomY = 50 + Math.random() * 150;
 
-    set(newId, {
+    setElement(newId, {
       label: label.trim(),
       color: PRIMARY,
       x: randomX,
@@ -379,7 +379,7 @@ function AddElementForm() {
 }
 
 function AddLinkForm() {
-  const { set } = useCellActions<FlatLinkData>();
+  const { setLink } = useGraph();
   const elements = useElements<NodeData>();
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
@@ -402,7 +402,7 @@ function AddLinkForm() {
     if (!source || !target || source === target) return;
 
     const newId = `link-${source}-${target}-${Date.now()}`;
-    set(newId, {
+    setLink(newId, {
       source,
       target,
       color: LIGHT,

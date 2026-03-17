@@ -1,10 +1,7 @@
-/* eslint-disable sonarjs/no-dead-store */
-/* eslint-disable sonarjs/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { dia } from '@joint/core';
 import { forwardRef, useId, useImperativeHandle, useRef } from 'react';
 import { PaperStoreContext } from '../../context';
-import { useCreateReactPaper } from '../../hooks/use-create-react-paper';
+import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
 import type { PaperProps } from './paper.types';
 
 /**
@@ -37,7 +34,7 @@ function PaperBase(
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
   const reactId = useId();
   const id = props.id ?? `paper-${reactId}`;
-  const { paperRef, paperStore, isReady, content } = useCreateReactPaper({
+  const { paperRef, paperStore, isReady, content } = useCreatePortalPaper({
     ...props,
     width: resolvedWidth,
     height: resolvedHeight,
@@ -58,8 +55,4 @@ function PaperBase(
   );
 }
 
-export const Paper = forwardRef(PaperBase) as (
-  props: Readonly<PaperProps> & {
-    ref?: React.Ref<dia.Paper | null>;
-  }
-) => ReturnType<typeof PaperBase>;
+export const Paper = forwardRef(PaperBase);

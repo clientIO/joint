@@ -1,37 +1,37 @@
-import { ReactElement, REACT_TYPE, REACT_PORTAL_SELECTOR } from '../react-element';
+import { PortalElement, PORTAL_ELEMENT_TYPE, PORTAL_SELECTOR } from '../portal-element';
 import { dia } from '@joint/core';
 
 function createElement<Attributes = dia.Element.Attributes>(
   options?: Attributes & dia.Element.Attributes
 ) {
-  return new ReactElement(options);
+  return new PortalElement(options);
 }
 
-describe('react-element', () => {
-  describe('ReactElement', () => {
-    it('should create a ReactElement instance', () => {
-      const element = new ReactElement({
+describe('portal-element', () => {
+  describe('PortalElement', () => {
+    it('should create a PortalElement instance', () => {
+      const element = new PortalElement({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
 
-      expect(element).toBeInstanceOf(ReactElement);
+      expect(element).toBeInstanceOf(PortalElement);
       expect(element).toBeInstanceOf(dia.Element);
-      expect(element.get('type')).toBe(REACT_TYPE);
+      expect(element.get('type')).toBe(PORTAL_ELEMENT_TYPE);
     });
 
     it('should have default attributes', () => {
-      const element = new ReactElement({
+      const element = new PortalElement({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
 
       const defaults = element.defaults();
-      expect(defaults.type).toBe(REACT_TYPE);
+      expect(defaults.type).toBe(PORTAL_ELEMENT_TYPE);
     });
 
     it('should accept custom attributes', () => {
-      const element = new ReactElement({
+      const element = new PortalElement({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         data: { custom: 'value' },
@@ -45,21 +45,21 @@ describe('react-element', () => {
         customProp?: string;
       }
 
-      const element = new ReactElement<CustomAttributes>({
+      const element = new PortalElement<CustomAttributes>({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
 
-      expect(element).toBeInstanceOf(ReactElement);
+      expect(element).toBeInstanceOf(PortalElement);
     });
 
     describe('markup', () => {
       it('should have markup with a portal group', () => {
-        const element = new ReactElement();
+        const element = new PortalElement();
         expect(element.markup).toEqual([
           {
             tagName: 'g',
-            selector: REACT_PORTAL_SELECTOR,
+            selector: PORTAL_SELECTOR,
           },
         ]);
       });
@@ -67,21 +67,21 @@ describe('react-element', () => {
   });
 
   describe('createElement', () => {
-    it('should create a ReactElement instance', () => {
+    it('should create a PortalElement instance', () => {
       const element = createElement({
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
 
-      expect(element).toBeInstanceOf(ReactElement);
-      expect(element.get('type')).toBe(REACT_TYPE);
+      expect(element).toBeInstanceOf(PortalElement);
+      expect(element.get('type')).toBe(PORTAL_ELEMENT_TYPE);
     });
 
     it('should create element without options', () => {
       const element = createElement();
 
-      expect(element).toBeInstanceOf(ReactElement);
-      expect(element.get('type')).toBe(REACT_TYPE);
+      expect(element).toBeInstanceOf(PortalElement);
+      expect(element.get('type')).toBe(PORTAL_ELEMENT_TYPE);
     });
 
     it('should accept custom attributes', () => {
@@ -95,9 +95,9 @@ describe('react-element', () => {
     });
   });
 
-  describe('REACT_TYPE', () => {
+  describe('PORTAL_ELEMENT_TYPE', () => {
     it('should be defined', () => {
-      expect(REACT_TYPE).toBe('ReactElement');
+      expect(PORTAL_ELEMENT_TYPE).toBe('PortalElement');
     });
   });
 });

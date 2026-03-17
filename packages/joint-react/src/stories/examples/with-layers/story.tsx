@@ -29,7 +29,7 @@ import { dia } from '@joint/core';
 
 const graph = useMemo(() => {
   const g = new dia.Graph({}, {
-    cellNamespace: { ...shapes, ReactElement, ReactLink },
+    cellNamespace: { ...shapes, PortalElement, PortalLink },
   });
   // Add layers in render order (first added = rendered first = behind)
   g.addLayer({ id: 'background' });

@@ -2,9 +2,9 @@ import { dia } from '@joint/core';
 import { isRecord } from '../utils/is';
 import type { CellId } from '../types/cell-id';
 import type { RenderElement, RenderLink } from '../components';
-import type { PortalSelector } from '../models/react-paper.types';
+import type { PortalSelector } from '../models/portal-paper.types';
 import type { GraphStore } from './graph-store';
-import { ReactPaper } from '../models/react-paper';
+import { PortalPaper } from '../models/portal-paper';
 import { connectionPoint } from './default-connection-point';
 import { measureNode } from './default-measure-node';
 import type { Feature } from '../hooks/use-create-paper-features';
@@ -102,7 +102,7 @@ export function createPaperStoreSnapshot(): PaperStoreSnapshot {
  */
 export class PaperStore {
   /** The underlying JointJS Paper instance with React-specific properties */
-  public paper: ReactPaper;
+  public paper: PortalPaper;
   /** Unique identifier for this paper instance */
   public paperId: string;
   /** Optional custom element renderer */
@@ -140,12 +140,12 @@ export class PaperStore {
     this.paperId = id;
     this.renderElement = renderElement;
     this.renderLink = renderLink;
-    // Create a new ReactPaper instance
-    // ReactPaper handles view lifecycle internally via insertView/removeView
+    // Create a new PortalPaper instance
+    // PortalPaper handles view lifecycle internally via insertView/removeView
     // NOTE: We don't use cellVisibility to hide links because JointJS's
     // unmountedList.rotate() causes O(n) checks per frame when returning false.
     // Link visibility should be handled in React layer instead.
-    const paper = new ReactPaper({
+    const paper = new PortalPaper({
       async: true,
       sorting: dia.Paper.sorting.APPROX,
       preventDefaultBlankAction: false,
@@ -156,7 +156,7 @@ export class PaperStore {
       afterRender: (() => {
         // Re-entrance guard to prevent infinite loops
         let isProcessing = false;
-        return function (this: ReactPaper) {
+        return function (this: PortalPaper) {
           if (isProcessing) {
             return;
           }

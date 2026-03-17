@@ -19,6 +19,19 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
+  "typescript": "src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./internal": {
+      "import": "./dist/esm/internal.js",
+      "require": "./dist/cjs/internal.js",
+      "types": "./dist/types/internal.d.ts"
+    }
+  },
   "sideEffects": false,
   "files": [
     "dist",
@@ -38,7 +51,7 @@
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn test && yarn build",
-    "build": "node --experimental-json-modules --loader ts-node/esm build.ts",
+    "build": "rolldown -c rollup.config.ts && tsc --project tsconfig.types.json",
     "build-storybook": "storybook build",
     "storybook": "storybook dev -p 6006",
     "test": "yarn run typecheck && yarn run lint && yarn jest",
@@ -90,6 +103,7 @@
     "redux": "^5.0.1",
     "redux-undo": "1.1.0",
     "resize-observer-polyfill": "^1.5.1",
+    "rolldown": "^1.0.0-rc.9",
     "storybook": "^10.2.3",
     "storybook-multilevel-sort": "^2.1.0",
     "ts-node": "^10.9.2",

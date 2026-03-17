@@ -8,10 +8,10 @@ import {
   Paper,
   useMeasureNode,
   type OnTransformElement,
-  useCellId,
+  useElementId,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { useCellActions } from '../../../hooks/use-cell-actions';
+import { useGraph } from '@joint/react';
 
 const initialElements: Record<string, { label: string; inputs: string[]; x: number; y: number }> = {
   '1': { label: 'Node 1', inputs: [] as string[], x: 100, y: 15 },
@@ -28,7 +28,7 @@ const initialEdges: Record<string, { source: string; target: string; color: stri
 type BaseElementWithData = (typeof initialElements)[string];
 
 function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData>) {
-  const id = useCellId();
+  const id = useElementId();
   const padding = 10;
   const headerHeight = 50;
   const elementRef = useRef<HTMLDivElement>(null);
@@ -47,10 +47,13 @@ function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData
 
   const { width, height } = useMeasureNode(elementRef, { transform });
 
-  const { set } = useCellActions<BaseElementWithData>();
+  const { setElement } = useGraph();
 
   const addInput = () => {
-    set(id, (previous) => ({ ...previous, inputs: [...previous.inputs, ''] }));
+    setElement(id, (previous) => {
+      const previousInputs = Array.isArray(previous.inputs) ? previous.inputs : [];
+      return { ...previous, inputs: [...previousInputs, ''] };
+    });
   };
 
   return (
@@ -95,7 +98,7 @@ function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData
                   onChange={(event) => {
                     const newInputs = [...inputs];
                     newInputs[index] = event.target.value;
-                    set(id, (previous) => ({ ...previous, inputs: newInputs }));
+                    setElement(id, (previous) => ({ ...previous, inputs: newInputs }));
                   }}
                 />
               </li>

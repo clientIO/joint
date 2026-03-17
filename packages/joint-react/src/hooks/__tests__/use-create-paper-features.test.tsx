@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 import { render, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { GraphProvider, Paper } from '../../components';

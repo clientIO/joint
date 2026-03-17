@@ -1,9 +1,9 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+ 
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type dia, g, highlighters, V } from '@joint/core';
 import type { FlatElementData } from '@joint/react';
-import { GraphProvider, Paper, TextNode, useGraph, useElementsMeasuredEffect } from '@joint/react';
+import { GraphProvider, Paper, SvgText, useGraph, useElementsMeasuredEffect } from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 
@@ -67,7 +67,7 @@ function RectangleShape({ width, height, label }: Readonly<ShapeElement>) {
   return (
     <>
       <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} />
-      <TextNode
+      <SvgText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -77,7 +77,7 @@ function RectangleShape({ width, height, label }: Readonly<ShapeElement>) {
         fontWeight="bold"
       >
         {label}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -93,7 +93,7 @@ function CircleShape({ width, height, label }: Readonly<ShapeElement>) {
         stroke={PRIMARY}
         strokeWidth={2}
       />
-      <TextNode
+      <SvgText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -103,7 +103,7 @@ function CircleShape({ width, height, label }: Readonly<ShapeElement>) {
         fontWeight="bold"
       >
         {label}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -120,7 +120,7 @@ function EllipseShape({ width, height, label }: Readonly<ShapeElement>) {
         stroke={PRIMARY}
         strokeWidth={2}
       />
-      <TextNode
+      <SvgText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -130,7 +130,7 @@ function EllipseShape({ width, height, label }: Readonly<ShapeElement>) {
         fontWeight="bold"
       >
         {label}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -144,7 +144,7 @@ function PathShape({ width, height, label }: Readonly<ShapeElement>) {
         stroke={PRIMARY}
         strokeWidth={2}
       />
-      <TextNode
+      <SvgText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -154,7 +154,7 @@ function PathShape({ width, height, label }: Readonly<ShapeElement>) {
         fontWeight="bold"
       >
         {label}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -218,7 +218,7 @@ function useInterval(action: () => void, interval: number = 1000) {
 // Application Components
 // ----------------------------------------------------------------------------
 function Main() {
-  const graph = useGraph();
+  const { graph } = useGraph();
   const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
