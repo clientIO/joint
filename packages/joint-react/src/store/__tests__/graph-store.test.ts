@@ -2,7 +2,6 @@
 import { waitFor } from '@testing-library/react';
 import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
-import { createPaperStoreSnapshot } from '../paper-store';
 import { PortalElement } from '../../models/portal-element';
 import { sendToDevTool } from '../../utils/dev-tools';
 import type { FlatElementData } from '../../types/element-types';
@@ -181,63 +180,35 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
 
-      store.updatePaperSnapshot(paperId, () => ({
-        ...createPaperStoreSnapshot(),
-      }));
+      store.updatePaperSnapshot(paperId, () => 1);
 
       const internalSnapshot = store.internalState.getSnapshot();
       expect(internalSnapshot.papers[paperId]).toBeDefined();
     });
 
-    it('should update existing paper snapshot', () => {
+    it('should bump version on update', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
 
-      store.updatePaperSnapshot(paperId, () => ({
-        ...createPaperStoreSnapshot(),
-      }));
-
-      store.updatePaperSnapshot(paperId, (previous) => ({
-        ...previous!,
-        elementViewIds: { ...previous!.elementViewIds, 'element-1': true },
-      }));
+      store.updatePaperSnapshot(paperId, () => 1);
+      store.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
 
       const internalSnapshot = store.internalState.getSnapshot();
-      expect(internalSnapshot.papers[paperId].elementViewIds).toHaveProperty('element-1');
+      expect(internalSnapshot.papers[paperId]).toBe(2);
     });
 
     it('should not update if snapshot is unchanged', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const snapshot = createPaperStoreSnapshot();
 
-      store.updatePaperSnapshot(paperId, () => snapshot);
-      const firstUpdate = store.internalState.getSnapshot().papers[paperId];
+      store.updatePaperSnapshot(paperId, () => 1);
+      const firstSnapshot = store.internalState.getSnapshot();
 
-      store.updatePaperSnapshot(paperId, () => snapshot);
-      const secondUpdate = store.internalState.getSnapshot().papers[paperId];
+      store.updatePaperSnapshot(paperId, () => 1);
+      const secondSnapshot = store.internalState.getSnapshot();
 
       // Should return same reference if unchanged
-      expect(firstUpdate).toBe(secondUpdate);
-    });
-
-    it('should skip update when snapshot is deep-equal', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-
-      store.updatePaperSnapshot(paperId, () => ({
-        ...createPaperStoreSnapshot(),
-        elementViewIds: { 'element-1': true },
-      }));
-      const firstUpdate = store.internalState.getSnapshot().papers[paperId];
-
-      store.updatePaperSnapshot(paperId, (previous) => ({
-        ...previous!,
-      }));
-      const secondUpdate = store.internalState.getSnapshot().papers[paperId];
-
-      // Spread creates a new reference but the content is identical
-      expect(secondUpdate).toStrictEqual(firstUpdate);
+      expect(firstSnapshot).toBe(secondSnapshot);
     });
   });
 
@@ -249,13 +220,13 @@ describe('GraphStore', () => {
           ...previous,
           papers: {
             ...previous.papers,
-            [paperId]: createPaperStoreSnapshot(),
+            [paperId]: 1,
           },
         };
       });
     }
 
-    it('should update element and link view ids in a single batch', () => {
+    it('should bump version on view changes', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
       ensurePaperSnapshot(store, paperId);
@@ -269,13 +240,11 @@ describe('GraphStore', () => {
       ]);
       store.setPaperViews(paperId, changes);
 
-      const internalSnapshot = store.internalState.getSnapshot();
-      const paper = internalSnapshot.papers[paperId];
-      expect(paper?.elementViewIds['element-1']).toBe(true);
-      expect(paper?.linkViewIds['link-1']).toBe(true);
+      const version = store.internalState.getSnapshot().papers[paperId];
+      expect(version).toBe(2);
     });
 
-    it('should remove element view id on unmount', () => {
+    it('should increment version on each call', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
       ensurePaperSnapshot(store, paperId);
@@ -288,22 +257,8 @@ describe('GraphStore', () => {
       );
       store.setPaperViews(paperId, new Map([['element-1', { type: 'remove' as const }]]));
 
-      const paper = store.internalState.getSnapshot().papers[paperId];
-      expect(paper?.elementViewIds['element-1']).toBeUndefined();
-    });
-
-    it('should remove link view id on unmount', () => {
-      const store = new GraphStore({});
-      const paperId = 'paper-1';
-      ensurePaperSnapshot(store, paperId);
-
-      const link = new shapes.standard.Link({ id: 'link-1' });
-
-      store.setPaperViews(paperId, new Map([['link-1', { type: 'add' as const, data: link }]]));
-      store.setPaperViews(paperId, new Map([['link-1', { type: 'remove' as const }]]));
-
-      const paper = store.internalState.getSnapshot().papers[paperId];
-      expect(paper?.linkViewIds['link-1']).toBeUndefined();
+      const version = store.internalState.getSnapshot().papers[paperId];
+      expect(version).toBe(3);
     });
   });
 
@@ -324,7 +279,7 @@ describe('GraphStore', () => {
       expect(typeof remove).toBe('function');
     });
 
-    it('should initialize serializable internal paper metadata', () => {
+    it('should initialize paper snapshot as version 0', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
       store.addPaper(paperId, {
@@ -336,8 +291,7 @@ describe('GraphStore', () => {
       });
 
       const paperSnapshot = store.internalState.getSnapshot().papers[paperId];
-      expect(paperSnapshot.elementViewIds).toEqual({});
-      expect(paperSnapshot.linkViewIds).toEqual({});
+      expect(paperSnapshot).toBe(1);
       expect(() => JSON.stringify(store.internalState.getSnapshot())).not.toThrow();
     });
 

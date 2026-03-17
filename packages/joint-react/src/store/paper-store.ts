@@ -74,29 +74,17 @@ export interface PaperStoreOptions extends AddPaperOptions {
 }
 
 /**
- * Snapshot of paper-specific state.
- * Contains serializable metadata for paper view state.
+ * Paper snapshot is a simple version counter.
+ * Incremented on every view mount/unmount change to trigger React re-renders.
  */
-export interface PaperStoreSnapshot {
-  /** IDs of mounted element views in this paper */
-  readonly elementViewIds: Record<CellId, true>;
-  /** IDs of mounted link views in this paper */
-  readonly linkViewIds: Record<CellId, true>;
-  /** Incremented on every paper snapshot to trigger updates in derived state */
-  readonly version: number;
-}
+// eslint-disable-next-line sonarjs/redundant-type-aliases
+export type PaperStoreSnapshot = number;
 
 /**
- * Creates an empty paper snapshot.
- * @returns Empty serializable paper metadata snapshot.
+ * Initial version for a new paper snapshot.
+ * Starts at 1 to avoid falsy zero issues.
  */
-export function createPaperStoreSnapshot(): PaperStoreSnapshot {
-  return {
-    elementViewIds: {},
-    linkViewIds: {},
-    version: 0,
-  };
-}
+export const DEFAULT_PAPER_VERSION: PaperStoreSnapshot = 1;
 
 /**
  * Store for managing a single Paper instance and its associated state.
@@ -209,30 +197,12 @@ export class PaperStore {
     }
   }
 
-  /**
-   * Generates a unique link label ID by combining link ID and label index.
-   * @param linkId - The ID of the link containing the label
-   * @param labelIndex - The index of the label in the labels array
-   * @returns A unique identifier for the link label
-   */
-  public getLinkLabelId(linkId: CellId, labelIndex: number) {
-    return `${linkId}-label-${labelIndex}`;
-  }
-
   public getElementView(id: CellId): dia.ElementView | undefined {
     return this.paper.getElementView(id);
   }
 
   public getLinkView(id: CellId): dia.LinkView | undefined {
     return this.paper.getLinkView(id);
-  }
-
-  public hasElementView(id: CellId): boolean {
-    return !!this.getElementView(id);
-  }
-
-  public hasLinkView(id: CellId): boolean {
-    return !!this.getLinkView(id);
   }
 
   /**
