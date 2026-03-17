@@ -53,6 +53,8 @@ export interface UseCreatePortalPaperOptions extends PaperProps {
   readonly elementRef?: RefObject<HTMLElement | SVGElement | null>;
   /** Callback fired once when paper instance is created and ready. */
   readonly onReady?: (paper: PortalPaper) => void;
+  /** Whether the paper is externally managed (skip div mounting). */
+  readonly isExternalPaper?: boolean;
 }
 
 export interface UseCreatePortalPaperResult {
@@ -131,6 +133,8 @@ export function useCreatePortalPaper(
     elementRef,
     onReady,
     id,
+    paper: externalPaper,
+    isExternalPaper,
     ...paperOptions
   } = options;
   if (!id) {
@@ -210,7 +214,7 @@ export function useCreatePortalPaper(
     [defaultLink, graph, graphState]
   );
 
-  const isReady = !!paper && (!elementRef || !!elementRef.current);
+  const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
 
   useLayoutEffect(() => {
     const hostElementForCreation = elementRef?.current;
@@ -226,6 +230,7 @@ export function useCreatePortalPaper(
       renderLink,
       scale,
       portalSelector,
+      paper: externalPaper,
     });
 
     paperRef.current = paperStore.paper ?? null;

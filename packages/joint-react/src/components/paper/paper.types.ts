@@ -4,6 +4,7 @@ import type { OmitWithoutIndexSignature } from '../../types';
 import type { FlatLinkData } from '../../types/link-types';
 import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
+import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 
 type PortalPaperOptionsBase = OmitWithoutIndexSignature<
@@ -182,4 +183,11 @@ export interface PaperProps
    * ```
    */
   readonly portalSelector?: PortalSelector;
+
+  /**
+   * Pre-created PortalPaper instance to adopt.
+   * When provided, the Paper component wraps this paper instead of creating a new one.
+   * The paper's DOM is assumed to be managed externally (e.g. by a stencil).
+   */
+  readonly paper?: PortalPaper;
 }

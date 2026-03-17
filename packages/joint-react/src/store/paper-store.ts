@@ -54,6 +54,12 @@ export interface AddPaperOptions {
 
   /** Optional selector for locating React portal targets within cell views */
   readonly portalSelector?: PortalSelector;
+
+  /**
+   * Pre-created PortalPaper instance to adopt.
+   * When provided, PaperStore wraps this paper instead of creating a new one.
+   */
+  readonly paper?: PortalPaper;
 }
 
 /**
@@ -123,68 +129,80 @@ export class PaperStore {
       renderLink,
       id,
       portalSelector,
+      paper: externalPaper,
     } = options;
-    const { graph } = graphStore;
-    const hasHighlightingOverride = isRecord(paperOptions.highlighting);
-    const highlightingOverride = hasHighlightingOverride
-      ? (paperOptions.highlighting as PaperHighlighting)
-      : undefined;
 
-    const mergedHighlighting: dia.Paper.Options['highlighting'] =
-      paperOptions.highlighting === false
-        ? false
-        : {
-            ...DEFAULT_PORT_HIGHLIGHTING,
-            ...highlightingOverride,
-          };
     this.paperId = id;
     this.renderElement = renderElement;
     this.renderLink = renderLink;
-    // Create a new PortalPaper instance
-    // PortalPaper handles view lifecycle internally via insertView/removeView
-    // NOTE: We don't use cellVisibility to hide links because JointJS's
-    // unmountedList.rotate() causes O(n) checks per frame when returning false.
-    // Link visibility should be handled in React layer instead.
-    const paper = new PortalPaper({
-      async: true,
-      sorting: dia.Paper.sorting.APPROX,
-      preventDefaultBlankAction: false,
-      frozen: true,
-      model: graph,
-      id,
-      portalSelector,
-      afterRender: (() => {
-        // Re-entrance guard to prevent infinite loops
-        let isProcessing = false;
-        return function (this: PortalPaper) {
-          if (isProcessing) {
-            return;
-          }
-          isProcessing = true;
 
-          // Check if any pending links can now be shown
-          this.checkPendingLinks();
-
-          isProcessing = false;
-        };
-      })(),
-      defaultConnectionPoint: connectionPoint,
-      measureNode: measureNode as unknown as dia.Paper.Options['measureNode'],
-      ...paperOptions,
-      highlighting: mergedHighlighting,
-      markAvailable: paperOptions.markAvailable ?? true,
-      clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
-      autoFreeze: true,
-      viewManagement: {
-        disposeHidden: true,
-        lazyInitialize: true,
-      },
-      onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
+    if (externalPaper) {
+      // Adopt an externally created PortalPaper (e.g. from PortalStencil).
+      // Hook into view mount changes so the GraphStore stays in sync.
+      externalPaper.onViewMountChange = (changes: Map<string, IncrementalChange<dia.Cell>>) => {
         graphStore.setPaperViews(this.paperId, changes);
-      },
-    });
+      };
+      this.paper = externalPaper;
+    } else {
+      const { graph } = graphStore;
+      const hasHighlightingOverride = isRecord(paperOptions.highlighting);
+      const highlightingOverride = hasHighlightingOverride
+        ? (paperOptions.highlighting as PaperHighlighting)
+        : undefined;
 
-    this.paper = paper;
+      const mergedHighlighting: dia.Paper.Options['highlighting'] =
+        paperOptions.highlighting === false
+          ? false
+          : {
+              ...DEFAULT_PORT_HIGHLIGHTING,
+              ...highlightingOverride,
+            };
+      // Create a new PortalPaper instance
+      // PortalPaper handles view lifecycle internally via insertView/removeView
+      // NOTE: We don't use cellVisibility to hide links because JointJS's
+      // unmountedList.rotate() causes O(n) checks per frame when returning false.
+      // Link visibility should be handled in React layer instead.
+      const paper = new PortalPaper({
+        async: true,
+        sorting: dia.Paper.sorting.APPROX,
+        preventDefaultBlankAction: false,
+        frozen: true,
+        model: graph,
+        id,
+        portalSelector,
+        afterRender: (() => {
+          // Re-entrance guard to prevent infinite loops
+          let isProcessing = false;
+          return function (this: PortalPaper) {
+            if (isProcessing) {
+              return;
+            }
+            isProcessing = true;
+
+            // Check if any pending links can now be shown
+            this.checkPendingLinks();
+
+            isProcessing = false;
+          };
+        })(),
+        defaultConnectionPoint: connectionPoint,
+        measureNode: measureNode as unknown as dia.Paper.Options['measureNode'],
+        ...paperOptions,
+        highlighting: mergedHighlighting,
+        markAvailable: paperOptions.markAvailable ?? true,
+        clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
+        autoFreeze: true,
+        viewManagement: {
+          disposeHidden: true,
+          lazyInitialize: true,
+        },
+        onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
+          graphStore.setPaperViews(this.paperId, changes);
+        },
+      });
+
+      this.paper = paper;
+    }
 
     if (scale !== undefined) {
       this.paper.scale(scale);

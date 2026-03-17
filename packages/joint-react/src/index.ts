@@ -23,6 +23,7 @@ export type { ElementLayout } from './store/graph-store';
 export { useLinkLayout } from './hooks/use-link-layout';
 export type { LinkLayout } from './hooks/use-link-layout';
 export { useMeasureNode } from './hooks/use-measure-node';
+export type { OnTransformElement, TransformOptions } from './store/create-elements-size-observer';
 export { useLayouts } from './hooks/use-stores';
 export { useElementsMeasuredEffect } from './hooks/use-elements-measured-effect';
 
@@ -61,8 +62,8 @@ export { LINK_ARROWS, getLinkArrow } from './components/link/link.arrows';
 export type { LinkArrowName } from './components/link/link.arrows';
 
 // Models
-export { PortalElement } from './models/portal-element';
-export { PortalLink } from './models/portal-link';
+export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
+export { PortalLink, PORTAL_LINK_TYPE } from './models/portal-link';
 export { PortalPaper } from './models/portal-paper';
 
 // Selectors (public)

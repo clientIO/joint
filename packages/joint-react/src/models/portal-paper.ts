@@ -18,7 +18,7 @@ const noopViewMountChange = (): void => {
  */
 export class PortalPaper extends dia.Paper {
   public viewChanges: Map<string, IncrementalChange<dia.Cell>> = new Map();
-  private readonly onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => void;
+  public onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();

@@ -4,8 +4,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { shapes } from '@joint/core';
-import type { dia } from '@joint/core';
+import { dia, shapes } from '@joint/core';
 import React from 'react';
 import { useMeasureNode } from '../../../hooks/use-measure-node';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
@@ -17,7 +16,9 @@ import type { FlatLinkData } from '../../../types/link-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../../models/portal-link';
-import type { PortalPaper } from '../../../models/portal-paper';
+import { PortalPaper } from '../../../models/portal-paper';
+import { PortalElement } from '../../../models/portal-element';
+import { usePaperStore } from '../../../hooks/use-paper';
 
 /** Test helper: listens to `elements:measured` event via hook and forwards to callback. */
 function MeasuredListener({ paperId, callback }: Readonly<{ paperId: string; callback: (event: ElementsMeasuredEvent) => void }>) {
@@ -1343,6 +1344,83 @@ describe('Paper Component', () => {
       expect(createdLinkData.width).toBe(4);
       expect(createdLinkData.wrapperBuffer).toBe(16);
       expect(createdLinkData.customProperty).toBe('callback-flat-link-default');
+    });
+  });
+
+  describe('external paper prop', () => {
+    const EXTERNAL_PAPER_ID = 'external-paper';
+
+    it('should adopt an external PortalPaper and expose it via usePaperStore', async () => {
+      const graph = new dia.Graph(
+        {},
+        { cellNamespace: { ...shapes, PortalElement, PortalLink } }
+      );
+      const container = document.createElement('div');
+      document.body.append(container);
+
+      const externalPaper = new PortalPaper({
+        el: container,
+        model: graph,
+        cellNamespace: { ...shapes, PortalElement, PortalLink },
+        async: false,
+      });
+
+      let capturedPaper: dia.Paper | null = null;
+
+      function PaperCapture() {
+        const store = usePaperStore(EXTERNAL_PAPER_ID);
+        capturedPaper = store?.paper ?? null;
+        return null;
+      }
+
+      render(
+        <GraphProvider graph={graph}>
+          <Paper paper={externalPaper} id={EXTERNAL_PAPER_ID} renderElement={() => null}>
+            <PaperCapture />
+          </Paper>
+        </GraphProvider>
+      );
+
+      await waitFor(() => {
+        expect(capturedPaper).toBe(externalPaper);
+      });
+
+      container.remove();
+    });
+
+    it('should not render a host div when external paper is provided', async () => {
+      const graph = new dia.Graph(
+        {},
+        { cellNamespace: { ...shapes, PortalElement, PortalLink } }
+      );
+      const container = document.createElement('div');
+      document.body.append(container);
+
+      const externalPaper = new PortalPaper({
+        el: container,
+        model: graph,
+        cellNamespace: { ...shapes, PortalElement, PortalLink },
+        async: false,
+      });
+
+      const { container: renderContainer } = render(
+        <GraphProvider graph={graph}>
+          <Paper
+            paper={externalPaper}
+            id={EXTERNAL_PAPER_ID}
+            className="should-not-exist"
+            renderElement={() => null}
+          />
+        </GraphProvider>
+      );
+
+      await waitFor(() => {
+        // The Paper should not render a div with the className when paper is external
+        const hostDiv = renderContainer.querySelector('.should-not-exist');
+        expect(hostDiv).toBeNull();
+      });
+
+      container.remove();
     });
   });
 });
