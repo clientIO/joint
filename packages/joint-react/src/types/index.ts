@@ -24,41 +24,41 @@ export interface Nullable {
 // eslint-disable-next-line sonarjs/no-useless-intersection
 export type AnyString = string & {};
 
-export type PaperReference = string | React.RefObject<dia.Paper | null> | dia.Paper | Nullable;
+export type PaperTarget = string | React.RefObject<dia.Paper | null> | dia.Paper | Nullable;
 
 /**
- * Resolves a Paper instance from a PaperReference.
- * @param ref - The paper reference to resolve.
+ * Resolves a Paper instance from a PaperTarget.
+ * @param target - The paper target to resolve.
  * @returns The resolved Paper instance, or null.
  */
-export function getPaperFromReference(ref: PaperReference): dia.Paper | null {
-  if (isString(ref)) {
+export function resolvePaper(target: PaperTarget): dia.Paper | null {
+  if (isString(target)) {
     // ID form is not supported here since we don't have access to the paper store.
     return null;
   }
-  if (ref instanceof dia.Paper) {
-    return ref;
+  if (target instanceof dia.Paper) {
+    return target;
   }
-  if ('current' in ref) {
-    return ref.current;
+  if ('current' in target) {
+    return target.current;
   }
   return null;
 }
 
 /**
- * Extracts the paper ID from a PaperReference.
- * @param ref - The paper reference to extract the ID from.
+ * Extracts the paper ID from a PaperTarget.
+ * @param target - The paper target to extract the ID from.
  * @returns The paper ID string, or null.
  */
-export function getPaperIdFromReference(ref?: PaperReference): string | null {
-  if (!ref) {
+export function resolvePaperId(target?: PaperTarget): string | null {
+  if (!target) {
     return null;
   }
-  if (isString(ref)) {
-    return ref;
+  if (isString(target)) {
+    // Is already an ID.
+    return target;
   }
-  const paper = getPaperFromReference(ref);
-  return paper ? (paper.id ?? null) : null;
+  return resolvePaper(target)?.id ?? null;
 }
 
 export * from './event.types';
