@@ -10,14 +10,14 @@ import {
   usePaper,
   usePaperEvents,
   useMeasureNode,
-  useNodeLayout,
+  useElementLayout,
   type CellId,
   type FlatElementData,
   type FlatLinkData,
   type PaperProps,
   type RenderElement,
-  REACT_TYPE,
-  // ReactLinkView,
+  PORTAL_ELEMENT_TYPE,
+  // PortalLinkView,
   // type MarkerPreset,
 } from '@joint/react';
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -196,7 +196,7 @@ function Shape({
 }
 
 function MinimapShape({ color = 'lightgray' }: Readonly<{ color?: string }>) {
-  const layout = useNodeLayout();
+  const layout = useElementLayout();
   if (!layout) return null;
 
   const { width, height } = layout;
@@ -242,8 +242,8 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
 // ============================================================================
 
 function Selection({ selectedId }: { selectedId: CellId | null }) {
-  const paper = usePaper();
-  const graph = useGraph();
+  const { paper } = usePaper();
+  const { graph } = useGraph();
 
   useEffect(() => {
     highlighters.mask.removeAll(paper);
@@ -296,7 +296,7 @@ function RenderElementWithBadge({
   color = 'lightgray',
   title = 'No Title',
 }: Readonly<ElementData>) {
-  const layout = useNodeLayout();
+  const layout = useElementLayout();
   return (
     <>
       {jjType ?? <Shape color={color} title={title} />}
@@ -315,7 +315,7 @@ function Main() {
     return <RenderElementWithBadge {...data} />;
   }, []);
 
-  const graph = useGraph();
+  const { graph } = useGraph();
 
   usePaperEvents(
     paperId,
@@ -341,14 +341,14 @@ function Main() {
         height="calc(100vh - 100px)"
         snapLinks={{ radius: 25 }}
         renderElement={renderElement}
-        // linkView={ReactLinkView}
+        // linkView={PortalLinkView}
         onViewPostponed={() => false}
-        // elementView={ReactElementView}
+        // elementView={PortalElementView}
         validateMagnet={(_, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         linkPinning={false}
         portalSelector={(cellView, defaultSelector) => {
           const type = cellView.model.get('type');
-          return type === REACT_TYPE ? defaultSelector : 'root';
+          return type === PORTAL_ELEMENT_TYPE ? defaultSelector : 'root';
         }}
       >
         <Selection selectedId={selectedElement} />

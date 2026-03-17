@@ -11,39 +11,39 @@ jest.mock('@joint/core', () => {
 });
 
 import { paperRenderElementWrapper } from '../../../utils/test-wrappers';
-import { TextNode } from '../text-node';
+import { SvgText } from '../svg-text';
 import { util } from '@joint/core';
 import { render, waitFor } from '@testing-library/react';
 
 const UPPERCASE_STYLE = { textTransform: 'uppercase' } as const;
 
-describe('TextNode', () => {
+describe('SvgText', () => {
   it('renders with minimal props', () => {
-    render(<TextNode>hello</TextNode>, { wrapper: paperRenderElementWrapper({}) });
+    render(<SvgText>hello</SvgText>, { wrapper: paperRenderElementWrapper({}) });
   });
 
   it('renders with width and textWrap', () => {
     render(
-      <TextNode width={100} textWrap>
+      <SvgText width={100} textWrap>
         hello world
-      </TextNode>,
+      </SvgText>,
       { wrapper: paperRenderElementWrapper({}) }
     );
   });
 
   it('renders with height and textWrap options', () => {
     render(
-      // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
-      <TextNode width={100} height={40} textWrap={{ ellipsis: true, maxLineCount: 2 }}>
+       
+      <SvgText width={100} height={40} textWrap={{ ellipsis: true, maxLineCount: 2 }}>
         hello world hello world hello world
-      </TextNode>,
+      </SvgText>,
       { wrapper: paperRenderElementWrapper({}) }
     );
   });
 
   it('renders with all supported props', () => {
     render(
-      <TextNode
+      <SvgText
         width={120}
         height={50}
         fill="red"
@@ -55,14 +55,14 @@ describe('TextNode', () => {
         textWrap
       >
         test all props
-      </TextNode>,
+      </SvgText>,
       { wrapper: paperRenderElementWrapper({}) }
     );
   });
 
   it('passes text styles to util.breakText', () => {
     render(
-      <TextNode
+      <SvgText
         width={120}
         textWrap
         lineHeight={1.5}
@@ -73,7 +73,7 @@ describe('TextNode', () => {
         style={UPPERCASE_STYLE}
       >
         styled text
-      </TextNode>,
+      </SvgText>,
       {
         wrapper: paperRenderElementWrapper({
           graphProviderProps: {

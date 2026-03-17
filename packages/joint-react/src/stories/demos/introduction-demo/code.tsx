@@ -11,24 +11,23 @@ import './index.css';
 import {
   GraphProvider,
   Paper,
-  useCellId,
+  useElementId,
   useElements,
   useGraph,
   useMeasureNode,
   useLinks,
-  useOnNodesMeasured,
+  useElementsMeasuredEffect,
   type CellId,
   type FlatElementData,
   type FlatElementPort,
   type FlatLinkData,
-  type ReactPaper,
+  type PortalPaper,
   type PaperProps,
   usePaperEvents,
-  useNodeLayout,
+  useElementLayout,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
-import { useCellActions } from '../../../hooks/use-cell-actions';
 
 // Define types for the elements
 interface ElementBase extends FlatElementData {
@@ -169,8 +168,8 @@ function MessageComponent({
       break;
     }
   }
-  const id = useCellId();
-  const { set } = useCellActions<MessageElement>();
+  const id = useElementId();
+  const { setElement } = useGraph();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);
   return (
@@ -192,7 +191,7 @@ function MessageComponent({
             className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
             placeholder="Type here..."
             onChange={({ target: { value } }) => {
-              set(id, (previous) => ({ ...previous, inputText: value }));
+              setElement(id, (previous) => ({ ...previous, inputText: value }));
             }}
           />
         </div>
@@ -261,14 +260,14 @@ function TableElement({ columnNames, rows, width, height }: Readonly<TableElemen
 }
 
 function MinimapRenderElement() {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   return <rect width={width} height={height} fill={'white'} rx={10} ry={10} />;
 }
 // Minimap component
 function MiniMap() {
   const minimapId = useId();
 
-  useOnNodesMeasured(minimapId, ({ paper, graph }) => {
+  useElementsMeasuredEffect(minimapId, ({ paper, graph }) => {
     const contentArea = graph.getBBox();
     if (!contentArea) return;
     paper.transformToFitContent({
@@ -312,7 +311,7 @@ interface ToolbarProps {
   readonly setSelectedId: (id: CellId | null) => void;
   readonly showElementsInfo: boolean;
   readonly setShowElementsInfo: (show: boolean) => void;
-  readonly paperCtxRef: React.RefObject<ReactPaper | null>;
+  readonly paperCtxRef: React.RefObject<PortalPaper | null>;
 }
 // Toolbar component with some actions
 function ToolBar(props: Readonly<ToolbarProps>) {
@@ -325,7 +324,7 @@ function ToolBar(props: Readonly<ToolbarProps>) {
     showElementsInfo,
     paperCtxRef,
   } = props;
-  const graph = useGraph();
+  const { graph } = useGraph();
   const paper = paperCtxRef.current;
   return (
     <div className="flex flex-row absolute top-2 left-2 z-10 bg-gray-900  rounded-lg p-2 shadow-md gap-2">
@@ -444,7 +443,7 @@ function Main() {
   const [isMinimapVisible, setIsMinimapVisible] = useState(false);
   const [selectedElementId, setSelectedElement] = useState<CellId | null>(null);
   const [showElementsInfo, setShowElementsInfo] = useState(false);
-  const paperCtxRef = useRef<ReactPaper | null>(null);
+  const paperCtxRef = useRef<PortalPaper | null>(null);
 
   const renderElement = useCallback((element: Element) => {
     const { elementType } = element;

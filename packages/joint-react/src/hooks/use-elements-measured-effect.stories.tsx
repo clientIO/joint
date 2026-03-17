@@ -7,24 +7,24 @@ function Hook() {
 }
 
 export type Story = StoryObj<typeof Hook>;
-const API_URL = getAPILink('useOnNodesMeasured');
+const API_URL = getAPILink('useElementsMeasuredEffect');
 
 const meta: Meta<typeof Hook> = {
-  title: 'Hooks/useOnNodesMeasured',
+  title: 'Hooks/useElementsMeasuredEffect',
   component: Hook,
   tags: ['hook'],
   parameters: makeRootDocumentation({
     description:
-      '`useOnNodesMeasured` subscribes to the `elements:measured` paper event. ' +
+      '`useElementsMeasuredEffect` subscribes to the `elements:measured` paper event. ' +
       'It fires on initial measurement (all elements have `width` and `height`) and on subsequent size changes. ' +
       'The callback receives `{ isInitial, paper, graph }` to distinguish the first measurement from later ones. ' +
       'Pass `{ once: true }` to automatically unsubscribe after the first call.',
     apiURL: API_URL,
-    code: `import { useOnNodesMeasured } from '@joint/react';
+    code: `import { useElementsMeasuredEffect } from '@joint/react';
 
 // Using a paper id (sibling of <Paper id={paperId}>)
 const paperId = useId();
-useOnNodesMeasured(paperId, ({ isInitial, paper, graph }) => {
+useElementsMeasuredEffect(paperId, ({ isInitial, paper, graph }) => {
   if (isInitial) {
     runLayout(graph);
     paper.transformToFitContent({ padding: 20 });
@@ -33,13 +33,13 @@ useOnNodesMeasured(paperId, ({ isInitial, paper, graph }) => {
 
 // Using a paper ref
 const paperRef = useRef<dia.Paper>(null);
-useOnNodesMeasured(paperRef, ({ isInitial }) => {
+useElementsMeasuredEffect(paperRef, ({ isInitial }) => {
   if (!isInitial) return;
   paperRef.current?.transformToFitContent({ padding: 20 });
 });
 
 // Fire once, then stop listening
-useOnNodesMeasured(paperId, () => {
+useElementsMeasuredEffect(paperId, () => {
   console.log('Elements measured!');
 }, [], { once: true });`,
   }),

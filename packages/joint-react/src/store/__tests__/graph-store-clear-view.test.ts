@@ -26,7 +26,7 @@ describe('GraphStore clearView scheduling', () => {
   it('should accept repeated clearViewForElementAndLinks calls without errors', () => {
     const element = new dia.Element({
       id: 'el1',
-      type: 'ReactElement',
+      type: 'PortalElement',
       position: { x: 0, y: 0 },
       size: { width: 100, height: 100 },
     });
@@ -42,7 +42,7 @@ describe('GraphStore clearView scheduling', () => {
   it('should accept clearViewForElementAndLinks with onValidateLink callback', () => {
     const element = new dia.Element({
       id: 'el1',
-      type: 'ReactElement',
+      type: 'PortalElement',
       position: { x: 0, y: 0 },
       size: { width: 100, height: 100 },
     });
@@ -62,13 +62,13 @@ describe('GraphStore clearView scheduling', () => {
   it('should handle clearView for elements with connected links', () => {
     const source = new dia.Element({
       id: 'source',
-      type: 'ReactElement',
+      type: 'PortalElement',
       position: { x: 0, y: 0 },
       size: { width: 100, height: 100 },
     });
     const target = new dia.Element({
       id: 'target',
-      type: 'ReactElement',
+      type: 'PortalElement',
       position: { x: 200, y: 0 },
       size: { width: 100, height: 100 },
     });

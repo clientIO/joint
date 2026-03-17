@@ -11,7 +11,8 @@ import type { FlatElementData } from '../../types/element-types';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
-import type { GraphMappings } from '../../state/graph-mappings';
+import type { ElementToGraphOptions, GraphToElementOptions } from '../../state/data-mapping/element-mapper';
+import type { LinkToGraphOptions, GraphToLinkOptions } from '../../state/data-mapping/link-mapper';
 import type { IncrementalStateChanges } from '../../state/incremental.types';
 
 /**
@@ -64,8 +65,15 @@ interface GraphProviderProps<ElementData = FlatElementData, LinkData = FlatLinkD
  * @template Link - The type of links in the graph
  */
 export interface GraphProps<ElementData = FlatElementData, LinkData = FlatLinkData>
-  extends GraphProviderProps<ElementData, LinkData>,
-    GraphMappings<ElementData, LinkData> {
+  extends GraphProviderProps<ElementData, LinkData> {
+  readonly mapDataToElementAttributes?: (
+    options: ElementToGraphOptions<ElementData>
+  ) => dia.Cell.JSON;
+  readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<LinkData>) => dia.Cell.JSON;
+  readonly mapElementAttributesToData?: (
+    options: GraphToElementOptions<ElementData>
+  ) => ElementData;
+  readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<LinkData>) => LinkData;
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph
@@ -78,7 +86,7 @@ export interface GraphProps<ElementData = FlatElementData, LinkData = FlatLinkDa
   readonly children?: React.ReactNode;
   /**
    * Namespace for cell models.
-   * @default `{ ...shapes, ReactElement }`
+   * @default `{ ...shapes, PortalElement, PortalLink }`
    */
   readonly cellNamespace?: unknown;
   /**

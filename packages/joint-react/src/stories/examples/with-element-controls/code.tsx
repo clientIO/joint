@@ -1,4 +1,4 @@
-import { GraphProvider, Paper, useNodeLayout, useOnNodesMeasured, type FlatElementData } from '@joint/react';
+import { GraphProvider, Paper, useElementLayout, useElementsMeasuredEffect, type FlatElementData } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
@@ -162,7 +162,7 @@ const initialElements: Record<string, ControlledElement> = {
 // Label Component
 // ----------------------------------------------------------------------------
 function Label({ label }: Readonly<{ width: number; height: number; label: string }>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   return (
     <text
       textAnchor="middle"
@@ -182,7 +182,7 @@ function Label({ label }: Readonly<{ width: number; height: number; label: strin
 // Shapes
 // ----------------------------------------------------------------------------
 function LinkedProcess({ label }: Readonly<BaseElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
 
   return (
     <>
@@ -195,7 +195,7 @@ function LinkedProcess({ label }: Readonly<BaseElement>) {
 }
 
 function InputShape({ label }: Readonly<BaseElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   return (
     <>
       <path
@@ -210,7 +210,7 @@ function InputShape({ label }: Readonly<BaseElement>) {
 }
 
 function MarkShape({ label }: Readonly<BaseElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const hh = height * 0.5;
   return (
     <>
@@ -226,7 +226,7 @@ function MarkShape({ label }: Readonly<BaseElement>) {
 }
 
 function ActorShape({ label }: Readonly<BaseElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const headY = 0.2;
   const bodyY = 0.4;
   const legsY = 0.7;
@@ -249,7 +249,7 @@ function ActorShape({ label }: Readonly<BaseElement>) {
 }
 
 function Parallelogram({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   return (
     <>
       <path
@@ -264,7 +264,7 @@ function Parallelogram({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function Hexagon({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -280,7 +280,7 @@ function Hexagon({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function StepShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -296,7 +296,7 @@ function StepShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function TrapezoidShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -312,7 +312,7 @@ function TrapezoidShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function DocumentShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const o = Math.max(0, Math.min(offset, height / 2));
   return (
     <>
@@ -328,7 +328,7 @@ function DocumentShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function ShipmentShape({ label }: Readonly<BaseElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const scale = Math.min(width / 256, height / 256);
   const tx = (width - 256 * scale) / 2;
   const ty = (height - 256 * scale) / 2;
@@ -347,7 +347,7 @@ function ShipmentShape({ label }: Readonly<BaseElement>) {
 }
 
 function PlusShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const o = Math.max(0, Math.min(offset, width / 2));
   return (
     <>
@@ -363,7 +363,7 @@ function PlusShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   return (
     <>
       <path
@@ -378,7 +378,7 @@ function Arrow({ label, arrowHeight = 0, thickness = 0 }: Readonly<ArrowElement>
 }
 
 function NoteShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -402,7 +402,7 @@ function NoteShape({ offset = 0, label }: Readonly<OffsetElement>) {
 }
 
 function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const dx = Math.max(0, Math.min(dividerX, width));
   const dy = Math.max(0, Math.min(dividerY, height));
   return (
@@ -428,7 +428,7 @@ function TableShape({ dividerX = 25, dividerY = 25, label }: Readonly<TableEleme
 }
 
 function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const cx = Math.max(0, Math.min(cornerX, width));
   const cy = Math.max(0, Math.min(cornerY, height));
   return (
@@ -477,7 +477,7 @@ function CubeShape({ cornerX = 33, cornerY = 40, label }: Readonly<CubeElement>)
 }
 
 function CardShape({ offset = 0, label }: Readonly<OffsetElement>) {
-  const { width, height } = useNodeLayout();
+  const { width, height } = useElementLayout();
   const o = Math.max(0, Math.min(offset, width));
   return (
     <>
@@ -793,7 +793,7 @@ function Main() {
     addElementControls(paper);
   }, []);
 
-  useOnNodesMeasured(paperId, handleElementsMeasured);
+  useElementsMeasuredEffect(paperId, handleElementsMeasured);
 
   return (
     <Paper

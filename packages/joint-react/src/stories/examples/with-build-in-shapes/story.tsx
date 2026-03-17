@@ -17,7 +17,7 @@ export default {
         component: `
 Demonstrates how to use native [JointJS standard shapes](https://docs.jointjs.com/learn/features/shapes/built-in-shapes/standard) with @joint/react using custom selectors.
 
-By default, @joint/react renders elements using a custom \`ReactElement\` type. To use native JointJS shapes (like \`standard.Rectangle\`, \`standard.Circle\`, etc.), you need to provide custom selectors that preserve the \`type\` property.
+By default, @joint/react renders elements using a custom \`PortalElement\` type. To use native JointJS shapes (like \`standard.Rectangle\`, \`standard.Circle\`, etc.), you need to provide custom selectors that preserve the \`type\` property.
 
 ## Key Concept: Custom Selectors
 

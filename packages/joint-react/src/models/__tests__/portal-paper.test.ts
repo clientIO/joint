@@ -1,23 +1,23 @@
 import { dia, shapes } from '@joint/core';
-import { ReactPaper } from '../react-paper';
-import { ReactElement } from '../react-element';
+import { PortalPaper } from '../portal-paper';
+import { PortalElement } from '../portal-element';
 import { GraphStore } from '../../store/graph-store';
 import type { IncrementalChange } from '../../state/incremental.types';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement };
 const TEST_PAPER_ID = 'test-paper';
 const toCellId = (id: dia.Cell.ID): string => id as string;
 
 /**
- * Flush the microtask-based scheduler used by ReactPaper.
+ * Flush the microtask-based scheduler used by PortalPaper.
  */
 async function flushMicrotasks(): Promise<void> {
   await Promise.resolve();
 }
 
-describe('ReactPaper', () => {
+describe('PortalPaper', () => {
   let graphStore: GraphStore;
-  let paper: ReactPaper;
+  let paper: PortalPaper;
   let container: HTMLElement;
 
   beforeEach(() => {
@@ -33,17 +33,17 @@ describe('ReactPaper', () => {
   });
 
   /**
-   * Helper to create a ReactPaper with GraphStore callbacks wired.
+   * Helper to create a PortalPaper with GraphStore callbacks wired.
    */
-  function createPaper(options: Partial<dia.Paper.Options> = {}): ReactPaper {
+  function createPaper(options: Partial<dia.Paper.Options> = {}): PortalPaper {
     // Ensure the paper snapshot exists in internalState before creating the paper
     graphStore.internalState.setState((previous) => {
       if (previous.papers[TEST_PAPER_ID]) return previous;
       return {
+        ...previous,
         papers: {
           ...previous.papers,
           [TEST_PAPER_ID]: {
-            hasElementViewSnapshot: false,
             elementViewIds: {},
             linkViewIds: {},
             version: 0,
@@ -52,7 +52,7 @@ describe('ReactPaper', () => {
       };
     });
 
-    return new ReactPaper({
+    return new PortalPaper({
       el: container,
       model: graphStore.graph,
       onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
@@ -67,7 +67,7 @@ describe('ReactPaper', () => {
   /**
    * Helper to access private pendingLinks for testing
    */
-  function getPendingLinks(p: ReactPaper): Set<string> {
+  function getPendingLinks(p: PortalPaper): Set<string> {
     return (p as unknown as { pendingLinks: Set<string> }).pendingLinks;
   }
 
@@ -328,12 +328,12 @@ describe('ReactPaper', () => {
     it('should remove link from pendingLinks when hidden', () => {
       paper = createPaper();
 
-      // Use ReactElement which has empty markup (like real React usage)
-      const element1 = new ReactElement({
+      // Use PortalElement which has empty markup (like real React usage)
+      const element1 = new PortalElement({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new ReactElement({
+      const element2 = new PortalElement({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -345,7 +345,7 @@ describe('ReactPaper', () => {
 
       const pendingLinks = getPendingLinks(paper);
 
-      // Link should be in pending (source/target have no children - ReactElement has empty markup)
+      // Link should be in pending (source/target have no children - PortalElement has empty markup)
       expect(pendingLinks.has(link.id as string)).toBe(true);
 
       // Hide the link
@@ -358,15 +358,15 @@ describe('ReactPaper', () => {
   });
 
   describe('pending links visibility', () => {
-    it('should hide link when source element has no children (ReactElement)', () => {
+    it('should hide link when source element has no children (PortalElement)', () => {
       paper = createPaper();
 
-      // Use ReactElement which has empty markup (like real React usage)
-      const element1 = new ReactElement({
+      // Use PortalElement which has empty markup (like real React usage)
+      const element1 = new PortalElement({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new ReactElement({
+      const element2 = new PortalElement({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -378,7 +378,7 @@ describe('ReactPaper', () => {
 
       const linkView = getLinkViewOrThrow(link.id);
 
-      // Link should be hidden (ReactElement has empty markup, no children)
+      // Link should be hidden (PortalElement has empty markup, no children)
       expect(linkView.el.style.visibility).toBe('hidden');
     });
 
@@ -408,15 +408,15 @@ describe('ReactPaper', () => {
       expect(pendingLinks.has(link.id as string)).toBe(false);
     });
 
-    it('should add link to pendingLinks when source/target not ready (ReactElement)', () => {
+    it('should add link to pendingLinks when source/target not ready (PortalElement)', () => {
       paper = createPaper();
 
-      // Use ReactElement which has empty markup
-      const element1 = new ReactElement({
+      // Use PortalElement which has empty markup
+      const element1 = new PortalElement({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new ReactElement({
+      const element2 = new PortalElement({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -454,12 +454,12 @@ describe('ReactPaper', () => {
     it('should show link when source and target elements have children', () => {
       paper = createPaper();
 
-      // Use ReactElement which has empty markup
-      const element1 = new ReactElement({
+      // Use PortalElement which has empty markup
+      const element1 = new PortalElement({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new ReactElement({
+      const element2 = new PortalElement({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -492,12 +492,12 @@ describe('ReactPaper', () => {
     it('should remove link from pendingLinks after showing', () => {
       paper = createPaper();
 
-      // Use ReactElement which has empty markup
-      const element1 = new ReactElement({
+      // Use PortalElement which has empty markup
+      const element1 = new PortalElement({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new ReactElement({
+      const element2 = new PortalElement({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -527,12 +527,12 @@ describe('ReactPaper', () => {
     it('should not show link if only source is ready', () => {
       paper = createPaper();
 
-      // Use ReactElement which has empty markup
-      const element1 = new ReactElement({
+      // Use PortalElement which has empty markup
+      const element1 = new PortalElement({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new ReactElement({
+      const element2 = new PortalElement({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -557,12 +557,12 @@ describe('ReactPaper', () => {
     it('should clean up pendingLinks when link is removed', () => {
       paper = createPaper();
 
-      // Use ReactElement which has empty markup
-      const element1 = new ReactElement({
+      // Use PortalElement which has empty markup
+      const element1 = new PortalElement({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new ReactElement({
+      const element2 = new PortalElement({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });
@@ -587,12 +587,12 @@ describe('ReactPaper', () => {
     it('should handle checkPendingLinks when link view was removed', () => {
       paper = createPaper();
 
-      // Use ReactElement which has empty markup
-      const element1 = new ReactElement({
+      // Use PortalElement which has empty markup
+      const element1 = new PortalElement({
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
       });
-      const element2 = new ReactElement({
+      const element2 = new PortalElement({
         position: { x: 200, y: 0 },
         size: { width: 100, height: 100 },
       });

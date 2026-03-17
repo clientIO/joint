@@ -16,7 +16,7 @@ export default {
     description: `
 Demonstrates elements with a yellow header and stacked labeled rows that act as connectable ports. Each row uses a \`port\` and \`magnet\` attribute on an SVG \`<g>\` element, enabling links to connect directly to individual rows via CSS selectors.
 
-A custom \`MyReactElement\` subclass disables the default root magnet and enables CSS selectors, so connections snap to specific attribute rows rather than the element body. The Paper is configured with \`midSide\` anchors, \`rectangle\` connection points, and stroke highlighting for a polished linking experience.
+A custom \`MyPortalElement\` subclass disables the default root magnet and enables CSS selectors, so connections snap to specific attribute rows rather than the element body. The Paper is configured with \`midSide\` anchors, \`rectangle\` connection points, and stroke highlighting for a polished linking experience.
     `,
   }),
 } satisfies Meta<typeof Code>;

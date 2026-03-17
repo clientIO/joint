@@ -1,9 +1,9 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 /* eslint-disable sonarjs/no-nested-functions */
-/* eslint-disable sonarjs/no-alphabetical-sort */
+ 
 import { dia, shapes } from '@joint/core';
-import { ReactElement } from '../../models/react-element';
-import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
+import { PortalElement } from '../../models/portal-element';
+import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
 import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
 import {
@@ -13,14 +13,10 @@ import {
   defaultMapLinkAttributesToData,
 } from '../data-mapping';
 import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
-import type {
-  GraphToElementOptions,
-  ElementToGraphOptions,
-  GraphToLinkOptions,
-  LinkToGraphOptions,
-} from '../graph-mappings';
+import type { GraphToElementOptions, ElementToGraphOptions } from '../data-mapping/element-mapper';
+import type { GraphToLinkOptions, LinkToGraphOptions } from '../data-mapping/link-mapper';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement, PortalLink };
 
 // Helper functions to create options (no more defaultAttributes)
 const createElementToGraphOptions = <E extends FlatElementData>(
@@ -100,7 +96,7 @@ describe('graph-state-selectors', () => {
         y: 20,
         width: 100,
         height: 50,
-        type: 'ReactElement',
+        type: 'PortalElement',
       };
 
       const options = createElementToGraphOptions(id, data, graph);
@@ -109,7 +105,7 @@ describe('graph-state-selectors', () => {
 
       expect(elementAsGraphJson).toMatchObject({
         id: 'element-1',
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
       });
@@ -130,7 +126,7 @@ describe('graph-state-selectors', () => {
       });
     });
 
-    it('should handle element without type (defaults to REACT_TYPE)', () => {
+    it('should handle element without type (defaults to PORTAL_ELEMENT_TYPE)', () => {
       const id = 'element-1';
       const data: FlatElementData = {
         x: 10,
@@ -143,7 +139,7 @@ describe('graph-state-selectors', () => {
 
       const elementAsGraphJson = defaultMapDataToElementAttributes(options);
 
-      expect(elementAsGraphJson.type).toBe('ReactElement');
+      expect(elementAsGraphJson.type).toBe('PortalElement');
 
       // Round-trip: element → graph → element
       graph.addCell(elementAsGraphJson);
@@ -168,7 +164,7 @@ describe('graph-state-selectors', () => {
         y: 20,
         width: 100,
         height: 50,
-        type: 'ReactElement',
+        type: 'PortalElement',
         ports: {},
         angle: 45,
       };
@@ -207,7 +203,7 @@ describe('graph-state-selectors', () => {
     it('should map graph cell to element without previousData state', () => {
       const id = 'element-1';
       const elementAsGraphJson = {
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         id: 'element-1',
@@ -249,7 +245,7 @@ describe('graph-state-selectors', () => {
     it('should include all cell.data properties regardless of previousData', () => {
       const id = 'element-1';
       const elementAsGraphJson = {
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         id: 'element-1',
@@ -291,7 +287,7 @@ describe('graph-state-selectors', () => {
     it('should not include properties that are not in cell.data even if in previousData', () => {
       const id = 'element-1';
       const elementAsGraphJson = {
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         id: 'element-1',
@@ -321,7 +317,7 @@ describe('graph-state-selectors', () => {
       expect(result).not.toHaveProperty('customProp');
     });
 
-    it('should handle element with non-REACT_TYPE', () => {
+    it('should handle element with non-PORTAL_ELEMENT_TYPE', () => {
       const id = 'element-1';
       const elementAsGraphJson = {
         type: 'standard.Rectangle',
@@ -350,7 +346,7 @@ describe('graph-state-selectors', () => {
         ],
       };
       const elementAsGraphJson = {
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         id: 'element-1',
@@ -375,7 +371,7 @@ describe('graph-state-selectors', () => {
       const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
       };
 
       const options = createLinkToGraphOptions(id, link, graph);
@@ -386,7 +382,7 @@ describe('graph-state-selectors', () => {
         id: 'link-1',
         source: { id: 'element-1' },
         target: { id: 'element-2' },
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
       });
 
       // Round-trip: link → graph → link
@@ -400,7 +396,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
       });
     });
 
@@ -411,7 +407,7 @@ describe('graph-state-selectors', () => {
         target: 'element-2',
         sourcePort: 'port-1',
         targetPort: 'port-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
       };
 
       const options = createLinkToGraphOptions(id, link, graph);
@@ -422,7 +418,7 @@ describe('graph-state-selectors', () => {
         id: 'link-1',
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
       });
 
       // Round-trip: link → graph → link
@@ -438,7 +434,7 @@ describe('graph-state-selectors', () => {
         target: 'element-2',
         sourcePort: 'port-1',
         targetPort: 'port-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
       });
     });
 
@@ -519,7 +515,7 @@ describe('graph-state-selectors', () => {
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const lineAttrs = graphLinkCell.attr('line');
 
-      // After syncing to graph, the ReactLink default targetMarker should be overridden
+      // After syncing to graph, the PortalLink default targetMarker should be overridden
       expect(lineAttrs.targetMarker).toBeNull();
     });
 
@@ -528,7 +524,7 @@ describe('graph-state-selectors', () => {
       const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 10,
       };
 
@@ -541,7 +537,7 @@ describe('graph-state-selectors', () => {
         z: 10,
       });
       // type goes to cell.data as user data (not a two-way prop)
-      expect(linkAsGraphJson.data).toMatchObject({ type: REACT_LINK_TYPE });
+      expect(linkAsGraphJson.data).toMatchObject({ type: PORTAL_LINK_TYPE });
     });
   });
 
@@ -549,7 +545,7 @@ describe('graph-state-selectors', () => {
     it('should map graph link to link without previousData state', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -574,7 +570,7 @@ describe('graph-state-selectors', () => {
     it('should include all cell.data properties regardless of previousData', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -615,7 +611,7 @@ describe('graph-state-selectors', () => {
     it('should not include properties that are not in cell.data even if in previousData', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -646,7 +642,7 @@ describe('graph-state-selectors', () => {
     it('should extract source, target, and ports from cell', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         source: { id: 'element-1', port: 'port-1' },
         target: { id: 'element-2', port: 'port-2' },
         id: 'link-1',
@@ -667,7 +663,7 @@ describe('graph-state-selectors', () => {
     it('should extract z but not markup or defaultLabel from cell', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -692,7 +688,7 @@ describe('graph-state-selectors', () => {
     it('should not include internal cell attributes like attrs', () => {
       const id = 'link-1';
       const linkAsGraphJson = {
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         source: { id: 'element-1' },
         target: { id: 'element-2' },
         id: 'link-1',
@@ -720,7 +716,7 @@ describe('graph-state-selectors', () => {
       const id = 'element-1';
       // Create element in graph with extra properties in cell.data
       const elementAsGraphJson = {
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         id: 'element-1',
@@ -749,7 +745,7 @@ describe('graph-state-selectors', () => {
     it('should update existing properties from graph even if undefined in previousData', () => {
       const id = 'element-1';
       const elementAsGraphJson = {
-        type: 'ReactElement',
+        type: 'PortalElement',
         position: { x: 10, y: 20 },
         size: { width: 100, height: 50 },
         id: 'element-1',
@@ -785,7 +781,7 @@ describe('graph-state-selectors', () => {
       const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 5,
       };
 
@@ -809,7 +805,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 5,
       });
     });
@@ -821,7 +817,7 @@ describe('graph-state-selectors', () => {
         target: 'element-2',
         sourcePort: 'port-1',
         targetPort: 'port-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 10,
         markup: [{ tagName: 'path' }],
         defaultLabel: { markup: [{ tagName: 'text' }] },
@@ -849,7 +845,7 @@ describe('graph-state-selectors', () => {
         target: 'element-2',
         sourcePort: 'port-1',
         targetPort: 'port-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 10,
       });
       expect(linkFromGraph.markup).toEqual([{ tagName: 'path' }]);
@@ -868,7 +864,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 5,
         customProp: 'value-from-state',
         extraProp: 'also-included',
@@ -884,7 +880,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 3,
         customProp: undefined,
         anotherProp: 0,
@@ -899,7 +895,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 5,
         customProp: 'value-from-state',
         anotherProp: 42,
@@ -921,7 +917,7 @@ describe('graph-state-selectors', () => {
           data: {
             source: 'element-1',
             target: 'element-2',
-            type: REACT_LINK_TYPE,
+            type: PORTAL_LINK_TYPE,
             z: 1,
             label: 'Link 1',
           },
@@ -931,7 +927,7 @@ describe('graph-state-selectors', () => {
           data: {
             source: 'element-2',
             target: 'element-3',
-            type: REACT_LINK_TYPE,
+            type: PORTAL_LINK_TYPE,
             z: 2,
             metadata: { key: 'value' },
           },
@@ -951,7 +947,7 @@ describe('graph-state-selectors', () => {
           data: {
             source: 'element-1',
             target: 'element-2',
-            type: REACT_LINK_TYPE,
+            type: PORTAL_LINK_TYPE,
             z: 0, // Exists in previousData
             label: undefined, // Exists but undefined
           },
@@ -961,7 +957,7 @@ describe('graph-state-selectors', () => {
           data: {
             source: 'element-2',
             target: 'element-3',
-            type: REACT_LINK_TYPE,
+            type: PORTAL_LINK_TYPE,
             z: 0, // Exists in previousData
             metadata: undefined, // Exists but undefined
           },
@@ -985,7 +981,7 @@ describe('graph-state-selectors', () => {
       expect(link1?.data).toMatchObject({
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 1,
         label: 'Link 1',
       });
@@ -995,7 +991,7 @@ describe('graph-state-selectors', () => {
       expect(link2?.data).toMatchObject({
         source: 'element-2',
         target: 'element-3',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 2,
         metadata: { key: 'value' },
       });
@@ -1012,7 +1008,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         optionalProp: 'has-value',
         // anotherOptionalProp is not set — won't be in cell.data
       };
@@ -1026,7 +1022,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         optionalProp: undefined,
         anotherOptionalProp: undefined,
       };
@@ -1054,7 +1050,7 @@ describe('graph-state-selectors', () => {
       const initialLink: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         status: 'active',
         weight: 1,
       };
@@ -1069,7 +1065,7 @@ describe('graph-state-selectors', () => {
       const updatedLink: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         status: 'inactive',
         weight: 2,
         newProp: 'included',
@@ -1084,7 +1080,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         status: 'active',
         weight: 1,
       };
@@ -1098,7 +1094,7 @@ describe('graph-state-selectors', () => {
       expect(linkFromGraph).toMatchObject({
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         status: 'inactive',
         weight: 2,
       });
@@ -1112,7 +1108,7 @@ describe('graph-state-selectors', () => {
       const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         attrs: {
           line: {
             stroke: 'red',
@@ -1199,7 +1195,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         newLinkProperty: 'value-from-graph',
         priority: 10,
         metadata: { key: 'value' },
@@ -1215,7 +1211,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         newLinkProperty: undefined, // Defined in state type but undefined
         priority: undefined, // Defined in state type but undefined
         metadata: undefined, // Defined in state type but undefined
@@ -1296,7 +1292,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         config: {
           style: 'dashed',
           animation: true,
@@ -1321,7 +1317,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         config: undefined,
         customData: undefined,
       };
@@ -1399,7 +1395,7 @@ describe('graph-state-selectors', () => {
       const link: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 5, // Existing FlatLinkData property
         markup: [{ tagName: 'path' }], // Existing FlatLinkData property
         customLabel: 'Custom', // New property
@@ -1416,7 +1412,7 @@ describe('graph-state-selectors', () => {
       const previousData: ExtendedLink = {
         source: 'element-1',
         target: 'element-2',
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         z: 3, // Existing property
         customLabel: undefined, // New property defined
         weight: undefined, // New property defined

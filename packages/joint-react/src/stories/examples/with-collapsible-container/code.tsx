@@ -4,13 +4,13 @@ import { dia, elementTools } from '@joint/core';
 import {
   GraphProvider,
   Paper,
-  useCellId,
+  useElementId,
   useGraph,
   usePaperEvents,
-  TextNode,
+  SvgText,
   type FlatElementData,
   type FlatLinkData,
-  useNodeLayout,
+  useElementLayout,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
@@ -234,14 +234,14 @@ function ExpandButton({
 }
 
 function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>) {
-  const { width, height } = useNodeLayout((layout) => {
+  const { width, height } = useElementLayout((layout) => {
     return {
       width: layout?.width ?? 140,
       height: layout?.height ?? 100,
     };
   });
-  const id = useCellId();
-  const graph = useGraph();
+  const id = useElementId();
+  const { graph } = useGraph();
 
   const handleToggle = useCallback(() => {
     const cell = graph.getCell(id);
@@ -273,7 +273,7 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>)
         strokeWidth={0.5}
       />
       {/* Header text */}
-      <TextNode
+      <SvgText
         x={8}
         y={HEADER_HEIGHT / 2}
         dominantBaseline="middle"
@@ -290,7 +290,7 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>)
         }}
       >
         {title}
-      </TextNode>
+      </SvgText>
       {/* Expand/Collapse button */}
       <ExpandButton
         transform={`translate(${width - HEADER_HEIGHT / 2}, ${HEADER_HEIGHT / 2})`}
@@ -302,7 +302,7 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>)
 }
 
 function ChildNode({ label }: Readonly<ChildElement>) {
-  const { width = 50, height = 50 } = useNodeLayout();
+  const { width = 50, height = 50 } = useElementLayout();
   return (
     <>
       {/* Body */}
@@ -334,7 +334,7 @@ function ChildNode({ label }: Readonly<ChildElement>) {
 // ============================================================================
 
 function useContainerAutoResize() {
-  const graph = useGraph();
+  const { graph } = useGraph();
 
   useEffect(() => {
     const updateContainerSize = (cell: dia.Cell | null) => {
@@ -383,7 +383,7 @@ function Main() {
   useContainerAutoResize();
   const paperId = useId();
 
-  const graph = useGraph();
+  const { graph } = useGraph();
 
   // Cell visibility callback - hides children when parent container is collapsed
   const cellVisibility = useCallback((cell: dia.Cell) => {

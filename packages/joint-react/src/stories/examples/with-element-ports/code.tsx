@@ -6,7 +6,7 @@ import { V } from '@joint/core';
 import {
   GraphProvider,
   Paper,
-  useCellActions,
+  useGraph,
   useElements,
   type FlatElementData,
   type FlatElementPort,
@@ -187,10 +187,10 @@ interface PortControlProps {
 }
 
 function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
-  const { set } = useCellActions<PortElementData>();
+  const { setElement } = useGraph();
 
   const updatePort = (updates: Partial<FlatElementPort>) => {
-    set(elementId, (previous) => ({
+    setElement(elementId, (previous) => ({
       ...previous,
       ports: previous.ports ? { ...previous.ports, [portId]: { ...previous.ports[portId], ...updates } } : previous.ports,
     }));

@@ -1,5 +1,5 @@
 /* eslint-disable prefer-destructuring */
-/* eslint-disable sonarjs/no-nested-functions */
+ 
 /* eslint-disable @typescript-eslint/no-require-imports */
 import type { dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
@@ -8,7 +8,7 @@ import type { FlatElementData } from '../../types/element-types';
 import type { GraphStoreObserver } from '../create-elements-size-observer';
 
 // Mock ResizeObserver for testing
-// eslint-disable-next-line sonarjs/public-static-readonly
+ 
 let mockResizeObserverInstances: MockResizeObserver[] = [];
 
 class MockResizeObserver {
@@ -97,13 +97,13 @@ describe('createElementsSizeObserver', () => {
     jest.resetModules();
     // Re-assign the mock after reset to ensure it's used
     globalThis.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
-    // eslint-disable-next-line unicorn/prefer-module
+     
     createElementsSizeObserver =
       require('../create-elements-size-observer').createElementsSizeObserver;
 
     mockElements = {
-      'element-1': { x: 0, y: 0, width: 1, height: 1, type: 'ReactElement' },
-      'element-2': { x: 100, y: 100, width: 1, height: 1, type: 'ReactElement' },
+      'element-1': { x: 0, y: 0, width: 1, height: 1, type: 'PortalElement' },
+      'element-2': { x: 100, y: 100, width: 1, height: 1, type: 'PortalElement' },
     };
 
     mockOnBatchUpdate = jest.fn();

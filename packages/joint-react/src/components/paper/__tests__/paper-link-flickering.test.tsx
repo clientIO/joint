@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 /**
  * Test suite to catch the "link flickering" bug.
  *
@@ -183,7 +183,7 @@ describe('Paper link flickering prevention', () => {
     });
   });
 
-  it('measureNode returns correct model size for ReactElement', async () => {
+  it('measureNode returns correct model size for PortalElement', async () => {
     // This test verifies that the measureNode callback is set up correctly.
     // Note: In jsdom, SVG transform calculations don't work properly, so we can't
     // verify the final link path coordinates. But we can verify that:
@@ -282,7 +282,7 @@ describe('Paper link flickering prevention', () => {
       const result = checkLinkElementConsistency(container);
       // Log any inconsistency for debugging
       if (!result.isConsistent) {
-        // eslint-disable-next-line no-console
+         
         console.warn(`Inconsistency at microtask ${index}: links=${result.linksHavePaths}, elements=${result.elementsHaveContent}`);
       }
       await flushMicrotasks();
@@ -348,12 +348,12 @@ describe('Paper link flickering prevention', () => {
     );
 
     if (flickeringOccurred) {
-      // eslint-disable-next-line no-console
+       
       console.warn('FLICKERING DETECTED! Links rendered before elements.');
       const flickeringEntries = timingLog.filter(
         (entry) => entry.linksHavePaths && !entry.elementsHaveContent
       );
-      // eslint-disable-next-line no-console
+       
       console.warn('Flickering entries:', flickeringEntries);
     }
 

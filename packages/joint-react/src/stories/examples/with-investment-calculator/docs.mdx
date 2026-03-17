@@ -32,7 +32,7 @@ const { value, roi } = useElements((elements) => {
 
 ### foreignObject HTML Forms
 
-Each diagram element uses SVG `foreignObject` to embed standard HTML form controls (inputs, selects) inside the SVG canvas. Changes are handled via React event handlers that update the graph store using `useCellActions().set()`.
+Each diagram element uses SVG `foreignObject` to embed standard HTML form controls (inputs, selects) inside the SVG canvas. Changes are handled via React event handlers that update the graph store using `useGraph().set()`.
 
 ### Embedding and Auto-Sizing
 
@@ -42,6 +42,6 @@ The three product performance elements are embedded inside the overall performan
 
 1. **Graph initialization**: `GraphProvider` creates elements and links from static data.
 2. **Render elements**: `Paper` calls `renderElement`, dispatching to `InvestmentNode`, `ProductNode`, `ProductPerformanceNode`, or `OverallPerformanceNode`.
-3. **User input**: Changing funds, year, or percentages calls `useCellActions().set()` to update the graph store.
+3. **User input**: Changing funds, year, or percentages calls `useGraph().set()` to update the graph store.
 4. **Reactive computation**: Performance nodes use `useElements()` selectors to read inputs and compute values inline.
 5. **Links**: Custom `mapDataToLinkAttributes` renders `standard.DoubleLink` connections with product-specific colors.

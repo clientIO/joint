@@ -454,14 +454,14 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function UserInteractionComponent() {
-        const graph = useGraph();
+        const { graph } = useGraph();
 
         const handleAddElement = useCallback(() => {
           // Simulate user interaction - directly modify graph
           graph.addCell(
             new dia.Element({
               id: '2',
-              type: 'ReactElement',
+              type: 'PortalElement',
               position: { x: 200, y: 200 },
               size: { width: 200, height: 200 },
             })
@@ -518,7 +518,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function UserInteractionComponent() {
-        const graph = useGraph();
+        const { graph } = useGraph();
 
         const handleMoveElement = useCallback(() => {
           // Simulate user dragging - directly modify graph
@@ -570,7 +570,7 @@ describe('GraphProvider Controlled Mode', () => {
       let graphRef: dia.Graph | null = null;
 
       function TestComponent() {
-        const graph = useGraph();
+        const { graph } = useGraph();
         graphRef = graph;
         return null;
       }

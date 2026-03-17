@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { GraphStoreLayoutSnapshot, LinkLayout, NodeLayout } from './graph-store';
+import type { ElementPosition, ElementSize, GraphStoreLayoutSnapshot, LinkLayout, ElementLayout } from './graph-store';
 import type { PaperStore } from './paper-store';
 
 /**
@@ -22,7 +22,7 @@ export interface UpdateLayoutStateOptions {
  * @param element - The JointJS element to extract layout from
  * @returns The node layout or null if the element has no size
  */
-export function getElementLayout(element: dia.Element): NodeLayout | null {
+export function getElementLayout(element: dia.Element): ElementLayout | null {
   const size = element.get('size');
   const position = element.get('position') ?? DEFAULT_POINT;
   const angle = element.get('angle') ?? 0;
@@ -64,14 +64,20 @@ export function getLinkLayout(linkView: dia.LinkView): LinkLayout {
  */
 export function getLayout(options: UpdateLayoutStateOptions): GraphStoreLayoutSnapshot {
   const { graph, papers } = options;
-  const elementLayouts: Record<CellId, NodeLayout> = {};
+  const elementLayouts: Record<CellId, ElementLayout> = {};
   const linkLayoutsPerPaper: Record<string, Record<CellId, LinkLayout>> = {};
   const elements = graph.getElements();
+  let count = 0;
+  let measuredElements = 0;
 
   for (const element of elements) {
     const layout = getElementLayout(element);
     if (!layout) continue;
     elementLayouts[element.id] = layout;
+    count += 1;
+    if (layout.width > 1 && layout.height > 1) {
+      measuredElements += 1;
+    }
   }
 
   if (papers) {
@@ -92,8 +98,17 @@ export function getLayout(options: UpdateLayoutStateOptions): GraphStoreLayoutSn
       linkLayoutsPerPaper[paperId] = paperLinkLayouts;
     }
   }
+  const sizes: Record<CellId, ElementSize> = {};
+  const positions: Record<CellId, ElementPosition> = {};
+  const angles: Record<CellId, number> = {};
+  for (const [id, layout] of Object.entries(elementLayouts)) {
+    sizes[id] = { width: layout.width, height: layout.height };
+    positions[id] = { x: layout.x, y: layout.y };
+    angles[id] = layout.angle;
+  }
+
   return {
-    elements: elementLayouts,
+    elements: { sizes, positions, angles, count, measuredElements },
     links: linkLayoutsPerPaper,
   };
 }

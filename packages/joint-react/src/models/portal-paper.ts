@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { PortalSelector, ReactPaperOptions } from './react-paper.types';
-import { REACT_PORTAL_SELECTOR } from './react-element';
+import type { PortalSelector, PortalPaperOptions } from './portal-paper.types';
+import { PORTAL_SELECTOR } from './portal-element';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 
@@ -12,18 +12,18 @@ const noopViewMountChange = (): void => {
 /**
  * Extended Paper class that manages React view lifecycle.
  *
- * ReactPaper centralizes view management by:
+ * PortalPaper centralizes view management by:
  * - Emitting view mount/unmount callbacks for graph-store snapshot sync
  * - Hiding links until their source/target elements have rendered
  */
-export class ReactPaper extends dia.Paper {
+export class PortalPaper extends dia.Paper {
   public viewChanges: Map<string, IncrementalChange<dia.Cell>> = new Map();
-  private readonly onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => void;
+  public onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();
 
-  constructor(options: ReactPaperOptions) {
+  constructor(options: PortalPaperOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;
     super(paperOptions);
     this.id = id;
@@ -63,7 +63,7 @@ export class ReactPaper extends dia.Paper {
    * This is used by React wrappers (`Paper`, `PaperScroller`) to control where
    * JointJS paper DOM is attached.
    * @param element - The host element where paper should be rendered.
-   * @returns The same ReactPaper instance for chaining.
+   * @returns The same PortalPaper instance for chaining.
    */
   public render(element?: HTMLElement | SVGElement): this {
     if (!element) {
@@ -77,7 +77,7 @@ export class ReactPaper extends dia.Paper {
   /**
    * Resolves the portal target node from a cell view.
    *
-   * When {@link ReactPaperOptions.portalSelector | portalSelector} is set,
+   * When {@link PortalPaperOptions.portalSelector | portalSelector} is set,
    * it overrides the default `'__portal__'` selector lookup.
    * @param cellView - The cell view to resolve the portal node for.
    * @returns The portal DOM node, or null if not found.
@@ -86,7 +86,7 @@ export class ReactPaper extends dia.Paper {
     const { portalSelector } = this;
     if (portalSelector !== undefined) {
       if (typeof portalSelector === 'function') {
-        const result = portalSelector(cellView, REACT_PORTAL_SELECTOR);
+        const result = portalSelector(cellView, PORTAL_SELECTOR);
         if (result === null) return null;
         if (result instanceof Element) return result as SVGElement | HTMLElement;
         return cellView.findNode(result);
@@ -94,7 +94,7 @@ export class ReactPaper extends dia.Paper {
       if (portalSelector === null) return null;
       return cellView.findNode(portalSelector);
     }
-    return cellView.findNode(REACT_PORTAL_SELECTOR);
+    return cellView.findNode(PORTAL_SELECTOR);
   }
 
   /**

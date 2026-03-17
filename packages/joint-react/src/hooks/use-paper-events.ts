@@ -102,7 +102,6 @@ export function usePaperEvents<T = Record<AnyString, unknown>>(
   dependencies: DependencyList = EMPTY_DEPENDENCIES
 ): void {
   const extractedPaper = getPaperIdFromReference(paper);
-
   const paperStore = usePaperStore(extractedPaper ?? { isNullable: true });
   const graphStore = useGraphStore();
 

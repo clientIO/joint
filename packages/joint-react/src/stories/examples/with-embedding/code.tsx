@@ -102,7 +102,7 @@ function snapshot(graph: dia.Graph) {
 }
 
 function useRawAttributes() {
-  const graph = useGraph();
+  const { graph } = useGraph();
   const [attributes, setAttributes] = useState(() => snapshot(graph));
   useGraphEvents(graph, { change: () => setAttributes(snapshot(graph)) });
   return attributes;

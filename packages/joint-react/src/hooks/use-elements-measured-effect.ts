@@ -1,10 +1,8 @@
-import { useEffect, useRef, type DependencyList, type RefObject } from 'react';
-import { mvc, type dia } from '@joint/core';
+import { useLayoutEffect, useRef, type DependencyList } from 'react';
+import { mvc } from '@joint/core';
 import { usePaperStore } from './use-paper';
-import { useRefValue } from './use-ref-value';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
-
-type PaperTarget = string | dia.Paper | RefObject<dia.Paper | null>;
+import { getPaperIdFromReference, type PaperReference } from '../types';
 
 export interface UseOnElementsMeasuredOptions {
   /** When true, the callback fires only once and then unsubscribes. */
@@ -12,24 +10,6 @@ export interface UseOnElementsMeasuredOptions {
 }
 
 type Callback = (event: ElementsMeasuredEvent) => void;
-
-/**
- * Resolves a paper instance from supported target forms.
- * @param target - The paper target (string, Paper instance, or ref).
- * @param paperFromRef - Paper instance from a ref object.
- * @param paperFromCtx - Paper instance from context.
- * @returns The resolved paper instance or null.
- */
-function resolvePaper(
-  target: PaperTarget | undefined,
-  paperFromRef: dia.Paper | null | undefined,
-  paperFromCtx: dia.Paper | null
-): dia.Paper | null {
-  if (!target) return paperFromCtx;
-  if (typeof target === 'string') return paperFromCtx;
-  if ('current' in target) return paperFromRef ?? null;
-  return target;
-}
 
 /**
  * Calls a callback when element sizes are measured or re-measured.
@@ -50,14 +30,14 @@ function resolvePaper(
  * @example
  * ```tsx
  * // React to every measurement (inside a <Paper> component)
- * useOnNodesMeasured(({ isInitial }) => {
+ * useElementsMeasuredEffect(({ isInitial }) => {
  *   if (isInitial) runLayout(graph);
  * });
  * ```
  * @example
  * ```tsx
  * // Fire once, then stop listening
- * useOnNodesMeasured(() => {
+ * useElementsMeasuredEffect(() => {
  *   paper.transformToFitContent({ padding: 20 });
  * }, [], { once: true });
  * ```
@@ -65,31 +45,31 @@ function resolvePaper(
  * ```tsx
  * // Using a paper ref
  * const paperRef = useRef<dia.Paper>(null);
- * useOnNodesMeasured(paperRef, () => {
+ * useElementsMeasuredEffect(paperRef, () => {
  *   paperRef.current?.transformToFitContent({ padding: 20 });
  * });
  * ```
  */
-export function useOnNodesMeasured(
+export function useElementsMeasuredEffect(
   callback: Callback,
   dependencies?: DependencyList,
   options?: UseOnElementsMeasuredOptions
 ): void;
-export function useOnNodesMeasured(
-  target: PaperTarget,
+export function useElementsMeasuredEffect(
+  target: PaperReference,
   callback: Callback,
   dependencies?: DependencyList,
   options?: UseOnElementsMeasuredOptions
 ): void;
-export function useOnNodesMeasured(
-  targetOrCallback: PaperTarget | Callback,
+export function useElementsMeasuredEffect(
+  targetOrCallback: PaperReference | Callback,
   callbackOrDependencies?: Callback | DependencyList,
   dependenciesOrOptions?: DependencyList | UseOnElementsMeasuredOptions,
   optionsArgument?: UseOnElementsMeasuredOptions
 ): void {
   const isContextForm = typeof targetOrCallback === 'function';
 
-  const target = isContextForm ? undefined : (targetOrCallback as PaperTarget);
+  const target = isContextForm ? undefined : (targetOrCallback as PaperReference);
   const callback = isContextForm
     ? (targetOrCallback as Callback)
     : (callbackOrDependencies as Callback);
@@ -100,25 +80,20 @@ export function useOnNodesMeasured(
     ? (dependenciesOrOptions as UseOnElementsMeasuredOptions | undefined)
     : optionsArgument;
 
-  const isStringTarget = typeof target === 'string';
-  const contextStore = usePaperStore(isStringTarget ? target : { isNullable: true });
-  const targetRef = target && typeof target === 'object' && 'current' in target ? target : undefined;
-  const paperFromRef = useRefValue(targetRef);
-
-  const paperView = isContextForm
-    ? (contextStore?.paper ?? null)
-    : resolvePaper(target, paperFromRef, contextStore?.paper ?? null);
+  const extractedPaper = getPaperIdFromReference(target);
+  const paperStore = usePaperStore(extractedPaper ?? { isNullable: true });
 
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
 
   const once = options?.once ?? false;
 
-  useEffect(() => {
-    if (!paperView) return;
+  useLayoutEffect(() => {
+    if (!paperStore) return;
+    const { paper } = paperStore;
 
     const controller = new mvc.Listener();
-    controller.listenTo(paperView, PAPER_ELEMENTS_MEASURED, (event: ElementsMeasuredEvent) => {
+    controller.listenTo(paper, PAPER_ELEMENTS_MEASURED, (event: ElementsMeasuredEvent) => {
       callbackRef.current(event);
       if (once) {
         controller.stopListening();
@@ -126,5 +101,5 @@ export function useOnNodesMeasured(
     });
     return () => controller.stopListening();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paperView, once, ...(dependencies ?? [])]);
+  }, [paperStore, once, ...(dependencies ?? [])]);
 }

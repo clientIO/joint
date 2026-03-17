@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 're
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
 import type { FlatElementData } from '../../../types/element-types';
-import { useGraphStore, useNodeLayout, usePaper } from '../../../hooks';
+import { useGraphStore, useElementLayout, usePaper } from '../../../hooks';
 
 export interface ElementItemProps<Data = FlatElementData> {
   /**
@@ -23,7 +23,7 @@ function SVGElementItemComponent<Data = FlatElementData>(props: ElementItemProps
   const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
   const cell = rest as Data;
   const graphStore = useGraphStore();
-  const paper = usePaper();
+  const { paper } = usePaper();
 
   useLayoutEffect(() => {
     if (!areElementsMeasured) {
@@ -76,7 +76,7 @@ function HTMLElementItemComponent<Data = FlatElementData>(props: ElementItemProp
   const element = renderElement(cell);
   const { width, height, x, y } = cell as FlatElementData;
   const graphStore = useGraphStore();
-  const paper = usePaper();
+  const { paper } = usePaper();
 
   useLayoutEffect(() => {
     if (!areElementsMeasured) {
@@ -137,7 +137,7 @@ export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
  * @internal
  */
 export function ElementHitArea() {
-  const layout = useNodeLayout();
+  const layout = useElementLayout();
   const { width, height } = layout;
   return <rect width={width} height={height} fill="transparent" />;
 }

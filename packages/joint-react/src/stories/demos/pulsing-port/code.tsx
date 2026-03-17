@@ -8,11 +8,11 @@ import {
   GraphProvider,
   jsx,
   Paper,
-  TextNode,
+  SvgText,
   usePaperEvents,
   useLinks,
   useMeasureNode,
-  useCellId,
+  useElementId,
 } from '@joint/react';
 
 const NODE_WIDTH = 150;
@@ -85,7 +85,7 @@ const elements: Record<string, FlatElementData> = {
 };
 
 function NodeElement(_props: Readonly<FlatElementData>) {
-  const id = useCellId();
+  const id = useElementId();
   const rectRef = useRef<SVGRectElement>(null);
   const { width, height } = useMeasureNode(rectRef);
 
@@ -108,9 +108,9 @@ function NodeElement(_props: Readonly<FlatElementData>) {
         rx={NODE_BORDER_RADIUS}
         ry={NODE_BORDER_RADIUS}
       />
-      <TextNode fill="white" x={width / 2} y={height / 2 + 4} textAnchor="middle" fontSize={16}>
+      <SvgText fill="white" x={width / 2} y={height / 2 + 4} textAnchor="middle" fontSize={16}>
         {id}
-      </TextNode>
+      </SvgText>
     </>
   );
 }

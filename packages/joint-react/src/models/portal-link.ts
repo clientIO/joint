@@ -1,7 +1,7 @@
 import { dia } from '@joint/core';
-import { REACT_PORTAL_SELECTOR } from './react-element';
+import { PORTAL_SELECTOR } from './portal-element';
 
-export const REACT_LINK_TYPE = 'ReactLink';
+export const PORTAL_LINK_TYPE = 'PortalLink';
 
 /**
  * A custom JointJS link that can render React components.
@@ -13,27 +13,27 @@ export const REACT_LINK_TYPE = 'ReactLink';
  * @group Models
  * @example
  * ```ts
- * import { ReactLink } from '@joint/react';
+ * import { PortalLink } from '@joint/react';
  *
- * const link = new ReactLink({
+ * const link = new PortalLink({
  *   id: 'link-1',
  *   source: '1',
  *   target: '2',
  * });
  * ```
  */
-export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
+export class PortalLink<Attributes = dia.Link.Attributes> extends dia.Link<
   dia.Link.Attributes & Attributes
 > {
   /**
-   * Sets the default attributes for the ReactLink.
+   * Sets the default attributes for the PortalLink.
    * Includes `connection: true` attrs which are required for JointJS to compute link paths.
    * @returns The default attributes.
    */
   defaults() {
     return {
       ...super.defaults,
-      type: REACT_LINK_TYPE,
+      type: PORTAL_LINK_TYPE,
       attrs: {
         wrapper: {
           connection: true,
@@ -68,7 +68,7 @@ export class ReactLink<Attributes = dia.Link.Attributes> extends dia.Link<
     },
     {
       tagName: 'g',
-      selector: REACT_PORTAL_SELECTOR,
+      selector: PORTAL_SELECTOR,
     },
   ];
 }

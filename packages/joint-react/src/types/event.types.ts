@@ -17,7 +17,7 @@ export interface ElementsMeasuredEvent {
   readonly graph: dia.Graph;
 }
 
-export interface EventMap {
+export interface PaperEventMap {
   // paper
   'paper:mouseenter': (event: dia.Event) => void;
   'paper:mouseleave': (event: dia.Event) => void;
@@ -206,10 +206,10 @@ export interface EventMap {
   transform: (matrix: SVGMatrix, data: unknown) => void;
 }
 
-export type PaperEventType = keyof EventMap;
+export type PaperEventType = keyof PaperEventMap;
 
 export type PaperEventHandlers = Partial<{
-  [EventName in PaperEventType]: (...args: Parameters<EventMap[EventName]>) => void;
+  [EventName in PaperEventType]: (...args: Parameters<PaperEventMap[EventName]>) => void;
 }> & {
   [eventName: AnyString]: ((...args: Parameters<mvc.EventHandler>) => void) | undefined;
 };
@@ -218,7 +218,7 @@ export interface GraphEventOptions {
   readonly [key: string]: unknown;
 }
 
-export interface GraphKnownEventMap {
+export interface GraphEventMap {
   readonly add: (
     cell: dia.Cell,
     collection: mvc.Collection<dia.Cell>,
@@ -237,11 +237,11 @@ export interface GraphKnownEventMap {
   readonly 'batch:stop': (data: GraphEventOptions) => void;
 }
 
-export type GraphKnownEventName = keyof GraphKnownEventMap;
+export type GraphBaseEventName = keyof GraphEventMap;
 
 export type GraphPatternEventName = `change:${string}` | `layer:${string}` | `layers:${string}`;
 
-export type GraphEventName = GraphKnownEventName | GraphPatternEventName;
+export type GraphEventName = GraphBaseEventName | GraphPatternEventName;
 
 type GraphPatternEventArgs<EventName extends GraphPatternEventName> =
   EventName extends `change:${string}`
@@ -254,8 +254,8 @@ type GraphPatternEventArgs<EventName extends GraphPatternEventName> =
         ]
       : [layerCollection: dia.GraphLayerCollection, options?: GraphEventOptions];
 
-export type GraphEventArgs<EventName extends GraphEventName> = EventName extends GraphKnownEventName
-  ? Parameters<GraphKnownEventMap[EventName]>
+export type GraphEventArgs<EventName extends GraphEventName> = EventName extends GraphBaseEventName
+  ? Parameters<GraphEventMap[EventName]>
   : EventName extends GraphPatternEventName
     ? GraphPatternEventArgs<EventName>
     : Parameters<mvc.EventHandler>;

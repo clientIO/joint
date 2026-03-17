@@ -3,7 +3,7 @@
 import {
   GraphProvider,
   Paper,
-  useCellId,
+  useElementId,
   useElements,
   useGraph,
   useMeasureNode,
@@ -12,7 +12,6 @@ import {
 import '../index.css';
 import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { useCellActions } from '../../../hooks/use-cell-actions';
 
 const initialElements: Record<
   string,
@@ -38,20 +37,20 @@ interface ElementInputProps extends BaseElementWithData {
 }
 
 function ElementInput({ id, label }: Readonly<ElementInputProps>) {
-  const { set } = useCellActions<BaseElementWithData>();
+  const { setElement } = useGraph();
   return (
     <input
       style={{ padding: 5, marginTop: 4 }}
       value={label}
-      onChange={(event) => set(id, (previous) => ({ ...previous, label: event.target.value }))}
+      onChange={(event) => setElement(id, (previous) => ({ ...previous, label: event.target.value }))}
       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
     />
   );
 }
 
 function RenderElement({ label }: Readonly<BaseElementWithData>) {
-  const graph = useGraph();
-  const id = useCellId();
+  const { graph } = useGraph();
+  const id = useElementId();
   const elementRef = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);
   return (

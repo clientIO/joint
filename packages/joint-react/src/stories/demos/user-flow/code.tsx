@@ -4,7 +4,7 @@
 import {
   GraphProvider,
   Paper,
-  useCellId,
+  useElementId,
   useMarkup,
   useMeasureNode,
   type CellId,
@@ -119,7 +119,7 @@ interface RenderElementProps extends NodeType {
 }
 
 function RenderElement({ title, description, nodeType, outputPorts, onAddPort, onRemovePort }: Readonly<RenderElementProps>) {
-  const id = useCellId();
+  const id = useElementId();
   const { selectorRef } = useMarkup();
   const contentRef = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(contentRef);

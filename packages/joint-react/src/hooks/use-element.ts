@@ -1,4 +1,4 @@
-import { useCellId } from './use-cell-id';
+import { useElementId } from './use-element-id';
 import type { FlatElementData } from '../types/element-types';
 import { useData } from './use-stores';
 import { isStrictEqual, identitySelector } from '../utils/selector-utils';
@@ -12,7 +12,7 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
  * - an optional `isEqual` function, used to determine if the selected value has changed.
  *
  * How it works:
- * 1. The hook retrieves the cell id using `useCellId`.
+ * 1. The hook retrieves the cell id using `useElementId`.
  * 2. It subscribes to the graph store and fetches the element associated with the cell id.
  * 3. The selector is applied to the fetched element and `isEqual` ensures proper re-rendering behavior.
  * @example
@@ -37,7 +37,7 @@ export function useElement<ElementData = FlatElementData, ReturnedElements = Ele
   ) => ReturnedElements,
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = isStrictEqual
 ): ReturnedElements {
-  const id = useCellId();
+  const id = useElementId();
 
   return useData<ReturnedElements>((store) => {
     const element = store.elements[id] as ElementData | undefined;

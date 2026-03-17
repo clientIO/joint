@@ -1,4 +1,4 @@
-import type { anchors, connectionPoints, dia, shapes } from '@joint/core';
+import type { anchors, connectionPoints, dia } from '@joint/core';
 import type { AnyString } from './index';
 import type { MarkerPreset } from '../theme/link-theme';
 import type { CellId } from './cell-id';
@@ -16,14 +16,6 @@ import type { CellId } from './cell-id';
 export type FlatLinkEnd =
   | CellId
   | { readonly x: number; readonly y: number };
-
-export interface StandardLinkShapesTypeMapper {
-  'standard.DoubleLink': shapes.standard.DoubleLinkSelectors;
-  'standard.ShadowLink': shapes.standard.ShadowLinkSelectors;
-  'standard.Link': shapes.standard.LinkSelectors;
-}
-
-export type StandardLinkShapesType = keyof StandardLinkShapesTypeMapper;
 
 /**
  * Simplified label definition for graph links.
@@ -156,7 +148,7 @@ export interface FlatLinkData extends Record<string, unknown> {
   readonly targetMagnet?: string;
   /**
    * Optional link type.
-   * @default 'ReactLink'
+   * @default 'PortalLink'
    */
   readonly type?: string;
   /**

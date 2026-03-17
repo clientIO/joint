@@ -3,11 +3,11 @@
 import {
   GraphProvider,
   Paper,
-  useCellActions,
+  useGraph,
   useElements,
   type FlatElementData,
   type FlatLinkData,
-  TextNode,
+  SvgText,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -124,7 +124,7 @@ const initialLinks: Record<string, FlatLinkData> = {
 function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
   const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-  const { set } = useCellActions<ShapeElement>();
+  const { setElement } = useGraph();
 
   // Turbine blade path
   const turbinePath = `
@@ -160,8 +160,8 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
 
   const handleTogglePower = useCallback(() => {
     const newPower = power === 0 ? 1 : 0;
-    set(GENERATOR_ID, (previous) => ({ ...previous, power: newPower }));
-  }, [power, set]);
+    setElement(GENERATOR_ID, (previous) => ({ ...previous, power: newPower }));
+  }, [power, setElement]);
 
   return (
     <>
@@ -199,7 +199,7 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
         onClick={handleTogglePower}
       />
       {/* Power readout */}
-      <TextNode
+      <SvgText
         x={width - 18}
         y={height - 5}
         fill="white"
@@ -209,9 +209,9 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
         textVerticalAnchor="bottom"
       >
         {powerText}
-      </TextNode>
+      </SvgText>
       {/* Label */}
-      <TextNode
+      <SvgText
         x={width / 2}
         y={height + 10}
         fill={LIGHT}
@@ -221,7 +221,7 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
         textVerticalAnchor="top"
       >
         Generator
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -275,7 +275,7 @@ function BulbNode({ width, height, watts }: Readonly<BulbElement>) {
       {/* Cap 2 */}
       <rect x={width / 2 - 5} y={height + 5} width={10} height={3} fill={BULB_CAP} />
       {/* Wattage label */}
-      <TextNode
+      <SvgText
         x={width / 2}
         y={height / 2}
         fill={GENERATOR_DARK}
@@ -285,7 +285,7 @@ function BulbNode({ width, height, watts }: Readonly<BulbElement>) {
         textVerticalAnchor="middle"
       >
         {`${watts} W`}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -308,7 +308,7 @@ function RenderShapeElement(props: Readonly<ShapeElement>) {
 // Power Control Component
 // ----------------------------------------------------------------------------
 function PowerControl() {
-  const { set } = useCellActions<ShapeElement>();
+  const { setElement } = useGraph();
 
   // Read generator power from store (reactive)
   const power = useElements<ShapeElement, number>(
@@ -318,9 +318,9 @@ function PowerControl() {
   const handlePowerChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newPower = event.target.valueAsNumber;
-      set(GENERATOR_ID, (previous) => ({ ...previous, power: newPower }));
+      setElement(GENERATOR_ID, (previous) => ({ ...previous, power: newPower }));
     },
-    [set]
+    [setElement]
   );
 
   return (

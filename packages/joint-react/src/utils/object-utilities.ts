@@ -45,14 +45,14 @@ export function assignOptions<T extends Record<string, any>>(props: T, newProps:
  * @returns - An array containing the values associated with the specified keys in the same order as the keys array.
  * @example
  * ```ts
- * import { dependencyExtract } from '@joint/react';
+ * import { pickValues } from '@joint/react';
  *
  * const obj = { width: 100, height: 50, color: 'red' };
- * const values = dependencyExtract(obj, new Set(['width', 'height']));
+ * const values = pickValues(obj, new Set(['width', 'height']));
  * // Result: [100, 50]
  * ```
  */
-export function dependencyExtract<T extends Record<string, any>, K extends keyof T = keyof T>(
+export function pickValues<T extends Record<string, any>, K extends keyof T = keyof T>(
   object: T,
   picked?: Set<K>
 ): unknown[] {

@@ -64,16 +64,6 @@ export function useInternalData<Selection>(
 }
 
 /**
- * Hook to access whether all elements have been measured (have width and height).
- * Computed based on actual graph cell sizes, not state data.
- * @returns true if all elements have been measured, false otherwise.
- */
-export function useAreElementsMeasured(): boolean {
-  const { areElementsMeasuredState } = useGraphStore();
-  return useStore(areElementsMeasuredState, (value) => value);
-}
-
-/**
  * Hook to select layout-related data from the graph store.
  * @param selector - The selector function to select layout data from the graph store snapshot.
  * @param isEqual - Optional equality function to optimize re-renders.
@@ -89,4 +79,3 @@ export function useLayouts<Selected>(
   const { layoutState } = useGraphStore();
   return useStore(layoutState, selector, isEqual);
 }
-

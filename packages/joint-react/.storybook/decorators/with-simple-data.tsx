@@ -5,7 +5,7 @@
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
 import type { FlatElementData} from '@joint/react';
-import { GraphProvider, useCellId, useMeasureNode, type FlatLinkData } from '@joint/react';
+import { GraphProvider, useElementId, useMeasureNode, type FlatLinkData } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
@@ -127,7 +127,7 @@ export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryC
       // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
       renderElement={() => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
-        const id = useCellId();
+        const id = useElementId();
         return <HTMLNode className="node">{id}</HTMLNode>;
       }}
     />

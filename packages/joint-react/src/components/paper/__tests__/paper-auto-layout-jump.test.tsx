@@ -3,7 +3,7 @@ import type { dia } from '@joint/core';
 import { useId, useRef } from 'react';
 import { act } from 'react';
 import { useMeasureNode } from '../../../hooks/use-measure-node';
-import { useOnNodesMeasured } from '../../../hooks/use-on-nodes-measured';
+import { useElementsMeasuredEffect } from '../../../hooks/use-elements-measured-effect';
 import type { FlatElementData } from '../../../types/element-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
@@ -117,7 +117,7 @@ function handleElementsSizeChange(graph: dia.Graph) {
 
 function AutoLayoutPaper() {
   const paperId = useId();
-  useOnNodesMeasured(paperId, ({ isInitial, graph }) => {
+  useElementsMeasuredEffect(paperId, ({ isInitial, graph }) => {
     if (isInitial) return;
     handleElementsSizeChange(graph);
   });
@@ -146,7 +146,7 @@ describe('Paper automatic layout', () => {
     // Multiple rounds needed: 1) queueMicrotask fires observer, 2) scheduler flushes state via queueMicrotask,
     // 3) React re-renders, 4) useLayoutEffect detects size change
     for (let index = 0; index < 10; index++) {
-      // eslint-disable-next-line no-await-in-loop
+       
       await act(async () => {
         await new Promise((resolve) => {
           setTimeout(resolve, 0);

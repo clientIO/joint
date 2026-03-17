@@ -1,11 +1,34 @@
-/* eslint-disable sonarjs/cognitive-complexity */
+ 
 import { type dia, util } from '@joint/core';
 import type { FlatLinkData, FlatLinkLabel } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
-import { REACT_LINK_TYPE } from '../../models/react-link';
-import type { GraphToLinkOptions, LinkToGraphOptions } from '../graph-mappings';
+import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
+
+/**
+ * Options for the `toAttributes` callback on link mappers.
+ */
+export interface ToLinkAttributesOptions {
+  readonly theme?: LinkTheme;
+}
+
+export interface LinkToGraphOptions<LinkData = FlatLinkData> {
+  readonly id: string;
+  readonly data: LinkData;
+  readonly graph: dia.Graph;
+  readonly toAttributes: (data: LinkData, options?: ToLinkAttributesOptions) => dia.Cell.JSON;
+}
+
+export interface GraphToLinkOptions<LinkData = FlatLinkData> {
+  readonly id: string;
+  readonly attributes: dia.Link.Attributes;
+  readonly defaultAttributes: dia.Link.Attributes;
+  readonly link: dia.Link;
+  readonly previousData?: LinkData;
+  readonly graph: dia.Graph;
+  readonly toData: (attributes: dia.Link.Attributes) => LinkData;
+}
 import {
   assignEndDataProperties,
   SOURCE_KEYS,
@@ -93,7 +116,7 @@ export function defaultMapDataToLinkAttributes<Link = FlatLinkData>(
 
   const attributes: dia.Cell.JSON = {
     id,
-    type: REACT_LINK_TYPE,
+    type: PORTAL_LINK_TYPE,
     // ↔ Two-way properties
     source: toLinkEndAttribute(source, {
       port: sourcePort,

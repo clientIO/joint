@@ -1,10 +1,7 @@
-/* eslint-disable sonarjs/no-dead-store */
-/* eslint-disable sonarjs/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { dia } from '@joint/core';
 import { forwardRef, useId, useImperativeHandle, useRef } from 'react';
 import { PaperStoreContext } from '../../context';
-import { useCreateReactPaper } from '../../hooks/use-create-react-paper';
+import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
 import type { PaperProps } from './paper.types';
 
 /**
@@ -31,23 +28,37 @@ function PaperBase(
   props: Readonly<PaperProps>,
   forwardedRef: React.ForwardedRef<dia.Paper | null>
 ) {
-  const { className, style, children, width, height } = props;
+  const { className, style, children, width, height, paper: externalPaper } = props;
   const resolvedWidth = width ?? resolveStyleDimension(style?.width);
   const resolvedHeight = height ?? resolveStyleDimension(style?.height);
   const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
   const reactId = useId();
   const id = props.id ?? `paper-${reactId}`;
-  const { paperRef, paperStore, isReady, content } = useCreateReactPaper({
+  const isExternalPaper = !!externalPaper;
+  const { paperRef, paperStore, isReady, content } = useCreatePortalPaper({
     ...props,
     width: resolvedWidth,
     height: resolvedHeight,
-    elementRef: paperHTMLElementRef,
+    elementRef: isExternalPaper ? undefined : paperHTMLElementRef,
     id,
     style,
     className,
+    isExternalPaper,
   });
 
   useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paperRef.current);
+
+  // When paper is externally managed (e.g. by PortalStencil), skip the host div —
+  // the paper's DOM is already mounted elsewhere. Only render portal content.
+  if (isExternalPaper) {
+    return (
+      <PaperStoreContext.Provider value={paperStore ?? null}>
+        {isReady && content}
+        {isReady && children}
+      </PaperStoreContext.Provider>
+    );
+  }
+
   return (
     <PaperStoreContext.Provider value={paperStore ?? null}>
       <div className={className} ref={paperHTMLElementRef} style={style}>
@@ -58,8 +69,4 @@ function PaperBase(
   );
 }
 
-export const Paper = forwardRef(PaperBase) as (
-  props: Readonly<PaperProps> & {
-    ref?: React.Ref<dia.Paper | null>;
-  }
-) => ReturnType<typeof PaperBase>;
+export const Paper = forwardRef(PaperBase);

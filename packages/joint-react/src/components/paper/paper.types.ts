@@ -2,15 +2,16 @@ import type { dia } from '@joint/core';
 import type { FlatElementData } from '../../types/element-types';
 import type { OmitWithoutIndexSignature } from '../../types';
 import type { FlatLinkData } from '../../types/link-types';
-import type { PortalSelector } from '../../models/react-paper.types';
+import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
+import type { PortalPaper } from '../../models/portal-paper';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 
-type ReactPaperOptionsBase = OmitWithoutIndexSignature<
+type PortalPaperOptionsBase = OmitWithoutIndexSignature<
   dia.Paper.Options,
   'frozen' | 'defaultLink' | 'autoFreeze' | 'viewManagement'
 >;
-export interface ReactPaperOptions extends ReactPaperOptionsBase {
+export interface PortalPaperOptions extends PortalPaperOptionsBase {
   /**
    * Default link for the paper - for example if there is new element added, this will be used as default.
    */
@@ -31,7 +32,7 @@ export type RenderLink<LinkData = FlatLinkData> = (link: LinkData) => ReactNode;
  * @see https://docs.jointjs.com/api/dia/Paper
  */
 export interface PaperProps
-  extends ReactPaperOptions,
+  extends PortalPaperOptions,
     PropsWithChildren {
   /**
    * Width of the paper host element.
@@ -161,7 +162,7 @@ export interface PaperProps
    * Selector used to locate the React portal target node inside a cell view.
    *
    * By default, only cells whose markup contains the `'__portal__'` selector
-   * (i.e. {@link ReactElement}) are rendered via `renderElement`.
+   * (i.e. {@link PortalElement}) are rendered via `renderElement`.
    * Set this to a different selector (e.g. `'root'`) to render into
    * built-in or custom JointJS shapes.
    *
@@ -182,4 +183,11 @@ export interface PaperProps
    * ```
    */
   readonly portalSelector?: PortalSelector;
+
+  /**
+   * Pre-created PortalPaper instance to adopt.
+   * When provided, the Paper component wraps this paper instead of creating a new one.
+   * The paper's DOM is assumed to be managed externally (e.g. by a stencil).
+   */
+  readonly paper?: PortalPaper;
 }

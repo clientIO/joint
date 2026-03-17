@@ -234,7 +234,7 @@ describe('graph', () => {
       'element1': {
         width: 100,
         height: 100,
-        type: 'ReactElement',
+        type: 'PortalElement',
       },
     };
     const link: FlatLinkData = { type: 'standard.Link', source: 'element1', target: { x: 0, y: 0 } };
@@ -265,7 +265,7 @@ describe('graph', () => {
       'element1': {
         width: 100,
         height: 100,
-        type: 'ReactElement',
+        type: 'PortalElement',
       },
     };
     const initialLink: FlatLinkData = {
@@ -318,12 +318,12 @@ describe('graph', () => {
         'element1': {
           width: 100,
           height: 100,
-          type: 'ReactElement',
+          type: 'PortalElement',
         },
         'element2': {
           width: 10,
           height: 10,
-          type: 'ReactElement',
+          type: 'PortalElement',
         },
       });
     });
@@ -383,13 +383,13 @@ describe('graph', () => {
       'link-1': {
         source: 'element-1',
         target: 'element-2',
-        type: 'ReactLink',
+        type: 'PortalLink',
         z: 1,
       },
       'link-2': {
         source: 'element-2',
         target: 'element-1',
-        type: 'ReactLink',
+        type: 'PortalLink',
         z: 2,
         customProperty: 'custom-value',
       },
@@ -444,14 +444,14 @@ describe('graph', () => {
       (link) => link.source === 'element-1' && link.target === 'element-2'
     );
     expect(link1).toBeDefined();
-    expect(link1?.type).toBe('ReactLink');
+    expect(link1?.type).toBe('PortalLink');
     expect(link1?.z).toBe(1);
 
     const link2 = uniqueReceivedLinks.find(
       (link) => link.source === 'element-2' && link.target === 'element-1'
     );
     expect(link2).toBeDefined();
-    expect(link2?.type).toBe('ReactLink');
+    expect(link2?.type).toBe('PortalLink');
     expect(link2?.z).toBe(2);
     expect(link2?.customProperty).toBe('custom-value');
   });
@@ -476,7 +476,7 @@ describe('graph', () => {
       'link-1': {
         source: 'element-1',
         target: 'element-2',
-        type: 'ReactLink',
+        type: 'PortalLink',
       },
     };
 
@@ -515,7 +515,7 @@ describe('graph', () => {
     // Verify initial link was received
     const initialLink = receivedLinks.find((link) => link.source === 'element-1' && link.target === 'element-2');
     expect(initialLink).toBeDefined();
-    expect(initialLink?.type).toBe('ReactLink');
+    expect(initialLink?.type).toBe('PortalLink');
 
     // Clear received links to track new ones
     receivedLinks.length = 0;
@@ -526,7 +526,7 @@ describe('graph', () => {
         'link-2': {
           source: 'element-2',
           target: 'element-1',
-          type: 'ReactLink',
+          type: 'PortalLink',
           customProperty: 'updated-value',
         },
       });
@@ -539,7 +539,7 @@ describe('graph', () => {
     // Verify updated link was received
     const updatedLink = receivedLinks.find((link) => link.source === 'element-2' && link.target === 'element-1');
     expect(updatedLink).toBeDefined();
-    expect(updatedLink?.type).toBe('ReactLink');
+    expect(updatedLink?.type).toBe('PortalLink');
     expect(updatedLink?.customProperty).toBe('updated-value');
   });
 });

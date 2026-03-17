@@ -1,12 +1,12 @@
-/* eslint-disable unicorn/prevent-abbreviations */
+ 
 import { dia, shapes } from '@joint/core';
 import { defaultMapLinkAttributesToData } from '../../state/data-mapping';
 import { resolveCellDefaults } from '../../state/data-mapping/resolve-cell-defaults';
-import { ReactElement } from '../../models/react-element';
-import { ReactLink, REACT_LINK_TYPE } from '../../models/react-link';
+import { PortalElement } from '../../models/portal-element';
+import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
 
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement, ReactLink };
+const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement, PortalLink };
 
 describe('graph-state-selectors link mapping', () => {
   let graph: dia.Graph;
@@ -23,7 +23,7 @@ describe('graph-state-selectors link mapping', () => {
     it('should extract link attributes correctly', () => {
       const id = 'link-1';
       const cellJson = {
-        type: REACT_LINK_TYPE,
+        type: PORTAL_LINK_TYPE,
         id,
         source: { id: 'source-id' },
         target: { id: 'target-id' },

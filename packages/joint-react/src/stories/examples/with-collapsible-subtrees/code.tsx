@@ -6,11 +6,11 @@ import {
   GraphProvider,
   jsx,
   Paper,
-  TextNode,
-  useCellActions,
-  useCellId,
+  SvgText,
+  useGraph,
+  useElementId,
   useMarkup,
-  useOnNodesMeasured,
+  useElementsMeasuredEffect,
   usePaper,
   usePaperEvents,
 } from '@joint/react';
@@ -259,7 +259,7 @@ const initialLinks: Record<string, FlatLinkData> = {
 // Custom Hooks
 // ----------------------------------------------------------------------------
 function useElementPattern() {
-  const paper = usePaper();
+  const { paper } = usePaper();
 
   return useMemo(() => {
     const patternId = paper.definePattern({
@@ -285,7 +285,7 @@ function useElementPattern() {
 }
 
 function useGatePattern() {
-  const paper = usePaper();
+  const { paper } = usePaper();
 
   return useMemo(() => {
     const patternId = paper.definePattern({
@@ -314,8 +314,8 @@ function useGatePattern() {
 // Shapes
 // ----------------------------------------------------------------------------
 function IntermediateEventNode({ label, width, height, gate }: Readonly<IntermediateEvent>) {
-  const id = useCellId();
-  const { set } = useCellActions<IntermediateEvent>();
+  const id = useElementId();
+  const { setElement } = useGraph();
   const gatePatternUrl = useGatePattern();
   const { selectorRef } = useMarkup();
 
@@ -357,11 +357,11 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
     const nextIndex = (currentIndex + 1) % GATE_TYPES.length;
     const nextGate = GATE_TYPES[nextIndex];
 
-    set(id, (previous) => ({
+    setElement(id, (previous) => ({
       ...previous,
       gate: nextGate,
     }));
-  }, [id, gate, set]);
+  }, [id, gate, setElement]);
 
   return (
     <>
@@ -395,7 +395,7 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
         strokeWidth={2}
       />
       {/* Label */}
-      <TextNode
+      <SvgText
         width={width - 20}
         height={height - 90}
         fontSize={16}
@@ -408,9 +408,9 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
         textVerticalAnchor="middle"
       >
         {label}
-      </TextNode>
+      </SvgText>
       {/* ID Label */}
-      <TextNode
+      <SvgText
         x={width / 2}
         y={height - 55}
         fontSize={14}
@@ -421,7 +421,7 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
         annotations={[{ start: 4, end: 10, attrs: { fill: '#f6f740' } }]}
       >
         {`id: ${id}`}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -439,7 +439,7 @@ function UndevelopedEventNode({ label, width, height }: Readonly<UndevelopedEven
         strokeWidth={2}
       />
       {/* Label */}
-      <TextNode
+      <SvgText
         width={width - 20}
         height={height - 20}
         fontSize={16}
@@ -452,7 +452,7 @@ function UndevelopedEventNode({ label, width, height }: Readonly<UndevelopedEven
         textVerticalAnchor="middle"
       >
         {label}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -472,7 +472,7 @@ function BasicEventNode({ label, width, height }: Readonly<BasicEvent>) {
         strokeWidth={2}
       />
       {/* Label */}
-      <TextNode
+      <SvgText
         width={width - 20}
         height={height - 20}
         fontSize={16}
@@ -485,7 +485,7 @@ function BasicEventNode({ label, width, height }: Readonly<BasicEvent>) {
         textVerticalAnchor="middle"
       >
         {label}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -503,7 +503,7 @@ function ExternalEventNode({ label, width, height }: Readonly<ExternalEvent>) {
         strokeWidth={2}
       />
       {/* Label */}
-      <TextNode
+      <SvgText
         width={width - 20}
         height={height - 20}
         fontSize={16}
@@ -516,7 +516,7 @@ function ExternalEventNode({ label, width, height }: Readonly<ExternalEvent>) {
         textVerticalAnchor="middle"
       >
         {label}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -537,7 +537,7 @@ function ConditioningEventNode({ label, width, height }: Readonly<ConditioningEv
         strokeWidth={2}
       />
       {/* Label */}
-      <TextNode
+      <SvgText
         width={width - 20}
         height={height - 20}
         fontSize={16}
@@ -550,7 +550,7 @@ function ConditioningEventNode({ label, width, height }: Readonly<ConditioningEv
         textVerticalAnchor="middle"
       >
         {label}
-      </TextNode>
+      </SvgText>
     </>
   );
 }
@@ -699,17 +699,20 @@ function Main() {
     return !cell.prop('hidden');
   }, []);
 
-  const handleElementsMeasured = useCallback(({ isInitial, paper, graph }: { isInitial: boolean; paper: dia.Paper; graph: dia.Graph }) => {
-    if (!isInitial) return;
-    runLayout(graph);
-    addExpandTools(paper);
-    paper.transformToFitContent({
-      padding: 40,
-      useModelGeometry: true,
-      verticalAlign: 'middle',
-      horizontalAlign: 'middle',
-    });
-  }, []);
+  const handleElementsMeasured = useCallback(
+    ({ isInitial, paper, graph }: { isInitial: boolean; paper: dia.Paper; graph: dia.Graph }) => {
+      if (!isInitial) return;
+      runLayout(graph);
+      addExpandTools(paper);
+      paper.transformToFitContent({
+        padding: 40,
+        useModelGeometry: true,
+        verticalAlign: 'middle',
+        horizontalAlign: 'middle',
+      });
+    },
+    []
+  );
 
   const handleExpand = useCallback((jointPaper: dia.Paper, elementView: dia.ElementView) => {
     const graph = jointPaper.model;
@@ -751,7 +754,7 @@ function Main() {
     [handleExpand]
   );
 
-  useOnNodesMeasured(paperId, handleElementsMeasured);
+  useElementsMeasuredEffect(paperId, handleElementsMeasured);
 
   return (
     <Paper
