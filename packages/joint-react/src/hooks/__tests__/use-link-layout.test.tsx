@@ -1,6 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react';
+import { useRef } from 'react';
 import { paperRenderLinkWrapper, getTestGraph } from '../../utils/test-wrappers';
 import { useLinkLayout } from '../use-link-layout';
+import { useLinksLayout } from '../use-stores';
 
 describe('useLinkLayout', () => {
   it('should return link layout when used inside renderLink', async () => {
@@ -163,6 +165,110 @@ describe('useLinkLayout', () => {
 
     await waitFor(() => {
       expect(result.current).toBeUndefined();
+    });
+  });
+
+  it('should not cause infinite re-renders with primitive selector', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderLinkWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+        },
+        links: {
+          'link-1': { source: 'element-1', target: 'element-2' },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => {
+        const renderCount = useRef(0);
+        renderCount.current += 1;
+        const d = useLinkLayout((layout) => layout?.d);
+        return { d, renderCount: renderCount.current };
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      if (result.current.d) {
+        expect(typeof result.current.d).toBe('string');
+      }
+    });
+
+    const countAfterStable = result.current.renderCount;
+
+    await waitFor(() => {
+      expect(result.current.renderCount).toBeLessThanOrEqual(countAfterStable + 1);
+    });
+  });
+
+  it('should not cause infinite re-renders without selector (full layout)', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderLinkWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+        },
+        links: {
+          'link-1': { source: 'element-1', target: 'element-2' },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => {
+        const renderCount = useRef(0);
+        renderCount.current += 1;
+        const layout = useLinkLayout();
+        return { layout, renderCount: renderCount.current };
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      if (result.current.layout) {
+        expect(result.current.layout).toHaveProperty('d');
+      }
+    });
+
+    const countAfterStable = result.current.renderCount;
+
+    await waitFor(() => {
+      expect(result.current.renderCount).toBeLessThanOrEqual(countAfterStable + 1);
+    });
+  });
+});
+
+describe('useLinksLayout', () => {
+  it('should return links layout snapshot', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderLinkWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+        },
+        links: {
+          'link-1': { source: 'element-1', target: 'element-2' },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => useLinksLayout(),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+      expect(typeof result.current).toBe('object');
     });
   });
 });

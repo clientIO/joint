@@ -1,6 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react';
+import { useRef } from 'react';
 import { paperRenderElementWrapper, getTestGraph } from '../../utils/test-wrappers';
 import { useElementLayout } from '../use-element-layout';
+import { useElementsLayout } from '../use-stores';
+import { selectAreElementsMeasured, selectElementSizes } from '../../selectors';
 
 describe('useElementLayout', () => {
   it('should return node layout when used inside renderElement', async () => {
@@ -126,6 +129,148 @@ describe('useElementLayout', () => {
 
     await waitFor(() => {
       expect(result.current).toBeUndefined();
+    });
+  });
+
+  it('should not cause infinite re-renders with primitive selector', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderElementWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => {
+        const renderCount = useRef(0);
+        renderCount.current += 1;
+        const width = useElementLayout((layout) => layout?.width);
+        return { width, renderCount: renderCount.current };
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.width).toBe(100);
+    });
+
+    const countAfterStable = result.current.renderCount;
+
+    // Wait a bit and check render count hasn't grown unboundedly
+    await waitFor(() => {
+      expect(result.current.renderCount).toBeLessThanOrEqual(countAfterStable + 1);
+    });
+  });
+
+  it('should not cause infinite re-renders without selector (full layout)', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderElementWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => {
+        const renderCount = useRef(0);
+        renderCount.current += 1;
+        const layout = useElementLayout();
+        return { layout, renderCount: renderCount.current };
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current.layout).toBeDefined();
+    });
+
+    const countAfterStable = result.current.renderCount;
+
+    await waitFor(() => {
+      expect(result.current.renderCount).toBeLessThanOrEqual(countAfterStable + 1);
+    });
+  });
+});
+
+describe('useElementsLayout', () => {
+  it('should select areElementsMeasured', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderElementWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => useElementsLayout(selectAreElementsMeasured),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(typeof result.current).toBe('boolean');
+    });
+  });
+
+  it('should select element sizes', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderElementWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => useElementsLayout(selectElementSizes),
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBeDefined();
+      expect(typeof result.current).toBe('object');
+    });
+  });
+
+  it('should not cause infinite re-renders with selectAreElementsMeasured', async () => {
+    const graph = getTestGraph();
+    const wrapper = paperRenderElementWrapper({
+      graphProviderProps: {
+        graph,
+        elements: {
+          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+        },
+      },
+    });
+
+    const { result } = renderHook(
+      () => {
+        const renderCount = useRef(0);
+        renderCount.current += 1;
+        const measured = useElementsLayout(selectAreElementsMeasured);
+        return { measured, renderCount: renderCount.current };
+      },
+      { wrapper }
+    );
+
+    await waitFor(() => {
+      expect(typeof result.current.measured).toBe('boolean');
+    });
+
+    const countAfterStable = result.current.renderCount;
+
+    await waitFor(() => {
+      expect(result.current.renderCount).toBeLessThanOrEqual(countAfterStable + 1);
     });
   });
 });

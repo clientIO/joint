@@ -1,15 +1,15 @@
 import type { CellId } from '../types/cell-id';
-import type { GraphStoreLayoutSnapshot, GraphStoreInternalSnapshot } from '../store/graph-store';
+import type { ElementsLayoutSnapshot, GraphStoreInternalSnapshot } from '../store/graph-store';
 
 const EMPTY_VIEW_ID_RECORD: Record<CellId, true> = {};
 
-// ── Layout selectors ────────────────────────────────────────────────────────
+// ── Element layout selectors ────────────────────────────────────────────────
 
-export const selectAreElementsMeasured = (snapshot: GraphStoreLayoutSnapshot): boolean =>
-  snapshot.elements.count > 0 && snapshot.elements.measuredElements === snapshot.elements.count;
+export const selectAreElementsMeasured = (snapshot: ElementsLayoutSnapshot): boolean =>
+  snapshot.count > 0 && snapshot.measuredElements === snapshot.count;
 
-export const selectElementSizes = (snapshot: GraphStoreLayoutSnapshot) =>
-  snapshot.elements.sizes;
+export const selectElementSizes = (snapshot: ElementsLayoutSnapshot) =>
+  snapshot.sizes;
 
 // ── Internal selectors ──────────────────────────────────────────────────────
 

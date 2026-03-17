@@ -11,22 +11,22 @@ jest.mock('@joint/core', () => {
 });
 
 import { paperRenderElementWrapper } from '../../../utils/test-wrappers';
-import { SvgText } from '../svg-text';
+import { SVGText } from '../svg-text';
 import { util } from '@joint/core';
 import { render, waitFor } from '@testing-library/react';
 
 const UPPERCASE_STYLE = { textTransform: 'uppercase' } as const;
 
-describe('SvgText', () => {
+describe('SVGText', () => {
   it('renders with minimal props', () => {
-    render(<SvgText>hello</SvgText>, { wrapper: paperRenderElementWrapper({}) });
+    render(<SVGText>hello</SVGText>, { wrapper: paperRenderElementWrapper({}) });
   });
 
   it('renders with width and textWrap', () => {
     render(
-      <SvgText width={100} textWrap>
+      <SVGText width={100} textWrap>
         hello world
-      </SvgText>,
+      </SVGText>,
       { wrapper: paperRenderElementWrapper({}) }
     );
   });
@@ -34,16 +34,16 @@ describe('SvgText', () => {
   it('renders with height and textWrap options', () => {
     render(
        
-      <SvgText width={100} height={40} textWrap={{ ellipsis: true, maxLineCount: 2 }}>
+      <SVGText width={100} height={40} textWrap={{ ellipsis: true, maxLineCount: 2 }}>
         hello world hello world hello world
-      </SvgText>,
+      </SVGText>,
       { wrapper: paperRenderElementWrapper({}) }
     );
   });
 
   it('renders with all supported props', () => {
     render(
-      <SvgText
+      <SVGText
         width={120}
         height={50}
         fill="red"
@@ -55,14 +55,14 @@ describe('SvgText', () => {
         textWrap
       >
         test all props
-      </SvgText>,
+      </SVGText>,
       { wrapper: paperRenderElementWrapper({}) }
     );
   });
 
   it('passes text styles to util.breakText', () => {
     render(
-      <SvgText
+      <SVGText
         width={120}
         textWrap
         lineHeight={1.5}
@@ -73,7 +73,7 @@ describe('SvgText', () => {
         style={UPPERCASE_STYLE}
       >
         styled text
-      </SvgText>,
+      </SVGText>,
       {
         wrapper: paperRenderElementWrapper({
           graphProviderProps: {

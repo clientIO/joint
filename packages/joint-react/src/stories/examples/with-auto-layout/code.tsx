@@ -9,7 +9,7 @@ import {
   useElements,
   useGraph,
   useElementLayout,
-  useElementsMeasuredEffect,
+  useNodesMeasuredEffect,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useId, useRef, useState } from 'react';
@@ -81,7 +81,7 @@ function Main() {
     makeLayoutWithGrid({ graph, gridXSize });
   }, [makeLayoutWithGrid, graph, gridXSize]);
 
-  useElementsMeasuredEffect(paperId, makeLayout);
+  useNodesMeasuredEffect(paperId, makeLayout);
 
   const elementsLength = useElements((items) => Object.keys(items).length);
   return (

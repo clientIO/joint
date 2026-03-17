@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import {
   GraphProvider,
   Paper,
-  SvgText,
+  SVGText,
   useGraph,
   useMarkup,
   usePaperEvents,
@@ -185,7 +185,7 @@ function RenderNode({ label, width, height }: Readonly<NodeData>) {
         strokeWidth={1.5}
       />
 
-      <SvgText
+      <SVGText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -195,7 +195,7 @@ function RenderNode({ label, width, height }: Readonly<NodeData>) {
         fontWeight={500}
       >
         {label}
-      </SvgText>
+      </SVGText>
     </g>
   );
 }
