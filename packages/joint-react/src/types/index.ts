@@ -28,37 +28,37 @@ export type PaperTarget = string | React.RefObject<dia.Paper | null> | dia.Paper
 
 /**
  * Resolves a Paper instance from a PaperTarget.
- * @param ref - The paper target to resolve.
+ * @param target - The paper target to resolve.
  * @returns The resolved Paper instance, or null.
  */
-export function resolvePaper(ref: PaperTarget): dia.Paper | null {
-  if (isString(ref)) {
+export function resolvePaper(target: PaperTarget): dia.Paper | null {
+  if (isString(target)) {
     // ID form is not supported here since we don't have access to the paper store.
     return null;
   }
-  if (ref instanceof dia.Paper) {
-    return ref;
+  if (target instanceof dia.Paper) {
+    return target;
   }
-  if ('current' in ref) {
-    return ref.current;
+  if ('current' in target) {
+    return target.current;
   }
   return null;
 }
 
 /**
  * Extracts the paper ID from a PaperTarget.
- * @param ref - The paper target to extract the ID from.
+ * @param target - The paper target to extract the ID from.
  * @returns The paper ID string, or null.
  */
-export function resolvePaperId(ref?: PaperTarget): string | null {
-  if (!ref) {
+export function resolvePaperId(target?: PaperTarget): string | null {
+  if (!target) {
     return null;
   }
-  if (isString(ref)) {
+  if (isString(target)) {
     // Is already an ID.
-    return ref;
+    return target;
   }
-  return resolvePaper(ref)?.id ?? null;
+  return resolvePaper(target)?.id ?? null;
 }
 
 export * from './event.types';
