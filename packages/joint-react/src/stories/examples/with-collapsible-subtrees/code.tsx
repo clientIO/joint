@@ -6,11 +6,11 @@ import {
   GraphProvider,
   jsx,
   Paper,
-  SvgText,
+  SVGText,
   useGraph,
   useElementId,
   useMarkup,
-  useElementsMeasuredEffect,
+  useNodesMeasuredEffect,
   usePaper,
   usePaperEvents,
 } from '@joint/react';
@@ -395,7 +395,7 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
         strokeWidth={2}
       />
       {/* Label */}
-      <SvgText
+      <SVGText
         width={width - 20}
         height={height - 90}
         fontSize={16}
@@ -408,9 +408,9 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
         textVerticalAnchor="middle"
       >
         {label}
-      </SvgText>
+      </SVGText>
       {/* ID Label */}
-      <SvgText
+      <SVGText
         x={width / 2}
         y={height - 55}
         fontSize={14}
@@ -421,7 +421,7 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
         annotations={[{ start: 4, end: 10, attrs: { fill: '#f6f740' } }]}
       >
         {`id: ${id}`}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -439,7 +439,7 @@ function UndevelopedEventNode({ label, width, height }: Readonly<UndevelopedEven
         strokeWidth={2}
       />
       {/* Label */}
-      <SvgText
+      <SVGText
         width={width - 20}
         height={height - 20}
         fontSize={16}
@@ -452,7 +452,7 @@ function UndevelopedEventNode({ label, width, height }: Readonly<UndevelopedEven
         textVerticalAnchor="middle"
       >
         {label}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -472,7 +472,7 @@ function BasicEventNode({ label, width, height }: Readonly<BasicEvent>) {
         strokeWidth={2}
       />
       {/* Label */}
-      <SvgText
+      <SVGText
         width={width - 20}
         height={height - 20}
         fontSize={16}
@@ -485,7 +485,7 @@ function BasicEventNode({ label, width, height }: Readonly<BasicEvent>) {
         textVerticalAnchor="middle"
       >
         {label}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -503,7 +503,7 @@ function ExternalEventNode({ label, width, height }: Readonly<ExternalEvent>) {
         strokeWidth={2}
       />
       {/* Label */}
-      <SvgText
+      <SVGText
         width={width - 20}
         height={height - 20}
         fontSize={16}
@@ -516,7 +516,7 @@ function ExternalEventNode({ label, width, height }: Readonly<ExternalEvent>) {
         textVerticalAnchor="middle"
       >
         {label}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -537,7 +537,7 @@ function ConditioningEventNode({ label, width, height }: Readonly<ConditioningEv
         strokeWidth={2}
       />
       {/* Label */}
-      <SvgText
+      <SVGText
         width={width - 20}
         height={height - 20}
         fontSize={16}
@@ -550,7 +550,7 @@ function ConditioningEventNode({ label, width, height }: Readonly<ConditioningEv
         textVerticalAnchor="middle"
       >
         {label}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -754,7 +754,7 @@ function Main() {
     [handleExpand]
   );
 
-  useElementsMeasuredEffect(paperId, handleElementsMeasured);
+  useNodesMeasuredEffect(paperId, handleElementsMeasured);
 
   return (
     <Paper

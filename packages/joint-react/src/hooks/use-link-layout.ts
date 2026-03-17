@@ -1,8 +1,8 @@
 import { useContext } from 'react';
-import { useGraphStore } from './use-graph-store';
 import { usePaperStore } from './use-paper';
-import { useStore } from './use-stores';
+import { useLinksLayout } from './use-stores';
 import type { LinkLayout } from '../store/graph-store';
+import { isStrictEqual } from '../utils/selector-utils';
 
 const IS_EQUAL = (a: LinkLayout | undefined, b: LinkLayout | undefined): boolean => {
   if (a === b) return true;
@@ -64,7 +64,6 @@ export function useLinkLayout<S>(
   isEqual?: (a: S, b: S) => boolean
 ): LinkLayout | S | undefined {
   const contextId = useContext(CellIdContext);
-  const { layoutState } = useGraphStore();
   const { paperId } = usePaperStore();
 
   const isFirstArgumentSelector = typeof idOrSelector === 'function';
@@ -75,28 +74,33 @@ export function useLinkLayout<S>(
 
   if (isFirstArgumentSelector) {
     actualSelector = idOrSelector;
-    actualIsEqual =
-      (selectorOrIsEqual as ((a: S, b: S) => boolean) | undefined) ??
-      (IS_EQUAL as (a: S, b: S) => boolean);
+    // When user provides a custom selector, use their isEqual or isStrictEqual (not IS_EQUAL).
+    actualIsEqual = selectorOrIsEqual as ((a: S, b: S) => boolean) | undefined;
   } else {
     actualSelector = selectorOrIsEqual as ((layout: LinkLayout | undefined) => S) | undefined;
-    actualIsEqual = isEqual ?? (IS_EQUAL as (a: S, b: S) => boolean);
+    actualIsEqual = isEqual;
   }
+
+  // Default: IS_EQUAL when no selector (comparing full layout objects),
+  // isStrictEqual when selector is provided (comparing arbitrary return values).
+  const defaultIsEqual = actualSelector
+    ? (isStrictEqual as (a: S, b: S) => boolean)
+    : (IS_EQUAL as (a: S, b: S) => boolean);
+  const resolvedIsEqual = actualIsEqual ?? defaultIsEqual;
 
   if (!actualId) {
     throw new Error('useLinkLayout must be used inside Paper renderLink or provide an id');
   }
 
-  return useStore(
-    layoutState,
+  return useLinksLayout(
     (snapshot) => {
-      const paperLinkLayouts = snapshot.links[paperId];
+      const paperLinkLayouts = snapshot[paperId];
       const layout = paperLinkLayouts?.[actualId];
       if (actualSelector) {
         return actualSelector(layout);
       }
       return layout as S;
     },
-    actualIsEqual
+    resolvedIsEqual
   );
 }

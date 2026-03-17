@@ -3,7 +3,7 @@
 
 import { type dia, g, highlighters, V } from '@joint/core';
 import type { FlatElementData } from '@joint/react';
-import { GraphProvider, Paper, SvgText, useGraph, useElementsMeasuredEffect } from '@joint/react';
+import { GraphProvider, Paper, SVGText, useGraph, useNodesMeasuredEffect } from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 
@@ -67,7 +67,7 @@ function RectangleShape({ width, height, label }: Readonly<ShapeElement>) {
   return (
     <>
       <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} />
-      <SvgText
+      <SVGText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -77,7 +77,7 @@ function RectangleShape({ width, height, label }: Readonly<ShapeElement>) {
         fontWeight="bold"
       >
         {label}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -93,7 +93,7 @@ function CircleShape({ width, height, label }: Readonly<ShapeElement>) {
         stroke={PRIMARY}
         strokeWidth={2}
       />
-      <SvgText
+      <SVGText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -103,7 +103,7 @@ function CircleShape({ width, height, label }: Readonly<ShapeElement>) {
         fontWeight="bold"
       >
         {label}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -120,7 +120,7 @@ function EllipseShape({ width, height, label }: Readonly<ShapeElement>) {
         stroke={PRIMARY}
         strokeWidth={2}
       />
-      <SvgText
+      <SVGText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -130,7 +130,7 @@ function EllipseShape({ width, height, label }: Readonly<ShapeElement>) {
         fontWeight="bold"
       >
         {label}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -144,7 +144,7 @@ function PathShape({ width, height, label }: Readonly<ShapeElement>) {
         stroke={PRIMARY}
         strokeWidth={2}
       />
-      <SvgText
+      <SVGText
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
@@ -154,7 +154,7 @@ function PathShape({ width, height, label }: Readonly<ShapeElement>) {
         fontWeight="bold"
       >
         {label}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -231,7 +231,7 @@ function Main() {
 
   useInterval(setRandomStatuses);
 
-  useElementsMeasuredEffect(paperId, ({ isInitial, paper }) => {
+  useNodesMeasuredEffect(paperId, ({ isInitial, paper }) => {
     if (!isInitial) return;
     for (const element of graph.getElements()) {
       StatusList.add(element.findView(paper), 'root', 'status', {

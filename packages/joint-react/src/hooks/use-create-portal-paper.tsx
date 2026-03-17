@@ -20,7 +20,7 @@ import { useGraphStore } from './use-graph-store';
 import { usePaperStore } from './use-paper';
 import { useElements } from './use-elements';
 import { useLinks } from './use-links';
-import { useInternalData, useLayouts } from './use-stores';
+import { useInternalData, useElementsLayout } from './use-stores';
 import type { PaperStore } from '../store';
 import type { FlatLinkData } from '../types/link-types';
 import type { PortalPaper } from '../models/portal-paper';
@@ -144,8 +144,8 @@ export function useCreatePortalPaper(
   const elementsState = useElements();
   const linksState = useLinks();
   const graphStore = useGraphStore();
-  const areElementsMeasured = useLayouts(selectAreElementsMeasured);
-  const sizes = useLayouts(selectElementSizes);
+  const areElementsMeasured = useElementsLayout(selectAreElementsMeasured);
+  const sizes = useElementsLayout(selectElementSizes);
   const resetVersion = useInternalData(selectResetVersion);
   const previousResetVersionRef = useRef(-1);
 

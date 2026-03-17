@@ -7,7 +7,7 @@ import {
   useElements,
   type FlatElementData,
   type FlatLinkData,
-  SvgText,
+  SVGText,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -199,7 +199,7 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
         onClick={handleTogglePower}
       />
       {/* Power readout */}
-      <SvgText
+      <SVGText
         x={width - 18}
         y={height - 5}
         fill="white"
@@ -209,9 +209,9 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
         textVerticalAnchor="bottom"
       >
         {powerText}
-      </SvgText>
+      </SVGText>
       {/* Label */}
-      <SvgText
+      <SVGText
         x={width / 2}
         y={height + 10}
         fill={LIGHT}
@@ -221,7 +221,7 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
         textVerticalAnchor="top"
       >
         Generator
-      </SvgText>
+      </SVGText>
     </>
   );
 }
@@ -275,7 +275,7 @@ function BulbNode({ width, height, watts }: Readonly<BulbElement>) {
       {/* Cap 2 */}
       <rect x={width / 2 - 5} y={height + 5} width={10} height={3} fill={BULB_CAP} />
       {/* Wattage label */}
-      <SvgText
+      <SVGText
         x={width / 2}
         y={height / 2}
         fill={GENERATOR_DARK}
@@ -285,7 +285,7 @@ function BulbNode({ width, height, watts }: Readonly<BulbElement>) {
         textVerticalAnchor="middle"
       >
         {`${watts} W`}
-      </SvgText>
+      </SVGText>
     </>
   );
 }

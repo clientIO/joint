@@ -3,11 +3,11 @@
 
 // Components
 export { GraphProvider } from './components/graph/graph-provider';
-export type { GraphProps } from './components/graph/graph-provider';
+export type { GraphProviderProps as GraphProps } from './components/graph/graph-provider';
 export { Paper } from './components/paper/paper';
 export type { PaperProps, RenderElement, RenderLink } from './components/paper/paper.types';
-export { SvgText } from './components/svg-text/svg-text';
-export type { SvgTextProps } from './components/svg-text/svg-text';
+export { SVGText } from './components/svg-text/svg-text';
+export type { SVGTextProps } from './components/svg-text/svg-text';
 
 // Hooks — Get Data
 export { useGraph } from './hooks/use-graph';
@@ -19,13 +19,13 @@ export { useLink } from './hooks/use-link';
 
 // Hooks — Layout & Measurement
 export { useElementLayout } from './hooks/use-element-layout';
-export type { ElementLayout } from './store/graph-store';
+export type { ElementLayout, ElementsLayoutSnapshot, LinksLayoutSnapshot } from './store/graph-store';
 export { useLinkLayout } from './hooks/use-link-layout';
 export type { LinkLayout } from './hooks/use-link-layout';
 export { useMeasureNode } from './hooks/use-measure-node';
 export type { OnTransformElement, TransformOptions } from './store/create-elements-size-observer';
-export { useLayouts } from './hooks/use-stores';
-export { useElementsMeasuredEffect } from './hooks/use-elements-measured-effect';
+export { useElementsLayout, useLinksLayout } from './hooks/use-stores';
+export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
 // Hooks — Events
 export { usePaperEvents } from './hooks/use-paper-events';
@@ -42,7 +42,7 @@ export { jsx } from './utils/joint-jsx/jsx-to-markup';
 // Types
 export type { FlatElementData, FlatElementPort } from './types/element-types';
 export type { FlatLinkData, FlatLinkEnd, FlatLinkLabel } from './types/link-types';
-export type { CellId as DataId, CellId } from './types/cell-id';
+export type { CellId } from './types/cell-id';
 export type {
   PaperEventMap,
   PaperEventHandlers,
@@ -70,7 +70,20 @@ export { PortalPaper } from './models/portal-paper';
 export { selectAreElementsMeasured, selectElementSizes } from './selectors';
 
 // Data mapping (public defaults)
-export { defaultMapDataToElementAttributes, defaultMapElementAttributesToData } from './state/data-mapping/element-mapper';
-export { defaultMapDataToLinkAttributes, defaultMapLinkAttributesToData } from './state/data-mapping/link-mapper';
-export type { ElementToGraphOptions, GraphToElementOptions } from './state/data-mapping/element-mapper';
-export type { LinkToGraphOptions, GraphToLinkOptions, ToLinkAttributesOptions } from './state/data-mapping/link-mapper';
+export {
+  defaultMapDataToElementAttributes,
+  defaultMapElementAttributesToData,
+} from './state/data-mapping/element-mapper';
+export {
+  defaultMapDataToLinkAttributes,
+  defaultMapLinkAttributesToData,
+} from './state/data-mapping/link-mapper';
+export type {
+  ElementToGraphOptions,
+  GraphToElementOptions,
+} from './state/data-mapping/element-mapper';
+export type {
+  LinkToGraphOptions,
+  GraphToLinkOptions,
+  ToLinkAttributesOptions,
+} from './state/data-mapping/link-mapper';

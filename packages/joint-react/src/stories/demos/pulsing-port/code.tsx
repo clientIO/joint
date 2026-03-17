@@ -8,7 +8,7 @@ import {
   GraphProvider,
   jsx,
   Paper,
-  SvgText,
+  SVGText,
   usePaperEvents,
   useLinks,
   useMeasureNode,
@@ -108,9 +108,9 @@ function NodeElement(_props: Readonly<FlatElementData>) {
         rx={NODE_BORDER_RADIUS}
         ry={NODE_BORDER_RADIUS}
       />
-      <SvgText fill="white" x={width / 2} y={height / 2 + 4} textAnchor="middle" fontSize={16}>
+      <SVGText fill="white" x={width / 2} y={height / 2 + 4} textAnchor="middle" fontSize={16}>
         {id}
-      </SvgText>
+      </SVGText>
     </>
   );
 }
