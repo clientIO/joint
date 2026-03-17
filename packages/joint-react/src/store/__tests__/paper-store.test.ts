@@ -186,25 +186,6 @@ describe('PaperStore', () => {
     });
   });
 
-  describe('getLinkLabelId', () => {
-    it('should generate unique link label ID from link ID and index', () => {
-      const graph = new dia.Graph();
-      const graphStore = new GraphStore({ graph });
-
-      const paperStore = new PaperStore({
-        graphStore,
-        paperOptions: {},
-        id: 'test-paper',
-      });
-
-      const labelId = paperStore.getLinkLabelId('link-1', 0);
-      expect(labelId).toBe('link-1-label-0');
-
-      const labelId2 = paperStore.getLinkLabelId('link-1', 2);
-      expect(labelId2).toBe('link-1-label-2');
-    });
-  });
-
   describe('measureNode', () => {
     it('should return model geometry for root element node', () => {
       const graph = new dia.Graph();

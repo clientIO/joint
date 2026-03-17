@@ -1,10 +1,9 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import { dia, shapes } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
 import type { FlatElementData } from '../types/element-types';
 import type { AddPaperOptions, PaperStoreSnapshot } from './paper-store';
-import { PaperStore, createPaperStoreSnapshot } from './paper-store';
+import { PaperStore, DEFAULT_PAPER_VERSION } from './paper-store';
 import {
   createElementsSizeObserver,
   type GraphStoreObserver,
@@ -12,7 +11,10 @@ import {
 } from './create-elements-size-observer';
 import { PortalElement } from '../models/portal-element';
 import { PortalLink } from '../models/portal-link';
-import type { ElementToGraphOptions, GraphToElementOptions } from '../state/data-mapping/element-mapper';
+import type {
+  ElementToGraphOptions,
+  GraphToElementOptions,
+} from '../state/data-mapping/element-mapper';
 import type { LinkToGraphOptions, GraphToLinkOptions } from '../state/data-mapping/link-mapper';
 import {
   defaultMapDataToElementAttributes,
@@ -319,12 +321,7 @@ export class GraphStore {
     }
     paperStore.features[feature.id] = feature;
     // bump version to trigger re-render of paper content with new feature
-    this.updatePaperSnapshot(paperId, (previous) => {
-      if (!previous) {
-        throw new Error(`Paper snapshot with id ${paperId} not found`);
-      }
-      return { ...previous, version: previous.version + 1 };
-    });
+    this.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
   }
 
   public removePaperFeature(paperId: string, featureId: string) {
@@ -340,64 +337,11 @@ export class GraphStore {
     feature.clean?.();
     Reflect.deleteProperty(paperStore.features, featureId);
     // bump version to trigger re-render of paper content without removed feature
-    this.updatePaperSnapshot(paperId, (previous) => {
-      if (!previous) {
-        throw new Error(`Paper snapshot with id ${paperId} not found`);
-      }
-      return { ...previous, version: previous.version + 1 };
-    });
+    this.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
   }
 
   public setPaperViews(paperId: string, changes: Map<string, IncrementalChange<dia.Cell>>) {
-    this.internalState.setState((previous) => {
-      const currentPaper = previous.papers[paperId];
-      if (!currentPaper) {
-        return previous;
-      }
-
-      const basePaper = currentPaper;
-      let nextElementViewIds = { ...basePaper.elementViewIds };
-      let nextLinkViewIds = { ...basePaper.linkViewIds };
-      for (const [cellId, change] of changes) {
-        switch (change.type) {
-          case 'add':
-          case 'change': {
-            {
-              if (change.data.isElement()) {
-                nextElementViewIds[cellId] = true;
-              } else {
-                nextLinkViewIds[cellId] = true;
-              }
-            }
-            break;
-          }
-          case 'remove': {
-            Reflect.deleteProperty(nextElementViewIds, cellId);
-            Reflect.deleteProperty(nextLinkViewIds, cellId);
-            break;
-          }
-          case 'reset': {
-            nextElementViewIds = {};
-            nextLinkViewIds = {};
-            for (const item of change.data) {
-              if (item.isElement()) {
-                Reflect.deleteProperty(nextElementViewIds, String(item.id));
-              } else {
-                Reflect.deleteProperty(nextLinkViewIds, String(item.id));
-              }
-            }
-            break;
-          }
-        }
-      }
-
-      const nextPaper: PaperStoreSnapshot = {
-        ...basePaper,
-        elementViewIds: nextElementViewIds,
-        linkViewIds: nextLinkViewIds,
-      };
-      return { ...previous, papers: { ...previous.papers, [paperId]: nextPaper } };
-    });
+    this.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
     this.graph.trigger(LAYOUT_UPDATE_EVENT, { changes });
   }
 
@@ -421,7 +365,7 @@ export class GraphStore {
       if (previous.papers[id]) {
         return previous;
       }
-      return { ...previous, papers: { ...previous.papers, [id]: createPaperStoreSnapshot() } };
+      return { ...previous, papers: { ...previous.papers, [id]: DEFAULT_PAPER_VERSION } };
     });
     return { paperStore, remove: () => this.removePaper(id) };
   };

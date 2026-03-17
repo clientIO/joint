@@ -725,7 +725,7 @@ describe('Paper Component', () => {
       useEffect(() => {
         setTimeout(() => {
           const element = graph.getCell('1');
-          element.set('position', { x: 100, y: 100 });
+          element?.set('position', { x: 100, y: 100 });
         }, 20);
       }, [graph]);
       return null;

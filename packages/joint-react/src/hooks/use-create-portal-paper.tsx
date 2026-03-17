@@ -1,4 +1,3 @@
- 
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
 import { dia } from '@joint/core';
@@ -39,8 +38,7 @@ import {
   selectAreElementsMeasured,
   selectElementSizes,
   selectResetVersion,
-  createSelectPaperElementViewIds,
-  createSelectPaperLinkViewIds,
+  createSelectPaperVersion,
 } from '../selectors';
 
 type PortalLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
@@ -171,12 +169,11 @@ export function useCreatePortalPaper(
     [shouldDefer, deferredLinksState, linkIds]
   );
 
-  const selectPaperElementViewIds = useMemo(() => createSelectPaperElementViewIds(id), [id]);
-  const selectPaperLinkViewIds = useMemo(() => createSelectPaperLinkViewIds(id), [id]);
+  const selectPaperVersion = useMemo(() => createSelectPaperVersion(id), [id]);
 
-  const paperElementViewIds = useInternalData(selectPaperElementViewIds);
-  const paperLinkViewIds = useInternalData(selectPaperLinkViewIds);
-
+  // Subscribe to paper version to trigger re-renders on view mount/unmount changes
+  const version = useInternalData(selectPaperVersion);
+  console.log('Paper re-render');
   const { addPaper, graph, graphState } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
@@ -318,10 +315,6 @@ export function useCreatePortalPaper(
         return null;
       }
 
-      if (!paperElementViewIds[elementId]) {
-        return null;
-      }
-
       const elementView = paperStore?.getElementView(elementId);
       if (!elementView?.paper) {
         return null;
@@ -332,7 +325,6 @@ export function useCreatePortalPaper(
       if (!portalNode?.isConnected) {
         return null;
       }
-
       return (
         <CellIdContext.Provider key={elementId} value={elementId}>
           {useHTMLOverlay && HTMLRendererContainer ? (
@@ -364,13 +356,14 @@ export function useCreatePortalPaper(
         </CellIdContext.Provider>
       );
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    version,
     HTMLRendererContainer,
     areElementsMeasured,
     deferredElementIds,
     deferredElementsState,
     hasRenderElement,
-    paperElementViewIds,
     paperStore,
     renderElement,
     useHTMLOverlay,
@@ -384,10 +377,6 @@ export function useCreatePortalPaper(
     return deferredLinkIds.map((linkId) => {
       const linkState = deferredLinksState[linkId];
       if (!linkState) {
-        return null;
-      }
-
-      if (!paperLinkViewIds[linkId]) {
         return null;
       }
 
@@ -407,14 +396,8 @@ export function useCreatePortalPaper(
         </CellIdContext.Provider>
       );
     });
-  }, [
-    deferredLinkIds,
-    deferredLinksState,
-    hasRenderLink,
-    paperLinkViewIds,
-    paperStore,
-    renderLink,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deferredLinkIds, version, deferredLinksState, hasRenderLink, paperStore, renderLink]);
 
   const content = useMemo(
     () => (
@@ -426,7 +409,8 @@ export function useCreatePortalPaper(
         {renderedElements}
       </>
     ),
-    [hasRenderElement, renderedElements, renderedLinks, useHTMLOverlay]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hasRenderElement, version, renderedElements, renderedLinks, useHTMLOverlay]
   );
 
   return {

@@ -77,8 +77,6 @@ export { PORTAL_LINK_TYPE } from './models/portal-link';
 // Internal Selectors
 export {
   selectResetVersion,
-  createSelectPaperElementViewIds,
-  createSelectPaperLinkViewIds,
   createSelectPaperVersion,
 } from './selectors';
 

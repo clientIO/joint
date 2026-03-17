@@ -43,11 +43,7 @@ describe('PortalPaper', () => {
         ...previous,
         papers: {
           ...previous.papers,
-          [TEST_PAPER_ID]: {
-            elementViewIds: {},
-            linkViewIds: {},
-            version: 0,
-          },
+          [TEST_PAPER_ID]: 1,
         },
       };
     });
@@ -292,11 +288,13 @@ describe('PortalPaper', () => {
       expect(paper.viewChanges.get(toCellId(element.id))?.type).toBe('remove');
     });
 
-    it('should update internal state after microtask flush', async () => {
+    it('should bump version after microtask flush', async () => {
       paper = createPaper({
         width: 100,
         height: 100,
       });
+
+      const versionBefore = graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID];
 
       const element = new shapes.standard.Rectangle({
         position: { x: 0, y: 0 },
@@ -307,22 +305,16 @@ describe('PortalPaper', () => {
       await flushMicrotasks();
       await flushMicrotasks();
 
-      expect(
-        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.elementViewIds[
-          toCellId(element.id)
-        ]
-      ).toBe(true);
+      const versionAfterAdd = graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID];
+      expect(versionAfterAdd).toBeGreaterThan(versionBefore ?? 0);
 
       const view = findViewOrThrow(element);
       paper._hideCellView(view);
       await flushMicrotasks();
       await flushMicrotasks();
 
-      expect(
-        graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID]?.elementViewIds[
-          toCellId(element.id)
-        ]
-      ).toBeUndefined();
+      const versionAfterHide = graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID];
+      expect(versionAfterHide).toBeGreaterThan(versionAfterAdd ?? 0);
     });
 
     it('should remove link from pendingLinks when hidden', () => {
