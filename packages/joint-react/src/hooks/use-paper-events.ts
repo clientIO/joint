@@ -101,8 +101,8 @@ export function usePaperEvents<T = Record<AnyString, unknown>>(
   handlers: HandlersOrFactory<T>,
   dependencies: DependencyList = EMPTY_DEPENDENCIES
 ): void {
-  const extractedPaper = resolvePaperId(paper);
-  const paperStore = usePaperStore(extractedPaper ?? { isNullable: true });
+  const paperId = resolvePaperId(paper);
+  const paperStore = usePaperStore(paperId ?? { isNullable: true });
   const graphStore = useGraphStore();
 
   useLayoutEffect(() => {

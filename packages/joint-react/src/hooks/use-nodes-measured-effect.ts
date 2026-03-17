@@ -80,8 +80,8 @@ export function useNodesMeasuredEffect(
     ? (dependenciesOrOptions as UseOnElementsMeasuredOptions | undefined)
     : optionsArgument;
 
-  const extractedPaper = resolvePaperId(target);
-  const paperStore = usePaperStore(extractedPaper ?? { isNullable: true });
+  const paperId = resolvePaperId(target);
+  const paperStore = usePaperStore(paperId ?? { isNullable: true });
 
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
