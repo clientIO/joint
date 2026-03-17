@@ -4,15 +4,15 @@
 
 // Internal Hooks
 export { useGraphStore } from './hooks/use-graph-store';
-export { useStore, useData, useInternalData, useLayouts } from './hooks/use-stores';
+export { useStore, useData, useInternalData } from './hooks/use-stores';
 export { useImperativeApi } from './hooks/use-imperative-api';
 export { useElementViews } from './hooks/use-element-views';
 export type { OnPaperRenderElement } from './hooks/use-element-views';
 export { useCreatePortalPaper } from './hooks/use-create-portal-paper';
-export type { UseCreatePortalPaperOptions, UseCreatePortalPaperResult } from './hooks/use-create-portal-paper';
 export { useCreatePaperFeature } from './hooks/use-create-paper-features';
 export { useCombinedRef } from './hooks/use-combined-ref';
 export { useRefValue } from './hooks/use-ref-value';
+export { usePaperStore } from './hooks/use-paper';
 
 // Feature System
 export type {
@@ -33,10 +33,12 @@ export type {
   GraphStoreInternalSnapshot,
   GraphStoreLayoutSnapshot,
   GraphStoreOptions,
-  ElementLayout,
 } from './store/graph-store';
 export { PaperStore } from './store/paper-store';
 export type { PaperStoreSnapshot, PaperStoreOptions, AddPaperOptions } from './store/paper-store';
+
+// Graph State
+export type { GraphState } from './state/graph-state';
 
 // Contexts
 export { GraphStoreContext, PaperStoreContext, CellIdContext, PaperFeaturesContext } from './context';
@@ -65,11 +67,11 @@ export { PaperHTMLContainer } from './components/paper/render-element/paper-html
 export { SVGElementItem, HTMLElementItem } from './components/paper/render-element/paper-element-item';
 
 // Utility Functions
-export { pickValues } from './utils/object-utilities';
+export { assignOptions, pickValues } from './utils/object-utilities';
 export { getPaperFromReference, getPaperIdFromReference } from './types';
 
 // Constants
-export { PORTAL_ELEMENT_TYPE } from './models/portal-element';
+export { PORTAL_ELEMENT_TYPE, PORTAL_SELECTOR } from './models/portal-element';
 export { PORTAL_LINK_TYPE } from './models/portal-link';
 
 // Internal Selectors
@@ -80,11 +82,10 @@ export {
   createSelectPaperVersion,
 } from './selectors';
 
-// Internal Utility Types
+// Internal Types (used by react-plus)
 export type { AnyString, Nullable, Mutable, RemoveIndexSignature, OmitWithoutIndexSignature, PaperReference } from './types';
 export type { PortalSelector } from './models/portal-paper.types';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
-export type { PaperProps as ReactPaperOptions } from './components/paper/paper.types';
 
 // Event internals
 export { buildEventContext, subscribeToPaperEvents } from './hooks/use-paper-events';
