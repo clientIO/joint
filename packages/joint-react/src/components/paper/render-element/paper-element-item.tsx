@@ -130,15 +130,13 @@ function HTMLElementItemComponent<Data = FlatElementData>(props: ElementItemProp
 export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
 
 /**
- * Default rectangle element renderer.
- * Renders a transparent rectangle placeholder using the node's layout data.
+ * SVG hit area for elements rendered in the HTML overlay layer.
+ * Renders a transparent rectangle matching the element's size so that
+ * pointer events (click, hover, drag) are captured by the SVG paper.
  * @group Components
- * @description
- * This component renders a transparent rectangle placeholder.
- * It uses the `useNodeLayout` hook to get the node's layout data (width and height).
- * @returns The rendered rectangle element.
+ * @internal
  */
-export function DefaultRectElement() {
+export function ElementHitArea() {
   const layout = useNodeLayout();
   const { width, height } = layout;
   return <rect width={width} height={height} fill="transparent" />;

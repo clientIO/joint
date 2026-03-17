@@ -94,7 +94,7 @@ describe('Paper link flickering prevention', () => {
   it('INVARIANT: links should not have paths before element content is rendered (SVG mode)', async () => {
     const { container } = render(
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
-        <Paper<TestElement>
+        <Paper
           renderElement={({ label }) => (
             <foreignObject width="100" height="50">
               <div className="element-content">{label}</div>
@@ -147,7 +147,7 @@ describe('Paper link flickering prevention', () => {
   it('INVARIANT: links should not have paths before element content is rendered (HTML overlay mode)', async () => {
     const { container } = render(
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
-        <Paper<TestElement>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => <div className="element-content">{label}</div>}
         />
@@ -193,7 +193,7 @@ describe('Paper link flickering prevention', () => {
 
     const { container } = render(
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
-        <Paper<TestElement>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => <div className="element-content">{label}</div>}
         />
@@ -229,7 +229,7 @@ describe('Paper link flickering prevention', () => {
   it('link paths should have correct coordinates (not at origin 0,0)', async () => {
     const { container } = render(
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
-        <Paper<TestElement>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => <div className="element-content">{label}</div>}
         />
@@ -270,7 +270,7 @@ describe('Paper link flickering prevention', () => {
   it('should maintain consistency during initial render (no state changes)', async () => {
     const { container } = render(
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
-        <Paper<TestElement>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => <div className="element-content">{label}</div>}
         />
@@ -310,7 +310,7 @@ describe('Paper link flickering prevention', () => {
 
     const { container } = render(
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
-        <Paper<TestElement>
+        <Paper
           useHTMLOverlay
           renderElement={({ label }) => <div className="element-content">{label}</div>}
         />

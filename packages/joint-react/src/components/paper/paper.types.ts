@@ -24,12 +24,13 @@ export type RenderElement<ElementData = FlatElementData> = (element: ElementData
 
 export type RenderLink<LinkData = FlatLinkData> = (link: LinkData) => ReactNode;
 
+
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<ElementData extends FlatElementData = FlatElementData, LinkData extends FlatLinkData = FlatLinkData>
+export interface PaperProps
   extends ReactPaperOptions,
     PropsWithChildren {
   /**
@@ -83,7 +84,8 @@ export interface PaperProps<ElementData extends FlatElementData = FlatElementDat
    * ```
    */
 
-  readonly renderElement?: RenderElement<ElementData>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly renderElement?: RenderElement<any>;
   /**
    * A function that renders the link.
    *
@@ -107,7 +109,8 @@ export interface PaperProps<ElementData extends FlatElementData = FlatElementDat
    * )
    * ```
    */
-  readonly renderLink?: RenderLink<LinkData>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly renderLink?: RenderLink<any>;
   /**
    * Inline styles applied to the paper host element.
    *

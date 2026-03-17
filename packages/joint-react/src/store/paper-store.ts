@@ -2,8 +2,6 @@ import { dia } from '@joint/core';
 import { isRecord } from '../utils/is';
 import type { CellId } from '../types/cell-id';
 import type { RenderElement, RenderLink } from '../components';
-import type { FlatElementData } from '../types/element-types';
-import type { FlatLinkData } from '../types/link-types';
 import type { PortalSelector } from '../models/react-paper.types';
 import type { GraphStore } from './graph-store';
 import { ReactPaper } from '../models/react-paper';
@@ -48,9 +46,11 @@ export interface AddPaperOptions {
   /** Optional initial scale for the paper */
   readonly scale?: number;
   /** Optional custom renderer for elements */
-  readonly renderElement?: RenderElement<FlatElementData>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly renderElement?: RenderElement<any>;
   /** Optional custom renderer for links */
-  readonly renderLink?: RenderLink<FlatLinkData>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly renderLink?: RenderLink<any>;
 
   /** Optional selector for locating React portal targets within cell views */
   readonly portalSelector?: PortalSelector;
@@ -106,9 +106,11 @@ export class PaperStore {
   /** Unique identifier for this paper instance */
   public paperId: string;
   /** Optional custom element renderer */
-  public renderElement?: RenderElement<FlatElementData>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public renderElement?: RenderElement<any>;
   /** Optional custom link renderer */
-  public renderLink?: RenderLink<FlatLinkData>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public renderLink?: RenderLink<any>;
 
   public features: Record<string, Feature> = {};
 
