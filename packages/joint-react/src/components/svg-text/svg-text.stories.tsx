@@ -1,14 +1,14 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
-import { SvgText } from './svg-text';
+import { SVGText } from './svg-text';
 import { PRIMARY } from 'storybook-config/theme';
 import { useMeasureNode } from '../../hooks/use-measure-node';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../../stories/utils/make-story';
 
-const API_URL = getAPILink('SvgText', 'variables');
-export type Story = StoryObj<typeof SvgText>;
+const API_URL = getAPILink('SVGText', 'variables');
+export type Story = StoryObj<typeof SVGText>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SVGDecorator(Story: any) {
@@ -33,15 +33,15 @@ function SVGDecorator(Story: any) {
   );
 }
 
-const meta: Meta<typeof SvgText> = {
-  title: 'Components/SvgText',
-  component: SvgText,
+const meta: Meta<typeof SVGText> = {
+  title: 'Components/SVGText',
+  component: SVGText,
   decorators: [SVGDecorator, SimpleRenderItemDecorator],
   tags: ['component'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
     description: `
-The **SvgText** component renders SVG text with automatic sizing and wrapping capabilities. It's designed to work seamlessly with \`useMeasureNode\` hook for dynamic text content.
+The **SVGText** component renders SVG text with automatic sizing and wrapping capabilities. It's designed to work seamlessly with \`useMeasureNode\` hook for dynamic text content.
 
 **Key Features:**
 - Renders SVG text elements
@@ -51,7 +51,7 @@ The **SvgText** component renders SVG text with automatic sizing and wrapping ca
     `,
     usage: `
 \`\`\`tsx
-import { SvgText, useMeasureNode } from '@joint/react';
+import { SVGText, useMeasureNode } from '@joint/react';
 import { useElement } from '@joint/react';
 import { useRef } from 'react';
 
@@ -63,9 +63,9 @@ function RenderElement() {
     <>
       <rect width={width} height={height} fill="blue" />
       <g ref={gRef} transform="translate(10, 10)">
-        <SvgText fill="white" width={width - 20} textWrap>
+        <SVGText fill="white" width={width - 20} textWrap>
           Your text content here
-        </SvgText>
+        </SVGText>
       </g>
     </>
   );
@@ -80,16 +80,16 @@ function RenderElement() {
 - **fontSize**: Text size (default: 14)
 - And other standard SVG text properties
     `,
-    code: `import { SvgText, useMeasureNode } from '@joint/react'
+    code: `import { SVGText, useMeasureNode } from '@joint/react'
 import { useRef } from 'react';
 
 const gRef = useRef<SVGGElement>(null);
 useMeasureNode(gRef);
 
 <g ref={gRef}>
-  <SvgText fill="white" width={100} textWrap>
+  <SVGText fill="white" width={100} textWrap>
     Hello world
-  </SvgText>
+  </SVGText>
 </g>
     `,
   }),

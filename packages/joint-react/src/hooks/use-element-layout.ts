@@ -1,9 +1,9 @@
 import { useContext } from 'react';
-import { useGraphStore } from './use-graph-store';
-import { useStore } from './use-stores';
+import { useElementsLayout } from './use-stores';
 import type { ElementLayout } from '../store/graph-store';
 import type { CellId } from '../types/cell-id';
 import { CellIdContext } from '../context';
+import { isStrictEqual } from '../utils/selector-utils';
 
 const IS_EQUAL = (a: ElementLayout | undefined, b: ElementLayout | undefined): boolean => {
   if (a === b) return true;
@@ -60,7 +60,6 @@ export function useElementLayout<S>(
   isEqual?: (a: S, b: S) => boolean
 ): ElementLayout | S | undefined {
   const contextId = useContext(CellIdContext);
-  const { layoutState } = useGraphStore();
 
   const isFirstArgumentSelector = typeof idOrSelector === 'function';
   const actualId = isFirstArgumentSelector ? contextId : (idOrSelector ?? contextId);
@@ -70,24 +69,31 @@ export function useElementLayout<S>(
 
   if (isFirstArgumentSelector) {
     actualSelector = idOrSelector;
-    actualIsEqual =
-      (selectorOrIsEqual as ((a: S, b: S) => boolean) | undefined) ??
-      (IS_EQUAL as (a: S, b: S) => boolean);
+    // When user provides a custom selector, use their isEqual or Object.is (not IS_EQUAL).
+    actualIsEqual = selectorOrIsEqual as ((a: S, b: S) => boolean) | undefined;
   } else {
     actualSelector = selectorOrIsEqual as ((layout: ElementLayout | undefined) => S) | undefined;
-    actualIsEqual = isEqual ?? (IS_EQUAL as (a: S, b: S) => boolean);
+    // When no selector: use IS_EQUAL for structural comparison of the full layout object.
+    // When selector provided: use their isEqual or fall through to Object.is.
+    actualIsEqual = isEqual;
   }
+
+  // Default: IS_EQUAL when no selector (comparing full layout objects),
+  // isStrictEqual when selector is provided (comparing arbitrary return values).
+  const defaultIsEqual = actualSelector
+    ? (isStrictEqual as (a: S, b: S) => boolean)
+    : (IS_EQUAL as (a: S, b: S) => boolean);
+  const resolvedIsEqual = actualIsEqual ?? defaultIsEqual;
 
   if (!actualId) {
     throw new Error('useElementLayout must be used inside Paper renderElement');
   }
 
-  return useStore(
-    layoutState,
+  return useElementsLayout(
     (snapshot) => {
-      const angle = snapshot.elements.angles[actualId];
-      const size = snapshot.elements.sizes[actualId];
-      const position = snapshot.elements.positions[actualId];
+      const angle = snapshot.angles[actualId];
+      const size = snapshot.sizes[actualId];
+      const position = snapshot.positions[actualId];
       if (!size || !position) {
         return undefined as S;
       }
@@ -108,6 +114,6 @@ export function useElementLayout<S>(
         angle: angle ?? 0,
       } as S;
     },
-    actualIsEqual
+    resolvedIsEqual
   );
 }

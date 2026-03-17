@@ -40,7 +40,7 @@ function getBreakTextWidth({ width, graph, cellId }: BreakTextWidthOptions) {
 
   const element = graph.getCell(cellId);
   if (!element.isElement()) {
-    throw new TypeError('SvgText must be used with useMeasureNode hook to measure the element size');
+    throw new TypeError('SVGText must be used with useMeasureNode hook to measure the element size');
   }
 
   return element.size().width ?? 0;
@@ -104,7 +104,7 @@ function getTextWrapStyles({
   return textWrapStyles;
 }
 
-export interface SvgTextProps
+export interface SVGTextProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
   readonly eol?: string;
@@ -114,7 +114,7 @@ export interface SvgTextProps
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component(props: SvgTextProps, ref: React.ForwardedRef<SVGTextElement>) {
+function Component(props: SVGTextProps, ref: React.ForwardedRef<SVGTextElement>) {
   const {
     children,
     eol,
@@ -145,7 +145,7 @@ function Component(props: SvgTextProps, ref: React.ForwardedRef<SVGTextElement>)
     }
 
     if (typeof children !== 'string') {
-      throw new TypeError('SvgText children must be a string');
+      throw new TypeError('SVGText children must be a string');
     }
 
     let text = children;
@@ -210,7 +210,7 @@ function Component(props: SvgTextProps, ref: React.ForwardedRef<SVGTextElement>)
 }
 
 /**
- * SvgText component is a wrapper around the SVG text element that provides additional functionality for rendering text.
+ * SVGText component is a wrapper around the SVG text element that provides additional functionality for rendering text.
  * It uses the Vectorizer library to handle text rendering and annotations.
  * It allows you to specify various text options such as end-of-line characters, vertical alignment, line height, and more.
  * @see Vectorizer
@@ -220,37 +220,37 @@ function Component(props: SvgTextProps, ref: React.ForwardedRef<SVGTextElement>)
  * @example
  * Basic usage:
  * ```tsx
- * import { SvgText } from '@joint/react';
+ * import { SVGText } from '@joint/react';
  *
  * function RenderElement() {
  *   return (
- *     <SvgText x={10} y={20}>
+ *     <SVGText x={10} y={20}>
  *       Hello World
- *     </SvgText>
+ *     </SVGText>
  *   );
  * }
  * ```
  * @example
  * With text wrapping:
  * ```tsx
- * import { SvgText } from '@joint/react';
+ * import { SVGText } from '@joint/react';
  *
  * function RenderElement() {
  *   return (
- *     <SvgText x={10} y={20} width={100} textWrap>
+ *     <SVGText x={10} y={20} width={100} textWrap>
  *       This is a long text that will wrap to multiple lines
- *     </SvgText>
+ *     </SVGText>
  *   );
  * }
  * ```
  * @example
  * With custom text options:
  * ```tsx
- * import { SvgText } from '@joint/react';
+ * import { SVGText } from '@joint/react';
  *
  * function RenderElement() {
  *   return (
- *     <SvgText
+ *     <SVGText
  *       x={10}
  *       y={20}
  *       textVerticalAnchor="middle"
@@ -258,9 +258,9 @@ function Component(props: SvgTextProps, ref: React.ForwardedRef<SVGTextElement>)
  *       eol="\n"
  *     >
  *       Line 1\nLine 2
- *     </SvgText>
+ *     </SVGText>
  *   );
  * }
  * ```
  */
-export const SvgText = forwardRef(Component);
+export const SVGText = forwardRef(Component);

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { GraphProvider, Paper, type GraphProps, type PaperProps } from '../components';
+import { GraphProvider, Paper, type GraphProviderProps, type PaperProps } from '../components';
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../store/graph-store';
 
@@ -19,7 +19,7 @@ export function getTestGraph() {
  * @internal
  * @group utils
  */
-export function graphProviderWrapper(props: GraphProps): React.JSXElementConstructor<{
+export function graphProviderWrapper(props: GraphProviderProps): React.JSXElementConstructor<{
   children: React.ReactNode;
 }> {
   return function GraphProviderWrapper({ children }) {
@@ -29,7 +29,7 @@ export function graphProviderWrapper(props: GraphProps): React.JSXElementConstru
 
 interface Options {
   paperProps?: PaperProps;
-  graphProviderProps?: GraphProps;
+  graphProviderProps?: GraphProviderProps;
 }
 /**
  * Testing helper to render a `Paper` inside a `GraphProvider` provider.

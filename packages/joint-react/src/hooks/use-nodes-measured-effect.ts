@@ -30,14 +30,14 @@ type Callback = (event: ElementsMeasuredEvent) => void;
  * @example
  * ```tsx
  * // React to every measurement (inside a <Paper> component)
- * useElementsMeasuredEffect(({ isInitial }) => {
+ * useNodesMeasuredEffect(({ isInitial }) => {
  *   if (isInitial) runLayout(graph);
  * });
  * ```
  * @example
  * ```tsx
  * // Fire once, then stop listening
- * useElementsMeasuredEffect(() => {
+ * useNodesMeasuredEffect(() => {
  *   paper.transformToFitContent({ padding: 20 });
  * }, [], { once: true });
  * ```
@@ -45,23 +45,23 @@ type Callback = (event: ElementsMeasuredEvent) => void;
  * ```tsx
  * // Using a paper ref
  * const paperRef = useRef<dia.Paper>(null);
- * useElementsMeasuredEffect(paperRef, () => {
+ * useNodesMeasuredEffect(paperRef, () => {
  *   paperRef.current?.transformToFitContent({ padding: 20 });
  * });
  * ```
  */
-export function useElementsMeasuredEffect(
+export function useNodesMeasuredEffect(
   callback: Callback,
   dependencies?: DependencyList,
   options?: UseOnElementsMeasuredOptions
 ): void;
-export function useElementsMeasuredEffect(
+export function useNodesMeasuredEffect(
   target: PaperReference,
   callback: Callback,
   dependencies?: DependencyList,
   options?: UseOnElementsMeasuredOptions
 ): void;
-export function useElementsMeasuredEffect(
+export function useNodesMeasuredEffect(
   targetOrCallback: PaperReference | Callback,
   callbackOrDependencies?: Callback | DependencyList,
   dependenciesOrOptions?: DependencyList | UseOnElementsMeasuredOptions,

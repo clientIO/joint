@@ -1,7 +1,8 @@
 import type {
   GraphStoreSnapshot,
   GraphStoreInternalSnapshot,
-  GraphStoreLayoutSnapshot,
+  ElementsLayoutSnapshot,
+  LinksLayoutSnapshot,
 } from '../store';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
@@ -64,18 +65,35 @@ export function useInternalData<Selection>(
 }
 
 /**
- * Hook to select layout-related data from the graph store.
- * @param selector - The selector function to select layout data from the graph store snapshot.
+ * Hook to select element layout data from the graph store.
+ * @param selector - The selector function to select from the elements layout snapshot.
  * @param isEqual - Optional equality function to optimize re-renders.
- * @returns The selected layout data.
+ * @returns The selected element layout data.
  * @group Hooks
  */
-export function useLayouts<Selected>(
-  selector: (snapshot: GraphStoreLayoutSnapshot) => Selected = identitySelector as unknown as (
-    snapshot: GraphStoreLayoutSnapshot
+export function useElementsLayout<Selected>(
+  selector: (snapshot: ElementsLayoutSnapshot) => Selected = identitySelector as unknown as (
+    snapshot: ElementsLayoutSnapshot
   ) => Selected,
   isEqual: (a: Selected, b: Selected) => boolean = isStrictEqual
 ): Selected {
   const { layoutState } = useGraphStore();
-  return useStore(layoutState, selector, isEqual);
+  return useStore(layoutState, (snapshot) => selector(snapshot.elements), isEqual);
+}
+
+/**
+ * Hook to select link layout data from the graph store.
+ * @param selector - The selector function to select from the links layout snapshot.
+ * @param isEqual - Optional equality function to optimize re-renders.
+ * @returns The selected link layout data.
+ * @group Hooks
+ */
+export function useLinksLayout<Selected>(
+  selector: (snapshot: LinksLayoutSnapshot) => Selected = identitySelector as unknown as (
+    snapshot: LinksLayoutSnapshot
+  ) => Selected,
+  isEqual: (a: Selected, b: Selected) => boolean = isStrictEqual
+): Selected {
+  const { layoutState } = useGraphStore();
+  return useStore(layoutState, (snapshot) => selector(snapshot.links), isEqual);
 }

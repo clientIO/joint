@@ -7,7 +7,7 @@ import {
   useElementId,
   useGraph,
   usePaperEvents,
-  SvgText,
+  SVGText,
   type FlatElementData,
   type FlatLinkData,
   useElementLayout,
@@ -273,7 +273,7 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>)
         strokeWidth={0.5}
       />
       {/* Header text */}
-      <SvgText
+      <SVGText
         x={8}
         y={HEADER_HEIGHT / 2}
         dominantBaseline="middle"
@@ -290,7 +290,7 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>)
         }}
       >
         {title}
-      </SvgText>
+      </SVGText>
       {/* Expand/Collapse button */}
       <ExpandButton
         transform={`translate(${width - HEADER_HEIGHT / 2}, ${HEADER_HEIGHT / 2})`}
