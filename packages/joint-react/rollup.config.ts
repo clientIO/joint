@@ -1,6 +1,6 @@
-import { createRolldownConfig } from './scripts/create-rolldown-config';
+import { createRollupConfig } from './scripts/create-rollup-config';
 
-export default createRolldownConfig({
+export default createRollupConfig({
   entries: ['src/index.ts', 'src/internal.ts'],
   external: [
     'react',

@@ -16,21 +16,22 @@
     "drawing",
     "stencil"
   ],
-  "main": "dist/cjs/index.js",
+  "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
   "typescript": "src/index.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/cjs/index.js"
     },
     "./internal": {
+      "types": "./dist/types/internal.d.ts",
       "import": "./dist/esm/internal.js",
-      "require": "./dist/cjs/internal.js",
-      "types": "./dist/types/internal.d.ts"
-    }
+      "require": "./dist/cjs/internal.js"
+    },
+    "./src/*": "./src/*"
   },
   "sideEffects": false,
   "files": [
@@ -51,7 +52,7 @@
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn test && yarn build",
-    "build": "rolldown -c rollup.config.ts && tsc --project tsconfig.types.json",
+    "build": "rollup -c rollup.config.ts --configPlugin esbuild && tsc --project tsconfig.types.json",
     "build-storybook": "storybook build",
     "storybook": "storybook dev -p 6006",
     "test": "yarn run typecheck && yarn run lint && yarn jest",
@@ -67,6 +68,8 @@
     "@joint/eslint-config": "workspace:*",
     "@joint/layout-directed-graph": "workspace:*",
     "@reduxjs/toolkit": "^2.11.0",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@storybook/addon-a11y": "^10.2.3",
     "@storybook/addon-docs": "^10.2.3",
     "@storybook/addon-links": "^10.2.3",
@@ -103,7 +106,8 @@
     "redux": "^5.0.1",
     "redux-undo": "1.1.0",
     "resize-observer-polyfill": "^1.5.1",
-    "rolldown": "^1.0.0-rc.9",
+    "rollup": "^4.50.0",
+    "rollup-plugin-esbuild": "^6.2.1",
     "storybook": "^10.2.3",
     "storybook-multilevel-sort": "^2.1.0",
     "ts-node": "^10.9.2",
