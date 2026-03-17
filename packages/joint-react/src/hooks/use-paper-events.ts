@@ -4,7 +4,7 @@ import { useLayoutEffect, type DependencyList } from 'react';
 import type { PaperEventHandlers } from '../types/event.types';
 import { usePaperStore } from './use-paper';
 import type { PaperStore } from '../store';
-import { getPaperIdFromReference, type AnyString, type PaperReference } from '../types';
+import { resolvePaperId, type AnyString, type PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
@@ -97,11 +97,11 @@ export function subscribeToPaperEvents<T>(
  * @group Hooks
  */
 export function usePaperEvents<T = Record<AnyString, unknown>>(
-  paper: PaperReference,
+  paper: PaperTarget,
   handlers: HandlersOrFactory<T>,
   dependencies: DependencyList = EMPTY_DEPENDENCIES
 ): void {
-  const extractedPaper = getPaperIdFromReference(paper);
+  const extractedPaper = resolvePaperId(paper);
   const paperStore = usePaperStore(extractedPaper ?? { isNullable: true });
   const graphStore = useGraphStore();
 

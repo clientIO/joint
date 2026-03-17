@@ -24,14 +24,14 @@ export interface Nullable {
 // eslint-disable-next-line sonarjs/no-useless-intersection
 export type AnyString = string & {};
 
-export type PaperReference = string | React.RefObject<dia.Paper | null> | dia.Paper | Nullable;
+export type PaperTarget = string | React.RefObject<dia.Paper | null> | dia.Paper | Nullable;
 
 /**
- * Resolves a Paper instance from a PaperReference.
- * @param ref - The paper reference to resolve.
+ * Resolves a Paper instance from a PaperTarget.
+ * @param ref - The paper target to resolve.
  * @returns The resolved Paper instance, or null.
  */
-export function getPaperFromReference(ref: PaperReference): dia.Paper | null {
+export function resolvePaper(ref: PaperTarget): dia.Paper | null {
   if (isString(ref)) {
     // ID form is not supported here since we don't have access to the paper store.
     return null;
@@ -46,19 +46,19 @@ export function getPaperFromReference(ref: PaperReference): dia.Paper | null {
 }
 
 /**
- * Extracts the paper ID from a PaperReference.
- * @param ref - The paper reference to extract the ID from.
+ * Extracts the paper ID from a PaperTarget.
+ * @param ref - The paper target to extract the ID from.
  * @returns The paper ID string, or null.
  */
-export function getPaperIdFromReference(ref?: PaperReference): string | null {
+export function resolvePaperId(ref?: PaperTarget): string | null {
   if (!ref) {
     return null;
   }
   if (isString(ref)) {
+    // Is already an ID.
     return ref;
   }
-  const paper = getPaperFromReference(ref);
-  return paper ? (paper.id ?? null) : null;
+  return resolvePaper(ref)?.id ?? null;
 }
 
 export * from './event.types';

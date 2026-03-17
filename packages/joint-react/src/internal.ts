@@ -68,7 +68,7 @@ export { SVGElementItem, HTMLElementItem } from './components/paper/render-eleme
 
 // Utility Functions
 export { assignOptions, pickValues } from './utils/object-utilities';
-export { getPaperFromReference, getPaperIdFromReference } from './types';
+export { resolvePaper, resolvePaperId } from './types';
 
 // Constants
 export { PORTAL_ELEMENT_TYPE, PORTAL_SELECTOR } from './models/portal-element';
@@ -83,7 +83,7 @@ export {
 } from './selectors';
 
 // Internal Types (used by react-plus)
-export type { AnyString, Nullable, Mutable, RemoveIndexSignature, OmitWithoutIndexSignature, PaperReference } from './types';
+export type { AnyString, Nullable, Mutable, RemoveIndexSignature, OmitWithoutIndexSignature, PaperTarget } from './types';
 export type { PortalSelector } from './models/portal-paper.types';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
 

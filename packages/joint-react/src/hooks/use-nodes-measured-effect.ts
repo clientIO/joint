@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, type DependencyList } from 'react';
 import { mvc } from '@joint/core';
 import { usePaperStore } from './use-paper';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
-import { getPaperIdFromReference, type PaperReference } from '../types';
+import { resolvePaperId, type PaperTarget } from '../types';
 
 export interface UseOnElementsMeasuredOptions {
   /** When true, the callback fires only once and then unsubscribes. */
@@ -56,20 +56,20 @@ export function useNodesMeasuredEffect(
   options?: UseOnElementsMeasuredOptions
 ): void;
 export function useNodesMeasuredEffect(
-  target: PaperReference,
+  target: PaperTarget,
   callback: Callback,
   dependencies?: DependencyList,
   options?: UseOnElementsMeasuredOptions
 ): void;
 export function useNodesMeasuredEffect(
-  targetOrCallback: PaperReference | Callback,
+  targetOrCallback: PaperTarget | Callback,
   callbackOrDependencies?: Callback | DependencyList,
   dependenciesOrOptions?: DependencyList | UseOnElementsMeasuredOptions,
   optionsArgument?: UseOnElementsMeasuredOptions
 ): void {
   const isContextForm = typeof targetOrCallback === 'function';
 
-  const target = isContextForm ? undefined : (targetOrCallback as PaperReference);
+  const target = isContextForm ? undefined : (targetOrCallback as PaperTarget);
   const callback = isContextForm
     ? (targetOrCallback as Callback)
     : (callbackOrDependencies as Callback);
@@ -80,7 +80,7 @@ export function useNodesMeasuredEffect(
     ? (dependenciesOrOptions as UseOnElementsMeasuredOptions | undefined)
     : optionsArgument;
 
-  const extractedPaper = getPaperIdFromReference(target);
+  const extractedPaper = resolvePaperId(target);
   const paperStore = usePaperStore(extractedPaper ?? { isNullable: true });
 
   const callbackRef = useRef(callback);
