@@ -31,7 +31,8 @@
       "import": "./dist/esm/internal.js",
       "require": "./dist/cjs/internal.js"
     },
-    "./src/*": "./src/*"
+    "./src/*": "./src/*",
+    "./scripts/*": "./scripts/*.ts"
   },
   "sideEffects": false,
   "files": [
