@@ -96,4 +96,5 @@ export interface GraphLayoutState {
 export interface GraphStoreInternalSnapshot {
   papers: Record<string, PaperStoreState>;
   resetVersion: number;
+  graphFeaturesVersion: number;
 }

@@ -30,7 +30,7 @@ import { graphState, LAYOUT_UPDATE_EVENT, type GraphState } from '../state/graph
 import { getLayout } from './update-layout-state';
 import { createState, type ExternalStoreLike, type State } from '../utils/create-state';
 import type { IncrementalChange, IncrementalStateChanges } from '../state/incremental.types';
-import type { Feature } from '../hooks/use-create-paper-features';
+import type { Feature } from '../types/feature.types';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -69,6 +69,7 @@ export class GraphStore {
   public readonly graphState: GraphState;
 
   public paperStores = new Map<string, PaperStore>();
+  public features: Record<string, Feature> = {};
   private observer: GraphStoreObserver;
 
   constructor(public readonly config: GraphStoreOptions) {
@@ -102,7 +103,7 @@ export class GraphStore {
       );
 
     this.internalState = createState<GraphStoreInternalSnapshot>({
-      newState: () => ({ papers: {}, resetVersion: 0 }),
+      newState: () => ({ papers: {}, resetVersion: 0, graphFeaturesVersion: 1 }),
       name: 'JointJs/Internal',
     });
 
@@ -226,6 +227,12 @@ export class GraphStore {
   // --- Public API ---
 
   public destroy = (isGraphExternal: boolean) => {
+    // Clean graph-level features first
+    for (const feature of Object.values(this.features)) {
+      feature.clean?.();
+    }
+    this.features = {};
+
     for (const paperStore of this.paperStores.values()) {
       paperStore.destroy();
     }
@@ -255,6 +262,26 @@ export class GraphStore {
       const nextVersion = (previous?.version ?? 0) + 1;
       return { ...previous, version: nextVersion };
     });
+  }
+
+  private bumpGraphFeaturesVersion() {
+    this.internalState.setState((previous) => ({
+      ...previous,
+      graphFeaturesVersion: (previous.graphFeaturesVersion ?? 0) + 1,
+    }));
+  }
+
+  public setGraphFeature(feature: Feature) {
+    this.features[feature.id] = feature;
+    this.bumpGraphFeaturesVersion();
+  }
+
+  public removeGraphFeature(featureId: string) {
+    const feature = this.features[featureId];
+    if (!feature) return;
+    feature.clean?.();
+    Reflect.deleteProperty(this.features, featureId);
+    this.bumpGraphFeaturesVersion();
   }
 
   public setPaperFeature(paperId: string, feature: Feature) {

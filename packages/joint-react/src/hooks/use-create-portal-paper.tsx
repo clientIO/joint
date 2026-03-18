@@ -231,7 +231,7 @@ export function useCreatePortalPaper(
 
     paperRef.current = paperStore.paper ?? null;
 
-    // call the features.
+    // Call deferred features registered before paper mounted.
     if (featuresContext) {
       for (const [, onAddFeature] of featuresContext.features) {
         const feature = onAddFeature({ graphStore, paperStore, asChildren: true });

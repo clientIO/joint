@@ -18,6 +18,13 @@ export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 export type Nullable<T> = { [K in keyof T]: T[K] | null };
 
 /**
+ * Shared sentinel for nullable hooks so a new object isn't created each render.
+ */
+export const OPTIONAL: Optional = { optional: true } as const;
+
+/**
+ * A string type that preserves intellisense for known literal unions.
+ * Use instead of `| string` or `[key: string]` to keep autocomplete working.
  * Pass `{ optional: true }` to hooks like `usePaper` or `usePaperStore`
  * so they return `null` instead of throwing when context is missing.
  */
