@@ -7,6 +7,26 @@ import type { IncrementalStateChanges } from '../incremental.types';
 import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
 
+function createListener() {
+  const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+  const onIncrementalChange = jest.fn<
+    void,
+    [IncrementalStateChanges<FlatElementData, FlatLinkData>]
+  >();
+  const listener = graphState({
+    graph,
+    papers: new Map<string, PaperStore>(),
+    onIncrementalChange,
+    onReset: jest.fn(),
+    mappers: {},
+  });
+  return { graph, listener, onIncrementalChange };
+}
+
+function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, height = 50) {
+  graph.addCell({ id, type: 'PortalElement', position: { x, y }, size: { width, height } });
+}
+
 describe('graphState', () => {
   it('emits added, changed, and removed records for element changes', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
@@ -277,6 +297,290 @@ describe('graphState', () => {
     expect(graph.getCell('graph-element')?.get('position')).toEqual({ x: 45, y: 55 });
 
     listener.destroy();
+  });
+
+  describe('reference stability', () => {
+    it('preserves dataState reference when position is set to same value', () => {
+      const { graph, listener } = createListener();
+      addElement(graph, 'el-1');
+
+      const before = listener.dataState.getSnapshot();
+      (graph.getCell('el-1') as dia.Element).position(10, 20);
+
+      expect(listener.dataState.getSnapshot()).toBe(before);
+      listener.destroy();
+    });
+
+    it('preserves layoutState reference when position is set to same value', () => {
+      const { graph, listener } = createListener();
+      addElement(graph, 'el-1');
+
+      const before = listener.layoutState.getSnapshot();
+      (graph.getCell('el-1') as dia.Element).position(10, 20);
+
+      expect(listener.layoutState.getSnapshot()).toBe(before);
+      listener.destroy();
+    });
+
+    it('preserves dataState reference when size is set to same value', () => {
+      const { graph, listener } = createListener();
+      addElement(graph, 'el-1');
+
+      const before = listener.dataState.getSnapshot();
+      (graph.getCell('el-1') as dia.Element).resize(100, 50);
+
+      expect(listener.dataState.getSnapshot()).toBe(before);
+      listener.destroy();
+    });
+
+    it('preserves layoutState reference when size is set to same value', () => {
+      const { graph, listener } = createListener();
+      addElement(graph, 'el-1');
+
+      const before = listener.layoutState.getSnapshot();
+      (graph.getCell('el-1') as dia.Element).resize(100, 50);
+
+      expect(listener.layoutState.getSnapshot()).toBe(before);
+      listener.destroy();
+    });
+
+    it('preserves references with multiple elements when only one changes', () => {
+      const { graph, listener } = createListener();
+      addElement(graph, 'el-1', 0, 0);
+      addElement(graph, 'el-2', 50, 50);
+
+      const layoutBefore = listener.layoutState.getSnapshot();
+      const sizesBefore = layoutBefore.elements.sizes;
+
+      // Move el-1 — positions should change, sizes should stay
+      (graph.getCell('el-1') as dia.Element).position(99, 99);
+
+      const layoutAfter = listener.layoutState.getSnapshot();
+      expect(layoutAfter).not.toBe(layoutBefore);
+      expect(layoutAfter.elements.sizes).toBe(sizesBefore);
+
+      listener.destroy();
+    });
+
+    it('does not notify onIncrementalChange when setting same value', () => {
+      const { graph, listener, onIncrementalChange } = createListener();
+      addElement(graph, 'el-1');
+      onIncrementalChange.mockClear();
+
+      (graph.getCell('el-1') as dia.Element).position(10, 20);
+
+      expect(onIncrementalChange).not.toHaveBeenCalled();
+      listener.destroy();
+    });
+
+    it('creates new dataState reference on reset', () => {
+      const { graph, listener } = createListener();
+      addElement(graph, 'el-1');
+
+      const before = listener.dataState.getSnapshot();
+      graph.resetCells([
+        { id: 'el-1', type: 'PortalElement', position: { x: 10, y: 20 }, size: { width: 100, height: 50 } },
+      ]);
+
+      expect(listener.dataState.getSnapshot()).not.toBe(before);
+      listener.destroy();
+    });
+
+    it('creates new layoutState reference on reset', () => {
+      const { graph, listener } = createListener();
+      addElement(graph, 'el-1');
+
+      const before = listener.layoutState.getSnapshot();
+      graph.resetCells([
+        { id: 'el-1', type: 'PortalElement', position: { x: 10, y: 20 }, size: { width: 100, height: 50 } },
+      ]);
+
+      expect(listener.layoutState.getSnapshot()).not.toBe(before);
+      listener.destroy();
+    });
+  });
+
+  describe('link operations', () => {
+    it('tracks link add and change in dataState', () => {
+      const { graph, listener, onIncrementalChange } = createListener();
+      addElement(graph, 'el-1', 0, 0);
+      addElement(graph, 'el-2', 200, 200);
+      onIncrementalChange.mockClear();
+
+      graph.addCell({
+        id: 'link-1',
+        type: 'standard.Link',
+        source: { id: 'el-1' },
+        target: { id: 'el-2' },
+      });
+
+      expect(onIncrementalChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          links: { added: { 'link-1': expect.any(Object) } },
+        })
+      );
+
+      const dataBefore = listener.dataState.getSnapshot();
+      expect(dataBefore.links['link-1']).toBeDefined();
+
+      onIncrementalChange.mockClear();
+
+      // Change the link target
+      const link = graph.getCell('link-1') as dia.Link;
+      link.set('target', { x: 300, y: 300 });
+
+      expect(onIncrementalChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          links: { changed: { 'link-1': expect.any(Object) } },
+        })
+      );
+
+      listener.destroy();
+    });
+
+    it('tracks link removal in dataState', () => {
+      const { graph, listener, onIncrementalChange } = createListener();
+      addElement(graph, 'el-1', 0, 0);
+      addElement(graph, 'el-2', 200, 200);
+      graph.addCell({
+        id: 'link-1',
+        type: 'standard.Link',
+        source: { id: 'el-1' },
+        target: { id: 'el-2' },
+      });
+      onIncrementalChange.mockClear();
+
+      graph.removeCells([graph.getCell('link-1')!]);
+
+      expect(onIncrementalChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          links: { removed: { 'link-1': expect.any(Object) } },
+        })
+      );
+      expect(listener.dataState.getSnapshot().links['link-1']).toBeUndefined();
+
+      listener.destroy();
+    });
+  });
+
+  describe('onElementsChange and onLinksChange callbacks', () => {
+    it('calls onElementsChange when element is added', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+      const onElementsChange = jest.fn();
+      const onLinksChange = jest.fn();
+
+      const listener = graphState({
+        graph,
+        papers: new Map<string, PaperStore>(),
+        onElementsChange,
+        onLinksChange,
+        onReset: jest.fn(),
+        mappers: {},
+      });
+
+      addElement(graph, 'el-1');
+
+      expect(onElementsChange).toHaveBeenCalledWith(
+        expect.objectContaining({ 'el-1': expect.any(Object) })
+      );
+      expect(onLinksChange).toHaveBeenCalledWith({});
+
+      listener.destroy();
+    });
+
+    it('calls onLinksChange when link is added', () => {
+      const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+      const onElementsChange = jest.fn();
+      const onLinksChange = jest.fn();
+
+      const listener = graphState({
+        graph,
+        papers: new Map<string, PaperStore>(),
+        onElementsChange,
+        onLinksChange,
+        onReset: jest.fn(),
+        mappers: {},
+      });
+
+      addElement(graph, 'el-1', 0, 0);
+      addElement(graph, 'el-2', 200, 200);
+      onLinksChange.mockClear();
+
+      graph.addCell({
+        id: 'link-1',
+        type: 'standard.Link',
+        source: { id: 'el-1' },
+        target: { id: 'el-2' },
+      });
+
+      expect(onLinksChange).toHaveBeenCalledWith(
+        expect.objectContaining({ 'link-1': expect.any(Object) })
+      );
+
+      listener.destroy();
+    });
+  });
+
+  describe('angle tracking', () => {
+    it('tracks element angle changes in layoutState', () => {
+      const { graph, listener } = createListener();
+      addElement(graph, 'el-1');
+
+      const anglesBefore = listener.layoutState.getSnapshot().elements.angles;
+      expect(anglesBefore['el-1']).toBe(0);
+
+      (graph.getCell('el-1') as dia.Element).rotate(45);
+
+      const anglesAfter = listener.layoutState.getSnapshot().elements.angles;
+      expect(anglesAfter['el-1']).toBe(45);
+      // Angles ref must be new, sizes/positions preserved
+      expect(anglesAfter).not.toBe(anglesBefore);
+      expect(listener.layoutState.getSnapshot().elements.sizes).toBe(
+        listener.layoutState.getSnapshot().elements.sizes
+      );
+
+      listener.destroy();
+    });
+
+    it('preserves angles reference when angle is set to same value', () => {
+      const { graph, listener } = createListener();
+      addElement(graph, 'el-1');
+
+      const layoutBefore = listener.layoutState.getSnapshot();
+      // Angle is already 0, setting to 0 again
+      (graph.getCell('el-1') as dia.Element).set('angle', 0);
+
+      expect(listener.layoutState.getSnapshot()).toBe(layoutBefore);
+
+      listener.destroy();
+    });
+  });
+
+  describe('reset with links', () => {
+    it('emits reset with both elements and links', () => {
+      const { graph, listener, onIncrementalChange } = createListener();
+      addElement(graph, 'el-1', 0, 0);
+      addElement(graph, 'el-2', 200, 200);
+      graph.addCell({
+        id: 'link-1',
+        type: 'standard.Link',
+        source: { id: 'el-1' },
+        target: { id: 'el-2' },
+      });
+      onIncrementalChange.mockClear();
+
+      graph.resetCells([
+        { id: 'new-el', type: 'PortalElement', position: { x: 0, y: 0 }, size: { width: 50, height: 50 } },
+        { id: 'new-link', type: 'standard.Link', source: { id: 'new-el' }, target: { x: 100, y: 100 } },
+      ]);
+
+      expect(onIncrementalChange).toHaveBeenCalledWith({
+        elements: { reset: expect.objectContaining({ 'new-el': expect.any(Object) }) },
+        links: { reset: expect.objectContaining({ 'new-link': expect.any(Object) }) },
+      });
+
+      listener.destroy();
+    });
   });
 
   describe('layoutState count', () => {

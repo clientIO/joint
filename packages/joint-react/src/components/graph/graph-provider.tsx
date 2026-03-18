@@ -6,11 +6,7 @@ import type { FlatElementData } from '../../types/element-types';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
-import type {
-  ElementToGraphOptions,
-  GraphToElementOptions,
-} from '../../state/data-mapping/element-mapper';
-import type { LinkToGraphOptions, GraphToLinkOptions } from '../../state/data-mapping/link-mapper';
+import type { GraphMappings } from '../../state/data-mapping';
 import type { IncrementalStateChanges } from '../../state/incremental.types';
 
 /**
@@ -18,15 +14,8 @@ import type { IncrementalStateChanges } from '../../state/incremental.types';
  * @template Element - The type of elements in the graph
  * @template Link - The type of links in the graph
  */
-export interface GraphProviderProps<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  readonly mapDataToElementAttributes?: (
-    options: ElementToGraphOptions<ElementData>
-  ) => dia.Cell.JSON;
-  readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<LinkData>) => dia.Cell.JSON;
-  readonly mapElementAttributesToData?: (
-    options: GraphToElementOptions<ElementData>
-  ) => ElementData;
-  readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<LinkData>) => LinkData;
+export interface GraphProviderProps<ElementData = FlatElementData, LinkData = FlatLinkData>
+  extends GraphMappings<ElementData, LinkData> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph

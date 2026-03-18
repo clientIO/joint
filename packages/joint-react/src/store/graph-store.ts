@@ -18,16 +18,12 @@ import {
 } from './create-elements-size-observer';
 import { PortalElement } from '../models/portal-element';
 import { PortalLink } from '../models/portal-link';
-import type {
-  ElementToGraphOptions,
-  GraphToElementOptions,
-} from '../state/data-mapping/element-mapper';
-import type { LinkToGraphOptions, GraphToLinkOptions } from '../state/data-mapping/link-mapper';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
+  type GraphMappings,
 } from '../state/data-mapping';
 import { clearConnectedLinkViews } from './clear-view';
 import { graphState, LAYOUT_UPDATE_EVENT, type GraphState } from '../state/graph-state';
@@ -45,15 +41,8 @@ export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
 /**
  * Configuration options for creating a GraphStore instance.
  */
-export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  readonly mapDataToElementAttributes?: (
-    options: ElementToGraphOptions<ElementData>
-  ) => dia.Cell.JSON;
-  readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<LinkData>) => dia.Cell.JSON;
-  readonly mapElementAttributesToData?: (
-    options: GraphToElementOptions<ElementData>
-  ) => ElementData;
-  readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<LinkData>) => LinkData;
+export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData>
+  extends GraphMappings<ElementData, LinkData> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
@@ -222,7 +211,7 @@ export class GraphStore {
             element: cell,
           }) as FlatElementData;
         } else if (cell.isLink()) {
-          existingLinks[id] = this.graphState.linkToData({ link: cell }) as FlatLinkData;
+          existingLinks[id] = this.graphState.linkToData({ link: cell });
         }
       }
       this.dataState.setState(() => ({
@@ -251,7 +240,7 @@ export class GraphStore {
 
   public updatePaperSnapshot(
     paperId: string,
-    updater: (previous: PaperStoreState | undefined) => PaperStoreState
+    updater: (previous: PaperStoreState) => PaperStoreState
   ) {
     this.internalState.setState((previous) => {
       const currentPaper = previous.papers[paperId];

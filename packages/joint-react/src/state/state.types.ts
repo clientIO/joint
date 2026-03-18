@@ -2,6 +2,9 @@ import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 
+export type PaperControlState = {
+  readonly draggingIds: Record<string, boolean>;
+};
 /**
  * Paper snapshot is a simple version counter.
  * Incremented on every view mount/unmount change to trigger React re-renders.
@@ -9,6 +12,7 @@ import type { FlatLinkData } from '../types/link-types';
 export type PaperStoreState = {
   version: number;
   featuresState?: Record<string, unknown>;
+  controlState?: PaperControlState;
 };
 
 /**
