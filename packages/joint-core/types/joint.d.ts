@@ -15,6 +15,19 @@ export namespace config {
 
 type NativeEvent = Event;
 
+/**
+ * Accepts any known literal from `T` while still allowing arbitrary strings.
+ * Preserves IDE autocomplete for the known literals.
+ */
+type LiteralUnion<T extends string> = T | (string & {});
+
+/**
+ * Strips the index signature from a type, keeping only explicitly declared keys.
+ */
+type ExcludeIndexSignature<T> = {
+    [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K]
+};
+
 type _DeepRequired<T> = {
     [P in keyof T]-?: T[P] extends object ? _DeepRequired<T[P]> : T[P];
 };
@@ -333,6 +346,34 @@ export namespace dia {
             before?: GraphLayer.ID | null;
             index?: number;
         }
+
+        interface EventMap {
+            // cell collection events
+            'add': (cell: Cell, collection: mvc.Collection<Cell>, options: Options) => void;
+            'remove': (cell: Cell, collection: mvc.Collection<Cell>, options: Options) => void;
+            'reset': (collection: mvc.Collection<Cell>, options: Options) => void;
+            'sort': (collection: mvc.Collection<Cell>, options: Options) => void;
+            'update': (collection: mvc.Collection<Cell>, options: Options) => void;
+            // cell events
+            'change': (cell: Cell, options: Options) => void;
+            [changeEvent: `change:${string}`]: (cell: Cell, newValue: any, options: Options) => void;
+            'move': (cell: Cell, options: Options) => void;
+            'changeId': (cell: Cell, previousId: Cell.ID, options: Options) => void;
+            // layer events
+            'layer:add': (layer: GraphLayer, options: Options) => void;
+            'layer:remove': (layer: GraphLayer, options: Options) => void;
+            'layer:change': (layer: GraphLayer, options: Options) => void;
+            [layerChangeEvent: `layer:change:${string}`]: (layer: GraphLayer, newValue: any, options: Options) => void;
+            'layer:default': (layer: GraphLayer, options: Options) => void;
+            'layers:sort': (collection: GraphLayerCollection, options: Options) => void;
+            // batch
+            'batch:start': (data: Options) => void;
+            'batch:stop': (data: Options) => void;
+            // custom
+            [eventName: string]: mvc.EventHandler;
+        }
+
+        type DefinedEventMap = ExcludeIndexSignature<EventMap>;
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -354,6 +395,24 @@ export namespace dia {
             /** @deprecated use cellNamespace instead */
             cellModel?: typeof Cell
         });
+
+        // events
+
+        on<T extends keyof Graph.DefinedEventMap>(
+            eventName: T,
+            callback: Graph.DefinedEventMap[T],
+            context?: any
+        ): this;
+        on(
+            eventName: LiteralUnion<keyof Graph.DefinedEventMap>,
+            callback: mvc.EventHandler,
+            context?: any
+        ): this;
+
+        on<E extends Partial<Graph.DefinedEventMap> & { [key: string]: mvc.EventHandler }>(
+            events: E,
+            context?: any
+        ): this;
 
         addCell(cell: Graph.CellInit, opt?: CollectionAddOptions): this;
         addCell(cell: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
@@ -1848,6 +1907,9 @@ export namespace dia {
             // render
             'render:done': (stats: UpdateStats, opt: any) => void;
             'render:idle': (opt: Paper.UpdateViewsAsyncOptions) => void;
+            // paper
+            'paper:mouseenter': (evt: dia.Event) => void;
+            'paper:mouseleave': (evt: dia.Event) => void;
             // transformations
             'translate': (tx: number, ty: number, data: unknown) => void;
             'scale': (sx: number, sy: number, data: unknown) => void;
@@ -1856,6 +1918,8 @@ export namespace dia {
             // custom
             [eventName: string]: mvc.EventHandler;
         }
+
+        type DefinedEventMap = ExcludeIndexSignature<EventMap>;
 
         interface BufferOptions {
             /**
@@ -2147,9 +2211,21 @@ export namespace dia {
 
         // events
 
-        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(eventName: T, callback: Paper.EventMap[T], context?: any): this;
+        on<T extends keyof Paper.DefinedEventMap>(
+            eventName: T,
+            callback: Paper.DefinedEventMap[T],
+            context?: any
+        ): this;
+        on(
+            eventName: LiteralUnion<keyof Paper.DefinedEventMap>,
+            callback: mvc.EventHandler,
+            context?: any
+        ): this;
 
-        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(events: { [eventName in T]: Paper.EventMap[eventName]; }, context?: any): this;
+        on<E extends Partial<Paper.DefinedEventMap> & { [key: string]: mvc.EventHandler }>(
+            events: E,
+            context?: any
+        ): this;
 
         // protected
 
@@ -2611,17 +2687,17 @@ export namespace dia {
 
 export namespace highlighters {
 
-    import HighlighterView = dia.HighlighterView;
+    type HighlighterView = dia.HighlighterView;
 
-    interface AddClassHighlighterArguments extends HighlighterView.Options {
+    interface AddClassHighlighterArguments extends dia.HighlighterView.Options {
         className?: string;
     }
 
-    interface OpacityHighlighterArguments extends HighlighterView.Options {
+    interface OpacityHighlighterArguments extends dia.HighlighterView.Options {
         alphaValue?: number;
     }
 
-    interface StrokeHighlighterArguments extends HighlighterView.Options {
+    interface StrokeHighlighterArguments extends dia.HighlighterView.Options {
         padding?: number;
         rx?: number;
         ry?: number;
@@ -2630,7 +2706,7 @@ export namespace highlighters {
         attrs?: attributes.NativeSVGAttributes;
     }
 
-    interface MaskHighlighterArguments extends HighlighterView.Options {
+    interface MaskHighlighterArguments extends dia.HighlighterView.Options {
         padding?: number;
         maskClip?: number;
         deep?: boolean;
@@ -4534,8 +4610,8 @@ export namespace attributes {
         filter?: string | dia.SVGFilterJSON;
         fill?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
         stroke?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
-        sourceMarker?: dia.SVGMarkerJSON;
-        targetMarker?: dia.SVGMarkerJSON;
+        sourceMarker?: dia.SVGMarkerJSON | null;
+        targetMarker?: dia.SVGMarkerJSON | null;
         vertexMarker?: dia.SVGMarkerJSON;
         props?: SVGAttributeProps;
         text?: string;

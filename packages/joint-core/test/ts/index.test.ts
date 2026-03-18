@@ -4,6 +4,29 @@ import * as joint from '../../';
 
 const graph = new joint.dia.Graph({ graphAttribute: true });
 
+// graph events
+graph.on('add', function(cell, collection, options) {
+    const isCell: AssertExtends<typeof cell, joint.dia.Cell> = true;
+    const isCollection: AssertExtends<typeof collection, joint.mvc.Collection<joint.dia.Cell>> = true;
+});
+
+graph.on('batch:stop', function(data) {
+    // data is Graph.Options
+});
+
+graph.on('custom', () => {
+    // do something
+});
+
+graph.on({
+    'add': function(cell) {
+        const isCell: AssertExtends<typeof cell, joint.dia.Cell> = true;
+    },
+    'custom': () => {
+        // do something
+    }
+});
+
 const layoutPortGroupFn: joint.layout.Port.LayoutFunction = (portGroupOptions) => {
     return portGroupOptions.map((portOptions) => {
         return { x: portOptions.start, /* y: 0, angle: 0 */ };
@@ -161,6 +184,10 @@ paper.on('element:pointerdblclick', function(elementView) {
     elementView.model.addPort({});
 });
 
+paper.on('custom', () => {
+    // do something
+});
+
 paper.on({
     'render:done': function(stats) {
         if (stats.priority > 2) {
@@ -168,6 +195,9 @@ paper.on({
                 paper.off('custom-event');
             });
         }
+    },
+    'custom': () => {
+        // do something
     }
 });
 
@@ -180,6 +210,9 @@ cellView.listenTo(paper, {
         }
     }
 } as joint.dia.Paper.EventMap);
+
+
+
 
 class AttributeHighlighterView extends joint.dia.HighlighterView<{ attribute: string; }> {
     preinitialize() {
