@@ -22,7 +22,7 @@ export { useElementLayout } from './hooks/use-element-layout';
 export type {
   ElementLayout,
   ElementsLayoutState as ElementsLayoutSnapshot,
-  LinksLayoutSnapshot,
+  LinksLayoutState as LinksLayoutSnapshot,
 } from './state/state.types';
 export { useLinkLayout } from './hooks/use-link-layout';
 export type { LinkLayout } from './hooks/use-link-layout';

@@ -74,14 +74,14 @@ export interface ElementsLayoutState {
 /**
  * Layout snapshot for all links, keyed by paper ID then by link cell ID.
  */
-export type LinksLayoutSnapshot = Record<string, Record<CellId, LinkLayout>>;
+export type LinksLayoutState = Record<string, Record<CellId, LinkLayout>>;
 
 /**
  * Snapshot containing layout data for all elements and links (per paper).
  */
 export interface GraphLayoutState {
   readonly elements: ElementsLayoutState;
-  readonly links: LinksLayoutSnapshot;
+  readonly links: LinksLayoutState;
 }
 
 /**
