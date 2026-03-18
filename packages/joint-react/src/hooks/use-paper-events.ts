@@ -1,10 +1,10 @@
 import type { dia } from '@joint/core';
 import { mvc } from '@joint/core';
 import { useLayoutEffect, type DependencyList } from 'react';
-import type { PaperEventHandlers } from '../types/event.types';
+import type { PaperEventMap } from '../types/event.types';
 import { usePaperStore, useResolvePaperId } from './use-paper';
 import type { PaperStore } from '../store';
-import { type AnyString, type PaperTarget } from '../types';
+import { type PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
@@ -13,11 +13,11 @@ interface PaperEventsBaseContext {
   readonly graph: dia.Graph;
   readonly paper: dia.Paper;
 }
-export type PaperEventsContext<T = Record<AnyString, unknown>> = PaperEventsBaseContext & T;
+export type PaperEventsContext<T = Record<string, unknown>> = PaperEventsBaseContext & T;
 
 type HandlersOrFactory<T> =
-  | PaperEventHandlers
-  | ((ctx: PaperEventsContext<T>) => PaperEventHandlers);
+  | Partial<PaperEventMap>
+  | ((ctx: PaperEventsContext<T>) => Partial<PaperEventMap>);
 
 /**
  * Builds the EventContext from paperStore and graph.
@@ -91,12 +91,12 @@ export function subscribeToPaperEvents<T>(
  * ```tsx
  * usePaperEvents(paperId, { 'element:pointerclick': (view, event, x, y) => {} });
  * ```
- * @param paper - Paper reference (string ID, dia.Paper instance, ref, or Nullable).
+ * @param paper - Paper reference (string ID, dia.Paper instance, ref, or Optional).
  * @param handlers - Event handlers map or factory function receiving context.
  * @param dependencies - Optional dependency array controlling re-subscription.
  * @group Hooks
  */
-export function usePaperEvents<T = Record<AnyString, unknown>>(
+export function usePaperEvents<T = Record<string, unknown>>(
   paper: PaperTarget,
   handlers: HandlersOrFactory<T>,
   dependencies: DependencyList = EMPTY_DEPENDENCIES

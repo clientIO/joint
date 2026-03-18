@@ -88,8 +88,7 @@ export { selectResetVersion, createSelectPaperVersion } from './selectors';
 
 // Internal Types (used by react-plus)
 export type {
-  AnyString,
-  Nullable,
+  Optional,
   Mutable,
   RemoveIndexSignature,
   OmitWithoutIndexSignature,

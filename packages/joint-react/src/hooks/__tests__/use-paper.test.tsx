@@ -5,6 +5,7 @@ import { useRef, type ReactNode } from 'react';
 import { GraphProvider, Paper } from '../../components';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import { usePaper, usePaperStore, useResolvePaperId } from '../use-paper';
+import type { Optional } from '../../types';
 
 const EMPTY_ELEMENTS = {};
 const EMPTY_LINKS = {};
@@ -31,7 +32,7 @@ describe('use-paper', () => {
 
   it('returns paper instance from Paper context', async () => {
     const wrapper = createPaperWrapper('paper-context');
-    const { result } = renderHook(() => usePaper({ isNullable: true }), { wrapper });
+    const { result } = renderHook(() => usePaper({ optional: true }), { wrapper });
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
@@ -84,8 +85,8 @@ describe('use-paper', () => {
     });
   });
 
-  it('returns null paper when usePaper({ isNullable: true }) is used outside Paper context', () => {
-    const { result } = renderHook(() => usePaper({ isNullable: true }), { wrapper: graphWrapper });
+  it('returns null paper when usePaper({ optional: true }) is used outside Paper context', () => {
+    const { result } = renderHook(() => usePaper({ optional: true }), { wrapper: graphWrapper });
 
     expect(result.current.paper).toBeNull();
   });
@@ -111,11 +112,11 @@ describe('useResolvePaperId', () => {
   it('returns NULLABLE when target is undefined', () => {
     const wrapper = createPaperWrapper('paper-resolve-undef');
     const { result } = renderHook(() => useResolvePaperId(undefined), { wrapper });
-    expect(result.current).toEqual({ isNullable: true });
+    expect(result.current).toEqual({ optional: true });
   });
 
   it('resolves paper id from a ref after Paper mounts', async () => {
-    let resolvedId: string | { isNullable: true } | null = null;
+    let resolvedId: string | Optional | null = null;
 
     function TestComponent() {
       const paperRef = useRef<dia.Paper>(null);

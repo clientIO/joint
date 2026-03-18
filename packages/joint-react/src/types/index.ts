@@ -1,6 +1,9 @@
 import { dia } from '@joint/core';
 import { isString } from '../utils/is';
 
+// eslint-disable-next-line sonarjs/no-useless-intersection
+export type LiteralUnion<T extends string> = T | (string & {});
+
 export type RemoveIndexSignature<T> = {
   [K in keyof T as string extends K ? never : K]: T[K];
 };
@@ -10,26 +13,26 @@ export type OmitWithoutIndexSignature<T, K extends keyof T> = Omit<RemoveIndexSi
 export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**
- * Pass `{ isNullable: true }` to hooks like `usePaper` or `usePaperStore`
- * so they return `null` instead of throwing when context is missing.
+ * A type that makes all properties of T nullable.
  */
-export interface Nullable {
-  readonly isNullable: true;
-}
+export type Nullable<T> = { [K in keyof T]: T[K] | null };
 
 /**
  * Shared sentinel for nullable hooks so a new object isn't created each render.
  */
-export const NULLABLE: Nullable = { isNullable: true } as const;
+export const OPTIONAL: Optional = { optional: true } as const;
 
 /**
  * A string type that preserves intellisense for known literal unions.
  * Use instead of `| string` or `[key: string]` to keep autocomplete working.
+ * Pass `{ optional: true }` to hooks like `usePaper` or `usePaperStore`
+ * so they return `null` instead of throwing when context is missing.
  */
-// eslint-disable-next-line sonarjs/no-useless-intersection
-export type AnyString = string & {};
+export interface Optional {
+  readonly optional: true;
+}
 
-export type PaperTarget = string | React.RefObject<dia.Paper | null> | dia.Paper | Nullable;
+export type PaperTarget = string | React.RefObject<dia.Paper | null> | dia.Paper | Optional;
 
 /**
  * Resolves a Paper instance from a PaperTarget.

@@ -7,7 +7,7 @@ import { GraphProvider, Paper } from '../../components';
 import { usePaperEvents } from '../use-paper-events';
 import type { PaperEventsContext } from '../use-paper-events';
 import { usePaper } from '../use-paper';
-import type { PaperEventMap, PaperEventHandlers, PaperEventType } from '../../types/event.types';
+import type { PaperEventMap } from '../../types/event.types';
 import { PAPER_ELEMENTS_MEASURED } from '../../types/event.types';
 
 const EMPTY_ELEMENTS = {};
@@ -32,7 +32,7 @@ const PAPER = {} as dia.Paper;
 const GRAPH = {} as dia.Graph;
 
 const PAPER_EVENT_ARGS: {
-  readonly [EventName in PaperEventType]: Parameters<PaperEventMap[EventName]>;
+  readonly [EventName in keyof PaperEventMap]: Parameters<PaperEventMap[EventName]>;
 } = {
   'paper:mouseenter': [JOINT_EVENT],
   'paper:mouseleave': [JOINT_EVENT],
@@ -147,7 +147,7 @@ function UsePaperEventsWithPaperIdPattern(
 describe('use-paper-events', () => {
   it('binds all supported paper events with raw JointJS arguments', async () => {
     const wrapper = createPaperWrapper('paper-context');
-    const handlers: PaperEventHandlers = {};
+    const handlers: Partial<PaperEventMap> = {};
     const listenerHandlers = new Map<
       string,
       Array<(...args: Parameters<mvc.EventHandler>) => void>
@@ -174,8 +174,8 @@ describe('use-paper-events', () => {
     try {
       const { result } = renderHook(
         () => {
-          const { paper } = usePaper({ isNullable: true });
-          usePaperEvents({ isNullable: true }, handlers);
+          const { paper } = usePaper({ optional: true });
+          usePaperEvents({ optional: true }, handlers);
           return paper;
         },
         { wrapper }
@@ -186,7 +186,7 @@ describe('use-paper-events', () => {
       });
 
       for (const [eventName, args] of Object.entries(PAPER_EVENT_ARGS) as Array<
-        [PaperEventType, Parameters<PaperEventMap[PaperEventType]>]
+        [string, Parameters<PaperEventMap[keyof PaperEventMap]>]
       >) {
         const callbacks = listenerHandlers.get(eventName) ?? [];
         expect(callbacks.length).toBeGreaterThan(0);
@@ -223,7 +223,7 @@ describe('use-paper-events', () => {
 
     renderHook(
       () => {
-        usePaperEvents({ isNullable: true }, (ctx: PaperEventsContext) => {
+        usePaperEvents({ optional: true }, (ctx: PaperEventsContext) => {
           captured = ctx;
           return {
             'render:done': () => {},
@@ -247,8 +247,8 @@ describe('use-paper-events', () => {
 
     const { result } = renderHook(
       () => {
-        const { paper } = usePaper({ isNullable: true });
-        usePaperEvents({ isNullable: true }, ({ graph, paper: ctxPaper }: PaperEventsContext) => ({
+        const { paper } = usePaper({ optional: true });
+        usePaperEvents({ optional: true }, ({ graph, paper: ctxPaper }: PaperEventsContext) => ({
           scale: (...args: unknown[]) => {
             onScale({ graph, paper: ctxPaper }, ...args);
           },
@@ -335,8 +335,8 @@ describe('use-paper-events', () => {
 
     const { result, unmount } = renderHook(
       () => {
-        const { paper } = usePaper({ isNullable: true });
-        usePaperEvents({ isNullable: true }, { resize: onResize });
+        const { paper } = usePaper({ optional: true });
+        usePaperEvents({ optional: true }, { resize: onResize });
         return paper;
       },
       { wrapper }

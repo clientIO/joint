@@ -1,4 +1,4 @@
-import type { AnyString } from './index';
+import type { LiteralUnion } from './index';
 
 /**
  * Simplified port definition for declarative port configuration.
@@ -38,7 +38,7 @@ export interface FlatElementPort {
    * - Any other string — interpreted as SVG path `d` commands
    * @default 'ellipse'
    */
-  readonly shape?: 'ellipse' | 'rect' | AnyString;
+  readonly shape?: LiteralUnion<'ellipse' | 'rect'>;
   /**
    * Stroke color of the port shape.
    * @default 'transparent'

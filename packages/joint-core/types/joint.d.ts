@@ -15,6 +15,19 @@ export namespace config {
 
 type NativeEvent = Event;
 
+/**
+ * Accepts any known literal from `T` while still allowing arbitrary strings.
+ * Preserves IDE autocomplete for the known literals.
+ */
+type LiteralUnion<T extends string> = T | (string & {});
+
+/**
+ * Strips the index signature from a type, keeping only explicitly declared keys.
+ */
+type ExcludeIndexSignature<T> = {
+    [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K]
+};
+
 type _DeepRequired<T> = {
     [P in keyof T]-?: T[P] extends object ? _DeepRequired<T[P]> : T[P];
 };
@@ -333,6 +346,32 @@ export namespace dia {
             before?: GraphLayer.ID | null;
             index?: number;
         }
+
+        interface EventMap {
+            // cell collection events
+            'add': (cell: Cell, collection: mvc.Collection<Cell>, options: Options) => void;
+            'remove': (cell: Cell, collection: mvc.Collection<Cell>, options: Options) => void;
+            'reset': (collection: mvc.Collection<Cell>, options: Options) => void;
+            'sort': (collection: mvc.Collection<Cell>, options: Options) => void;
+            'update': (collection: mvc.Collection<Cell>, options: Options) => void;
+            // cell events
+            'change': (cell: Cell, options: Options) => void;
+            [changeEvent: `change:${string}`]: (cell: Cell, newValue: any, options: Options) => void;
+            'move': (cell: Cell, options: Options) => void;
+            'changeId': (cell: Cell, previousId: Cell.ID, options: Options) => void;
+            // layer events
+            'layer:add': (layer: GraphLayer, collection: GraphLayerCollection, options: Options) => void;
+            'layer:remove': (layer: GraphLayer, collection: GraphLayerCollection, options: Options) => void;
+            'layer:change': (layer: GraphLayer, options: Options) => void;
+            [layerChangeEvent: `layer:change:${string}`]: (layer: GraphLayer, newValue: any, options: Options) => void;
+            'layer:default': (layer: GraphLayer, options: Options) => void;
+            'layers:sort': (collection: GraphLayerCollection, options: Options) => void;
+            // batch
+            'batch:start': (data: Options) => void;
+            'batch:stop': (data: Options) => void;
+            // custom
+            [eventName: string]: mvc.EventHandler;
+        }
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -354,6 +393,24 @@ export namespace dia {
             /** @deprecated use cellNamespace instead */
             cellModel?: typeof Cell
         });
+
+        // events
+
+        on<T extends keyof Graph.EventMap>(
+            eventName: T,
+            callback: Graph.EventMap[T],
+            context?: any
+        ): this;
+        on(
+            eventName: LiteralUnion<keyof ExcludeIndexSignature<Graph.EventMap>>,
+            callback: mvc.EventHandler,
+            context?: any
+        ): this;
+
+        on<E extends Partial<Graph.EventMap>>(
+            events: E,
+            context?: any
+        ): this;
 
         addCell(cell: Graph.CellInit, opt?: CollectionAddOptions): this;
         addCell(cell: Array<Graph.CellInit>, opt?: CollectionAddOptions): this;
@@ -1848,6 +1905,9 @@ export namespace dia {
             // render
             'render:done': (stats: UpdateStats, opt: any) => void;
             'render:idle': (opt: Paper.UpdateViewsAsyncOptions) => void;
+            // paper
+            'paper:mouseenter': (evt: dia.Event) => void;
+            'paper:mouseleave': (evt: dia.Event) => void;
             // transformations
             'translate': (tx: number, ty: number, data: unknown) => void;
             'scale': (sx: number, sy: number, data: unknown) => void;
@@ -1908,7 +1968,7 @@ export namespace dia {
         layers: SVGGElement;
 
         GUARDED_TAG_NAMES: string[];
-        FORM_CONTROLS_TAG_NAMES: string[];
+        FORM_CONTROL_TAG_NAMES: string[];
 
         matrix(): SVGMatrix;
         matrix(ctm: SVGMatrix | Vectorizer.Matrix, data?: any): this;
@@ -2094,9 +2154,9 @@ export namespace dia {
 
         removeLayerView(layerRef: Paper.LayerRef): void;
 
-        protected insertLayerView(layerView: LayerView, before?: Paper.LayerRef): void;
+        protected insertLayerView(layerView: LayerView, beforeLayerView?: LayerView): void;
 
-        protected requestLayerViewRemoval(layerRef: Paper.LayerRef): void;
+        protected requestLayerViewRemoval(layerRef: Paper.LayerRef, opt?: { [key: string]: any }): void;
 
         protected createLayerView(options: Omit<LayerView.Options, 'paper'>): LayerView;
 
@@ -2147,9 +2207,21 @@ export namespace dia {
 
         // events
 
-        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(eventName: T, callback: Paper.EventMap[T], context?: any): this;
+        on<T extends keyof Paper.EventMap>(
+            eventName: T,
+            callback: Paper.EventMap[T],
+            context?: any
+        ): this;
+        on(
+            eventName: LiteralUnion<keyof ExcludeIndexSignature<Paper.EventMap>>,
+            callback: mvc.EventHandler,
+            context?: any
+        ): this;
 
-        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(events: { [eventName in T]: Paper.EventMap[eventName]; }, context?: any): this;
+        on<E extends Partial<Paper.EventMap>>(
+            events: E,
+            context?: any
+        ): this;
 
         // protected
 
@@ -2185,9 +2257,9 @@ export namespace dia {
 
         protected updateViewsBatch(opt?: Paper.UpdateViewsBatchOptions): Paper.RenderBatchStats;
 
-        protected checkMountedViews(viewport: Paper.ViewportCallback, opt?: Paper.UnmountOptions): number;
+        protected checkMountedViews(viewport: Paper.ViewportCallback | Paper.CellVisibilityCallback | null, opt?: Paper.UnmountOptions): number;
 
-        protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: Paper.MountOptions): number;
+        protected checkUnmountedViews(viewport: Paper.ViewportCallback | Paper.CellVisibilityCallback | null, opt?: Paper.MountOptions): number;
 
         protected prioritizeCellViewMount(cellOrId: Graph.CellRef): boolean;
 
@@ -2201,9 +2273,9 @@ export namespace dia {
 
         protected isExactSorting(): boolean;
 
-        protected sortViews(): void;
+        protected sortLayerViews(): void;
 
-        protected sortViewsExact(): void;
+        protected sortLayerViewsExact(): void;
 
         protected pointerdblclick(evt: dia.Event): void;
 
@@ -2235,15 +2307,15 @@ export namespace dia {
 
         protected guard(evt: dia.Event, view: CellView): boolean;
 
-        protected drawBackgroundImage(img: HTMLImageElement, opt: { [key: string]: any }): void;
+        protected drawBackgroundImage(img: HTMLImageElement | null, opt?: { [key: string]: any }): void;
 
-        protected updateBackgroundColor(color: string): void;
+        protected updateBackgroundColor(color?: string): void;
 
         protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
 
-        protected createViewForModel(cell: Cell): CellView;
+        protected createViewForModel(cell: Cell, cid?: string): CellView;
 
-        protected cloneOptions(): Paper.Options;
+        protected cloneOptions(): void;
 
         protected onCellAdded(cell: Cell, collection: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
@@ -2258,13 +2330,13 @@ export namespace dia {
 
         protected onGraphLayerCollectionReset(layer: mvc.Collection<GraphLayer>, opt: dia.Graph.Options): void;
 
-        protected onGraphLayerCollectionSort(layer: GraphLayer[]): void;
+        protected onGraphLayerCollectionSort(layerCollection: mvc.Collection<GraphLayer>): void;
 
         protected onGraphReset(cells: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
         protected onGraphSort(): void;
 
-        protected onGraphBatchStop(): void;
+        protected onGraphBatchStop(data?: { batchName: string }): void;
 
         protected onCellHighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
@@ -2276,7 +2348,7 @@ export namespace dia {
 
         protected removeViews(): void;
 
-        protected renderView(cell: Cell): CellView;
+        protected renderView(cell: Cell, opt?: { [key: string]: any }): CellView;
 
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
 
@@ -2611,17 +2683,17 @@ export namespace dia {
 
 export namespace highlighters {
 
-    type HighlighterView = dia.HighlighterView; 
+    import HighlighterView = dia.HighlighterView;
 
-    interface AddClassHighlighterArguments extends dia.HighlighterView.Options {
+    interface AddClassHighlighterArguments extends HighlighterView.Options {
         className?: string;
     }
 
-    interface OpacityHighlighterArguments extends dia.HighlighterView.Options {
+    interface OpacityHighlighterArguments extends HighlighterView.Options {
         alphaValue?: number;
     }
 
-    interface StrokeHighlighterArguments extends dia.HighlighterView.Options {
+    interface StrokeHighlighterArguments extends HighlighterView.Options {
         padding?: number;
         rx?: number;
         ry?: number;
@@ -2630,7 +2702,7 @@ export namespace highlighters {
         attrs?: attributes.NativeSVGAttributes;
     }
 
-    interface MaskHighlighterArguments extends dia.HighlighterView.Options {
+    interface MaskHighlighterArguments extends HighlighterView.Options {
         padding?: number;
         maskClip?: number;
         deep?: boolean;
@@ -4534,8 +4606,8 @@ export namespace attributes {
         filter?: string | dia.SVGFilterJSON;
         fill?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
         stroke?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
-        sourceMarker?: dia.SVGMarkerJSON | null;
-        targetMarker?: dia.SVGMarkerJSON | null;
+        sourceMarker?: dia.SVGMarkerJSON;
+        targetMarker?: dia.SVGMarkerJSON;
         vertexMarker?: dia.SVGMarkerJSON;
         props?: SVGAttributeProps;
         text?: string;

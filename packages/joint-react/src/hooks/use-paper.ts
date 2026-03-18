@@ -5,9 +5,8 @@ import type { PaperStore } from '../store';
 import { useStore } from './use-stores';
 import { useGraphStore } from './use-graph-store';
 import type { dia } from '@joint/core';
-import type { Nullable, PaperTarget } from '../types';
-import { NULLABLE, resolvePaperId } from '../types';
-import { isString, isRecord, isRef } from '../utils/is';
+import type { PaperTarget } from '../types';
+import { OPTIONAL, resolvePaperId } from '../types';
 
 /**
  * Resolves a paper ID from any `PaperTarget`, handling the ref-timing problem.
@@ -20,7 +19,7 @@ import { isString, isRecord, isRef } from '../utils/is';
  * @returns The paper ID string, or `NULLABLE` sentinel when not yet available.
  * @internal
  */
-export function useResolvePaperId(target: PaperTarget | undefined): string | Nullable {
+export function useResolvePaperId(target: PaperTarget | undefined): string | Optional {
   const isRefTarget = isRef(target);
   const paperId = resolvePaperId(target);
   const [, forceRender] = useReducer((c: number) => c + 1, 0);
@@ -37,15 +36,17 @@ export function useResolvePaperId(target: PaperTarget | undefined): string | Nul
     }
   });
 
-  return resolvedIdRef.current ?? NULLABLE;
+  return resolvedIdRef.current ?? OPTIONAL;
 }
+import type { Optional } from '../types';
+import { isString, isRecord, isRef } from '../utils/is';
 
 /**
  * Returns the active paper store.
  * All overloads must be used inside a `GraphProvider`.
  * Use this hook in one of three modes:
  * - with no arguments, read the current `PaperStore` from `Paper` context
- * - with `{ isNullable: true }`, still read the current `PaperStore` from `Paper` context but return `null` instead of throwing when the context is missing
+ * - with `{ optional: true }`, still read the current `PaperStore` from `Paper` context but return `null` instead of throwing when the context is missing
  * - with a paper id, read a specific paper store from the graph store
  * @group Hooks
  * @returns The resolved paper store for the current context or requested id.
@@ -64,7 +65,7 @@ export function useResolvePaperId(target: PaperTarget | undefined): string | Nul
  * import { usePaperStore } from '@joint/react';
  *
  * function OptionalOverlay() {
- *   const paperStore = usePaperStore({ isNullable: true });
+ *   const paperStore = usePaperStore({ optional: true });
  *
  *   if (!paperStore) return null;
  *
@@ -83,13 +84,13 @@ export function useResolvePaperId(target: PaperTarget | undefined): string | Nul
  * ```
  */
 export function usePaperStore(): PaperStore;
-export function usePaperStore(options: Nullable): PaperStore | null;
+export function usePaperStore(options: Optional): PaperStore | null;
 export function usePaperStore(id: string): PaperStore | null;
-export function usePaperStore(idOrOptions?: string | Nullable): PaperStore | null;
-export function usePaperStore(idOrOptions?: string | Nullable): PaperStore | null {
+export function usePaperStore(idOrOptions?: string | Optional): PaperStore | null;
+export function usePaperStore(idOrOptions?: string | Optional): PaperStore | null {
   const contextStore = useContext(PaperStoreContext);
   const { internalState, getPaperStore } = useGraphStore();
-  const nullable = isRecord(idOrOptions) && idOrOptions.isNullable;
+  const nullable = isRecord(idOrOptions) && idOrOptions.optional;
   const paperStoreById = useStore(internalState, (snapshot) => {
     if (!isString(idOrOptions)) {
       return null;
@@ -117,7 +118,7 @@ export function usePaperStore(idOrOptions?: string | Nullable): PaperStore | nul
  * All overloads must be used inside a `GraphProvider`.
  * Use this hook in one of three modes:
  * - with no arguments, read the current `dia.Paper` from `Paper` context
- * - with `{ isNullable: true }`, still read the current `dia.Paper` from `Paper` context, but return `null` paper instead of throwing when the context is missing
+ * - with `{ optional: true }`, still read the current `dia.Paper` from `Paper` context, but return `null` paper instead of throwing when the context is missing
  * - with a paper id, read a specific paper from the graph store
  * @see https://docs.jointjs.com/learn/quickstart/paper
  * @group Hooks
@@ -137,7 +138,7 @@ export function usePaperStore(idOrOptions?: string | Nullable): PaperStore | nul
  * import { usePaper } from '@joint/react';
  *
  * function OptionalPaperInfo() {
- *   const { paper } = usePaper({ isNullable: true });
+ *   const { paper } = usePaper({ optional: true });
  *
  *   if (!paper) return null;
  *
@@ -156,10 +157,10 @@ export function usePaperStore(idOrOptions?: string | Nullable): PaperStore | nul
  * ```
  */
 export function usePaper(): { paper: dia.Paper };
-export function usePaper(options: Nullable): { paper: dia.Paper | null };
+export function usePaper(options: Optional): { paper: dia.Paper | null };
 export function usePaper(id: string): { paper: dia.Paper | null };
-export function usePaper(idOrOptions?: string | Nullable): { paper: dia.Paper | null };
-export function usePaper(idOrOptions?: string | Nullable): { paper: dia.Paper | null } {
+export function usePaper(idOrOptions?: string | Optional): { paper: dia.Paper | null };
+export function usePaper(idOrOptions?: string | Optional): { paper: dia.Paper | null } {
   const paperStore = usePaperStore(idOrOptions);
   return { paper: paperStore?.paper ?? null };
 }
