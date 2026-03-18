@@ -1,4 +1,5 @@
-/* eslint-disable no-empty-pattern */
+/* eslint-disable @typescript-eslint/no-dynamic-delete */
+/* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
@@ -11,11 +12,14 @@ import {
   useMeasureNode,
   type FlatElementData,
   type FlatLinkData,
+  type IncrementalStateChanges,
   type RenderElement,
 } from '@joint/react';
 import { useIsElementDragging, usePaperEvents } from '../../../hooks';
 import Peer, { type DataConnection } from 'peerjs';
-import { createContext, useCallback, useContext, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { configureStore, createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { Provider, useSelector, useStore } from 'react-redux';
 
 // ── Theme ───────────────────────────────────────────────────────────────────
 
@@ -192,26 +196,97 @@ const initialLinks: Record<string, FlatLinkData> = {
   },
 };
 
+// ── Redux Store ─────────────────────────────────────────────────────────────
+
+interface GraphState {
+  readonly elements: Record<string, FlatElementData>;
+  readonly links: Record<string, FlatLinkData>;
+}
+
+const graphSlice = createSlice({
+  name: 'graph',
+  initialState: {
+    elements: initialElements as Record<string, FlatElementData>,
+    links: initialLinks as Record<string, FlatLinkData>,
+  } satisfies GraphState,
+  reducers: {
+    applyIncrementalChanges: (state, action: PayloadAction<IncrementalStateChanges>) => {
+      const { elements, links } = action.payload;
+
+      if (elements.reset) {
+        state.elements = elements.reset;
+      } else {
+        if (elements.added) {
+          for (const [id, data] of Object.entries(elements.added)) {
+            state.elements[id] = data;
+          }
+        }
+        if (elements.changed) {
+          for (const [id, data] of Object.entries(elements.changed)) {
+            state.elements[id] = data;
+          }
+        }
+        if (elements.removed) {
+          for (const id of Object.keys(elements.removed)) {
+            delete state.elements[id];
+          }
+        }
+      }
+
+      if (links.reset) {
+        state.links = links.reset;
+      } else {
+        if (links.added) {
+          for (const [id, data] of Object.entries(links.added)) {
+            state.links[id] = data;
+          }
+        }
+        if (links.changed) {
+          for (const [id, data] of Object.entries(links.changed)) {
+            state.links[id] = data;
+          }
+        }
+        if (links.removed) {
+          for (const id of Object.keys(links.removed)) {
+            delete state.links[id];
+          }
+        }
+      }
+    },
+  },
+});
+
+const { applyIncrementalChanges } = graphSlice.actions;
+
+function createCollabStore() {
+  return configureStore({
+    reducer: { graph: graphSlice.reducer },
+    devTools: true,
+  });
+}
+
+type CollabStore = ReturnType<typeof createCollabStore>;
+type CollabRootState = ReturnType<CollabStore['getState']>;
+
+const selectElements = (state: CollabRootState) => state.graph.elements;
+const selectLinks = (state: CollabRootState) => state.graph.links;
+
 // ── PeerJS Manager ──────────────────────────────────────────────────────────
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
 interface SyncMessage {
-  type: 'state-update' | 'presence' | 'drag';
-  elements?: Record<string, FlatElementData>;
-  links?: Record<string, FlatLinkData>;
-  userColor?: string;
-  userName?: string;
-  draggingIds?: string[];
+  readonly type: 'incremental' | 'presence' | 'drag';
+  readonly changes?: IncrementalStateChanges;
+  readonly userColor?: string;
+  readonly userName?: string;
+  readonly draggingIds?: string[];
 }
 
 function createPeerManager(callbacks: {
   onPeerId: (id: string) => void;
   onStatus: (status: ConnectionStatus) => void;
-  onRemoteState: (
-    elements: Record<string, FlatElementData>,
-    links: Record<string, FlatLinkData>
-  ) => void;
+  onRemoteChanges: (changes: IncrementalStateChanges) => void;
   onPeerPresence: (color: string, name: string) => void;
   onRemoteDrag: (ids: string[]) => void;
 }) {
@@ -220,16 +295,16 @@ function createPeerManager(callbacks: {
   const outgoing: DataConnection[] = [];
   let ignoreNext = false;
 
-  const { onPeerId, onStatus, onRemoteState, onPeerPresence, onRemoteDrag } = callbacks;
+  const { onPeerId, onStatus, onRemoteChanges, onPeerPresence, onRemoteDrag } = callbacks;
 
   peer = new Peer();
   peer.on('open', onPeerId);
 
   function handleData(data: unknown) {
     const message = data as SyncMessage;
-    if (message.type === 'state-update' && message.elements && message.links) {
+    if (message.type === 'incremental' && message.changes) {
       ignoreNext = true;
-      onRemoteState(message.elements, message.links);
+      onRemoteChanges(message.changes);
       queueMicrotask(() => {
         ignoreNext = false;
       });
@@ -297,9 +372,9 @@ function createPeerManager(callbacks: {
       onStatus('connecting');
       connectTo(remotePeerId);
     },
-    send(elements: Record<string, FlatElementData>, links: Record<string, FlatLinkData>) {
+    sendChanges(changes: IncrementalStateChanges) {
       if (ignoreNext) return;
-      const message: SyncMessage = { type: 'state-update', elements, links };
+      const message: SyncMessage = { type: 'incremental', changes };
       for (const conn of outgoing) {
         try {
           conn.send(message);
@@ -611,9 +686,70 @@ function ConnectionPanel({
 
 // ── Toolbar ─────────────────────────────────────────────────────────────────
 
+const SIMULATE_NODES = [
+  { id: 'orchestrator', label: 'Orchestrator', icon: 'fas fa-brain' },
+  { id: 'researcher', label: 'Researcher', icon: 'fas fa-search' },
+  { id: 'writer', label: 'Writer', icon: 'fas fa-pen-fancy' },
+] as const;
+
 function Toolbar() {
   const theme = useTheme();
+  const isDark = theme === DARK;
   const { setElement } = useGraph();
+  const reduxStore = useStore<CollabRootState>();
+  const [simulating, setSimulating] = useState<Set<string>>(new Set());
+  const intervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+
+  const toggleSimulate = useCallback(
+    (nodeId: string) => {
+      setSimulating((previous) => {
+        const next = new Set(previous);
+        if (next.has(nodeId)) {
+          // Stop
+          next.delete(nodeId);
+          const interval = intervalsRef.current.get(nodeId);
+          if (interval) {
+            clearInterval(interval);
+            intervalsRef.current.delete(nodeId);
+          }
+        } else {
+          // Start
+          next.add(nodeId);
+          const state = reduxStore.getState().graph.elements[nodeId] as AgentNode | undefined;
+          if (!state) return previous;
+
+          const centerX = state.x ?? 250;
+          const centerY = state.y ?? 200;
+          const radius = 30 + Math.random() * 40;
+          let angle = Math.random() * Math.PI * 2;
+          const speed = 0.03 + Math.random() * 0.02;
+
+          const interval = setInterval(() => {
+            angle += speed;
+            const x = centerX + Math.cos(angle) * radius;
+            const y = centerY + Math.sin(angle) * radius;
+
+            const current = reduxStore.getState().graph.elements[nodeId];
+            if (!current) return;
+
+            setElement(nodeId, { ...current, x, y });
+          }, 30);
+
+          intervalsRef.current.set(nodeId, interval);
+        }
+        return next;
+      });
+    },
+    [reduxStore, setElement]
+  );
+
+  useEffect(() => {
+    const refs = intervalsRef.current;
+    return () => {
+      for (const interval of refs.values()) clearInterval(interval);
+      refs.clear();
+    };
+  }, []);
 
   const addAgent = useCallback(() => {
     const id = `agent-${Date.now()}`;
@@ -660,49 +796,67 @@ function Toolbar() {
     } satisfies AgentNode);
   }, [setElement, theme]);
 
-  const buttonStyle = {
-    backgroundColor: theme === DARK ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-    color: theme.sub,
-    border: 'none',
-    transition: 'background-color 150ms',
-  };
-
   return (
     <div
       className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-1.5 py-1.5 rounded-2xl"
       style={{
         backgroundColor: theme.surface,
         border: `1px solid ${theme.surfaceBorder}`,
-        boxShadow: `0 4px 24px rgba(0,0,0,${theme === DARK ? 0.4 : 0.08})`,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: `0 4px 24px rgba(0,0,0,${isDark ? 0.4 : 0.08})`,
       }}
     >
       <button
-        className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-medium cursor-pointer"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer whitespace-nowrap"
         style={{ backgroundColor: theme.accent, color: '#fff', border: 'none' }}
         onClick={addAgent}
       >
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        >
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        Add Agent
+        Add +
       </button>
+
+      <div style={{ width: 1, height: 16, backgroundColor: theme.surfaceBorder }} />
+
+      <span className="text-[10px] px-1.5" style={{ color: theme.muted }}>
+        Simulate
+      </span>
+
+      {SIMULATE_NODES.map((node) => {
+        const isActive = simulating.has(node.id);
+        const activeBg = isDark ? 'rgba(48,209,88,0.15)' : 'rgba(52,199,89,0.12)';
+        const inactiveBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+        return (
+          <button
+            key={node.id}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium cursor-pointer"
+            style={{
+              backgroundColor: isActive ? activeBg : inactiveBg,
+              color: isActive ? theme.green : theme.sub,
+              border: isActive ? `1px solid ${theme.green}44` : '1px solid transparent',
+              transition: 'all 150ms',
+            }}
+            onClick={() => toggleSimulate(node.id)}
+          >
+            <i className={node.icon} style={{ fontSize: 9 }} />
+            {node.label}
+            {isActive && (
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: theme.green, animation: 'pulse 1.5s infinite' }}
+              />
+            )}
+          </button>
+        );
+      })}
 
       <div style={{ width: 1, height: 16, backgroundColor: theme.surfaceBorder }} />
 
       <button
         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-medium cursor-pointer"
-        style={buttonStyle}
+        style={{
+          backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+          color: theme.sub,
+          border: 'none',
+          transition: 'background-color 150ms',
+        }}
       >
         <svg
           width="12"
@@ -745,22 +899,19 @@ function DragTracker({ manager }: Readonly<{ manager: ReturnType<typeof createPe
 
 const PAPER_ID = 'collab-paper';
 
-function Main() {
+function GraphWithRedux() {
   const isDark = useContext(ThemeContext);
   const theme = isDark ? DARK : LIGHT;
 
-  const [elements, setElements] = useState<Record<string, FlatElementData>>(initialElements);
-  const [linkData, setLinkData] = useState<Record<string, FlatLinkData>>(initialLinks);
+  const elements = useSelector(selectElements);
+  const links = useSelector(selectLinks);
+  const reduxStore = useStore<CollabRootState>();
+  const { dispatch } = reduxStore;
 
   const [peerId, setPeerId] = useState<string | null>(null);
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [peerColor, setPeerColor] = useState<string | null>(null);
   const [peerName, setPeerName] = useState<string | null>(null);
-
-  const elementsRef = useRef(elements);
-  const linksRef = useRef(linkData);
-  elementsRef.current = elements;
-  linksRef.current = linkData;
 
   const [myColor] = useState<string>(
     () => USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]
@@ -771,9 +922,8 @@ function Main() {
     createPeerManager({
       onPeerId: setPeerId,
       onStatus: setStatus,
-      onRemoteState: (remoteElements, remoteLinks) => {
-        setElements(remoteElements);
-        setLinkData(remoteLinks);
+      onRemoteChanges: (changes) => {
+        dispatch(applyIncrementalChanges(changes));
       },
       onRemoteDrag: (ids) => {
         setRemoteDragging(new Set(ids));
@@ -796,33 +946,17 @@ function Main() {
     [manager, myColor, peerId]
   );
 
-  const handleElementsChange = useCallback(
-    (action: React.SetStateAction<Record<string, FlatElementData>>) => {
-      setElements((previous) => {
-        const next = typeof action === 'function' ? action(previous) : action;
-        elementsRef.current = next;
-        manager.send(next, linksRef.current);
-        return next;
-      });
+  const handleIncrementalChange = useCallback(
+    (changes: IncrementalStateChanges) => {
+      dispatch(applyIncrementalChanges(changes));
+      manager.sendChanges(changes);
     },
-    [manager]
-  );
-
-  const handleLinksChange = useCallback(
-    (action: React.SetStateAction<Record<string, FlatLinkData>>) => {
-      setLinkData((previous) => {
-        const next = typeof action === 'function' ? action(previous) : action;
-        linksRef.current = next;
-        manager.send(elementsRef.current, next);
-        return next;
-      });
-    },
-    [manager]
+    [dispatch, manager]
   );
 
   // Theme links
   const themedLinks: Record<string, FlatLinkData> = {};
-  for (const [id, link] of Object.entries(linkData)) {
+  for (const [id, link] of Object.entries(links)) {
     themedLinks[id] = { ...link, color: theme.link };
   }
 
@@ -865,8 +999,7 @@ function Main() {
         <GraphProvider
           elements={themedElements}
           links={themedLinks}
-          onElementsChange={handleElementsChange}
-          onLinksChange={handleLinksChange}
+          onIncrementalChange={handleIncrementalChange}
         >
           <Paper
             id={PAPER_ID}
@@ -969,20 +1102,23 @@ function ThemeSwitch({ isDark, onClick }: Readonly<{ isDark: boolean; onClick: (
 export default function App() {
   const [isDark, setIsDark] = useState(true);
   const theme = isDark ? DARK : LIGHT;
+  const [store] = useState(createCollabStore);
 
   return (
     <ThemeContext.Provider value={isDark}>
-      <div
-        className="relative w-full h-[680px] rounded-2xl overflow-hidden"
-        style={{
-          backgroundColor: theme.canvas,
-          border: `1px solid ${theme.surfaceBorder}`,
-          transition: 'background-color 300ms, border-color 300ms',
-        }}
-      >
-        <Main />
-        <ThemeSwitch isDark={isDark} onClick={() => setIsDark((v) => !v)} />
-      </div>
+      <Provider store={store}>
+        <div
+          className="relative w-full h-[680px] rounded-2xl overflow-hidden"
+          style={{
+            backgroundColor: theme.canvas,
+            border: `1px solid ${theme.surfaceBorder}`,
+            transition: 'background-color 300ms, border-color 300ms',
+          }}
+        >
+          <GraphWithRedux />
+          <ThemeSwitch isDark={isDark} onClick={() => setIsDark((v) => !v)} />
+        </div>
+      </Provider>
     </ThemeContext.Provider>
   );
 }
