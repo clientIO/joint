@@ -1,7 +1,7 @@
 import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
 import type { FlatLinkEnd } from '../../types/link-types';
-import type { LinkMarkerPreset } from '../../theme/markers';
+import type { LinkMarker } from '../../theme/markers';
 import type { Nullable } from '../../types';
 import { resolveMarker } from '../../theme/markers';
 import { isString } from '../../utils/is';
@@ -106,8 +106,8 @@ export { SOURCE_KEYS, TARGET_KEYS };
 interface LinkPresentationOptions {
   color: string;
   width: number;
-  sourceMarker: LinkMarkerPreset | dia.SVGMarkerJSON;
-  targetMarker: LinkMarkerPreset | dia.SVGMarkerJSON;
+  sourceMarker: LinkMarker;
+  targetMarker: LinkMarker;
   className: string;
   pattern: string;
   lineCap: string;

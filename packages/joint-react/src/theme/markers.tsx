@@ -37,16 +37,26 @@ export type LinkMarkerPreset = keyof typeof markerPresets;
  * @param marker - Marker preset name, custom marker, or null
  * @returns The resolved marker JSON or null
  */
+export type LinkMarker = LinkMarkerPreset | dia.SVGMarkerJSON | dia.MarkupJSON;
+
+/**
+ * Resolves a LinkMarker to a dia.SVGMarkerJSON or null.
+ * @param marker - The LinkMarker to resolve
+ * @returns The resolved dia.SVGMarkerJSON or null
+ */
 export function resolveMarker(
-  marker: LinkMarkerPreset | dia.SVGMarkerJSON | undefined
+  marker: LinkMarker | undefined
 ): dia.SVGMarkerJSON | null {
   if (marker === undefined || marker === 'none') return null;
   if (isString(marker)) {
     return markerPresets[marker as keyof typeof markerPresets] ?? null;
   }
+  if (Array.isArray(marker)) {
+    return { markup: marker };
+  }
   const markerAsRecord = marker as Record<string, unknown>;
   if (!('type' in markerAsRecord) && typeof markerAsRecord.d === 'string') {
     return { type: 'path', ...markerAsRecord } as dia.SVGMarkerJSON;
   }
-  return marker;
+  return marker as dia.SVGMarkerJSON;
 }
