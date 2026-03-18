@@ -7,7 +7,7 @@ import type { GraphStore } from './graph-store';
 import { PortalPaper } from '../models/portal-paper';
 import { connectionPoint } from './default-connection-point';
 import { measureNode } from './default-measure-node';
-import type { Feature } from '../hooks/use-create-paper-features';
+import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { PaperStoreState } from '../state/state.types';
 

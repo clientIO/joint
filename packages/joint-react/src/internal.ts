@@ -9,22 +9,25 @@ export { useImperativeApi } from './hooks/use-imperative-api';
 export { useElementViews } from './hooks/use-element-views';
 export type { OnPaperRenderElement } from './hooks/use-element-views';
 export { useCreatePortalPaper } from './hooks/use-create-portal-paper';
-export { useCreatePaperFeature } from './hooks/use-create-paper-features';
+export { useCreateFeature } from './hooks/use-create-features';
 export { useCombinedRef } from './hooks/use-combined-ref';
 export { useRefValue } from './hooks/use-ref-value';
 export { usePaperStore, useResolvePaperId } from './hooks/use-paper';
 
 // Feature System
 export type {
+  FeatureTarget,
   Feature,
+  FeaturesContext as FeaturesContextType,
   OnAddFeature,
   OnUpdateFeature,
   OnLoadFeature,
   OnAddFeatureOptions,
   OnUpdateFeatureOptions,
   OnLoadFeatureOptions,
-} from './hooks/use-create-paper-features';
-export { PaperFeaturesProvider } from './components';
+  AddFeatureOptions,
+} from './hooks/use-create-features';
+export { FeaturesProvider } from './components';
 
 // Store Classes
 export { GraphStore, DEFAULT_CELL_NAMESPACE } from './store/graph-store';
@@ -47,8 +50,8 @@ export {
   PaperStoreContext,
   CellIdContext,
   PaperFeaturesContext,
+  GraphFeaturesContext,
 } from './context';
-export type { PaperFeaturesContext as PaperFeaturesContextType } from './context';
 
 // State Primitives
 export { createState } from './utils/create-state';
@@ -84,7 +87,11 @@ export { PORTAL_ELEMENT_TYPE, PORTAL_SELECTOR } from './models/portal-element';
 export { PORTAL_LINK_TYPE } from './models/portal-link';
 
 // Internal Selectors
-export { selectResetVersion, createSelectPaperVersion } from './selectors';
+export {
+  selectResetVersion,
+  createSelectPaperVersion,
+  selectGraphFeaturesVersion,
+} from './selectors';
 
 // Internal Types (used by react-plus)
 export type {
