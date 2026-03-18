@@ -35,3 +35,7 @@ export function isWithChildren(value: unknown): value is { children: JSX.Element
 export function isUpdater<T>(updater: ((previous: T) => T) | T): updater is (previous: T) => T {
   return typeof updater === 'function' && 'call' in updater;
 }
+
+export function isRef<T>(value: unknown): value is React.RefObject<T> {
+  return isRecord(value) && 'current' in value;
+}

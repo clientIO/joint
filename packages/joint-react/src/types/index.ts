@@ -18,6 +18,11 @@ export interface Nullable {
 }
 
 /**
+ * Shared sentinel for nullable hooks so a new object isn't created each render.
+ */
+export const NULLABLE: Nullable = { isNullable: true } as const;
+
+/**
  * A string type that preserves intellisense for known literal unions.
  * Use instead of `| string` or `[key: string]` to keep autocomplete working.
  */

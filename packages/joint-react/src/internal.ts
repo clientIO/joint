@@ -12,7 +12,7 @@ export { useCreatePortalPaper } from './hooks/use-create-portal-paper';
 export { useCreatePaperFeature } from './hooks/use-create-paper-features';
 export { useCombinedRef } from './hooks/use-combined-ref';
 export { useRefValue } from './hooks/use-ref-value';
-export { usePaperStore } from './hooks/use-paper';
+export { usePaperStore, useResolvePaperId } from './hooks/use-paper';
 
 // Feature System
 export type {

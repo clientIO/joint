@@ -1,9 +1,10 @@
+/* eslint-disable unicorn/no-useless-undefined */
 import type { dia } from '@joint/core';
-import { renderHook, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { render, renderHook, waitFor } from '@testing-library/react';
+import { useRef, type ReactNode } from 'react';
 import { GraphProvider, Paper } from '../../components';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
-import { usePaper } from '../use-paper';
+import { usePaper, usePaperStore, useResolvePaperId } from '../use-paper';
 
 const EMPTY_ELEMENTS = {};
 const EMPTY_LINKS = {};
@@ -97,5 +98,78 @@ describe('use-paper', () => {
     }).toThrow('useGraphStore must be used within a GraphProvider');
 
     consoleError.mockRestore();
+  });
+});
+
+describe('useResolvePaperId', () => {
+  it('resolves a string paper id directly', () => {
+    const wrapper = createPaperWrapper('paper-resolve-str');
+    const { result } = renderHook(() => useResolvePaperId('paper-resolve-str'), { wrapper });
+    expect(result.current).toBe('paper-resolve-str');
+  });
+
+  it('returns NULLABLE when target is undefined', () => {
+    const wrapper = createPaperWrapper('paper-resolve-undef');
+    const { result } = renderHook(() => useResolvePaperId(undefined), { wrapper });
+    expect(result.current).toEqual({ isNullable: true });
+  });
+
+  it('resolves paper id from a ref after Paper mounts', async () => {
+    let resolvedId: string | { isNullable: true } | null = null;
+
+    function TestComponent() {
+      const paperRef = useRef<dia.Paper>(null);
+      const id = useResolvePaperId(paperRef);
+      resolvedId = id;
+      return (
+        <Paper
+          ref={paperRef}
+          id="paper-resolve-ref"
+          width={100}
+          height={100}
+          renderElement={renderTestElement}
+        />
+      );
+    }
+
+    render(
+      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+        <TestComponent />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(resolvedId).toBe('paper-resolve-ref');
+    });
+  });
+
+  it('resolved id can be passed to usePaperStore to get the store', async () => {
+    let store: ReturnType<typeof usePaperStore> | null = null;
+
+    function TestComponent() {
+      const paperRef = useRef<dia.Paper>(null);
+      const id = useResolvePaperId(paperRef);
+      store = usePaperStore(id);
+      return (
+        <Paper
+          ref={paperRef}
+          id="paper-resolve-store"
+          width={100}
+          height={100}
+          renderElement={renderTestElement}
+        />
+      );
+    }
+
+    render(
+      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+        <TestComponent />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(store).not.toBeNull();
+      expect(store!.paperId).toBe('paper-resolve-store');
+    });
   });
 });

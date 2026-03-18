@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { mvc, type dia } from '@joint/core';
 import { render, renderHook, waitFor, act } from '@testing-library/react';
-import { useCallback, useId, type ReactNode } from 'react';
+import { useCallback, useId, useRef, type ReactNode } from 'react';
 import { GraphProvider, Paper } from '../../components';
 import { usePaperEvents } from '../use-paper-events';
 import type { PaperEventsContext } from '../use-paper-events';
@@ -418,5 +418,77 @@ describe('use-paper-events', () => {
     });
 
     expect(onMeasured).toHaveBeenCalledTimes(1);
+  });
+
+  it('supports ref target (useRef<dia.Paper>) for usePaperEvents', async () => {
+    const onBlankPointerdown = jest.fn();
+
+    function TestComponent() {
+      const paperRef = useRef<dia.Paper>(null);
+
+      usePaperEvents(
+        paperRef,
+        {
+          'blank:pointerdown': onBlankPointerdown,
+        },
+        [paperRef]
+      );
+
+      return (
+        <Paper
+          ref={paperRef}
+          id="paper-ref-target"
+          width={100}
+          height={100}
+          renderElement={renderTestElement}
+        />
+      );
+    }
+
+    function Wrapper() {
+      return (
+        <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+          <TestComponent />
+        </GraphProvider>
+      );
+    }
+
+    render(<Wrapper />);
+
+    // Wait for paper to be available via the store
+    await waitFor(() => {
+      // The paper should be registered in the graph store by now
+      expect(onBlankPointerdown).not.toHaveBeenCalled();
+    });
+
+    // We need to get the paper instance to trigger events on it.
+    // Use a helper component to extract it.
+    let extractedPaper: dia.Paper | null = null;
+
+    function PaperExtractor() {
+      const { paper } = usePaper('paper-ref-target');
+      extractedPaper = paper;
+      return null;
+    }
+
+    const { unmount } = render(
+      <GraphProvider elements={EMPTY_ELEMENTS} links={EMPTY_LINKS}>
+        <TestComponent />
+        <PaperExtractor />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(extractedPaper).not.toBeNull();
+    });
+
+    act(() => {
+      extractedPaper!.trigger('blank:pointerdown', JOINT_EVENT, 10, 20);
+    });
+
+    expect(onBlankPointerdown).toHaveBeenCalledTimes(1);
+    expect(onBlankPointerdown).toHaveBeenCalledWith(JOINT_EVENT, 10, 20);
+
+    unmount();
   });
 });

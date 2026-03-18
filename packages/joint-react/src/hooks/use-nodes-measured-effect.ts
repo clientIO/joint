@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef, type DependencyList } from 'react';
 import { mvc } from '@joint/core';
-import { usePaperStore } from './use-paper';
+import { usePaperStore, useResolvePaperId } from './use-paper';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
-import { resolvePaperId, type PaperTarget } from '../types';
+import type { PaperTarget } from '../types';
 
 export interface UseOnElementsMeasuredOptions {
   /** When true, the callback fires only once and then unsubscribes. */
@@ -80,8 +80,8 @@ export function useNodesMeasuredEffect(
     ? (dependenciesOrOptions as UseOnElementsMeasuredOptions | undefined)
     : optionsArgument;
 
-  const paperId = resolvePaperId(target);
-  const paperStore = usePaperStore(paperId ?? { isNullable: true });
+  const paperId = useResolvePaperId(target);
+  const paperStore = usePaperStore(paperId);
 
   const callbackRef = useRef(callback);
   callbackRef.current = callback;

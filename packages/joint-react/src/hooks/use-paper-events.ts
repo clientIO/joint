@@ -2,9 +2,9 @@ import type { dia } from '@joint/core';
 import { mvc } from '@joint/core';
 import { useLayoutEffect, type DependencyList } from 'react';
 import type { PaperEventHandlers } from '../types/event.types';
-import { usePaperStore } from './use-paper';
+import { usePaperStore, useResolvePaperId } from './use-paper';
 import type { PaperStore } from '../store';
-import { resolvePaperId, type AnyString, type PaperTarget } from '../types';
+import { type AnyString, type PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
@@ -101,8 +101,8 @@ export function usePaperEvents<T = Record<AnyString, unknown>>(
   handlers: HandlersOrFactory<T>,
   dependencies: DependencyList = EMPTY_DEPENDENCIES
 ): void {
-  const paperId = resolvePaperId(paper);
-  const paperStore = usePaperStore(paperId ?? { isNullable: true });
+  const paperId = useResolvePaperId(paper);
+  const paperStore = usePaperStore(paperId);
   const graphStore = useGraphStore();
 
   useLayoutEffect(() => {

@@ -1,12 +1,44 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
-import { useContext } from 'react';
+import { useContext, useReducer, useLayoutEffect, useRef } from 'react';
 import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
 import { useStore } from './use-stores';
 import { useGraphStore } from './use-graph-store';
 import type { dia } from '@joint/core';
-import type { Nullable } from '../types';
-import { isString, isRecord } from '../utils/is';
+import type { Nullable, PaperTarget } from '../types';
+import { NULLABLE, resolvePaperId } from '../types';
+import { isString, isRecord, isRef } from '../utils/is';
+
+/**
+ * Resolves a paper ID from any `PaperTarget`, handling the ref-timing problem.
+ * For string IDs, `dia.Paper` instances, and `Nullable` targets, resolution is
+ * synchronous — no effects are scheduled. For `RefObject<dia.Paper>` targets,
+ * `resolvePaperId` returns `null` during render (ref not yet populated).
+ * A layout effect re-resolves the ID once `useImperativeHandle` has set the ref
+ * and triggers a single re-render.
+ * @param target - The paper target to resolve.
+ * @returns The paper ID string, or `NULLABLE` sentinel when not yet available.
+ * @internal
+ */
+export function useResolvePaperId(target: PaperTarget | undefined): string | Nullable {
+  const isRefTarget = isRef(target);
+  const paperId = resolvePaperId(target);
+  const [, forceRender] = useReducer((c: number) => c + 1, 0);
+  const resolvedIdRef = useRef<string | null>(paperId);
+  resolvedIdRef.current = paperId;
+
+  useLayoutEffect(() => {
+    if (!isRefTarget || resolvedIdRef.current) return;
+    // Re-resolve inside the layout effect where the ref is already populated.
+    const id = resolvePaperId(target);
+    if (id) {
+      resolvedIdRef.current = id;
+      forceRender();
+    }
+  });
+
+  return resolvedIdRef.current ?? NULLABLE;
+}
 
 /**
  * Returns the active paper store.
