@@ -6,28 +6,14 @@ import { isString } from '../utils/is';
  * Built-in marker presets for links.
  */
 export const markerPresets = {
-  none: null,
-  arrow: {
-    markup: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" stroke-width="2" />),
-  },
-  'arrow-open': {
-    markup: jsx(<path d="M 10 3 L 0 0 L 10 -3" fill="none" stroke-width="2" />),
-  },
-  circle: {
-    markup: jsx(<circle r="4" fill="context-fill" stroke-width="2" />),
-  },
-  'circle-outline': {
-    markup: jsx(<circle r="4" fill="none" stroke-width="2" />),
-  },
-  diamond: {
-    markup: jsx(<path d="M 0 0 L 5 -5 L 10 0 L 5 5 z" fill="context-fill" stroke-width="2" />),
-  },
-  bar: {
-    markup: jsx(<path d="M 0 -5 V 5" stroke-width="2" />),
-  },
-  cross: {
-    markup: jsx(<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke-width="2" />),
-  },
+  'none': null,
+  'arrow': jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-stroke" stroke-width="2" />),
+  'arrow-open': jsx(<path d="M 10 4 L 0 0 L 10 -4" fill="none" stroke-width="2" />),
+  'circle': jsx(<circle r="4" fill="context-stroke" stroke-width="2" />),
+  'circle-outline': jsx(<circle r="4" fill="none" stroke-width="2" />),
+  'diamond': jsx(<path d="M 0 0 L 5 -5 L 10 0 L 5 5 z" fill="context-stroke" stroke-width="2" />),
+  'bar': jsx(<path d="M 0 -5 V 5" stroke-width="2" />),
+  'cross': jsx(<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke-width="2" />),
 } as const satisfies Record<string, dia.SVGMarkerJSON | null>;
 
 export type LinkMarkerPreset = keyof typeof markerPresets;
@@ -49,7 +35,12 @@ export function resolveMarker(
 ): dia.SVGMarkerJSON | null {
   if (marker === undefined || marker === 'none') return null;
   if (isString(marker)) {
-    return markerPresets[marker as keyof typeof markerPresets] ?? null;
+    const markerDefinition = markerPresets[marker as keyof typeof markerPresets];
+    if (!markerDefinition) return null;
+    if (Array.isArray(markerDefinition)) {
+      return { markup: markerDefinition };
+    }
+    return markerDefinition as dia.SVGMarkerJSON;
   }
   if (Array.isArray(marker)) {
     return { markup: marker };
