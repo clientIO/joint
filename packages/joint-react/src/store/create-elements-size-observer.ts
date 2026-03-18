@@ -1,10 +1,6 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type {
-  ElementLayout,
-  ElementsLayoutSnapshot,
-  GraphStoreLayoutSnapshot,
-} from './graph-store';
+import type { ElementLayout, ElementsLayoutState, GraphLayoutState } from '../state/state.types';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // Epsilon value to avoid jitter due to sub-pixel rendering
@@ -77,7 +73,7 @@ interface Options {
     id: CellId
   ) => ElementLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the current public snapshot containing all elements */
-  readonly getLayoutSnapshot: () => GraphStoreLayoutSnapshot;
+  readonly getLayoutSnapshot: () => GraphLayoutState;
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (data: Record<CellId, ElementLayoutOptionalXY>) => void;
   readonly onObserveElement: (options: ObserveElementOptions) => void;
@@ -124,7 +120,7 @@ interface ProcessSizeChangeOptions {
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly snapshot: ElementsLayoutSnapshot;
+  readonly snapshot: ElementsLayoutState;
   readonly mutableLayouts: Record<CellId, ElementLayoutOptionalXY>;
 }
 

@@ -1,13 +1,12 @@
 /* eslint-disable prefer-destructuring */
- 
+
 /* eslint-disable @typescript-eslint/no-require-imports */
 import type { dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
-import type { ElementsLayoutSnapshot, GraphStoreLayoutSnapshot } from '../graph-store';
 import type { GraphStoreObserver } from '../create-elements-size-observer';
 
 // Mock ResizeObserver for testing
- 
+
 let mockResizeObserverInstances: MockResizeObserver[] = [];
 
 class MockResizeObserver {
@@ -116,20 +115,17 @@ describe('createElementsSizeObserver', () => {
       angle: 0,
       element: { id } as dia.Element,
     }));
-    mockGetLayoutSnapshot = jest.fn(
-      () =>
-        ({
-          elements: {
-            sizes: mockElementSizes,
-            positions: {},
-            angles: {},
-            count: Object.keys(mockElementSizes).length,
-            observedElements: 0,
-            measuredObservedElements: 0,
-          } as ElementsLayoutSnapshot,
-          links: {},
-        }) as GraphStoreLayoutSnapshot
-    );
+    mockGetLayoutSnapshot = jest.fn(() => ({
+      elements: {
+        sizes: mockElementSizes,
+        positions: {},
+        angles: {},
+        count: Object.keys(mockElementSizes).length,
+        observedElements: 0,
+        measuredObservedElements: 0,
+      },
+      links: {},
+    }));
 
     observer = createElementsSizeObserver({
       onBatchUpdate: mockOnBatchUpdate,

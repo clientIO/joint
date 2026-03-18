@@ -2,7 +2,14 @@ import { dia, shapes } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
 import type { FlatElementData } from '../types/element-types';
-import type { AddPaperOptions, PaperStoreSnapshot } from './paper-store';
+import type { AddPaperOptions } from './paper-store';
+import type {
+  PaperStoreState,
+  GraphDataState,
+  GraphLayoutState,
+  GraphStoreInternalSnapshot,
+} from '../state/state.types';
+
 import { PaperStore, DEFAULT_PAPER_VERSION } from './paper-store';
 import {
   createElementsSizeObserver,
@@ -36,88 +43,6 @@ export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
 };
 
 /**
- * Public snapshot of the graph store containing elements and links.
- */
-export interface GraphStoreSnapshot<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  elements: Record<CellId, ElementData>;
-  links: Record<CellId, LinkData>;
-}
-
-/**
- * Layout data for a single node (element).
- */
-export interface ElementLayout {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-  readonly angle: number;
-}
-
-/**
- * Layout data for a single link.
- */
-export interface LinkLayout {
-  readonly sourceX: number;
-  readonly sourceY: number;
-  readonly targetX: number;
-  readonly targetY: number;
-  readonly d: string;
-}
-/**
- * Size of a single element.
- */
-export interface ElementSize {
-  readonly width: number;
-  readonly height: number;
-}
-
-/**
- * Position of a single element.
- */
-export interface ElementPosition {
-  readonly x: number;
-  readonly y: number;
-}
-
-/**
- * Layout snapshot for all elements, split into sizes, positions, and angles.
- * Each record preserves its reference when unrelated properties change —
- * e.g. a position-only change does not create a new `sizes` object.
- */
-export interface ElementsLayoutSnapshot {
-  readonly sizes: Record<CellId, ElementSize>;
-  readonly positions: Record<CellId, ElementPosition>;
-  readonly angles: Record<CellId, number>;
-  /** Total number of elements in the graph. */
-  readonly count: number;
-  /** Number of elements whose width and height are both > 1 (considered measured). */
-  readonly observedElements: number;
-  readonly measuredObservedElements: number;
-}
-
-/**
- * Layout snapshot for all links, keyed by paper ID then by link cell ID.
- */
-export type LinksLayoutSnapshot = Record<string, Record<CellId, LinkLayout>>;
-
-/**
- * Snapshot containing layout data for all elements and links (per paper).
- */
-export interface GraphStoreLayoutSnapshot {
-  readonly elements: ElementsLayoutSnapshot;
-  readonly links: LinksLayoutSnapshot;
-}
-
-/**
- * Full internal snapshot of the graph store.
- */
-export interface GraphStoreInternalSnapshot {
-  papers: Record<string, PaperStoreSnapshot>;
-  resetVersion: number;
-}
-
-/**
  * Configuration options for creating a GraphStore instance.
  */
 export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData> {
@@ -149,8 +74,8 @@ export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = Fla
  */
 export class GraphStore {
   public readonly internalState: State<GraphStoreInternalSnapshot>;
-  public readonly dataState: ExternalStoreLike<GraphStoreSnapshot>;
-  public readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
+  public readonly dataState: ExternalStoreLike<GraphDataState>;
+  public readonly layoutState: ExternalStoreLike<GraphLayoutState>;
   public readonly graph: dia.Graph;
   public readonly graphState: GraphState;
 
@@ -326,7 +251,7 @@ export class GraphStore {
 
   public updatePaperSnapshot(
     paperId: string,
-    updater: (previous: PaperStoreSnapshot | undefined) => PaperStoreSnapshot
+    updater: (previous: PaperStoreState | undefined) => PaperStoreState
   ) {
     this.internalState.setState((previous) => {
       const currentPaper = previous.papers[paperId];
@@ -372,7 +297,7 @@ export class GraphStore {
     paperStore?.destroy();
     this.paperStores.delete(id);
     this.internalState.setState((previous) => {
-      const newPapers: Record<string, PaperStoreSnapshot> = {};
+      const newPapers: Record<string, PaperStoreState> = {};
       for (const [key, value] of Object.entries(previous.papers)) {
         if (key !== id) newPapers[key] = value;
       }

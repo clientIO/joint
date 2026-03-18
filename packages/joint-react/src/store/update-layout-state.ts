@@ -1,7 +1,13 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { ElementPosition, ElementSize, GraphStoreLayoutSnapshot, LinkLayout, ElementLayout } from './graph-store';
+import type {
+  ElementPosition,
+  ElementSize,
+  GraphLayoutState,
+  LinkLayout,
+  ElementLayout,
+} from '../state/state.types';
 import type { PaperStore } from './paper-store';
 
 /**
@@ -62,7 +68,7 @@ export function getLinkLayout(linkView: dia.LinkView): LinkLayout {
  * @param options - The update options
  * @returns A snapshot of the current graph layout
  */
-export function getLayout(options: UpdateLayoutStateOptions): GraphStoreLayoutSnapshot {
+export function getLayout(options: UpdateLayoutStateOptions): GraphLayoutState {
   const { graph, papers } = options;
   const elementLayouts: Record<CellId, ElementLayout> = {};
   const linkLayoutsPerPaper: Record<string, Record<CellId, LinkLayout>> = {};

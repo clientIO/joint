@@ -25,11 +25,10 @@ import type { IncrementalChange, IncrementalStateChanges } from './incremental.t
 import type {
   ElementPosition,
   ElementSize,
-  GraphStoreLayoutSnapshot,
-  GraphStoreSnapshot,
+  GraphLayoutState,
+  GraphDataState,
   LinkLayout,
-  PaperStore,
-} from '../store';
+} from './state.types';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
@@ -42,6 +41,7 @@ import {
 } from './data-mapping/element-mapper';
 import { defaultMapDataToLinkAttributes, defaultMapLinkAttributesToData } from './data-mapping';
 import { createState, type ExternalStoreLike } from '../utils/create-state';
+import type { PaperStore } from '../store';
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
 
 interface JointJSEventOptions {
@@ -104,8 +104,8 @@ export interface LinkToAttributes<LinkData = FlatLinkData> {
 }
 
 export interface GraphState<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  readonly dataState: ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>;
-  readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
+  readonly dataState: ExternalStoreLike<GraphDataState<ElementData, LinkData>>;
+  readonly layoutState: ExternalStoreLike<GraphLayoutState>;
   readonly clear: () => void;
   readonly destroy: () => void;
   readonly updateGraph: (options: UpdateGraphOptions) => void;
@@ -178,14 +178,14 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   let batchDepth = 0;
   let isSyncedWithReact = true;
 
-  const dataState = createState<GraphStoreSnapshot<ElementData, LinkData>>({
+  const dataState = createState<GraphDataState<ElementData, LinkData>>({
     newState: () => ({
       elements: {},
       links: {},
     }),
     name: 'JointJs/Data',
   });
-  const layoutState = createState<GraphStoreLayoutSnapshot>({
+  const layoutState = createState<GraphLayoutState>({
     newState: () => ({
       elements: {
         sizes: {},
@@ -589,7 +589,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     });
 
     if (onElementsChange || onLinksChange) {
-      const snapshot = dataState.getSnapshot() as GraphStoreSnapshot<ElementData, LinkData>;
+      const snapshot = dataState.getSnapshot() as GraphDataState<ElementData, LinkData>;
       onElementsChange?.(snapshot.elements);
       onLinksChange?.(snapshot.links);
     }

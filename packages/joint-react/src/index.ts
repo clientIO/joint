@@ -19,7 +19,11 @@ export { useLink } from './hooks/use-link';
 
 // Hooks — Layout & Measurement
 export { useElementLayout } from './hooks/use-element-layout';
-export type { ElementLayout, ElementsLayoutSnapshot, LinksLayoutSnapshot } from './store/graph-store';
+export type {
+  ElementLayout,
+  ElementsLayoutState as ElementsLayoutSnapshot,
+  LinksLayoutSnapshot,
+} from './state/state.types';
 export { useLinkLayout } from './hooks/use-link-layout';
 export type { LinkLayout } from './hooks/use-link-layout';
 export { useMeasureNode } from './hooks/use-measure-node';

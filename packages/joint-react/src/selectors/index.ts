@@ -1,8 +1,8 @@
-import type { ElementsLayoutSnapshot, GraphStoreInternalSnapshot } from '../store/graph-store';
+import type { ElementsLayoutState, GraphStoreInternalSnapshot } from '../state/state.types';
 
 // ── Element layout selectors ────────────────────────────────────────────────
 
-export const selectAreElementsSized = (snapshot: ElementsLayoutSnapshot): boolean => {
+export const selectAreElementsSized = (snapshot: ElementsLayoutState): boolean => {
   if (snapshot.count === 0) {
     return false;
   }
@@ -17,12 +17,12 @@ export const selectAreElementsSized = (snapshot: ElementsLayoutSnapshot): boolea
   return sizedElements === snapshot.count;
 };
 
-export const selectAreElementsMeasured = (snapshot: ElementsLayoutSnapshot): boolean =>
+export const selectAreElementsMeasured = (snapshot: ElementsLayoutState): boolean =>
   snapshot.count > 0 &&
   (snapshot.observedElements === 0 ||
     snapshot.observedElements === snapshot.measuredObservedElements);
 
-export const selectElementSizes = (snapshot: ElementsLayoutSnapshot) => snapshot.sizes;
+export const selectElementSizes = (snapshot: ElementsLayoutState) => snapshot.sizes;
 
 // ── Internal selectors ──────────────────────────────────────────────────────
 

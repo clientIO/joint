@@ -1,9 +1,9 @@
 import type {
-  GraphStoreSnapshot,
+  GraphDataState,
   GraphStoreInternalSnapshot,
-  ElementsLayoutSnapshot,
+  ElementsLayoutState,
   LinksLayoutSnapshot,
-} from '../store';
+} from '../state/state.types';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ExternalStoreLike, MarkDeepReadOnly } from '../utils/create-state';
@@ -39,12 +39,12 @@ export function useStore<Snapshot, Selection>(
  * @returns The selected data.
  */
 export function useData<Selection, ElementData = FlatElementData, LinkData = FlatLinkData>(
-  selector: (snapshot: MarkDeepReadOnly<GraphStoreSnapshot<ElementData, LinkData>>) => Selection,
+  selector: (snapshot: MarkDeepReadOnly<GraphDataState<ElementData, LinkData>>) => Selection,
   isEqual?: (a: Selection, b: Selection) => boolean
 ): Selection {
   const { dataState } = useGraphStore();
   return useStore(
-    dataState as unknown as ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>,
+    dataState as unknown as ExternalStoreLike<GraphDataState<ElementData, LinkData>>,
     selector,
     isEqual
   );
@@ -72,8 +72,8 @@ export function useInternalData<Selection>(
  * @group Hooks
  */
 export function useElementsLayout<Selected>(
-  selector: (snapshot: ElementsLayoutSnapshot) => Selected = identitySelector as unknown as (
-    snapshot: ElementsLayoutSnapshot
+  selector: (snapshot: ElementsLayoutState) => Selected = identitySelector as unknown as (
+    snapshot: ElementsLayoutState
   ) => Selected,
   isEqual: (a: Selected, b: Selected) => boolean = isStrictEqual
 ): Selected {

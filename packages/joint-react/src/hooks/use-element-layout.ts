@@ -1,9 +1,9 @@
 import { useContext } from 'react';
 import { useElementsLayout } from './use-stores';
-import type { ElementLayout } from '../store/graph-store';
 import type { CellId } from '../types/cell-id';
 import { CellIdContext } from '../context';
 import { isStrictEqual } from '../utils/selector-utils';
+import type { ElementLayout } from '../state/state.types';
 
 const IS_EQUAL = (a: ElementLayout | undefined, b: ElementLayout | undefined): boolean => {
   if (a === b) return true;
@@ -89,31 +89,28 @@ export function useElementLayout<S>(
     throw new Error('useElementLayout must be used inside Paper renderElement');
   }
 
-  return useElementsLayout(
-    (snapshot) => {
-      const angle = snapshot.angles[actualId];
-      const size = snapshot.sizes[actualId];
-      const position = snapshot.positions[actualId];
-      if (!size || !position) {
-        return undefined as S;
-      }
-      if (actualSelector) {
-        return actualSelector({
-          x: position.x,
-          y: position.y,
-          width: size.width,
-          height: size.height,
-          angle: angle ?? 0,
-        });
-      }
-      return {
+  return useElementsLayout((snapshot) => {
+    const angle = snapshot.angles[actualId];
+    const size = snapshot.sizes[actualId];
+    const position = snapshot.positions[actualId];
+    if (!size || !position) {
+      return undefined as S;
+    }
+    if (actualSelector) {
+      return actualSelector({
         x: position.x,
         y: position.y,
         width: size.width,
         height: size.height,
         angle: angle ?? 0,
-      } as S;
-    },
-    resolvedIsEqual
-  );
+      });
+    }
+    return {
+      x: position.x,
+      y: position.y,
+      width: size.width,
+      height: size.height,
+      angle: angle ?? 0,
+    } as S;
+  }, resolvedIsEqual);
 }
