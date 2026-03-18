@@ -4,6 +4,7 @@ import { setForwardRef, useGraphStore, useInternalData, usePaperStore } from '.'
 import type { GraphStore } from '../store/graph-store';
 import type { PaperStore } from '../store/paper-store';
 import { PaperFeaturesContext } from '../context';
+import { OPTIONAL } from '../types';
 const EMPTY_DEPENDENCIES: unknown[] = [];
 
 export interface OnAddFeatureOptions {
@@ -53,7 +54,7 @@ export function useCreatePaperFeature<T>(
 ): PaperFeaturesContext {
   const { onAddFeature, onUpdateFeature, onLoad, id, forwardedRef } = options;
   const graphStore = useGraphStore();
-  const paperStore = usePaperStore({ optional: true });
+  const paperStore = usePaperStore(OPTIONAL);
   const featuresRef = useRef<PaperFeaturesContext>({
     features: new Map(),
   });
