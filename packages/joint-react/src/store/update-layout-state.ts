@@ -1,7 +1,13 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { ElementPosition, ElementSize, GraphStoreLayoutSnapshot, LinkLayout, ElementLayout } from './graph-store';
+import type {
+  ElementPosition,
+  ElementSize,
+  GraphLayoutState,
+  LinkLayout,
+  ElementLayout,
+} from '../state/state.types';
 import type { PaperStore } from './paper-store';
 
 /**
@@ -62,22 +68,18 @@ export function getLinkLayout(linkView: dia.LinkView): LinkLayout {
  * @param options - The update options
  * @returns A snapshot of the current graph layout
  */
-export function getLayout(options: UpdateLayoutStateOptions): GraphStoreLayoutSnapshot {
+export function getLayout(options: UpdateLayoutStateOptions): GraphLayoutState {
   const { graph, papers } = options;
   const elementLayouts: Record<CellId, ElementLayout> = {};
   const linkLayoutsPerPaper: Record<string, Record<CellId, LinkLayout>> = {};
   const elements = graph.getElements();
   let count = 0;
-  let measuredElements = 0;
 
   for (const element of elements) {
     const layout = getElementLayout(element);
     if (!layout) continue;
     elementLayouts[element.id] = layout;
     count += 1;
-    if (layout.width > 1 && layout.height > 1) {
-      measuredElements += 1;
-    }
   }
 
   if (papers) {
@@ -108,7 +110,7 @@ export function getLayout(options: UpdateLayoutStateOptions): GraphStoreLayoutSn
   }
 
   return {
-    elements: { sizes, positions, angles, count, measuredElements },
+    elements: { sizes, positions, angles, count, observedElements: 0, measuredObservedElements: 0 },
     links: linkLayoutsPerPaper,
   };
 }

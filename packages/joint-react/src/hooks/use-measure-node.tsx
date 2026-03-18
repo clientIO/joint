@@ -4,8 +4,8 @@ import { useElementId } from './use-element-id';
 import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
 import { useElementLayout } from './use-element-layout';
-import type { ElementLayout } from '../store/graph-store';
 import { usePaper } from './use-paper';
+import type { ElementLayout } from '../state/state.types';
 
 /**
  * Controls element visibility until the first measurement completes.

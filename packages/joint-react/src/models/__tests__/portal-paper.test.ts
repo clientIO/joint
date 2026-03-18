@@ -43,7 +43,7 @@ describe('PortalPaper', () => {
         ...previous,
         papers: {
           ...previous.papers,
-          [TEST_PAPER_ID]: 1,
+          [TEST_PAPER_ID]: { version: 1, featuresState: {} },
         },
       };
     });
@@ -306,7 +306,7 @@ describe('PortalPaper', () => {
       await flushMicrotasks();
 
       const versionAfterAdd = graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID];
-      expect(versionAfterAdd).toBeGreaterThan(versionBefore ?? 0);
+      expect(versionAfterAdd?.version).toBeGreaterThan(versionBefore?.version ?? 0);
 
       const view = findViewOrThrow(element);
       paper._hideCellView(view);
@@ -314,7 +314,7 @@ describe('PortalPaper', () => {
       await flushMicrotasks();
 
       const versionAfterHide = graphStore.internalState.getSnapshot().papers[TEST_PAPER_ID];
-      expect(versionAfterHide).toBeGreaterThan(versionAfterAdd ?? 0);
+      expect(versionAfterHide?.version).toBeGreaterThan(versionAfterAdd?.version ?? 0);
     });
 
     it('should remove link from pendingLinks when hidden', () => {

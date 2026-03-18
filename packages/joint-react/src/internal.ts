@@ -24,24 +24,30 @@ export type {
   OnUpdateFeatureOptions,
   OnLoadFeatureOptions,
 } from './hooks/use-create-paper-features';
-export { PaperFeaturesProvider } from './hooks/use-create-paper-features';
+export { PaperFeaturesProvider } from './components';
 
 // Store Classes
 export { GraphStore, DEFAULT_CELL_NAMESPACE } from './store/graph-store';
 export type {
-  GraphStoreSnapshot,
+  GraphDataState,
   GraphStoreInternalSnapshot,
-  GraphStoreLayoutSnapshot,
-  GraphStoreOptions,
-} from './store/graph-store';
+  GraphLayoutState as GraphStoreLayoutSnapshot,
+} from './state/state.types';
+export type { GraphStoreOptions } from './store/graph-store';
 export { PaperStore } from './store/paper-store';
-export type { PaperStoreSnapshot, PaperStoreOptions, AddPaperOptions } from './store/paper-store';
+export type { PaperStoreState } from './state/state.types';
+export type { PaperStoreOptions, AddPaperOptions } from './store/paper-store';
 
 // Graph State
 export type { GraphState } from './state/graph-state';
 
 // Contexts
-export { GraphStoreContext, PaperStoreContext, CellIdContext, PaperFeaturesContext } from './context';
+export {
+  GraphStoreContext,
+  PaperStoreContext,
+  CellIdContext,
+  PaperFeaturesContext,
+} from './context';
 export type { PaperFeaturesContext as PaperFeaturesContextType } from './context';
 
 // State Primitives
@@ -64,7 +70,10 @@ export { resolveCellDefaults } from './state/data-mapping/resolve-cell-defaults'
 
 // Render Internals
 export { PaperHTMLContainer } from './components/paper/render-element/paper-html-container';
-export { SVGElementItem, HTMLElementItem } from './components/paper/render-element/paper-element-item';
+export {
+  SVGElementItem,
+  HTMLElementItem,
+} from './components/paper/render-element/paper-element-item';
 
 // Utility Functions
 export { assignOptions, pickValues } from './utils/object-utilities';
@@ -75,13 +84,17 @@ export { PORTAL_ELEMENT_TYPE, PORTAL_SELECTOR } from './models/portal-element';
 export { PORTAL_LINK_TYPE } from './models/portal-link';
 
 // Internal Selectors
-export {
-  selectResetVersion,
-  createSelectPaperVersion,
-} from './selectors';
+export { selectResetVersion, createSelectPaperVersion } from './selectors';
 
 // Internal Types (used by react-plus)
-export type { AnyString, Nullable, Mutable, RemoveIndexSignature, OmitWithoutIndexSignature, PaperTarget } from './types';
+export type {
+  AnyString,
+  Nullable,
+  Mutable,
+  RemoveIndexSignature,
+  OmitWithoutIndexSignature,
+  PaperTarget,
+} from './types';
 export type { PortalSelector } from './models/portal-paper.types';
 export type { MeasureNodeOptions } from './hooks/use-measure-node';
 

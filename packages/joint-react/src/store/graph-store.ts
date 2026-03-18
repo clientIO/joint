@@ -2,8 +2,15 @@ import { dia, shapes } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatLinkData } from '../types/link-types';
 import type { FlatElementData } from '../types/element-types';
-import type { AddPaperOptions, PaperStoreSnapshot } from './paper-store';
-import { PaperStore, DEFAULT_PAPER_VERSION } from './paper-store';
+import type { AddPaperOptions } from './paper-store';
+import type {
+  PaperStoreState,
+  GraphDataState,
+  GraphLayoutState,
+  GraphStoreInternalSnapshot,
+} from '../state/state.types';
+
+import { PaperStore, getDefaultPaperState } from './paper-store';
 import {
   createElementsSizeObserver,
   type GraphStoreObserver,
@@ -11,16 +18,12 @@ import {
 } from './create-elements-size-observer';
 import { PortalElement } from '../models/portal-element';
 import { PortalLink } from '../models/portal-link';
-import type {
-  ElementToGraphOptions,
-  GraphToElementOptions,
-} from '../state/data-mapping/element-mapper';
-import type { LinkToGraphOptions, GraphToLinkOptions } from '../state/data-mapping/link-mapper';
 import {
   defaultMapDataToElementAttributes,
   defaultMapDataToLinkAttributes,
   defaultMapElementAttributesToData,
   defaultMapLinkAttributesToData,
+  type GraphMappings,
 } from '../state/data-mapping';
 import { clearConnectedLinkViews } from './clear-view';
 import { graphState, LAYOUT_UPDATE_EVENT, type GraphState } from '../state/graph-state';
@@ -36,98 +39,10 @@ export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
 };
 
 /**
- * Public snapshot of the graph store containing elements and links.
- */
-export interface GraphStoreSnapshot<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  elements: Record<CellId, ElementData>;
-  links: Record<CellId, LinkData>;
-}
-
-/**
- * Layout data for a single node (element).
- */
-export interface ElementLayout {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-  readonly angle: number;
-}
-
-/**
- * Layout data for a single link.
- */
-export interface LinkLayout {
-  readonly sourceX: number;
-  readonly sourceY: number;
-  readonly targetX: number;
-  readonly targetY: number;
-  readonly d: string;
-}
-/**
- * Size of a single element.
- */
-export interface ElementSize {
-  readonly width: number;
-  readonly height: number;
-}
-
-/**
- * Position of a single element.
- */
-export interface ElementPosition {
-  readonly x: number;
-  readonly y: number;
-}
-
-/**
- * Layout snapshot for all elements, split into sizes, positions, and angles.
- * Each record preserves its reference when unrelated properties change —
- * e.g. a position-only change does not create a new `sizes` object.
- */
-export interface ElementsLayoutSnapshot {
-  readonly sizes: Record<CellId, ElementSize>;
-  readonly positions: Record<CellId, ElementPosition>;
-  readonly angles: Record<CellId, number>;
-  /** Total number of elements in the graph. */
-  readonly count: number;
-  /** Number of elements whose width and height are both > 1 (considered measured). */
-  readonly measuredElements: number;
-}
-
-/**
- * Layout snapshot for all links, keyed by paper ID then by link cell ID.
- */
-export type LinksLayoutSnapshot = Record<string, Record<CellId, LinkLayout>>;
-
-/**
- * Snapshot containing layout data for all elements and links (per paper).
- */
-export interface GraphStoreLayoutSnapshot {
-  readonly elements: ElementsLayoutSnapshot;
-  readonly links: LinksLayoutSnapshot;
-}
-
-/**
- * Full internal snapshot of the graph store.
- */
-export interface GraphStoreInternalSnapshot {
-  papers: Record<string, PaperStoreSnapshot>;
-  resetVersion: number;
-}
-
-/**
  * Configuration options for creating a GraphStore instance.
  */
-export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  readonly mapDataToElementAttributes?: (
-    options: ElementToGraphOptions<ElementData>
-  ) => dia.Cell.JSON;
-  readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<LinkData>) => dia.Cell.JSON;
-  readonly mapElementAttributesToData?: (
-    options: GraphToElementOptions<ElementData>
-  ) => ElementData;
-  readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<LinkData>) => LinkData;
+export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData>
+  extends GraphMappings<ElementData, LinkData> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
@@ -148,8 +63,8 @@ export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = Fla
  */
 export class GraphStore {
   public readonly internalState: State<GraphStoreInternalSnapshot>;
-  public readonly dataState: ExternalStoreLike<GraphStoreSnapshot>;
-  public readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
+  public readonly dataState: ExternalStoreLike<GraphDataState>;
+  public readonly layoutState: ExternalStoreLike<GraphLayoutState>;
   public readonly graph: dia.Graph;
   public readonly graphState: GraphState;
 
@@ -219,14 +134,28 @@ export class GraphStore {
 
     this.dataState = this.graphState.dataState;
     this.layoutState = this.graphState.layoutState;
-
+    const measuredElementIds = new Set<CellId>();
     this.observer = createElementsSizeObserver({
-      getPublicSnapshot: () => this.dataState.getSnapshot(),
+      onObserveElement: ({ id, isRemoved, observedElements }) => {
+        if (isRemoved) {
+          measuredElementIds.delete(id);
+        }
+        this.graphState.layoutState.setState((state) => ({
+          ...state,
+          elements: {
+            ...state.elements,
+            observedElements,
+            measuredObservedElements: measuredElementIds.size,
+          },
+        }));
+      },
+      getLayoutSnapshot: () => this.layoutState.getSnapshot(),
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('resize');
         for (const [id, data] of Object.entries(updatedElements)) {
           const cell = this.graph.getCell(id);
           if (cell?.isElement()) {
+            measuredElementIds.add(id);
             cell.set('size', { width: data.width, height: data.height });
             if (data.x !== undefined && data.y !== undefined) {
               cell.set('position', { x: data.x, y: data.y });
@@ -234,6 +163,13 @@ export class GraphStore {
           }
         }
         this.graph.stopBatch('resize');
+        this.graphState.layoutState.setState((state) => ({
+          ...state,
+          elements: {
+            ...state.elements,
+            measuredObservedElements: measuredElementIds.size,
+          },
+        }));
       },
       getCellTransform: (id) => {
         const cell = this.graph.getCell(id);
@@ -275,7 +211,7 @@ export class GraphStore {
             element: cell,
           }) as FlatElementData;
         } else if (cell.isLink()) {
-          existingLinks[id] = this.graphState.linkToData({ link: cell }) as FlatLinkData;
+          existingLinks[id] = this.graphState.linkToData({ link: cell });
         }
       }
       this.dataState.setState(() => ({
@@ -304,13 +240,20 @@ export class GraphStore {
 
   public updatePaperSnapshot(
     paperId: string,
-    updater: (previous: PaperStoreSnapshot | undefined) => PaperStoreSnapshot
+    updater: (previous: PaperStoreState) => PaperStoreState
   ) {
     this.internalState.setState((previous) => {
       const currentPaper = previous.papers[paperId];
       const nextPaper = updater(currentPaper);
       if (currentPaper === nextPaper) return previous;
       return { ...previous, papers: { ...previous.papers, [paperId]: nextPaper } };
+    });
+  }
+
+  private bumpPaperVersion(paperId: string) {
+    this.updatePaperSnapshot(paperId, (previous) => {
+      const nextVersion = (previous?.version ?? 0) + 1;
+      return { ...previous, version: nextVersion };
     });
   }
 
@@ -321,7 +264,7 @@ export class GraphStore {
     }
     paperStore.features[feature.id] = feature;
     // bump version to trigger re-render of paper content with new feature
-    this.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
+    this.bumpPaperVersion(paperId);
   }
 
   public removePaperFeature(paperId: string, featureId: string) {
@@ -337,11 +280,11 @@ export class GraphStore {
     feature.clean?.();
     Reflect.deleteProperty(paperStore.features, featureId);
     // bump version to trigger re-render of paper content without removed feature
-    this.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
+    this.bumpPaperVersion(paperId);
   }
 
   public setPaperViews(paperId: string, changes: Map<string, IncrementalChange<dia.Cell>>) {
-    this.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
+    this.bumpPaperVersion(paperId);
     this.graph.trigger(LAYOUT_UPDATE_EVENT, { changes });
   }
 
@@ -350,7 +293,7 @@ export class GraphStore {
     paperStore?.destroy();
     this.paperStores.delete(id);
     this.internalState.setState((previous) => {
-      const newPapers: Record<string, PaperStoreSnapshot> = {};
+      const newPapers: Record<string, PaperStoreState> = {};
       for (const [key, value] of Object.entries(previous.papers)) {
         if (key !== id) newPapers[key] = value;
       }
@@ -361,19 +304,12 @@ export class GraphStore {
   public addPaper = (id: string, paperOptions: AddPaperOptions) => {
     const paperStore = new PaperStore({ ...paperOptions, graphStore: this, id });
     this.paperStores.set(id, paperStore);
-    this.internalState.setState((previous) => {
-      if (previous.papers[id]) {
-        return previous;
-      }
-      return { ...previous, papers: { ...previous.papers, [id]: DEFAULT_PAPER_VERSION } };
-    });
+    this.updatePaperSnapshot(id, () => getDefaultPaperState());
     return { paperStore, remove: () => this.removePaper(id) };
   };
 
   public hasMeasuredNode = (id: CellId) => this.observer.has(id);
-
   public setMeasuredNode = (options: SetMeasuredNodeOptions) => this.observer.add(options);
-
   public getPaperStore = (id: string) => {
     return this.paperStores.get(id);
   };

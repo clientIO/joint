@@ -1,10 +1,17 @@
 import { useContext } from 'react';
-import { useElementsLayout } from './use-stores';
-import type { ElementLayout } from '../store/graph-store';
+import { useElementsLayout, useInternalData } from './use-stores';
 import type { CellId } from '../types/cell-id';
 import { CellIdContext } from '../context';
 import { isStrictEqual } from '../utils/selector-utils';
-
+import type { ElementLayout } from '../state/state.types';
+import { usePaper } from './use-paper';
+export const DEFAULT_LAYOUT: ElementLayout = {
+  x: 0,
+  y: 0,
+  width: 1,
+  height: 1,
+  angle: 0,
+};
 const IS_EQUAL = (a: ElementLayout | undefined, b: ElementLayout | undefined): boolean => {
   if (a === b) return true;
   if (!a || !b) return false;
@@ -89,31 +96,57 @@ export function useElementLayout<S>(
     throw new Error('useElementLayout must be used inside Paper renderElement');
   }
 
-  return useElementsLayout(
-    (snapshot) => {
-      const angle = snapshot.angles[actualId];
-      const size = snapshot.sizes[actualId];
-      const position = snapshot.positions[actualId];
-      if (!size || !position) {
-        return undefined as S;
-      }
-      if (actualSelector) {
-        return actualSelector({
-          x: position.x,
-          y: position.y,
-          width: size.width,
-          height: size.height,
-          angle: angle ?? 0,
-        });
-      }
-      return {
+  return useElementsLayout((snapshot) => {
+    const angle = snapshot.angles[actualId];
+    const size = snapshot.sizes[actualId];
+    const position = snapshot.positions[actualId];
+    if (!size || !position) {
+      return undefined as S;
+    }
+    if (actualSelector) {
+      return actualSelector({
         x: position.x,
         y: position.y,
         width: size.width,
         height: size.height,
         angle: angle ?? 0,
-      } as S;
-    },
-    resolvedIsEqual
-  );
+      });
+    }
+    return {
+      x: position.x,
+      y: position.y,
+      width: size.width,
+      height: size.height,
+      angle: angle ?? 0,
+    } as S;
+  }, resolvedIsEqual);
+}
+
+/**
+ * Hook to determine if an element is currently being dragged, based on changes in its layout.
+ * Returns `true` if the element's position has changed since the last render, indicating a drag operation.
+ * @returns `true` if the element is being dragged, otherwise `false`.
+ * @group Hooks
+ * @example
+ * ```tsx
+ * const isDragging = useIsElementDragging();
+ * ```
+ * Must be used within a component that has access to an element ID via context (e.g. inside `renderElement`).
+ */
+
+export function useIsElementDragging(id?: string) {
+  const contextId = useContext(CellIdContext);
+  const actualId = id ?? contextId;
+  if (!actualId) {
+    throw new Error(
+      'useIsElementDragging must be provided either by an explicit ID or used inside Paper renderElement'
+    );
+  }
+  const {
+    paper: { id: paperId = '' },
+  } = usePaper();
+
+  return useInternalData(({ papers }) => {
+    return papers[paperId].controlState?.draggingIds?.[actualId] ?? false;
+  });
 }
