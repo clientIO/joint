@@ -53,7 +53,7 @@ export function useCreatePaperFeature<T>(
 ): PaperFeaturesContext {
   const { onAddFeature, onUpdateFeature, onLoad, id, forwardedRef } = options;
   const graphStore = useGraphStore();
-  const paperStore = usePaperStore({ isNullable: true });
+  const paperStore = usePaperStore({ optional: true });
   const featuresRef = useRef<PaperFeaturesContext>({
     features: new Map(),
   });

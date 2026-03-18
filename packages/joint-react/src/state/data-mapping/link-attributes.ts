@@ -2,6 +2,7 @@ import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
 import type { FlatLinkEnd } from '../../types/link-types';
 import type { MarkerPreset } from '../../theme/markers';
+import type { Nullable } from '../../types';
 import { resolveMarker } from '../../theme/markers';
 import { isString } from '../../utils/is';
 
@@ -128,11 +129,11 @@ interface LinkPresentationOptions {
  */
 export function buildLinkPresentationAttributes(
   options: LinkPresentationOptions
-): Record<string, attributes.SVGAttributes> {
+): Record<string, Nullable<attributes.SVGAttributes>> {
   const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor, wrapperClassName } = options;
 
   // Build line attributes
-  const lineAttributes: attributes.SVGAttributes = {
+  const lineAttributes: Nullable<attributes.SVGAttributes> = {
     stroke: color,
     strokeWidth: width,
   };
