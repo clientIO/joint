@@ -55,8 +55,6 @@ export { defaultLinkTheme } from './theme/link-theme';
 export type { LinkTheme } from './theme/link-theme';
 export { defaultMarkers, resolveMarker } from './theme/markers';
 export type { MarkerPreset } from './theme/markers';
-export { LINK_ARROWS, getLinkArrow } from './components/link/link.arrows';
-export type { LinkArrowName } from './components/link/link.arrows';
 
 // Models
 export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
