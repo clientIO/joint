@@ -47,14 +47,7 @@ export { jsx } from './utils/joint-jsx/jsx-to-markup';
 export type { FlatElementData, FlatElementPort } from './types/element-types';
 export type { FlatLinkData, FlatLinkEnd, FlatLinkLabel } from './types/link-types';
 export type { CellId } from './types/cell-id';
-export type {
-  PaperEventMap,
-  PaperEventHandlers,
-  PaperEventType,
-  GraphEventMap,
-  GraphBaseEventName,
-  GraphEventHandlers,
-} from './types/event.types';
+export type { PaperEventMap } from './types/event.types';
 export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
 
 // Theme

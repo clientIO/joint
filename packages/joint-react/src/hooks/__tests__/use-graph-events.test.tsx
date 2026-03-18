@@ -1,21 +1,23 @@
 import { mvc, type dia } from '@joint/core';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { graphProviderWrapper, getTestGraph } from '../../utils/test-wrappers';
-import type {
-  GraphEventHandlers,
-  GraphEventMap,
-  GraphBaseEventName,
-} from '../../types/event.types';
 import { useGraphEvents } from '../use-graph-events';
 import { useGraph } from '../use-graph';
 
-const GRAPH_EVENT_ARGS: { readonly [EventName in GraphBaseEventName]: Parameters<GraphEventMap[EventName]> } = {
+const GRAPH_EVENT_ARGS: Partial<{ readonly [EventName in keyof dia.Graph.EventMap]: Parameters<dia.Graph.EventMap[EventName]> }> = {
   add: [{} as dia.Cell, {} as never, { source: 'add' }],
   remove: [{} as dia.Cell, {} as never, { source: 'remove' }],
-  change: [{} as dia.Cell, { source: 'change' }],
   reset: [{} as never, { source: 'reset' }],
   sort: [{} as never, { source: 'sort' }],
+  update: [{} as never, { source: 'update' }],
+  change: [{} as dia.Cell, { source: 'change' }],
   move: [{} as dia.Cell, { source: 'move' }],
+  changeId: [{} as dia.Cell, 'prev-id', { source: 'changeId' }],
+  'layer:add': [{} as dia.GraphLayer, {} as dia.GraphLayerCollection, { source: 'layer:add' }],
+  'layer:remove': [{} as dia.GraphLayer, {} as dia.GraphLayerCollection, { source: 'layer:remove' }],
+  'layer:change': [{} as dia.GraphLayer, { source: 'layer:change' }],
+  'layer:default': [{} as dia.GraphLayer, { source: 'layer:default' }],
+  'layers:sort': [{} as dia.GraphLayerCollection, { source: 'layers:sort' }],
   'batch:start': [{ source: 'batch:start' }],
   'batch:stop': [{ source: 'batch:stop' }],
 };
@@ -38,7 +40,7 @@ describe('use-graph-events', () => {
         }
       });
 
-    const handlers: GraphEventHandlers = {};
+    const handlers: Partial<dia.Graph.EventMap> = {};
 
     for (const eventName of Object.keys(GRAPH_EVENT_ARGS)) {
       handlers[eventName] = jest.fn();
@@ -64,7 +66,7 @@ describe('use-graph-events', () => {
       });
 
       for (const [eventName, args] of Object.entries(GRAPH_EVENT_ARGS) as Array<
-        [GraphBaseEventName, Parameters<GraphEventMap[GraphBaseEventName]>]
+        [string, Parameters<dia.Graph.EventMap[keyof dia.Graph.EventMap]>]
       >) {
         const callbacks = listenerHandlers.get(eventName) ?? [];
         expect(callbacks.length).toBeGreaterThan(0);

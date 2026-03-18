@@ -42,7 +42,7 @@ describe('use-paper-context', () => {
     expect(capturedContext).toHaveProperty('paperId');
   });
 
-  it('should throw error when used outside Paper and isNullable is false', () => {
+  it('should throw error when used outside Paper and optional is false', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => {
       renderHook(() => usePaperStore(), {
@@ -52,8 +52,8 @@ describe('use-paper-context', () => {
     consoleError.mockRestore();
   });
 
-  it('should return null when used outside Paper and isNullable is true', () => {
-    const { result } = renderHook(() => usePaperStore({ isNullable: true }), {
+  it('should return null when used outside Paper and optional is true', () => {
+    const { result } = renderHook(() => usePaperStore({ optional: true }), {
       wrapper: graphWrapper,
     });
 
