@@ -27,14 +27,8 @@ const SHAPE_OPTIONS = [
 ] as const;
 
 const LABEL_POSITION_OPTIONS = [
-  'outside',
-  'inside',
-  'outsideOriented',
-  'insideOriented',
-  'left',
-  'right',
-  'top',
-  'bottom',
+  'outside', 'inside', 'outsideOriented', 'insideOriented',
+  'left', 'right', 'top', 'bottom',
 ] as const;
 
 function getShapeLabel(shape: string): string {
@@ -117,24 +111,24 @@ const initialLinks: Record<string, FlatLinkData> = {
   'link-1': {
     source: 'node-1',
     sourcePort: 'out-1',
-    sourceAnchor: { name: 'right', args: { useModelGeometry: true } },
+    sourceAnchor: { name: 'right', args: { useModelGeometry: true }},
     target: 'node-2',
     targetPort: 'in-1',
-    targetAnchor: { name: 'left', args: { useModelGeometry: true } },
+    targetAnchor: { name: 'left', args: { useModelGeometry: true }},
     color: LIGHT,
     z: -1,
-    connector: { name: 'curve' },
+    connector: { name: 'curve' }
   },
   'link-2': {
     source: 'node-1',
     sourcePort: 'out-2',
-    sourceAnchor: { name: 'right', args: { useModelGeometry: true } },
+    sourceAnchor: { name: 'right', args: { useModelGeometry: true }},
     target: 'node-2',
     targetPort: 'in-2',
-    targetAnchor: { name: 'left', args: { useModelGeometry: true } },
+    targetAnchor: { name: 'left', args: { useModelGeometry: true }},
     color: LIGHT,
     z: -1,
-    connector: { name: 'curve' },
+    connector: { name: 'curve' }
   },
 };
 
@@ -168,15 +162,7 @@ const rowStyle = {
 function ElementShape({ width = 0, height = 0, label, color }: Readonly<PortElementData>) {
   return (
     <>
-      <rect
-        rx={8}
-        ry={8}
-        width={width}
-        height={height}
-        fill={color}
-        stroke="#333"
-        strokeWidth={2}
-      />
+      <rect rx={8} ry={8} width={width} height={height} fill={color} stroke="#333" strokeWidth={2} />
       <text
         x={width / 2}
         y={height / 2}
@@ -206,9 +192,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
   const updatePort = (updates: Partial<FlatElementPort>) => {
     setElement(elementId, (previous) => ({
       ...previous,
-      ports: previous.ports
-        ? { ...previous.ports, [portId]: { ...previous.ports[portId], ...updates } }
-        : previous.ports,
+      ports: previous.ports ? { ...previous.ports, [portId]: { ...previous.ports[portId], ...updates } } : previous.ports,
     }));
   };
 
@@ -237,14 +221,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
           type="color"
           value={port.color ?? '#333333'}
           onChange={(event) => updatePort({ color: event.target.value })}
-          style={{
-            width: 36,
-            height: 28,
-            border: 'none',
-            cursor: 'pointer',
-            borderRadius: 6,
-            padding: 0,
-          }}
+          style={{ width: 36, height: 28, border: 'none', cursor: 'pointer', borderRadius: 6, padding: 0 }}
         />
       </div>
 
@@ -257,9 +234,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
           style={{ ...inputStyle, flex: 1, cursor: 'pointer' }}
         >
           {SHAPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
+            <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
       </div>
@@ -307,9 +282,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
           style={{ ...inputStyle, flex: 1, cursor: 'pointer' }}
         >
           {LABEL_POSITION_OPTIONS.map((pos) => (
-            <option key={pos} value={pos}>
-              {pos}
-            </option>
+            <option key={pos} value={pos}>{pos}</option>
           ))}
         </select>
       </div>
@@ -392,14 +365,12 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
 function Main() {
   const elements = useElements<PortElementData>();
   const renderElement: RenderElement<PortElementData> = useCallback(
-    (props) => (
-      <ElementShape
-        width={props.width}
-        height={props.height}
-        label={props.label}
-        color={props.color}
-      />
-    ),
+    (props) => <ElementShape
+      width={props.width}
+      height={props.height}
+      label={props.label}
+      color={props.color}
+    />,
     []
   );
 
@@ -412,7 +383,7 @@ function Main() {
         snapLinks={true}
         linkPinning={false}
         defaultConnectionPoint={{
-          name: 'anchor',
+          name: 'anchor'
         }}
         defaultLink={{
           color: LIGHT,

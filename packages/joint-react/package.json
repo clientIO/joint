@@ -126,7 +126,7 @@
   },
   "dependencies": {
     "@joint/core": "workspace:*",
-    "use-sync-external-store": "^1.6.0"
+    "use-sync-external-store": "^1.4.0"
   },
   "peerDependencies": {
     "react": ">=18 <20",

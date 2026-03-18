@@ -1,9 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useContext, useLayoutEffect, useRef } from 'react';
+import { useContext, useLayoutEffect, useRef, type PropsWithChildren } from 'react';
 import { setForwardRef, useGraphStore, useInternalData, usePaperStore } from '.';
 import type { GraphStore } from '../store/graph-store';
 import type { PaperStore } from '../store/paper-store';
 import { PaperFeaturesContext } from '../context';
+import { pickValues } from '../utils/object-utilities';
+import typedMemo from '../utils/typed-react';
 const EMPTY_DEPENDENCIES: unknown[] = [];
 
 export interface OnAddFeatureOptions {
@@ -53,7 +55,7 @@ export function useCreatePaperFeature<T>(
 ): PaperFeaturesContext {
   const { onAddFeature, onUpdateFeature, onLoad, id, forwardedRef } = options;
   const graphStore = useGraphStore();
-  const paperStore = usePaperStore({ isNullable: true });
+  const paperStore = usePaperStore({ optional: true });
   const featuresRef = useRef<PaperFeaturesContext>({
     features: new Map(),
   });
@@ -107,3 +109,21 @@ export function useCreatePaperFeature<T>(
 
   return featureContext;
 }
+
+interface Props<T> extends AddFeatureOptions<T>, PropsWithChildren<Record<string, unknown>> {}
+
+/**
+ * Provider component that wraps children with a paper feature context.
+ * @param props - The feature provider props including id, onAddFeature, and children.
+ * @returns The provider element wrapping children.
+ */
+function PaperFeaturesProviderBase<T>(props: Readonly<Props<T>>) {
+  const { id, onAddFeature, children, onUpdateFeature, forwardedRef, onLoad, ...rest } = props;
+  const ctx = useCreatePaperFeature<T>(
+    { id, onAddFeature, onUpdateFeature, forwardedRef, onLoad },
+    pickValues(rest)
+  );
+  return <PaperFeaturesContext.Provider value={ctx}>{children}</PaperFeaturesContext.Provider>;
+}
+
+export const PaperFeaturesProvider = typedMemo(PaperFeaturesProviderBase);

@@ -19,11 +19,7 @@ export { useLink } from './hooks/use-link';
 
 // Hooks — Layout & Measurement
 export { useElementLayout } from './hooks/use-element-layout';
-export type {
-  ElementLayout,
-  ElementsLayoutState as ElementsLayoutSnapshot,
-  LinksLayoutState as LinksLayoutSnapshot,
-} from './state/state.types';
+export type { ElementLayout, ElementsLayoutSnapshot, LinksLayoutSnapshot } from './store/graph-store';
 export { useLinkLayout } from './hooks/use-link-layout';
 export type { LinkLayout } from './hooks/use-link-layout';
 export { useMeasureNode } from './hooks/use-measure-node';
@@ -47,14 +43,7 @@ export { jsx } from './utils/joint-jsx/jsx-to-markup';
 export type { FlatElementData, FlatElementPort } from './types/element-types';
 export type { FlatLinkData, FlatLinkEnd, FlatLinkLabel } from './types/link-types';
 export type { CellId } from './types/cell-id';
-export type {
-  PaperEventMap,
-  PaperEventHandlers,
-  PaperEventType,
-  GraphEventMap,
-  GraphBaseEventName,
-  GraphEventHandlers,
-} from './types/event.types';
+export type { PaperEventMap } from './types/event.types';
 export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
 
 // Theme

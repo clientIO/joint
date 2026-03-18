@@ -1,17 +1,12 @@
-import type {
-  ElementsLayoutState,
-  GraphStoreInternalSnapshot,
-  PaperStoreState,
-} from '../state/state.types';
+import type { ElementsLayoutSnapshot, GraphStoreInternalSnapshot } from '../store/graph-store';
 
 // ── Element layout selectors ────────────────────────────────────────────────
 
-export const selectAreElementsMeasured = (snapshot: ElementsLayoutState): boolean =>
-  snapshot.count > 0 &&
-  (snapshot.observedElements === 0 ||
-    snapshot.observedElements === snapshot.measuredObservedElements);
+export const selectAreElementsMeasured = (snapshot: ElementsLayoutSnapshot): boolean =>
+  snapshot.count > 0 && snapshot.measuredElements === snapshot.count;
 
-export const selectElementSizes = (snapshot: ElementsLayoutState) => snapshot.sizes;
+export const selectElementSizes = (snapshot: ElementsLayoutSnapshot) =>
+  snapshot.sizes;
 
 // ── Internal selectors ──────────────────────────────────────────────────────
 
@@ -23,5 +18,6 @@ export const selectResetVersion = (snapshot: GraphStoreInternalSnapshot): number
  * @param id - The paper ID to select the version for.
  */
 export function createSelectPaperVersion(id: string) {
-  return (snapshot: GraphStoreInternalSnapshot): PaperStoreState | undefined => snapshot.papers[id];
+  return (snapshot: GraphStoreInternalSnapshot): number | undefined =>
+    snapshot.papers[id];
 }

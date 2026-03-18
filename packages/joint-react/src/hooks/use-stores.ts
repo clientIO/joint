@@ -1,9 +1,9 @@
 import type {
-  GraphDataState,
+  GraphStoreSnapshot,
   GraphStoreInternalSnapshot,
-  ElementsLayoutState,
-  LinksLayoutState,
-} from '../state/state.types';
+  ElementsLayoutSnapshot,
+  LinksLayoutSnapshot,
+} from '../store';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import type { ExternalStoreLike, MarkDeepReadOnly } from '../utils/create-state';
@@ -18,9 +18,9 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
  * @param isEqual - The equality function.
  * @returns The selected data.
  */
-export function useStore<State, Selection>(
-  store: ExternalStoreLike<State>,
-  selector: (snapshot: MarkDeepReadOnly<State>) => Selection,
+export function useStore<Snapshot, Selection>(
+  store: ExternalStoreLike<Snapshot>,
+  selector: (snapshot: MarkDeepReadOnly<Snapshot>) => Selection,
   isEqual: (a: Selection, b: Selection) => boolean = Object.is
 ): Selection {
   return useSyncExternalStoreWithSelector(
@@ -39,12 +39,12 @@ export function useStore<State, Selection>(
  * @returns The selected data.
  */
 export function useData<Selection, ElementData = FlatElementData, LinkData = FlatLinkData>(
-  selector: (snapshot: MarkDeepReadOnly<GraphDataState<ElementData, LinkData>>) => Selection,
+  selector: (snapshot: MarkDeepReadOnly<GraphStoreSnapshot<ElementData, LinkData>>) => Selection,
   isEqual?: (a: Selection, b: Selection) => boolean
 ): Selection {
   const { dataState } = useGraphStore();
   return useStore(
-    dataState as unknown as ExternalStoreLike<GraphDataState<ElementData, LinkData>>,
+    dataState as unknown as ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>,
     selector,
     isEqual
   );
@@ -72,8 +72,8 @@ export function useInternalData<Selection>(
  * @group Hooks
  */
 export function useElementsLayout<Selected>(
-  selector: (snapshot: ElementsLayoutState) => Selected = identitySelector as unknown as (
-    snapshot: ElementsLayoutState
+  selector: (snapshot: ElementsLayoutSnapshot) => Selected = identitySelector as unknown as (
+    snapshot: ElementsLayoutSnapshot
   ) => Selected,
   isEqual: (a: Selected, b: Selected) => boolean = isStrictEqual
 ): Selected {
@@ -89,8 +89,8 @@ export function useElementsLayout<Selected>(
  * @group Hooks
  */
 export function useLinksLayout<Selected>(
-  selector: (snapshot: LinksLayoutState) => Selected = identitySelector as unknown as (
-    snapshot: LinksLayoutState
+  selector: (snapshot: LinksLayoutSnapshot) => Selected = identitySelector as unknown as (
+    snapshot: LinksLayoutSnapshot
   ) => Selected,
   isEqual: (a: Selected, b: Selected) => boolean = isStrictEqual
 ): Selected {

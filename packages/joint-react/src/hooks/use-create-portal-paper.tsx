@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
-import { dia, mvc } from '@joint/core';
+import { dia } from '@joint/core';
 import {
   useCallback,
   useDebugValue,
@@ -143,8 +143,8 @@ export function useCreatePortalPaper(
   const linksState = useLinks();
   const graphStore = useGraphStore();
   const areElementsMeasured = useElementsLayout(selectAreElementsMeasured);
-  const resetVersion = useInternalData(selectResetVersion);
   const sizes = useElementsLayout(selectElementSizes);
+  const resetVersion = useInternalData(selectResetVersion);
   const previousResetVersionRef = useRef(-1);
 
   useDebugValue(elementsState);
@@ -173,6 +173,7 @@ export function useCreatePortalPaper(
 
   // Subscribe to paper version to trigger re-renders on view mount/unmount changes
   const version = useInternalData(selectPaperVersion);
+  console.log('Paper re-render');
   const { addPaper, graph, graphState } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
@@ -241,41 +242,12 @@ export function useCreatePortalPaper(
 
     return () => {
       paperRef.current = null;
-
       remove();
     };
     // We intentionally create paper store only once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!paper) return;
-    const controller = new mvc.Listener();
-    function setState(cellView: dia.CellView, isDragging: boolean) {
-      const cell = cellView.model;
-      if (!cell) return;
-      const cellId = cell.id.toString();
-      if (!id) {
-        throw new Error(
-          'Paper id is required to update dragging state. Please provide an id prop to the Paper component.'
-        );
-      }
-      graphStore.updatePaperSnapshot(id, (previous) => {
-        return {
-          ...previous,
-          controlState: {
-            draggingIds: { ...previous.controlState?.draggingIds, [cellId]: isDragging },
-          },
-        };
-      });
-    }
-    controller.listenTo(paper, 'element:pointerdown', (cellView: dia.CellView) => {
-      setState(cellView, true);
-    });
-    controller.listenTo(paper, 'element:pointerup', (cellView: dia.CellView) => {
-      setState(cellView, false);
-    });
-  }, [graphStore, id, paper]);
   useLayoutEffect(() => {
     if (!paper) {
       isReadyNotifiedRef.current = false;
@@ -314,12 +286,30 @@ export function useCreatePortalPaper(
     }
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
 
-  const { elements, areElementsReady } = useMemo(() => {
-    if (!hasRenderElement) {
-      return { elements: null, areElementsReady: true };
+  useEffect(() => {
+    if (!paper) return;
+    if (!areElementsMeasured) return;
+
+    let isInitial = false;
+    if (resetVersion !== previousResetVersionRef.current) {
+      isInitial = true;
+      previousResetVersionRef.current = resetVersion;
     }
-    let elemntsCount = 0;
-    const elements = deferredElementIds.map((elementId) => {
+    const event: ElementsMeasuredEvent = {
+      paper,
+      graph: paper.model,
+      isInitial,
+    };
+    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+    // we must have here sizes, as its called each time reference of size changes.
+  }, [areElementsMeasured, sizes, paper, resetVersion]);
+
+  const renderedElements = useMemo(() => {
+    if (!hasRenderElement) {
+      return null;
+    }
+
+    return deferredElementIds.map((elementId) => {
       const elementState = deferredElementsState[elementId];
       if (!elementState) {
         return null;
@@ -335,7 +325,6 @@ export function useCreatePortalPaper(
       if (!portalNode?.isConnected) {
         return null;
       }
-      elemntsCount++;
       return (
         <CellIdContext.Provider key={elementId} value={elementId}>
           {useHTMLOverlay && HTMLRendererContainer ? (
@@ -367,7 +356,6 @@ export function useCreatePortalPaper(
         </CellIdContext.Provider>
       );
     });
-    return { elements, areElementsReady: elemntsCount === deferredElementIds.length };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     version,
@@ -380,27 +368,6 @@ export function useCreatePortalPaper(
     renderElement,
     useHTMLOverlay,
   ]);
-  useLayoutEffect(() => {
-    if (!areElementsReady) return;
-    if (!paper) return;
-    if (!areElementsMeasured) return;
-    const { layoutState } = graphStore;
-    const { elements } = layoutState.getSnapshot();
-    const areElementsMeasured2 = selectAreElementsMeasured(elements);
-    if (!areElementsMeasured2) return;
-    let isInitial = false;
-    if (resetVersion !== previousResetVersionRef.current) {
-      isInitial = true;
-      previousResetVersionRef.current = resetVersion;
-    }
-    const event: ElementsMeasuredEvent = {
-      paper,
-      graph: paper.model,
-      isInitial,
-    };
-    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-    // we must have here sizes, as its called each time reference of size changes.
-  }, [areElementsMeasured, areElementsReady, sizes, paper, resetVersion, graphStore]);
 
   const renderedLinks = useMemo(() => {
     if (!hasRenderLink || !renderLink) {
@@ -431,6 +398,7 @@ export function useCreatePortalPaper(
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deferredLinkIds, version, deferredLinksState, hasRenderLink, paperStore, renderLink]);
+
   const content = useMemo(
     () => (
       <>
@@ -438,11 +406,11 @@ export function useCreatePortalPaper(
           <PaperHTMLContainer onSetElement={setHTMLRendererContainer} />
         )}
         {renderedLinks}
-        {elements}
+        {renderedElements}
       </>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hasRenderElement, version, elements, renderedLinks, useHTMLOverlay]
+    [hasRenderElement, version, renderedElements, renderedLinks, useHTMLOverlay]
   );
 
   return {

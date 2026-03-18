@@ -25,24 +25,23 @@ import type { IncrementalChange, IncrementalStateChanges } from './incremental.t
 import type {
   ElementPosition,
   ElementSize,
-  ElementsLayoutState,
-  GraphLayoutState,
-  GraphDataState,
+  GraphStoreLayoutSnapshot,
+  GraphStoreSnapshot,
   LinkLayout,
-} from './state.types';
+  PaperStore,
+} from '../store';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
 import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
+import type { ElementToGraphOptions, GraphToElementOptions } from './data-mapping/element-mapper';
+import type { LinkToGraphOptions, GraphToLinkOptions } from './data-mapping/link-mapper';
 import { resolveCellDefaults } from './data-mapping/resolve-cell-defaults';
 import {
   defaultMapDataToElementAttributes,
   defaultMapElementAttributesToData,
-  defaultMapDataToLinkAttributes,
-  defaultMapLinkAttributesToData,
-  type GraphMappings,
-} from './data-mapping';
+} from './data-mapping/element-mapper';
+import { defaultMapDataToLinkAttributes, defaultMapLinkAttributesToData } from './data-mapping';
 import { createState, type ExternalStoreLike } from '../utils/create-state';
-import type { PaperStore } from '../store';
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
 
 interface JointJSEventOptions {
@@ -53,7 +52,16 @@ interface JointJSEventOptions {
 interface Options<ElementData = FlatElementData, LinkData = FlatLinkData> {
   readonly graph: dia.Graph;
   readonly papers: Map<string, PaperStore>;
-  readonly mappers: GraphMappings<ElementData, LinkData>;
+  readonly mappers: {
+    readonly mapDataToElementAttributes?: (
+      options: ElementToGraphOptions<ElementData>
+    ) => dia.Cell.JSON;
+    readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<LinkData>) => dia.Cell.JSON;
+    readonly mapElementAttributesToData?: (
+      options: GraphToElementOptions<ElementData>
+    ) => ElementData;
+    readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<LinkData>) => LinkData;
+  };
   readonly onIncrementalChange?: (changes: IncrementalStateChanges<ElementData, LinkData>) => void;
   readonly onElementsChange?: (elements: Record<string, ElementData>) => void;
   readonly onLinksChange?: (links: Record<string, LinkData>) => void;
@@ -96,8 +104,8 @@ export interface LinkToAttributes<LinkData = FlatLinkData> {
 }
 
 export interface GraphState<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  readonly dataState: ExternalStoreLike<GraphDataState<ElementData, LinkData>>;
-  readonly layoutState: ExternalStoreLike<GraphLayoutState>;
+  readonly dataState: ExternalStoreLike<GraphStoreSnapshot<ElementData, LinkData>>;
+  readonly layoutState: ExternalStoreLike<GraphStoreLayoutSnapshot>;
   readonly clear: () => void;
   readonly destroy: () => void;
   readonly updateGraph: (options: UpdateGraphOptions) => void;
@@ -170,25 +178,15 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   let batchDepth = 0;
   let isSyncedWithReact = true;
 
-  const dataState = createState<GraphDataState<ElementData, LinkData>>({
+  const dataState = createState<GraphStoreSnapshot<ElementData, LinkData>>({
     newState: () => ({
       elements: {},
       links: {},
     }),
     name: 'JointJs/Data',
   });
-  const layoutState = createState<GraphLayoutState>({
-    newState: () => ({
-      elements: {
-        sizes: {},
-        positions: {},
-        angles: {},
-        count: 0,
-        measuredObservedElements: 0,
-        observedElements: 0,
-      },
-      links: {},
-    }),
+  const layoutState = createState<GraphStoreLayoutSnapshot>({
+    newState: () => ({ elements: { sizes: {}, positions: {}, angles: {}, count: 0, measuredElements: 0 }, links: {} }),
     name: 'JointJs/Layout',
   });
 
@@ -298,12 +296,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
    * @param nextLinks
    * @param link - The link whose layout to update
    */
-  interface MutableLinksLayout {
-    links: Record<string, Record<string, LinkLayout>>;
-    dirty: boolean;
-  }
-
-  function updateLinkLayout(mutableLinks: MutableLinksLayout, link: dia.Link) {
+  function updateLinkLayout(nextLinks: Record<string, Record<string, LinkLayout>>, link: dia.Link) {
     for (const [paperId, paperStore] of papers) {
       const { paper } = paperStore;
       if (!paper) continue;
@@ -311,40 +304,39 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       const linkView = paper.findViewByModel(link) as dia.LinkView | null;
       if (!linkView) continue;
 
-      if (!mutableLinks.dirty) {
-        mutableLinks.links = { ...mutableLinks.links };
-        mutableLinks.dirty = true;
+      if (!nextLinks[paperId]) {
+        nextLinks[paperId] = {};
       }
-      if (!mutableLinks.links[paperId]) {
-        mutableLinks.links[paperId] = {};
-      }
-      mutableLinks.links[paperId][String(link.id)] = getLinkLayout(linkView);
+      nextLinks[paperId][String(link.id)] = getLinkLayout(linkView);
     }
   }
 
   /**
+   * Processes a layout change for a single element or link.
+   * Preserves object references when sub-values haven't changed.
+   */
+  /**
    * Mutable container that lazily copies sub-records on first write.
    * Tracks which sub-records have been mutated via dirty flags.
    */
-  interface MutableElementsLayout extends ElementsLayoutState {
+  interface MutableElementsLayout {
     sizes: Record<string, ElementSize>;
     positions: Record<string, ElementPosition>;
     angles: Record<string, number>;
     count: number;
+    measuredElements: number;
     dirtySizes: boolean;
     dirtyPositions: boolean;
     dirtyAngles: boolean;
     dirtyCount: boolean;
   }
 
-  function createMutableElementsLayout(previous: ElementsLayoutState): MutableElementsLayout {
-    return {
-      ...previous,
-      dirtySizes: false,
-      dirtyPositions: false,
-      dirtyAngles: false,
-      dirtyCount: false,
-    };
+  /**
+   * Returns whether an element size is considered "measured" (both dimensions > 1).
+   * @param size
+   */
+  function isMeasuredSize(size: ElementSize): boolean {
+    return size.width > 1 && size.height > 1;
   }
 
   /**
@@ -359,7 +351,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     id: string,
     change: IncrementalChange<dia.Cell>,
     elements: MutableElementsLayout,
-    nextLinks: MutableLinksLayout
+    nextLinks: Record<string, Record<string, LinkLayout>>
   ) {
     switch (change.type) {
       case 'add':
@@ -385,6 +377,14 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
             }
             const newSize: ElementSize = { width: layout.width, height: layout.height };
             elements.sizes[id] = newSize;
+
+            // Update measuredElements counter (O(1))
+            const wasMeasured = previousSize ? isMeasuredSize(previousSize) : false;
+            const isMeasured = isMeasuredSize(newSize);
+            if (wasMeasured !== isMeasured) {
+              elements.measuredElements += isMeasured ? 1 : -1;
+              elements.dirtyCount = true;
+            }
           }
 
           const previousPosition = elements.positions[id];
@@ -417,6 +417,9 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
         const removedSize = elements.sizes[id];
         if (removedSize) {
           elements.count -= 1;
+          if (isMeasuredSize(removedSize)) {
+            elements.measuredElements -= 1;
+          }
           elements.dirtyCount = true;
         }
 
@@ -435,26 +438,14 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
         delete elements.sizes[id];
         delete elements.positions[id];
         delete elements.angles[id];
-        if (!nextLinks.dirty) {
-          nextLinks.links = { ...nextLinks.links };
-          nextLinks.dirty = true;
-        }
-        for (const paperLinks of Object.values(nextLinks.links)) {
+        for (const paperLinks of Object.values(nextLinks)) {
           delete paperLinks[id];
         }
         break;
       }
 
       case 'reset': {
-        const resetLayout = getLayout({ graph, papers });
-        return {
-          ...resetLayout,
-          elements: {
-            ...resetLayout.elements,
-            observedElements: elements.observedElements,
-            measuredObservedElements: elements.measuredObservedElements,
-          },
-        };
+        return getLayout({ graph, papers });
       }
     }
   }
@@ -464,46 +455,48 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
    */
   function onLayoutUpdateHandler(changes: Map<string, IncrementalChange<dia.Cell>>) {
     layoutState.setState((previous) => {
-      const mutableElements = createMutableElementsLayout(previous.elements);
-      const mutableLinks: MutableLinksLayout = { links: previous.links, dirty: false };
+      const mutableElements: MutableElementsLayout = {
+        sizes: previous.elements.sizes,
+        positions: previous.elements.positions,
+        angles: previous.elements.angles,
+        count: previous.elements.count,
+        measuredElements: previous.elements.measuredElements,
+        dirtySizes: false,
+        dirtyPositions: false,
+        dirtyAngles: false,
+        dirtyCount: false,
+      };
+      const nextLinks = { ...previous.links };
 
       for (const [id, change] of changes) {
-        const resetResult = handleCellLayoutChange(id, change, mutableElements, mutableLinks);
+        const resetResult = handleCellLayoutChange(id, change, mutableElements, nextLinks);
         if (resetResult) return resetResult;
       }
 
       const { dirtySizes, dirtyPositions, dirtyAngles, dirtyCount } = mutableElements;
       const elementsChanged = dirtySizes || dirtyPositions || dirtyAngles || dirtyCount;
-
-      if (!elementsChanged && !mutableLinks.dirty) {
-        return previous;
-      }
-
       if (dirtySizes && onSizeChange) {
         onSizeChange();
       }
-      const elements: ElementsLayoutState = elementsChanged
+      const elements = elementsChanged
         ? {
             sizes: mutableElements.sizes,
             positions: mutableElements.positions,
             angles: mutableElements.angles,
             count: mutableElements.count,
-            observedElements: mutableElements.observedElements,
-            measuredObservedElements: mutableElements.measuredObservedElements,
+            measuredElements: mutableElements.measuredElements,
           }
         : previous.elements;
 
-      return { elements, links: mutableLinks.links };
+      return { elements, links: nextLinks };
     });
   }
 
   /** Flushes accumulated changes to the data state and notifies change callbacks. */
   function onStateUpdate() {
     dataState.setState((previous) => {
-      let nextElements = previous.elements;
-      let nextLinks = previous.links;
-      let dirtyElements = false;
-      let dirtyLinks = false;
+      const nextElements = { ...previous.elements };
+      const nextLinks = { ...previous.links };
       const stateChanges: IncrementalStateChanges<ElementData, LinkData> = {
         elements: {},
         links: {},
@@ -514,10 +507,6 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
           case 'change': {
             const cell = change.data;
             if (cell.isElement()) {
-              if (!dirtyElements) {
-                nextElements = { ...nextElements };
-                dirtyElements = true;
-              }
               const newData = elementToData({
                 element: cell,
                 previousData: previous.elements[id],
@@ -530,10 +519,6 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
                 newData
               );
             } else if (cell.isLink()) {
-              if (!dirtyLinks) {
-                nextLinks = { ...nextLinks };
-                dirtyLinks = true;
-              }
               const newData = linkToData({
                 link: cell,
                 previousData: previous.links[id],
@@ -550,14 +535,6 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
           }
 
           case 'remove': {
-            if (!dirtyElements) {
-              nextElements = { ...nextElements };
-              dirtyElements = true;
-            }
-            if (!dirtyLinks) {
-              nextLinks = { ...nextLinks };
-              dirtyLinks = true;
-            }
             const removedElement = nextElements[id];
             const removedLink = nextLinks[id];
             delete nextElements[id];
@@ -604,18 +581,13 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
           }
         }
       }
-
-      if (!dirtyElements && !dirtyLinks) {
-        return previous;
-      }
-
       isSyncedWithReact = false;
       onIncrementalChange?.(stateChanges);
       return { elements: nextElements, links: nextLinks };
     });
 
     if (onElementsChange || onLinksChange) {
-      const snapshot = dataState.getSnapshot() as GraphDataState<ElementData, LinkData>;
+      const snapshot = dataState.getSnapshot() as GraphStoreSnapshot<ElementData, LinkData>;
       onElementsChange?.(snapshot.elements);
       onLinksChange?.(snapshot.links);
     }
@@ -721,14 +693,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       controller.stopListening();
       this.clear();
       layoutState.setState(() => ({
-        elements: {
-          sizes: {},
-          positions: {},
-          angles: {},
-          count: 0,
-          measuredObservedElements: 0,
-          observedElements: 0,
-        },
+        elements: { sizes: {}, positions: {}, angles: {}, count: 0, measuredElements: 0 },
         links: {},
       }));
       dataState.setState(() => {
@@ -764,14 +729,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       });
 
       const layout = getLayout({ graph, papers });
-      layoutState.setState((previous) => ({
-        ...layout,
-        elements: {
-          ...layout.elements,
-          observedElements: previous.elements.observedElements,
-          measuredObservedElements: previous.elements.measuredObservedElements,
-        },
-      }));
+      layoutState.setState(() => layout);
     },
   };
 }

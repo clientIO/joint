@@ -180,7 +180,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
 
-      store.updatePaperSnapshot(paperId, () => ({ version: 1, featuresState: {} }));
+      store.updatePaperSnapshot(paperId, () => 1);
 
       const internalSnapshot = store.internalState.getSnapshot();
       expect(internalSnapshot.papers[paperId]).toBeDefined();
@@ -190,26 +190,21 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
 
-      store.updatePaperSnapshot(paperId, () => ({ version: 1, featuresState: {} }));
-      store.updatePaperSnapshot(paperId, (previous) => ({
-        ...previous,
-        version: (previous?.version ?? 0) + 1,
-        featuresState: previous?.featuresState ?? {},
-      }));
+      store.updatePaperSnapshot(paperId, () => 1);
+      store.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
 
       const internalSnapshot = store.internalState.getSnapshot();
-      expect(internalSnapshot.papers[paperId]?.version).toBe(2);
+      expect(internalSnapshot.papers[paperId]).toBe(2);
     });
 
     it('should not update if snapshot is unchanged', () => {
       const store = new GraphStore({});
       const paperId = 'paper-1';
-      const paperState = { version: 1, featuresState: {} };
 
-      store.updatePaperSnapshot(paperId, () => paperState);
+      store.updatePaperSnapshot(paperId, () => 1);
       const firstSnapshot = store.internalState.getSnapshot();
 
-      store.updatePaperSnapshot(paperId, () => paperState);
+      store.updatePaperSnapshot(paperId, () => 1);
       const secondSnapshot = store.internalState.getSnapshot();
 
       // Should return same reference if unchanged
@@ -225,7 +220,7 @@ describe('GraphStore', () => {
           ...previous,
           papers: {
             ...previous.papers,
-            [paperId]: { version: 1, featuresState: {} },
+            [paperId]: 1,
           },
         };
       });
@@ -245,7 +240,7 @@ describe('GraphStore', () => {
       ]);
       store.setPaperViews(paperId, changes);
 
-      const { version } = store.internalState.getSnapshot().papers[paperId];
+      const version = store.internalState.getSnapshot().papers[paperId];
       expect(version).toBe(2);
     });
 
@@ -262,7 +257,7 @@ describe('GraphStore', () => {
       );
       store.setPaperViews(paperId, new Map([['element-1', { type: 'remove' as const }]]));
 
-      const { version } = store.internalState.getSnapshot().papers[paperId];
+      const version = store.internalState.getSnapshot().papers[paperId];
       expect(version).toBe(3);
     });
   });
@@ -296,7 +291,7 @@ describe('GraphStore', () => {
       });
 
       const paperSnapshot = store.internalState.getSnapshot().papers[paperId];
-      expect(paperSnapshot.version).toBe(1);
+      expect(paperSnapshot).toBe(1);
       expect(() => JSON.stringify(store.internalState.getSnapshot())).not.toThrow();
     });
 

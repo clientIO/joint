@@ -1,10 +1,10 @@
 import type { dia } from '@joint/core';
 import { mvc } from '@joint/core';
 import { useLayoutEffect, type DependencyList } from 'react';
-import type { PaperEventHandlers } from '../types/event.types';
+import type { PaperEventMap } from '../types/event.types';
 import { usePaperStore } from './use-paper';
 import type { PaperStore } from '../store';
-import { resolvePaperId, type AnyString, type PaperTarget } from '../types';
+import { resolvePaperId, type PaperTarget } from '../types';
 import { useGraphStore } from './use-graph-store';
 
 const EMPTY_DEPENDENCIES: DependencyList = [];
@@ -13,11 +13,11 @@ interface PaperEventsBaseContext {
   readonly graph: dia.Graph;
   readonly paper: dia.Paper;
 }
-export type PaperEventsContext<T = Record<AnyString, unknown>> = PaperEventsBaseContext & T;
+export type PaperEventsContext<T = Record<string, unknown>> = PaperEventsBaseContext & T;
 
 type HandlersOrFactory<T> =
-  | PaperEventHandlers
-  | ((ctx: PaperEventsContext<T>) => PaperEventHandlers);
+  | Partial<PaperEventMap>
+  | ((ctx: PaperEventsContext<T>) => Partial<PaperEventMap>);
 
 /**
  * Builds the EventContext from paperStore and graph.
@@ -96,13 +96,13 @@ export function subscribeToPaperEvents<T>(
  * @param dependencies - Optional dependency array controlling re-subscription.
  * @group Hooks
  */
-export function usePaperEvents<T = Record<AnyString, unknown>>(
+export function usePaperEvents<T = Record<string, unknown>>(
   paper: PaperTarget,
   handlers: HandlersOrFactory<T>,
   dependencies: DependencyList = EMPTY_DEPENDENCIES
 ): void {
   const paperId = resolvePaperId(paper);
-  const paperStore = usePaperStore(paperId ?? { isNullable: true });
+  const paperStore = usePaperStore(paperId ?? { optional: true });
   const graphStore = useGraphStore();
 
   useLayoutEffect(() => {

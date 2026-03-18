@@ -21,10 +21,7 @@ import { PortalElement } from '../../../models/portal-element';
 import { usePaperStore } from '../../../hooks/use-paper';
 
 /** Test helper: listens to `elements:measured` event via hook and forwards to callback. */
-function MeasuredListener({
-  paperId,
-  callback,
-}: Readonly<{ paperId: string; callback: (event: ElementsMeasuredEvent) => void }>) {
+function MeasuredListener({ paperId, callback }: Readonly<{ paperId: string; callback: (event: ElementsMeasuredEvent) => void }>) {
   useNodesMeasuredEffect(paperId, callback);
   return null;
 }
@@ -270,7 +267,11 @@ function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
 
   render(
     <GraphProvider elements={getPortDragElements()}>
-      <Paper ref={ref} defaultLink={defaultLink} renderElement={() => <div>Drag Node</div>} />
+      <Paper
+        ref={ref}
+        defaultLink={defaultLink}
+        renderElement={() => <div>Drag Node</div>}
+      />
       <CaptureLinksSnapshot />
     </GraphProvider>
   );
@@ -334,7 +335,12 @@ describe('Paper Component', () => {
     render(
       <GraphProvider elements={elements}>
         <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
-        <Paper id={PAPER_ID} width={WIDTH} height={150} renderElement={renderElement} />
+        <Paper
+          id={PAPER_ID}
+          width={WIDTH}
+          height={150}
+          renderElement={renderElement}
+        />
       </GraphProvider>
     );
     await waitFor(() => {
@@ -378,17 +384,17 @@ describe('Paper Component', () => {
 
       return (
         <GraphProvider elements={controlledElements} onElementsChange={setControlledElements}>
-          <MeasuredListener
-            paperId={PAPER_ID}
-            callback={({ isInitial }) => {
-              onMeasuredMock();
-              if (isInitial && !hasUpdatedRef.current) {
-                hasUpdatedRef.current = true;
-                setControlledElements(updatedElements);
-              }
-            }}
+          <MeasuredListener paperId={PAPER_ID} callback={({ isInitial }) => {
+            onMeasuredMock();
+            if (isInitial && !hasUpdatedRef.current) {
+              hasUpdatedRef.current = true;
+              setControlledElements(updatedElements);
+            }
+          }} />
+          <Paper
+            id={PAPER_ID}
+            renderElement={({ label }) => <div className="node">{label}</div>}
           />
-          <Paper id={PAPER_ID} renderElement={({ label }) => <div className="node">{label}</div>} />
         </GraphProvider>
       );
     }
@@ -439,7 +445,10 @@ describe('Paper Component', () => {
     render(
       <GraphProvider elements={elements}>
         <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
-        <Paper id={PAPER_ID} renderElement={() => <div>Test</div>} />
+        <Paper
+          id={PAPER_ID}
+          renderElement={() => <div>Test</div>}
+        />
       </GraphProvider>
     );
     await waitFor(() => {
@@ -464,7 +473,10 @@ describe('Paper Component', () => {
           {isReady && (
             <>
               <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
-              <Paper id={PAPER_ID} renderElement={RenderElement} />
+              <Paper
+                id={PAPER_ID}
+                renderElement={RenderElement}
+              />
             </>
           )}
         </GraphProvider>
@@ -492,6 +504,31 @@ describe('Paper Component', () => {
       },
       { timeout: 3000 }
     );
+  });
+
+  it('provides non-null ref inside onElementsMeasured callback', async () => {
+    const ref: RefObject<PortalPaper | null> = { current: null };
+    const onMeasuredMock = jest.fn();
+    const PAPER_ID = 'test-measured-ref';
+
+    render(
+      <GraphProvider elements={elements}>
+        <MeasuredListener paperId={PAPER_ID} callback={() => {
+          onMeasuredMock(ref.current);
+        }} />
+        <Paper
+          id={PAPER_ID}
+          ref={ref}
+          renderElement={() => <div>Test</div>}
+        />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(onMeasuredMock).toHaveBeenCalledTimes(1);
+      expect(onMeasuredMock).toHaveBeenCalledWith(expect.any(Object));
+      expect(onMeasuredMock.mock.calls[0][0]).not.toBeNull();
+    });
   });
 
   it('provides non-null ref in child useEffect on mount', async () => {
@@ -856,7 +893,12 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper ref={ref} width="100%" height="100%" renderElement={() => <div>Test</div>} />
+        <Paper
+          ref={ref}
+          width="100%"
+          height="100%"
+          renderElement={() => <div>Test</div>}
+        />
       </GraphProvider>
     );
 
@@ -1091,7 +1133,12 @@ describe('Paper Component', () => {
 
     render(
       <GraphProvider elements={elements}>
-        <Paper ref={ref} width="100%" height="100%" renderElement={() => <div>Test</div>} />
+        <Paper
+          ref={ref}
+          width="100%"
+          height="100%"
+          renderElement={() => <div>Test</div>}
+        />
       </GraphProvider>
     );
 
@@ -1304,7 +1351,10 @@ describe('Paper Component', () => {
     const EXTERNAL_PAPER_ID = 'external-paper';
 
     it('should adopt an external PortalPaper and expose it via usePaperStore', async () => {
-      const graph = new dia.Graph({}, { cellNamespace: { ...shapes, PortalElement, PortalLink } });
+      const graph = new dia.Graph(
+        {},
+        { cellNamespace: { ...shapes, PortalElement, PortalLink } }
+      );
       const container = document.createElement('div');
       document.body.append(container);
 
@@ -1339,7 +1389,10 @@ describe('Paper Component', () => {
     });
 
     it('should not render a host div when external paper is provided', async () => {
-      const graph = new dia.Graph({}, { cellNamespace: { ...shapes, PortalElement, PortalLink } });
+      const graph = new dia.Graph(
+        {},
+        { cellNamespace: { ...shapes, PortalElement, PortalLink } }
+      );
       const container = document.createElement('div');
       document.body.append(container);
 

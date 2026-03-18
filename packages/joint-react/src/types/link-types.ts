@@ -1,7 +1,8 @@
 import type { anchors, connectionPoints, dia } from '@joint/core';
-import type { AnyString } from './index';
 import type { MarkerPreset } from '../theme/link-theme';
 import type { CellId } from './cell-id';
+
+import type { LiteralUnion } from './index';
 
 /**
  * Link endpoint definition.
@@ -90,7 +91,7 @@ export interface FlatLinkLabel {
    * - Any other string — interpreted as SVG path `d` commands (supports `calc()` expressions via `ref`)
    * @default 'rect'
    */
-  readonly backgroundShape?: 'rect' | 'ellipse' | AnyString;
+  readonly backgroundShape?: LiteralUnion<'rect' | 'ellipse'>;
 }
 
 /**

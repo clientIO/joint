@@ -434,9 +434,9 @@ All external stores must implement this interface:
 
 ```tsx
 interface ExternalGraphStore {
-  getSnapshot(): GraphDataState;  // Returns current state
+  getSnapshot(): GraphStoreSnapshot;  // Returns current state
   subscribe(listener: () => void): () => void;  // Subscribe to changes
-  setState(updater: Update<GraphDataState>): void;  // Update state
+  setState(updater: Update<GraphStoreSnapshot>): void;  // Update state
 }
 ```
 

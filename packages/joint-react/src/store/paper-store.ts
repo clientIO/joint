@@ -9,7 +9,6 @@ import { connectionPoint } from './default-connection-point';
 import { measureNode } from './default-measure-node';
 import type { Feature } from '../hooks/use-create-paper-features';
 import type { IncrementalChange } from '../state/incremental.types';
-import type { PaperStoreState } from '../state/state.types';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
@@ -75,13 +74,17 @@ export interface PaperStoreOptions extends AddPaperOptions {
 }
 
 /**
- * Creates an initial paper state.
- * Starts at version 1 to avoid falsy zero issues.
- * Returns a new object each time to prevent shared-reference mutations.
+ * Paper snapshot is a simple version counter.
+ * Incremented on every view mount/unmount change to trigger React re-renders.
  */
-export function getDefaultPaperState(): PaperStoreState {
-  return { version: 1 };
-}
+// eslint-disable-next-line sonarjs/redundant-type-aliases
+export type PaperStoreSnapshot = number;
+
+/**
+ * Initial version for a new paper snapshot.
+ * Starts at 1 to avoid falsy zero issues.
+ */
+export const DEFAULT_PAPER_VERSION: PaperStoreSnapshot = 1;
 
 /**
  * Store for managing a single Paper instance and its associated state.
