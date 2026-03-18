@@ -372,9 +372,6 @@ export namespace dia {
             // custom
             [eventName: string]: mvc.EventHandler;
         }
-
-        type DefinedEventMap = ExcludeIndexSignature<EventMap>;
-
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -399,18 +396,18 @@ export namespace dia {
 
         // events
 
-        on<T extends keyof Graph.DefinedEventMap>(
+        on<T extends keyof Graph.EventMap>(
             eventName: T,
-            callback: Graph.DefinedEventMap[T],
+            callback: Graph.EventMap[T],
             context?: any
         ): this;
         on(
-            eventName: LiteralUnion<keyof Graph.DefinedEventMap>,
+            eventName: LiteralUnion<keyof ExcludeIndexSignature<Graph.EventMap>>,
             callback: mvc.EventHandler,
             context?: any
         ): this;
 
-        on<E extends mvc.EventCallbackMap<Graph.DefinedEventMap>>(
+        on<E extends Partial<Graph.EventMap>>(
             events: E,
             context?: any
         ): this;
@@ -1920,8 +1917,6 @@ export namespace dia {
             [eventName: string]: mvc.EventHandler;
         }
 
-        type DefinedEventMap = ExcludeIndexSignature<EventMap>;
-
         interface BufferOptions {
             /**
              * A buffer around the area to extend the search to
@@ -2212,18 +2207,18 @@ export namespace dia {
 
         // events
 
-        on<T extends keyof Paper.DefinedEventMap>(
+        on<T extends keyof Paper.EventMap>(
             eventName: T,
-            callback: Paper.DefinedEventMap[T],
+            callback: Paper.EventMap[T],
             context?: any
         ): this;
         on(
-            eventName: LiteralUnion<keyof Paper.DefinedEventMap>,
+            eventName: LiteralUnion<keyof ExcludeIndexSignature<Paper.EventMap>>,
             callback: mvc.EventHandler,
             context?: any
         ): this;
 
-        on<E extends mvc.EventCallbackMap<Paper.DefinedEventMap>>(
+        on<E extends Partial<Paper.EventMap>>(
             events: E,
             context?: any
         ): this;
@@ -3641,12 +3636,6 @@ export namespace mvc {
     interface EventMap {
         [event: string]: EventHandler;
     }
-
-    /**
-     * A partial map of known event callbacks, plus any custom string events.
-     * Use with a DefinedEventMap to get autocomplete for known events.
-     */
-    type EventCallbackMap<T> = Partial<T> & { [key: string]: EventHandler };
 
     const Events: Events;
     interface Events extends EventsMixin {}
