@@ -1,35 +1,36 @@
-import { util, type dia } from '@joint/core';
+import type { dia } from '@joint/core';
+import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 import { isString } from '../utils/is';
 
 /**
  * Built-in marker presets for links.
  */
-export const defaultMarkers = {
+export const markerPresets = {
   none: null,
   arrow: {
-    markup: util.svg`<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" stroke-width="2" />`,
+    markup: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" stroke-width="2" />),
   },
   'arrow-open': {
-    markup: util.svg`<path d="M 10 3 L 0 0 L 10 -3" fill="none" stroke-width="2" />`,
+    markup: jsx(<path d="M 10 3 L 0 0 L 10 -3" fill="none" stroke-width="2" />),
   },
   circle: {
-    markup: util.svg`<circle r="4" fill="context-fill" stroke-width="2" />`,
+    markup: jsx(<circle r="4" fill="context-fill" stroke-width="2" />),
   },
   'circle-outline': {
-    markup: util.svg`<circle r="4" fill="none" stroke-width="2" />`,
+    markup: jsx(<circle r="4" fill="none" stroke-width="2" />),
   },
   diamond: {
-    markup: util.svg`<path d="M 0 0 L 5 -5 L 10 0 L 5 5 z" fill="context-fill" stroke-width="2" />`,
+    markup: jsx(<path d="M 0 0 L 5 -5 L 10 0 L 5 5 z" fill="context-fill" stroke-width="2" />),
   },
   bar: {
-    markup: util.svg`<path d="M 0 -5 V 5" stroke-width="2" />`,
+    markup: jsx(<path d="M 0 -5 V 5" stroke-width="2" />),
   },
   cross: {
-    markup: util.svg`<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke-width="2" />`,
+    markup: jsx(<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke-width="2" />),
   },
 } as const satisfies Record<string, dia.SVGMarkerJSON | null>;
 
-export type MarkerPreset = keyof typeof defaultMarkers;
+export type LinkMarkerPreset = keyof typeof markerPresets;
 
 /**
  * Resolves a marker preset name or custom marker to a MarkerJSON.
@@ -37,11 +38,11 @@ export type MarkerPreset = keyof typeof defaultMarkers;
  * @returns The resolved marker JSON or null
  */
 export function resolveMarker(
-  marker: MarkerPreset | dia.SVGMarkerJSON | undefined
+  marker: LinkMarkerPreset | dia.SVGMarkerJSON | undefined
 ): dia.SVGMarkerJSON | null {
   if (marker === undefined || marker === 'none') return null;
   if (isString(marker)) {
-    return defaultMarkers[marker as keyof typeof defaultMarkers] ?? null;
+    return markerPresets[marker as keyof typeof markerPresets] ?? null;
   }
   const markerAsRecord = marker as Record<string, unknown>;
   if (!('type' in markerAsRecord) && typeof markerAsRecord.d === 'string') {

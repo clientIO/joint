@@ -45,16 +45,14 @@ export { jsx } from './utils/joint-jsx/jsx-to-markup';
 
 // Types
 export type { FlatElementData, FlatElementPort } from './types/element-types';
+export type { PortShape as PortShape } from './theme/element-theme';
 export type { FlatLinkData, FlatLinkEnd, FlatLinkLabel } from './types/link-types';
 export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
 export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
 
 // Theme
-export { defaultLinkTheme } from './theme/link-theme';
-export type { LinkTheme } from './theme/link-theme';
-export { defaultMarkers, resolveMarker } from './theme/markers';
-export type { MarkerPreset } from './theme/markers';
+export type { LinkMarkerPreset as MarkerPreset } from './theme/markers';
 
 // Models
 export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';

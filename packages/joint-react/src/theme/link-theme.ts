@@ -1,7 +1,7 @@
-import type { MarkerPreset } from './markers';
+import type { LinkMarkerPreset } from './markers';
 
 // Re-export markers for backward compatibility (public API)
-export { defaultMarkers, resolveMarker, type MarkerPreset } from './markers';
+export { markerPresets as defaultMarkers, resolveMarker, type LinkMarkerPreset as MarkerPreset } from './markers';
 
 /**
  * Default link theme with all properties filled.
@@ -11,8 +11,8 @@ export { defaultMarkers, resolveMarker, type MarkerPreset } from './markers';
 export const defaultLinkTheme = {
   color: '#333333',
   width: 2,
-  sourceMarker: 'none' as MarkerPreset,
-  targetMarker: 'none' as MarkerPreset,
+  sourceMarker: 'none' as LinkMarkerPreset,
+  targetMarker: 'none' as LinkMarkerPreset,
   wrapperBuffer: 8,
   wrapperColor: 'transparent',
   wrapperClassName: '',
@@ -23,7 +23,7 @@ export const defaultLinkTheme = {
   labelColor: '#333333',
   labelFontSize: 12,
   labelFontFamily: 'sans-serif',
-  labelBackgroundColor: '#ffffff',
+  labelBackgroundColor: 'var(--jj-color-bg)',
   labelBackgroundStroke: '#333333',
   labelBackgroundStrokeWidth: 1,
   labelBackgroundBorderRadius: 4,
