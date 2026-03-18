@@ -228,8 +228,8 @@ const TextHighlighter = dia.HighlighterView.extend({
 
 type ZoomState =
   | { type: 'overview' }
-  | { type: 'link'; link: dia.Link; linkView: dia.LinkView }
-  | { type: 'arrow'; link: dia.Link };
+  | { type: 'link'; linkView: dia.LinkView }
+  | { type: 'arrow'; linkView: dia.LinkView };
 
 function Main() {
   const paperId = useId();
@@ -260,14 +260,14 @@ function Main() {
         horizontalAlign: 'middle',
       });
     } else if (zoom.type === 'link') {
-      const bbox = zoom.link.getBBox().inflate(20);
+      const bbox = zoom.linkView.model.getBBox().inflate(20);
       paper.transformToFitContent({
         contentArea: bbox,
         horizontalAlign: 'middle',
         verticalAlign: 'middle',
       });
       TextHighlighter.removeAll(paper, 'number');
-      const number = Number.parseInt(zoom.link.id.toString().replace('marker-', ''), 10);
+      const number = Number.parseInt(zoom.linkView.model.id.toString().replace('marker-', ''), 10);
       TextHighlighter.add(zoom.linkView, 'root', 'number', {
         layer: dia.Paper.Layers.FRONT,
         text: `#${number}`,
@@ -276,7 +276,7 @@ function Main() {
         dy: -10,
       });
     } else {
-      const bbox = zoom.link.getBBox();
+      const bbox = zoom.linkView.model.getBBox();
       bbox.x -= LINK_BBOX_WIDTH / 2;
       bbox.y -= 15;
       bbox.height = LINK_BBOX_HEIGHT / 2;
@@ -292,10 +292,10 @@ function Main() {
     'link:pointerdown': (linkView: dia.LinkView) => {
       const link = linkView.model;
       setZoom((previous) => {
-        if (previous.type === 'link' && previous.link === link) {
-          return { type: 'arrow', link };
+        if (previous.type === 'link' && previous.linkView.model === link) {
+          return { type: 'arrow', linkView };
         }
-        return { type: 'link', link, linkView };
+        return { type: 'link', linkView };
       });
     },
     'blank:pointerdown': () => setZoom({ type: 'overview' }),
