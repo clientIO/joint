@@ -4,13 +4,14 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
- 
+
 import { render, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { GraphProvider, Paper } from '../../components';
-import { PaperFeaturesProvider, useCreatePaperFeature } from '../use-create-paper-features';
+import { useCreatePaperFeature } from '../use-create-paper-features';
 import type { Feature, OnAddFeature } from '../use-create-paper-features';
 import { usePaperStore } from '../use-paper';
+import { PaperFeaturesProvider } from '../../components/features-provider/features-provider';
 
 const EMPTY_ELEMENTS = {};
 const EMPTY_LINKS = {};

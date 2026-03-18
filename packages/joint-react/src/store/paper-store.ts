@@ -75,10 +75,13 @@ export interface PaperStoreOptions extends AddPaperOptions {
 }
 
 /**
- * Initial version for a new paper snapshot.
- * Starts at 1 to avoid falsy zero issues.
+ * Creates an initial paper state.
+ * Starts at version 1 to avoid falsy zero issues.
+ * Returns a new object each time to prevent shared-reference mutations.
  */
-export const DEFAULT_PAPER_VERSION: PaperStoreState = 1;
+export function getDefaultPaperState(): PaperStoreState {
+  return { version: 1 };
+}
 
 /**
  * Store for managing a single Paper instance and its associated state.

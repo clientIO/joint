@@ -6,8 +6,10 @@ import type { FlatLinkData } from '../types/link-types';
  * Paper snapshot is a simple version counter.
  * Incremented on every view mount/unmount change to trigger React re-renders.
  */
-// eslint-disable-next-line sonarjs/redundant-type-aliases
-export type PaperStoreState = number;
+export type PaperStoreState = {
+  version: number;
+  featuresState?: Record<string, unknown>;
+};
 
 /**
  * Public snapshot of the graph store containing elements and links.

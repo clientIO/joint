@@ -10,7 +10,7 @@ import type {
   GraphStoreInternalSnapshot,
 } from '../state/state.types';
 
-import { PaperStore, DEFAULT_PAPER_VERSION } from './paper-store';
+import { PaperStore, getDefaultPaperState } from './paper-store';
 import {
   createElementsSizeObserver,
   type GraphStoreObserver,
@@ -261,6 +261,13 @@ export class GraphStore {
     });
   }
 
+  private bumpPaperVersion(paperId: string) {
+    this.updatePaperSnapshot(paperId, (previous) => {
+      const nextVersion = (previous?.version ?? 0) + 1;
+      return { ...previous, version: nextVersion };
+    });
+  }
+
   public setPaperFeature(paperId: string, feature: Feature) {
     const paperStore = this.paperStores.get(paperId);
     if (!paperStore) {
@@ -268,7 +275,7 @@ export class GraphStore {
     }
     paperStore.features[feature.id] = feature;
     // bump version to trigger re-render of paper content with new feature
-    this.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
+    this.bumpPaperVersion(paperId);
   }
 
   public removePaperFeature(paperId: string, featureId: string) {
@@ -284,11 +291,11 @@ export class GraphStore {
     feature.clean?.();
     Reflect.deleteProperty(paperStore.features, featureId);
     // bump version to trigger re-render of paper content without removed feature
-    this.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
+    this.bumpPaperVersion(paperId);
   }
 
   public setPaperViews(paperId: string, changes: Map<string, IncrementalChange<dia.Cell>>) {
-    this.updatePaperSnapshot(paperId, (previous) => (previous ?? 0) + 1);
+    this.bumpPaperVersion(paperId);
     this.graph.trigger(LAYOUT_UPDATE_EVENT, { changes });
   }
 
@@ -308,19 +315,12 @@ export class GraphStore {
   public addPaper = (id: string, paperOptions: AddPaperOptions) => {
     const paperStore = new PaperStore({ ...paperOptions, graphStore: this, id });
     this.paperStores.set(id, paperStore);
-    this.internalState.setState((previous) => {
-      if (previous.papers[id]) {
-        return previous;
-      }
-      return { ...previous, papers: { ...previous.papers, [id]: DEFAULT_PAPER_VERSION } };
-    });
+    this.updatePaperSnapshot(id, () => getDefaultPaperState());
     return { paperStore, remove: () => this.removePaper(id) };
   };
 
   public hasMeasuredNode = (id: CellId) => this.observer.has(id);
-
   public setMeasuredNode = (options: SetMeasuredNodeOptions) => this.observer.add(options);
-
   public getPaperStore = (id: string) => {
     return this.paperStores.get(id);
   };

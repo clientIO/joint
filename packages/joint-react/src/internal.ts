@@ -24,7 +24,7 @@ export type {
   OnUpdateFeatureOptions,
   OnLoadFeatureOptions,
 } from './hooks/use-create-paper-features';
-export { PaperFeaturesProvider } from './hooks/use-create-paper-features';
+export { PaperFeaturesProvider } from './components';
 
 // Store Classes
 export { GraphStore, DEFAULT_CELL_NAMESPACE } from './store/graph-store';

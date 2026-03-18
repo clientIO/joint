@@ -1,4 +1,4 @@
-import type { ElementsLayoutState, GraphStoreInternalSnapshot } from '../state/state.types';
+import type { ElementsLayoutState, GraphStoreInternalSnapshot, PaperStoreState } from '../state/state.types';
 
 // ── Element layout selectors ────────────────────────────────────────────────
 
@@ -34,5 +34,5 @@ export const selectResetVersion = (snapshot: GraphStoreInternalSnapshot): number
  * @param id - The paper ID to select the version for.
  */
 export function createSelectPaperVersion(id: string) {
-  return (snapshot: GraphStoreInternalSnapshot): number | undefined => snapshot.papers[id];
+  return (snapshot: GraphStoreInternalSnapshot): PaperStoreState | undefined => snapshot.papers[id];
 }
