@@ -164,7 +164,7 @@ const links: Record<string, FlatLinkData> = {
     target: 'child-2',
     z: 2,
     color: LINK_COLOR,
-    width: 1,
+    strokeWidth: 1,
     targetMarker: {
       d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
       fill: 'none',
@@ -175,7 +175,7 @@ const links: Record<string, FlatLinkData> = {
     target: 'child-3',
     z: 2,
     color: LINK_COLOR,
-    width: 1,
+    strokeWidth: 1,
     targetMarker: {
       d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
       fill: 'none',
@@ -186,7 +186,7 @@ const links: Record<string, FlatLinkData> = {
     target: 'child-5',
     z: 4,
     color: LINK_COLOR,
-    width: 1,
+    strokeWidth: 1,
     targetMarker: {
       d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
       fill: 'none',
@@ -197,7 +197,7 @@ const links: Record<string, FlatLinkData> = {
     target: 'container-b',
     z: 4,
     color: LINK_COLOR,
-    width: 1,
+    strokeWidth: 1,
     targetMarker: {
       d: 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
       fill: 'none',

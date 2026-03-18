@@ -26,7 +26,7 @@ const initialEdges: Record<string, FlatLinkData> = {
     source: '1',
     target: '2',
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
   },
 };
 function RenderItem(props: CustomElement) {

@@ -13,9 +13,7 @@ import type { CellId } from './cell-id';
  * top-level properties on {@link FlatLinkData} (e.g. `sourcePort`, `sourceAnchor`).
  * @group Graph
  */
-export type FlatLinkEnd =
-  | CellId
-  | { readonly x: number; readonly y: number };
+export type FlatLinkEnd = CellId | { readonly x: number; readonly y: number };
 
 /**
  * Simplified label definition for graph links.
@@ -177,14 +175,16 @@ export interface FlatLinkData extends Record<string, unknown> {
   readonly connector?: unknown;
   /**
    * Stroke color of the link line.
-   * @default '#333333'
+   * Accepts any CSS color value including CSS variables (e.g. `'var(--color-pink-200)'`).
+   * When not set, the CSS variable `--joint-link-color` from theme.css applies.
    */
   readonly color?: string;
   /**
    * Stroke width of the link line.
-   * @default 2
+   * Accepts a number or a CSS variable string (e.g. `'var(--stroke-2)'`).
+   * When not set, the CSS variable `--joint-link-width` from theme.css applies.
    */
-  readonly width?: number;
+  readonly strokeWidth?: number | string;
   /**
    * Buffer in pixels added to the link's hit area for easier interaction.
    */
@@ -221,7 +221,7 @@ export interface FlatLinkData extends Record<string, unknown> {
    * Stroke dash pattern for the link line (e.g., '5,5' for dashed).
    * @default ''
    */
-  readonly pattern?: string;
+  readonly strokeDashArray?: string;
   /**
    * Stroke line cap for the link line.
    * @default ''

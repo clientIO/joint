@@ -57,8 +57,8 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
         source,
         target,
         color: SECONDARY,
-        width: 2,
-        pattern: '5 5',
+        strokeWidth: 2,
+        strokeDashArray: '5 5',
       });
     }
     return () => {

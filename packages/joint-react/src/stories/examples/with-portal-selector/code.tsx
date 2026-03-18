@@ -118,7 +118,7 @@ const links: Record<string, LinkData> = {
   link1: {
     source: '1',
     target: '2',
-    width: 4,
+    strokeWidth: 4,
     color: 'orange',
     // targetMarker: 'arrow' as MarkerPreset,
     className: 'dashed-link',

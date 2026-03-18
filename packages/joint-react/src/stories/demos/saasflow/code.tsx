@@ -181,7 +181,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'pm',
     targetPort: 'in',
     color: DARK.link,
-    width: 2,
+    strokeWidth: 2,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     targetMarker: 'none',
     labels: {
@@ -202,9 +202,9 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'designer',
     targetPort: 'in',
     color: DARK.link,
-    width: 2,
+    strokeWidth: 2,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
-    pattern: '6,4',
+    strokeDashArray: '6,4',
     targetMarker: {
       d: 'M 0 -4 L 8 0 L 0 4 Z',
       fill: DARK.link,
@@ -640,7 +640,7 @@ function Main() {
           args: { cornerType: 'cubic', cornerPreserveAspectRatio: true },
         }}
         defaultConnectionPoint={{ name: 'boundary', args: { offset: 8, extrapolate: true } }}
-        defaultLink={{ color: theme.link, width: 2, targetMarker: 'none' }}
+        defaultLink={{ color: theme.link, strokeWidth: 2, targetMarker: 'none' }}
         validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         validateConnection={(cellViewS, _magnetS, cellViewT, magnetT) => {
           if (cellViewS === cellViewT) return false;

@@ -438,7 +438,7 @@ describe('graph-state-selectors', () => {
       });
     });
 
-    it('should use theme color property for stroke', () => {
+    it('should use inline style for color when explicitly set', () => {
       const id = 'link-1';
       const link: FlatLinkData = {
         source: 'element-1',
@@ -451,7 +451,8 @@ describe('graph-state-selectors', () => {
       const linkAsGraphJson = defaultMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson.attrs).toBeDefined();
-      expect(linkAsGraphJson.attrs?.line?.stroke).toBe('red');
+      const lineStyle = linkAsGraphJson.attrs?.line?.style as Record<string, unknown>;
+      expect(lineStyle?.stroke).toBe('red');
     });
 
     it('should explicitly set targetMarker to null in line attrs when set to none', () => {
@@ -1574,14 +1575,15 @@ describe('graph-state-selectors', () => {
       const result = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, data, graph));
 
       // Theme properties are now stored in data for sync purposes
+      // color and strokeWidth are undefined (CSS handles defaults)
       expect(result.data).toEqual({
         weight: 5,
-        color: '#333333',
-        width: 2,
+        color: undefined,
+        strokeWidth: undefined,
         sourceMarker: 'none',
         targetMarker: 'none',
         className: '',
-        pattern: '',
+        strokeDashArray: '',
         lineCap: '',
         lineJoin: '',
         wrapperBuffer: 8,
@@ -1613,12 +1615,12 @@ describe('graph-state-selectors', () => {
       // Theme properties are now stored in data for sync purposes
       expect(result.data).toEqual({
         weight: 5,
-        color: '#333333',
-        width: 2,
+        color: undefined,
+        strokeWidth: undefined,
         sourceMarker: 'none',
         targetMarker: 'none',
         className: '',
-        pattern: '',
+        strokeDashArray: '',
         lineCap: '',
         lineJoin: '',
         wrapperBuffer: 8,

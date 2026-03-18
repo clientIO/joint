@@ -256,14 +256,16 @@ describe('useGraph link mutations', () => {
 
     await waitFor(() => {
       const link = result.current.graph.getCell('3');
-      expect(link?.get('attrs')?.line?.stroke ?? '').toBe('#001DFF');
+      const lineStyle = link?.get('attrs')?.line?.style as Record<string, unknown> | undefined;
+      expect(lineStyle?.stroke ?? '').toBe('#001DFF');
     });
 
     act(() => result.current.setLink('3', (previous) => ({ ...previous, color: '#FF0000' })));
 
     await waitFor(() => {
       const link = result.current.graph.getCell('3');
-      expect(link?.get('attrs')?.line?.stroke ?? '').toBe('#FF0000');
+      const lineStyle = link?.get('attrs')?.line?.style as Record<string, unknown> | undefined;
+      expect(lineStyle?.stroke ?? '').toBe('#FF0000');
     });
 
     act(() => result.current.setLink('30', { source: '2', target: '1', color: '#00FF00' }));
@@ -271,7 +273,8 @@ describe('useGraph link mutations', () => {
     await waitFor(() => {
       expect(result.current.graph.getLinks().length).toBe(2);
       const link = result.current.graph.getCell('30');
-      expect(link?.get('attrs')?.line?.stroke ?? '').toBe('#00FF00');
+      const lineStyle = link?.get('attrs')?.line?.style as Record<string, unknown> | undefined;
+      expect(lineStyle?.stroke ?? '').toBe('#00FF00');
     });
 
     act(() => result.current.removeLink('3'));

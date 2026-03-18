@@ -1142,16 +1142,16 @@ describe('Paper Component', () => {
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
       expect(createdLink).toBeInstanceOf(PortalLink);
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
-      expect(createdLink.attr(['line', 'stroke'])).toBe('#333333');
-      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(2);
+      // No inline style when color/strokeWidth not set — CSS variables handle defaults
+      expect(createdLink.attr(['line', 'style'])).toBeUndefined();
 
       await waitFor(() => {
         expect(Object.keys(getLinksSnapshot())).toHaveLength(1);
       });
 
       const [createdLinkData] = Object.values(getLinksSnapshot());
-      expect(createdLinkData.color).toBe('#333333');
-      expect(createdLinkData.width).toBe(2);
+      expect(createdLinkData.color).toBeUndefined();
+      expect(createdLinkData.strokeWidth).toBeUndefined();
       expect(createdLinkData.targetMarker).toBe('none');
     });
 
@@ -1218,7 +1218,7 @@ describe('Paper Component', () => {
     it('supports defaultLink as FlatLinkData object when dragging between ports', async () => {
       const defaultLinkData: Partial<FlatLinkData> = {
         color: '#ff5500',
-        width: 7,
+        strokeWidth: 7,
         className: 'custom-default-link',
         targetMarker: 'none',
         customProperty: 'flat-link-default',
@@ -1232,13 +1232,14 @@ describe('Paper Component', () => {
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
       expect(createdLink).toBeInstanceOf(PortalLink);
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
-      expect(createdLink.attr(['line', 'stroke'])).toBe('#ff5500');
-      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(7);
+      const lineStyle = createdLink.attr(['line', 'style']) as Record<string, unknown>;
+      expect(lineStyle?.stroke).toBe('#ff5500');
+      expect(lineStyle?.['stroke-width']).toBe(7);
       expect(createdLink.attr(['line', 'class'])).toBe('custom-default-link');
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
           color: '#ff5500',
-          width: 7,
+          strokeWidth: 7,
           customProperty: 'flat-link-default',
         })
       );
@@ -1249,7 +1250,7 @@ describe('Paper Component', () => {
 
       const [createdLinkData] = Object.values(getLinksSnapshot());
       expect(createdLinkData.color).toBe('#ff5500');
-      expect(createdLinkData.width).toBe(7);
+      expect(createdLinkData.strokeWidth).toBe(7);
       expect(createdLinkData.customProperty).toBe('flat-link-default');
       expect(createdLinkData.source).toBe(SOURCE_ELEMENT_ID);
       expect(createdLinkData.target).toBe(TARGET_ELEMENT_ID);
@@ -1261,7 +1262,7 @@ describe('Paper Component', () => {
       const defaultLinkCallback = jest.fn(
         (_cellView: dia.CellView, _magnet: SVGElement): Partial<FlatLinkData> => ({
           color: '#22aa55',
-          width: 4,
+          strokeWidth: 4,
           wrapperBuffer: 16,
           customProperty: 'callback-flat-link-default',
         })
@@ -1278,8 +1279,9 @@ describe('Paper Component', () => {
       expect(defaultLinkCallback).toHaveBeenCalledTimes(1);
       expect(createdLink).toBeInstanceOf(PortalLink);
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
-      expect(createdLink.attr(['line', 'stroke'])).toBe('#22aa55');
-      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(4);
+      const lineStyle = createdLink.attr(['line', 'style']) as Record<string, unknown>;
+      expect(lineStyle?.stroke).toBe('#22aa55');
+      expect(lineStyle?.['stroke-width']).toBe(4);
       expect(createdLink.attr(['wrapper', 'strokeWidth'])).toBe(20);
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
@@ -1294,7 +1296,7 @@ describe('Paper Component', () => {
 
       const [createdLinkData] = Object.values(getLinksSnapshot());
       expect(createdLinkData.color).toBe('#22aa55');
-      expect(createdLinkData.width).toBe(4);
+      expect(createdLinkData.strokeWidth).toBe(4);
       expect(createdLinkData.wrapperBuffer).toBe(16);
       expect(createdLinkData.customProperty).toBe('callback-flat-link-default');
     });

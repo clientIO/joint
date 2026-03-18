@@ -25,7 +25,7 @@ export interface LinkEndAttributeOptions {
  */
 export function toLinkEndAttribute(
   end: FlatLinkEnd,
-  options?: LinkEndAttributeOptions,
+  options?: LinkEndAttributeOptions
 ): dia.Link.EndJSON {
   const base = (isString(end) ? { id: end } : end) as dia.Link.EndJSON;
   if (!options) return base;
@@ -63,9 +63,8 @@ export interface LinkEndData {
 export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
   const { port, anchor, connectionPoint, magnet } = end;
 
-  const endData: FlatLinkEnd = 'x' in end && 'y' in end
-    ? { x: end.x!, y: end.y! }
-    : end.id as CellId;
+  const endData: FlatLinkEnd =
+    'x' in end && 'y' in end ? { x: end.x!, y: end.y! } : (end.id as CellId);
 
   const result: LinkEndData = { end: endData };
   if (port !== undefined) result.port = port;
@@ -89,7 +88,7 @@ export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
 export function assignEndDataProperties(
   linkData: Record<string, unknown>,
   endData: LinkEndData,
-  keys: { port: string; anchor: string; connectionPoint: string; magnet: string },
+  keys: { port: string; anchor: string; connectionPoint: string; magnet: string }
 ): void {
   if (endData.port) linkData[keys.port] = endData.port;
   if (endData.anchor) linkData[keys.anchor] = endData.anchor;
@@ -97,18 +96,28 @@ export function assignEndDataProperties(
   if (endData.magnet) linkData[keys.magnet] = endData.magnet;
 }
 
-const SOURCE_KEYS = { port: 'sourcePort', anchor: 'sourceAnchor', connectionPoint: 'sourceConnectionPoint', magnet: 'sourceMagnet' } as const;
-const TARGET_KEYS = { port: 'targetPort', anchor: 'targetAnchor', connectionPoint: 'targetConnectionPoint', magnet: 'targetMagnet' } as const;
+const SOURCE_KEYS = {
+  port: 'sourcePort',
+  anchor: 'sourceAnchor',
+  connectionPoint: 'sourceConnectionPoint',
+  magnet: 'sourceMagnet',
+} as const;
+const TARGET_KEYS = {
+  port: 'targetPort',
+  anchor: 'targetAnchor',
+  connectionPoint: 'targetConnectionPoint',
+  magnet: 'targetMagnet',
+} as const;
 
 export { SOURCE_KEYS, TARGET_KEYS };
 
 interface LinkPresentationOptions {
-  color: string;
-  width: number;
+  color?: string;
+  strokeWidth?: number | string;
   sourceMarker: MarkerPreset | dia.SVGMarkerJSON;
   targetMarker: MarkerPreset | dia.SVGMarkerJSON;
   className: string;
-  pattern: string;
+  strokeDashArray: string;
   lineCap: string;
   lineJoin: string;
   wrapperBuffer: number;
@@ -123,18 +132,39 @@ interface LinkPresentationOptions {
  * Resolves marker presets, dash patterns, and class names into
  * flat SVG attribute objects for the line, and computes wrapper
  * hit-area attributes.
+ *
+ * `color` and `strokeWidth` are applied via inline `style` (not SVG attributes) so that:
+ * 1. CSS variables like `var(--color-pink-200)` work (`var()` is invalid in SVG attributes)
+ * 2. Inline style has highest specificity — overrides theme.css rules
+ * When not set, theme.css CSS variables control the stroke.
  * @param options - Theme-driven styling options for line and wrapper
  * @returns Record with `line` and `wrapper` attribute objects
  */
 export function buildLinkPresentationAttributes(
   options: LinkPresentationOptions
 ): Record<string, attributes.SVGAttributes> {
-  const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor, wrapperClassName } = options;
+  const {
+    color,
+    strokeWidth,
+    sourceMarker,
+    targetMarker,
+    className,
+    strokeDashArray,
+    lineCap,
+    lineJoin,
+    wrapperBuffer,
+    wrapperColor,
+    wrapperClassName,
+  } = options;
 
-  // Build line attributes
+  // Build inline style for color and strokeWidth when explicitly set.
+  // When not set, omit — CSS variables from theme.css handle defaults.
+  const style: Record<string, unknown> = {};
+  if (color !== undefined) style.stroke = color;
+  if (strokeWidth !== undefined) style['stroke-width'] = strokeWidth;
+
   const lineAttributes: attributes.SVGAttributes = {
-    stroke: color,
-    strokeWidth: width,
+    ...(Object.keys(style).length > 0 ? { style } : {}),
   };
 
   if (sourceMarker !== 'none') {
@@ -142,19 +172,24 @@ export function buildLinkPresentationAttributes(
   }
 
   // Explicitly set to null to override the standard.Link default arrowhead
-  lineAttributes.targetMarker =
-    targetMarker === 'none' ? null : resolveMarker(targetMarker);
+  lineAttributes.targetMarker = targetMarker === 'none' ? null : resolveMarker(targetMarker);
 
   if (className) {
     lineAttributes.class = className;
   }
-  if (pattern) {
-    lineAttributes.strokeDasharray = pattern;
+  if (strokeDashArray) {
+    lineAttributes.strokeDasharray = strokeDashArray;
   }
 
   const strokeAttributes: attributes.SVGAttributes = {};
   if (lineCap) strokeAttributes.strokeLinecap = lineCap;
   if (lineJoin) strokeAttributes.strokeLinejoin = lineJoin;
+
+  // Wrapper strokeWidth: when strokeWidth is a number, add wrapperBuffer.
+  // When it's a string (CSS variable) or undefined, use wrapperBuffer alone.
+  const wrapperStrokeWidth = typeof strokeWidth === 'number'
+    ? wrapperBuffer + strokeWidth
+    : wrapperBuffer;
 
   return {
     line: {
@@ -164,7 +199,7 @@ export function buildLinkPresentationAttributes(
     },
     wrapper: {
       connection: true,
-      strokeWidth: wrapperBuffer + width,
+      strokeWidth: wrapperStrokeWidth,
       stroke: wrapperColor,
       ...(wrapperClassName ? { class: wrapperClassName } : {}),
       ...strokeAttributes,

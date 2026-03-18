@@ -7,6 +7,8 @@ export type RemoveIndexSignature<T> = {
 
 export type OmitWithoutIndexSignature<T, K extends keyof T> = Omit<RemoveIndexSignature<T>, K>;
 
+const abc: dia.Paper.EventMap = {};
+
 export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**

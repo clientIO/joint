@@ -152,7 +152,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'd8jpey',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-1': {
@@ -160,7 +160,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'is079n',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-2': {
@@ -168,7 +168,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'ht8wnb',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-3': {
@@ -176,7 +176,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: '07vhpd',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-4': {
@@ -185,7 +185,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'd8ojep',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-5': {
@@ -194,7 +194,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'szf1q3',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-6': {
@@ -203,7 +203,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'kj5m9a',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-7': {
@@ -212,7 +212,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'tcv79r',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-8': {
@@ -221,7 +221,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'ylp4gu',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-9': {
@@ -230,7 +230,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'q2vwnc',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-10': {
@@ -238,7 +238,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'x8rboj',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
   'link-11': {
@@ -250,7 +250,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'mte5xr',
     z: -1,
     color: PRIMARY,
-    width: 2,
+    strokeWidth: 2,
     targetMarker: 'none',
   },
 };

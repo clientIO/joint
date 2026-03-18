@@ -1,0 +1,69 @@
+/*
+ * @joint/react — Base Theme CSS
+ *
+ * Provides CSS custom properties for styling links, labels, and ports.
+ * Import this file to enable CSS-driven theming:
+ *
+ *   import '@joint/react/css/theme.css';
+ *
+ * Global theme (all links):
+ *
+ *   :root       { --joint-link-color: #333; }
+ *   .dark       { --joint-link-color: #ccc; }
+ *
+ * Per-link override via color prop:
+ *
+ *   { color: 'var(--color-pink-200)' }
+ *   { color: '#ff0000' }
+ *
+ * Per-link override via className prop (Tailwind utilities etc.):
+ *
+ *   { className: 'stroke-blue-500 stroke-4' }
+ *
+ * Priority (highest → lowest):
+ *   1. Inline style — `color` / `strokeWidth` props
+ *   2. Utility classes — `className` prop (Tailwind @layer utilities)
+ *   3. Theme variables — `--joint-*` CSS custom properties (@layer base)
+ */
+
+@layer base {
+  /* ── Links ─────────────────────────────────────────────────────────────── */
+
+  [joint-selector='line'] {
+    stroke: var(--joint-link-color, #333333);
+    stroke-width: var(--joint-link-width, 2);
+    stroke-dasharray: var(--joint-link-dash);
+    stroke-linecap: var(--joint-link-line-cap);
+    stroke-linejoin: var(--joint-link-line-join);
+  }
+
+  :where([joint-selector='wrapper']) {
+    stroke: var(--joint-link-wrapper-color, transparent);
+  }
+
+  /* ── Labels ────────────────────────────────────────────────────────────── */
+
+  :where([joint-selector='labelText']) {
+    fill: var(--joint-label-color, #333333);
+    font-size: var(--joint-label-font-size, 12px);
+    font-family: var(--joint-label-font-family, sans-serif);
+  }
+
+  :where([joint-selector='labelBody']) {
+    fill: var(--joint-label-bg, #ffffff);
+    stroke: var(--joint-label-stroke, #333333);
+    stroke-width: var(--joint-label-stroke-width, 1);
+  }
+
+  /* ── Ports ──────────────────────────────────────────────────────────────── */
+
+  :where([joint-selector='portBody']) {
+    fill: var(--joint-port-color, #333333);
+    stroke: var(--joint-port-stroke, transparent);
+    stroke-width: var(--joint-port-stroke-width, 0);
+  }
+
+  :where(.joint-port-label) {
+    fill: var(--joint-port-label-color, #333333);
+  }
+}

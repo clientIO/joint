@@ -7,25 +7,25 @@ import { isString } from '../utils/is';
 export const defaultMarkers = {
   none: null,
   arrow: {
-    markup: util.svg`<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" stroke-width="2" />`,
+    markup: util.svg`<path d="M 0 0 L 8 -4 V 4 z" fill="context-stroke" stroke="context-stroke" stroke-width="2" />`,
   },
   'arrow-open': {
-    markup: util.svg`<path d="M 10 3 L 0 0 L 10 -3" fill="none" stroke-width="2" />`,
+    markup: util.svg`<path d="M 10 3 L 0 0 L 10 -3" fill="none" stroke="context-stroke" stroke-width="2" />`,
   },
   circle: {
-    markup: util.svg`<circle r="4" fill="context-fill" stroke-width="2" />`,
+    markup: util.svg`<circle r="4" fill="context-stroke" stroke="context-stroke" stroke-width="2" />`,
   },
   'circle-outline': {
-    markup: util.svg`<circle r="4" fill="none" stroke-width="2" />`,
+    markup: util.svg`<circle r="4" fill="none" stroke="context-stroke" stroke-width="2" />`,
   },
   diamond: {
-    markup: util.svg`<path d="M 0 0 L 5 -5 L 10 0 L 5 5 z" fill="context-fill" stroke-width="2" />`,
+    markup: util.svg`<path d="M 0 0 L 5 -5 L 10 0 L 5 5 z" fill="context-stroke" stroke="context-stroke" stroke-width="2" />`,
   },
   bar: {
-    markup: util.svg`<path d="M 0 -5 V 5" stroke-width="2" />`,
+    markup: util.svg`<path d="M 0 -5 V 5" stroke="context-stroke" stroke-width="2" />`,
   },
   cross: {
-    markup: util.svg`<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke-width="2" />`,
+    markup: util.svg`<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke="context-stroke" stroke-width="2" />`,
   },
 } as const satisfies Record<string, dia.SVGMarkerJSON | null>;
 

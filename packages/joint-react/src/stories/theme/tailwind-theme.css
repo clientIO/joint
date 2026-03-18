@@ -1,0 +1,61 @@
+/*
+ * @joint/react — Tailwind CSS Preset
+ *
+ * Maps --joint-* variables to Tailwind v4's default CSS variables.
+ * Works out of the box with vanilla Tailwind (no config needed).
+ *
+ * Usage:
+ *
+ *   import '@joint/react/css/themes/tailwind.css';
+ *
+ * Light/dark switching:
+ *
+ *   <div className="dark">
+ *     <GraphProvider ...>
+ *       <Paper />
+ *     </GraphProvider>
+ *   </div>
+ *
+ * Override any variable to customize:
+ *
+ *   :root { --joint-link-color: var(--color-indigo-500); }
+ */
+
+/* @import '../../css/theme.css'; */
+
+:root {
+  --color-primary: var(--color-slate-700);
+
+  --joint-link-color: var(--color-slate-500);
+  --joint-link-width: 2;
+  --joint-link-wrapper-color: transparent;
+
+  --joint-label-color: var(--color-slate-800);
+  --joint-label-font-family: var(--font-sans);
+  --joint-label-bg: var(--color-white);
+  --joint-label-stroke: var(--color-slate-200);
+
+  --joint-port-color: var(--color-blue-500);
+  --joint-port-stroke: var(--color-white);
+  --joint-port-label-color: var(--color-slate-500);
+}
+
+.dark {
+  --color-primary: var(--color-red-400);
+
+  --joint-link-color: var(--color-blue-400);
+
+  --joint-label-color: var(--color-slate-200);
+  --joint-label-bg: var(--color-slate-800);
+  --joint-label-stroke: var(--color-slate-700);
+
+  --joint-port-color: var(--color-blue-400);
+  --joint-port-stroke: var(--color-slate-800);
+  --joint-port-label-color: var(--color-slate-400);
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}

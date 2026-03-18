@@ -17,7 +17,7 @@ const initialEdges: Record<string, FlatLinkData> = {
     source: '1',
     target: '2',
     color: PRIMARY,
-    pattern: '5 5',
+    strokeDashArray: '5 5',
   },
 };
 
@@ -100,12 +100,7 @@ function Main() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper
-        id={paperId}
-        className={PAPER_CLASSNAME}
-        height={280}
-        renderElement={renderElement}
-      />
+      <Paper id={paperId} className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
       <div
         style={{
           position: 'absolute',

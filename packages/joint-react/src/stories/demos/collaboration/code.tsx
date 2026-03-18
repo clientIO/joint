@@ -180,7 +180,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'researcher',
     targetPort: 'in',
     color: DARK.link,
-    width: 1.5,
+    strokeWidth: 1.5,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     targetMarker: 'none',
   },
@@ -190,7 +190,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'writer',
     targetPort: 'in',
     color: DARK.link,
-    width: 1.5,
+    strokeWidth: 1.5,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     targetMarker: 'none',
   },
@@ -1017,7 +1017,7 @@ function GraphWithRedux() {
               args: { cornerType: 'cubic', cornerPreserveAspectRatio: true },
             }}
             defaultConnectionPoint={{ name: 'boundary', args: { offset: 6, extrapolate: true } }}
-            defaultLink={{ color: theme.link, width: 1.5, targetMarker: 'none' }}
+            defaultLink={{ color: theme.link, strokeWidth: 1.5, targetMarker: 'none' }}
             validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
             validateConnection={(cellViewS, _magnetS, cellViewT, magnetT) => {
               if (cellViewS === cellViewT) return false;

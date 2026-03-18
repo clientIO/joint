@@ -1,4 +1,3 @@
- 
 import { type dia, util } from '@joint/core';
 import type { FlatLinkData, FlatLinkLabel } from '../../types/link-types';
 import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
@@ -59,7 +58,7 @@ function isLinkData(data: unknown): data is FlatLinkData {
  *   (`source`, `target`, `z`, `layer`, `parent`, `vertices`, `router`, `connector`, `labels`)
  * - **→ Presentation** — converted to `attrs.line` / `attrs.wrapper` via theme,
  *   then stored in `cell.data` for round-trip preservation
- *   (`color`, `width`, `sourceMarker`, `targetMarker`, `className`, `pattern`,
+ *   (`color`, `strokeWidth`, `sourceMarker`, `targetMarker`, `className`, `strokeDashArray`,
  *    `lineCap`, `lineJoin`, `wrapperBuffer`, `wrapperColor`, `wrapperClassName`)
  *
  * Any remaining properties are treated as user data and stored in `cell.data`.
@@ -96,12 +95,13 @@ export function defaultMapDataToLinkAttributes<Link = FlatLinkData>(
     labels,
 
     // → Presentation: theme-driven, stored in cell.data for round-trip
-    color = theme.color,
-    width = theme.width,
+    // color and strokeWidth have no JS default — CSS variables handle them
+    color,
+    strokeWidth,
     sourceMarker = theme.sourceMarker,
     targetMarker = theme.targetMarker,
     className = theme.className,
-    pattern = theme.pattern,
+    strokeDashArray = theme.strokeDashArray,
     lineCap = theme.lineCap,
     lineJoin = theme.lineJoin,
     wrapperBuffer = theme.wrapperBuffer,
@@ -133,11 +133,11 @@ export function defaultMapDataToLinkAttributes<Link = FlatLinkData>(
     // → Presentation → attrs
     attrs: buildLinkPresentationAttributes({
       color,
-      width,
+      strokeWidth,
       sourceMarker,
       targetMarker,
       className,
-      pattern,
+      strokeDashArray,
       lineCap,
       lineJoin,
       wrapperBuffer,
@@ -166,11 +166,11 @@ export function defaultMapDataToLinkAttributes<Link = FlatLinkData>(
     ...userData,
     labels,
     color,
-    width,
+    strokeWidth,
     sourceMarker,
     targetMarker,
     className,
-    pattern,
+    strokeDashArray,
     lineCap,
     lineJoin,
     wrapperBuffer,

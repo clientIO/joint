@@ -136,9 +136,9 @@ const links: Record<string, FlatLinkData> = {
     sourcePort: 'out-3-0',
     target: '1',
     color: LIGHT,
-    width: 2,
+    strokeWidth: 2,
     className: 'link',
-    pattern: '5,5',
+    strokeDashArray: '5,5',
     targetMarker: {
       d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
     },
@@ -515,9 +515,9 @@ function Main() {
           {...PAPER_PROPS}
           defaultLink={{
             color: LIGHT,
-            width: 2,
+            strokeWidth: 2,
             className: 'link',
-            pattern: '5,5',
+            strokeDashArray: '5,5',
             targetMarker: {
               d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
             },

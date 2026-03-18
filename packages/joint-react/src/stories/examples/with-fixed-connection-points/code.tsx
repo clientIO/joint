@@ -17,7 +17,7 @@ const ShapeTypes = {
   ellipse: 'ellipse',
 } as const;
 
-type ShapeType = typeof ShapeTypes[keyof typeof ShapeTypes];
+type ShapeType = (typeof ShapeTypes)[keyof typeof ShapeTypes];
 
 interface BaseElement extends FlatElementData {
   readonly shapeType: ShapeType;
@@ -149,8 +149,8 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'square2',
     targetAnchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } },
     color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow'
+    strokeWidth: 2,
+    targetMarker: 'arrow',
   },
   link2: {
     source: 'ellipse1',
@@ -158,8 +158,8 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'rectangle1',
     targetAnchor: { name: 'modelCenter', args: { dx: -80, dy: -20 } },
     color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow'
+    strokeWidth: 2,
+    targetMarker: 'arrow',
   },
   link3: {
     source: 'rectangle1',
@@ -167,8 +167,8 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'ellipse1',
     targetAnchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
     color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow'
+    strokeWidth: 2,
+    targetMarker: 'arrow',
   },
   link4: {
     source: 'square2',
@@ -176,8 +176,8 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'ellipse1',
     targetAnchor: { name: 'modelCenter', args: { dx: 0, dy: -40 } },
     color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow'
+    strokeWidth: 2,
+    targetMarker: 'arrow',
   },
   link5: {
     source: 'square2',
@@ -185,8 +185,8 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'square1',
     targetAnchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
     color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow'
+    strokeWidth: 2,
+    targetMarker: 'arrow',
   },
 };
 
@@ -276,7 +276,6 @@ function Ellipse({ width, height, label }: Readonly<EllipseElement>) {
 // Element Rendering
 // ----------------------------------------------------------------------------
 function RenderElement(element: CustomElement) {
-
   switch (element.shapeType) {
     case ShapeTypes.square:
     case ShapeTypes.rectangle: {
@@ -292,13 +291,7 @@ function RenderElement(element: CustomElement) {
 // Tool Markup
 // ----------------------------------------------------------------------------
 const anchorButtonMarkup = jsx(
-  <circle
-    r={6}
-    stroke={ANCHOR_STROKE}
-    strokeWidth={4}
-    fill={ANCHOR_FILL}
-    cursor="pointer"
-  />
+  <circle r={6} stroke={ANCHOR_STROKE} strokeWidth={4} fill={ANCHOR_FILL} cursor="pointer" />
 );
 
 const removeButtonMarkup = jsx(
@@ -353,7 +346,7 @@ function getLinkTools(_linkView: dia.LinkView) {
       distance: 40,
       markup: removeButtonMarkup,
       visibility: (view) => view.getConnectionLength() > 200,
-    })
+    }),
   ];
 
   return tools;
@@ -376,51 +369,48 @@ function Main() {
     };
   }, []);
 
-  usePaperEvents(
-    paperId,
-    {
-      'cell:mouseenter': (cellView) => {
-        const jointPaper = cellView.paper;
-        if (!jointPaper) {
-          return;
-        }
+  usePaperEvents(paperId, {
+    'cell:mouseenter': (cellView) => {
+      const jointPaper = cellView.paper;
+      if (!jointPaper) {
+        return;
+      }
 
-        jointPaper.removeTools();
+      jointPaper.removeTools();
 
-        if (timeoutIdRef.current) {
-          clearTimeout(timeoutIdRef.current);
-          timeoutIdRef.current = null;
-        }
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
 
-        const tools = cellView.model.isLink()
-          ? getLinkTools(cellView as dia.LinkView)
-          : getElementTools(cellView as dia.ElementView);
+      const tools = cellView.model.isLink()
+        ? getLinkTools(cellView as dia.LinkView)
+        : getElementTools(cellView as dia.ElementView);
 
-        const toolsView = new dia.ToolsView({ tools });
-        cellView.addTools(toolsView);
-        currentToolsViewRef.current = toolsView;
-      },
-      'cell:mouseleave': () => {
-        timeoutIdRef.current = setTimeout(() => {
-          currentToolsViewRef.current?.remove();
-          currentToolsViewRef.current = null;
-          timeoutIdRef.current = null;
-        }, 1000);
+      const toolsView = new dia.ToolsView({ tools });
+      cellView.addTools(toolsView);
+      currentToolsViewRef.current = toolsView;
+    },
+    'cell:mouseleave': () => {
+      timeoutIdRef.current = setTimeout(() => {
+        currentToolsViewRef.current?.remove();
+        currentToolsViewRef.current = null;
+        timeoutIdRef.current = null;
+      }, 1000);
 
-        currentToolsViewRef.current?.el.classList.add(
-          'opacity-0',
-          'transition-opacity',
-          'duration-300',
-          'delay-300'
-        );
-      },
-      'element:pointermove': (elementView) => {
-        if (elementView.hasTools()) {
-          elementView.removeTools();
-        }
-      },
-    }
-  );
+      currentToolsViewRef.current?.el.classList.add(
+        'opacity-0',
+        'transition-opacity',
+        'duration-300',
+        'delay-300'
+      );
+    },
+    'element:pointermove': (elementView) => {
+      if (elementView.hasTools()) {
+        elementView.removeTools();
+      }
+    },
+  });
 
   return (
     <Paper
@@ -478,10 +468,7 @@ function Main() {
 // ----------------------------------------------------------------------------
 export default function App() {
   return (
-    <GraphProvider
-      elements={initialElements}
-      links={initialLinks}
-    >
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Main />
     </GraphProvider>
   );

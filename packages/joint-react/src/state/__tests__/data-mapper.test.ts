@@ -1,6 +1,5 @@
 /* eslint-disable unicorn/prevent-abbreviations */
- 
- 
+
 import { dia, shapes } from '@joint/core';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
@@ -201,31 +200,46 @@ describe('dataMapper', () => {
       expect(result.target).toBe('el-2');
     });
 
-    it('should apply theme defaults', () => {
+    it('should omit color and strokeWidth when not set (CSS handles defaults)', () => {
       const id = 'link-1';
       const data: FlatLinkData = { source: 'a', target: 'b' };
 
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      expect(cellJson.attrs?.line?.stroke).toBe('#333333');
-      expect(cellJson.attrs?.line?.strokeWidth).toBe(2);
-      // Default theme values stored in data
-      expect(cellJson.data?.color).toBe('#333333');
-      expect(cellJson.data?.width).toBe(2);
+      // No inline style when color/strokeWidth are not set — CSS variables handle defaults
+      expect(cellJson.attrs?.line?.style).toBeUndefined();
+      // No color/strokeWidth stored in data
+      expect(cellJson.data?.color).toBeUndefined();
+      expect(cellJson.data?.strokeWidth).toBeUndefined();
     });
 
-    it('should apply custom theme props', () => {
+    it('should support CSS variables as color values', () => {
+      const id = 'link-1';
+      const data: FlatLinkData = {
+        source: 'a',
+        target: 'b',
+        color: 'var(--color-pink-200)',
+      };
+
+      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      const lineStyle = cellJson.attrs?.line?.style as Record<string, unknown>;
+      expect(lineStyle?.stroke).toBe('var(--color-pink-200)');
+      expect(cellJson.data?.color).toBe('var(--color-pink-200)');
+    });
+
+    it('should apply explicit color and strokeWidth via inline style', () => {
       const id = 'link-1';
       const data: FlatLinkData = {
         source: 'a',
         target: 'b',
         color: 'red',
-        width: 4,
-        pattern: '5 5',
+        strokeWidth: 4,
+        strokeDashArray: '5 5',
       };
 
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      expect(cellJson.attrs?.line?.stroke).toBe('red');
-      expect(cellJson.attrs?.line?.strokeWidth).toBe(4);
+      const lineStyle = cellJson.attrs?.line?.style as Record<string, unknown>;
+      expect(lineStyle?.stroke).toBe('red');
+      expect(lineStyle?.['stroke-width']).toBe(4);
       expect(cellJson.attrs?.line?.strokeDasharray).toBe('5 5');
     });
 
@@ -236,7 +250,8 @@ describe('dataMapper', () => {
 
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.data?.weight).toBe(5);
-      expect(cellJson.data?.color).toBe('#333333');
+      // No default color — CSS handles it
+      expect(cellJson.data?.color).toBeUndefined();
     });
 
     it('should include all cell.data properties regardless of previousData', () => {

@@ -3,9 +3,10 @@ import react from '@vitejs/plugin-react';
 import mdPlugin from 'vite-plugin-md';
 import path from 'node:path';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [react(), mdPlugin(), tsconfigPaths()],
+  plugins: [react(), mdPlugin(), tsconfigPaths(), tailwindcss()],
   assetsInclude: ['**/*.md'],
   build: {
     lib: {

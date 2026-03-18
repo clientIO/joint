@@ -90,7 +90,7 @@ const RIGHT = { name: 'right', args: { useModelGeometry: true } } as const;
 
 const LINK_OPTIONS: Partial<Required<FlatLinkData>> = {
   z: 2,
-  width: 2,
+  strokeWidth: 2,
   className: 'jj-flow-line link',
   wrapperClassName: 'jj-flow-outline',
   sourceMagnet: 'body',
