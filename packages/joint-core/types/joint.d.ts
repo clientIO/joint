@@ -360,8 +360,8 @@ export namespace dia {
             'move': (cell: Cell, options: Options) => void;
             'changeId': (cell: Cell, previousId: Cell.ID, options: Options) => void;
             // layer events
-            'layer:add': (layer: GraphLayer, options: Options) => void;
-            'layer:remove': (layer: GraphLayer, options: Options) => void;
+            'layer:add': (layer: GraphLayer, collection: GraphLayerCollection, options: Options) => void;
+            'layer:remove': (layer: GraphLayer, collection: GraphLayerCollection, options: Options) => void;
             'layer:change': (layer: GraphLayer, options: Options) => void;
             [layerChangeEvent: `layer:change:${string}`]: (layer: GraphLayer, newValue: any, options: Options) => void;
             'layer:default': (layer: GraphLayer, options: Options) => void;
@@ -374,6 +374,7 @@ export namespace dia {
         }
 
         type DefinedEventMap = ExcludeIndexSignature<EventMap>;
+
     }
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -409,7 +410,7 @@ export namespace dia {
             context?: any
         ): this;
 
-        on<E extends Partial<Graph.DefinedEventMap> & { [key: string]: mvc.EventHandler }>(
+        on<E extends mvc.EventCallbackMap<Graph.DefinedEventMap>>(
             events: E,
             context?: any
         ): this;
@@ -2222,7 +2223,7 @@ export namespace dia {
             context?: any
         ): this;
 
-        on<E extends Partial<Paper.DefinedEventMap> & { [key: string]: mvc.EventHandler }>(
+        on<E extends mvc.EventCallbackMap<Paper.DefinedEventMap>>(
             events: E,
             context?: any
         ): this;
@@ -2687,17 +2688,17 @@ export namespace dia {
 
 export namespace highlighters {
 
-    type HighlighterView = dia.HighlighterView;
+    import HighlighterView = dia.HighlighterView;
 
-    interface AddClassHighlighterArguments extends dia.HighlighterView.Options {
+    interface AddClassHighlighterArguments extends HighlighterView.Options {
         className?: string;
     }
 
-    interface OpacityHighlighterArguments extends dia.HighlighterView.Options {
+    interface OpacityHighlighterArguments extends HighlighterView.Options {
         alphaValue?: number;
     }
 
-    interface StrokeHighlighterArguments extends dia.HighlighterView.Options {
+    interface StrokeHighlighterArguments extends HighlighterView.Options {
         padding?: number;
         rx?: number;
         ry?: number;
@@ -2706,7 +2707,7 @@ export namespace highlighters {
         attrs?: attributes.NativeSVGAttributes;
     }
 
-    interface MaskHighlighterArguments extends dia.HighlighterView.Options {
+    interface MaskHighlighterArguments extends HighlighterView.Options {
         padding?: number;
         maskClip?: number;
         deep?: boolean;
@@ -3640,6 +3641,12 @@ export namespace mvc {
     interface EventMap {
         [event: string]: EventHandler;
     }
+
+    /**
+     * A partial map of known event callbacks, plus any custom string events.
+     * Use with a DefinedEventMap to get autocomplete for known events.
+     */
+    type EventCallbackMap<T> = Partial<T> & { [key: string]: EventHandler };
 
     const Events: Events;
     interface Events extends EventsMixin {}
@@ -4610,8 +4617,8 @@ export namespace attributes {
         filter?: string | dia.SVGFilterJSON;
         fill?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
         stroke?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
-        sourceMarker?: dia.SVGMarkerJSON | null;
-        targetMarker?: dia.SVGMarkerJSON | null;
+        sourceMarker?: dia.SVGMarkerJSON;
+        targetMarker?: dia.SVGMarkerJSON;
         vertexMarker?: dia.SVGMarkerJSON;
         props?: SVGAttributeProps;
         text?: string;
