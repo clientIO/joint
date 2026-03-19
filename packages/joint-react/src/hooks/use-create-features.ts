@@ -235,13 +235,30 @@ export function useCreateFeature<T>(
 
   const asChildren = !!paperStore;
 
-  // Create and register the feature
+  // Guard: skip onUpdateFeature on initial mount — it must only fire on dependency changes
+  const isMountedRef = useRef(false);
+  // Holds the created feature to survive strict-mode cleanup/re-mount without re-calling onAddFeature
+  const featureRef = useRef<Feature | null>(null);
+
+  // Create and register the feature (fires onAddFeature exactly once)
   useLayoutEffect(() => {
     if (isPaperTarget && !paperStore) return;
+
+    // Re-register cached feature if it was removed by strict-mode cleanup
+    if (featureRef.current) {
+      registerFeature(target, graphStore, paperStore, featureRef.current);
+      setForwardRef(forwardedRef, featureRef.current.instance);
+      return () => unregisterFeature(target, graphStore, paperStore, featureRef.current!.id);
+    }
+
     const feature = createAndRegisterFeature(target, onAddFeature, graphStore, paperStore, asChildren);
+    featureRef.current = feature;
     registerFeature(target, graphStore, paperStore, feature);
     setForwardRef(forwardedRef, feature.instance);
-    return () => unregisterFeature(target, graphStore, paperStore, feature.id);
+    return () => {
+      isMountedRef.current = false;
+      unregisterFeature(target, graphStore, paperStore, feature.id);
+    };
   }, [graphStore, paperStore]);
 
   // Fire onLoad when feature instance becomes available
@@ -252,16 +269,23 @@ export function useCreateFeature<T>(
     fireOnLoad(target, onLoad, graphStore, paperStore, resolvedFeature, asChildren);
   }, [resolvedFeature]);
 
-  // Fire onUpdateFeature when dependencies change
+  // Fire onUpdateFeature ONLY when dependencies change after mount.
+  // Never fires on initial mount — onAddFeature handles creation.
+  // resolvedFeature is intentionally NOT in deps to prevent spurious fires
+  // when the feature instance first resolves (null → instance).
   useLayoutEffect(() => {
     if (!onUpdateFeature) return;
     if (isPaperTarget && !paperStore) return;
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
     const existingFeature = resolveExistingFeature(target, graphStore, paperStore, id);
     fireOnUpdate(target, onUpdateFeature, graphStore, paperStore, existingFeature?.instance, asChildren);
     if (existingFeature) {
       registerFeature(target, graphStore, paperStore, existingFeature);
     }
-  }, [graphStore, resolvedFeature, paperStore, ...dependencies]);
+  }, [graphStore, paperStore, ...dependencies]);
 
   return featureContext;
 }
