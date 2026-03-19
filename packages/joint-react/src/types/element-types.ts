@@ -93,6 +93,10 @@ export interface FlatElementPort {
 
 export interface FlatElementData extends Record<string, unknown> {
   /**
+   * Style defaults applied to all ports. Individual port properties take precedence.
+   */
+  portStyle?: Partial<FlatElementPort>;
+  /**
    * Ports of the element.
    */
   ports?: Record<string, FlatElementPort>;

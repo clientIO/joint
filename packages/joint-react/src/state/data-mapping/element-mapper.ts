@@ -1,6 +1,5 @@
 import { type dia } from '@joint/core';
 import type { FlatElementData } from '../../types/element-types';
-import type { ElementTheme } from '../../theme/element-theme';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortDefaults } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -51,9 +50,9 @@ function isElementData(data: unknown): data is FlatElementData {
  * @returns The JointJS cell JSON attributes
  */
 export function defaultMapDataToElementAttributes<Element = FlatElementData>(
-  options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'> & { readonly theme?: ElementTheme }
+  options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'>
 ): dia.Cell.JSON {
-  const { id, data, theme } = options;
+  const { id, data } = options;
   if (!isElementData(data)) {
     throw new Error(
       `Invalid element data for id "${id}": expected an object with at least "x" and "y" properties.`
@@ -72,6 +71,7 @@ export function defaultMapDataToElementAttributes<Element = FlatElementData>(
 
     // → One-way: consumed here, not synced back
     ports,
+    portStyle,
 
     // Everything else is user data
     ...userData
@@ -100,12 +100,12 @@ export function defaultMapDataToElementAttributes<Element = FlatElementData>(
 
   // → One-way
   if (ports) {
-    attributes.ports = convertPorts(ports, theme);
+    attributes.ports = convertPorts(ports, portStyle);
     attributes.portDefaults = createPortDefaults();
   }
 
   // User data stored for round-trip (graph → React)
-  attributes.data = { ...userData, ports };
+  attributes.data = { ...userData, ports, portStyle };
 
   return attributes;
 }

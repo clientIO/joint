@@ -9,45 +9,20 @@ import type { LiteralUnion } from '../types/index';
 export type PortShape = LiteralUnion<'ellipse' | 'rect'>;
 
 /**
- * Default element theme for port rendering.
+ * Internal fallback values for port properties not set by portDefaults or individual ports.
  */
-export const defaultElementTheme = {
-  portColor: '#333333',
-  portWidth: 10,
-  portHeight: 10,
-  portShape: 'ellipse' as PortShape,
-  portStroke: 'transparent',
-  portStrokeWidth: 0,
-  portClassName: '',
-  portPassive: false,
-  portLabelPosition: 'outside',
-  portLabelColor: '#333333',
-  portLabelFontSize: 12,
-  portLabelFontFamily: 'sans-serif',
-  portLabelClassName: '',
-  portLabelOffsetX: null as number | null,
-  portLabelOffsetY: null as number | null,
+export const defaultPortStyle = {
+  width: 10,
+  height: 10,
+  color: '#333333',
+  shape: 'ellipse' as PortShape,
+  stroke: 'transparent',
+  strokeWidth: 0,
+  className: '',
+  passive: false,
+  labelPosition: 'outside',
+  labelColor: '#333333',
+  labelFontSize: 12,
+  labelFontFamily: 'sans-serif',
+  labelClassName: '',
 } as const;
-
-/**
- * Widened type for element theme overrides.
- * Matches the shape of `defaultElementTheme` but with non-literal types
- * so that users can pass arbitrary values (e.g. any color string).
- */
-export interface ElementTheme {
-  readonly portColor: string;
-  readonly portWidth: number;
-  readonly portHeight: number;
-  readonly portShape: PortShape;
-  readonly portStroke: string;
-  readonly portStrokeWidth: number;
-  readonly portClassName: string;
-  readonly portPassive: boolean;
-  readonly portLabelPosition: string;
-  readonly portLabelColor: string;
-  readonly portLabelFontSize: number;
-  readonly portLabelFontFamily: string;
-  readonly portLabelClassName: string;
-  readonly portLabelOffsetX: number | null;
-  readonly portLabelOffsetY: number | null;
-}
