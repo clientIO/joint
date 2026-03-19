@@ -178,7 +178,7 @@ describe('useCreateFeature (target: paper)', () => {
     });
   });
 
-  it('calls onUpdateFeature when dependencies change', async () => {
+  it('calls onUpdateFeature when dependencies change (not on initial mount)', async () => {
     const onUpdateFeature = jest.fn();
     const mockInstance = { count: 0 };
 
@@ -201,15 +201,16 @@ describe('useCreateFeature (target: paper)', () => {
     const Wrapper = createPaperWrapper();
     const { rerender } = render(<TestComponent dep={1} />, { wrapper: Wrapper });
 
+    // onUpdateFeature should NOT be called on initial mount
     await waitFor(() => {
-      expect(onUpdateFeature).toHaveBeenCalled();
+      expect(onUpdateFeature).not.toHaveBeenCalled();
     });
 
-    const callsAfterMount = onUpdateFeature.mock.calls.length;
+    // Trigger a dependency change
     rerender(<TestComponent dep={2} />);
 
     await waitFor(() => {
-      expect(onUpdateFeature.mock.calls.length).toBeGreaterThan(callsAfterMount);
+      expect(onUpdateFeature).toHaveBeenCalledTimes(1);
       expect(onUpdateFeature).toHaveBeenLastCalledWith(
         expect.objectContaining({
           graphStore: expect.any(Object),
@@ -218,6 +219,59 @@ describe('useCreateFeature (target: paper)', () => {
         })
       );
     });
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Graph target
+// ────────────────────────────────────────────────────────────────────────────
+
+// ────────────────────────────────────────────────────────────────────────────
+// onAddFeature call count
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('onAddFeature is called exactly once', () => {
+  it('paper target: onAddFeature fires once on mount', async () => {
+    const onAddFeature = jest.fn(() => ({
+      id: 'once-paper',
+      instance: { value: 1 },
+    }));
+
+    function TestComponent() {
+      useCreateFeature('paper', { id: 'once-paper', onAddFeature });
+      return null;
+    }
+
+    const Wrapper = createPaperWrapper();
+    render(<TestComponent />, { wrapper: Wrapper });
+
+    // Wait for feature to be registered
+    await waitFor(() => {
+      expect(onAddFeature).toHaveBeenCalled();
+    });
+
+    expect(onAddFeature).toHaveBeenCalledTimes(1);
+  });
+
+  it('graph target: onAddFeature fires once on mount', async () => {
+    const onAddFeature = jest.fn(() => ({
+      id: 'once-graph',
+      instance: { value: 1 },
+    }));
+
+    function TestComponent() {
+      useCreateFeature('graph', { id: 'once-graph', onAddFeature });
+      return null;
+    }
+
+    const Wrapper = createGraphWrapper();
+    render(<TestComponent />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(onAddFeature).toHaveBeenCalled();
+    });
+
+    expect(onAddFeature).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -332,7 +386,7 @@ describe('useCreateFeature (target: graph)', () => {
     });
   });
 
-  it('calls onUpdateFeature when dependencies change', async () => {
+  it('calls onUpdateFeature when dependencies change (not on initial mount)', async () => {
     const onUpdateFeature = jest.fn();
     const mockInstance = { count: 0 };
 
@@ -355,15 +409,16 @@ describe('useCreateFeature (target: graph)', () => {
     const Wrapper = createGraphWrapper();
     const { rerender } = render(<TestComponent dep={1} />, { wrapper: Wrapper });
 
+    // onUpdateFeature should NOT be called on initial mount
     await waitFor(() => {
-      expect(onUpdateFeature).toHaveBeenCalled();
+      expect(onUpdateFeature).not.toHaveBeenCalled();
     });
 
-    const callsAfterMount = onUpdateFeature.mock.calls.length;
+    // Trigger a dependency change
     rerender(<TestComponent dep={2} />);
 
     await waitFor(() => {
-      expect(onUpdateFeature.mock.calls.length).toBeGreaterThan(callsAfterMount);
+      expect(onUpdateFeature).toHaveBeenCalledTimes(1);
       expect(onUpdateFeature).toHaveBeenLastCalledWith(
         expect.objectContaining({
           graphStore: expect.any(Object),
