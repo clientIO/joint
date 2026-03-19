@@ -8,10 +8,8 @@ import type { LinkToGraphOptions } from '../state/data-mapping/link-mapper';
 /**
  * Returns a memoized `mapDataToLinkAttributes` function that uses
  * the default link mapper with a merged theme.
- *
  * @param theme - Partial theme overrides; omitted properties use `defaultLinkTheme`.
  * @returns An object with `mapDataToLinkAttributes`, ready to spread into `GraphProvider` props.
- *
  * @example
  * ```tsx
  * const { mapDataToLinkAttributes } = useThemeLinkMapper({

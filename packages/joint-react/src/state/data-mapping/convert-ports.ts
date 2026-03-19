@@ -1,33 +1,34 @@
 import { type dia } from '@joint/core';
 import type { FlatElementPort } from '../../types/element-types';
-import { defaultElementTheme } from '../../theme/element-theme';
+import { defaultElementTheme, type ElementTheme } from '../../theme/element-theme';
 
 /**
  * Converts a simplified FlatElementPort to a full JointJS port definition.
  * @param id - The port identifier
  * @param port - The simplified port definition
+ * @param theme - The element theme providing port styling defaults
  * @returns The full JointJS port definition
  */
-function convertPort(id: string, port: FlatElementPort): dia.Element.Port {
+function convertPort(id: string, port: FlatElementPort, theme: ElementTheme = defaultElementTheme): dia.Element.Port {
   const {
     cx,
     cy,
-    width = defaultElementTheme.portWidth,
-    height = defaultElementTheme.portHeight,
-    color = defaultElementTheme.portColor,
-    shape = defaultElementTheme.portShape,
-    stroke = defaultElementTheme.portStroke,
-    strokeWidth = defaultElementTheme.portStrokeWidth,
-    className,
+    width = theme.portWidth,
+    height = theme.portHeight,
+    color = theme.portColor,
+    shape = theme.portShape,
+    stroke = theme.portStroke,
+    strokeWidth = theme.portStrokeWidth,
+    className = theme.portClassName,
     label,
-    labelPosition = defaultElementTheme.portLabelPosition,
-    labelColor = defaultElementTheme.portLabelColor,
-    labelFontSize,
-    labelFontFamily,
-    labelClassName,
-    labelOffsetX,
-    labelOffsetY,
-    passive = defaultElementTheme.portPassive,
+    labelPosition = theme.portLabelPosition,
+    labelColor = theme.portLabelColor,
+    labelFontSize = theme.portLabelFontSize,
+    labelFontFamily = theme.portLabelFontFamily,
+    labelClassName = theme.portLabelClassName,
+    labelOffsetX = theme.portLabelOffsetX ?? undefined,
+    labelOffsetY = theme.portLabelOffsetY ?? undefined,
+    passive = theme.portPassive,
   } = port;
 
   const result: dia.Element.Port = {
@@ -78,13 +79,11 @@ function convertPort(id: string, port: FlatElementPort): dia.Element.Port {
         fill: labelColor,
       }}],
     };
-    const labelAttributes: Record<string, unknown> = { text: label };
-    if (labelFontSize !== undefined) {
-      labelAttributes.fontSize = labelFontSize;
-    }
-    if (labelFontFamily !== undefined) {
-      labelAttributes.fontFamily = labelFontFamily;
-    }
+    const labelAttributes: Record<string, unknown> = {
+      text: label,
+      fontSize: labelFontSize,
+      fontFamily: labelFontFamily,
+    };
     if (labelClassName) {
       labelAttributes.class = labelClassName;
     }
@@ -117,14 +116,15 @@ export function createPortDefaults(): { groups: Record<string, dia.Element.PortG
 /**
  * Converts a simplified FlatElementPort record to the full JointJS ports object.
  * @param ports - Record of simplified port definitions keyed by port ID
+ * @param theme - The element theme providing port styling defaults
  * @returns The full JointJS ports object with groups and items
  */
-export function convertPorts(ports: Record<string, FlatElementPort>): {
+export function convertPorts(ports: Record<string, FlatElementPort>, theme?: ElementTheme): {
   groups: Record<string, dia.Element.PortGroup>;
   items: dia.Element.Port[];
 } {
   return {
     ...createPortDefaults(),
-    items: Object.entries(ports).map(([id, port]) => convertPort(id, port)),
+    items: Object.entries(ports).map(([id, port]) => convertPort(id, port, theme)),
   };
 }

@@ -1,5 +1,6 @@
 import { type dia } from '@joint/core';
 import type { FlatElementData } from '../../types/element-types';
+import type { ElementTheme } from '../../theme/element-theme';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortDefaults } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -50,9 +51,9 @@ function isElementData(data: unknown): data is FlatElementData {
  * @returns The JointJS cell JSON attributes
  */
 export function defaultMapDataToElementAttributes<Element = FlatElementData>(
-  options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'>
+  options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'> & { readonly theme?: ElementTheme }
 ): dia.Cell.JSON {
-  const { id, data } = options;
+  const { id, data, theme } = options;
   if (!isElementData(data)) {
     throw new Error(
       `Invalid element data for id "${id}": expected an object with at least "x" and "y" properties.`
@@ -99,7 +100,7 @@ export function defaultMapDataToElementAttributes<Element = FlatElementData>(
 
   // → One-way
   if (ports) {
-    attributes.ports = convertPorts(ports);
+    attributes.ports = convertPorts(ports, theme);
     attributes.portDefaults = createPortDefaults();
   }
 
