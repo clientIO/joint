@@ -33,7 +33,7 @@ export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
 // Hooks — Defaults
 export { useElementDefaults } from './hooks/use-element-defaults';
-export { useThemeLinkMapper } from './hooks/use-theme-link-mapper';
+export { useLinkDefaults } from './hooks/use-link-defaults';
 
 // Hooks — Events
 export { usePaperEvents } from './hooks/use-paper-events';
@@ -57,8 +57,6 @@ export type { IncrementalStateChanges, IncrementalStateChange } from './state/in
 
 // Theme
 export type { LinkMarkerPreset, LinkMarker } from './theme/markers';
-export type { LinkTheme } from './theme/link-theme';
-export { defaultLinkTheme } from './theme/link-theme';
 
 // Models
 export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
@@ -84,5 +82,4 @@ export type {
 export type {
   LinkToGraphOptions,
   GraphToLinkOptions,
-  ToLinkAttributesOptions,
 } from './state/data-mapping/link-mapper';

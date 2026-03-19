@@ -3,7 +3,7 @@ import {
     GraphProvider,
     Paper,
     useElementDefaults,
-    useThemeLinkMapper,
+    useLinkDefaults,
     type FlatElementData,
     type FlatElementPort,
     type FlatLinkData,
@@ -72,29 +72,35 @@ function Diagram() {
         ports: portsByKind[data.kind] ?? defaultPorts,
     }), [color]);
 
-    const { mapDataToLinkAttributes } = useThemeLinkMapper({
+    const { mapDataToLinkAttributes } = useLinkDefaults({
         color,
         width: 3,
         targetMarker: 'arrow',
-        labelColor: LIGHT,
-        labelFontSize: 11,
-        labelFontFamily: 'monospace',
-        labelBackgroundPadding: { x: 10, y: 5 },
-        labelBackgroundColor: '#1e293b',
-        labelBackgroundStroke: color,
-    });
+        labelStyle: {
+            color: LIGHT,
+            fontSize: 11,
+            fontFamily: 'monospace',
+            backgroundPadding: { x: 10, y: 5 },
+            backgroundColor: '#1e293b',
+            backgroundStroke: color,
+        },
+    }, [color]);
 
     const renderElement: RenderElement<NodeData> = useCallback(
         (data) => <Node label={data.label} color={color} />,
         [color],
     );
 
+    const toggleColor = useCallback(() => setUseSecondaryColor((v) => !v), []);
+
+    const buttonStyle = { marginBottom: 8, padding: '4px 12px', cursor: 'pointer' } as const;
+
     return (
         <>
             <button
                 type="button"
-                onClick={() => setUseSecondaryColor((v) => !v)}
-                style={{ marginBottom: 8, padding: '4px 12px', cursor: 'pointer' }}
+                onClick={toggleColor}
+                style={buttonStyle}
             >
                 Toggle color
             </button>

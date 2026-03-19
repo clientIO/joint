@@ -161,6 +161,10 @@ export interface FlatLinkData extends Record<string, unknown> {
    */
   readonly layer?: string;
   /**
+   * Style defaults applied to all labels. Individual label properties take precedence.
+   */
+  readonly labelStyle?: Partial<FlatLinkLabel>;
+  /**
    * Link labels.
    */
   readonly labels?: Record<string, FlatLinkLabel>;

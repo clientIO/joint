@@ -13,8 +13,8 @@ export default {
         docs: {
             description: {
                 story:
-                    'Demonstrates `useThemeElementMapper` and `useThemeLinkMapper` hooks to ' +
-                    'customize element ports and link appearance via theme objects instead of ' +
+                    'Demonstrates `useElementDefaults` and `useLinkDefaults` hooks to ' +
+                    'apply default styling to element ports and link appearance instead of ' +
                     'setting properties on each cell individually.',
             },
             source: {
