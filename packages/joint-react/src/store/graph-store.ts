@@ -335,7 +335,6 @@ export class GraphStore {
     return { paperStore, remove: () => this.removePaper(id) };
   };
 
-  public hasMeasuredNode = (id: CellId) => this.observer.has(id);
   public setMeasuredNode = (options: SetMeasuredNodeOptions) => this.observer.add(options);
   public getPaperStore = (id: string) => {
     return this.paperStores.get(id);

@@ -381,34 +381,6 @@ describe('GraphStore', () => {
     });
   });
 
-  describe('hasMeasuredNode', () => {
-    it('should return false for non-measured nodes', () => {
-      const store = new GraphStore({});
-      expect(store.hasMeasuredNode('non-existent')).toBe(false);
-    });
-
-    it('should return true for measured nodes', () => {
-      const store = new GraphStore({});
-      const id = 'measured-element';
-
-      store.graph.addCell(
-        new PortalElement({
-          id,
-          position: { x: 10, y: 20 },
-          size: { width: 100, height: 50 },
-        })
-      );
-
-      const domElement = document.createElement('div');
-      store.setMeasuredNode({
-        id,
-        node: domElement,
-      });
-
-      expect(store.hasMeasuredNode(id)).toBe(true);
-    });
-  });
-
   describe('setMeasuredNode', () => {
     it('should register a node for measurement and return cleanup', () => {
       const store = new GraphStore({});
@@ -431,10 +403,8 @@ describe('GraphStore', () => {
       });
 
       expect(typeof cleanup).toBe('function');
-      expect(store.hasMeasuredNode(id)).toBe(true);
 
       cleanup();
-      expect(store.hasMeasuredNode(id)).toBe(false);
     });
   });
 

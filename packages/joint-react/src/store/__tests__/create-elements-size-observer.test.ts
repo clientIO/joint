@@ -47,6 +47,14 @@ class MockResizeObserver {
     }
   }
 
+  isObserving(target: Element): boolean {
+    return this.observedElements.has(target);
+  }
+
+  get observedCount(): number {
+    return this.observedElements.size;
+  }
+
   private createEntry(target: Element, width: number, height: number): ResizeObserverEntry {
     return {
       target,
@@ -262,6 +270,299 @@ describe('createElementsSizeObserver', () => {
     });
   });
 
+  describe('stack behavior', () => {
+    it('should allow multiple registrations for the same cell ID', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      observer.add({ id: 'element-1', node: nodeA });
+      observer.add({ id: 'element-1', node: nodeB });
+
+      expect(observer.has('element-1')).toBe(true);
+    });
+
+    it('should only observe the active (latest) node via ResizeObserver', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      observer.add({ id: 'element-1', node: nodeA });
+      observer.add({ id: 'element-1', node: nodeB });
+
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+
+      // nodeA should be unobserved (deactivated when nodeB was added)
+      expect(resizeObserver.isObserving(nodeA)).toBe(false);
+      // nodeB should be observed (active)
+      expect(resizeObserver.isObserving(nodeB)).toBe(true);
+    });
+
+    it('should process resize only from the active node', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      observer.add({ id: 'element-1', node: nodeA });
+      observer.add({ id: 'element-1', node: nodeB });
+
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+
+      // Trigger resize on the active node (nodeB)
+      resizeObserver.triggerResize(nodeB, 200, 100);
+      expect(mockOnBatchUpdate).toHaveBeenCalledTimes(1);
+
+      const updateCall = mockOnBatchUpdate.mock.calls[0][0];
+      expect(updateCall['element-1'].width).toBe(200);
+      expect(updateCall['element-1'].height).toBe(100);
+    });
+
+    it('should fall back to previous node when active node is removed', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      observer.add({ id: 'element-1', node: nodeA });
+      const cleanupB = observer.add({ id: 'element-1', node: nodeB });
+
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+
+      // Remove the active node (nodeB)
+      cleanupB();
+
+      // nodeA should be re-activated
+      expect(resizeObserver.isObserving(nodeA)).toBe(true);
+      expect(resizeObserver.isObserving(nodeB)).toBe(false);
+      expect(observer.has('element-1')).toBe(true);
+
+      // Trigger resize on the re-activated nodeA
+      resizeObserver.triggerResize(nodeA, 150, 75);
+      expect(mockOnBatchUpdate).toHaveBeenCalledTimes(1);
+
+      const updateCall = mockOnBatchUpdate.mock.calls[0][0];
+      expect(updateCall['element-1'].width).toBe(150);
+      expect(updateCall['element-1'].height).toBe(75);
+    });
+
+    it('should remove non-active node without affecting active observation', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      const cleanupA = observer.add({ id: 'element-1', node: nodeA });
+      observer.add({ id: 'element-1', node: nodeB });
+
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+
+      // Remove the non-active node (nodeA)
+      cleanupA();
+
+      // nodeB should still be active
+      expect(resizeObserver.isObserving(nodeB)).toBe(true);
+      expect(observer.has('element-1')).toBe(true);
+
+      // Trigger resize on nodeB — should still work
+      resizeObserver.triggerResize(nodeB, 300, 150);
+      expect(mockOnBatchUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle removing all entries one by one (3-deep stack)', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+      const nodeC = document.createElement('div');
+
+      observer.add({ id: 'element-1', node: nodeA });
+      observer.add({ id: 'element-1', node: nodeB });
+      const cleanupC = observer.add({ id: 'element-1', node: nodeC });
+
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+
+      // Remove C (active) → B becomes active
+      cleanupC();
+      expect(resizeObserver.isObserving(nodeC)).toBe(false);
+      expect(resizeObserver.isObserving(nodeB)).toBe(true);
+      expect(observer.has('element-1')).toBe(true);
+    });
+
+    it('should fully remove cell ID after all stack entries are cleaned up', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      const cleanupA = observer.add({ id: 'element-1', node: nodeA });
+      const cleanupB = observer.add({ id: 'element-1', node: nodeB });
+
+      cleanupB();
+      expect(observer.has('element-1')).toBe(true);
+
+      cleanupA();
+      expect(observer.has('element-1')).toBe(false);
+    });
+
+    it('should fire onObserveElement isRemoved:false only on first registration per cell ID', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      observer.add({ id: 'element-1', node: nodeA });
+      observer.add({ id: 'element-1', node: nodeB });
+
+      const addCalls = mockOnObserveElement.mock.calls.filter(
+        ([options]: [{ isRemoved: boolean; id: CellId }]) =>
+          options.id === 'element-1' && !options.isRemoved
+      );
+      expect(addCalls).toHaveLength(1);
+    });
+
+    it('should fire onObserveElement isRemoved:true only when stack is fully empty', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      const cleanupA = observer.add({ id: 'element-1', node: nodeA });
+      const cleanupB = observer.add({ id: 'element-1', node: nodeB });
+      mockOnObserveElement.mockClear();
+
+      // Remove B — stack still has A, should NOT fire isRemoved
+      cleanupB();
+      const removedAfterB = mockOnObserveElement.mock.calls.filter(
+        ([options]: [{ isRemoved: boolean }]) => options.isRemoved
+      );
+      expect(removedAfterB).toHaveLength(0);
+
+      // Remove A — stack is now empty, should fire isRemoved
+      cleanupA();
+      const removedAfterA = mockOnObserveElement.mock.calls.filter(
+        ([options]: [{ isRemoved: boolean }]) => options.isRemoved
+      );
+      expect(removedAfterA).toHaveLength(1);
+    });
+
+    it('should report observedElements as count of unique cell IDs, not total registrations', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+      const nodeC = document.createElement('div');
+
+      observer.add({ id: 'element-1', node: nodeA });
+
+      // First registration for element-1 fires onObserveElement
+      const firstCall = mockOnObserveElement.mock.calls[0][0];
+      expect(firstCall.observedElements).toBe(1);
+
+      // Second registration for same ID should NOT fire onObserveElement again
+      observer.add({ id: 'element-1', node: nodeB });
+      expect(mockOnObserveElement).toHaveBeenCalledTimes(1);
+
+      // Different cell ID fires onObserveElement with count 2
+      observer.add({ id: 'element-2', node: nodeC });
+      const thirdCall = mockOnObserveElement.mock.calls[1][0];
+      expect(thirdCall.observedElements).toBe(2);
+    });
+
+    it('should use the active node transform function, not a previous one', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      const transformA = jest.fn(({ width, height }) => ({
+        width: width + 10,
+        height: height + 10,
+      }));
+      const transformB = jest.fn(({ width, height }) => ({
+        width: width + 50,
+        height: height + 50,
+      }));
+
+      observer.add({ id: 'element-1', node: nodeA, transform: transformA });
+      observer.add({ id: 'element-1', node: nodeB, transform: transformB });
+
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+      resizeObserver.triggerResize(nodeB, 100, 50);
+
+      expect(transformA).not.toHaveBeenCalled();
+      expect(transformB).toHaveBeenCalled();
+
+      const updateCall = mockOnBatchUpdate.mock.calls[0][0];
+      expect(updateCall['element-1'].width).toBe(150); // 100 + 50
+      expect(updateCall['element-1'].height).toBe(100); // 50 + 50
+    });
+
+    it('should use the previous transform after active node is removed', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+
+      const transformA = jest.fn(({ width, height }) => ({
+        width: width + 10,
+        height: height + 10,
+      }));
+      const transformB = jest.fn(({ width, height }) => ({
+        width: width + 50,
+        height: height + 50,
+      }));
+
+      observer.add({ id: 'element-1', node: nodeA, transform: transformA });
+      const cleanupB = observer.add({ id: 'element-1', node: nodeB, transform: transformB });
+
+      // Remove B, A becomes active with its own transform
+      cleanupB();
+
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+      resizeObserver.triggerResize(nodeA, 100, 50);
+
+      expect(transformA).toHaveBeenCalled();
+
+      const updateCall = mockOnBatchUpdate.mock.calls[0][0];
+      expect(updateCall['element-1'].width).toBe(110); // 100 + 10
+      expect(updateCall['element-1'].height).toBe(60); // 50 + 10
+    });
+
+    it('should handle visibility node on the active element', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+      const visibilityNodeA = document.createElement('div');
+      const visibilityNodeB = document.createElement('div');
+
+      observer.add({ id: 'element-1', node: nodeA, visibilityNode: visibilityNodeA });
+      expect(visibilityNodeA.style.getPropertyValue('visibility')).toBe('hidden');
+
+      observer.add({ id: 'element-1', node: nodeB, visibilityNode: visibilityNodeB });
+      expect(visibilityNodeB.style.getPropertyValue('visibility')).toBe('hidden');
+
+      // Trigger resize on nodeB — its visibility node should be unhidden
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+      resizeObserver.triggerResize(nodeB, 100, 50);
+
+      expect(visibilityNodeB.style.getPropertyValue('visibility')).toBe('');
+    });
+
+    it('cleanup should be idempotent', () => {
+      const nodeA = document.createElement('div');
+
+      const cleanup = observer.add({ id: 'element-1', node: nodeA });
+
+      cleanup();
+      expect(observer.has('element-1')).toBe(false);
+
+      // Second cleanup call should not throw or cause side effects
+      cleanup();
+      expect(observer.has('element-1')).toBe(false);
+    });
+
+    it('should handle interleaved add/remove across different cell IDs', () => {
+      const node1A = document.createElement('div');
+      const node1B = document.createElement('div');
+      const node2A = document.createElement('div');
+
+      const cleanup1A = observer.add({ id: 'element-1', node: node1A });
+      observer.add({ id: 'element-2', node: node2A });
+      observer.add({ id: 'element-1', node: node1B });
+
+      const resizeObserver = MockResizeObserver.getLastInstance()!;
+
+      // element-1 active is node1B, element-2 active is node2A
+      expect(resizeObserver.isObserving(node1B)).toBe(true);
+      expect(resizeObserver.isObserving(node2A)).toBe(true);
+      expect(resizeObserver.isObserving(node1A)).toBe(false);
+
+      // Remove non-active node from element-1
+      cleanup1A();
+      expect(resizeObserver.isObserving(node1B)).toBe(true);
+      expect(observer.has('element-1')).toBe(true);
+      expect(observer.has('element-2')).toBe(true);
+    });
+  });
+
   describe('clean', () => {
     it('should remove all observed elements', () => {
       const element1 = document.createElement('div');
@@ -272,6 +573,21 @@ describe('createElementsSizeObserver', () => {
 
       expect(observer.has('element-1')).toBe(true);
       expect(observer.has('element-2')).toBe(true);
+
+      observer.clean();
+
+      expect(observer.has('element-1')).toBe(false);
+      expect(observer.has('element-2')).toBe(false);
+    });
+
+    it('should clean all stacks including multi-entry stacks', () => {
+      const nodeA = document.createElement('div');
+      const nodeB = document.createElement('div');
+      const nodeC = document.createElement('div');
+
+      observer.add({ id: 'element-1', node: nodeA });
+      observer.add({ id: 'element-1', node: nodeB });
+      observer.add({ id: 'element-2', node: nodeC });
 
       observer.clean();
 
