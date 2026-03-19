@@ -140,7 +140,7 @@ If you need full HTML support, enable the experimental `useHTMLOverlay` prop to 
 Ports allow you to define named connection points directly on element data and map them via `mapDataToElementAttributes`.
 
 ```tsx
-import { GraphProvider, type ElementToGraphOptions, type FlatElementData } from '@joint/react';
+import { GraphProvider, type ToElementAttributesOptions, type FlatElementData } from '@joint/react';
 import type { dia } from '@joint/core';
 
 const elements = {
@@ -159,7 +159,7 @@ const elements = {
 const mapDataToElementAttributes = ({
   data,
   defaultAttributes,
-}: ElementToGraphOptions<FlatElementData>): dia.Cell.JSON => ({
+}: ToElementAttributesOptions<FlatElementData>): dia.Cell.JSON => ({
   ...defaultAttributes(),
   ...(data.ports && { ports: data.ports }),
 });

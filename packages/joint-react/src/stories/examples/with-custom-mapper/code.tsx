@@ -8,8 +8,8 @@ import {
   useElements,
   type FlatElementData,
   type FlatLinkData,
-  type ElementToGraphOptions,
-  type GraphToElementOptions,
+  type ToElementAttributesOptions,
+  type ToElementDataOptions,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -87,7 +87,7 @@ const initialLinks: Record<string, FlatLinkData> = {
 const mapDataToElementAttributes = ({
   data,
   toAttributes,
-}: ElementToGraphOptions<FlatElementData>): dia.Cell.JSON => {
+}: ToElementAttributesOptions<FlatElementData>): dia.Cell.JSON => {
   const { cx, cy, width = 100, height = 60, ...rest } = data as CenterElement;
   return toAttributes({ ...rest, x: cx - width / 2, y: cy - height / 2, width, height });
 };
@@ -98,7 +98,7 @@ const mapDataToElementAttributes = ({
 const mapElementAttributesToData = ({
   attributes,
   toData,
-}: GraphToElementOptions<FlatElementData>): FlatElementData => {
+}: ToElementDataOptions<FlatElementData>): FlatElementData => {
   const { x = 0, y = 0, width = 100, height = 60, ...rest } = toData(attributes);
   return { ...rest, cx: x + width / 2, cy: y + height / 2, width, height };
 };

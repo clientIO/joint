@@ -8,7 +8,7 @@ import {
   Paper,
   useGraph,
   useElements,
-  type ElementToGraphOptions,
+  type ToElementAttributesOptions,
   type FlatElementData,
   type FlatElementPort,
   type FlatLinkData,
@@ -48,7 +48,7 @@ function resolveShape(shape: string, w: number, h: number): string {
  * into SVG path strings sized to each port's width/height, then delegates
  * to the default mapper via `toAttributes`.
  */
-function mapDataToElementAttributes(options: ElementToGraphOptions<PortElementData>) {
+function mapDataToElementAttributes(options: ToElementAttributesOptions<PortElementData>) {
   const { data } = options;
   const { ports, portStyle } = data;
   if (!ports) return options.toAttributes(data);

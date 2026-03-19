@@ -31,7 +31,7 @@ interface NativeElement extends FlatElementData {
 const mapDataToElementAttributes = ({
   data,
   toAttributes,
-}: ElementToGraphOptions<NativeElement>): dia.Cell.JSON => {
+}: ToElementAttributesOptions<NativeElement>): dia.Cell.JSON => {
   return { ...toAttributes(data), type: data.type };
 };
 

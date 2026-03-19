@@ -7,8 +7,8 @@ import {
   Paper,
   type FlatElementData,
   type FlatLinkData,
-  type ElementToGraphOptions,
-  type LinkToGraphOptions,
+  type ToElementAttributesOptions,
+  type ToLinkAttributesOptions,
 } from '@joint/react';
 
 interface NativeElement extends FlatElementData {
@@ -23,7 +23,7 @@ interface NativeLink extends Omit<FlatLinkData, 'labels'> {
 }
 
 const mapDataToElementAttributes = (
-  options: ElementToGraphOptions<NativeElement>
+  options: ToElementAttributesOptions<NativeElement>
 ): dia.Cell.JSON => {
   const { type, attrs } = options.data;
   const result = options.toAttributes(options.data);
@@ -35,7 +35,7 @@ const mapDataToElementAttributes = (
 };
 
 const mapDataToLinkAttributes = (
-  options: LinkToGraphOptions<NativeLink>
+  options: ToLinkAttributesOptions<NativeLink>
 ): dia.Cell.JSON => {
   const { labels, ...rest } = options.data;
   const result = options.toAttributes(rest);

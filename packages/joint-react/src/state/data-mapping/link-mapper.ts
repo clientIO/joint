@@ -6,14 +6,14 @@ import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 
-export interface LinkToGraphOptions<LinkData = FlatLinkData> {
+export interface ToLinkAttributesOptions<LinkData = FlatLinkData> {
   readonly id: string;
   readonly data: LinkData;
   readonly graph: dia.Graph;
   readonly toAttributes: (data: LinkData) => dia.Cell.JSON;
 }
 
-export interface GraphToLinkOptions<LinkData = FlatLinkData> {
+export interface ToLinkDataOptions<LinkData = FlatLinkData> {
   readonly id: string;
   readonly attributes: dia.Link.Attributes;
   readonly defaultAttributes: dia.Link.Attributes;
@@ -60,7 +60,7 @@ function isLinkData(data: unknown): data is FlatLinkData {
  * @returns The JointJS cell JSON attributes
  */
 export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
-  options: Pick<LinkToGraphOptions<Link>, 'id' | 'data'>
+  options: Pick<ToLinkAttributesOptions<Link>, 'id' | 'data'>
 ): dia.Cell.JSON {
   const { id, data } = options;
   if (!isLinkData(data)) {
@@ -201,7 +201,7 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
  * @returns The flat link data
  */
 export function flatMapLinkAttributesToData<Link = FlatLinkData>(
-  options: Pick<GraphToLinkOptions<Link>, 'attributes' | 'defaultAttributes'>
+  options: Pick<ToLinkDataOptions<Link>, 'attributes' | 'defaultAttributes'>
 ): Link {
   const { attributes, defaultAttributes } = options;
   const {

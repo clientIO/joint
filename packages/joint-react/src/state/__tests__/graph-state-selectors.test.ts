@@ -13,29 +13,29 @@ import {
   flatMapLinkAttributesToData,
 } from '../data-mapping';
 import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
-import type { GraphToElementOptions, ElementToGraphOptions } from '../data-mapping/element-mapper';
-import type { GraphToLinkOptions, LinkToGraphOptions } from '../data-mapping/link-mapper';
+import type { ToElementDataOptions, ToElementAttributesOptions } from '../data-mapping/element-mapper';
+import type { ToLinkDataOptions, ToLinkAttributesOptions } from '../data-mapping/link-mapper';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement, PortalLink };
 
 // Helper functions to create options (no more defaultAttributes)
-const createElementToGraphOptions = <E extends FlatElementData>(
+const createToElementAttributesOptions = <E extends FlatElementData>(
   id: string,
   data: E,
   graph: dia.Graph
-): ElementToGraphOptions<E> => ({
+): ToElementAttributesOptions<E> => ({
   id,
   data,
   graph,
   toAttributes: (newData) => flatMapDataToElementAttributes({ id, data: newData }),
 });
 
-const createGraphToElementOptions = <E extends FlatElementData>(
+const createToElementDataOptions = <E extends FlatElementData>(
   id: string,
   cell: dia.Element,
   graph: dia.Graph,
   previousData?: E
-): GraphToElementOptions<E> => {
+): ToElementDataOptions<E> => {
   const defaultAttributes = resolveCellDefaults(cell);
   return {
     id,
@@ -48,23 +48,23 @@ const createGraphToElementOptions = <E extends FlatElementData>(
   };
 };
 
-const createLinkToGraphOptions = <L extends FlatLinkData>(
+const createToLinkAttributesOptions = <L extends FlatLinkData>(
   id: string,
   data: L,
   graph: dia.Graph
-): LinkToGraphOptions<L> => ({
+): ToLinkAttributesOptions<L> => ({
   id,
   data,
   graph,
   toAttributes: (newData) => flatMapDataToLinkAttributes({ id, data: newData }),
 });
 
-const createGraphToLinkOptions = <L extends FlatLinkData>(
+const createToLinkDataOptions = <L extends FlatLinkData>(
   id: string,
   cell: dia.Link,
   graph: dia.Graph,
   previousData?: L
-): GraphToLinkOptions<L> => {
+): ToLinkDataOptions<L> => {
   const defaultAttributes = resolveCellDefaults(cell);
   return {
     id,
@@ -99,7 +99,7 @@ describe('graph-state-selectors', () => {
         type: 'PortalElement',
       };
 
-      const options = createElementToGraphOptions(id, data, graph);
+      const options = createToElementAttributesOptions(id, data, graph);
 
       const elementAsGraphJson = flatMapDataToElementAttributes(options);
 
@@ -115,7 +115,7 @@ describe('graph-state-selectors', () => {
 
       const cell = graph.getCell('element-1') as dia.Element<dia.Element.Attributes>;
       const elementFromGraph = flatMapElementAttributesToData(
-        createGraphToElementOptions(id, cell, graph)
+        createToElementDataOptions(id, cell, graph)
       );
 
       expect(elementFromGraph).toMatchObject({
@@ -135,7 +135,7 @@ describe('graph-state-selectors', () => {
         height: 50,
       };
 
-      const options = createElementToGraphOptions(id, data, graph);
+      const options = createToElementAttributesOptions(id, data, graph);
 
       const elementAsGraphJson = flatMapDataToElementAttributes(options);
 
@@ -146,7 +146,7 @@ describe('graph-state-selectors', () => {
 
       const cell = graph.getCell('element-1') as dia.Element<dia.Element.Attributes>;
       const elementFromGraph = flatMapElementAttributesToData(
-        createGraphToElementOptions(id, cell, graph)
+        createToElementDataOptions(id, cell, graph)
       );
 
       expect(elementFromGraph).toMatchObject({
@@ -169,7 +169,7 @@ describe('graph-state-selectors', () => {
         angle: 45,
       };
 
-      const options = createElementToGraphOptions(id, data, graph);
+      const options = createToElementAttributesOptions(id, data, graph);
 
       const elementAsGraphJson = flatMapDataToElementAttributes(options);
 
@@ -184,7 +184,7 @@ describe('graph-state-selectors', () => {
 
       const cell = graph.getCell('element-1') as dia.Element<dia.Element.Attributes>;
       const elementFromGraph = flatMapElementAttributesToData(
-        createGraphToElementOptions(id, cell, graph)
+        createToElementDataOptions(id, cell, graph)
       );
 
       expect(elementFromGraph).toMatchObject({
@@ -211,7 +211,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(elementAsGraphJson);
       const cell = graph.getCell('element-1') as dia.Element;
 
-      const options = createGraphToElementOptions(id, cell, graph);
+      const options = createToElementDataOptions(id, cell, graph);
 
       const elementFromGraph = flatMapElementAttributesToData(options);
 
@@ -224,14 +224,14 @@ describe('graph-state-selectors', () => {
 
       // Round-trip: element → graph → element
       const recreatedElementAsGraphJson = flatMapDataToElementAttributes(
-        createElementToGraphOptions(id, elementFromGraph, graph)
+        createToElementAttributesOptions(id, elementFromGraph, graph)
       );
       graph.clear();
       graph.addCell(recreatedElementAsGraphJson);
 
       const roundTripCell = graph.getCell('element-1') as dia.Element<dia.Element.Attributes>;
       const elementFromRoundTrip = flatMapElementAttributesToData(
-        createGraphToElementOptions(id, roundTripCell, graph)
+        createToElementDataOptions(id, roundTripCell, graph)
       );
 
       expect(elementFromRoundTrip).toMatchObject({
@@ -267,7 +267,7 @@ describe('graph-state-selectors', () => {
         customProp: undefined,
       };
 
-      const options = createGraphToElementOptions(id, cell, graph, previousData);
+      const options = createToElementDataOptions(id, cell, graph, previousData);
 
       const result = flatMapElementAttributesToData(options);
 
@@ -308,7 +308,7 @@ describe('graph-state-selectors', () => {
         customProp: undefined,
       };
 
-      const options = createGraphToElementOptions(id, cell, graph, previousData);
+      const options = createToElementDataOptions(id, cell, graph, previousData);
 
       const result = flatMapElementAttributesToData(options);
 
@@ -328,7 +328,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(elementAsGraphJson);
       const cell = graph.getCell('element-1') as dia.Element;
 
-      const options = createGraphToElementOptions(id, cell, graph);
+      const options = createToElementDataOptions(id, cell, graph);
 
       const elementFromGraph = flatMapElementAttributesToData(options);
 
@@ -355,7 +355,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(elementAsGraphJson);
       const cell = graph.getCell('element-1') as dia.Element;
 
-      const options = createGraphToElementOptions(id, cell, graph);
+      const options = createToElementDataOptions(id, cell, graph);
 
       const result = flatMapElementAttributesToData(options);
 
@@ -374,7 +374,7 @@ describe('graph-state-selectors', () => {
         type: PORTAL_LINK_TYPE,
       };
 
-      const options = createLinkToGraphOptions(id, link, graph);
+      const options = createToLinkAttributesOptions(id, link, graph);
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(options);
 
@@ -390,7 +390,7 @@ describe('graph-state-selectors', () => {
 
       const linkCell = graph.getCell('link-1') as dia.Link<dia.Link.Attributes>;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, linkCell, graph)
+        createToLinkDataOptions(id, linkCell, graph)
       );
 
       expect(linkFromGraph).toMatchObject({
@@ -410,7 +410,7 @@ describe('graph-state-selectors', () => {
         type: PORTAL_LINK_TYPE,
       };
 
-      const options = createLinkToGraphOptions(id, link, graph);
+      const options = createToLinkAttributesOptions(id, link, graph);
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(options);
 
@@ -426,7 +426,7 @@ describe('graph-state-selectors', () => {
 
       const linkCell = graph.getCell('link-1') as dia.Link<dia.Link.Attributes>;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, linkCell, graph)
+        createToLinkDataOptions(id, linkCell, graph)
       );
 
       expect(linkFromGraph).toMatchObject({
@@ -446,7 +446,7 @@ describe('graph-state-selectors', () => {
         color: 'red',
       };
 
-      const options = createLinkToGraphOptions(id, link, graph);
+      const options = createToLinkAttributesOptions(id, link, graph);
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(options);
 
@@ -462,7 +462,7 @@ describe('graph-state-selectors', () => {
         targetMarker: 'none',
       };
 
-      const options = createLinkToGraphOptions(id, link, graph);
+      const options = createToLinkAttributesOptions(id, link, graph);
       const linkAsGraphJson = flatMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson.attrs?.line?.targetMarker).toBeNull();
@@ -476,7 +476,7 @@ describe('graph-state-selectors', () => {
         targetMarker: { d: 'M 0 0 7 5 7 -5' } as dia.SVGMarkerJSON,
       };
 
-      const options = createLinkToGraphOptions(id, link, graph);
+      const options = createToLinkAttributesOptions(id, link, graph);
       const linkAsGraphJson = flatMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson.attrs?.line?.targetMarker).toMatchObject({
@@ -493,7 +493,7 @@ describe('graph-state-selectors', () => {
         sourceMarker: 'none',
       };
 
-      const options = createLinkToGraphOptions(id, link, graph);
+      const options = createToLinkAttributesOptions(id, link, graph);
       const linkAsGraphJson = flatMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson.attrs?.line).not.toHaveProperty('sourceMarker');
@@ -508,7 +508,7 @@ describe('graph-state-selectors', () => {
       };
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
+        createToLinkAttributesOptions(id, link, graph)
       );
       graph.addCell(linkAsGraphJson);
 
@@ -528,7 +528,7 @@ describe('graph-state-selectors', () => {
         z: 10,
       };
 
-      const options = createLinkToGraphOptions(id, link, graph);
+      const options = createToLinkAttributesOptions(id, link, graph);
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(options);
 
@@ -554,7 +554,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(linkAsGraphJson);
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      const options = createGraphToLinkOptions(id, linkCell, graph);
+      const options = createToLinkDataOptions(id, linkCell, graph);
 
       const linkFromGraph = flatMapLinkAttributesToData(options);
 
@@ -592,7 +592,7 @@ describe('graph-state-selectors', () => {
         customProp: undefined,
       };
 
-      const options = createGraphToLinkOptions(id, linkCell, graph, previousData);
+      const options = createToLinkDataOptions(id, linkCell, graph, previousData);
 
       const linkFromGraph = flatMapLinkAttributesToData(options);
 
@@ -630,7 +630,7 @@ describe('graph-state-selectors', () => {
         customProp: undefined,
       };
 
-      const options = createGraphToLinkOptions(id, linkCell, graph, previousData);
+      const options = createToLinkDataOptions(id, linkCell, graph, previousData);
 
       const linkFromGraph = flatMapLinkAttributesToData(options);
 
@@ -650,7 +650,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(linkAsGraphJson);
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      const options = createGraphToLinkOptions(id, linkCell, graph);
+      const options = createToLinkDataOptions(id, linkCell, graph);
 
       const linkFromGraph = flatMapLinkAttributesToData(options);
 
@@ -674,7 +674,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(linkAsGraphJson);
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      const options = createGraphToLinkOptions(id, linkCell, graph);
+      const options = createToLinkDataOptions(id, linkCell, graph);
 
       const linkFromGraph = flatMapLinkAttributesToData(options);
 
@@ -702,7 +702,7 @@ describe('graph-state-selectors', () => {
       graph.addCell(linkAsGraphJson);
       const linkCell = graph.getCell('link-1') as dia.Link;
 
-      const options = createGraphToLinkOptions(id, linkCell, graph);
+      const options = createToLinkDataOptions(id, linkCell, graph);
 
       const linkFromGraph = flatMapLinkAttributesToData(options);
 
@@ -733,7 +733,7 @@ describe('graph-state-selectors', () => {
         height: 40,
       };
 
-      const options = createGraphToElementOptions(id, cell, graph, previousData);
+      const options = createToElementDataOptions(id, cell, graph, previousData);
 
       const elementFromGraph = flatMapElementAttributesToData(options);
 
@@ -766,7 +766,7 @@ describe('graph-state-selectors', () => {
         customProp: undefined, // Exists but undefined
       };
 
-      const options = createGraphToElementOptions(id, cell, graph, previousData);
+      const options = createToElementDataOptions(id, cell, graph, previousData);
 
       const elementFromGraph = flatMapElementAttributesToData(options);
 
@@ -787,7 +787,7 @@ describe('graph-state-selectors', () => {
 
       // Convert link to graph JSON
       const linkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
+        createToLinkAttributesOptions(id, link, graph)
       );
 
       // Store in graph
@@ -799,7 +799,7 @@ describe('graph-state-selectors', () => {
 
       // Convert back to link
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, graphLinkCell, graph)
+        createToLinkDataOptions(id, graphLinkCell, graph)
       );
 
       expect(linkFromGraph).toMatchObject({
@@ -830,14 +830,14 @@ describe('graph-state-selectors', () => {
       };
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
+        createToLinkAttributesOptions(id, link, graph)
       );
 
       graph.addCell(linkAsGraphJson);
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, graphLinkCell, graph)
+        createToLinkDataOptions(id, graphLinkCell, graph)
       );
 
       expect(linkFromGraph).toMatchObject({
@@ -872,7 +872,7 @@ describe('graph-state-selectors', () => {
       };
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
+        createToLinkAttributesOptions(id, link, graph)
       );
 
       graph.addCell(linkAsGraphJson);
@@ -888,7 +888,7 @@ describe('graph-state-selectors', () => {
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, graphLinkCell, graph, previousData)
+        createToLinkDataOptions(id, graphLinkCell, graph, previousData)
       );
 
       // Default mapper spreads all cell.data — no filtering by previousData
@@ -935,7 +935,7 @@ describe('graph-state-selectors', () => {
       ];
 
       const linksAsGraphJson = links.map(({ id, data }) =>
-        flatMapDataToLinkAttributes(createLinkToGraphOptions(id, data, graph))
+        flatMapDataToLinkAttributes(createToLinkAttributesOptions(id, data, graph))
       );
 
       graph.resetCells(linksAsGraphJson);
@@ -970,7 +970,7 @@ describe('graph-state-selectors', () => {
         return {
           id,
           data: flatMapLinkAttributesToData(
-            createGraphToLinkOptions(id, graphLinkCell, graph, previousData)
+            createToLinkDataOptions(id, graphLinkCell, graph, previousData)
           ),
         };
       });
@@ -1014,7 +1014,7 @@ describe('graph-state-selectors', () => {
       };
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
+        createToLinkAttributesOptions(id, link, graph)
       );
 
       graph.addCell(linkAsGraphJson);
@@ -1029,7 +1029,7 @@ describe('graph-state-selectors', () => {
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, graphLinkCell, graph, previousData)
+        createToLinkDataOptions(id, graphLinkCell, graph, previousData)
       );
 
       // optionalProp was stored in cell.data during forward mapping
@@ -1056,7 +1056,7 @@ describe('graph-state-selectors', () => {
       };
 
       const initialLinkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, initialLink, graph)
+        createToLinkAttributesOptions(id, initialLink, graph)
       );
 
       graph.addCell(initialLinkAsGraphJson);
@@ -1072,7 +1072,7 @@ describe('graph-state-selectors', () => {
       };
 
       const updatedLinkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, updatedLink, graph)
+        createToLinkAttributesOptions(id, updatedLink, graph)
       );
 
       graph.resetCells([updatedLinkAsGraphJson]);
@@ -1087,7 +1087,7 @@ describe('graph-state-selectors', () => {
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, graphLinkCell, graph, previousData)
+        createToLinkDataOptions(id, graphLinkCell, graph, previousData)
       );
 
       // Default mapper spreads all cell.data — no filtering by previousData
@@ -1118,14 +1118,14 @@ describe('graph-state-selectors', () => {
       };
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
+        createToLinkAttributesOptions(id, link, graph)
       );
 
       graph.addCell(linkAsGraphJson);
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, graphLinkCell, graph)
+        createToLinkDataOptions(id, graphLinkCell, graph)
       );
 
       expect(linkFromGraph.attrs).toBeDefined();
@@ -1157,7 +1157,7 @@ describe('graph-state-selectors', () => {
       };
 
       const elementAsGraphJson = flatMapDataToElementAttributes(
-        createElementToGraphOptions(id, element, graph)
+        createToElementAttributesOptions(id, element, graph)
       );
 
       graph.addCell(elementAsGraphJson);
@@ -1174,7 +1174,7 @@ describe('graph-state-selectors', () => {
 
       const graphElement = graph.getCell('element-1') as dia.Element;
       const elementFromGraph = flatMapElementAttributesToData(
-        createGraphToElementOptions(id, graphElement, graph, previousData)
+        createToElementDataOptions(id, graphElement, graph, previousData)
       );
 
       // Should return newProperty with value from graph data
@@ -1202,7 +1202,7 @@ describe('graph-state-selectors', () => {
       };
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
+        createToLinkAttributesOptions(id, link, graph)
       );
 
       graph.addCell(linkAsGraphJson);
@@ -1219,7 +1219,7 @@ describe('graph-state-selectors', () => {
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, graphLinkCell, graph, previousData)
+        createToLinkDataOptions(id, graphLinkCell, graph, previousData)
       );
 
       // Should return all properties with values from graph data
@@ -1249,7 +1249,7 @@ describe('graph-state-selectors', () => {
       };
 
       const elementAsGraphJson = flatMapDataToElementAttributes(
-        createElementToGraphOptions(id, element, graph)
+        createToElementAttributesOptions(id, element, graph)
       );
 
       graph.addCell(elementAsGraphJson);
@@ -1268,7 +1268,7 @@ describe('graph-state-selectors', () => {
 
       const graphElement = graph.getCell('element-1') as dia.Element;
       const elementFromGraph = flatMapElementAttributesToData(
-        createGraphToElementOptions(id, graphElement, graph, previousData)
+        createToElementDataOptions(id, graphElement, graph, previousData)
       );
 
       // All properties should be returned with values from graph data
@@ -1308,7 +1308,7 @@ describe('graph-state-selectors', () => {
       };
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
+        createToLinkAttributesOptions(id, link, graph)
       );
 
       graph.addCell(linkAsGraphJson);
@@ -1324,7 +1324,7 @@ describe('graph-state-selectors', () => {
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, graphLinkCell, graph, previousData)
+        createToLinkDataOptions(id, graphLinkCell, graph, previousData)
       );
 
       // All complex properties should be returned with values from graph data
@@ -1357,7 +1357,7 @@ describe('graph-state-selectors', () => {
       };
 
       const elementAsGraphJson = flatMapDataToElementAttributes(
-        createElementToGraphOptions(id, element, graph)
+        createToElementAttributesOptions(id, element, graph)
       );
 
       graph.addCell(elementAsGraphJson);
@@ -1374,7 +1374,7 @@ describe('graph-state-selectors', () => {
 
       const graphElement = graph.getCell('element-1') as dia.Element;
       const elementFromGraph = flatMapElementAttributesToData(
-        createGraphToElementOptions(id, graphElement, graph, previousData)
+        createToElementDataOptions(id, graphElement, graph, previousData)
       );
 
       // All properties from cell.data are returned
@@ -1403,7 +1403,7 @@ describe('graph-state-selectors', () => {
       };
 
       const linkAsGraphJson = flatMapDataToLinkAttributes(
-        createLinkToGraphOptions(id, link, graph)
+        createToLinkAttributesOptions(id, link, graph)
       );
 
       graph.addCell(linkAsGraphJson);
@@ -1420,7 +1420,7 @@ describe('graph-state-selectors', () => {
 
       const graphLinkCell = graph.getCell('link-1') as dia.Link;
       const linkFromGraph = flatMapLinkAttributesToData(
-        createGraphToLinkOptions(id, graphLinkCell, graph, previousData)
+        createToLinkDataOptions(id, graphLinkCell, graph, previousData)
       );
 
       // All properties should be returned
@@ -1445,7 +1445,7 @@ describe('graph-state-selectors', () => {
       };
 
       const initialElementAsGraphJson = flatMapDataToElementAttributes(
-        createElementToGraphOptions(id, initialElement, graph)
+        createToElementAttributesOptions(id, initialElement, graph)
       );
 
       graph.addCell(initialElementAsGraphJson);
@@ -1461,7 +1461,7 @@ describe('graph-state-selectors', () => {
       };
 
       const updatedElementAsGraphJson = flatMapDataToElementAttributes(
-        createElementToGraphOptions(id, updatedElement, graph)
+        createToElementAttributesOptions(id, updatedElement, graph)
       );
 
       graph.resetCells([updatedElementAsGraphJson]);
@@ -1478,7 +1478,7 @@ describe('graph-state-selectors', () => {
 
       const graphElement = graph.getCell('element-1') as dia.Element;
       const elementFromGraph = flatMapElementAttributesToData(
-        createGraphToElementOptions(id, graphElement, graph, previousData)
+        createToElementDataOptions(id, graphElement, graph, previousData)
       );
 
       // Should return all properties including new ones from graph data
@@ -1504,7 +1504,7 @@ describe('graph-state-selectors', () => {
       };
 
       const result = flatMapDataToElementAttributes(
-        createElementToGraphOptions(id, element, graph)
+        createToElementAttributesOptions(id, element, graph)
       );
 
       expect(result.data).toEqual({ label: 'Test' });
@@ -1522,13 +1522,13 @@ describe('graph-state-selectors', () => {
         label: 'Test',
       };
 
-      const customSelector = (options: ElementToGraphOptions<CustomElement>) => {
+      const customSelector = (options: ToElementAttributesOptions<CustomElement>) => {
         const base = flatMapDataToElementAttributes(options);
         base.attrs = { root: { fill: 'red' } };
         return base;
       };
 
-      const result = customSelector(createElementToGraphOptions(id, element, graph));
+      const result = customSelector(createToElementAttributesOptions(id, element, graph));
 
       expect(result.attrs).toEqual({ root: { fill: 'red' } });
       expect(result.data).toEqual({ label: 'Test' });
@@ -1545,7 +1545,7 @@ describe('graph-state-selectors', () => {
         label: 'Test',
       };
 
-      const customSelector = (options: ElementToGraphOptions<CustomElement>) => {
+      const customSelector = (options: ToElementAttributesOptions<CustomElement>) => {
         // Ignore flatMapper and return completely custom result
         return {
           id: options.id,
@@ -1554,7 +1554,7 @@ describe('graph-state-selectors', () => {
         };
       };
 
-      const result = customSelector(createElementToGraphOptions(id, element, graph));
+      const result = customSelector(createToElementAttributesOptions(id, element, graph));
 
       expect(result.type).toBe('custom.Element');
       expect(result.customData).toEqual({ label: 'Test' });
@@ -1571,7 +1571,7 @@ describe('graph-state-selectors', () => {
         weight: 5,
       };
 
-      const result = flatMapDataToLinkAttributes(createLinkToGraphOptions(id, data, graph));
+      const result = flatMapDataToLinkAttributes(createToLinkAttributesOptions(id, data, graph));
 
       // Only user-provided data is stored; theme defaults are not persisted
       expect(result.data).toEqual({
@@ -1591,13 +1591,13 @@ describe('graph-state-selectors', () => {
         weight: 5,
       };
 
-      const customSelector = (options: LinkToGraphOptions<CustomLink>) => {
+      const customSelector = (options: ToLinkAttributesOptions<CustomLink>) => {
         const base = flatMapDataToLinkAttributes(options);
         base.attrs = { line: { stroke: 'blue', strokeWidth: 2 } };
         return base;
       };
 
-      const result = customSelector(createLinkToGraphOptions(id, data, graph));
+      const result = customSelector(createToLinkAttributesOptions(id, data, graph));
 
       expect(result.attrs).toEqual({ line: { stroke: 'blue', strokeWidth: 2 } });
       // Only user-provided data is stored; theme defaults are not persisted

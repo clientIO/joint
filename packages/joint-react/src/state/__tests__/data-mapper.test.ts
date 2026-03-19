@@ -6,8 +6,8 @@ import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
 import type { FlatElementData, FlatElementPort } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
-import type { ElementToGraphOptions, GraphToElementOptions } from '../data-mapping/element-mapper';
-import type { LinkToGraphOptions, GraphToLinkOptions } from '../data-mapping/link-mapper';
+import type { ToElementAttributesOptions, ToElementDataOptions } from '../data-mapping/element-mapper';
+import type { ToLinkAttributesOptions, ToLinkDataOptions } from '../data-mapping/link-mapper';
 import {
   flatMapDataToElementAttributes,
   flatMapDataToLinkAttributes,
@@ -22,7 +22,7 @@ function elementToGraphOpts(
   id: string,
   data: FlatElementData,
   graph: dia.Graph
-): ElementToGraphOptions<FlatElementData> {
+): ToElementAttributesOptions<FlatElementData> {
   return {
     id,
     data,
@@ -35,7 +35,7 @@ function graphToElementOpts(
   cell: dia.Element,
   graph: dia.Graph,
   previousData?: FlatElementData
-): GraphToElementOptions<FlatElementData> {
+): ToElementDataOptions<FlatElementData> {
   const defaultAttributes = resolveCellDefaults(cell);
   return {
     id,
@@ -51,7 +51,7 @@ function linkToGraphOpts(
   id: string,
   data: FlatLinkData,
   graph: dia.Graph
-): LinkToGraphOptions<FlatLinkData> {
+): ToLinkAttributesOptions<FlatLinkData> {
   return { id, data, graph, toAttributes: (d) => flatMapDataToLinkAttributes({ id, data: d }) };
 }
 function graphToLinkOpts(
@@ -59,7 +59,7 @@ function graphToLinkOpts(
   cell: dia.Link,
   graph: dia.Graph,
   previousData?: FlatLinkData
-): GraphToLinkOptions<FlatLinkData> {
+): ToLinkDataOptions<FlatLinkData> {
   const defaultAttributes = resolveCellDefaults(cell);
   return {
     id,

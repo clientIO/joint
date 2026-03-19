@@ -2,7 +2,7 @@ import { type DependencyList, useMemo, useCallback, useRef } from 'react';
 import { flatMapDataToLinkAttributes } from '../state/data-mapping/link-mapper';
 import type { GraphMappings } from '../state/data-mapping';
 import type { FlatLinkData } from '../types/link-types';
-import type { LinkToGraphOptions } from '../state/data-mapping/link-mapper';
+import type { ToLinkAttributesOptions } from '../state/data-mapping/link-mapper';
 
 /**
  * Returns a memoized `mapDataToLinkAttributes` function that applies
@@ -58,7 +58,7 @@ export function useLinkDefaults<T extends FlatLinkData = FlatLinkData>(
     );
 
     const mapDataToLinkAttributes = useCallback(
-        (options: LinkToGraphOptions<T>) => {
+        (options: ToLinkAttributesOptions<T>) => {
             const { current } = defaultsRef;
             const resolved = typeof current === 'function'
                 ? current(options.data)

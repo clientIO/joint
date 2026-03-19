@@ -4,14 +4,14 @@ import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortDefaults } from './convert-ports';
 import { isRecord } from '../../utils/is';
 
-export interface ElementToGraphOptions<ElementData = FlatElementData> {
+export interface ToElementAttributesOptions<ElementData = FlatElementData> {
   readonly id: string;
   readonly data: ElementData;
   readonly graph: dia.Graph;
   readonly toAttributes: (data: ElementData) => dia.Cell.JSON;
 }
 
-export interface GraphToElementOptions<ElementData = FlatElementData> {
+export interface ToElementDataOptions<ElementData = FlatElementData> {
   readonly id: string;
   readonly attributes: dia.Element.Attributes;
   readonly defaultAttributes: dia.Element.Attributes;
@@ -50,7 +50,7 @@ function isElementData(data: unknown): data is FlatElementData {
  * @returns The JointJS cell JSON attributes
  */
 export function flatMapDataToElementAttributes<Element = FlatElementData>(
-  options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'>
+  options: Pick<ToElementAttributesOptions<Element>, 'id' | 'data'>
 ): dia.Cell.JSON {
   const { id, data } = options;
   if (!isElementData(data)) {
@@ -129,7 +129,7 @@ export function flatMapDataToElementAttributes<Element = FlatElementData>(
  * @returns The flat element data
  */
 export function flatMapElementAttributesToData<Element = FlatElementData>(
-  options: Pick<GraphToElementOptions<Element>, 'attributes' | 'defaultAttributes'>
+  options: Pick<ToElementDataOptions<Element>, 'attributes' | 'defaultAttributes'>
 ): Element {
   const { attributes, defaultAttributes } = options;
   const {

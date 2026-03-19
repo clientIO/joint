@@ -1,8 +1,8 @@
 import type { dia } from '@joint/core';
 import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
-import type { ElementToGraphOptions, GraphToElementOptions } from './element-mapper';
-import type { LinkToGraphOptions, GraphToLinkOptions } from './link-mapper';
+import type { ToElementAttributesOptions, ToElementDataOptions } from './element-mapper';
+import type { ToLinkAttributesOptions, ToLinkDataOptions } from './link-mapper';
 
 export * from './convert-labels';
 export * from './convert-labels-reverse';
@@ -17,11 +17,11 @@ export * from './link-mapper';
  */
 export interface GraphMappings<ElementData = FlatElementData, LinkData = FlatLinkData> {
   readonly mapDataToElementAttributes?: (
-    options: ElementToGraphOptions<ElementData>
+    options: ToElementAttributesOptions<ElementData>
   ) => dia.Cell.JSON;
-  readonly mapDataToLinkAttributes?: (options: LinkToGraphOptions<LinkData>) => dia.Cell.JSON;
+  readonly mapDataToLinkAttributes?: (options: ToLinkAttributesOptions<LinkData>) => dia.Cell.JSON;
   readonly mapElementAttributesToData?: (
-    options: GraphToElementOptions<ElementData>
+    options: ToElementDataOptions<ElementData>
   ) => ElementData;
-  readonly mapLinkAttributesToData?: (options: GraphToLinkOptions<LinkData>) => LinkData;
+  readonly mapLinkAttributesToData?: (options: ToLinkDataOptions<LinkData>) => LinkData;
 }

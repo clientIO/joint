@@ -2,7 +2,7 @@ import { type DependencyList, useMemo, useCallback, useRef } from 'react';
 import { flatMapDataToElementAttributes } from '../state/data-mapping/element-mapper';
 import type { GraphMappings } from '../state/data-mapping';
 import type { FlatElementData } from '../types/element-types';
-import type { ElementToGraphOptions } from '../state/data-mapping/element-mapper';
+import type { ToElementAttributesOptions } from '../state/data-mapping/element-mapper';
 
 /**
  * Returns a memoized `mapDataToElementAttributes` function that applies
@@ -57,7 +57,7 @@ export function useElementDefaults<T extends FlatElementData = FlatElementData>(
     );
 
     const mapDataToElementAttributes = useCallback(
-        (options: ElementToGraphOptions<T>) => {
+        (options: ToElementAttributesOptions<T>) => {
             const { current } = defaultsRef;
             const resolved = typeof current === 'function'
                 ? current(options.data)

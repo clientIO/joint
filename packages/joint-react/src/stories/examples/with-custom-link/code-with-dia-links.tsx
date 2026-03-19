@@ -7,7 +7,7 @@ import {
   GraphProvider,
   type GraphProps,
   type RenderElement,
-  type LinkToGraphOptions,
+  type ToLinkAttributesOptions,
   type FlatLinkData,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -81,7 +81,7 @@ const links: Record<string, CustomLink> = {
 };
 
 const mapDataToLinkAttributes = (
-  options: LinkToGraphOptions<FlatLinkData>
+  options: ToLinkAttributesOptions<FlatLinkData>
 ): dia.Cell.JSON => {
 
   const attributes = options.toAttributes(options.data);

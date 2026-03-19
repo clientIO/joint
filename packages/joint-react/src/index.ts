@@ -68,10 +68,10 @@ export { selectAreElementsMeasured, selectElementSizes } from './selectors';
 
 // Data mapping types
 export type {
-  ElementToGraphOptions,
-  GraphToElementOptions,
+  ToElementAttributesOptions,
+  ToElementDataOptions,
 } from './state/data-mapping/element-mapper';
 export type {
-  LinkToGraphOptions,
-  GraphToLinkOptions,
+  ToLinkAttributesOptions,
+  ToLinkDataOptions,
 } from './state/data-mapping/link-mapper';
