@@ -71,10 +71,23 @@ export function useElementDefaults<T extends FlatElementData = FlatElementData>(
             }
 
             const mergedData = { ...resolved, ...options.data } as T;
-            return defaultMapDataToElementAttributes({
+            const result = defaultMapDataToElementAttributes({
                 id: options.id,
                 data: mergedData,
             });
+
+            // Strip default-provided keys from cell.data so they don't
+            // pollute React state on round-trip (e.g. after element move).
+            if (result.data) {
+                const cellData = result.data as Record<string, unknown>;
+                const userData = options.data as Record<string, unknown>;
+                for (const key of Object.keys(resolved)) {
+                    if (!(key in userData)) {
+                        delete cellData[key];
+                    }
+                }
+            }
+            return result;
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [serialized]

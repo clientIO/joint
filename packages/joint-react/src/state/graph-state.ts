@@ -101,6 +101,7 @@ export interface GraphState<ElementData = FlatElementData, LinkData = FlatLinkDa
   readonly clear: () => void;
   readonly destroy: () => void;
   readonly updateGraph: (options: UpdateGraphOptions) => void;
+  readonly updateMappers: (mappers: GraphMappings<ElementData, LinkData>) => void;
   readonly elementToData: (options: ElementToData<ElementData>) => ElementData;
   readonly linkToData: (options: LinkToData<LinkData>) => LinkData;
   readonly elementToAttributes: (options: ElementToAttributes<ElementData>) => dia.Cell.JSON;
@@ -159,13 +160,18 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   onReset,
   onSizeChange,
   enableBatchUpdates = false,
-  mappers: {
-    mapDataToElementAttributes = defaultMapDataToElementAttributes,
-    mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
-    mapElementAttributesToData = defaultMapElementAttributesToData,
-    mapLinkAttributesToData = defaultMapLinkAttributesToData,
-  },
+  mappers: initialMappers,
 }: Options<ElementData, LinkData>): GraphState<ElementData, LinkData> {
+
+  // Mappers are stored mutably so they can be swapped at runtime
+  // (e.g. when useElementDefaults/useLinkDefaults deps change).
+  const mappers = {
+    mapDataToElementAttributes: initialMappers.mapDataToElementAttributes ?? defaultMapDataToElementAttributes,
+    mapDataToLinkAttributes: initialMappers.mapDataToLinkAttributes ?? defaultMapDataToLinkAttributes,
+    mapElementAttributesToData: initialMappers.mapElementAttributesToData ?? defaultMapElementAttributesToData,
+    mapLinkAttributesToData: initialMappers.mapLinkAttributesToData ?? defaultMapLinkAttributesToData,
+  };
+
   const controller = new mvc.Listener();
   let batchDepth = 0;
   let isSyncedWithReact = true;
@@ -224,7 +230,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     previousData = previousData ?? getPreviousElementData(element);
     const defaultAttributes = resolveCellDefaults(element);
     const id = String(element.id);
-    return mapElementAttributesToData({
+    return mappers.mapElementAttributesToData({
       id,
       attributes: element.attributes,
       defaultAttributes,
@@ -243,7 +249,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
    * @returns The JointJS cell attributes
    */
   function elementToAttributes({ id, data }: ElementToAttributes<ElementData>) {
-    return mapDataToElementAttributes({
+    return mappers.mapDataToElementAttributes({
       id,
       data,
       graph,
@@ -263,7 +269,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     previousData = previousData ?? getPreviousLinkData(link);
     const defaultAttributes = resolveCellDefaults(link);
     const id = String(link.id);
-    return mapLinkAttributesToData({
+    return mappers.mapLinkAttributesToData({
       id,
       attributes: link.attributes,
       defaultAttributes,
@@ -283,7 +289,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
    */
   function linkToAttributes({ id, data }: LinkToAttributes<LinkData>): dia.Cell.JSON {
     const mapperId = id ?? util.uuid();
-    return mapDataToLinkAttributes({
+    return mappers.mapDataToLinkAttributes({
       id: mapperId,
       data,
       graph,
@@ -733,6 +739,40 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       }));
       dataState.setState(() => {
         return { elements: {}, links: {} };
+      });
+    },
+    updateMappers(nextMappers) {
+      let changed = false;
+      if (nextMappers.mapDataToElementAttributes && nextMappers.mapDataToElementAttributes !== mappers.mapDataToElementAttributes) {
+        mappers.mapDataToElementAttributes = nextMappers.mapDataToElementAttributes;
+        changed = true;
+      }
+      if (nextMappers.mapDataToLinkAttributes && nextMappers.mapDataToLinkAttributes !== mappers.mapDataToLinkAttributes) {
+        mappers.mapDataToLinkAttributes = nextMappers.mapDataToLinkAttributes;
+        changed = true;
+      }
+      if (nextMappers.mapElementAttributesToData && nextMappers.mapElementAttributesToData !== mappers.mapElementAttributesToData) {
+        mappers.mapElementAttributesToData = nextMappers.mapElementAttributesToData;
+        changed = true;
+      }
+      if (nextMappers.mapLinkAttributesToData && nextMappers.mapLinkAttributesToData !== mappers.mapLinkAttributesToData) {
+        mappers.mapLinkAttributesToData = nextMappers.mapLinkAttributesToData;
+        changed = true;
+      }
+      if (!changed) return;
+      // Re-map all existing data through updated mappers
+      const { elements, links } = dataState.getSnapshot();
+      const graphElements = Object.entries(elements).map(([id, data]) => ({
+        ...elementToAttributes({ id, data: data as ElementData }),
+        id,
+      }));
+      const graphLinks = Object.entries(links).map(([id, data]) => ({
+        ...linkToAttributes({ id, data: data as LinkData }),
+        id,
+      }));
+      graph.syncCells([...graphElements, ...graphLinks], {
+        remove: true,
+        isUpdateFromReact: true,
       });
     },
     updateGraph({ elements, links, flag }) {

@@ -131,6 +131,37 @@ describe('useElementDefaults', () => {
         expect(otherBody?.fill).toBe('orange');
     });
 
+    // ── Round-trip pollution ────────────────────────────────────────────────
+
+    it('does not pollute cell.data with default-provided keys', () => {
+        const { result } = renderHook(() => useElementDefaults({
+            portStyle: { color: 'red' },
+            ports: { p1: { cx: 0, cy: 0 } },
+        }));
+        const cellJson = callMapper(result.current, {
+            x: 10, y: 20, width: 100, height: 50,
+        });
+        const cellData = cellJson.data as Record<string, unknown>;
+
+        // portStyle and ports came from defaults, not user data — must be stripped
+        expect(cellData).not.toHaveProperty('portStyle');
+        expect(cellData).not.toHaveProperty('ports');
+    });
+
+    it('preserves user-provided keys that overlap with defaults in cell.data', () => {
+        const { result } = renderHook(() => useElementDefaults({
+            portStyle: { color: 'red' },
+        }));
+        const cellJson = callMapper(result.current, {
+            x: 10, y: 20, width: 100, height: 50,
+            portStyle: { color: 'blue' },
+        });
+        const cellData = cellJson.data as Record<string, unknown>;
+
+        // portStyle was in user data — must be preserved
+        expect(cellData).toHaveProperty('portStyle');
+    });
+
     // ── Memoization ────────────────────────────────────────────────────────
 
     it('returns stable reference for static defaults', () => {

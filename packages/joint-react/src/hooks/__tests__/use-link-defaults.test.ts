@@ -165,6 +165,39 @@ describe('useLinkDefaults', () => {
         expect(cellData).not.toHaveProperty('width');
     });
 
+    it('does not pollute cell.data with default-provided keys', () => {
+        const { result } = renderHook(() => useLinkDefaults({
+            color: 'red',
+            width: 3,
+            labelStyle: { color: '#fff', fontSize: 11 },
+        }));
+        const cellJson = callMapper(result.current);
+        const cellData = cellJson.data as Record<string, unknown>;
+
+        // These came from defaults, not user data — must be stripped
+        expect(cellData).not.toHaveProperty('color');
+        expect(cellData).not.toHaveProperty('width');
+        expect(cellData).not.toHaveProperty('labelStyle');
+    });
+
+    it('preserves user-provided keys that overlap with defaults in cell.data', () => {
+        const { result } = renderHook(() => useLinkDefaults({
+            color: 'red',
+            width: 3,
+        }));
+        const cellJson = callMapper(result.current, {
+            source: 'a',
+            target: 'b',
+            color: 'blue',
+        });
+        const cellData = cellJson.data as Record<string, unknown>;
+
+        // color was in user data — must be preserved
+        expect(cellData).toHaveProperty('color');
+        // width was only in defaults — must be stripped
+        expect(cellData).not.toHaveProperty('width');
+    });
+
     // ── Memoization ────────────────────────────────────────────────────────
 
     it('returns stable reference for static defaults', () => {
