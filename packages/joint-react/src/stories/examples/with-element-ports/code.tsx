@@ -8,6 +8,7 @@ import {
   Paper,
   useGraph,
   useElements,
+  type ElementToGraphOptions,
   type FlatElementData,
   type FlatElementPort,
   type FlatLinkData,
@@ -16,15 +17,64 @@ import {
 import { useCallback } from 'react';
 
 const SECONDARY = '#6366f1';
-const TRIANGLE = 'M -8 -8 L 8 0 L -8 8 Z';
-const ROUNDED_RECT = V.rectToPath({ x: -8, y: -8, width: 16, height: 16, rx: 4, ry: 4 });
+
+// Custom path shapes — computed from width/height so they scale with port size.
+function trianglePath(w: number, h: number) {
+  const hw = w / 2;
+  const hh = h / 2;
+  return `M ${-hw} ${-hh} L ${hw} 0 L ${-hw} ${hh} Z`;
+}
+
+function roundedRectPath(w: number, h: number) {
+  return V.rectToPath({ x: -w / 2, y: -h / 2, width: w, height: h, rx: Math.min(w, h) / 4, ry: Math.min(w, h) / 4 });
+}
 
 const SHAPE_OPTIONS = [
   { value: 'ellipse', label: 'Ellipse' },
   { value: 'rect', label: 'Rectangle' },
-  { value: TRIANGLE, label: 'Triangle' },
-  { value: ROUNDED_RECT, label: 'Rounded Rect' },
+  { value: 'triangle', label: 'Triangle' },
+  { value: 'rounded-rect', label: 'Rounded Rect' },
 ] as const;
+
+/** Resolve custom shape names to SVG paths based on port size. */
+function resolveShape(shape: string, w: number, h: number): string {
+  if (shape === 'triangle') return trianglePath(w, h);
+  if (shape === 'rounded-rect') return roundedRectPath(w, h);
+  return shape;
+}
+
+/**
+ * Custom mapper that resolves named custom shapes (`triangle`, `rounded-rect`)
+ * into SVG path strings sized to each port's width/height, then delegates
+ * to the default mapper via `toAttributes`.
+ */
+function mapDataToElementAttributes(options: ElementToGraphOptions<PortElementData>) {
+  const { data } = options;
+  const { ports, portStyle } = data;
+  if (!ports) return options.toAttributes(data);
+
+  const defaultW = portStyle?.width ?? 10;
+  const defaultH = portStyle?.height ?? 10;
+
+  const resolvedPorts: Record<string, FlatElementPort> = {};
+  for (const [id, port] of Object.entries(ports)) {
+    const { shape } = port;
+    if (shape && shape !== 'ellipse' && shape !== 'rect') {
+      const w = port.width ?? defaultW;
+      const h = port.height ?? defaultH;
+      resolvedPorts[id] = { ...port, shape: resolveShape(shape, w, h) };
+    } else {
+      resolvedPorts[id] = port;
+    }
+  }
+
+  const result = options.toAttributes({ ...data, ports: resolvedPorts });
+
+  // Keep original shape names in cell.data so they survive round-trips.
+  // The resolved SVG paths are already baked into the JointJS port config.
+  (result.data as Record<string, unknown>).ports = ports;
+  return result;
+}
 
 const LABEL_POSITION_OPTIONS = [
   'outside',
@@ -54,26 +104,19 @@ const initialElements: Record<string, PortElementData> = {
     y: 100,
     width: 140,
     height: 80,
+    portStyle: { width: 16, height: 16, color: SECONDARY, labelColor: LIGHT },
     ports: {
       'out-1': {
         cx: 'calc(w)',
         cy: 'calc(0.33 * h)',
-        width: 16,
-        height: 16,
-        color: SECONDARY,
         label: 'Out 1',
-        labelColor: LIGHT,
-        shape: ROUNDED_RECT,
+        shape: 'rounded-rect',
         labelOffsetY: -15,
       },
       'out-2': {
         cx: 'calc(w)',
         cy: 'calc(0.66 * h)',
-        width: 16,
-        height: 16,
-        color: SECONDARY,
         label: 'Out 2',
-        labelColor: LIGHT,
         labelOffsetX: 10,
         labelOffsetY: 15,
       },
@@ -86,27 +129,20 @@ const initialElements: Record<string, PortElementData> = {
     y: 100,
     width: 140,
     height: 80,
+    portStyle: { width: 16, height: 16, color: PRIMARY, labelColor: LIGHT },
     ports: {
       'in-1': {
         cx: 0,
         cy: 'calc(0.33 * h)',
-        color: PRIMARY,
-        width: 16,
-        height: 16,
         shape: 'rect',
         label: 'In 1',
-        labelColor: LIGHT,
         labelOffsetY: -15,
       },
       'in-2': {
         cx: 0,
         cy: 'calc(0.66 * h)',
-        width: 16,
-        height: 16,
-        color: PRIMARY,
-        shape: TRIANGLE,
+        shape: 'triangle',
         label: 'In 2',
-        labelColor: LIGHT,
         labelOffsetY: 15,
       },
     },
@@ -460,7 +496,11 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider elements={initialElements} links={initialLinks}>
+    <GraphProvider
+      elements={initialElements}
+      links={initialLinks}
+      mapDataToElementAttributes={mapDataToElementAttributes}
+    >
       <Main />
     </GraphProvider>
   );
