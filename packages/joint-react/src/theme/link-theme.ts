@@ -28,4 +28,30 @@ export const defaultLinkTheme = {
   labelPosition: 0.5,
 } as const;
 
-export type LinkTheme = typeof defaultLinkTheme;
+/**
+ * Widened type for link theme overrides.
+ * Matches the shape of `defaultLinkTheme` but with non-literal types
+ * so that users can pass arbitrary values (e.g. any color string).
+ */
+export interface LinkTheme {
+  readonly color: string;
+  readonly width: number;
+  readonly sourceMarker: LinkMarkerPreset;
+  readonly targetMarker: LinkMarkerPreset;
+  readonly wrapperBuffer: number;
+  readonly wrapperColor: string;
+  readonly wrapperClassName: string;
+  readonly className: string;
+  readonly pattern: string;
+  readonly lineCap: '' | 'butt' | 'round' | 'square';
+  readonly lineJoin: '' | 'miter' | 'round' | 'bevel';
+  readonly labelColor: string;
+  readonly labelFontSize: number;
+  readonly labelFontFamily: string;
+  readonly labelBackgroundColor: string;
+  readonly labelBackgroundStroke: string;
+  readonly labelBackgroundStrokeWidth: number;
+  readonly labelBackgroundBorderRadius: number;
+  readonly labelBackgroundPadding: { readonly x: number; readonly y: number };
+  readonly labelPosition: number;
+}

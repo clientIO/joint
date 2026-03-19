@@ -31,6 +31,9 @@ export type { OnTransformElement, TransformOptions } from './store/create-elemen
 export { useElementsLayout, useLinksLayout } from './hooks/use-stores';
 export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
+// Hooks — Theme
+export { useThemeLinkMapper } from './hooks/use-theme-link-mapper';
+
 // Hooks — Events
 export { usePaperEvents } from './hooks/use-paper-events';
 export { useGraphEvents } from './hooks/use-graph-events';
@@ -53,6 +56,8 @@ export type { IncrementalStateChanges, IncrementalStateChange } from './state/in
 
 // Theme
 export type { LinkMarkerPreset, LinkMarker } from './theme/markers';
+export type { LinkTheme } from './theme/link-theme';
+export { defaultLinkTheme } from './theme/link-theme';
 
 // Models
 export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
