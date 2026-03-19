@@ -161,21 +161,24 @@ export function defaultMapDataToLinkAttributes<Link = FlatLinkData>(
     );
   }
 
-  // Presentation props + one-way props + user data stored for round-trip (graph → React)
+  // Only persist presentation props that were explicitly provided (not theme-defaulted)
+  const presentationData: Record<string, unknown> = {};
+  if (data.color !== undefined) presentationData.color = data.color;
+  if (data.width !== undefined) presentationData.width = data.width;
+  if (data.sourceMarker !== undefined) presentationData.sourceMarker = data.sourceMarker;
+  if (data.targetMarker !== undefined) presentationData.targetMarker = data.targetMarker;
+  if (data.className !== undefined) presentationData.className = data.className;
+  if (data.pattern !== undefined) presentationData.pattern = data.pattern;
+  if (data.lineCap !== undefined) presentationData.lineCap = data.lineCap;
+  if (data.lineJoin !== undefined) presentationData.lineJoin = data.lineJoin;
+  if (data.wrapperBuffer !== undefined) presentationData.wrapperBuffer = data.wrapperBuffer;
+  if (data.wrapperColor !== undefined) presentationData.wrapperColor = data.wrapperColor;
+  if (data.wrapperClassName !== undefined) presentationData.wrapperClassName = data.wrapperClassName;
+
   attributes.data = {
     ...userData,
     labels,
-    color,
-    width,
-    sourceMarker,
-    targetMarker,
-    className,
-    pattern,
-    lineCap,
-    lineJoin,
-    wrapperBuffer,
-    wrapperColor,
-    wrapperClassName,
+    ...presentationData,
   };
 
   return attributes;

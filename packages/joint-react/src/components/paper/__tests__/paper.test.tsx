@@ -1150,9 +1150,10 @@ describe('Paper Component', () => {
       });
 
       const [createdLinkData] = Object.values(getLinksSnapshot());
-      expect(createdLinkData.color).toBe('#333333');
-      expect(createdLinkData.width).toBe(2);
-      expect(createdLinkData.targetMarker).toBe('none');
+      // Theme-defaulted values should NOT appear in user data
+      expect(createdLinkData.color).toBeUndefined();
+      expect(createdLinkData.width).toBeUndefined();
+      expect(createdLinkData.targetMarker).toBeUndefined();
     });
 
     it('supports defaultLink as a dia.Link instance when dragging between ports', async () => {

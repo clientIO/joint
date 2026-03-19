@@ -208,9 +208,9 @@ describe('dataMapper', () => {
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.attrs?.line?.stroke).toBe('#333333');
       expect(cellJson.attrs?.line?.strokeWidth).toBe(2);
-      // Default theme values stored in data
-      expect(cellJson.data?.color).toBe('#333333');
-      expect(cellJson.data?.width).toBe(2);
+      // Theme-defaulted values should NOT be stored in data
+      expect(cellJson.data?.color).toBeUndefined();
+      expect(cellJson.data?.width).toBeUndefined();
     });
 
     it('should apply custom theme props', () => {
@@ -236,7 +236,8 @@ describe('dataMapper', () => {
 
       const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.data?.weight).toBe(5);
-      expect(cellJson.data?.color).toBe('#333333');
+      // Theme-defaulted values should NOT be stored in data
+      expect(cellJson.data?.color).toBeUndefined();
     });
 
     it('should include all cell.data properties regardless of previousData', () => {

@@ -1573,20 +1573,10 @@ describe('graph-state-selectors', () => {
 
       const result = defaultMapDataToLinkAttributes(createLinkToGraphOptions(id, data, graph));
 
-      // Theme properties are now stored in data for sync purposes
+      // Only user-provided data is stored; theme defaults are not persisted
       expect(result.data).toEqual({
         weight: 5,
-        color: '#333333',
-        width: 2,
-        sourceMarker: 'none',
-        targetMarker: 'none',
-        className: '',
-        pattern: '',
-        lineCap: '',
-        lineJoin: '',
-        wrapperBuffer: 8,
-        wrapperColor: 'transparent',
-        wrapperClassName: '',
+        labels: undefined,
       });
       expect(result.source).toEqual({ id: 'node1' });
       expect(result.target).toEqual({ id: 'node2' });
@@ -1610,20 +1600,10 @@ describe('graph-state-selectors', () => {
       const result = customSelector(createLinkToGraphOptions(id, data, graph));
 
       expect(result.attrs).toEqual({ line: { stroke: 'blue', strokeWidth: 2 } });
-      // Theme properties are now stored in data for sync purposes
+      // Only user-provided data is stored; theme defaults are not persisted
       expect(result.data).toEqual({
         weight: 5,
-        color: '#333333',
-        width: 2,
-        sourceMarker: 'none',
-        targetMarker: 'none',
-        className: '',
-        pattern: '',
-        lineCap: '',
-        lineJoin: '',
-        wrapperBuffer: 8,
-        wrapperColor: 'transparent',
-        wrapperClassName: '',
+        labels: undefined,
       });
     });
   });

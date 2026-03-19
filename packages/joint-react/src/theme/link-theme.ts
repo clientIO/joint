@@ -1,8 +1,5 @@
 import type { LinkMarkerPreset } from './markers';
 
-// Re-export markers for backward compatibility (public API)
-export { markerPresets as defaultMarkers, resolveMarker, type LinkMarkerPreset as MarkerPreset } from './markers';
-
 /**
  * Default link theme with all properties filled.
  * No fallbacks needed in the default link mapper.
@@ -23,7 +20,7 @@ export const defaultLinkTheme = {
   labelColor: '#333333',
   labelFontSize: 12,
   labelFontFamily: 'sans-serif',
-  labelBackgroundColor: 'var(--jj-color-bg)',
+  labelBackgroundColor: '#ffffff',
   labelBackgroundStroke: '#333333',
   labelBackgroundStrokeWidth: 1,
   labelBackgroundBorderRadius: 4,
