@@ -9,7 +9,7 @@ import {
     type FlatLinkData,
     type RenderElement,
 } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
 
 interface NodeData extends FlatElementData {
     label: string;
@@ -67,10 +67,19 @@ function Diagram() {
     const [useSecondaryColor, setUseSecondaryColor] = useState(false);
     const color = useSecondaryColor ? SECONDARY : PRIMARY;
 
-    const { mapDataToElementAttributes } = useElementDefaults<NodeData>((data) => ({
-        portStyle: { color, width: 12, height: 12, stroke: LIGHT, strokeWidth: 1 },
+    const { mapDataToElementAttributes } = useElementDefaults<NodeData>(
+      (data) => ({
+        portStyle: {
+            color,
+            width: 12,
+            height: 12,
+            stroke: BG,
+            strokeWidth: 2
+        },
         ports: portsByKind[data.kind] ?? defaultPorts,
-    }), [color]);
+      }),
+      [color]
+    );
 
     const { mapDataToLinkAttributes } = useLinkDefaults({
         color,
