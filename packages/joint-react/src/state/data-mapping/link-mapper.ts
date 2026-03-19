@@ -59,7 +59,7 @@ function isLinkData(data: unknown): data is FlatLinkData {
  * @param options - The link id and data to convert
  * @returns The JointJS cell JSON attributes
  */
-export function defaultMapDataToLinkAttributes<Link = FlatLinkData>(
+export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
   options: Pick<LinkToGraphOptions<Link>, 'id' | 'data'>
 ): dia.Cell.JSON {
   const { id, data } = options;
@@ -200,7 +200,7 @@ export function defaultMapDataToLinkAttributes<Link = FlatLinkData>(
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat link data
  */
-export function defaultMapLinkAttributesToData<Link = FlatLinkData>(
+export function flatMapLinkAttributesToData<Link = FlatLinkData>(
   options: Pick<GraphToLinkOptions<Link>, 'attributes' | 'defaultAttributes'>
 ): Link {
   const { attributes, defaultAttributes } = options;

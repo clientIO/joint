@@ -66,15 +66,7 @@ export { PortalPaper } from './models/portal-paper';
 // Selectors (public)
 export { selectAreElementsMeasured, selectElementSizes } from './selectors';
 
-// Data mapping (public defaults)
-export {
-  defaultMapDataToElementAttributes,
-  defaultMapElementAttributesToData,
-} from './state/data-mapping/element-mapper';
-export {
-  defaultMapDataToLinkAttributes,
-  defaultMapLinkAttributesToData,
-} from './state/data-mapping/link-mapper';
+// Data mapping types
 export type {
   ElementToGraphOptions,
   GraphToElementOptions,

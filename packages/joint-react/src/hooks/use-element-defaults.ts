@@ -1,5 +1,5 @@
 import { type DependencyList, useMemo, useCallback, useRef } from 'react';
-import { defaultMapDataToElementAttributes } from '../state/data-mapping/element-mapper';
+import { flatMapDataToElementAttributes } from '../state/data-mapping/element-mapper';
 import type { GraphMappings } from '../state/data-mapping';
 import type { FlatElementData } from '../types/element-types';
 import type { ElementToGraphOptions } from '../state/data-mapping/element-mapper';
@@ -64,14 +64,14 @@ export function useElementDefaults<T extends FlatElementData = FlatElementData>(
                 : current;
 
             if (!resolved) {
-                return defaultMapDataToElementAttributes({
+                return flatMapDataToElementAttributes({
                     id: options.id,
                     data: options.data,
                 });
             }
 
             const mergedData = { ...resolved, ...options.data } as T;
-            const result = defaultMapDataToElementAttributes({
+            const result = flatMapDataToElementAttributes({
                 id: options.id,
                 data: mergedData,
             });

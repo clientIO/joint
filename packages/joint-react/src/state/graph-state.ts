@@ -35,10 +35,10 @@ import type { FlatElementData } from '../types/element-types';
 import type { FlatLinkData } from '../types/link-types';
 import { resolveCellDefaults } from './data-mapping/resolve-cell-defaults';
 import {
-  defaultMapDataToElementAttributes,
-  defaultMapElementAttributesToData,
-  defaultMapDataToLinkAttributes,
-  defaultMapLinkAttributesToData,
+  flatMapDataToElementAttributes,
+  flatMapElementAttributesToData,
+  flatMapDataToLinkAttributes,
+  flatMapLinkAttributesToData,
   type GraphMappings,
 } from './data-mapping';
 import { createState, type ExternalStoreLike } from '../utils/create-state';
@@ -166,10 +166,10 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
   // Mappers are stored mutably so they can be swapped at runtime
   // (e.g. when useElementDefaults/useLinkDefaults deps change).
   const mappers = {
-    mapDataToElementAttributes: initialMappers.mapDataToElementAttributes ?? defaultMapDataToElementAttributes,
-    mapDataToLinkAttributes: initialMappers.mapDataToLinkAttributes ?? defaultMapDataToLinkAttributes,
-    mapElementAttributesToData: initialMappers.mapElementAttributesToData ?? defaultMapElementAttributesToData,
-    mapLinkAttributesToData: initialMappers.mapLinkAttributesToData ?? defaultMapLinkAttributesToData,
+    mapDataToElementAttributes: initialMappers.mapDataToElementAttributes ?? flatMapDataToElementAttributes,
+    mapDataToLinkAttributes: initialMappers.mapDataToLinkAttributes ?? flatMapDataToLinkAttributes,
+    mapElementAttributesToData: initialMappers.mapElementAttributesToData ?? flatMapElementAttributesToData,
+    mapLinkAttributesToData: initialMappers.mapLinkAttributesToData ?? flatMapLinkAttributesToData,
   };
 
   const controller = new mvc.Listener();
@@ -238,7 +238,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       graph,
       previousData,
       toData: (attributes) =>
-        defaultMapElementAttributesToData({ attributes, defaultAttributes }) as ElementData,
+        flatMapElementAttributesToData({ attributes, defaultAttributes }) as ElementData,
     });
   }
   /**
@@ -254,7 +254,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       data,
       graph,
       toAttributes: (newData) =>
-        defaultMapDataToElementAttributes({ id, data: newData as FlatElementData }),
+        flatMapDataToElementAttributes({ id, data: newData as FlatElementData }),
     });
   }
 
@@ -277,7 +277,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       graph,
       previousData,
       toData: (attributes) =>
-        defaultMapLinkAttributesToData({ attributes, defaultAttributes }) as LinkData,
+        flatMapLinkAttributesToData({ attributes, defaultAttributes }) as LinkData,
     });
   }
   /**
@@ -294,7 +294,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       data,
       graph,
       toAttributes: (newData) =>
-        defaultMapDataToLinkAttributes({ id: mapperId, data: newData as FlatLinkData }),
+        flatMapDataToLinkAttributes({ id: mapperId, data: newData as FlatLinkData }),
     });
   }
 

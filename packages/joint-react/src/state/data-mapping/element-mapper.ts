@@ -49,7 +49,7 @@ function isElementData(data: unknown): data is FlatElementData {
  * @param options - The element id and data to convert
  * @returns The JointJS cell JSON attributes
  */
-export function defaultMapDataToElementAttributes<Element = FlatElementData>(
+export function flatMapDataToElementAttributes<Element = FlatElementData>(
   options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'>
 ): dia.Cell.JSON {
   const { id, data } = options;
@@ -128,7 +128,7 @@ export function defaultMapDataToElementAttributes<Element = FlatElementData>(
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat element data
  */
-export function defaultMapElementAttributesToData<Element = FlatElementData>(
+export function flatMapElementAttributesToData<Element = FlatElementData>(
   options: Pick<GraphToElementOptions<Element>, 'attributes' | 'defaultAttributes'>
 ): Element {
   const { attributes, defaultAttributes } = options;

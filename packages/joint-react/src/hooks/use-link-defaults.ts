@@ -1,5 +1,5 @@
 import { type DependencyList, useMemo, useCallback, useRef } from 'react';
-import { defaultMapDataToLinkAttributes } from '../state/data-mapping/link-mapper';
+import { flatMapDataToLinkAttributes } from '../state/data-mapping/link-mapper';
 import type { GraphMappings } from '../state/data-mapping';
 import type { FlatLinkData } from '../types/link-types';
 import type { LinkToGraphOptions } from '../state/data-mapping/link-mapper';
@@ -65,14 +65,14 @@ export function useLinkDefaults<T extends FlatLinkData = FlatLinkData>(
                 : current;
 
             if (!resolved) {
-                return defaultMapDataToLinkAttributes({
+                return flatMapDataToLinkAttributes({
                     id: options.id,
                     data: options.data,
                 });
             }
 
             const mergedData = { ...resolved, ...options.data } as T;
-            const result = defaultMapDataToLinkAttributes({
+            const result = flatMapDataToLinkAttributes({
                 id: options.id,
                 data: mergedData,
             });
