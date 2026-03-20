@@ -143,7 +143,7 @@ function Diagram() {
     }, []);
 
     return (
-        <div ref={wrapperRef}>
+        <div ref={wrapperRef} className="tw-theme">
             <fieldset className="mb-3 flex gap-1 rounded-lg border border-slate-200 p-1 w-fit">
                 {themes.map((t) => (
                     <label

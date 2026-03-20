@@ -1,5 +1,5 @@
 /* Light mode — JointJS brand palette (matches flowchart demo) */
-:root {
+.css-theme {
   --joint-link-color: #ed2637;
   --joint-link-width: 2;
   --joint-label-color: #131e29;

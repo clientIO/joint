@@ -40,6 +40,7 @@
 
   :where(.joint-link-wrapper) {
     stroke: var(--joint-link-wrapper-color, transparent);
+    stroke-width: var(--joint-link-wrapper-width, 0);
   }
 
   /* ── Labels ────────────────────────────────────────────────────────────── */
@@ -70,7 +71,7 @@
 
   /* ── Paper ─────────────────────────────────────────────────────────────── */
 
-  :where(.joint-paper-background) {
+  :where(.joint-paper) {
     background-color: var(--joint-paper-bg, transparent);
   }
 }

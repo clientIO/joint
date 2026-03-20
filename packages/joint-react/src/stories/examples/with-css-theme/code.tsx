@@ -95,7 +95,7 @@ function Diagram() {
     }, []);
 
     return (
-        <div ref={wrapperRef}>
+        <div ref={wrapperRef} className="css-theme">
             <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
                 <button
                     type="button"

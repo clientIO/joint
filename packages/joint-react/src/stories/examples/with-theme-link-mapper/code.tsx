@@ -3,6 +3,7 @@ import {
     GraphProvider,
     Paper,
     useElementDefaults,
+    useElementLayout,
     useLinkDefaults,
     type FlatElementData,
     type FlatElementPort,
@@ -47,17 +48,28 @@ const portsByKind: Record<string, Record<string, FlatElementPort>> = {
 const defaultPorts: Record<string, FlatElementPort> = { in: inPort, out: outPort };
 
 function Node({ label, color }: Readonly<{ label: string; color: string }>) {
+    const { width, height } = useElementLayout();
     return (
-        <rect
-            width="100"
-            height="40"
-            rx="6"
-            fill="#1e293b"
-            stroke={color}
-            strokeWidth="2"
-        >
-            <title>{label}</title>
-        </rect>
+        <>
+            <rect
+                width={width}
+                height={height}
+                rx="6"
+                fill="#1e293b"
+                stroke={color}
+                strokeWidth="2"
+            />
+            <text
+                x={width / 2}
+                y={height / 2}
+                fill={color}
+                fontSize={14}
+                fontFamily="monospace"
+                textAnchor="middle"
+                dominantBaseline="middle"
+            >{label}
+            </text>
+        </>
     );
 }
 

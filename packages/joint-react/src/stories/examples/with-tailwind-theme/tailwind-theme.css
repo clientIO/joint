@@ -11,10 +11,9 @@
 
 /* ── Slate (default) ───────────────────────────────────────────────────── */
 
-:root {
+.tw-theme {
   --joint-link-color: var(--color-slate-400);
   --joint-link-width: 2;
-  --joint-link-wrapper-color: transparent;
 
   --joint-label-color: var(--color-slate-700);
   --joint-label-font-family: var(--font-sans);
