@@ -15,6 +15,7 @@ import {
   flatMapLinkAttributesToData,
 } from '../data-mapping';
 import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
+import { defaultLinkStyle } from '../../theme/link-theme';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement, PortalLink };
 
@@ -206,8 +207,8 @@ describe('dataMapper', () => {
       const data: FlatLinkData = { source: 'a', target: 'b' };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      expect(cellJson.attrs?.line?.stroke).toBe('#333333');
-      expect(cellJson.attrs?.line?.strokeWidth).toBe(2);
+      expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
       // Theme-defaulted values should NOT be stored in data
       expect(cellJson.data?.color).toBeUndefined();
       expect(cellJson.data?.width).toBeUndefined();
@@ -224,8 +225,8 @@ describe('dataMapper', () => {
       };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      expect(cellJson.attrs?.line?.stroke).toBe('red');
-      expect(cellJson.attrs?.line?.strokeWidth).toBe(4);
+      expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(4);
       expect(cellJson.attrs?.line?.strokeDasharray).toBe('5 5');
     });
 

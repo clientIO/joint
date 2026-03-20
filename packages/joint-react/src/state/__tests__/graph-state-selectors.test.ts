@@ -451,7 +451,7 @@ describe('graph-state-selectors', () => {
       const linkAsGraphJson = flatMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson.attrs).toBeDefined();
-      expect(linkAsGraphJson.attrs?.line?.stroke).toBe('red');
+      expect(linkAsGraphJson.attrs?.line?.style?.stroke).toBe('red');
     });
 
     it('should explicitly set targetMarker to null in line attrs when set to none', () => {

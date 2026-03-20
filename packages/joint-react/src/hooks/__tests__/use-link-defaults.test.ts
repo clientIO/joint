@@ -28,8 +28,8 @@ describe('useLinkDefaults', () => {
         const { result } = renderHook(() => useLinkDefaults());
         const cellJson = callMapper(result.current);
 
-        expect(cellJson.attrs?.line?.stroke).toBe(defaultLinkStyle.color);
-        expect(cellJson.attrs?.line?.strokeWidth).toBe(defaultLinkStyle.width);
+        expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
+        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
     });
 
     // ── Static defaults ─────────────────────────────────────────────────
@@ -38,8 +38,8 @@ describe('useLinkDefaults', () => {
         const { result } = renderHook(() => useLinkDefaults({ color: 'red' }));
         const cellJson = callMapper(result.current);
 
-        expect(cellJson.attrs?.line?.stroke).toBe('red');
-        expect(cellJson.attrs?.line?.strokeWidth).toBe(defaultLinkStyle.width);
+        expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
+        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
     });
 
     it('applies full line style override', () => {
@@ -59,8 +59,8 @@ describe('useLinkDefaults', () => {
         const { result } = renderHook(() => useLinkDefaults(fullOverride));
         const cellJson = callMapper(result.current);
 
-        expect(cellJson.attrs?.line?.stroke).toBe('#00ff00');
-        expect(cellJson.attrs?.line?.strokeWidth).toBe(5);
+        expect(cellJson.attrs?.line?.style?.stroke).toBe('#00ff00');
+        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(5);
         expect(cellJson.attrs?.line?.strokeDasharray).toBe('5,5');
         expect(cellJson.attrs?.line?.strokeLinecap).toBe('round');
         expect(cellJson.attrs?.line?.strokeLinejoin).toBe('bevel');
@@ -74,8 +74,8 @@ describe('useLinkDefaults', () => {
             color: 'blue',
         });
 
-        expect(cellJson.attrs?.line?.stroke).toBe('blue');
-        expect(cellJson.attrs?.line?.strokeWidth).toBe(5);
+        expect(cellJson.attrs?.line?.style?.stroke).toBe('blue');
+        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(5);
     });
 
     // ── labelStyle ──────────────────────────────────────────────────────
@@ -101,9 +101,9 @@ describe('useLinkDefaults', () => {
         const label = (cellJson.labels as Array<Record<string, unknown>>)?.[0];
         expect(label).toBeDefined();
         const labelText = (label?.attrs as Record<string, Record<string, unknown>>)?.labelText;
-        expect(labelText?.fill).toBe('#ff0000');
-        expect(labelText?.fontSize).toBe(20);
-        expect(labelText?.fontFamily).toBe('monospace');
+        expect(labelText?.style?.fill).toBe('#ff0000');
+        expect(labelText?.style?.fontSize).toBe(20);
+        expect(labelText?.style?.fontFamily).toBe('monospace');
     });
 
     it('individual label properties override labelStyle', () => {
@@ -122,8 +122,8 @@ describe('useLinkDefaults', () => {
 
         const label = (cellJson.labels as Array<Record<string, unknown>>)?.[0];
         const labelText = (label?.attrs as Record<string, Record<string, unknown>>)?.labelText;
-        expect(labelText?.fill).toBe('green');
-        expect(labelText?.fontSize).toBe(20);
+        expect(labelText?.style?.fill).toBe('green');
+        expect(labelText?.style?.fontSize).toBe(20);
     });
 
     it('labels use internal defaults when no labelStyle given', () => {
@@ -136,8 +136,8 @@ describe('useLinkDefaults', () => {
 
         const label = (cellJson.labels as Array<Record<string, unknown>>)?.[0];
         const labelText = (label?.attrs as Record<string, Record<string, unknown>>)?.labelText;
-        expect(labelText?.fill).toBe(defaultLabelStyle.color);
-        expect(labelText?.fontSize).toBe(defaultLabelStyle.fontSize);
+        expect(labelText?.style?.fill).toBe(defaultLabelStyle.color);
+        expect(labelText?.style?.fontSize).toBe(defaultLabelStyle.fontSize);
     });
 
     // ── Callback defaults ──────────────────────────────────────────────────
@@ -148,10 +148,10 @@ describe('useLinkDefaults', () => {
         })));
 
         const fromA = callMapper(result.current, { source: 'a', target: 'b' });
-        expect(fromA.attrs?.line?.stroke).toBe('red');
+        expect(fromA.attrs?.line?.style?.stroke).toBe('red');
 
         const fromX = callMapper(result.current, { source: 'x', target: 'b' });
-        expect(fromX.attrs?.line?.stroke).toBe('blue');
+        expect(fromX.attrs?.line?.style?.stroke).toBe('blue');
     });
 
     // ── Does not pollute cell.data ──────────────────────────────────────

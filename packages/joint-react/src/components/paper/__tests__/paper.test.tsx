@@ -1142,8 +1142,8 @@ describe('Paper Component', () => {
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
       expect(createdLink).toBeInstanceOf(PortalLink);
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
-      expect(createdLink.attr(['line', 'stroke'])).toBe('#333333');
-      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(2);
+      expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('');
+      expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe('');
 
       await waitFor(() => {
         expect(Object.keys(getLinksSnapshot())).toHaveLength(1);
@@ -1233,9 +1233,9 @@ describe('Paper Component', () => {
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
       expect(createdLink).toBeInstanceOf(PortalLink);
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
-      expect(createdLink.attr(['line', 'stroke'])).toBe('#ff5500');
-      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(7);
-      expect(createdLink.attr(['line', 'class'])).toBe('custom-default-link');
+      expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('#ff5500');
+      expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe(7);
+      expect(createdLink.attr(['line', 'class'])).toBe('joint-link-line custom-default-link');
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
           color: '#ff5500',
@@ -1279,8 +1279,8 @@ describe('Paper Component', () => {
       expect(defaultLinkCallback).toHaveBeenCalledTimes(1);
       expect(createdLink).toBeInstanceOf(PortalLink);
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
-      expect(createdLink.attr(['line', 'stroke'])).toBe('#22aa55');
-      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(4);
+      expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('#22aa55');
+      expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe(4);
       expect(createdLink.attr(['wrapper', 'strokeWidth'])).toBe(20);
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({

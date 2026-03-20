@@ -46,8 +46,8 @@ describe('useElementDefaults', () => {
 
         const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
         const portBody = (portItem?.attrs as Record<string, Record<string, unknown>>)?.portBody;
-        expect(portBody?.fill).toBe('red');
-        expect(portBody?.strokeWidth).toBe(defaultPortStyle.strokeWidth);
+        expect(portBody?.style?.fill).toBe('red');
+        expect(portBody?.style?.strokeWidth).toBe(defaultPortStyle.strokeWidth);
     });
 
     // ── Static data defaults ───────────────────────────────────────────────
@@ -94,7 +94,7 @@ describe('useElementDefaults', () => {
         expect(cellJson.size).toEqual({ width: 120, height: 60 });
         const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
         const portBody = (portItem?.attrs as Record<string, Record<string, unknown>>)?.portBody;
-        expect(portBody?.fill).toBe('blue');
+        expect(portBody?.style?.fill).toBe('blue');
         expect(portItem?.size).toEqual({ width: 16, height: defaultPortStyle.height });
     });
 
@@ -121,14 +121,14 @@ describe('useElementDefaults', () => {
         const startPorts = (startJson.ports as { items: Array<Record<string, unknown>> })?.items;
         expect(startPorts).toHaveLength(1);
         const startBody = (startPorts[0]?.attrs as Record<string, Record<string, unknown>>)?.portBody;
-        expect(startBody?.fill).toBe('green');
+        expect(startBody?.style?.fill).toBe('green');
 
         // Other element — 2 ports, orange
         const otherJson = callMapper(result.current, { ...minimalElementData, kind: 'process' });
         const otherPorts = (otherJson.ports as { items: Array<Record<string, unknown>> })?.items;
         expect(otherPorts).toHaveLength(2);
         const otherBody = (otherPorts[0]?.attrs as Record<string, Record<string, unknown>>)?.portBody;
-        expect(otherBody?.fill).toBe('orange');
+        expect(otherBody?.style?.fill).toBe('orange');
     });
 
     // ── Round-trip pollution ────────────────────────────────────────────────
