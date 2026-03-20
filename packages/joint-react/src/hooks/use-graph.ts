@@ -91,6 +91,8 @@ export function useGraph(): UseGraphResult {
 
         const mergedData: FlatElementData = { ...ELEMENT_DEFAULTS, ...existing, ...attributes };
 
+        graphStore.graphState.updateAutoSizedElement(String(id), mergedData);
+
         const cellAttributes = graphStore.graphState.elementToAttributes({ id: String(id), data: mergedData });
         cellAttributes.id = id;
         graphStore.graph.syncCells([cellAttributes], { remove: false });

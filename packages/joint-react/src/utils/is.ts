@@ -39,3 +39,23 @@ export function isUpdater<T>(updater: ((previous: T) => T) | T): updater is (pre
 export function isRef<T>(value: unknown): value is React.RefObject<T> {
   return isRecord(value) && 'current' in value;
 }
+
+/**
+ * Returns `true` when both `width` and `height` are defined numbers in the given data.
+ * When `false`, the element is considered auto-sized (size determined by `useMeasureNode`).
+ * @param data - The element data record to check for width and height
+ * @returns Whether both width and height are defined numbers
+ */
+export function hasDefinedSize(data: Record<string, unknown>): boolean {
+  return isNumber(data.width) && isNumber(data.height);
+}
+
+export function hasProperty<T extends Record<string, unknown>>(
+  object?: T,
+  property?: string
+): object is T {
+  if (!object || !property) {
+    return false;
+  }
+  return property in object;
+}

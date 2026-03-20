@@ -32,6 +32,7 @@ import type {
 } from './state.types';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
 import type { FlatElementData } from '../types/element-types';
+import { hasDefinedSize } from '../utils/is';
 import type { FlatLinkData } from '../types/link-types';
 import { resolveCellDefaults } from './data-mapping/resolve-cell-defaults';
 import {
@@ -101,6 +102,8 @@ export interface GraphState<ElementData = FlatElementData, LinkData = FlatLinkDa
   readonly clear: () => void;
   readonly destroy: () => void;
   readonly updateGraph: (options: UpdateGraphOptions) => void;
+  /** Updates the auto-sized status of a single element by ID. */
+  readonly updateAutoSizedElement: (id: string, data: Record<string, unknown>) => void;
   readonly elementToData: (options: ElementToData<ElementData>) => ElementData;
   readonly linkToData: (options: LinkToData<LinkData>) => LinkData;
   readonly elementToAttributes: (options: ElementToAttributes<ElementData>) => dia.Cell.JSON;
@@ -186,6 +189,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
         count: 0,
         measuredObservedElements: 0,
         observedElements: 0,
+        autoSizedElementIds: new Set(),
       },
       links: {},
     }),
@@ -490,6 +494,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
             count: mutableElements.count,
             observedElements: mutableElements.observedElements,
             measuredObservedElements: mutableElements.measuredObservedElements,
+            autoSizedElementIds: previous.elements.autoSizedElementIds,
           }
         : previous.elements;
 
@@ -714,6 +719,31 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
     linkToAttributes,
     dataState,
     layoutState,
+    /**
+     * Updates the auto-sized status of a single element by ID.
+     * Call this when `setElement` changes an element's width/height.
+     * @param id - The cell ID to update
+     * @param data - The element data to check for auto-sizing
+     */
+    updateAutoSizedElement(id: string, data: Record<string, unknown>) {
+      const isAutoSized = !hasDefinedSize(data);
+      layoutState.setState((state) => {
+        const previous = state.elements.autoSizedElementIds;
+        const hasId = previous.has(id);
+        // No change needed — skip state update to preserve reference equality
+        if (isAutoSized === hasId) return state;
+        const next = new Set(previous);
+        if (isAutoSized) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
+        return {
+          ...state,
+          elements: { ...state.elements, autoSizedElementIds: next },
+        };
+      });
+    },
     clear() {
       changes.clear();
     },
@@ -728,6 +758,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
           count: 0,
           measuredObservedElements: 0,
           observedElements: 0,
+          autoSizedElementIds: new Set(),
         },
         links: {},
       }));
@@ -742,10 +773,16 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
         isSyncedWithReact = true;
         return;
       }
-      const graphElements = Object.entries(elements).map(([id, data]) => ({
-        ...elementToAttributes({ id, data: data as ElementData }),
-        id,
-      }));
+      const autoSizedElementIds = new Set<string>();
+      const graphElements = Object.entries(elements).map(([id, data]) => {
+        if (!hasDefinedSize(data)) {
+          autoSizedElementIds.add(id);
+        }
+        return {
+          ...elementToAttributes({ id, data: data as ElementData }),
+          id,
+        };
+      });
       const graphLinks = Object.entries(links).map(([id, data]) => ({
         ...linkToAttributes({ id, data: data as LinkData }),
         id,
@@ -764,10 +801,12 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       });
 
       const layout = getLayout({ graph, papers });
+
       layoutState.setState((previous) => ({
         ...layout,
         elements: {
           ...layout.elements,
+          autoSizedElementIds,
           observedElements: previous.elements.observedElements,
           measuredObservedElements: previous.elements.measuredObservedElements,
         },

@@ -131,8 +131,8 @@
     "use-sync-external-store": "^1.6.0"
   },
   "peerDependencies": {
-    "react": ">=18 <20",
-    "react-dom": ">=18 <20"
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "volta": {
     "node": "22.14.0",

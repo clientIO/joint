@@ -6,17 +6,18 @@ import type {
 
 // ── Element layout selectors ────────────────────────────────────────────────
 
-export const selectAreElementsMeasured = (snapshot: ElementsLayoutState): boolean =>
-  snapshot.count > 0 &&
-  (snapshot.observedElements === 0 ||
-    snapshot.observedElements === snapshot.measuredObservedElements);
+export const selectAreElementsMeasured = (state: ElementsLayoutState): boolean => {
+  if (state.autoSizedElementIds.size > 0) {
+    return state.observedElements > 0 && state.observedElements === state.measuredObservedElements;
+  }
+  return state.count > 0;
+};
 
-export const selectElementSizes = (snapshot: ElementsLayoutState) => snapshot.sizes;
+export const selectElementSizes = (state: ElementsLayoutState) => state.sizes;
 
 // ── Internal selectors ──────────────────────────────────────────────────────
 
-export const selectResetVersion = (snapshot: GraphStoreInternalSnapshot): number =>
-  snapshot.resetVersion;
+export const selectResetVersion = (state: GraphStoreInternalSnapshot): number => state.resetVersion;
 
 /**
  * Creates a selector for the version of a specific paper.
@@ -30,5 +31,5 @@ export function createSelectPaperVersion(id: string) {
  * Selects the graph features version from the internal snapshot.
  * Used to trigger re-renders when graph-level features change.
  */
-export const selectGraphFeaturesVersion = (snapshot: GraphStoreInternalSnapshot): number =>
-  snapshot.graphFeaturesVersion;
+export const selectGraphFeaturesVersion = (state: GraphStoreInternalSnapshot): number =>
+  state.graphFeaturesVersion;

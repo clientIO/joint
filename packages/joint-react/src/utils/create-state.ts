@@ -30,7 +30,13 @@ export interface ExternalStoreLike<T> {
  * Used to ensure store snapshots are immutable.
  */
 export type MarkDeepReadOnly<T> = {
-  readonly [K in keyof T]: T[K] extends object ? MarkDeepReadOnly<T[K]> : T[K];
+  readonly [K in keyof T]: T[K] extends ReadonlySet<infer U>
+    ? ReadonlySet<U>
+    : T[K] extends ReadonlyMap<infer K2, infer V>
+      ? ReadonlyMap<K2, V>
+      : T[K] extends object
+        ? MarkDeepReadOnly<T[K]>
+        : T[K];
 };
 
 /**
@@ -66,39 +72,15 @@ export function getValue<T>(previous: T, updater: Update<T>): T {
  */
 export interface State<T> extends ExternalStoreLike<T> {
   /**
-   * Creates a derived state by selecting a portion of the current state.
-   * The derived state will automatically update when the selected portion changes.
-   * @template S - The type of the selected state
-   * @param name - Name for the derived state (used for debugging)
-   * @param selector - Function that extracts the desired portion from the state
-   * @param isSelectorEqual - Optional equality function to prevent unnecessary updates
-   * @returns A new State instance for the selected portion
-   */
-  select: <S>(
-    name: string,
-    selector: (state: T) => S,
-    isSelectorEqual: (a: S, b: S) => boolean
-  ) => State<S>;
-  /**
    * Cleans up all subscriptions and resets the state to its initial value.
    */
   clean: () => void;
-  /**
-   * Returns whether components have been notified of the last state change.
-   * Used internally for debugging and optimization.
-   */
-  getAreComponentsNotified: () => boolean;
+
   /**
    * Updates the state with a new value or updater function.
    * Subscribers will be notified if the state actually changed.
    */
   setState: (updater: Update<T>) => void;
-  /**
-   * Updates the state with a new value or updater function wrapped in startTransition.
-   * Use this for non-urgent updates that can be deferred to keep the UI responsive.
-   * Subscribers will be notified if the state actually changed.
-   */
-  setStateTransition: (updater: Update<T>) => void;
 }
 /**
  * Options for creating a new state instance.
@@ -133,7 +115,6 @@ export function createState<T>(options: Options<T>): State<T> {
   };
 
   const subscribers = new Set<() => void>();
-  let areComponentsNotified = false;
   if (isDevToolEnabled) {
     sendToDevTool({ name, type: 'set', value: stateRef.current });
   }
@@ -145,7 +126,6 @@ export function createState<T>(options: Options<T>): State<T> {
     for (const subscriber of subscribers) {
       subscriber();
     }
-    areComponentsNotified = true;
   };
 
   const state = {
@@ -157,45 +137,18 @@ export function createState<T>(options: Options<T>): State<T> {
       };
     },
 
-    getSnapshot: (): MarkDeepReadOnly<T> => stateRef.current,
+    getSnapshot: (): MarkDeepReadOnly<T> => stateRef.current as MarkDeepReadOnly<T>,
 
     setState: (updater: Update<T>) => {
-      areComponentsNotified = false;
-      const updatedState = isUpdater(updater) ? updater(stateRef.current) : updater;
-      // fast compare if the state has changed
-      if (isEqual(updatedState, stateRef.current)) {
-        return;
-      }
-      stateRef.current = updatedState;
-      simpleScheduler(notifySubscribers);
-    },
-
-    setStateTransition: (updater: Update<T>) => {
       startTransition(() => {
-        state.setState(updater);
+        const updatedState = isUpdater(updater) ? updater(stateRef.current) : updater;
+        // fast compare if the state has changed
+        if (isEqual(updatedState, stateRef.current)) {
+          return;
+        }
+        stateRef.current = updatedState;
+        simpleScheduler(notifySubscribers);
       });
-    },
-
-    select: <S>(
-      selectName: string,
-      selector: (state: T) => S,
-      isSelectorEqual: (a: S, b: S) => boolean = (a, b) => a === b
-    ) => {
-      const selectorState = createState({
-        newState: () => selector(stateRef.current),
-        isEqual: isSelectorEqual,
-        name: `${name}/select/${selectName}`,
-      });
-      const unsubscribe = state.subscribe(() => {
-        const selected = selector(stateRef.current);
-        return selectorState.setState(selected);
-      });
-      const clean = () => {
-        unsubscribe();
-        selectorState.clean();
-      };
-      selectorState.clean = clean;
-      return selectorState;
     },
 
     reset: () => {
@@ -206,8 +159,6 @@ export function createState<T>(options: Options<T>): State<T> {
       subscribers.clear();
       stateRef.current = newState();
     },
-
-    getAreComponentsNotified: () => areComponentsNotified,
   };
   return state;
 }

@@ -792,4 +792,378 @@ describe('graphState', () => {
       listener.destroy();
     });
   });
+
+  describe('autoSizedElementIds', () => {
+    it('should track elements with undefined width as auto-sized via updateGraph', () => {
+      const { listener } = createListener();
+
+      listener.updateGraph({
+        elements: {
+          'el-1': { x: 0, y: 0 },
+          'el-2': { x: 10, y: 10, width: 100, height: 50 },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+
+      const { autoSizedElementIds } = listener.layoutState.getSnapshot().elements;
+      expect(autoSizedElementIds.has('el-1')).toBe(true);
+      expect(autoSizedElementIds.has('el-2')).toBe(false);
+
+      listener.destroy();
+    });
+
+    it('should track elements with undefined height as auto-sized via updateGraph', () => {
+      const { listener } = createListener();
+
+      listener.updateGraph({
+        elements: {
+          'el-1': { x: 0, y: 0, width: 100 },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+
+      const { autoSizedElementIds } = listener.layoutState.getSnapshot().elements;
+      expect(autoSizedElementIds.has('el-1')).toBe(true);
+
+      listener.destroy();
+    });
+
+    it('should remove element from auto-sized when user provides explicit size', () => {
+      const { listener } = createListener();
+
+      // First: no size → auto-sized
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(listener.layoutState.getSnapshot().elements.autoSizedElementIds.has('el-1')).toBe(
+        true
+      );
+
+      // Second: explicit size → not auto-sized
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, width: 200, height: 100 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(listener.layoutState.getSnapshot().elements.autoSizedElementIds.has('el-1')).toBe(
+        false
+      );
+
+      listener.destroy();
+    });
+
+    it('should update auto-sized status via updateAutoSizedElement', () => {
+      const { listener } = createListener();
+
+      // Initially not in the set
+      expect(listener.layoutState.getSnapshot().elements.autoSizedElementIds.has('el-1')).toBe(
+        false
+      );
+
+      // Set as auto-sized (no width)
+      listener.updateAutoSizedElement('el-1', { x: 0, y: 0 });
+      expect(listener.layoutState.getSnapshot().elements.autoSizedElementIds.has('el-1')).toBe(
+        true
+      );
+
+      // Set back to explicit size
+      listener.updateAutoSizedElement('el-1', { x: 0, y: 0, width: 100, height: 50 });
+      expect(listener.layoutState.getSnapshot().elements.autoSizedElementIds.has('el-1')).toBe(
+        false
+      );
+
+      listener.destroy();
+    });
+
+    it('should preserve reference when updateAutoSizedElement has no change', () => {
+      const { listener } = createListener();
+
+      const before = listener.layoutState.getSnapshot();
+
+      // Element is not auto-sized, setting explicit size should be a no-op
+      listener.updateAutoSizedElement('el-1', { x: 0, y: 0, width: 100, height: 50 });
+
+      const after = listener.layoutState.getSnapshot();
+      expect(after).toBe(before);
+
+      listener.destroy();
+    });
+
+    it('should handle mixed auto-sized and explicit elements', () => {
+      const { listener } = createListener();
+
+      listener.updateGraph({
+        elements: {
+          'el-1': { x: 0, y: 0 },
+          'el-2': { x: 10, y: 10, width: 100, height: 50 },
+          'el-3': { x: 20, y: 20, width: 200 },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+
+      const { autoSizedElementIds } = listener.layoutState.getSnapshot().elements;
+      expect(autoSizedElementIds.has('el-1')).toBe(true);
+      expect(autoSizedElementIds.has('el-2')).toBe(false);
+      expect(autoSizedElementIds.has('el-3')).toBe(true);
+      expect(autoSizedElementIds.size).toBe(2);
+
+      listener.destroy();
+    });
+
+    it('should transition from defined → undefined (user removes size in controlled mode)', () => {
+      const { listener } = createListener();
+
+      // User starts with explicit size
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, width: 100, height: 50 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(listener.layoutState.getSnapshot().elements.autoSizedElementIds.has('el-1')).toBe(
+        false
+      );
+
+      // User sets width to undefined via controlled state update
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, height: 50 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(listener.layoutState.getSnapshot().elements.autoSizedElementIds.has('el-1')).toBe(
+        true
+      );
+
+      listener.destroy();
+    });
+
+    it('should transition from undefined → defined (user sets size in controlled mode)', () => {
+      const { listener } = createListener();
+
+      // User starts without size
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(listener.layoutState.getSnapshot().elements.autoSizedElementIds.has('el-1')).toBe(
+        true
+      );
+
+      // User provides explicit size
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, width: 200, height: 100 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(listener.layoutState.getSnapshot().elements.autoSizedElementIds.has('el-1')).toBe(
+        false
+      );
+
+      listener.destroy();
+    });
+
+    it('should handle rapid toggling between auto-sized and explicit', () => {
+      const { listener } = createListener();
+      const getAutoSized = () =>
+        listener.layoutState.getSnapshot().elements.autoSizedElementIds;
+
+      // Start auto-sized
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(true);
+
+      // Switch to explicit
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, width: 100, height: 50 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(false);
+
+      // Switch back to auto-sized
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(true);
+
+      // And back to explicit again
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, width: 300, height: 200 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(false);
+
+      listener.destroy();
+    });
+
+    it('should handle updateAutoSizedElement toggling from defined → undefined → defined', () => {
+      const { listener } = createListener();
+      const getAutoSized = () =>
+        listener.layoutState.getSnapshot().elements.autoSizedElementIds;
+
+      // Start explicit
+      listener.updateAutoSizedElement('el-1', { width: 100, height: 50 });
+      expect(getAutoSized().has('el-1')).toBe(false);
+
+      // setElement sets width to undefined
+      listener.updateAutoSizedElement('el-1', { height: 50 });
+      expect(getAutoSized().has('el-1')).toBe(true);
+
+      // setElement restores width
+      listener.updateAutoSizedElement('el-1', { width: 200, height: 50 });
+      expect(getAutoSized().has('el-1')).toBe(false);
+
+      listener.destroy();
+    });
+
+    it('should track multiple elements independently during state changes', () => {
+      const { listener } = createListener();
+      const getAutoSized = () =>
+        listener.layoutState.getSnapshot().elements.autoSizedElementIds;
+
+      // Both start auto-sized
+      listener.updateGraph({
+        elements: {
+          'el-1': { x: 0, y: 0 },
+          'el-2': { x: 10, y: 10 },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(true);
+      expect(getAutoSized().has('el-2')).toBe(true);
+      expect(getAutoSized().size).toBe(2);
+
+      // User sets size for el-1 only
+      listener.updateGraph({
+        elements: {
+          'el-1': { x: 0, y: 0, width: 100, height: 50 },
+          'el-2': { x: 10, y: 10 },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(false);
+      expect(getAutoSized().has('el-2')).toBe(true);
+      expect(getAutoSized().size).toBe(1);
+
+      // User removes size for el-1, sets size for el-2
+      listener.updateGraph({
+        elements: {
+          'el-1': { x: 0, y: 0 },
+          'el-2': { x: 10, y: 10, width: 200, height: 100 },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(true);
+      expect(getAutoSized().has('el-2')).toBe(false);
+      expect(getAutoSized().size).toBe(1);
+
+      listener.destroy();
+    });
+
+    it('should handle element removal from the graph', () => {
+      const { listener } = createListener();
+      const getAutoSized = () =>
+        listener.layoutState.getSnapshot().elements.autoSizedElementIds;
+
+      // Two auto-sized elements
+      listener.updateGraph({
+        elements: {
+          'el-1': { x: 0, y: 0 },
+          'el-2': { x: 10, y: 10 },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().size).toBe(2);
+
+      // User removes el-2 from controlled state
+      listener.updateGraph({
+        elements: {
+          'el-1': { x: 0, y: 0 },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(true);
+      expect(getAutoSized().has('el-2')).toBe(false);
+      expect(getAutoSized().size).toBe(1);
+
+      listener.destroy();
+    });
+
+    it('should handle adding new auto-sized element to existing explicit elements', () => {
+      const { listener } = createListener();
+      const getAutoSized = () =>
+        listener.layoutState.getSnapshot().elements.autoSizedElementIds;
+
+      // Start with explicit element
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, width: 100, height: 50 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().size).toBe(0);
+
+      // Add new auto-sized element
+      listener.updateGraph({
+        elements: {
+          'el-1': { x: 0, y: 0, width: 100, height: 50 },
+          'el-2': { x: 10, y: 10 },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(false);
+      expect(getAutoSized().has('el-2')).toBe(true);
+      expect(getAutoSized().size).toBe(1);
+
+      listener.destroy();
+    });
+
+    it('should handle only height undefined as auto-sized then switching to both defined', () => {
+      const { listener } = createListener();
+      const getAutoSized = () =>
+        listener.layoutState.getSnapshot().elements.autoSizedElementIds;
+
+      // Only height undefined
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, width: 100 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(true);
+
+      // User provides height
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, width: 100, height: 50 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(false);
+
+      // User removes only width
+      listener.updateGraph({
+        elements: { 'el-1': { x: 0, y: 0, height: 50 } },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      expect(getAutoSized().has('el-1')).toBe(true);
+
+      listener.destroy();
+    });
+  });
 });

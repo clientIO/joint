@@ -141,6 +141,7 @@ export function useCreatePortalPaper(
 
   const elementsState = useElements();
   const linksState = useLinks();
+
   const graphStore = useGraphStore();
   const areElementsMeasured = useElementsLayout(selectAreElementsMeasured);
   const resetVersion = useInternalData(selectResetVersion);
@@ -314,12 +315,28 @@ export function useCreatePortalPaper(
     }
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
 
-  const { elements, areElementsReady } = useMemo(() => {
-    if (!hasRenderElement) {
-      return { elements: null, areElementsReady: true };
+  useEffect(() => {
+    if (!paper) return;
+    if (!areElementsMeasured) return;
+    let isInitial = false;
+    if (resetVersion !== previousResetVersionRef.current) {
+      isInitial = true;
+      previousResetVersionRef.current = resetVersion;
     }
-    let elemntsCount = 0;
-    const elements = deferredElementIds.map((elementId) => {
+    const event: ElementsMeasuredEvent = {
+      paper,
+      graph: paper.model,
+      isInitial,
+    };
+    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
+    // we must have here sizes, as its called each time reference of size changes.
+  }, [areElementsMeasured, sizes, paper, resetVersion, graphStore]);
+
+  const elements = useMemo(() => {
+    if (!hasRenderElement) {
+      return null;
+    }
+    return deferredElementIds.map((elementId) => {
       const elementState = deferredElementsState[elementId];
       if (!elementState) {
         return null;
@@ -335,7 +352,7 @@ export function useCreatePortalPaper(
       if (!portalNode?.isConnected) {
         return null;
       }
-      elemntsCount++;
+
       return (
         <CellIdContext.Provider key={elementId} value={elementId}>
           {useHTMLOverlay && HTMLRendererContainer ? (
@@ -367,7 +384,6 @@ export function useCreatePortalPaper(
         </CellIdContext.Provider>
       );
     });
-    return { elements, areElementsReady: elemntsCount === deferredElementIds.length };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     version,
@@ -380,27 +396,6 @@ export function useCreatePortalPaper(
     renderElement,
     useHTMLOverlay,
   ]);
-  useLayoutEffect(() => {
-    if (!areElementsReady) return;
-    if (!paper) return;
-    if (!areElementsMeasured) return;
-    const { layoutState } = graphStore;
-    const { elements } = layoutState.getSnapshot();
-    const areElementsMeasured2 = selectAreElementsMeasured(elements);
-    if (!areElementsMeasured2) return;
-    let isInitial = false;
-    if (resetVersion !== previousResetVersionRef.current) {
-      isInitial = true;
-      previousResetVersionRef.current = resetVersion;
-    }
-    const event: ElementsMeasuredEvent = {
-      paper,
-      graph: paper.model,
-      isInitial,
-    };
-    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-    // we must have here sizes, as its called each time reference of size changes.
-  }, [areElementsMeasured, areElementsReady, sizes, paper, resetVersion, graphStore]);
 
   const renderedLinks = useMemo(() => {
     if (!hasRenderLink || !renderLink) {

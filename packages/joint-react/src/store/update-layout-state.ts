@@ -110,7 +110,15 @@ export function getLayout(options: UpdateLayoutStateOptions): GraphLayoutState {
   }
 
   return {
-    elements: { sizes, positions, angles, count, observedElements: 0, measuredObservedElements: 0 },
+    elements: {
+      sizes,
+      positions,
+      angles,
+      count,
+      observedElements: 0,
+      measuredObservedElements: 0,
+      autoSizedElementIds: new Set(),
+    },
     links: linkLayoutsPerPaper,
   };
 }

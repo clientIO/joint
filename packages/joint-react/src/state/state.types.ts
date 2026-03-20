@@ -75,6 +75,8 @@ export interface ElementsLayoutState {
   /** Number of elements whose width and height are both > 1 (considered measured). */
   readonly observedElements: number;
   readonly measuredObservedElements: number;
+  /** IDs of elements whose width or height was not provided by the user (auto-sized). */
+  readonly autoSizedElementIds: ReadonlySet<CellId>;
 }
 
 /**

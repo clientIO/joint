@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 import { useLayoutEffect, type RefObject } from 'react';
 import { useElementId } from './use-element-id';
 import { useGraphStore } from './use-graph-store';
