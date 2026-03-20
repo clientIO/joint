@@ -63,7 +63,6 @@ const initialLinks: Record<string, FlatLinkData> = {
         source: 'c', sourcePort: 'out',
         target: 'd', targetPort: 'in',
         color: '#e11d48',
-        width: 3,
     },
 };
 
@@ -110,9 +109,14 @@ function Diagram() {
 
     const elementDefaults = useElementDefaults({
         portStyle: {
-            width: 20,
-            height: 20,
-            className: 'hover:fill-blue-500 forest:hover:fill-lime-300 ocean:hover:fill-cyan-200 sunset:hover:fill-orange-400 cursor-crosshair',
+            width: 15,
+            height: 15,
+            className: `
+                cursor-crosshair hover:fill-blue-500
+                forest:hover:fill-lime-300
+                ocean:hover:fill-cyan-200
+                sunset:hover:fill-orange-400
+            `,
         },
     });
 

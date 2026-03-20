@@ -24,6 +24,7 @@
   --joint-port-color: var(--color-slate-400);
   --joint-port-hover-color: var(--color-blue-500);
   --joint-port-stroke: var(--color-white);
+  --joint-port-stroke-width: 2;
   --joint-port-label-color: var(--color-slate-500);
 
   --node-fill: var(--color-slate-50);
