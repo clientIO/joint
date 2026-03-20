@@ -53,7 +53,7 @@ function isLinkData(data: unknown): data is FlatLinkData {
  * - **→ Presentation** — converted to `attrs.line` / `attrs.wrapper`,
  *   then stored in `cell.data` for round-trip preservation
  *   (`color`, `width`, `sourceMarker`, `targetMarker`, `className`, `pattern`,
- *    `lineCap`, `lineJoin`, `wrapperBuffer`, `wrapperColor`, `wrapperClassName`)
+ *    `lineCap`, `lineJoin`, `wrapperWidth`, `wrapperColor`, `wrapperClassName`)
  *
  * Any remaining properties are treated as user data and stored in `cell.data`.
  * @param options - The link id and data to convert
@@ -100,7 +100,7 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
     pattern = defaultLinkStyle.pattern,
     lineCap = defaultLinkStyle.lineCap,
     lineJoin = defaultLinkStyle.lineJoin,
-    wrapperBuffer = defaultLinkStyle.wrapperBuffer,
+    wrapperWidth = defaultLinkStyle.wrapperWidth,
     wrapperColor = defaultLinkStyle.wrapperColor,
     wrapperClassName = defaultLinkStyle.wrapperClassName,
 
@@ -136,7 +136,7 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
       pattern,
       lineCap,
       lineJoin,
-      wrapperWidth: typeof width === 'number' ? wrapperBuffer + width : wrapperBuffer,
+      wrapperWidth,
       wrapperColor,
       wrapperClassName,
     }),
@@ -167,7 +167,7 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
   if (data.pattern !== undefined) presentationData.pattern = data.pattern;
   if (data.lineCap !== undefined) presentationData.lineCap = data.lineCap;
   if (data.lineJoin !== undefined) presentationData.lineJoin = data.lineJoin;
-  if (data.wrapperBuffer !== undefined) presentationData.wrapperBuffer = data.wrapperBuffer;
+  if (data.wrapperWidth !== undefined) presentationData.wrapperWidth = data.wrapperWidth;
   if (data.wrapperColor !== undefined) presentationData.wrapperColor = data.wrapperColor;
   if (data.wrapperClassName !== undefined) presentationData.wrapperClassName = data.wrapperClassName;
 

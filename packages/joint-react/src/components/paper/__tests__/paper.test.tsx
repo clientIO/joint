@@ -1263,7 +1263,7 @@ describe('Paper Component', () => {
         (_cellView: dia.CellView, _magnet: SVGElement): Partial<FlatLinkData> => ({
           color: '#22aa55',
           width: 4,
-          wrapperBuffer: 16,
+          wrapperWidth: 16,
           customProperty: 'callback-flat-link-default',
         })
       );
@@ -1281,10 +1281,10 @@ describe('Paper Component', () => {
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
       expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('#22aa55');
       expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe(4);
-      expect(createdLink.attr(['wrapper', 'strokeWidth'])).toBe(20);
+      expect(createdLink.attr(['wrapper', 'strokeWidth'])).toBe(16);
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
-          wrapperBuffer: 16,
+          wrapperWidth: 16,
           customProperty: 'callback-flat-link-default',
         })
       );
@@ -1296,7 +1296,7 @@ describe('Paper Component', () => {
       const [createdLinkData] = Object.values(getLinksSnapshot());
       expect(createdLinkData.color).toBe('#22aa55');
       expect(createdLinkData.width).toBe(4);
-      expect(createdLinkData.wrapperBuffer).toBe(16);
+      expect(createdLinkData.wrapperWidth).toBe(16);
       expect(createdLinkData.customProperty).toBe('callback-flat-link-default');
     });
   });

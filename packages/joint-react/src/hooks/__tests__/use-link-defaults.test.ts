@@ -52,7 +52,7 @@ describe('useLinkDefaults', () => {
             pattern: '5,5',
             lineCap: 'round',
             lineJoin: 'bevel',
-            wrapperBuffer: 12,
+            wrapperWidth: 12,
             wrapperColor: 'blue',
             wrapperClassName: 'my-wrapper',
         };

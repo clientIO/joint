@@ -181,10 +181,11 @@ const initialElements: Record<string, ShapeElement> = {
 const linkAppearance = {
   width: 4,
   wrapperColor: '#000000',
-  wrapperBuffer: 4,
+  wrapperWidth: 8,
   lineCap: 'butt' as const,
   targetMarker: {
     d: 'M 10 -2 10 -10 -3 0 10 10 10 2',
+    fill: 'context-stroke',
     stroke: '#000000',
     strokeWidth: 2,
   },

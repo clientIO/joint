@@ -193,9 +193,10 @@ export interface FlatLinkData extends Record<string, unknown> {
    */
   readonly width?: number | string;
   /**
-   * Buffer in pixels added to the link's hit area for easier interaction.
+   * Stroke width of the link wrapper (hit area) in pixels.
+   * @default 10
    */
-  readonly wrapperBuffer?: number;
+  readonly wrapperWidth?: number;
   /**
    * Stroke color of the link wrapper (outline).
    * Set to a visible color to create a double-line effect.

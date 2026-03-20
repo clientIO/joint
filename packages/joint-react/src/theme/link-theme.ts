@@ -10,7 +10,7 @@ export const defaultLinkStyle = {
   width: '' as number | string,
   sourceMarker: 'none' as LinkMarkerName,
   targetMarker: 'none' as LinkMarkerName,
-  wrapperBuffer: 8,
+  wrapperWidth: 10,
   wrapperColor: 'transparent',
   wrapperClassName: '',
   className: '',
