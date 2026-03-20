@@ -30,7 +30,7 @@
 
   /* ── Links ─────────────────────────────────────────────────────────────── */
 
-  :where([joint-selector='line']) {
+  :where(.joint-link-line) {
     stroke: var(--joint-link-color, #333333);
     stroke-width: var(--joint-link-width, 2);
     stroke-dasharray: var(--joint-link-dash);
@@ -38,7 +38,7 @@
     stroke-linejoin: var(--joint-link-line-join);
   }
 
-  :where([joint-selector='wrapper']) {
+  :where(.joint-link-wrapper) {
     stroke: var(--joint-link-wrapper-color, transparent);
   }
 

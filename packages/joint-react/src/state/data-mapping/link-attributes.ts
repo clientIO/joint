@@ -150,9 +150,7 @@ export function buildLinkPresentationAttributes(
   lineAttributes.targetMarker =
     targetMarker === 'none' ? null : resolveMarker(targetMarker);
 
-  if (className) {
-    lineAttributes.class = className;
-  }
+  lineAttributes.class = `joint-link-line ${className}`.trim();
   if (pattern) {
     lineAttributes.strokeDasharray = pattern;
   }
@@ -171,7 +169,7 @@ export function buildLinkPresentationAttributes(
       connection: true,
       strokeWidth: wrapperWidth,
       stroke: wrapperColor,
-      ...(wrapperClassName ? { class: wrapperClassName } : {}),
+      class: `joint-link-wrapper ${wrapperClassName}`.trim(),
       ...strokeAttributes,
     },
   };

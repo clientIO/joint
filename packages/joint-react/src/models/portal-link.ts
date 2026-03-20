@@ -49,7 +49,6 @@ export class PortalLink<Attributes = dia.Link.Attributes> extends dia.Link<
     {
       tagName: 'path',
       selector: 'wrapper',
-      className: 'joint-link-wrapper',
       attributes: {
         fill: 'none',
         cursor: 'pointer',
@@ -61,7 +60,6 @@ export class PortalLink<Attributes = dia.Link.Attributes> extends dia.Link<
     {
       tagName: 'path',
       selector: 'line',
-      className: 'joint-link-line',
       attributes: {
         fill: 'none',
         pointerEvents: 'none',
