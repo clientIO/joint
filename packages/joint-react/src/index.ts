@@ -56,7 +56,7 @@ export type { PaperEventMap } from './types/event.types';
 export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
 
 // Theme
-export type { LinkMarkerPreset, LinkMarker } from './theme/markers';
+export type { LinkMarkerName, LinkMarker } from './theme/markers';
 
 // Models
 export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';

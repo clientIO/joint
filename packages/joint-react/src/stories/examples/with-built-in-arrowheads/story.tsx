@@ -11,7 +11,7 @@ export default {
   parameters: {
     docs: {
       description: {
-        story: 'Grid of links showing all built-in marker presets (source and target).',
+        story: 'Grid of links showing all built-in marker shapes (source and target).',
       },
       source: {
         code: RawCode,

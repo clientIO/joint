@@ -1,4 +1,4 @@
-import type { LinkMarkerPreset } from './markers';
+import type { LinkMarkerName } from './markers';
 
 /**
  * Internal fallback values for link line properties not set by data or defaults.
@@ -6,8 +6,8 @@ import type { LinkMarkerPreset } from './markers';
 export const defaultLinkStyle = {
   color: '#333333',
   width: 2,
-  sourceMarker: 'none' as LinkMarkerPreset,
-  targetMarker: 'none' as LinkMarkerPreset,
+  sourceMarker: 'none' as LinkMarkerName,
+  targetMarker: 'none' as LinkMarkerName,
   wrapperBuffer: 8,
   wrapperColor: 'transparent',
   wrapperClassName: '',

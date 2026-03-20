@@ -18,7 +18,7 @@ import {
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
   // PortalLinkView,
-  // type MarkerPreset,
+  // type LinkMarkerName,
 } from '@joint/react';
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 
@@ -120,15 +120,15 @@ const links: Record<string, LinkData> = {
     target: '2',
     width: 4,
     color: 'orange',
-    // targetMarker: 'arrow' as MarkerPreset,
+    // targetMarker: 'arrow' as LinkMarkerName,
     className: 'dashed-link',
   },
   link2: {
     source: '3',
     target: '4',
     color: 'green',
-    // sourceMarker: 'circle' as MarkerPreset,
-    // targetMarker: 'cross' as MarkerPreset,
+    // sourceMarker: 'circle' as LinkMarkerName,
+    // targetMarker: 'cross' as LinkMarkerName,
   },
   link3: {
     source: '2',

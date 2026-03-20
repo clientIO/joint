@@ -3,9 +3,9 @@ import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 import { isString } from '../utils/is';
 
 /**
- * Built-in marker presets for links.
+ * Built-in marker shapes for links.
  */
-export const markerPresets = {
+export const linkMarkerShapes = {
   'none': null,
   'arrow': jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-stroke" stroke-width="2" />),
   'arrow-open': jsx(<path d="M 10 4 L 0 0 L 10 -4" fill="none" stroke-width="2" />),
@@ -16,14 +16,14 @@ export const markerPresets = {
   'cross': jsx(<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke-width="2" />),
 } as const satisfies Record<string, dia.SVGMarkerJSON | null>;
 
-export type LinkMarkerPreset = keyof typeof markerPresets;
+export type LinkMarkerName = keyof typeof linkMarkerShapes;
 
 /**
- * Resolves a marker preset name or custom marker to a MarkerJSON.
- * @param marker - Marker preset name, custom marker, or null
+ * Resolves a marker name or custom marker to a MarkerJSON.
+ * @param marker - Marker name, custom marker, or null
  * @returns The resolved marker JSON or null
  */
-export type LinkMarker = LinkMarkerPreset | dia.SVGMarkerJSON | dia.MarkupJSON;
+export type LinkMarker = LinkMarkerName | dia.SVGMarkerJSON | dia.MarkupJSON;
 
 /**
  * Resolves a LinkMarker to a dia.SVGMarkerJSON or null.
@@ -35,7 +35,7 @@ export function resolveMarker(
 ): dia.SVGMarkerJSON | null {
   if (marker === undefined || marker === 'none') return null;
   if (isString(marker)) {
-    const markerDefinition = markerPresets[marker as keyof typeof markerPresets];
+    const markerDefinition = linkMarkerShapes[marker as keyof typeof linkMarkerShapes];
     if (!markerDefinition) return null;
     if (Array.isArray(markerDefinition)) {
       return { markup: markerDefinition };

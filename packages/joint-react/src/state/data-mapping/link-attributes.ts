@@ -121,7 +121,7 @@ interface LinkPresentationOptions {
  * Builds the full `attrs` object for a link cell, containing
  * `line` and `wrapper` selectors.
  *
- * Resolves marker presets, dash patterns, and class names into
+ * Resolves marker names, dash patterns, and class names into
  * flat SVG attribute objects for the line, and computes wrapper
  * hit-area attributes.
  * @param options - Theme-driven styling options for line and wrapper

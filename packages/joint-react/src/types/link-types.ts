@@ -206,7 +206,7 @@ export interface FlatLinkData extends Record<string, unknown> {
    */
   readonly wrapperClassName?: string;
   /**
-   * Source marker preset name, custom marker definition, or JSX markup.
+   * Source marker name, custom marker definition, or JSX markup.
    * Use 'none' for no marker.
    * @example
    * sourceMarker: 'arrow'
@@ -215,7 +215,7 @@ export interface FlatLinkData extends Record<string, unknown> {
    */
   readonly sourceMarker?: LinkMarker;
   /**
-   * Target marker preset name, custom marker definition, or JSX markup.
+   * Target marker name, custom marker definition, or JSX markup.
    * Use 'none' for no marker.
    * @example
    * targetMarker: 'arrow'
