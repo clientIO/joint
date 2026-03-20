@@ -23,12 +23,12 @@ export const defaultLinkStyle = {
  * Internal fallback values for label properties not set by labelStyle or individual labels.
  */
 export const defaultLabelStyle = {
-  color: '#333333',
-  fontSize: 12,
-  fontFamily: 'sans-serif',
-  backgroundColor: '#ffffff',
-  backgroundStroke: '#333333',
-  backgroundStrokeWidth: 1,
+  color: '' as string,
+  fontSize: '' as number | string,
+  fontFamily: '' as string,
+  backgroundColor: '' as string,
+  backgroundStroke: '' as string,
+  backgroundStrokeWidth: '' as number | string,
   backgroundBorderRadius: 4,
   backgroundPadding: { x: 4, y: 2 } as { readonly x: number; readonly y: number },
   position: 0.5,

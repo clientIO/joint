@@ -6,7 +6,7 @@ import RawCode from './code?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
-    title: 'Examples/Theme Mappers',
+    title: 'Examples/Data Defaults',
     component: Code,
     tags: ['example'],
     parameters: {

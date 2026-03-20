@@ -12,18 +12,18 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
 
-interface NodeData extends FlatElementData {
+interface ElementData extends FlatElementData {
     label: string;
-    kind: 'source' | 'process' | 'sink';
+    type: 'source' | 'process' | 'sink';
 }
 
 // Minimal persisted data — no ports, no styling.
 // Ports and theme are provided by useElementDefaults based on element kind.
-const initialElements: Record<string, NodeData> = {
-    a: { label: 'Start', kind: 'source', x: 50, y: 140, width: 100, height: 40 },
-    b: { label: 'Process', kind: 'process', x: 250, y: 50, width: 100, height: 40 },
-    c: { label: 'Review', kind: 'process', x: 250, y: 230, width: 100, height: 40 },
-    d: { label: 'Done', kind: 'sink', x: 480, y: 140, width: 100, height: 40 },
+const initialElements: Record<string, ElementData> = {
+    a: { label: 'Start', type: 'source', x: 50, y: 140 },
+    b: { label: 'Process', type: 'process', x: 250, y: 50 },
+    c: { label: 'Review', type: 'process', x: 250, y: 230 },
+    d: { label: 'Done', type: 'sink', x: 480, y: 140 },
 };
 
 const initialLinks: Record<string, FlatLinkData> = {
@@ -41,13 +41,13 @@ const initialLinks: Record<string, FlatLinkData> = {
 const outPort: FlatElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
 const inPort: FlatElementPort = { cx: 0, cy: 'calc(0.5*h)' };
 
-const portsByKind: Record<string, Record<string, FlatElementPort>> = {
+const portsByType: Record<string, Record<string, FlatElementPort>> = {
     source: { out: outPort },
     sink: { in: inPort },
 };
 const defaultPorts: Record<string, FlatElementPort> = { in: inPort, out: outPort };
 
-function Node({ label, color }: Readonly<{ label: string; color: string }>) {
+function Element({ label, color }: Readonly<{ label: string; color: string }>) {
     const { width, height } = useElementLayout();
     return (
         <>
@@ -76,21 +76,25 @@ function Node({ label, color }: Readonly<{ label: string; color: string }>) {
 function Diagram() {
     const [elements, setElements] = useState(initialElements);
     const [links, setLinks] = useState(initialLinks);
-    const [useSecondaryColor, setUseSecondaryColor] = useState(false);
-    const color = useSecondaryColor ? SECONDARY : PRIMARY;
+    const [alternate, setAlternate] = useState(false);
+    const color = alternate ? SECONDARY : PRIMARY;
+    const portShape = alternate ? 'rect' as const : 'ellipse' as const;
 
-    const { mapDataToElementAttributes } = useElementDefaults<NodeData>(
+    const { mapDataToElementAttributes } = useElementDefaults<ElementData>(
       (data) => ({
+        width: 100,
+        height: 40,
         portStyle: {
             color,
+            shape: portShape,
             width: 12,
             height: 12,
             stroke: BG,
             strokeWidth: 2
         },
-        ports: portsByKind[data.kind] ?? defaultPorts,
+        ports: portsByType[data.type] ?? defaultPorts,
       }),
-      [color]
+      [color, portShape]
     );
 
     const { mapDataToLinkAttributes } = useLinkDefaults({
@@ -107,12 +111,12 @@ function Diagram() {
         },
     }, [color]);
 
-    const renderElement: RenderElement<NodeData> = useCallback(
-        (data) => <Node label={data.label} color={color} />,
+    const renderElement: RenderElement<ElementData> = useCallback(
+        (data) => <Element label={data.label} color={color} />,
         [color],
     );
 
-    const toggleColor = useCallback(() => setUseSecondaryColor((v) => !v), []);
+    const changeDefaults = useCallback(() => setAlternate((v) => !v), []);
 
     const buttonStyle = { marginBottom: 8, padding: '4px 12px', cursor: 'pointer' } as const;
 
@@ -120,10 +124,10 @@ function Diagram() {
         <>
             <button
                 type="button"
-                onClick={toggleColor}
+                onClick={changeDefaults}
                 style={buttonStyle}
             >
-                Toggle color
+                Change defaults
             </button>
             <GraphProvider
                 elements={elements}

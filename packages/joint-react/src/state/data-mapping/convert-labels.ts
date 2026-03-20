@@ -35,18 +35,14 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
 
   const labelTextAttributes: Record<string, unknown> = {
     text,
-    fill: color,
-    fontSize,
-    fontFamily,
+    style: { fill: color, fontSize, fontFamily },
     textAnchor: 'middle',
     textVerticalAnchor: 'middle',
     pointerEvents: 'none',
   };
 
   const labelBodyAttributes: Record<string, unknown> = {
-    fill: backgroundColor,
-    stroke: backgroundStroke,
-    strokeWidth: backgroundStrokeWidth,
+    style: { fill: backgroundColor, stroke: backgroundStroke, strokeWidth: backgroundStrokeWidth },
   };
 
   let bodyTagName: string;
