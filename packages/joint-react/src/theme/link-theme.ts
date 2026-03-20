@@ -2,10 +2,12 @@ import type { LinkMarkerName } from './markers';
 
 /**
  * Internal fallback values for link line properties not set by data or defaults.
+ * `color` and `width` default to `''`. Empty strings are no-ops on the DOM
+ * inline style, letting CSS variables from theme.css take over.
  */
 export const defaultLinkStyle = {
-  color: '#333333',
-  width: 2,
+  color: '' as string,
+  width: '' as number | string,
   sourceMarker: 'none' as LinkMarkerName,
   targetMarker: 'none' as LinkMarkerName,
   wrapperBuffer: 8,

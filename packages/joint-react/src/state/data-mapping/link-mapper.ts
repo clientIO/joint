@@ -136,7 +136,7 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
       pattern,
       lineCap,
       lineJoin,
-      wrapperBuffer,
+      wrapperWidth: typeof width === 'number' ? wrapperBuffer + width : wrapperBuffer,
       wrapperColor,
       wrapperClassName,
     }),

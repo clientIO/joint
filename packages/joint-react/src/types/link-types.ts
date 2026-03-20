@@ -182,14 +182,16 @@ export interface FlatLinkData extends Record<string, unknown> {
   readonly connector?: unknown;
   /**
    * Stroke color of the link line.
-   * @default '#333333'
+   * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
+   * When omitted, the `--joint-link-color` CSS variable from theme.css controls the stroke.
    */
   readonly color?: string;
   /**
    * Stroke width of the link line.
-   * @default 2
+   * Accepts a number (pixels) or a CSS value string like `'var(--my-width)'`.
+   * When omitted, the `--joint-link-width` CSS variable from theme.css controls the width.
    */
-  readonly width?: number;
+  readonly width?: number | string;
   /**
    * Buffer in pixels added to the link's hit area for easier interaction.
    */

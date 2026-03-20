@@ -105,14 +105,14 @@ export { SOURCE_KEYS, TARGET_KEYS };
 
 interface LinkPresentationOptions {
   color: string;
-  width: number;
+  width: number | string;
   sourceMarker: LinkMarker;
   targetMarker: LinkMarker;
   className: string;
   pattern: string;
   lineCap: string;
   lineJoin: string;
-  wrapperBuffer: number;
+  wrapperWidth: number;
   wrapperColor: string;
   wrapperClassName: string;
 }
@@ -124,18 +124,22 @@ interface LinkPresentationOptions {
  * Resolves marker names, dash patterns, and class names into
  * flat SVG attribute objects for the line, and computes wrapper
  * hit-area attributes.
+ *
+ * `color` and `width` are set via inline `style` so they win over CSS theme
+ * rules. Empty strings are no-ops, letting CSS variables from theme.css take over.
  * @param options - Theme-driven styling options for line and wrapper
  * @returns Record with `line` and `wrapper` attribute objects
  */
 export function buildLinkPresentationAttributes(
   options: LinkPresentationOptions
 ): Record<string, Nullable<attributes.SVGAttributes>> {
-  const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor, wrapperClassName } = options;
+  const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperWidth, wrapperColor, wrapperClassName } = options;
 
-  // Build line attributes
+  // Use inline `style` so that explicit color/width wins over CSS theme rules
+  // (inline style > CSS specificity). Empty strings are no-ops on the DOM,
+  // letting CSS variables from theme.css handle defaults.
   const lineAttributes: Nullable<attributes.SVGAttributes> = {
-    stroke: color,
-    strokeWidth: width,
+    style: { stroke: color, strokeWidth: width },
   };
 
   if (sourceMarker !== 'none') {
@@ -165,7 +169,7 @@ export function buildLinkPresentationAttributes(
     },
     wrapper: {
       connection: true,
-      strokeWidth: wrapperBuffer + width,
+      strokeWidth: wrapperWidth,
       stroke: wrapperColor,
       ...(wrapperClassName ? { class: wrapperClassName } : {}),
       ...strokeAttributes,
