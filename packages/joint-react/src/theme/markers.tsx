@@ -7,8 +7,8 @@ import { isString } from '../utils/is';
  */
 export const linkMarkerShapes = {
   'none': null,
-  'arrow': jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-stroke" stroke-width="2" />),
-  'arrow-open': jsx(<path d="M 10 4 L 0 0 L 10 -4" fill="none" stroke-width="2" />),
+  'arrow': jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-stroke" stroke-width="2" stroke="context-stroke" />),
+  'arrow-open': jsx(<path d="M 10 4 L 0 0 L 10 -4" fill="none" stroke-width="2" stroke="context-stroke" />),
   'circle': jsx(<circle r="4" fill="context-stroke" stroke-width="2" />),
   'circle-outline': jsx(<circle r="4" fill="none" stroke-width="2" />),
   'diamond': jsx(<path d="M 0 0 L 5 -5 L 10 0 L 5 5 z" fill="context-stroke" stroke-width="2" />),

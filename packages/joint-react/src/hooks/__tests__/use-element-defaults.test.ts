@@ -45,7 +45,7 @@ describe('useElementDefaults', () => {
         });
 
         const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
-        const portBody = (portItem?.attrs as Record<string, Record<string, unknown>>)?.portBody;
+        const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
         expect(portBody?.style?.fill).toBe('red');
         expect(portBody?.style?.strokeWidth).toBe(defaultPortStyle.strokeWidth);
     });
@@ -93,7 +93,7 @@ describe('useElementDefaults', () => {
 
         expect(cellJson.size).toEqual({ width: 120, height: 60 });
         const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
-        const portBody = (portItem?.attrs as Record<string, Record<string, unknown>>)?.portBody;
+        const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
         expect(portBody?.style?.fill).toBe('blue');
         expect(portItem?.size).toEqual({ width: 16, height: defaultPortStyle.height });
     });
@@ -120,14 +120,14 @@ describe('useElementDefaults', () => {
         const startJson = callMapper(result.current, { ...minimalElementData, kind: 'start' });
         const startPorts = (startJson.ports as { items: Array<Record<string, unknown>> })?.items;
         expect(startPorts).toHaveLength(1);
-        const startBody = (startPorts[0]?.attrs as Record<string, Record<string, unknown>>)?.portBody;
+        const startBody = (startPorts[0]?.attrs as Record<string, Record<string, any>>)?.portBody;
         expect(startBody?.style?.fill).toBe('green');
 
         // Other element — 2 ports, orange
         const otherJson = callMapper(result.current, { ...minimalElementData, kind: 'process' });
         const otherPorts = (otherJson.ports as { items: Array<Record<string, unknown>> })?.items;
         expect(otherPorts).toHaveLength(2);
-        const otherBody = (otherPorts[0]?.attrs as Record<string, Record<string, unknown>>)?.portBody;
+        const otherBody = (otherPorts[0]?.attrs as Record<string, Record<string, any>>)?.portBody;
         expect(otherBody?.style?.fill).toBe('orange');
     });
 

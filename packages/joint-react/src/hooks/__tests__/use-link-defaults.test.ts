@@ -100,7 +100,7 @@ describe('useLinkDefaults', () => {
 
         const label = (cellJson.labels as Array<Record<string, unknown>>)?.[0];
         expect(label).toBeDefined();
-        const labelText = (label?.attrs as Record<string, Record<string, unknown>>)?.labelText;
+        const labelText = (label?.attrs as Record<string, Record<string, any>>)?.labelText;
         expect(labelText?.style?.fill).toBe('#ff0000');
         expect(labelText?.style?.fontSize).toBe(20);
         expect(labelText?.style?.fontFamily).toBe('monospace');
@@ -121,7 +121,7 @@ describe('useLinkDefaults', () => {
         });
 
         const label = (cellJson.labels as Array<Record<string, unknown>>)?.[0];
-        const labelText = (label?.attrs as Record<string, Record<string, unknown>>)?.labelText;
+        const labelText = (label?.attrs as Record<string, Record<string, any>>)?.labelText;
         expect(labelText?.style?.fill).toBe('green');
         expect(labelText?.style?.fontSize).toBe(20);
     });
@@ -135,7 +135,7 @@ describe('useLinkDefaults', () => {
         });
 
         const label = (cellJson.labels as Array<Record<string, unknown>>)?.[0];
-        const labelText = (label?.attrs as Record<string, Record<string, unknown>>)?.labelText;
+        const labelText = (label?.attrs as Record<string, Record<string, any>>)?.labelText;
         expect(labelText?.style?.fill).toBe(defaultLabelStyle.color);
         expect(labelText?.style?.fontSize).toBe(defaultLabelStyle.fontSize);
     });
