@@ -32,4 +32,6 @@ export const defaultLabelStyle = {
   backgroundBorderRadius: 4,
   backgroundPadding: { x: 4, y: 2 } as { readonly x: number; readonly y: number },
   position: 0.5,
+  className: '',
+  backgroundClassName: '',
 } as const;

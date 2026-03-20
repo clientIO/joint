@@ -25,8 +25,8 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
     backgroundStrokeWidth = defaultLabelStyle.backgroundStrokeWidth,
     backgroundBorderRadius = defaultLabelStyle.backgroundBorderRadius,
     backgroundOpacity,
-    className,
-    backgroundClassName,
+    className = defaultLabelStyle.className,
+    backgroundClassName = defaultLabelStyle.backgroundClassName,
     backgroundShape = 'rect',
   } = label;
 
@@ -42,9 +42,6 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
     textVerticalAnchor: 'middle',
     pointerEvents: 'none',
   };
-  if (className) {
-    labelTextAttributes.class = className;
-  }
 
   const labelBodyAttributes: Record<string, unknown> = {
     fill: backgroundColor,
@@ -80,9 +77,6 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
   if (backgroundOpacity !== undefined) {
     labelBodyAttributes.opacity = backgroundOpacity;
   }
-  if (backgroundClassName) {
-    labelBodyAttributes.class = backgroundClassName;
-  }
 
   const labelPosition: Record<string, unknown> = { distance: position };
   if (offset !== undefined) labelPosition.offset = offset;
@@ -90,8 +84,16 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
   return {
     id,
     markup: [
-      { tagName: bodyTagName, selector: 'labelBody' },
-      { tagName: 'text', selector: 'labelText' },
+      {
+        tagName: bodyTagName,
+        selector: 'labelBody',
+        className: `joint-link-label-body ${backgroundClassName}`.trim()
+      },
+      {
+        tagName: 'text',
+        selector: 'labelText',
+        className: `joint-link-label-text ${className}`.trim()
+      },
     ],
     attrs: {
       labelText: labelTextAttributes,

@@ -27,6 +27,7 @@
  */
 
 @layer base {
+
   /* ── Links ─────────────────────────────────────────────────────────────── */
 
   :where([joint-selector='line']) {
@@ -43,13 +44,13 @@
 
   /* ── Labels ────────────────────────────────────────────────────────────── */
 
-  :where([joint-selector='labelText']) {
+  :where(.joint-link-label-text) {
     fill: var(--joint-label-color, #333333);
     font-size: var(--joint-label-font-size, 12px);
     font-family: var(--joint-label-font-family, sans-serif);
   }
 
-  :where([joint-selector='labelBody']) {
+  :where(.joint-link-label-body) {
     fill: var(--joint-label-bg, #ffffff);
     stroke: var(--joint-label-stroke, #333333);
     stroke-width: var(--joint-label-stroke-width, 1);
@@ -57,7 +58,7 @@
 
   /* ── Ports ──────────────────────────────────────────────────────────────── */
 
-  :where([joint-selector='portBody']) {
+  :where(.joint-port-body) {
     fill: var(--joint-port-color, #333333);
     stroke: var(--joint-port-stroke, transparent);
     stroke-width: var(--joint-port-stroke-width, 0);
@@ -66,6 +67,8 @@
   :where(.joint-port-label) {
     fill: var(--joint-port-label-color, #333333);
   }
+
+  /* ── Paper ─────────────────────────────────────────────────────────────── */
 
   :where(.joint-paper-background) {
     background-color: var(--joint-paper-bg, transparent);

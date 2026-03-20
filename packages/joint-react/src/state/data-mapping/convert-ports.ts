@@ -59,14 +59,11 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
     portBodyAttributes.d = shape;
   }
 
-  if (className) {
-    portBodyAttributes.class = className;
-  }
-
   result.markup = [
     {
       tagName: bodyTagName,
       selector: 'portBody',
+      className: `joint-port-body ${className}`.trim(),
     },
   ];
   result.attrs = { portBody: portBodyAttributes };
@@ -74,18 +71,16 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
   if (label) {
     result.label = {
       position: { name: labelPosition, args: { x: labelOffsetX, y: labelOffsetY } },
-      markup: [{ tagName: 'text', selector: 'text', attributes: {
-        fill: labelColor,
-      }}],
+      markup: [{
+        tagName: 'text',
+        selector: 'text',
+        className: `joint-port-label ${labelClassName}`.trim(),
+      }],
     };
     const labelAttributes: Record<string, unknown> = {
       text: label,
-      fontSize: labelFontSize,
-      fontFamily: labelFontFamily,
+      style: { fill: labelColor, fontSize: labelFontSize, fontFamily: labelFontFamily },
     };
-    if (labelClassName) {
-      labelAttributes.class = labelClassName;
-    }
     result.attrs.text = labelAttributes;
   } else {
     result.label = { markup: [] };
