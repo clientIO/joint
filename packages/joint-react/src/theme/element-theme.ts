@@ -21,8 +21,8 @@ export const defaultPortStyle = {
   className: '',
   passive: false,
   labelPosition: 'outside',
-  labelColor: '#333333',
-  labelFontSize: 12,
-  labelFontFamily: 'sans-serif',
+  labelColor: '' as string,
+  labelFontSize: '' as number | string,
+  labelFontFamily: '' as string,
   labelClassName: '',
 } as const;
