@@ -24,27 +24,27 @@ interface NodeData extends FlatElementData {
 
 const initialElements: Record<string, NodeData> = {
     a: {
-        label: 'Source', x: 50, y: 60, width: 120, height: 50,
+        label: 'Source', x: 50, y: 70, width: 120, height: 50,
         ports: {
             out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
         },
     },
     b: {
-        label: 'Process', x: 280, y: 20, width: 120, height: 50,
+        label: 'Process', x: 290, y: 20, width: 120, height: 50,
         ports: {
             in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
             out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
         },
     },
     c: {
-        label: 'Review', x: 280, y: 120, width: 120, height: 50,
+        label: 'Review', x: 290, y: 120, width: 120, height: 50,
         ports: {
             in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
             out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
         },
     },
     d: {
-        label: 'Output', x: 510, y: 60, width: 120, height: 50,
+        label: 'Output', x: 550, y: 70, width: 120, height: 50,
         ports: {
             in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
         },
