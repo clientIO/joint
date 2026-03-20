@@ -1,94 +1,97 @@
 /*
  * Tailwind v4 theme for @joint/react
  *
- * Defines custom variants (theme1, theme2, theme3) via @custom-variant
- * so Tailwind utility classes respond to class-based theme toggling.
+ * Defines custom variants via @custom-variant so Tailwind utility classes
+ * respond to class-based theme toggling.
  */
 
-@custom-variant theme1 (&:where(.theme1, .theme1 *));
-@custom-variant theme2 (&:where(.theme2, .theme2 *));
-@custom-variant theme3 (&:where(.theme3, .theme3 *));
+@custom-variant forest (&:where(.forest, .forest *));
+@custom-variant ocean (&:where(.ocean, .ocean *));
+@custom-variant sunset (&:where(.sunset, .sunset *));
 
-/* ── Default ────────────────────────────────────────────────────────────── */
+/* ── Slate (default) ───────────────────────────────────────────────────── */
 
 :root {
-  --joint-link-color: var(--color-slate-500);
+  --joint-link-color: var(--color-slate-400);
   --joint-link-width: 2;
   --joint-link-wrapper-color: transparent;
 
-  --joint-label-color: var(--color-slate-800);
+  --joint-label-color: var(--color-slate-700);
   --joint-label-font-family: var(--font-sans);
   --joint-label-bg: var(--color-white);
-  --joint-label-stroke: var(--color-slate-200);
+  --joint-label-stroke: var(--color-slate-300);
 
-  --joint-port-color: var(--color-blue-500);
+  --joint-port-color: var(--color-slate-400);
+  --joint-port-hover-color: var(--color-blue-500);
   --joint-port-stroke: var(--color-white);
   --joint-port-label-color: var(--color-slate-500);
 
-  --node-fill: var(--color-slate-100);
-  --node-stroke: var(--color-slate-400);
-  --node-text: var(--color-slate-900);
+  --node-fill: var(--color-slate-50);
+  --node-stroke: var(--color-slate-300);
+  --node-text: var(--color-slate-800);
 
   --joint-paper-bg: var(--color-white);
 }
 
-/* ── Theme 1 (Dark) ────────────────────────────────────────────────────── */
+/* ── Forest ─────────────────────────────────────────────────────────────── */
 
-.theme1 {
-  --joint-link-color: var(--color-blue-400);
+.forest {
+  --joint-link-color: var(--color-emerald-600);
 
-  --joint-label-color: var(--color-slate-200);
-  --joint-label-bg: var(--color-slate-800);
-  --joint-label-stroke: var(--color-slate-700);
+  --joint-label-color: var(--color-emerald-50);
+  --joint-label-bg: var(--color-emerald-900);
+  --joint-label-stroke: var(--color-emerald-700);
 
-  --joint-port-color: var(--color-slate-200);
-  --joint-port-stroke: var(--color-slate-800);
-  --joint-port-label-color: var(--color-slate-400);
+  --joint-port-color: var(--color-lime-400);
+  --joint-port-hover-color: var(--color-lime-300);
+  --joint-port-stroke: var(--color-emerald-950);
+  --joint-port-label-color: var(--color-emerald-400);
 
-  --node-fill: var(--color-slate-800);
-  --node-stroke: var(--color-slate-500);
-  --node-text: var(--color-slate-200);
+  --node-fill: var(--color-emerald-900);
+  --node-stroke: var(--color-emerald-600);
+  --node-text: var(--color-emerald-100);
 
-  --joint-paper-bg: var(--color-slate-900);
+  --joint-paper-bg: var(--color-emerald-950);
 }
 
-/* ── Theme 2 (High Contrast) ───────────────────────────────────────────── */
+/* ── Ocean ──────────────────────────────────────────────────────────────── */
 
-.theme2 {
-  --joint-link-color: var(--color-slate-950);
-  --joint-link-width: 3;
+.ocean {
+  --joint-link-color: var(--color-sky-400);
 
-  --joint-label-color: var(--color-black);
-  --joint-label-bg: var(--color-white);
-  --joint-label-stroke: var(--color-black);
+  --joint-label-color: var(--color-sky-100);
+  --joint-label-bg: var(--color-sky-900);
+  --joint-label-stroke: var(--color-sky-600);
 
-  --joint-port-color: var(--color-blue-700);
-  --joint-port-stroke: var(--color-black);
-  --joint-port-label-color: var(--color-black);
+  --joint-port-color: var(--color-cyan-300);
+  --joint-port-hover-color: var(--color-cyan-200);
+  --joint-port-stroke: var(--color-sky-950);
+  --joint-port-label-color: var(--color-sky-400);
 
-  --node-fill: var(--color-white);
-  --node-stroke: var(--color-black);
-  --node-text: var(--color-black);
+  --node-fill: var(--color-sky-900);
+  --node-stroke: var(--color-sky-500);
+  --node-text: var(--color-sky-100);
 
-  --joint-paper-bg: var(--color-white);
+  --joint-paper-bg: var(--color-sky-950);
 }
 
-/* ── Theme 3 (Dark + High Contrast) ────────────────────────────────────── */
+/* ── Sunset ─────────────────────────────────────────────────────────────── */
 
-.theme3 {
-  --joint-link-color: var(--color-slate-50);
+.sunset {
+  --joint-link-color: var(--color-amber-500);
 
-  --joint-label-color: var(--color-white);
-  --joint-label-bg: var(--color-black);
-  --joint-label-stroke: var(--color-white);
+  --joint-label-color: var(--color-amber-900);
+  --joint-label-bg: var(--color-amber-50);
+  --joint-label-stroke: var(--color-amber-400);
 
-  --joint-port-color: var(--color-blue-300);
-  --joint-port-stroke: var(--color-white);
-  --joint-port-label-color: var(--color-white);
+  --joint-port-color: var(--color-orange-500);
+  --joint-port-hover-color: var(--color-orange-400);
+  --joint-port-stroke: var(--color-amber-50);
+  --joint-port-label-color: var(--color-amber-600);
 
-  --node-fill: var(--color-black);
-  --node-stroke: var(--color-white);
-  --node-text: var(--color-white);
+  --node-fill: var(--color-amber-50);
+  --node-stroke: var(--color-amber-400);
+  --node-text: var(--color-amber-900);
 
-  --joint-paper-bg: var(--color-black);
+  --joint-paper-bg: var(--color-amber-100);
 }

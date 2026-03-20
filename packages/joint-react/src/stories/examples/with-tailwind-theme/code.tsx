@@ -6,6 +6,7 @@ import {
     GraphProvider,
     Paper,
     useElementLayout,
+    useElementDefaults,
     useLinkDefaults,
     type FlatElementData,
     type FlatLinkData,
@@ -50,8 +51,6 @@ const initialElements: Record<string, NodeData> = {
     },
 };
 
-// Links: no explicit color/width — Tailwind-mapped CSS variables provide styling.
-// One link overrides color to show per-link precedence.
 const initialLinks: Record<string, FlatLinkData> = {
     'a→b': { source: 'a', sourcePort: 'out', target: 'b', targetPort: 'in' },
     'a→c': { source: 'a', sourcePort: 'out', target: 'c', targetPort: 'in' },
@@ -63,7 +62,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     'c→d': {
         source: 'c', sourcePort: 'out',
         target: 'd', targetPort: 'in',
-        color: '#e11d48', // explicit override — inline style beats CSS variables
+        color: '#e11d48',
         width: 3,
     },
 };
@@ -73,21 +72,18 @@ function Node({ label }: Readonly<{ label: string }>) {
     return (
         <>
             <rect
-                className="theme1:fill-slate-800 theme1:stroke-slate-500 theme2:fill-white theme2:stroke-black theme3:fill-black theme3:stroke-white"
+                className="fill-slate-50 stroke-slate-300 forest:fill-emerald-900 forest:stroke-emerald-600 ocean:fill-sky-900 ocean:stroke-sky-500 sunset:fill-amber-50 sunset:stroke-amber-400"
                 width={width}
                 height={height}
                 rx="8"
-                fill="var(--node-fill)"
-                stroke="var(--node-stroke)"
                 strokeWidth="1.5"
             />
             <text
-                className="theme1:fill-slate-200 theme2:fill-black theme3:fill-white"
+                className="fill-slate-800 forest:fill-emerald-100 ocean:fill-sky-100 sunset:fill-amber-900"
                 x={width / 2}
                 y={height / 2}
                 dominantBaseline="middle"
                 textAnchor="middle"
-                fill="var(--node-text)"
             >
                 {label}
             </text>
@@ -95,15 +91,15 @@ function Node({ label }: Readonly<{ label: string }>) {
     );
 }
 
-type Theme = 'default' | 'theme1' | 'theme2' | 'theme3';
+type Theme = 'default' | 'forest' | 'ocean' | 'sunset';
 
-const themes: Theme[] = ['default', 'theme1', 'theme2', 'theme3'];
+const themes: Theme[] = ['default', 'forest', 'ocean', 'sunset'];
 
 const themeLabels: Record<Theme, string> = {
-    'default': 'Default',
-    'theme1': 'Dark',
-    'theme2': 'High Contrast',
-    'theme3': 'Dark High Contrast',
+    'default': 'Slate',
+    'forest': 'Forest',
+    'ocean': 'Ocean',
+    'sunset': 'Sunset',
 };
 
 function Diagram() {
@@ -112,12 +108,19 @@ function Diagram() {
     const [theme, setTheme] = useState<Theme>('default');
     const wrapperRef = useRef<HTMLDivElement>(null);
 
+    const elementDefaults = useElementDefaults({
+        portStyle: {
+            width: 20,
+            height: 20,
+            className: 'hover:fill-blue-500 forest:hover:fill-lime-300 ocean:hover:fill-cyan-200 sunset:hover:fill-orange-400 cursor-crosshair',
+        },
+    });
+
     const linkDefaults = useLinkDefaults({
         targetMarker: 'arrow',
         labelStyle: {
             backgroundPadding: { x: 6, y: 4 },
         },
-        className: 'stroke-slate-500 theme1:stroke-blue-400 theme2:stroke-slate-950 theme3:stroke-slate-50',
     });
 
     const renderElement: RenderElement<NodeData> = useCallback(
@@ -136,7 +139,7 @@ function Diagram() {
     }, []);
 
     return (
-        <div ref={wrapperRef} className="bg-white theme1:bg-slate-900 theme2:bg-white theme3:bg-black">
+        <div ref={wrapperRef}>
             <fieldset className="mb-3 flex gap-1 rounded-lg border border-slate-200 p-1 w-fit">
                 {themes.map((t) => (
                     <label
@@ -161,6 +164,7 @@ function Diagram() {
             <GraphProvider
                 elements={elements}
                 links={links}
+                {...elementDefaults}
                 {...linkDefaults}
                 onElementsChange={setElements}
                 onLinksChange={setLinks}
@@ -169,7 +173,7 @@ function Diagram() {
                     className={PAPER_CLASSNAME}
                     height={240}
                     renderElement={renderElement}
-                    // @todo this should become default
+                    // @todo this should be the paper's default
                     background={{ color: '' }}
                 />
             </GraphProvider>
