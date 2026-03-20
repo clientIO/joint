@@ -1,4 +1,4 @@
-import type { LiteralUnion } from './index';
+import type { PortShape } from '../theme/element-theme';
 
 /**
  * Simplified port definition for declarative port configuration.
@@ -33,12 +33,9 @@ export interface FlatElementPort {
   readonly color?: string;
   /**
    * Shape of the port.
-   * - `'ellipse'` — ellipse (default)
-   * - `'rect'` — rectangle
-   * - Any other string — interpreted as SVG path `d` commands
    * @default 'ellipse'
    */
-  readonly shape?: LiteralUnion<'ellipse' | 'rect'>;
+  readonly shape?: PortShape;
   /**
    * Stroke color of the port shape.
    * @default 'transparent'
@@ -95,6 +92,10 @@ export interface FlatElementPort {
 }
 
 export interface FlatElementData extends Record<string, unknown> {
+  /**
+   * Style defaults applied to all ports. Individual port properties take precedence.
+   */
+  portStyle?: Partial<FlatElementPort>;
   /**
    * Ports of the element.
    */

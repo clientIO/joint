@@ -31,6 +31,10 @@ export type { OnTransformElement, TransformOptions } from './store/create-elemen
 export { useElementsLayout, useLinksLayout } from './hooks/use-stores';
 export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
+// Hooks — Defaults
+export { useElementDefaults } from './hooks/use-element-defaults';
+export { useLinkDefaults } from './hooks/use-link-defaults';
+
 // Hooks — Events
 export { usePaperEvents } from './hooks/use-paper-events';
 export { useGraphEvents } from './hooks/use-graph-events';
@@ -45,18 +49,14 @@ export { jsx } from './utils/joint-jsx/jsx-to-markup';
 
 // Types
 export type { FlatElementData, FlatElementPort } from './types/element-types';
+export type { PortShape as PortShape } from './theme/element-theme';
 export type { FlatLinkData, FlatLinkEnd, FlatLinkLabel } from './types/link-types';
 export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
 export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
 
 // Theme
-export { defaultLinkTheme } from './theme/link-theme';
-export type { LinkTheme } from './theme/link-theme';
-export { defaultMarkers, resolveMarker } from './theme/markers';
-export type { MarkerPreset } from './theme/markers';
-export { LINK_ARROWS, getLinkArrow } from './components/link/link.arrows';
-export type { LinkArrowName } from './components/link/link.arrows';
+export type { LinkMarkerName, LinkMarker } from './theme/markers';
 
 // Models
 export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
@@ -66,21 +66,12 @@ export { PortalPaper } from './models/portal-paper';
 // Selectors (public)
 export { selectAreElementsMeasured, selectElementSizes } from './selectors';
 
-// Data mapping (public defaults)
-export {
-  defaultMapDataToElementAttributes,
-  defaultMapElementAttributesToData,
-} from './state/data-mapping/element-mapper';
-export {
-  defaultMapDataToLinkAttributes,
-  defaultMapLinkAttributesToData,
-} from './state/data-mapping/link-mapper';
+// Data mapping types
 export type {
-  ElementToGraphOptions,
-  GraphToElementOptions,
+  ToElementAttributesOptions,
+  ToElementDataOptions,
 } from './state/data-mapping/element-mapper';
 export type {
-  LinkToGraphOptions,
-  GraphToLinkOptions,
   ToLinkAttributesOptions,
+  ToLinkDataOptions,
 } from './state/data-mapping/link-mapper';

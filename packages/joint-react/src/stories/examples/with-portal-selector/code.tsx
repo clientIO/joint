@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
 import { dia, highlighters, g, V } from '@joint/core';
-import type { ElementToGraphOptions, LinkToGraphOptions } from '@joint/react';
+import type { ToElementAttributesOptions, ToLinkAttributesOptions } from '@joint/react';
 import {
   GraphProvider,
   Paper,
@@ -18,7 +18,7 @@ import {
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
   // PortalLinkView,
-  // type MarkerPreset,
+  // type LinkMarkerName,
 } from '@joint/react';
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 
@@ -120,15 +120,15 @@ const links: Record<string, LinkData> = {
     target: '2',
     width: 4,
     color: 'orange',
-    // targetMarker: 'arrow' as MarkerPreset,
+    // targetMarker: 'arrow' as LinkMarkerName,
     className: 'dashed-link',
   },
   link2: {
     source: '3',
     target: '4',
     color: 'green',
-    // sourceMarker: 'circle' as MarkerPreset,
-    // targetMarker: 'cross' as MarkerPreset,
+    // sourceMarker: 'circle' as LinkMarkerName,
+    // targetMarker: 'cross' as LinkMarkerName,
   },
   link3: {
     source: '2',
@@ -395,7 +395,7 @@ export default function App() {
   );
 }
 
-function mapDataToLinkAttributesExample(options: LinkToGraphOptions<LinkData>) {
+function mapDataToLinkAttributesExample(options: ToLinkAttributesOptions<LinkData>) {
   const { jjType, color } = options.data;
 
   // For standard links, use the built-in theme defaults
@@ -458,7 +458,7 @@ function mapDataToLinkAttributesExample(options: LinkToGraphOptions<LinkData>) {
   return attributes;
 }
 
-function mapDataToElementAttributesExample(options: ElementToGraphOptions<ElementData>) {
+function mapDataToElementAttributesExample(options: ToElementAttributesOptions<ElementData>) {
   const { jjType, color = 'lightgray' } = options.data;
   if (!jjType) return options.toAttributes(options.data);
   const attributes = {

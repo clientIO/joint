@@ -1,28 +1,29 @@
 import { type dia, util } from '@joint/core';
 import type { FlatLinkLabel } from '../../types/link-types';
-import { defaultLinkTheme, type LinkTheme } from '../../theme/link-theme';
+import { defaultLabelStyle } from '../../theme/link-theme';
 
 /**
  * Converts a simplified FlatLinkLabel into a JointJS dia.Link.Label
  * using the PortalLink's defaultLabel selectors (labelText, labelBody).
  * @param id - The unique identifier for the label
- * @param label - The simplified label definition
- * @param theme - The link theme providing label styling defaults
+ * @param rawLabel - The simplified label definition
+ * @param labelStyle - Optional style defaults for label properties
  * @returns The full JointJS label definition
  */
-export function convertLabel(id: string, label: FlatLinkLabel, theme: LinkTheme = defaultLinkTheme): dia.Link.Label & { id: string } {
+export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: Partial<FlatLinkLabel>): dia.Link.Label & { id: string } {
+  const label = labelStyle ? { ...labelStyle, ...rawLabel } : rawLabel;
   const {
     text,
-    position = theme.labelPosition,
+    position = defaultLabelStyle.position,
     offset,
-    color = theme.labelColor,
-    fontSize = theme.labelFontSize,
-    fontFamily = theme.labelFontFamily,
-    backgroundColor = theme.labelBackgroundColor,
-    backgroundPadding = theme.labelBackgroundPadding,
-    backgroundStroke = theme.labelBackgroundStroke,
-    backgroundStrokeWidth = theme.labelBackgroundStrokeWidth,
-    backgroundBorderRadius = theme.labelBackgroundBorderRadius,
+    color = defaultLabelStyle.color,
+    fontSize = defaultLabelStyle.fontSize,
+    fontFamily = defaultLabelStyle.fontFamily,
+    backgroundColor = defaultLabelStyle.backgroundColor,
+    backgroundPadding = defaultLabelStyle.backgroundPadding,
+    backgroundStroke = defaultLabelStyle.backgroundStroke,
+    backgroundStrokeWidth = defaultLabelStyle.backgroundStrokeWidth,
+    backgroundBorderRadius = defaultLabelStyle.backgroundBorderRadius,
     backgroundOpacity,
     className,
     backgroundClassName,

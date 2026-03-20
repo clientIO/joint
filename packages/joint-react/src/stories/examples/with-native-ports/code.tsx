@@ -6,7 +6,7 @@ import {
   Paper,
   type FlatElementData,
   type FlatLinkData,
-  type ElementToGraphOptions,
+  type ToElementAttributesOptions,
 } from '@joint/react';
 
 const SECONDARY = '#6366f1';
@@ -65,7 +65,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
 }
 
 const mapDataToElementAttributes = (
-  options: ElementToGraphOptions<NativeElementData>
+  options: ToElementAttributesOptions<NativeElementData>
 ): dia.Cell.JSON => {
   const result = options.toAttributes(options.data);
   const { color, label, inputPorts, outputPorts } = options.data;

@@ -1,6 +1,6 @@
  
 import { dia, shapes } from '@joint/core';
-import { defaultMapLinkAttributesToData } from '../../state/data-mapping';
+import { flatMapLinkAttributesToData } from '../../state/data-mapping';
 import { resolveCellDefaults } from '../../state/data-mapping/resolve-cell-defaults';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
@@ -19,7 +19,7 @@ describe('graph-state-selectors link mapping', () => {
     graph.clear();
   });
 
-  describe('defaultMapLinkAttributesToData', () => {
+  describe('flatMapLinkAttributesToData', () => {
     it('should extract link attributes correctly', () => {
       const id = 'link-1';
       const cellJson = {
@@ -33,7 +33,7 @@ describe('graph-state-selectors link mapping', () => {
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Link;
 
-      const link = defaultMapLinkAttributesToData({
+      const link = flatMapLinkAttributesToData({
         attributes: cell.attributes,
         defaultAttributes: resolveCellDefaults(cell),
       });

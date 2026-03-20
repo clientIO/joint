@@ -1,7 +1,7 @@
 import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
 import type { FlatLinkEnd } from '../../types/link-types';
-import type { MarkerPreset } from '../../theme/markers';
+import type { LinkMarker } from '../../theme/markers';
 import type { Nullable } from '../../types';
 import { resolveMarker } from '../../theme/markers';
 import { isString } from '../../utils/is';
@@ -106,8 +106,8 @@ export { SOURCE_KEYS, TARGET_KEYS };
 interface LinkPresentationOptions {
   color: string;
   width: number;
-  sourceMarker: MarkerPreset | dia.SVGMarkerJSON;
-  targetMarker: MarkerPreset | dia.SVGMarkerJSON;
+  sourceMarker: LinkMarker;
+  targetMarker: LinkMarker;
   className: string;
   pattern: string;
   lineCap: string;
@@ -121,7 +121,7 @@ interface LinkPresentationOptions {
  * Builds the full `attrs` object for a link cell, containing
  * `line` and `wrapper` selectors.
  *
- * Resolves marker presets, dash patterns, and class names into
+ * Resolves marker names, dash patterns, and class names into
  * flat SVG attribute objects for the line, and computes wrapper
  * hit-area attributes.
  * @param options - Theme-driven styling options for line and wrapper

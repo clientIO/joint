@@ -8,10 +8,10 @@ import {
   useElements,
   type FlatElementData,
   type FlatLinkData,
-  type ElementToGraphOptions,
-  type GraphToElementOptions,
-  type LinkToGraphOptions,
-  type GraphToLinkOptions,
+  type ToElementAttributesOptions,
+  type ToElementDataOptions,
+  type ToLinkAttributesOptions,
+  type ToLinkDataOptions,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -95,7 +95,7 @@ const LINK_KEYS = Object.keys(Object.values(initialLinks)[0]);
  */
 const mapDataToElementAttributes = ({
   data,
-}: ElementToGraphOptions<FlatElementData>): dia.Cell.JSON => {
+}: ToElementAttributesOptions<FlatElementData>): dia.Cell.JSON => {
   return { ...data } as dia.Cell.JSON;
 };
 
@@ -104,7 +104,7 @@ const mapDataToElementAttributes = ({
  */
 const mapElementAttributesToData = ({
   attributes,
-}: GraphToElementOptions<FlatElementData>): FlatElementData => {
+}: ToElementDataOptions<FlatElementData>): FlatElementData => {
   return util.pick(attributes, ELEMENT_KEYS) as FlatElementData;
 };
 
@@ -114,7 +114,7 @@ const mapElementAttributesToData = ({
  */
 const mapDataToLinkAttributes = ({
   data,
-}: LinkToGraphOptions<FlatLinkData>): dia.Cell.JSON => {
+}: ToLinkAttributesOptions<FlatLinkData>): dia.Cell.JSON => {
   return { ...data } as unknown as dia.Cell.JSON;
 };
 
@@ -123,7 +123,7 @@ const mapDataToLinkAttributes = ({
  */
 const mapLinkAttributesToData = ({
   attributes,
-}: GraphToLinkOptions<FlatLinkData>): FlatLinkData => {
+}: ToLinkDataOptions<FlatLinkData>): FlatLinkData => {
   return util.pick(attributes, LINK_KEYS) as FlatLinkData;
 };
 

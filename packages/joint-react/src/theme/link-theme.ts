@@ -1,18 +1,13 @@
-import type { MarkerPreset } from './markers';
-
-// Re-export markers for backward compatibility (public API)
-export { defaultMarkers, resolveMarker, type MarkerPreset } from './markers';
+import type { LinkMarkerName } from './markers';
 
 /**
- * Default link theme with all properties filled.
- * No fallbacks needed in the default link mapper.
- *
+ * Internal fallback values for link line properties not set by data or defaults.
  */
-export const defaultLinkTheme = {
+export const defaultLinkStyle = {
   color: '#333333',
   width: 2,
-  sourceMarker: 'none' as MarkerPreset,
-  targetMarker: 'none' as MarkerPreset,
+  sourceMarker: 'none' as LinkMarkerName,
+  targetMarker: 'none' as LinkMarkerName,
   wrapperBuffer: 8,
   wrapperColor: 'transparent',
   wrapperClassName: '',
@@ -20,15 +15,19 @@ export const defaultLinkTheme = {
   pattern: '',
   lineCap: '' as '' | 'butt' | 'round' | 'square',
   lineJoin: '' as '' | 'miter' | 'round' | 'bevel',
-  labelColor: '#333333',
-  labelFontSize: 12,
-  labelFontFamily: 'sans-serif',
-  labelBackgroundColor: '#ffffff',
-  labelBackgroundStroke: '#333333',
-  labelBackgroundStrokeWidth: 1,
-  labelBackgroundBorderRadius: 4,
-  labelBackgroundPadding: { x: 4, y: 2 } as { readonly x: number; readonly y: number },
-  labelPosition: 0.5,
 } as const;
 
-export type LinkTheme = typeof defaultLinkTheme;
+/**
+ * Internal fallback values for label properties not set by labelStyle or individual labels.
+ */
+export const defaultLabelStyle = {
+  color: '#333333',
+  fontSize: 12,
+  fontFamily: 'sans-serif',
+  backgroundColor: '#ffffff',
+  backgroundStroke: '#333333',
+  backgroundStrokeWidth: 1,
+  backgroundBorderRadius: 4,
+  backgroundPadding: { x: 4, y: 2 } as { readonly x: number; readonly y: number },
+  position: 0.5,
+} as const;

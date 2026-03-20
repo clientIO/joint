@@ -1,5 +1,5 @@
 import type { anchors, connectionPoints, dia } from '@joint/core';
-import type { MarkerPreset } from '../theme/link-theme';
+import type { LinkMarker } from '../theme/markers';
 import type { CellId } from './cell-id';
 
 import type { LiteralUnion } from './index';
@@ -161,6 +161,10 @@ export interface FlatLinkData extends Record<string, unknown> {
    */
   readonly layer?: string;
   /**
+   * Style defaults applied to all labels. Individual label properties take precedence.
+   */
+  readonly labelStyle?: Partial<FlatLinkLabel>;
+  /**
    * Link labels.
    */
   readonly labels?: Record<string, FlatLinkLabel>;
@@ -202,17 +206,23 @@ export interface FlatLinkData extends Record<string, unknown> {
    */
   readonly wrapperClassName?: string;
   /**
-   * Source marker preset name or custom marker definition.
+   * Source marker name, custom marker definition, or JSX markup.
    * Use 'none' for no marker.
+   * @example
+   * sourceMarker: 'arrow'
+   * sourceMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" />)
    * @default 'none'
    */
-  readonly sourceMarker?: MarkerPreset | dia.SVGMarkerJSON;
+  readonly sourceMarker?: LinkMarker;
   /**
-   * Target marker preset name or custom marker definition.
+   * Target marker name, custom marker definition, or JSX markup.
    * Use 'none' for no marker.
+   * @example
+   * targetMarker: 'arrow'
+   * targetMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" />)
    * @default 'none'
    */
-  readonly targetMarker?: MarkerPreset | dia.SVGMarkerJSON;
+  readonly targetMarker?: LinkMarker;
   /**
    * CSS class name to apply to the link line.
    * @default ''

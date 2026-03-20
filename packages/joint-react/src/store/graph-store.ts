@@ -19,10 +19,10 @@ import {
 import { PortalElement } from '../models/portal-element';
 import { PortalLink } from '../models/portal-link';
 import {
-  defaultMapDataToElementAttributes,
-  defaultMapDataToLinkAttributes,
-  defaultMapElementAttributesToData,
-  defaultMapLinkAttributesToData,
+  flatMapDataToElementAttributes,
+  flatMapDataToLinkAttributes,
+  flatMapElementAttributesToData,
+  flatMapLinkAttributesToData,
   type GraphMappings,
 } from '../state/data-mapping';
 import { clearConnectedLinkViews } from './clear-view';
@@ -83,10 +83,10 @@ export class GraphStore {
       onElementsChange,
       onLinksChange,
       enableBatchUpdates,
-      mapDataToElementAttributes = defaultMapDataToElementAttributes,
-      mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
-      mapElementAttributesToData = defaultMapElementAttributesToData,
-      mapLinkAttributesToData = defaultMapLinkAttributesToData,
+      mapDataToElementAttributes = flatMapDataToElementAttributes,
+      mapDataToLinkAttributes = flatMapDataToLinkAttributes,
+      mapElementAttributesToData = flatMapElementAttributesToData,
+      mapLinkAttributesToData = flatMapLinkAttributesToData,
     } = config;
 
     this.graph =

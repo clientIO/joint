@@ -57,6 +57,16 @@ export {
 export { createState } from './utils/create-state';
 export type { ExternalStoreLike, State } from './utils/create-state';
 
+// Data-Mapping Defaults
+export {
+  flatMapDataToElementAttributes,
+  flatMapElementAttributesToData,
+} from './state/data-mapping/element-mapper';
+export {
+  flatMapDataToLinkAttributes,
+  flatMapLinkAttributesToData,
+} from './state/data-mapping/link-mapper';
+
 // Data-Mapping Internals
 export { convertLabel } from './state/data-mapping/convert-labels';
 export { mergeLabelsFromAttributes } from './state/data-mapping/convert-labels-reverse';

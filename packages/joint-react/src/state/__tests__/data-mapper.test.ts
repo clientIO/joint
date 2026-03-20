@@ -6,13 +6,13 @@ import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
 import type { FlatElementData, FlatElementPort } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
-import type { ElementToGraphOptions, GraphToElementOptions } from '../data-mapping/element-mapper';
-import type { LinkToGraphOptions, GraphToLinkOptions } from '../data-mapping/link-mapper';
+import type { ToElementAttributesOptions, ToElementDataOptions } from '../data-mapping/element-mapper';
+import type { ToLinkAttributesOptions, ToLinkDataOptions } from '../data-mapping/link-mapper';
 import {
-  defaultMapDataToElementAttributes,
-  defaultMapDataToLinkAttributes,
-  defaultMapElementAttributesToData,
-  defaultMapLinkAttributesToData,
+  flatMapDataToElementAttributes,
+  flatMapDataToLinkAttributes,
+  flatMapElementAttributesToData,
+  flatMapLinkAttributesToData,
 } from '../data-mapping';
 import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
 
@@ -22,12 +22,12 @@ function elementToGraphOpts(
   id: string,
   data: FlatElementData,
   graph: dia.Graph
-): ElementToGraphOptions<FlatElementData> {
+): ToElementAttributesOptions<FlatElementData> {
   return {
     id,
     data,
     graph,
-    toAttributes: (d) => defaultMapDataToElementAttributes({ id, data: d }),
+    toAttributes: (d) => flatMapDataToElementAttributes({ id, data: d }),
   };
 }
 function graphToElementOpts(
@@ -35,7 +35,7 @@ function graphToElementOpts(
   cell: dia.Element,
   graph: dia.Graph,
   previousData?: FlatElementData
-): GraphToElementOptions<FlatElementData> {
+): ToElementDataOptions<FlatElementData> {
   const defaultAttributes = resolveCellDefaults(cell);
   return {
     id,
@@ -44,22 +44,22 @@ function graphToElementOpts(
     element: cell,
     graph,
     previousData,
-    toData: (attributes) => defaultMapElementAttributesToData({ attributes, defaultAttributes }),
+    toData: (attributes) => flatMapElementAttributesToData({ attributes, defaultAttributes }),
   };
 }
 function linkToGraphOpts(
   id: string,
   data: FlatLinkData,
   graph: dia.Graph
-): LinkToGraphOptions<FlatLinkData> {
-  return { id, data, graph, toAttributes: (d) => defaultMapDataToLinkAttributes({ id, data: d }) };
+): ToLinkAttributesOptions<FlatLinkData> {
+  return { id, data, graph, toAttributes: (d) => flatMapDataToLinkAttributes({ id, data: d }) };
 }
 function graphToLinkOpts(
   id: string,
   cell: dia.Link,
   graph: dia.Graph,
   previousData?: FlatLinkData
-): GraphToLinkOptions<FlatLinkData> {
+): ToLinkDataOptions<FlatLinkData> {
   const defaultAttributes = resolveCellDefaults(cell);
   return {
     id,
@@ -68,7 +68,7 @@ function graphToLinkOpts(
     link: cell,
     graph,
     previousData,
-    toData: (attributes) => defaultMapLinkAttributesToData({ attributes, defaultAttributes }),
+    toData: (attributes) => flatMapLinkAttributesToData({ attributes, defaultAttributes }),
   };
 }
 
@@ -88,14 +88,14 @@ describe('dataMapper', () => {
       const id = 'el-1';
       const data: FlatElementData = { x: 10, y: 20, width: 100, height: 50 };
 
-      const cellJson = defaultMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       expect(cellJson.position).toEqual({ x: 10, y: 20 });
       expect(cellJson.size).toEqual({ width: 100, height: 50 });
       expect(cellJson.type).toBe('PortalElement');
 
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Element;
-      const result = defaultMapElementAttributesToData(graphToElementOpts(id, cell, graph));
+      const result = flatMapElementAttributesToData(graphToElementOpts(id, cell, graph));
 
       expect(result).toMatchObject({ x: 10, y: 20, width: 100, height: 50 });
     });
@@ -105,12 +105,12 @@ describe('dataMapper', () => {
       const id = 'el-1';
       const data: MyElement = { x: 0, y: 0, width: 50, height: 50, label: 'Hello', color: 'red' };
 
-      const cellJson = defaultMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       expect(cellJson.data).toEqual({ label: 'Hello', color: 'red' });
 
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Element;
-      const result = defaultMapElementAttributesToData(graphToElementOpts(id, cell, graph));
+      const result = flatMapElementAttributesToData(graphToElementOpts(id, cell, graph));
 
       expect((result as MyElement).label).toBe('Hello');
       expect((result as MyElement).color).toBe('red');
@@ -131,7 +131,7 @@ describe('dataMapper', () => {
       type E = FlatElementData & { known?: string; extra?: string };
       const previousData: E = { x: 0, y: 0, width: 0, height: 0, known: undefined };
 
-      const result = defaultMapElementAttributesToData(
+      const result = flatMapElementAttributesToData(
         graphToElementOpts(id, cell, graph, previousData)
       );
       // previousData is passed through but the default mapper does not filter by it
@@ -148,7 +148,7 @@ describe('dataMapper', () => {
       const id = 'el-1';
       const data: FlatElementData = { x: 0, y: 0, width: 100, height: 100, ports };
 
-      const cellJson = defaultMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       expect(cellJson.ports).toBeDefined();
       expect(cellJson.ports.groups.main).toBeDefined();
       expect(cellJson.ports.items).toHaveLength(1);
@@ -162,7 +162,7 @@ describe('dataMapper', () => {
       const id = 'el-1';
       const data: FlatElementData = { x: 0, y: 0, width: 100, height: 100, ports };
 
-      const cellJson = defaultMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       const [port] = cellJson.ports.items;
       expect(port.label).toBeDefined();
       expect(port.label.position.name).toBe('outside');
@@ -176,7 +176,7 @@ describe('dataMapper', () => {
       const id = 'el-1';
       const data: FlatElementData = { x: 0, y: 0, width: 100, height: 100, ports };
 
-      const cellJson = defaultMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       const portMarkup = cellJson.ports.items[0].markup;
       expect(portMarkup[0].tagName).toBe('rect');
     });
@@ -187,7 +187,7 @@ describe('dataMapper', () => {
       const id = 'link-1';
       const data: FlatLinkData = { source: 'el-1', target: 'el-2' };
 
-      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.source).toEqual({ id: 'el-1' });
       expect(cellJson.target).toEqual({ id: 'el-2' });
       expect(cellJson.type).toBe(PORTAL_LINK_TYPE);
@@ -195,7 +195,7 @@ describe('dataMapper', () => {
 
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Link;
-      const result = defaultMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
+      const result = flatMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
 
       expect(result.source).toBe('el-1');
       expect(result.target).toBe('el-2');
@@ -205,12 +205,12 @@ describe('dataMapper', () => {
       const id = 'link-1';
       const data: FlatLinkData = { source: 'a', target: 'b' };
 
-      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.attrs?.line?.stroke).toBe('#333333');
       expect(cellJson.attrs?.line?.strokeWidth).toBe(2);
-      // Default theme values stored in data
-      expect(cellJson.data?.color).toBe('#333333');
-      expect(cellJson.data?.width).toBe(2);
+      // Theme-defaulted values should NOT be stored in data
+      expect(cellJson.data?.color).toBeUndefined();
+      expect(cellJson.data?.width).toBeUndefined();
     });
 
     it('should apply custom theme props', () => {
@@ -223,7 +223,7 @@ describe('dataMapper', () => {
         pattern: '5 5',
       };
 
-      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.attrs?.line?.stroke).toBe('red');
       expect(cellJson.attrs?.line?.strokeWidth).toBe(4);
       expect(cellJson.attrs?.line?.strokeDasharray).toBe('5 5');
@@ -234,9 +234,10 @@ describe('dataMapper', () => {
       const id = 'link-1';
       const data: MyLink = { source: 'a', target: 'b', weight: 5 };
 
-      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.data?.weight).toBe(5);
-      expect(cellJson.data?.color).toBe('#333333');
+      // Theme-defaulted values should NOT be stored in data
+      expect(cellJson.data?.color).toBeUndefined();
     });
 
     it('should include all cell.data properties regardless of previousData', () => {
@@ -255,7 +256,7 @@ describe('dataMapper', () => {
       const previousData: L = { source: 'a', target: 'b', known: undefined };
 
       // previousData is passed through but the default mapper does not filter by it
-      const result = defaultMapLinkAttributesToData(graphToLinkOpts(id, cell, graph, previousData));
+      const result = flatMapLinkAttributesToData(graphToLinkOpts(id, cell, graph, previousData));
       expect(result).toHaveProperty('known', 'value');
       expect(result).toHaveProperty('extra', 'also-included');
     });
@@ -271,7 +272,7 @@ describe('dataMapper', () => {
         },
       };
 
-      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.labels).toHaveLength(2);
       expect(cellJson.labels[0]).toMatchObject({ id: 'lbl1', position: { distance: 0.3 } });
       expect(cellJson.labels[1]).toMatchObject({
@@ -290,7 +291,7 @@ describe('dataMapper', () => {
         },
       };
 
-      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Link;
 
@@ -299,7 +300,7 @@ describe('dataMapper', () => {
       labels[0].position = { distance: 0.6, offset: 15 };
       cell.labels(labels);
 
-      const result = defaultMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
+      const result = flatMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
       expect(result.labels).toBeDefined();
       expect(result.labels!['lbl1']).toMatchObject({ text: 'Yes', position: 0.6, offset: 15 });
     });
@@ -313,7 +314,7 @@ describe('dataMapper', () => {
         targetPort: 'p2',
       };
 
-      const cellJson = defaultMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
+      const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.source).toEqual({ id: 'el-1', port: 'p1' });
       expect(cellJson.target).toEqual({ id: 'el-2', port: 'p2' });
     });
@@ -321,10 +322,10 @@ describe('dataMapper', () => {
 
   describe('named exports', () => {
     it('should export all four mapper functions', () => {
-      expect(defaultMapDataToElementAttributes).toBeInstanceOf(Function);
-      expect(defaultMapDataToLinkAttributes).toBeInstanceOf(Function);
-      expect(defaultMapElementAttributesToData).toBeInstanceOf(Function);
-      expect(defaultMapLinkAttributesToData).toBeInstanceOf(Function);
+      expect(flatMapDataToElementAttributes).toBeInstanceOf(Function);
+      expect(flatMapDataToLinkAttributes).toBeInstanceOf(Function);
+      expect(flatMapElementAttributesToData).toBeInstanceOf(Function);
+      expect(flatMapLinkAttributesToData).toBeInstanceOf(Function);
     });
   });
 });

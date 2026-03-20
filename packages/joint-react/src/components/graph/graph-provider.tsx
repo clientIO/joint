@@ -135,6 +135,23 @@ const GraphBase = forwardRef<dia.Graph, GraphProviderProps>(
       []
     );
 
+    const {
+      mapDataToElementAttributes,
+      mapDataToLinkAttributes,
+      mapElementAttributesToData,
+      mapLinkAttributesToData,
+    } = rest;
+
+    useLayoutEffect(() => {
+      if (!isReady || !ref.current) return;
+      ref.current.graphState.updateMappers({
+        mapDataToElementAttributes,
+        mapDataToLinkAttributes,
+        mapElementAttributesToData,
+        mapLinkAttributesToData,
+      });
+    }, [mapDataToElementAttributes, mapDataToLinkAttributes, mapElementAttributesToData, mapLinkAttributesToData, isReady, ref]);
+
     useLayoutEffect(() => {
       if (!isControlledMode || !isReady || !ref.current) return;
       ref.current.graphState.updateGraph({
