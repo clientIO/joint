@@ -1,28 +1,35 @@
-/* Light mode — JointJS brand palette (matches flowchart demo) */
+/*
+Note: you can set it on :root or any container to scope the theme.
+We restrict to a specific container here to avoid affecting the Storybook UI.
+*/
+
+/* Light mode */
 .css-theme {
-  --joint-link-color: #ed2637;
+  --joint-link-color: #6366f1;
   --joint-link-width: 2;
-  --joint-label-color: #131e29;
-  --joint-label-bg: #dde6ed;
-  --joint-label-stroke: #ed2637;
+  --joint-label-color: #1e293b;
+  --joint-label-bg: #eef2ff;
+  --joint-label-stroke: #a5b4fc;
 
-  --node-bg: #dde6ed;
-  --node-stroke: #131e29;
-  --node-text: #131e29;
+  --node-bg: #eef2ff;
+  --node-stroke: #818cf8;
+  --node-text: #1e293b;
+  --node-shadow: #a5b4fc;
 
-  --paper-bg: #dde6ed;
+  --paper-bg: #f8fafc;
 }
 
 /* Dark mode */
-.dark {
-  --joint-link-color: #ed2637;
-  --joint-label-color: #dde6ed;
-  --joint-label-bg: #131e29;
-  --joint-label-stroke: #ed2637;
+.css-theme.dark {
+  --joint-link-color: #818cf8;
+  --joint-label-color: #e0e7ff;
+  --joint-label-bg: #1e1b4b;
+  --joint-label-stroke: #6366f1;
 
-  --node-bg: #131e29;
-  --node-stroke: #dde6ed;
-  --node-text: #dde6ed;
+  --node-bg: #1e1b4b;
+  --node-stroke: #818cf8;
+  --node-text: #e0e7ff;
+  --node-shadow: #6366f1;
 
-  --paper-bg: #131e29;
+  --paper-bg: #0f0e2a;
 }

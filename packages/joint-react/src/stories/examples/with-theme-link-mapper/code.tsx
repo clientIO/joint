@@ -118,16 +118,28 @@ function Diagram() {
 
     const changeDefaults = useCallback(() => setAlternate((v) => !v), []);
 
-    const buttonStyle = { marginBottom: 8, padding: '4px 12px', cursor: 'pointer' } as const;
-
     return (
         <>
             <button
                 type="button"
                 onClick={changeDefaults}
-                style={buttonStyle}
+                style={{
+                    marginBottom: 8,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '5px 14px',
+                    cursor: 'pointer',
+                    borderRadius: 20,
+                    border: 'none',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    background: alternate ? SECONDARY : PRIMARY,
+                    color: LIGHT,
+                    transition: 'background 0.2s',
+                }}
             >
-                Change defaults
+                {alternate ? '\u25A0 Square ports' : '\u25CF Round ports'}
             </button>
             <GraphProvider
                 elements={elements}

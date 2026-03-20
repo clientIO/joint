@@ -31,18 +31,27 @@ const initialElements: Record<string, NodeData> = {
 // Links: no explicit color/width — CSS variables provide styling.
 // One link overrides color to show per-link precedence.
 const initialLinks: Record<string, FlatLinkData> = {
-    'a→b': { source: 'a', target: 'b' },
-    'a→c': { source: 'a', target: 'c' },
+    'a→b': {
+        source: 'a',
+        target: 'b',
+        labels: { flow: { text: 'async' } },
+    },
+    'a→c': {
+        source: 'a',
+        target: 'c',
+        labels: { flow: { text: 'sync' } },
+    },
     'b→d': {
         source: 'b',
         target: 'd',
-        labels: { info: { text: 'approved' } },
+        labels: { status: { text: 'approved' } },
     },
     'c→d': {
         source: 'c',
         target: 'd',
-        color: '#0075f2', // explicit override — inline style beats CSS variables
+        color: '#f59e0b', // explicit override — inline style beats CSS variables
         width: 3,
+        labels: { status: { text: 'pending' } },
     },
 };
 
@@ -57,6 +66,7 @@ function Node({ label }: Readonly<{ label: string }>) {
                 fill="var(--node-bg)"
                 stroke="var(--node-stroke)"
                 strokeWidth="1.5"
+                filter="drop-shadow(3px 3px 3px var(--node-shadow))"
             />
             <text
                 x={width / 2}
@@ -101,19 +111,25 @@ function Diagram() {
                     type="button"
                     onClick={toggleTheme}
                     style={{
-                        padding: '4px 12px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '5px 14px',
                         cursor: 'pointer',
-                        borderRadius: 6,
-                        border: '1px solid #cbd5e1',
-                        background: isDark ? '#1e293b' : '#fff',
-                        color: isDark ? '#e2e8f0' : '#1e293b',
+                        borderRadius: 20,
+                        border: 'none',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        background: isDark ? '#312e81' : '#e0e7ff',
+                        color: isDark ? '#c7d2fe' : '#4338ca',
+                        transition: 'background 0.2s, color 0.2s',
                     }}
                 >
-                    {isDark ? 'Light mode' : 'Dark mode'}
+                    {isDark ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark'}
                 </button>
                 <span style={{ fontSize: 12, color: '#94a3b8' }}>
                     Links inherit color from <code>--joint-link-color</code>.
-                    The blue link overrides via <code>color</code> prop.
+                    The amber link overrides via <code>color</code> prop.
                 </span>
             </div>
             <GraphProvider
