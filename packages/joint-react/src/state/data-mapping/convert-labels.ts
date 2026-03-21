@@ -21,8 +21,8 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
     fontFamily = defaultLabelStyle.fontFamily,
     backgroundColor = defaultLabelStyle.backgroundColor,
     backgroundPadding = defaultLabelStyle.backgroundPadding,
-    backgroundStroke = defaultLabelStyle.backgroundStroke,
-    backgroundStrokeWidth = defaultLabelStyle.backgroundStrokeWidth,
+    backgroundOutline = defaultLabelStyle.backgroundOutline,
+    backgroundOutlineWidth = defaultLabelStyle.backgroundOutlineWidth,
     backgroundBorderRadius = defaultLabelStyle.backgroundBorderRadius,
     backgroundOpacity,
     className = defaultLabelStyle.className,
@@ -42,7 +42,7 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
   };
 
   const labelBodyAttributes: Record<string, unknown> = {
-    style: { fill: backgroundColor, stroke: backgroundStroke, strokeWidth: backgroundStrokeWidth },
+    style: { fill: backgroundColor, stroke: backgroundOutline, strokeWidth: backgroundOutlineWidth },
   };
 
   let bodyTagName: string;

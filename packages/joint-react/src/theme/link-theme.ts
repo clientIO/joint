@@ -2,21 +2,21 @@ import type { LinkMarkerName } from './markers';
 
 /**
  * Internal fallback values for link line properties not set by data or defaults.
- * `color` and `width` default to `''`. Empty strings are no-ops on the DOM
+ * `lineColor` and `lineWidth` default to `''`. Empty strings are no-ops on the DOM
  * inline style, letting CSS variables from theme.css take over.
  */
 export const defaultLinkStyle = {
-  color: '' as string,
-  width: '' as number | string,
-  sourceMarker: 'none' as LinkMarkerName,
-  targetMarker: 'none' as LinkMarkerName,
-  wrapperWidth: 10,
-  wrapperColor: 'transparent',
-  wrapperClassName: '',
-  className: '',
-  pattern: '',
-  lineCap: '' as '' | 'butt' | 'round' | 'square',
-  lineJoin: '' as '' | 'miter' | 'round' | 'bevel',
+  lineColor: '' as string, // Accepts any CSS color (e.g., "#333", "var(--my-color)")
+  lineWidth: '' as number | string, // Accepts px number or CSS value (e.g., "var(--my-width)")
+  sourceMarker: 'none' as LinkMarkerName, // Marker name, definition, or JSX
+  targetMarker: 'none' as LinkMarkerName, // Marker name, definition, or JSX
+  wrapperWidth: 10, // Hit-area stroke width in px
+  wrapperColor: 'transparent', // Hit-area stroke color
+  wrapperClassName: '', // CSS class applied to the link wrapper
+  className: '', // CSS class applied to the link line
+  lineDasharray: '', // Accepts SVG stroke-dasharray (e.g., "5,5")
+  lineCap: '' as '' | 'butt' | 'round' | 'square', // Accepts SVG stroke-linecap
+  lineJoin: '' as '' | 'miter' | 'round' | 'bevel', // Accepts SVG stroke-linejoin
 } as const;
 
 /**
@@ -27,8 +27,8 @@ export const defaultLabelStyle = {
   fontSize: '' as number | string,
   fontFamily: '' as string,
   backgroundColor: '' as string,
-  backgroundStroke: '' as string,
-  backgroundStrokeWidth: '' as number | string,
+  backgroundOutline: '' as string,
+  backgroundOutlineWidth: '' as number | string,
   backgroundBorderRadius: 4,
   backgroundPadding: { x: 4, y: 2 } as { readonly x: number; readonly y: number },
   position: 0.5,

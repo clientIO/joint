@@ -438,12 +438,12 @@ describe('graph-state-selectors', () => {
       });
     });
 
-    it('should use theme color property for stroke', () => {
+    it('should use theme lineColor property for stroke', () => {
       const id = 'link-1';
       const link: FlatLinkData = {
         source: 'element-1',
         target: 'element-2',
-        color: 'red',
+        lineColor: 'red',
       };
 
       const options = createToLinkAttributesOptions(id, link, graph);

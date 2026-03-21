@@ -89,8 +89,8 @@ function Diagram() {
             shape: portShape,
             width: 12,
             height: 12,
-            stroke: BG,
-            strokeWidth: 2
+            outline: BG,
+            outlineWidth: 2
         },
         ports: portsByType[data.type] ?? defaultPorts,
       }),
@@ -98,8 +98,8 @@ function Diagram() {
     );
 
     const { mapDataToLinkAttributes } = useLinkDefaults({
-        color,
-        width: 3,
+        lineColor: color,
+        lineWidth: 3,
         targetMarker: 'arrow',
         labelStyle: {
             color: LIGHT,
@@ -107,7 +107,7 @@ function Diagram() {
             fontFamily: 'monospace',
             backgroundPadding: { x: 10, y: 5 },
             backgroundColor: '#1e293b',
-            backgroundStroke: color,
+            backgroundOutline: color,
         },
     }, [color]);
 

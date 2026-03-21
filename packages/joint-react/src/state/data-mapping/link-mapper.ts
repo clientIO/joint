@@ -52,7 +52,7 @@ function isLinkData(data: unknown): data is FlatLinkData {
  *   (`source`, `target`, `z`, `layer`, `parent`, `vertices`, `router`, `connector`, `labels`)
  * - **→ Presentation** — converted to `attrs.line` / `attrs.wrapper`,
  *   then stored in `cell.data` for round-trip preservation
- *   (`color`, `width`, `sourceMarker`, `targetMarker`, `className`, `pattern`,
+ *   (`lineColor`, `lineWidth`, `sourceMarker`, `targetMarker`, `className`, `lineDasharray`,
  *    `lineCap`, `lineJoin`, `wrapperWidth`, `wrapperColor`, `wrapperClassName`)
  *
  * Any remaining properties are treated as user data and stored in `cell.data`.
@@ -92,12 +92,12 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
     labelStyle,
 
     // → Presentation: stored in cell.data for round-trip
-    color = defaultLinkStyle.color,
-    width = defaultLinkStyle.width,
+    lineColor = defaultLinkStyle.lineColor,
+    lineWidth = defaultLinkStyle.lineWidth,
     sourceMarker = defaultLinkStyle.sourceMarker,
     targetMarker = defaultLinkStyle.targetMarker,
     className = defaultLinkStyle.className,
-    pattern = defaultLinkStyle.pattern,
+    lineDasharray = defaultLinkStyle.lineDasharray,
     lineCap = defaultLinkStyle.lineCap,
     lineJoin = defaultLinkStyle.lineJoin,
     wrapperWidth = defaultLinkStyle.wrapperWidth,
@@ -128,14 +128,14 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
     }),
     // → Presentation → attrs
     attrs: buildLinkPresentationAttributes({
-      color,
-      width,
+      color: lineColor,
+      width: lineWidth,
       sourceMarker,
       targetMarker,
       className,
-      pattern,
-      lineCap,
-      lineJoin,
+      dasharray: lineDasharray,
+      linecap: lineCap,
+      linejoin: lineJoin,
       wrapperWidth,
       wrapperColor,
       wrapperClassName,
@@ -159,12 +159,12 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
 
   // Only persist presentation props that were explicitly provided (not defaulted)
   const presentationData: Record<string, unknown> = {};
-  if (data.color !== undefined) presentationData.color = data.color;
-  if (data.width !== undefined) presentationData.width = data.width;
+  if (data.lineColor !== undefined) presentationData.lineColor = data.lineColor;
+  if (data.lineWidth !== undefined) presentationData.lineWidth = data.lineWidth;
   if (data.sourceMarker !== undefined) presentationData.sourceMarker = data.sourceMarker;
   if (data.targetMarker !== undefined) presentationData.targetMarker = data.targetMarker;
   if (data.className !== undefined) presentationData.className = data.className;
-  if (data.pattern !== undefined) presentationData.pattern = data.pattern;
+  if (data.lineDasharray !== undefined) presentationData.lineDasharray = data.lineDasharray;
   if (data.lineCap !== undefined) presentationData.lineCap = data.lineCap;
   if (data.lineJoin !== undefined) presentationData.lineJoin = data.lineJoin;
   if (data.wrapperWidth !== undefined) presentationData.wrapperWidth = data.wrapperWidth;

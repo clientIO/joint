@@ -37,15 +37,15 @@ export interface FlatElementPort {
    */
   readonly shape?: PortShape;
   /**
-   * Stroke color of the port shape.
+   * Outline color of the port shape. Accepts any CSS color (e.g., "#333", "var(--my-color)").
    * @default 'transparent'
    */
-  readonly stroke?: string;
+  readonly outline?: string;
   /**
-   * Stroke width of the port shape.
+   * Outline width of the port shape in px.
    * @default 0
    */
-  readonly strokeWidth?: number;
+  readonly outlineWidth?: number;
   /**
    * CSS class name to apply to the port shape.
    */

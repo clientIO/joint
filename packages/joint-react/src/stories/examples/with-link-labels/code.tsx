@@ -27,7 +27,7 @@ const initialLinks: Record<string, FlatLinkData> = {
   'l1-2': {
     source: '1',
     target: '2',
-    color: 'blue',
+    lineColor: 'blue',
     targetMarker: 'arrow',
     labels: {
       main: {
@@ -57,8 +57,8 @@ const initialLinks: Record<string, FlatLinkData> = {
         position: 15,
         color: LIGHT,
         backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
-        backgroundStroke: SECONDARY,
-        backgroundStrokeWidth: 2,
+        backgroundOutline: SECONDARY,
+        backgroundOutlineWidth: 2,
         backgroundColor: BG,
       },
       minus: {
@@ -66,8 +66,8 @@ const initialLinks: Record<string, FlatLinkData> = {
         position: -15,
         color: LIGHT,
         backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
-        backgroundStroke: PRIMARY,
-        backgroundStrokeWidth: 2,
+        backgroundOutline: PRIMARY,
+        backgroundOutlineWidth: 2,
         backgroundColor: BG,
       },
     },

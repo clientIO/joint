@@ -28,28 +28,28 @@ describe('useLinkDefaults', () => {
         const { result } = renderHook(() => useLinkDefaults());
         const cellJson = callMapper(result.current);
 
-        expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
-        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
+        expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.lineColor);
+        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.lineWidth);
     });
 
     // ── Static defaults ─────────────────────────────────────────────────
 
     it('applies static line style defaults', () => {
-        const { result } = renderHook(() => useLinkDefaults({ color: 'red' }));
+        const { result } = renderHook(() => useLinkDefaults({ lineColor: 'red' }));
         const cellJson = callMapper(result.current);
 
         expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
-        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
+        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.lineWidth);
     });
 
     it('applies full line style override', () => {
         const fullOverride: Partial<FlatLinkData> = {
-            color: '#00ff00',
-            width: 5,
+            lineColor: '#00ff00',
+            lineWidth: 5,
             sourceMarker: 'arrow',
             targetMarker: 'circle',
             className: 'my-line',
-            pattern: '5,5',
+            lineDasharray: '5,5',
             lineCap: 'round',
             lineJoin: 'bevel',
             wrapperWidth: 12,
@@ -67,11 +67,11 @@ describe('useLinkDefaults', () => {
     });
 
     it('link data takes precedence over defaults', () => {
-        const { result } = renderHook(() => useLinkDefaults({ color: 'red', width: 5 }));
+        const { result } = renderHook(() => useLinkDefaults({ lineColor: 'red', lineWidth: 5 }));
         const cellJson = callMapper(result.current, {
             source: 'a',
             target: 'b',
-            color: 'blue',
+            lineColor: 'blue',
         });
 
         expect(cellJson.attrs?.line?.style?.stroke).toBe('blue');
@@ -144,7 +144,7 @@ describe('useLinkDefaults', () => {
 
     it('applies per-link defaults via callback', () => {
         const { result } = renderHook(() => useLinkDefaults((data) => ({
-            color: data.source === 'a' ? 'red' : 'blue',
+            lineColor: data.source === 'a' ? 'red' : 'blue',
         })));
 
         const fromA = callMapper(result.current, { source: 'a', target: 'b' });
@@ -161,48 +161,48 @@ describe('useLinkDefaults', () => {
         const cellJson = callMapper(result.current);
         const cellData = cellJson.data as Record<string, unknown>;
 
-        expect(cellData).not.toHaveProperty('color');
-        expect(cellData).not.toHaveProperty('width');
+        expect(cellData).not.toHaveProperty('lineColor');
+        expect(cellData).not.toHaveProperty('lineWidth');
     });
 
     it('does not pollute cell.data with default-provided keys', () => {
         const { result } = renderHook(() => useLinkDefaults({
-            color: 'red',
-            width: 3,
+            lineColor: 'red',
+            lineWidth: 3,
             labelStyle: { color: '#fff', fontSize: 11 },
         }));
         const cellJson = callMapper(result.current);
         const cellData = cellJson.data as Record<string, unknown>;
 
         // These came from defaults, not user data — must be stripped
-        expect(cellData).not.toHaveProperty('color');
-        expect(cellData).not.toHaveProperty('width');
+        expect(cellData).not.toHaveProperty('lineColor');
+        expect(cellData).not.toHaveProperty('lineWidth');
         expect(cellData).not.toHaveProperty('labelStyle');
     });
 
     it('preserves user-provided keys that overlap with defaults in cell.data', () => {
         const { result } = renderHook(() => useLinkDefaults({
-            color: 'red',
-            width: 3,
+            lineColor: 'red',
+            lineWidth: 3,
         }));
         const cellJson = callMapper(result.current, {
             source: 'a',
             target: 'b',
-            color: 'blue',
+            lineColor: 'blue',
         });
         const cellData = cellJson.data as Record<string, unknown>;
 
-        // color was in user data — must be preserved
-        expect(cellData).toHaveProperty('color');
-        // width was only in defaults — must be stripped
-        expect(cellData).not.toHaveProperty('width');
+        // lineColor was in user data — must be preserved
+        expect(cellData).toHaveProperty('lineColor');
+        // lineWidth was only in defaults — must be stripped
+        expect(cellData).not.toHaveProperty('lineWidth');
     });
 
     // ── Memoization ────────────────────────────────────────────────────────
 
     it('returns stable reference for static defaults', () => {
         const { result, rerender } = renderHook(() =>
-            useLinkDefaults({ color: 'red' }),
+            useLinkDefaults({ lineColor: 'red' }),
         );
         const first = result.current.mapDataToLinkAttributes;
         rerender();
@@ -210,7 +210,7 @@ describe('useLinkDefaults', () => {
     });
 
     const stableCallback = (data: FlatLinkData) => ({
-        color: data.source === 'a' ? 'red' : 'blue',
+        lineColor: data.source === 'a' ? 'red' : 'blue',
     });
 
     it('returns stable reference for callback defaults', () => {
@@ -221,16 +221,16 @@ describe('useLinkDefaults', () => {
     });
 
     it('recreates mapper when deps change', () => {
-        let color = 'red';
+        let lineColor = 'red';
         const { result, rerender } = renderHook(() =>
-            useLinkDefaults(() => ({ color }), [color]),
+            useLinkDefaults(() => ({ lineColor }), [lineColor]),
         );
         const first = result.current.mapDataToLinkAttributes;
 
         rerender();
         expect(result.current.mapDataToLinkAttributes).toBe(first);
 
-        color = 'blue';
+        lineColor = 'blue';
         rerender();
         expect(result.current.mapDataToLinkAttributes).not.toBe(first);
     });

@@ -19,9 +19,9 @@ const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
-    color: PRIMARY,
-    width: 2,
-    pattern: '5,5',
+    lineColor: PRIMARY,
+    lineWidth: 2,
+    lineDasharray: '5,5',
   },
 };
 

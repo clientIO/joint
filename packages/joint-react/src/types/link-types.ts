@@ -65,13 +65,13 @@ export interface FlatLinkLabel {
    */
   readonly className?: string;
   /**
-   * Stroke color of the label background rectangle.
+   * Outline (stroke) color of the label background rectangle.
    */
-  readonly backgroundStroke?: string;
+  readonly backgroundOutline?: string;
   /**
-   * Stroke width of the label background rectangle.
+   * Outline (stroke) width of the label background rectangle.
    */
-  readonly backgroundStrokeWidth?: number;
+  readonly backgroundOutlineWidth?: number;
   /**
    * Border radius of the label background rectangle.
    */
@@ -185,13 +185,13 @@ export interface FlatLinkData extends Record<string, unknown> {
    * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
    * When omitted, the `--joint-link-color` CSS variable from theme.css controls the stroke.
    */
-  readonly color?: string;
+  readonly lineColor?: string;
   /**
    * Stroke width of the link line.
    * Accepts a number (pixels) or a CSS value string like `'var(--my-width)'`.
    * When omitted, the `--joint-link-width` CSS variable from theme.css controls the width.
    */
-  readonly width?: number | string;
+  readonly lineWidth?: number | string;
   /**
    * Stroke width of the link wrapper (hit area) in pixels.
    * @default 10
@@ -232,10 +232,11 @@ export interface FlatLinkData extends Record<string, unknown> {
    */
   readonly className?: string;
   /**
-   * Stroke dash pattern for the link line (e.g., '5,5' for dashed).
+   * Stroke dash pattern for the link line.
+   * Accepts SVG `stroke-dasharray` syntax (e.g., `'5,5'` for dashed).
    * @default ''
    */
-  readonly pattern?: string;
+  readonly lineDasharray?: string;
   /**
    * Stroke line cap for the link line.
    * @default ''

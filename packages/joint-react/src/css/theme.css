@@ -11,17 +11,17 @@
  *   :root       { --joint-link-color: #333; }
  *   .dark       { --joint-link-color: #ccc; }
  *
- * Per-link override via color prop:
+ * Per-link override via lineColor prop:
  *
- *   { color: 'var(--color-pink-200)' }
- *   { color: '#ff0000' }
+ *   { lineColor: 'var(--color-pink-200)' }
+ *   { lineColor: '#ff0000' }
  *
  * Per-link override via className prop (Tailwind utilities etc.):
  *
  *   { className: 'stroke-blue-500 stroke-4' }
  *
  * Priority (highest → lowest):
- *   1. Inline style — `color` / `width` props
+ *   1. Inline style — `lineColor` / `lineWidth` props
  *   2. Utility classes — `className` prop (Tailwind @layer utilities)
  *   3. Theme variables — `--joint-*` CSS custom properties (@layer base)
  */
@@ -61,8 +61,8 @@
 
   :where(.joint-port-body) {
     fill: var(--joint-port-color, #333333);
-    stroke: var(--joint-port-stroke, transparent);
-    stroke-width: var(--joint-port-stroke-width, 0);
+    stroke: var(--joint-port-outline, transparent);
+    stroke-width: var(--joint-port-outline-width, 0);
   }
 
   :where(.joint-port-label) {

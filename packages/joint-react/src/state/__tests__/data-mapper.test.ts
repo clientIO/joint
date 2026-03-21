@@ -207,11 +207,11 @@ describe('dataMapper', () => {
       const data: FlatLinkData = { source: 'a', target: 'b' };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
-      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
+      expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.lineColor);
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.lineWidth);
       // Theme-defaulted values should NOT be stored in data
-      expect(cellJson.data?.color).toBeUndefined();
-      expect(cellJson.data?.width).toBeUndefined();
+      expect(cellJson.data?.lineColor).toBeUndefined();
+      expect(cellJson.data?.lineWidth).toBeUndefined();
     });
 
     it('should apply custom theme props', () => {
@@ -219,9 +219,9 @@ describe('dataMapper', () => {
       const data: FlatLinkData = {
         source: 'a',
         target: 'b',
-        color: 'red',
-        width: 4,
-        pattern: '5 5',
+        lineColor: 'red',
+        lineWidth: 4,
+        lineDasharray: '5 5',
       };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
@@ -238,7 +238,7 @@ describe('dataMapper', () => {
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.data?.weight).toBe(5);
       // Theme-defaulted values should NOT be stored in data
-      expect(cellJson.data?.color).toBeUndefined();
+      expect(cellJson.data?.lineColor).toBeUndefined();
     });
 
     it('should include all cell.data properties regardless of previousData', () => {

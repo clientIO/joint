@@ -10,7 +10,7 @@ describe('useLink', () => {
         '2': { x: 100, y: 100, width: 10, height: 10 },
       },
       links: {
-        'link-1': { source: '1', target: '2', color: '#FF0000' },
+        'link-1': { source: '1', target: '2', lineColor: '#FF0000' },
       },
     },
     paperProps: {

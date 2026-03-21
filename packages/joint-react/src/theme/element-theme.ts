@@ -16,8 +16,8 @@ export const defaultPortStyle = {
   height: 10,
   color: '' as string,
   shape: 'ellipse' as PortShape,
-  stroke: '' as string,
-  strokeWidth: '' as number | string,
+  outline: '' as string, // Accepts any CSS color (e.g., "#333", "var(--my-color)")
+  outlineWidth: '' as number | string, // Outline width in px or CSS value
   className: '',
   passive: false,
   labelPosition: 'outside',

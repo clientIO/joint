@@ -1151,8 +1151,8 @@ describe('Paper Component', () => {
 
       const [createdLinkData] = Object.values(getLinksSnapshot());
       // Theme-defaulted values should NOT appear in user data
-      expect(createdLinkData.color).toBeUndefined();
-      expect(createdLinkData.width).toBeUndefined();
+      expect(createdLinkData.lineColor).toBeUndefined();
+      expect(createdLinkData.lineWidth).toBeUndefined();
       expect(createdLinkData.targetMarker).toBeUndefined();
     });
 
@@ -1218,8 +1218,8 @@ describe('Paper Component', () => {
 
     it('supports defaultLink as FlatLinkData object when dragging between ports', async () => {
       const defaultLinkData: Partial<FlatLinkData> = {
-        color: '#ff5500',
-        width: 7,
+        lineColor: '#ff5500',
+        lineWidth: 7,
         className: 'custom-default-link',
         targetMarker: 'none',
         customProperty: 'flat-link-default',
@@ -1238,8 +1238,8 @@ describe('Paper Component', () => {
       expect(createdLink.attr(['line', 'class'])).toBe('joint-link-line custom-default-link');
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
-          color: '#ff5500',
-          width: 7,
+          lineColor: '#ff5500',
+          lineWidth: 7,
           customProperty: 'flat-link-default',
         })
       );
@@ -1249,8 +1249,8 @@ describe('Paper Component', () => {
       });
 
       const [createdLinkData] = Object.values(getLinksSnapshot());
-      expect(createdLinkData.color).toBe('#ff5500');
-      expect(createdLinkData.width).toBe(7);
+      expect(createdLinkData.lineColor).toBe('#ff5500');
+      expect(createdLinkData.lineWidth).toBe(7);
       expect(createdLinkData.customProperty).toBe('flat-link-default');
       expect(createdLinkData.source).toBe(SOURCE_ELEMENT_ID);
       expect(createdLinkData.target).toBe(TARGET_ELEMENT_ID);
@@ -1261,8 +1261,8 @@ describe('Paper Component', () => {
     it('supports defaultLink callback returning FlatLinkData when dragging between ports', async () => {
       const defaultLinkCallback = jest.fn(
         (_cellView: dia.CellView, _magnet: SVGElement): Partial<FlatLinkData> => ({
-          color: '#22aa55',
-          width: 4,
+          lineColor: '#22aa55',
+          lineWidth: 4,
           wrapperWidth: 16,
           customProperty: 'callback-flat-link-default',
         })
@@ -1294,8 +1294,8 @@ describe('Paper Component', () => {
       });
 
       const [createdLinkData] = Object.values(getLinksSnapshot());
-      expect(createdLinkData.color).toBe('#22aa55');
-      expect(createdLinkData.width).toBe(4);
+      expect(createdLinkData.lineColor).toBe('#22aa55');
+      expect(createdLinkData.lineWidth).toBe(4);
       expect(createdLinkData.wrapperWidth).toBe(16);
       expect(createdLinkData.customProperty).toBe('callback-flat-link-default');
     });

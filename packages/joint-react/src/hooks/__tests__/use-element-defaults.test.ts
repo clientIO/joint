@@ -47,7 +47,7 @@ describe('useElementDefaults', () => {
         const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
         const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
         expect(portBody?.style?.fill).toBe('red');
-        expect(portBody?.style?.strokeWidth).toBe(defaultPortStyle.strokeWidth);
+        expect(portBody?.style?.strokeWidth).toBe(defaultPortStyle.outlineWidth);
     });
 
     // ── Static data defaults ───────────────────────────────────────────────

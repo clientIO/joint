@@ -18,8 +18,8 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
     height = defaultPortStyle.height,
     color = defaultPortStyle.color,
     shape = defaultPortStyle.shape,
-    stroke = defaultPortStyle.stroke,
-    strokeWidth = defaultPortStyle.strokeWidth,
+    outline = defaultPortStyle.outline,
+    outlineWidth = defaultPortStyle.outlineWidth,
     className = defaultPortStyle.className,
     label,
     labelPosition = defaultPortStyle.labelPosition,
@@ -39,7 +39,7 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
   };
 
   const portBodyAttributes: Record<string, unknown> = {
-    style: { fill: color, stroke, strokeWidth },
+    style: { fill: color, stroke: outline, strokeWidth: outlineWidth },
     magnet: passive ? 'passive' : 'active',
   };
 

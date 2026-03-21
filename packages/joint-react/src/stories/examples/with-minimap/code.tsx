@@ -11,11 +11,11 @@ const initialElements: Record<
   '1': { label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
   '2': { label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
 };
-const initialEdges: Record<string, { source: string; target: string; color: string }> = {
+const initialEdges: Record<string, { source: string; target: string; lineColor: string }> = {
   'e1-2': {
     source: '1',
     target: '2',
-    color: LIGHT,
+    lineColor: LIGHT,
   },
 };
 

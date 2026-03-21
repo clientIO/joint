@@ -56,9 +56,9 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
       setLink(linkId, {
         source,
         target,
-        color: SECONDARY,
-        width: 2,
-        pattern: '5 5',
+        lineColor: SECONDARY,
+        lineWidth: 2,
+        lineDasharray: '5 5',
       });
     }
     return () => {

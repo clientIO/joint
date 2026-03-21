@@ -104,17 +104,21 @@ const TARGET_KEYS = { port: 'targetPort', anchor: 'targetAnchor', connectionPoin
 export { SOURCE_KEYS, TARGET_KEYS };
 
 interface LinkPresentationOptions {
-  color: string;
-  width: number | string;
-  sourceMarker: LinkMarker;
-  targetMarker: LinkMarker;
-  className: string;
-  pattern: string;
-  lineCap: string;
-  lineJoin: string;
-  wrapperWidth: number;
-  wrapperColor: string;
-  wrapperClassName: string;
+
+  // Line styling properties
+  className: string; // CSS class applied to the link line
+  color: string; // Accepts any CSS color (e.g., "#333", "var(--my-color)")
+  dasharray: string; // Accepts SVG stroke-dasharray (e.g., "5,5")
+  width: number | string; // Accepts px number or CSS value (e.g., "var(--my-width)")
+  linecap: string; // Accepts SVG stroke-linecap ("butt", "round", "square")
+  linejoin: string; // Accepts SVG stroke-linejoin ("miter", "round", "bevel")
+  sourceMarker: LinkMarker; // Marker name, definition, or JSX
+  targetMarker: LinkMarker; // Marker name, definition, or JSX
+
+  // Wrapper properties define the hit-area for easier interaction, separate from the visible line style
+  wrapperWidth: number | string; // Hit-area stroke width in px
+  wrapperColor: string; // Hit-area stroke color
+  wrapperClassName: string; // CSS class applied to the link wrapper
 }
 
 /**
@@ -133,7 +137,7 @@ interface LinkPresentationOptions {
 export function buildLinkPresentationAttributes(
   options: LinkPresentationOptions
 ): Record<string, Nullable<attributes.SVGAttributes>> {
-  const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperWidth, wrapperColor, wrapperClassName } = options;
+  const { color, width, sourceMarker, targetMarker, className, dasharray, linecap, linejoin, wrapperWidth, wrapperColor, wrapperClassName } = options;
 
   // Use inline `style` so that explicit values win over CSS theme rules
   // (inline style > CSS specificity). Empty strings are no-ops on the DOM,
@@ -141,9 +145,9 @@ export function buildLinkPresentationAttributes(
   const lineStyle: Record<string, unknown> = {
     stroke: color,
     strokeWidth: width,
-    strokeDasharray: pattern,
-    strokeLinecap: lineCap,
-    strokeLinejoin: lineJoin,
+    strokeDasharray: dasharray,
+    strokeLinecap: linecap,
+    strokeLinejoin: linejoin,
   };
 
   const lineAttributes: Nullable<attributes.SVGAttributes> = {
@@ -170,9 +174,9 @@ export function buildLinkPresentationAttributes(
       style: {
         strokeWidth: wrapperWidth,
         stroke: wrapperColor,
-        // Note: the `lineCap` and `lineJoin` are shared between the line and wrapper.
-        strokeLinecap: lineCap,
-        strokeLinejoin: lineJoin
+        // Note: `linecap` and `linejoin` are shared between the line and wrapper.
+        strokeLinecap: linecap,
+        strokeLinejoin: linejoin
       },
       class: `joint-link-wrapper ${wrapperClassName}`.trim(),
     },
