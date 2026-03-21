@@ -6,9 +6,8 @@ import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../stories/utils/make-story';
 import { useElementLayout } from './use-element-layout';
 import { useCallback } from 'react';
-import type { FlatLinkData } from '../types/link-types';
 import { PRIMARY } from '../../.storybook/theme';
-import type { FlatElementData } from '../types/element-types';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 
 const elements: Record<string, FlatElementData> = {
   '1': {

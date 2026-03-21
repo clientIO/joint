@@ -180,8 +180,8 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourcePort: 'out',
     target: 'pm',
     targetPort: 'in',
-    lineColor: DARK.link,
-    lineWidth: 2,
+    color: DARK.link,
+    width: 2,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     targetMarker: 'none',
     labels: {
@@ -201,10 +201,10 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourcePort: 'out',
     target: 'designer',
     targetPort: 'in',
-    lineColor: DARK.link,
-    lineWidth: 2,
+    color: DARK.link,
+    width: 2,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
-    lineDasharray: '6,4',
+    dasharray: '6,4',
     targetMarker: {
       d: 'M 0 -4 L 8 0 L 0 4 Z',
       fill: DARK.link,
@@ -571,7 +571,7 @@ function Main() {
   for (const [id, link] of Object.entries(initialLinks)) {
     themedLinks[id] = {
       ...link,
-      lineColor: theme.link,
+      color: theme.link,
       labels: link.labels
         ? Object.fromEntries(
             Object.entries(link.labels).map(([key, label]) => [

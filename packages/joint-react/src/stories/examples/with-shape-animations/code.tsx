@@ -100,8 +100,8 @@ const wireAppearance = {
   width: 2,
   wrapperColor: WIRE_OUTLINE,
   wrapperWidth: 2,
-  lineCap: 'round' as const,
-  lineJoin: 'round' as const,
+  linecap: 'round' as const,
+  linejoin: 'round' as const,
   z: -1,
 };
 

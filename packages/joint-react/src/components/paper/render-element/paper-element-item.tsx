@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
-import type { FlatElementData } from '../../../types/element-types';
+import type { FlatElementData } from '../../../types/data-types';
 import { useGraphStore, useElementLayout, usePaper } from '../../../hooks';
 
 export interface ElementItemProps<Data = FlatElementData> {

@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { FlatLinkLabel } from '../../types/link-types';
+import type { FlatLinkLabel } from '../../types/data-types';
 import type { Mutable } from '../../types';
 
 /**

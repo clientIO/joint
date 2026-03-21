@@ -113,20 +113,20 @@ const elements: Record<string, ElementData> = {
   },
 };
 
-// Links now use built-in theme properties: lineColor, lineWidth, sourceMarker, targetMarker
+// Links now use built-in theme properties: color, width, sourceMarker, targetMarker
 const links: Record<string, LinkData> = {
   link1: {
     source: '1',
     target: '2',
-    lineWidth: 4,
-    lineColor: 'orange',
+    width: 4,
+    color: 'orange',
     // targetMarker: 'arrow' as LinkMarkerName,
     className: 'dashed-link',
   },
   link2: {
     source: '3',
     target: '4',
-    lineColor: 'green',
+    color: 'green',
     // sourceMarker: 'circle' as LinkMarkerName,
     // targetMarker: 'cross' as LinkMarkerName,
   },
@@ -134,7 +134,7 @@ const links: Record<string, LinkData> = {
     source: '2',
     target: '4',
     jjType: 'standard.ShadowLink',
-    lineColor: 'purple',
+    color: 'purple',
   },
 };
 
@@ -396,10 +396,10 @@ export default function App() {
 }
 
 function mapDataToLinkAttributesExample(options: ToLinkAttributesOptions<LinkData>) {
-  const { jjType, lineColor: color } = options.data;
+  const { jjType, color } = options.data;
 
   // For standard links, use the built-in theme defaults
-  // The default mapper already handles lineColor, lineWidth, and markers
+  // The default mapper already handles color, width, and markers
   if (!jjType) {
     return options.toAttributes(options.data);
   }

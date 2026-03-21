@@ -1,6 +1,5 @@
 import type { dia } from '@joint/core';
-import type { FlatElementData } from '../../types/element-types';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../../types/data-types';
 import type { ToElementAttributesOptions, ToElementDataOptions } from './element-mapper';
 import type { ToLinkAttributesOptions, ToLinkDataOptions } from './link-mapper';
 

@@ -1,7 +1,7 @@
 import { type DependencyList, useMemo, useCallback, useRef } from 'react';
 import { flatMapDataToElementAttributes } from '../state/data-mapping/element-mapper';
 import type { GraphMappings } from '../state/data-mapping';
-import type { FlatElementData } from '../types/element-types';
+import type { FlatElementData } from '../types/data-types';
 import type { ToElementAttributesOptions } from '../state/data-mapping/element-mapper';
 
 /**

@@ -135,10 +135,10 @@ const links: Record<string, FlatLinkData> = {
     source: '3', // Port from table element
     sourcePort: 'out-3-0',
     target: '1',
-    lineColor: LIGHT,
-    lineWidth: 2,
+    color: LIGHT,
+    width: 2,
     className: 'link',
-    lineDasharray: '5,5',
+    dasharray: '5,5',
     targetMarker: {
       d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
     },
@@ -514,10 +514,10 @@ function Main() {
           ref={paperCtxRef}
           {...PAPER_PROPS}
           defaultLink={{
-            lineColor: LIGHT,
-            lineWidth: 2,
+            color: LIGHT,
+            width: 2,
             className: 'link',
-            lineDasharray: '5,5',
+            dasharray: '5,5',
             targetMarker: {
               d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
             },

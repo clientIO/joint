@@ -98,8 +98,8 @@ function Diagram() {
     );
 
     const { mapDataToLinkAttributes } = useLinkDefaults({
-        lineColor: color,
-        lineWidth: 3,
+        color: color,
+        width: 3,
         targetMarker: 'arrow',
         labelStyle: {
             color: LIGHT,

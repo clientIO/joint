@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { FlatElementData } from '../../types/element-types';
+import type { FlatElementData } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortDefaults } from './convert-ports';
 import { isRecord } from '../../utils/is';

@@ -31,8 +31,7 @@ import type {
   LinkLayout,
 } from './state.types';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
-import type { FlatElementData } from '../types/element-types';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 import { resolveCellDefaults } from './data-mapping/resolve-cell-defaults';
 import {
   flatMapDataToElementAttributes,

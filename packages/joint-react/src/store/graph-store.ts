@@ -1,7 +1,6 @@
 import { dia, shapes } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { FlatLinkData } from '../types/link-types';
-import type { FlatElementData } from '../types/element-types';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 import type { AddPaperOptions } from './paper-store';
 import type {
   PaperStoreState,

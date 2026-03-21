@@ -21,7 +21,7 @@ import { useElements } from './use-elements';
 import { useLinks } from './use-links';
 import { useInternalData, useElementsLayout } from './use-stores';
 import type { PaperStore } from '../store';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatLinkData } from '../types/data-types';
 import type { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
 

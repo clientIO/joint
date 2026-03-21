@@ -4,8 +4,7 @@ import type {
   ElementsLayoutState,
   LinksLayoutState,
 } from '../state/state.types';
-import type { FlatElementData } from '../types/element-types';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 import type { ExternalStoreLike, MarkDeepReadOnly } from '../utils/create-state';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';

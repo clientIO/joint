@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { useElementDefaults } from '../use-element-defaults';
 import { defaultPortStyle } from '../../theme/element-theme';
-import type { FlatElementData } from '../../types/element-types';
+import type { FlatElementData } from '../../types/data-types';
 
 describe('useElementDefaults', () => {
 

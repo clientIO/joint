@@ -4,8 +4,7 @@
 import { dia, shapes } from '@joint/core';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
-import type { FlatElementData, FlatElementPort } from '../../types/element-types';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatElementData, FlatElementPort, FlatLinkData } from '../../types/data-types';
 import type { ToElementAttributesOptions, ToElementDataOptions } from '../data-mapping/element-mapper';
 import type { ToLinkAttributesOptions, ToLinkDataOptions } from '../data-mapping/link-mapper';
 import {
@@ -207,11 +206,11 @@ describe('dataMapper', () => {
       const data: FlatLinkData = { source: 'a', target: 'b' };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.lineColor);
-      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.lineWidth);
+      expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
       // Theme-defaulted values should NOT be stored in data
-      expect(cellJson.data?.lineColor).toBeUndefined();
-      expect(cellJson.data?.lineWidth).toBeUndefined();
+      expect(cellJson.data?.color).toBeUndefined();
+      expect(cellJson.data?.width).toBeUndefined();
     });
 
     it('should apply custom theme props', () => {
@@ -219,9 +218,9 @@ describe('dataMapper', () => {
       const data: FlatLinkData = {
         source: 'a',
         target: 'b',
-        lineColor: 'red',
-        lineWidth: 4,
-        lineDasharray: '5 5',
+        color: 'red',
+        width: 4,
+        dasharray: '5 5',
       };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
@@ -238,7 +237,7 @@ describe('dataMapper', () => {
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.data?.weight).toBe(5);
       // Theme-defaulted values should NOT be stored in data
-      expect(cellJson.data?.lineColor).toBeUndefined();
+      expect(cellJson.data?.color).toBeUndefined();
     });
 
     it('should include all cell.data properties regardless of previousData', () => {

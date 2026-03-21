@@ -96,7 +96,7 @@ describe('Paper with useHTMLOverlay and links', () => {
         setLink('new-link', {
           source: '1',
           target: '2',
-          lineColor: '#FF0000',
+          color: '#FF0000',
         });
       }, [setLink]);
       return null;

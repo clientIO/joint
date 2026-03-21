@@ -1,6 +1,6 @@
 
 import { type dia, util } from '@joint/core';
-import type { FlatLinkData, FlatLinkLabel } from '../../types/link-types';
+import type { FlatLinkData, FlatLinkLabel } from '../../types/data-types';
 import { defaultLinkStyle } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
@@ -52,8 +52,8 @@ function isLinkData(data: unknown): data is FlatLinkData {
  *   (`source`, `target`, `z`, `layer`, `parent`, `vertices`, `router`, `connector`, `labels`)
  * - **→ Presentation** — converted to `attrs.line` / `attrs.wrapper`,
  *   then stored in `cell.data` for round-trip preservation
- *   (`lineColor`, `lineWidth`, `sourceMarker`, `targetMarker`, `className`, `lineDasharray`,
- *    `lineCap`, `lineJoin`, `wrapperWidth`, `wrapperColor`, `wrapperClassName`)
+ *   (`color`, `width`, `sourceMarker`, `targetMarker`, `className`, `dasharray`,
+ *    `linecap`, `linejoin`, `wrapperWidth`, `wrapperColor`, `wrapperClassName`)
  *
  * Any remaining properties are treated as user data and stored in `cell.data`.
  * @param options - The link id and data to convert
@@ -92,14 +92,14 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
     labelStyle,
 
     // → Presentation: stored in cell.data for round-trip
-    lineColor = defaultLinkStyle.lineColor,
-    lineWidth = defaultLinkStyle.lineWidth,
+    color = defaultLinkStyle.color,
+    width = defaultLinkStyle.width,
     sourceMarker = defaultLinkStyle.sourceMarker,
     targetMarker = defaultLinkStyle.targetMarker,
     className = defaultLinkStyle.className,
-    lineDasharray = defaultLinkStyle.lineDasharray,
-    lineCap = defaultLinkStyle.lineCap,
-    lineJoin = defaultLinkStyle.lineJoin,
+    dasharray = defaultLinkStyle.dasharray,
+    linecap = defaultLinkStyle.linecap,
+    linejoin = defaultLinkStyle.linejoin,
     wrapperWidth = defaultLinkStyle.wrapperWidth,
     wrapperColor = defaultLinkStyle.wrapperColor,
     wrapperClassName = defaultLinkStyle.wrapperClassName,
@@ -128,14 +128,14 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
     }),
     // → Presentation → attrs
     attrs: buildLinkPresentationAttributes({
-      color: lineColor,
-      width: lineWidth,
+      color,
+      width,
       sourceMarker,
       targetMarker,
       className,
-      dasharray: lineDasharray,
-      linecap: lineCap,
-      linejoin: lineJoin,
+      dasharray,
+      linecap,
+      linejoin,
       wrapperWidth,
       wrapperColor,
       wrapperClassName,
@@ -159,14 +159,14 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
 
   // Only persist presentation props that were explicitly provided (not defaulted)
   const presentationData: Record<string, unknown> = {};
-  if (data.lineColor !== undefined) presentationData.lineColor = data.lineColor;
-  if (data.lineWidth !== undefined) presentationData.lineWidth = data.lineWidth;
+  if (data.color !== undefined) presentationData.color = data.color;
+  if (data.width !== undefined) presentationData.width = data.width;
   if (data.sourceMarker !== undefined) presentationData.sourceMarker = data.sourceMarker;
   if (data.targetMarker !== undefined) presentationData.targetMarker = data.targetMarker;
   if (data.className !== undefined) presentationData.className = data.className;
-  if (data.lineDasharray !== undefined) presentationData.lineDasharray = data.lineDasharray;
-  if (data.lineCap !== undefined) presentationData.lineCap = data.lineCap;
-  if (data.lineJoin !== undefined) presentationData.lineJoin = data.lineJoin;
+  if (data.dasharray !== undefined) presentationData.dasharray = data.dasharray;
+  if (data.linecap !== undefined) presentationData.linecap = data.linecap;
+  if (data.linejoin !== undefined) presentationData.linejoin = data.linejoin;
   if (data.wrapperWidth !== undefined) presentationData.wrapperWidth = data.wrapperWidth;
   if (data.wrapperColor !== undefined) presentationData.wrapperColor = data.wrapperColor;
   if (data.wrapperClassName !== undefined) presentationData.wrapperClassName = data.wrapperClassName;

@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { FlatElementPort } from '../../types/element-types';
+import type { FlatElementPort } from '../../types/data-types';
 import { defaultPortStyle } from '../../theme/element-theme';
 
 /**

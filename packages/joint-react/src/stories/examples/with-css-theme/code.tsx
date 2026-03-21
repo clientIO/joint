@@ -49,8 +49,8 @@ const initialLinks: Record<string, FlatLinkData> = {
     'c→d': {
         source: 'c',
         target: 'd',
-        lineColor: '#f59e0b', // explicit override — inline style beats CSS variables
-        lineWidth: 3,
+        color: '#f59e0b', // explicit override — inline style beats CSS variables
+        width: 3,
         labels: { status: { text: 'pending' } },
     },
 };
@@ -129,7 +129,7 @@ function Diagram() {
                 </button>
                 <span style={{ fontSize: 12, color: '#94a3b8' }}>
                     Links inherit color from <code>--joint-link-color</code>.
-                    The amber link overrides via <code>lineColor</code> prop.
+                    The amber link overrides via <code>color</code> prop.
                 </span>
             </div>
             <GraphProvider

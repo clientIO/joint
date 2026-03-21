@@ -1,6 +1,6 @@
 import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
-import type { FlatLinkEnd } from '../../types/link-types';
+import type { FlatLinkEnd } from '../../types/data-types';
 import type { LinkMarker } from '../../theme/markers';
 import type { Nullable } from '../../types';
 import { resolveMarker } from '../../theme/markers';
@@ -105,20 +105,56 @@ export { SOURCE_KEYS, TARGET_KEYS };
 
 interface LinkPresentationOptions {
 
-  // Line styling properties
-  className: string; // CSS class applied to the link line
-  color: string; // Accepts any CSS color (e.g., "#333", "var(--my-color)")
-  dasharray: string; // Accepts SVG stroke-dasharray (e.g., "5,5")
-  width: number | string; // Accepts px number or CSS value (e.g., "var(--my-width)")
-  linecap: string; // Accepts SVG stroke-linecap ("butt", "round", "square")
-  linejoin: string; // Accepts SVG stroke-linejoin ("miter", "round", "bevel")
-  sourceMarker: LinkMarker; // Marker name, definition, or JSX
-  targetMarker: LinkMarker; // Marker name, definition, or JSX
+  /**
+   * CSS class applied to the link line.
+   */
+  className: string;
+  /**
+   * Stroke color of the link line.
+   * Accepts any CSS color (e.g., `"#333"`, `"var(--my-color)"`).
+   */
+  color: string;
+  /**
+   * Stroke dash pattern of the link line.
+   * Accepts SVG `stroke-dasharray` syntax (e.g., `"5,5"` for dashed).
+   */
+  dasharray: string;
+  /**
+   * Stroke width of the link line.
+   * Accepts a px number or CSS value (e.g., `"var(--my-width)"`).
+   */
+  width: number | string;
+  /**
+   * Stroke line cap of the link line.
+   * Accepts SVG `stroke-linecap` values: `"butt"`, `"round"`, `"square"`.
+   */
+  linecap: string;
+  /**
+   * Stroke line join of the link line.
+   * Accepts SVG `stroke-linejoin` values: `"miter"`, `"round"`, `"bevel"`.
+   */
+  linejoin: string;
+  /**
+   * Source marker — a preset name, custom marker definition, or JSX markup.
+   */
+  sourceMarker: LinkMarker;
+  /**
+   * Target marker — a preset name, custom marker definition, or JSX markup.
+   */
+  targetMarker: LinkMarker;
 
-  // Wrapper properties define the hit-area for easier interaction, separate from the visible line style
-  wrapperWidth: number | string; // Hit-area stroke width in px
-  wrapperColor: string; // Hit-area stroke color
-  wrapperClassName: string; // CSS class applied to the link wrapper
+  /**
+   * Stroke width of the link wrapper (hit-area) in px.
+   */
+  wrapperWidth: number | string;
+  /**
+   * Stroke color of the link wrapper (hit-area).
+   */
+  wrapperColor: string;
+  /**
+   * CSS class applied to the link wrapper (hit-area).
+   */
+  wrapperClassName: string;
 }
 
 /**

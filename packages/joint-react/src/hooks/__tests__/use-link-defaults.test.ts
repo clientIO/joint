@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { useLinkDefaults } from '../use-link-defaults';
 import { defaultLinkStyle, defaultLabelStyle } from '../../theme/link-theme';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatLinkData } from '../../types/data-types';
 
 describe('useLinkDefaults', () => {
 
@@ -28,30 +28,30 @@ describe('useLinkDefaults', () => {
         const { result } = renderHook(() => useLinkDefaults());
         const cellJson = callMapper(result.current);
 
-        expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.lineColor);
-        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.lineWidth);
+        expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
+        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
     });
 
     // ── Static defaults ─────────────────────────────────────────────────
 
     it('applies static line style defaults', () => {
-        const { result } = renderHook(() => useLinkDefaults({ lineColor: 'red' }));
+        const { result } = renderHook(() => useLinkDefaults({ color: 'red' }));
         const cellJson = callMapper(result.current);
 
         expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
-        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.lineWidth);
+        expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
     });
 
     it('applies full line style override', () => {
         const fullOverride: Partial<FlatLinkData> = {
-            lineColor: '#00ff00',
-            lineWidth: 5,
+            color: '#00ff00',
+            width: 5,
             sourceMarker: 'arrow',
             targetMarker: 'circle',
             className: 'my-line',
-            lineDasharray: '5,5',
-            lineCap: 'round',
-            lineJoin: 'bevel',
+            dasharray: '5,5',
+            linecap: 'round',
+            linejoin: 'bevel',
             wrapperWidth: 12,
             wrapperColor: 'blue',
             wrapperClassName: 'my-wrapper',
@@ -67,11 +67,11 @@ describe('useLinkDefaults', () => {
     });
 
     it('link data takes precedence over defaults', () => {
-        const { result } = renderHook(() => useLinkDefaults({ lineColor: 'red', lineWidth: 5 }));
+        const { result } = renderHook(() => useLinkDefaults({ color: 'red', width: 5 }));
         const cellJson = callMapper(result.current, {
             source: 'a',
             target: 'b',
-            lineColor: 'blue',
+            color: 'blue',
         });
 
         expect(cellJson.attrs?.line?.style?.stroke).toBe('blue');
@@ -144,7 +144,7 @@ describe('useLinkDefaults', () => {
 
     it('applies per-link defaults via callback', () => {
         const { result } = renderHook(() => useLinkDefaults((data) => ({
-            lineColor: data.source === 'a' ? 'red' : 'blue',
+            color: data.source === 'a' ? 'red' : 'blue',
         })));
 
         const fromA = callMapper(result.current, { source: 'a', target: 'b' });
@@ -161,48 +161,48 @@ describe('useLinkDefaults', () => {
         const cellJson = callMapper(result.current);
         const cellData = cellJson.data as Record<string, unknown>;
 
-        expect(cellData).not.toHaveProperty('lineColor');
-        expect(cellData).not.toHaveProperty('lineWidth');
+        expect(cellData).not.toHaveProperty('color');
+        expect(cellData).not.toHaveProperty('width');
     });
 
     it('does not pollute cell.data with default-provided keys', () => {
         const { result } = renderHook(() => useLinkDefaults({
-            lineColor: 'red',
-            lineWidth: 3,
+            color: 'red',
+            width: 3,
             labelStyle: { color: '#fff', fontSize: 11 },
         }));
         const cellJson = callMapper(result.current);
         const cellData = cellJson.data as Record<string, unknown>;
 
         // These came from defaults, not user data — must be stripped
-        expect(cellData).not.toHaveProperty('lineColor');
-        expect(cellData).not.toHaveProperty('lineWidth');
+        expect(cellData).not.toHaveProperty('color');
+        expect(cellData).not.toHaveProperty('width');
         expect(cellData).not.toHaveProperty('labelStyle');
     });
 
     it('preserves user-provided keys that overlap with defaults in cell.data', () => {
         const { result } = renderHook(() => useLinkDefaults({
-            lineColor: 'red',
-            lineWidth: 3,
+            color: 'red',
+            width: 3,
         }));
         const cellJson = callMapper(result.current, {
             source: 'a',
             target: 'b',
-            lineColor: 'blue',
+            color: 'blue',
         });
         const cellData = cellJson.data as Record<string, unknown>;
 
-        // lineColor was in user data — must be preserved
-        expect(cellData).toHaveProperty('lineColor');
-        // lineWidth was only in defaults — must be stripped
-        expect(cellData).not.toHaveProperty('lineWidth');
+        // color was in user data — must be preserved
+        expect(cellData).toHaveProperty('color');
+        // width was only in defaults — must be stripped
+        expect(cellData).not.toHaveProperty('width');
     });
 
     // ── Memoization ────────────────────────────────────────────────────────
 
     it('returns stable reference for static defaults', () => {
         const { result, rerender } = renderHook(() =>
-            useLinkDefaults({ lineColor: 'red' }),
+            useLinkDefaults({ color: 'red' }),
         );
         const first = result.current.mapDataToLinkAttributes;
         rerender();
@@ -210,7 +210,7 @@ describe('useLinkDefaults', () => {
     });
 
     const stableCallback = (data: FlatLinkData) => ({
-        lineColor: data.source === 'a' ? 'red' : 'blue',
+        color: data.source === 'a' ? 'red' : 'blue',
     });
 
     it('returns stable reference for callback defaults', () => {
@@ -221,16 +221,16 @@ describe('useLinkDefaults', () => {
     });
 
     it('recreates mapper when deps change', () => {
-        let lineColor = 'red';
+        let color = 'red';
         const { result, rerender } = renderHook(() =>
-            useLinkDefaults(() => ({ lineColor }), [lineColor]),
+            useLinkDefaults(() => ({ color }), [color]),
         );
         const first = result.current.mapDataToLinkAttributes;
 
         rerender();
         expect(result.current.mapDataToLinkAttributes).toBe(first);
 
-        lineColor = 'blue';
+        color = 'blue';
         rerender();
         expect(result.current.mapDataToLinkAttributes).not.toBe(first);
     });

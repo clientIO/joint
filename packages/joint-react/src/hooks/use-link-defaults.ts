@@ -1,7 +1,7 @@
 import { type DependencyList, useMemo, useCallback, useRef } from 'react';
 import { flatMapDataToLinkAttributes } from '../state/data-mapping/link-mapper';
 import type { GraphMappings } from '../state/data-mapping';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatLinkData } from '../types/data-types';
 import type { ToLinkAttributesOptions } from '../state/data-mapping/link-mapper';
 
 /**
@@ -11,7 +11,7 @@ import type { ToLinkAttributesOptions } from '../state/data-mapping/link-mapper'
  * Accepts either a static defaults object or a callback that returns
  * per-link defaults based on the link data.
  * Label styling defaults are specified via `labelStyle` on the data;
- * line styling properties (`lineColor`, `lineWidth`, etc.) are set directly.
+ * line styling properties (`color`, `width`, etc.) are set directly.
  * @param defaults - Static defaults or a callback `(data) => defaults`.
  * @param deps - Optional dependency list. When provided, the mapper is recreated
  *   when any dependency changes (like `useEffect` deps). For the callback form
@@ -22,16 +22,16 @@ import type { ToLinkAttributesOptions } from '../state/data-mapping/link-mapper'
  * ```tsx
  * // Static defaults
  * const { mapDataToLinkAttributes } = useLinkDefaults({
- *   lineColor: '#0066cc',
- *   lineWidth: 3,
+ *   color: '#0066cc',
+ *   width: 3,
  *   targetMarker: 'arrow',
  *   labelStyle: { color: '#fff', fontSize: 11 },
  * });
  *
  * // Per-type defaults with deps
  * const { mapDataToLinkAttributes } = useLinkDefaults((data) => ({
- *   lineColor,
- *   lineWidth: data.priority === 'high' ? 4 : 2,
+ *   color,
+ *   width: data.priority === 'high' ? 4 : 2,
  * }), [color]);
  * ```
  */

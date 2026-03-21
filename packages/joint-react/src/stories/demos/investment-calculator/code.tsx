@@ -211,7 +211,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourceAnchor: { name: 'right', args: { dx: -1 } },
     target: 'goldPerf',
     targetAnchor: { name: 'left', args: { dx: -5 } },
-    lineColor: GOLD_COLOR,
+    color: GOLD_COLOR,
     z: 4,
   },
   link5: {
@@ -219,7 +219,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourceAnchor: { name: 'right', args: { dx: -1 } },
     target: 'bitcoinPerf',
     targetAnchor: { name: 'left', args: { dx: -5 } },
-    lineColor: BTC_COLOR,
+    color: BTC_COLOR,
     z: 5,
   },
   link6: {
@@ -227,7 +227,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourceAnchor: { name: 'right', args: { dx: -1 } },
     target: 'sp500Perf',
     targetAnchor: { name: 'left', args: { dx: -5 } },
-    lineColor: SP500_COLOR,
+    color: SP500_COLOR,
     z: 7,
   },
 };
@@ -632,9 +632,9 @@ function Main() {
 
 export default function App() {
   const { mapDataToLinkAttributes } = useLinkDefaults({
-    lineColor: LINK_COLOR,
-    lineWidth: 2,
-    lineCap: 'butt',
+    color: LINK_COLOR,
+    width: 2,
+    linecap: 'butt',
     sourceMarker: 'circle',
     targetMarker: 'arrow',
   });

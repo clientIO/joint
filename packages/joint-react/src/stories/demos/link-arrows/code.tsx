@@ -174,8 +174,8 @@ function buildLinks(): Record<string, FlatLinkData> {
     links[`marker-${index + 1}`] = {
       source: { x, y },
       target: { x: x + LINK_BBOX_WIDTH, y: y + LINK_BBOX_HEIGHT },
-      lineColor: FG_COLOR,
-      lineWidth: 2,
+      color: FG_COLOR,
+      width: 2,
       sourceMarker: marker,
       targetMarker: marker,
     };

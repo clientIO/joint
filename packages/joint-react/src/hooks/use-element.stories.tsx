@@ -4,7 +4,7 @@ import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
-import type { FlatElementData } from '../types/element-types';
+import type { FlatElementData } from '../types/data-types';
 
 const API_URL = getAPILink('useElement');
 
