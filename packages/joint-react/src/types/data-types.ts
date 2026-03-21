@@ -4,6 +4,21 @@ import type { LinkMarker } from '../theme/markers';
 import type { CellId } from './cell-id';
 import type { LiteralUnion } from './index';
 
+// ── Cell Types (shared) ──────────────────────────────────────────────────────
+
+/**
+ * Properties common to all cells (elements and links).
+ * @group Graph
+ */
+export interface FlatCellData {
+  /** Z-index of the cell. */
+  readonly z?: number;
+  /** Parent element id. */
+  readonly parent?: string;
+  /** Layer id for the cell. */
+  readonly layer?: string;
+}
+
 // ── Element Types ─────────────────────────────────────────────────────────────
 
 /**
@@ -97,15 +112,7 @@ export interface FlatElementPort {
   readonly labelOffsetY?: number;
 }
 
-export interface FlatElementData extends Record<string, unknown> {
-  /**
-   * Style defaults applied to all ports. Individual port properties take precedence.
-   */
-  portStyle?: Partial<FlatElementPort>;
-  /**
-   * Ports of the element.
-   */
-  ports?: Record<string, FlatElementPort>;
+export interface FlatElementData extends FlatCellData, Record<string, unknown> {
   /**
    * X position of the element.
    */
@@ -127,17 +134,13 @@ export interface FlatElementData extends Record<string, unknown> {
    */
   angle?: number;
   /**
-   * Z-index of the element.
+   * Style defaults applied to all ports. Individual port properties take precedence.
    */
-  z?: number;
+  portStyle?: Partial<FlatElementPort>;
   /**
-   * Parent element id.
+   * Ports of the element.
    */
-  parent?: string;
-  /**
-   * Layer id for the element.
-   */
-  layer?: string;
+  ports?: Record<string, FlatElementPort>;
 }
 
 // ── Link Types ────────────────────────────────────────────────────────────────
@@ -315,7 +318,7 @@ export interface FlatLinkLabel {
  * @group Graph
  * @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
-export interface FlatLinkData extends FlatLinkPresentationData, Record<string, unknown> {
+export interface FlatLinkData extends FlatCellData, FlatLinkPresentationData, Record<string, unknown> {
   /**
    * Source element id or point.
    */
@@ -363,27 +366,6 @@ export interface FlatLinkData extends FlatLinkPresentationData, Record<string, u
    */
   readonly targetMagnet?: string;
   /**
-   * Optional link type.
-   * @default 'PortalLink'
-   */
-  readonly type?: string;
-  /**
-   * Z index of the link.
-   */
-  readonly z?: number;
-  /**
-   * Layer id for the link.
-   */
-  readonly layer?: string;
-  /**
-   * Style defaults applied to all labels. Individual label properties take precedence.
-   */
-  readonly labelStyle?: Partial<FlatLinkLabel>;
-  /**
-   * Link labels.
-   */
-  readonly labels?: Record<string, FlatLinkLabel>;
-  /**
    * Link vertices (waypoints).
    */
   readonly vertices?: dia.Link.Vertex[];
@@ -395,4 +377,12 @@ export interface FlatLinkData extends FlatLinkPresentationData, Record<string, u
    * Link connector configuration.
    */
   readonly connector?: unknown;
+  /**
+   * Style defaults applied to all labels. Individual label properties take precedence.
+   */
+  readonly labelStyle?: Partial<FlatLinkLabel>;
+  /**
+   * Link labels.
+   */
+  readonly labels?: Record<string, FlatLinkLabel>;
 }

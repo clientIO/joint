@@ -48,7 +48,7 @@ export { useMarkup } from './hooks/use-markup';
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
 
 // Types
-export type { FlatElementData, FlatElementPort, FlatLinkData, FlatLinkEnd, FlatLinkLabel, FlatLinkPresentationData } from './types/data-types';
+export type { FlatCellData, FlatElementData, FlatElementPort, FlatLinkData, FlatLinkEnd, FlatLinkLabel, FlatLinkPresentationData } from './types/data-types';
 export type { PortShape as PortShape } from './theme/element-theme';
 export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
