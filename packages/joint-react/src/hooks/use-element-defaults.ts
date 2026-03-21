@@ -3,6 +3,7 @@ import { flatMapDataToElementAttributes } from '../state/data-mapping/element-ma
 import type { GraphMappings } from '../state/data-mapping';
 import type { FlatElementData } from '../types/data-types';
 import type { ToElementAttributesOptions } from '../state/data-mapping/element-mapper';
+import type { CellId } from '../types/cell-id';
 
 /**
  * Returns a memoized `mapDataToElementAttributes` function that applies
@@ -12,7 +13,7 @@ import type { ToElementAttributesOptions } from '../state/data-mapping/element-m
  * per-element defaults based on the element data (e.g. by type).
  * Port styling defaults are specified via `portDefaults` on the data;
  * all other keys are merged under the element data.
- * @param defaults - Static defaults or a callback `(data) => defaults`.
+ * @param defaults - Static defaults or a callback `(data, id) => defaults`.
  * @param deps - Optional dependency list. When provided, the mapper is recreated
  *   when any dependency changes (like `useEffect` deps). For the callback form
  *   this is the primary way to trigger re-processing of existing elements.
@@ -35,7 +36,7 @@ import type { ToElementAttributesOptions } from '../state/data-mapping/element-m
  * ```
  */
 export function useElementDefaults<T extends FlatElementData = FlatElementData>(
-    defaults?: Partial<FlatElementData> | ((data: T) => Partial<FlatElementData>),
+    defaults?: Partial<FlatElementData> | ((data: T, id: CellId) => Partial<FlatElementData>),
     deps?: DependencyList,
 ): Pick<GraphMappings<T>, 'mapDataToElementAttributes'> {
 
@@ -60,7 +61,7 @@ export function useElementDefaults<T extends FlatElementData = FlatElementData>(
         (options: ToElementAttributesOptions<T>) => {
             const { current } = defaultsRef;
             const resolved = typeof current === 'function'
-                ? current(options.data)
+                ? current(options.data, options.id)
                 : current;
 
             if (!resolved) {

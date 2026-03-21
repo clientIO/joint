@@ -3,6 +3,7 @@ import { flatMapDataToLinkAttributes } from '../state/data-mapping/link-mapper';
 import type { GraphMappings } from '../state/data-mapping';
 import type { FlatLinkData } from '../types/data-types';
 import type { ToLinkAttributesOptions } from '../state/data-mapping/link-mapper';
+import type { CellId } from '../types/cell-id';
 
 /**
  * Returns a memoized `mapDataToLinkAttributes` function that applies
@@ -12,7 +13,7 @@ import type { ToLinkAttributesOptions } from '../state/data-mapping/link-mapper'
  * per-link defaults based on the link data.
  * Label styling defaults are specified via `labelStyle` on the data;
  * line styling properties (`color`, `width`, etc.) are set directly.
- * @param defaults - Static defaults or a callback `(data) => defaults`.
+ * @param defaults - Static defaults or a callback `(data, id) => defaults`.
  * @param deps - Optional dependency list. When provided, the mapper is recreated
  *   when any dependency changes (like `useEffect` deps). For the callback form
  *   this is the primary way to trigger re-processing of existing links.
@@ -36,7 +37,7 @@ import type { ToLinkAttributesOptions } from '../state/data-mapping/link-mapper'
  * ```
  */
 export function useLinkDefaults<T extends FlatLinkData = FlatLinkData>(
-    defaults?: Partial<FlatLinkData> | ((data: T) => Partial<FlatLinkData>),
+    defaults?: Partial<FlatLinkData> | ((data: T, id: CellId) => Partial<FlatLinkData>),
     deps?: DependencyList,
 ): Pick<GraphMappings<unknown, T>, 'mapDataToLinkAttributes'> {
 
@@ -61,7 +62,7 @@ export function useLinkDefaults<T extends FlatLinkData = FlatLinkData>(
         (options: ToLinkAttributesOptions<T>) => {
             const { current } = defaultsRef;
             const resolved = typeof current === 'function'
-                ? current(options.data)
+                ? current(options.data, options.id)
                 : current;
 
             if (!resolved) {
