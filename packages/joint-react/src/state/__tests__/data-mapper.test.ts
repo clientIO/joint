@@ -227,7 +227,7 @@ describe('dataMapper', () => {
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
       expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
       expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(4);
-      expect(cellJson.attrs?.line?.strokeDasharray).toBe('5 5');
+      expect(cellJson.attrs?.line?.style?.strokeDasharray).toBe('5 5');
     });
 
     it('should store user data in cell.data alongside theme props', () => {

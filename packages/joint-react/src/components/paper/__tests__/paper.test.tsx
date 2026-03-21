@@ -1281,7 +1281,7 @@ describe('Paper Component', () => {
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
       expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('#22aa55');
       expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe(4);
-      expect(createdLink.attr(['wrapper', 'strokeWidth'])).toBe(16);
+      expect(createdLink.attr(['wrapper', 'style', 'strokeWidth'])).toBe(16);
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
           wrapperWidth: 16,

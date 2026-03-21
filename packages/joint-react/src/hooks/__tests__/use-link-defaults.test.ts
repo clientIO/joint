@@ -61,9 +61,9 @@ describe('useLinkDefaults', () => {
 
         expect(cellJson.attrs?.line?.style?.stroke).toBe('#00ff00');
         expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(5);
-        expect(cellJson.attrs?.line?.strokeDasharray).toBe('5,5');
-        expect(cellJson.attrs?.line?.strokeLinecap).toBe('round');
-        expect(cellJson.attrs?.line?.strokeLinejoin).toBe('bevel');
+        expect(cellJson.attrs?.line?.style?.strokeDasharray).toBe('5,5');
+        expect(cellJson.attrs?.line?.style?.strokeLinecap).toBe('round');
+        expect(cellJson.attrs?.line?.style?.strokeLinejoin).toBe('bevel');
     });
 
     it('link data takes precedence over defaults', () => {

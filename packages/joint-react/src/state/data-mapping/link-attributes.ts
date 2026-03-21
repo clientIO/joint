@@ -135,11 +135,19 @@ export function buildLinkPresentationAttributes(
 ): Record<string, Nullable<attributes.SVGAttributes>> {
   const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperWidth, wrapperColor, wrapperClassName } = options;
 
-  // Use inline `style` so that explicit color/width wins over CSS theme rules
+  // Use inline `style` so that explicit values win over CSS theme rules
   // (inline style > CSS specificity). Empty strings are no-ops on the DOM,
   // letting CSS variables from theme.css handle defaults.
+  const lineStyle: Record<string, unknown> = {
+    stroke: color,
+    strokeWidth: width,
+    strokeDasharray: pattern,
+    strokeLinecap: lineCap,
+    strokeLinejoin: lineJoin,
+  };
+
   const lineAttributes: Nullable<attributes.SVGAttributes> = {
-    style: { stroke: color, strokeWidth: width },
+    style: lineStyle,
   };
 
   if (sourceMarker !== 'none') {
@@ -151,26 +159,22 @@ export function buildLinkPresentationAttributes(
     targetMarker === 'none' ? null : resolveMarker(targetMarker);
 
   lineAttributes.class = `joint-link-line ${className}`.trim();
-  if (pattern) {
-    lineAttributes.strokeDasharray = pattern;
-  }
-
-  const strokeAttributes: attributes.SVGAttributes = {};
-  if (lineCap) strokeAttributes.strokeLinecap = lineCap;
-  if (lineJoin) strokeAttributes.strokeLinejoin = lineJoin;
 
   return {
     line: {
       connection: true,
       ...lineAttributes,
-      ...strokeAttributes,
     },
     wrapper: {
       connection: true,
-      strokeWidth: wrapperWidth,
-      stroke: wrapperColor,
+      style: {
+        strokeWidth: wrapperWidth,
+        stroke: wrapperColor,
+        // Note: the `lineCap` and `lineJoin` are shared between the line and wrapper.
+        strokeLinecap: lineCap,
+        strokeLinejoin: lineJoin
+      },
       class: `joint-link-wrapper ${wrapperClassName}`.trim(),
-      ...strokeAttributes,
     },
   };
 }
