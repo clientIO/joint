@@ -1,7 +1,7 @@
 
 import { type dia, util } from '@joint/core';
 import type { FlatLinkData, FlatLinkLabel } from '../../types/data-types';
-import { defaultLinkStyle } from '../../theme/link-theme';
+import { defaultLinkStyle, LINK_PRESENTATION_KEYS } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
@@ -159,17 +159,9 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
 
   // Only persist presentation props that were explicitly provided (not defaulted)
   const presentationData: Record<string, unknown> = {};
-  if (data.color !== undefined) presentationData.color = data.color;
-  if (data.width !== undefined) presentationData.width = data.width;
-  if (data.sourceMarker !== undefined) presentationData.sourceMarker = data.sourceMarker;
-  if (data.targetMarker !== undefined) presentationData.targetMarker = data.targetMarker;
-  if (data.className !== undefined) presentationData.className = data.className;
-  if (data.dasharray !== undefined) presentationData.dasharray = data.dasharray;
-  if (data.linecap !== undefined) presentationData.linecap = data.linecap;
-  if (data.linejoin !== undefined) presentationData.linejoin = data.linejoin;
-  if (data.wrapperWidth !== undefined) presentationData.wrapperWidth = data.wrapperWidth;
-  if (data.wrapperColor !== undefined) presentationData.wrapperColor = data.wrapperColor;
-  if (data.wrapperClassName !== undefined) presentationData.wrapperClassName = data.wrapperClassName;
+  for (const key of LINK_PRESENTATION_KEYS) {
+    if (data[key] !== undefined) presentationData[key] = data[key];
+  }
 
   attributes.data = {
     ...userData,

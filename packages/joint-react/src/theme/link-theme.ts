@@ -1,23 +1,29 @@
-import type { LinkMarkerName } from './markers';
+import type { FlatLinkPresentationData } from '../types/data-types';
 
 /**
  * Internal fallback values for link line properties not set by data or defaults.
  * `color` and `width` default to `''`. Empty strings are no-ops on the DOM
  * inline style, letting CSS variables from theme.css take over.
  */
-export const defaultLinkStyle = {
-  color: '' as string, // Accepts any CSS color (e.g., "#333", "var(--my-color)")
-  width: '' as number | string, // Accepts px number or CSS value (e.g., "var(--my-width)")
-  sourceMarker: 'none' as LinkMarkerName, // Marker name, definition, or JSX
-  targetMarker: 'none' as LinkMarkerName, // Marker name, definition, or JSX
-  wrapperWidth: 10, // Hit-area stroke width in px
-  wrapperColor: 'transparent', // Hit-area stroke color
-  wrapperClassName: '', // CSS class applied to the link wrapper
-  className: '', // CSS class applied to the link line
-  dasharray: '', // Accepts SVG stroke-dasharray (e.g., "5,5")
-  linecap: '' as '' | 'butt' | 'round' | 'square', // Accepts SVG stroke-linecap
-  linejoin: '' as '' | 'miter' | 'round' | 'bevel', // Accepts SVG stroke-linejoin
-} as const;
+export const defaultLinkStyle: Readonly<Required<FlatLinkPresentationData>> = {
+  color: '',
+  width: '',
+  sourceMarker: 'none',
+  targetMarker: 'none',
+  wrapperWidth: 10,
+  wrapperColor: 'transparent',
+  wrapperClassName: '',
+  className: '',
+  dasharray: '',
+  linecap: '',
+  linejoin: '',
+};
+
+/** A presentation key on FlatLinkData, mapped to SVG attrs by buildLinkPresentationAttributes. */
+export type LinkPresentationKey = keyof FlatLinkPresentationData;
+
+/** Presentation keys for runtime iteration. Derived from {@link defaultLinkStyle}. */
+export const LINK_PRESENTATION_KEYS = Object.keys(defaultLinkStyle) as LinkPresentationKey[];
 
 /**
  * Internal fallback values for label properties not set by labelStyle or individual labels.

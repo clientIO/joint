@@ -1,7 +1,6 @@
 import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
-import type { FlatLinkEnd } from '../../types/data-types';
-import type { LinkMarker } from '../../theme/markers';
+import type { FlatLinkData, FlatLinkEnd, FlatLinkPresentationData } from '../../types/data-types';
 import type { Nullable } from '../../types';
 import { resolveMarker } from '../../theme/markers';
 import { isString } from '../../utils/is';
@@ -103,60 +102,6 @@ const TARGET_KEYS = { port: 'targetPort', anchor: 'targetAnchor', connectionPoin
 
 export { SOURCE_KEYS, TARGET_KEYS };
 
-interface LinkPresentationOptions {
-
-  /**
-   * CSS class applied to the link line.
-   */
-  className: string;
-  /**
-   * Stroke color of the link line.
-   * Accepts any CSS color (e.g., `"#333"`, `"var(--my-color)"`).
-   */
-  color: string;
-  /**
-   * Stroke dash pattern of the link line.
-   * Accepts SVG `stroke-dasharray` syntax (e.g., `"5,5"` for dashed).
-   */
-  dasharray: string;
-  /**
-   * Stroke width of the link line.
-   * Accepts a px number or CSS value (e.g., `"var(--my-width)"`).
-   */
-  width: number | string;
-  /**
-   * Stroke line cap of the link line.
-   * Accepts SVG `stroke-linecap` values: `"butt"`, `"round"`, `"square"`.
-   */
-  linecap: string;
-  /**
-   * Stroke line join of the link line.
-   * Accepts SVG `stroke-linejoin` values: `"miter"`, `"round"`, `"bevel"`.
-   */
-  linejoin: string;
-  /**
-   * Source marker — a preset name, custom marker definition, or JSX markup.
-   */
-  sourceMarker: LinkMarker;
-  /**
-   * Target marker — a preset name, custom marker definition, or JSX markup.
-   */
-  targetMarker: LinkMarker;
-
-  /**
-   * Stroke width of the link wrapper (hit-area) in px.
-   */
-  wrapperWidth: number | string;
-  /**
-   * Stroke color of the link wrapper (hit-area).
-   */
-  wrapperColor: string;
-  /**
-   * CSS class applied to the link wrapper (hit-area).
-   */
-  wrapperClassName: string;
-}
-
 /**
  * Builds the full `attrs` object for a link cell, containing
  * `line` and `wrapper` selectors.
@@ -171,7 +116,7 @@ interface LinkPresentationOptions {
  * @returns Record with `line` and `wrapper` attribute objects
  */
 export function buildLinkPresentationAttributes(
-  options: LinkPresentationOptions
+  options: Required<FlatLinkPresentationData>
 ): Record<string, Nullable<attributes.SVGAttributes>> {
   const { color, width, sourceMarker, targetMarker, className, dasharray, linecap, linejoin, wrapperWidth, wrapperColor, wrapperClassName } = options;
 

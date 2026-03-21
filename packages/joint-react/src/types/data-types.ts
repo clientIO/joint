@@ -157,6 +157,83 @@ export type FlatLinkEnd =
   | { readonly x: number; readonly y: number };
 
 /**
+ * Visual/presentation attributes for a link line and its wrapper.
+ *
+ * All properties are optional.  `defaultLinkStyle` satisfies the full
+ * `Required<FlatLinkPresentationData>` to provide fallback values.
+ * @group Graph
+ */
+export interface FlatLinkPresentationData {
+  /**
+   * Stroke color of the link line.
+   * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
+   * When set to `''`, the `--joint-link-color` CSS variable from theme.css controls the stroke.
+   */
+  readonly color?: string;
+  /**
+   * Stroke width of the link line.
+   * Accepts a number (pixels) or a CSS value string like `'var(--my-width)'`.
+   * When set to `''`, the `--joint-link-width` CSS variable from theme.css controls the width.
+   */
+  readonly width?: number | string;
+  /**
+   * Source marker name, custom marker definition, or JSX markup.
+   * Use 'none' for no marker.
+   * @example
+   * sourceMarker: 'arrow'
+   * sourceMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" />)
+   * @default 'none'
+   */
+  readonly sourceMarker?: LinkMarker;
+  /**
+   * Target marker name, custom marker definition, or JSX markup.
+   * Use 'none' for no marker.
+   * @example
+   * targetMarker: 'arrow'
+   * targetMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" />)
+   * @default 'none'
+   */
+  readonly targetMarker?: LinkMarker;
+  /**
+   * CSS class name to apply to the link line.
+   * @default ''
+   */
+  readonly className?: string;
+  /**
+   * Stroke dash pattern for the link line.
+   * Accepts SVG `stroke-dasharray` syntax (e.g., `'5,5'` for dashed).
+   * @default ''
+   */
+  readonly dasharray?: string;
+  /**
+   * Stroke line cap for the link line.
+   * @default ''
+   */
+  readonly linecap?: LiteralUnion<'butt' | 'round' | 'square'>;
+  /**
+   * Stroke line join for the link line.
+   * @default ''
+   */
+  readonly linejoin?: LiteralUnion<'miter' | 'round' | 'bevel'>;
+  /**
+   * Stroke width of the link wrapper (hit area) in pixels.
+   * @default 10
+   */
+  readonly wrapperWidth?: number;
+  /**
+   * Stroke color of the link wrapper (outline).
+   * Set to a visible color to create a double-line effect.
+   * @default 'transparent'
+   */
+  readonly wrapperColor?: string;
+  /**
+   * CSS class name to apply to the link wrapper (outline).
+   * @default ''
+   */
+  readonly wrapperClassName?: string;
+}
+
+/**
  * Simplified label definition for graph links.
  * @group Graph
  */
@@ -238,7 +315,7 @@ export interface FlatLinkLabel {
  * @group Graph
  * @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
-export interface FlatLinkData extends Record<string, unknown> {
+export interface FlatLinkData extends FlatLinkPresentationData, Record<string, unknown> {
   /**
    * Source element id or point.
    */
@@ -318,71 +395,4 @@ export interface FlatLinkData extends Record<string, unknown> {
    * Link connector configuration.
    */
   readonly connector?: unknown;
-  /**
-   * Stroke color of the link line.
-   * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
-   * When omitted, the `--joint-link-color` CSS variable from theme.css controls the stroke.
-   */
-  readonly color?: string;
-  /**
-   * Stroke width of the link line.
-   * Accepts a number (pixels) or a CSS value string like `'var(--my-width)'`.
-   * When omitted, the `--joint-link-width` CSS variable from theme.css controls the width.
-   */
-  readonly width?: number | string;
-  /**
-   * Stroke width of the link wrapper (hit area) in pixels.
-   * @default 10
-   */
-  readonly wrapperWidth?: number;
-  /**
-   * Stroke color of the link wrapper (outline).
-   * Set to a visible color to create a double-line effect.
-   * @default 'transparent'
-   */
-  readonly wrapperColor?: string;
-  /**
-   * CSS class name to apply to the link wrapper (outline).
-   * @default ''
-   */
-  readonly wrapperClassName?: string;
-  /**
-   * Source marker name, custom marker definition, or JSX markup.
-   * Use 'none' for no marker.
-   * @example
-   * sourceMarker: 'arrow'
-   * sourceMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" />)
-   * @default 'none'
-   */
-  readonly sourceMarker?: LinkMarker;
-  /**
-   * Target marker name, custom marker definition, or JSX markup.
-   * Use 'none' for no marker.
-   * @example
-   * targetMarker: 'arrow'
-   * targetMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" />)
-   * @default 'none'
-   */
-  readonly targetMarker?: LinkMarker;
-  /**
-   * CSS class name to apply to the link line.
-   * @default ''
-   */
-  readonly className?: string;
-  /**
-   * Stroke dash pattern for the link line.
-   * Accepts SVG `stroke-dasharray` syntax (e.g., `'5,5'` for dashed).
-   * @default ''
-   */
-  readonly dasharray?: string;
-  /**
-   * Stroke line cap for the link line.
-   * @default ''
-   */
-  readonly linecap?: 'butt' | 'round' | 'square';
-  /**
-   * Stroke line join for the link line.
-   * @default ''
-   */
-  readonly linejoin?: 'miter' | 'round' | 'bevel';
 }
