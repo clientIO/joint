@@ -15,11 +15,11 @@ export default {
     docs: {
       description: {
         component: `
-Demonstrates how to use native [JointJS ports](https://docs.jointjs.com/learn/features/ports) with @joint/react using the \`mapDataToElementAttributes\` selector.
+Demonstrates how to use native [JointJS ports](https://docs.jointjs.com/learn/features/ports) with @joint/react using \`useFlatElementData\` with \`mapAttributes\`.
 
-Instead of using the React \`<Port>\` component (which creates React portals), you can use JointJS's built-in port rendering by constructing port definitions inside \`mapDataToElementAttributes\`. Element data stays minimal and declarative — only describing *what* is needed (colors, labels, port IDs). The mapper builds the full JointJS shape type, attrs, and ports.
+Elements are rendered as React components via \`renderElement\`, while native JointJS ports are added through \`mapAttributes\`. This combines React's rendering flexibility with JointJS's built-in port positioning and magnet behavior.
 
-## Key Concept: Native Ports via Mapper
+## Key Concept: Native Ports via mapAttributes
 
 \`\`\`tsx
 // Element data is minimal — no JointJS specifics
@@ -32,25 +32,23 @@ const elements = {
   },
 };
 
-// Mapper builds JointJS type, attrs, and ports from data
-const mapDataToElementAttributes = ({ data }) => {
-  const { color, label, inputPorts, outputPorts } = data;
-  return {
-    ...flatElementDataToAttributes(data),
-    type: 'standard.Rectangle',
-    attrs: {
-      body: { fill: color, ... },
-      label: { text: label, ... },
-    },
-    ports: buildNativePorts(inputPorts, outputPorts),
-  };
-};
+// mapAttributes adds native ports to the PortalElement
+const elementMappers = useFlatElementData({
+  mapAttributes: ({ attributes, data }) => {
+    const ports = buildNativePorts(data.inputPorts, data.outputPorts);
+    if (!ports) return attributes;
+    return { ...attributes, ports };
+  },
+}, []);
 
-<GraphProvider
-  elements={elements}
-  mapDataToElementAttributes={mapDataToElementAttributes}
->
-  <Paper />
+// renderElement provides the React visual
+const renderElement = useCallback(
+  (data) => <div style={{ background: data.color }}>{data.label}</div>,
+  [],
+);
+
+<GraphProvider elements={elements} {...elementMappers}>
+  <Paper renderElement={renderElement} />
 </GraphProvider>
 \`\`\`
         `,
@@ -65,5 +63,5 @@ export const Default = makeStory({
   name: 'Native Ports',
   apiURL: 'https://docs.jointjs.com/learn/features/ports',
   description:
-    'Elements with native JointJS ports built inside mapDataToElementAttributes from declarative port descriptors, without React Port portals.',
+    'React-rendered elements with native JointJS ports added via useFlatElementData mapAttributes, without React Port portals.',
 });

@@ -12,13 +12,13 @@ import {
 } from '@joint/react';
 
 interface NativeElement extends FlatElementData {
-  readonly shapeType: string;
+  readonly type: string;
   readonly label?: string;
   readonly attrs?: Record<string, Record<string, unknown>>;
 }
 
 interface NativeLink extends FlatLinkData {
-  readonly shapeType: string;
+  readonly type: string;
   readonly label?: string;
   readonly attrs?: Record<string, Record<string, unknown>>;
 }
@@ -29,31 +29,31 @@ const initialElements: Record<string, NativeElement> = {
   // Row 1: Basic shapes
   rectangle: {
     x: 20, y: 20, width: 100, height: 50,
-    shapeType: 'standard.Rectangle',
+    type: 'standard.Rectangle',
     label: 'Rectangle',
     attrs: { body: { fill: PRIMARY }, label: { fill: 'white' } },
   },
   circle: {
     x: 150, y: 20, width: 60, height: 60,
-    shapeType: 'standard.Circle',
+    type: 'standard.Circle',
     label: 'Circle',
     attrs: { body: { fill: SECONDARY, stroke: '#333333' }, label: { fill: 'white' } },
   },
   ellipse: {
     x: 240, y: 20, width: 100, height: 50,
-    shapeType: 'standard.Ellipse',
+    type: 'standard.Ellipse',
     label: 'Ellipse',
     attrs: { body: { fill: PRIMARY, stroke: '#333333' }, label: { fill: 'white' } },
   },
   cylinder: {
     x: 370, y: 10, width: 60, height: 70,
-    shapeType: 'standard.Cylinder',
+    type: 'standard.Cylinder',
     attrs: { body: { fill: SECONDARY }, top: { fill: '#4f46e5' } },
   },
   // Row 2: Path shapes
   path: {
     x: 20, y: 110, width: 80, height: 80,
-    shapeType: 'standard.Path',
+    type: 'standard.Path',
     label: 'Path',
     attrs: {
       body: { d: 'M 0 20 L 40 0 L 80 20 L 80 60 L 40 80 L 0 60 Z', fill: PRIMARY, stroke: '#333333' },
@@ -62,7 +62,7 @@ const initialElements: Record<string, NativeElement> = {
   },
   polygon: {
     x: 130, y: 110, width: 80, height: 80,
-    shapeType: 'standard.Polygon',
+    type: 'standard.Polygon',
     label: 'Polygon',
     attrs: {
       body: { points: '40,0 80,30 65,80 15,80 0,30', fill: SECONDARY, stroke: '#333333' },
@@ -71,7 +71,7 @@ const initialElements: Record<string, NativeElement> = {
   },
   polyline: {
     x: 240, y: 110, width: 100, height: 80,
-    shapeType: 'standard.Polyline',
+    type: 'standard.Polyline',
     label: 'Polyline',
     attrs: {
       body: { points: '0,40 25,0 50,40 75,0 100,40', strokeWidth: 3, stroke: PRIMARY, fill: 'none', pointerEvents: 'all' },
@@ -80,7 +80,7 @@ const initialElements: Record<string, NativeElement> = {
   },
   textblock: {
     x: 370, y: 110, width: 100, height: 60,
-    shapeType: 'standard.TextBlock',
+    type: 'standard.TextBlock',
     attrs: {
       body: { stroke: PRIMARY, fill: '#f3f4f6' },
       label: { text: 'TextBlock\nwith wrap', style: { fontSize: 14, color: PRIMARY } },
@@ -89,7 +89,7 @@ const initialElements: Record<string, NativeElement> = {
   // Row 3: Headered and Image shapes
   headered: {
     x: 20, y: 220, width: 120, height: 80,
-    shapeType: 'standard.HeaderedRectangle',
+    type: 'standard.HeaderedRectangle',
     attrs: {
       body: { fill: '#e5e7eb' },
       header: { fill: PRIMARY },
@@ -99,7 +99,7 @@ const initialElements: Record<string, NativeElement> = {
   },
   image: {
     x: 170, y: 220, width: 60, height: 60,
-    shapeType: 'standard.Image',
+    type: 'standard.Image',
     label: 'Image',
     attrs: {
       image: { xlinkHref: 'https://picsum.photos/60/60?random=1' },
@@ -108,7 +108,7 @@ const initialElements: Record<string, NativeElement> = {
   },
   'bordered-image': {
     x: 260, y: 220, width: 70, height: 70,
-    shapeType: 'standard.BorderedImage',
+    type: 'standard.BorderedImage',
     label: 'Bordered',
     attrs: {
       border: { stroke: PRIMARY, strokeWidth: 3 },
@@ -118,7 +118,7 @@ const initialElements: Record<string, NativeElement> = {
   },
   'embedded-image': {
     x: 360, y: 220, width: 150, height: 70,
-    shapeType: 'standard.EmbeddedImage',
+    type: 'standard.EmbeddedImage',
     label: 'Embedded',
     attrs: {
       body: { stroke: SECONDARY, fill: '#f3f4f6' },
@@ -129,7 +129,7 @@ const initialElements: Record<string, NativeElement> = {
   // Row 4: More shapes and link targets
   'inscribed-image': {
     x: 20, y: 330, width: 70, height: 70,
-    shapeType: 'standard.InscribedImage',
+    type: 'standard.InscribedImage',
     label: 'Inscribed',
     attrs: {
       border: { stroke: PRIMARY },
@@ -140,25 +140,25 @@ const initialElements: Record<string, NativeElement> = {
   },
   'link-source': {
     x: 150, y: 350, width: 80, height: 40,
-    shapeType: 'standard.Rectangle',
+    type: 'standard.Rectangle',
     label: 'Source',
     attrs: { body: { fill: PRIMARY }, label: { fill: 'white' } },
   },
   'link-target-1': {
     x: 350, y: 320, width: 80, height: 40,
-    shapeType: 'standard.Rectangle',
+    type: 'standard.Rectangle',
     label: 'Target 1',
     attrs: { body: { fill: SECONDARY }, label: { fill: 'white' } },
   },
   'link-target-2': {
     x: 350, y: 420, width: 80, height: 40,
-    shapeType: 'standard.Rectangle',
+    type: 'standard.Rectangle',
     label: 'Target 2',
     attrs: { body: { fill: PRIMARY }, label: { fill: 'white' } },
   },
   'link-target-3': {
     x: 520, y: 320, width: 80, height: 40,
-    shapeType: 'standard.Rectangle',
+    type: 'standard.Rectangle',
     label: 'Target 3',
     attrs: { body: { fill: SECONDARY }, label: { fill: 'white' } },
   },
@@ -168,21 +168,21 @@ const initialLinks: Record<string, NativeLink> = {
   'link-standard': {
     source: 'link-source',
     target: 'link-target-1',
-    shapeType: 'standard.Link',
+    type: 'standard.Link',
     label: 'Link',
     attrs: { line: { stroke: PRIMARY } },
   },
   'link-double': {
     source: 'link-source',
     target: 'link-target-2',
-    shapeType: 'standard.DoubleLink',
+    type: 'standard.DoubleLink',
     label: 'DoubleLink',
     attrs: { line: { stroke: SECONDARY }, outline: { stroke: '#c7d2fe' } },
   },
   'link-shadow': {
     source: 'link-target-1',
     target: 'link-target-3',
-    shapeType: 'standard.ShadowLink',
+    type: 'standard.ShadowLink',
     label: 'ShadowLink',
     attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
   },
@@ -199,15 +199,13 @@ function Main() {
 export default function App() {
   const elementMappers = useFlatElementData<NativeElement>({
     mapAttributes: ({ attributes, data, graph }) => {
-      const defaults = graph.getTypeDefaults(data.shapeType);
       return {
         ...attributes,
-        type: data.shapeType,
+        type: data.type,
         attrs: util.defaultsDeep(
-          {},
-          data.label == null ? {} : { label: { text: data.label } },
+          { label: { text: data.label || '' }},
           data.attrs || {},
-          defaults.attrs || {},
+          graph.getTypeDefaults(data.type).attrs || {},
         ),
       };
     },
@@ -215,11 +213,10 @@ export default function App() {
 
   const linkMappers = useFlatLinkData<NativeLink>({
     mapAttributes: ({ attributes, data, graph }) => {
-      const defaults = graph.getTypeDefaults(data.shapeType);
       return {
         ...attributes,
-        type: data.shapeType,
-        attrs: util.defaultsDeep({}, data.attrs || {}, defaults.attrs || {}),
+        type: data.type,
+        attrs: util.defaultsDeep({}, data.attrs || {}, graph.getTypeDefaults(data.type).attrs || {}),
         ...(data.label && { labels: [{ attrs: { text: { text: data.label } } }] }),
       };
     },
