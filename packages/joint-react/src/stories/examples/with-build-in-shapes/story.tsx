@@ -30,9 +30,8 @@ interface NativeElement extends FlatElementData {
 // Custom selector that preserves the 'type' property
 const mapDataToElementAttributes = ({
   data,
-  toAttributes,
 }: ToElementAttributesOptions<NativeElement>): dia.Cell.JSON => {
-  return { ...toAttributes(data), type: data.type };
+  return { ...flatElementDataToAttributes(data), type: data.type };
 };
 
 // Pass to GraphProvider

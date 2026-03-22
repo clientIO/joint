@@ -13,7 +13,7 @@ export default {
         docs: {
             description: {
                 story:
-                    'Demonstrates `useElementDefaults` and `useLinkDefaults` hooks to ' +
+                    'Demonstrates `useFlatElementData` and `useFlatLinkData` hooks to ' +
                     'apply default styling to element ports and link appearance instead of ' +
                     'setting properties on each cell individually.',
             },

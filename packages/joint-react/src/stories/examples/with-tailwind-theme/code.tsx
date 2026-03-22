@@ -6,8 +6,8 @@ import {
     GraphProvider,
     Paper,
     useElementLayout,
-    useElementDefaults,
-    useLinkDefaults,
+    useFlatElementData,
+    useFlatLinkData,
     type FlatElementData,
     type FlatLinkData,
     type RenderElement,
@@ -107,23 +107,27 @@ function Diagram() {
     const [theme, setTheme] = useState<Theme>('default');
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    const elementDefaults = useElementDefaults({
-        portStyle: {
-            width: 15,
-            height: 15,
-            className: `
-                cursor-crosshair hover:fill-blue-500
-                forest:hover:fill-lime-300
-                ocean:hover:fill-cyan-200
-                sunset:hover:fill-orange-400
-            `,
+    const elementDefaults = useFlatElementData<NodeData>({
+        defaults: {
+            portStyle: {
+                width: 15,
+                height: 15,
+                className: `
+                    cursor-crosshair hover:fill-blue-500
+                    forest:hover:fill-lime-300
+                    ocean:hover:fill-cyan-200
+                    sunset:hover:fill-orange-400
+                `,
+            },
         },
     });
 
-    const linkDefaults = useLinkDefaults({
-        targetMarker: 'arrow',
-        labelStyle: {
-            backgroundPadding: { x: 6, y: 4 },
+    const linkDefaults = useFlatLinkData({
+        defaults: {
+            targetMarker: 'arrow',
+            labelStyle: {
+                backgroundPadding: { x: 6, y: 4 },
+            },
         },
     });
 

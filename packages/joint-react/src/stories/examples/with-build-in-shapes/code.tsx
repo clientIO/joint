@@ -1,536 +1,166 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import type { dia } from '@joint/core';
+import { util } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
   Paper,
+  useFlatElementData,
+  useFlatLinkData,
   type FlatElementData,
   type FlatLinkData,
-  type ToElementAttributesOptions,
-  type ToLinkAttributesOptions,
 } from '@joint/react';
 
 interface NativeElement extends FlatElementData {
-  readonly type: string;
-  readonly attrs?: dia.Cell.Attributes;
+  readonly shapeType: string;
+  readonly label?: string;
+  readonly attrs?: Record<string, Record<string, unknown>>;
 }
 
-interface NativeLink extends Omit<FlatLinkData, 'labels'> {
-  readonly type: string;
-  readonly attrs?: dia.Cell.Attributes;
-  readonly labels?: dia.Link.Label[];
+interface NativeLink extends FlatLinkData {
+  readonly shapeType: string;
+  readonly label?: string;
+  readonly attrs?: Record<string, Record<string, unknown>>;
 }
-
-const mapDataToElementAttributes = (
-  options: ToElementAttributesOptions<NativeElement>
-): dia.Cell.JSON => {
-  const { type, attrs } = options.data;
-  const result = options.toAttributes(options.data);
-  return {
-    ...result,
-    ...(type && { type }),
-    ...(attrs && { attrs }),
-  };
-};
-
-const mapDataToLinkAttributes = (
-  options: ToLinkAttributesOptions<NativeLink>
-): dia.Cell.JSON => {
-  const { labels, ...rest } = options.data;
-  const result = options.toAttributes(rest);
-  const { type, attrs } = rest;
-  return {
-    ...result,
-    ...(type && { type }),
-    ...(attrs && { attrs }),
-    ...(labels && { labels }),
-  };
-};
 
 const SECONDARY = '#6366f1';
-
-const CYLINDER_TILT = 10;
 
 const initialElements: Record<string, NativeElement> = {
   // Row 1: Basic shapes
   rectangle: {
-    x: 20,
-    y: 20,
-    width: 100,
-    height: 50,
-    type: 'standard.Rectangle',
-    attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        strokeWidth: 2,
-        stroke: '#000000',
-        fill: PRIMARY,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Rectangle',
-      },
-    },
+    x: 20, y: 20, width: 100, height: 50,
+    shapeType: 'standard.Rectangle',
+    label: 'Rectangle',
+    attrs: { body: { fill: PRIMARY }, label: { fill: 'white' } },
   },
   circle: {
-    x: 150,
-    y: 20,
-    width: 60,
-    height: 60,
-    type: 'standard.Circle',
-    attrs: {
-      body: {
-        cx: 'calc(s/2)',
-        cy: 'calc(s/2)',
-        r: 'calc(s/2)',
-        strokeWidth: 2,
-        stroke: '#333333',
-        fill: SECONDARY,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Circle',
-      },
-    },
+    x: 150, y: 20, width: 60, height: 60,
+    shapeType: 'standard.Circle',
+    label: 'Circle',
+    attrs: { body: { fill: SECONDARY, stroke: '#333333' }, label: { fill: 'white' } },
   },
   ellipse: {
-    x: 240,
-    y: 20,
-    width: 100,
-    height: 50,
-    type: 'standard.Ellipse',
-    attrs: {
-      body: {
-        cx: 'calc(w/2)',
-        cy: 'calc(h/2)',
-        rx: 'calc(w/2)',
-        ry: 'calc(h/2)',
-        strokeWidth: 2,
-        stroke: '#333333',
-        fill: PRIMARY,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Ellipse',
-      },
-    },
+    x: 240, y: 20, width: 100, height: 50,
+    shapeType: 'standard.Ellipse',
+    label: 'Ellipse',
+    attrs: { body: { fill: PRIMARY, stroke: '#333333' }, label: { fill: 'white' } },
   },
   cylinder: {
-    x: 370,
-    y: 10,
-    width: 60,
-    height: 70,
-    type: 'standard.Cylinder',
-    attrs: {
-      body: {
-        lateralArea: CYLINDER_TILT,
-        fill: SECONDARY,
-        stroke: '#333333',
-        strokeWidth: 2,
-      },
-      top: {
-        cx: 'calc(w/2)',
-        cy: CYLINDER_TILT,
-        rx: 'calc(w/2)',
-        ry: CYLINDER_TILT,
-        fill: '#4f46e5',
-        stroke: '#333333',
-        strokeWidth: 2,
-      },
-    },
+    x: 370, y: 10, width: 60, height: 70,
+    shapeType: 'standard.Cylinder',
+    attrs: { body: { fill: SECONDARY }, top: { fill: '#4f46e5' } },
   },
   // Row 2: Path shapes
   path: {
-    x: 20,
-    y: 110,
-    width: 80,
-    height: 80,
-    type: 'standard.Path',
+    x: 20, y: 110, width: 80, height: 80,
+    shapeType: 'standard.Path',
+    label: 'Path',
     attrs: {
-      body: {
-        d: 'M 0 20 L 40 0 L 80 20 L 80 60 L 40 80 L 0 60 Z',
-        strokeWidth: 2,
-        stroke: '#333333',
-        fill: PRIMARY,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Path',
-      },
+      body: { d: 'M 0 20 L 40 0 L 80 20 L 80 60 L 40 80 L 0 60 Z', fill: PRIMARY, stroke: '#333333' },
+      label: { fill: 'white' },
     },
   },
   polygon: {
-    x: 130,
-    y: 110,
-    width: 80,
-    height: 80,
-    type: 'standard.Polygon',
+    x: 130, y: 110, width: 80, height: 80,
+    shapeType: 'standard.Polygon',
+    label: 'Polygon',
     attrs: {
-      body: {
-        points: '40,0 80,30 65,80 15,80 0,30',
-        strokeWidth: 2,
-        stroke: '#333333',
-        fill: SECONDARY,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Polygon',
-      },
+      body: { points: '40,0 80,30 65,80 15,80 0,30', fill: SECONDARY, stroke: '#333333' },
+      label: { fill: 'white' },
     },
   },
   polyline: {
-    x: 240,
-    y: 110,
-    width: 100,
-    height: 80,
-    type: 'standard.Polyline',
+    x: 240, y: 110, width: 100, height: 80,
+    shapeType: 'standard.Polyline',
+    label: 'Polyline',
     attrs: {
-      body: {
-        points: '0,40 25,0 50,40 75,0 100,40',
-        strokeWidth: 3,
-        stroke: PRIMARY,
-        fill: 'none',
-        pointerEvents: 'all',
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 70,
-        fontSize: 14,
-        fill: 'white',
-        text: 'Polyline',
-      },
+      body: { points: '0,40 25,0 50,40 75,0 100,40', strokeWidth: 3, stroke: PRIMARY, fill: 'none', pointerEvents: 'all' },
+      label: { y: 70, fill: 'white' },
     },
   },
   textblock: {
-    x: 370,
-    y: 110,
-    width: 100,
-    height: 60,
-    type: 'standard.TextBlock',
+    x: 370, y: 110, width: 100, height: 60,
+    shapeType: 'standard.TextBlock',
     attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        stroke: PRIMARY,
-        fill: '#f3f4f6',
-        strokeWidth: 2,
-      },
-      foreignObject: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-      },
-      label: {
-        text: 'TextBlock\nwith wrap',
-        style: { fontSize: 14, color: PRIMARY },
-      },
+      body: { stroke: PRIMARY, fill: '#f3f4f6' },
+      label: { text: 'TextBlock\nwith wrap', style: { fontSize: 14, color: PRIMARY } },
     },
   },
   // Row 3: Headered and Image shapes
   headered: {
-    x: 20,
-    y: 220,
-    width: 120,
-    height: 80,
-    type: 'standard.HeaderedRectangle',
+    x: 20, y: 220, width: 120, height: 80,
+    shapeType: 'standard.HeaderedRectangle',
     attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        strokeWidth: 2,
-        stroke: '#000000',
-        fill: '#e5e7eb',
-      },
-      header: {
-        width: 'calc(w)',
-        height: 30,
-        strokeWidth: 2,
-        stroke: '#000000',
-        fill: PRIMARY,
-      },
-      headerText: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 15,
-        fontSize: 16,
-        fill: 'white',
-        text: 'Header',
-      },
-      bodyText: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2+15)',
-        fontSize: 14,
-        fill: '#374151',
-        text: 'Body',
-      },
+      body: { fill: '#e5e7eb' },
+      header: { fill: PRIMARY },
+      headerText: { fill: 'white', text: 'Header' },
+      bodyText: { fill: '#374151', text: 'Body' },
     },
   },
   image: {
-    x: 170,
-    y: 220,
-    width: 60,
-    height: 60,
-    type: 'standard.Image',
+    x: 170, y: 220, width: 60, height: 60,
+    shapeType: 'standard.Image',
+    label: 'Image',
     attrs: {
-      image: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        xlinkHref: 'https://picsum.photos/60/60?random=1',
-      },
-      label: {
-        textVerticalAnchor: 'top',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h+10)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Image',
-      },
+      image: { xlinkHref: 'https://picsum.photos/60/60?random=1' },
+      label: { fill: 'white' },
     },
   },
   'bordered-image': {
-    x: 260,
-    y: 220,
-    width: 70,
-    height: 70,
-    type: 'standard.BorderedImage',
+    x: 260, y: 220, width: 70, height: 70,
+    shapeType: 'standard.BorderedImage',
+    label: 'Bordered',
     attrs: {
-      border: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        stroke: PRIMARY,
-        strokeWidth: 3,
-      },
-      background: {
-        width: 'calc(w-1)',
-        height: 'calc(h-1)',
-        x: 0.5,
-        y: 0.5,
-        fill: '#FFFFFF',
-      },
-      image: {
-        width: 'calc(w-1)',
-        height: 'calc(h-1)',
-        x: 0.5,
-        y: 0.5,
-        xlinkHref: 'https://picsum.photos/70/70?random=2',
-      },
-      label: {
-        textVerticalAnchor: 'top',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h+10)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Bordered',
-      },
+      border: { stroke: PRIMARY, strokeWidth: 3 },
+      image: { xlinkHref: 'https://picsum.photos/70/70?random=2' },
+      label: { fill: 'white' },
     },
   },
   'embedded-image': {
-    x: 360,
-    y: 220,
-    width: 150,
-    height: 70,
-    type: 'standard.EmbeddedImage',
+    x: 360, y: 220, width: 150, height: 70,
+    shapeType: 'standard.EmbeddedImage',
+    label: 'Embedded',
     attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        stroke: SECONDARY,
-        fill: '#f3f4f6',
-        strokeWidth: 2,
-      },
-      image: {
-        width: 'calc(0.3*w)',
-        height: 'calc(h-20)',
-        x: 10,
-        y: 10,
-        preserveAspectRatio: 'xMidYMin',
-        xlinkHref: 'https://picsum.photos/30/30?random=3',
-      },
-      label: {
-        textVerticalAnchor: 'top',
-        textAnchor: 'left',
-        x: 'calc(0.3*w+20)',
-        y: 10,
-        fontSize: 14,
-        fill: '#374151',
-        text: 'Embedded',
-      },
+      body: { stroke: SECONDARY, fill: '#f3f4f6' },
+      image: { xlinkHref: 'https://picsum.photos/30/30?random=3' },
+      label: { fill: '#374151' },
     },
   },
   // Row 4: More shapes and link targets
   'inscribed-image': {
-    x: 20,
-    y: 330,
-    width: 70,
-    height: 70,
-    type: 'standard.InscribedImage',
+    x: 20, y: 330, width: 70, height: 70,
+    shapeType: 'standard.InscribedImage',
+    label: 'Inscribed',
     attrs: {
-      border: {
-        rx: 'calc(w/2)',
-        ry: 'calc(h/2)',
-        cx: 'calc(w/2)',
-        cy: 'calc(h/2)',
-        stroke: PRIMARY,
-        strokeWidth: 2,
-      },
-      background: {
-        rx: 'calc(w/2)',
-        ry: 'calc(h/2)',
-        cx: 'calc(w/2)',
-        cy: 'calc(h/2)',
-        fill: '#e5e7eb',
-      },
-      image: {
-        width: 'calc(0.68*w)',
-        height: 'calc(0.68*h)',
-        x: 'calc(0.16*w)',
-        y: 'calc(0.16*h)',
-        preserveAspectRatio: 'xMidYMid',
-        xlinkHref: 'https://picsum.photos/50/50?random=4',
-      },
-      label: {
-        textVerticalAnchor: 'top',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h+10)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Inscribed',
-      },
+      border: { stroke: PRIMARY },
+      background: { fill: '#e5e7eb' },
+      image: { xlinkHref: 'https://picsum.photos/50/50?random=4' },
+      label: { fill: 'white' },
     },
   },
   'link-source': {
-    x: 150,
-    y: 350,
-    width: 80,
-    height: 40,
-    type: 'standard.Rectangle',
-    attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        strokeWidth: 2,
-        stroke: '#000000',
-        fill: PRIMARY,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Source',
-      },
-    },
+    x: 150, y: 350, width: 80, height: 40,
+    shapeType: 'standard.Rectangle',
+    label: 'Source',
+    attrs: { body: { fill: PRIMARY }, label: { fill: 'white' } },
   },
   'link-target-1': {
-    x: 350,
-    y: 320,
-    width: 80,
-    height: 40,
-    type: 'standard.Rectangle',
-    attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        strokeWidth: 2,
-        stroke: '#000000',
-        fill: SECONDARY,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Target 1',
-      },
-    },
+    x: 350, y: 320, width: 80, height: 40,
+    shapeType: 'standard.Rectangle',
+    label: 'Target 1',
+    attrs: { body: { fill: SECONDARY }, label: { fill: 'white' } },
   },
   'link-target-2': {
-    x: 350,
-    y: 420,
-    width: 80,
-    height: 40,
-    type: 'standard.Rectangle',
-    attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        strokeWidth: 2,
-        stroke: '#000000',
-        fill: PRIMARY,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Target 2',
-      },
-    },
+    x: 350, y: 420, width: 80, height: 40,
+    shapeType: 'standard.Rectangle',
+    label: 'Target 2',
+    attrs: { body: { fill: PRIMARY }, label: { fill: 'white' } },
   },
   'link-target-3': {
-    x: 520,
-    y: 320,
-    width: 80,
-    height: 40,
-    type: 'standard.Rectangle',
-    attrs: {
-      body: {
-        width: 'calc(w)',
-        height: 'calc(h)',
-        strokeWidth: 2,
-        stroke: '#000000',
-        fill: SECONDARY,
-      },
-      label: {
-        textVerticalAnchor: 'middle',
-        textAnchor: 'middle',
-        x: 'calc(w/2)',
-        y: 'calc(h/2)',
-        fontSize: 14,
-        fill: 'white',
-        text: 'Target 3',
-      },
-    },
+    x: 520, y: 320, width: 80, height: 40,
+    shapeType: 'standard.Rectangle',
+    label: 'Target 3',
+    attrs: { body: { fill: SECONDARY }, label: { fill: 'white' } },
   },
 };
 
@@ -538,92 +168,23 @@ const initialLinks: Record<string, NativeLink> = {
   'link-standard': {
     source: 'link-source',
     target: 'link-target-1',
-    type: 'standard.Link',
-    attrs: {
-      line: {
-        connection: true,
-        stroke: PRIMARY,
-        strokeWidth: 2,
-        strokeLinejoin: 'round',
-        targetMarker: {
-          type: 'path',
-          d: 'M 10 -5 0 0 10 5 z',
-        },
-      },
-      wrapper: {
-        connection: true,
-        strokeWidth: 10,
-        strokeLinejoin: 'round',
-      },
-    },
-    labels: [{ attrs: { text: { text: 'Link' }}}],
+    shapeType: 'standard.Link',
+    label: 'Link',
+    attrs: { line: { stroke: PRIMARY } },
   },
   'link-double': {
     source: 'link-source',
     target: 'link-target-2',
-    type: 'standard.DoubleLink',
-    attrs: {
-      line: {
-        connection: true,
-        stroke: SECONDARY,
-        strokeWidth: 4,
-        strokeLinejoin: 'round',
-        targetMarker: {
-          type: 'path',
-          stroke: '#000000',
-          d: 'M 10 -3 10 -10 -2 0 10 10 10 3',
-        },
-      },
-      outline: {
-        connection: true,
-        stroke: '#c7d2fe',
-        strokeWidth: 6,
-        strokeLinejoin: 'round',
-      },
-    },
-    labels: [{ attrs: { text: { text: 'DoubleLink' }}}],
+    shapeType: 'standard.DoubleLink',
+    label: 'DoubleLink',
+    attrs: { line: { stroke: SECONDARY }, outline: { stroke: '#c7d2fe' } },
   },
   'link-shadow': {
     source: 'link-target-1',
     target: 'link-target-3',
-    type: 'standard.ShadowLink',
-    attrs: {
-      line: {
-        connection: true,
-        stroke: PRIMARY,
-        strokeWidth: 20,
-        strokeLinejoin: 'round',
-        targetMarker: {
-          type: 'path',
-          stroke: 'none',
-          d: 'M 0 -10 -10 0 0 10 z',
-        },
-        sourceMarker: {
-          type: 'path',
-          stroke: 'none',
-          d: 'M -10 -10 0 0 -10 10 0 10 0 -10 z',
-        },
-      },
-      shadow: {
-        connection: true,
-        transform: 'translate(3,6)',
-        stroke: '#9ca3af',
-        strokeOpacity: 0.2,
-        strokeWidth: 20,
-        strokeLinejoin: 'round',
-        targetMarker: {
-          type: 'path',
-          d: 'M 0 -10 -10 0 0 10 z',
-          stroke: 'none',
-        },
-        sourceMarker: {
-          type: 'path',
-          stroke: 'none',
-          d: 'M -10 -10 0 0 -10 10 0 10 0 -10 z',
-        },
-      },
-    },
-    labels: [{ attrs: { text: { text: 'ShadowLink' }}}],
+    shapeType: 'standard.ShadowLink',
+    label: 'ShadowLink',
+    attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
   },
 };
 
@@ -636,12 +197,40 @@ function Main() {
 }
 
 export default function App() {
+  const elementMappers = useFlatElementData<NativeElement>({
+    mapAttributes: ({ attributes, data, graph }) => {
+      const defaults = graph.getTypeDefaults(data.shapeType);
+      return {
+        ...attributes,
+        type: data.shapeType,
+        attrs: util.defaultsDeep(
+          {},
+          data.label == null ? {} : { label: { text: data.label } },
+          data.attrs || {},
+          defaults.attrs || {},
+        ),
+      };
+    },
+  }, []);
+
+  const linkMappers = useFlatLinkData<NativeLink>({
+    mapAttributes: ({ attributes, data, graph }) => {
+      const defaults = graph.getTypeDefaults(data.shapeType);
+      return {
+        ...attributes,
+        type: data.shapeType,
+        attrs: util.defaultsDeep({}, data.attrs || {}, defaults.attrs || {}),
+        ...(data.label && { labels: [{ attrs: { text: { text: data.label } } }] }),
+      };
+    },
+  }, []);
+
   return (
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapDataToElementAttributes={mapDataToElementAttributes}
-      mapDataToLinkAttributes={mapDataToLinkAttributes}
+      {...elementMappers}
+      {...linkMappers}
     >
       <Main />
     </GraphProvider>

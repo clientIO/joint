@@ -11,6 +11,9 @@ import {
   usePaperEvents,
   useMeasureNode,
   useElementLayout,
+  flatElementDataToAttributes,
+  flatLinkDataToAttributes,
+  type CellAttributes,
   type CellId,
   type FlatElementData,
   type FlatLinkData,
@@ -401,15 +404,15 @@ function mapDataToLinkAttributesExample(options: ToLinkAttributesOptions<LinkDat
   // For standard links, use the built-in theme defaults
   // The default mapper already handles color, width, and markers
   if (!jjType) {
-    return options.toAttributes(options.data);
+    return flatLinkDataToAttributes(options.data);
   }
 
   // For custom link types (like standard.ShadowLink), override the type
   // and exclude attrs so the link type's defaults are used
   const attributes = {
-    ...options.toAttributes(options.data),
+    ...flatLinkDataToAttributes(options.data),
     type: jjType,
-  };
+  } as CellAttributes;
   // eslint-disable-next-line sonarjs/no-small-switch
   switch (jjType) {
     case 'standard.ShadowLink': {
@@ -460,11 +463,11 @@ function mapDataToLinkAttributesExample(options: ToLinkAttributesOptions<LinkDat
 
 function mapDataToElementAttributesExample(options: ToElementAttributesOptions<ElementData>) {
   const { jjType, color = 'lightgray' } = options.data;
-  if (!jjType) return options.toAttributes(options.data);
+  if (!jjType) return flatElementDataToAttributes(options.data);
   const attributes = {
-    ...options.toAttributes(options.data),
+    ...flatElementDataToAttributes(options.data),
     type: jjType,
-  };
+  } as CellAttributes;
   // eslint-disable-next-line sonarjs/no-small-switch
   switch (jjType) {
     case 'standard.Cylinder': {

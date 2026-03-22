@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { FlatLinkData } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
 import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
@@ -16,9 +15,9 @@ const markerNames = Object.keys(linkMarkerShapes).filter((name) => name !== 'non
 function buildGrid() {
   const links: Record<string, FlatLinkData> = {};
 
-  markerNames.forEach((name, i) => {
-    const col = i % COLS;
-    const row = Math.floor(i / COLS);
+  for (const [index, name] of markerNames.entries()) {
+    const col = index % COLS;
+    const row = Math.floor(index / COLS);
     const x = PADDING + col * GAP_X;
     const y = PADDING + row * GAP_Y;
 
@@ -33,7 +32,7 @@ function buildGrid() {
         label: { text: name, color: LIGHT },
       },
     };
-  });
+  }
 
   return links;
 }

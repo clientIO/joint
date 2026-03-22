@@ -4,7 +4,7 @@ import {
     GraphProvider,
     Paper,
     useElementLayout,
-    useLinkDefaults,
+    useFlatLinkData,
     type FlatElementData,
     type FlatLinkData,
     type RenderElement,
@@ -87,8 +87,8 @@ function Diagram() {
     const [isDark, setIsDark] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    const { mapDataToLinkAttributes } = useLinkDefaults({
-        targetMarker: 'arrow',
+    const { mapDataToLinkAttributes } = useFlatLinkData({
+        defaults: { targetMarker: 'arrow' },
     });
 
     const renderElement: RenderElement<NodeData> = useCallback(

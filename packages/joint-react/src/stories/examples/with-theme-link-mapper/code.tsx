@@ -2,9 +2,9 @@ import { useState, useCallback } from 'react';
 import {
     GraphProvider,
     Paper,
-    useElementDefaults,
+    useFlatElementData,
     useElementLayout,
-    useLinkDefaults,
+    useFlatLinkData,
     type FlatElementData,
     type FlatElementPort,
     type FlatLinkData,
@@ -18,7 +18,7 @@ interface ElementData extends FlatElementData {
 }
 
 // Minimal persisted data — no ports, no styling.
-// Ports and theme are provided by useElementDefaults based on element kind.
+// Ports and theme are provided by useFlatElementData based on element kind.
 const initialElements: Record<string, ElementData> = {
     a: { label: 'Start', type: 'source', x: 50, y: 140 },
     b: { label: 'Process', type: 'process', x: 250, y: 50 },
@@ -80,8 +80,8 @@ function Diagram() {
     const color = alternate ? SECONDARY : PRIMARY;
     const portShape = alternate ? 'rect' as const : 'ellipse' as const;
 
-    const { mapDataToElementAttributes } = useElementDefaults<ElementData>(
-      (data) => ({
+    const { mapDataToElementAttributes } = useFlatElementData<ElementData>({
+      defaults: (data) => ({
         width: 100,
         height: 40,
         portStyle: {
@@ -94,20 +94,21 @@ function Diagram() {
         },
         ports: portsByType[data.type] ?? defaultPorts,
       }),
-      [color, portShape]
-    );
+    }, [color, portShape]);
 
-    const { mapDataToLinkAttributes } = useLinkDefaults({
-        color: color,
-        width: 3,
-        targetMarker: 'arrow',
-        labelStyle: {
-            color: LIGHT,
-            fontSize: 11,
-            fontFamily: 'monospace',
-            backgroundPadding: { x: 10, y: 5 },
-            backgroundColor: '#1e293b',
-            backgroundOutline: color,
+    const { mapDataToLinkAttributes } = useFlatLinkData({
+        defaults: {
+            color,
+            width: 3,
+            targetMarker: 'arrow',
+            labelStyle: {
+                color: LIGHT,
+                fontSize: 11,
+                fontFamily: 'monospace',
+                backgroundPadding: { x: 10, y: 5 },
+                backgroundColor: '#1e293b',
+                backgroundOutline: color,
+            },
         },
     }, [color]);
 

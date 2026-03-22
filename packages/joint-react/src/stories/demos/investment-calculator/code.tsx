@@ -7,7 +7,7 @@ import {
   useGraph,
   useElementId,
   useElements,
-  useLinkDefaults,
+  useFlatLinkData,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
@@ -631,12 +631,14 @@ function Main() {
 // ----------------------------------------------------------------------------
 
 export default function App() {
-  const { mapDataToLinkAttributes } = useLinkDefaults({
-    color: LINK_COLOR,
-    width: 2,
-    linecap: 'butt',
-    sourceMarker: 'circle',
-    targetMarker: 'arrow',
+  const { mapDataToLinkAttributes } = useFlatLinkData({
+    defaults: {
+      color: LINK_COLOR,
+      width: 2,
+      linecap: 'butt',
+      sourceMarker: 'circle',
+      targetMarker: 'arrow',
+    },
   });
 
   return (
