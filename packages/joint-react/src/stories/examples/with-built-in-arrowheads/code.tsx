@@ -29,7 +29,7 @@ function buildGrid() {
       sourceMarker: name,
       targetMarker: name,
       labels: {
-        label: { text: name, color: LIGHT },
+        label: { text: name, color: LIGHT, backgroundColor: '#023345', backgroundBorderRadius: 4 },
       },
     };
   }

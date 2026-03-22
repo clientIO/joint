@@ -54,7 +54,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
       },
       size: { width: 14, height: 14 },
       label: {
-        position: { name: 'outside', args: { offset: 12 } },
+        position: { name: 'radialOriented', args: { offset: 12 } },
         markup: [{ tagName: 'text', selector: 'label' }],
       },
       attrs: {
@@ -75,7 +75,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
       },
       size: { width: 14, height: 14 },
       label: {
-        position: { name: 'outside', args: { offset: 12 } },
+        position: { name: 'radialOriented', args: { offset: 12 } },
         markup: [{ tagName: 'text', selector: 'label' }],
       },
       attrs: {
@@ -193,7 +193,7 @@ function Main() {
     [],
   );
 
-  return <Paper className={PAPER_CLASSNAME} height={420} renderElement={renderElement} />;
+  return <Paper className={PAPER_CLASSNAME} height={420} renderElement={renderElement} linkPinning={false} />;
 }
 
 export default function App() {
