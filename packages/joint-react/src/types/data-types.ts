@@ -184,7 +184,7 @@ export interface FlatLinkPresentationData {
    * Use 'none' for no marker.
    * @example
    * sourceMarker: 'arrow'
-   * sourceMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" />)
+   * sourceMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-stroke" />)
    * @default 'none'
    */
   readonly sourceMarker?: LinkMarker;
@@ -193,7 +193,7 @@ export interface FlatLinkPresentationData {
    * Use 'none' for no marker.
    * @example
    * targetMarker: 'arrow'
-   * targetMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-fill" />)
+   * targetMarker: jsx(<path d="M 0 0 L 8 -4 V 4 z" fill="context-stroke" />)
    * @default 'none'
    */
   readonly targetMarker?: LinkMarker;
