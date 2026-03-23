@@ -8,8 +8,8 @@
  *
  * Global theme (all links):
  *
- *   :root       { --joint-link-color: #333; }
- *   .dark       { --joint-link-color: #ccc; }
+ *   :root       { --jr-link-color: #333; }
+ *   .dark       { --jr-link-color: #ccc; }
  *
  * Per-link override via color prop:
  *
@@ -23,7 +23,7 @@
  * Priority (highest → lowest):
  *   1. Inline style — `color` / `width` props
  *   2. Utility classes — `className` prop (Tailwind @layer utilities)
- *   3. Theme variables — `--joint-*` CSS custom properties (@layer base)
+ *   3. Theme variables — `--jr-*` CSS custom properties (@layer base)
  */
 
 @layer base {
@@ -31,47 +31,47 @@
   /* ── Links ─────────────────────────────────────────────────────────────── */
 
   :where(.jr-link-line) {
-    stroke: var(--joint-link-color, #333333);
-    stroke-width: var(--joint-link-width, 2);
-    stroke-dasharray: var(--joint-link-dash);
-    stroke-linecap: var(--joint-link-line-cap);
-    stroke-linejoin: var(--joint-link-line-join);
+    stroke: var(--jr-link-color, #333333);
+    stroke-width: var(--jr-link-width, 2);
+    stroke-dasharray: var(--jr-link-dash);
+    stroke-linecap: var(--jr-link-line-cap);
+    stroke-linejoin: var(--jr-link-line-join);
   }
 
   :where(.jr-link-wrapper) {
-    stroke: var(--joint-link-wrapper-color, transparent);
-    stroke-width: var(--joint-link-wrapper-width, 0);
+    stroke: var(--jr-link-wrapper-color, transparent);
+    stroke-width: var(--jr-link-wrapper-width, 0);
   }
 
   /* ── Labels ────────────────────────────────────────────────────────────── */
 
   :where(.jr-link-label-text) {
-    fill: var(--joint-label-color, #333333);
-    font-size: var(--joint-label-font-size, 12px);
-    font-family: var(--joint-label-font-family, sans-serif);
+    fill: var(--jr-label-color, #333333);
+    font-size: var(--jr-label-font-size, 12px);
+    font-family: var(--jr-label-font-family, sans-serif);
   }
 
   :where(.jr-link-label-body) {
-    fill: var(--joint-label-bg, #ffffff);
-    stroke: var(--joint-label-stroke, #333333);
-    stroke-width: var(--joint-label-stroke-width, 1);
+    fill: var(--jr-label-bg, #ffffff);
+    stroke: var(--jr-label-stroke, #333333);
+    stroke-width: var(--jr-label-stroke-width, 1);
   }
 
   /* ── Ports ──────────────────────────────────────────────────────────────── */
 
   :where(.jr-port-body) {
-    fill: var(--joint-port-color, #333333);
-    stroke: var(--joint-port-outline, transparent);
-    stroke-width: var(--joint-port-outline-width, 0);
+    fill: var(--jr-port-color, #333333);
+    stroke: var(--jr-port-outline, transparent);
+    stroke-width: var(--jr-port-outline-width, 0);
   }
 
   :where(.jr-port-label) {
-    fill: var(--joint-port-label-color, #333333);
+    fill: var(--jr-port-label-color, #333333);
   }
 
   /* ── Paper ─────────────────────────────────────────────────────────────── */
 
   :where(.jr-portal-paper) {
-    background-color: var(--joint-paper-bg, transparent);
+    background-color: var(--jr-paper-bg, transparent);
   }
 }

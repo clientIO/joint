@@ -170,13 +170,13 @@ export interface FlatLinkPresentationData {
   /**
    * Stroke color of the link line.
    * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
-   * When set to `''`, the `--joint-link-color` CSS variable from theme.css controls the stroke.
+   * When set to `''`, the `--jr-link-color` CSS variable from theme.css controls the stroke.
    */
   readonly color?: string;
   /**
    * Stroke width of the link line.
    * Accepts a number (pixels) or a CSS value string like `'var(--my-width)'`.
-   * When set to `''`, the `--joint-link-width` CSS variable from theme.css controls the width.
+   * When set to `''`, the `--jr-link-width` CSS variable from theme.css controls the width.
    */
   readonly width?: number | string;
   /**

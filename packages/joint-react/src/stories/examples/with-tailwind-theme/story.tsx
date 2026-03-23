@@ -14,7 +14,7 @@ export default {
             description: {
                 story:
                     'Demonstrates CSS theming with Tailwind v4 CSS variables. ' +
-                    'The `tailwind-theme.css` maps `--joint-*` to Tailwind variables ' +
+                    'The `tailwind-theme.css` maps `--jr-*` to Tailwind variables ' +
                     'like `--color-slate-500`. Light/dark toggle switches the palette.',
             },
             source: {

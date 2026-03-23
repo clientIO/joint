@@ -13,7 +13,7 @@ export default {
         docs: {
             description: {
                 story:
-                    'Demonstrates CSS-driven theming with plain `--joint-*` CSS custom properties (no Tailwind). ' +
+                    'Demonstrates CSS-driven theming with plain `--jr-*` CSS custom properties (no Tailwind). ' +
                     'Links with no explicit `color`/`width` inherit from CSS variables. ' +
                     'Light/dark toggle overrides variables via a `.dark` class.',
             },
