@@ -11,6 +11,8 @@ import {
   useGraph,
   useMarkup,
   useMeasureNode,
+  useFlatElementData,
+  useFlatLinkData,
   type FlatElementData,
   type FlatLinkData,
   type RenderElement,
@@ -88,27 +90,6 @@ const initialElements: Record<string, SaasNode> = {
     tags: ['Enterprise'],
     x: 200,
     y: 20,
-    ports: {
-      out: {
-        cx: 'calc(0.5 * w)',
-        cy: 'calc(h)',
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outline: DARK.canvas,
-        outlineWidth: 2,
-      },
-      in: {
-        cx: 'calc(0.5 * w)',
-        cy: 0,
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outline: DARK.canvas,
-        outlineWidth: 2,
-        passive: true,
-      },
-    },
   },
   pm: {
     title: 'Project Manager',
@@ -119,27 +100,6 @@ const initialElements: Record<string, SaasNode> = {
     progress: 76,
     x: 20,
     y: 250,
-    ports: {
-      out: {
-        cx: 'calc(0.5 * w)',
-        cy: 'calc(h)',
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outline: DARK.canvas,
-        outlineWidth: 2,
-      },
-      in: {
-        cx: 'calc(0.5 * w)',
-        cy: 0,
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outline: DARK.canvas,
-        outlineWidth: 2,
-        passive: true,
-      },
-    },
   },
   designer: {
     title: 'UX Designer',
@@ -150,27 +110,6 @@ const initialElements: Record<string, SaasNode> = {
     progress: 44,
     x: 380,
     y: 460,
-    ports: {
-      out: {
-        cx: 'calc(0.5 * w)',
-        cy: 'calc(h)',
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outline: DARK.canvas,
-        outlineWidth: 2,
-      },
-      in: {
-        cx: 'calc(0.5 * w)',
-        cy: 0,
-        width: PORT_R * 2,
-        height: PORT_R * 2,
-        color: DARK.port,
-        outline: DARK.canvas,
-        outlineWidth: 2,
-        passive: true,
-      },
-    },
   },
 };
 
@@ -180,7 +119,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourcePort: 'out',
     target: 'pm',
     targetPort: 'in',
-    color: DARK.link,
     width: 2,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     targetMarker: 'none',
@@ -188,11 +126,8 @@ const initialLinks: Record<string, FlatLinkData> = {
       assigns: {
         text: 'Assigns',
         fontSize: 10,
-        backgroundColor: DARK.card,
-        backgroundOutline: DARK.cardBorder,
         backgroundBorderRadius: 10,
         backgroundPadding: { x: 8, y: 4 },
-        color: DARK.sub,
       },
     },
   },
@@ -201,24 +136,20 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourcePort: 'out',
     target: 'designer',
     targetPort: 'in',
-    color: DARK.link,
     width: 2,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     dasharray: '6,4',
     targetMarker: {
       d: 'M 0 -4 L 8 0 L 0 4 Z',
-      fill: DARK.link,
+      fill: 'context-stroke',
       stroke: 'none',
     },
     labels: {
       delegates: {
         text: 'Delegates',
         fontSize: 10,
-        backgroundColor: DARK.card,
-        backgroundOutline: DARK.cardBorder,
         backgroundBorderRadius: 10,
         backgroundPadding: { x: 8, y: 4 },
-        color: DARK.sub,
       },
     },
   },
@@ -427,29 +358,8 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
       tags: ['New'],
       x: 150 + Math.random() * 200, // eslint-disable-line sonarjs/pseudo-random
       y: 200 + Math.random() * 200, // eslint-disable-line sonarjs/pseudo-random
-      ports: {
-        out: {
-          cx: 'calc(0.5 * w)',
-          cy: 'calc(h)',
-          width: PORT_R * 2,
-          height: PORT_R * 2,
-          color: theme.port,
-          outline: theme.canvas,
-          outlineWidth: 2,
-        },
-        in: {
-          cx: 'calc(0.5 * w)',
-          cy: 0,
-          width: PORT_R * 2,
-          height: PORT_R * 2,
-          color: theme.port,
-          outline: theme.canvas,
-          outlineWidth: 2,
-          passive: true,
-        },
-      },
     } satisfies SaasNode);
-  }, [setElement, theme]);
+  }, [setElement]);
 
   const onFit = useCallback(() => {
     paperRef.current?.transformToFitContent({
@@ -566,37 +476,8 @@ function Main() {
   const theme = isDark ? DARK : LIGHT;
   const paperRef = useRef<dia.Paper | null>(null);
 
-  // Theme the static link data
-  const themedLinks: Record<string, FlatLinkData> = {};
-  for (const [id, link] of Object.entries(initialLinks)) {
-    themedLinks[id] = {
-      ...link,
-      color: theme.link,
-      labels: link.labels
-        ? Object.fromEntries(
-            Object.entries(link.labels).map(([key, label]) => [
-              key,
-              {
-                ...label,
-                color: theme.sub,
-                backgroundColor: theme.canvas,
-                backgroundOutline: theme.cardBorder,
-              },
-            ])
-          )
-        : undefined,
-      targetMarker:
-        typeof link.targetMarker === 'object'
-          ? { ...link.targetMarker, fill: theme.link }
-          : link.targetMarker,
-    };
-  }
-
-  // Theme the static element ports
-  const themedElements: Record<string, SaasNode> = {};
-  for (const [id, element] of Object.entries(initialElements)) {
-    themedElements[id] = {
-      ...element,
+  const elementDefaults = useFlatElementData<SaasNode>({
+    defaults: () => ({
       ports: {
         out: {
           cx: 'calc(0.5 * w)',
@@ -618,11 +499,27 @@ function Main() {
           passive: true,
         },
       },
-    };
-  }
+    }),
+  }, [theme]);
+
+  const linkDefaults = useFlatLinkData({
+    defaults: {
+      color: theme.link,
+      labelStyle: {
+        color: theme.sub,
+        backgroundColor: theme.canvas,
+        backgroundOutline: theme.cardBorder,
+      },
+    },
+  }, [theme]);
 
   return (
-    <GraphProvider elements={themedElements} links={themedLinks}>
+    <GraphProvider
+      elements={initialElements}
+      links={initialLinks}
+      {...elementDefaults}
+      {...linkDefaults}
+    >
       <Paper
         ref={paperRef}
         id={PAPER_ID}
