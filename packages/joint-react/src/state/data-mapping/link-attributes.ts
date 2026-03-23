@@ -143,7 +143,7 @@ export function buildLinkPresentationAttributes(
   lineAttributes.targetMarker =
     targetMarker === 'none' ? null : resolveMarker(targetMarker);
 
-  lineAttributes.class = `joint-link-line ${className}`.trim();
+  lineAttributes.class = `jr-link-line ${className}`.trim();
 
   return {
     line: {
@@ -159,7 +159,7 @@ export function buildLinkPresentationAttributes(
         strokeLinecap: linecap,
         strokeLinejoin: linejoin
       },
-      class: `joint-link-wrapper ${wrapperClassName}`.trim(),
+      class: `jr-link-wrapper ${wrapperClassName}`.trim(),
     },
   };
 }

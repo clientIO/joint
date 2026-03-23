@@ -255,6 +255,7 @@ export function flatMapLinkAttributesToData<Link = FlatLinkData>(
 /**
  * Converts flat link data to JointJS cell attributes.
  * Public utility — caller provides the `id` separately.
+ * @param data
  */
 export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
   if (!isLinkData(data)) {
@@ -353,6 +354,7 @@ export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
 /**
  * Converts JointJS link attributes back to flat link data.
  * Public utility — purely mechanical (nested → flat), no defaultAttributes filtering.
+ * @param attributes
  */
 export function flatAttributesToLinkData<Link = FlatLinkData>(
   attributes: dia.Link.Attributes

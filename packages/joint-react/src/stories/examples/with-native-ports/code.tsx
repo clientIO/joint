@@ -104,7 +104,7 @@ const initialElements: Record<string, NativeElementData> = {
   },
   'node-2': {
     x: 380,
-    y: 30,
+    y: 50,
     width: 160,
     height: 100,
     color: VIOLET,

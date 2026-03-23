@@ -30,7 +30,7 @@
 
   /* ── Links ─────────────────────────────────────────────────────────────── */
 
-  :where(.joint-link-line) {
+  :where(.jr-link-line) {
     stroke: var(--joint-link-color, #333333);
     stroke-width: var(--joint-link-width, 2);
     stroke-dasharray: var(--joint-link-dash);
@@ -38,20 +38,20 @@
     stroke-linejoin: var(--joint-link-line-join);
   }
 
-  :where(.joint-link-wrapper) {
+  :where(.jr-link-wrapper) {
     stroke: var(--joint-link-wrapper-color, transparent);
     stroke-width: var(--joint-link-wrapper-width, 0);
   }
 
   /* ── Labels ────────────────────────────────────────────────────────────── */
 
-  :where(.joint-link-label-text) {
+  :where(.jr-link-label-text) {
     fill: var(--joint-label-color, #333333);
     font-size: var(--joint-label-font-size, 12px);
     font-family: var(--joint-label-font-family, sans-serif);
   }
 
-  :where(.joint-link-label-body) {
+  :where(.jr-link-label-body) {
     fill: var(--joint-label-bg, #ffffff);
     stroke: var(--joint-label-stroke, #333333);
     stroke-width: var(--joint-label-stroke-width, 1);
@@ -59,19 +59,19 @@
 
   /* ── Ports ──────────────────────────────────────────────────────────────── */
 
-  :where(.joint-port-body) {
+  :where(.jr-port-body) {
     fill: var(--joint-port-color, #333333);
     stroke: var(--joint-port-outline, transparent);
     stroke-width: var(--joint-port-outline-width, 0);
   }
 
-  :where(.joint-port-label) {
+  :where(.jr-port-label) {
     fill: var(--joint-port-label-color, #333333);
   }
 
   /* ── Paper ─────────────────────────────────────────────────────────────── */
 
-  :where(.joint-paper) {
+  :where(.jr-portal-paper) {
     background-color: var(--joint-paper-bg, transparent);
   }
 }

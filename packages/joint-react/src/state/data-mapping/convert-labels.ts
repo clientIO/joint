@@ -83,12 +83,12 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
       {
         tagName: bodyTagName,
         selector: 'labelBody',
-        className: `joint-link-label-body ${backgroundClassName}`.trim()
+        className: `jr-link-label-body ${backgroundClassName}`.trim()
       },
       {
         tagName: 'text',
         selector: 'labelText',
-        className: `joint-link-label-text ${className}`.trim()
+        className: `jr-link-label-text ${className}`.trim()
       },
     ],
     attrs: {

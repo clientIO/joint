@@ -37,6 +37,13 @@ const initialLinks: Record<string, FlatLinkData> = {
         targetPort: 'in',
         labels: { status: { text: 'approved' } },
     },
+    'c-d': {
+        source: 'c',
+        target: 'd',
+        sourcePort: 'out',
+        targetPort: 'in',
+        labels: { status: { text: 'pending' } },
+    },
 };
 
 const outPort: FlatElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };

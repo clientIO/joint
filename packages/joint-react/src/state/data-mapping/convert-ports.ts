@@ -63,7 +63,7 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
     {
       tagName: bodyTagName,
       selector: 'portBody',
-      className: `joint-port-body ${className}`.trim(),
+      className: `jr-port-body ${className}`.trim(),
     },
   ];
   result.attrs = { portBody: portBodyAttributes };
@@ -74,7 +74,7 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
       markup: [{
         tagName: 'text',
         selector: 'text',
-        className: `joint-port-label ${labelClassName}`.trim(),
+        className: `jr-port-label ${labelClassName}`.trim(),
       }],
     };
     const labelAttributes: Record<string, unknown> = {
