@@ -1,7 +1,6 @@
 import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
-import type { FlatLinkEnd } from '../../types/link-types';
-import type { LinkMarker } from '../../theme/markers';
+import type { FlatLinkData, FlatLinkEnd, FlatLinkPresentationData } from '../../types/data-types';
 import type { Nullable } from '../../types';
 import { resolveMarker } from '../../theme/markers';
 import { isString } from '../../utils/is';
@@ -103,20 +102,6 @@ const TARGET_KEYS = { port: 'targetPort', anchor: 'targetAnchor', connectionPoin
 
 export { SOURCE_KEYS, TARGET_KEYS };
 
-interface LinkPresentationOptions {
-  color: string;
-  width: number;
-  sourceMarker: LinkMarker;
-  targetMarker: LinkMarker;
-  className: string;
-  pattern: string;
-  lineCap: string;
-  lineJoin: string;
-  wrapperBuffer: number;
-  wrapperColor: string;
-  wrapperClassName: string;
-}
-
 /**
  * Builds the full `attrs` object for a link cell, containing
  * `line` and `wrapper` selectors.
@@ -124,18 +109,30 @@ interface LinkPresentationOptions {
  * Resolves marker names, dash patterns, and class names into
  * flat SVG attribute objects for the line, and computes wrapper
  * hit-area attributes.
+ *
+ * `color` and `width` are set via inline `style` so they win over CSS theme
+ * rules. Empty strings are no-ops, letting CSS variables from theme.css take over.
  * @param options - Theme-driven styling options for line and wrapper
  * @returns Record with `line` and `wrapper` attribute objects
  */
 export function buildLinkPresentationAttributes(
-  options: LinkPresentationOptions
+  options: Required<FlatLinkPresentationData>
 ): Record<string, Nullable<attributes.SVGAttributes>> {
-  const { color, width, sourceMarker, targetMarker, className, pattern, lineCap, lineJoin, wrapperBuffer, wrapperColor, wrapperClassName } = options;
+  const { color, width, sourceMarker, targetMarker, className, dasharray, linecap, linejoin, wrapperWidth, wrapperColor, wrapperClassName } = options;
 
-  // Build line attributes
-  const lineAttributes: Nullable<attributes.SVGAttributes> = {
+  // Use inline `style` so that explicit values win over CSS theme rules
+  // (inline style > CSS specificity). Empty strings are no-ops on the DOM,
+  // letting CSS variables from theme.css handle defaults.
+  const lineStyle: Record<string, unknown> = {
     stroke: color,
     strokeWidth: width,
+    strokeDasharray: dasharray,
+    strokeLinecap: linecap,
+    strokeLinejoin: linejoin,
+  };
+
+  const lineAttributes: Nullable<attributes.SVGAttributes> = {
+    style: lineStyle,
   };
 
   if (sourceMarker !== 'none') {
@@ -146,29 +143,23 @@ export function buildLinkPresentationAttributes(
   lineAttributes.targetMarker =
     targetMarker === 'none' ? null : resolveMarker(targetMarker);
 
-  if (className) {
-    lineAttributes.class = className;
-  }
-  if (pattern) {
-    lineAttributes.strokeDasharray = pattern;
-  }
-
-  const strokeAttributes: attributes.SVGAttributes = {};
-  if (lineCap) strokeAttributes.strokeLinecap = lineCap;
-  if (lineJoin) strokeAttributes.strokeLinejoin = lineJoin;
+  lineAttributes.class = `jr-link-line ${className}`.trim();
 
   return {
     line: {
       connection: true,
       ...lineAttributes,
-      ...strokeAttributes,
     },
     wrapper: {
       connection: true,
-      strokeWidth: wrapperBuffer + width,
-      stroke: wrapperColor,
-      ...(wrapperClassName ? { class: wrapperClassName } : {}),
-      ...strokeAttributes,
+      style: {
+        strokeWidth: wrapperWidth,
+        stroke: wrapperColor,
+        // Note: `linecap` and `linejoin` are shared between the line and wrapper.
+        strokeLinecap: linecap,
+        strokeLinejoin: linejoin
+      },
+      class: `jr-link-wrapper ${wrapperClassName}`.trim(),
     },
   };
 }

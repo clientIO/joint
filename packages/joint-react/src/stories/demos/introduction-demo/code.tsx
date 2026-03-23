@@ -138,7 +138,7 @@ const links: Record<string, FlatLinkData> = {
     color: LIGHT,
     width: 2,
     className: 'link',
-    pattern: '5,5',
+    dasharray: '5,5',
     targetMarker: {
       d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
     },
@@ -517,7 +517,7 @@ function Main() {
             color: LIGHT,
             width: 2,
             className: 'link',
-            pattern: '5,5',
+            dasharray: '5,5',
             targetMarker: {
               d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
             },

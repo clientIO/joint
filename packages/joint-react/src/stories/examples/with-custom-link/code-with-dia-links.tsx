@@ -5,6 +5,8 @@ import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
 import {
   GraphProvider,
+  flatLinkDataToAttributes,
+  type CellAttributes,
   type GraphProps,
   type RenderElement,
   type ToLinkAttributesOptions,
@@ -82,9 +84,9 @@ const links: Record<string, CustomLink> = {
 
 const mapDataToLinkAttributes = (
   options: ToLinkAttributesOptions<FlatLinkData>
-): dia.Cell.JSON => {
+): CellAttributes => {
 
-  const attributes = options.toAttributes(options.data);
+  const attributes = flatLinkDataToAttributes(options.data) as CellAttributes;
   const { color } = options.data as CustomLink;
   return {
     ...attributes,

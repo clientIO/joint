@@ -22,7 +22,7 @@ import { useNodesMeasuredEffect } from '../../hooks/use-nodes-measured-effect';
 import { usePaperEvents } from '../../hooks/use-paper-events';
 import { Paper } from './paper';
 import type { RenderElement } from './paper.types';
-import type { FlatElementData } from '../../types/element-types';
+import type { FlatElementData } from '../../types/data-types';
 import { GraphProvider } from '../graph/graph-provider';
 
 export type Story = StoryObj<typeof Paper>;

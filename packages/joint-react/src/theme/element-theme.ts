@@ -14,15 +14,15 @@ export type PortShape = LiteralUnion<'ellipse' | 'rect'>;
 export const defaultPortStyle = {
   width: 10,
   height: 10,
-  color: '#333333',
+  color: '' as string,
   shape: 'ellipse' as PortShape,
-  stroke: 'transparent',
-  strokeWidth: 0,
+  outline: '' as string, // Accepts any CSS color (e.g., "#333", "var(--my-color)")
+  outlineWidth: '' as number | string, // Outline width in px or CSS value
   className: '',
   passive: false,
   labelPosition: 'outside',
-  labelColor: '#333333',
-  labelFontSize: 12,
-  labelFontFamily: 'sans-serif',
+  labelColor: '' as string,
+  labelFontSize: '' as number | string,
+  labelFontFamily: '' as string,
   labelClassName: '',
 } as const;

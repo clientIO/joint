@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { FlatElementPort } from '../../types/element-types';
+import type { FlatElementPort } from '../../types/data-types';
 import { defaultPortStyle } from '../../theme/element-theme';
 
 /**
@@ -18,8 +18,8 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
     height = defaultPortStyle.height,
     color = defaultPortStyle.color,
     shape = defaultPortStyle.shape,
-    stroke = defaultPortStyle.stroke,
-    strokeWidth = defaultPortStyle.strokeWidth,
+    outline = defaultPortStyle.outline,
+    outlineWidth = defaultPortStyle.outlineWidth,
     className = defaultPortStyle.className,
     label,
     labelPosition = defaultPortStyle.labelPosition,
@@ -39,9 +39,7 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
   };
 
   const portBodyAttributes: Record<string, unknown> = {
-    fill: color,
-    stroke,
-    strokeWidth,
+    style: { fill: color, stroke: outline, strokeWidth: outlineWidth },
     magnet: passive ? 'passive' : 'active',
   };
 
@@ -61,14 +59,11 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
     portBodyAttributes.d = shape;
   }
 
-  if (className) {
-    portBodyAttributes.class = className;
-  }
-
   result.markup = [
     {
       tagName: bodyTagName,
       selector: 'portBody',
+      className: `jr-port-body ${className}`.trim(),
     },
   ];
   result.attrs = { portBody: portBodyAttributes };
@@ -76,18 +71,16 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
   if (label) {
     result.label = {
       position: { name: labelPosition, args: { x: labelOffsetX, y: labelOffsetY } },
-      markup: [{ tagName: 'text', selector: 'text', attributes: {
-        fill: labelColor,
-      }}],
+      markup: [{
+        tagName: 'text',
+        selector: 'text',
+        className: `jr-port-label ${labelClassName}`.trim(),
+      }],
     };
     const labelAttributes: Record<string, unknown> = {
       text: label,
-      fontSize: labelFontSize,
-      fontFamily: labelFontFamily,
+      style: { fill: labelColor, fontSize: labelFontSize, fontFamily: labelFontFamily },
     };
-    if (labelClassName) {
-      labelAttributes.class = labelClassName;
-    }
     result.attrs.text = labelAttributes;
   } else {
     result.label = { markup: [] };

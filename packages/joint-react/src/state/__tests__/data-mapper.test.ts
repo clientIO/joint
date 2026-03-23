@@ -4,8 +4,7 @@
 import { dia, shapes } from '@joint/core';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
-import type { FlatElementData, FlatElementPort } from '../../types/element-types';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatElementData, FlatElementPort, FlatLinkData } from '../../types/data-types';
 import type { ToElementAttributesOptions, ToElementDataOptions } from '../data-mapping/element-mapper';
 import type { ToLinkAttributesOptions, ToLinkDataOptions } from '../data-mapping/link-mapper';
 import {
@@ -15,6 +14,7 @@ import {
   flatMapLinkAttributesToData,
 } from '../data-mapping';
 import { resolveCellDefaults } from '../data-mapping/resolve-cell-defaults';
+import { defaultLinkStyle } from '../../theme/link-theme';
 
 const DEFAULT_CELL_NAMESPACE = { ...shapes, PortalElement, PortalLink };
 
@@ -206,8 +206,8 @@ describe('dataMapper', () => {
       const data: FlatLinkData = { source: 'a', target: 'b' };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      expect(cellJson.attrs?.line?.stroke).toBe('#333333');
-      expect(cellJson.attrs?.line?.strokeWidth).toBe(2);
+      expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
       // Theme-defaulted values should NOT be stored in data
       expect(cellJson.data?.color).toBeUndefined();
       expect(cellJson.data?.width).toBeUndefined();
@@ -220,13 +220,13 @@ describe('dataMapper', () => {
         target: 'b',
         color: 'red',
         width: 4,
-        pattern: '5 5',
+        dasharray: '5 5',
       };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      expect(cellJson.attrs?.line?.stroke).toBe('red');
-      expect(cellJson.attrs?.line?.strokeWidth).toBe(4);
-      expect(cellJson.attrs?.line?.strokeDasharray).toBe('5 5');
+      expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
+      expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(4);
+      expect(cellJson.attrs?.line?.style?.strokeDasharray).toBe('5 5');
     });
 
     it('should store user data in cell.data alongside theme props', () => {

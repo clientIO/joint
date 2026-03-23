@@ -6,16 +6,16 @@ import RawCode from './code?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
-    title: 'Examples/Theme Mappers',
+    title: 'Examples/Tailwind Theme',
     component: Code,
     tags: ['example'],
     parameters: {
         docs: {
             description: {
                 story:
-                    'Demonstrates `useElementDefaults` and `useLinkDefaults` hooks to ' +
-                    'apply default styling to element ports and link appearance instead of ' +
-                    'setting properties on each cell individually.',
+                    'Demonstrates CSS theming with Tailwind v4 CSS variables. ' +
+                    'The `tailwind-theme.css` maps `--jr-*` to Tailwind variables ' +
+                    'like `--color-slate-500`. Light/dark toggle switches the palette.',
             },
             source: {
                 code: RawCode,

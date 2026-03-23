@@ -1,0 +1,35 @@
+/*
+Note: you can set it on :root or any container to scope the theme.
+We restrict to a specific container here to avoid affecting the Storybook UI.
+*/
+
+/* Light mode */
+.css-theme {
+  --jr-link-color: #6366f1;
+  --jr-link-width: 2;
+  --jr-label-color: #1e293b;
+  --jr-label-bg: #eef2ff;
+  --jr-label-stroke: #a5b4fc;
+
+  --node-bg: #eef2ff;
+  --node-stroke: #818cf8;
+  --node-text: #1e293b;
+  --node-shadow: #a5b4fc;
+
+  --paper-bg: #f8fafc;
+}
+
+/* Dark mode */
+.css-theme.dark {
+  --jr-link-color: #818cf8;
+  --jr-label-color: #e0e7ff;
+  --jr-label-bg: #1e1b4b;
+  --jr-label-stroke: #6366f1;
+
+  --node-bg: #1e1b4b;
+  --node-stroke: #818cf8;
+  --node-text: #e0e7ff;
+  --node-shadow: #6366f1;
+
+  --paper-bg: #0f0e2a;
+}

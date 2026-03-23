@@ -1,5 +1,5 @@
 import { useElementId } from './use-element-id';
-import type { FlatElementData } from '../types/element-types';
+import type { FlatElementData } from '../types/data-types';
 import { useData } from './use-stores';
 import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 

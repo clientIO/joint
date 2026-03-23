@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import { useLinks } from '../use-links';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatLinkData } from '../../types/data-types';
 import type { CellId } from '../../types/cell-id';
 
 // Extract link source ID - source can be ID (string/number) or EndJSON object

@@ -4,8 +4,7 @@ import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { PortalElement } from '../../models/portal-element';
 import { sendToDevTool } from '../../utils/dev-tools';
-import type { FlatElementData } from '../../types/element-types';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../../types/data-types';
 
 jest.mock('../../utils/dev-tools', () => ({
   sendToDevTool: jest.fn(),

@@ -4,8 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
 import { useElements, useLinks, useGraph } from '../../../hooks';
-import type { FlatElementData } from '../../../types/element-types';
-import type { FlatLinkData } from '../../../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 
 describe('GraphProvider Controlled Mode', () => {

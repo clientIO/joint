@@ -1,5 +1,5 @@
 import type { CellId } from '../types/cell-id';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatLinkData } from '../types/data-types';
 import { useData } from './use-stores';
 import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 

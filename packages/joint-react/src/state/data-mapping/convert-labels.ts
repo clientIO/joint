@@ -1,5 +1,5 @@
 import { type dia, util } from '@joint/core';
-import type { FlatLinkLabel } from '../../types/link-types';
+import type { FlatLinkLabel } from '../../types/data-types';
 import { defaultLabelStyle } from '../../theme/link-theme';
 
 /**
@@ -21,12 +21,12 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
     fontFamily = defaultLabelStyle.fontFamily,
     backgroundColor = defaultLabelStyle.backgroundColor,
     backgroundPadding = defaultLabelStyle.backgroundPadding,
-    backgroundStroke = defaultLabelStyle.backgroundStroke,
-    backgroundStrokeWidth = defaultLabelStyle.backgroundStrokeWidth,
+    backgroundOutline = defaultLabelStyle.backgroundOutline,
+    backgroundOutlineWidth = defaultLabelStyle.backgroundOutlineWidth,
     backgroundBorderRadius = defaultLabelStyle.backgroundBorderRadius,
     backgroundOpacity,
-    className,
-    backgroundClassName,
+    className = defaultLabelStyle.className,
+    backgroundClassName = defaultLabelStyle.backgroundClassName,
     backgroundShape = 'rect',
   } = label;
 
@@ -35,21 +35,14 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
 
   const labelTextAttributes: Record<string, unknown> = {
     text,
-    fill: color,
-    fontSize,
-    fontFamily,
+    style: { fill: color, fontSize, fontFamily },
     textAnchor: 'middle',
     textVerticalAnchor: 'middle',
     pointerEvents: 'none',
   };
-  if (className) {
-    labelTextAttributes.class = className;
-  }
 
   const labelBodyAttributes: Record<string, unknown> = {
-    fill: backgroundColor,
-    stroke: backgroundStroke,
-    strokeWidth: backgroundStrokeWidth,
+    style: { fill: backgroundColor, stroke: backgroundOutline, strokeWidth: backgroundOutlineWidth },
   };
 
   let bodyTagName: string;
@@ -80,9 +73,6 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
   if (backgroundOpacity !== undefined) {
     labelBodyAttributes.opacity = backgroundOpacity;
   }
-  if (backgroundClassName) {
-    labelBodyAttributes.class = backgroundClassName;
-  }
 
   const labelPosition: Record<string, unknown> = { distance: position };
   if (offset !== undefined) labelPosition.offset = offset;
@@ -90,8 +80,16 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
   return {
     id,
     markup: [
-      { tagName: bodyTagName, selector: 'labelBody' },
-      { tagName: 'text', selector: 'labelText' },
+      {
+        tagName: bodyTagName,
+        selector: 'labelBody',
+        className: `jr-link-label-body ${backgroundClassName}`.trim()
+      },
+      {
+        tagName: 'text',
+        selector: 'labelText',
+        className: `jr-link-label-text ${className}`.trim()
+      },
     ],
     attrs: {
       labelText: labelTextAttributes,

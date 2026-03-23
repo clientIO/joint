@@ -1,0 +1,77 @@
+/*
+ * @joint/react — Base Theme CSS
+ *
+ * Provides CSS custom properties for styling links, labels, and ports.
+ * Import this file to enable CSS-driven theming:
+ *
+ *   import '@joint/react/css/theme.css';
+ *
+ * Global theme (all links):
+ *
+ *   :root       { --jr-link-color: #333; }
+ *   .dark       { --jr-link-color: #ccc; }
+ *
+ * Per-link override via color prop:
+ *
+ *   { color: 'var(--color-pink-200)' }
+ *   { color: '#ff0000' }
+ *
+ * Per-link override via className prop (Tailwind utilities etc.):
+ *
+ *   { className: 'stroke-blue-500 stroke-4' }
+ *
+ * Priority (highest → lowest):
+ *   1. Inline style — `color` / `width` props
+ *   2. Utility classes — `className` prop (Tailwind @layer utilities)
+ *   3. Theme variables — `--jr-*` CSS custom properties (@layer base)
+ */
+
+@layer base {
+
+  /* ── Links ─────────────────────────────────────────────────────────────── */
+
+  :where(.jr-link-line) {
+    stroke: var(--jr-link-color, #333333);
+    stroke-width: var(--jr-link-width, 2);
+    stroke-dasharray: var(--jr-link-dash);
+    stroke-linecap: var(--jr-link-line-cap);
+    stroke-linejoin: var(--jr-link-line-join);
+  }
+
+  :where(.jr-link-wrapper) {
+    stroke: var(--jr-link-wrapper-color, transparent);
+    stroke-width: var(--jr-link-wrapper-width, 0);
+  }
+
+  /* ── Labels ────────────────────────────────────────────────────────────── */
+
+  :where(.jr-link-label-text) {
+    fill: var(--jr-label-color, #333333);
+    font-size: var(--jr-label-font-size, 12px);
+    font-family: var(--jr-label-font-family, sans-serif);
+  }
+
+  :where(.jr-link-label-body) {
+    fill: var(--jr-label-bg, #ffffff);
+    stroke: var(--jr-label-stroke, #333333);
+    stroke-width: var(--jr-label-stroke-width, 1);
+  }
+
+  /* ── Ports ──────────────────────────────────────────────────────────────── */
+
+  :where(.jr-port-body) {
+    fill: var(--jr-port-color, #333333);
+    stroke: var(--jr-port-outline, transparent);
+    stroke-width: var(--jr-port-outline-width, 0);
+  }
+
+  :where(.jr-port-label) {
+    fill: var(--jr-port-label-color, #333333);
+  }
+
+  /* ── Paper ─────────────────────────────────────────────────────────────── */
+
+  :where(.jr-portal-paper) {
+    background-color: var(--jr-paper-bg, transparent);
+  }
+}

@@ -31,9 +31,9 @@ export type { OnTransformElement, TransformOptions } from './store/create-elemen
 export { useElementsLayout, useLinksLayout } from './hooks/use-stores';
 export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
-// Hooks — Defaults
-export { useElementDefaults } from './hooks/use-element-defaults';
-export { useLinkDefaults } from './hooks/use-link-defaults';
+// Hooks — Mappers
+export { useFlatElementData } from './hooks/use-flat-element-data';
+export { useFlatLinkData } from './hooks/use-flat-link-data';
 
 // Hooks — Events
 export { usePaperEvents } from './hooks/use-paper-events';
@@ -46,11 +46,12 @@ export { useMarkup } from './hooks/use-markup';
 
 // Utilities
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
+export { flatElementDataToAttributes, flatAttributesToElementData } from './state/data-mapping/element-mapper';
+export { flatLinkDataToAttributes, flatAttributesToLinkData } from './state/data-mapping/link-mapper';
 
 // Types
-export type { FlatElementData, FlatElementPort } from './types/element-types';
+export type { FlatCellData, FlatElementData, FlatElementPort, FlatLinkData, FlatLinkEnd, FlatLinkLabel, FlatLinkPresentationData } from './types/data-types';
 export type { PortShape as PortShape } from './theme/element-theme';
-export type { FlatLinkData, FlatLinkEnd, FlatLinkLabel } from './types/link-types';
 export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
 export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
@@ -67,6 +68,7 @@ export { PortalPaper } from './models/portal-paper';
 export { selectAreElementsMeasured, selectElementSizes } from './selectors';
 
 // Data mapping types
+export type { CellAttributes } from './state/data-mapping';
 export type {
   ToElementAttributesOptions,
   ToElementDataOptions,

@@ -1,6 +1,5 @@
 import type { CellId } from '../types/cell-id';
-import type { FlatElementData } from '../types/element-types';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 
 export type PaperControlState = {
   readonly draggingIds: Record<string, boolean>;

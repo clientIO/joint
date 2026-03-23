@@ -4,8 +4,7 @@
 import { dia, shapes } from '@joint/core';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
-import type { FlatElementData } from '../../types/element-types';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../../types/data-types';
 import {
   flatMapDataToElementAttributes,
   flatMapDataToLinkAttributes,
@@ -451,7 +450,7 @@ describe('graph-state-selectors', () => {
       const linkAsGraphJson = flatMapDataToLinkAttributes(options);
 
       expect(linkAsGraphJson.attrs).toBeDefined();
-      expect(linkAsGraphJson.attrs?.line?.stroke).toBe('red');
+      expect(linkAsGraphJson.attrs?.line?.style?.stroke).toBe('red');
     });
 
     it('should explicitly set targetMarker to null in line attrs when set to none', () => {

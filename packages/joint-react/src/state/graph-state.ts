@@ -31,8 +31,7 @@ import type {
   LinkLayout,
 } from './state.types';
 import { getElementLayout, getLayout, getLinkLayout } from '../store/update-layout-state';
-import type { FlatElementData } from '../types/element-types';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 import { resolveCellDefaults } from './data-mapping/resolve-cell-defaults';
 import {
   flatMapDataToElementAttributes,
@@ -40,6 +39,7 @@ import {
   flatMapDataToLinkAttributes,
   flatMapLinkAttributesToData,
   type GraphMappings,
+  type CellAttributes,
 } from './data-mapping';
 import { createState, type ExternalStoreLike } from '../utils/create-state';
 import type { PaperStore } from '../store';
@@ -164,7 +164,7 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
 }: Options<ElementData, LinkData>): GraphState<ElementData, LinkData> {
 
   // Mappers are stored mutably so they can be swapped at runtime
-  // (e.g. when useElementDefaults/useLinkDefaults deps change).
+  // (e.g. when useFlatElementData/useFlatLinkData deps change).
   const mappers = {
     mapDataToElementAttributes: initialMappers.mapDataToElementAttributes ?? flatMapDataToElementAttributes,
     mapDataToLinkAttributes: initialMappers.mapDataToLinkAttributes ?? flatMapDataToLinkAttributes,
@@ -237,8 +237,6 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       element,
       graph,
       previousData,
-      toData: (attributes) =>
-        flatMapElementAttributesToData({ attributes, defaultAttributes }) as ElementData,
     });
   }
   /**
@@ -248,14 +246,11 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
    * @param root0.data - The element data to convert
    * @returns The JointJS cell attributes
    */
-  function elementToAttributes({ id, data }: ElementToAttributes<ElementData>) {
-    return mappers.mapDataToElementAttributes({
+  function elementToAttributes({ id, data }: ElementToAttributes<ElementData>): dia.Cell.JSON {
+    return {
+      ...mappers.mapDataToElementAttributes({ id, data, graph }),
       id,
-      data,
-      graph,
-      toAttributes: (newData) =>
-        flatMapDataToElementAttributes({ id, data: newData as FlatElementData }),
-    });
+    } as dia.Cell.JSON;
   }
 
   /**
@@ -276,8 +271,6 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
       link,
       graph,
       previousData,
-      toData: (attributes) =>
-        flatMapLinkAttributesToData({ attributes, defaultAttributes }) as LinkData,
     });
   }
   /**
@@ -289,13 +282,10 @@ export function graphState<ElementData = FlatElementData, LinkData = FlatLinkDat
    */
   function linkToAttributes({ id, data }: LinkToAttributes<LinkData>): dia.Cell.JSON {
     const mapperId = id ?? util.uuid();
-    return mappers.mapDataToLinkAttributes({
+    return {
+      ...mappers.mapDataToLinkAttributes({ id: mapperId, data, graph }),
       id: mapperId,
-      data,
-      graph,
-      toAttributes: (newData) =>
-        flatMapDataToLinkAttributes({ id: mapperId, data: newData as FlatLinkData }),
-    });
+    } as dia.Cell.JSON;
   }
 
   /**

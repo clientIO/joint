@@ -3,7 +3,7 @@ import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/
 import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
-import type { FlatElementData } from '../types/element-types';
+import type { FlatElementData } from '../types/data-types';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';

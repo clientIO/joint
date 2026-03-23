@@ -8,6 +8,8 @@ import {
   Paper,
   useGraph,
   useElements,
+  flatElementDataToAttributes,
+  type CellAttributes,
   type ToElementAttributesOptions,
   type FlatElementData,
   type FlatElementPort,
@@ -46,29 +48,29 @@ function resolveShape(shape: string, w: number, h: number): string {
 /**
  * Custom mapper that resolves named custom shapes (`triangle`, `rounded-rect`)
  * into SVG path strings sized to each port's width/height, then delegates
- * to the default mapper via `toAttributes`.
+ * to the default flat mapper via `flatElementDataToAttributes`.
  */
 function mapDataToElementAttributes(options: ToElementAttributesOptions<PortElementData>) {
   const { data } = options;
   const { ports, portStyle } = data;
-  if (!ports) return options.toAttributes(data);
+  if (!ports) return flatElementDataToAttributes(data);
 
   const defaultW = portStyle?.width ?? 10;
   const defaultH = portStyle?.height ?? 10;
 
   const resolvedPorts: Record<string, FlatElementPort> = {};
-  for (const [id, port] of Object.entries(ports)) {
+  for (const [portId, port] of Object.entries(ports)) {
     const { shape } = port;
     if (shape && shape !== 'ellipse' && shape !== 'rect') {
       const w = port.width ?? defaultW;
       const h = port.height ?? defaultH;
-      resolvedPorts[id] = { ...port, shape: resolveShape(shape, w, h) };
+      resolvedPorts[portId] = { ...port, shape: resolveShape(shape, w, h) };
     } else {
-      resolvedPorts[id] = port;
+      resolvedPorts[portId] = port;
     }
   }
 
-  const result = options.toAttributes({ ...data, ports: resolvedPorts });
+  const result = flatElementDataToAttributes({ ...data, ports: resolvedPorts }) as CellAttributes;
 
   // Keep original shape names in cell.data so they survive round-trips.
   // The resolved SVG paths are already baked into the JointJS port config.

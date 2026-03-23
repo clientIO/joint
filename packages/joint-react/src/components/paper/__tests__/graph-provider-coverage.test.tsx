@@ -4,8 +4,7 @@ import React, { useState } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
-import type { FlatElementData } from '../../../types/element-types';
-import type { FlatLinkData } from '../../../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { GraphStore } from '../../../store';
 
