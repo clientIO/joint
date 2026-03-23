@@ -32,8 +32,6 @@ export { useElementsLayout, useLinksLayout } from './hooks/use-stores';
 export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
 // Hooks — Mappers
-export { useElementMapper } from './hooks/use-element-mapper';
-export { useLinkMapper } from './hooks/use-link-mapper';
 export { useFlatElementData } from './hooks/use-flat-element-data';
 export { useFlatLinkData } from './hooks/use-flat-link-data';
 
