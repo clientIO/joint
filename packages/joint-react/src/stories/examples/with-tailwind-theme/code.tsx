@@ -71,14 +71,24 @@ function Node({ label }: Readonly<{ label: string }>) {
     return (
         <>
             <rect
-                className="fill-slate-50 stroke-slate-300 forest:fill-emerald-900 forest:stroke-emerald-600 ocean:fill-sky-900 ocean:stroke-sky-500 sunset:fill-amber-50 sunset:stroke-amber-400"
+                className="
+                    fill-slate-50 stroke-slate-300
+                    forest:fill-emerald-900 forest:stroke-emerald-600
+                    ocean:fill-sky-900 ocean:stroke-sky-500
+                    sunset:fill-amber-50 sunset:stroke-amber-400
+                "
                 width={width}
                 height={height}
                 rx="8"
                 strokeWidth="1.5"
             />
             <text
-                className="fill-slate-800 forest:fill-emerald-100 ocean:fill-sky-100 sunset:fill-amber-900"
+                className="
+                    fill-slate-800
+                    forest:fill-emerald-100
+                    ocean:fill-sky-100
+                    sunset:fill-amber-900
+                "
                 x={width / 2}
                 y={height / 2}
                 dominantBaseline="middle"

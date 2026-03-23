@@ -251,6 +251,11 @@ export function useCreatePortalPaper(
   useEffect(() => {
     if (!paper) return;
     const controller = new mvc.Listener();
+    /**
+     *
+     * @param cellView
+     * @param isDragging
+     */
     function setState(cellView: dia.CellView, isDragging: boolean) {
       const cell = cellView.model;
       if (!cell) return;

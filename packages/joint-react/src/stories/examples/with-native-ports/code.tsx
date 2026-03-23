@@ -202,7 +202,7 @@ export default function App() {
       const ports = buildNativePorts(data.inputPorts, data.outputPorts);
       if (!ports) return attributes;
       return { ...attributes, ports };
-    },
+    }
   }, []);
 
   const linkMappers = useFlatLinkData<FlatLinkData>({
