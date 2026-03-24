@@ -72,6 +72,18 @@
   /* ── Paper ─────────────────────────────────────────────────────────────── */
 
   :where(.jr-portal-paper) {
-    background-color: var(--jr-paper-bg, transparent);
+    background-color: var(--jr-paper-bg, #EFF2F5);
+  }
+
+  /* ── Elements ────────────────────────────────────────────────────────── */
+
+  :where(.jr-element) {
+    background: var(--jr-element-bg, #ffffff);
+    color: var(--jr-element-color, #333333);
+    border: var(--jr-element-border-width, 1px) solid var(--jr-element-border-color, #adb5c1);
+    border-radius: var(--jr-element-border-radius, 4px);
+    padding: var(--jr-element-padding, 8px 12px);
+    font-size: var(--jr-element-font-size, 14px);
+    font-family: var(--jr-element-font-family, sans-serif);
   }
 }
