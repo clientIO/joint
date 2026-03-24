@@ -24,6 +24,7 @@ import type { PaperStore } from '../store';
 import type { FlatLinkData } from '../types/data-types';
 import type { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
+import { DefaultElement } from '../components/default-element';
 
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
@@ -119,7 +120,7 @@ export function useCreatePortalPaper(
   options: Readonly<UseCreatePortalPaperOptions>
 ): UseCreatePortalPaperResult {
   const {
-    renderElement,
+    renderElement = DefaultElement,
     renderLink,
     defaultLink,
     useHTMLOverlay,
