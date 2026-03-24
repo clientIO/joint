@@ -4,38 +4,12 @@ import type { RenderElement, RenderLink } from '../components';
 import type { PortalSelector } from '../models/portal-paper.types';
 import type { GraphStore } from './graph-store';
 import { PortalPaper } from '../models/portal-paper';
-import { connectionPoint } from './default-connection-point';
-import { measureNode } from './default-measure-node';
+import { DEFAULT_HIGHLIGHTING } from '../models/preset-paper';
 import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { PaperStoreState } from '../state/state.types';
 
-const DEFAULT_CLICK_THRESHOLD = 5;
-const DEFAULT_GRID_SIZE = 10;
-const DEFAULT_SNAP_RADIUS = 15;
-
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
-
-const DEFAULT_PORT_HIGHLIGHTING: PaperHighlighting = {
-  [dia.CellView.Highlighting.DEFAULT]: {
-    name: 'stroke',
-    options: {
-      padding: 3,
-    },
-  },
-  [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
-    name: 'addClass',
-    options: {
-      className: 'jr-available-magnet',
-    },
-  },
-  [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
-    name: 'addClass',
-    options: {
-      className: 'jr-available-element',
-    },
-  },
-};
 /**
  * Options for adding a new paper instance to the graph store.
  */
@@ -132,7 +106,7 @@ export class PaperStore {
         paperOptions.highlighting === false
           ? false
           : {
-              ...DEFAULT_PORT_HIGHLIGHTING,
+              ...DEFAULT_HIGHLIGHTING,
               ...(paperOptions.highlighting as PaperHighlighting),
             };
       // Create a new PortalPaper instance
@@ -141,10 +115,6 @@ export class PaperStore {
       // unmountedList.rotate() causes O(n) checks per frame when returning false.
       // Link visibility should be handled in React layer instead.
       const paper = new PortalPaper({
-        async: true,
-        sorting: dia.Paper.sorting.APPROX,
-        preventDefaultBlankAction: false,
-        frozen: true,
         model: graph,
         id,
         portalSelector,
@@ -163,22 +133,9 @@ export class PaperStore {
             isProcessing = false;
           };
         })(),
-        defaultConnectionPoint: connectionPoint,
-        measureNode: measureNode as unknown as dia.Paper.Options['measureNode'],
-        // Defaults (overridable by paperOptions)
-        linkPinning: false,
-        gridSize: DEFAULT_GRID_SIZE,
-        markAvailable: true,
-        clickThreshold: DEFAULT_CLICK_THRESHOLD,
-        snapLinks: { radius: DEFAULT_SNAP_RADIUS },
         ...paperOptions,
         // Internal (not overridable)
         highlighting: mergedHighlighting,
-        autoFreeze: true,
-        viewManagement: {
-          disposeHidden: true,
-          lazyInitialize: true,
-        },
         onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
           graphStore.setPaperViews(this.paperId, changes);
         },
