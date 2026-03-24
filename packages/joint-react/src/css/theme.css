@@ -34,13 +34,12 @@
     stroke: var(--jr-link-color, #333333);
     stroke-width: var(--jr-link-width, 2);
     stroke-dasharray: var(--jr-link-dash);
-    stroke-linecap: var(--jr-link-line-cap);
-    stroke-linejoin: var(--jr-link-line-join);
+    stroke-linecap: var(--jr-link-line-cap, 'butt');
   }
 
   :where(.jr-link-wrapper) {
     stroke: var(--jr-link-wrapper-color, transparent);
-    stroke-width: var(--jr-link-wrapper-width, 0);
+    stroke-width: var(--jr-link-wrapper-width, 10);
   }
 
   /* ── Labels ────────────────────────────────────────────────────────────── */
@@ -61,8 +60,12 @@
 
   :where(.jr-port-body) {
     fill: var(--jr-port-color, #333333);
-    stroke: var(--jr-port-outline, transparent);
-    stroke-width: var(--jr-port-outline-width, 0);
+    stroke: var(--jr-port-outline, #EFF2F5);
+    stroke-width: var(--jr-port-outline-width, 2);
+  }
+
+  :where(.jr-port-body.jr-available-magnet) {
+    fill: var(--jr-port-available-color, #ef4444);
   }
 
   :where(.jr-port-label) {
@@ -85,5 +88,10 @@
     padding: var(--jr-element-padding, 8px 12px);
     font-size: var(--jr-element-font-size, 14px);
     font-family: var(--jr-element-font-family, sans-serif);
+  }
+
+  :where(.jr-available-element .jr-element) {
+    /* background: var(--jr-element-available-bg, #D1FAE5); */
+    border-color: var(--jr-element-available-border, #ef4444);
   }
 }

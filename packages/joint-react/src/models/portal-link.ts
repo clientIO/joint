@@ -52,8 +52,6 @@ export class PortalLink<Attributes = dia.Link.Attributes> extends dia.Link<
       attributes: {
         fill: 'none',
         cursor: 'pointer',
-        stroke: 'transparent',
-        strokeLinecap: 'round',
         strokeLinejoin: 'round',
       },
     },

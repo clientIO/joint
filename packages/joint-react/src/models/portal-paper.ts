@@ -1,4 +1,4 @@
-import { dia, mvc } from '@joint/core';
+import { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { PortalSelector, PortalPaperOptions } from './portal-paper.types';
 import { PORTAL_SELECTOR } from './portal-element';
