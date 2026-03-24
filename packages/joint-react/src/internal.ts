@@ -70,7 +70,7 @@ export {
 // Data-Mapping Internals
 export { convertLabel } from './state/data-mapping/convert-labels';
 export { mergeLabelsFromAttributes } from './state/data-mapping/convert-labels-reverse';
-export { convertPorts, createPortDefaults } from './state/data-mapping/convert-ports';
+export { convertPorts, createPortGroupsDefault } from './state/data-mapping/convert-ports';
 export {
   toLinkEndAttribute,
   toLinkEndData,

@@ -91,7 +91,6 @@
   }
 
   :where(.jr-available-element .jr-element) {
-    /* background: var(--jr-element-available-bg, #D1FAE5); */
     border-color: var(--jr-element-available-border, #ef4444);
   }
 }

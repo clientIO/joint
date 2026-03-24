@@ -1,7 +1,7 @@
 import { type dia } from '@joint/core';
 import type { FlatElementData } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
-import { convertPorts, createPortDefaults } from './convert-ports';
+import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from './index';
 
@@ -57,56 +57,7 @@ export function flatMapDataToElementAttributes<Element = FlatElementData>(
       'Invalid element data: expected an object with at least "x" and "y" properties.'
     );
   }
-  const {
-    // ↔ Two-way: synced back from graph → React state
-    x,
-    y,
-    width,
-    height,
-    angle,
-    z,
-    layer,
-    parent,
-
-    // → One-way: consumed here, not synced back
-    ports,
-    portStyle,
-
-    // Everything else is user data
-    ...userData
-  } = data;
-
-  // ── Assemble cell JSON ──────────────────────────────────────────────────
-
-  const attributes: CellAttributes = {
-    id,
-    type: PORTAL_ELEMENT_TYPE,
-  };
-
-  // ↔ Two-way (flat → nested JointJS format)
-  if (x !== undefined && y !== undefined) {
-    attributes.position = { x, y };
-  }
-  if (width !== undefined && height !== undefined) {
-    attributes.size = { width, height };
-  }
-  if (angle !== undefined) attributes.angle = angle;
-
-  // ↔ Two-way (optional)
-  if (z !== undefined) attributes.z = z;
-  if (layer !== undefined) attributes.layer = layer;
-  if (parent !== undefined) attributes.parent = parent;
-
-  // → One-way
-  if (ports) {
-    attributes.ports = convertPorts(ports, portStyle);
-    attributes.portDefaults = createPortDefaults();
-  }
-
-  // User data stored for round-trip (graph → React)
-  attributes.data = { ...userData, ports, portStyle };
-
-  return attributes;
+  return { ...flatElementDataToAttributes(data), id };
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -131,40 +82,15 @@ export function flatMapElementAttributesToData<Element = FlatElementData>(
   options: Pick<ToElementDataOptions<Element>, 'attributes' | 'defaultAttributes'>
 ): Element {
   const { attributes, defaultAttributes } = options;
-  const {
-    // User data (saved during forward mapping)
-    data: userData,
-    // ↔ Two-way: nested JointJS format → flat React format
-    position,
-    size,
-    angle,
-    z,
-    layer,
-    parent,
-  } = attributes;
+  const data = flatAttributesToElementData<Element>(attributes);
 
-  const elementData: Record<string, unknown> = {};
+  // Filter out values that match model defaults (not needed in React state)
+  const result = data as Record<string, unknown>;
+  if (attributes.angle !== undefined && attributes.angle === defaultAttributes.angle) delete result.angle;
+  if (attributes.z !== undefined && attributes.z === defaultAttributes.z) delete result.z;
+  if (attributes.layer !== undefined && attributes.layer === defaultAttributes.layer) delete result.layer;
 
-  // ↔ Two-way (nested → flat)
-  if (position) {
-    elementData.x = position.x;
-    elementData.y = position.y;
-  }
-  if (size) {
-    elementData.width = size.width;
-    elementData.height = size.height;
-  }
-  if (angle !== undefined && angle !== defaultAttributes.angle) elementData.angle = angle;
-
-  // ↔ Two-way (skip when matching model defaults)
-  if (z !== undefined && z !== defaultAttributes.z) elementData.z = z;
-  if (layer !== undefined && layer !== defaultAttributes.layer) elementData.layer = layer;
-  if (parent) elementData.parent = parent;
-
-  return {
-    ...userData,
-    ...elementData,
-  } as Element;
+  return result as Element;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -174,6 +100,7 @@ export function flatMapElementAttributesToData<Element = FlatElementData>(
 /**
  * Converts flat element data to JointJS cell attributes.
  * Public utility — caller provides the `id` separately.
+ * @param data
  */
 export function flatElementDataToAttributes(data: FlatElementData): CellAttributes {
   if (!isElementData(data)) {
@@ -194,9 +121,14 @@ export function flatElementDataToAttributes(data: FlatElementData): CellAttribut
     portStyle,
     ...userData
   } = data;
-
   const attributes: Record<string, unknown> = {
     type: PORTAL_ELEMENT_TYPE,
+    attrs: {
+      root: {
+        // Disable magnet behavior on the element when ports are defined
+        magnet: ports ? false : null,
+      }
+    }
   };
 
   if (x !== undefined && y !== undefined) {
@@ -212,9 +144,8 @@ export function flatElementDataToAttributes(data: FlatElementData): CellAttribut
 
   if (ports) {
     attributes.ports = convertPorts(ports, portStyle);
-    attributes.portDefaults = createPortDefaults();
+    attributes.portDefaults = createPortGroupsDefault();
   }
-
   attributes.data = { ...userData, ports, portStyle };
 
   return attributes as CellAttributes;
@@ -223,6 +154,7 @@ export function flatElementDataToAttributes(data: FlatElementData): CellAttribut
 /**
  * Converts JointJS element attributes back to flat element data.
  * Public utility — purely mechanical (nested → flat), no defaultAttributes filtering.
+ * @param attributes
  */
 export function flatAttributesToElementData<Element = FlatElementData>(
   attributes: dia.Element.Attributes
