@@ -1,4 +1,4 @@
-
+import { useState, useCallback, useRef } from 'react';
 import {
     GraphProvider,
     Paper,
@@ -8,6 +8,9 @@ import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jr-* CSS variable defaults (including element styles)
 import '../../../css/theme.css';
+
+// Dark theme overrides
+import './dark-theme.css';
 
 const initialElements = {
   a: {
@@ -57,13 +60,47 @@ const initialLinks: Record<string, FlatLinkData> = {
 };
 
 export default function App() {
+    const [isDark, setIsDark] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    const toggleTheme = useCallback(() => {
+        setIsDark((previous) => {
+            const next = !previous;
+            wrapperRef.current?.classList.toggle('dark', next);
+            return next;
+        });
+    }, []);
+
     return (
-        <GraphProvider elements={initialElements} links={initialLinks}>
-            <Paper
-                className={PAPER_CLASSNAME}
-                style={{ backgroundColor: '#EFF2F5' }}
-                height={240}
-            />
-        </GraphProvider>
+        <div ref={wrapperRef} className="default-element-demo">
+            <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button
+                    type="button"
+                    onClick={toggleTheme}
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '5px 14px',
+                        cursor: 'pointer',
+                        borderRadius: 20,
+                        border: 'none',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        background: isDark ? '#313244' : '#e0e7ff',
+                        color: isDark ? '#cdd6f4' : '#4338ca',
+                        transition: 'background 0.2s, color 0.2s',
+                    }}
+                >
+                    {isDark ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark'}
+                </button>
+            </div>
+            <GraphProvider elements={initialElements} links={initialLinks}>
+                <Paper
+                    className={PAPER_CLASSNAME.replace('bg-transparent', '')}
+                    height={240}
+                />
+            </GraphProvider>
+        </div>
     );
 }
