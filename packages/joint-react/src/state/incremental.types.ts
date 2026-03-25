@@ -6,19 +6,12 @@ interface IncrementalChangeBase<Item> {
   readonly data: Item;
 }
 
-interface IncrementalChangeRemove {
+interface IncrementalChangeRemove<Item> {
   readonly type: 'remove';
+  readonly data: Item;
 }
 
-interface IncrementalChangeReset<Item> {
-  readonly type: 'reset';
-  readonly data: Item[];
-}
-
-export type IncrementalChange<Item> =
-  | IncrementalChangeBase<Item>
-  | IncrementalChangeReset<Item>
-  | IncrementalChangeRemove;
+export type IncrementalChange<Item> = IncrementalChangeBase<Item> | IncrementalChangeRemove<Item>;
 
 export type OnIncrementalChangeHandler<Item> = (change: IncrementalChange<Item>) => void;
 

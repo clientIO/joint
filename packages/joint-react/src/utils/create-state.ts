@@ -148,6 +148,7 @@ export function createState<T>(options: Options<T>): State<T> {
         }
         stateRef.current = updatedState;
         simpleScheduler(notifySubscribers);
+        console.log(`[State: ${name}] State updated`, updatedState);
       });
     },
 

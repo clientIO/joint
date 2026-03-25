@@ -31,6 +31,7 @@ import { getLayout } from './update-layout-state';
 import { createState, type ExternalStoreLike, type State } from '../utils/create-state';
 import type { IncrementalChange, IncrementalStateChanges } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
+import { graphView, type GraphView } from './graph-view';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -71,6 +72,7 @@ export class GraphStore {
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
   private observer: GraphStoreObserver;
+  public readonly graphView: GraphView<FlatElementData, FlatLinkData>;
 
   constructor(public readonly config: GraphStoreOptions) {
     const {
@@ -105,6 +107,16 @@ export class GraphStore {
     this.internalState = createState<GraphStoreInternalSnapshot>({
       newState: () => ({ papers: {}, resetVersion: 0, graphFeaturesVersion: 1 }),
       name: 'JointJs/Internal',
+    });
+
+    this.graphView = graphView({
+      graph: this.graph,
+      mapDataToElementAttributes,
+      mapDataToLinkAttributes,
+      mapElementAttributesToData,
+      mapLinkAttributesToData,
+      getPaperStores: () => this.paperStores,
+      enableBatchUpdates,
     });
 
     this.graphState = graphState({

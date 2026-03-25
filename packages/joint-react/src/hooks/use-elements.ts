@@ -1,7 +1,9 @@
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData } from '../types/element-types';
 import { useData } from './use-stores';
-import { isStrictEqual, identitySelector } from '../utils/selector-utils';
+import { identitySelector, isStrictEqual } from '../utils/selector-utils';
+import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+import { useGraphStore } from './use-graph-store';
 
 /**
  * A hook to access `dia.graph` elements
@@ -61,4 +63,61 @@ export function useElements<
   return useData((snapshot) => {
     return selector(snapshot.elements as Record<CellId, ElementData>);
   }, isEqual);
+}
+
+/**
+ * A hook to access `dia.graph` elements using the new per-id container architecture.
+ *
+ * The underlying Map is mutated in place (same reference), so we use a version counter
+ * as the snapshot signal for React. When the version changes, React knows the Map mutated.
+ *
+ * - **Without selector**: re-renders on every element change, returns a new Map copy (immutable snapshot).
+ * - **With selector**: re-renders only when the selector output changes (compared via `isEqual`).
+ *
+ * **Important:** Do not pass an identity selector like `(map) => map`. The Map is mutated in place,
+ * so it always returns the same reference — `Object.is` will always return `true` and the component
+ * will **never re-render**. Use `useElementsNew()` without a selector instead, which returns a
+ * new `Map` copy on every change.
+ *
+ * @param selector - A function to select a portion of the elements Map. Must return a new value
+ *   or primitive — returning the Map itself will prevent re-renders.
+ * @param isEqual - A function to compare previous and new selector results.
+ * @returns The selected value, or a new Map copy if no selector is provided.
+ */
+// Always returns false so that no-selector mode re-renders on every version change.
+// The Map is mutated in place (same reference), so Object.is would always say "equal" and skip re-renders.
+const alwaysRerender = () => false;
+
+export function useElementsNew<
+  ElementData = FlatElementData,
+  SelectorReturnType = Map<CellId, ElementData>,
+>(
+  selector?: (items: Map<CellId, ElementData>) => SelectorReturnType,
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual as (
+    a: SelectorReturnType,
+    b: SelectorReturnType
+  ) => boolean
+): SelectorReturnType {
+  const {
+    graphView: { elements },
+  } = useGraphStore();
+
+  // Version is the snapshot signal — when it changes, React knows the Map mutated.
+  // The selector reads the Map directly (ignores the version number).
+  //
+  // With selector: isEqual prevents re-render if selector output didn't change.
+  // Without selector: we return new Map(elements.getFull()) so the caller gets
+  // an immutable snapshot. alwaysRerender ensures we re-run on every version bump
+  // (the mutable Map reference itself never changes, so Object.is would skip).
+  const internalSelector = selector
+    ? () => selector(elements.getFull() as Map<CellId, ElementData>)
+    : () => new Map(elements.getFull()) as unknown as SelectorReturnType;
+
+  return useSyncExternalStoreWithSelector(
+    elements.subscribeToFull,
+    elements.getVersion,
+    elements.getVersion,
+    internalSelector,
+    selector ? isEqual : (alwaysRerender as unknown as typeof isEqual)
+  );
 }

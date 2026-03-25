@@ -1,11 +1,6 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  GraphProvider,
-  Paper,
-  type FlatElementData,
-  type FlatLinkData,
-} from '@joint/react';
+import { GraphProvider, Paper, type FlatElementData, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useRef, useState, startTransition, memo } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';

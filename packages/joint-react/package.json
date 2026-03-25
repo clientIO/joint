@@ -113,6 +113,7 @@
     "storybook": "^10.2.3",
     "storybook-multilevel-sort": "^2.1.0",
     "tailwindcss": "^4.2.2",
+    "tinybench": "^6.0.0",
     "ts-node": "^10.9.2",
     "typedoc": "^0.28.5",
     "typedoc-github-theme": "^0.3.0",
