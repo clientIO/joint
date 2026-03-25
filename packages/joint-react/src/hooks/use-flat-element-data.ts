@@ -89,6 +89,7 @@ export function useFlatElementData<T extends FlatElementData = FlatElementData>(
                     const userData = mapOptions.data as Record<string, unknown>;
                     for (const key of Object.keys(resolved)) {
                         if (!(key in userData)) {
+                            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
                             delete cellData[key];
                         }
                     }
@@ -129,11 +130,11 @@ export function useFlatElementData<T extends FlatElementData = FlatElementData>(
 
             const keys = pickRef.current;
             if (keys) {
-                const picked = {} as Record<string, unknown>;
-                const source = data as Record<string, unknown>;
+                const picked = {} as Record<keyof T, unknown>;
+                const source = data as Record<keyof T, unknown>;
                 for (const key of keys) {
-                    if ((key as string) in source) {
-                        picked[key as string] = source[key as string];
+                    if (key in source) {
+                        picked[key] = source[key];
                     }
                 }
                 data = picked as T;
