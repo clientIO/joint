@@ -1,43 +1,15 @@
 import { dia } from '@joint/core';
-import { isRecord } from '../utils/is';
 import type { CellId } from '../types/cell-id';
 import type { RenderElement, RenderLink } from '../components';
 import type { PortalSelector } from '../models/portal-paper.types';
 import type { GraphStore } from './graph-store';
 import { PortalPaper } from '../models/portal-paper';
-import { connectionPoint } from './default-connection-point';
-import { measureNode } from './default-measure-node';
+import { DEFAULT_HIGHLIGHTING } from '../models/preset-paper';
 import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { PaperStoreState } from '../state/state.types';
 
-const DEFAULT_CLICK_THRESHOLD = 10;
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
-
-const DEFAULT_PORT_HIGHLIGHTING: PaperHighlighting = {
-  [dia.CellView.Highlighting.DEFAULT]: {
-    name: 'stroke',
-    options: {
-      padding: 3,
-    },
-  },
-  [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
-    name: 'stroke',
-    options: {
-      padding: 4,
-      attrs: {
-        stroke: '#DDE6ED',
-        'stroke-width': 2,
-      },
-    },
-  },
-  [dia.CellView.Highlighting.ELEMENT_AVAILABILITY]: {
-    name: 'addClass',
-    options: {
-      className: 'available-cell',
-    },
-  },
-};
 /**
  * Options for adding a new paper instance to the graph store.
  */
@@ -130,17 +102,12 @@ export class PaperStore {
       this.paper = externalPaper;
     } else {
       const { graph } = graphStore;
-      const hasHighlightingOverride = isRecord(paperOptions.highlighting);
-      const highlightingOverride = hasHighlightingOverride
-        ? (paperOptions.highlighting as PaperHighlighting)
-        : undefined;
-
       const mergedHighlighting: dia.Paper.Options['highlighting'] =
         paperOptions.highlighting === false
           ? false
           : {
-              ...DEFAULT_PORT_HIGHLIGHTING,
-              ...highlightingOverride,
+              ...DEFAULT_HIGHLIGHTING,
+              ...(paperOptions.highlighting as PaperHighlighting),
             };
       // Create a new PortalPaper instance
       // PortalPaper handles view lifecycle internally via insertView/removeView
@@ -148,10 +115,6 @@ export class PaperStore {
       // unmountedList.rotate() causes O(n) checks per frame when returning false.
       // Link visibility should be handled in React layer instead.
       const paper = new PortalPaper({
-        async: true,
-        sorting: dia.Paper.sorting.APPROX,
-        preventDefaultBlankAction: false,
-        frozen: true,
         model: graph,
         id,
         portalSelector,
@@ -170,17 +133,9 @@ export class PaperStore {
             isProcessing = false;
           };
         })(),
-        defaultConnectionPoint: connectionPoint,
-        measureNode: measureNode as unknown as dia.Paper.Options['measureNode'],
         ...paperOptions,
+        // Internal (not overridable)
         highlighting: mergedHighlighting,
-        markAvailable: paperOptions.markAvailable ?? true,
-        clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
-        autoFreeze: true,
-        viewManagement: {
-          disposeHidden: true,
-          lazyInitialize: true,
-        },
         onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => {
           graphStore.setPaperViews(this.paperId, changes);
         },

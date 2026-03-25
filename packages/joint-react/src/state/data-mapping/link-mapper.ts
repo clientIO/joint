@@ -65,111 +65,7 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
   if (!isLinkData(data)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
-  const {
-    // ↔ Two-way: synced back from graph → React state
-    source,
-    target,
-    sourcePort,
-    targetPort,
-    sourceAnchor,
-    targetAnchor,
-    sourceConnectionPoint,
-    targetConnectionPoint,
-    sourceMagnet,
-    targetMagnet,
-    z,
-    layer,
-    parent,
-    vertices,
-    router,
-    connector,
-
-    // ↔ Two-way: position/offset synced back from graph → React state
-    labels,
-
-    // → One-way: consumed here, not synced back
-    labelStyle,
-
-    // → Presentation: stored in cell.data for round-trip
-    color = defaultLinkStyle.color,
-    width = defaultLinkStyle.width,
-    sourceMarker = defaultLinkStyle.sourceMarker,
-    targetMarker = defaultLinkStyle.targetMarker,
-    className = defaultLinkStyle.className,
-    dasharray = defaultLinkStyle.dasharray,
-    linecap = defaultLinkStyle.linecap,
-    linejoin = defaultLinkStyle.linejoin,
-    wrapperWidth = defaultLinkStyle.wrapperWidth,
-    wrapperColor = defaultLinkStyle.wrapperColor,
-    wrapperClassName = defaultLinkStyle.wrapperClassName,
-
-    // Everything else is user data
-    ...userData
-  } = data;
-
-  // ── Assemble cell JSON ──────────────────────────────────────────────────
-
-  const attributes: CellAttributes = {
-    id,
-    type: PORTAL_LINK_TYPE,
-    // ↔ Two-way properties
-    source: toLinkEndAttribute(source, {
-      port: sourcePort,
-      anchor: sourceAnchor,
-      connectionPoint: sourceConnectionPoint,
-      magnet: sourceMagnet,
-    }),
-    target: toLinkEndAttribute(target, {
-      port: targetPort,
-      anchor: targetAnchor,
-      connectionPoint: targetConnectionPoint,
-      magnet: targetMagnet,
-    }),
-    // → Presentation → attrs
-    attrs: buildLinkPresentationAttributes({
-      color,
-      width,
-      sourceMarker,
-      targetMarker,
-      className,
-      dasharray,
-      linecap,
-      linejoin,
-      wrapperWidth,
-      wrapperColor,
-      wrapperClassName,
-    }),
-  };
-
-  // ↔ Two-way (optional)
-  if (z !== undefined) attributes.z = z;
-  if (layer !== undefined) attributes.layer = layer;
-  if (parent !== undefined) attributes.parent = parent;
-  if (vertices !== undefined) attributes.vertices = vertices;
-  if (router !== undefined) attributes.router = router;
-  if (connector !== undefined) attributes.connector = connector;
-
-  // ↔ Two-way (labels)
-  if (labels !== undefined) {
-    attributes.labels = Object.entries(labels).map(([labelId, label]) =>
-      convertLabel(labelId, label, labelStyle)
-    );
-  }
-
-  // Only persist presentation props that were explicitly provided (not defaulted)
-  const presentationData: Record<string, unknown> = {};
-  for (const key of LINK_PRESENTATION_KEYS) {
-    if (data[key] !== undefined) presentationData[key] = data[key];
-  }
-
-  attributes.data = {
-    ...userData,
-    labels,
-    labelStyle,
-    ...presentationData,
-  };
-
-  return attributes;
+  return { ...flatLinkDataToAttributes(data), id };
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -195,57 +91,17 @@ export function flatMapLinkAttributesToData<Link = FlatLinkData>(
   options: Pick<ToLinkDataOptions<Link>, 'attributes' | 'defaultAttributes'>
 ): Link {
   const { attributes, defaultAttributes } = options;
-  const {
-    // User data + presentation props (saved during forward mapping)
-    data: userData,
-    // ↔ Two-way
-    source,
-    target,
-    z,
-    layer,
-    parent,
-    vertices,
-    router,
-    connector,
-    labels: attributeLabels,
-  } = attributes;
+  const data = flatAttributesToLinkData<Link>(attributes);
 
-  const sourceData = toLinkEndData(source);
-  const targetData = toLinkEndData(target);
+  // Filter out values that match model defaults (not needed in React state)
+  const result = data as Record<string, unknown>;
+  if (attributes.z !== undefined && attributes.z === defaultAttributes.z) delete result.z;
+  if (attributes.layer !== undefined && attributes.layer === defaultAttributes.layer) delete result.layer;
+  if (Array.isArray(attributes.vertices) && attributes.vertices.length === 0) delete result.vertices;
+  if (attributes.router !== undefined && util.isEqual(attributes.router, defaultAttributes.router)) delete result.router;
+  if (attributes.connector !== undefined && util.isEqual(attributes.connector, defaultAttributes.connector)) delete result.connector;
 
-  const linkData: Record<string, unknown> = {
-    source: sourceData.end,
-    target: targetData.end,
-  };
-
-  // ↔ Two-way (endpoint details — only when present)
-  assignEndDataProperties(linkData, sourceData, SOURCE_KEYS);
-  assignEndDataProperties(linkData, targetData, TARGET_KEYS);
-
-  // ↔ Two-way (skip when matching model defaults)
-  if (z !== undefined && z !== defaultAttributes.z) linkData.z = z;
-  if (layer !== undefined && layer !== defaultAttributes.layer) linkData.layer = layer;
-  if (parent) {
-    linkData.parent = parent;
-  }
-  if (Array.isArray(vertices) && vertices.length > 0) {
-    linkData.vertices = vertices;
-  }
-  if (router !== undefined && !util.isEqual(router, defaultAttributes.router))
-    linkData.router = router;
-  if (connector !== undefined && !util.isEqual(connector, defaultAttributes.connector))
-    linkData.connector = connector;
-
-  // ↔ Two-way (labels): merge position/offset from attributes back into data
-  const dataLabels = userData?.labels as Record<string, FlatLinkLabel> | undefined;
-  if (dataLabels && Array.isArray(attributeLabels)) {
-    linkData.labels = mergeLabelsFromAttributes(dataLabels, attributeLabels);
-  }
-
-  return {
-    ...userData,
-    ...linkData,
-  } as Link;
+  return result as Link;
 }
 
 // ────────────────────────────────────────────────────────────────────────────

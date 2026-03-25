@@ -97,7 +97,7 @@ function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<F
  * Used as `portDefaults` on elements that have ports.
  * @returns The port defaults object with the `main` group
  */
-export function createPortDefaults(): { groups: Record<string, dia.Element.PortGroup> } {
+export function createPortGroupsDefault(): { groups: Record<string, dia.Element.PortGroup> } {
   return {
     groups: {
       main: {
@@ -118,7 +118,7 @@ export function convertPorts(ports: Record<string, FlatElementPort>, portStyle?:
   items: dia.Element.Port[];
 } {
   return {
-    ...createPortDefaults(),
+    ...createPortGroupsDefault(),
     items: Object.entries(ports).map(([id, port]) => convertPort(id, port, portStyle)),
   };
 }
