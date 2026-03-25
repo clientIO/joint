@@ -1,24 +1,23 @@
 import { type dia } from '@joint/core';
-import type { FlatElementData } from '../../types/element-types';
+import type { FlatElementData } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortDefaults } from './convert-ports';
 import { isRecord } from '../../utils/is';
+import type { CellAttributes } from './index';
 
-export interface ElementToGraphOptions<ElementData = FlatElementData> {
+export interface ToElementAttributesOptions<ElementData = FlatElementData> {
   readonly id: string;
   readonly data: ElementData;
   readonly graph: dia.Graph;
-  readonly toAttributes: (data: ElementData) => dia.Cell.JSON;
 }
 
-export interface GraphToElementOptions<ElementData = FlatElementData> {
+export interface ToElementDataOptions<ElementData = FlatElementData> {
   readonly id: string;
   readonly attributes: dia.Element.Attributes;
   readonly defaultAttributes: dia.Element.Attributes;
   readonly element: dia.Element;
   readonly previousData?: ElementData;
   readonly graph: dia.Graph;
-  readonly toData: (attributes: dia.Element.Attributes) => ElementData;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -49,13 +48,13 @@ function isElementData(data: unknown): data is FlatElementData {
  * @param options - The element id and data to convert
  * @returns The JointJS cell JSON attributes
  */
-export function defaultMapDataToElementAttributes<Element = FlatElementData>(
-  options: Pick<ElementToGraphOptions<Element>, 'id' | 'data'>
-): dia.Cell.JSON {
+export function flatMapDataToElementAttributes<Element = FlatElementData>(
+  options: Pick<ToElementAttributesOptions<Element>, 'id' | 'data'>
+): CellAttributes {
   const { id, data } = options;
   if (!isElementData(data)) {
     throw new Error(
-      `Invalid element data for id "${id}": expected an object with at least "x" and "y" properties.`
+      'Invalid element data: expected an object with at least "x" and "y" properties.'
     );
   }
   const {
@@ -71,6 +70,7 @@ export function defaultMapDataToElementAttributes<Element = FlatElementData>(
 
     // → One-way: consumed here, not synced back
     ports,
+    portStyle,
 
     // Everything else is user data
     ...userData
@@ -78,7 +78,7 @@ export function defaultMapDataToElementAttributes<Element = FlatElementData>(
 
   // ── Assemble cell JSON ──────────────────────────────────────────────────
 
-  const attributes: dia.Cell.JSON = {
+  const attributes: CellAttributes = {
     id,
     type: PORTAL_ELEMENT_TYPE,
   };
@@ -99,12 +99,12 @@ export function defaultMapDataToElementAttributes<Element = FlatElementData>(
 
   // → One-way
   if (ports) {
-    attributes.ports = convertPorts(ports);
+    attributes.ports = convertPorts(ports, portStyle);
     attributes.portDefaults = createPortDefaults();
   }
 
   // User data stored for round-trip (graph → React)
-  attributes.data = { ...userData, ports };
+  attributes.data = { ...userData, ports, portStyle };
 
   return attributes;
 }
@@ -127,8 +127,8 @@ export function defaultMapDataToElementAttributes<Element = FlatElementData>(
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat element data
  */
-export function defaultMapElementAttributesToData<Element = FlatElementData>(
-  options: Pick<GraphToElementOptions<Element>, 'attributes' | 'defaultAttributes'>
+export function flatMapElementAttributesToData<Element = FlatElementData>(
+  options: Pick<ToElementDataOptions<Element>, 'attributes' | 'defaultAttributes'>
 ): Element {
   const { attributes, defaultAttributes } = options;
   const {
@@ -159,6 +159,97 @@ export function defaultMapElementAttributesToData<Element = FlatElementData>(
   // ↔ Two-way (skip when matching model defaults)
   if (z !== undefined && z !== defaultAttributes.z) elementData.z = z;
   if (layer !== undefined && layer !== defaultAttributes.layer) elementData.layer = layer;
+  if (parent) elementData.parent = parent;
+
+  return {
+    ...userData,
+    ...elementData,
+  } as Element;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Public composable utilities
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Converts flat element data to JointJS cell attributes.
+ * Public utility — caller provides the `id` separately.
+ */
+export function flatElementDataToAttributes(data: FlatElementData): CellAttributes {
+  if (!isElementData(data)) {
+    throw new Error(
+      'Invalid element data: expected an object with element properties.'
+    );
+  }
+  const {
+    x,
+    y,
+    width,
+    height,
+    angle,
+    z,
+    layer,
+    parent,
+    ports,
+    portStyle,
+    ...userData
+  } = data;
+
+  const attributes: Record<string, unknown> = {
+    type: PORTAL_ELEMENT_TYPE,
+  };
+
+  if (x !== undefined && y !== undefined) {
+    attributes.position = { x, y };
+  }
+  if (width !== undefined && height !== undefined) {
+    attributes.size = { width, height };
+  }
+  if (angle !== undefined) attributes.angle = angle;
+  if (z !== undefined) attributes.z = z;
+  if (layer !== undefined) attributes.layer = layer;
+  if (parent !== undefined) attributes.parent = parent;
+
+  if (ports) {
+    attributes.ports = convertPorts(ports, portStyle);
+    attributes.portDefaults = createPortDefaults();
+  }
+
+  attributes.data = { ...userData, ports, portStyle };
+
+  return attributes as CellAttributes;
+}
+
+/**
+ * Converts JointJS element attributes back to flat element data.
+ * Public utility — purely mechanical (nested → flat), no defaultAttributes filtering.
+ */
+export function flatAttributesToElementData<Element = FlatElementData>(
+  attributes: dia.Element.Attributes
+): Element {
+  const {
+    data: userData,
+    position,
+    size,
+    angle,
+    z,
+    layer,
+    parent,
+  } = attributes;
+
+  const elementData: Record<string, unknown> = {};
+
+  if (position) {
+    elementData.x = position.x;
+    elementData.y = position.y;
+  }
+  if (size) {
+    elementData.width = size.width;
+    elementData.height = size.height;
+  }
+  if (angle !== undefined) elementData.angle = angle;
+  if (z !== undefined) elementData.z = z;
+  if (layer !== undefined) elementData.layer = layer;
   if (parent) elementData.parent = parent;
 
   return {

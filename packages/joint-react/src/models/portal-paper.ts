@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import { dia, mvc } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { PortalSelector, PortalPaperOptions } from './portal-paper.types';
 import { PORTAL_SELECTOR } from './portal-element';
@@ -22,6 +22,11 @@ export class PortalPaper extends dia.Paper {
   private readonly shouldPreserveHostElementOnRemove: boolean;
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();
+
+  protected _ensureElClassName() {
+    // Note: the `className` property is ignored here.
+    this.el.classList.add('jr-portal-paper', 'joint-paper');
+  }
 
   constructor(options: PortalPaperOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;

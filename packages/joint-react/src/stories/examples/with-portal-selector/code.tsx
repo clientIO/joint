@@ -1,8 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
-import { dia, highlighters, g, V } from '@joint/core';
-import type { ElementToGraphOptions, LinkToGraphOptions } from '@joint/react';
+import { dia, highlighters, g, util, V } from '@joint/core';
 import {
   GraphProvider,
   Paper,
@@ -11,6 +10,8 @@ import {
   usePaperEvents,
   useMeasureNode,
   useElementLayout,
+  useFlatElementData,
+  useFlatLinkData,
   type CellId,
   type FlatElementData,
   type FlatLinkData,
@@ -18,7 +19,7 @@ import {
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
   // PortalLinkView,
-  // type MarkerPreset,
+  // type LinkMarkerName,
 } from '@joint/react';
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 
@@ -120,15 +121,15 @@ const links: Record<string, LinkData> = {
     target: '2',
     width: 4,
     color: 'orange',
-    // targetMarker: 'arrow' as MarkerPreset,
+    // targetMarker: 'arrow' as LinkMarkerName,
     className: 'dashed-link',
   },
   link2: {
     source: '3',
     target: '4',
     color: 'green',
-    // sourceMarker: 'circle' as MarkerPreset,
-    // targetMarker: 'cross' as MarkerPreset,
+    // sourceMarker: 'circle' as LinkMarkerName,
+    // targetMarker: 'cross' as LinkMarkerName,
   },
   link3: {
     source: '2',
@@ -383,124 +384,46 @@ function Main() {
 // ============================================================================
 
 export default function App() {
+  const elementMappers = useFlatElementData<ElementData>({
+    mapAttributes: ({ attributes, data, graph }) => {
+      const { jjType, color = 'lightgray' } = data;
+      if (!jjType) return attributes;
+      const defaults = graph.getTypeDefaults(jjType);
+      return {
+        ...attributes,
+        type: jjType,
+        attrs: util.defaultsDeep(
+          { body: { fill: color }, top: { fill: color } },
+          defaults.attrs || {},
+        ),
+      };
+    },
+  }, []);
+
+  const linkMappers = useFlatLinkData<LinkData>({
+    mapAttributes: ({ attributes, data, graph }) => {
+      const { jjType, color } = data;
+      if (!jjType) return attributes;
+      const defaults = graph.getTypeDefaults(jjType);
+      return {
+        ...attributes,
+        type: jjType,
+        attrs: util.defaultsDeep(
+          { line: { stroke: color } },
+          defaults.attrs || {},
+        ),
+      };
+    },
+  }, []);
+
   return (
     <GraphProvider
       elements={elements}
       links={links}
-      mapDataToElementAttributes={mapDataToElementAttributesExample}
-      mapDataToLinkAttributes={mapDataToLinkAttributesExample}
+      {...elementMappers}
+      {...linkMappers}
     >
       <Main />
     </GraphProvider>
   );
-}
-
-function mapDataToLinkAttributesExample(options: LinkToGraphOptions<LinkData>) {
-  const { jjType, color } = options.data;
-
-  // For standard links, use the built-in theme defaults
-  // The default mapper already handles color, width, and markers
-  if (!jjType) {
-    return options.toAttributes(options.data);
-  }
-
-  // For custom link types (like standard.ShadowLink), override the type
-  // and exclude attrs so the link type's defaults are used
-  const attributes = {
-    ...options.toAttributes(options.data),
-    type: jjType,
-  };
-  // eslint-disable-next-line sonarjs/no-small-switch
-  switch (jjType) {
-    case 'standard.ShadowLink': {
-      attributes.attrs = {
-        line: {
-          connection: true,
-          stroke: color,
-          strokeWidth: 20,
-          strokeLinejoin: 'round',
-          targetMarker: {
-            type: 'path',
-            stroke: 'none',
-            d: 'M 0 -10 -10 0 0 10 z',
-          },
-          sourceMarker: {
-            type: 'path',
-            stroke: 'none',
-            d: 'M -10 -10 0 0 -10 10 0 10 0 -10 z',
-          },
-        },
-        shadow: {
-          connection: true,
-          transform: 'translate(3,6)',
-          stroke: '#000000',
-          strokeOpacity: 0.2,
-          strokeWidth: 20,
-          strokeLinejoin: 'round',
-          targetMarker: {
-            type: 'path',
-            d: 'M 0 -10 -10 0 0 10 z',
-            stroke: 'none',
-          },
-          sourceMarker: {
-            type: 'path',
-            stroke: 'none',
-            d: 'M -10 -10 0 0 -10 10 0 10 0 -10 z',
-          },
-        },
-      };
-      break;
-    }
-    default: {
-      throw new Error(`Unsupported jjType: ${jjType}`);
-    }
-  }
-  return attributes;
-}
-
-function mapDataToElementAttributesExample(options: ElementToGraphOptions<ElementData>) {
-  const { jjType, color = 'lightgray' } = options.data;
-  if (!jjType) return options.toAttributes(options.data);
-  const attributes = {
-    ...options.toAttributes(options.data),
-    type: jjType,
-  };
-  // eslint-disable-next-line sonarjs/no-small-switch
-  switch (jjType) {
-    case 'standard.Cylinder': {
-      attributes.attrs = {
-        root: {
-          cursor: 'move',
-        },
-        body: {
-          lateralArea: 10,
-          fill: color,
-          stroke: '#333333',
-          strokeWidth: 2,
-        },
-        top: {
-          cx: 'calc(w/2)',
-          cy: 10,
-          rx: 'calc(w/2)',
-          ry: 10,
-          fill: color,
-          stroke: '#333333',
-          strokeWidth: 2,
-        },
-        label: {
-          textVerticalAnchor: 'middle',
-          textAnchor: 'middle',
-          x: 'calc(w/2)',
-          y: 'calc(h+15)',
-          fontSize: 14,
-          fill: '#333333',
-        },
-      };
-      break;
-    }
-    default: {
-      throw new Error(`Unsupported jjType: ${jjType}`);
-    }
-  }
-  return attributes;
 }

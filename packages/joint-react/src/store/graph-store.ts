@@ -1,7 +1,6 @@
 import { dia, shapes } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { FlatLinkData } from '../types/link-types';
-import type { FlatElementData } from '../types/element-types';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 import type { AddPaperOptions } from './paper-store';
 import type {
   PaperStoreState,
@@ -19,10 +18,10 @@ import {
 import { PortalElement } from '../models/portal-element';
 import { PortalLink } from '../models/portal-link';
 import {
-  defaultMapDataToElementAttributes,
-  defaultMapDataToLinkAttributes,
-  defaultMapElementAttributesToData,
-  defaultMapLinkAttributesToData,
+  flatMapDataToElementAttributes,
+  flatMapDataToLinkAttributes,
+  flatMapElementAttributesToData,
+  flatMapLinkAttributesToData,
   type GraphMappings,
 } from '../state/data-mapping';
 import { clearConnectedLinkViews } from './clear-view';
@@ -85,10 +84,10 @@ export class GraphStore {
       onElementsChange,
       onLinksChange,
       enableBatchUpdates,
-      mapDataToElementAttributes = defaultMapDataToElementAttributes,
-      mapDataToLinkAttributes = defaultMapDataToLinkAttributes,
-      mapElementAttributesToData = defaultMapElementAttributesToData,
-      mapLinkAttributesToData = defaultMapLinkAttributesToData,
+      mapDataToElementAttributes = flatMapDataToElementAttributes,
+      mapDataToLinkAttributes = flatMapDataToLinkAttributes,
+      mapElementAttributesToData = flatMapElementAttributesToData,
+      mapLinkAttributesToData = flatMapLinkAttributesToData,
     } = config;
 
     this.graph =

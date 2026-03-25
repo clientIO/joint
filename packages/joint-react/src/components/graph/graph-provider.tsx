@@ -1,8 +1,7 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
-import type { FlatLinkData } from '../../types/link-types';
 import React, { forwardRef, useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
-import type { FlatElementData } from '../../types/element-types';
+import type { FlatElementData, FlatLinkData } from '../../types/data-types';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
@@ -134,6 +133,23 @@ const GraphBase = forwardRef<dia.Graph, GraphProviderProps>(
       },
       []
     );
+
+    const {
+      mapDataToElementAttributes,
+      mapDataToLinkAttributes,
+      mapElementAttributesToData,
+      mapLinkAttributesToData,
+    } = rest;
+
+    useLayoutEffect(() => {
+      if (!isReady || !ref.current) return;
+      ref.current.graphState.updateMappers({
+        mapDataToElementAttributes,
+        mapDataToLinkAttributes,
+        mapElementAttributesToData,
+        mapLinkAttributesToData,
+      });
+    }, [mapDataToElementAttributes, mapDataToLinkAttributes, mapElementAttributesToData, mapLinkAttributesToData, isReady, ref]);
 
     useLayoutEffect(() => {
       if (!isControlledMode || !isReady || !ref.current) return;

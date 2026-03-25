@@ -747,6 +747,21 @@ export const Graph = Model.extend({
         return this.layerCollection.toArray();
     },
 
+    getTypeDefaults(type) {
+        if (!type) return {};
+        if (!this._typeDefaultsCache) {
+            this._typeDefaultsCache = {};
+        }
+        const cached = this._typeDefaultsCache[type];
+        if (cached) return cached;
+        const Ctor = util.getByPath(this.layerCollection.cellNamespace, type, '.');
+        if (!Ctor || !Ctor.prototype) return {};
+        const defaults = util.result(Ctor.prototype, 'defaults', {});
+        Object.freeze(defaults);
+        this._typeDefaultsCache[type] = defaults;
+        return defaults;
+    },
+
     getCell: function(cellRef) {
         return this.layerCollection.getCell(cellRef);
     },

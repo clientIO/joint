@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { FlatElementData } from '../types/element-types';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 import { useGraphStore } from './use-graph-store';
 import type { GraphStore } from '../store';
 

@@ -11,8 +11,7 @@ import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import { useGraph, useElementId, useLinks } from '../../../hooks';
 import { useNodesMeasuredEffect } from '../../../hooks/use-nodes-measured-effect';
 import type { ElementsMeasuredEvent } from '../../../types/event.types';
-import type { FlatElementData } from '../../../types/element-types';
-import type { FlatLinkData } from '../../../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../../models/portal-link';
@@ -1142,17 +1141,18 @@ describe('Paper Component', () => {
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
       expect(createdLink).toBeInstanceOf(PortalLink);
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
-      expect(createdLink.attr(['line', 'stroke'])).toBe('#333333');
-      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(2);
+      expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('');
+      expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe('');
 
       await waitFor(() => {
         expect(Object.keys(getLinksSnapshot())).toHaveLength(1);
       });
 
       const [createdLinkData] = Object.values(getLinksSnapshot());
-      expect(createdLinkData.color).toBe('#333333');
-      expect(createdLinkData.width).toBe(2);
-      expect(createdLinkData.targetMarker).toBe('none');
+      // Theme-defaulted values should NOT appear in user data
+      expect(createdLinkData.color).toBeUndefined();
+      expect(createdLinkData.width).toBeUndefined();
+      expect(createdLinkData.targetMarker).toBeUndefined();
     });
 
     it('supports defaultLink as a dia.Link instance when dragging between ports', async () => {
@@ -1232,9 +1232,9 @@ describe('Paper Component', () => {
       const createdLink = await dragLinkFromSourcePortToTargetPort(ref.current!);
       expect(createdLink).toBeInstanceOf(PortalLink);
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
-      expect(createdLink.attr(['line', 'stroke'])).toBe('#ff5500');
-      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(7);
-      expect(createdLink.attr(['line', 'class'])).toBe('custom-default-link');
+      expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('#ff5500');
+      expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe(7);
+      expect(createdLink.attr(['line', 'class'])).toBe('joint-link-line custom-default-link');
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
           color: '#ff5500',
@@ -1262,7 +1262,7 @@ describe('Paper Component', () => {
         (_cellView: dia.CellView, _magnet: SVGElement): Partial<FlatLinkData> => ({
           color: '#22aa55',
           width: 4,
-          wrapperBuffer: 16,
+          wrapperWidth: 16,
           customProperty: 'callback-flat-link-default',
         })
       );
@@ -1278,12 +1278,12 @@ describe('Paper Component', () => {
       expect(defaultLinkCallback).toHaveBeenCalledTimes(1);
       expect(createdLink).toBeInstanceOf(PortalLink);
       expect(createdLink.get('type')).toBe(PORTAL_LINK_TYPE);
-      expect(createdLink.attr(['line', 'stroke'])).toBe('#22aa55');
-      expect(createdLink.attr(['line', 'strokeWidth'])).toBe(4);
-      expect(createdLink.attr(['wrapper', 'strokeWidth'])).toBe(20);
+      expect(createdLink.attr(['line', 'style', 'stroke'])).toBe('#22aa55');
+      expect(createdLink.attr(['line', 'style', 'strokeWidth'])).toBe(4);
+      expect(createdLink.attr(['wrapper', 'style', 'strokeWidth'])).toBe(16);
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
-          wrapperBuffer: 16,
+          wrapperWidth: 16,
           customProperty: 'callback-flat-link-default',
         })
       );
@@ -1295,7 +1295,7 @@ describe('Paper Component', () => {
       const [createdLinkData] = Object.values(getLinksSnapshot());
       expect(createdLinkData.color).toBe('#22aa55');
       expect(createdLinkData.width).toBe(4);
-      expect(createdLinkData.wrapperBuffer).toBe(16);
+      expect(createdLinkData.wrapperWidth).toBe(16);
       expect(createdLinkData.customProperty).toBe('callback-flat-link-default');
     });
   });

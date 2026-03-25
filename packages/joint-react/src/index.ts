@@ -8,6 +8,7 @@ export { Paper } from './components/paper/paper';
 export type { PaperProps, RenderElement, RenderLink } from './components/paper/paper.types';
 export { SVGText } from './components/svg-text/svg-text';
 export type { SVGTextProps } from './components/svg-text/svg-text';
+export { DefaultElement } from './components/default-element';
 
 // Hooks — Get Data
 export { useGraph } from './hooks/use-graph';
@@ -31,6 +32,10 @@ export type { OnTransformElement, TransformOptions } from './store/create-elemen
 export { useElementsLayout, useLinksLayout } from './hooks/use-stores';
 export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
+// Hooks — Mappers
+export { useFlatElementData } from './hooks/use-flat-element-data';
+export { useFlatLinkData } from './hooks/use-flat-link-data';
+
 // Hooks — Events
 export { usePaperEvents } from './hooks/use-paper-events';
 export { useGraphEvents } from './hooks/use-graph-events';
@@ -42,21 +47,18 @@ export { useMarkup } from './hooks/use-markup';
 
 // Utilities
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
+export { flatElementDataToAttributes, flatAttributesToElementData } from './state/data-mapping/element-mapper';
+export { flatLinkDataToAttributes, flatAttributesToLinkData } from './state/data-mapping/link-mapper';
 
 // Types
-export type { FlatElementData, FlatElementPort } from './types/element-types';
-export type { FlatLinkData, FlatLinkEnd, FlatLinkLabel } from './types/link-types';
+export type { FlatCellData, FlatElementData, FlatElementPort, FlatLinkData, FlatLinkEnd, FlatLinkLabel, FlatLinkPresentationData } from './types/data-types';
+export type { PortShape as PortShape } from './theme/element-theme';
 export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
 export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
 
 // Theme
-export { defaultLinkTheme } from './theme/link-theme';
-export type { LinkTheme } from './theme/link-theme';
-export { defaultMarkers, resolveMarker } from './theme/markers';
-export type { MarkerPreset } from './theme/markers';
-export { LINK_ARROWS, getLinkArrow } from './components/link/link.arrows';
-export type { LinkArrowName } from './components/link/link.arrows';
+export type { LinkMarkerName, LinkMarker } from './theme/markers';
 
 // Models
 export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
@@ -66,21 +68,13 @@ export { PortalPaper } from './models/portal-paper';
 // Selectors (public)
 export { selectAreElementsMeasured, selectElementSizes } from './selectors';
 
-// Data mapping (public defaults)
-export {
-  defaultMapDataToElementAttributes,
-  defaultMapElementAttributesToData,
-} from './state/data-mapping/element-mapper';
-export {
-  defaultMapDataToLinkAttributes,
-  defaultMapLinkAttributesToData,
-} from './state/data-mapping/link-mapper';
+// Data mapping types
+export type { CellAttributes } from './state/data-mapping';
 export type {
-  ElementToGraphOptions,
-  GraphToElementOptions,
+  ToElementAttributesOptions,
+  ToElementDataOptions,
 } from './state/data-mapping/element-mapper';
 export type {
-  LinkToGraphOptions,
-  GraphToLinkOptions,
   ToLinkAttributesOptions,
+  ToLinkDataOptions,
 } from './state/data-mapping/link-mapper';

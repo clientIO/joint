@@ -130,7 +130,7 @@ const LABEL: FlatLinkLabel = {
   text: '',
   className: 'jj-flow-label-text',
   backgroundClassName: 'jj-flow-label-body',
-  backgroundStrokeWidth: unit,
+  backgroundOutlineWidth: unit,
   backgroundPadding: { x: labelPx, y: labelPy },
   fontSize: labelFontSize,
   backgroundShape: bevelRectPath(labelPx, labelPy, bevel),

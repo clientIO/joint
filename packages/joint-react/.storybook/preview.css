@@ -1,1 +1,6 @@
 @import 'tailwindcss';
+
+/* Custom variants for the Tailwind theme demo */
+@custom-variant forest (&:where(.forest, .forest *));
+@custom-variant ocean (&:where(.ocean, .ocean *));
+@custom-variant sunset (&:where(.sunset, .sunset *));

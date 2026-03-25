@@ -4,8 +4,7 @@ import type { PaperStore } from '../../store';
 import { DEFAULT_CELL_NAMESPACE } from '../../store/graph-store';
 import { graphState } from '../graph-state';
 import type { IncrementalStateChanges } from '../incremental.types';
-import type { FlatElementData } from '../../types/element-types';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../../types/data-types';
 
 function createListener() {
   const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });

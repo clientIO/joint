@@ -5,9 +5,11 @@ import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
 import {
   GraphProvider,
+  flatLinkDataToAttributes,
+  type CellAttributes,
   type GraphProps,
   type RenderElement,
-  type LinkToGraphOptions,
+  type ToLinkAttributesOptions,
   type FlatLinkData,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -81,10 +83,10 @@ const links: Record<string, CustomLink> = {
 };
 
 const mapDataToLinkAttributes = (
-  options: LinkToGraphOptions<FlatLinkData>
-): dia.Cell.JSON => {
+  options: ToLinkAttributesOptions<FlatLinkData>
+): CellAttributes => {
 
-  const attributes = options.toAttributes(options.data);
+  const attributes = flatLinkDataToAttributes(options.data) as CellAttributes;
   const { color } = options.data as CustomLink;
   return {
     ...attributes,

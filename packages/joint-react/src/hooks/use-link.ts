@@ -1,5 +1,5 @@
 import { useLinkId } from './use-link-id';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatLinkData } from '../types/data-types';
 import { useData } from './use-stores';
 import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 

@@ -21,9 +21,10 @@ import { useElements } from './use-elements';
 import { useLinks } from './use-links';
 import { useInternalData, useElementsLayout } from './use-stores';
 import type { PaperStore } from '../store';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatLinkData } from '../types/data-types';
 import type { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
+import { DefaultElement } from '../components/default-element';
 
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
@@ -119,7 +120,7 @@ export function useCreatePortalPaper(
   options: Readonly<UseCreatePortalPaperOptions>
 ): UseCreatePortalPaperResult {
   const {
-    renderElement,
+    renderElement = DefaultElement,
     renderLink,
     defaultLink,
     useHTMLOverlay,
@@ -252,6 +253,11 @@ export function useCreatePortalPaper(
   useEffect(() => {
     if (!paper) return;
     const controller = new mvc.Listener();
+    /**
+     *
+     * @param cellView
+     * @param isDragging
+     */
     function setState(cellView: dia.CellView, isDragging: boolean) {
       const cell = cellView.model;
       if (!cell) return;

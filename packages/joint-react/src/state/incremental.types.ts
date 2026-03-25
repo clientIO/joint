@@ -1,5 +1,4 @@
-import type { FlatElementData } from '../types/element-types';
-import type { FlatLinkData } from '../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 
 interface IncrementalChangeBase<Item> {
   readonly type: 'change' | 'add';

@@ -443,6 +443,8 @@ export namespace dia {
 
         getCellLayerId(cell: Graph.CellRef): GraphLayer.ID;
 
+        getTypeDefaults(type: string): Cell.Attributes;
+
         getCell(id: Graph.CellRef): Cell;
 
         getElements(): Element[];

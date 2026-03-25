@@ -1,7 +1,6 @@
 import type { dia } from '@joint/core';
-import type { FlatElementData } from '../../types/element-types';
+import type { FlatElementData, FlatLinkData } from '../../types/data-types';
 import type { OmitWithoutIndexSignature } from '../../types';
-import type { FlatLinkData } from '../../types/link-types';
 import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
 import type { PortalPaper } from '../../models/portal-paper';

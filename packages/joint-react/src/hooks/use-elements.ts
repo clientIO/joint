@@ -1,5 +1,5 @@
 import type { CellId } from '../types/cell-id';
-import type { FlatElementData } from '../types/element-types';
+import type { FlatElementData } from '../types/data-types';
 import { useData } from './use-stores';
 import { identitySelector, isStrictEqual } from '../utils/selector-utils';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';

@@ -7,13 +7,12 @@ import {
   useGraph,
   useElementId,
   useElements,
+  useFlatLinkData,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCallback, useEffect, useRef } from 'react';
-
-import '../index.css';
 
 // ----------------------------------------------------------------------------
 // Types
@@ -58,22 +57,26 @@ type ShapeElement =
 // Constants
 // ----------------------------------------------------------------------------
 
-const MAIN_COLOR = '#D4D9D7';
-const SECONDARY_COLOR = '#EAECEA';
-const BTC_COLOR = '#9C9EC8';
-const GOLD_COLOR = '#F7E3AE';
-const SP500_COLOR = '#FFCCD6';
+const MAIN_COLOR = '#1e293b';
+const MAIN_BORDER = '#334155';
+const SECONDARY_COLOR = '#0f172a';
+const BTC_COLOR = '#f59e0b';
+const GOLD_COLOR = '#eab308';
+const SP500_COLOR = '#3b82f6';
+const TEXT_COLOR = '#e2e8f0';
+const TEXT_MUTED = '#94a3b8';
+const LINK_COLOR = '#475569';
 
-const CURRENT_YEAR = 2023;
+const CURRENT_YEAR = 2026;
 const INVESTMENT_ID = 'investment';
 const PRODUCT_IDS = ['gold', 'bitcoin', 'sp500'] as const;
 
 const DEFAULT_ROI_VALUE = { value: 0, roi: 0 };
 
 const INPUT_CLASSNAME =
-  'box-border text-right my-1 w-full bg-white border border-gray-400 px-[2px] py-[1px] text-[13px] leading-none';
+  'box-border text-right my-1 w-full bg-slate-800 border border-slate-600 text-slate-200 rounded px-1.5 py-[3px] text-[13px] leading-none focus:border-blue-400 focus:outline-none';
 
-// Historical price data (2013-2023)
+// Historical price data (2013-2026) — Jan average prices
 const historicalPrices: Record<string, Record<string, number>> = {
   '2013': { gold: 1685.5, bitcoin: 13.51, sp500: 1480.4 },
   '2014': { gold: 1219.75, bitcoin: 771.4, sp500: 1822.36 },
@@ -86,6 +89,9 @@ const historicalPrices: Record<string, Record<string, number>> = {
   '2021': { gold: 1947.6, bitcoin: 29_624.63, sp500: 3793.75 },
   '2022': { gold: 1800.1, bitcoin: 47_434.29, sp500: 4573.82 },
   '2023': { gold: 1824.16, bitcoin: 16_610.44, sp500: 3960.66 },
+  '2024': { gold: 2063.73, bitcoin: 42_850, sp500: 4769.83 },
+  '2025': { gold: 2632.78, bitcoin: 94_500, sp500: 5881.63 },
+  '2026': { gold: 3025, bitcoin: 84_350, sp500: 5560 },
 };
 
 const YEARS = Object.keys(historicalPrices);
@@ -146,7 +152,7 @@ const initialElements: Record<string, ShapeElement> = {
     x: 600,
     y: 200,
     width: 200,
-    height: 100,
+    height: 115,
     z: 0,
     label: 'Gold',
     parent: 'performance',
@@ -156,7 +162,7 @@ const initialElements: Record<string, ShapeElement> = {
     x: 600,
     y: 320,
     width: 200,
-    height: 100,
+    height: 115,
     z: 0,
     label: 'Bitcoin',
     parent: 'performance',
@@ -166,7 +172,7 @@ const initialElements: Record<string, ShapeElement> = {
     x: 600,
     y: 440,
     width: 200,
-    height: 100,
+    height: 115,
     z: 0,
     label: 'S&P 500',
     parent: 'performance',
@@ -178,26 +184,12 @@ const initialElements: Record<string, ShapeElement> = {
   },
 };
 
-const linkAppearance = {
-  width: 4,
-  wrapperColor: '#000000',
-  wrapperBuffer: 4,
-  lineCap: 'butt' as const,
-  targetMarker: {
-    d: 'M 10 -2 10 -10 -3 0 10 10 10 2',
-    stroke: '#000000',
-    strokeWidth: 2,
-  },
-};
-
 const initialLinks: Record<string, FlatLinkData> = {
   link1: {
     source: 'investment',
     sourceAnchor: { name: 'top', args: { dy: 1 } },
     target: 'gold',
     targetAnchor: { name: 'left', args: { dx: -5 } },
-    ...linkAppearance,
-    color: MAIN_COLOR,
     z: 2,
   },
   link2: {
@@ -205,8 +197,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourceAnchor: { name: 'right', args: { dx: -1 } },
     target: 'bitcoin',
     targetAnchor: { name: 'left', args: { dx: -5 } },
-    ...linkAppearance,
-    color: MAIN_COLOR,
     z: 2,
   },
   link3: {
@@ -214,8 +204,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourceAnchor: { name: 'bottom', args: { dy: -1 } },
     target: 'sp500',
     targetAnchor: { name: 'left', args: { dx: -5 } },
-    ...linkAppearance,
-    color: MAIN_COLOR,
     z: 2,
   },
   link4: {
@@ -223,7 +211,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourceAnchor: { name: 'right', args: { dx: -1 } },
     target: 'goldPerf',
     targetAnchor: { name: 'left', args: { dx: -5 } },
-    ...linkAppearance,
     color: GOLD_COLOR,
     z: 4,
   },
@@ -232,7 +219,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourceAnchor: { name: 'right', args: { dx: -1 } },
     target: 'bitcoinPerf',
     targetAnchor: { name: 'left', args: { dx: -5 } },
-    ...linkAppearance,
     color: BTC_COLOR,
     z: 5,
   },
@@ -241,7 +227,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     sourceAnchor: { name: 'right', args: { dx: -1 } },
     target: 'sp500Perf',
     targetAnchor: { name: 'left', args: { dx: -5 } },
-    ...linkAppearance,
     color: SP500_COLOR,
     z: 7,
   },
@@ -298,31 +283,31 @@ function InvestmentNode({ width, height, funds, year }: Readonly<InvestmentEleme
       <rect
         width={width}
         height={height}
-        rx={10}
-        ry={10}
+        rx={12}
+        ry={12}
         fill={MAIN_COLOR}
-        stroke="#333333"
-        strokeWidth={2}
+        stroke={MAIN_BORDER}
+        strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div className="p-2.5 flex flex-col text-center text-black font-sans leading-none">
-          <h2 className="my-4 font-bold text-[21px] text-black">Investment</h2>
+        <div className="p-3 flex flex-col text-center font-sans leading-none" style={{ color: TEXT_COLOR }}>
+          <h2 className="mt-3 mb-5 font-semibold text-lg tracking-tight" style={{ color: TEXT_COLOR }}>Investment</h2>
           <div className="flex flex-col">
-            <label className="mt-4 text-[14px]">
-              How much did you invest?
+            <label className="text-[13px]" style={{ color: TEXT_MUTED }}>
+              Amount ($)
               <input
-                className={`${INPUT_CLASSNAME} mt-2.5`}
+                className={`${INPUT_CLASSNAME} mt-1.5`}
                 type="number"
                 value={funds}
                 onChange={handleFundsChange}
               />
             </label>
           </div>
-          <div className="flex flex-col">
-            <label className="mt-4 text-[14px]">
-              What year it was?
+          <div className="flex flex-col mt-3">
+            <label className="text-[13px]" style={{ color: TEXT_MUTED }}>
+              Year
               <select
-                className={`${INPUT_CLASSNAME} mt-2.5`}
+                className={`${INPUT_CLASSNAME} mt-1.5`}
                 value={year}
                 onChange={handleYearChange}
               >
@@ -385,18 +370,22 @@ function ProductNode({ width, height, name, label, percentage, color }: Readonly
       <rect
         width={width}
         height={height}
-        rx={10}
-        ry={10}
-        fill={color}
-        stroke="#333333"
-        strokeWidth={2}
+        rx={12}
+        ry={12}
+        fill={MAIN_COLOR}
+        stroke={MAIN_BORDER}
+        strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div className="p-2.5 flex flex-col text-center text-black font-sans text-[14px] leading-none">
+        <div className="p-3 flex flex-col text-center font-sans text-[13px] leading-none" style={{ color: TEXT_COLOR }}>
+          <div className="flex items-center justify-center gap-1.5 mt-2 mb-3">
+            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: color }} />
+            <span className="font-semibold text-sm" style={{ color: TEXT_COLOR }}>{label}</span>
+          </div>
           <div className="flex flex-col">
-            <label className="mt-4 text-[14px]">
-              What percentage did you invest in <strong className="font-bold">{label}</strong>?
-              <span className="flex flex-row items-center mt-2.5">
+            <label className="text-[13px]" style={{ color: TEXT_MUTED }}>
+              Allocation
+              <span className="flex flex-row items-center mt-1.5">
                 <input
                   className={INPUT_CLASSNAME}
                   type="number"
@@ -406,7 +395,7 @@ function ProductNode({ width, height, name, label, percentage, color }: Readonly
                   value={percentage}
                   onChange={handlePercentageChange}
                 />
-                <span className="shrink-0 pl-1.5 text-right">%</span>
+                <span className="shrink-0 pl-1.5 text-right" style={{ color: TEXT_MUTED }}>%</span>
               </span>
             </label>
           </div>
@@ -452,41 +441,37 @@ function ProductPerformanceNode({ width, height, label }: Readonly<ProductPerfor
       <rect
         width={width}
         height={height}
-        rx={10}
-        ry={10}
+        rx={12}
+        ry={12}
         fill={MAIN_COLOR}
-        stroke="#333333"
-        strokeWidth={2}
+        stroke={MAIN_BORDER}
+        strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div className="p-2.5 flex flex-col text-center text-black font-sans text-sm">
-          <fieldset className="border-none m-0 p-0">
-            <legend className="font-bold">{label}</legend>
-            <div>
-              <label className="flex items-center text-left">
-                <span className="w-[30%] shrink-0">Value</span>
-                <input
-                  className={INPUT_CLASSNAME}
-                  name="value"
-                  type="text"
-                  readOnly
-                  value={formatValue(value)}
-                />
-              </label>
-            </div>
-            <div>
-              <label className="flex items-center text-left">
-                <span className="w-[30%] shrink-0">ROI</span>
-                <input
-                  className={INPUT_CLASSNAME}
-                  name="roi"
-                  type="text"
-                  readOnly
-                  value={formatValue(roi)}
-                />
-              </label>
-            </div>
-          </fieldset>
+        <div className="p-3 flex flex-col text-center font-sans text-[13px]" style={{ color: TEXT_COLOR }}>
+          <p className="font-semibold text-sm mt-1 mb-2" style={{ color: TEXT_COLOR }}>{label}</p>
+          <div className="flex flex-col gap-1">
+            <label className="flex items-center text-left">
+              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>Value</span>
+              <input
+                className={INPUT_CLASSNAME}
+                name="value"
+                type="text"
+                readOnly
+                value={formatValue(value)}
+              />
+            </label>
+            <label className="flex items-center text-left">
+              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>ROI</span>
+              <input
+                className={INPUT_CLASSNAME}
+                name="roi"
+                type="text"
+                readOnly
+                value={formatValue(roi)}
+              />
+            </label>
+          </div>
         </div>
       </foreignObject>
     </>
@@ -534,44 +519,40 @@ function OverallPerformanceNode({ width, height }: Readonly<OverallPerformanceEl
       <rect
         width={width}
         height={height}
-        rx={10}
-        ry={10}
+        rx={12}
+        ry={12}
         fill={SECONDARY_COLOR}
-        stroke="#333333"
-        strokeWidth={2}
+        stroke={MAIN_BORDER}
+        strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div className="p-2.5 flex flex-col justify-between text-center text-black font-sans text-[14px] h-full leading-none">
-          <p className="my-3">
-            This is your portfolio now in <strong className="font-bold">{CURRENT_YEAR}</strong>.
+        <div className="p-3 flex flex-col justify-between text-center font-sans text-[13px] h-full leading-none" style={{ color: TEXT_COLOR }}>
+          <p className="mt-3 mb-2" style={{ color: TEXT_MUTED }}>
+            Portfolio value in <strong className="font-semibold" style={{ color: TEXT_COLOR }}>{CURRENT_YEAR}</strong>
           </p>
-          <fieldset className="border-none m-0 p-0">
-            <legend className="mb-2.5">Your overall performance of investment is:</legend>
-            <div>
-              <label className="flex items-center text-left">
-                <span className="w-[30%] shrink-0">Value</span>
-                <input
-                  className={INPUT_CLASSNAME}
-                  name="value"
-                  type="text"
-                  readOnly
-                  value={formatValue(value)}
-                />
-              </label>
-            </div>
-            <div>
-              <label className="flex items-center text-left">
-                <span className="w-[30%] shrink-0">ROI</span>
-                <input
-                  className={INPUT_CLASSNAME}
-                  name="roi"
-                  type="text"
-                  readOnly
-                  value={formatValue(roi)}
-                />
-              </label>
-            </div>
-          </fieldset>
+          <div className="flex flex-col gap-1">
+            <p className="text-[12px] mb-1" style={{ color: TEXT_MUTED }}>Overall performance</p>
+            <label className="flex items-center text-left">
+              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>Value</span>
+              <input
+                className={INPUT_CLASSNAME}
+                name="value"
+                type="text"
+                readOnly
+                value={formatValue(value)}
+              />
+            </label>
+            <label className="flex items-center text-left">
+              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>ROI</span>
+              <input
+                className={INPUT_CLASSNAME}
+                name="roi"
+                type="text"
+                readOnly
+                value={formatValue(roi)}
+              />
+            </label>
+          </div>
         </div>
       </foreignObject>
     </>
@@ -604,7 +585,6 @@ function RenderElement(props: Readonly<ShapeElement>) {
 // ----------------------------------------------------------------------------
 
 function Main() {
-
   const paperRef = useRef<dia.Paper | null>(null);
   const { graph } = useGraph();
 
@@ -640,7 +620,7 @@ function Main() {
       renderElement={RenderElement}
       defaultConnector={{ name: 'curve' }}
       defaultConnectionPoint={{ name: 'anchor' }}
-      background={{ color: '#f6f4f4' }}
+      background={{ color: '#0f172a' }}
       interactive={{ stopDelegation: false }}
     />
   );
@@ -651,8 +631,22 @@ function Main() {
 // ----------------------------------------------------------------------------
 
 export default function App() {
+  const { mapDataToLinkAttributes } = useFlatLinkData({
+    defaults: {
+      color: LINK_COLOR,
+      width: 2,
+      linecap: 'butt',
+      sourceMarker: 'circle',
+      targetMarker: 'arrow',
+    },
+  });
+
   return (
-    <GraphProvider elements={initialElements} links={initialLinks}>
+    <GraphProvider
+      elements={initialElements}
+      links={initialLinks}
+      mapDataToLinkAttributes={mapDataToLinkAttributes}
+    >
       <Main />
     </GraphProvider>
   );

@@ -99,9 +99,9 @@ const wireAppearance = {
   color: WIRE_LINE,
   width: 2,
   wrapperColor: WIRE_OUTLINE,
-  wrapperBuffer: 2,
-  lineCap: 'round' as const,
-  lineJoin: 'round' as const,
+  wrapperWidth: 2,
+  linecap: 'round' as const,
+  linejoin: 'round' as const,
   z: -1,
 };
 

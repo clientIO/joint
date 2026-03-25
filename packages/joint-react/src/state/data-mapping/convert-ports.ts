@@ -1,33 +1,35 @@
 import { type dia } from '@joint/core';
-import type { FlatElementPort } from '../../types/element-types';
-import { defaultElementTheme } from '../../theme/element-theme';
+import type { FlatElementPort } from '../../types/data-types';
+import { defaultPortStyle } from '../../theme/element-theme';
 
 /**
  * Converts a simplified FlatElementPort to a full JointJS port definition.
  * @param id - The port identifier
- * @param port - The simplified port definition
+ * @param rawPort - The simplified port definition
+ * @param portStyle - Optional style defaults for port properties
  * @returns The full JointJS port definition
  */
-function convertPort(id: string, port: FlatElementPort): dia.Element.Port {
+function convertPort(id: string, rawPort: FlatElementPort, portStyle?: Partial<FlatElementPort>): dia.Element.Port {
+  const port = portStyle ? { ...portStyle, ...rawPort } : rawPort;
   const {
     cx,
     cy,
-    width = defaultElementTheme.portWidth,
-    height = defaultElementTheme.portHeight,
-    color = defaultElementTheme.portColor,
-    shape = defaultElementTheme.portShape,
-    stroke = defaultElementTheme.portStroke,
-    strokeWidth = defaultElementTheme.portStrokeWidth,
-    className,
+    width = defaultPortStyle.width,
+    height = defaultPortStyle.height,
+    color = defaultPortStyle.color,
+    shape = defaultPortStyle.shape,
+    outline = defaultPortStyle.outline,
+    outlineWidth = defaultPortStyle.outlineWidth,
+    className = defaultPortStyle.className,
     label,
-    labelPosition = defaultElementTheme.portLabelPosition,
-    labelColor = defaultElementTheme.portLabelColor,
-    labelFontSize,
-    labelFontFamily,
-    labelClassName,
+    labelPosition = defaultPortStyle.labelPosition,
+    labelColor = defaultPortStyle.labelColor,
+    labelFontSize = defaultPortStyle.labelFontSize,
+    labelFontFamily = defaultPortStyle.labelFontFamily,
+    labelClassName = defaultPortStyle.labelClassName,
     labelOffsetX,
     labelOffsetY,
-    passive = defaultElementTheme.portPassive,
+    passive = defaultPortStyle.passive,
   } = port;
 
   const result: dia.Element.Port = {
@@ -37,9 +39,7 @@ function convertPort(id: string, port: FlatElementPort): dia.Element.Port {
   };
 
   const portBodyAttributes: Record<string, unknown> = {
-    fill: color,
-    stroke,
-    strokeWidth,
+    style: { fill: color, stroke: outline, strokeWidth: outlineWidth },
     magnet: passive ? 'passive' : 'active',
   };
 
@@ -59,14 +59,11 @@ function convertPort(id: string, port: FlatElementPort): dia.Element.Port {
     portBodyAttributes.d = shape;
   }
 
-  if (className) {
-    portBodyAttributes.class = className;
-  }
-
   result.markup = [
     {
       tagName: bodyTagName,
       selector: 'portBody',
+      className: `jr-port-body ${className}`.trim(),
     },
   ];
   result.attrs = { portBody: portBodyAttributes };
@@ -74,20 +71,16 @@ function convertPort(id: string, port: FlatElementPort): dia.Element.Port {
   if (label) {
     result.label = {
       position: { name: labelPosition, args: { x: labelOffsetX, y: labelOffsetY } },
-      markup: [{ tagName: 'text', selector: 'text', attributes: {
-        fill: labelColor,
-      }}],
+      markup: [{
+        tagName: 'text',
+        selector: 'text',
+        className: `jr-port-label ${labelClassName}`.trim(),
+      }],
     };
-    const labelAttributes: Record<string, unknown> = { text: label };
-    if (labelFontSize !== undefined) {
-      labelAttributes.fontSize = labelFontSize;
-    }
-    if (labelFontFamily !== undefined) {
-      labelAttributes.fontFamily = labelFontFamily;
-    }
-    if (labelClassName) {
-      labelAttributes.class = labelClassName;
-    }
+    const labelAttributes: Record<string, unknown> = {
+      text: label,
+      style: { fill: labelColor, fontSize: labelFontSize, fontFamily: labelFontFamily },
+    };
     result.attrs.text = labelAttributes;
   } else {
     result.label = { markup: [] };
@@ -117,14 +110,15 @@ export function createPortDefaults(): { groups: Record<string, dia.Element.PortG
 /**
  * Converts a simplified FlatElementPort record to the full JointJS ports object.
  * @param ports - Record of simplified port definitions keyed by port ID
+ * @param portStyle - Optional style defaults for port properties
  * @returns The full JointJS ports object with groups and items
  */
-export function convertPorts(ports: Record<string, FlatElementPort>): {
+export function convertPorts(ports: Record<string, FlatElementPort>, portStyle?: Partial<FlatElementPort>): {
   groups: Record<string, dia.Element.PortGroup>;
   items: dia.Element.Port[];
 } {
   return {
     ...createPortDefaults(),
-    items: Object.entries(ports).map(([id, port]) => convertPort(id, port)),
+    items: Object.entries(ports).map(([id, port]) => convertPort(id, port, portStyle)),
   };
 }
