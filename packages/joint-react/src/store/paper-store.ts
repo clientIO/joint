@@ -41,7 +41,8 @@ export interface AddPaperOptions {
  */
 export interface PaperStoreOptions extends AddPaperOptions {
   /** The graph store instance this paper belongs to */
-  readonly graphStore: GraphStore;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly graphStore: GraphStore<any, any>;
   /** Unique identifier for this paper instance */
   readonly id: string;
 }

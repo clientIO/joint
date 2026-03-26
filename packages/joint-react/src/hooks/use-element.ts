@@ -35,7 +35,7 @@ import { useContainerItem } from './use-container-item';
  * @param isEqual - The function used to check equality. Defaults to strict equality (`Object.is`).
  * @returns The selected element based on the current cell id.
  */
-export function useElement<ElementData extends CellData = CellData, ReturnedElements = ElementData>(
+export function useElement<ElementData extends object = CellData, ReturnedElements = ElementData>(
   selector: (item: ElementData) => ReturnedElements = identitySelector as (
     item: ElementData
   ) => ReturnedElements,

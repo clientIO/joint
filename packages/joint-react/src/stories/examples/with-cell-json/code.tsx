@@ -135,7 +135,9 @@ const mapDataToLinkAttributes = ({
 /**
  * Reverse mapper: pick only the keys defined in the data format.
  */
-const mapLinkAttributesToData = ({ attributes }: ToLinkDataOptions<FlatLinkData<CellJsonLink>>): FlatLinkData<CellJsonLink> => {
+const mapLinkAttributesToData = ({
+  attributes,
+}: ToLinkDataOptions<FlatLinkData<CellJsonLink>>): FlatLinkData<CellJsonLink> => {
   return util.pick(attributes, LINK_KEYS) as FlatLinkData<CellJsonLink>;
 };
 

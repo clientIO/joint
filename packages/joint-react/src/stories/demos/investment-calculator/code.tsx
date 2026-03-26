@@ -42,11 +42,7 @@ type OverallPerformanceData = {
   readonly type: 'OverallPerformance';
 };
 
-type ShapeData =
-  | InvestmentData
-  | ProductData
-  | ProductPerformanceData
-  | OverallPerformanceData;
+type ShapeData = InvestmentData | ProductData | ProductPerformanceData | OverallPerformanceData;
 
 type ShapeElement = FlatElementData<ShapeData>;
 
@@ -246,7 +242,10 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
     (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!event.target.validity.valid) return;
       const newFunds = Number(event.target.value);
-      setElement(INVESTMENT_ID, (previous) => ({ ...previous, data: { ...previous.data, funds: newFunds } }));
+      setElement(INVESTMENT_ID, (previous) => ({
+        ...previous,
+        data: { ...previous.data, funds: newFunds },
+      }));
     },
     [setElement]
   );
@@ -254,7 +253,10 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
   const handleYearChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
       const newYear = Number(event.target.value);
-      setElement(INVESTMENT_ID, (previous) => ({ ...previous, data: { ...previous.data, year: newYear } }));
+      setElement(INVESTMENT_ID, (previous) => ({
+        ...previous,
+        data: { ...previous.data, year: newYear },
+      }));
     },
     [setElement]
   );
@@ -271,8 +273,16 @@ function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
         strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div className="p-3 flex flex-col text-center font-sans leading-none" style={{ color: TEXT_COLOR }}>
-          <h2 className="mt-3 mb-5 font-semibold text-lg tracking-tight" style={{ color: TEXT_COLOR }}>Investment</h2>
+        <div
+          className="p-3 flex flex-col text-center font-sans leading-none"
+          style={{ color: TEXT_COLOR }}
+        >
+          <h2
+            className="mt-3 mb-5 font-semibold text-lg tracking-tight"
+            style={{ color: TEXT_COLOR }}
+          >
+            Investment
+          </h2>
           <div className="flex flex-col">
             <label className="text-[13px]" style={{ color: TEXT_MUTED }}>
               Amount ($)
@@ -320,7 +330,10 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
       const newPercentage = Number(event.target.value);
 
       // Read all current product percentages for redistribution
-      setElement(name, (previous) => ({ ...previous, data: { ...previous.data, percentage: newPercentage } }));
+      setElement(name, (previous) => ({
+        ...previous,
+        data: { ...previous.data, percentage: newPercentage },
+      }));
 
       // Redistribute the difference among other products
       const currentPercentage = percentage;
@@ -360,10 +373,15 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
         strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div className="p-3 flex flex-col text-center font-sans text-[13px] leading-none" style={{ color: TEXT_COLOR }}>
+        <div
+          className="p-3 flex flex-col text-center font-sans text-[13px] leading-none"
+          style={{ color: TEXT_COLOR }}
+        >
           <div className="flex items-center justify-center gap-1.5 mt-2 mb-3">
             <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: color }} />
-            <span className="font-semibold text-sm" style={{ color: TEXT_COLOR }}>{label}</span>
+            <span className="font-semibold text-sm" style={{ color: TEXT_COLOR }}>
+              {label}
+            </span>
           </div>
           <div className="flex flex-col">
             <label className="text-[13px]" style={{ color: TEXT_MUTED }}>
@@ -378,7 +396,9 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
                   value={percentage}
                   onChange={handlePercentageChange}
                 />
-                <span className="shrink-0 pl-1.5 text-right" style={{ color: TEXT_MUTED }}>%</span>
+                <span className="shrink-0 pl-1.5 text-right" style={{ color: TEXT_MUTED }}>
+                  %
+                </span>
               </span>
             </label>
           </div>
@@ -409,16 +429,14 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
       return DEFAULT_ROI_VALUE;
     }
 
-    const investmentItem = elements.get(INVESTMENT_ID) as unknown as { data: ShapeData } | undefined;
-    const productItem = elements.get(productCell.id as string) as unknown as { data: ShapeData } | undefined;
-    const investment = investmentItem?.data;
-    const product = productItem?.data;
-    if (investment?.type !== 'Investment' || product?.type !== 'Product') {
+    const investmentItem = elements.get(INVESTMENT_ID);
+    const productItem = elements.get(String(productCell.id));
+    if (investmentItem?.type !== 'Investment' || productItem?.type !== 'Product') {
       return DEFAULT_ROI_VALUE;
     }
 
-    const productValue = calculateProductValue(investment, product);
-    const cost = (investment.funds * product.percentage) / 100;
+    const productValue = calculateProductValue(investmentItem, productItem);
+    const cost = (investmentItem.funds * productItem.percentage) / 100;
     return { value: productValue, roi: calculateROI(cost, productValue) };
   });
 
@@ -434,11 +452,18 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
         strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div className="p-3 flex flex-col text-center font-sans text-[13px]" style={{ color: TEXT_COLOR }}>
-          <p className="font-semibold text-sm mt-1 mb-2" style={{ color: TEXT_COLOR }}>{label}</p>
+        <div
+          className="p-3 flex flex-col text-center font-sans text-[13px]"
+          style={{ color: TEXT_COLOR }}
+        >
+          <p className="font-semibold text-sm mt-1 mb-2" style={{ color: TEXT_COLOR }}>
+            {label}
+          </p>
           <div className="flex flex-col gap-1">
             <label className="flex items-center text-left">
-              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>Value</span>
+              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>
+                Value
+              </span>
               <input
                 className={INPUT_CLASSNAME}
                 name="value"
@@ -448,7 +473,9 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
               />
             </label>
             <label className="flex items-center text-left">
-              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>ROI</span>
+              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>
+                ROI
+              </span>
               <input
                 className={INPUT_CLASSNAME}
                 name="roi"
@@ -475,9 +502,8 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
   const { value, roi } = useElementsData<ShapeData, { value: number; roi: number }>((elements) => {
-    const investmentItem = elements.get(INVESTMENT_ID) as unknown as { data: ShapeData } | undefined;
-    const investment = investmentItem?.data;
-    if (investment?.type !== 'Investment') {
+    const investmentItem = elements.get(INVESTMENT_ID);
+    if (investmentItem?.type !== 'Investment') {
       return DEFAULT_ROI_VALUE;
     }
 
@@ -493,14 +519,12 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
       const [productCell] = graph.getNeighbors(embeddedCell, { inbound: true });
       if (!productCell) continue;
 
-      const productItem = elements.get(productCell.id as string) as unknown as { data: ShapeData } | undefined;
-      const product = productItem?.data;
-      if (product?.type !== 'Product') continue;
-
-      totalValue += calculateProductValue(investment, product);
+      const productItem = elements.get(String(productCell.id));
+      if (productItem?.type !== 'Product') continue;
+      totalValue += calculateProductValue(investmentItem, productItem);
     }
 
-    return { value: totalValue, roi: calculateROI(investment.funds, totalValue) };
+    return { value: totalValue, roi: calculateROI(investmentItem.funds, totalValue) };
   });
 
   return (
@@ -515,14 +539,24 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
         strokeWidth={1}
       />
       <foreignObject width={width} height={height}>
-        <div className="p-3 flex flex-col justify-between text-center font-sans text-[13px] h-full leading-none" style={{ color: TEXT_COLOR }}>
+        <div
+          className="p-3 flex flex-col justify-between text-center font-sans text-[13px] h-full leading-none"
+          style={{ color: TEXT_COLOR }}
+        >
           <p className="mt-3 mb-2" style={{ color: TEXT_MUTED }}>
-            Portfolio value in <strong className="font-semibold" style={{ color: TEXT_COLOR }}>{CURRENT_YEAR}</strong>
+            Portfolio value in{' '}
+            <strong className="font-semibold" style={{ color: TEXT_COLOR }}>
+              {CURRENT_YEAR}
+            </strong>
           </p>
           <div className="flex flex-col gap-1">
-            <p className="text-[12px] mb-1" style={{ color: TEXT_MUTED }}>Overall performance</p>
+            <p className="text-[12px] mb-1" style={{ color: TEXT_MUTED }}>
+              Overall performance
+            </p>
             <label className="flex items-center text-left">
-              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>Value</span>
+              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>
+                Value
+              </span>
               <input
                 className={INPUT_CLASSNAME}
                 name="value"
@@ -532,7 +566,9 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
               />
             </label>
             <label className="flex items-center text-left">
-              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>ROI</span>
+              <span className="w-[30%] shrink-0 text-[12px]" style={{ color: TEXT_MUTED }}>
+                ROI
+              </span>
               <input
                 className={INPUT_CLASSNAME}
                 name="roi"
@@ -598,7 +634,6 @@ function Main() {
       horizontalAlign: 'middle',
     });
   }, [graph]);
-
 
   return (
     <Paper

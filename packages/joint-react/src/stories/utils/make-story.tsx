@@ -63,7 +63,7 @@ export function makeStory<T extends any>(options: MakeStoryOptions<T>): T {
   return {
     play,
     args,
-    render: component as unknown,
+    render: component,
     decorators,
     parameters: {
       docs: {
@@ -75,7 +75,7 @@ export function makeStory<T extends any>(options: MakeStoryOptions<T>): T {
         },
       },
     },
-  } as unknown as T;
+  } as T;
 }
 
 // eslint-disable-next-line unicorn/prevent-abbreviations

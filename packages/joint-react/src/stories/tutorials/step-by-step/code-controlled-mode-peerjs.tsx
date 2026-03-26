@@ -40,9 +40,8 @@
 import {
   GraphProvider,
   useElementSize,
-  type GraphProps,
-  type ElementInput,
-  type LinkInput,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -59,14 +58,14 @@ import Peer, { type DataConnection } from 'peerjs';
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementInput<ElementData>;
+type CustomElement = FlatElementData<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
   '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
   '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
 
-const defaultLinks: Record<string, LinkInput> = {
+const defaultLinks: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -98,7 +97,7 @@ function RenderItem({ label }: Readonly<ElementData>) {
 interface StateSyncMessage {
   type: 'state-update';
   elements: Record<string, CustomElement>;
-  links: Record<string, LinkInput>;
+  links: Record<string, FlatLinkData>;
 }
 
 /**
@@ -119,10 +118,16 @@ function createPeerJSManager(callbacks: {
   onPeerIdChange: (id: string | null) => void;
   onConnectionStatusChange: (status: ConnectionStatus) => void;
   onConnectedPeerIdChange: (id: string | null) => void;
-  onRemoteStateUpdate: (elements: Record<string, CustomElement>, links: Record<string, LinkInput>) => void;
+  onRemoteStateUpdate: (
+    elements: Record<string, CustomElement>,
+    links: Record<string, FlatLinkData>
+  ) => void;
 }): {
   connectToPeer: (remotePeerId: string) => void;
-  sendStateUpdate: (elements: Record<string, CustomElement>, links: Record<string, LinkInput>) => void;
+  sendStateUpdate: (
+    elements: Record<string, CustomElement>,
+    links: Record<string, FlatLinkData>
+  ) => void;
   isReceivingUpdate: () => boolean;
 } {
   // PeerJS connection management
@@ -130,10 +135,14 @@ function createPeerJSManager(callbacks: {
   const connectionsRef: DataConnection[] = [];
   let isReceiving = false;
 
-  const { onPeerIdChange, onConnectionStatusChange, onConnectedPeerIdChange, onRemoteStateUpdate } = callbacks;
+  const { onPeerIdChange, onConnectionStatusChange, onConnectedPeerIdChange, onRemoteStateUpdate } =
+    callbacks;
 
   // Send state update to all connected peers
-  const sendStateUpdate = (elements: Record<string, CustomElement>, links: Record<string, LinkInput>) => {
+  const sendStateUpdate = (
+    elements: Record<string, CustomElement>,
+    links: Record<string, FlatLinkData>
+  ) => {
     // Don't send if we're currently receiving an update (prevent loops)
     if (isReceiving) {
       return;
@@ -317,7 +326,7 @@ function Main() {
 
   // Graph state managed by React
   const [elements, setElements] = useState<Record<string, CustomElement>>(defaultElements);
-  const [links, setLinks] = useState<Record<string, LinkInput>>(defaultLinks);
+  const [links, setLinks] = useState<Record<string, FlatLinkData>>(defaultLinks);
 
   // Refs to track latest state — avoids stale closures in callbacks
   // captured once by GraphStore at creation time.
@@ -357,7 +366,7 @@ function Main() {
   );
 
   const handleLinksChange = useCallback(
-    (action: React.SetStateAction<Record<string, LinkInput>>) => {
+    (action: React.SetStateAction<Record<string, FlatLinkData>>) => {
       setLinks((previous) => {
         const next = typeof action === 'function' ? action(previous) : action;
         linksRef.current = next;
@@ -422,7 +431,7 @@ function Main() {
 
       // Remove connected links
       setLinks((previousLinks) => {
-        const newLinks: Record<string, LinkInput> = {};
+        const newLinks: Record<string, FlatLinkData> = {};
         for (const [id, link] of Object.entries(previousLinks)) {
           if (link.source !== removedElementId && link.target !== removedElementId) {
             newLinks[id] = link;

@@ -25,13 +25,14 @@ export interface CellAttributes {
  * Unified interface for data ↔ attribute mapping functions.
  * Reused across GraphProvider, GraphStore, and graphView.
  */
-export interface GraphMappings<ElementData extends object = CellData, LinkData extends object = CellData> {
+export interface GraphMappings<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+> {
   readonly mapDataToElementAttributes?: (
     options: ToElementAttributesOptions<ElementData>
   ) => CellAttributes;
   readonly mapDataToLinkAttributes?: (options: ToLinkAttributesOptions<LinkData>) => CellAttributes;
-  readonly mapElementAttributesToData?: (
-    options: ToElementDataOptions<ElementData>
-  ) => ElementData;
+  readonly mapElementAttributesToData?: (options: ToElementDataOptions<ElementData>) => ElementData;
   readonly mapLinkAttributesToData?: (options: ToLinkDataOptions<LinkData>) => LinkData;
 }

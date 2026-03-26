@@ -83,11 +83,11 @@ const links: Record<string, CustomLink> = {
 };
 
 const mapDataToLinkAttributes = (
-  options: ToLinkAttributesOptions<CustomLink>
+  options: ToLinkAttributesOptions<FlatLinkData>
 ): CellAttributes => {
-
-  const attributes = flatLinkDataToAttributes(options.data) as CellAttributes;
-  const { color } = options.data;
+  const data = options.data as CustomLink;
+  const attributes = flatLinkDataToAttributes(data) as CellAttributes;
+  const { color } = data;
   return {
     ...attributes,
     type: 'LinkModel',
@@ -98,7 +98,7 @@ const mapDataToLinkAttributes = (
 export default function App() {
   return (
     <GraphProvider
-      links={links}
+      links={links as Record<string, FlatLinkData>}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
       mapDataToLinkAttributes={mapDataToLinkAttributes}

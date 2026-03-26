@@ -21,9 +21,10 @@ import {
 import { clearConnectedLinkViews } from './clear-view';
 import { LAYOUT_UPDATE_EVENT } from './graph-changes';
 import { createAtom, type Atom } from './state-container';
-import type { IncrementalChange, IncrementalStateChanges } from '../state/incremental.types';
+import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
 import { graphView, type GraphView, type IncrementalContainerChanges } from './graph-view';
+import type { FlatElementData, FlatLinkData } from '../types/data-types';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -61,15 +62,17 @@ export interface MeasureSnapshot {
 export interface GraphStoreOptions<
   ElementData extends object = CellData,
   LinkData extends object = CellData,
-> extends GraphMappings<ElementData, LinkData> {
+> extends GraphMappings<FlatElementData<ElementData>, FlatLinkData<LinkData>> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
-  readonly initialElements?: Record<CellId, ElementData>;
-  readonly initialLinks?: Record<CellId, LinkData>;
-  readonly onIncrementalChange?: (changes: IncrementalStateChanges<ElementData, LinkData>) => void;
-  readonly onElementsChange?: (elements: Record<string, ElementData>) => void;
-  readonly onLinksChange?: (links: Record<string, LinkData>) => void;
+  readonly initialElements?: Record<CellId, FlatElementData<ElementData>>;
+  readonly initialLinks?: Record<CellId, FlatLinkData<LinkData>>;
+  readonly onIncrementalChange?: (
+    changes: IncrementalContainerChanges<FlatElementData<ElementData>, FlatLinkData<LinkData>>
+  ) => void;
+  readonly onElementsChange?: (elements: Record<string, FlatElementData<ElementData>>) => void;
+  readonly onLinksChange?: (links: Record<string, FlatLinkData<LinkData>>) => void;
   /**
    * When enabled, state updates are deferred during JointJS batch operations
    * and flushed once the batch completes. Disabled by default.
@@ -80,7 +83,7 @@ export interface GraphStoreOptions<
 /**
  * Central store for managing graph state, synchronization, and paper instances.
  */
-export class GraphStore {
+export class GraphStore<ElementData extends object = CellData, LinkData extends object = CellData> {
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<MeasureSnapshot>;
   public readonly graph: dia.Graph;
@@ -88,12 +91,12 @@ export class GraphStore {
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
   private observer: GraphStoreObserver;
-  public readonly graphView: GraphView;
+  public readonly graphView: GraphView<FlatElementData<ElementData>, FlatLinkData<LinkData>>;
 
   /** IDs of elements that have been measured by ResizeObserver. */
   private readonly measuredElementIds = new Set<CellId>();
 
-  constructor(public readonly config: GraphStoreOptions) {
+  constructor(public readonly config: GraphStoreOptions<ElementData, LinkData>) {
     const {
       initialElements = {},
       initialLinks = {},
@@ -138,11 +141,9 @@ export class GraphStore {
       getPaperStores: () => this.paperStores,
       enableBatchUpdates,
       onIncrementalChange: this.buildIncrementalChangeHandler(
-        onIncrementalChange as
-          | ((changes: IncrementalContainerChanges<CellData, CellData>) => void)
-          | undefined,
-        onElementsChange as ((elements: Record<string, CellData>) => void) | undefined,
-        onLinksChange as ((links: Record<string, CellData>) => void) | undefined
+        onIncrementalChange,
+        onElementsChange,
+        onLinksChange
       ),
     });
 
@@ -203,8 +204,8 @@ export class GraphStore {
 
     if (hasInitialData) {
       this.graphView.updateGraph({
-        elements: initialElements as unknown as Record<CellId, CellData>,
-        links: initialLinks as unknown as Record<CellId, CellData>,
+        elements: initialElements,
+        links: initialLinks,
         flag: 'updateFromReact',
       });
     } else if (this.graph.getCells().length > 0) {
@@ -235,11 +236,19 @@ export class GraphStore {
    */
   private buildIncrementalChangeHandler(
     onIncrementalChange:
-      | ((changes: IncrementalContainerChanges<CellData, CellData>) => void)
+      | ((
+          changes: IncrementalContainerChanges<FlatElementData<ElementData>, FlatLinkData<LinkData>>
+        ) => void)
       | undefined,
-    onElementsChange: ((elements: Record<string, CellData>) => void) | undefined,
-    onLinksChange: ((links: Record<string, CellData>) => void) | undefined
-  ): ((changes: IncrementalContainerChanges<CellData, CellData>) => void) | undefined {
+    onElementsChange:
+      | ((elements: Record<string, FlatElementData<ElementData>>) => void)
+      | undefined,
+    onLinksChange: ((links: Record<string, FlatLinkData<LinkData>>) => void) | undefined
+  ):
+    | ((
+        changes: IncrementalContainerChanges<FlatElementData<ElementData>, FlatLinkData<LinkData>>
+      ) => void)
+    | undefined {
     if (!onIncrementalChange && !onElementsChange && !onLinksChange) {
       return undefined;
     }
@@ -267,8 +276,8 @@ export class GraphStore {
   }
 
   private notifyElementsChange(
-    changes: IncrementalContainerChanges<CellData, CellData>,
-    onElementsChange: (elements: Record<string, CellData>) => void
+    changes: IncrementalContainerChanges<FlatElementData<ElementData>, FlatLinkData<LinkData>>,
+    onElementsChange: (elements: Record<string, FlatElementData<ElementData>>) => void
   ) {
     const hasElementChanges =
       changes.elements.added.size > 0 ||
@@ -281,7 +290,7 @@ export class GraphStore {
     if (!hasElementChanges) return;
 
     // Merge data + layout for each element so onElementsChange receives the full shape
-    const elements: Record<string, CellData> = {};
+    const elements: Record<string, FlatElementData<ElementData>> = {};
     for (const [id, item] of this.graphView.elements.getFull()) {
       const layout = this.graphView.elementsLayout.get(id);
       elements[id] = layout ? { ...item, ...layout } : item;
@@ -290,8 +299,8 @@ export class GraphStore {
   }
 
   private notifyLinksChange(
-    changes: IncrementalContainerChanges<CellData, CellData>,
-    onLinksChange: (links: Record<string, CellData>) => void
+    changes: IncrementalContainerChanges<FlatElementData<ElementData>, FlatLinkData<LinkData>>,
+    onLinksChange: (links: Record<string, FlatLinkData<LinkData>>) => void
   ) {
     const hasLinkChanges =
       changes.links.added.size > 0 ||
@@ -300,7 +309,7 @@ export class GraphStore {
 
     if (!hasLinkChanges) return;
 
-    const links: Record<string, CellData> = {};
+    const links: Record<string, FlatLinkData<LinkData>> = {};
     for (const [id, item] of this.graphView.links.getFull()) {
       links[id] = item;
     }

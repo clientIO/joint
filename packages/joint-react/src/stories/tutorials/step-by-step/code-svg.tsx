@@ -5,21 +5,21 @@ import {
   GraphProvider,
   Paper,
   useElementSize,
-  type ElementInput,
-  type LinkInput,
+  type FlatElementData,
+  type FlatLinkData,
 } from '@joint/react';
 
 // define element type with custom properties
 type ElementData = { color: string };
 
 // define initial elements as Record
-const initialElements: Record<string, ElementInput<ElementData>> = {
+const initialElements: Record<string, FlatElementData<ElementData>> = {
   '1': { data: { color: PRIMARY }, x: 100, y: 15, width: 100, height: 25 },
   '2': { data: { color: PRIMARY }, x: 100, y: 200, width: 100, height: 25 },
 };
 
 // define initial edges as Record
-const initialEdges: Record<string, LinkInput> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',

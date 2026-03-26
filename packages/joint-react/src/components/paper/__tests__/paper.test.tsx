@@ -30,7 +30,7 @@ function MeasuredListener({
   return null;
 }
 
-const elements: Record<string, { data: { label: string }; width: number; height: number }> = {
+const elements: Record<string, FlatElementData<{ label: string }>> = {
   '1': { data: { label: 'Node 1' }, width: 10, height: 10 },
   '2': { data: { label: 'Node 2' }, width: 10, height: 10 },
 };
@@ -45,8 +45,7 @@ function TestNode() {
   );
 }
 
-type Element = (typeof elements)[keyof typeof elements];
-type ElementData = Element['data'];
+type ElementData = { label: string };
 
 /** Test helper: renders element label using hooks instead of props. */
 function TestLabelElement() {
@@ -396,7 +395,7 @@ describe('Paper Component', () => {
 
   it('calls onElementsMeasured when element sizes change', async () => {
     const onMeasuredMock = jest.fn();
-    const updatedElements: Record<string, { data: { label: string }; width: number; height: number }> = {
+    const updatedElements: Record<string, FlatElementData<{ label: string }>> = {
       '1': { data: { label: 'Node 1' }, width: 100, height: 50 },
       '2': { data: { label: 'Node 2' }, width: 150, height: 75 },
     };
@@ -723,11 +722,11 @@ describe('Paper Component', () => {
       }, [graph]);
       return null;
     }
-    let currentOutsideElements: Record<string, Element> = {};
+    let currentOutsideElements: Record<string, FlatElementData> = {};
     function Content() {
       const [currentElements, setCurrentElements] =
         useState<Record<string, FlatElementData>>(elementsWithPosition);
-      currentOutsideElements = currentElements as Record<string, Element>;
+      currentOutsideElements = currentElements;
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
           <Paper renderElement={() => <div>Test</div>} />
@@ -739,9 +738,7 @@ describe('Paper Component', () => {
     await waitFor(() => {
       const element1 = currentOutsideElements['1'];
       expect(element1).toBeDefined();
-      // @ts-expect-error we know it's element
       expect(element1.x).toBe(100);
-      // @ts-expect-error we know it's element
       expect(element1.y).toBe(100);
     });
   });

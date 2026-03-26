@@ -6,15 +6,18 @@ import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { GraphMappings } from '../../state/data-mapping';
-import type { IncrementalStateChanges } from '../../state/incremental.types';
+import type { IncrementalContainerChanges } from '../../store/graph-view';
+import type { FlatElementData, FlatLinkData } from '../../types/data-types';
 
 /**
  * Props for the GraphProvider component.
  * @template Element - The type of elements in the graph
  * @template Link - The type of links in the graph
  */
-export interface GraphProviderProps<ElementData extends object = CellData, LinkData extends object = CellData>
-  extends GraphMappings<ElementData, LinkData> {
+export interface GraphProviderProps<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+> extends GraphMappings<FlatElementData<ElementData>, FlatLinkData<LinkData>> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph
@@ -55,7 +58,7 @@ export interface GraphProviderProps<ElementData extends object = CellData, LinkD
    *
    * **Uncontrolled mode:** If neither is provided, this is only used for initial elements.
    */
-  readonly elements?: Record<CellId, ElementData>;
+  readonly elements?: Record<CellId, FlatElementData<ElementData>>;
 
   /**
    * Links (edges) to be added to the graph as a Record keyed by cell ID.
@@ -64,25 +67,29 @@ export interface GraphProviderProps<ElementData extends object = CellData, LinkD
    *
    * **Uncontrolled mode:** If neither is provided, this is only used for initial links.
    */
-  readonly links?: Record<CellId, LinkData>;
+  readonly links?: Record<CellId, FlatLinkData<LinkData>>;
 
   /**
    * Callback triggered when elements (nodes) change in the graph.
    * Enables React-controlled mode for elements.
    */
-  readonly onElementsChange?: Dispatch<SetStateAction<Record<CellId, ElementData>>>;
+  readonly onElementsChange?: Dispatch<
+    SetStateAction<Record<CellId, FlatElementData<ElementData>>>
+  >;
 
   /**
    * Callback triggered when links (edges) change in the graph.
    * Enables React-controlled mode for links.
    */
-  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, LinkData>>>;
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, FlatLinkData<LinkData>>>>;
 
   /**
    * Callback triggered with granular incremental change information when graph state changes.
    * Enables incremental-controlled mode. Can be used with external stores (Redux, Zustand, etc.).
    */
-  readonly onIncrementalChange?: (changes: IncrementalStateChanges<ElementData, LinkData>) => void;
+  readonly onIncrementalChange?: (
+    changes: IncrementalContainerChanges<FlatElementData<ElementData>, FlatLinkData<LinkData>>
+  ) => void;
 }
 
 /**
@@ -149,7 +156,14 @@ const GraphBase = forwardRef<dia.Graph, GraphProviderProps>(
         mapElementAttributesToData,
         mapLinkAttributesToData,
       });
-    }, [mapDataToElementAttributes, mapDataToLinkAttributes, mapElementAttributesToData, mapLinkAttributesToData, isReady, ref]);
+    }, [
+      mapDataToElementAttributes,
+      mapDataToLinkAttributes,
+      mapElementAttributesToData,
+      mapLinkAttributesToData,
+      isReady,
+      ref,
+    ]);
 
     useLayoutEffect(() => {
       if (!isControlledMode || !isReady || !ref.current) return;
@@ -203,7 +217,10 @@ const GraphBase = forwardRef<dia.Graph, GraphProviderProps>(
  * ```
  * @see GraphProviderProps for all available props
  */
-export const GraphProvider = GraphBase as <ElementData extends object = CellData, LinkData extends object = CellData>(
+export const GraphProvider = GraphBase as <
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+>(
   props: GraphProviderProps<ElementData, LinkData> & {
     ref?: React.Ref<dia.Graph | null>;
   }

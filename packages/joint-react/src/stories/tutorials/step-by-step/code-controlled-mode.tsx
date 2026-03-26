@@ -40,9 +40,8 @@
 import {
   GraphProvider,
   useElementSize,
-  type GraphProps,
-  type ElementInput,
-  type LinkInput,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -62,12 +61,12 @@ type ElementData = { label: string };
 /**
  * Full element type including layout and user data.
  */
-type CustomElement = ElementInput<ElementData>;
+type CustomElement = FlatElementData<ElementData>;
 
 /**
  * Full link type.
  */
-type CustomLink = LinkInput;
+type CustomLink = FlatLinkData;
 
 /**
  * Initial elements (nodes) for the graph.
@@ -403,10 +402,7 @@ function Main() {
         Pass state setters to child component so it can update the graph
         by updating React state.
       */}
-      <PaperApp
-        onElementsChange={setElements}
-        onLinksChange={setLinks}
-      />
+      <PaperApp onElementsChange={setElements} onLinksChange={setLinks} />
     </GraphProvider>
   );
 }

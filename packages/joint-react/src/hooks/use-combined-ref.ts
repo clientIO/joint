@@ -12,8 +12,7 @@ export function setForwardRef<T>(ref: ForwardedRef<T> | undefined, value: T | nu
   if (typeof ref === 'function') {
     ref(value);
   } else if ('current' in ref) {
-    // eslint-disable-next-line sonarjs/deprecation
-    (ref as React.MutableRefObject<T | null>).current = value;
+    ref.current = value;
   }
 }
 /**

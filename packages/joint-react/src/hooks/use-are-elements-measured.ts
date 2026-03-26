@@ -17,6 +17,7 @@ export function useAreElementsMeasured() {
       const elementsSize = graphView.elements.getSize();
       const { measuredElements, observedElements, needSomeElementBeMeasured } = measureState.get();
       if (needSomeElementBeMeasured) {
+        console.log(needSomeElementBeMeasured, { measuredElements, observedElements });
         return observedElements > 0 && measuredElements === observedElements;
       }
       return elementsSize > 0;

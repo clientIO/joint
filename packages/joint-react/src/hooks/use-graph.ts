@@ -2,29 +2,18 @@ import { useMemo } from 'react';
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData, FlatLinkData } from '../types/data-types';
-import type { CellData } from '../types/cell-data';
 import { useGraphStore } from './use-graph-store';
-import type { GraphStore } from '../store/graph-store';
 
 /**
  * Type guard that checks whether the value is an updater function.
  * @param value
  */
-function isUpdater<T extends object>(
-  value: T | ((previous: T) => T)
-): value is (previous: T) => T {
+function isUpdater<T extends object>(value: T | ((previous: T) => T)): value is (previous: T) => T {
   return typeof value === 'function';
 }
 
-/**
- * Removes a cell from the graph by ID.
- * @param id
- * @param graphStore
- */
-function removeCell(id: CellId, graphStore: GraphStore) {
-  const cell = graphStore.graph.getCell(id);
-  cell?.remove();
-}
+const ELEMENT_DEFAULTS: FlatElementData = { data: {}, x: 0, y: 0, width: 1, height: 1 };
+const LINK_DEFAULTS: FlatLinkData = { data: {}, source: '', target: '' };
 
 /**
  * Result of the useGraph hook.
@@ -34,10 +23,13 @@ interface UseGraphResult {
   readonly graph: dia.Graph;
   /**
    * Sets or updates an element in the graph.
-   * Can be called in two ways:
-   * 1. With ID and attributes: `setElement('1', { x: 100, y: 150 })`
-   * 2. With ID and updater: `setElement('1', (previous) => ({ ...previous, label: 'New' }))`
-   * If the element doesn't exist, it will be added.
+   *
+   * `previous` is typed as `FlatElementData` — includes `data`, `x`, `y`, `width`, `height`, etc.
+   * @example
+   * ```tsx
+   * setElement('1', { x: 100, y: 150 });
+   * setElement('1', (previous) => ({ ...previous, data: { ...previous.data, label: 'New' } }));
+   * ```
    */
   readonly setElement: (
     id: CellId,
@@ -50,10 +42,13 @@ interface UseGraphResult {
   readonly removeElement: (id: CellId) => void;
   /**
    * Sets or updates a link in the graph.
-   * Can be called in two ways:
-   * 1. With ID and attributes: `setLink('l-1', { source: '1', target: '2' })`
-   * 2. With ID and updater: `setLink('l-1', (previous) => ({ ...previous, color: 'red' }))`
-   * If the link doesn't exist, it will be added.
+   *
+   * `previous` is typed as `FlatLinkData` — includes `data`, `source`, `target`, `color`, etc.
+   * @example
+   * ```tsx
+   * setLink('l-1', { source: '1', target: '2' });
+   * setLink('l-1', (previous) => ({ ...previous, color: 'red' }));
+   * ```
    */
   readonly setLink: (
     id: CellId,
@@ -65,9 +60,6 @@ interface UseGraphResult {
    */
   readonly removeLink: (id: CellId) => void;
 }
-
-const ELEMENT_DEFAULTS: FlatElementData = { data: {}, x: 0, y: 0, width: 1, height: 1 };
-const LINK_DEFAULTS: FlatLinkData = { data: {}, source: '', target: '' };
 
 /**
  * Custom hook to retrieve the graph instance and actions for manipulating elements and links.
@@ -89,41 +81,44 @@ export function useGraph(): UseGraphResult {
       graph: graphStore.graph,
 
       setElement(id, attributesOrUpdater) {
-        const existing = graphStore.graphView.elements.get(String(id)) as unknown as FlatElementData | undefined;
+        const existing = graphStore.graphView.elements.get(String(id)) ?? ELEMENT_DEFAULTS;
 
-        const attributes: FlatElementData = isUpdater(attributesOrUpdater)
-          ? attributesOrUpdater(existing ?? ELEMENT_DEFAULTS)
+        const attributes = isUpdater(attributesOrUpdater)
+          ? attributesOrUpdater(existing)
           : attributesOrUpdater;
 
         const mergedData: FlatElementData = { ...ELEMENT_DEFAULTS, ...existing, ...attributes };
 
-        graphStore.graphView.updateAutoSizedElement(String(id), mergedData as unknown as Record<string, unknown>);
-
-        const cellAttributes = graphStore.graphView.elementToAttributes({ id: String(id), data: mergedData as unknown as CellData });
-        const attributes_ = { ...cellAttributes, id } as dia.Cell.JSON;
-        graphStore.graph.syncCells([attributes_], { remove: false });
+        graphStore.graphView.updateAutoSizedElement(String(id), mergedData);
+        const cellAttributes = graphStore.graphView.elementToAttributes({
+          id: String(id),
+          data: mergedData,
+        });
+        graphStore.graph.syncCells([{ ...cellAttributes, id } as dia.Cell.JSON], { remove: false });
       },
 
       removeElement(id) {
-        removeCell(id, graphStore);
+        graphStore.graph.getCell(id)?.remove();
       },
 
       setLink(id, attributesOrUpdater) {
-        const existing = graphStore.graphView.links.get(String(id)) as unknown as FlatLinkData | undefined;
+        const existing = graphStore.graphView.links.get(String(id)) ?? LINK_DEFAULTS;
 
-        const attributes: FlatLinkData = isUpdater(attributesOrUpdater)
-          ? attributesOrUpdater(existing ?? LINK_DEFAULTS)
+        const attributes = isUpdater(attributesOrUpdater)
+          ? attributesOrUpdater(existing)
           : attributesOrUpdater;
 
         const mergedData: FlatLinkData = { ...LINK_DEFAULTS, ...existing, ...attributes };
 
-        const cellAttributes = graphStore.graphView.linkToAttributes({ id: String(id), data: mergedData as unknown as CellData });
-        const attributes_ = { ...cellAttributes, id } as dia.Cell.JSON;
-        graphStore.graph.syncCells([attributes_], { remove: false });
+        const cellAttributes = graphStore.graphView.linkToAttributes({
+          id: String(id),
+          data: mergedData,
+        });
+        graphStore.graph.syncCells([{ ...cellAttributes, id } as dia.Cell.JSON], { remove: false });
       },
 
       removeLink(id) {
-        removeCell(id, graphStore);
+        graphStore.graph.getCell(id)?.remove();
       },
     }),
     [graphStore]

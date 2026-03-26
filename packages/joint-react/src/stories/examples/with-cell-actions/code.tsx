@@ -481,7 +481,9 @@ const DEFAULT_ROUTER = { name: 'normal' };
 const DEFAULT_CONNECTOR = { name: 'rounded', args: { radius: 10 } };
 function Main() {
   const elements = useElementsData<NodeData>();
-  const links = useLinksData() as unknown as Map<string, FlatLinkData>;
+  const links = useLinksData((items) =>
+    new Map([...items.entries()].map(([id, item]) => [id, item as FlatLinkData])),
+  );
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
       {/* Canvas */}

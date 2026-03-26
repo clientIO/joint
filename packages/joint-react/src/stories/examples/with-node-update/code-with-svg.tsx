@@ -1,6 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useElementsData, useElementSize, type FlatElementData, type FlatLinkData } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useElementsData,
+  useElementSize,
+  type FlatElementData,
+  type FlatLinkData,
+} from '@joint/react';
 import '../index.css';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
@@ -23,14 +30,19 @@ const initialEdges: Record<string, FlatLinkData> = {
   },
 };
 
-function ElementInput({ id, color }: Readonly<{ id: string; color: string }>) {
+function FlatElementData({ id, color }: Readonly<{ id: string; color: string }>) {
   const { setElement } = useGraph();
   return (
     <input
       className="nodrag"
       type="color"
       value={color}
-      onChange={(event) => setElement(id, (previous) => ({ ...previous, data: { ...previous.data as NodeData, color: event.target.value } }))}
+      onChange={(event) =>
+        setElement(id, (previous) => ({
+          ...previous,
+          data: { ...(previous.data as NodeData), color: event.target.value },
+        }))
+      }
     />
   );
 }
@@ -47,7 +59,7 @@ function Main() {
       <Paper className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {[...elements.entries()].map(([id, item]) => {
-          return <ElementInput key={id} id={id} color={item.color} />;
+          return <FlatElementData key={id} id={id} color={item.color} />;
         })}
       </div>
     </div>

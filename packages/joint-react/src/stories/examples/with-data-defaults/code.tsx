@@ -6,6 +6,7 @@ import {
     useFlatElementData,
     useElementSize,
     useFlatLinkData,
+    type FlatElementData,
     type FlatElementPort,
     type FlatLinkData,
     type RenderElement,
@@ -84,26 +85,29 @@ function Element({ label, color }: Readonly<{ label: string; color: string }>) {
 }
 
 function Diagram() {
-    const [elements, setElements] = useState(initialElements);
-    const [links, setLinks] = useState(initialLinks);
+    const [elements, setElements] = useState<Record<string, FlatElementData>>(initialElements as Record<string, FlatElementData>);
+    const [links, setLinks] = useState<Record<string, FlatLinkData>>(initialLinks as Record<string, FlatLinkData>);
     const [alternate, setAlternate] = useState(false);
     const color = alternate ? SECONDARY : PRIMARY;
     const portShape = alternate ? 'rect' as const : 'ellipse' as const;
 
-    const { mapDataToElementAttributes } = useFlatElementData<ElementData>({
-      defaults: (data) => ({
-        width: 100,
-        height: 40,
-        portStyle: {
-            color,
-            shape: portShape,
-            width: 12,
-            height: 12,
-            outline: BG,
-            outlineWidth: 2
-        },
-        ports: portsByType[data.type] ?? defaultPorts,
-      }),
+    const { mapDataToElementAttributes } = useFlatElementData({
+      defaults: (rawData) => {
+        const data = rawData as ElementData;
+        return {
+          width: 100,
+          height: 40,
+          portStyle: {
+              color,
+              shape: portShape,
+              width: 12,
+              height: 12,
+              outline: BG,
+              outlineWidth: 2
+          },
+          ports: portsByType[data.type] ?? defaultPorts,
+        };
+      },
     }, [color, portShape]);
 
     const { mapDataToLinkAttributes } = useFlatLinkData({

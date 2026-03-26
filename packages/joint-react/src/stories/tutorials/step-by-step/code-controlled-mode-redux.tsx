@@ -7,11 +7,10 @@
 import {
   GraphProvider,
   useElementSize,
-  type GraphProps,
-  type ElementInput,
-  type LinkInput,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
-  type IncrementalStateChanges,
+  type IncrementalContainerChanges,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -59,13 +58,13 @@ import undoable, { ActionCreators } from 'redux-undo';
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementInput<ElementData>;
+type CustomElement = FlatElementData<ElementData>;
 
 interface GraphState {
   /** Record of all elements (nodes) in the graph keyed by ID */
   readonly elements: Record<string, CustomElement>;
   /** Record of all links (edges) in the graph keyed by ID */
-  readonly links: Record<string, LinkInput>;
+  readonly links: Record<string, FlatLinkData>;
 }
 
 // ============================================================================
@@ -83,7 +82,7 @@ const defaultElements: Record<string, CustomElement> = {
 /**
  * Initial links for the graph.
  */
-const defaultLinks: Record<string, LinkInput> = {
+const defaultLinks: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -136,49 +135,32 @@ const graphSlice = createSlice({
      * Applies granular incremental changes from the graph's onIncrementalChange callback.
      * This handles add/change/remove/reset for both elements and links.
      */
-    applyIncrementalChanges: (state, action: PayloadAction<IncrementalStateChanges<CustomElement, LinkInput>>) => {
+    applyIncrementalChanges: (
+      state,
+      action: PayloadAction<IncrementalContainerChanges<CustomElement, FlatLinkData>>
+    ) => {
       const { elements, links } = action.payload;
 
       // Handle element incremental changes
-      if (elements.reset) {
-        state.elements = elements.reset;
-      } else {
-        if (elements.added) {
-          for (const [id, data] of Object.entries(elements.added)) {
-            state.elements[id] = data;
-          }
-        }
-        if (elements.changed) {
-          for (const [id, data] of Object.entries(elements.changed)) {
-            state.elements[id] = data;
-          }
-        }
-        if (elements.removed) {
-          for (const id of Object.keys(elements.removed)) {
-            delete state.elements[id];
-          }
-        }
+      for (const [id, data] of elements.added) {
+        state.elements[id] = data as CustomElement;
+      }
+      for (const [id, data] of elements.changed) {
+        state.elements[id] = data as CustomElement;
+      }
+      for (const id of elements.removed) {
+        delete state.elements[id];
       }
 
       // Handle link incremental changes
-      if (links.reset) {
-        state.links = links.reset;
-      } else {
-        if (links.added) {
-          for (const [id, data] of Object.entries(links.added)) {
-            state.links[id] = data;
-          }
-        }
-        if (links.changed) {
-          for (const [id, data] of Object.entries(links.changed)) {
-            state.links[id] = data;
-          }
-        }
-        if (links.removed) {
-          for (const id of Object.keys(links.removed)) {
-            delete state.links[id];
-          }
-        }
+      for (const [id, data] of links.added) {
+        state.links[id] = data as FlatLinkData;
+      }
+      for (const [id, data] of links.changed) {
+        state.links[id] = data as FlatLinkData;
+      }
+      for (const id of links.removed) {
+        delete state.links[id];
       }
     },
   },
@@ -260,14 +242,14 @@ function GraphWithRedux() {
   // onIncrementalChange receives granular change info (added/changed/removed/reset)
   // and dispatches a single Redux action with the full incremental change payload.
   const handleIncrementalChange = useCallback(
-    (changes: IncrementalStateChanges<CustomElement, LinkInput>) => {
+    (changes: IncrementalContainerChanges<CustomElement, FlatLinkData>) => {
       dispatch(applyIncrementalChanges(changes));
     },
     [dispatch]
   );
 
   return (
-    <GraphProvider<CustomElement, LinkInput>
+    <GraphProvider<ElementData>
       elements={elements}
       links={links}
       enableBatchUpdates

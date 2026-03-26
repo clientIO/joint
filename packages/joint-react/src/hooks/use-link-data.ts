@@ -15,7 +15,7 @@ const selectData = (item: CellData): unknown => (item as { readonly data: unknow
  * @returns The user data `D` for the current link.
  * @group Hooks
  */
-export function useLinkData<D extends CellData = CellData>(): D {
+export function useLinkData<D extends object = CellData>(): D {
   const id = useLinkId();
   const { graphView: { links } } = useGraphStore();
   return (useContainerItem(links, id, selectData) ?? EMPTY_DATA) as D;

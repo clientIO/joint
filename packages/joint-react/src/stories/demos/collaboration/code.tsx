@@ -10,10 +10,10 @@ import {
   useGraph,
   useMarkup,
   useMeasureNode,
-  type ElementInput,
-  type LinkInput,
-  type IncrementalStateChanges,
+  type FlatElementData,
+  type FlatLinkData,
   type RenderElement,
+  type IncrementalContainerChanges,
 } from '@joint/react';
 import { usePaperEvents } from '../../../hooks';
 import Peer, { type DataConnection } from 'peerjs';
@@ -87,7 +87,7 @@ type AgentNodeData = {
   readonly status: 'online' | 'busy' | 'idle';
 };
 
-type AgentNode = ElementInput<AgentNodeData>;
+type AgentNode = FlatElementData<AgentNodeData>;
 
 const PORT_R = 5;
 
@@ -181,7 +181,7 @@ const initialElements: Record<string, AgentNode> = {
   },
 };
 
-const initialLinks: Record<string, LinkInput> = {
+const initialLinks: Record<string, FlatLinkData> = {
   'o-r': {
     source: 'orchestrator',
     sourcePort: 'out',
@@ -207,8 +207,8 @@ const initialLinks: Record<string, LinkInput> = {
 // ── Redux Store ─────────────────────────────────────────────────────────────
 
 interface GraphState {
-  readonly elements: Record<string, ElementInput<AgentNodeData>>;
-  readonly links: Record<string, LinkInput>;
+  readonly elements: Record<string, FlatElementData<AgentNodeData>>;
+  readonly links: Record<string, FlatLinkData>;
 }
 
 const graphSlice = createSlice({
@@ -221,44 +221,24 @@ const graphSlice = createSlice({
     applyIncrementalChanges: (state, action: PayloadAction<CollabChanges>) => {
       const { elements, links } = action.payload;
 
-      if (elements.reset) {
-        state.elements = elements.reset as Record<string, ElementInput<AgentNodeData>>;
-      } else {
-        if (elements.added) {
-          for (const [id, data] of Object.entries(elements.added)) {
-            state.elements[id] = data as ElementInput<AgentNodeData>;
-          }
-        }
-        if (elements.changed) {
-          for (const [id, data] of Object.entries(elements.changed)) {
-            state.elements[id] = data as ElementInput<AgentNodeData>;
-          }
-        }
-        if (elements.removed) {
-          for (const id of Object.keys(elements.removed)) {
-            delete state.elements[id];
-          }
-        }
+      for (const [id, data] of elements.added) {
+        state.elements[id] = data as FlatElementData<AgentNodeData>;
+      }
+      for (const [id, data] of elements.changed) {
+        state.elements[id] = data as FlatElementData<AgentNodeData>;
+      }
+      for (const id of elements.removed) {
+        delete state.elements[id];
       }
 
-      if (links.reset) {
-        state.links = links.reset as Record<string, LinkInput>;
-      } else {
-        if (links.added) {
-          for (const [id, data] of Object.entries(links.added)) {
-            state.links[id] = data as LinkInput;
-          }
-        }
-        if (links.changed) {
-          for (const [id, data] of Object.entries(links.changed)) {
-            state.links[id] = data as LinkInput;
-          }
-        }
-        if (links.removed) {
-          for (const id of Object.keys(links.removed)) {
-            delete state.links[id];
-          }
-        }
+      for (const [id, data] of links.added) {
+        state.links[id] = data as FlatLinkData;
+      }
+      for (const [id, data] of links.changed) {
+        state.links[id] = data as FlatLinkData;
+      }
+      for (const id of links.removed) {
+        delete state.links[id];
       }
     },
   },
@@ -283,7 +263,7 @@ const selectLinks = (state: CollabRootState) => state.graph.links;
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
-type CollabChanges = IncrementalStateChanges<ElementInput<AgentNodeData>, LinkInput>;
+type CollabChanges = IncrementalContainerChanges<FlatElementData<AgentNodeData>, FlatLinkData>;
 
 interface SyncMessage {
   readonly type: 'incremental' | 'presence' | 'drag';
@@ -962,13 +942,13 @@ function GraphWithRedux() {
   );
 
   // Theme links
-  const themedLinks: Record<string, LinkInput> = {};
+  const themedLinks: Record<string, FlatLinkData> = {};
   for (const [id, link] of Object.entries(links)) {
     themedLinks[id] = { ...link, color: theme.link };
   }
 
   // Theme element ports
-  const themedElements: Record<string, ElementInput<AgentNodeData>> = {};
+  const themedElements: Record<string, FlatElementData<AgentNodeData>> = {};
   for (const [id, element] of Object.entries(elements)) {
     themedElements[id] = {
       ...element,
@@ -1003,7 +983,7 @@ function GraphWithRedux() {
           name: peerName ? peerName.slice(0, 6) : 'Peer',
         }}
       >
-        <GraphProvider<ElementInput<AgentNodeData>, LinkInput>
+        <GraphProvider<AgentNodeData>
           elements={themedElements}
           links={themedLinks}
           onIncrementalChange={handleIncrementalChange}
@@ -1012,7 +992,6 @@ function GraphWithRedux() {
             id={PAPER_ID}
             height="100%"
             width="100%"
-
             gridSize={1}
             overflow
             linkPinning={false}

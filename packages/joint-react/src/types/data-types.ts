@@ -5,21 +5,6 @@ import type { CellId } from './cell-id';
 import type { LiteralUnion } from './index';
 import type { CellData } from './cell-data';
 
-// ── Cell Types (shared) ──────────────────────────────────────────────────────
-
-/**
- * Properties common to all cells (elements and links).
- * @group Graph
- */
-export interface FlatCellData {
-  /** Z-index of the cell. */
-  readonly z?: number;
-  /** Parent element id. */
-  readonly parent?: string;
-  /** Layer id for the cell. */
-  readonly layer?: string;
-}
-
 // ── Element Types ─────────────────────────────────────────────────────────────
 
 /**
@@ -120,7 +105,8 @@ export interface FlatElementPort {
  * are at the top level.
  * @group Graph
  */
-export interface FlatElementData<D extends object = CellData> extends FlatCellData {
+export interface FlatElementData<D extends object = CellData> {
+  readonly [key: string]: unknown;
   /** User-provided custom data for this element. */
   readonly data?: D;
   /** X position of the element. */
@@ -133,6 +119,12 @@ export interface FlatElementData<D extends object = CellData> extends FlatCellDa
   readonly height?: number;
   /** Angle of the element in degrees. */
   readonly angle?: number;
+  /** Z-index of the cell. */
+  readonly z?: number;
+  /** Parent element id. */
+  readonly parent?: string;
+  /** Layer id for the cell. */
+  readonly layer?: string;
   /** Style defaults applied to all ports. Individual port properties take precedence. */
   readonly portStyle?: Partial<FlatElementPort>;
   /** Ports of the element. */
@@ -161,6 +153,7 @@ export type FlatLinkEnd = CellId | { readonly x: number; readonly y: number };
  * @group Graph
  */
 export interface FlatLinkPresentationData {
+  readonly [key: string]: unknown;
   /**
    * Stroke color of the link line.
    * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
@@ -315,18 +308,9 @@ export interface FlatLinkLabel {
 // New type re-exports — use these in new code, old Flat* names kept for compatibility.
 export type {
   CellData,
-  CellItem,
-  ElementItem,
-  ElementInput,
   ElementLayout,
   ElementPosition,
   ElementSize,
-  ElementPort,
-  LinkItem,
-  LinkInput,
-  LinkEnd,
-  LinkLabel,
-  LinkPresentationData,
   DEFAULT_ELEMENT_LAYOUT,
 } from './cell-data';
 
@@ -336,18 +320,23 @@ export type {
  * @group Graph
  */
 export interface FlatLinkData<D extends object = CellData>
-  extends FlatCellData,
-    FlatLinkPresentationData {
+  extends FlatLinkPresentationData {
   /** User-provided custom data for this link. */
   readonly data?: D;
+  /** Z-index of the cell. */
+  readonly z?: number;
+  /** Parent element id. */
+  readonly parent?: string;
+  /** Layer id for the cell. */
+  readonly layer?: string;
   /**
    * Source element id or point.
    */
-  readonly source: FlatLinkEnd;
+  readonly source?: FlatLinkEnd;
   /**
    * Target element id or point.
    */
-  readonly target: FlatLinkEnd;
+  readonly target?: FlatLinkEnd;
   /**
    * Source port id.
    */

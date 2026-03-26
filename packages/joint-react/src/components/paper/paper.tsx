@@ -15,7 +15,7 @@ function resolveStyleDimension(
   if (dimension === undefined) {
     return undefined;
   }
-  return dimension as dia.Paper.Dimension;
+  return dimension;
 }
 
 /**
@@ -46,7 +46,7 @@ function PaperBase(
     isExternalPaper,
   });
 
-  useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paperRef.current as dia.Paper | null);
+  useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paperRef.current);
   // When paper is externally managed (e.g. by PortalStencil), skip the host div —
   // the paper's DOM is already mounted elsewhere. Only render portal content.
   if (isExternalPaper) {

@@ -15,7 +15,7 @@ const selectData = (item: CellData): unknown => (item as { readonly data: unknow
  * @returns The user data `D` for the current element.
  * @group Hooks
  */
-export function useElementData<D extends CellData = CellData>(): D {
+export function useElementData<D extends object = CellData>(): D {
   const id = useElementId();
   const { graphView: { elements } } = useGraphStore();
   return (useContainerItem(elements, id, selectData) ?? EMPTY_DATA) as D;

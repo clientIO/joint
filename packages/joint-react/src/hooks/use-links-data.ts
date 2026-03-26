@@ -15,32 +15,27 @@ import { useContainerItems } from './use-container-items';
  *
  * @example
  * ```tsx
- * // All links
  * const all = useLinksData();
- *
- * // Specific links only — subscribes just to these IDs
  * const subset = useLinksData('l1', 'l2');
- *
- * // Selector — re-renders only when count changes
  * const count = useLinksData((items) => items.size);
  * ```
  * @group Hooks
  */
 export function useLinksData<
-  LinkData extends CellData = CellData,
+  LinkData extends object = CellData,
 >(): Map<CellId, LinkData>;
 export function useLinksData<
-  LinkData extends CellData = CellData,
+  LinkData extends object = CellData,
 >(...ids: [string, ...string[]]): Map<CellId, LinkData>;
 export function useLinksData<
-  LinkData extends CellData = CellData,
+  LinkData extends object = CellData,
   S = Map<CellId, LinkData>,
 >(
   selector: (items: Map<CellId, LinkData>) => S,
   isEqual?: (a: S, b: S) => boolean,
 ): S;
 export function useLinksData<
-  LinkData extends CellData = CellData,
+  LinkData extends object = CellData,
   S = Map<CellId, LinkData>,
 >(
   ...args:
@@ -53,24 +48,20 @@ export function useLinksData<
   const isSelectorMode = typeof args[0] === 'function';
   const ids = isSelectorMode ? undefined : (args as string[]);
 
-  // Always called (rules of hooks) — returns undefined in selector mode.
   const stableIds = useMemo(
     () => (ids && ids.length > 0 ? ids : undefined),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ids?.join(',')],
+    [ids?.join(',')]
   );
 
   const idsOrSelector: string[] | ((items: Map<string, CellData>) => S) | undefined = isSelectorMode
     ? (args[0] as (items: Map<string, CellData>) => S)
     : stableIds;
-  const isEqual = isSelectorMode
-    ? (args[1] as ((a: S, b: S) => boolean) | undefined)
-    : undefined;
+  const isEqual = isSelectorMode ? (args[1] as ((a: S, b: S) => boolean) | undefined) : undefined;
 
-  // Safe: useContainerItems implementation handles all three argument shapes.
   return useContainerItems(
     links,
     idsOrSelector as (items: Map<string, CellData>) => S,
-    isEqual,
+    isEqual
   ) as Map<CellId, LinkData> | S;
 }

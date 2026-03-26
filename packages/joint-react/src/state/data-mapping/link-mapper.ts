@@ -1,4 +1,3 @@
-
 import { type dia, util } from '@joint/core';
 import type { FlatLinkData, FlatLinkLabel } from '../../types/data-types';
 import type { CellData } from '../../types/cell-data';
@@ -99,10 +98,17 @@ export function flatMapLinkAttributesToData<Link extends object = FlatLinkData>(
   // Filter out values that match model defaults (not needed in React state)
   const result = data as Record<string, unknown>;
   if (attributes.z !== undefined && attributes.z === defaultAttributes.z) delete result.z;
-  if (attributes.layer !== undefined && attributes.layer === defaultAttributes.layer) delete result.layer;
-  if (Array.isArray(attributes.vertices) && attributes.vertices.length === 0) delete result.vertices;
-  if (attributes.router !== undefined && util.isEqual(attributes.router, defaultAttributes.router)) delete result.router;
-  if (attributes.connector !== undefined && util.isEqual(attributes.connector, defaultAttributes.connector)) delete result.connector;
+  if (attributes.layer !== undefined && attributes.layer === defaultAttributes.layer)
+    delete result.layer;
+  if (Array.isArray(attributes.vertices) && attributes.vertices.length === 0)
+    delete result.vertices;
+  if (attributes.router !== undefined && util.isEqual(attributes.router, defaultAttributes.router))
+    delete result.router;
+  if (
+    attributes.connector !== undefined &&
+    util.isEqual(attributes.connector, defaultAttributes.connector)
+  )
+    delete result.connector;
 
   return result as Link;
 }
@@ -155,18 +161,18 @@ export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
 
   const attributes: Record<string, unknown> = {
     type: PORTAL_LINK_TYPE,
-    source: toLinkEndAttribute(source, {
+    source: source ? toLinkEndAttribute(source, {
       port: sourcePort,
       anchor: sourceAnchor,
       connectionPoint: sourceConnectionPoint,
       magnet: sourceMagnet,
-    }),
-    target: toLinkEndAttribute(target, {
+    }) : undefined,
+    target: target ? toLinkEndAttribute(target, {
       port: targetPort,
       anchor: targetAnchor,
       connectionPoint: targetConnectionPoint,
       magnet: targetMagnet,
-    }),
+    }) : undefined,
     attrs: buildLinkPresentationAttributes({
       color,
       width,

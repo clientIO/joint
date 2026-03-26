@@ -50,8 +50,8 @@ function resolveShape(shape: string, w: number, h: number): string {
  * into SVG path strings sized to each port's width/height, then delegates
  * to the default flat mapper via `flatElementDataToAttributes`.
  */
-function mapDataToElementAttributes(options: ToElementAttributesOptions<PortElementData>) {
-  const { data } = options;
+function mapDataToElementAttributes(options: ToElementAttributesOptions<FlatElementData>) {
+  const data = options.data as PortElementData;
   const { ports, portStyle } = data;
   if (!ports) return flatElementDataToAttributes(data);
 
@@ -500,7 +500,7 @@ function Main() {
 export default function App() {
   return (
     <GraphProvider
-      elements={initialElements}
+      elements={initialElements as Record<string, FlatElementData>}
       links={initialLinks}
       mapDataToElementAttributes={mapDataToElementAttributes}
     >

@@ -36,9 +36,8 @@
 import {
   GraphProvider,
   useElementSize,
-  type GraphProps,
-  type ElementInput,
-  type LinkInput,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -54,14 +53,14 @@ import { create } from 'zustand';
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementInput<ElementData>;
+type CustomElement = FlatElementData<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
   '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
   '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
 
-const defaultLinks: Record<string, LinkInput> = {
+const defaultLinks: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -93,11 +92,11 @@ interface GraphStore {
   /** Record of all elements (nodes) in the graph keyed by ID */
   elements: Record<string, CustomElement>;
   /** Record of all links (edges) in the graph keyed by ID */
-  links: Record<string, LinkInput>;
+  links: Record<string, FlatLinkData>;
   /** Action to set elements (used by onElementsChange callback) */
   setElements: (updater: React.SetStateAction<Record<string, CustomElement>>) => void;
   /** Action to set links (used by onLinksChange callback) */
-  setLinks: (updater: React.SetStateAction<Record<string, LinkInput>>) => void;
+  setLinks: (updater: React.SetStateAction<Record<string, FlatLinkData>>) => void;
   /** Action to add a new element */
   addElement: (id: string, data: CustomElement) => void;
   /** Action to remove the last element */
@@ -118,7 +117,7 @@ const useGraphStore = create<GraphStore>((set) => ({
     }));
   },
 
-  setLinks: (updater: React.SetStateAction<Record<string, LinkInput>>) => {
+  setLinks: (updater: React.SetStateAction<Record<string, FlatLinkData>>) => {
     set((state) => ({
       links: typeof updater === 'function' ? updater(state.links) : updater,
     }));
@@ -143,7 +142,7 @@ const useGraphStore = create<GraphStore>((set) => ({
       // eslint-disable-next-line sonarjs/no-unused-vars
       const { [removedElementId]: _removed, ...newElements } = state.elements;
 
-      const newLinks: Record<string, LinkInput> = {};
+      const newLinks: Record<string, FlatLinkData> = {};
       for (const [id, link] of Object.entries(state.links)) {
         if (link.source !== removedElementId && link.target !== removedElementId) {
           newLinks[id] = link;

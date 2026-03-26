@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
 import type { FlatElementData } from '../../types/data-types';
-import type { CellData, ElementInput, ElementItem } from '../../types/cell-data';
+import type { CellData } from '../../types/cell-data';
 
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortGroupsDefault } from './convert-ports';
@@ -68,8 +68,7 @@ export function flatMapDataToElementAttributes<Element extends object = CellData
     throw new Error('Invalid element data: expected an object.');
   }
 
-  const input = data as unknown as ElementInput;
-  const { data: userData, x, y, width, height, angle, z, layer, parent, ports, portStyle } = input;
+  const { data: userData, x, y, width, height, angle, z, layer, parent, ports, portStyle } = data;
 
   const attributes: CellAttributes = { id, type: PORTAL_ELEMENT_TYPE };
 
@@ -116,7 +115,7 @@ export function flatMapDataToElementAttributes<Element extends object = CellData
 /**
  * Maps JointJS element attributes back to element data.
  *
- * Returns an `ElementItem`-compatible shape: user data in the `data` field,
+ * Returns an `FlatElementData`-compatible shape: user data in the `data` field,
  * structural props (z, layer, parent, ports, portStyle) at top level.
  * Layout properties (x, y, width, height, angle) are NOT included — they go to elementsLayout.
  *
@@ -133,12 +132,12 @@ export function flatMapElementAttributesToData<Element extends object = CellData
   // Extract user data and ports from cell.data (where forward mapper stored them)
   const { ports, portStyle, ...userData } = (cellData ?? {}) as Record<string, unknown>;
 
-  // Build ElementItem shape: data field + structural props
+  // Build FlatElementData shape: data field + structural props
   const result: Record<string, unknown> = {
     data: userData,
   };
 
-  // Structural props (on ElementItem, not in data)
+  // Structural props (on FlatElementData, not in data)
   if (ports !== undefined) result.ports = ports;
   if (portStyle !== undefined) result.portStyle = portStyle;
   if (z !== undefined && z !== defaultAttributes.z) result.z = z;
@@ -165,33 +164,33 @@ export function flatMapElementAttributesToData<Element extends object = CellData
 // ────────────────────────────────────────────────────────────────────────────
 
 /**
- * Converts ElementInput data to JointJS cell attributes.
+ * Converts FlatElementData data to JointJS cell attributes.
  * Public utility — caller provides the `id` separately.
  * @param data - The element input data with explicit `data` field.
  * @returns The JointJS cell attributes.
  */
 export function flatElementDataToAttributes<D extends object = CellData>(
-  data: ElementInput<D>
+  data: FlatElementData<D>
 ): CellAttributes {
-  return flatMapDataToElementAttributes({ id: '', data: data as unknown as FlatElementData });
+  return flatMapDataToElementAttributes({ id: '', data });
 }
 
 /**
- * Converts JointJS element attributes back to ElementItem shape.
+ * Converts JointJS element attributes back to FlatElementData shape.
  * Public utility — purely mechanical, no defaultAttributes filtering.
  * @param attributes - The JointJS element attributes.
  * @returns The element item with user data in `data` field.
  */
 export function flatAttributesToElementData<D extends object = CellData>(
   attributes: dia.Element.Attributes
-): ElementItem<D> {
+): FlatElementData<D> {
   const { data: cellData, z, layer, parent } = attributes;
   const { ports, portStyle, ...userData } = (cellData ?? {}) as Record<string, unknown>;
 
-  const result: ElementItem<D> = {
+  const result: FlatElementData<D> = {
     data: userData as D,
-    ...(ports !== undefined && { ports: ports as ElementItem<D>['ports'] }),
-    ...(portStyle !== undefined && { portStyle: portStyle as ElementItem<D>['portStyle'] }),
+    ...(ports !== undefined && { ports: ports as FlatElementData<D>['ports'] }),
+    ...(portStyle !== undefined && { portStyle: portStyle as FlatElementData<D>['portStyle'] }),
     ...(z !== undefined && { z: z as number }),
     ...(layer !== undefined && { layer: layer as string }),
     ...(parent ? { parent: parent as string } : {}),

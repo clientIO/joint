@@ -35,7 +35,7 @@ import { useContainerItem } from './use-container-item';
  * @param isEqual - The function used to check equality. Defaults to strict equality (`Object.is`).
  * @returns The selected link based on the current cell id.
  */
-export function useLink<LinkData extends CellData = CellData, ReturnedLinks = LinkData>(
+export function useLink<LinkData extends object = CellData, ReturnedLinks = LinkData>(
   selector: (item: LinkData) => ReturnedLinks = identitySelector as (
     item: LinkData
   ) => ReturnedLinks,

@@ -60,24 +60,14 @@ export {
 // Types — New (v2)
 export type {
   CellData,
-  CellItem,
-  ElementItem,
-  ElementInput,
   ElementLayout,
   ElementPosition,
   ElementSize,
-  ElementPort,
-  LinkItem,
-  LinkInput,
-  LinkEnd,
-  LinkLabel,
-  LinkPresentationData,
 } from './types/cell-data';
 export { DEFAULT_ELEMENT_LAYOUT } from './types/cell-data';
 
 // Types — Legacy (kept for backwards compatibility)
 export type {
-  FlatCellData,
   FlatElementData,
   FlatElementPort,
   FlatLinkData,
@@ -88,7 +78,6 @@ export type {
 export type { PortShape as PortShape } from './theme/element-theme';
 export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
-export type { IncrementalStateChanges, IncrementalStateChange } from './state/incremental.types';
 
 // Theme
 export type { LinkMarkerName, LinkMarker } from './theme/markers';
@@ -105,3 +94,6 @@ export type {
   ToElementDataOptions,
 } from './state/data-mapping/element-mapper';
 export type { ToLinkAttributesOptions, ToLinkDataOptions } from './state/data-mapping/link-mapper';
+
+// Store types
+export type { IncrementalContainerChanges } from './store/graph-view';

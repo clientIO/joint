@@ -35,9 +35,8 @@
 import {
   GraphProvider,
   useElementSize,
-  type GraphProps,
-  type ElementInput,
-  type LinkInput,
+  type FlatElementData,
+  type FlatLinkData,
   Paper,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -54,14 +53,14 @@ import { atom, createStore, useAtomValue, useSetAtom, Provider as JotaiProvider 
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementInput<ElementData>;
+type CustomElement = FlatElementData<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
   '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
   '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
 
-const defaultLinks: Record<string, LinkInput> = {
+const defaultLinks: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -101,7 +100,7 @@ const elementsAtom = atom<Record<string, CustomElement>>(defaultElements);
 /**
  * Jotai atom for graph links.
  */
-const linksAtom = atom<Record<string, LinkInput>>(defaultLinks);
+const linksAtom = atom<Record<string, FlatLinkData>>(defaultLinks);
 
 // ============================================================================
 // STEP 4: Component Implementation
@@ -163,7 +162,7 @@ function PaperApp() {
             const { [removedElementId]: _removed, ...newElements } = currentElements;
 
             // Remove links connected to the removed element
-            const newLinks: Record<string, LinkInput> = {};
+            const newLinks: Record<string, FlatLinkData> = {};
             for (const [id, link] of Object.entries(currentLinks)) {
               if (link.source !== removedElementId && link.target !== removedElementId) {
                 newLinks[id] = link;
@@ -196,19 +195,16 @@ function Main() {
   // Callbacks to sync graph changes back to Jotai atoms
   const handleElementsChange = useCallback(
     (updater: React.SetStateAction<Record<string, CustomElement>>) => {
-      const newElements = typeof updater === 'function'
-        ? updater(jotaiStore.get(elementsAtom))
-        : updater;
+      const newElements =
+        typeof updater === 'function' ? updater(jotaiStore.get(elementsAtom)) : updater;
       jotaiSetElements(newElements);
     },
     [jotaiSetElements]
   );
 
   const handleLinksChange = useCallback(
-    (updater: React.SetStateAction<Record<string, LinkInput>>) => {
-      const newLinks = typeof updater === 'function'
-        ? updater(jotaiStore.get(linksAtom))
-        : updater;
+    (updater: React.SetStateAction<Record<string, FlatLinkData>>) => {
+      const newLinks = typeof updater === 'function' ? updater(jotaiStore.get(linksAtom)) : updater;
       jotaiSetLinks(newLinks);
     },
     [jotaiSetLinks]

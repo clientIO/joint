@@ -62,8 +62,10 @@ export interface IncrementalContainerChanges<ElementData, LinkData> {
   };
 }
 
-interface GraphViewState<ElementData extends object = CellData, LinkData extends object = CellData>
-  extends GraphMappings<ElementData, LinkData> {
+interface GraphViewState<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+> extends GraphMappings<ElementData, LinkData> {
   readonly graph: dia.Graph;
   readonly enableBatchUpdates?: boolean;
   readonly getPaperStores: () => Map<string, PaperStore>;

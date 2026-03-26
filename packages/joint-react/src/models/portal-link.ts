@@ -40,8 +40,8 @@ export class PortalLink<Attributes = dia.Link.Attributes> extends dia.Link<
         },
         line: {
           connection: true,
-        }
-      }
+        },
+      },
     } as unknown as dia.Link.Attributes & Attributes;
   }
 

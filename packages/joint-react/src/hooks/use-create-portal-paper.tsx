@@ -16,12 +16,11 @@ import {
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
 import { usePaperStore } from './use-paper';
-import { useElementsLayout, useInternalData } from './use-stores';
+import { useInternalData } from './use-stores';
 import { useLinkData } from './use-link-data';
-import type { CellData } from '../types/cell-data';
 import { useContainerKeys } from './use-container-keys';
 import type { PaperStore } from '../store';
-import type { PortalPaper } from '../models/portal-paper';
+import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
 import { DefaultElement } from '../components/default-element';
 
@@ -71,7 +70,7 @@ export interface UseCreatePortalPaperResult {
  * @throws {Error} When `PortalLink` is missing in graph namespace.
  */
 function getPortalLinkConstructor(graph: dia.Graph): PortalLinkConstructor {
-  const cellNamespace = graph.layerCollection?.cellNamespace as Record<string, unknown> | undefined;
+  const cellNamespace = graph.layerCollection?.cellNamespace;
   const reactLinkConstructor = cellNamespace?.PortalLink;
   if (typeof reactLinkConstructor === 'function') {
     return reactLinkConstructor as PortalLinkConstructor;
@@ -136,6 +135,7 @@ export function useCreatePortalPaper(
 
   const graphStore = useGraphStore();
   const areElementsMeasured = useAreElementsMeasured();
+  console.log('Paper measurement status:', { areElementsMeasured });
   const resetVersion = useInternalData(selectResetVersion);
   const previousResetVersionRef = useRef(-1);
 
@@ -175,7 +175,7 @@ export function useCreatePortalPaper(
       const PortalLinkModel = getPortalLinkConstructor(graph);
       if (!link) {
         const defaultAttributes = gv.linkToAttributes({
-          data: {} as CellData,
+          data: {},
         });
         return new PortalLinkModel(defaultAttributes);
       }
@@ -186,7 +186,7 @@ export function useCreatePortalPaper(
         return link.clone();
       }
       const attributes = gv.linkToAttributes({
-        data: link as CellData,
+        data: link,
       });
       return new PortalLinkModel(attributes);
     },
@@ -281,7 +281,7 @@ export function useCreatePortalPaper(
       previousResetVersionRef.current = resetVersion;
     }
     const event: ElementsMeasuredEvent = {
-      paper: paper as unknown as dia.Paper,
+      paper,
       graph: paper.model,
       isInitial,
     };
@@ -298,10 +298,11 @@ export function useCreatePortalPaper(
       if (!elementView?.paper) {
         return null;
       }
+      if (!(elementView.paper instanceof PortalPaper)) {
+        return null;
+      }
 
-      const portalNode = (elementView.paper as unknown as PortalPaper).getCellViewPortalNode(
-        elementView
-      );
+      const portalNode = elementView.paper.getCellViewPortalNode(elementView);
 
       if (!portalNode?.isConnected) {
         return null;
@@ -355,7 +356,10 @@ export function useCreatePortalPaper(
         return null;
       }
 
-      const portalNode = (linkView.paper as unknown as PortalPaper).getCellViewPortalNode(linkView);
+      if (!(linkView.paper instanceof PortalPaper)) {
+        return;
+      }
+      const portalNode = linkView.paper.getCellViewPortalNode(linkView);
       if (!portalNode) {
         return null;
       }

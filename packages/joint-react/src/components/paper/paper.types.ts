@@ -22,10 +22,10 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */
-export type RenderElement<ElementData extends CellData = CellData> = (data: ElementData) => ReactNode;
+export type RenderElement<ElementData extends object = CellData> = (data: ElementData) => ReactNode;
 
 /** Render function for links. Receives user data `D` from the link's `data` field. */
-export type RenderLink<LinkData extends CellData = CellData> = (data: LinkData) => ReactNode;
+export type RenderLink<LinkData extends object = CellData> = (data: LinkData) => ReactNode;
 
 
 /**
