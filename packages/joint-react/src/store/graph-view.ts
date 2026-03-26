@@ -67,7 +67,9 @@ interface GraphViewState<ElementData extends object = CellData, LinkData extends
   readonly graph: dia.Graph;
   readonly enableBatchUpdates?: boolean;
   readonly getPaperStores: () => Map<string, PaperStore>;
-  readonly onIncrementalChange?: (changes: IncrementalContainerChanges<ElementData, LinkData>) => void;
+  readonly onIncrementalChange?: (
+    changes: IncrementalContainerChanges<ElementData, LinkData>
+  ) => void;
 }
 
 export type ElementToAttribute<ElementData extends object = CellData> = (
@@ -77,13 +79,19 @@ export type LinkToAttribute<LinkData extends object = CellData> = (
   options: LinkToAttributes<LinkData>
 ) => CellAttributes;
 
-interface UpdateGraphOptions<ElementData extends object = CellData, LinkData extends object = CellData> {
+interface UpdateGraphOptions<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+> {
   readonly elements: Record<string, ElementData>;
   readonly links: Record<string, LinkData>;
   readonly flag?: 'updateFromReact';
 }
 
-export interface GraphView<ElementData extends object = CellData, LinkData extends object = CellData> {
+export interface GraphView<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+> {
   /** Populate containers from current graph cells (initial sync). */
   readonly syncFromGraph: () => void;
   readonly elements: ReturnType<typeof asReadonlyContainer<ElementData>>;
@@ -108,26 +116,21 @@ export interface GraphView<ElementData extends object = CellData, LinkData exten
   readonly updateAutoSizedElement: (id: string, data: Record<string, unknown>) => void;
   destroy: () => void;
 }
-export function graphView<ElementData extends object = CellData, LinkData extends object = CellData>(
-  options: GraphViewState<ElementData, LinkData>
-): GraphView<ElementData, LinkData> {
-  const {
-    graph,
-    getPaperStores,
-    onIncrementalChange,
-  } = options;
+export function graphView<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+>(options: GraphViewState<ElementData, LinkData>): GraphView<ElementData, LinkData> {
+  const { graph, getPaperStores, onIncrementalChange } = options;
 
   // Mappers are stored mutably so they can be swapped at runtime
   // (e.g. when useFlatElementData/useFlatLinkData deps change).
   const mappers = {
     mapDataToElementAttributes:
       options.mapDataToElementAttributes ?? flatMapDataToElementAttributes,
-    mapDataToLinkAttributes:
-      options.mapDataToLinkAttributes ?? flatMapDataToLinkAttributes,
+    mapDataToLinkAttributes: options.mapDataToLinkAttributes ?? flatMapDataToLinkAttributes,
     mapElementAttributesToData:
       options.mapElementAttributesToData ?? flatMapElementAttributesToData,
-    mapLinkAttributesToData:
-      options.mapLinkAttributesToData ?? flatMapLinkAttributesToData,
+    mapLinkAttributesToData: options.mapLinkAttributesToData ?? flatMapLinkAttributesToData,
   };
 
   let {
@@ -143,9 +146,10 @@ export function graphView<ElementData extends object = CellData, LinkData extend
   /**
    * Returns true if the element's last change only affected layout properties (position/size/angle).
    * Uses `cell.changed` which JointJS sets to the keys modified in the last `set()` call.
+   * @param cell
    */
   function isElementLayoutOnlyChange(cell: dia.Element): boolean {
-    const changed = cell.changed;
+    const { changed } = cell;
     if (!changed || typeof changed !== 'object') return false;
     const changedKeys = Object.keys(changed);
     return changedKeys.length > 0 && changedKeys.every((key) => LAYOUT_KEYS.has(key));
@@ -241,8 +245,12 @@ export function graphView<ElementData extends object = CellData, LinkData extend
       const elementLayoutAdded = trackChanges ? new Map<string, ElementLayout>() : undefined;
       const elementLayoutChanged = trackChanges ? new Map<string, ElementLayout>() : undefined;
       const elementLayoutRemoved = trackChanges ? new Set<string>() : undefined;
-      const linkLayoutAdded = trackChanges ? new Map<string, Record<string, LinkLayout>>() : undefined;
-      const linkLayoutChanged = trackChanges ? new Map<string, Record<string, LinkLayout>>() : undefined;
+      const linkLayoutAdded = trackChanges
+        ? new Map<string, Record<string, LinkLayout>>()
+        : undefined;
+      const linkLayoutChanged = trackChanges
+        ? new Map<string, Record<string, LinkLayout>>()
+        : undefined;
       const linkLayoutRemoved = trackChanges ? new Set<string>() : undefined;
 
       for (const [id, change] of changes) {
@@ -262,16 +270,45 @@ export function graphView<ElementData extends object = CellData, LinkData extend
                 (isAdd ? elementLayoutAdded! : elementLayoutChanged!).set(id, layout);
               }
 
+              // When element position/size changes, connected link paths also change.
+              // Update link layouts for all papers so useLinkLayout() re-renders.
+              if (!isAdd && getPaperStores) {
+                const papers = getPaperStores();
+                const connectedLinks = graph.getConnectedLinks(cell);
+                for (const connectedLink of connectedLinks) {
+                  const linkId = String(connectedLink.id);
+                  const linkLayoutPerPaper: Record<string, LinkLayout> = {
+                    ...linksLayout.get(linkId),
+                  };
+                  for (const [pid, paperStore] of papers) {
+                    const linkView = paperStore.paper.findViewByModel(
+                      connectedLink
+                    ) as dia.LinkView | null;
+                    if (!linkView) continue;
+                    linkLayoutPerPaper[pid] = getLinkLayout(linkView);
+                  }
+                  linksLayout.set(linkId, linkLayoutPerPaper);
+                  hasLinkLayoutChange = true;
+                  if (trackChanges) {
+                    linkLayoutChanged!.set(linkId, linkLayoutPerPaper);
+                  }
+                }
+              }
+
               // Determine if this is a layout-only change (position/size/angle).
               // JointJS sets `cell.changed` with the keys that changed in the last `set()` call.
               // If ONLY layout keys changed, skip data re-computation to avoid unnecessary re-renders.
-              const isLayoutOnlyChange = !isAdd && !onlyLayoutUpdate && isElementLayoutOnlyChange(cell);
+              const isLayoutOnlyChange =
+                !isAdd && !onlyLayoutUpdate && isElementLayoutOnlyChange(cell);
 
               // Skip data update when:
               // 1. onlyLayoutUpdate (view mount/unmount) AND element already in container
               // 2. Layout-only change (position/size/angle) — data hasn't changed
               const isElementMissing = elements.get(id) === undefined;
-              if ((onlyLayoutUpdate && !isElementMissing) || (isLayoutOnlyChange && !isElementMissing)) {
+              if (
+                (onlyLayoutUpdate && !isElementMissing) ||
+                (isLayoutOnlyChange && !isElementMissing)
+              ) {
                 continue;
               }
               const data = elementToData({ element: cell });
@@ -312,7 +349,9 @@ export function graphView<ElementData extends object = CellData, LinkData extend
             // For remove events from setPaperViews, cell may be undefined.
             // Fall back to checking which container holds the id.
             const removedCell = change.data;
-            const isElement = removedCell ? removedCell.isElement() : elements.get(id) !== undefined;
+            const isElement = removedCell
+              ? removedCell.isElement()
+              : elements.get(id) !== undefined;
             const isLink = removedCell ? removedCell.isLink() : links.get(id) !== undefined;
             if (isElement) {
               elements.delete(id);
@@ -357,8 +396,16 @@ export function graphView<ElementData extends object = CellData, LinkData extend
         onIncrementalChange!({
           elements: { added: elementAdded!, changed: elementChanged!, removed: elementRemoved! },
           links: { added: linkAdded!, changed: linkChanged!, removed: linkRemoved! },
-          elementsLayout: { added: elementLayoutAdded!, changed: elementLayoutChanged!, removed: elementLayoutRemoved! },
-          linksLayout: { added: linkLayoutAdded!, changed: linkLayoutChanged!, removed: linkLayoutRemoved! },
+          elementsLayout: {
+            added: elementLayoutAdded!,
+            changed: elementLayoutChanged!,
+            removed: elementLayoutRemoved!,
+          },
+          linksLayout: {
+            added: linkLayoutAdded!,
+            changed: linkLayoutChanged!,
+            removed: linkLayoutRemoved!,
+          },
         });
       }
 
@@ -443,7 +490,8 @@ export function graphView<ElementData extends object = CellData, LinkData extend
             linksLayout.delete(id);
           }
         }
-        if (elements.getSize() > 0 || Object.keys(userElements).length > 0) elements.commitChanges();
+        if (elements.getSize() > 0 || Object.keys(userElements).length > 0)
+          elements.commitChanges();
         if (links.getSize() > 0 || Object.keys(userLinks).length > 0) links.commitChanges();
         if (elementsLayout.getSize() > 0) elementsLayout.commitChanges();
         if (linksLayout.getSize() > 0) linksLayout.commitChanges();
@@ -451,24 +499,36 @@ export function graphView<ElementData extends object = CellData, LinkData extend
     },
     updateMappers(nextMappers: GraphMappings<ElementData, LinkData>) {
       let changed = false;
-      if (nextMappers.mapDataToElementAttributes && nextMappers.mapDataToElementAttributes !== mappers.mapDataToElementAttributes) {
+      if (
+        nextMappers.mapDataToElementAttributes &&
+        nextMappers.mapDataToElementAttributes !== mappers.mapDataToElementAttributes
+      ) {
         mappers.mapDataToElementAttributes = nextMappers.mapDataToElementAttributes;
-        mapDataToElementAttributes = nextMappers.mapDataToElementAttributes;
+        ({ mapDataToElementAttributes } = mappers);
         changed = true;
       }
-      if (nextMappers.mapDataToLinkAttributes && nextMappers.mapDataToLinkAttributes !== mappers.mapDataToLinkAttributes) {
+      if (
+        nextMappers.mapDataToLinkAttributes &&
+        nextMappers.mapDataToLinkAttributes !== mappers.mapDataToLinkAttributes
+      ) {
         mappers.mapDataToLinkAttributes = nextMappers.mapDataToLinkAttributes;
-        mapDataToLinkAttributes = nextMappers.mapDataToLinkAttributes;
+        ({ mapDataToLinkAttributes } = mappers);
         changed = true;
       }
-      if (nextMappers.mapElementAttributesToData && nextMappers.mapElementAttributesToData !== mappers.mapElementAttributesToData) {
+      if (
+        nextMappers.mapElementAttributesToData &&
+        nextMappers.mapElementAttributesToData !== mappers.mapElementAttributesToData
+      ) {
         mappers.mapElementAttributesToData = nextMappers.mapElementAttributesToData;
-        mapElementAttributesToData = nextMappers.mapElementAttributesToData;
+        ({ mapElementAttributesToData } = mappers);
         changed = true;
       }
-      if (nextMappers.mapLinkAttributesToData && nextMappers.mapLinkAttributesToData !== mappers.mapLinkAttributesToData) {
+      if (
+        nextMappers.mapLinkAttributesToData &&
+        nextMappers.mapLinkAttributesToData !== mappers.mapLinkAttributesToData
+      ) {
         mappers.mapLinkAttributesToData = nextMappers.mapLinkAttributesToData;
-        mapLinkAttributesToData = nextMappers.mapLinkAttributesToData;
+        ({ mapLinkAttributesToData } = mappers);
         changed = true;
       }
       if (!changed) return;

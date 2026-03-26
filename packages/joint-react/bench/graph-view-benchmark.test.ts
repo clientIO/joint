@@ -11,20 +11,20 @@ function createGraph(): dia.Graph {
 
 function populateGraph(graph: dia.Graph, count: number): void {
   const cells: object[] = [];
-  for (let i = 0; i < count; i++) {
+  for (let index = 0; index < count; index++) {
     cells.push({
-      id: `el-${i}`,
+      id: `el-${index}`,
       type: 'PortalElement',
-      position: { x: i * 10, y: i * 10 },
+      position: { x: index * 10, y: index * 10 },
       size: { width: 100, height: 50 },
     });
   }
-  for (let i = 0; i < count - 1; i++) {
+  for (let index = 0; index < count - 1; index++) {
     cells.push({
-      id: `link-${i}`,
+      id: `link-${index}`,
       type: 'PortalLink',
-      source: { id: `el-${i}` },
-      target: { id: `el-${i + 1}` },
+      source: { id: `el-${index}` },
+      target: { id: `el-${index + 1}` },
     });
   }
   graph.syncCells(cells, { remove: true });
@@ -46,12 +46,12 @@ function createWithGraphView(count: number) {
     getPaperStores: () => new Map<string, PaperStore>(),
   });
 
-  for (let i = 0; i < count; i++) {
-    view.elements.subscribe(`el-${i}`, () => {});
-    view.elementsLayout.subscribe(`el-${i}`, () => {});
+  for (let index = 0; index < count; index++) {
+    view.elements.subscribe(`el-${index}`, () => {});
+    view.elementsLayout.subscribe(`el-${index}`, () => {});
   }
-  for (let i = 0; i < count - 1; i++) {
-    view.links.subscribe(`link-${i}`, () => {});
+  for (let index = 0; index < count - 1; index++) {
+    view.links.subscribe(`link-${index}`, () => {});
   }
 
   return { graph, view };
@@ -60,12 +60,12 @@ function createWithGraphView(count: number) {
 /** Full GraphStore with onElementsChange callback wired and per-ID subscriptions. */
 function createWithGraphStore(count: number) {
   const elements: Record<string, object> = {};
-  for (let i = 0; i < count; i++) {
-    elements[`el-${i}`] = { x: i * 10, y: i * 10, width: 100, height: 50 };
+  for (let index = 0; index < count; index++) {
+    elements[`el-${index}`] = { x: index * 10, y: index * 10, width: 100, height: 50 };
   }
   const links: Record<string, object> = {};
-  for (let i = 0; i < count - 1; i++) {
-    links[`link-${i}`] = { source: `el-${i}`, target: `el-${i + 1}` };
+  for (let index = 0; index < count - 1; index++) {
+    links[`link-${index}`] = { source: `el-${index}`, target: `el-${index + 1}` };
   }
 
   const store = new GraphStore({
@@ -73,12 +73,12 @@ function createWithGraphStore(count: number) {
     initialLinks: links,
   });
 
-  for (let i = 0; i < count; i++) {
-    store.graphView.elements.subscribe(`el-${i}`, () => {});
-    store.graphView.elementsLayout.subscribe(`el-${i}`, () => {});
+  for (let index = 0; index < count; index++) {
+    store.graphView.elements.subscribe(`el-${index}`, () => {});
+    store.graphView.elementsLayout.subscribe(`el-${index}`, () => {});
   }
-  for (let i = 0; i < count - 1; i++) {
-    store.graphView.links.subscribe(`link-${i}`, () => {});
+  for (let index = 0; index < count - 1; index++) {
+    store.graphView.links.subscribe(`link-${index}`, () => {});
   }
 
   return { graph: store.graph, store };
@@ -112,19 +112,19 @@ describe('graph-view benchmark: baseline vs graphView vs GraphStore', () => {
 
       bench
         .add(`baseline (${size})`, () => {
-          const idx = tickBaseline % size;
+          const index = tickBaseline % size;
           tickBaseline++;
-          (baseline.graph.getCell(`el-${idx}`) as dia.Element).position(tickBaseline, tickBaseline);
+          (baseline.graph.getCell(`el-${index}`) as dia.Element).position(tickBaseline, tickBaseline);
         })
         .add(`graphView (${size})`, () => {
-          const idx = tickView % size;
+          const index = tickView % size;
           tickView++;
-          (withView.graph.getCell(`el-${idx}`) as dia.Element).position(tickView, tickView);
+          (withView.graph.getCell(`el-${index}`) as dia.Element).position(tickView, tickView);
         })
         .add(`GraphStore (${size})`, () => {
-          const idx = tickStore % size;
+          const index = tickStore % size;
           tickStore++;
-          (withStore.graph.getCell(`el-${idx}`) as dia.Element).position(tickStore, tickStore);
+          (withStore.graph.getCell(`el-${index}`) as dia.Element).position(tickStore, tickStore);
         });
 
       await bench.run();
@@ -145,22 +145,22 @@ describe('graph-view benchmark: baseline vs graphView vs GraphStore', () => {
 
       bench
         .add(`baseline (${size})`, () => {
-          const idx = tickBaseline % size;
+          const index = tickBaseline % size;
           tickBaseline++;
-          (baseline.graph.getCell(`el-${idx}`) as dia.Element).attr(
+          (baseline.graph.getCell(`el-${index}`) as dia.Element).attr(
             'label/text',
             `L${tickBaseline}`
           );
         })
         .add(`graphView (${size})`, () => {
-          const idx = tickView % size;
+          const index = tickView % size;
           tickView++;
-          (withView.graph.getCell(`el-${idx}`) as dia.Element).attr('label/text', `L${tickView}`);
+          (withView.graph.getCell(`el-${index}`) as dia.Element).attr('label/text', `L${tickView}`);
         })
         .add(`GraphStore (${size})`, () => {
-          const idx = tickStore % size;
+          const index = tickStore % size;
           tickStore++;
-          (withStore.graph.getCell(`el-${idx}`) as dia.Element).attr('label/text', `L${tickStore}`);
+          (withStore.graph.getCell(`el-${index}`) as dia.Element).attr('label/text', `L${tickStore}`);
         });
 
       await bench.run();
@@ -182,31 +182,31 @@ describe('graph-view benchmark: baseline vs graphView vs GraphStore', () => {
       bench
         .add(`baseline (${size})`, () => {
           tickBaseline++;
-          for (let i = 0; i < 10; i++) {
-            const idx = (tickBaseline + i) % size;
-            (baseline.graph.getCell(`el-${idx}`) as dia.Element).position(
-              tickBaseline + i,
-              tickBaseline + i
+          for (let index = 0; index < 10; index++) {
+            const index_ = (tickBaseline + index) % size;
+            (baseline.graph.getCell(`el-${index_}`) as dia.Element).position(
+              tickBaseline + index,
+              tickBaseline + index
             );
           }
         })
         .add(`graphView (${size})`, () => {
           tickView++;
-          for (let i = 0; i < 10; i++) {
-            const idx = (tickView + i) % size;
-            (withView.graph.getCell(`el-${idx}`) as dia.Element).position(
-              tickView + i,
-              tickView + i
+          for (let index = 0; index < 10; index++) {
+            const index_ = (tickView + index) % size;
+            (withView.graph.getCell(`el-${index_}`) as dia.Element).position(
+              tickView + index,
+              tickView + index
             );
           }
         })
         .add(`GraphStore (${size})`, () => {
           tickStore++;
-          for (let i = 0; i < 10; i++) {
-            const idx = (tickStore + i) % size;
-            (withStore.graph.getCell(`el-${idx}`) as dia.Element).position(
-              tickStore + i,
-              tickStore + i
+          for (let index = 0; index < 10; index++) {
+            const index_ = (tickStore + index) % size;
+            (withStore.graph.getCell(`el-${index_}`) as dia.Element).position(
+              tickStore + index,
+              tickStore + index
             );
           }
         });

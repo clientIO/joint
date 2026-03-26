@@ -306,14 +306,14 @@ describe('graphView', () => {
       addElement(graph, 'el-1', 10, 20, 100, 50);
       addElement(graph, 'el-2', 30, 40, 200, 100);
 
-      const el2Before = view.elements.get('el-2');
-      const el2LayoutBefore = view.elementsLayout.get('el-2');
+      const element2Before = view.elements.get('el-2');
+      const element2LayoutBefore = view.elementsLayout.get('el-2');
 
       (graph.getCell('el-1') as dia.Element).position(99, 99);
 
       // el-2 data and layout should be the exact same reference
-      expect(view.elements.get('el-2')).toBe(el2Before);
-      expect(view.elementsLayout.get('el-2')).toBe(el2LayoutBefore);
+      expect(view.elements.get('el-2')).toBe(element2Before);
+      expect(view.elementsLayout.get('el-2')).toBe(element2LayoutBefore);
     });
 
     it('removing one element does not affect another', () => {
@@ -321,11 +321,11 @@ describe('graphView', () => {
       addElement(graph, 'el-1');
       addElement(graph, 'el-2', 30, 40, 200, 100);
 
-      const el2Data = view.elements.get('el-2');
+      const element2Data = view.elements.get('el-2');
 
       (graph.getCell('el-1') as dia.Element).remove();
 
-      expect(view.elements.get('el-2')).toBe(el2Data);
+      expect(view.elements.get('el-2')).toBe(element2Data);
       expect(view.elements.get('el-1')).toBeUndefined();
     });
   });
@@ -375,6 +375,97 @@ describe('graphView', () => {
       await flush();
 
       expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('link layout via LAYOUT_UPDATE_EVENT', () => {
+    it('populates linksLayout when link changes come via LAYOUT_UPDATE_EVENT', () => {
+      const graph = createGraph();
+
+      // Create a mock paper that returns a fake linkView with layout data
+      const mockLinkView = {
+        sourcePoint: { x: 10, y: 20 },
+        targetPoint: { x: 300, y: 400 },
+        getSerializedConnection: () => 'M 10 20 L 300 400',
+      };
+      const mockPaper = {
+        findViewByModel: (cell: dia.Cell) => {
+          if (cell.isLink()) return mockLinkView;
+          return null;
+        },
+      } as unknown as import('@joint/core').dia.Paper;
+      const mockPaperStore = { paper: mockPaper } as unknown as PaperStore;
+
+      const view = graphView({
+        graph,
+        getPaperStores: () => new Map([['paper-1', mockPaperStore]]),
+      });
+
+      addElement(graph, 'el-1', 10, 20);
+      addElement(graph, 'el-2', 300, 400);
+      addLink(graph, 'link-1', 'el-1', 'el-2');
+
+      // linksLayout should be populated after link add
+      const linkLayout = view.linksLayout.get('link-1');
+      expect(linkLayout).toBeDefined();
+      expect(linkLayout?.['paper-1']).toBeDefined();
+      expect(linkLayout?.['paper-1'].sourceX).toBe(10);
+      expect(linkLayout?.['paper-1'].sourceY).toBe(20);
+      expect(linkLayout?.['paper-1'].targetX).toBe(300);
+      expect(linkLayout?.['paper-1'].targetY).toBe(400);
+      expect(linkLayout?.['paper-1'].d).toBe('M 10 20 L 300 400');
+
+      view.destroy();
+    });
+
+    it('updates linksLayout when connected element position changes', () => {
+      const graph = createGraph();
+      let callCount = 0;
+
+      const mockLinkView = {
+        get sourcePoint() { return { x: callCount > 0 ? 50 : 10, y: callCount > 0 ? 60 : 20 }; },
+        get targetPoint() { return { x: 300, y: 400 }; },
+        getSerializedConnection: () => { callCount++; return `M ${callCount > 1 ? 50 : 10} 20 L 300 400`; },
+      };
+      const mockPaper = {
+        findViewByModel: () => mockLinkView,
+      } as unknown as import('@joint/core').dia.Paper;
+      const mockPaperStore = { paper: mockPaper } as unknown as PaperStore;
+
+      const view = graphView({
+        graph,
+        getPaperStores: () => new Map([['paper-1', mockPaperStore]]),
+      });
+
+      addElement(graph, 'el-1', 10, 20);
+      addElement(graph, 'el-2', 300, 400);
+      addLink(graph, 'link-1', 'el-1', 'el-2');
+
+      const layoutBefore = view.linksLayout.get('link-1');
+      expect(layoutBefore).toBeDefined();
+
+      // Move connected element — link layout should update
+      (graph.getCell('el-1') as dia.Element).position(50, 60);
+
+      const layoutAfter = view.linksLayout.get('link-1');
+      expect(layoutAfter).toBeDefined();
+      // Layout reference should have changed (new object)
+      expect(layoutAfter).not.toBe(layoutBefore);
+
+      view.destroy();
+    });
+
+    it('linksLayout is empty when no papers exist', () => {
+      const { graph, view } = setup(); // setup uses empty paper stores
+      addElement(graph, 'el-1');
+      addElement(graph, 'el-2');
+      addLink(graph, 'link-1', 'el-1', 'el-2');
+
+      // Without papers, link layout is empty (no paper entries)
+      const linkLayout = view.linksLayout.get('link-1');
+      expect(linkLayout === undefined || Object.keys(linkLayout).length === 0).toBe(true);
+
+      view.destroy();
     });
   });
 

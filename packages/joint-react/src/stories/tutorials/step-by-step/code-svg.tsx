@@ -5,7 +5,6 @@ import {
   GraphProvider,
   Paper,
   useElementSize,
-  type GraphProps,
   type ElementInput,
   type LinkInput,
 } from '@joint/react';
@@ -42,7 +41,7 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App() {
   return (
     <GraphProvider links={initialEdges} elements={initialElements}>
       <Main />

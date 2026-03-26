@@ -26,10 +26,10 @@ type AssertElementItemData = ElementItem<{
   : false;
 const _assertElementItemData: AssertElementItemData = true;
 
-// ElementInput extends ElementItem + Partial<ElementLayout>
+// ElementInput extends ElementItem (with optional data) + Partial<ElementLayout>
 type AssertElementInputLayout = ElementInput<{
   label: string;
-}> extends { x?: number; data: { label: string } }
+}> extends { x?: number; data?: { label: string } }
   ? true
   : false;
 const _assertElementInputLayout: AssertElementInputLayout = true;
@@ -46,10 +46,11 @@ type AssertLayoutRequired = ElementLayout extends {
   : false;
 const _assertLayoutRequired: AssertLayoutRequired = true;
 
-// LinkInput equals LinkItem
-type AssertLinkInput = LinkInput<{ weight: number }> extends LinkItem<{
-  weight: number;
-}>
+// LinkInput has optional data, so it extends Omit<LinkItem, 'data'> with optional data
+type AssertLinkInput = LinkInput<{ weight: number }> extends Omit<
+  LinkItem<{ weight: number }>,
+  'data'
+> & { data?: { weight: number } }
   ? true
   : false;
 const _assertLinkInput: AssertLinkInput = true;
@@ -62,14 +63,16 @@ type AssertLinkEndPoint = { x: number; y: number } extends LinkEnd
   : false;
 const _assertLinkEndPoint: AssertLinkEndPoint = true;
 
-// Prevent unused variable warnings
-void _assertCellData;
-void _assertElementItemData;
-void _assertElementInputLayout;
-void _assertLayoutRequired;
-void _assertLinkInput;
-void _assertLinkEndString;
-void _assertLinkEndPoint;
+// Verify type assertions at runtime
+it('type-level assertions hold', () => {
+  expect(_assertCellData).toBe(true);
+  expect(_assertElementItemData).toBe(true);
+  expect(_assertElementInputLayout).toBe(true);
+  expect(_assertLayoutRequired).toBe(true);
+  expect(_assertLinkInput).toBe(true);
+  expect(_assertLinkEndString).toBe(true);
+  expect(_assertLinkEndPoint).toBe(true);
+});
 
 // ── Runtime tests ───────────────────────────────────────────────────────────
 
@@ -80,7 +83,7 @@ describe('cell-data types', () => {
       x: 100,
       y: 50,
     };
-    expect(input.data.label).toBe('test');
+    expect(input.data!.label).toBe('test');
     expect(input.x).toBe(100);
   });
 
@@ -88,7 +91,7 @@ describe('cell-data types', () => {
     const input: ElementInput<{ label: string }> = {
       data: { label: 'test' },
     };
-    expect(input.data.label).toBe('test');
+    expect(input.data!.label).toBe('test');
     expect(input.x).toBeUndefined();
   });
 

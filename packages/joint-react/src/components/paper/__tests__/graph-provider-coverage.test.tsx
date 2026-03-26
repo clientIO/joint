@@ -177,7 +177,7 @@ describe('GraphProvider Coverage Tests', () => {
 
       // Store should work before unmount
       expect(() => {
-        const { elements } = { elements: store.graphView.elements.getFull(), links: store.graphView.links.getFull() };
+        const elements = store.graphView.elements.getFull();
         expect(elements).toBeDefined();
       }).not.toThrow();
 
@@ -185,7 +185,7 @@ describe('GraphProvider Coverage Tests', () => {
 
       // Store should still work after unmount (it's not destroyed)
       expect(() => {
-        const { elements } = { elements: store.graphView.elements.getFull(), links: store.graphView.links.getFull() };
+        const elements = store.graphView.elements.getFull();
         expect(elements).toBeDefined();
       }).not.toThrow();
     });

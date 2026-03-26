@@ -17,25 +17,19 @@ export function useContainerItem<T, R>(
   container: ReadonlyContainer<T>,
   id: string,
   selector: (item: T) => R,
-  isEqual: (a: R, b: R) => boolean = isStrictEqual,
+  isEqual: (a: R, b: R) => boolean = isStrictEqual
 ): R | undefined {
   const subscribe = useCallback(
     (onStoreChange: () => void) => container.subscribe(id, onStoreChange),
-    [container, id],
+    [container, id]
   );
 
-  const getSnapshot = useCallback(
-    () => container.getVersion(),
-    [container],
-  );
+  const getSnapshot = useCallback(() => container.getVersion(), [container]);
 
-  const select = useCallback(
-    () => {
-      const item = container.get(id);
-      return item === undefined ? undefined : selector(item);
-    },
-    [container, id, selector],
-  );
+  const select = useCallback(() => {
+    const item = container.get(id);
+    return item === undefined ? undefined : selector(item);
+  }, [container, id, selector]);
 
   const compareValues = useCallback(
     (a: R | undefined, b: R | undefined): boolean => {
@@ -43,7 +37,7 @@ export function useContainerItem<T, R>(
       if (a === undefined || b === undefined) return false;
       return isEqual(a, b);
     },
-    [isEqual],
+    [isEqual]
   );
 
   return useSyncExternalStoreWithSelector(
@@ -51,6 +45,6 @@ export function useContainerItem<T, R>(
     getSnapshot,
     getSnapshot,
     select,
-    compareValues,
+    compareValues
   );
 }

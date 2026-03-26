@@ -8,6 +8,10 @@ interface CreateRollupConfigOptions {
   readonly external: string[];
 }
 
+/**
+ * Creates the default set of Rollup plugins for building the package.
+ * @returns Array of Rollup plugins configured with esbuild for TypeScript/JSX transpilation.
+ */
 function createPlugins() {
   return [
     esbuild({
@@ -18,6 +22,11 @@ function createPlugins() {
   ];
 }
 
+/**
+ * Creates ESM and CJS Rollup configurations with preserved module structure.
+ * @param options - Build configuration including entry points and external dependencies.
+ * @returns Array of Rollup configurations for ESM and CJS output formats.
+ */
 export function createRollupConfig(options: CreateRollupConfigOptions): RollupOptions[] {
   const { entries, external: externalList } = options;
   const plugins = createPlugins();

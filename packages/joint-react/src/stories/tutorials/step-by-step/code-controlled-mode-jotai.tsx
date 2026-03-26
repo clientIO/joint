@@ -186,7 +186,7 @@ function PaperApp() {
  * Main component that sets up Jotai and connects it to GraphProvider.
  * Reads elements/links from Jotai atoms and passes them as props.
  */
-function Main(props: Readonly<GraphProps>) {
+function Main() {
   // Read elements and links from Jotai atoms
   const elements = useAtomValue(elementsAtom);
   const links = useAtomValue(linksAtom);
@@ -248,10 +248,10 @@ function Main(props: Readonly<GraphProps>) {
  * ============================================================================
  */
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App() {
   return (
     <JotaiProvider store={jotaiStore}>
-      <Main {...props} />
+      <Main />
     </JotaiProvider>
   );
 }

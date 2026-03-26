@@ -10,13 +10,13 @@ interface TestElementItem {
 
 const selectData = <D,>(item: { readonly data: D }): D => item.data;
 
+function Wrapper({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <>{children}</>;
+}
+
 function createTestContext() {
   const container = createContainer<TestElementItem>();
   const readOnly = asReadonlyContainer(container);
-
-  function Wrapper({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
-  }
 
   return { container, readOnly, Wrapper };
 }

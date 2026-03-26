@@ -1,9 +1,29 @@
-import { useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import { usePaperStore } from './use-paper';
-import { useLinksLayout } from './use-stores';
 import type { LinkLayout } from '../types/cell-data';
 import { isStrictEqual } from '../utils/selector-utils';
+import type { CellId } from '../types/cell-id';
+import { CellIdContext } from '../context';
+import { useGraphStore } from './use-graph-store';
+import { useContainerItem } from './use-container-item';
 
+// Re-export LinkLayout for convenience
+export type { LinkLayout } from '../types/cell-data';
+
+/** Default link layout returned when link view hasn't been rendered yet. */
+const DEFAULT_LINK_LAYOUT: LinkLayout = {
+  sourceX: 0,
+  sourceY: 0,
+  targetX: 0,
+  targetY: 0,
+  d: '',
+};
+
+/**
+ * Structural equality for full LinkLayout objects.
+ * @param a
+ * @param b
+ */
 const IS_EQUAL = (a: LinkLayout | undefined, b: LinkLayout | undefined): boolean => {
   if (a === b) return true;
   if (!a || !b) return false;
@@ -16,36 +36,11 @@ const IS_EQUAL = (a: LinkLayout | undefined, b: LinkLayout | undefined): boolean
   );
 };
 
-// Re-export LinkLayout for convenience
-export type { LinkLayout } from '../types/cell-data';
-import type { CellId } from '../types/cell-id';
-import { CellIdContext } from '../context';
-
 /**
  * Hook to get layout data (geometry) for a specific link.
- * Returns sourceX, sourceY, targetX, targetY, and d (path) from the link view.
+ * Uses per-ID subscription via useContainerItem — only re-renders when THIS link's layout changes.
  * @returns The layout data, selected data, or undefined if not found.
  * @group Hooks
- * @example
- * ```tsx
- * // With explicit ID
- * const layout = useLinkLayout('link-1');
- * ```
- * @example
- * ```tsx
- * // Using context (inside renderLink)
- * const layout = useLinkLayout();
- * ```
- * @example
- * ```tsx
- * // With selector (inside renderLink)
- * const d = useLinkLayout((layout) => layout?.d);
- * ```
- * @example
- * ```tsx
- * // With explicit ID and selector
- * const d = useLinkLayout('link-1', (layout) => layout?.d);
- * ```
  */
 export function useLinkLayout(): LinkLayout;
 export function useLinkLayout<S>(
@@ -65,6 +60,9 @@ export function useLinkLayout<S>(
 ): LinkLayout | S | undefined {
   const contextId = useContext(CellIdContext);
   const { paperId } = usePaperStore();
+  const {
+    graphView: { linksLayout },
+  } = useGraphStore();
 
   const isFirstArgumentSelector = typeof idOrSelector === 'function';
   const actualId = isFirstArgumentSelector ? contextId : (idOrSelector ?? contextId);
@@ -74,15 +72,12 @@ export function useLinkLayout<S>(
 
   if (isFirstArgumentSelector) {
     actualSelector = idOrSelector;
-    // When user provides a custom selector, use their isEqual or isStrictEqual (not IS_EQUAL).
     actualIsEqual = selectorOrIsEqual as ((a: S, b: S) => boolean) | undefined;
   } else {
     actualSelector = selectorOrIsEqual as ((layout: LinkLayout | undefined) => S) | undefined;
     actualIsEqual = isEqual;
   }
 
-  // Default: IS_EQUAL when no selector (comparing full layout objects),
-  // isStrictEqual when selector is provided (comparing arbitrary return values).
   const defaultIsEqual = actualSelector
     ? (isStrictEqual as (a: S, b: S) => boolean)
     : (IS_EQUAL as (a: S, b: S) => boolean);
@@ -92,12 +87,34 @@ export function useLinkLayout<S>(
     throw new Error('useLinkLayout must be used inside Paper renderLink or provide an id');
   }
 
-  return useLinksLayout((linksMap) => {
-    const paperLinkLayouts = linksMap.get(paperId);
-    const layout = paperLinkLayouts?.[actualId];
-    if (actualSelector) {
-      return actualSelector(layout);
+  // Extract LinkLayout for this paper from the per-link Record<paperId, LinkLayout>
+  const composedSelector = useCallback(
+    (perPaperLayouts: Record<string, LinkLayout>): S => {
+      const layout = perPaperLayouts[paperId];
+      if (actualSelector) {
+        return actualSelector(layout);
+      }
+      return (layout ?? DEFAULT_LINK_LAYOUT) as S;
+    },
+    [paperId, actualSelector]
+  );
+
+  // Per-ID subscription via useContainerItem — only fires when THIS link's layout changes
+  const result = useContainerItem(linksLayout, actualId, composedSelector, resolvedIsEqual);
+
+  // When no selector and result is undefined (link not in container yet), return default
+  if (!actualSelector && result === undefined) {
+    const hasExplicitId = !isFirstArgumentSelector && idOrSelector !== undefined;
+    if (hasExplicitId) {
+      return undefined as S;
     }
-    return layout as S;
-  }, resolvedIsEqual);
+    return DEFAULT_LINK_LAYOUT as S;
+  }
+
+  if (actualSelector && result === undefined) {
+    // eslint-disable-next-line unicorn/no-useless-undefined -- TypeScript requires explicit argument for non-optional parameter
+    return actualSelector(undefined);
+  }
+
+  return result as S;
 }

@@ -1,8 +1,7 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
 import { graphChanges } from '../graph-changes';
-import type { FlatElementData } from '../../types/element-types';
-import type { FlatLinkData } from '../../types/link-types';
+import type { FlatElementData, FlatLinkData } from '../../types/data-types';
 import { flatMapDataToElementAttributes, flatMapDataToLinkAttributes } from '../../state/data-mapping';
 
 function createGraph() {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import {
     GraphProvider,
     Paper,
@@ -42,6 +42,8 @@ const initialElements = {
   },
 };
 
+const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
+
 const initialLinks: Record<string, FlatLinkData> = {
     'a-b': {
         source: 'a',
@@ -63,6 +65,21 @@ export default function App() {
     const [isDark, setIsDark] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
+    const buttonStyle = useMemo(() => ({
+        display: 'inline-flex' as const,
+        alignItems: 'center' as const,
+        gap: 6,
+        padding: '5px 14px',
+        cursor: 'pointer' as const,
+        borderRadius: 20,
+        border: 'none',
+        fontSize: 13,
+        fontWeight: 500,
+        background: isDark ? '#313244' : '#e0e7ff',
+        color: isDark ? '#cdd6f4' : '#4338ca',
+        transition: 'background 0.2s, color 0.2s',
+    }), [isDark]);
+
     const toggleTheme = useCallback(() => {
         setIsDark((previous) => {
             const next = !previous;
@@ -73,24 +90,11 @@ export default function App() {
 
     return (
         <div ref={wrapperRef} className="default-element-demo">
-            <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={TOOLBAR_STYLE}>
                 <button
                     type="button"
                     onClick={toggleTheme}
-                    style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '5px 14px',
-                        cursor: 'pointer',
-                        borderRadius: 20,
-                        border: 'none',
-                        fontSize: 13,
-                        fontWeight: 500,
-                        background: isDark ? '#313244' : '#e0e7ff',
-                        color: isDark ? '#cdd6f4' : '#4338ca',
-                        transition: 'background 0.2s, color 0.2s',
-                    }}
+                    style={buttonStyle}
                 >
                     {isDark ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark'}
                 </button>

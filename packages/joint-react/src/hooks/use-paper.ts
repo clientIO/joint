@@ -162,5 +162,5 @@ export function usePaper(id: string): { paper: dia.Paper | null };
 export function usePaper(idOrOptions?: string | Optional): { paper: dia.Paper | null };
 export function usePaper(idOrOptions?: string | Optional): { paper: dia.Paper | null } {
   const paperStore = usePaperStore(idOrOptions);
-  return { paper: paperStore?.paper ?? null };
+  return { paper: (paperStore?.paper as dia.Paper | undefined) ?? null };
 }

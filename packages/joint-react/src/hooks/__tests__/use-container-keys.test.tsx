@@ -3,13 +3,13 @@ import React from 'react';
 import { createContainer, asReadonlyContainer } from '../../store/state-container';
 import { useContainerKeys } from '../use-container-keys';
 
+function Wrapper({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <>{children}</>;
+}
+
 function createTestContext() {
   const container = createContainer<{ value: number }>();
   const readOnly = asReadonlyContainer(container);
-
-  function Wrapper({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
-  }
 
   return { container, readOnly, Wrapper };
 }

@@ -54,26 +54,12 @@ function TestLabelElement() {
   return <div className="node">{data?.label}</div>;
 }
 
-/** Test helper: renders element label and measures node using hooks. */
-function TestMeasuredLabelElement() {
-  const data = useElementData<ElementData>();
-  const size = useElementSize();
-  const elementRef = React.useRef<HTMLDivElement>(null);
-  useMeasureNode(elementRef);
-  return (
-    <foreignObject width={size?.width} height={size?.height}>
-      <div ref={elementRef} className="node">
-        {data?.label}
-      </div>
-    </foreignObject>
-  );
-}
-
 /** Test helper: renders a plain div with element label. */
 function TestLabelDiv() {
   const data = useElementData<ElementData>();
   return <div>{data?.label}</div>;
 }
+const noop = () => {};
 const WIDTH = 200;
 const SOURCE_ELEMENT_ID = 'source';
 const TARGET_ELEMENT_ID = 'target';
@@ -154,7 +140,7 @@ function getExpectedDimensionForCombination(options: {
 }
 
 function assertPaperDimension(options: {
-  readonly paper: PortalPaper;
+  readonly paper: dia.Paper;
   readonly expectedDimension: dia.Paper.Dimension | undefined;
   readonly axis: 'width' | 'height';
 }) {
@@ -277,11 +263,17 @@ async function dragLinkFromSourcePortToTargetPort(paper: dia.Paper): Promise<dia
 
   paper.model.on('add', captureLink);
 
+  // Override elementFromPoint so JointJS can detect the target magnet during drag
+  const originalElementFromPoint = document.elementFromPoint;
+  document.elementFromPoint = () => targetMagnet;
+
   act(() => {
     sourceView.dragLinkStart(startEvent, sourceMagnet, sourcePoint.x, sourcePoint.y);
     sourceView.dragLink(moveEvent, targetPoint.x, targetPoint.y);
     sourceView.dragLinkEnd(endEvent, targetPoint.x, targetPoint.y);
   });
+
+  document.elementFromPoint = originalElementFromPoint;
   paper.model.off('add', captureLink);
 
   if (!addedLink) {
@@ -302,7 +294,13 @@ function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
 
   render(
     <GraphProvider elements={getPortDragElements()}>
-      <Paper ref={ref} defaultLink={defaultLink} renderElement={() => <div>Drag Node</div>} />
+      <Paper
+        ref={ref}
+        defaultLink={defaultLink}
+        renderElement={() => <div>Drag Node</div>}
+        linkPinning
+        snapLinks={false}
+      />
       <CaptureLinksSnapshot />
     </GraphProvider>
   );
@@ -527,13 +525,13 @@ describe('Paper Component', () => {
   });
 
   it('provides non-null ref in child useEffect on mount', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
     const captureRefInEffectMock = jest.fn();
 
     function CapturePaperRef({
       paperRef,
     }: Readonly<{
-      paperRef: RefObject<PortalPaper | null>;
+      paperRef: RefObject<dia.Paper | null>;
     }>) {
       useEffect(() => {
         captureRefInEffectMock(paperRef.current);
@@ -563,7 +561,7 @@ describe('Paper Component', () => {
     const captureRefInEffectMock = jest.fn();
 
     function PaperWithEffectRefCapture() {
-      const ref = useRef<PortalPaper | null>(null);
+      const ref = useRef<dia.Paper | null>(null);
 
       useEffect(() => {
         captureRefInEffectMock(ref.current);
@@ -592,7 +590,7 @@ describe('Paper Component', () => {
     const captureRefInEffectMock = jest.fn();
 
     function PaperWithEffectRefCapture() {
-      const ref = useRef<PortalPaper | null>(null);
+      const ref = useRef<dia.Paper | null>(null);
 
       useEffect(() => {
         captureRefInEffectMock(ref.current);
@@ -618,7 +616,7 @@ describe('Paper Component', () => {
   });
 
   it('exposes paper ref for empty graph without requiring view updates', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={{}}>
@@ -634,7 +632,7 @@ describe('Paper Component', () => {
 
   it('should access paper via context and change scale', async () => {
     // eslint-disable-next-line unicorn/consistent-function-scoping
-    function ChangeScale({ paperRef }: { paperRef: RefObject<PortalPaper | null> }) {
+    function ChangeScale({ paperRef }: { paperRef: RefObject<dia.Paper | null> }) {
       useEffect(() => {
         const checkAndScale = () => {
           if (paperRef.current) {
@@ -652,7 +650,7 @@ describe('Paper Component', () => {
     }
 
     function Component() {
-      const ref = useRef<PortalPaper | null>(null);
+      const ref = useRef<dia.Paper | null>(null);
       return (
         <GraphProvider elements={elements}>
           <Paper ref={ref} renderElement={() => <div>Test</div>} />
@@ -672,7 +670,7 @@ describe('Paper Component', () => {
     );
   });
   it('should access paper via ref and change scale', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
     function ChangeScale() {
       useEffect(() => {
         const checkAndScale = () => {
@@ -789,8 +787,8 @@ describe('Paper Component', () => {
     });
   });
   it('should test two separate Paper with same paper, and get their data via ref', async () => {
-    const view1Ref: RefObject<PortalPaper | null> = { current: null };
-    const view2Ref: RefObject<PortalPaper | null> = { current: null };
+    const view1Ref: RefObject<dia.Paper | null> = { current: null };
+    const view2Ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -810,7 +808,7 @@ describe('Paper Component', () => {
   });
 
   it('applies default defaultConnectionPoint and measureNode options', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -829,7 +827,7 @@ describe('Paper Component', () => {
   });
 
   it('allows user to override defaultConnectionPoint and measureNode', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
     const customMeasureNode = jest.fn();
 
     render(
@@ -852,7 +850,7 @@ describe('Paper Component', () => {
   });
 
   it('applies percentage width to JointJS paper when only width="100%" is set', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -868,7 +866,7 @@ describe('Paper Component', () => {
   });
 
   it('applies percentage height to JointJS paper when only height="100%" is set', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -884,7 +882,7 @@ describe('Paper Component', () => {
   });
 
   it('applies percentage dimensions to JointJS paper when both width and height are "100%"', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -900,7 +898,7 @@ describe('Paper Component', () => {
   });
 
   it('preserves custom className and style with renderElement', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -935,7 +933,7 @@ describe('Paper Component', () => {
   });
 
   it('extracts width and height from style when paper props are not provided', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -960,7 +958,7 @@ describe('Paper Component', () => {
   });
 
   it('uses className CSS dimensions when width, height, and style dimensions are omitted', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
     const cleanupPaperHostStyle = appendPaperHostSizeStyle({
       className: 'paper-host-sized-by-class',
       width: '200px',
@@ -994,7 +992,7 @@ describe('Paper Component', () => {
   });
 
   it('gives style dimensions precedence over className CSS dimensions', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
     const cleanupPaperHostStyle = appendPaperHostSizeStyle({
       className: 'paper-host-size-conflict',
       width: '200px',
@@ -1029,7 +1027,7 @@ describe('Paper Component', () => {
   });
 
   it('gives width and height props precedence over style and className CSS dimensions', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
     const cleanupPaperHostStyle = appendPaperHostSizeStyle({
       className: 'paper-host-size-priority',
       width: '200px',
@@ -1068,7 +1066,7 @@ describe('Paper Component', () => {
   test.each(PAPER_PROPS_COMBINATIONS)(
     'supports Paper props combination ($name)',
     async ({ withClassName, withStyle, withWidth, withHeight }) => {
-      const ref: RefObject<PortalPaper | null> = { current: null };
+      const ref: RefObject<dia.Paper | null> = { current: null };
       const style = getPaperStyleForCombination(withStyle);
 
       render(
@@ -1119,7 +1117,7 @@ describe('Paper Component', () => {
   );
 
   it('does not overwrite paper percentage width with pixel values from resizePaperContainer', async () => {
-    const ref: RefObject<PortalPaper | null> = { current: null };
+    const ref: RefObject<dia.Paper | null> = { current: null };
 
     render(
       <GraphProvider elements={elements}>
@@ -1283,7 +1281,7 @@ describe('Paper Component', () => {
       const [createdLinkData] = [...getLinksSnapshot().values()];
       expect(createdLinkData.color).toBe('#ff5500');
       expect(createdLinkData.width).toBe(7);
-      expect(createdLinkData.data.customProperty).toBe('flat-link-default');
+      expect(createdLinkData.data!.customProperty).toBe('flat-link-default');
       expect(createdLinkData.source).toBe(SOURCE_ELEMENT_ID);
       expect(createdLinkData.target).toBe(TARGET_ELEMENT_ID);
       expect(createdLinkData.sourcePort).toBe(SOURCE_PORT_ID);
@@ -1330,7 +1328,7 @@ describe('Paper Component', () => {
       expect(createdLinkData.color).toBe('#22aa55');
       expect(createdLinkData.width).toBe(4);
       expect(createdLinkData.wrapperWidth).toBe(16);
-      expect(createdLinkData.data.customProperty).toBe('callback-flat-link-default');
+      expect(createdLinkData.data!.customProperty).toBe('callback-flat-link-default');
     });
   });
 
@@ -1353,7 +1351,7 @@ describe('Paper Component', () => {
 
       function PaperCapture() {
         const store = usePaperStore(EXTERNAL_PAPER_ID);
-        capturedPaper = store?.paper ?? null;
+        capturedPaper = (store?.paper as unknown as dia.Paper) ?? null;
         return null;
       }
 
@@ -1407,13 +1405,13 @@ describe('Paper Component', () => {
 
   describe('cellVisibility show/hide', () => {
     it('should re-render elements after hiding and showing via cellVisibility', async () => {
-      let setHidden: (hidden: boolean) => void = () => {};
-      let paperRef: RefObject<PortalPaper | null> = { current: null };
+      let setHidden: (hidden: boolean) => void = noop;
+      let paperRef: RefObject<dia.Paper | null> = { current: null };
 
       function TestApp() {
         const [hidden, setHiddenState] = useState(false);
         setHidden = setHiddenState;
-        const ref = useRef<PortalPaper>(null);
+        const ref = useRef<dia.Paper>(null);
         paperRef = ref;
 
         return (
@@ -1427,10 +1425,9 @@ describe('Paper Component', () => {
               id="visibility-test"
               height={200}
               renderElement={(data: { label: string }) => <text>{data.label}</text>}
-              cellVisibility={(cell: dia.Cell) => {
-                if (hidden && String(cell.id) === 'el-1') return false;
-                return true;
-              }}
+              cellVisibility={(cell: dia.Cell) =>
+                !(hidden && String(cell.id) === 'el-1')
+              }
             />
           </GraphProvider>
         );

@@ -90,7 +90,7 @@ function removeHighlighter(variant: HighlighterVariant, elementView: dia.Element
 
 function Main({ variant }: Readonly<MainProps>) {
   const paperId = useId();
-  const paperRef = useRef<PortalPaper | null>(null);
+  const paperRef = useRef<dia.Paper | null>(null);
 
   usePaperEvents(
     paperId,

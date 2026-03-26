@@ -93,7 +93,7 @@ describe('dataMapper', () => {
       expect(cellJson.size).toEqual({ width: 100, height: 50 });
       expect(cellJson.type).toBe('PortalElement');
 
-      graph.addCell(cellJson);
+      graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
       const result = flatMapElementAttributesToData(graphToElementOpts(id, cell, graph));
 
@@ -113,7 +113,7 @@ describe('dataMapper', () => {
       const cellJson = flatMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       expect(cellJson.data).toMatchObject({ label: 'Hello', color: 'red' });
 
-      graph.addCell(cellJson);
+      graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
       const result = flatMapElementAttributesToData(graphToElementOpts(id, cell, graph));
 
@@ -152,7 +152,7 @@ describe('dataMapper', () => {
       expect(cellJson.position).toEqual({ x: 100, y: 50 });
       expect(cellJson.data).toMatchObject({ label: 'Node 1' });
 
-      graph.addCell(cellJson);
+      graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
       const result = flatMapElementAttributesToData(graphToElementOpts(id, cell, graph));
 
@@ -215,7 +215,7 @@ describe('dataMapper', () => {
       expect(cellJson.type).toBe(PORTAL_LINK_TYPE);
       expect(cellJson.attrs?.line).toBeDefined();
 
-      graph.addCell(cellJson);
+      graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Link;
       const result = flatMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
 
@@ -314,7 +314,7 @@ describe('dataMapper', () => {
       };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      graph.addCell(cellJson);
+      graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Link;
 
       // Simulate labelMove updating position and offset

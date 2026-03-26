@@ -66,13 +66,9 @@ describe('PaperStore', () => {
       expect(highlighting).not.toBe(false);
       expect(paperStore.paper.options.markAvailable).toBe(true);
       expect((highlighting as Record<string, unknown>)?.magnetAvailability).toMatchObject({
-        name: 'stroke',
+        name: 'addClass',
         options: {
-          attrs: {
-            stroke: '#DDE6ED',
-            'stroke-width': 2,
-          },
-          padding: 4,
+          className: 'jr-available-magnet',
         },
       });
     });

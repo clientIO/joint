@@ -2,7 +2,7 @@ import { dia } from '@joint/core';
 import type { PaperStore } from '../../store';
 import { DEFAULT_CELL_NAMESPACE } from '../../store/graph-store';
 import { graphView, type IncrementalContainerChanges } from '../graph-view';
-import type { FlatElementData, FlatLinkData } from '../../types/data-types';
+import type { CellData } from '../../types/cell-data';
 
 function createGraph(): dia.Graph {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
@@ -18,7 +18,7 @@ const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 describe('graphView onIncrementalChange', () => {
   it('fires with added elements when element is added to graph', async () => {
     const graph = createGraph();
-    const allChanges: IncrementalContainerChanges<FlatElementData, FlatLinkData>[] = [];
+    const allChanges: Array<IncrementalContainerChanges<CellData, CellData>> = [];
 
     const view = graphView({
       graph,
@@ -30,16 +30,16 @@ describe('graphView onIncrementalChange', () => {
     await flush();
 
     expect(allChanges.length).toBeGreaterThan(0);
-    const lastChange = allChanges[allChanges.length - 1];
-    expect(lastChange.elements.added.has('el-1')).toBe(true);
-    expect(lastChange.elementsLayout.added.has('el-1')).toBe(true);
+    const lastChange = allChanges.at(-1);
+    expect(lastChange!.elements.added.has('el-1')).toBe(true);
+    expect(lastChange!.elementsLayout.added.has('el-1')).toBe(true);
 
     view.destroy();
   });
 
   it('fires with removed elements when element is removed', async () => {
     const graph = createGraph();
-    const allChanges: IncrementalContainerChanges<FlatElementData, FlatLinkData>[] = [];
+    const allChanges: Array<IncrementalContainerChanges<CellData, CellData>> = [];
 
     const view = graphView({
       graph,
@@ -55,15 +55,15 @@ describe('graphView onIncrementalChange', () => {
     await flush();
 
     expect(allChanges.length).toBeGreaterThan(0);
-    const lastChange = allChanges[allChanges.length - 1];
-    expect(lastChange.elements.removed.has('el-1')).toBe(true);
+    const lastChange = allChanges.at(-1);
+    expect(lastChange!.elements.removed.has('el-1')).toBe(true);
 
     view.destroy();
   });
 
   it('fires layout changes on position update', async () => {
     const graph = createGraph();
-    const allChanges: IncrementalContainerChanges<FlatElementData, FlatLinkData>[] = [];
+    const allChanges: Array<IncrementalContainerChanges<CellData, CellData>> = [];
 
     const view = graphView({
       graph,
@@ -79,9 +79,9 @@ describe('graphView onIncrementalChange', () => {
     await flush();
 
     expect(allChanges.length).toBeGreaterThan(0);
-    const lastChange = allChanges[allChanges.length - 1];
-    expect(lastChange.elementsLayout.changed.has('el-1')).toBe(true);
-    const layout = lastChange.elementsLayout.changed.get('el-1');
+    const lastChange = allChanges.at(-1);
+    expect(lastChange!.elementsLayout.changed.has('el-1')).toBe(true);
+    const layout = lastChange!.elementsLayout.changed.get('el-1');
     expect(layout?.x).toBe(200);
     expect(layout?.y).toBe(100);
 
@@ -107,7 +107,7 @@ describe('graphView onIncrementalChange', () => {
 
   it('containers are committed before onIncrementalChange fires', async () => {
     const graph = createGraph();
-    let containerValueDuringCallback: unknown = undefined;
+    let containerValueDuringCallback: unknown;
 
     const view = graphView({
       graph,

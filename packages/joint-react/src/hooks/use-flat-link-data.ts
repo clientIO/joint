@@ -10,7 +10,6 @@ import type { CellId } from '../types/cell-id';
 /**
  * Returns memoized `mapDataToLinkAttributes` and `mapLinkAttributesToData`
  * functions with support for defaults, post-processing hooks, and key filtering.
- *
  * @param options - Configuration object.
  * @param options.defaults - Static defaults or a callback `(data, id) => defaults`.
  *   Merged as `{ ...resolvedDefaults, ...data }` before flat mapping.
@@ -37,7 +36,7 @@ export function useFlatLinkData<T extends FlatLinkData = FlatLinkData>(
         defaults?: Partial<FlatLinkData> | ((data: T, id: CellId) => Partial<FlatLinkData>);
         mapAttributes?: (options: { attributes: CellAttributes; data: T; graph: dia.Graph }) => CellAttributes;
         mapData?: (options: { data: T; attributes: dia.Link.Attributes; graph: dia.Graph }) => T;
-        pick?: (keyof T)[];
+        pick?: Array<keyof T>;
     } = {},
     deps?: DependencyList,
 ): Pick<GraphMappings<CellData, T>, 'mapDataToLinkAttributes' | 'mapLinkAttributesToData'> {
@@ -78,9 +77,7 @@ export function useFlatLinkData<T extends FlatLinkData = FlatLinkData>(
                 : current;
 
             let result: CellAttributes;
-            if (!resolved) {
-                result = flatLinkDataToAttributes(mapOptions.data);
-            } else {
+            if (resolved) {
                 const mergedData = { ...resolved, ...mapOptions.data } as T;
                 result = flatLinkDataToAttributes(mergedData);
 
@@ -91,16 +88,18 @@ export function useFlatLinkData<T extends FlatLinkData = FlatLinkData>(
                     const userData = mapOptions.data as Record<string, unknown>;
                     for (const key of Object.keys(resolved)) {
                         if (!(key in userData)) {
-                            delete cellData[key];
+                            Reflect.deleteProperty(cellData, key);
                         }
                     }
                 }
+            } else {
+                result = flatLinkDataToAttributes(mapOptions.data);
             }
 
             // Post-process with mapAttributes if provided
-            const mapAttrFn = mapAttributesRef.current;
-            if (mapAttrFn) {
-                result = mapAttrFn({
+            const mapAttributeFunction = mapAttributesRef.current;
+            if (mapAttributeFunction) {
+                result = mapAttributeFunction({
                     attributes: result,
                     data: mapOptions.data,
                     graph: mapOptions.graph,
@@ -118,9 +117,9 @@ export function useFlatLinkData<T extends FlatLinkData = FlatLinkData>(
             let data = flatAttributesToLinkData(mapOptions.attributes) as T;
 
             // Post-process with mapData if provided
-            const mapDataFn = mapDataRef.current;
-            if (mapDataFn) {
-                data = mapDataFn({
+            const mapDataFunction = mapDataRef.current;
+            if (mapDataFunction) {
+                data = mapDataFunction({
                     data,
                     attributes: mapOptions.attributes,
                     graph: mapOptions.graph,
@@ -130,10 +129,10 @@ export function useFlatLinkData<T extends FlatLinkData = FlatLinkData>(
             const keys = pickRef.current;
             if (keys) {
                 const picked = {} as Record<string, unknown>;
-                const src = data as Record<string, unknown>;
+                const source = data as Record<string, unknown>;
                 for (const key of keys) {
-                    if ((key as string) in src) {
-                        picked[key as string] = src[key as string];
+                    if ((key as string) in source) {
+                        picked[key as string] = source[key as string];
                     }
                 }
                 data = picked as T;

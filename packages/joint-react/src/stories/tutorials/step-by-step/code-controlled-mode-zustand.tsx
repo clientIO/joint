@@ -211,7 +211,7 @@ function PaperApp() {
  * Main component that reads state from Zustand and connects it to GraphProvider
  * using React-controlled mode.
  */
-function Main(props: Readonly<GraphProps>) {
+function Main() {
   // Read elements and links from Zustand store
   const elements = useGraphStore((state) => state.elements);
   const links = useGraphStore((state) => state.links);
@@ -255,6 +255,6 @@ function Main(props: Readonly<GraphProps>) {
  * ============================================================================
  */
 
-export default function App(props: Readonly<GraphProps>) {
-  return <Main {...props} />;
+export default function App() {
+  return <Main />;
 }

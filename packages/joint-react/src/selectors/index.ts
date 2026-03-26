@@ -3,15 +3,6 @@ import type { ElementLayout } from '../types/cell-data';
 
 // ── Element layout selectors ────────────────────────────────────────────────
 
-/**
- * Checks whether the elements layout map contains at least one entry.
- * @param elements - The element layout map from the graph store.
- * @returns `true` when one or more elements have been measured.
- */
-export const selectAreElementsMeasured = (elements: Map<string, ElementLayout>): boolean => {
-  return elements.size > 0;
-};
-
 // ── Internal selectors ──────────────────────────────────────────────────────
 
 export const selectResetVersion = (state: GraphStoreInternalSnapshot): number => state.resetVersion;
@@ -27,6 +18,7 @@ export function createSelectPaperVersion(id: string) {
 /**
  * Selects the graph features version from the internal snapshot.
  * Used to trigger re-renders when graph-level features change.
+ * @param state
  */
 export const selectGraphFeaturesVersion = (state: GraphStoreInternalSnapshot): number =>
   state.graphFeaturesVersion;

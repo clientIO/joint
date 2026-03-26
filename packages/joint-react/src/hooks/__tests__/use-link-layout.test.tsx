@@ -62,7 +62,7 @@ describe('useLinkLayout', () => {
     });
   });
 
-  it('should return undefined for non-existent link', async () => {
+  it('should return default layout for non-existent link', async () => {
     const graph = getTestGraph();
     const wrapper = paperRenderLinkWrapper({
       graphProviderProps: {
@@ -79,6 +79,7 @@ describe('useLinkLayout', () => {
 
     const { result } = renderHook(() => useLinkLayout('non-existent-link'), { wrapper });
 
+    // With an explicit ID that doesn't exist, useLinkLayout returns undefined
     await waitFor(() => {
       expect(result.current).toBeUndefined();
     });

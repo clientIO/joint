@@ -1,7 +1,6 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
 import React, { forwardRef, useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
-import type { FlatElementData, FlatLinkData } from '../../types/data-types';
 import type { CellData } from '../../types/cell-data';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';

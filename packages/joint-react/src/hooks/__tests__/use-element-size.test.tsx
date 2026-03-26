@@ -12,13 +12,13 @@ const selectSize = (layout: ElementLayout): ElementSize => ({
 const isSizeEqual = (a: ElementSize, b: ElementSize): boolean =>
   a.width === b.width && a.height === b.height;
 
+function Wrapper({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <>{children}</>;
+}
+
 function createTestContext() {
   const container = createContainer<ElementLayout>();
   const readOnly = asReadonlyContainer(container);
-
-  function Wrapper({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
-  }
 
   return { container, readOnly, Wrapper };
 }

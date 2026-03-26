@@ -8,7 +8,6 @@ import {
   Paper,
   useElements,
   useGraph,
-  useElementSize,
   useNodesMeasuredEffect,
   type RenderElement,
   type ElementInput,

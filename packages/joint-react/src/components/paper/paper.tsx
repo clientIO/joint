@@ -46,7 +46,7 @@ function PaperBase(
     isExternalPaper,
   });
 
-  useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paperRef.current);
+  useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paperRef.current as dia.Paper | null);
   // When paper is externally managed (e.g. by PortalStencil), skip the host div —
   // the paper's DOM is already mounted elsewhere. Only render portal content.
   if (isExternalPaper) {

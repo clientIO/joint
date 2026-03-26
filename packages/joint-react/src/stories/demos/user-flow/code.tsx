@@ -1,9 +1,9 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable sonarjs/no-nested-conditional */
+ 
 /* eslint-disable unicorn/prevent-abbreviations */
-/* eslint-disable sonarjs/cognitive-complexity */
+ 
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // We have pre-loaded tailwind css
@@ -312,9 +312,9 @@ function Main() {
     }
     return next;
   }
-  const [links, setLinks] = useState<Record<string, FlatLinkData>>(fixLinks(initialLinks));
+  const [links, setLinks] = useState<Record<string, FlatLinkData>>(() => fixLinks(initialLinks));
   useLayoutEffect(() => {
-    setLinks(fixLinks);
+    setLinks(fixLinks); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Sync link colors with theme
   }, [isDark]);
   const onAddPort = useCallback((id: CellId) => {
     setElements((previous) => {
@@ -365,8 +365,6 @@ function Main() {
     <GraphProvider
       elements={elements}
       links={links}
-      // onElementsChange={setElements}
-      // onLinksChange={setLinks}
     >
       <Paper
         gridSize={5}

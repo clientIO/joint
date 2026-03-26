@@ -1,15 +1,16 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import { useLinks } from '../use-links';
-import type { FlatLinkData } from '../../types/data-types';
+import type { CellData } from '../../types/cell-data';
 import type { CellId } from '../../types/cell-id';
 
 // Extract link source ID - source can be ID (string/number) or EndJSON object
-function getLinkSourceId(link: FlatLinkData) {
-  if (typeof link.source === 'object' && link.source != null && 'id' in link.source) {
-    return link.source.id;
+function getLinkSourceId(link: CellData) {
+  const {source} = link;
+  if (typeof source === 'object' && source != null && 'id' in source) {
+    return (source as { id: CellId }).id;
   }
-  return link.source as CellId;
+  return source as CellId;
 }
 
 describe('use-links', () => {

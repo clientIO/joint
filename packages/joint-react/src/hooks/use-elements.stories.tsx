@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+ 
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
@@ -105,7 +105,7 @@ function Component() {
 export const WithSelectedJustIds = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements) => Object.values(elements).map((element) => (element as FlatElementData).id)],
+    hookArgs: [(elements) => Object.values(elements).map((element) => (element as Record<string, unknown>).id)],
     render: (result) => (
       <span>
         <Paper
@@ -222,7 +222,7 @@ export const WithAdditionalData = makeStory<Story>({
     useHook: useElements,
     hookArgs: [
       (elements) =>
-        Object.values(elements).map((element) => ({ id: (element as FlatElementData).id, other: 'something' })),
+        Object.values(elements).map((element) => ({ id: (element as Record<string, unknown>).id, other: 'something' })),
     ],
     render: (result) => (
       <div>

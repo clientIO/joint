@@ -251,7 +251,7 @@ function RenderItem({ label }: Readonly<ElementData>) {
  * to GraphProvider with onIncrementalChange callback.
  * This must be inside a Redux Provider to access the store.
  */
-function GraphWithRedux(props: Readonly<GraphProps>) {
+function GraphWithRedux() {
   const elements = useSelector(selectElements);
   const links = useSelector(selectLinks);
   const reduxStore = useStore<GraphRootState>();
@@ -281,10 +281,10 @@ function GraphWithRedux(props: Readonly<GraphProps>) {
 /**
  * Container component that wraps everything with Redux Provider.
  */
-function Main(props: Readonly<GraphProps>) {
+function Main() {
   return (
     <Provider store={store}>
-      <GraphWithRedux {...props} />
+      <GraphWithRedux />
     </Provider>
   );
 }
@@ -408,6 +408,6 @@ function ReduxConnectedPaperApp() {
  * ============================================================================
  */
 
-export default function App(props: Readonly<GraphProps>) {
-  return <Main {...props} />;
+export default function App() {
+  return <Main />;
 }

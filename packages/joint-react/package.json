@@ -61,7 +61,8 @@
     "lint": "eslint \"**/*.{ts,tsx}\"",
     "lint-fix": "yarn run lint --fix",
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
-    "docs:typedoc": "typedoc --out docs/api src"
+    "docs:typedoc": "typedoc --out docs/api src",
+    "bench": "jest --testMatch '<rootDir>/bench/**/*.{test,spec}.ts?(x)'"
   },
   "devDependencies": {
     "@andypf/json-viewer": "^2.1.10",

@@ -149,13 +149,13 @@ describe('useGraph element mutations', () => {
     );
 
     await waitFor(() => {
-      expect(result.current.elements.get('1')!.data.label).toBe('Initial Label');
+      expect((result.current.elements.get('1')!.data as Record<string, unknown>).label).toBe('Initial Label');
     });
 
     act(() => result.current.setElement('1', (previous) => ({ ...previous, data: { ...previous.data, label: 'Updated Label' } })));
 
     await waitFor(() => {
-      expect(result.current.elements.get('1')!.data.label).toBe('Updated Label');
+      expect((result.current.elements.get('1')!.data as Record<string, unknown>).label).toBe('Updated Label');
       expect(result.current.elementsLayout.get('1')!.width).toBe(100);
     });
   });
@@ -193,7 +193,7 @@ describe('useGraph element mutations', () => {
 
     await waitFor(() => {
       expect(result.current.elements.get('new-el')).toBeDefined();
-      expect(result.current.elements.get('new-el')!.data.label).toBe('Created');
+      expect((result.current.elements.get('new-el')!.data as Record<string, unknown>).label).toBe('Created');
       expect(result.current.elementsLayout.get('new-el')!.x).toBe(0);
       expect(result.current.elementsLayout.get('new-el')!.y).toBe(0);
       expect(result.current.elementsLayout.get('new-el')!.width).toBe(1);
@@ -347,8 +347,8 @@ describe('useGraph link mutations', () => {
 
     await waitFor(() => {
       expect(result.current.links.get('new-link-updater')).toBeDefined();
-      expect(result.current.links.get('new-link-updater').source).toBe('1');
-      expect(result.current.links.get('new-link-updater').target).toBe('2');
+      expect(result.current.links.get('new-link-updater')!.source).toBe('1');
+      expect(result.current.links.get('new-link-updater')!.target).toBe('2');
     });
   });
 

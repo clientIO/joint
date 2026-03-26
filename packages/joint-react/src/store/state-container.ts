@@ -4,6 +4,11 @@ import { isStrictEqual } from '../utils/selector-utils';
 
 export type Update<T> = ((previous: T | undefined) => T) | T;
 
+/**
+ * Resolves an update value by applying it if it is a function, or returning it directly.
+ * @param previous
+ * @param updater
+ */
 export function getValue<T>(previous: T, updater: Update<T>): T {
   return isUpdater(updater) ? updater(previous) : updater;
 }
@@ -23,6 +28,10 @@ export interface Container<T> extends ReadonlyContainer<T> {
   delete: (id: string) => void;
   commitChanges: () => void;
 }
+/**
+ * Wraps a container to expose only read and subscribe operations.
+ * @param container
+ */
 export function asReadonlyContainer<T>(container: Container<T>): ReadonlyContainer<T> {
   return {
     get: container.get,
@@ -35,6 +44,9 @@ export function asReadonlyContainer<T>(container: Container<T>): ReadonlyContain
   };
 }
 
+/**
+ * Creates a keyed container with per-id subscriptions and batched change notifications.
+ */
 export function createContainer<T>(): Container<T> {
   const container = new Map<string, T>();
   const listeners = new Map<string, Set<() => void>>();
@@ -158,12 +170,19 @@ export function createAtom<T>(initialValue: T): Atom<T> {
   let value = initialValue;
   const listeners = new Set<() => void>();
 
+  /**
+   * Returns the current atom value.
+   */
   function get(): T {
     return value;
   }
 
+  /**
+   * Updates the atom value and notifies all listeners if the value changed.
+   * @param update
+   */
   function set(update: AtomUpdate<T>): void {
-    const newValue = typeof update === 'function' ? (update as (prev: T) => T)(value) : update;
+    const newValue = typeof update === 'function' ? (update as (previous: T) => T)(value) : update;
     if (isStrictEqual(value, newValue)) {
       return;
     }
@@ -173,6 +192,10 @@ export function createAtom<T>(initialValue: T): Atom<T> {
     }
   }
 
+  /**
+   * Registers a listener that is called when the atom value changes.
+   * @param listener
+   */
   function subscribe(listener: () => void): () => void {
     listeners.add(listener);
     return () => {
@@ -180,6 +203,9 @@ export function createAtom<T>(initialValue: T): Atom<T> {
     };
   }
 
+  /**
+   * Removes all registered listeners.
+   */
   function clean(): void {
     listeners.clear();
   }

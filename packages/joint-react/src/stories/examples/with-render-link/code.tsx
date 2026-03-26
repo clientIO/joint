@@ -3,7 +3,15 @@
 import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 
-import { GraphProvider, Paper, type FlatElementData, type FlatLinkData, type RenderLink, useElementId, useLinkLayout } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  type FlatElementData,
+  type FlatLinkData,
+  type RenderLink,
+  useElementId,
+  useLinkLayout,
+} from '@joint/react';
 import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { PORTAL_LINK_TYPE } from '../../../models/portal-link';
@@ -34,6 +42,7 @@ const initialLinks: Record<string, FlatLinkData & { type: string }> = {
 
 function LinkPath() {
   const layout = useLinkLayout();
+  console.log(layout, 'Layout in LinkPath RenderLink - rendere'); // Debug log to verify layout data
   const id = useElementId();
 
   // Calculate midpoint for label

@@ -4,7 +4,7 @@ import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { PortalElement } from '../../models/portal-element';
 import { sendToDevTool } from '../../utils/dev-tools';
-import type { FlatElementData, FlatLinkData } from '../../types/data-types';
+
 
 jest.mock('../../utils/dev-tools', () => ({
   sendToDevTool: jest.fn(),
@@ -43,7 +43,7 @@ describe('GraphStore', () => {
     });
 
     it('should initialize with initialElements', () => {
-      const initialElements: Record<string, FlatElementData> = {
+      const initialElements = {
         'element-1': {
           x: 10,
           y: 20,
@@ -61,7 +61,7 @@ describe('GraphStore', () => {
     });
 
     it('should sync initial elements into graph immediately after construction', () => {
-      const initialElements: Record<string, FlatElementData> = {
+      const initialElements = {
         'element-1': {
           x: 10,
           y: 20,
@@ -78,7 +78,7 @@ describe('GraphStore', () => {
     });
 
     it('should initialize with initialLinks', () => {
-      const initialLinks: Record<string, FlatLinkData> = {
+      const initialLinks = {
         'link-1': { data: {}, source: 'element-1', target: 'element-2' },
       };
       const store = new GraphStore({ initialLinks });
@@ -88,7 +88,7 @@ describe('GraphStore', () => {
     });
 
     it('should initialize with both initialElements and initialLinks', () => {
-      const initialElements: Record<string, FlatElementData> = {
+      const initialElements = {
         'element-1': {
           x: 10,
           y: 20,
@@ -97,7 +97,7 @@ describe('GraphStore', () => {
           data: {},
         },
       };
-      const initialLinks: Record<string, FlatLinkData> = {
+      const initialLinks = {
         'link-1': { data: {}, source: 'element-1', target: 'element-2' },
       };
       const store = new GraphStore({ initialElements, initialLinks });
@@ -124,7 +124,7 @@ describe('GraphStore', () => {
       graph.addCell(existingElement);
       const cellCountBefore = graph.getCells().length;
 
-      const initialElements: Record<string, FlatElementData> = {
+      const initialElements = {
         'new-element': {
           x: 10,
           y: 20,
@@ -432,7 +432,7 @@ describe('GraphStore', () => {
     it('should sync state changes to graph', (done) => {
       const store = new GraphStore({});
       const id = 'sync-element';
-      const element: FlatElementData = {
+      const element = {
         data: {},
         x: 10,
         y: 20,
@@ -534,7 +534,7 @@ describe('GraphStore', () => {
 
   describe('controlled mode', () => {
     it('onElementsChange should include updated position after drag', (done) => {
-      const receivedElements: Record<string, unknown>[] = [];
+      const receivedElements: Array<Record<string, unknown>> = [];
 
       const store = new GraphStore({
         initialElements: {
@@ -551,21 +551,21 @@ describe('GraphStore', () => {
 
       setTimeout(() => {
         expect(receivedElements.length).toBeGreaterThan(0);
-        const lastEmit = receivedElements[receivedElements.length - 1];
-        const el = lastEmit['el-1'] as Record<string, unknown>;
-        expect(el).toBeDefined();
+        const lastEmit = receivedElements.at(-1);
+        const element_ = lastEmit!['el-1'] as Record<string, unknown>;
+        expect(element_).toBeDefined();
         // onElementsChange must include the updated position (merged from layout container)
-        expect(el.x).toBe(200);
-        expect(el.y).toBe(150);
+        expect(element_.x).toBe(200);
+        expect(element_.y).toBe(150);
         // User data should still be present
-        expect((el.data as Record<string, unknown>)?.label).toBe('test');
+        expect((element_.data as Record<string, unknown>)?.label).toBe('test');
         store.destroy(false);
         done();
       }, 100);
     });
 
     it('onElementsChange should include updated size after resize', (done) => {
-      const receivedElements: Record<string, unknown>[] = [];
+      const receivedElements: Array<Record<string, unknown>> = [];
 
       const store = new GraphStore({
         initialElements: {
@@ -581,11 +581,11 @@ describe('GraphStore', () => {
 
       setTimeout(() => {
         expect(receivedElements.length).toBeGreaterThan(0);
-        const lastEmit = receivedElements[receivedElements.length - 1];
-        const el = lastEmit['el-1'] as Record<string, unknown>;
-        expect(el).toBeDefined();
-        expect(el.width).toBe(300);
-        expect(el.height).toBe(200);
+        const lastEmit = receivedElements.at(-1);
+        const element_ = lastEmit!['el-1'] as Record<string, unknown>;
+        expect(element_).toBeDefined();
+        expect(element_.width).toBe(300);
+        expect(element_.height).toBe(200);
         store.destroy(false);
         done();
       }, 100);

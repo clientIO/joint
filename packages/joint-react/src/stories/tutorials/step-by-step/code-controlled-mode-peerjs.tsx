@@ -308,7 +308,7 @@ function PaperApp({ onAddElement, onRemoveLast }: Readonly<PaperAppProps>) {
 // STEP 5: Main Component with PeerJS Integration
 // ============================================================================
 
-function Main(props: Readonly<GraphProps>) {
+function Main() {
   const [remotePeerId, setRemotePeerId] = useState('');
   const [peerId, setPeerId] = useState<string | null>(null);
   const [connectedPeerId, setConnectedPeerId] = useState<string | null>(null);
@@ -556,6 +556,6 @@ function Main(props: Readonly<GraphProps>) {
  * ============================================================================
  */
 
-export default function App(props: Readonly<GraphProps>) {
-  return <Main {...props} />;
+export default function App() {
+  return <Main />;
 }

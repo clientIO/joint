@@ -6,6 +6,7 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 import { useContainerItem } from './use-container-item';
 
 /**
+ * Hook to access a specific graph element from the current Paper context.
  * @deprecated Use `useElementData()` for user data, `useElementSize()` for size, `useElementPosition()` for position.
  * A hook to access a specific graph element from the current `Paper` context.
  * Use it only inside `renderElement` or components rendered from within.

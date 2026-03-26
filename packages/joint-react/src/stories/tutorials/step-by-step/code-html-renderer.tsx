@@ -5,7 +5,6 @@ import {
   usePaper,
   useElementSize,
   useMeasureNode,
-  type GraphProps,
   type ElementInput,
   type LinkInput,
 } from '@joint/react';
@@ -67,7 +66,7 @@ function Controls() {
   );
 }
 function Main() {
-  const [isHTMLEnabled, setHTMLEnabled] = useState(true);
+  const [isHTMLEnabled, setIsHTMLEnabled] = useState(true);
 
   // Infer element type from the initial elements
 
@@ -103,7 +102,7 @@ function Main() {
         type="button"
         // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
         onClick={() => {
-          setHTMLEnabled((previous) => !previous);
+          setIsHTMLEnabled((previous) => !previous);
         }}
         className={`${BUTTON_CLASSNAME} mt-2`}
       >
@@ -113,7 +112,7 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App() {
   return (
     <GraphProvider links={initialEdges} elements={initialElements}>
       <Main />

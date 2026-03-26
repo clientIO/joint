@@ -3,7 +3,6 @@ import { useRef } from 'react';
 import { paperRenderElementWrapper, getTestGraph } from '../../utils/test-wrappers';
 import { useElementLayout } from '../use-element-layout';
 import { useElementsLayout } from '../use-stores';
-import { selectAreElementsMeasured } from '../../selectors';
 
 describe('useElementLayout', () => {
   it('should return node layout when used inside renderElement', async () => {
@@ -195,24 +194,6 @@ describe('useElementLayout', () => {
 });
 
 describe('useElementsLayout', () => {
-  it('should select areElementsMeasured', async () => {
-    const graph = getTestGraph();
-    const wrapper = paperRenderElementWrapper({
-      graphProviderProps: {
-        graph,
-        elements: {
-          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
-        },
-      },
-    });
-
-    const { result } = renderHook(() => useElementsLayout(selectAreElementsMeasured), { wrapper });
-
-    await waitFor(() => {
-      expect(typeof result.current).toBe('boolean');
-    });
-  });
-
   it('should return full Map when called without selector', async () => {
     const graph = getTestGraph();
     const wrapper = paperRenderElementWrapper({
@@ -233,38 +214,6 @@ describe('useElementsLayout', () => {
       expect(layout).toBeDefined();
       expect(layout?.width).toBe(100);
       expect(layout?.height).toBe(50);
-    });
-  });
-
-  it('should not cause infinite re-renders with selectAreElementsMeasured', async () => {
-    const graph = getTestGraph();
-    const wrapper = paperRenderElementWrapper({
-      graphProviderProps: {
-        graph,
-        elements: {
-          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
-        },
-      },
-    });
-
-    const { result } = renderHook(
-      () => {
-        const renderCount = useRef(0);
-        renderCount.current += 1;
-        const measured = useElementsLayout(selectAreElementsMeasured);
-        return { measured, renderCount: renderCount.current };
-      },
-      { wrapper }
-    );
-
-    await waitFor(() => {
-      expect(typeof result.current.measured).toBe('boolean');
-    });
-
-    const countAfterStable = result.current.renderCount;
-
-    await waitFor(() => {
-      expect(result.current.renderCount).toBeLessThanOrEqual(countAfterStable + 1);
     });
   });
 });

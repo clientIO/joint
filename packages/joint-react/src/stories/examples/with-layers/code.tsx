@@ -144,7 +144,7 @@ interface MainProps {
 
 function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
   const layers = ['background', 'main', 'foreground'];
-  const paperRef = useRef<PortalPaper>(null);
+  const paperRef = useRef<dia.Paper | null>(null);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

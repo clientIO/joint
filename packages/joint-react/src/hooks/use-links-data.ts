@@ -8,7 +8,6 @@ const selectData = (item: CellData): unknown => (item as { readonly data: unknow
 /**
  * Returns user data for all links, or a filtered subset when IDs are provided.
  * Subscribes to the links data container — does NOT re-render on routing changes.
- *
  * @example
  * ```tsx
  * // All links

@@ -8,13 +8,13 @@ interface TestItem {
   readonly x: number;
 }
 
+function Wrapper({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <>{children}</>;
+}
+
 function createTestContext() {
   const container = createContainer<TestItem>();
   const readOnly = asReadonlyContainer(container);
-
-  function Wrapper({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
-  }
 
   return { container, readOnly, Wrapper };
 }

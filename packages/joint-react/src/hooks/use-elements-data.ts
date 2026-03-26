@@ -8,7 +8,6 @@ const selectData = (item: CellData): unknown => (item as { readonly data: unknow
 /**
  * Returns user data for all elements, or a filtered subset when IDs are provided.
  * Subscribes to the elements data container — does NOT re-render on position/size changes.
- *
  * @example
  * ```tsx
  * // All elements

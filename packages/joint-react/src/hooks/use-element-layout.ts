@@ -15,7 +15,11 @@ export const DEFAULT_LAYOUT: ElementLayout = {
   angle: 0,
 };
 
-/** Structural equality for full ElementLayout objects. */
+/**
+ * Structural equality for full ElementLayout objects.
+ * @param a
+ * @param b
+ */
 const IS_EQUAL = (a: ElementLayout | undefined, b: ElementLayout | undefined): boolean => {
   if (a === b) return true;
   if (!a || !b) return false;
@@ -27,8 +31,6 @@ const IS_EQUAL = (a: ElementLayout | undefined, b: ElementLayout | undefined): b
     a.angle === b.angle
   );
 };
-
-const identitySelector = (layout: ElementLayout): ElementLayout => layout;
 
 /**
  * Hook to get layout data (geometry) for a specific node.
@@ -124,6 +126,7 @@ export function useElementLayout<S>(
 
   // When selector provided, let it handle undefined by passing undefined through
   if (actualSelector && result === undefined) {
+    // eslint-disable-next-line unicorn/no-useless-undefined -- TypeScript requires explicit argument for non-optional parameter
     return actualSelector(undefined);
   }
 

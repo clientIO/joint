@@ -4,6 +4,10 @@ import { useElementsNew } from '../use-elements';
 import { useElementsLayout } from '../use-stores';
 import { useGraphStore } from '../use-graph-store';
 import type { dia } from '@joint/core';
+import type { CellData } from '../../types/cell-data';
+import type { CellId } from '../../types/cell-id';
+
+type ElementsMap = Map<CellId, CellData>;
 
 describe('useElementsNew', () => {
   // GraphProvider sets up graphView, but initial elements are synced via
@@ -11,13 +15,13 @@ describe('useElementsNew', () => {
   // So we pass empty initial state and add elements directly to the graph.
   const wrapper = graphProviderWrapper({});
 
-  function useSetupAndElements(
-    selector?: Parameters<typeof useElementsNew>[0],
-    isEqual?: Parameters<typeof useElementsNew>[1]
+  function useSetupAndElements<T = ElementsMap>(
+    selector?: (items: ElementsMap) => T,
+    isEqual?: (a: T, b: T) => boolean
   ) {
     const store = useGraphStore();
     const elements = useElementsNew(selector, isEqual);
-    return { elements, graph: store.graph };
+    return { elements: elements as T, graph: store.graph };
   }
 
   function addElementsToGraph(graph: dia.Graph) {
@@ -43,7 +47,7 @@ describe('useElementsNew', () => {
 
   it('applies selector to extract element count', async () => {
     const { result } = renderHook(
-      // eslint-disable-next-line sonarjs/no-nested-functions
+       
       () => useSetupAndElements((elements) => elements.size),
       { wrapper }
     );
@@ -59,7 +63,7 @@ describe('useElementsNew', () => {
 
   it('applies selector to get a single element', async () => {
     const { result } = renderHook(
-      // eslint-disable-next-line sonarjs/no-nested-functions
+       
       () => useSetupAndElements((elements) => elements.get('1')),
       { wrapper }
     );
@@ -154,7 +158,7 @@ describe('useElementsNew', () => {
     const { result } = renderHook(
       () => {
         renders();
-        // eslint-disable-next-line sonarjs/no-nested-functions
+         
         return useSetupAndElements((elements) => elements.size);
       },
       { wrapper }
@@ -189,9 +193,9 @@ describe('useElementsNew', () => {
       () => {
         renders();
         return useSetupAndElements(
-          // eslint-disable-next-line sonarjs/no-nested-functions
+           
           (items) => items,
-          // eslint-disable-next-line sonarjs/no-nested-functions
+           
           (previous, next) => previous.size === next.size
         );
       },
@@ -225,7 +229,7 @@ describe('useElementsNew', () => {
     const { result } = renderHook(
       () => {
         renders();
-        // eslint-disable-next-line sonarjs/no-nested-functions
+         
         return useSetupAndElements((map) => map);
       },
       { wrapper }

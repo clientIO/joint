@@ -315,7 +315,7 @@ interface ToolbarProps {
   readonly setSelectedId: (id: CellId | null) => void;
   readonly showElementsInfo: boolean;
   readonly setShowElementsInfo: (show: boolean) => void;
-  readonly paperCtxRef: React.RefObject<PortalPaper | null>;
+  readonly paperCtxRef: React.RefObject<dia.Paper | null>;
 }
 // Toolbar component with some actions
 function ToolBar(props: Readonly<ToolbarProps>) {
@@ -445,9 +445,9 @@ function ElementsInfo() {
 // Define main view component and render elements
 function Main() {
   const [isMinimapVisible, setIsMinimapVisible] = useState(false);
-  const [selectedElementId, setSelectedElement] = useState<CellId | null>(null);
+  const [selectedElementId, setSelectedElementId] = useState<CellId | null>(null);
   const [showElementsInfo, setShowElementsInfo] = useState(false);
-  const paperCtxRef = useRef<PortalPaper | null>(null);
+  const paperCtxRef = useRef<dia.Paper | null>(null);
 
   const renderElement = useCallback((elementData: ElementData) => {
     const { elementType } = elementData;
@@ -489,16 +489,16 @@ function Main() {
       'link:mouseenter': (linkView) => linkView.addTools(toolsView),
       'link:mouseleave': (linkView) => linkView.removeTools(),
       'element:pointerclick': (elementView) => {
-        setSelectedElement(elementView.model.id as CellId);
+        setSelectedElementId(elementView.model.id as CellId);
       },
       'link:pointerclick': () => {
-        setSelectedElement(null);
+        setSelectedElementId(null);
       },
       'blank:pointerclick': () => {
-        setSelectedElement(null);
+        setSelectedElementId(null);
       },
     },
-    [setSelectedElement]
+    [setSelectedElementId]
   );
 
   return (
@@ -508,7 +508,7 @@ function Main() {
           onToggleMinimap={setIsMinimapVisible}
           isMinimapVisible={isMinimapVisible}
           selectedId={selectedElementId}
-          setSelectedId={setSelectedElement}
+          setSelectedId={setSelectedElementId}
           showElementsInfo={showElementsInfo}
           setShowElementsInfo={setShowElementsInfo}
           paperCtxRef={paperCtxRef}

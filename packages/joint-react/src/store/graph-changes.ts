@@ -5,7 +5,10 @@ import type { ElementToAttribute, LinkToAttribute } from './graph-view';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
-interface UpdateGraphOptions<ElementData extends object = CellData, LinkData extends object = CellData> {
+interface UpdateGraphOptions<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+> {
   readonly elements: Record<string, ElementData>;
   readonly links: Record<string, LinkData>;
   readonly flag?: 'updateFromReact';
@@ -27,19 +30,32 @@ interface JointJSEventOptions {
   readonly isUpdateFromReact?: boolean;
   readonly [key: string]: unknown;
 }
-export function graphChanges<ElementData extends object = CellData, LinkData extends object = CellData>(
-  options: Options<ElementData, LinkData>
-) {
+/**
+ * Sets up listeners for JointJS graph mutations and translates them into incremental change events.
+ * @param options
+ */
+export function graphChanges<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+>(options: Options<ElementData, LinkData>) {
   const { graph, onChanges, enableBatchUpdates, elementToAttributes, linkToAttributes } = options;
   const changes = new Map<string, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
   let isSyncedWithReact = true;
 
+  /**
+   * Returns true when inside a batch operation and batch updates are enabled.
+   */
   function onlyLayoutUpdate() {
     return !!(enableBatchUpdates && batchDepth > 0);
   }
 
+  /**
+   * Records a cell change and notifies the change handler.
+   * @param cell
+   * @param type
+   */
   function onCellEvent(cell: dia.Cell, type: 'change' | 'add' | 'remove') {
     if (type === 'remove') {
       changes.set(String(cell.id), { type: 'remove', data: cell });

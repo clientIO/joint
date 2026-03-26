@@ -704,7 +704,7 @@ function Toolbar() {
   const isDark = theme === DARK;
   const { setElement } = useGraph();
   const reduxStore = useStore<CollabRootState>();
-  const [simulating, setSimulating] = useState<Set<string>>(new Set());
+  const [simulating, setSimulating] = useState<Set<string>>(() => new Set());
   const intervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
   const toggleSimulate = useCallback(
@@ -923,7 +923,7 @@ function GraphWithRedux() {
   const [myColor] = useState<string>(
     () => USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]
   );
-  const [remoteDragging, setRemoteDragging] = useState<Set<string>>(new Set());
+  const [remoteDragging, setRemoteDragging] = useState<Set<string>>(() => new Set());
 
   const [manager] = useState(() =>
     createPeerManager({

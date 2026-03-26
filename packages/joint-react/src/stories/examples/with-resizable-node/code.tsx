@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useElements, useElementsLayout, useMeasureNode, type FlatElementData, type FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, useElementsLayout, useMeasureNode, type FlatElementData, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';

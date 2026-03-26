@@ -26,6 +26,7 @@ export interface ElementItemProps {
  * SVG element portal component.
  * Reads element data via useElementData from CellIdContext — no data props needed.
  * Clears cached views after measurement to force re-render with correct dimensions.
+ * @param props
  * @internal
  */
 function SVGElementItemComponent(props: ElementItemProps) {
@@ -66,6 +67,7 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
 /**
  * HTML element portal component with absolute positioning.
  * Reads layout (position/size) via useElementLayout for CSS positioning.
+ * @param props
  * @internal
  */
 function HTMLElementItemComponent(props: ElementItemProps) {

@@ -192,7 +192,6 @@ function Diagram() {
                     className={PAPER_CLASSNAME}
                     height={240}
                     renderElement={renderElement}
-                    // @todo this should be the paper's default
                     background={{ color: '' }}
                 />
             </GraphProvider>

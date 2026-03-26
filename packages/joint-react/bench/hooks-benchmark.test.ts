@@ -9,10 +9,18 @@ interface ItemData {
   y: number;
 }
 
+function selectItemData(item: ItemData): { label: string } {
+  return item.data;
+}
+
+function selectOptionalItemData(item: ItemData | undefined): { label: string } | undefined {
+  return item?.data;
+}
+
 function populateContainer(count: number): ReadonlyContainer<ItemData> {
   const container = createContainer<ItemData>();
-  for (let i = 0; i < count; i++) {
-    container.set(`node-${i}`, { data: { label: `Node ${i}` }, x: i * 10, y: i * 10 });
+  for (let index = 0; index < count; index++) {
+    container.set(`node-${index}`, { data: { label: `Node ${index}` }, x: index * 10, y: index * 10 });
   }
   return asReadonlyContainer(container);
 }
@@ -50,8 +58,8 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
         const keys = [...container.getFull().keys()];
         // Simulate comparison with previous keys
         if (keys.length === previousKeys.length) {
-          for (let i = 0; i < keys.length; i++) {
-            if (keys[i] !== previousKeys[i]) break;
+          for (const [index, key] of keys.entries()) {
+            if (key !== previousKeys[index]) break;
           }
         }
         previousKeys = keys;
@@ -65,14 +73,12 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
 
     it(`${size} items — container items full iteration + selector (useContainerItems hot path)`, async () => {
       const container = populateContainer(size);
-      const selector = (item: ItemData) => item.data;
-
       const bench = new Bench({ time: 1000 });
 
       bench.add(`full iteration + selector (${size})`, () => {
         const result = new Map<string, { label: string }>();
         for (const [id, item] of container.getFull()) {
-          result.set(id, selector(item));
+          result.set(id, selectItemData(item));
         }
         return result;
       });
@@ -85,16 +91,14 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
 
     it(`${size} items — single-ID get + selector (useContainerItem hot path)`, async () => {
       const container = populateContainer(size);
-      const selector = (item: ItemData | undefined) => item?.data;
-
       let tick = 0;
       const bench = new Bench({ time: 1000 });
 
       bench.add(`single-ID get + selector (${size})`, () => {
-        const idx = tick % size;
+        const index = tick % size;
         tick++;
-        const item = container.get(`node-${idx}`);
-        return selector(item);
+        const item = container.get(`node-${index}`);
+        return selectOptionalItemData(item);
       });
 
       await bench.run();
@@ -109,9 +113,9 @@ describe('hooks-benchmark: container operations that hooks delegate to', () => {
       const mapB = new Map<string, { label: string }>();
 
       for (const [id, item] of container.getFull()) {
-        const ref = item.data;
-        mapA.set(id, ref);
-        mapB.set(id, ref); // Same references — equal case
+        const reference = item.data;
+        mapA.set(id, reference);
+        mapB.set(id, reference); // Same references — equal case
       }
 
       const bench = new Bench({ time: 1000 });

@@ -25,7 +25,7 @@ function createTestContext() {
     },
   } as never;
 
-  function Wrapper({ children }: { children: React.ReactNode }) {
+  function Wrapper({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
       <GraphStoreContext.Provider value={graphStore}>
         {children}

@@ -6,7 +6,6 @@ import {
     useFlatElementData,
     useElementSize,
     useFlatLinkData,
-    type FlatElementData,
     type FlatElementPort,
     type FlatLinkData,
     type RenderElement,

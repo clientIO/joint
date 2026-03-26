@@ -383,7 +383,7 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
  *    GraphProvider syncs to graph (but graph already has the change, so no
  *    duplicate update occurs)
  */
-function Main(props: Readonly<GraphProps>) {
+function Main() {
   // Create React state for elements and links
   // These are the single source of truth for the graph
   const [elements, setElements] = useState<Record<string, CustomElement>>(defaultElements);
@@ -447,6 +447,6 @@ function Main(props: Readonly<GraphProps>) {
  * ============================================================================
  */
 
-export default function App(props: Readonly<GraphProps>) {
-  return <Main {...props} />;
+export default function App() {
+  return <Main />;
 }

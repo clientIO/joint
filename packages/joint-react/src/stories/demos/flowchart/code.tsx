@@ -351,7 +351,7 @@ const DecisionNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(DecisionN
 const StartNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StartNodeRaw);
 const StepNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(StepNodeRaw);
 
-function RenderFlowchartNode(props: NodeElementData) {
+function RenderFlowchartNode(props: Readonly<NodeElementData>) {
   const { type } = props;
   const { selectorRef } = useMarkup();
 

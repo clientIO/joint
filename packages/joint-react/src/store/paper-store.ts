@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { RenderElement, RenderLink } from '../components';
 import type { PortalSelector } from '../models/portal-paper.types';

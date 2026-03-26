@@ -6,14 +6,21 @@ import type { CellData } from '../types/cell-data';
 import { useGraphStore } from './use-graph-store';
 import type { GraphStore } from '../store/graph-store';
 
-/** Type guard that checks whether the value is an updater function. */
+/**
+ * Type guard that checks whether the value is an updater function.
+ * @param value
+ */
 function isUpdater<T extends object>(
   value: T | ((previous: T) => T)
 ): value is (previous: T) => T {
   return typeof value === 'function';
 }
 
-/** Removes a cell from the graph by ID. */
+/**
+ * Removes a cell from the graph by ID.
+ * @param id
+ * @param graphStore
+ */
 function removeCell(id: CellId, graphStore: GraphStore) {
   const cell = graphStore.graph.getCell(id);
   cell?.remove();
@@ -93,8 +100,8 @@ export function useGraph(): UseGraphResult {
         graphStore.graphView.updateAutoSizedElement(String(id), mergedData as unknown as Record<string, unknown>);
 
         const cellAttributes = graphStore.graphView.elementToAttributes({ id: String(id), data: mergedData as unknown as CellData });
-        const attrs = { ...cellAttributes, id } as dia.Cell.JSON;
-        graphStore.graph.syncCells([attrs], { remove: false });
+        const attributes_ = { ...cellAttributes, id } as dia.Cell.JSON;
+        graphStore.graph.syncCells([attributes_], { remove: false });
       },
 
       removeElement(id) {
@@ -111,8 +118,8 @@ export function useGraph(): UseGraphResult {
         const mergedData: FlatLinkData = { ...LINK_DEFAULTS, ...existing, ...attributes };
 
         const cellAttributes = graphStore.graphView.linkToAttributes({ id: String(id), data: mergedData as unknown as CellData });
-        const attrs = { ...cellAttributes, id } as dia.Cell.JSON;
-        graphStore.graph.syncCells([attrs], { remove: false });
+        const attributes_ = { ...cellAttributes, id } as dia.Cell.JSON;
+        graphStore.graph.syncCells([attributes_], { remove: false });
       },
 
       removeLink(id) {

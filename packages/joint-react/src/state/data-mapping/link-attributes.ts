@@ -1,6 +1,6 @@
 import type { anchors, attributes, connectionPoints, dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
-import type { FlatLinkData, FlatLinkEnd, FlatLinkPresentationData } from '../../types/data-types';
+import type { FlatLinkEnd, FlatLinkPresentationData } from '../../types/data-types';
 import type { Nullable } from '../../types';
 import { resolveMarker } from '../../theme/markers';
 import { isString } from '../../utils/is';

@@ -100,9 +100,6 @@ export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
 export { PortalLink, PORTAL_LINK_TYPE } from './models/portal-link';
 export { PortalPaper } from './models/portal-paper';
 
-// Selectors (public)
-export { selectAreElementsMeasured } from './selectors';
-
 // Data mapping types
 export type { CellAttributes } from './state/data-mapping';
 export type {

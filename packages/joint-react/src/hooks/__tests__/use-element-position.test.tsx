@@ -17,7 +17,7 @@ function createTestContext(cellId?: string) {
   const container = createContainer<ElementLayout>();
   const readOnly = asReadonlyContainer(container);
 
-  function Wrapper({ children }: { children: React.ReactNode }) {
+  function Wrapper({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
       <CellIdContext.Provider value={cellId}>
         {children}

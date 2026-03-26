@@ -1,8 +1,8 @@
-/* eslint-disable sonarjs/cognitive-complexity */
-/* eslint-disable quotes */
-/* eslint-disable sonarjs/no-nested-conditional */
-/* eslint-disable unicorn/no-nested-ternary */
-/* eslint-disable no-nested-ternary */
+ 
+ 
+ 
+ 
+ 
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {

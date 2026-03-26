@@ -5,6 +5,8 @@ import type { ReadonlyContainer } from '../store/state-container';
 /**
  * Shallow-compare two Maps by size and key→value identity (`===`).
  * Returns `true` when both maps have the same keys mapping to the same values.
+ * @param a
+ * @param b
  */
 function areMapsShallowEqual<R>(a: Map<string, R>, b: Map<string, R>): boolean {
   if (a.size !== b.size) return false;

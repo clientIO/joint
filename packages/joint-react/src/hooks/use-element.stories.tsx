@@ -68,7 +68,7 @@ type Story = TesterHookStory<typeof useElement>;
 export const WithId = makeStory<Story>({
   args: {
     useHook: useElement,
-    hookArgs: [(data: FlatElementData) => data.id] as never,
+    hookArgs: [(data: FlatElementData) => (data as Record<string, unknown>).id] as never,
   },
   apiURL: API_URL,
   code: `import { useElement } from '@joint/react'

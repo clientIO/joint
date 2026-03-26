@@ -19,8 +19,6 @@ import { useCallback, useEffect, useRef } from 'react';
 // Types
 // ----------------------------------------------------------------------------
 
-type ShapeType = 'Investment' | 'Product' | 'ProductPerformance' | 'OverallPerformance';
-
 type InvestmentData = {
   readonly type: 'Investment';
   readonly funds: number;

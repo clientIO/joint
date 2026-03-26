@@ -401,10 +401,10 @@ describe('graph', () => {
     ];
 
     function CaptureLinkData() {
-      const data = useLink<FlatLinkData>();
+      const data = useLink();
       React.useEffect(() => {
         if (data) {
-          receivedLinks.push(data);
+          receivedLinks.push(data as unknown as FlatLinkData);
         }
       }, [data]);
       return <g data-testid="link" />;
@@ -476,11 +476,13 @@ describe('graph', () => {
 
     const receivedLinks: FlatLinkData[] = [];
 
+    // Reuses same pattern as CaptureLinkData above — identical by design for clarity
+    // eslint-disable-next-line sonarjs/no-identical-functions
     function CaptureLinkDataUpdated() {
-      const data = useLink<FlatLinkData>();
+      const data = useLink();
       React.useEffect(() => {
         if (data) {
-          receivedLinks.push(data);
+          receivedLinks.push(data as unknown as FlatLinkData);
         }
       }, [data]);
       return <g data-testid="link" />;

@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
-import { dia, mvc } from '@joint/core';
+import { dia } from '@joint/core';
 import {
   useCallback,
   useDeferredValue,
@@ -16,7 +16,7 @@ import {
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
 import { usePaperStore } from './use-paper';
-import { useInternalData } from './use-stores';
+import { useElementsLayout, useInternalData } from './use-stores';
 import { useLinkData } from './use-link-data';
 import type { CellData } from '../types/cell-data';
 import { useContainerKeys } from './use-container-keys';
@@ -35,6 +35,7 @@ import {
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
 import { selectResetVersion, createSelectPaperVersion } from '../selectors';
+import { useAreElementsMeasured } from './use-are-elements-measured';
 
 type PortalLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
@@ -96,7 +97,6 @@ function LinkItem({
   readonly renderLink: RenderLink;
 }) {
   const data = useLinkData();
-
   if (!portalElement) {
     return null;
   }
@@ -135,7 +135,8 @@ export function useCreatePortalPaper(
   }
 
   const graphStore = useGraphStore();
-  const areElementsMeasured = true;
+  const areElementsMeasured = useAreElementsMeasured();
+  console.log(areElementsMeasured);
   const resetVersion = useInternalData(selectResetVersion);
   const previousResetVersionRef = useRef(-1);
 
@@ -281,7 +282,7 @@ export function useCreatePortalPaper(
       previousResetVersionRef.current = resetVersion;
     }
     const event: ElementsMeasuredEvent = {
-      paper,
+      paper: paper as unknown as dia.Paper,
       graph: paper.model,
       isInitial,
     };
@@ -299,7 +300,9 @@ export function useCreatePortalPaper(
         return null;
       }
 
-      const portalNode = (elementView.paper as PortalPaper).getCellViewPortalNode(elementView);
+      const portalNode = (elementView.paper as unknown as PortalPaper).getCellViewPortalNode(
+        elementView
+      );
 
       if (!portalNode?.isConnected) {
         return null;
@@ -353,7 +356,7 @@ export function useCreatePortalPaper(
         return null;
       }
 
-      const portalNode = (linkView.paper as PortalPaper).getCellViewPortalNode(linkView);
+      const portalNode = (linkView.paper as unknown as PortalPaper).getCellViewPortalNode(linkView);
       if (!portalNode) {
         return null;
       }

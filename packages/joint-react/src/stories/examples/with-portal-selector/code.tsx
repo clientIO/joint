@@ -216,7 +216,7 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
   useEffect(() => {
     const { width, height } = paper.getComputedSize();
     const nextScale = Math.min(MINIMAP_WIDTH / width, MINIMAP_HEIGHT / height);
-    setScale(nextScale);
+    setScale(nextScale); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Derive scale from paper dimensions
   }, [paper]);
 
   return (

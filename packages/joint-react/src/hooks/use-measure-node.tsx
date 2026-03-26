@@ -2,7 +2,6 @@ import { useLayoutEffect, type RefObject } from 'react';
 import { useElementId } from './use-element-id';
 import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
-import { useElementLayout } from './use-element-layout';
 import { usePaper } from './use-paper';
 import type { ElementLayout, ElementSize } from '../types/cell-data';
 import { useElementSize } from './use-element-size';

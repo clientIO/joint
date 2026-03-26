@@ -6,6 +6,7 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 import { useContainerItem } from './use-container-item';
 
 /**
+ * Hook to access a specific graph link from the current Paper context.
  * @deprecated Use `useLinkData()` for user data.
  * A hook to access a specific graph link from the current `Paper` context.
  * Use it only inside `renderLink` or components rendered from within.

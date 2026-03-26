@@ -12,8 +12,6 @@ describe('PortalLink', () => {
           attributes: {
             fill: 'none',
             cursor: 'pointer',
-            stroke: 'transparent',
-            strokeLinecap: 'round',
             strokeLinejoin: 'round',
           },
         },
