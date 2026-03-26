@@ -12,7 +12,7 @@ import {
   type RenderElement,
   type ElementInput,
 } from '@joint/react';
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -77,11 +77,11 @@ function Main() {
     []
   );
 
-  const makeLayout = useCallback(() => {
+  useEffect(() => {
     makeLayoutWithGrid({ graph, gridXSize });
-  }, [makeLayoutWithGrid, graph, gridXSize]);
-
-  useNodesMeasuredEffect(paperId, makeLayout);
+    // make layout on load!
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const elementsLength = useElements((items) => items.size);
   return (
@@ -111,6 +111,7 @@ function Main() {
               width: 100,
               height: 50,
             });
+            makeLayoutWithGrid({ graph, gridXSize });
           }}
           type="button"
           className="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

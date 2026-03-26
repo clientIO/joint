@@ -6,8 +6,8 @@ import type { FlatLinkData, LinkMarker } from '@joint/react';
 import { GraphProvider, Paper, usePaperEvents, usePaper, jsx } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const BG_COLOR = '#f4f7f6';
-const FG_COLOR = '#131e29';
+const BG_COLOR = 'white';
+const FG_COLOR = 'white';
 
 const markers: LinkMarker[] = [
   // #1

@@ -136,7 +136,6 @@ export function useCreatePortalPaper(
 
   const graphStore = useGraphStore();
   const areElementsMeasured = useAreElementsMeasured();
-  console.log(areElementsMeasured);
   const resetVersion = useInternalData(selectResetVersion);
   const previousResetVersionRef = useRef(-1);
 
