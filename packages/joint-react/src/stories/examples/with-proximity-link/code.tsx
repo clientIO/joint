@@ -4,9 +4,9 @@ import {
   Paper,
   useMeasureNode,
   useElementId,
-  useElements,
   useGraph,
   type FlatElementData,
+  useElementsLayout,
 } from '@joint/react';
 import { util } from '@joint/core';
 import '../index.css';
@@ -45,7 +45,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
 
   const { graph } = useGraph();
   const element = graph.getCell(id);
-  const closeIds = useElements(() => {
+  const closeIds = useElementsLayout(() => {
     const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
     const proximityElements = graph
       .findElementsInArea(area)
