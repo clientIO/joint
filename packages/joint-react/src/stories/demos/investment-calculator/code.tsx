@@ -6,6 +6,7 @@ import {
   Paper,
   useGraph,
   useElementId,
+  useElementSize,
   useElements,
   useFlatLinkData,
   type FlatElementData,
@@ -20,38 +21,36 @@ import { useCallback, useEffect, useRef } from 'react';
 
 type ShapeType = 'Investment' | 'Product' | 'ProductPerformance' | 'OverallPerformance';
 
-interface BaseElement extends FlatElementData {
-  readonly type: ShapeType;
-}
-
-interface InvestmentElement extends BaseElement {
+type InvestmentData = {
   readonly type: 'Investment';
   readonly funds: number;
   readonly year: number;
-}
+};
 
-interface ProductElement extends BaseElement {
+type ProductData = {
   readonly type: 'Product';
   readonly name: 'gold' | 'bitcoin' | 'sp500';
   readonly label: string;
   readonly percentage: number;
   readonly color: string;
-}
+};
 
-interface ProductPerformanceElement extends BaseElement {
+type ProductPerformanceData = {
   readonly type: 'ProductPerformance';
   readonly label: string;
-}
+};
 
-interface OverallPerformanceElement extends BaseElement {
+type OverallPerformanceData = {
   readonly type: 'OverallPerformance';
-}
+};
 
-type ShapeElement =
-  | InvestmentElement
-  | ProductElement
-  | ProductPerformanceElement
-  | OverallPerformanceElement;
+type ShapeData =
+  | InvestmentData
+  | ProductData
+  | ProductPerformanceData
+  | OverallPerformanceData;
+
+type ShapeElement = FlatElementData<ShapeData>;
 
 // ----------------------------------------------------------------------------
 // Constants
@@ -102,83 +101,66 @@ const YEARS = Object.keys(historicalPrices);
 
 const initialElements: Record<string, ShapeElement> = {
   investment: {
-    type: 'Investment',
+    data: { type: 'Investment', funds: 100, year: 2018 },
     x: 100,
     y: 280,
     width: 140,
     height: 225,
     z: 1,
-    funds: 100,
-    year: 2018,
   },
   gold: {
-    type: 'Product',
+    data: { type: 'Product', name: 'gold', label: 'Gold', percentage: 25, color: GOLD_COLOR },
     x: 300,
     y: 100,
     width: 140,
     height: 120,
     z: 3,
-    name: 'gold',
-    label: 'Gold',
-    percentage: 25,
-    color: GOLD_COLOR,
   },
   bitcoin: {
-    type: 'Product',
+    data: { type: 'Product', name: 'bitcoin', label: 'Bitcoin', percentage: 25, color: BTC_COLOR },
     x: 300,
     y: 330,
     width: 140,
     height: 120,
     z: 5,
-    name: 'bitcoin',
-    label: 'Bitcoin',
-    percentage: 25,
-    color: BTC_COLOR,
   },
   sp500: {
-    type: 'Product',
+    data: { type: 'Product', name: 'sp500', label: 'S&P 500', percentage: 50, color: SP500_COLOR },
     x: 300,
     y: 560,
     width: 140,
     height: 120,
     z: 7,
-    name: 'sp500',
-    label: 'S&P 500',
-    percentage: 50,
-    color: SP500_COLOR,
   },
   goldPerf: {
-    type: 'ProductPerformance',
+    data: { type: 'ProductPerformance', label: 'Gold' },
     x: 600,
     y: 200,
     width: 200,
     height: 115,
     z: 0,
-    label: 'Gold',
     parent: 'performance',
   },
   bitcoinPerf: {
-    type: 'ProductPerformance',
+    data: { type: 'ProductPerformance', label: 'Bitcoin' },
     x: 600,
     y: 320,
     width: 200,
     height: 115,
     z: 0,
-    label: 'Bitcoin',
     parent: 'performance',
   },
   sp500Perf: {
-    type: 'ProductPerformance',
+    data: { type: 'ProductPerformance', label: 'S&P 500' },
     x: 600,
     y: 440,
     width: 200,
     height: 115,
     z: 0,
-    label: 'S&P 500',
     parent: 'performance',
   },
   performance: {
-    type: 'OverallPerformance',
+    data: { type: 'OverallPerformance' },
     // The position and size of this element will be adjusted to fit its embedded performance nodes
     z: -1,
   },
@@ -243,7 +225,7 @@ function formatValue(value: number): string {
   });
 }
 
-function calculateProductValue(investment: InvestmentElement, product: ProductElement): number {
+function calculateProductValue(investment: InvestmentData, product: ProductData): number {
   const year = String(investment.year);
   const buyPrice = historicalPrices[year]?.[product.name] ?? 1;
   const sellPrice = historicalPrices[String(CURRENT_YEAR)]?.[product.name] ?? 1;
@@ -258,14 +240,15 @@ function calculateROI(cost: number, value: number): number {
 // Investment Node
 // ----------------------------------------------------------------------------
 
-function InvestmentNode({ width, height, funds, year }: Readonly<InvestmentElement>) {
+function InvestmentNode({ funds, year }: Readonly<InvestmentData>) {
   const { setElement } = useGraph();
+  const { width, height } = useElementSize();
 
   const handleFundsChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!event.target.validity.valid) return;
       const newFunds = Number(event.target.value);
-      setElement(INVESTMENT_ID, (previous) => ({ ...previous, funds: newFunds }));
+      setElement(INVESTMENT_ID, (previous) => ({ ...previous, data: { ...previous.data, funds: newFunds } }));
     },
     [setElement]
   );
@@ -273,7 +256,7 @@ function InvestmentNode({ width, height, funds, year }: Readonly<InvestmentEleme
   const handleYearChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
       const newYear = Number(event.target.value);
-      setElement(INVESTMENT_ID, (previous) => ({ ...previous, year: newYear }));
+      setElement(INVESTMENT_ID, (previous) => ({ ...previous, data: { ...previous.data, year: newYear } }));
     },
     [setElement]
   );
@@ -329,8 +312,9 @@ function InvestmentNode({ width, height, funds, year }: Readonly<InvestmentEleme
 // Product Node
 // ----------------------------------------------------------------------------
 
-function ProductNode({ width, height, name, label, percentage, color }: Readonly<ProductElement>) {
+function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) {
   const { setElement } = useGraph();
+  const { width, height } = useElementSize();
 
   const handlePercentageChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -338,7 +322,7 @@ function ProductNode({ width, height, name, label, percentage, color }: Readonly
       const newPercentage = Number(event.target.value);
 
       // Read all current product percentages for redistribution
-      setElement(name, (previous) => ({ ...previous, percentage: newPercentage }));
+      setElement(name, (previous) => ({ ...previous, data: { ...previous.data, percentage: newPercentage } }));
 
       // Redistribute the difference among other products
       const currentPercentage = percentage;
@@ -354,11 +338,12 @@ function ProductNode({ width, height, name, label, percentage, color }: Readonly
       for (const productId of sortedIds) {
         if (diff === 0) break;
         setElement(productId, (previous) => {
-          if (previous.type !== 'Product') return previous;
-          const previousPercentage = Number(previous.percentage);
+          const data = previous.data as Record<string, unknown>;
+          if (data.type !== 'Product') return previous;
+          const previousPercentage = Number(data.percentage);
           const adjusted = Math.max(previousPercentage + diff, 0);
           diff = Math.min(previousPercentage + diff, 0);
-          return { ...previous, percentage: adjusted };
+          return { ...previous, data: { ...data, percentage: adjusted } };
         });
       }
     },
@@ -409,12 +394,13 @@ function ProductNode({ width, height, name, label, percentage, color }: Readonly
 // Product Performance Node
 // ----------------------------------------------------------------------------
 
-function ProductPerformanceNode({ width, height, label }: Readonly<ProductPerformanceElement>) {
+function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const cellId = useElementId();
   const { graph } = useGraph();
+  const { width, height } = useElementSize();
 
   // Use graph topology to find the connected product (inbound neighbor via link)
-  const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>((elements) => {
+  const { value, roi } = useElements<ShapeData, { value: number; roi: number }>((elements) => {
     const cell = graph.getCell(cellId);
     if (!cell?.isElement()) {
       return DEFAULT_ROI_VALUE;
@@ -425,8 +411,10 @@ function ProductPerformanceNode({ width, height, label }: Readonly<ProductPerfor
       return DEFAULT_ROI_VALUE;
     }
 
-    const investment = elements[INVESTMENT_ID];
-    const product = elements[productCell.id];
+    const investmentItem = elements.get(INVESTMENT_ID) as unknown as { data: ShapeData } | undefined;
+    const productItem = elements.get(productCell.id as string) as unknown as { data: ShapeData } | undefined;
+    const investment = investmentItem?.data;
+    const product = productItem?.data;
     if (investment?.type !== 'Investment' || product?.type !== 'Product') {
       return DEFAULT_ROI_VALUE;
     }
@@ -482,13 +470,15 @@ function ProductPerformanceNode({ width, height, label }: Readonly<ProductPerfor
 // Overall Performance Node
 // ----------------------------------------------------------------------------
 
-function OverallPerformanceNode({ width, height }: Readonly<OverallPerformanceElement>) {
+function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const cellId = useElementId();
   const { graph } = useGraph();
+  const { width, height } = useElementSize();
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useElements<ShapeElement, { value: number; roi: number }>((elements) => {
-    const investment = elements[INVESTMENT_ID];
+  const { value, roi } = useElements<ShapeData, { value: number; roi: number }>((elements) => {
+    const investmentItem = elements.get(INVESTMENT_ID) as unknown as { data: ShapeData } | undefined;
+    const investment = investmentItem?.data;
     if (investment?.type !== 'Investment') {
       return DEFAULT_ROI_VALUE;
     }
@@ -505,7 +495,8 @@ function OverallPerformanceNode({ width, height }: Readonly<OverallPerformanceEl
       const [productCell] = graph.getNeighbors(embeddedCell, { inbound: true });
       if (!productCell) continue;
 
-      const product = elements[productCell.id];
+      const productItem = elements.get(productCell.id as string) as unknown as { data: ShapeData } | undefined;
+      const product = productItem?.data;
       if (product?.type !== 'Product') continue;
 
       totalValue += calculateProductValue(investment, product);
@@ -563,7 +554,7 @@ function OverallPerformanceNode({ width, height }: Readonly<OverallPerformanceEl
 // Render Dispatcher
 // ----------------------------------------------------------------------------
 
-function RenderElement(props: Readonly<ShapeElement>) {
+function RenderElement(props: Readonly<ShapeData>) {
   switch (props.type) {
     case 'Investment': {
       return <InvestmentNode {...props} />;

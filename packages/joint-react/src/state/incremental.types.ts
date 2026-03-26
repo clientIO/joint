@@ -1,4 +1,4 @@
-import type { FlatElementData, FlatLinkData } from '../types/data-types';
+import type { CellData } from '../types/cell-data';
 
 interface IncrementalChangeBase<Item> {
   readonly type: 'change' | 'add';
@@ -7,10 +7,15 @@ interface IncrementalChangeBase<Item> {
 
 interface IncrementalChangeRemove<Item> {
   readonly type: 'remove';
-  readonly data: Item;
+  readonly data?: Item;
 }
 
-export type IncrementalChange<Item> = IncrementalChangeBase<Item> | IncrementalChangeRemove<Item>;
+interface IncrementalChangeReset<Item> {
+  readonly type: 'reset';
+  readonly data: Item[];
+}
+
+export type IncrementalChange<Item> = IncrementalChangeBase<Item> | IncrementalChangeRemove<Item> | IncrementalChangeReset<Item>;
 
 export type OnIncrementalChangeHandler<Item> = (change: IncrementalChange<Item>) => void;
 
@@ -20,7 +25,7 @@ export interface IncrementalStateChange<T> {
   readonly removed?: Record<string, T>;
   readonly reset?: Record<string, T>;
 }
-export interface IncrementalStateChanges<ElementData = FlatElementData, LinkData = FlatLinkData> {
-  elements: IncrementalStateChange<ElementData>;
-  links: IncrementalStateChange<LinkData>;
+export interface IncrementalStateChanges<ElementData extends object = CellData, LinkData extends object = CellData> {
+  readonly elements: IncrementalStateChange<ElementData>;
+  readonly links: IncrementalStateChange<LinkData>;
 }

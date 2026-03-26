@@ -9,59 +9,57 @@ import {
   PortalElement,
   PortalLink,
   useMeasureNode,
+  useElementSize,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
-interface LayeredElement extends FlatElementData {
+interface LayeredElementData {
+  readonly [key: string]: unknown;
   readonly label: string;
   readonly color?: string;
+  readonly isBackground?: boolean;
 }
 
 // Elements assigned to different layers
-const elements: Record<string, LayeredElement> = {
+const elements: Record<string, FlatElementData<LayeredElementData>> = {
   // Background layer elements
   'bg-1': {
+    data: { label: 'Background 1', color: '#374151', isBackground: true },
     x: 20,
     y: 20,
     width: 200,
     height: 150,
-    label: 'Background 1',
-    color: '#374151',
     layer: 'background',
   },
   'bg-2': {
+    data: { label: 'Background 2', color: '#374151', isBackground: true },
     x: 250,
     y: 20,
     width: 200,
     height: 150,
-    label: 'Background 2',
-    color: '#374151',
     layer: 'background',
   },
   // Main layer elements
   'main-1': {
+    data: { label: 'Main 1', color: PRIMARY },
     x: 50,
     y: 50,
-    label: 'Main 1',
-    color: PRIMARY,
     layer: 'main',
   },
   'main-2': {
+    data: { label: 'Main 2', color: PRIMARY },
     x: 280,
     y: 50,
-    label: 'Main 2',
-    color: PRIMARY,
     layer: 'main',
   },
   // Foreground layer elements
   'fg-1': {
+    data: { label: 'Foreground', color: SECONDARY },
     x: 100,
     y: 200,
-    label: 'Foreground',
-    color: SECONDARY,
     layer: 'foreground',
   },
 };
@@ -84,7 +82,8 @@ const links: Record<string, FlatLinkData> = {
   },
 };
 
-function BackgroundNode({ label, width, height, color }: Readonly<LayeredElement>) {
+function BackgroundNode({ label, color }: Readonly<LayeredElementData>) {
+  const { width, height } = useElementSize();
   return (
     <g className="fade-in">
       <rect
@@ -104,7 +103,7 @@ function BackgroundNode({ label, width, height, color }: Readonly<LayeredElement
   );
 }
 
-function ElementNode({ label, color }: Readonly<LayeredElement>) {
+function ElementNode({ label, color }: Readonly<LayeredElementData>) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(ref);
 
@@ -131,8 +130,8 @@ function ElementNode({ label, color }: Readonly<LayeredElement>) {
   );
 }
 
-function RenderElement(props: Readonly<LayeredElement>) {
-  if (props.layer === 'background') {
+function RenderElement(props: Readonly<LayeredElementData>) {
+  if (props.isBackground) {
     return <BackgroundNode {...props} />;
   }
   return <ElementNode {...props} />;

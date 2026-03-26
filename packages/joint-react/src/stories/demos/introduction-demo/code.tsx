@@ -24,30 +24,27 @@ import {
   type PortalPaper,
   type PaperProps,
   usePaperEvents,
-  useElementLayout,
+  useElementSize,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
 
 // Define types for the elements
-interface ElementBase extends FlatElementData {
-  readonly elementType: 'alert' | 'info' | 'table';
-}
-
-interface MessageElement extends ElementBase {
+type MessageElementData = {
   readonly elementType: 'alert' | 'info';
   readonly title: string;
   readonly description: string;
   readonly inputText: string;
-}
+};
 
-interface TableElement extends ElementBase {
+type TableElementData = {
   readonly elementType: 'table';
   readonly columnNames: string[];
   readonly rows: string[][];
-}
+};
 
-type Element = MessageElement | TableElement;
+type ElementData = MessageElementData | TableElementData;
+type Element = FlatElementData<ElementData>;
 
 const MESSAGE_NODE_CLASSNAME =
   'flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm';
@@ -94,31 +91,37 @@ const PAPER_PROPS: PaperProps = {
 // Create initial elements and links with typing support as Records
 const elements: Record<string, Element> = {
   '1': {
+    data: {
+      elementType: 'alert',
+      title: 'This is error element',
+      description: 'This is longer text, it can be any message provided by the user',
+      inputText: 'Node Text',
+    },
     x: 50,
     y: 110,
-    elementType: 'alert',
-    title: 'This is error element',
-    description: 'This is longer text, it can be any message provided by the user',
-    inputText: 'Node Text',
   },
   '2': {
+    data: {
+      elementType: 'info',
+      title: 'This is info element',
+      description: 'This is longer text, it can be any message provided by the user',
+      inputText: '',
+    },
     x: 550,
     y: 110,
-    elementType: 'info',
-    title: 'This is info element',
-    description: 'This is longer text, it can be any message provided by the user',
-    inputText: '',
   },
   '3': {
+    data: {
+      elementType: 'table',
+      columnNames: ['Column 1', 'Column 2', 'Column 3'],
+      rows: [
+        ['Row 1', 'Row 2', 'Row 3'],
+        ['Row 4', 'Row 5', 'Row 6'],
+        ['Row 7', 'Row 8', 'Row 9'],
+      ],
+    },
     x: 50,
     y: 370,
-    elementType: 'table',
-    columnNames: ['Column 1', 'Column 2', 'Column 3'],
-    rows: [
-      ['Row 1', 'Row 2', 'Row 3'],
-      ['Row 4', 'Row 5', 'Row 6'],
-      ['Row 7', 'Row 8', 'Row 9'],
-    ],
     width: 400,
     height: 200,
     ports: buildTablePorts([
@@ -151,7 +154,7 @@ function MessageComponent({
   title,
   description,
   inputText,
-}: Readonly<MessageElement>) {
+}: Readonly<MessageElementData>) {
   let iconContent;
   let titleText;
   switch (elementType) {
@@ -191,7 +194,7 @@ function MessageComponent({
             className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
             placeholder="Type here..."
             onChange={({ target: { value } }) => {
-              setElement(id, (previous) => ({ ...previous, inputText: value }));
+              setElement(id, (previous) => ({ ...previous, data: { ...previous.data, inputText: value } }));
             }}
           />
         </div>
@@ -203,9 +206,10 @@ function MessageComponent({
 const ROW_HEIGHT = 45;
 const ROW_START = 65;
 // Define the table element
-function TableElement({ columnNames, rows, width, height }: Readonly<TableElement>) {
-  const tableWidth = width ?? 0;
-  const tableHeight = height ?? 0;
+function TableElementComponent({ columnNames, rows }: Readonly<TableElementData>) {
+  const { width, height } = useElementSize();
+  const tableWidth = width;
+  const tableHeight = height;
   return (
     <>
       <foreignObject width={tableWidth} height={tableHeight} overflow="visible">
@@ -260,7 +264,7 @@ function TableElement({ columnNames, rows, width, height }: Readonly<TableElemen
 }
 
 function MinimapRenderElement() {
-  const { width, height } = useElementLayout();
+  const { width, height } = useElementSize();
   return <rect width={width} height={height} fill={'white'} rx={10} ry={10} />;
 }
 // Minimap component
@@ -445,15 +449,15 @@ function Main() {
   const [showElementsInfo, setShowElementsInfo] = useState(false);
   const paperCtxRef = useRef<PortalPaper | null>(null);
 
-  const renderElement = useCallback((element: Element) => {
-    const { elementType } = element;
+  const renderElement = useCallback((elementData: ElementData) => {
+    const { elementType } = elementData;
     switch (elementType) {
       case 'alert':
       case 'info': {
-        return <MessageComponent {...element} />;
+        return <MessageComponent {...elementData} />;
       }
       case 'table': {
-        return <TableElement {...element} />;
+        return <TableElementComponent {...elementData} />;
       }
     }
   }, []);

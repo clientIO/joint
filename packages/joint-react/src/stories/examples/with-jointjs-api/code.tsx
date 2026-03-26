@@ -11,7 +11,6 @@ import {
   useGraph,
   useMeasureNode,
   useElementId,
-  type FlatElementData,
   usePaper,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -20,7 +19,8 @@ import '../index.css';
 
 const COLORS = ['#ED2637', '#FF9505', '#3498db', '#2ecc71', '#9b59b6', '#1abc9c'];
 
-interface ElementData extends FlatElementData {
+interface ElementData {
+  readonly [key: string]: unknown;
   readonly label: string;
   readonly color: string;
 }
@@ -59,7 +59,7 @@ function createGraph(): dia.Graph {
   return graph;
 }
 
-function Node({ label, color }: Readonly<Partial<ElementData>>) {
+function Node({ label, color }: Readonly<ElementData>) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(ref);
   const id = useElementId();

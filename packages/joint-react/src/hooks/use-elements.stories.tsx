@@ -8,6 +8,12 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 import { Paper } from '../components/paper/paper';
+import { useElementSize } from './use-element-size';
+
+function RenderRectElement() {
+  const size = useElementSize();
+  return <rect width={size?.width} height={size?.height} fill={PRIMARY} />;
+}
 
 const API_URL = getAPILink('useElements');
 
@@ -80,9 +86,7 @@ export const Default = makeStory<Story>({
       <div>
         <Paper
           className={PAPER_CLASSNAME}
-          renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill={PRIMARY} />;
-          }}
+          renderElement={RenderRectElement}
         />
         <DataRenderer data={result} name="All Elements" />
       </div>
@@ -106,9 +110,7 @@ export const WithSelectedJustIds = makeStory<Story>({
       <span>
         <Paper
           className={PAPER_CLASSNAME}
-          renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill={PRIMARY} />;
-          }}
+          renderElement={RenderRectElement}
         />
         <DataRenderer data={result} name="Element IDs" />
       </span>
@@ -132,9 +134,7 @@ export const WithGetJustSize = makeStory<Story>({
       <div>
         <Paper
           className={PAPER_CLASSNAME}
-          renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill={PRIMARY} />;
-          }}
+          renderElement={RenderRectElement}
         />
         <DataRenderer data={result} name="Size of Elements" />
       </div>
@@ -164,9 +164,7 @@ export const WithJustPosition = makeStory<Story>({
       <div>
         <Paper
           className={PAPER_CLASSNAME}
-          renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill={PRIMARY} />;
-          }}
+          renderElement={RenderRectElement}
         />
         <DataRenderer data={result} name="Position" />
       </div>
@@ -199,9 +197,7 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
       <div>
         <Paper
           className={PAPER_CLASSNAME}
-          renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill={PRIMARY} />;
-          }}
+          renderElement={RenderRectElement}
         />
         <DataRenderer data={result} name="Position" />
       </div>
@@ -232,9 +228,7 @@ export const WithAdditionalData = makeStory<Story>({
       <div>
         <Paper
           className={PAPER_CLASSNAME}
-          renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill={PRIMARY} />;
-          }}
+          renderElement={RenderRectElement}
         />
         <DataRenderer data={result} name="Element with new data" />
       </div>

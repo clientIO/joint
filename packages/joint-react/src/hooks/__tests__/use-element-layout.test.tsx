@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { paperRenderElementWrapper, getTestGraph } from '../../utils/test-wrappers';
 import { useElementLayout } from '../use-element-layout';
 import { useElementsLayout } from '../use-stores';
-import { selectAreElementsMeasured, selectElementSizes } from '../../selectors';
+import { selectAreElementsMeasured } from '../../selectors';
 
 describe('useElementLayout', () => {
   it('should return node layout when used inside renderElement', async () => {
@@ -12,7 +12,7 @@ describe('useElementLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
@@ -34,7 +34,7 @@ describe('useElementLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
@@ -57,7 +57,7 @@ describe('useElementLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
@@ -75,15 +75,12 @@ describe('useElementLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
 
-    const { result } = renderHook(
-      () => useElementLayout((layout) => layout?.width),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useElementLayout((layout) => layout?.width), { wrapper });
 
     await waitFor(() => {
       expect(result.current).toBe(100);
@@ -96,7 +93,7 @@ describe('useElementLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
@@ -117,15 +114,14 @@ describe('useElementLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
 
-    const { result } = renderHook(
-      () => useElementLayout('missing', (layout) => layout?.x),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useElementLayout('missing', (layout) => layout?.x), {
+      wrapper,
+    });
 
     await waitFor(() => {
       expect(result.current).toBeUndefined();
@@ -138,7 +134,7 @@ describe('useElementLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
@@ -171,7 +167,7 @@ describe('useElementLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
@@ -205,40 +201,38 @@ describe('useElementsLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
 
-    const { result } = renderHook(
-      () => useElementsLayout(selectAreElementsMeasured),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useElementsLayout(selectAreElementsMeasured), { wrapper });
 
     await waitFor(() => {
       expect(typeof result.current).toBe('boolean');
     });
   });
 
-  it('should select element sizes', async () => {
+  it('should return full Map when called without selector', async () => {
     const graph = getTestGraph();
     const wrapper = paperRenderElementWrapper({
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });
 
-    const { result } = renderHook(
-      () => useElementsLayout(selectElementSizes),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useElementsLayout(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current).toBeDefined();
-      expect(typeof result.current).toBe('object');
+      expect(result.current).toBeInstanceOf(Map);
+      expect(result.current.size).toBe(1);
+      const layout = result.current.get('element-1');
+      expect(layout).toBeDefined();
+      expect(layout?.width).toBe(100);
+      expect(layout?.height).toBe(50);
     });
   });
 
@@ -248,7 +242,7 @@ describe('useElementsLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 10, y: 20, width: 100, height: 50 },
+          'element-1': { data: {}, x: 10, y: 20, width: 100, height: 50 },
         },
       },
     });

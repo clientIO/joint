@@ -7,7 +7,6 @@ import React, { useId, useRef } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   SimpleGraphDecorator,
-  type SimpleElement,
 } from '../../../.storybook/decorators/with-simple-data';
 import { action } from 'storybook/actions';
 import { dia, linkTools } from '@joint/core';
@@ -21,16 +20,19 @@ import { useElementId } from '../../hooks/use-element-id';
 import { useNodesMeasuredEffect } from '../../hooks/use-nodes-measured-effect';
 import { usePaperEvents } from '../../hooks/use-paper-events';
 import { Paper } from './paper';
-import type { RenderElement } from './paper.types';
 import type { FlatElementData } from '../../types/data-types';
 import { GraphProvider } from '../graph/graph-provider';
+import { useElementData } from '../../hooks/use-element-data';
+import { useElementSize } from '../../hooks/use-element-size';
 
 export type Story = StoryObj<typeof Paper>;
 
-interface StoryElementData extends FlatElementData {
+type StoryElementCustomData = {
   readonly label: string;
   readonly hoverColor: string;
-}
+};
+
+type StoryElementData = FlatElementData<StoryElementCustomData>;
 
 const API_URL = getAPILink('Paper', 'variables');
 const meta: Meta<typeof Paper> = {
@@ -51,22 +53,26 @@ The **Paper** component is the core rendering component that displays nodes and 
     `,
     usage: `
 \`\`\`tsx
-import { GraphProvider, Paper } from '@joint/react';
+import { GraphProvider, Paper, useElementSize } from '@joint/react';
+
+function RenderElement() {
+  const size = useElementSize();
+  return (
+    <rect
+      rx={10}
+      ry={10}
+      width={size?.width}
+      height={size?.height}
+      fill="blue"
+    />
+  );
+}
 
 function MyDiagram() {
   return (
     <GraphProvider elements={elements} links={links}>
-      <Paper 
-        renderElement={({ width, height }) => (
-          <rect 
-            rx={10} 
-            ry={10} 
-            width={width} 
-            height={height} 
-            fill="blue" 
-          />
-        )}
-        
+      <Paper
+        renderElement={RenderElement}
         height={600}
       />
     </GraphProvider>
@@ -75,7 +81,7 @@ function MyDiagram() {
 \`\`\`
     `,
     props: `
-- **renderElement**: Function that receives element props and returns SVG/HTML content
+- **renderElement**: Function that receives user data and returns SVG/HTML content
 - **width/height**: Paper dimensions (supports numbers or CSS strings)
 - **scale**: Zoom level (default: 1)
 - **className**: CSS class for styling
@@ -83,16 +89,15 @@ function MyDiagram() {
 - **Events**: Subscribe with \`usePaperEvents\` using raw JointJS names (e.g. \`cell:pointerclick\`, \`link:mouseenter\`)
     `,
     apiURL: API_URL,
-    code: `import { GraphProvider, Paper } from '@joint/react'
+    code: `import { GraphProvider, Paper, useElementSize } from '@joint/react'
+
+function RenderElement() {
+  const size = useElementSize();
+  return <rect rx={10} ry={10} width={size?.width} height={size?.height} fill="blue" />;
+}
 
 <GraphProvider elements={elements} links={links}>
-  <Paper 
-    renderElement={({ width, height }) => (
-      <rect rx={10} ry={10} width={width} height={height} fill="blue" />
-    )}
-    
-    height={600}
-  />
+  <Paper renderElement={RenderElement} height={600} />
 </GraphProvider>
     `,
   }),
@@ -100,20 +105,22 @@ function MyDiagram() {
 
 export default meta;
 
-function RenderRectElement({ width, height }: Readonly<SimpleElement>) {
-  return <rect rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
+function RenderRectElement() {
+  const size = useElementSize();
+  return <rect rx={10} ry={10} width={size?.width} height={size?.height} fill={PRIMARY} />;
 }
 
-function RenderHTMLElement({ width, height }: Readonly<SimpleElement>) {
+function RenderHTMLElement() {
+  const size = useElementSize();
   const elementRef = React.useRef<HTMLDivElement>(null);
   useMeasureNode(elementRef);
   return (
-    <foreignObject width={width} height={height}>
+    <foreignObject width={size?.width} height={size?.height}>
       <div
         ref={elementRef}
         style={{
-          width,
-          height,
+          width: size?.width,
+          height: size?.height,
           boxShadow: '0 0 10px rgba(0,0,0,0.5)',
           display: 'flex',
           justifyContent: 'center',
@@ -354,48 +361,43 @@ export const WithOnClickColorChange: Story = {
     },
   },
   render: () => {
-    const renderElement: RenderElement<SimpleElement> = ({ width, height, hoverColor }) => {
+    function ColorChangeElement() {
       const id = useElementId();
+      const size = useElementSize();
+      const data = useElementData<StoryElementCustomData>();
       const { setElement } = useGraph();
       return (
         <div
           className="node"
           onClick={() => {
-            setElement(id, (previous) => ({ ...previous, hoverColor: 'blue' }));
+            setElement(id, (previous) => ({ ...previous, data: { ...previous.data, hoverColor: 'blue' } }));
           }}
-          style={{ width, height, backgroundColor: hoverColor }}
+          style={{ width: size?.width, height: size?.height, backgroundColor: data?.hoverColor }}
         ></div>
       );
-    };
+    }
     return (
       <GraphProvider
         elements={{
           '1': {
+            data: { label: 'Element 1', hoverColor: 'red' },
             width: 100,
             height: 40,
-            label: 'Element 1',
             x: 50,
             y: 50,
-            hoverColor: 'red',
           } satisfies StoryElementData,
           '2': {
+            data: { label: 'Element 1', hoverColor: 'red' },
             width: 100,
             height: 40,
-            label: 'Element 1',
             x: 100,
             y: 250,
-            hoverColor: 'red',
           } satisfies StoryElementData,
         }}
         links={{
           l1: {
             source: '1',
             target: '2',
-            attrs: {
-              line: {
-                stroke: PRIMARY,
-              },
-            },
           },
         }}
       >
@@ -404,7 +406,7 @@ export const WithOnClickColorChange: Story = {
           useHTMLOverlay
           className={PAPER_CLASSNAME}
           height={400}
-          renderElement={renderElement}
+          renderElement={() => <ColorChangeElement />}
         />
       </GraphProvider>
     );
@@ -422,7 +424,8 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
     },
   },
   render: () => {
-    const renderElement: RenderElement<SimpleElement> = ({ hoverColor }) => {
+    function AutoSizedElement() {
+      const data = useElementData<StoryElementCustomData>();
       const ref = useRef<SVGRectElement>(null);
       useMeasureNode(ref, {
         transform: ({ x, y, width, height, id }) => {
@@ -445,33 +448,28 @@ export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
       return (
         <>
           <div></div>
-          <rect ref={ref} width={150} height={30} fill={hoverColor} rx={10} ry={10} />;
+          <rect ref={ref} width={150} height={30} fill={data?.hoverColor} rx={10} ry={10} />;
         </>
       );
-    };
+    }
     return (
       <GraphProvider
         elements={{
           '1': {
-            label: 'Element 1',
-            hoverColor: 'red',
-            somethingMine: true,
+            data: { label: 'Element 1', hoverColor: 'red' },
           } satisfies StoryElementData,
-          '2': { label: 'Element 1', hoverColor: 'red' } satisfies StoryElementData,
+          '2': { data: { label: 'Element 1', hoverColor: 'red' } } satisfies StoryElementData,
         }}
         links={{
           l1: {
+            data: {},
             source: '1',
             target: '2',
-            attrs: {
-              line: {
-                stroke: PRIMARY,
-              },
-            },
+            color: PRIMARY,
           },
         }}
       >
-        <Paper id="main" className={PAPER_CLASSNAME} height={400} renderElement={renderElement} />
+        <Paper id="main" className={PAPER_CLASSNAME} height={400} renderElement={() => <AutoSizedElement />} />
       </GraphProvider>
     );
   },

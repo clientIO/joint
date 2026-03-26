@@ -1,9 +1,12 @@
 import { useLinkId } from './use-link-id';
-import type { FlatLinkData } from '../types/data-types';
-import { useData } from './use-stores';
+import type { CellData } from '../types/cell-data';
+import type { ReadonlyContainer } from '../store/state-container';
+import { useGraphStore } from './use-graph-store';
 import { isStrictEqual, identitySelector } from '../utils/selector-utils';
+import { useContainerItem } from './use-container-item';
 
 /**
+ * @deprecated Use `useLinkData()` for user data.
  * A hook to access a specific graph link from the current `Paper` context.
  * Use it only inside `renderLink` or components rendered from within.
  * This hook returns the selected link based on its cell id. It accepts:
@@ -31,19 +34,18 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
  * @param isEqual - The function used to check equality. Defaults to strict equality (`Object.is`).
  * @returns The selected link based on the current cell id.
  */
-export function useLink<LinkData = FlatLinkData, ReturnedLinks = LinkData>(
+export function useLink<LinkData extends CellData = CellData, ReturnedLinks = LinkData>(
   selector: (item: LinkData) => ReturnedLinks = identitySelector as (
     item: LinkData
   ) => ReturnedLinks,
   isEqual: (a: ReturnedLinks, b: ReturnedLinks) => boolean = isStrictEqual
 ): ReturnedLinks {
   const id = useLinkId();
+  const { graphView: { links } } = useGraphStore();
 
-  return useData<ReturnedLinks>((store) => {
-    const link = store.links[id] as LinkData | undefined;
-    if (!link) {
-      return undefined as ReturnedLinks;
-    }
-    return selector(link);
-  }, isEqual);
+  // The container stores CellData but users pass a narrower LinkData generic.
+  // This boundary cast is safe because the graph populates the container with the same shape.
+  const typedLinks = links as ReadonlyContainer<LinkData>;
+
+  return useContainerItem(typedLinks, id, selector, isEqual) as ReturnedLinks;
 }

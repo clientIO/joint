@@ -3,7 +3,7 @@
 
 import { type dia, g, highlighters, V } from '@joint/core';
 import type { FlatElementData } from '@joint/react';
-import { GraphProvider, Paper, SVGText, useGraph, useNodesMeasuredEffect } from '@joint/react';
+import { GraphProvider, Paper, SVGText, useElementSize, useGraph, useNodesMeasuredEffect } from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 
@@ -16,54 +16,47 @@ const ShapeTypes = {
 
 type ShapeType = (typeof ShapeTypes)[keyof typeof ShapeTypes];
 
-interface ShapeElement extends FlatElementData {
+interface ShapeElement {
   readonly type: ShapeType;
-  readonly width: number;
-  readonly height: number;
-  readonly x: number;
-  readonly y: number;
   readonly label: string;
 }
 
-const initialElements: Record<string, ShapeElement> = {
+const initialElements: Record<string, FlatElementData<ShapeElement>> = {
   rectangle: {
-    type: ShapeTypes.rectangle,
+    data: { type: ShapeTypes.rectangle, label: 'Rectangle' },
     width: 100,
     height: 100,
     x: 20,
     y: 20,
-    label: 'Rectangle',
   },
   circle: {
-    type: ShapeTypes.circle,
+    data: { type: ShapeTypes.circle, label: 'Circle' },
     width: 100,
     height: 100,
     x: 160,
     y: 20,
-    label: 'Circle',
   },
   ellipse: {
-    type: ShapeTypes.ellipse,
+    data: { type: ShapeTypes.ellipse, label: 'Ellipse' },
     width: 150,
     height: 100,
     x: 320,
     y: 20,
-    label: 'Ellipse',
   },
   path: {
-    type: ShapeTypes.path,
+    data: { type: ShapeTypes.path, label: 'Path' },
     width: 100,
     height: 100,
     x: 520,
     y: 20,
-    label: 'Path',
   },
 };
 
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function RectangleShape({ width, height, label }: Readonly<ShapeElement>) {
+function RectangleShape({ label }: Readonly<ShapeElement>) {
+  const { width, height } = useElementSize();
   return (
     <>
       <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} />
@@ -82,7 +75,8 @@ function RectangleShape({ width, height, label }: Readonly<ShapeElement>) {
   );
 }
 
-function CircleShape({ width, height, label }: Readonly<ShapeElement>) {
+function CircleShape({ label }: Readonly<ShapeElement>) {
+  const { width, height } = useElementSize();
   return (
     <>
       <circle
@@ -108,7 +102,8 @@ function CircleShape({ width, height, label }: Readonly<ShapeElement>) {
   );
 }
 
-function EllipseShape({ width, height, label }: Readonly<ShapeElement>) {
+function EllipseShape({ label }: Readonly<ShapeElement>) {
+  const { width, height } = useElementSize();
   return (
     <>
       <ellipse
@@ -135,7 +130,8 @@ function EllipseShape({ width, height, label }: Readonly<ShapeElement>) {
   );
 }
 
-function PathShape({ width, height, label }: Readonly<ShapeElement>) {
+function PathShape({ label }: Readonly<ShapeElement>) {
+  const { width, height } = useElementSize();
   return (
     <>
       <path

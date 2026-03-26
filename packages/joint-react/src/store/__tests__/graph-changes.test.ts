@@ -3,18 +3,18 @@ import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
 import { graphChanges } from '../graph-changes';
 import type { FlatElementData } from '../../types/element-types';
 import type { FlatLinkData } from '../../types/link-types';
-import { defaultMapDataToElementAttributes, defaultMapDataToLinkAttributes } from '../../state/data-mapping';
+import { flatMapDataToElementAttributes, flatMapDataToLinkAttributes } from '../../state/data-mapping';
 
 function createGraph() {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 }
 
 function defaultElementToAttributes({ id, data }: { id: string; data: FlatElementData }) {
-  return defaultMapDataToElementAttributes({ id, data });
+  return flatMapDataToElementAttributes({ id, data });
 }
 
 function defaultLinkToAttributes({ id, data }: { id?: string; data: FlatLinkData }) {
-  return defaultMapDataToLinkAttributes({ id: id ?? '', data });
+  return flatMapDataToLinkAttributes({ id: id ?? '', data });
 }
 
 interface SetupOptions {
@@ -237,7 +237,7 @@ describe('graphChanges', () => {
       const { graph, controller } = setup();
       controller.updateGraph({
         elements: {
-          'el-1': { x: 10, y: 20, width: 100, height: 50 } as FlatElementData,
+          'el-1': { data: {}, x: 10, y: 20, width: 100, height: 50 } as FlatElementData,
         },
         links: {},
       });
@@ -262,7 +262,7 @@ describe('graphChanges', () => {
 
       controller.updateGraph({
         elements: {
-          'el-1': { x: 10, y: 20, width: 100, height: 50 } as FlatElementData,
+          'el-1': { data: {}, x: 10, y: 20, width: 100, height: 50 } as FlatElementData,
         },
         links: {},
         flag: 'updateFromReact',

@@ -9,7 +9,7 @@ import { connectionPoint } from './default-connection-point';
 import { measureNode } from './default-measure-node';
 import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
-import type { PaperStoreState } from '../state/state.types';
+import type { PaperStoreState } from './graph-store';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;

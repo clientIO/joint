@@ -6,9 +6,10 @@
 
 import {
   GraphProvider,
+  useElementSize,
   type GraphProps,
-  type FlatElementData,
-  type FlatLinkData,
+  type ElementInput,
+  type LinkInput,
   Paper,
   type IncrementalStateChanges,
 } from '@joint/react';
@@ -53,11 +54,18 @@ import undoable, { ActionCreators } from 'redux-undo';
  * Contains elements and links records.
  * History is managed automatically by redux-undo.
  */
+/**
+ * Custom element data with a label property.
+ */
+type ElementData = { label: string };
+
+type CustomElement = ElementInput<ElementData>;
+
 interface GraphState {
   /** Record of all elements (nodes) in the graph keyed by ID */
-  readonly elements: Record<string, FlatElementData>;
+  readonly elements: Record<string, CustomElement>;
   /** Record of all links (edges) in the graph keyed by ID */
-  readonly links: Record<string, FlatLinkData>;
+  readonly links: Record<string, LinkInput>;
 }
 
 // ============================================================================
@@ -65,22 +73,17 @@ interface GraphState {
 // ============================================================================
 
 /**
- * Custom element type with a label property.
- */
-type CustomElement = FlatElementData & { label: string };
-
-/**
  * Initial elements for the graph.
  */
 const defaultElements: Record<string, CustomElement> = {
-  '1': { label: 'Hello', x: 100, y: 15, width: 100, height: 50 },
-  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
+  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
 
 /**
  * Initial links for the graph.
  */
-const defaultLinks: Record<string, FlatLinkData> = {
+const defaultLinks: Record<string, LinkInput> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -96,14 +99,14 @@ const defaultLinks: Record<string, FlatLinkData> = {
 const graphSlice = createSlice({
   name: 'graph',
   initialState: {
-    elements: defaultElements as Record<string, FlatElementData>,
-    links: defaultLinks as Record<string, FlatLinkData>,
-  } satisfies GraphState,
+    elements: defaultElements,
+    links: defaultLinks,
+  } satisfies GraphState as GraphState,
   reducers: {
     /**
      * Adds a new element to the graph.
      */
-    addElement: (state, action: PayloadAction<{ id: string } & FlatElementData>) => {
+    addElement: (state, action: PayloadAction<{ id: string } & CustomElement>) => {
       const { id, ...element } = action.payload;
       state.elements[id] = element;
     },
@@ -133,7 +136,7 @@ const graphSlice = createSlice({
      * Applies granular incremental changes from the graph's onIncrementalChange callback.
      * This handles add/change/remove/reset for both elements and links.
      */
-    applyIncrementalChanges: (state, action: PayloadAction<IncrementalStateChanges>) => {
+    applyIncrementalChanges: (state, action: PayloadAction<IncrementalStateChanges<CustomElement, LinkInput>>) => {
       const { elements, links } = action.payload;
 
       // Handle element incremental changes
@@ -234,8 +237,8 @@ const selectLinks = (state: GraphRootState) => (state.graph as UndoableGraphStat
 /**
  * Custom render function for graph elements.
  */
-function RenderItem(props: CustomElement) {
-  const { label, width, height } = props;
+function RenderItem({ label }: Readonly<ElementData>) {
+  const { width, height } = useElementSize();
   return (
     <foreignObject width={width} height={height}>
       <div className="node">{label}</div>
@@ -257,15 +260,14 @@ function GraphWithRedux(props: Readonly<GraphProps>) {
   // onIncrementalChange receives granular change info (added/changed/removed/reset)
   // and dispatches a single Redux action with the full incremental change payload.
   const handleIncrementalChange = useCallback(
-    (changes: IncrementalStateChanges) => {
+    (changes: IncrementalStateChanges<CustomElement, LinkInput>) => {
       dispatch(applyIncrementalChanges(changes));
     },
     [dispatch]
   );
 
   return (
-    <GraphProvider
-      {...props}
+    <GraphProvider<CustomElement, LinkInput>
       elements={elements}
       links={links}
       enableBatchUpdates
@@ -337,7 +339,7 @@ function ReduxConnectedPaperApp() {
           onClick={() => {
             const newId = Math.random().toString(36).slice(7);
             const newElement: CustomElement = {
-              label: 'New Node',
+              data: { label: 'New Node' },
               x: Math.random() * 200,
               y: Math.random() * 200,
               width: 100,

@@ -10,7 +10,7 @@ import {
   SVGText,
   type FlatElementData,
   type FlatLinkData,
-  useElementLayout,
+  useElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
@@ -63,32 +63,26 @@ const ElementType = {
 
 type ElementType = (typeof ElementType)[keyof typeof ElementType];
 
-interface BaseContainerElement extends FlatElementData {
-  elementType: ElementType;
-}
-
-interface ContainerElement extends BaseContainerElement {
+interface ContainerElement {
   elementType: typeof ElementType.Container;
   title: string;
   collapsed: boolean;
 }
 
-interface ChildElement extends BaseContainerElement {
+interface ChildElement {
   elementType: typeof ElementType.Child;
   label: string;
 }
 
-type ContainerFlatElementData = ContainerElement | ChildElement;
+type ContainerUserData = ContainerElement | ChildElement;
 
 // ============================================================================
 // Initial Data
 // ============================================================================
 
-const elements: Record<string, ContainerFlatElementData> = {
+const elements: Record<string, FlatElementData<ContainerUserData>> = {
   'container-a': {
-    elementType: ElementType.Container,
-    title: 'Container A',
-    collapsed: false,
+    data: { elementType: ElementType.Container, title: 'Container A', collapsed: false },
     x: 50,
     y: 50,
     width: 340,
@@ -96,9 +90,7 @@ const elements: Record<string, ContainerFlatElementData> = {
     z: 1,
   },
   'container-b': {
-    elementType: ElementType.Container,
-    title: 'Container B',
-    collapsed: false,
+    data: { elementType: ElementType.Container, title: 'Container B', collapsed: false },
     x: 280,
     y: 180,
     width: 180,
@@ -107,8 +99,7 @@ const elements: Record<string, ContainerFlatElementData> = {
     parent: 'container-a',
   },
   'child-1': {
-    elementType: ElementType.Child,
-    label: '1',
+    data: { elementType: ElementType.Child, label: '1' },
     x: 150,
     y: 100,
     width: 50,
@@ -117,8 +108,7 @@ const elements: Record<string, ContainerFlatElementData> = {
     parent: 'container-a',
   },
   'child-2': {
-    elementType: ElementType.Child,
-    label: '2',
+    data: { elementType: ElementType.Child, label: '2' },
     x: 100,
     y: 200,
     width: 50,
@@ -127,8 +117,7 @@ const elements: Record<string, ContainerFlatElementData> = {
     parent: 'container-a',
   },
   'child-3': {
-    elementType: ElementType.Child,
-    label: '3',
+    data: { elementType: ElementType.Child, label: '3' },
     x: 200,
     y: 200,
     width: 50,
@@ -137,8 +126,7 @@ const elements: Record<string, ContainerFlatElementData> = {
     parent: 'container-a',
   },
   'child-4': {
-    elementType: ElementType.Child,
-    label: '4',
+    data: { elementType: ElementType.Child, label: '4' },
     x: 300,
     y: 220,
     width: 50,
@@ -147,8 +135,7 @@ const elements: Record<string, ContainerFlatElementData> = {
     parent: 'container-b',
   },
   'child-5': {
-    elementType: ElementType.Child,
-    label: '5',
+    data: { elementType: ElementType.Child, label: '5' },
     x: 390,
     y: 220,
     width: 50,
@@ -234,12 +221,7 @@ function ExpandButton({
 }
 
 function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>) {
-  const { width, height } = useElementLayout((layout) => {
-    return {
-      width: layout?.width ?? 140,
-      height: layout?.height ?? 100,
-    };
-  });
+  const { width, height } = useElementSize();
   const id = useElementId();
   const { graph } = useGraph();
 
@@ -301,8 +283,8 @@ function ContainerNode({ title, collapsed = false }: Readonly<ContainerElement>)
   );
 }
 
-function ChildNode({ label }: Readonly<ChildElement>) {
-  const { width = 50, height = 50 } = useElementLayout();
+function ChildNode({ label }: Readonly<{ label: string }>) {
+  const { width, height } = useElementSize();
   return (
     <>
       {/* Body */}
@@ -406,7 +388,7 @@ function Main() {
     return !hasCollapsedAncestor(cell);
   }, []);
 
-  const renderElement = useCallback((element: ContainerFlatElementData) => {
+  const renderElement = useCallback((element: ContainerUserData) => {
     switch (element.elementType) {
       case ElementType.Container: {
         return <ContainerNode {...element} />;

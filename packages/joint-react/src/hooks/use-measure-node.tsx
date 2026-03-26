@@ -4,7 +4,8 @@ import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
 import { useElementLayout } from './use-element-layout';
 import { usePaper } from './use-paper';
-import type { ElementLayout } from '../state/state.types';
+import type { ElementLayout, ElementSize } from '../types/cell-data';
+import { useElementSize } from './use-element-size';
 
 /**
  * Controls element visibility until the first measurement completes.
@@ -149,12 +150,12 @@ const EMPTY_NODE_LAYOUT: ElementLayout = { x: 0, y: 0, width: 0, height: 0, angl
 export function useMeasureNode(
   nodeRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
-): ElementLayout {
+): ElementSize {
   const { transform, visibility } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode } = useGraphStore();
   const { paper } = usePaper();
   const id = useElementId();
-  const layout = useElementLayout(id) ?? EMPTY_NODE_LAYOUT;
+  const layout = useElementSize() ?? EMPTY_NODE_LAYOUT;
 
   useLayoutEffect(() => {
     const element = nodeRef.current;

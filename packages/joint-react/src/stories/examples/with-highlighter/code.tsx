@@ -1,20 +1,25 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useMarkup, type FlatElementData, type FlatLinkData, type PortalPaper, usePaperEvents } from '@joint/react';
+import { GraphProvider, Paper, useMarkup, useElementSize, type FlatElementData, type FlatLinkData, type PortalPaper, usePaperEvents } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
 import '../index.css';
 import { useId, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
-const initialElements: Record<string, FlatElementData & { label: string }> = {
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
   '1': {
-    label: 'Node 1',
+    data: { label: 'Node 1' },
     x: 100,
     y: 50,
     width: 125,
     height: 25,
   },
   '2': {
-    label: 'Node 2',
+    data: { label: 'Node 2' },
     x: 100,
     y: 200,
     width: 120,
@@ -32,12 +37,9 @@ const initialEdges: Record<string, FlatLinkData> = {
 
 type HighlighterVariant = 'mask' | 'opacity';
 
-function RenderElement({
-  width = 0,
-  height = 0,
-  label,
-}: Readonly<FlatElementData & { label: string }>) {
+function RenderElement({ label }: Readonly<NodeData>) {
   const { selectorRef } = useMarkup();
+  const { width, height } = useElementSize();
   return (
     <g width={width} height={height} className="node">
       <rect ref={selectorRef('body')} rx={10} ry={10} width={width} height={height} fill={PRIMARY} />

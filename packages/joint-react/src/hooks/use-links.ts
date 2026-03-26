@@ -1,64 +1,43 @@
 import type { CellId } from '../types/cell-id';
-import type { FlatLinkData } from '../types/data-types';
-import { useData } from './use-stores';
-import { isStrictEqual, identitySelector } from '../utils/selector-utils';
+import type { CellData } from '../types/cell-data';
+import { useGraphStore } from './use-graph-store';
+import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+import { isStrictEqual } from '../utils/selector-utils';
+
+// Always returns false so that no-selector mode re-renders on every version change.
+const alwaysRerender = () => false;
 
 /**
- * Hook to access and subscribe to links (edges) from the graph store.
+ * Hook to access all graph links via the per-ID container architecture.
  *
- * This hook provides reactive access to links with optional selection and custom equality comparison.
- * It uses React's useSyncExternalStore internally for optimal performance.
- *
- * **Features:**
- * - Subscribes to link changes in the graph store
- * - Supports custom selectors to extract specific data
- * - Custom equality comparison to prevent unnecessary re-renders
- * - Type-safe with TypeScript generics
- *
- * **How it works:**
- * 1. Subscribes to the links in the graph store
- * 2. Retrieves the current links snapshot
- * 3. Applies the selector function (if provided)
- * 4. Compares the result with the previous value using isEqual
- * 5. Only triggers re-render if the selected value actually changed
- * @template Link - The type of links in the graph
- * @template SelectorReturnType - The return type of the selector function
- * @param selector - Optional function to select/extract a portion of the links. Defaults to returning all links.
- * @param isEqual - Optional function to compare previous and new values. Defaults to strict equality (`Object.is`).
- * @returns The selected links data (or all links if no selector provided)
+ * - **Without selector**: re-renders on every link change, returns a new Map copy.
+ * - **With selector**: re-renders only when the selector output changes.
+ * @param selector - A function to select a portion of the links Map.
+ * @param isEqual - A function to compare previous and new selector results.
+ * @returns The selected value, or a new Map copy if no selector is provided.
  * @group Hooks
- * @example
- * ```ts
- * // Get all links as a Record
- * const links = useLinks();
- * // links is Record<CellId, FlatLinkData>
- * ```
- * @example
- * ```ts
- * // Extract only link IDs
- * const linkIds = useLinks((links) => Object.keys(links));
- * ```
- * @example
- * ```ts
- * // Get a specific link by ID
- * const link = useLinks((links) => links['link-1']);
- * ```
- * @example
- * ```ts
- * // Custom equality check (only re-render if count changes)
- * const linkCount = useLinks(
- *   (links) => Object.keys(links).length,
- *   (prev, next) => prev === next
- * );
- * ```
  */
-export function useLinks<LinkData = FlatLinkData, SelectorReturnType = Record<CellId, LinkData>>(
-  selector: (
-    items: Record<CellId, LinkData>
-  ) => SelectorReturnType = identitySelector as () => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual
+export function useLinks<
+  LinkData extends CellData = CellData,
+  SelectorReturnType = Map<CellId, LinkData>,
+>(
+  selector?: (items: Map<CellId, LinkData>) => SelectorReturnType,
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual as (
+    a: SelectorReturnType,
+    b: SelectorReturnType
+  ) => boolean
 ): SelectorReturnType {
-  return useData((snapshot) => {
-    return selector(snapshot.links as Record<CellId, LinkData>);
-  }, isEqual);
+  const { graphView: { links } } = useGraphStore();
+
+  const internalSelector = selector
+    ? () => selector(links.getFull() as unknown as Map<CellId, LinkData>)
+    : () => new Map(links.getFull()) as unknown as SelectorReturnType;
+
+  return useSyncExternalStoreWithSelector(
+    links.subscribeToFull,
+    links.getVersion,
+    links.getVersion,
+    internalSelector,
+    selector ? isEqual : (alwaysRerender as unknown as typeof isEqual)
+  );
 }

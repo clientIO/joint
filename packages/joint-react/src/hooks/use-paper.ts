@@ -2,8 +2,8 @@
 import { useContext, useReducer, useLayoutEffect, useRef } from 'react';
 import { PaperStoreContext } from '../context';
 import type { PaperStore } from '../store';
-import { useStore } from './use-stores';
 import { useGraphStore } from './use-graph-store';
+import { useInternalData } from './use-stores';
 import type { dia } from '@joint/core';
 import type { PaperTarget } from '../types';
 import { OPTIONAL, resolvePaperId } from '../types';
@@ -89,9 +89,9 @@ export function usePaperStore(id: string): PaperStore | null;
 export function usePaperStore(idOrOptions?: string | Optional): PaperStore | null;
 export function usePaperStore(idOrOptions?: string | Optional): PaperStore | null {
   const contextStore = useContext(PaperStoreContext);
-  const { internalState, getPaperStore } = useGraphStore();
+  const { getPaperStore } = useGraphStore();
   const nullable = isRecord(idOrOptions) && idOrOptions.optional;
-  const paperStoreById = useStore(internalState, (snapshot) => {
+  const paperStoreById = useInternalData((snapshot) => {
     if (!isString(idOrOptions)) {
       return null;
     }

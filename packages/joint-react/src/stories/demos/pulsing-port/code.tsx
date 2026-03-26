@@ -84,7 +84,7 @@ const elements: Record<string, FlatElementData> = {
   '3': { x: 150, y: 250, ports: NODE_PORTS },
 };
 
-function NodeElement(_props: Readonly<FlatElementData>) {
+function NodeElement() {
   const id = useElementId();
   const rectRef = useRef<SVGRectElement>(null);
   const { width, height } = useMeasureNode(rectRef);

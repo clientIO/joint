@@ -12,7 +12,8 @@
  */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { ElementLayout, ElementsLayoutState, GraphLayoutState } from '../state/state.types';
+import type { ElementLayout } from '../types/cell-data';
+import type { ElementLayout as ElementLayoutType } from '../types/cell-data';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // Epsilon value to avoid jitter due to sub-pixel rendering
@@ -85,7 +86,7 @@ interface Options {
     id: CellId
   ) => ElementLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the current public snapshot containing all elements */
-  readonly getLayoutSnapshot: () => GraphLayoutState;
+  readonly getLayoutSnapshot: () => { elements: Map<string, ElementLayoutType> };
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (data: Record<CellId, ElementLayoutOptionalXY>) => void;
   readonly onObserveElement: (options: ObserveElementOptions) => void;
@@ -132,7 +133,7 @@ interface ProcessSizeChangeOptions {
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly snapshot: ElementsLayoutState;
+  readonly snapshot: Map<string, ElementLayoutType>;
   readonly mutableLayouts: Record<CellId, ElementLayoutOptionalXY>;
 }
 
@@ -152,9 +153,9 @@ function processSizeChange(options: ProcessSizeChangeOptions): boolean {
     mutableLayouts,
   } = options;
   const currentCellTransform = getCellTransform(observedElement.id);
-  const size = snapshot.sizes[observedElement.id];
+  const layout = snapshot.get(observedElement.id);
 
-  if (!size) {
+  if (!layout) {
     return false;
   }
 
@@ -277,7 +278,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         observedElement,
         getCellTransform,
         mutableLayouts,
-        snapshot: elements,
+        snapshot: elements as Map<string, ElementLayoutType>,
       });
 
       if (wasUpdated) {

@@ -1,9 +1,12 @@
 import { useElementId } from './use-element-id';
-import type { FlatElementData } from '../types/data-types';
-import { useData } from './use-stores';
+import type { CellData } from '../types/cell-data';
+import type { ReadonlyContainer } from '../store/state-container';
+import { useGraphStore } from './use-graph-store';
 import { isStrictEqual, identitySelector } from '../utils/selector-utils';
+import { useContainerItem } from './use-container-item';
 
 /**
+ * @deprecated Use `useElementData()` for user data, `useElementSize()` for size, `useElementPosition()` for position.
  * A hook to access a specific graph element from the current `Paper` context.
  * Use it only inside `renderElement` or components rendered from within.
  * This hook returns the selected element based on its cell id. It accepts:
@@ -31,19 +34,18 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
  * @param isEqual - The function used to check equality. Defaults to strict equality (`Object.is`).
  * @returns The selected element based on the current cell id.
  */
-export function useElement<ElementData = FlatElementData, ReturnedElements = ElementData>(
+export function useElement<ElementData extends CellData = CellData, ReturnedElements = ElementData>(
   selector: (item: ElementData) => ReturnedElements = identitySelector as (
     item: ElementData
   ) => ReturnedElements,
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = isStrictEqual
 ): ReturnedElements {
   const id = useElementId();
+  const { graphView: { elements } } = useGraphStore();
 
-  return useData<ReturnedElements>((store) => {
-    const element = store.elements[id] as ElementData | undefined;
-    if (!element) {
-      return undefined as ReturnedElements;
-    }
-    return selector(element);
-  }, isEqual);
+  // The container stores CellData but users pass a narrower ElementData generic.
+  // This boundary cast is safe because the graph populates the container with the same shape.
+  const typedElements = elements as ReadonlyContainer<ElementData>;
+
+  return useContainerItem(typedElements, id, selector, isEqual) as ReturnedElements;
 }

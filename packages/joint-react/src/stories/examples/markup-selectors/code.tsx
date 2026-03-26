@@ -6,7 +6,6 @@ import {
   Paper,
   useMeasureNode,
   useMarkup,
-  type FlatElementData,
   type FlatLinkData,
   type RenderElement,
   type OnTransformElement,
@@ -22,7 +21,8 @@ const HEADER_HEIGHT = 32;
 const ELEMENT_WIDTH = 160;
 const HEADER_COLOR = '#f6c744';
 
-interface StackedElement extends FlatElementData {
+interface StackedElement {
+  readonly [key: string]: unknown;
   readonly name: string;
   readonly labels: readonly string[];
   readonly x: number;

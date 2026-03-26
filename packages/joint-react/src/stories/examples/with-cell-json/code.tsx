@@ -4,8 +4,7 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElement,
-  useElements,
+  useElementsData,
   type FlatElementData,
   type FlatLinkData,
   type ToElementAttributesOptions,
@@ -23,11 +22,12 @@ import { useCallback } from 'react';
 const SECONDARY = '#6366f1';
 
 /**
- * Element data is raw JointJS cell JSON — nested `position`/`size`,
+ * Element user data: raw JointJS cell JSON — nested `position`/`size`,
  * with custom properties (`label`, `color`) at the top level.
  * The mapper is near-identity.
  */
-interface CellJsonElement extends FlatElementData {
+interface CellJsonElement {
+  readonly [key: string]: unknown;
   readonly type: string;
   readonly position: { x: number; y: number };
   readonly size: { width: number; height: number };
@@ -35,7 +35,8 @@ interface CellJsonElement extends FlatElementData {
   readonly color: string;
 }
 
-interface CellJsonLink extends FlatLinkData {
+interface CellJsonLink {
+  readonly [key: string]: unknown;
   readonly type: string;
 }
 
@@ -43,38 +44,48 @@ interface CellJsonLink extends FlatLinkData {
 // Data
 // ============================================================================
 
-const initialElements: Record<string, CellJsonElement> = {
+const initialElements: Record<string, FlatElementData<CellJsonElement>> = {
   'node-1': {
-    type: 'PortalElement',
-    position: { x: 70, y: 100 },
-    size: { width: 160, height: 60 },
-    label: 'Node 1',
-    color: PRIMARY,
+    data: {
+      type: 'PortalElement',
+      position: { x: 70, y: 100 },
+      size: { width: 160, height: 60 },
+      label: 'Node 1',
+      color: PRIMARY,
+    },
   },
   'node-2': {
-    type: 'PortalElement',
-    position: { x: 370, y: 70 },
-    size: { width: 160, height: 60 },
-    label: 'Node 2',
-    color: SECONDARY,
+    data: {
+      type: 'PortalElement',
+      position: { x: 370, y: 70 },
+      size: { width: 160, height: 60 },
+      label: 'Node 2',
+      color: SECONDARY,
+    },
   },
   'node-3': {
-    type: 'PortalElement',
-    position: { x: 220, y: 250 },
-    size: { width: 160, height: 60 },
-    label: 'Node 3',
-    color: '#10b981',
+    data: {
+      type: 'PortalElement',
+      position: { x: 220, y: 250 },
+      size: { width: 160, height: 60 },
+      label: 'Node 3',
+      color: '#10b981',
+    },
   },
 };
 
-const initialLinks: Record<string, CellJsonLink> = {
+const initialLinks: Record<string, FlatLinkData<CellJsonLink>> = {
   'link-1': {
-    type: 'PortalLink',
+    data: {
+      type: 'PortalLink',
+    },
     source: 'node-1',
     target: 'node-2',
   },
   'link-2': {
-    type: 'PortalLink',
+    data: {
+      type: 'PortalLink',
+    },
     source: 'node-1',
     target: 'node-3',
   },
@@ -84,28 +95,31 @@ const initialLinks: Record<string, CellJsonLink> = {
 // Identity Mappers: data IS JointJS cell JSON
 // ============================================================================
 
-// Derive pick keys from the data so the reverse mappers stay in sync
+// Derive pick keys from the user data so the reverse mappers stay in sync
 // with the types automatically — add a property to the data and it flows through.
-const ELEMENT_KEYS = Object.keys(Object.values(initialElements)[0]);
+const ELEMENT_KEYS = Object.keys(Object.values(initialElements)[0].data as object);
 const LINK_KEYS = Object.keys(Object.values(initialLinks)[0]);
 
 /**
- * Forward mapper: data is already cell JSON — pass it through as-is.
+ * Forward mapper: unwrap user data from the `data` field and pass it as cell JSON.
  * The store handles `id` automatically.
  */
 const mapDataToElementAttributes = ({
   data,
-}: ToElementAttributesOptions<FlatElementData>): dia.Cell.JSON => {
-  return { ...data } as dia.Cell.JSON;
+}: ToElementAttributesOptions<FlatElementData<CellJsonElement>>): dia.Cell.JSON => {
+  const userData = (data as FlatElementData<CellJsonElement>).data ?? {};
+  return { ...userData } as dia.Cell.JSON;
 };
 
 /**
  * Reverse mapper: pick only the keys defined in the data format.
+ * Wraps custom fields in `data` so useElementData() can access them.
  */
 const mapElementAttributesToData = ({
   attributes,
-}: ToElementDataOptions<FlatElementData>): FlatElementData => {
-  return util.pick(attributes, ELEMENT_KEYS) as FlatElementData;
+}: ToElementDataOptions<FlatElementData<CellJsonElement>>): FlatElementData<CellJsonElement> => {
+  const picked = util.pick(attributes, ELEMENT_KEYS) as CellJsonElement;
+  return { data: picked } as FlatElementData<CellJsonElement>;
 };
 
 /**
@@ -114,25 +128,22 @@ const mapElementAttributesToData = ({
  */
 const mapDataToLinkAttributes = ({
   data,
-}: ToLinkAttributesOptions<FlatLinkData>): dia.Cell.JSON => {
+}: ToLinkAttributesOptions<FlatLinkData<CellJsonLink>>): dia.Cell.JSON => {
   return { ...data } as unknown as dia.Cell.JSON;
 };
 
 /**
  * Reverse mapper: pick only the keys defined in the data format.
  */
-const mapLinkAttributesToData = ({
-  attributes,
-}: ToLinkDataOptions<FlatLinkData>): FlatLinkData => {
-  return util.pick(attributes, LINK_KEYS) as FlatLinkData;
+const mapLinkAttributesToData = ({ attributes }: ToLinkDataOptions<FlatLinkData<CellJsonLink>>): FlatLinkData<CellJsonLink> => {
+  return util.pick(attributes, LINK_KEYS) as FlatLinkData<CellJsonLink>;
 };
 
 // ============================================================================
 // Element Shape
 // ============================================================================
 
-function ElementShape({ label, color }: Readonly<CellJsonElement>) {
-  const { size } = useElement<CellJsonElement>();
+function ElementShape({ label, color, size }: Readonly<CellJsonElement>) {
   const { width = 160, height = 60 } = size ?? {};
   return (
     <>
@@ -165,16 +176,16 @@ function ElementShape({ label, color }: Readonly<CellJsonElement>) {
 // ============================================================================
 
 function DataPanel() {
-  const elements = useElements<CellJsonElement>();
+  const elements = useElementsData<CellJsonElement>();
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Cell JSON Data</h3>
-      {Object.entries(elements).map(([id, element]) => (
+      {[...elements.entries()].map(([id, element]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
           <div className="font-bold mb-1">{element.label}</div>
           <div>
-            position: {'{'}x: {Math.round(element.position.x)}, y:{' '}
-            {Math.round(element.position.y)}{'}'}
+            position: {'{'}x: {Math.round(element.position.x)}, y: {Math.round(element.position.y)}
+            {'}'}
           </div>
           <div className="text-gray-400 text-xs mt-1">
             size: {element.size.width} &times; {element.size.height}

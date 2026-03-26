@@ -11,11 +11,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -40,11 +40,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -68,11 +68,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -90,11 +90,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -117,11 +117,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -149,11 +149,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -174,11 +174,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -212,11 +212,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -252,11 +252,11 @@ describe('useLinksLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });

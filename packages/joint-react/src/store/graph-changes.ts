@@ -1,10 +1,11 @@
 import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
-import { LAYOUT_UPDATE_EVENT } from '../state/graph-state';
-import type { FlatElementData } from '../types/element-types';
-import type { FlatLinkData } from '../types/link-types';
+import type { CellData } from '../types/cell-data';
 import type { ElementToAttribute, LinkToAttribute } from './graph-view';
-interface UpdateGraphOptions<ElementData = FlatElementData, LinkData = FlatLinkData> {
+
+/** Custom graph event signalling a layout-only update (position/size/angle change). */
+export const LAYOUT_UPDATE_EVENT = 'layout:update';
+interface UpdateGraphOptions<ElementData extends object = CellData, LinkData extends object = CellData> {
   readonly elements: Record<string, ElementData>;
   readonly links: Record<string, LinkData>;
   readonly flag?: 'updateFromReact';
@@ -14,7 +15,7 @@ interface OnChangeOptions {
   readonly changes: Map<string, IncrementalChange<dia.Cell>>;
   readonly onlyLayoutUpdate: boolean;
 }
-interface Options<ElementData = FlatElementData, LinkData = FlatLinkData> {
+interface Options<ElementData extends object = CellData, LinkData extends object = CellData> {
   readonly graph: dia.Graph;
   readonly enableBatchUpdates?: boolean;
   readonly onChanges: (options: OnChangeOptions) => void;
@@ -26,7 +27,7 @@ interface JointJSEventOptions {
   readonly isUpdateFromReact?: boolean;
   readonly [key: string]: unknown;
 }
-export function graphChanges<ElementData = FlatElementData, LinkData = FlatLinkData>(
+export function graphChanges<ElementData extends object = CellData, LinkData extends object = CellData>(
   options: Options<ElementData, LinkData>
 ) {
   const { graph, onChanges, enableBatchUpdates, elementToAttributes, linkToAttributes } = options;

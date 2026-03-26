@@ -80,10 +80,10 @@ export function useFlatElementData<T extends FlatElementData = FlatElementData>(
 
             let result: CellAttributes;
             if (!resolved) {
-                result = flatElementDataToAttributes(mapOptions.data);
+                result = flatElementDataToAttributes(mapOptions.data as never);
             } else {
                 const mergedData = { ...resolved, ...mapOptions.data } as T;
-                result = flatElementDataToAttributes(mergedData);
+                result = flatElementDataToAttributes(mergedData as never);
 
                 // Strip default-provided keys from cell.data so they don't
                 // pollute React state on round-trip (e.g. after element move).

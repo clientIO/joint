@@ -35,9 +35,10 @@
 
 import {
   GraphProvider,
+  useElementSize,
   type GraphProps,
-  type FlatElementData,
-  type FlatLinkData,
+  type ElementInput,
+  type LinkInput,
   Paper,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -49,16 +50,18 @@ import { create } from 'zustand';
 // ============================================================================
 
 /**
- * Custom element type with a label property.
+ * Custom element data with a label property.
  */
-type CustomElement = FlatElementData & { label: string };
+type ElementData = { label: string };
+
+type CustomElement = ElementInput<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
-  '1': { label: 'Hello', x: 100, y: 15, width: 100, height: 50 },
-  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
+  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
 
-const defaultLinks: Record<string, FlatLinkData> = {
+const defaultLinks: Record<string, LinkInput> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -70,8 +73,8 @@ const defaultLinks: Record<string, FlatLinkData> = {
 // STEP 2: Custom Element Renderer
 // ============================================================================
 
-function RenderItem(props: CustomElement) {
-  const { label, width, height } = props;
+function RenderItem({ label }: Readonly<ElementData>) {
+  const { width, height } = useElementSize();
   return (
     <foreignObject width={width} height={height}>
       <div className="node">{label}</div>
@@ -88,15 +91,15 @@ function RenderItem(props: CustomElement) {
  */
 interface GraphStore {
   /** Record of all elements (nodes) in the graph keyed by ID */
-  elements: Record<string, FlatElementData>;
+  elements: Record<string, CustomElement>;
   /** Record of all links (edges) in the graph keyed by ID */
-  links: Record<string, FlatLinkData>;
+  links: Record<string, LinkInput>;
   /** Action to set elements (used by onElementsChange callback) */
-  setElements: (updater: React.SetStateAction<Record<string, FlatElementData>>) => void;
+  setElements: (updater: React.SetStateAction<Record<string, CustomElement>>) => void;
   /** Action to set links (used by onLinksChange callback) */
-  setLinks: (updater: React.SetStateAction<Record<string, FlatLinkData>>) => void;
+  setLinks: (updater: React.SetStateAction<Record<string, LinkInput>>) => void;
   /** Action to add a new element */
-  addElement: (id: string, data: FlatElementData) => void;
+  addElement: (id: string, data: CustomElement) => void;
   /** Action to remove the last element */
   removeLastElement: () => void;
 }
@@ -106,22 +109,22 @@ interface GraphStore {
  * Zustand stores are simple - just define state and actions in one place.
  */
 const useGraphStore = create<GraphStore>((set) => ({
-  elements: defaultElements as Record<string, FlatElementData>,
-  links: defaultLinks as Record<string, FlatLinkData>,
+  elements: defaultElements,
+  links: defaultLinks,
 
-  setElements: (updater: React.SetStateAction<Record<string, FlatElementData>>) => {
+  setElements: (updater: React.SetStateAction<Record<string, CustomElement>>) => {
     set((state) => ({
       elements: typeof updater === 'function' ? updater(state.elements) : updater,
     }));
   },
 
-  setLinks: (updater: React.SetStateAction<Record<string, FlatLinkData>>) => {
+  setLinks: (updater: React.SetStateAction<Record<string, LinkInput>>) => {
     set((state) => ({
       links: typeof updater === 'function' ? updater(state.links) : updater,
     }));
   },
 
-  addElement: (id: string, element: FlatElementData) => {
+  addElement: (id: string, element: CustomElement) => {
     set((state) => ({
       elements: { ...state.elements, [id]: element },
     }));
@@ -140,7 +143,7 @@ const useGraphStore = create<GraphStore>((set) => ({
       // eslint-disable-next-line sonarjs/no-unused-vars
       const { [removedElementId]: _removed, ...newElements } = state.elements;
 
-      const newLinks: Record<string, FlatLinkData> = {};
+      const newLinks: Record<string, LinkInput> = {};
       for (const [id, link] of Object.entries(state.links)) {
         if (link.source !== removedElementId && link.target !== removedElementId) {
           newLinks[id] = link;
@@ -178,7 +181,7 @@ function PaperApp() {
             // Use Zustand action to add a new element
             const newId = Math.random().toString(36).slice(7);
             const newElement: CustomElement = {
-              label: 'New Node',
+              data: { label: 'New Node' },
               x: Math.random() * 200,
               y: Math.random() * 200,
               width: 100,
@@ -219,7 +222,6 @@ function Main(props: Readonly<GraphProps>) {
 
   return (
     <GraphProvider
-      {...props}
       elements={elements}
       links={links}
       onElementsChange={setElements}

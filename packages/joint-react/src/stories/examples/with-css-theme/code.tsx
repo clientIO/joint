@@ -3,7 +3,7 @@ import { useState, useCallback, useRef } from 'react';
 import {
     GraphProvider,
     Paper,
-    useElementLayout,
+    useElementSize,
     useFlatLinkData,
     type FlatElementData,
     type FlatLinkData,
@@ -17,15 +17,16 @@ import '../../../css/theme.css';
 // Plain CSS overrides for light/dark (no Tailwind)
 import './theme-overrides.css';
 
-interface NodeData extends FlatElementData {
-    label: string;
-}
+type NodeData = {
+    readonly label: string;
+    readonly [key: string]: unknown;
+};
 
-const initialElements: Record<string, NodeData> = {
-    a: { label: 'Source', x: 50, y: 60, width: 120, height: 50 },
-    b: { label: 'Process', x: 280, y: 20, width: 120, height: 50 },
-    c: { label: 'Review', x: 280, y: 120, width: 120, height: 50 },
-    d: { label: 'Output', x: 510, y: 60, width: 120, height: 50 },
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+    a: { data: { label: 'Source' }, x: 50, y: 60, width: 120, height: 50 },
+    b: { data: { label: 'Process' }, x: 280, y: 20, width: 120, height: 50 },
+    c: { data: { label: 'Review' }, x: 280, y: 120, width: 120, height: 50 },
+    d: { data: { label: 'Output' }, x: 510, y: 60, width: 120, height: 50 },
 };
 
 // Links: no explicit color/width — CSS variables provide styling.
@@ -56,7 +57,7 @@ const initialLinks: Record<string, FlatLinkData> = {
 };
 
 function Node({ label }: Readonly<{ label: string }>) {
-    const { width, height } = useElementLayout();
+    const { width, height } = useElementSize();
     return (
         <>
             <rect

@@ -2,11 +2,12 @@ import { useMemo } from 'react';
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData, FlatLinkData } from '../types/data-types';
+import type { CellData } from '../types/cell-data';
 import { useGraphStore } from './use-graph-store';
-import type { GraphStore } from '../store';
+import type { GraphStore } from '../store/graph-store';
 
 /** Type guard that checks whether the value is an updater function. */
-function isUpdater<T extends Record<string, unknown>>(
+function isUpdater<T extends object>(
   value: T | ((previous: T) => T)
 ): value is (previous: T) => T {
   return typeof value === 'function';
@@ -58,8 +59,8 @@ interface UseGraphResult {
   readonly removeLink: (id: CellId) => void;
 }
 
-const ELEMENT_DEFAULTS: FlatElementData = { x: 0, y: 0, width: 1, height: 1 };
-const LINK_DEFAULTS: FlatLinkData = { source: '', target: '' };
+const ELEMENT_DEFAULTS: FlatElementData = { data: {}, x: 0, y: 0, width: 1, height: 1 };
+const LINK_DEFAULTS: FlatLinkData = { data: {}, source: '', target: '' };
 
 /**
  * Custom hook to retrieve the graph instance and actions for manipulating elements and links.
@@ -81,8 +82,7 @@ export function useGraph(): UseGraphResult {
       graph: graphStore.graph,
 
       setElement(id, attributesOrUpdater) {
-        const { elements } = graphStore.graphState.dataState.getSnapshot();
-        const existing = elements[id];
+        const existing = graphStore.graphView.elements.get(String(id)) as unknown as FlatElementData | undefined;
 
         const attributes: FlatElementData = isUpdater(attributesOrUpdater)
           ? attributesOrUpdater(existing ?? ELEMENT_DEFAULTS)
@@ -90,11 +90,11 @@ export function useGraph(): UseGraphResult {
 
         const mergedData: FlatElementData = { ...ELEMENT_DEFAULTS, ...existing, ...attributes };
 
-        graphStore.graphState.updateAutoSizedElement(String(id), mergedData);
+        graphStore.graphView.updateAutoSizedElement(String(id), mergedData as unknown as Record<string, unknown>);
 
-        const cellAttributes = graphStore.graphState.elementToAttributes({ id: String(id), data: mergedData });
-        cellAttributes.id = id;
-        graphStore.graph.syncCells([cellAttributes], { remove: false });
+        const cellAttributes = graphStore.graphView.elementToAttributes({ id: String(id), data: mergedData as unknown as CellData });
+        const attrs = { ...cellAttributes, id } as dia.Cell.JSON;
+        graphStore.graph.syncCells([attrs], { remove: false });
       },
 
       removeElement(id) {
@@ -102,8 +102,7 @@ export function useGraph(): UseGraphResult {
       },
 
       setLink(id, attributesOrUpdater) {
-        const { links } = graphStore.graphState.dataState.getSnapshot();
-        const existing = links[id];
+        const existing = graphStore.graphView.links.get(String(id)) as unknown as FlatLinkData | undefined;
 
         const attributes: FlatLinkData = isUpdater(attributesOrUpdater)
           ? attributesOrUpdater(existing ?? LINK_DEFAULTS)
@@ -111,9 +110,9 @@ export function useGraph(): UseGraphResult {
 
         const mergedData: FlatLinkData = { ...LINK_DEFAULTS, ...existing, ...attributes };
 
-        const cellAttributes = graphStore.graphState.linkToAttributes({ id: String(id), data: mergedData });
-        cellAttributes.id = id;
-        graphStore.graph.syncCells([cellAttributes], { remove: false });
+        const cellAttributes = graphStore.graphView.linkToAttributes({ id: String(id), data: mergedData as unknown as CellData });
+        const attrs = { ...cellAttributes, id } as dia.Cell.JSON;
+        graphStore.graph.syncCells([attrs], { remove: false });
       },
 
       removeLink(id) {

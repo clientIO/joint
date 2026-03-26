@@ -3,24 +3,25 @@ import {
   type FlatElementData,
   GraphProvider,
   Paper,
+  useElementSize,
   type FlatLinkData,
   type RenderElement,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 
-interface ShapeElement extends FlatElementData {
+interface ShapeData {
+  readonly [key: string]: unknown;
   readonly label: string;
-  readonly width: number;
-  readonly height: number;
 }
+
 const INTERACTIVE_OPTIONS = { labelMove: true } as const;
 
-const initialElements: Record<string, ShapeElement> = {
-  '1': { label: 'Node 1', x: 50, y: 50, width: 100, height: 40 },
-  '2': { label: 'Node 2', x: 300, y: 50, width: 100, height: 40 },
-  '3': { label: 'Node 3', x: 50, y: 200, width: 100, height: 40 },
-  '4': { label: 'Node 4', x: 300, y: 200, width: 100, height: 40 },
+const initialElements: Record<string, FlatElementData<ShapeData>> = {
+  '1': { data: { label: 'Node 1' }, x: 50, y: 50, width: 100, height: 40 },
+  '2': { data: { label: 'Node 2' }, x: 300, y: 50, width: 100, height: 40 },
+  '3': { data: { label: 'Node 3' }, x: 50, y: 200, width: 100, height: 40 },
+  '4': { data: { label: 'Node 4' }, x: 300, y: 200, width: 100, height: 40 },
 };
 
 const initialLinks: Record<string, FlatLinkData> = {
@@ -74,7 +75,8 @@ const initialLinks: Record<string, FlatLinkData> = {
   }
 };
 
-function Shape({ label, width, height }: Readonly<ShapeElement>) {
+function Shape({ label }: Readonly<ShapeData>) {
+  const { width, height } = useElementSize();
   return (
     <>
       <rect width={width} height={height} rx={6} ry={6} fill="#ed2637" />
@@ -94,7 +96,7 @@ function Shape({ label, width, height }: Readonly<ShapeElement>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<ShapeElement> = useCallback((data) => {
+  const renderElement: RenderElement<ShapeData> = useCallback((data) => {
     return <Shape {...data} />;
   }, []);
 

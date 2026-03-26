@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import type { OnTransformElement } from '@joint/react';
+import type { FlatElementData, OnTransformElement } from '@joint/react';
 import {
   GraphProvider,
   Paper,
@@ -11,9 +11,10 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 10 },
-  '2': { label: 'Node 2 with longer text', x: 250, y: 150 },
+type Data = { label: string };
+const initialElements: Record<string, FlatElementData<Data>> = {
+  '1': { data: { label: 'Node 1' }, x: 100, y: 10 },
+  '2': { data: { label: 'Node 2 with longer text' }, x: 250, y: 150 },
 };
 
 const initialEdges: Record<string, FlatLinkData> = {
@@ -24,9 +25,7 @@ const initialEdges: Record<string, FlatLinkData> = {
   },
 };
 
-type BaseElementWithData = (typeof initialElements)[string];
-
-function Card({ label }: Readonly<Partial<BaseElementWithData>>) {
+function Card({ label }: Readonly<Partial<Data>>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const gap = 10;
   const imageWidth = 50;
@@ -75,7 +74,7 @@ function Card({ label }: Readonly<Partial<BaseElementWithData>>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback((data) => {
+  const renderElement: RenderElement<Data> = useCallback((data) => {
     return <Card label={data.label} />;
   }, []);
   return <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />;

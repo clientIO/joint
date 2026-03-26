@@ -38,24 +38,26 @@ describe('graphView', () => {
       );
     });
 
-    it('has correct data after position change', () => {
+    it('has correct layout after position change', () => {
       const { graph, view } = setup();
       addElement(graph, 'el-1', 10, 20);
 
       (graph.getCell('el-1') as dia.Element).position(50, 60);
 
-      expect(view.elements.get('el-1')).toEqual(
+      // Position lives in elementsLayout container, not elements data container
+      expect(view.elementsLayout.get('el-1')).toEqual(
         expect.objectContaining({ x: 50, y: 60 })
       );
     });
 
-    it('has correct data after resize', () => {
+    it('has correct layout after resize', () => {
       const { graph, view } = setup();
       addElement(graph, 'el-1', 10, 20, 100, 50);
 
       (graph.getCell('el-1') as dia.Element).resize(200, 150);
 
-      expect(view.elements.get('el-1')).toEqual(
+      // Size lives in elementsLayout container, not elements data container
+      expect(view.elementsLayout.get('el-1')).toEqual(
         expect.objectContaining({ width: 200, height: 150 })
       );
     });
@@ -69,16 +71,32 @@ describe('graphView', () => {
       expect(view.elements.get('el-1')).toBeUndefined();
     });
 
-    it('returns new reference after change (immutable items)', () => {
+    it('returns new reference after data change (immutable items)', () => {
       const { graph, view } = setup();
       addElement(graph, 'el-1', 10, 20);
 
       const before = view.elements.get('el-1');
-      (graph.getCell('el-1') as dia.Element).position(50, 60);
+      // Data change (not position) — should update elements container
+      (graph.getCell('el-1') as dia.Element).set('data', { label: 'changed' });
       const after = view.elements.get('el-1');
 
       expect(after).not.toBe(before);
-      expect(after).toEqual(expect.objectContaining({ x: 50, y: 60 }));
+    });
+
+    it('preserves elements reference on position-only change', () => {
+      const { graph, view } = setup();
+      addElement(graph, 'el-1', 10, 20);
+
+      const before = view.elements.get('el-1');
+      // Position-only change — should NOT update elements container
+      (graph.getCell('el-1') as dia.Element).position(50, 60);
+      const after = view.elements.get('el-1');
+
+      expect(after).toBe(before); // same reference — data didn't change
+      // But layout DID update
+      expect(view.elementsLayout.get('el-1')).toEqual(
+        expect.objectContaining({ x: 50, y: 60 })
+      );
     });
 
     it('preserves reference when same value is set', () => {
@@ -208,24 +226,31 @@ describe('graphView', () => {
   });
 
   describe('per-id subscriptions', () => {
-    it('notifies only the changed element subscriber', async () => {
+    it('position change notifies only elementsLayout subscriber, not elements data subscriber', async () => {
       const { graph, view } = setup();
       addElement(graph, 'el-1');
       addElement(graph, 'el-2');
-
-      // drain adds
       await flush();
 
-      const listener1 = jest.fn();
-      const listener2 = jest.fn();
-      view.elements.subscribe('el-1', listener1);
-      view.elements.subscribe('el-2', listener2);
+      const dataListener1 = jest.fn();
+      const dataListener2 = jest.fn();
+      const layoutListener1 = jest.fn();
+      const layoutListener2 = jest.fn();
+      view.elements.subscribe('el-1', dataListener1);
+      view.elements.subscribe('el-2', dataListener2);
+      view.elementsLayout.subscribe('el-1', layoutListener1);
+      view.elementsLayout.subscribe('el-2', layoutListener2);
 
       (graph.getCell('el-2') as dia.Element).position(50, 60);
       await flush();
 
-      expect(listener1).not.toHaveBeenCalled();
-      expect(listener2).toHaveBeenCalled();
+      // Data subscribers should NOT be notified on position change
+      expect(dataListener1).not.toHaveBeenCalled();
+      expect(dataListener2).not.toHaveBeenCalled();
+
+      // Layout subscribers should be notified only for the moved element
+      expect(layoutListener1).not.toHaveBeenCalled();
+      expect(layoutListener2).toHaveBeenCalled();
     });
 
     it('notifies layout subscriber only for the moved element', async () => {

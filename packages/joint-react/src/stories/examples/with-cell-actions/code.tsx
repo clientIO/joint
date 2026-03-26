@@ -5,7 +5,7 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  useElements,
+  useElementsData,
   useLinks,
   useElementLayout,
   useMeasureNode,
@@ -17,15 +17,16 @@ import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
 
 const SECONDARY = '#6366f1';
 
-interface NodeData extends FlatElementData {
+type NodeData = {
   readonly label: string;
   readonly color: string;
-}
+  readonly [key: string]: unknown;
+};
 
-const initialElements: Record<string, NodeData> = {
-  '1': { label: 'Node A', color: PRIMARY, x: 50, y: 50, width: 120, height: 60 },
-  '2': { label: 'Node B', color: SECONDARY, x: 250, y: 50, width: 120, height: 60 },
-  '3': { label: 'Node C', color: PRIMARY, x: 150, y: 180, width: 120, height: 60 },
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node A', color: PRIMARY }, x: 50, y: 50, width: 120, height: 60 },
+  '2': { data: { label: 'Node B', color: SECONDARY }, x: 250, y: 50, width: 120, height: 60 },
+  '3': { data: { label: 'Node C', color: PRIMARY }, x: 150, y: 180, width: 120, height: 60 },
 };
 
 const initialLinks: Record<string, FlatLinkData> = {
@@ -81,7 +82,6 @@ interface ElementControlsProps {
 function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
   const { setElement, removeElement } = useGraph();
   const layout = useElementLayout(id);
-
   const inputStyle = {
     padding: '6px 10px',
     border: '1px solid rgba(0, 0, 0, 0.15)',
@@ -116,7 +116,12 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         <input
           type="text"
           value={element.label}
-          onChange={(event) => setElement(id, (previous) => ({ ...previous, label: event.target.value }))}
+          onChange={(event) =>
+            setElement(id, (previous) => ({
+              ...previous,
+              data: { ...previous.data, label: event.target.value },
+            }))
+          }
           style={{ ...inputStyle, flex: 1 }}
         />
       </div>
@@ -127,7 +132,12 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         <input
           type="color"
           value={element.color}
-          onChange={(event) => setElement(id, (previous) => ({ ...previous, color: event.target.value }))}
+          onChange={(event) =>
+            setElement(id, (previous) => ({
+              ...previous,
+              data: { ...previous.data, color: event.target.value },
+            }))
+          }
           style={{
             width: 36,
             height: 28,
@@ -144,7 +154,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Pos</label>
         <input
           type="number"
-          value={layout?.x ?? element.x}
+          value={layout?.x ?? 0}
           onChange={(event) =>
             setElement(id, (previous) => ({ ...previous, x: Number(event.target.value) }))
           }
@@ -153,7 +163,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         />
         <input
           type="number"
-          value={layout?.y ?? element.y}
+          value={layout?.y ?? 0}
           onChange={(event) =>
             setElement(id, (previous) => ({ ...previous, y: Number(event.target.value) }))
           }
@@ -167,7 +177,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Size</label>
         <input
           type="number"
-          value={layout?.width ?? element.width}
+          value={layout?.width ?? 0}
           onChange={(event) =>
             setElement(id, (previous) => ({ ...previous, width: Number(event.target.value) }))
           }
@@ -176,7 +186,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         />
         <input
           type="number"
-          value={layout?.height ?? element.height}
+          value={layout?.height ?? 0}
           onChange={(event) =>
             setElement(id, (previous) => ({ ...previous, height: Number(event.target.value) }))
           }
@@ -302,13 +312,13 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 
 function AddElementForm() {
   const { setElement } = useGraph();
-  const elements = useElements<NodeData>();
+  const elements = useElementsData<NodeData>();
   const [label, setLabel] = useState('');
 
   const handleAdd = () => {
     if (!label.trim()) return;
 
-    const existingIds = Object.keys(elements)
+    const existingIds = [...elements.keys()]
       .map(Number)
       .filter((numberValue) => !Number.isNaN(numberValue));
     const newId = String(Math.max(0, ...existingIds) + 1);
@@ -319,8 +329,7 @@ function AddElementForm() {
     const randomY = 50 + Math.random() * 150;
 
     setElement(newId, {
-      label: label.trim(),
-      color: PRIMARY,
+      data: { label: label.trim(), color: PRIMARY },
       x: randomX,
       y: randomY,
       width: 120,
@@ -380,11 +389,11 @@ function AddElementForm() {
 
 function AddLinkForm() {
   const { setLink } = useGraph();
-  const elements = useElements<NodeData>();
+  const elements = useElementsData<NodeData>();
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
 
-  const elementIds = Object.keys(elements);
+  const elementIds = [...elements.keys()];
 
   const selectStyle = {
     flex: 1,
@@ -431,7 +440,7 @@ function AddLinkForm() {
           <option value="">From...</option>
           {elementIds.map((id) => (
             <option key={id} value={id}>
-              {elements[id].label}
+              {elements.get(id)?.label}
             </option>
           ))}
         </select>
@@ -443,7 +452,7 @@ function AddLinkForm() {
           <option value="">To...</option>
           {elementIds.map((id) => (
             <option key={id} value={id}>
-              {elements[id].label}
+              {elements.get(id)?.label}
             </option>
           ))}
         </select>
@@ -468,11 +477,11 @@ function AddLinkForm() {
 }
 
 // --- Main Component ---
-
+const DEFAULT_ROUTER = { name: 'normal' };
+const DEFAULT_CONNECTOR = { name: 'rounded', args: { radius: 10 } };
 function Main() {
-  const elements = useElements<NodeData>();
-  const links = useLinks();
-
+  const elements = useElementsData<NodeData>();
+  const links = useLinks() as Map<string, FlatLinkData>;
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
       {/* Canvas */}
@@ -480,8 +489,8 @@ function Main() {
         className={PAPER_CLASSNAME}
         height={500}
         renderElement={RenderElement}
-        defaultRouter={{ name: 'normal' }}
-        defaultConnector={{ name: 'rounded', args: { radius: 10 } }}
+        defaultRouter={DEFAULT_ROUTER}
+        defaultConnector={DEFAULT_CONNECTOR}
       />
 
       {/* Control Panel - Glassmorphism Style */}
@@ -531,9 +540,9 @@ function Main() {
             letterSpacing: '0.05em',
           }}
         >
-          Nodes ({Object.keys(elements).length})
+          Nodes ({elements.size})
         </div>
-        {Object.entries(elements).map(([id, element]) => (
+        {[...elements.entries()].map(([id, element]) => (
           <ElementControls key={id} id={id} element={element} />
         ))}
 
@@ -549,9 +558,9 @@ function Main() {
             letterSpacing: '0.05em',
           }}
         >
-          Links ({Object.keys(links).length})
+          Links ({links.size})
         </div>
-        {Object.entries(links).map(([id, link]) => (
+        {[...links.entries()].map(([id, link]) => (
           <LinkControls key={id} id={id} link={link} />
         ))}
       </div>

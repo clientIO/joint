@@ -34,5 +34,5 @@ export default {
     '^storybook/theming$': '<rootDir>/__mocks__/storybook-mock.ts',
     '^storybook/internal/types$': '<rootDir>/__mocks__/storybook-mock.ts',
   },
-  testMatch: ['<rootDir>/src/**/*.{test,spec}.ts?(x)'], // Only run tests in src folder
+  testMatch: ['<rootDir>/src/**/*.{test,spec}.ts?(x)', '<rootDir>/bench/**/*.{test,spec}.ts?(x)'],
 };

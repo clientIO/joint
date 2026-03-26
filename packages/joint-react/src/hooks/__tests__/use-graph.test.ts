@@ -4,6 +4,7 @@ import { useGraph } from '../use-graph';
 import { useElements } from '../use-elements';
 import { useLinks } from '../use-links';
 import { useElementLayout } from '../use-element-layout';
+import { useElementsLayout } from '../use-stores';
 import { act } from 'react';
 import type { ReducerType } from '@reduxjs/toolkit';
 
@@ -60,52 +61,52 @@ describe('useGraph element mutations', () => {
 
   it('should set and remove elements', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements() }),
+      () => ({ ...useGraph(), elements: useElements(), elementsLayout: useElementsLayout() }),
       { wrapper }
     );
 
     await waitFor(() => {
       expect(result.current.graph.getElements().length).toBe(2);
-      expect(result.current.elements['1'].width).toBe(97);
+      expect(result.current.elementsLayout.get('1')!.width).toBe(97);
     });
 
     act(() => result.current.setElement('1', { width: 1000 }));
 
     await waitFor(() => {
       expect(result.current.graph.getElements().length).toBe(2);
-      expect(result.current.elements['1'].width).toBe(1000);
+      expect(result.current.elementsLayout.get('1')!.width).toBe(1000);
     });
 
     act(() => result.current.setElement('10', { width: 999 }));
 
     await waitFor(() => {
       expect(result.current.graph.getElements().length).toBe(3);
-      expect(result.current.elements['10'].width).toBe(999);
+      expect(result.current.elementsLayout.get('10')!.width).toBe(999);
     });
 
     act(() => result.current.setElement('2', (previous) => ({ ...previous, width: 500 })));
 
     await waitFor(() => {
-      expect(result.current.elements['2'].width).toBe(500);
+      expect(result.current.elementsLayout.get('2')!.width).toBe(500);
     });
 
     act(() => result.current.removeElement('1'));
 
     await waitFor(() => {
       expect(result.current.graph.getElements().length).toBe(2);
-      expect(result.current.elements['1']).toBeUndefined();
-      expect(result.current.elements['2']?.width).toBe(500);
+      expect(result.current.elements.get('1')).toBeUndefined();
+      expect(result.current.elementsLayout.get('2')!.width).toBe(500);
     });
   });
 
   it('should set size using updater', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements() }),
+      () => ({ ...useGraph(), elementsLayout: useElementsLayout() }),
       { wrapper }
     );
 
     await waitFor(() => {
-      expect(result.current.elements['1'].width).toBe(97);
+      expect(result.current.elementsLayout.get('1')!.width).toBe(97);
     });
 
     act(() => result.current.setElement('1', (previous) => ({ ...previous, width: 200, height: 250 })));
@@ -114,54 +115,54 @@ describe('useGraph element mutations', () => {
       const size = result.current.graph.getCell('1')?.get('size');
       expect(size?.width).toBe(200);
       expect(size?.height).toBe(250);
-      expect(result.current.elements['1'].width).toBe(200);
-      expect(result.current.elements['1'].height).toBe(250);
+      expect(result.current.elementsLayout.get('1')!.width).toBe(200);
+      expect(result.current.elementsLayout.get('1')!.height).toBe(250);
     });
   });
 
   it('should set angle correctly', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements() }),
+      () => ({ ...useGraph(), elementsLayout: useElementsLayout() }),
       { wrapper }
     );
 
     await waitFor(() => {
-      expect(result.current.elements['1']).toBeDefined();
+      expect(result.current.elementsLayout.get('1')).toBeDefined();
     });
 
     act(() => result.current.setElement('1', (previous) => ({ ...previous, angle: 45 })));
 
     await waitFor(() => {
       expect(result.current.graph.getCell('1')?.get('angle')).toBe(45);
-      expect(result.current.elements['1'].angle).toBe(45);
+      expect(result.current.elementsLayout.get('1')!.angle).toBe(45);
     });
   });
 
   it('should update custom data fields and reflect in useElements', async () => {
     const customWrapper = graphProviderWrapper({
-      elements: { '1': { label: 'Initial Label', x: 50, y: 50, width: 100, height: 50 } },
+      elements: { '1': { data: { label: 'Initial Label' }, x: 50, y: 50, width: 100, height: 50 } },
     });
 
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements() }),
+      () => ({ ...useGraph(), elements: useElements(), elementsLayout: useElementsLayout() }),
       { wrapper: customWrapper }
     );
 
     await waitFor(() => {
-      expect(result.current.elements['1'].label).toBe('Initial Label');
+      expect(result.current.elements.get('1')!.data.label).toBe('Initial Label');
     });
 
-    act(() => result.current.setElement('1', (previous) => ({ ...previous, label: 'Updated Label' })));
+    act(() => result.current.setElement('1', (previous) => ({ ...previous, data: { ...previous.data, label: 'Updated Label' } })));
 
     await waitFor(() => {
-      expect(result.current.elements['1'].label).toBe('Updated Label');
-      expect(result.current.elements['1'].width).toBe(100);
+      expect(result.current.elements.get('1')!.data.label).toBe('Updated Label');
+      expect(result.current.elementsLayout.get('1')!.width).toBe(100);
     });
   });
 
   it('should update layout state when size is changed', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements(), layout: useElementLayout('1') }),
+      () => ({ ...useGraph(), layout: useElementLayout('1') }),
       { wrapper }
     );
 
@@ -175,40 +176,39 @@ describe('useGraph element mutations', () => {
     await waitFor(() => {
       expect(result.current.layout?.width).toBe(400);
       expect(result.current.layout?.height).toBe(450);
-      expect(result.current.elements['1'].width).toBe(400);
     });
   });
 
   it('should create a new element via updater when it does not exist', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements() }),
+      () => ({ ...useGraph(), elements: useElements(), elementsLayout: useElementsLayout() }),
       { wrapper }
     );
 
     await waitFor(() => {
-      expect(result.current.elements['new-el']).toBeUndefined();
+      expect(result.current.elements.get('new-el')).toBeUndefined();
     });
 
-    act(() => result.current.setElement('new-el', (previous) => ({ ...previous, label: 'Created' })));
+    act(() => result.current.setElement('new-el', (previous) => ({ ...previous, data: { label: 'Created' } })));
 
     await waitFor(() => {
-      expect(result.current.elements['new-el']).toBeDefined();
-      expect(result.current.elements['new-el'].label).toBe('Created');
-      expect(result.current.elements['new-el'].x).toBe(0);
-      expect(result.current.elements['new-el'].y).toBe(0);
-      expect(result.current.elements['new-el'].width).toBe(1);
-      expect(result.current.elements['new-el'].height).toBe(1);
+      expect(result.current.elements.get('new-el')).toBeDefined();
+      expect(result.current.elements.get('new-el')!.data.label).toBe('Created');
+      expect(result.current.elementsLayout.get('new-el')!.x).toBe(0);
+      expect(result.current.elementsLayout.get('new-el')!.y).toBe(0);
+      expect(result.current.elementsLayout.get('new-el')!.width).toBe(1);
+      expect(result.current.elementsLayout.get('new-el')!.height).toBe(1);
     });
   });
 
   it('should sync element update during active batch', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements() }),
+      () => ({ ...useGraph(), elementsLayout: useElementsLayout() }),
       { wrapper }
     );
 
     await waitFor(() => {
-      expect(result.current.elements['1']).toBeDefined();
+      expect(result.current.elementsLayout.get('1')).toBeDefined();
     });
 
     act(() => {
@@ -221,8 +221,8 @@ describe('useGraph element mutations', () => {
     act(() => result.current.graph.stopBatch('test'));
 
     await waitFor(() => {
-      expect(result.current.elements['1']?.x).toBe(125);
-      expect(result.current.elements['1']?.y).toBe(175);
+      expect(result.current.elementsLayout.get('1')?.x).toBe(125);
+      expect(result.current.elementsLayout.get('1')?.y).toBe(175);
     });
   });
 });
@@ -295,14 +295,14 @@ describe('useGraph link mutations', () => {
     );
 
     await waitFor(() => {
-      expect(result.current.links['3']).toBeDefined();
+      expect(result.current.links.get('3')).toBeDefined();
     });
 
     act(() => result.current.setLink('new-link', { source: '2', target: '1' }));
 
     await waitFor(() => {
-      expect(Object.keys(result.current.links).length).toBe(2);
-      expect(result.current.links['new-link'].source).toBe('2');
+      expect(result.current.links.size).toBe(2);
+      expect(result.current.links.get('new-link')!.source).toBe('2');
       expect(result.current.graph.getLinks().length).toBe(2);
     });
   });
@@ -323,7 +323,7 @@ describe('useGraph link mutations', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.links['pending-link']).toBeUndefined();
+      expect(result.current.links.get('pending-link')).toBeUndefined();
       expect(result.current.graph.getLinks().length).toBe(1);
     });
   });
@@ -335,7 +335,7 @@ describe('useGraph link mutations', () => {
     );
 
     await waitFor(() => {
-      expect(result.current.links['new-link-updater']).toBeUndefined();
+      expect(result.current.links.get('new-link-updater')).toBeUndefined();
     });
 
     act(() => result.current.setLink('new-link-updater', (previous) => ({
@@ -346,9 +346,9 @@ describe('useGraph link mutations', () => {
     })));
 
     await waitFor(() => {
-      expect(result.current.links['new-link-updater']).toBeDefined();
-      expect(result.current.links['new-link-updater'].source).toBe('1');
-      expect(result.current.links['new-link-updater'].target).toBe('2');
+      expect(result.current.links.get('new-link-updater')).toBeDefined();
+      expect(result.current.links.get('new-link-updater').source).toBe('1');
+      expect(result.current.links.get('new-link-updater').target).toBe('2');
     });
   });
 
@@ -372,7 +372,7 @@ describe('useGraph link mutations', () => {
     act(() => result.current.graph.stopBatch('test'));
 
     await waitFor(() => {
-      expect(result.current.links['batched-link']).toBeDefined();
+      expect(result.current.links.get('batched-link')).toBeDefined();
     });
   });
 });

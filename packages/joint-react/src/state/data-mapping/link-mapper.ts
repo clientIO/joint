@@ -1,24 +1,27 @@
 
 import { type dia, util } from '@joint/core';
 import type { FlatLinkData, FlatLinkLabel } from '../../types/data-types';
+import type { CellData } from '../../types/cell-data';
 import { defaultLinkStyle, LINK_PRESENTATION_KEYS } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 
-export interface ToLinkAttributesOptions<LinkData = FlatLinkData> {
+export interface ToLinkAttributesOptions<LinkData extends object = CellData> {
   readonly id: string;
   readonly data: LinkData;
   readonly graph: dia.Graph;
+  readonly toAttributes?: (data: LinkData) => CellAttributes;
 }
 
-export interface ToLinkDataOptions<LinkData = FlatLinkData> {
+export interface ToLinkDataOptions<LinkData extends object = CellData> {
   readonly id: string;
   readonly attributes: dia.Link.Attributes;
   readonly defaultAttributes: dia.Link.Attributes;
   readonly link: dia.Link;
   readonly previousData?: LinkData;
   readonly graph: dia.Graph;
+  readonly toData?: (attributes: dia.Link.Attributes) => LinkData;
 }
 import {
   assignEndDataProperties,
@@ -58,7 +61,7 @@ function isLinkData(data: unknown): data is FlatLinkData {
  * @param options - The link id and data to convert
  * @returns The JointJS cell JSON attributes
  */
-export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
+export function flatMapDataToLinkAttributes<Link extends object = FlatLinkData>(
   options: Pick<ToLinkAttributesOptions<Link>, 'id' | 'data'>
 ): CellAttributes {
   const { id, data } = options;
@@ -191,7 +194,7 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat link data
  */
-export function flatMapLinkAttributesToData<Link = FlatLinkData>(
+export function flatMapLinkAttributesToData<Link extends object = FlatLinkData>(
   options: Pick<ToLinkDataOptions<Link>, 'attributes' | 'defaultAttributes'>
 ): Link {
   const { attributes, defaultAttributes } = options;
@@ -356,7 +359,7 @@ export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
  * Public utility — purely mechanical (nested → flat), no defaultAttributes filtering.
  * @param attributes
  */
-export function flatAttributesToLinkData<Link = FlatLinkData>(
+export function flatAttributesToLinkData<Link extends object = FlatLinkData>(
   attributes: dia.Link.Attributes
 ): Link {
   const {

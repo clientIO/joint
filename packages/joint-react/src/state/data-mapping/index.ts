@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { FlatElementData, FlatLinkData } from '../../types/data-types';
+import type { CellData } from '../../types/cell-data';
 import type { ToElementAttributesOptions, ToElementDataOptions } from './element-mapper';
 import type { ToLinkAttributesOptions, ToLinkDataOptions } from './link-mapper';
 
@@ -22,9 +22,9 @@ export interface CellAttributes {
 
 /**
  * Unified interface for data ↔ attribute mapping functions.
- * Reused across GraphProvider, GraphStore, and graphState.
+ * Reused across GraphProvider, GraphStore, and graphView.
  */
-export interface GraphMappings<ElementData = FlatElementData, LinkData = FlatLinkData> {
+export interface GraphMappings<ElementData extends object = CellData, LinkData extends object = CellData> {
   readonly mapDataToElementAttributes?: (
     options: ToElementAttributesOptions<ElementData>
   ) => CellAttributes;

@@ -1,19 +1,16 @@
-import type {
-  ElementsLayoutState,
-  GraphStoreInternalSnapshot,
-  PaperStoreState,
-} from '../state/state.types';
+import type { GraphStoreInternalSnapshot } from '../store/graph-store';
+import type { ElementLayout } from '../types/cell-data';
 
 // ── Element layout selectors ────────────────────────────────────────────────
 
-export const selectAreElementsMeasured = (state: ElementsLayoutState): boolean => {
-  if (state.autoSizedElementIds.size > 0) {
-    return state.observedElements > 0 && state.observedElements === state.measuredObservedElements;
-  }
-  return state.count > 0;
+/**
+ * Checks whether the elements layout map contains at least one entry.
+ * @param elements - The element layout map from the graph store.
+ * @returns `true` when one or more elements have been measured.
+ */
+export const selectAreElementsMeasured = (elements: Map<string, ElementLayout>): boolean => {
+  return elements.size > 0;
 };
-
-export const selectElementSizes = (state: ElementsLayoutState) => state.sizes;
 
 // ── Internal selectors ──────────────────────────────────────────────────────
 
@@ -24,7 +21,7 @@ export const selectResetVersion = (state: GraphStoreInternalSnapshot): number =>
  * @param id - The paper ID to select the version for.
  */
 export function createSelectPaperVersion(id: string) {
-  return (snapshot: GraphStoreInternalSnapshot): PaperStoreState | undefined => snapshot.papers[id];
+  return (snapshot: GraphStoreInternalSnapshot) => snapshot.papers[id]?.version;
 }
 
 /**

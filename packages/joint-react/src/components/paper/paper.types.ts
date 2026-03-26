@@ -1,5 +1,6 @@
 import type { dia } from '@joint/core';
-import type { FlatElementData, FlatLinkData } from '../../types/data-types';
+import type { FlatLinkData } from '../../types/data-types';
+import type { CellData } from '../../types/cell-data';
 import type { OmitWithoutIndexSignature } from '../../types';
 import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
@@ -20,9 +21,11 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
     | Partial<FlatLinkData>;
 }
 
-export type RenderElement<ElementData = FlatElementData> = (element: ElementData) => ReactNode;
+/** Render function for elements. Receives user data `D` from the element's `data` field. */
+export type RenderElement<ElementData extends CellData = CellData> = (data: ElementData) => ReactNode;
 
-export type RenderLink<LinkData = FlatLinkData> = (link: LinkData) => ReactNode;
+/** Render function for links. Receives user data `D` from the link's `data` field. */
+export type RenderLink<LinkData extends CellData = CellData> = (data: LinkData) => ReactNode;
 
 
 /**

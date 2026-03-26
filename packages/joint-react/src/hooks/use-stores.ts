@@ -1,53 +1,10 @@
 import type {
-  GraphDataState,
   GraphStoreInternalSnapshot,
-  ElementsLayoutState,
-  LinksLayoutState,
-} from '../state/state.types';
-import type { FlatElementData, FlatLinkData } from '../types/data-types';
-import type { ExternalStoreLike, MarkDeepReadOnly } from '../utils/create-state';
+} from '../store/graph-store';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { isStrictEqual, identitySelector } from '../utils/selector-utils';
-
-/**
- * Generic hook to select data from an external store.
- * @param store - The external store to select from.
- * @param selector - The selector function.
- * @param isEqual - The equality function.
- * @returns The selected data.
- */
-export function useStore<State, Selection>(
-  store: ExternalStoreLike<State>,
-  selector: (snapshot: MarkDeepReadOnly<State>) => Selection,
-  isEqual: (a: Selection, b: Selection) => boolean = Object.is
-): Selection {
-  return useSyncExternalStoreWithSelector(
-    store.subscribe,
-    store.getSnapshot,
-    store.getSnapshot,
-    selector,
-    isEqual
-  );
-}
-
-/**
- * Hook to select data from the public graph store state.
- * @param selector - The selector function.
- * @param isEqual - The equality function.
- * @returns The selected data.
- */
-export function useData<Selection, ElementData = FlatElementData, LinkData = FlatLinkData>(
-  selector: (snapshot: MarkDeepReadOnly<GraphDataState<ElementData, LinkData>>) => Selection,
-  isEqual?: (a: Selection, b: Selection) => boolean
-): Selection {
-  const { dataState } = useGraphStore();
-  return useStore(
-    dataState as unknown as ExternalStoreLike<GraphDataState<ElementData, LinkData>>,
-    selector,
-    isEqual
-  );
-}
+import { isStrictEqual } from '../utils/selector-utils';
+import type { ElementLayout, LinkLayout } from '../types/cell-data';
 
 /**
  * Hook to select data from the internal graph store state.
@@ -56,43 +13,67 @@ export function useData<Selection, ElementData = FlatElementData, LinkData = Fla
  * @returns The selected data.
  */
 export function useInternalData<Selection>(
-  selector: (snapshot: MarkDeepReadOnly<GraphStoreInternalSnapshot>) => Selection,
+  selector: (snapshot: GraphStoreInternalSnapshot) => Selection,
   isEqual?: (a: Selection, b: Selection) => boolean
 ): Selection {
   const { internalState } = useGraphStore();
-  return useStore(internalState, selector, isEqual);
+  return useSyncExternalStoreWithSelector(
+    internalState.subscribe,
+    internalState.getSnapshot,
+    internalState.getSnapshot,
+    selector,
+    isEqual ?? Object.is
+  );
 }
+
+const alwaysRerender = () => false;
 
 /**
  * Hook to select element layout data from the graph store.
- * @param selector - The selector function to select from the elements layout snapshot.
+ * Returns a `Map<string, ElementLayout>` directly from the container.
+ * @param selector - Optional selector function to derive data from the elements layout map.
  * @param isEqual - Optional equality function to optimize re-renders.
- * @returns The selected element layout data.
+ * @returns The selected element layout data, or the full map if no selector is provided.
  * @group Hooks
  */
-export function useElementsLayout<Selected>(
-  selector: (snapshot: ElementsLayoutState) => Selected = identitySelector as unknown as (
-    snapshot: ElementsLayoutState
-  ) => Selected,
-  isEqual: (a: Selected, b: Selected) => boolean = isStrictEqual
-): Selected {
-  const { layoutState } = useGraphStore();
-  return useStore(layoutState, (snapshot) => selector(snapshot.elements), isEqual);
+export function useElementsLayout<SelectorReturnType = Map<string, ElementLayout>>(
+  selector?: (items: Map<string, ElementLayout>) => SelectorReturnType,
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual as (a: SelectorReturnType, b: SelectorReturnType) => boolean
+): SelectorReturnType {
+  const { graphView: { elementsLayout } } = useGraphStore();
+  const internalSelector = selector
+    ? () => selector(elementsLayout.getFull())
+    : () => new Map(elementsLayout.getFull()) as unknown as SelectorReturnType;
+  return useSyncExternalStoreWithSelector(
+    elementsLayout.subscribeToFull,
+    elementsLayout.getVersion,
+    elementsLayout.getVersion,
+    internalSelector,
+    selector ? isEqual : (alwaysRerender as unknown as typeof isEqual)
+  );
 }
 
 /**
  * Hook to select link layout data from the graph store.
- * @param selector - The selector function to select from the links layout snapshot.
+ * Returns a `Map<string, Record<string, LinkLayout>>` directly from the container.
+ * @param selector - Optional selector function to derive data from the links layout map.
  * @param isEqual - Optional equality function to optimize re-renders.
- * @returns The selected link layout data.
+ * @returns The selected link layout data, or the full map if no selector is provided.
  * @group Hooks
  */
-export function useLinksLayout<Selected>(
-  selector: (snapshot: LinksLayoutState) => Selected = identitySelector as unknown as (
-    snapshot: LinksLayoutState
-  ) => Selected,
-  isEqual: (a: Selected, b: Selected) => boolean = isStrictEqual
-): Selected {
-  const { layoutState } = useGraphStore();
-  return useStore(layoutState, (snapshot) => selector(snapshot.links), isEqual);
+export function useLinksLayout<SelectorReturnType = Map<string, Record<string, LinkLayout>>>(
+  selector?: (items: Map<string, Record<string, LinkLayout>>) => SelectorReturnType,
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual as (a: SelectorReturnType, b: SelectorReturnType) => boolean
+): SelectorReturnType {
+  const { graphView: { linksLayout } } = useGraphStore();
+  const internalSelector = selector
+    ? () => selector(linksLayout.getFull())
+    : () => new Map(linksLayout.getFull()) as unknown as SelectorReturnType;
+  return useSyncExternalStoreWithSelector(
+    linksLayout.subscribeToFull,
+    linksLayout.getVersion,
+    linksLayout.getVersion,
+    internalSelector,
+    selector ? isEqual : (alwaysRerender as unknown as typeof isEqual)
+  );
 }

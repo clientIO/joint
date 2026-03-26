@@ -20,11 +20,6 @@ export { useLink } from './hooks/use-link';
 
 // Hooks — Layout & Measurement
 export { useElementLayout } from './hooks/use-element-layout';
-export type {
-  ElementLayout,
-  ElementsLayoutState as ElementsLayoutSnapshot,
-  LinksLayoutState as LinksLayoutSnapshot,
-} from './state/state.types';
 export { useLinkLayout } from './hooks/use-link-layout';
 export type { LinkLayout } from './hooks/use-link-layout';
 export { useMeasureNode } from './hooks/use-measure-node';
@@ -40,6 +35,14 @@ export { useFlatLinkData } from './hooks/use-flat-link-data';
 export { usePaperEvents } from './hooks/use-paper-events';
 export { useGraphEvents } from './hooks/use-graph-events';
 
+// Hooks — New Data API (v2)
+export { useElementData } from './hooks/use-element-data';
+export { useElementPosition } from './hooks/use-element-position';
+export { useElementSize } from './hooks/use-element-size';
+export { useLinkData } from './hooks/use-link-data';
+export { useElementsData } from './hooks/use-elements-data';
+export { useLinksData } from './hooks/use-links-data';
+
 // Hooks — Context
 export { useElementId } from './hooks/use-element-id';
 export { useLinkId } from './hooks/use-link-id';
@@ -47,11 +50,43 @@ export { useMarkup } from './hooks/use-markup';
 
 // Utilities
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
-export { flatElementDataToAttributes, flatAttributesToElementData } from './state/data-mapping/element-mapper';
-export { flatLinkDataToAttributes, flatAttributesToLinkData } from './state/data-mapping/link-mapper';
+export {
+  flatElementDataToAttributes,
+  flatAttributesToElementData,
+} from './state/data-mapping/element-mapper';
+export {
+  flatLinkDataToAttributes,
+  flatAttributesToLinkData,
+} from './state/data-mapping/link-mapper';
 
-// Types
-export type { FlatCellData, FlatElementData, FlatElementPort, FlatLinkData, FlatLinkEnd, FlatLinkLabel, FlatLinkPresentationData } from './types/data-types';
+// Types — New (v2)
+export type {
+  CellData,
+  CellItem,
+  ElementItem,
+  ElementInput,
+  ElementLayout,
+  ElementPosition,
+  ElementSize,
+  ElementPort,
+  LinkItem,
+  LinkInput,
+  LinkEnd,
+  LinkLabel,
+  LinkPresentationData,
+} from './types/cell-data';
+export { DEFAULT_ELEMENT_LAYOUT } from './types/cell-data';
+
+// Types — Legacy (kept for backwards compatibility)
+export type {
+  FlatCellData,
+  FlatElementData,
+  FlatElementPort,
+  FlatLinkData,
+  FlatLinkEnd,
+  FlatLinkLabel,
+  FlatLinkPresentationData,
+} from './types/data-types';
 export type { PortShape as PortShape } from './theme/element-theme';
 export type { CellId } from './types/cell-id';
 export type { PaperEventMap } from './types/event.types';
@@ -66,7 +101,7 @@ export { PortalLink, PORTAL_LINK_TYPE } from './models/portal-link';
 export { PortalPaper } from './models/portal-paper';
 
 // Selectors (public)
-export { selectAreElementsMeasured, selectElementSizes } from './selectors';
+export { selectAreElementsMeasured } from './selectors';
 
 // Data mapping types
 export type { CellAttributes } from './state/data-mapping';
@@ -74,7 +109,4 @@ export type {
   ToElementAttributesOptions,
   ToElementDataOptions,
 } from './state/data-mapping/element-mapper';
-export type {
-  ToLinkAttributesOptions,
-  ToLinkDataOptions,
-} from './state/data-mapping/link-mapper';
+export type { ToLinkAttributesOptions, ToLinkDataOptions } from './state/data-mapping/link-mapper';

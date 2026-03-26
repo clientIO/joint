@@ -1,6 +1,7 @@
 import { useRef, type CSSProperties } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
-import type { FlatElementData } from '../types/data-types';
+import { useElementData } from '../hooks/use-element-data';
+import { useElementSize } from '../hooks/use-element-size';
 
 /**
  * Default element renderer: a `<div>` with a label, auto-sized via `useMeasureNode`.
@@ -10,13 +11,9 @@ import type { FlatElementData } from '../types/data-types';
  * When omitted, the element auto-sizes to fit its content.
  *
  * Themed via CSS variables on `.jr-element`.
- * @param root0
- * @param root0.label
- * @param root0.width
- * @param root0.height
  * @example
  * ```tsx
- * <Paper renderElement={DefaultElement} />
+ * <Paper renderElement={() => <DefaultElement />} />
  * ```
  */
 const shared: CSSProperties = {
@@ -53,22 +50,22 @@ function getStyle(width: number | undefined, height: number | undefined): CSSPro
 
 /**
  * Default element renderer: a `<div>` with a label, auto-sized via `useMeasureNode`.
- * @param data
- * @param data.label
- * @param data.width
- * @param data.height
+ * Obtains data and size via hooks (useElementData, useElementSize).
  * @returns JSX element rendering a default node with the given label and dimensions.
  */
-export function DefaultElement({ label, width, height }: Readonly<FlatElementData>) {
+export function DefaultElement() {
+    const data = useElementData<Record<string, unknown>>();
+    const size = useElementSize();
     const nodeRef = useRef<HTMLDivElement>(null);
     const layout = useMeasureNode(nodeRef);
     // Capture the user's initial intent — after measurement the graph syncs
     // height back into the data, so we'd wrongly switch to the fixed-box mode.
-    const initialHeightRef = useRef(height);
+    const initialHeightRef = useRef(size?.height);
+    const label = data?.label;
 
     return (
         <foreignObject width={layout.width} height={layout.height} overflow="visible">
-            <div ref={nodeRef} className="jr-element" style={getStyle(width, initialHeightRef.current)}>
+            <div ref={nodeRef} className="jr-element" style={getStyle(size?.width, initialHeightRef.current)}>
                 {label as string}
             </div>
         </foreignObject>

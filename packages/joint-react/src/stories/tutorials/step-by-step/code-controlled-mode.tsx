@@ -39,9 +39,10 @@
 
 import {
   GraphProvider,
+  useElementSize,
   type GraphProps,
-  type FlatElementData,
-  type FlatLinkData,
+  type ElementInput,
+  type LinkInput,
   Paper,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -53,34 +54,36 @@ import { useState, type Dispatch, type SetStateAction } from 'react';
 // ============================================================================
 
 /**
- * Custom element type with a label property.
- * Extends FlatElementData with our custom 'label' property.
+ * Custom element data with a label property.
+ * This is the user data stored in the `data` field of each element.
  */
-type CustomElement = FlatElementData & { label: string };
+type ElementData = { label: string };
 
 /**
- * Custom link type.
- * Uses FlatLinkData as the base type for our links.
+ * Full element type including layout and user data.
  */
-type CustomLink = FlatLinkData;
+type CustomElement = ElementInput<ElementData>;
+
+/**
+ * Full link type.
+ */
+type CustomLink = LinkInput;
 
 /**
  * Initial elements (nodes) for the graph.
  * Each element needs:
- * - id: unique identifier
- * - label: text to display (custom property)
+ * - data.label: text to display (custom property)
  * - x, y: position on the canvas
  * - width, height: dimensions
  */
 const defaultElements: Record<string, CustomElement> = {
-  '1': { label: 'Hello', x: 100, y: 15, width: 100, height: 50 },
-  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
+  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
 
 /**
  * Initial links (edges) for the graph.
  * Each link needs:
- * - id: unique identifier
  * - source: id of the source element
  * - target: id of the target element
  * - color: stroke color (uses theme default if not specified)
@@ -109,8 +112,8 @@ const defaultLinks: Record<string, CustomLink> = {
  * @param props - The element properties (includes id, label, x, y, width, height, etc.)
  * @returns JSX to render inside the element
  */
-function RenderItem(props: CustomElement) {
-  const { label, width, height } = props;
+function RenderItem({ label }: Readonly<ElementData>) {
+  const { width, height } = useElementSize();
   return (
     <foreignObject width={width} height={height}>
       <div className="node">{label}</div>
@@ -234,7 +237,7 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
             // Step 2: Create a new element object (without id - id is the Record key)
             // This is just a plain JavaScript object - not a JointJS element yet
             const newElement: CustomElement = {
-              label: 'New Node',
+              data: { label: 'New Node' },
               // Random position to spread elements across the canvas
               x: Math.random() * 200,
               y: Math.random() * 200,
@@ -383,12 +386,11 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
 function Main(props: Readonly<GraphProps>) {
   // Create React state for elements and links
   // These are the single source of truth for the graph
-  const [elements, setElements] = useState<Record<string, FlatElementData>>(defaultElements);
-  const [links, setLinks] = useState<Record<string, FlatLinkData>>(defaultLinks);
+  const [elements, setElements] = useState<Record<string, CustomElement>>(defaultElements);
+  const [links, setLinks] = useState<Record<string, CustomLink>>(defaultLinks);
 
   return (
     <GraphProvider
-      {...props}
       // Provide current state to GraphProvider
       elements={elements}
       links={links}
@@ -399,12 +401,11 @@ function Main(props: Readonly<GraphProps>) {
     >
       {/*
         Pass state setters to child component so it can update the graph
-        by updating React state. The type assertions are needed because
-        FlatElementData/FlatLinkData are more generic than CustomElement/CustomLink.
+        by updating React state.
       */}
       <PaperApp
-        onElementsChange={setElements as Dispatch<SetStateAction<Record<string, CustomElement>>>}
-        onLinksChange={setLinks as Dispatch<SetStateAction<Record<string, CustomLink>>>}
+        onElementsChange={setElements}
+        onLinksChange={setLinks}
       />
     </GraphProvider>
   );

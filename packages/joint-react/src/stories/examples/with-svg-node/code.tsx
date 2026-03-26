@@ -5,12 +5,14 @@ import {
   GraphProvider,
   Paper,
   useMeasureNode,
+  type FlatElementData,
+  type FlatLinkData,
   type OnTransformElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
 
-const initialEdges: Record<string, { source: string; target: string; color: string }> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -18,14 +20,17 @@ const initialEdges: Record<string, { source: string; target: string; color: stri
   },
 };
 
-const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 15 },
-  '2': { label: 'Node 2', x: 100, y: 200 },
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
+  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
 };
 
-type BaseElementWithData = (typeof initialElements)[string];
-
-function RenderedRect({ label }: Readonly<BaseElementWithData>) {
+function RenderedRect({ label }: Readonly<NodeData>) {
   const textMargin = 20;
   const cornerRadius = 5;
   const textRef = useRef<SVGTextElement>(null);
@@ -62,7 +67,7 @@ function RenderedRect({ label }: Readonly<BaseElementWithData>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
+  const renderElement: RenderElement<NodeData> = useCallback(
     (props) => <RenderedRect {...props} />,
     []
   );

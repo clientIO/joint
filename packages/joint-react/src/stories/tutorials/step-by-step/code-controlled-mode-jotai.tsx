@@ -34,9 +34,10 @@
 
 import {
   GraphProvider,
+  useElementSize,
   type GraphProps,
-  type FlatElementData,
-  type FlatLinkData,
+  type ElementInput,
+  type LinkInput,
   Paper,
 } from '@joint/react';
 import '../../examples/index.css';
@@ -49,16 +50,18 @@ import { atom, createStore, useAtomValue, useSetAtom, Provider as JotaiProvider 
 // ============================================================================
 
 /**
- * Custom element type with a label property.
+ * Custom element data with a label property.
  */
-type CustomElement = FlatElementData & { label: string };
+type ElementData = { label: string };
+
+type CustomElement = ElementInput<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
-  '1': { label: 'Hello', x: 100, y: 15, width: 100, height: 50 },
-  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
+  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
 
-const defaultLinks: Record<string, FlatLinkData> = {
+const defaultLinks: Record<string, LinkInput> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -70,8 +73,8 @@ const defaultLinks: Record<string, FlatLinkData> = {
 // STEP 2: Custom Element Renderer
 // ============================================================================
 
-function RenderItem(props: CustomElement) {
-  const { label, width, height } = props;
+function RenderItem({ label }: Readonly<ElementData>) {
+  const { width, height } = useElementSize();
   return (
     <foreignObject width={width} height={height}>
       <div className="node">{label}</div>
@@ -93,14 +96,12 @@ const jotaiStore = createStore();
  * Jotai atom for graph elements.
  * Atoms are the building blocks of Jotai - they hold state.
  */
-const elementsAtom = atom<Record<string, FlatElementData>>(
-  defaultElements as Record<string, FlatElementData>
-);
+const elementsAtom = atom<Record<string, CustomElement>>(defaultElements);
 
 /**
  * Jotai atom for graph links.
  */
-const linksAtom = atom<Record<string, FlatLinkData>>(defaultLinks as Record<string, FlatLinkData>);
+const linksAtom = atom<Record<string, LinkInput>>(defaultLinks);
 
 // ============================================================================
 // STEP 4: Component Implementation
@@ -125,7 +126,7 @@ function PaperApp() {
             // Create a new element and add it to the elements atom
             const newId = Math.random().toString(36).slice(7);
             const newElement: CustomElement = {
-              label: 'New Node',
+              data: { label: 'New Node' },
               x: Math.random() * 200,
               y: Math.random() * 200,
               width: 100,
@@ -162,11 +163,10 @@ function PaperApp() {
             const { [removedElementId]: _removed, ...newElements } = currentElements;
 
             // Remove links connected to the removed element
-            const newLinks: Record<string, FlatLinkData> = {};
+            const newLinks: Record<string, LinkInput> = {};
             for (const [id, link] of Object.entries(currentLinks)) {
-              const typedLink = link as FlatLinkData;
-              if (typedLink.source !== removedElementId && typedLink.target !== removedElementId) {
-                newLinks[id] = typedLink;
+              if (link.source !== removedElementId && link.target !== removedElementId) {
+                newLinks[id] = link;
               }
             }
 
@@ -195,7 +195,7 @@ function Main(props: Readonly<GraphProps>) {
 
   // Callbacks to sync graph changes back to Jotai atoms
   const handleElementsChange = useCallback(
-    (updater: React.SetStateAction<Record<string, FlatElementData>>) => {
+    (updater: React.SetStateAction<Record<string, CustomElement>>) => {
       const newElements = typeof updater === 'function'
         ? updater(jotaiStore.get(elementsAtom))
         : updater;
@@ -205,7 +205,7 @@ function Main(props: Readonly<GraphProps>) {
   );
 
   const handleLinksChange = useCallback(
-    (updater: React.SetStateAction<Record<string, FlatLinkData>>) => {
+    (updater: React.SetStateAction<Record<string, LinkInput>>) => {
       const newLinks = typeof updater === 'function'
         ? updater(jotaiStore.get(linksAtom))
         : updater;
@@ -216,7 +216,6 @@ function Main(props: Readonly<GraphProps>) {
 
   return (
     <GraphProvider
-      {...props}
       elements={elements}
       links={links}
       onElementsChange={handleElementsChange}

@@ -2,6 +2,7 @@ import type { dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
 import React, { forwardRef, useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
 import type { FlatElementData, FlatLinkData } from '../../types/data-types';
+import type { CellData } from '../../types/cell-data';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
@@ -13,7 +14,7 @@ import type { IncrementalStateChanges } from '../../state/incremental.types';
  * @template Element - The type of elements in the graph
  * @template Link - The type of links in the graph
  */
-export interface GraphProviderProps<ElementData = FlatElementData, LinkData = FlatLinkData>
+export interface GraphProviderProps<ElementData extends object = CellData, LinkData extends object = CellData>
   extends GraphMappings<ElementData, LinkData> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
@@ -143,7 +144,7 @@ const GraphBase = forwardRef<dia.Graph, GraphProviderProps>(
 
     useLayoutEffect(() => {
       if (!isReady || !ref.current) return;
-      ref.current.graphState.updateMappers({
+      ref.current.graphView.updateMappers({
         mapDataToElementAttributes,
         mapDataToLinkAttributes,
         mapElementAttributesToData,
@@ -153,7 +154,7 @@ const GraphBase = forwardRef<dia.Graph, GraphProviderProps>(
 
     useLayoutEffect(() => {
       if (!isControlledMode || !isReady || !ref.current) return;
-      ref.current.graphState.updateGraph({
+      ref.current.graphView.updateGraph({
         elements: elements ?? {},
         links: links ?? {},
         flag: 'updateFromReact',
@@ -203,7 +204,7 @@ const GraphBase = forwardRef<dia.Graph, GraphProviderProps>(
  * ```
  * @see GraphProviderProps for all available props
  */
-export const GraphProvider = GraphBase as <ElementData = FlatElementData, LinkData = FlatLinkData>(
+export const GraphProvider = GraphBase as <ElementData extends object = CellData, LinkData extends object = CellData>(
   props: GraphProviderProps<ElementData, LinkData> & {
     ref?: React.Ref<dia.Graph | null>;
   }

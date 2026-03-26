@@ -3,6 +3,7 @@ import { type dia } from '@joint/core';
 import { flatLinkDataToAttributes, flatAttributesToLinkData } from '../state/data-mapping/link-mapper';
 import type { GraphMappings, CellAttributes } from '../state/data-mapping';
 import type { FlatLinkData } from '../types/data-types';
+import type { CellData } from '../types/cell-data';
 import type { ToLinkAttributesOptions, ToLinkDataOptions } from '../state/data-mapping/link-mapper';
 import type { CellId } from '../types/cell-id';
 
@@ -39,7 +40,7 @@ export function useFlatLinkData<T extends FlatLinkData = FlatLinkData>(
         pick?: (keyof T)[];
     } = {},
     deps?: DependencyList,
-): Pick<GraphMappings<unknown, T>, 'mapDataToLinkAttributes' | 'mapLinkAttributesToData'> {
+): Pick<GraphMappings<CellData, T>, 'mapDataToLinkAttributes' | 'mapLinkAttributesToData'> {
 
     const { defaults, mapAttributes, mapData, pick } = options;
 

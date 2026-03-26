@@ -1,17 +1,20 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import { GraphProvider, Paper, useMeasureNode, type RenderElement } from '@joint/react';
+import { GraphProvider, Paper, useMeasureNode, useElementSize, type FlatElementData, type FlatLinkData, type RenderElement } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialElements: Record<
-  string,
-  { label: string; color: string; x: number; y: number; width: number; height: number }
-> = {
-  '1': { label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
-  '2': { label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+  readonly color: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node 1', color: PRIMARY }, x: 100, y: 10, width: 100, height: 50 },
+  '2': { data: { label: 'Node 2', color: SECONDARY }, x: 100, y: 200, width: 100, height: 50 },
 };
-const initialEdges: Record<string, { source: string; target: string; color: string }> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -19,13 +22,14 @@ const initialEdges: Record<string, { source: string; target: string; color: stri
   },
 };
 
-type BaseElementWithData = (typeof initialElements)[string];
+function MinimapElement({ color }: Readonly<NodeData>) {
+  const { width, height } = useElementSize();
+  return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
+}
 
 function MiniMap() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    ({ width, height, color }) => (
-      <rect width={width} height={height} fill={color} rx={10} ry={10} />
-    ),
+  const renderElement: RenderElement<NodeData> = useCallback(
+    (data) => <MinimapElement {...data} />,
     []
   );
 
@@ -43,9 +47,9 @@ function MiniMap() {
   );
 }
 
-function RenderElement({ width, height, label, color }: Readonly<BaseElementWithData>) {
+function RenderElement({ label, color }: Readonly<NodeData>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  useMeasureNode(elementRef);
+  const { width, height } = useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height}>
       <div

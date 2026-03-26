@@ -1,6 +1,7 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import { useElementsNew } from '../use-elements';
+import { useElementsLayout } from '../use-stores';
 import { useGraphStore } from '../use-graph-store';
 import type { dia } from '@joint/core';
 
@@ -93,7 +94,10 @@ describe('useElementsNew', () => {
     const { result } = renderHook(
       () => {
         renders();
-        return useSetupAndElements();
+        return {
+          ...useSetupAndElements(),
+          elementsLayout: useElementsLayout(),
+        };
       },
       { wrapper }
     );
@@ -108,13 +112,14 @@ describe('useElementsNew', () => {
 
     const rendersBefore = renders.mock.calls.length;
 
+    // Position changes update elementsLayout, not elements data container
     act(() => {
       (result.current.graph.getCell('1') as dia.Element).position(100, 200);
     });
 
     await waitFor(() => {
       expect(renders.mock.calls.length).toBeGreaterThan(rendersBefore);
-      expect(result.current.elements.get('1')).toEqual(
+      expect(result.current.elementsLayout.get('1')).toEqual(
         expect.objectContaining({ x: 100, y: 200 })
       );
     });
@@ -133,8 +138,9 @@ describe('useElementsNew', () => {
 
     const mapBefore = result.current.elements;
 
+    // Use a data change (z-index) that updates the elements data container, not layout
     act(() => {
-      (result.current.graph.getCell('1') as dia.Element).position(100, 200);
+      (result.current.graph.getCell('1') as dia.Element).set('z', 10);
     });
 
     await waitFor(() => {

@@ -14,7 +14,7 @@ describe('GraphProvider Coverage Tests', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => Object.keys(items).length);
+        elementCount = useElements((items) => items.size);
         return null;
       }
 
@@ -38,7 +38,7 @@ describe('GraphProvider Coverage Tests', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        linkCount = useLinks((items) => Object.keys(items).length);
+        linkCount = useLinks((items) => items.size);
         return null;
       }
 
@@ -60,15 +60,15 @@ describe('GraphProvider Coverage Tests', () => {
 
     it('should handle only elements controlled (not links)', async () => {
       const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100, type: 'PortalElement' },
+        '1': { width: 100, height: 100 },
       };
 
       let elementCount = 0;
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => Object.keys(items).length);
-        linkCount = useLinks((items) => Object.keys(items).length);
+        elementCount = useElements((items) => items.size);
+        linkCount = useLinks((items) => items.size);
         return null;
       }
 
@@ -91,7 +91,6 @@ describe('GraphProvider Coverage Tests', () => {
 
     it('should handle only links controlled (not elements)', async () => {
       const initialLink: FlatLinkData = {
-        type: 'standard.Link',
         source: '1',
         target: '2',
       };
@@ -100,8 +99,8 @@ describe('GraphProvider Coverage Tests', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => Object.keys(items).length);
-        linkCount = useLinks((items) => Object.keys(items).length);
+        elementCount = useElements((items) => items.size);
+        linkCount = useLinks((items) => items.size);
         return null;
       }
 
@@ -137,14 +136,14 @@ describe('GraphProvider Coverage Tests', () => {
   describe('GraphProvider edge cases', () => {
     it('should handle unmeasured elements (width/height <= 1)', async () => {
       const unmeasuredElements: Record<string, FlatElementData> = {
-        '1': { width: 0, height: 0, type: 'PortalElement' },
-        '2': { width: 1, height: 1, type: 'PortalElement' },
+        '1': { width: 0, height: 0 },
+        '2': { width: 1, height: 1 },
       };
 
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => Object.keys(items).length);
+        elementCount = useElements((items) => items.size);
         return null;
       }
 
@@ -178,7 +177,7 @@ describe('GraphProvider Coverage Tests', () => {
 
       // Store should work before unmount
       expect(() => {
-        const { elements } = store.dataState.getSnapshot();
+        const { elements } = { elements: store.graphView.elements.getFull(), links: store.graphView.links.getFull() };
         expect(elements).toBeDefined();
       }).not.toThrow();
 
@@ -186,7 +185,7 @@ describe('GraphProvider Coverage Tests', () => {
 
       // Store should still work after unmount (it's not destroyed)
       expect(() => {
-        const { elements } = store.dataState.getSnapshot();
+        const { elements } = { elements: store.graphView.elements.getFull(), links: store.graphView.links.getFull() };
         expect(elements).toBeDefined();
       }).not.toThrow();
     });

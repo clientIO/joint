@@ -1,47 +1,38 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, type FlatElementData, type FlatLinkData } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useElementSize,
+  type FlatElementData,
+  type FlatLinkData,
+} from '@joint/react';
 import '../index.css';
 import React, { useCallback, useRef, useState, startTransition, memo } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
+interface StressNodeData {
+  readonly label: string;
+  readonly fontSize: number;
+}
+
 function initialElements(xNodes = 15, yNodes = 30) {
-  const nodes: Record<
-    string,
-    {
-      width: number;
-      height: number;
-      fontSize: number;
-      label: string;
-      x: number;
-      y: number;
-    }
-  > = {};
-  const edges: Record<
-    string,
-    {
-      source: string;
-      target: string;
-      z: number;
-    }
-  > = {};
+  const nodes: Record<string, FlatElementData<StressNodeData>> = {};
+  const edges: Record<string, FlatLinkData> = {};
   let nodeId = 1;
   let edgeId = 1;
   let recentNodeId: number | null = null;
 
   for (let y = 0; y < yNodes; y++) {
     for (let x = 0; x < xNodes; x++) {
-      const position = { x: x * 100, y: y * 50 };
-      const data = { label: `Node ${nodeId}` };
       const id = `stress-${nodeId.toString()}`;
-      const node = {
+      nodes[id] = {
+        data: { label: `Node ${nodeId}`, fontSize: 11 },
         width: 50,
         height: 20,
-        fontSize: 11,
-        ...data,
-        ...position,
+        x: x * 100,
+        y: y * 50,
       };
-      nodes[id] = node;
 
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
         const edgeIdString = `edge-${edgeId.toString()}`;
@@ -63,20 +54,15 @@ function initialElements(xNodes = 15, yNodes = 30) {
 
 const { nodes: initialNodes, edges: initialEdges } = initialElements(15, 30);
 
-type BaseElementWithData = (typeof initialNodes)[string];
-
-const RenderElement = memo(function RenderElement({
-  width,
-  height,
-  label,
-}: Readonly<BaseElementWithData>) {
+const RenderElement = memo(function RenderElement({ label, fontSize }: Readonly<StressNodeData>) {
+  const { width, height } = useElementSize();
   const elementRef = useRef<HTMLDivElement>(null);
   return (
     <foreignObject width={width} height={height}>
       <div
         ref={elementRef}
         className="flex flex-col items-center justify-center rounded-sm text-xs"
-        style={{ background: PRIMARY, color: '#ffffff', fontSize: 11, width, height }}
+        style={{ background: PRIMARY, color: '#ffffff', fontSize, width, height }}
       >
         {label}
       </div>
@@ -87,17 +73,16 @@ const RenderElement = memo(function RenderElement({
 function Main({
   setElements,
 }: Readonly<{
-  setElements: React.Dispatch<React.SetStateAction<Record<string, FlatElementData>>>;
+  setElements: React.Dispatch<
+    React.SetStateAction<Record<string, FlatElementData<StressNodeData>>>
+  >;
 }>) {
-  const renderElement = useCallback(
-    (element: BaseElementWithData) => <RenderElement {...element} />,
-    []
-  );
+  const renderElement = useCallback((data: StressNodeData) => <RenderElement {...data} />, []);
 
   const updatePos = useCallback(() => {
     startTransition(() => {
       setElements((previousElements) => {
-        const newElements: Record<string, FlatElementData> = {};
+        const newElements: Record<string, FlatElementData<StressNodeData>> = {};
         for (const [id, node] of Object.entries(previousElements)) {
           newElements[id] = {
             ...node,
@@ -133,7 +118,8 @@ function Main({
 }
 
 export default function App() {
-  const [elements, setElements] = useState<Record<string, FlatElementData>>(initialNodes);
+  const [elements, setElements] =
+    useState<Record<string, FlatElementData<StressNodeData>>>(initialNodes);
   const [links, setLinks] = useState<Record<string, FlatLinkData>>(initialEdges);
 
   return (

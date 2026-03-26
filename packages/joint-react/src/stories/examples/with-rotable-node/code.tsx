@@ -1,16 +1,21 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useElements, usePaper, useMeasureNode, useElementId } from '@joint/react';
+import { GraphProvider, Paper, useElementsLayout, usePaper, useMeasureNode, useElementId, type FlatElementData, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
-const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 20, y: 100 },
-  '2': { label: 'Node 2', x: 200, y: 100 },
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node 1' }, x: 20, y: 100 },
+  '2': { data: { label: 'Node 2' }, x: 200, y: 100 },
 };
 
-const initialEdges: Record<string, { source: string; target: string; color: string }> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -18,9 +23,7 @@ const initialEdges: Record<string, { source: string; target: string; color: stri
   },
 };
 
-type BaseElementWithData = (typeof initialElements)[string];
-
-function RotatableNode({ label }: Readonly<BaseElementWithData>) {
+function RotatableNode({ label }: Readonly<NodeData>) {
   const id = useElementId();
   const { paper } = usePaper();
   const { setElement } = useGraph();
@@ -80,8 +83,8 @@ function RotatableNode({ label }: Readonly<BaseElementWithData>) {
 }
 
 function Main() {
-  const elementRotation = useElements((items) =>
-    Object.values(items).map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
+  const elementRotation = useElementsLayout<string[]>((layout) =>
+    [...layout.values()].map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
   );
 
   return (

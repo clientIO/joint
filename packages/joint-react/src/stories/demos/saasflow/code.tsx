@@ -17,7 +17,7 @@ import {
   type FlatLinkData,
   type RenderElement,
 } from '@joint/react';
-import { useIsElementDragging } from '../../../hooks';
+
 import type { dia } from '@joint/core';
 import { createContext, useCallback, useContext, useRef, useState } from 'react';
 
@@ -70,7 +70,7 @@ function useTheme() {
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
-type SaasNode = FlatElementData & {
+type SaasNodeData = {
   readonly title: string;
   readonly subtitle: string;
   readonly icon: string;
@@ -79,35 +79,43 @@ type SaasNode = FlatElementData & {
   readonly progress?: number;
 };
 
+type SaasNode = FlatElementData<SaasNodeData>;
+
 const PORT_R = 5;
 
 const initialElements: Record<string, SaasNode> = {
   client: {
-    title: 'Client: SaaSflow',
-    subtitle: 'Onboarded: 25 Jun',
-    icon: 'fas fa-bolt',
-    status: 'active',
-    tags: ['Enterprise'],
+    data: {
+      title: 'Client: SaaSflow',
+      subtitle: 'Onboarded: 25 Jun',
+      icon: 'fas fa-bolt',
+      status: 'active',
+      tags: ['Enterprise'],
+    },
     x: 200,
     y: 20,
   },
   pm: {
-    title: 'Project Manager',
-    subtitle: 'Managing progress',
-    icon: 'fas fa-user-tie',
-    status: 'active',
-    tags: ['Lead', 'Slack', 'Gmail'],
-    progress: 76,
+    data: {
+      title: 'Project Manager',
+      subtitle: 'Managing progress',
+      icon: 'fas fa-user-tie',
+      status: 'active',
+      tags: ['Lead', 'Slack', 'Gmail'],
+      progress: 76,
+    },
     x: 20,
     y: 250,
   },
   designer: {
-    title: 'UX Designer',
-    subtitle: 'Designing interfaces',
-    icon: 'fas fa-paint-brush',
-    status: 'pending',
-    tags: ['Figma', 'Notion'],
-    progress: 44,
+    data: {
+      title: 'UX Designer',
+      subtitle: 'Designing interfaces',
+      icon: 'fas fa-paint-brush',
+      status: 'pending',
+      tags: ['Figma', 'Notion'],
+      progress: 44,
+    },
     x: 380,
     y: 460,
   },
@@ -186,12 +194,11 @@ function ProgressBar({
   );
 }
 
-function RenderSaasNode({ title, subtitle, icon, status, tags, progress }: Readonly<SaasNode>) {
+function RenderSaasNode({ title, subtitle, icon, status, tags, progress }: Readonly<SaasNodeData>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(contentRef);
   const theme = useTheme();
   const { selectorRef } = useMarkup();
-  const isDragging = useIsElementDragging();
   const isDark = theme === DARK;
 
   return (
@@ -202,17 +209,10 @@ function RenderSaasNode({ title, subtitle, icon, status, tags, progress }: Reado
           className="rounded-2xl px-5 py-4 select-none"
           style={{
             width: 260,
-            cursor: isDragging ? 'grabbing' : 'grab',
+            cursor: 'grab',
             backgroundColor: theme.card,
-            border: isDragging
-              ? `1px solid ${isDark ? theme.accent : 'rgba(0,0,0,0.12)'}`
-              : `1px solid ${theme.cardBorder}`,
-            boxShadow: isDragging
-              ? isDark
-                ? `0 0 0 1px ${theme.accent}, 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(200,164,78,0.15)`
-                : `0 20px 50px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.06)`
-              : `0 8px 32px rgba(0,0,0,${isDark ? 0.4 : 0.08})`,
-            transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+            border: `1px solid ${theme.cardBorder}`,
+            boxShadow: `0 8px 32px rgba(0,0,0,${isDark ? 0.4 : 0.08})`,
             transition: 'transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease',
           }}
         >
@@ -220,13 +220,8 @@ function RenderSaasNode({ title, subtitle, icon, status, tags, progress }: Reado
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0"
               style={{
-                backgroundColor: isDragging
-                  ? isDark
-                    ? theme.accent
-                    : 'rgba(184,145,46,0.2)'
-                  : theme.accentSoft,
-                color: isDragging && isDark ? '#151515' : theme.accent,
-                boxShadow: isDragging && isDark ? `0 0 16px ${theme.accent}` : 'none',
+                backgroundColor: theme.accentSoft,
+                color: theme.accent,
                 transition: 'all 150ms ease',
               }}
             >
@@ -351,11 +346,13 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
     ];
     const pick = Math.floor(Math.random() * names.length); // eslint-disable-line sonarjs/pseudo-random
     setElement(id, {
-      title: names[pick],
-      subtitle: 'New team member',
-      icon: icons[pick],
-      status: 'pending',
-      tags: ['New'],
+      data: {
+        title: names[pick],
+        subtitle: 'New team member',
+        icon: icons[pick],
+        status: 'pending',
+        tags: ['New'],
+      },
       x: 150 + Math.random() * 200, // eslint-disable-line sonarjs/pseudo-random
       y: 200 + Math.random() * 200, // eslint-disable-line sonarjs/pseudo-random
     } satisfies SaasNode);
@@ -476,7 +473,7 @@ function Main() {
   const theme = isDark ? DARK : LIGHT;
   const paperRef = useRef<dia.Paper | null>(null);
 
-  const elementDefaults = useFlatElementData<SaasNode>({
+  const elementDefaults = useFlatElementData({
     defaults: () => ({
       ports: {
         out: {
@@ -525,6 +522,7 @@ function Main() {
         id={PAPER_ID}
         height="100%"
         width="100%"
+
         gridSize={5}
         overflow
         linkPinning={false}
@@ -544,7 +542,7 @@ function Main() {
           return magnetT?.getAttribute('magnet') === 'passive';
         }}
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
-        renderElement={RenderSaasNode as unknown as RenderElement}
+        renderElement={RenderSaasNode as RenderElement<SaasNodeData>}
       />
       <Toolbar paperRef={paperRef} />
     </GraphProvider>

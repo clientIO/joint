@@ -5,7 +5,7 @@ import { useState, useCallback, useRef } from 'react';
 import {
     GraphProvider,
     Paper,
-    useElementLayout,
+    useElementSize,
     useFlatElementData,
     useFlatLinkData,
     type FlatElementData,
@@ -18,33 +18,34 @@ import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../../../css/theme.css';
 import './tailwind-theme.css';
 
-interface NodeData extends FlatElementData {
+interface NodeUserData {
+    readonly [key: string]: unknown;
     label: string;
 }
 
-const initialElements: Record<string, NodeData> = {
+const initialElements: Record<string, FlatElementData<NodeUserData>> = {
     a: {
-        label: 'Source', x: 50, y: 70, width: 120, height: 50,
+        data: { label: 'Source' }, x: 50, y: 70, width: 120, height: 50,
         ports: {
             out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
         },
     },
     b: {
-        label: 'Process', x: 290, y: 20, width: 120, height: 50,
+        data: { label: 'Process' }, x: 290, y: 20, width: 120, height: 50,
         ports: {
             in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
             out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
         },
     },
     c: {
-        label: 'Review', x: 290, y: 120, width: 120, height: 50,
+        data: { label: 'Review' }, x: 290, y: 120, width: 120, height: 50,
         ports: {
             in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
             out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
         },
     },
     d: {
-        label: 'Output', x: 550, y: 70, width: 120, height: 50,
+        data: { label: 'Output' }, x: 550, y: 70, width: 120, height: 50,
         ports: {
             in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
         },
@@ -67,7 +68,7 @@ const initialLinks: Record<string, FlatLinkData> = {
 };
 
 function Node({ label }: Readonly<{ label: string }>) {
-    const { width, height } = useElementLayout();
+    const { width, height } = useElementSize();
     return (
         <>
             <rect
@@ -117,7 +118,7 @@ function Diagram() {
     const [theme, setTheme] = useState<Theme>('default');
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    const elementDefaults = useFlatElementData<NodeData>({
+    const elementDefaults = useFlatElementData<FlatElementData<NodeUserData>>({
         defaults: {
             portStyle: {
                 width: 15,
@@ -141,7 +142,7 @@ function Diagram() {
         },
     });
 
-    const renderElement: RenderElement<NodeData> = useCallback(
+    const renderElement: RenderElement<NodeUserData> = useCallback(
         (data) => <Node label={data.label} />,
         [],
     );

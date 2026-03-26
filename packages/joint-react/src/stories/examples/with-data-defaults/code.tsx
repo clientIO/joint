@@ -4,7 +4,7 @@ import {
     GraphProvider,
     Paper,
     useFlatElementData,
-    useElementLayout,
+    useElementSize,
     useFlatLinkData,
     type FlatElementData,
     type FlatElementPort,
@@ -13,9 +13,12 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
 
-interface ElementData extends FlatElementData {
+interface ElementData {
+    [key: string]: unknown;
     label: string;
     type: 'source' | 'process' | 'sink';
+    x?: number;
+    y?: number;
 }
 
 // Minimal persisted data — no ports, no styling.
@@ -56,7 +59,7 @@ const portsByType: Record<string, Record<string, FlatElementPort>> = {
 const defaultPorts: Record<string, FlatElementPort> = { in: inPort, out: outPort };
 
 function Element({ label, color }: Readonly<{ label: string; color: string }>) {
-    const { width, height } = useElementLayout();
+    const { width, height } = useElementSize();
     return (
         <>
             <rect

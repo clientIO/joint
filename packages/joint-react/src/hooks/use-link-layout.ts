@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { usePaperStore } from './use-paper';
 import { useLinksLayout } from './use-stores';
-import type { LinkLayout } from '../state/state.types';
+import type { LinkLayout } from '../types/cell-data';
 import { isStrictEqual } from '../utils/selector-utils';
 
 const IS_EQUAL = (a: LinkLayout | undefined, b: LinkLayout | undefined): boolean => {
@@ -17,7 +17,7 @@ const IS_EQUAL = (a: LinkLayout | undefined, b: LinkLayout | undefined): boolean
 };
 
 // Re-export LinkLayout for convenience
-export type { LinkLayout } from '../state/state.types';
+export type { LinkLayout } from '../types/cell-data';
 import type { CellId } from '../types/cell-id';
 import { CellIdContext } from '../context';
 
@@ -92,8 +92,8 @@ export function useLinkLayout<S>(
     throw new Error('useLinkLayout must be used inside Paper renderLink or provide an id');
   }
 
-  return useLinksLayout((snapshot) => {
-    const paperLinkLayouts = snapshot[paperId];
+  return useLinksLayout((linksMap) => {
+    const paperLinkLayouts = linksMap.get(paperId);
     const layout = paperLinkLayouts?.[actualId];
     if (actualSelector) {
       return actualSelector(layout);

@@ -3,8 +3,7 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElement,
-  useElements,
+  useElementsData,
   flatElementDataToAttributes,
   flatAttributesToElementData,
   type CellAttributes,
@@ -23,10 +22,11 @@ import { useCallback } from 'react';
 const SECONDARY = '#6366f1';
 
 /**
- * Element data uses center position (cx, cy) instead of
+ * Element user data uses center position (cx, cy) instead of
  * JointJS's top-left position (x, y).
  */
-interface CenterElement extends FlatElementData {
+interface CenterElement {
+  readonly [key: string]: unknown;
   readonly cx: number;
   readonly cy: number;
   readonly width: number;
@@ -39,30 +39,21 @@ interface CenterElement extends FlatElementData {
 // Data
 // ============================================================================
 
-const initialElements: Record<string, CenterElement> = {
+const initialElements: Record<string, FlatElementData<CenterElement>> = {
   'node-1': {
-    cx: 150,
-    cy: 130,
+    data: { cx: 150, cy: 130, width: 160, height: 60, label: 'Node 1', color: PRIMARY },
     width: 160,
     height: 60,
-    label: 'Node 1',
-    color: PRIMARY,
   },
   'node-2': {
-    cx: 450,
-    cy: 100,
+    data: { cx: 450, cy: 100, width: 160, height: 60, label: 'Node 2', color: SECONDARY },
     width: 160,
     height: 60,
-    label: 'Node 2',
-    color: SECONDARY,
   },
   'node-3': {
-    cx: 300,
-    cy: 280,
+    data: { cx: 300, cy: 280, width: 160, height: 60, label: 'Node 3', color: '#10b981' },
     width: 160,
     height: 60,
-    label: 'Node 3',
-    color: '#10b981',
   },
 };
 
@@ -88,9 +79,11 @@ const initialLinks: Record<string, FlatLinkData> = {
  */
 const mapDataToElementAttributes = ({
   data,
-}: ToElementAttributesOptions<FlatElementData>): CellAttributes => {
-  const { cx, cy, width = 100, height = 60, ...rest } = data as CenterElement;
-  return flatElementDataToAttributes({ ...rest, x: cx - width / 2, y: cy - height / 2, width, height });
+}: ToElementAttributesOptions<FlatElementData<CenterElement>>): CellAttributes => {
+  const input = data as FlatElementData<CenterElement>;
+  const userData = (input.data ?? {}) as CenterElement;
+  const { cx = 0, cy = 0, width = 100, height = 60 } = userData;
+  return flatElementDataToAttributes({ data: userData, x: cx - width / 2, y: cy - height / 2, width, height });
 };
 
 /**
@@ -98,17 +91,22 @@ const mapDataToElementAttributes = ({
  */
 const mapElementAttributesToData = ({
   attributes,
-}: ToElementDataOptions<FlatElementData>): FlatElementData => {
-  const { x = 0, y = 0, width = 100, height = 60, ...rest } = flatAttributesToElementData(attributes);
-  return { ...rest, cx: x + width / 2, cy: y + height / 2, width, height };
+}: ToElementDataOptions<FlatElementData<CenterElement>>): FlatElementData<CenterElement> => {
+  const result = flatAttributesToElementData(attributes);
+  const userData = (result.data ?? {}) as Record<string, unknown>;
+  const x = (attributes.position?.x ?? 0) as number;
+  const y = (attributes.position?.y ?? 0) as number;
+  const width = (attributes.size?.width ?? 100) as number;
+  const height = (attributes.size?.height ?? 60) as number;
+  // Wrap center-based coords + user data in `data` field for useElementData()
+  return { data: { ...userData, cx: x + width / 2, cy: y + height / 2, width, height }, width, height } as FlatElementData<CenterElement>;
 };
 
 // ============================================================================
 // Element Shape
 // ============================================================================
 
-function ElementShape({ label, color }: Readonly<CenterElement>) {
-  const { width = 160, height = 60 } = useElement<CenterElement>();
+function ElementShape({ label, color, width = 160, height = 60 }: Readonly<CenterElement>) {
   return (
     <>
       <rect
@@ -140,11 +138,11 @@ function ElementShape({ label, color }: Readonly<CenterElement>) {
 // ============================================================================
 
 function DataPanel() {
-  const elements = useElements<CenterElement>();
+  const elements = useElementsData<CenterElement>();
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Element Data (cx, cy)</h3>
-      {Object.entries(elements).map(([id, element]) => (
+      {[...elements.entries()].map(([id, element]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
           <div className="font-bold mb-1">{element.label}</div>
           <div>cx: {Math.round(element.cx)}</div>

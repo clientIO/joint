@@ -1,13 +1,8 @@
 import { dia, shapes } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { FlatElementData, FlatLinkData } from '../types/data-types';
+import type { CellData, ElementLayout } from '../types/cell-data';
 import type { AddPaperOptions } from './paper-store';
-import type {
-  PaperStoreState,
-  GraphDataState,
-  GraphLayoutState,
-  GraphStoreInternalSnapshot,
-} from '../state/state.types';
 
 import { PaperStore, getDefaultPaperState } from './paper-store';
 import {
@@ -25,12 +20,11 @@ import {
   type GraphMappings,
 } from '../state/data-mapping';
 import { clearConnectedLinkViews } from './clear-view';
-import { graphState, LAYOUT_UPDATE_EVENT, type GraphState } from '../state/graph-state';
-import { getLayout } from './update-layout-state';
-import { createState, type ExternalStoreLike, type State } from '../utils/create-state';
+import { LAYOUT_UPDATE_EVENT } from './graph-changes';
+import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange, IncrementalStateChanges } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
-import { graphView, type GraphView } from './graph-view';
+import { graphView, type GraphView, type IncrementalContainerChanges } from './graph-view';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -39,15 +33,33 @@ export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
 };
 
 /**
+ * Paper snapshot is a simple version counter.
+ * Incremented on every view mount/unmount change to trigger React re-renders.
+ */
+export interface PaperStoreState {
+  readonly version: number;
+  readonly featuresState?: Record<string, unknown>;
+}
+
+/**
+ * Full internal snapshot of the graph store.
+ */
+export interface GraphStoreInternalSnapshot {
+  readonly papers: Record<string, PaperStoreState>;
+  readonly resetVersion: number;
+  readonly graphFeaturesVersion: number;
+}
+
+/**
  * Configuration options for creating a GraphStore instance.
  */
-export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = FlatLinkData>
+export interface GraphStoreOptions<ElementData extends object = CellData, LinkData extends object = CellData>
   extends GraphMappings<ElementData, LinkData> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
-  readonly initialElements?: Record<CellId, FlatElementData>;
-  readonly initialLinks?: Record<CellId, FlatLinkData>;
+  readonly initialElements?: Record<CellId, ElementData>;
+  readonly initialLinks?: Record<CellId, LinkData>;
   readonly onIncrementalChange?: (changes: IncrementalStateChanges<ElementData, LinkData>) => void;
   readonly onElementsChange?: (elements: Record<string, ElementData>) => void;
   readonly onLinksChange?: (links: Record<string, LinkData>) => void;
@@ -62,16 +74,18 @@ export interface GraphStoreOptions<ElementData = FlatElementData, LinkData = Fla
  * Central store for managing graph state, synchronization, and paper instances.
  */
 export class GraphStore {
-  public readonly internalState: State<GraphStoreInternalSnapshot>;
-  public readonly dataState: ExternalStoreLike<GraphDataState>;
-  public readonly layoutState: ExternalStoreLike<GraphLayoutState>;
+  public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly graph: dia.Graph;
-  public readonly graphState: GraphState;
 
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
   private observer: GraphStoreObserver;
-  public readonly graphView: GraphView<FlatElementData, FlatLinkData>;
+  public readonly graphView: GraphView;
+
+  /** Number of observed elements (for auto-sizing). */
+  private observedElementsCount = 0;
+  /** IDs of elements that have been measured by ResizeObserver. */
+  private readonly measuredElementIds = new Set<CellId>();
 
   constructor(public readonly config: GraphStoreOptions) {
     const {
@@ -103,9 +117,10 @@ export class GraphStore {
         }
       );
 
-    this.internalState = createState<GraphStoreInternalSnapshot>({
-      newState: () => ({ papers: {}, resetVersion: 0, graphFeaturesVersion: 1 }),
-      name: 'JointJs/Internal',
+    this.internalState = createAtom<GraphStoreInternalSnapshot>({
+      papers: {},
+      resetVersion: 0,
+      graphFeaturesVersion: 1,
     });
 
     this.graphView = graphView({
@@ -116,58 +131,27 @@ export class GraphStore {
       mapLinkAttributesToData,
       getPaperStores: () => this.paperStores,
       enableBatchUpdates,
+      onIncrementalChange: this.buildIncrementalChangeHandler(
+        onIncrementalChange as ((changes: IncrementalContainerChanges<CellData, CellData>) => void) | undefined,
+        onElementsChange as ((elements: Record<string, CellData>) => void) | undefined,
+        onLinksChange as ((links: Record<string, CellData>) => void) | undefined,
+      ),
     });
 
-    this.graphState = graphState({
-      graph: this.graph,
-      papers: this.paperStores,
-
-      onReset: () => {
-        this.internalState.setState((previous) => ({
-          ...previous,
-          resetVersion: previous.resetVersion + 1,
-        }));
-      },
-      onIncrementalChange: onIncrementalChange as
-        | ((changes: IncrementalStateChanges) => void)
-        | undefined,
-      onElementsChange: onElementsChange as
-        | ((elements: Record<string, FlatElementData>) => void)
-        | undefined,
-      onLinksChange: onLinksChange as ((links: Record<string, FlatLinkData>) => void) | undefined,
-      enableBatchUpdates,
-      mappers: {
-        mapDataToElementAttributes,
-        mapDataToLinkAttributes,
-        mapElementAttributesToData,
-        mapLinkAttributesToData,
-      },
-    });
-
-    this.dataState = this.graphState.dataState;
-    this.layoutState = this.graphState.layoutState;
-    const measuredElementIds = new Set<CellId>();
     this.observer = createElementsSizeObserver({
       onObserveElement: ({ id, isRemoved, observedElements }) => {
         if (isRemoved) {
-          measuredElementIds.delete(id);
+          this.measuredElementIds.delete(id);
         }
-        this.graphState.layoutState.setState((state) => ({
-          ...state,
-          elements: {
-            ...state.elements,
-            observedElements,
-            measuredObservedElements: measuredElementIds.size,
-          },
-        }));
+        this.observedElementsCount = observedElements;
       },
-      getLayoutSnapshot: () => this.layoutState.getSnapshot(),
+      getLayoutSnapshot: () => this.buildLayoutSnapshot(),
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('resize');
         for (const [id, data] of Object.entries(updatedElements)) {
           const cell = this.graph.getCell(id);
           if (cell?.isElement()) {
-            measuredElementIds.add(id);
+            this.measuredElementIds.add(id);
             cell.set('size', { width: data.width, height: data.height });
             if (data.x !== undefined && data.y !== undefined) {
               cell.set('position', { x: data.x, y: data.y });
@@ -175,13 +159,6 @@ export class GraphStore {
           }
         }
         this.graph.stopBatch('resize');
-        this.graphState.layoutState.setState((state) => ({
-          ...state,
-          elements: {
-            ...state.elements,
-            measuredObservedElements: measuredElementIds.size,
-          },
-        }));
       },
       getCellTransform: (id) => {
         const cell = this.graph.getCell(id);
@@ -204,35 +181,80 @@ export class GraphStore {
       Object.keys(initialElements).length > 0 || Object.keys(initialLinks).length > 0;
 
     if (hasInitialData) {
-      this.graphState.updateGraph({
-        elements: initialElements,
-        links: initialLinks,
+      this.graphView.updateGraph({
+        elements: initialElements as unknown as Record<CellId, CellData>,
+        links: initialLinks as unknown as Record<CellId, CellData>,
         flag: 'updateFromReact',
       });
     } else if (this.graph.getCells().length > 0) {
-      // External graph already has cells — populate dataState/layoutState
+      // External graph already has cells — populate graphView containers
       // directly without calling resetCells(). resetCells() would destroy
       // and recreate all paper element views, breaking any external
       // references to those views (e.g. stencil drag's cloneView).
-      const existingElements: Record<string, FlatElementData> = {};
-      const existingLinks: Record<string, FlatLinkData> = {};
-      for (const cell of this.graph.getCells()) {
-        const id = String(cell.id);
-        if (cell.isElement()) {
-          existingElements[id] = this.graphState.elementToData({
-            element: cell,
-          }) as FlatElementData;
-        } else if (cell.isLink()) {
-          existingLinks[id] = this.graphState.linkToData({ link: cell });
+      this.graphView.syncFromGraph();
+    }
+  }
+
+  /**
+   * Builds the onIncrementalChange handler that bridges graphView container changes
+   * to the legacy onElementsChange/onLinksChange/onIncrementalChange callbacks.
+   */
+  private buildIncrementalChangeHandler(
+    onIncrementalChange: ((changes: IncrementalContainerChanges<CellData, CellData>) => void) | undefined,
+    onElementsChange: ((elements: Record<string, CellData>) => void) | undefined,
+    onLinksChange: ((links: Record<string, CellData>) => void) | undefined,
+  ): ((changes: IncrementalContainerChanges<CellData, CellData>) => void) | undefined {
+    if (!onIncrementalChange && !onElementsChange && !onLinksChange) {
+      return undefined;
+    }
+    return (changes) => {
+      onIncrementalChange?.(changes);
+
+      if (onElementsChange) {
+        const hasElementChanges =
+          changes.elements.added.size > 0 ||
+          changes.elements.changed.size > 0 ||
+          changes.elements.removed.size > 0 ||
+          changes.elementsLayout.added.size > 0 ||
+          changes.elementsLayout.changed.size > 0 ||
+          changes.elementsLayout.removed.size > 0;
+
+        if (hasElementChanges) {
+          // Merge data + layout for each element so onElementsChange receives the full shape
+          const elements: Record<string, CellData> = {};
+          for (const [id, item] of this.graphView.elements.getFull()) {
+            const layout = this.graphView.elementsLayout.get(id);
+            elements[id] = layout ? { ...item, ...layout } : item;
+          }
+          onElementsChange(elements);
         }
       }
-      this.dataState.setState(() => ({
-        elements: existingElements,
-        links: existingLinks,
-      }));
-      const layout = getLayout({ graph: this.graph, papers: this.paperStores });
-      this.layoutState.setState(() => layout);
-    }
+
+      if (onLinksChange) {
+        const hasLinkChanges =
+          changes.links.added.size > 0 ||
+          changes.links.changed.size > 0 ||
+          changes.links.removed.size > 0;
+
+        if (hasLinkChanges) {
+          const links: Record<string, CellData> = {};
+          for (const [id, item] of this.graphView.links.getFull()) {
+            links[id] = item;
+          }
+          onLinksChange(links);
+        }
+      }
+    };
+  }
+
+  /**
+   * Builds a layout snapshot from graphView containers for the size observer.
+   * Returns the elements layout Map directly — no intermediate record conversion.
+   */
+  private buildLayoutSnapshot() {
+    return {
+      elements: this.graphView.elementsLayout.getFull(),
+    };
   }
 
   // --- Public API ---
@@ -248,7 +270,7 @@ export class GraphStore {
       paperStore.destroy();
     }
     this.paperStores.clear();
-    this.graphState.destroy();
+    this.graphView.destroy();
     this.internalState.clean();
     this.observer.clean();
     if (!isGraphExternal) {

@@ -5,6 +5,7 @@ import {
   GraphProvider,
   Paper,
   SVGText,
+  useElementSize,
   useGraph,
   useMarkup,
   usePaperEvents,
@@ -21,64 +22,62 @@ import './styles.css';
 // Data
 // ============================================================================
 
-interface NodeData extends FlatElementData {
+interface NodeData {
   readonly label: string;
-  readonly width: number;
-  readonly height: number;
 }
 
-const initialElements: Record<string, NodeData> = {
+const initialElements: Record<string, FlatElementData<NodeData>> = {
   server: {
-    label: 'Server',
+    data: { label: 'Server' },
     x: 300,
     y: 30,
     width: 120,
     height: 40,
   },
   db: {
-    label: 'Database',
+    data: { label: 'Database' },
     x: 80,
     y: 120,
     width: 120,
     height: 40,
   },
   cache: {
-    label: 'Cache',
+    data: { label: 'Cache' },
     x: 520,
     y: 120,
     width: 120,
     height: 40,
   },
   auth: {
-    label: 'Auth',
+    data: { label: 'Auth' },
     x: 120,
     y: 250,
     width: 120,
     height: 40,
   },
   api: {
-    label: 'API',
+    data: { label: 'API' },
     x: 480,
     y: 250,
     width: 120,
     height: 40,
   },
   worker: {
-    label: 'Worker',
+    data: { label: 'Worker' },
     x: 80,
     y: 380,
     width: 120,
     height: 40,
   },
   queue: {
-    label: 'Queue',
+    data: { label: 'Queue' },
     x: 520,
     y: 380,
     width: 120,
     height: 40,
   },
   logs: {
-    label: 'Logs',
+    data: { label: 'Logs' },
     x: 300,
     y: 420,
     width: 120,
@@ -170,8 +169,9 @@ const DIMMED_OPACITY = 0.3;
 // RenderNode
 // ============================================================================
 
-function RenderNode({ label, width, height }: Readonly<NodeData>) {
+function RenderNode({ label }: Readonly<NodeData>) {
   const { selectorRef } = useMarkup();
+  const { width, height } = useElementSize();
   return (
     <g className="cursor-pointer">
       <rect

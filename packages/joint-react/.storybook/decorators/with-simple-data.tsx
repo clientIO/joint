@@ -4,41 +4,47 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
-import type { FlatElementData} from '@joint/react';
+import type { FlatElementData } from '@joint/react';
 import { GraphProvider, useElementId, useMeasureNode, type FlatLinkData } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
+import { useElementData } from '../../src/hooks/use-element-data';
+import { useElementSize } from '../../src/hooks/use-element-size';
 
 export type StoryFunction = PartialStoryFn<any, any>;
 export type StoryCtx = StoryContext<any, any>;
 
 export const testElements: Record<
   string,
-  FlatElementData & {
+  FlatElementData<{
     label: string;
     color: string;
     hoverColor: string;
-  }
+  }>
 > = {
   '1': {
-    label: 'Node 1',
-    color: PRIMARY,
+    data: {
+      label: 'Node 1',
+      color: PRIMARY,
+      hoverColor: 'red',
+    },
     x: 100,
     y: 20,
     width: 150,
     height: 50,
-    hoverColor: 'red',
     angle: 0,
   },
   '2': {
-    label: 'Node 2',
-    color: PRIMARY,
+    data: {
+      label: 'Node 2',
+      color: PRIMARY,
+      hoverColor: 'blue',
+    },
     x: 200,
     y: 250,
     width: 150,
     height: 50,
-    hoverColor: 'blue',
     angle: 0,
   },
 };
@@ -70,8 +76,8 @@ export function SimpleGraphDecorator(Story: StoryFunction, { args }: StoryCtx) {
 
 export function RenderItemDecorator(
   properties: Readonly<{
-    renderElement: (element: SimpleElement) => JSX.Element;
-    renderLink?: (link: any) => JSX.Element;
+    renderElement: () => JSX.Element;
+    renderLink?: () => JSX.Element;
     elements?: Record<string, FlatElementData>;
     links?: Record<string, FlatLinkData>;
   }>
@@ -91,9 +97,10 @@ export function RenderItemDecorator(
   );
 }
 
-function RenderSimpleRectElement(properties: Readonly<SimpleElement>) {
-  const { width, color, height } = properties;
-  return <rect width={width} height={height} fill={color} />;
+function RenderSimpleRectElement() {
+  const size = useElementSize();
+  const data = useElementData<{ color: string }>();
+  return <rect width={size?.width} height={size?.height} fill={data?.color} />;
 }
 
 export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX.Element }>) {
@@ -110,7 +117,7 @@ export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX
 
 export function SimpleRenderItemDecorator(Story: StoryFunction, { args }: StoryCtx) {
   const component = useCallback(
-    (element: SimpleElement) => <Story {...element} {...args} />,
+    () => <Story {...args} />,
     [Story, args]
   );
   return <RenderItemDecorator renderElement={component} />;
@@ -118,7 +125,7 @@ export function SimpleRenderItemDecorator(Story: StoryFunction, { args }: StoryC
 
 export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryCtx) {
   const component = useCallback(
-    (element: SimpleElement) => <Story {...element} {...args} />,
+    () => <Story {...args} />,
     [Story, args]
   );
   return (

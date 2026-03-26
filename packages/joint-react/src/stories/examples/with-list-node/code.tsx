@@ -8,16 +8,24 @@ import {
   Paper,
   useMeasureNode,
   type OnTransformElement,
+  type FlatElementData,
+  type FlatLinkData,
   useElementId,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
-const initialElements: Record<string, { label: string; inputs: string[]; x: number; y: number }> = {
-  '1': { label: 'Node 1', inputs: [] as string[], x: 100, y: 15 },
-  '2': { label: 'Node 2', inputs: [] as string[], x: 500, y: 200 },
+interface ListNodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+  readonly inputs: string[];
+}
+
+const initialElements: Record<string, FlatElementData<ListNodeData>> = {
+  '1': { data: { label: 'Node 1', inputs: [] }, x: 100, y: 15 },
+  '2': { data: { label: 'Node 2', inputs: [] }, x: 500, y: 200 },
 };
-const initialEdges: Record<string, { source: string; target: string; color: string }> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -25,9 +33,7 @@ const initialEdges: Record<string, { source: string; target: string; color: stri
   },
 };
 
-type BaseElementWithData = (typeof initialElements)[string];
-
-function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData>) {
+function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
   const id = useElementId();
   const padding = 10;
   const headerHeight = 50;
@@ -51,8 +57,9 @@ function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData
 
   const addInput = () => {
     setElement(id, (previous) => {
-      const previousInputs = Array.isArray(previous.inputs) ? previous.inputs : [];
-      return { ...previous, inputs: [...previousInputs, ''] };
+      const previousData = previous.data as ListNodeData | undefined;
+      const previousInputs = Array.isArray(previousData?.inputs) ? previousData.inputs : [];
+      return { ...previous, data: { ...previousData, inputs: [...previousInputs, ''] } };
     });
   };
 
@@ -98,7 +105,10 @@ function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData
                   onChange={(event) => {
                     const newInputs = [...inputs];
                     newInputs[index] = event.target.value;
-                    setElement(id, (previous) => ({ ...previous, inputs: newInputs }));
+                    setElement(id, (previous) => {
+                      const previousData = previous.data as ListNodeData | undefined;
+                      return { ...previous, data: { ...previousData, inputs: newInputs } };
+                    });
                   }}
                 />
               </li>
@@ -111,7 +121,7 @@ function ListElement({ children, inputs }: PropsWithChildren<BaseElementWithData
   );
 }
 function Main() {
-  const renderElement = useCallback((element: BaseElementWithData) => {
+  const renderElement = useCallback((element: ListNodeData) => {
     return <ListElement {...element}>{element.label}</ListElement>;
   }, []);
   return <Paper className={PAPER_CLASSNAME} height={500} renderElement={renderElement} />;

@@ -5,8 +5,8 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElement,
   useElements,
+  useElementSize,
   useGraph,
   useGraphEvents,
   type FlatElementData,
@@ -18,32 +18,37 @@ import { useCallback, useState } from 'react';
 // Types
 // ============================================================================
 
-interface EmbeddingElement extends FlatElementData {
+type EmbeddingElement = {
   readonly label: string;
   readonly color: string;
-}
+  readonly [key: string]: unknown;
+};
 
 // ============================================================================
 // Data
 // ============================================================================
 
-const initialElements: Record<string, EmbeddingElement> = {
+const initialElements: Record<string, FlatElementData<EmbeddingElement>> = {
   container: {
+    data: {
+      label: 'Container',
+      color: PRIMARY,
+    },
     x: 50,
     y: 50,
     width: 300,
     height: 200,
-    label: 'Container',
-    color: PRIMARY,
     z: 1,
   },
   child: {
+    data: {
+      label: 'Drag me',
+      color: SECONDARY,
+    },
     x: 100,
     y: 100,
     width: 120,
     height: 60,
-    label: 'Drag me',
-    color: SECONDARY,
     z: 2,
     parent: 'container',
   },
@@ -54,7 +59,7 @@ const initialElements: Record<string, EmbeddingElement> = {
 // ============================================================================
 
 function ElementShape({ label, color }: Readonly<EmbeddingElement>) {
-  const { width = 120, height = 60 } = useElement<EmbeddingElement>();
+  const { width = 120, height = 60 } = useElementSize();
   return (
     <>
       <rect
@@ -155,11 +160,11 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({ elements }: Readonly<{ elements: Record<string, EmbeddingElement> }>) {
+function ElementDataView({ elements }: Readonly<{ elements: Map<string, EmbeddingElement> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useElements() Data</h3>
-      {Object.entries(elements).map(([id, element]) => (
+      {[...elements.entries()].map(([id, element]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
           <div className="font-bold mb-1">{id}</div>
           <pre className="text-xs text-gray-300 whitespace-pre-wrap">

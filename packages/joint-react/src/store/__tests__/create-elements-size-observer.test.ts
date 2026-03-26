@@ -93,7 +93,7 @@ describe('createElementsSizeObserver', () => {
   let mockGetCellTransform: jest.Mock;
   let mockGetLayoutSnapshot: jest.Mock;
   let mockOnObserveElement: jest.Mock;
-  let mockElementSizes: Record<CellId, { width: number; height: number }>;
+  let mockElementLayouts: Map<string, { width: number; height: number; x: number; y: number; angle: number }>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let createElementsSizeObserver: any;
 
@@ -108,10 +108,10 @@ describe('createElementsSizeObserver', () => {
     createElementsSizeObserver =
       require('../create-elements-size-observer').createElementsSizeObserver;
 
-    mockElementSizes = {
-      'element-1': { width: 1, height: 1 },
-      'element-2': { width: 1, height: 1 },
-    };
+    mockElementLayouts = new Map([
+      ['element-1', { width: 1, height: 1, x: 0, y: 0, angle: 0 }],
+      ['element-2', { width: 1, height: 1, x: 0, y: 0, angle: 0 }],
+    ]);
 
     mockOnBatchUpdate = jest.fn();
     mockOnObserveElement = jest.fn();
@@ -124,15 +124,7 @@ describe('createElementsSizeObserver', () => {
       element: { id } as dia.Element,
     }));
     mockGetLayoutSnapshot = jest.fn(() => ({
-      elements: {
-        sizes: mockElementSizes,
-        positions: {},
-        angles: {},
-        count: Object.keys(mockElementSizes).length,
-        observedElements: 0,
-        measuredObservedElements: 0,
-      },
-      links: {},
+      elements: mockElementLayouts,
     }));
 
     observer = createElementsSizeObserver({

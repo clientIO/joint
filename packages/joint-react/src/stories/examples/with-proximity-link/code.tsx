@@ -6,21 +6,25 @@ import {
   useElementId,
   useElements,
   useGraph,
+  type FlatElementData,
 } from '@joint/react';
 import { util } from '@joint/core';
 import '../index.css';
 import { useEffect, useRef } from 'react';
 import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
-import type { dia } from '../../../../../joint-core/types';
+import type { dia } from '@joint/core';
 
-const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 15 },
-  '2': { label: 'Node 2', x: 100, y: 200 },
-  '3': { label: 'Node 3', x: 280, y: 100 },
-  '4': { label: 'Node 4', x: 15, y: 100 },
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
+  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
+  '3': { data: { label: 'Node 3' }, x: 280, y: 100 },
+  '4': { data: { label: 'Node 4' }, x: 15, y: 100 },
 };
-
-type BaseElementWithData = (typeof initialElements)[string];
 
 const PROXIMITY_THRESHOLD = 60;
 
@@ -35,7 +39,7 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
   };
 }
 
-function ResizableNode({ label }: Readonly<BaseElementWithData>) {
+function ResizableNode({ label }: Readonly<NodeData>) {
   const id = useElementId();
   const nodeRef = useRef<HTMLDivElement>(null);
 

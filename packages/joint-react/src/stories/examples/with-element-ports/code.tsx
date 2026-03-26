@@ -93,10 +93,11 @@ function getShapeLabel(shape: string): string {
   return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
 }
 
-interface PortElementData extends FlatElementData {
+type PortElementData = FlatElementData & {
   readonly label: string;
   readonly color: string;
-}
+  readonly [key: string]: unknown;
+};
 
 const initialElements: Record<string, PortElementData> = {
   'node-1': {
@@ -488,7 +489,7 @@ function Main() {
           Port Properties
         </div>
 
-        {Object.entries(elements).map(([id, element]) => (
+        {[...elements.entries()].map(([id, element]) => (
           <ElementPortControls key={id} id={id} element={element} />
         ))}
       </div>

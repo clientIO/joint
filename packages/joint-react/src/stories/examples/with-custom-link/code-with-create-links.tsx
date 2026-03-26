@@ -4,7 +4,6 @@ import {
   GraphProvider,
   Paper,
   type FlatLinkData,
-  type GraphProps,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -39,9 +38,9 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App() {
   return (
-    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
+    <GraphProvider links={initialEdges} elements={initialElements}>
       <Main />
     </GraphProvider>
   );
