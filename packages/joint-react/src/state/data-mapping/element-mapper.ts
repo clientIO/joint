@@ -3,7 +3,7 @@ import type { FlatElementData } from '../../types/data-types';
 import type { CellData, ElementInput, ElementItem } from '../../types/cell-data';
 
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
-import { convertPorts, createPortDefaults } from './convert-ports';
+import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from './index';
 
@@ -86,7 +86,7 @@ export function flatMapDataToElementAttributes<Element extends object = CellData
 
   if (ports) {
     attributes.ports = convertPorts(ports, portStyle);
-    attributes.portDefaults = createPortDefaults();
+    attributes.portDefaults = createPortGroupsDefault();
   }
 
   // Store user data + ports/portStyle for round-trip
@@ -128,15 +128,7 @@ export function flatMapElementAttributesToData<Element extends object = CellData
   options: Pick<ToElementDataOptions<Element>, 'attributes' | 'defaultAttributes'>
 ): Element {
   const { attributes, defaultAttributes } = options;
-  const {
-    data: cellData,
-    position,
-    size,
-    angle,
-    z,
-    layer,
-    parent,
-  } = attributes;
+  const { data: cellData, position, size, angle, z, layer, parent } = attributes;
 
   // Extract user data and ports from cell.data (where forward mapper stored them)
   const { ports, portStyle, ...userData } = (cellData ?? {}) as Record<string, unknown>;
@@ -178,7 +170,9 @@ export function flatMapElementAttributesToData<Element extends object = CellData
  * @param data - The element input data with explicit `data` field.
  * @returns The JointJS cell attributes.
  */
-export function flatElementDataToAttributes<D extends object = CellData>(data: ElementInput<D>): CellAttributes {
+export function flatElementDataToAttributes<D extends object = CellData>(
+  data: ElementInput<D>
+): CellAttributes {
   return flatMapDataToElementAttributes({ id: '', data: data as unknown as FlatElementData });
 }
 

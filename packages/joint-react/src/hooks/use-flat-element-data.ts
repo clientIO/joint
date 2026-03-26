@@ -1,15 +1,20 @@
 import { type DependencyList, useMemo, useCallback, useRef } from 'react';
 import { type dia } from '@joint/core';
-import { flatElementDataToAttributes, flatAttributesToElementData } from '../state/data-mapping/element-mapper';
+import {
+  flatElementDataToAttributes,
+  flatAttributesToElementData,
+} from '../state/data-mapping/element-mapper';
 import type { GraphMappings, CellAttributes } from '../state/data-mapping';
 import type { FlatElementData } from '../types/data-types';
-import type { ToElementAttributesOptions, ToElementDataOptions } from '../state/data-mapping/element-mapper';
+import type {
+  ToElementAttributesOptions,
+  ToElementDataOptions,
+} from '../state/data-mapping/element-mapper';
 import type { CellId } from '../types/cell-id';
 
 /**
  * Returns memoized `mapDataToElementAttributes` and `mapElementAttributesToData`
  * functions with support for defaults, post-processing hooks, and key filtering.
- *
  * @param options - Configuration object.
  * @param options.defaults - Static defaults or a callback `(data, id) => defaults`.
  *   Merged as `{ ...resolvedDefaults, ...data }` before flat mapping.
@@ -34,119 +39,122 @@ import type { CellId } from '../types/cell-id';
  * ```
  */
 export function useFlatElementData<T extends FlatElementData = FlatElementData>(
-    options: {
-        defaults?: Partial<FlatElementData> | ((data: T, id: CellId) => Partial<FlatElementData>);
-        mapAttributes?: (options: { attributes: CellAttributes; data: T; graph: dia.Graph }) => CellAttributes;
-        mapData?: (options: { data: T; attributes: dia.Element.Attributes; graph: dia.Graph }) => T;
-        pick?: (keyof T)[];
-    } = {},
-    deps?: DependencyList,
+  options: {
+    defaults?: Partial<FlatElementData> | ((data: T, id: CellId) => Partial<FlatElementData>);
+    mapAttributes?: (options: {
+      attributes: CellAttributes;
+      data: T;
+      graph: dia.Graph;
+    }) => CellAttributes;
+    mapData?: (options: { data: T; attributes: dia.Element.Attributes; graph: dia.Graph }) => T;
+    pick?: Array<keyof T>;
+  } = {},
+  deps?: DependencyList
 ): Pick<GraphMappings<T>, 'mapDataToElementAttributes' | 'mapElementAttributesToData'> {
+  const { defaults, mapAttributes, mapData, pick } = options;
 
-    const { defaults, mapAttributes, mapData, pick } = options;
+  // Keep latest values in refs so the callback form always reads
+  // the current value without recreating the mapper.
+  const defaultsRef = useRef(defaults);
+  defaultsRef.current = defaults;
 
-    // Keep latest values in refs so the callback form always reads
-    // the current value without recreating the mapper.
-    const defaultsRef = useRef(defaults);
-    defaultsRef.current = defaults;
+  const mapAttributesRef = useRef(mapAttributes);
+  mapAttributesRef.current = mapAttributes;
 
-    const mapAttributesRef = useRef(mapAttributes);
-    mapAttributesRef.current = mapAttributes;
+  const mapDataRef = useRef(mapData);
+  mapDataRef.current = mapData;
 
-    const mapDataRef = useRef(mapData);
-    mapDataRef.current = mapData;
+  const pickRef = useRef(pick);
+  pickRef.current = pick;
 
-    const pickRef = useRef(pick);
-    pickRef.current = pick;
+  // Determines when the mapper reference changes (triggers GraphProvider re-sync):
+  // - With deps: changes when deps change
+  // - Static without deps: changes when serialized value changes
+  // - Callback without deps: stable (never changes, ref provides latest)
+  const isCallback = typeof defaults === 'function';
+  const autoKey = isCallback ? 'fn' : JSON.stringify(options);
+  const serialized = useMemo(
+    () => (deps ? JSON.stringify(deps) : autoKey),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    deps ?? [autoKey]
+  );
 
-    // Determines when the mapper reference changes (triggers GraphProvider re-sync):
-    // - With deps: changes when deps change
-    // - Static without deps: changes when serialized value changes
-    // - Callback without deps: stable (never changes, ref provides latest)
-    const isCallback = typeof defaults === 'function';
-    const autoKey = isCallback ? 'fn' : JSON.stringify(options);
-    const serialized = useMemo(
-        () => (deps ? JSON.stringify(deps) : autoKey),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        deps ?? [autoKey]
-    );
+  const mapDataToElementAttributes = useCallback(
+    (mapOptions: ToElementAttributesOptions<T>) => {
+      const { current } = defaultsRef;
+      const resolved =
+        typeof current === 'function' ? current(mapOptions.data, mapOptions.id) : current;
 
-    const mapDataToElementAttributes = useCallback(
-        (mapOptions: ToElementAttributesOptions<T>) => {
-            const { current } = defaultsRef;
-            const resolved = typeof current === 'function'
-                ? current(mapOptions.data, mapOptions.id)
-                : current;
+      let result: CellAttributes;
+      if (resolved) {
+        const mergedData = { ...resolved, ...mapOptions.data } as T;
+        result = flatElementDataToAttributes(mergedData as never);
 
-            let result: CellAttributes;
-            if (!resolved) {
-                result = flatElementDataToAttributes(mapOptions.data as never);
-            } else {
-                const mergedData = { ...resolved, ...mapOptions.data } as T;
-                result = flatElementDataToAttributes(mergedData as never);
-
-                // Strip default-provided keys from cell.data so they don't
-                // pollute React state on round-trip (e.g. after element move).
-                if (result.data) {
-                    const cellData = result.data as Record<string, unknown>;
-                    const userData = mapOptions.data as Record<string, unknown>;
-                    for (const key of Object.keys(resolved)) {
-                        if (!(key in userData)) {
-                            delete cellData[key];
-                        }
-                    }
-                }
+        // Strip default-provided keys from cell.data so they don't
+        // pollute React state on round-trip (e.g. after element move).
+        if (result.data) {
+          const cellData = result.data as Record<string, unknown>;
+          const userData = mapOptions.data as Record<string, unknown>;
+          for (const key of Object.keys(resolved)) {
+            if (!(key in userData)) {
+              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+              delete cellData[key];
             }
+          }
+        }
+      } else {
+        result = flatElementDataToAttributes(mapOptions.data);
+      }
 
-            // Post-process with mapAttributes if provided
-            const mapAttrFn = mapAttributesRef.current;
-            if (mapAttrFn) {
-                result = mapAttrFn({
-                    attributes: result,
-                    data: mapOptions.data,
-                    graph: mapOptions.graph,
-                });
-            }
+      // Post-process with mapAttributes if provided
+      const mapAttributeFunction = mapAttributesRef.current;
+      if (mapAttributeFunction) {
+        result = mapAttributeFunction({
+          attributes: result,
+          data: mapOptions.data,
+          graph: mapOptions.graph,
+        });
+      }
 
-            return result;
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [serialized]
-    );
+      return result;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [serialized]
+  );
 
-    const mapElementAttributesToData = useCallback(
-        (mapOptions: ToElementDataOptions<T>) => {
-            let data = flatAttributesToElementData(mapOptions.attributes) as T;
+  const mapElementAttributesToData = useCallback(
+    (mapOptions: ToElementDataOptions<T>) => {
+      let data = flatAttributesToElementData(mapOptions.attributes) as T;
 
-            // Post-process with mapData if provided
-            const mapDataFn = mapDataRef.current;
-            if (mapDataFn) {
-                data = mapDataFn({
-                    data,
-                    attributes: mapOptions.attributes,
-                    graph: mapOptions.graph,
-                });
-            }
+      // Post-process with mapData if provided
+      const mapDataFunction = mapDataRef.current;
+      if (mapDataFunction) {
+        data = mapDataFunction({
+          data,
+          attributes: mapOptions.attributes,
+          graph: mapOptions.graph,
+        });
+      }
 
-            const keys = pickRef.current;
-            if (keys) {
-                const picked = {} as Record<string, unknown>;
-                const src = data as Record<string, unknown>;
-                for (const key of keys) {
-                    if ((key as string) in src) {
-                        picked[key as string] = src[key as string];
-                    }
-                }
-                data = picked as T;
-            }
-            return data;
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [serialized]
-    );
+      const keys = pickRef.current;
+      if (keys) {
+        const picked = {} as Record<keyof T, unknown>;
+        const source = data as Record<keyof T, unknown>;
+        for (const key of keys) {
+          if (key in source) {
+            picked[key] = source[key];
+          }
+        }
+        data = picked as T;
+      }
+      return data;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [serialized]
+  );
 
-    return useMemo(
-        () => ({ mapDataToElementAttributes, mapElementAttributesToData }),
-        [mapDataToElementAttributes, mapElementAttributesToData]
-    );
+  return useMemo(
+    () => ({ mapDataToElementAttributes, mapElementAttributesToData }),
+    [mapDataToElementAttributes, mapElementAttributesToData]
+  );
 }

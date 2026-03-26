@@ -1,9 +1,10 @@
-import { dia, mvc } from '@joint/core';
+import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { PortalSelector, PortalPaperOptions } from './portal-paper.types';
 import { PORTAL_SELECTOR } from './portal-element';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
+import { PresetPaper } from './preset-paper';
 
 const noopViewMountChange = (): void => {
   // No-op default for onViewMountChange callback
@@ -16,7 +17,7 @@ const noopViewMountChange = (): void => {
  * - Emitting view mount/unmount callbacks for graph-store snapshot sync
  * - Hiding links until their source/target elements have rendered
  */
-export class PortalPaper extends dia.Paper {
+export class PortalPaper extends PresetPaper {
   public viewChanges: Map<string, IncrementalChange<dia.Cell>> = new Map();
   public onViewMountChange: (changes: Map<string, IncrementalChange<dia.Cell>>) => void;
   private readonly shouldPreserveHostElementOnRemove: boolean;
