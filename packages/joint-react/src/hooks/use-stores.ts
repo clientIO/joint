@@ -1,10 +1,11 @@
+import { useMemo } from 'react';
 import type {
   GraphStoreInternalSnapshot,
 } from '../store/graph-store';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { isStrictEqual } from '../utils/selector-utils';
 import type { ElementLayout, LinkLayout } from '../types/cell-data';
+import { useContainerItems } from './use-container-items';
 
 /**
  * Hook to select data from the internal graph store state.
@@ -26,54 +27,118 @@ export function useInternalData<Selection>(
   );
 }
 
-const alwaysRerender = () => false;
-
 /**
- * Hook to select element layout data from the graph store.
- * Returns a `Map<string, ElementLayout>` directly from the container.
- * @param selector - Optional selector function to derive data from the elements layout map.
- * @param isEqual - Optional equality function to optimize re-renders.
- * @returns The selected element layout data, or the full map if no selector is provided.
+ * Hook to access all element layouts, a filtered subset, or a selector-derived value.
+ *
+ * Supports 3 call signatures:
+ *
+ * - **No args**: returns all element layouts as a stable `Map`.
+ * - **IDs**: returns a filtered subset. Subscribes per-ID — best performance for known subsets.
+ * - **Selector**: applies a selector over the full `Map`. Re-renders only when the selector output changes.
+ *
+ * @example
+ * ```tsx
+ * // All layouts
+ * const all = useElementsLayout();
+ *
+ * // Specific elements only
+ * const subset = useElementsLayout('id1', 'id2');
+ *
+ * // Selector — e.g. proximity check
+ * const closeIds = useElementsLayout((layouts) =>
+ *   [...layouts.entries()].filter(([, l]) => l.x < 100).map(([id]) => id)
+ * );
+ * ```
  * @group Hooks
  */
-export function useElementsLayout<SelectorReturnType = Map<string, ElementLayout>>(
-  selector?: (items: Map<string, ElementLayout>) => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual as (a: SelectorReturnType, b: SelectorReturnType) => boolean
-): SelectorReturnType {
+export function useElementsLayout(): Map<string, ElementLayout>;
+export function useElementsLayout(
+  ...ids: [string, ...string[]]
+): Map<string, ElementLayout>;
+export function useElementsLayout<S>(
+  selector: (items: Map<string, ElementLayout>) => S,
+  isEqual?: (a: S, b: S) => boolean,
+): S;
+export function useElementsLayout<S = Map<string, ElementLayout>>(
+  ...args:
+    | []
+    | [string, ...string[]]
+    | [(items: Map<string, ElementLayout>) => S, ((a: S, b: S) => boolean)?]
+): Map<string, ElementLayout> | S {
   const { graphView: { elementsLayout } } = useGraphStore();
-  const internalSelector = selector
-    ? () => selector(elementsLayout.getFull())
-    : () => new Map(elementsLayout.getFull()) as unknown as SelectorReturnType;
-  return useSyncExternalStoreWithSelector(
-    elementsLayout.subscribeToFull,
-    elementsLayout.getVersion,
-    elementsLayout.getVersion,
-    internalSelector,
-    selector ? isEqual : (alwaysRerender as unknown as typeof isEqual)
+
+  const isSelectorMode = typeof args[0] === 'function';
+  const ids = isSelectorMode ? undefined : (args as string[]);
+
+  const stableIds = useMemo(
+    () => (ids && ids.length > 0 ? ids : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ids?.join(',')],
   );
+
+  const idsOrSelector: string[] | ((items: Map<string, ElementLayout>) => S) | undefined = isSelectorMode
+    ? (args[0] as (items: Map<string, ElementLayout>) => S)
+    : stableIds;
+  const isEqual = isSelectorMode
+    ? (args[1] as ((a: S, b: S) => boolean) | undefined)
+    : undefined;
+
+  return useContainerItems(
+    elementsLayout,
+    idsOrSelector as (items: Map<string, ElementLayout>) => S,
+    isEqual,
+  ) as Map<string, ElementLayout> | S;
 }
 
 /**
- * Hook to select link layout data from the graph store.
- * Returns a `Map<string, Record<string, LinkLayout>>` directly from the container.
- * @param selector - Optional selector function to derive data from the links layout map.
- * @param isEqual - Optional equality function to optimize re-renders.
- * @returns The selected link layout data, or the full map if no selector is provided.
+ * Hook to access all link layouts, a filtered subset, or a selector-derived value.
+ *
+ * Supports 3 call signatures:
+ *
+ * - **No args**: returns all link layouts as a stable `Map`.
+ * - **IDs**: returns a filtered subset. Subscribes per-ID — best performance for known subsets.
+ * - **Selector**: applies a selector over the full `Map`. Re-renders only when the selector output changes.
+ *
  * @group Hooks
  */
-export function useLinksLayout<SelectorReturnType = Map<string, Record<string, LinkLayout>>>(
-  selector?: (items: Map<string, Record<string, LinkLayout>>) => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual as (a: SelectorReturnType, b: SelectorReturnType) => boolean
-): SelectorReturnType {
+export function useLinksLayout(): Map<string, Record<string, LinkLayout>>;
+export function useLinksLayout(
+  ...ids: [string, ...string[]]
+): Map<string, Record<string, LinkLayout>>;
+export function useLinksLayout<S>(
+  selector: (items: Map<string, Record<string, LinkLayout>>) => S,
+  isEqual?: (a: S, b: S) => boolean,
+): S;
+export function useLinksLayout<S = Map<string, Record<string, LinkLayout>>>(
+  ...args:
+    | []
+    | [string, ...string[]]
+    | [
+        (items: Map<string, Record<string, LinkLayout>>) => S,
+        ((a: S, b: S) => boolean)?,
+      ]
+): Map<string, Record<string, LinkLayout>> | S {
   const { graphView: { linksLayout } } = useGraphStore();
-  const internalSelector = selector
-    ? () => selector(linksLayout.getFull())
-    : () => new Map(linksLayout.getFull()) as unknown as SelectorReturnType;
-  return useSyncExternalStoreWithSelector(
-    linksLayout.subscribeToFull,
-    linksLayout.getVersion,
-    linksLayout.getVersion,
-    internalSelector,
-    selector ? isEqual : (alwaysRerender as unknown as typeof isEqual)
+
+  const isSelectorMode = typeof args[0] === 'function';
+  const ids = isSelectorMode ? undefined : (args as string[]);
+
+  const stableIds = useMemo(
+    () => (ids && ids.length > 0 ? ids : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ids?.join(',')],
   );
+
+  const idsOrSelector: string[] | ((items: Map<string, Record<string, LinkLayout>>) => S) | undefined = isSelectorMode
+    ? (args[0] as (items: Map<string, Record<string, LinkLayout>>) => S)
+    : stableIds;
+  const isEqual = isSelectorMode
+    ? (args[1] as ((a: S, b: S) => boolean) | undefined)
+    : undefined;
+
+  return useContainerItems(
+    linksLayout,
+    idsOrSelector as (items: Map<string, Record<string, LinkLayout>>) => S,
+    isEqual,
+  ) as Map<string, Record<string, LinkLayout>> | S;
 }

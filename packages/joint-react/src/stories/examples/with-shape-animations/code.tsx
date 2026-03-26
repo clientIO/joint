@@ -4,7 +4,7 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  useElements,
+  useElementsData,
   useElementSize,
   type FlatElementData,
   type FlatLinkData,
@@ -232,7 +232,7 @@ function BulbNode({ watts }: Readonly<BulbData>) {
   const animationRef = useRef<Animation | null>(null);
 
   // Read generator power from the store (reactive)
-  const generatorPower = useElements<ShapeData, number>(
+  const generatorPower = useElementsData<ShapeData, number>(
     (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.power ?? 0
   );
 
@@ -309,7 +309,7 @@ function PowerControl() {
   const { setElement } = useGraph();
 
   // Read generator power from store (reactive)
-  const power = useElements<ShapeData, number>(
+  const power = useElementsData<ShapeData, number>(
     (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.power ?? 0
   );
 

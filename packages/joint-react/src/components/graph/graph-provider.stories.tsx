@@ -27,7 +27,7 @@ The **GraphProvider** component provides a shared Graph context for all its desc
 
 **Key Features:**
 - Manages graph state (elements and links)
-- Provides context for hooks like \`useElement\`, \`useLinks\`, \`useElements\`
+- Provides context for hooks like \`useElement\`, \`useLinksData\`, \`useElementsData\`
 - Supports multiple Paper instances within the same provider
 - Handles graph updates and subscriptions efficiently
     `,

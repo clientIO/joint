@@ -13,8 +13,6 @@ export { DefaultElement } from './components/default-element';
 // Hooks — Get Data
 export { useGraph } from './hooks/use-graph';
 export { usePaper } from './hooks/use-paper';
-export { useElements } from './hooks/use-elements';
-export { useLinks } from './hooks/use-links';
 export { useElement } from './hooks/use-element';
 export { useLink } from './hooks/use-link';
 

@@ -12,16 +12,15 @@ import {
   GraphProvider,
   Paper,
   useElementId,
-  useElements,
+  useElementsData,
   useGraph,
   useMeasureNode,
-  useLinks,
+  useLinksData,
   useNodesMeasuredEffect,
   type CellId,
   type FlatElementData,
   type FlatElementPort,
   type FlatLinkData,
-  type PortalPaper,
   type PaperProps,
   usePaperEvents,
   useElementSize,
@@ -426,8 +425,8 @@ function ToolBar(props: Readonly<ToolbarProps>) {
 
 // Show elements and links info
 function ElementsInfo() {
-  const elements = useElements();
-  const links = useLinks();
+  const elements = useElementsData();
+  const links = useLinksData();
   return (
     <div className="flex flex-col gap-2 mt-4">
       <div className="flex flex-col gap-2">

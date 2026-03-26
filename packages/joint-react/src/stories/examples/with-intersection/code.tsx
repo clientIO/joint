@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, useElements, useGraph, Paper, useMeasureNode, useElementId, type FlatElementData } from '@joint/react';
+import { GraphProvider, useElementsData, useGraph, Paper, useMeasureNode, useElementId, type FlatElementData } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
 import type { dia } from '@joint/core';
@@ -23,7 +23,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
   const id = useElementId();
   const element = graph.getCell(id) as dia.Element;
 
-  const isIntersected = useElements(() => {
+  const isIntersected = useElementsData(() => {
     return graph.findElementsUnderElement(element).length > 0;
   });
 

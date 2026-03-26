@@ -6,9 +6,8 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElements,
+  useElementsData,
   useGraph,
-  useNodesMeasuredEffect,
   type RenderElement,
   type ElementInput,
 } from '@joint/react';
@@ -83,7 +82,7 @@ function Main() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const elementsLength = useElements((items) => items.size);
+  const elementsLength = useElementsData((items) => items.size);
   return (
     <div className="flex flex-col">
       <div className="mb-8 flex flex-row items-center">

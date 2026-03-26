@@ -5,7 +5,7 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElements,
+  useElementsData,
   useElementSize,
   useGraph,
   useGraphEvents,
@@ -121,7 +121,7 @@ type Tab = 'data' | 'cell';
 
 function InspectorPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('data');
-  const elements = useElements<EmbeddingElement>();
+  const elements = useElementsData<EmbeddingElement>();
   const rawAttributes = useRawAttributes();
 
   return (
@@ -163,7 +163,7 @@ function InspectorPanel() {
 function ElementDataView({ elements }: Readonly<{ elements: Map<string, EmbeddingElement> }>) {
   return (
     <>
-      <h3 className="text-base font-bold mb-3">useElements() Data</h3>
+      <h3 className="text-base font-bold mb-3">useElementsData() Data</h3>
       {[...elements.entries()].map(([id, element]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
           <div className="font-bold mb-1">{id}</div>

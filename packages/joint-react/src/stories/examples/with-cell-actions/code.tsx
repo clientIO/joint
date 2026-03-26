@@ -6,7 +6,7 @@ import {
   Paper,
   useGraph,
   useElementsData,
-  useLinks,
+  useLinksData,
   useElementLayout,
   useMeasureNode,
   type FlatElementData,
@@ -481,7 +481,7 @@ const DEFAULT_ROUTER = { name: 'normal' };
 const DEFAULT_CONNECTOR = { name: 'rounded', args: { radius: 10 } };
 function Main() {
   const elements = useElementsData<NodeData>();
-  const links = useLinks() as Map<string, FlatLinkData>;
+  const links = useLinksData() as unknown as Map<string, FlatLinkData>;
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
       {/* Canvas */}

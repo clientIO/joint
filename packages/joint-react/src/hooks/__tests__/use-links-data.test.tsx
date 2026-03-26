@@ -24,7 +24,7 @@ function createTestContext() {
     },
   } as never;
 
-  function Wrapper({ children }: { children: React.ReactNode }) {
+  function Wrapper({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
       <GraphStoreContext.Provider value={graphStore}>
         {children}
@@ -47,7 +47,7 @@ describe('useLinksData', () => {
     expect(result.current.size).toBe(0);
   });
 
-  it('returns Map of data fields for all links', async () => {
+  it('returns Map of full items for all links', async () => {
     const { links, Wrapper } = createTestContext();
     links.set('l-1', { data: { label: 'Link A' } });
     links.set('l-2', { data: { label: 'Link B' } });
@@ -60,8 +60,8 @@ describe('useLinksData', () => {
     await act(async () => {});
 
     expect(result.current.size).toBe(2);
-    expect(result.current.get('l-1')).toEqual({ label: 'Link A' });
-    expect(result.current.get('l-2')).toEqual({ label: 'Link B' });
+    expect(result.current.get('l-1')).toEqual({ data: { label: 'Link A' } });
+    expect(result.current.get('l-2')).toEqual({ data: { label: 'Link B' } });
   });
 
   it('returns only requested links when IDs are provided', async () => {
@@ -78,9 +78,25 @@ describe('useLinksData', () => {
     await act(async () => {});
 
     expect(result.current.size).toBe(2);
-    expect(result.current.get('l-1')).toEqual({ label: 'Link A' });
-    expect(result.current.get('l-3')).toEqual({ label: 'Link C' });
+    expect(result.current.get('l-1')).toEqual({ data: { label: 'Link A' } });
+    expect(result.current.get('l-3')).toEqual({ data: { label: 'Link C' } });
     expect(result.current.has('l-2')).toBe(false);
+  });
+
+  it('returns selector result when selector is provided', async () => {
+    const { links, Wrapper } = createTestContext();
+    links.set('l-1', { data: { label: 'Link A' } });
+    links.set('l-2', { data: { label: 'Link B' } });
+    links.commitChanges();
+
+    const { result } = renderHook(
+      () => useLinksData((items) => items.size),
+      { wrapper: Wrapper },
+    );
+
+    await act(async () => {});
+
+    expect(result.current).toBe(2);
   });
 
   it('updates Map when link data changes', async () => {
@@ -93,13 +109,13 @@ describe('useLinksData', () => {
     });
 
     await act(async () => {});
-    expect(result.current.get('l-1')).toEqual({ label: 'initial' });
+    expect(result.current.get('l-1')).toEqual({ data: { label: 'initial' } });
 
     await act(async () => {
       links.set('l-1', { data: { label: 'updated' } });
       links.commitChanges();
     });
 
-    expect(result.current.get('l-1')).toEqual({ label: 'updated' });
+    expect(result.current.get('l-1')).toEqual({ data: { label: 'updated' } });
   });
 });

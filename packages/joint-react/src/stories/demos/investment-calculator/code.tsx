@@ -7,7 +7,7 @@ import {
   useGraph,
   useElementId,
   useElementSize,
-  useElements,
+  useElementsData,
   useFlatLinkData,
   type FlatElementData,
   type FlatLinkData,
@@ -398,7 +398,7 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const { width, height } = useElementSize();
 
   // Use graph topology to find the connected product (inbound neighbor via link)
-  const { value, roi } = useElements<ShapeData, { value: number; roi: number }>((elements) => {
+  const { value, roi } = useElementsData<ShapeData, { value: number; roi: number }>((elements) => {
     const cell = graph.getCell(cellId);
     if (!cell?.isElement()) {
       return DEFAULT_ROI_VALUE;
@@ -474,7 +474,7 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const { width, height } = useElementSize();
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useElements<ShapeData, { value: number; roi: number }>((elements) => {
+  const { value, roi } = useElementsData<ShapeData, { value: number; roi: number }>((elements) => {
     const investmentItem = elements.get(INVESTMENT_ID) as unknown as { data: ShapeData } | undefined;
     const investment = investmentItem?.data;
     if (investment?.type !== 'Investment') {

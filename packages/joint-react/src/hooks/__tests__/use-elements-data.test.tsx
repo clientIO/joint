@@ -61,8 +61,8 @@ describe('useElementsData', () => {
     await act(async () => {});
 
     expect(result.current.size).toBe(2);
-    expect(result.current.get('el-1')).toEqual({ label: 'A' });
-    expect(result.current.get('el-2')).toEqual({ label: 'B' });
+    expect(result.current.get('el-1')).toEqual({ data: { label: 'A' }, x: 0 });
+    expect(result.current.get('el-2')).toEqual({ data: { label: 'B' }, x: 50 });
   });
 
   it('returns only requested elements when IDs are provided', async () => {
@@ -79,8 +79,8 @@ describe('useElementsData', () => {
     await act(async () => {});
 
     expect(result.current.size).toBe(2);
-    expect(result.current.get('el-1')).toEqual({ label: 'A' });
-    expect(result.current.get('el-3')).toEqual({ label: 'C' });
+    expect(result.current.get('el-1')).toEqual({ data: { label: 'A' }, x: 0 });
+    expect(result.current.get('el-3')).toEqual({ data: { label: 'C' }, x: 100 });
     expect(result.current.has('el-2')).toBe(false);
   });
 
@@ -94,14 +94,14 @@ describe('useElementsData', () => {
     });
 
     await act(async () => {});
-    expect(result.current.get('el-1')).toEqual({ label: 'initial' });
+    expect(result.current.get('el-1')).toEqual({ data: { label: 'initial' }, x: 0 });
 
     await act(async () => {
       elements.set('el-1', { data: { label: 'updated' }, x: 0 });
       elements.commitChanges();
     });
 
-    expect(result.current.get('el-1')).toEqual({ label: 'updated' });
+    expect(result.current.get('el-1')).toEqual({ data: { label: 'updated' }, x: 0 });
   });
 
   it('updates Map when elements are added or removed', async () => {
@@ -122,7 +122,7 @@ describe('useElementsData', () => {
     });
 
     expect(result.current.size).toBe(2);
-    expect(result.current.get('el-2')).toEqual({ label: 'B' });
+    expect(result.current.get('el-2')).toEqual({ data: { label: 'B' }, x: 50 });
 
     await act(async () => {
       elements.delete('el-1');
@@ -131,6 +131,6 @@ describe('useElementsData', () => {
 
     expect(result.current.size).toBe(1);
     expect(result.current.has('el-1')).toBe(false);
-    expect(result.current.get('el-2')).toEqual({ label: 'B' });
+    expect(result.current.get('el-2')).toEqual({ data: { label: 'B' }, x: 50 });
   });
 });

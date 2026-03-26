@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
-import { useElements, useLinks } from '../../../hooks';
+import { useElementsData, useLinksData } from '../../../hooks';
 import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { GraphStore } from '../../../store';
@@ -14,7 +14,7 @@ describe('GraphProvider Coverage Tests', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.size);
+        elementCount = useElementsData((items) => items.size);
         return null;
       }
 
@@ -38,7 +38,7 @@ describe('GraphProvider Coverage Tests', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        linkCount = useLinks((items) => items.size);
+        linkCount = useLinksData((items) => items.size);
         return null;
       }
 
@@ -67,8 +67,8 @@ describe('GraphProvider Coverage Tests', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.size);
-        linkCount = useLinks((items) => items.size);
+        elementCount = useElementsData((items) => items.size);
+        linkCount = useLinksData((items) => items.size);
         return null;
       }
 
@@ -99,8 +99,8 @@ describe('GraphProvider Coverage Tests', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.size);
-        linkCount = useLinks((items) => items.size);
+        elementCount = useElementsData((items) => items.size);
+        linkCount = useLinksData((items) => items.size);
         return null;
       }
 
@@ -143,7 +143,7 @@ describe('GraphProvider Coverage Tests', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => items.size);
+        elementCount = useElementsData((items) => items.size);
         return null;
       }
 

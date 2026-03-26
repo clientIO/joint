@@ -8,25 +8,23 @@ interface TestItem {
   readonly x: number;
 }
 
-function Wrapper({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <>{children}</>;
-}
-
 function createTestContext() {
   const container = createContainer<TestItem>();
   const readOnly = asReadonlyContainer(container);
 
-  return { container, readOnly, Wrapper };
-}
+  function TestWrapper({ children }: Readonly<{ children: React.ReactNode }>) {
+    return <>{children}</>;
+  }
 
-const selectLabel = (item: TestItem): string => item.data.label;
+  return { container, readOnly, Wrapper: TestWrapper };
+}
 
 describe('useContainerItems', () => {
   it('returns empty Map when container is empty', () => {
     const { readOnly, Wrapper } = createTestContext();
 
     const { result } = renderHook(
-      () => useContainerItems(readOnly, selectLabel),
+      () => useContainerItems(readOnly),
       { wrapper: Wrapper },
     );
 
@@ -40,15 +38,15 @@ describe('useContainerItems', () => {
     container.commitChanges();
 
     const { result } = renderHook(
-      () => useContainerItems(readOnly, selectLabel),
+      () => useContainerItems(readOnly),
       { wrapper: Wrapper },
     );
 
     await act(async () => {});
 
     expect(result.current.size).toBe(2);
-    expect(result.current.get('el-1')).toBe('A');
-    expect(result.current.get('el-2')).toBe('B');
+    expect(result.current.get('el-1')).toEqual({ data: { label: 'A' }, x: 0 });
+    expect(result.current.get('el-2')).toEqual({ data: { label: 'B' }, x: 50 });
   });
 
   it('returns filtered items when IDs provided', async () => {
@@ -59,16 +57,32 @@ describe('useContainerItems', () => {
     container.commitChanges();
 
     const { result } = renderHook(
-      () => useContainerItems(readOnly, selectLabel, ['el-1', 'el-3']),
+      () => useContainerItems(readOnly, ['el-1', 'el-3']),
       { wrapper: Wrapper },
     );
 
     await act(async () => {});
 
     expect(result.current.size).toBe(2);
-    expect(result.current.get('el-1')).toBe('A');
-    expect(result.current.get('el-3')).toBe('C');
+    expect(result.current.get('el-1')).toEqual({ data: { label: 'A' }, x: 0 });
+    expect(result.current.get('el-3')).toEqual({ data: { label: 'C' }, x: 100 });
     expect(result.current.has('el-2')).toBe(false);
+  });
+
+  it('applies selector over full Map', async () => {
+    const { container, readOnly, Wrapper } = createTestContext();
+    container.set('el-1', { data: { label: 'A' }, x: 0 });
+    container.set('el-2', { data: { label: 'B' }, x: 50 });
+    container.commitChanges();
+
+    const { result } = renderHook(
+      () => useContainerItems(readOnly, (items) => items.size),
+      { wrapper: Wrapper },
+    );
+
+    await act(async () => {});
+
+    expect(result.current).toBe(2);
   });
 
   it('updates when subscribed item changes', async () => {
@@ -77,19 +91,19 @@ describe('useContainerItems', () => {
     container.commitChanges();
 
     const { result } = renderHook(
-      () => useContainerItems(readOnly, selectLabel),
+      () => useContainerItems(readOnly),
       { wrapper: Wrapper },
     );
 
     await act(async () => {});
-    expect(result.current.get('el-1')).toBe('initial');
+    expect(result.current.get('el-1')?.data.label).toBe('initial');
 
     await act(async () => {
       container.set('el-1', { data: { label: 'updated' }, x: 0 });
       container.commitChanges();
     });
 
-    expect(result.current.get('el-1')).toBe('updated');
+    expect(result.current.get('el-1')?.data.label).toBe('updated');
   });
 
   it('updates when item is added', async () => {
@@ -98,7 +112,7 @@ describe('useContainerItems', () => {
     container.commitChanges();
 
     const { result } = renderHook(
-      () => useContainerItems(readOnly, selectLabel),
+      () => useContainerItems(readOnly),
       { wrapper: Wrapper },
     );
 
@@ -111,17 +125,17 @@ describe('useContainerItems', () => {
     });
 
     expect(result.current.size).toBe(2);
-    expect(result.current.get('el-2')).toBe('B');
+    expect(result.current.get('el-2')).toEqual({ data: { label: 'B' }, x: 50 });
   });
 
-  it('returns stable Map reference when selected values have not changed', async () => {
+  it('returns stable Map reference when values have not changed', async () => {
     const { container, readOnly, Wrapper } = createTestContext();
     container.set('el-1', { data: { label: 'A' }, x: 0 });
     container.set('el-2', { data: { label: 'B' }, x: 50 });
     container.commitChanges();
 
     const { result } = renderHook(
-      () => useContainerItems(readOnly, selectLabel),
+      () => useContainerItems(readOnly),
       { wrapper: Wrapper },
     );
 
@@ -129,23 +143,23 @@ describe('useContainerItems', () => {
     const firstRef = result.current;
     expect(firstRef.size).toBe(2);
 
-    // Change x (not label) — selector output is the same
+    // Re-set with same reference — should be stable
     await act(async () => {
-      container.set('el-1', { data: { label: 'A' }, x: 999 });
+      const item = container.get('el-1')!;
+      container.set('el-1', item);
       container.commitChanges();
     });
 
-    // Should return the same Map reference since selected values are identical
     expect(result.current).toBe(firstRef);
   });
 
-  it('returns new Map reference when selected values change', async () => {
+  it('returns new Map reference when values change', async () => {
     const { container, readOnly, Wrapper } = createTestContext();
     container.set('el-1', { data: { label: 'A' }, x: 0 });
     container.commitChanges();
 
     const { result } = renderHook(
-      () => useContainerItems(readOnly, selectLabel),
+      () => useContainerItems(readOnly),
       { wrapper: Wrapper },
     );
 
@@ -158,6 +172,35 @@ describe('useContainerItems', () => {
     });
 
     expect(result.current).not.toBe(firstRef);
-    expect(result.current.get('el-1')).toBe('changed');
+    expect(result.current.get('el-1')?.data.label).toBe('changed');
+  });
+
+  it('selector re-renders only when output changes', async () => {
+    const { container, readOnly, Wrapper } = createTestContext();
+    container.set('el-1', { data: { label: 'A' }, x: 0 });
+    container.commitChanges();
+
+    const renders = jest.fn();
+    const { result } = renderHook(
+      () => {
+        renders();
+        return useContainerItems(readOnly, (items) => items.size);
+      },
+      { wrapper: Wrapper },
+    );
+
+    await act(async () => {});
+    expect(result.current).toBe(1);
+    const renderCountAfterMount = renders.mock.calls.length;
+
+    // Change x but not size — selector output doesn't change
+    await act(async () => {
+      container.set('el-1', { data: { label: 'A' }, x: 999 });
+      container.commitChanges();
+    });
+
+    // Size is still 1 — should not re-render
+    expect(result.current).toBe(1);
+    expect(renders.mock.calls.length).toBe(renderCountAfterMount);
   });
 });

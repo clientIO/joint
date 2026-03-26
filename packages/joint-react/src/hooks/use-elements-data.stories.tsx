@@ -1,9 +1,10 @@
- 
+
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
-import { useElements } from './use-elements';
+import { useElementsData } from './use-elements-data';
 import type { FlatElementData } from '../types/data-types';
+import type { CellData } from '../types/cell-data';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
@@ -15,59 +16,59 @@ function RenderRectElement() {
   return <rect width={size?.width} height={size?.height} fill={PRIMARY} />;
 }
 
-const API_URL = getAPILink('useElements');
+const API_URL = getAPILink('useElementsData');
 
 const meta: Meta<typeof HookTester> = {
-  title: 'Hooks/useElements useLinks',
+  title: 'Hooks/useElementsData useLinksData',
   component: HookTester,
   decorators: [SimpleGraphDecorator],
   tags: ['hook'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
     description: `
-The **useElements** hook provides access to all elements in the graph. It supports selector functions for optimized re-renders, only updating when selected element properties change.
+The **useElementsData** hook provides access to all elements in the graph. It supports selector functions for optimized re-renders, only updating when selected element properties change.
 
 **Key Features:**
-- Returns all elements in the graph as a Record keyed by ID
+- Returns all elements in the graph as a Map keyed by ID
 - Supports selector functions for performance optimization
 - Only re-renders when selected properties change
 - Can be used anywhere within GraphProvider context
     `,
     usage: `
 \`\`\`tsx
-import { useElements } from '@joint/react';
+import { useElementsData } from '@joint/react';
 
-// Get all elements (returns Record<string, FlatElementData>)
+// Get all elements (returns Map<CellId, CellData>)
 function Component() {
-  const elements = useElements();
-  return <div>Total elements: {Object.keys(elements).length}</div>;
+  const elements = useElementsData();
+  return <div>Total elements: {elements.size}</div>;
 }
 
 // Get specific properties (optimized)
 function OptimizedComponent() {
-  const elementIds = useElements((elements) =>
-    Object.values(elements).map(element => element.id)
+  const elementIds = useElementsData((elements) =>
+    [...elements.values()].map(element => element.id)
   );
   return <div>Element IDs: {elementIds.join(', ')}</div>;
 }
 \`\`\`
     `,
     props: `
-- **selector** (optional): Function that transforms the elements Record
-  - Returns: Transformed elements data or full elements Record if no selector provided
+- **selector** (optional): Function that transforms the elements Map
+  - Returns: Transformed elements data or full elements Map if no selector provided
   - Re-renders only when selected properties change
     `,
-    code: `import { useElements } from '@joint/react'
+    code: `import { useElementsData } from '@joint/react'
 
 function Component() {
-  const elements = useElements();
-  return <div>Total elements: {Object.keys(elements).length}</div>;
+  const elements = useElementsData();
+  return <div>Total elements: {elements.size}</div>;
 }
 
 // With selector for optimization
 function OptimizedComponent() {
-  const elementIds = useElements((elements) =>
-    Object.values(elements).map(element => element.id)
+  const elementIds = useElementsData((elements) =>
+    [...elements.values()].map(element => element.id)
   );
   return <div>Element IDs: {elementIds.join(', ')}</div>;
 }`,
@@ -76,11 +77,15 @@ function OptimizedComponent() {
 
 export default meta;
 
-type Story = TesterHookStory<typeof useElements>;
+// useElementsData has overloads, so Parameters<> resolves to the last one.
+// Use a loose hook type for storybook since HookTester spreads args at runtime.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ElementsDataHook = (...args: any[]) => any;
+type Story = TesterHookStory<ElementsDataHook>;
 
 export const Default = makeStory<Story>({
   args: {
-    useHook: useElements,
+    useHook: useElementsData,
     hookArgs: [],
     render: (result) => (
       <div>
@@ -93,19 +98,19 @@ export const Default = makeStory<Story>({
     ),
   },
   apiURL: API_URL,
-  code: `import { useElements } from '@joint/react'
+  code: `import { useElementsData } from '@joint/react'
 
 function Component() {
-  const elements = useElements(); // returns Record<string, FlatElementData>
-  return <div>elements are: {JSON.stringify(elements)}</div>;
+  const elements = useElementsData(); // returns Map<CellId, CellData>
+  return <div>elements are: {JSON.stringify([...elements.entries()])}</div>;
 }`,
-  description: 'Get all elements as a Record keyed by ID.',
+  description: 'Get all elements as a Map keyed by ID.',
 });
 
 export const WithSelectedJustIds = makeStory<Story>({
   args: {
-    useHook: useElements,
-    hookArgs: [(elements) => Object.values(elements).map((element) => (element as Record<string, unknown>).id)],
+    useHook: useElementsData,
+    hookArgs: [(elements: Map<string, CellData>) => [...elements.values()].map((element) => (element as Record<string, unknown>).id)],
     render: (result) => (
       <span>
         <Paper
@@ -117,10 +122,10 @@ export const WithSelectedJustIds = makeStory<Story>({
     ),
   },
   apiURL: API_URL,
-  code: `import { useElements } from '@joint/react'
+  code: `import { useElementsData } from '@joint/react'
 
 function Component() {
-  const elementIds = useElements((elements) => Object.values(elements).map((element) => element.id));
+  const elementIds = useElementsData((elements) => [...elements.values()].map((element) => element.id));
   return <div>element ids are: {JSON.stringify(elementIds)}</div>;
 }`,
   description: 'Get the ids of the elements.',
@@ -128,8 +133,8 @@ function Component() {
 
 export const WithGetJustSize = makeStory<Story>({
   args: {
-    useHook: useElements,
-    hookArgs: [(elements) => Object.keys(elements).length],
+    useHook: useElementsData,
+    hookArgs: [(elements: Map<string, CellData>) => elements.size],
     render: (result) => (
       <div>
         <Paper
@@ -141,10 +146,10 @@ export const WithGetJustSize = makeStory<Story>({
     ),
   },
   apiURL: API_URL,
-  code: `import { useElements } from '@joint/react'
+  code: `import { useElementsData } from '@joint/react'
 
 function Component() {
-  const size = useElements((elements) => Object.keys(elements).length);
+  const size = useElementsData((elements) => elements.size);
   return <div>size of elements is: {JSON.stringify(size)}</div>;
 }`,
   description: 'Get the size of the elements.',
@@ -152,10 +157,10 @@ function Component() {
 
 export const WithJustPosition = makeStory<Story>({
   args: {
-    useHook: useElements,
+    useHook: useElementsData,
     hookArgs: [
-      (elements) =>
-        Object.values(elements).map((element) => ({
+      (elements: Map<string, CellData>) =>
+        [...elements.values()].map((element) => ({
           x: (element as FlatElementData).x,
           y: (element as FlatElementData).y,
         })),
@@ -171,11 +176,11 @@ export const WithJustPosition = makeStory<Story>({
     ),
   },
   apiURL: API_URL,
-  code: `import { useElements } from '@joint/react'
+  code: `import { useElementsData } from '@joint/react'
 
 function Component() {
-  const positions = useElements((elements) =>
-    Object.values(elements).map((element) => ({ x: element.x, y: element.y }))
+  const positions = useElementsData((elements) =>
+    [...elements.values()].map((element) => ({ x: element.x, y: element.y }))
   );
   return <div>positions are: {JSON.stringify(positions)}</div>;
 }`,
@@ -184,14 +189,14 @@ function Component() {
 
 export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
   args: {
-    useHook: useElements,
+    useHook: useElementsData,
     hookArgs: [
-      (elements) =>
-        Object.values(elements).map((element) => ({
+      (elements: Map<string, CellData>) =>
+        [...elements.values()].map((element) => ({
           x: (element as FlatElementData).x,
           y: (element as FlatElementData).y,
         })),
-      (_previous, _next) => true,
+      (_previous: unknown, _next: unknown) => true,
     ],
     render: (result) => (
       <div>
@@ -204,11 +209,11 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
     ),
   },
   apiURL: API_URL,
-  code: `import { useElements } from '@joint/react'
+  code: `import { useElementsData } from '@joint/react'
 
 function Component() {
-  const positions = useElements(
-    (elements) => Object.values(elements).map((element) => ({ x: element.x, y: element.y })),
+  const positions = useElementsData(
+    (elements) => [...elements.values()].map((element) => ({ x: element.x, y: element.y })),
     (_previous, _next) => true
   );
   return <div>positions are: {JSON.stringify(positions)}</div>;
@@ -219,10 +224,10 @@ function Component() {
 
 export const WithAdditionalData = makeStory<Story>({
   args: {
-    useHook: useElements,
+    useHook: useElementsData,
     hookArgs: [
-      (elements) =>
-        Object.values(elements).map((element) => ({ id: (element as Record<string, unknown>).id, other: 'something' })),
+      (elements: Map<string, CellData>) =>
+        [...elements.values()].map((element) => ({ id: (element as Record<string, unknown>).id, other: 'something' })),
     ],
     render: (result) => (
       <div>
@@ -235,11 +240,11 @@ export const WithAdditionalData = makeStory<Story>({
     ),
   },
   apiURL: API_URL,
-  code: `import { useElements } from '@joint/react'
+  code: `import { useElementsData } from '@joint/react'
 
 function Component() {
-  const elements = useElements((elements) =>
-    Object.values(elements).map((element) => ({ id: element.id, data: element.data, other: 'something' }))
+  const elements = useElementsData((elements) =>
+    [...elements.values()].map((element) => ({ id: element.id, data: element.data, other: 'something' }))
   );
   return <div>elements with new data are: {JSON.stringify(elements)}</div>;
 }`,

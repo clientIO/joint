@@ -10,7 +10,7 @@ import {
   Paper,
   SVGText,
   usePaperEvents,
-  useLinks,
+  useLinksData,
   useMeasureNode,
   useElementId,
 } from '@joint/react';
@@ -89,8 +89,8 @@ function NodeElement() {
   const rectRef = useRef<SVGRectElement>(null);
   const { width, height } = useMeasureNode(rectRef);
 
-  const isConnected = useLinks((links) =>
-    Object.values(links).some((link) => {
+  const isConnected = useLinksData((links) =>
+    [...links.values()].some((link) => {
       return link.source === id || link.target === id;
     })
   );

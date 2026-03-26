@@ -19,10 +19,10 @@ The diagram models an investment flow: funds are allocated across three products
 
 ### Reactive Derived State
 
-Performance values are not stored in the graph — they are computed inline during render using `useElements()` selectors. When any input changes (funds, year, or percentages), React automatically re-renders the affected performance nodes with fresh calculations.
+Performance values are not stored in the graph — they are computed inline during render using `useElementsData()` selectors. When any input changes (funds, year, or percentages), React automatically re-renders the affected performance nodes with fresh calculations.
 
 ```tsx
-const { value, roi } = useElements((elements) => {
+const { value, roi } = useElementsData((elements) => {
   const investment = elements['investment'];
   const product = elements[productId];
   const computedValue = funds * percentage / 100 * (sellPrice / buyPrice);
@@ -43,5 +43,5 @@ The three product performance elements are embedded inside the overall performan
 1. **Graph initialization**: `GraphProvider` creates elements and links from static data.
 2. **Render elements**: `Paper` calls `renderElement`, dispatching to `InvestmentNode`, `ProductNode`, `ProductPerformanceNode`, or `OverallPerformanceNode`.
 3. **User input**: Changing funds, year, or percentages calls `useGraph().set()` to update the graph store.
-4. **Reactive computation**: Performance nodes use `useElements()` selectors to read inputs and compute values inline.
+4. **Reactive computation**: Performance nodes use `useElementsData()` selectors to read inputs and compute values inline.
 5. **Links**: Custom `mapDataToLinkAttributes` renders `standard.DoubleLink` connections with product-specific colors.

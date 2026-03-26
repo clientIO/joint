@@ -7,7 +7,7 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  useElements,
+  useElementsData,
   flatElementDataToAttributes,
   type CellAttributes,
   type ToElementAttributesOptions,
@@ -429,7 +429,7 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
 // --- Main ---
 
 function Main() {
-  const elements = useElements<PortElementData>();
+  const elements = useElementsData<PortElementData>();
   const renderElement: RenderElement<PortElementData> = useCallback(
     (props) => (
       <ElementShape

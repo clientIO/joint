@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { ReadonlyContainer } from '../store/state-container';
+import { isStrictEqual } from '../utils/selector-utils';
 
 /**
  * Shallow-compare two Maps by size and key→value identity (`===`).
@@ -17,31 +18,44 @@ function areMapsShallowEqual<R>(a: Map<string, R>, b: Map<string, R>): boolean {
 }
 
 /**
- * Internal hook: subscribe to a container for collection access with optional ID filter.
- * All plural hooks (useElementsData, useLinksData) delegate to this.
+ * Internal hook: subscribe to a container for collection access.
+ * Supports 3 modes:
  *
- * Returns a stable Map reference when selected values have not changed.
- * When ids are provided, subscribes only to those IDs.
+ * - **No args**: subscribes to full container, returns all items as a stable Map.
+ * - **IDs**: subscribes per-ID + size, returns filtered Map (best performance for subsets).
+ * - **Selector**: subscribes to full container, applies selector to full Map.
+ *
  * @param container - The container to subscribe to.
- * @param selector - Extracts the desired slice from each item.
- * @param ids - Optional list of IDs to filter. When omitted, returns all items.
- * @returns A Map with selected values. Same reference when values are unchanged.
+ * @param idsOrSelector - Either an array of IDs to filter, or a selector function for full-Map access.
+ * @param isEqual - Equality function for selector mode. Defaults to `Object.is`.
  * @internal
  */
-export function useContainerItems<T, R>(
+export function useContainerItems<T>(
   container: ReadonlyContainer<T>,
-  selector: (item: T) => R,
   ids?: string[],
-): Map<string, R> {
-  const previousResultRef = useRef<Map<string, R>>(new Map());
+): Map<string, T>;
+export function useContainerItems<T, S>(
+  container: ReadonlyContainer<T>,
+  selector: (items: Map<string, T>) => S,
+  isEqual?: (a: S, b: S) => boolean,
+): S;
+export function useContainerItems<T, S>(
+  container: ReadonlyContainer<T>,
+  idsOrSelector?: string[] | ((items: Map<string, T>) => S),
+  isEqual?: (a: S, b: S) => boolean,
+): Map<string, T> | S {
+  const isSelectorMode = typeof idsOrSelector === 'function';
+  const selector = isSelectorMode ? idsOrSelector : undefined;
+  const ids = isSelectorMode ? undefined : idsOrSelector;
 
-  // When specific IDs are requested, subscribe to each ID individually.
-  // When no IDs, subscribe to the full container.
+  const previousResultRef = useRef<Map<string, T>>(new Map());
+
+  // IDs mode: per-ID + size subscriptions (only fires for targeted changes).
+  // No-args / selector mode: full container subscription.
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
-      if (ids && ids.length > 0) {
+      if (!selector && ids && ids.length > 0) {
         const unsubscribers = ids.map((id) => container.subscribe(id, onStoreChange));
-        // Also subscribe to size to catch removals
         const unsubSize = container.subscribeToSize(onStoreChange);
         return () => {
           for (const unsub of unsubscribers) unsub();
@@ -51,7 +65,7 @@ export function useContainerItems<T, R>(
       return container.subscribeToFull(onStoreChange);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [container, ids?.join(',')],
+    [container, selector, ids?.join(',')],
   );
 
   const getSnapshot = useCallback(
@@ -60,18 +74,24 @@ export function useContainerItems<T, R>(
   );
 
   const select = useCallback(
-    () => {
-      const result = new Map<string, R>();
+    (): Map<string, T> | S => {
+      // Selector mode: delegate to user selector over full Map
+      if (selector) {
+        return selector(container.getFull());
+      }
+
+      // IDs / no-args mode: build a Map and stabilize via shallow equality
+      const result = new Map<string, T>();
       if (ids && ids.length > 0) {
         for (const id of ids) {
           const item = container.get(id);
           if (item !== undefined) {
-            result.set(id, selector(item));
+            result.set(id, item);
           }
         }
       } else {
         for (const [id, item] of container.getFull()) {
-          result.set(id, selector(item));
+          result.set(id, item);
         }
       }
 
@@ -87,11 +107,17 @@ export function useContainerItems<T, R>(
     [container, selector, ids?.join(',')],
   );
 
+  // Selector mode: use user-provided isEqual (default: strict equality).
+  // Map mode: Object.is suffices because we stabilize the reference via previousResultRef.
+  const resolvedIsEqual = selector
+    ? ((isEqual ?? isStrictEqual) as (a: Map<string, T> | S, b: Map<string, T> | S) => boolean)
+    : (Object.is as (a: Map<string, T> | S, b: Map<string, T> | S) => boolean);
+
   return useSyncExternalStoreWithSelector(
     subscribe,
     getSnapshot,
     getSnapshot,
     select,
-    Object.is,
+    resolvedIsEqual,
   );
 }

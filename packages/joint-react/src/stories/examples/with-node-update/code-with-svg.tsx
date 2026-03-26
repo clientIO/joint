@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useElements, useElementSize, type FlatElementData, type FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, useElementsData, useElementSize, type FlatElementData, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
@@ -41,7 +41,7 @@ function RenderElement({ color }: Readonly<NodeData>) {
 }
 
 function Main() {
-  const elements = useElements<NodeData>();
+  const elements = useElementsData<NodeData>();
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />

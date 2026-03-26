@@ -4,7 +4,7 @@ import {
   GraphProvider,
   Paper,
   useElementId,
-  useElements,
+  useElementsData,
   useGraph,
   useMeasureNode,
   type FlatElementData,
@@ -72,7 +72,7 @@ function RenderElement({ label }: Readonly<NodeData>) {
 }
 
 function Main() {
-  const elements = useElements<NodeData>();
+  const elements = useElementsData<NodeData>();
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper

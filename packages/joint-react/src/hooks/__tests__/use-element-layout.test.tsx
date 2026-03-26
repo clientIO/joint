@@ -140,10 +140,10 @@ describe('useElementLayout', () => {
 
     const { result } = renderHook(
       () => {
-        const renderCount = useRef(0);
-        renderCount.current += 1;
+        const renderCountRef = useRef(0);
+        renderCountRef.current += 1;
         const width = useElementLayout((layout) => layout?.width);
-        return { width, renderCount: renderCount.current };
+        return { width, renderCount: renderCountRef.current };
       },
       { wrapper }
     );
