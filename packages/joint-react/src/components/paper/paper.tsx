@@ -1,5 +1,6 @@
 import type { dia } from '@joint/core';
 import { forwardRef, useId, useImperativeHandle, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { PaperStoreContext } from '../../context';
 import { useCreatePortalPaper } from '../../hooks/use-create-portal-paper';
 import type { PaperProps } from './paper.types';
@@ -47,13 +48,18 @@ function PaperBase(
   });
 
   useImperativeHandle<dia.Paper | null, dia.Paper | null>(forwardedRef, () => paperRef.current);
+
+  const paper = paperRef.current;
+  const portaledChildren =
+    isReady && children && paper?.el ? createPortal(children, paper.el) : null;
+
   // When paper is externally managed (e.g. by PortalStencil), skip the host div —
   // the paper's DOM is already mounted elsewhere. Only render portal content.
   if (isExternalPaper) {
     return (
       <PaperStoreContext.Provider value={paperStore ?? null}>
         {isReady && content}
-        {isReady && children}
+        {portaledChildren}
       </PaperStoreContext.Provider>
     );
   }
@@ -63,7 +69,7 @@ function PaperBase(
       <div className={className} ref={paperHTMLElementRef} style={style}>
         {isReady && content}
       </div>
-      {isReady && children}
+      {portaledChildren}
     </PaperStoreContext.Provider>
   );
 }
