@@ -19,6 +19,7 @@
 import { render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { GraphProvider, Paper, type FlatElementData, type FlatLinkData } from '../../../index';
+import { useElementData } from '../../../hooks/use-element-data';
 
 /**
  * Flushes the microtask queue by waiting for a microtask to complete.
@@ -29,17 +30,30 @@ async function flushMicrotasks(): Promise<void> {
   });
 }
 
-interface TestElement extends FlatElementData {
-  readonly label: string;
-}
+type TestElement = FlatElementData<{ readonly label: string }>;
 
 const TEST_ELEMENTS: Record<string, TestElement> = {
-  '1': { label: 'Element1', x: 100, y: 0, width: 100, height: 50 },
-  '2': { label: 'Element2', x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Element1' }, x: 100, y: 0, width: 100, height: 50 },
+  '2': { data: { label: 'Element2' }, x: 100, y: 200, width: 100, height: 50 },
 };
+
+function TestFlickerElement() {
+  const data = useElementData<{ readonly label: string }>();
+  return <div className="element-content">{data?.label}</div>;
+}
+
+function TestFlickerElementSvg() {
+  const data = useElementData<{ readonly label: string }>();
+  return (
+    <foreignObject width="100" height="50">
+      <div className="element-content">{data?.label}</div>
+    </foreignObject>
+  );
+}
 
 const TEST_LINKS: Record<string, FlatLinkData> = {
   'link-1': {
+    data: {},
     source: '1',
     target: '2',
   },
@@ -95,11 +109,7 @@ describe('Paper link flickering prevention', () => {
     const { container } = render(
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
         <Paper
-          renderElement={({ label }) => (
-            <foreignObject width="100" height="50">
-              <div className="element-content">{label}</div>
-            </foreignObject>
-          )}
+          renderElement={() => <TestFlickerElementSvg />}
         />
       </GraphProvider>
     );
@@ -149,7 +159,7 @@ describe('Paper link flickering prevention', () => {
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
         <Paper
           useHTMLOverlay
-          renderElement={({ label }) => <div className="element-content">{label}</div>}
+          renderElement={() => <TestFlickerElement />}
         />
       </GraphProvider>
     );
@@ -195,7 +205,7 @@ describe('Paper link flickering prevention', () => {
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
         <Paper
           useHTMLOverlay
-          renderElement={({ label }) => <div className="element-content">{label}</div>}
+          renderElement={() => <TestFlickerElement />}
         />
       </GraphProvider>
     );
@@ -231,7 +241,7 @@ describe('Paper link flickering prevention', () => {
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
         <Paper
           useHTMLOverlay
-          renderElement={({ label }) => <div className="element-content">{label}</div>}
+          renderElement={() => <TestFlickerElement />}
         />
       </GraphProvider>
     );
@@ -272,7 +282,7 @@ describe('Paper link flickering prevention', () => {
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
         <Paper
           useHTMLOverlay
-          renderElement={({ label }) => <div className="element-content">{label}</div>}
+          renderElement={() => <TestFlickerElement />}
         />
       </GraphProvider>
     );
@@ -312,7 +322,7 @@ describe('Paper link flickering prevention', () => {
       <GraphProvider elements={TEST_ELEMENTS} links={TEST_LINKS}>
         <Paper
           useHTMLOverlay
-          renderElement={({ label }) => <div className="element-content">{label}</div>}
+          renderElement={() => <TestFlickerElement />}
         />
       </GraphProvider>
     );

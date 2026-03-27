@@ -84,36 +84,41 @@ describe('dataMapper', () => {
   });
 
   describe('element round-trip', () => {
-    it('should convert element data to JointJS and back', () => {
+    it('should convert ElementInput to JointJS and back', () => {
       const id = 'el-1';
-      const data: FlatElementData = { x: 10, y: 20, width: 100, height: 50 };
+      const data = { data: {}, x: 10, y: 20, width: 100, height: 50 } as unknown as FlatElementData;
 
       const cellJson = flatMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
       expect(cellJson.position).toEqual({ x: 10, y: 20 });
       expect(cellJson.size).toEqual({ width: 100, height: 50 });
       expect(cellJson.type).toBe('PortalElement');
 
-      graph.addCell(cellJson);
+      graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
       const result = flatMapElementAttributesToData(graphToElementOpts(id, cell, graph));
 
+      // Layout fields included for backwards compat with graphState
       expect(result).toMatchObject({ x: 10, y: 20, width: 100, height: 50 });
+      // User data nested in data field
+      expect(result).toHaveProperty('data');
     });
 
-    it('should store user data in cell.data and extract on reverse', () => {
-      type MyElement = FlatElementData & { label: string; color: string };
+    it('should store user data in data field and extract on reverse', () => {
       const id = 'el-1';
-      const data: MyElement = { x: 0, y: 0, width: 50, height: 50, label: 'Hello', color: 'red' };
+      const data = {
+        data: { label: 'Hello', color: 'red' },
+        x: 0, y: 0, width: 50, height: 50,
+      } as unknown as FlatElementData;
 
       const cellJson = flatMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
-      expect(cellJson.data).toEqual({ label: 'Hello', color: 'red' });
+      expect(cellJson.data).toMatchObject({ label: 'Hello', color: 'red' });
 
-      graph.addCell(cellJson);
+      graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
       const result = flatMapElementAttributesToData(graphToElementOpts(id, cell, graph));
 
-      expect((result as MyElement).label).toBe('Hello');
-      expect((result as MyElement).color).toBe('red');
+      expect(result).toHaveProperty('data.label', 'Hello');
+      expect(result).toHaveProperty('data.color', 'red');
     });
 
     it('should include all cell.data properties regardless of previousData', () => {
@@ -128,15 +133,32 @@ describe('dataMapper', () => {
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Element;
 
-      type E = FlatElementData & { known?: string; extra?: string };
-      const previousData: E = { x: 0, y: 0, width: 0, height: 0, known: undefined };
-
       const result = flatMapElementAttributesToData(
-        graphToElementOpts(id, cell, graph, previousData)
+        graphToElementOpts(id, cell, graph)
       );
-      // previousData is passed through but the default mapper does not filter by it
-      expect(result).toHaveProperty('known', 'value');
-      expect(result).toHaveProperty('extra', 'also-included');
+      expect(result).toHaveProperty('data.known', 'value');
+      expect(result).toHaveProperty('data.extra', 'also-included');
+    });
+
+    it('should round-trip with ports on ElementItem level', () => {
+      const id = 'el-1';
+      const data = {
+        data: { label: 'Node 1' },
+        x: 100, y: 50, width: 150, height: 60,
+        ports: { p1: { cx: 0, cy: '50%' } },
+      } as unknown as FlatElementData;
+
+      const cellJson = flatMapDataToElementAttributes(elementToGraphOpts(id, data, graph));
+      expect(cellJson.position).toEqual({ x: 100, y: 50 });
+      expect(cellJson.data).toMatchObject({ label: 'Node 1' });
+
+      graph.addCell(cellJson as dia.Cell.JSON);
+      const cell = graph.getCell(id) as dia.Element;
+      const result = flatMapElementAttributesToData(graphToElementOpts(id, cell, graph));
+
+      expect(result).toHaveProperty('data.label', 'Node 1');
+      // Ports stay on ElementItem level, not inside data
+      expect(result).toHaveProperty('ports');
     });
   });
 
@@ -193,7 +215,7 @@ describe('dataMapper', () => {
       expect(cellJson.type).toBe(PORTAL_LINK_TYPE);
       expect(cellJson.attrs?.line).toBeDefined();
 
-      graph.addCell(cellJson);
+      graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Link;
       const result = flatMapLinkAttributesToData(graphToLinkOpts(id, cell, graph));
 
@@ -292,7 +314,7 @@ describe('dataMapper', () => {
       };
 
       const cellJson = flatMapDataToLinkAttributes(linkToGraphOpts(id, data, graph));
-      graph.addCell(cellJson);
+      graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Link;
 
       // Simulate labelMove updating position and offset

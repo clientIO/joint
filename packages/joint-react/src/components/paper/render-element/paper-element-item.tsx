@@ -1,34 +1,41 @@
 import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
-import type { FlatElementData } from '../../../types/data-types';
-import { useGraphStore, useElementLayout, usePaper } from '../../../hooks';
+import {
+  useGraphStore,
+  useElementLayout,
+  usePaper,
+  useElementId,
+  useElementData,
+} from '../../../hooks';
 
-export interface ElementItemProps<Data = FlatElementData> {
-  /**
-   * A function that renders the element. It is called every time the element is rendered.
-   */
-  readonly renderElement: (element: Data) => ReactNode;
-  /**
-   * The cell to render.
-   */
+/**
+ * Props for element item portal components.
+ * No `id` or data props — the component reads data via hooks from CellIdContext.
+ */
+export interface ElementItemProps {
+  /** Function that renders the element content. Receives element data from hooks internally. */
+  readonly renderElement: (element: unknown) => ReactNode;
+  /** The DOM element to portal into. */
   readonly portalElement: SVGElement | HTMLElement | null;
-
+  /** Whether all auto-sized elements have been measured. */
   readonly areElementsMeasured: boolean;
-  readonly id: string;
 }
 
-// eslint-disable-next-line jsdoc/require-jsdoc
-function SVGElementItemComponent<Data = FlatElementData>(props: ElementItemProps<Data>) {
-  const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
-  const cell = rest as Data;
+/**
+ * SVG element portal component.
+ * Reads element data via useElementData from CellIdContext — no data props needed.
+ * Clears cached views after measurement to force re-render with correct dimensions.
+ * @param props
+ * @internal
+ */
+function SVGElementItemComponent(props: ElementItemProps) {
+  const { renderElement, portalElement, areElementsMeasured } = props;
+  const id = useElementId();
+  const data = useElementData();
   const graphStore = useGraphStore();
   const { paper } = usePaper();
-
   useLayoutEffect(() => {
-    if (!areElementsMeasured) {
-      return;
-    }
     graphStore.clearViewForElementAndLinks({
       cellId: id,
       paper,
@@ -39,57 +46,43 @@ function SVGElementItemComponent<Data = FlatElementData>(props: ElementItemProps
     return null;
   }
 
-  const element = renderElement(cell);
+  // Pass user data (D) to renderElement — only re-renders when data changes
+  const element = renderElement(data);
   return createPortal(element, portalElement);
 }
 
 /**
  * Helper paper render component wrapped in a portal to render SVGElement.
- * This component is used to render a paper element inside a portal.
- * It takes a renderElement function, a cell, and a containerElement as props.
- * The renderElement function is called with the cell as an argument and its return value is rendered inside the containerElement.
  * @param props - The props for the component.
  * @group Components
- * @description
- * This component is used to render a paper element inside a portal.
  * @returns The rendered element inside the portal.
  * @internal
  */
 export const SVGElementItem = typedMemo(SVGElementItemComponent);
 
 /**
- * Helper paper render component wrapped in a portal to render HTMLElement.
- * This component is used to render a paper element inside a portal.
- * It takes a renderElement function, a cell, and a containerElement as props.
- * The renderElement function is called with the cell as an argument and its return value is rendered inside the containerElement.
- * @param props - The props for the component.
- * @group Components
- * @description
- * This component is used to render a paper element inside a portal.
- * @returns The rendered element inside the portal.
+ * HTML element portal component with absolute positioning.
+ * Reads layout (position/size) via useElementLayout for CSS positioning.
+ * @param props
  * @internal
  */
-function HTMLElementItemComponent<Data = FlatElementData>(props: ElementItemProps<Data>) {
-  const { renderElement, portalElement, areElementsMeasured, id, ...rest } = props;
-  const cell = rest as Data;
-  // we must use renderElement and not cell data, because user can select different data, so then, the width and height do not have to be inside the cell data.
-  const element = renderElement(cell);
-  const { width, height, x, y } = cell as FlatElementData;
+function HTMLElementItemComponent(props: ElementItemProps) {
+  const { renderElement, portalElement, areElementsMeasured } = props;
+  const id = useElementId();
+  const data = useElementData();
   const graphStore = useGraphStore();
   const { paper } = usePaper();
+  const { width, height, x, y } = useElementLayout();
 
   useLayoutEffect(() => {
     if (!areElementsMeasured) {
       return;
     }
-    // HERE TO TRIGGER:
     graphStore.clearViewForElementAndLinks({
       cellId: id,
       paper,
     });
   }, [id, graphStore, areElementsMeasured, paper]);
-
-  // WE NEED TO COMPARE WHAT IS CHANGED HERE...
 
   const style = useMemo(
     (): CSSProperties => ({
@@ -108,6 +101,7 @@ function HTMLElementItemComponent<Data = FlatElementData>(props: ElementItemProp
     return null;
   }
 
+  const element = renderElement(data);
   const container = (
     <div model-id={id} style={style}>
       {element}
@@ -119,13 +113,10 @@ function HTMLElementItemComponent<Data = FlatElementData>(props: ElementItemProp
 
 /**
  * Helper paper render component wrapped in a portal to render HTMLElement.
- * This component is used to render a paper element inside a portal.
- * It takes a renderElement function, a cell, and a containerElement as props.
- * @private
  * @param props - The props for the component.
  * @group Components
- * @description
- * This component is used to render a paper element inside a portal.
+ * @returns The rendered element inside the portal.
+ * @internal
  */
 export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
 

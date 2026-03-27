@@ -1,8 +1,8 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable unicorn/prevent-abbreviations */
-/* eslint-disable unicorn/consistent-function-scoping */
-/* eslint-disable no-shadow */
-/* eslint-disable @typescript-eslint/no-shadow */
+ 
+ 
+ 
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import { render, waitFor } from '@testing-library/react';

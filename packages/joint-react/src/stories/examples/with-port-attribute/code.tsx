@@ -22,23 +22,20 @@ const HEADER_HEIGHT = 32;
 const ELEMENT_WIDTH = 160;
 const HEADER_COLOR = '#f6c744';
 
-interface StackedElement extends FlatElementData {
+interface StackedElementData {
+  readonly [key: string]: unknown;
   readonly name: string;
   readonly labels: readonly string[];
-  readonly x: number;
-  readonly y: number;
 }
 
-const initialElements: Record<string, StackedElement> = {
+const initialElements: Record<string, FlatElementData<StackedElementData>> = {
   '1': {
-    name: 'Component A',
-    labels: ['Header', 'Body', 'Footer'],
+    data: { name: 'Component A', labels: ['Header', 'Body', 'Footer'] },
     x: 50,
     y: 50,
   },
   '2': {
-    name: 'Component B',
-    labels: ['Input', 'Process', 'Output'],
+    data: { name: 'Component B', labels: ['Input', 'Process', 'Output'] },
     x: 300,
     y: 50,
   },
@@ -83,7 +80,7 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
   );
 });
 
-function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
+function StackedNode({ name, labels }: Readonly<StackedElementData>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const rows = labels?.length ?? 0;
   const totalHeight = HEADER_HEIGHT + rows * ROW_HEIGHT;
@@ -142,7 +139,7 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<StackedElement> = useCallback((data) => {
+  const renderElement: RenderElement<StackedElementData> = useCallback((data) => {
     return <StackedNode name={data.name} labels={data.labels} />;
   }, []);
 

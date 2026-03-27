@@ -2,12 +2,9 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type {
-  ElementPosition,
-  ElementSize,
-  GraphLayoutState,
   LinkLayout,
   ElementLayout,
-} from '../state/state.types';
+} from '../types/cell-data';
 import type { PaperStore } from './paper-store';
 
 /**
@@ -66,20 +63,18 @@ export function getLinkLayout(linkView: dia.LinkView): LinkLayout {
 /**
  * Updates layout state (element layouts and per-paper link layouts).
  * @param options - The update options
- * @returns A snapshot of the current graph layout
+ * @returns A snapshot of the current graph layout using Maps
  */
-export function getLayout(options: UpdateLayoutStateOptions): GraphLayoutState {
+export function getLayout(options: UpdateLayoutStateOptions): { elements: Map<string, ElementLayout>; links: Map<string, Record<CellId, LinkLayout>> } {
   const { graph, papers } = options;
-  const elementLayouts: Record<CellId, ElementLayout> = {};
-  const linkLayoutsPerPaper: Record<string, Record<CellId, LinkLayout>> = {};
+  const elementLayouts = new Map<string, ElementLayout>();
+  const linkLayoutsPerPaper = new Map<string, Record<CellId, LinkLayout>>();
   const elements = graph.getElements();
-  let count = 0;
 
   for (const element of elements) {
     const layout = getElementLayout(element);
     if (!layout) continue;
-    elementLayouts[element.id] = layout;
-    count += 1;
+    elementLayouts.set(element.id as string, layout);
   }
 
   if (papers) {
@@ -97,20 +92,12 @@ export function getLayout(options: UpdateLayoutStateOptions): GraphLayoutState {
         paperLinkLayouts[link.id] = newLinkLayout;
       }
 
-      linkLayoutsPerPaper[paperId] = paperLinkLayouts;
+      linkLayoutsPerPaper.set(paperId, paperLinkLayouts);
     }
-  }
-  const sizes: Record<CellId, ElementSize> = {};
-  const positions: Record<CellId, ElementPosition> = {};
-  const angles: Record<CellId, number> = {};
-  for (const [id, layout] of Object.entries(elementLayouts)) {
-    sizes[id] = { width: layout.width, height: layout.height };
-    positions[id] = { x: layout.x, y: layout.y };
-    angles[id] = layout.angle;
   }
 
   return {
-    elements: { sizes, positions, angles, count, observedElements: 0, measuredObservedElements: 0 },
+    elements: elementLayouts,
     links: linkLayoutsPerPaper,
   };
 }

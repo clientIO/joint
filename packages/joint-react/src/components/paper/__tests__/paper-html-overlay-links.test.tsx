@@ -4,18 +4,23 @@ import { render, waitFor, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { GraphProvider, Paper, useGraph, type FlatElementData, type FlatLinkData } from '../../../index';
 import { useCallback } from 'react';
+import { useElementData } from '../../../hooks/use-element-data';
 
-interface TestElement extends FlatElementData {
-  label: string;
-}
+type TestElement = FlatElementData<{ label: string }>;
 
 const elements: Record<string, TestElement> = {
-  '1': { label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
-  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, x: 100, y: 0, width: 100, height: 50 },
+  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
+
+function TestElementRenderer() {
+  const data = useElementData<{ label: string }>();
+  return <div className="html-node">{data?.label}</div>;
+}
 
 const links: Record<string, FlatLinkData> = {
   'link-1': {
+    data: {},
     source: '1',
     target: '2',
   },
@@ -27,7 +32,7 @@ describe('Paper with useHTMLOverlay and links', () => {
       <GraphProvider elements={elements} links={links}>
         <Paper
           useHTMLOverlay
-          renderElement={({ label }) => <div className="html-node">{label}</div>}
+          renderElement={() => <TestElementRenderer />}
         />
       </GraphProvider>
     );
@@ -63,7 +68,7 @@ describe('Paper with useHTMLOverlay and links', () => {
       <GraphProvider elements={elements} links={links}>
         <Paper
           useHTMLOverlay
-          renderElement={({ label }) => <div className="html-node">{label}</div>}
+          renderElement={() => <TestElementRenderer />}
         />
       </GraphProvider>
     );
@@ -103,15 +108,15 @@ describe('Paper with useHTMLOverlay and links', () => {
     }
 
     const initialElements: Record<string, TestElement> = {
-      '1': { label: 'Element1', x: 100, y: 0, width: 100, height: 50 },
-      '2': { label: 'Element2', x: 100, y: 200, width: 100, height: 50 },
+      '1': { data: { label: 'Element1' }, x: 100, y: 0, width: 100, height: 50 },
+      '2': { data: { label: 'Element2' }, x: 100, y: 200, width: 100, height: 50 },
     };
 
     const { container } = render(
       <GraphProvider elements={initialElements}>
         <Paper
           useHTMLOverlay
-          renderElement={({ label }) => <div className="html-node">{label}</div>}
+          renderElement={() => <TestElementRenderer />}
         />
         <AddLinkButton />
       </GraphProvider>
@@ -174,7 +179,7 @@ describe('Paper with useHTMLOverlay and links', () => {
       <GraphProvider elements={elements} links={links}>
         <Paper
           useHTMLOverlay
-          renderElement={({ label }) => <div className="html-node">{label}</div>}
+          renderElement={() => <TestElementRenderer />}
         />
         <RemoveLinkButton />
       </GraphProvider>

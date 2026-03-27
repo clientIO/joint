@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { RenderElement, RenderLink } from '../components';
 import type { PortalSelector } from '../models/portal-paper.types';
@@ -7,7 +7,7 @@ import { PortalPaper } from '../models/portal-paper';
 import { DEFAULT_HIGHLIGHTING } from '../models/preset-paper';
 import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
-import type { PaperStoreState } from '../state/state.types';
+import type { PaperStoreState } from './graph-store';
 
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
 /**
@@ -41,7 +41,8 @@ export interface AddPaperOptions {
  */
 export interface PaperStoreOptions extends AddPaperOptions {
   /** The graph store instance this paper belongs to */
-  readonly graphStore: GraphStore;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly graphStore: GraphStore<any, any>;
   /** Unique identifier for this paper instance */
   readonly id: string;
 }

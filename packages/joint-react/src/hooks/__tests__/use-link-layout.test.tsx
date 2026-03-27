@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import { paperRenderLinkWrapper, getTestGraph } from '../../utils/test-wrappers';
 import { useLinkLayout } from '../use-link-layout';
-import { useLinksLayout } from '../use-stores';
+import { useLinksLayout } from '../use-layouts';
 
 describe('useLinkLayout', () => {
   it('should return link layout when used inside renderLink', async () => {
@@ -11,11 +11,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -40,11 +40,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -62,23 +62,24 @@ describe('useLinkLayout', () => {
     });
   });
 
-  it('should return undefined for non-existent link', async () => {
+  it('should return default layout for non-existent link', async () => {
     const graph = getTestGraph();
     const wrapper = paperRenderLinkWrapper({
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
 
     const { result } = renderHook(() => useLinkLayout('non-existent-link'), { wrapper });
 
+    // With an explicit ID that doesn't exist, useLinkLayout returns undefined
     await waitFor(() => {
       expect(result.current).toBeUndefined();
     });
@@ -90,11 +91,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -117,11 +118,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -149,11 +150,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -174,11 +175,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -212,11 +213,11 @@ describe('useLinkLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });
@@ -252,11 +253,11 @@ describe('useLinksLayout', () => {
       graphProviderProps: {
         graph,
         elements: {
-          'element-1': { x: 0, y: 0, width: 100, height: 100 },
-          'element-2': { x: 300, y: 300, width: 100, height: 100 },
+          'element-1': { data: {}, x: 0, y: 0, width: 100, height: 100 },
+          'element-2': { data: {}, x: 300, y: 300, width: 100, height: 100 },
         },
         links: {
-          'link-1': { source: 'element-1', target: 'element-2' },
+          'link-1': { data: {}, source: 'element-1', target: 'element-2' },
         },
       },
     });

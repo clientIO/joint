@@ -1,36 +1,36 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { dia } from '@joint/core';
-import type { FlatLinkData } from '@joint/react';
-import { GraphProvider, Paper, useMeasureNode, type FlatElementData } from '@joint/react';
+import type { FlatLinkData, FlatElementData } from '@joint/react';
+import { GraphProvider, Paper, useMeasureNode, useElementSize } from '@joint/react';
 import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
-interface ContainerElement extends FlatElementData {
+type ContainerData = {
   readonly label: string;
   readonly isContainer?: boolean;
-}
+  readonly [key: string]: unknown;
+};
 
-const elements: Record<string, ContainerElement> = {
+const elements: Record<string, FlatElementData<ContainerData>> = {
   container: {
     x: 50,
     y: 50,
     width: 300,
     height: 200,
-    label: 'Container',
-    isContainer: true,
+    data: { label: 'Container', isContainer: true },
     z: 1,
   },
   'child-1': {
     x: 70,
     y: 80,
-    label: 'Child 1',
+    data: { label: 'Child 1' },
     parent: 'container',
     z: 2,
   },
   'child-2': {
     x: 200,
     y: 80,
-    label: 'Child 2',
+    data: { label: 'Child 2' },
     parent: 'container',
     z: 2,
   },
@@ -46,7 +46,8 @@ const links: Record<string, FlatLinkData> = {
   },
 };
 
-function ContainerElement({ label, width, height }: Readonly<ContainerElement>) {
+function ContainerNode({ label }: Readonly<ContainerData>) {
+  const { width, height } = useElementSize();
   return (
     <g>
       <rect
@@ -66,7 +67,7 @@ function ContainerElement({ label, width, height }: Readonly<ContainerElement>) 
   );
 }
 
-function ChildElement({ label }: Readonly<ContainerElement>) {
+function ChildElement({ label }: Readonly<ContainerData>) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(ref);
 
@@ -92,9 +93,9 @@ function ChildElement({ label }: Readonly<ContainerElement>) {
   );
 }
 
-function RenderElement(props: Readonly<ContainerElement>) {
+function RenderElement(props: Readonly<ContainerData>) {
   if (props.isContainer) {
-    return <ContainerElement {...props} />;
+    return <ContainerNode {...props} />;
   }
   return <ChildElement {...props} />;
 }

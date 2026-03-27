@@ -77,6 +77,8 @@ export interface AddFeatureOptions<T, Target extends FeatureTarget = 'paper'> {
 
 /**
  * Checks if the target is paper and the paper store is available.
+ * @param target
+ * @param paperStore
  */
 function isPaperReady(
   target: FeatureTarget,
@@ -87,6 +89,11 @@ function isPaperReady(
 
 /**
  * Creates a feature and registers it with the appropriate store.
+ * @param target
+ * @param onAddFeature
+ * @param graphStore
+ * @param paperStore
+ * @param asChildren
  */
 function createAndRegisterFeature<T>(
   target: FeatureTarget,
@@ -101,6 +108,13 @@ function createAndRegisterFeature<T>(
   return onAddFeature({ graphStore });
 }
 
+/**
+ * Registers a feature with the appropriate store based on target.
+ * @param target
+ * @param graphStore
+ * @param paperStore
+ * @param feature
+ */
 function registerFeature(
   target: FeatureTarget,
   graphStore: GraphStore,
@@ -114,6 +128,13 @@ function registerFeature(
   graphStore.setGraphFeature(feature);
 }
 
+/**
+ * Unregisters a feature from the appropriate store based on target.
+ * @param target
+ * @param graphStore
+ * @param paperStore
+ * @param featureId
+ */
 function unregisterFeature(
   target: FeatureTarget,
   graphStore: GraphStore,
@@ -127,6 +148,13 @@ function unregisterFeature(
   graphStore.removeGraphFeature(featureId);
 }
 
+/**
+ * Resolves an existing feature instance from the appropriate store by id.
+ * @param target
+ * @param graphStore
+ * @param paperStore
+ * @param id
+ */
 function resolveExistingFeature(
   target: FeatureTarget,
   graphStore: GraphStore,
@@ -141,6 +169,15 @@ function resolveExistingFeature(
 
 // Feature instances are stored as `unknown` but callbacks expect `T`.
 // This boundary requires a cast — no runtime guard exists for generic type parameters.
+/**
+ * Invokes the onLoad callback with the feature instance cast to the expected type.
+ * @param target
+ * @param onLoad
+ * @param graphStore
+ * @param paperStore
+ * @param instance
+ * @param asChildren
+ */
 function fireOnLoad<T>(
   target: FeatureTarget,
   onLoad: OnLoadFeature<T, FeatureTarget>,
@@ -157,6 +194,15 @@ function fireOnLoad<T>(
   onLoad({ graphStore, instance: typedInstance });
 }
 
+/**
+ * Invokes the onUpdateFeature callback with the feature instance cast to the expected type.
+ * @param target
+ * @param onUpdateFeature
+ * @param graphStore
+ * @param paperStore
+ * @param instance
+ * @param asChildren
+ */
 function fireOnUpdate<T>(
   target: FeatureTarget,
   onUpdateFeature: OnUpdateFeature<T, FeatureTarget>,

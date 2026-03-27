@@ -6,37 +6,36 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElements,
   useGraph,
-  useElementLayout,
-  useNodesMeasuredEffect,
   type RenderElement,
+  type FlatElementData,
+  useElements,
 } from '@joint/react';
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialElements: Record<string, { label: string; width: number; height: number }> = {
-  '1': { label: 'Node 1', width: 100, height: 50 },
-  '2': { label: 'Node 2', width: 100, height: 50 },
-  '3': { label: 'Node 3', width: 100, height: 50 },
-  '4': { label: 'Node 4', width: 100, height: 50 },
-  '5': { label: 'Node 5', width: 100, height: 50 },
-  '6': { label: 'Node 6', width: 100, height: 50 },
-  '7': { label: 'Node 7', width: 100, height: 50 },
-  '8': { label: 'Node 8', width: 100, height: 50 },
-  '9': { label: 'Node 9', width: 100, height: 50 },
-};
-
-type BaseElementWithData = (typeof initialElements)[string];
-
 const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
-function RenderedRect({ label }: Readonly<BaseElementWithData>) {
+
+type ElementData = { label: string };
+const initialElements: Record<string, FlatElementData<ElementData>> = {
+  '1': { data: { label: 'Node 1' }, width: 100, height: 50 },
+  '2': { data: { label: 'Node 2' }, width: 100, height: 50 },
+  '3': { data: { label: 'Node 3' }, width: 100, height: 50 },
+  '4': { data: { label: 'Node 4' }, width: 100, height: 50 },
+  '5': { data: { label: 'Node 5' }, width: 100, height: 50 },
+  '6': { data: { label: 'Node 6' }, width: 100, height: 50 },
+  '7': { data: { label: 'Node 7' }, width: 100, height: 50 },
+  '8': { data: { label: 'Node 8' }, width: 100, height: 50 },
+  '9': { data: { label: 'Node 9' }, width: 100, height: 50 },
+};
+
+function RenderedRect({ label }: Readonly<ElementData>) {
   const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useElementLayout();
+
   return (
-    <foreignObject width={width} height={height}>
+    <foreignObject width={100} height={50}>
       <div ref={elementRef} className="node">
         {label}
       </div>
@@ -45,7 +44,7 @@ function RenderedRect({ label }: Readonly<BaseElementWithData>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
+  const renderElement: RenderElement<ElementData> = useCallback(
     (props) => <RenderedRect {...props} />,
     []
   );
@@ -77,13 +76,13 @@ function Main() {
     []
   );
 
-  const makeLayout = useCallback(() => {
+  useEffect(() => {
     makeLayoutWithGrid({ graph, gridXSize });
-  }, [makeLayoutWithGrid, graph, gridXSize]);
+    // make layout on load!
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  useNodesMeasuredEffect(paperId, makeLayout);
-
-  const elementsLength = useElements((items) => Object.keys(items).length);
+  const elementsLength = useElements((items) => items.size);
   return (
     <div className="flex flex-col">
       <div className="mb-8 flex flex-row items-center">
@@ -107,10 +106,11 @@ function Main() {
           onClick={() => {
             const newId = `${Math.random()}`;
             setElement(newId, {
-              label: `Node ${elementsLength + 1}`,
+              data: { label: `Node ${elementsLength + 1}` },
               width: 100,
               height: 50,
             });
+            makeLayoutWithGrid({ graph, gridXSize });
           }}
           type="button"
           className="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

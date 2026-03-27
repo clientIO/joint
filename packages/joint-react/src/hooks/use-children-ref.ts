@@ -19,7 +19,7 @@ import { cloneElement, useCallback, useMemo, useRef, type Ref } from 'react';
  * This hook is used to return children and children ref. Children must be a `HTML` or `SVG` element.
  */
 export function useChildrenRef<HTMLOrSVG extends HTMLElement | SVGElement>(
-  children: unknown,
+  children?: React.ReactElement,
   externalRef?: Ref<HTMLOrSVG>
 ) {
   const elementRef = useRef<HTMLOrSVG | null>(null);
@@ -31,7 +31,7 @@ export function useChildrenRef<HTMLOrSVG extends HTMLElement | SVGElement>(
       if (typeof externalRef === 'function') {
         externalRef(node);
       } else if (externalRef) {
-        (externalRef as React.RefObject<HTMLOrSVG | null>).current = node;
+        externalRef.current = node;
       }
     },
     [externalRef]
@@ -50,7 +50,7 @@ export function useChildrenRef<HTMLOrSVG extends HTMLElement | SVGElement>(
     };
   }
 
-  const elementChildren = cloneElement(children as never, props);
+  const elementChildren = cloneElement(children, props);
 
   return { elementRef, elementChildren };
 }

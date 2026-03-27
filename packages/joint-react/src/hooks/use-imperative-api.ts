@@ -178,7 +178,7 @@ export function useImperativeApi<Instance, InstanceSelector = Instance>(
     () =>
       instanceSelector
         ? instanceSelector(instanceRef.current!)
-        : (instanceRef.current! as unknown as InstanceSelector),
+        : (instanceRef.current! as InstanceSelector),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [instanceRef, isReady]
   );

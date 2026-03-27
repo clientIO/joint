@@ -16,7 +16,7 @@ function resolveStyleDimension(
   if (dimension === undefined) {
     return undefined;
   }
-  return dimension as dia.Paper.Dimension;
+  return dimension;
 }
 
 /**

@@ -7,19 +7,23 @@ import {
   useElements,
   useGraph,
   useMeasureNode,
+  type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-const initialElements: Record<
-  string,
-  { label: string; color: string; x: number; y: number; width: number; height: number }
-> = {
-  '1': { label: 'Node 1', color: '#ffffff', x: 40, y: 70, width: 120, height: 80 },
-  '2': { label: 'Node 2', color: '#ffffff', x: 170, y: 120, width: 120, height: 80 },
-  '3': { label: 'Node 2', color: '#ffffff', x: 30, y: 180, width: 120, height: 80 },
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+  readonly color: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node 1', color: '#ffffff' }, x: 40, y: 70, width: 120, height: 80 },
+  '2': { data: { label: 'Node 2', color: '#ffffff' }, x: 170, y: 120, width: 120, height: 80 },
+  '3': { data: { label: 'Node 2', color: '#ffffff' }, x: 30, y: 180, width: 120, height: 80 },
 };
 
 const initialEdges: Record<string, FlatLinkData> = {
@@ -30,25 +34,24 @@ const initialEdges: Record<string, FlatLinkData> = {
   },
 };
 
-type BaseElementWithData = (typeof initialElements)[string];
-
-interface ElementInputProps extends BaseElementWithData {
-  readonly id: string;
-}
-
-function ElementInput({ id, label }: Readonly<ElementInputProps>) {
+function FlatElementData({ id, label }: Readonly<{ id: string; label: string }>) {
   const { setElement } = useGraph();
   return (
     <input
       style={{ padding: 5, marginTop: 4 }}
       value={label}
-      onChange={(event) => setElement(id, (previous) => ({ ...previous, label: event.target.value }))}
+      onChange={(event) =>
+        setElement(id, (previous) => ({
+          ...previous,
+          data: { ...(previous.data as NodeData), label: event.target.value },
+        }))
+      }
       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
     />
   );
 }
 
-function RenderElement({ label }: Readonly<BaseElementWithData>) {
+function RenderElement({ label }: Readonly<NodeData>) {
   const { graph } = useGraph();
   const id = useElementId();
   const elementRef = useRef<HTMLDivElement>(null);
@@ -74,7 +77,7 @@ function RenderElement({ label }: Readonly<BaseElementWithData>) {
 }
 
 function Main() {
-  const elements = useElements<BaseElementWithData>();
+  const elements = useElements<NodeData>();
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
@@ -97,8 +100,8 @@ function Main() {
         renderElement={RenderElement}
       />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {Object.entries(elements).map(([id, item]) => {
-          return <ElementInput key={id} id={id} {...item} />;
+        {[...elements.entries()].map(([id, item]) => {
+          return <FlatElementData key={id} id={id} label={item.data?.label as string} />;
         })}
       </div>
     </div>

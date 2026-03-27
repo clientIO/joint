@@ -1,24 +1,26 @@
-
 import { type dia, util } from '@joint/core';
 import type { FlatLinkData, FlatLinkLabel } from '../../types/data-types';
+import type { CellData } from '../../types/cell-data';
 import { defaultLinkStyle, LINK_PRESENTATION_KEYS } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 
-export interface ToLinkAttributesOptions<LinkData = FlatLinkData> {
+export interface ToLinkAttributesOptions<LinkData extends object = CellData> {
   readonly id: string;
   readonly data: LinkData;
   readonly graph: dia.Graph;
+  readonly toAttributes?: (data: LinkData) => CellAttributes;
 }
 
-export interface ToLinkDataOptions<LinkData = FlatLinkData> {
+export interface ToLinkDataOptions<LinkData extends object = CellData> {
   readonly id: string;
   readonly attributes: dia.Link.Attributes;
   readonly defaultAttributes: dia.Link.Attributes;
   readonly link: dia.Link;
   readonly previousData?: LinkData;
   readonly graph: dia.Graph;
+  readonly toData?: (attributes: dia.Link.Attributes) => LinkData;
 }
 import {
   assignEndDataProperties,
@@ -58,7 +60,7 @@ function isLinkData(data: unknown): data is FlatLinkData {
  * @param options - The link id and data to convert
  * @returns The JointJS cell JSON attributes
  */
-export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
+export function flatMapDataToLinkAttributes<Link extends object = FlatLinkData>(
   options: Pick<ToLinkAttributesOptions<Link>, 'id' | 'data'>
 ): CellAttributes {
   const { id, data } = options;
@@ -87,7 +89,7 @@ export function flatMapDataToLinkAttributes<Link = FlatLinkData>(
  * @param options - The JointJS cell and optional previous data for shape preservation
  * @returns The flat link data
  */
-export function flatMapLinkAttributesToData<Link = FlatLinkData>(
+export function flatMapLinkAttributesToData<Link extends object = FlatLinkData>(
   options: Pick<ToLinkDataOptions<Link>, 'attributes' | 'defaultAttributes'>
 ): Link {
   const { attributes, defaultAttributes } = options;
@@ -96,10 +98,17 @@ export function flatMapLinkAttributesToData<Link = FlatLinkData>(
   // Filter out values that match model defaults (not needed in React state)
   const result = data as Record<string, unknown>;
   if (attributes.z !== undefined && attributes.z === defaultAttributes.z) delete result.z;
-  if (attributes.layer !== undefined && attributes.layer === defaultAttributes.layer) delete result.layer;
-  if (Array.isArray(attributes.vertices) && attributes.vertices.length === 0) delete result.vertices;
-  if (attributes.router !== undefined && util.isEqual(attributes.router, defaultAttributes.router)) delete result.router;
-  if (attributes.connector !== undefined && util.isEqual(attributes.connector, defaultAttributes.connector)) delete result.connector;
+  if (attributes.layer !== undefined && attributes.layer === defaultAttributes.layer)
+    delete result.layer;
+  if (Array.isArray(attributes.vertices) && attributes.vertices.length === 0)
+    delete result.vertices;
+  if (attributes.router !== undefined && util.isEqual(attributes.router, defaultAttributes.router))
+    delete result.router;
+  if (
+    attributes.connector !== undefined &&
+    util.isEqual(attributes.connector, defaultAttributes.connector)
+  )
+    delete result.connector;
 
   return result as Link;
 }
@@ -113,7 +122,9 @@ export function flatMapLinkAttributesToData<Link = FlatLinkData>(
  * Public utility — caller provides the `id` separately.
  * @param data
  */
-export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
+export function flatLinkDataToAttributes<Data extends object = CellData>(
+  data: FlatLinkData<Data>
+): CellAttributes {
   if (!isLinkData(data)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
@@ -152,18 +163,22 @@ export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
 
   const attributes: Record<string, unknown> = {
     type: PORTAL_LINK_TYPE,
-    source: toLinkEndAttribute(source, {
-      port: sourcePort,
-      anchor: sourceAnchor,
-      connectionPoint: sourceConnectionPoint,
-      magnet: sourceMagnet,
-    }),
-    target: toLinkEndAttribute(target, {
-      port: targetPort,
-      anchor: targetAnchor,
-      connectionPoint: targetConnectionPoint,
-      magnet: targetMagnet,
-    }),
+    source: source
+      ? toLinkEndAttribute(source, {
+          port: sourcePort,
+          anchor: sourceAnchor,
+          connectionPoint: sourceConnectionPoint,
+          magnet: sourceMagnet,
+        })
+      : undefined,
+    target: target
+      ? toLinkEndAttribute(target, {
+          port: targetPort,
+          anchor: targetAnchor,
+          connectionPoint: targetConnectionPoint,
+          magnet: targetMagnet,
+        })
+      : undefined,
     attrs: buildLinkPresentationAttributes({
       color,
       width,
@@ -212,9 +227,9 @@ export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
  * Public utility — purely mechanical (nested → flat), no defaultAttributes filtering.
  * @param attributes
  */
-export function flatAttributesToLinkData<Link = FlatLinkData>(
+export function flatAttributesToLinkData<Data extends object = CellData>(
   attributes: dia.Link.Attributes
-): Link {
+): FlatLinkData<Data> {
   const {
     data: userData,
     source,
@@ -256,5 +271,5 @@ export function flatAttributesToLinkData<Link = FlatLinkData>(
   return {
     ...userData,
     ...linkData,
-  } as Link;
+  } as FlatLinkData<Data>;
 }

@@ -4,6 +4,7 @@ import { GraphProvider, Paper } from '../../components';
 import { useNodesMeasuredEffect } from '../use-nodes-measured-effect';
 import { useMeasureNode } from '../use-measure-node';
 import type { ElementsMeasuredEvent } from '../../types/event.types';
+import { useElementId } from '../use-element-id';
 
 function createMockResizeEntry(target: Element): ResizeObserverEntry {
   return {
@@ -27,14 +28,16 @@ const ELEMENTS_WITHOUT_SIZE: Record<string, Readonly<{ label: string }>> = {
   b: { label: 'B' },
 };
 
-function RenderElement({ label }: Readonly<{ label: string }>) {
-  return <div>{label}</div>;
+function RenderElement() {
+  const id = useElementId();
+  return <div>{id}</div>;
 }
 
-function RenderMeasuredElement({ label }: Readonly<{ label: string }>) {
+function RenderMeasuredElement() {
+  const id = useElementId();
   const nodeRef = useRef<SVGRectElement>(null);
   useMeasureNode(nodeRef);
-  return <rect ref={nodeRef} width={80} height={40} data-testid={label} />;
+  return <rect ref={nodeRef} width={80} height={40} data-testid={id} />;
 }
 
 function Listener({ callback }: Readonly<{ callback: (event: ElementsMeasuredEvent) => void }>) {

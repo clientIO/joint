@@ -73,4 +73,4 @@ export const PresetPaper = dia.Paper.extend({
     measureNode: measureNode as dia.Paper.Options['measureNode'],
     highlighting: DEFAULT_HIGHLIGHTING,
   },
-});
+}) as typeof dia.Paper;

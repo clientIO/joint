@@ -3,21 +3,21 @@ import React from 'react';
 import {
   GraphProvider,
   Paper,
-  type GraphProps,
+  useElementSize,
+  useMeasureNode,
   type FlatElementData,
   type FlatLinkData,
-  useMeasureNode,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 // define element type with custom properties
-type CustomElement = FlatElementData & { label: string };
+type ElementData = { label: string };
 
 // define initial elements as Record
-const initialElements: Record<string, CustomElement> = {
-  '1': { label: 'Hello', x: 100, y: 15, width: 100, height: 50 },
-  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+const initialElements: Record<string, FlatElementData<ElementData>> = {
+  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
+  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
 
 // define initial edges as Record
@@ -29,8 +29,8 @@ const initialEdges: Record<string, FlatLinkData> = {
     width: 2,
   },
 };
-function RenderItem(props: CustomElement) {
-  const { label, width, height } = props;
+function RenderItem({ label }: Readonly<ElementData>) {
+  const { width, height } = useElementSize();
   const elementRef = React.useRef<HTMLDivElement>(null);
   useMeasureNode(elementRef);
   return (
@@ -50,9 +50,9 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App() {
   return (
-    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
+    <GraphProvider links={initialEdges} elements={initialElements}>
       <Main />
     </GraphProvider>
   );

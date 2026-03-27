@@ -1,23 +1,9 @@
-import type { anchors, connectionPoints, dia } from '@joint/core';
+import { anchors, connectionPoints, dia } from '@joint/core';
 import type { PortShape } from '../theme/element-theme';
 import type { LinkMarker } from '../theme/markers';
 import type { CellId } from './cell-id';
 import type { LiteralUnion } from './index';
-
-// ── Cell Types (shared) ──────────────────────────────────────────────────────
-
-/**
- * Properties common to all cells (elements and links).
- * @group Graph
- */
-export interface FlatCellData {
-  /** Z-index of the cell. */
-  readonly z?: number;
-  /** Parent element id. */
-  readonly parent?: string;
-  /** Layer id for the cell. */
-  readonly layer?: string;
-}
+import type { CellData } from './cell-data';
 
 // ── Element Types ─────────────────────────────────────────────────────────────
 
@@ -112,35 +98,37 @@ export interface FlatElementPort {
   readonly labelOffsetY?: number;
 }
 
-export interface FlatElementData extends FlatCellData, Record<string, unknown> {
-  /**
-   * X position of the element.
-   */
-  x?: number;
-  /**
-   * Y position of the element.
-   */
-  y?: number;
-  /**
-   * Optional width of the element.
-   */
-  width?: number;
-  /**
-   * Optional height of the element.
-   */
-  height?: number;
-  /**
-   * Optional angle of the element.
-   */
-  angle?: number;
-  /**
-   * Style defaults applied to all ports. Individual port properties take precedence.
-   */
-  portStyle?: Partial<FlatElementPort>;
-  /**
-   * Ports of the element.
-   */
-  ports?: Record<string, FlatElementPort>;
+/**
+ * Base interface for graph elements.
+ * The generic `D` represents the user's custom data, stored in the `data` field.
+ * Layout fields (x, y, width, height, angle) and structural fields (z, parent, layer, ports)
+ * are at the top level.
+ * @group Graph
+ */
+export interface FlatElementData<D extends object = CellData> {
+  readonly [key: string]: unknown;
+  /** User-provided custom data for this element. */
+  readonly data?: D;
+  /** X position of the element. */
+  readonly x?: number;
+  /** Y position of the element. */
+  readonly y?: number;
+  /** Width of the element. */
+  readonly width?: number;
+  /** Height of the element. */
+  readonly height?: number;
+  /** Angle of the element in degrees. */
+  readonly angle?: number;
+  /** Z-index of the cell. */
+  readonly z?: number;
+  /** Parent element id. */
+  readonly parent?: string;
+  /** Layer id for the cell. */
+  readonly layer?: string;
+  /** Style defaults applied to all ports. Individual port properties take precedence. */
+  readonly portStyle?: Partial<FlatElementPort>;
+  /** Ports of the element. */
+  readonly ports?: Record<string, FlatElementPort>;
 }
 
 // ── Link Types ────────────────────────────────────────────────────────────────
@@ -155,9 +143,7 @@ export interface FlatElementData extends FlatCellData, Record<string, unknown> {
  * top-level properties on {@link FlatLinkData} (e.g. `sourcePort`, `sourceAnchor`).
  * @group Graph
  */
-export type FlatLinkEnd =
-  | CellId
-  | { readonly x: number; readonly y: number };
+export type FlatLinkEnd = CellId | { readonly x: number; readonly y: number };
 
 /**
  * Visual/presentation attributes for a link line and its wrapper.
@@ -167,6 +153,7 @@ export type FlatLinkEnd =
  * @group Graph
  */
 export interface FlatLinkPresentationData {
+  readonly [key: string]: unknown;
   /**
    * Stroke color of the link line.
    * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
@@ -318,15 +305,31 @@ export interface FlatLinkLabel {
  * @group Graph
  * @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
-export interface FlatLinkData extends FlatCellData, FlatLinkPresentationData, Record<string, unknown> {
+// New type re-exports — use these in new code, old Flat* names kept for compatibility.
+export type { CellData, ElementLayout, ElementPosition, ElementSize } from './cell-data';
+
+/**
+ * Base interface for graph links.
+ * The generic `D` represents the user's custom data, stored in the `data` field.
+ * @group Graph
+ */
+export interface FlatLinkData<D extends object = CellData> extends FlatLinkPresentationData {
+  /** User-provided custom data for this link. */
+  readonly data?: D;
+  /** Z-index of the cell. */
+  readonly z?: number;
+  /** Parent element id. */
+  readonly parent?: string;
+  /** Layer id for the cell. */
+  readonly layer?: string;
   /**
    * Source element id or point.
    */
-  readonly source: FlatLinkEnd;
+  readonly source?: FlatLinkEnd;
   /**
    * Target element id or point.
    */
-  readonly target: FlatLinkEnd;
+  readonly target?: FlatLinkEnd;
   /**
    * Source port id.
    */

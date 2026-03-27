@@ -1,9 +1,9 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable sonarjs/no-nested-conditional */
+ 
 /* eslint-disable unicorn/prevent-abbreviations */
-/* eslint-disable sonarjs/cognitive-complexity */
+ 
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // We have pre-loaded tailwind css
@@ -29,7 +29,7 @@ import {
 } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
 import { anchors } from '@joint/core';
-import { useIsElementDragging } from '../../../hooks';
+
 
 const ThemeContext = createContext(false);
 
@@ -63,14 +63,14 @@ function getPortCenterX(index: number) {
   return NODE_PADDING_LEFT + PORT_PILL_WIDTH / 2 + index * (PORT_PILL_WIDTH + PORT_GAP);
 }
 
-type NodeType = FlatElementData & {
+type NodeData = {
   readonly title: string;
   readonly description: string;
   readonly nodeType: 'user-action' | 'entity' | 'confirm' | 'message';
   readonly outputPorts: readonly OutputPort[];
-  readonly x: number;
-  readonly y: number;
 };
+
+type NodeType = FlatElementData<NodeData>;
 
 const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
   { id: '1', label: 'Port 1' },
@@ -79,28 +79,34 @@ const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
 
 const initialElements: Record<string, NodeType> = {
   '1': {
-    title: 'User Action',
-    description: 'Transfer funds',
-    nodeType: 'user-action',
-    outputPorts: INITIAL_OUTPUT_PORTS,
+    data: {
+      title: 'User Action',
+      description: 'Transfer funds',
+      nodeType: 'user-action',
+      outputPorts: INITIAL_OUTPUT_PORTS,
+    },
     x: 50,
     y: 50,
     z: 10,
   },
   '2': {
-    title: 'Entity',
-    description: 'Transfer funds',
-    nodeType: 'entity',
-    outputPorts: INITIAL_OUTPUT_PORTS,
+    data: {
+      title: 'Entity',
+      description: 'Transfer funds',
+      nodeType: 'entity',
+      outputPorts: INITIAL_OUTPUT_PORTS,
+    },
     x: 120,
     y: 240,
     z: 10,
   },
   '3': {
-    title: 'User Action',
-    description: 'Get account balance',
-    nodeType: 'user-action',
-    outputPorts: INITIAL_OUTPUT_PORTS,
+    data: {
+      title: 'User Action',
+      description: 'Get account balance',
+      nodeType: 'user-action',
+      outputPorts: INITIAL_OUTPUT_PORTS,
+    },
     x: 190,
     y: 440,
     z: 10,
@@ -131,10 +137,10 @@ const initialLinks: Record<string, FlatLinkData> = {
   },
 };
 
-interface RenderElementProps extends NodeType {
+type RenderElementProps = NodeData & {
   readonly onAddPort: (id: CellId) => void;
   readonly onRemovePort: (id: CellId, portId: string) => void;
-}
+};
 
 function RenderElementBase({
   title,
@@ -173,7 +179,6 @@ function RenderElementBase({
     }
   }
 
-  const isDragging = useIsElementDragging();
   const isDark = useContext(ThemeContext);
 
   // Dark: frosted glass on deep navy. Red only as small accent (add btn). Ports are subtle light pills.
@@ -182,10 +187,7 @@ function RenderElementBase({
   const cardText = isDark ? 'text-[#dde6ed]' : 'text-black';
   const cardSubtext = isDark ? 'text-[#dde6ed]/35' : 'text-black/60';
   const cardShadow = isDark ? 'shadow-xl shadow-black/40' : 'shadow-lg';
-  const draggingClass = isDragging
-    ? 'border-dashed border-2 shadow-2xl z-50 ' +
-      (isDark ? 'border-[#ed2637]/70' : 'border-gray-400')
-    : 'border-2 border-transparent';
+  const draggingClass = 'border-2 border-transparent';
 
   const portFill = isDark ? '#dde6ed' : 'black';
   const portTextFill = isDark ? '#131e29' : 'white';
@@ -296,7 +298,8 @@ function RenderElementBase({
 }
 const RenderElement = memo(RenderElementBase);
 function Main() {
-  const [elements, setElements] = useState<Record<string, FlatElementData>>(initialElements);
+  const [elements, setElements] =
+    useState<Record<string, FlatElementData<NodeData>>>(initialElements);
   const isDark = useContext(ThemeContext);
 
   function fixLinks(initialLinks: Record<string, FlatLinkData>) {
@@ -309,30 +312,34 @@ function Main() {
     }
     return next;
   }
-  const [links, setLinks] = useState<Record<string, FlatLinkData>>(fixLinks(initialLinks));
+  const [links, setLinks] = useState<Record<string, FlatLinkData>>(() => fixLinks(initialLinks));
   useLayoutEffect(() => {
-    setLinks(fixLinks);
+    setLinks(fixLinks); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Sync link colors with theme
   }, [isDark]);
   const onAddPort = useCallback((id: CellId) => {
     setElements((previous) => {
-      const node = previous[id] as NodeType | undefined;
-      if (!node) return previous;
+      const node = previous[id];
+      if (!node?.data) return previous;
+      const updated = appendOutputPort(node.data);
       return {
         ...previous,
-        [id]: appendOutputPort(node),
+        [id]: { ...node, data: updated },
       };
     });
   }, []);
 
   const onRemovePort = useCallback((id: CellId, portId: string) => {
     setElements((previous) => {
-      const node = previous[id] as NodeType | undefined;
-      if (!node) return previous;
+      const node = previous[id];
+      if (!node?.data) return previous;
       return {
         ...previous,
         [id]: {
           ...node,
-          outputPorts: node.outputPorts.filter((p) => p.id !== portId),
+          data: {
+            ...node.data,
+            outputPorts: node.data.outputPorts.filter((p) => p.id !== portId),
+          },
         },
       };
     });
@@ -349,7 +356,7 @@ function Main() {
     });
   }, []);
 
-  const renderElement: RenderElement<NodeType> = useCallback(
+  const renderElement: RenderElement<NodeData> = useCallback(
     (element) => <RenderElement {...element} onAddPort={onAddPort} onRemovePort={onRemovePort} />,
     [onAddPort, onRemovePort]
   );
@@ -358,8 +365,6 @@ function Main() {
     <GraphProvider
       elements={elements}
       links={links}
-      onElementsChange={setElements}
-      onLinksChange={setLinks}
     >
       <Paper
         gridSize={5}

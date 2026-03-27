@@ -197,8 +197,9 @@ function Main() {
 }
 
 export default function App() {
-  const elementMappers = useFlatElementData<NativeElement>({
-    mapAttributes: ({ attributes, data, graph }) => {
+  const elementMappers = useFlatElementData({
+    mapAttributes: ({ attributes, data: rawData, graph }) => {
+      const data = rawData as NativeElement;
       return {
         ...attributes,
         type: data.type,
@@ -211,8 +212,9 @@ export default function App() {
     },
   }, []);
 
-  const linkMappers = useFlatLinkData<NativeLink>({
-    mapAttributes: ({ attributes, data, graph }) => {
+  const linkMappers = useFlatLinkData({
+    mapAttributes: ({ attributes, data: rawData, graph }) => {
+      const data = rawData as NativeLink;
       return {
         ...attributes,
         type: data.type,
@@ -224,8 +226,8 @@ export default function App() {
 
   return (
     <GraphProvider
-      elements={initialElements}
-      links={initialLinks}
+      elements={initialElements as Record<string, FlatElementData>}
+      links={initialLinks as Record<string, FlatLinkData>}
       {...elementMappers}
       {...linkMappers}
     >

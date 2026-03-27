@@ -1,64 +1,62 @@
-import type { CellId } from '../types/cell-id';
+import { useMemo } from 'react';
 import type { FlatLinkData } from '../types/data-types';
-import { useData } from './use-stores';
-import { isStrictEqual, identitySelector } from '../utils/selector-utils';
+import type { CellId } from '../types/cell-id';
+import { useGraphStore } from './use-graph-store';
+import { useContainerItems } from './use-container-items';
 
 /**
- * Hook to access and subscribe to links (edges) from the graph store.
+ * Hook to access full link items (`FlatLinkData`) from the graph.
  *
- * This hook provides reactive access to links with optional selection and custom equality comparison.
- * It uses React's useSyncExternalStore internally for optimal performance.
+ * Returns items with `data`, `source`, `target`, `color`, `labels`, etc.
  *
- * **Features:**
- * - Subscribes to link changes in the graph store
- * - Supports custom selectors to extract specific data
- * - Custom equality comparison to prevent unnecessary re-renders
- * - Type-safe with TypeScript generics
+ * Supports 3 call signatures:
  *
- * **How it works:**
- * 1. Subscribes to the links in the graph store
- * 2. Retrieves the current links snapshot
- * 3. Applies the selector function (if provided)
- * 4. Compares the result with the previous value using isEqual
- * 5. Only triggers re-render if the selected value actually changed
- * @template Link - The type of links in the graph
- * @template SelectorReturnType - The return type of the selector function
- * @param selector - Optional function to select/extract a portion of the links. Defaults to returning all links.
- * @param isEqual - Optional function to compare previous and new values. Defaults to strict equality (`Object.is`).
- * @returns The selected links data (or all links if no selector provided)
+ * - **No args**: returns all links as a stable `Map<CellId, FlatLinkData>`.
+ * - **IDs**: returns a filtered subset. Subscribes per-ID — best performance for known subsets.
+ * - **Selector**: applies a selector over the full `Map`. Re-renders only when the selector output changes.
+ *
+ * @example
+ * ```tsx
+ * const all = useLinks();
+ * const subset = useLinks('l1', 'l2');
+ * const count = useLinks((items) => items.size);
+ * ```
  * @group Hooks
- * @example
- * ```ts
- * // Get all links as a Record
- * const links = useLinks();
- * // links is Record<CellId, FlatLinkData>
- * ```
- * @example
- * ```ts
- * // Extract only link IDs
- * const linkIds = useLinks((links) => Object.keys(links));
- * ```
- * @example
- * ```ts
- * // Get a specific link by ID
- * const link = useLinks((links) => links['link-1']);
- * ```
- * @example
- * ```ts
- * // Custom equality check (only re-render if count changes)
- * const linkCount = useLinks(
- *   (links) => Object.keys(links).length,
- *   (prev, next) => prev === next
- * );
- * ```
  */
-export function useLinks<LinkData = FlatLinkData, SelectorReturnType = Record<CellId, LinkData>>(
-  selector: (
-    items: Record<CellId, LinkData>
-  ) => SelectorReturnType = identitySelector as () => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual
-): SelectorReturnType {
-  return useData((snapshot) => {
-    return selector(snapshot.links as Record<CellId, LinkData>);
-  }, isEqual);
+export function useLinks(): Map<CellId, FlatLinkData>;
+// eslint-disable-next-line @typescript-eslint/unified-signatures
+export function useLinks(...ids: [string, ...string[]]): Map<CellId, FlatLinkData>;
+export function useLinks<S>(
+  selector: (items: Map<CellId, FlatLinkData>) => S,
+  isEqual?: (a: S, b: S) => boolean,
+): S;
+export function useLinks<S = Map<CellId, FlatLinkData>>(
+  ...args:
+    | []
+    | [string, ...string[]]
+    | [(items: Map<CellId, FlatLinkData>) => S, ((a: S, b: S) => boolean)?]
+): Map<CellId, FlatLinkData> | S {
+  const { graphView: { links } } = useGraphStore();
+
+  const isSelectorMode = typeof args[0] === 'function';
+  const ids = isSelectorMode ? undefined : (args as string[]);
+
+  const stableIds = useMemo(
+    () => (ids && ids.length > 0 ? ids : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ids?.join(',')],
+  );
+
+  const idsOrSelector = isSelectorMode
+    ? (args[0] as (items: Map<string, FlatLinkData>) => S)
+    : stableIds;
+  const isEqual = isSelectorMode
+    ? (args[1] as ((a: S, b: S) => boolean) | undefined)
+    : undefined;
+
+  return useContainerItems(
+    links,
+    idsOrSelector as (items: Map<string, FlatLinkData>) => S,
+    isEqual,
+  ) as Map<CellId, FlatLinkData> | S;
 }

@@ -1,9 +1,8 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
-import { dia, mvc } from '@joint/core';
+import { dia } from '@joint/core';
 import {
   useCallback,
-  useDebugValue,
   useDeferredValue,
   useEffect,
   useLayoutEffect,
@@ -17,12 +16,11 @@ import {
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
 import { usePaperStore } from './use-paper';
-import { useElements } from './use-elements';
-import { useLinks } from './use-links';
-import { useInternalData, useElementsLayout } from './use-stores';
+import { useInternalData } from './use-stores';
+import { useLinkData } from './use-link-data';
+import { useContainerKeys } from './use-container-keys';
 import type { PaperStore } from '../store';
-import type { FlatLinkData } from '../types/data-types';
-import type { PortalPaper } from '../models/portal-paper';
+import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
 import { DefaultElement } from '../components/default-element';
 
@@ -35,12 +33,8 @@ import {
   HTMLElementItem,
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
-import {
-  selectAreElementsMeasured,
-  selectElementSizes,
-  selectResetVersion,
-  createSelectPaperVersion,
-} from '../selectors';
+import { selectResetVersion, createSelectPaperVersion } from '../selectors';
+import { useAreElementsMeasured } from './use-are-elements-measured';
 
 type PortalLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
 
@@ -76,7 +70,7 @@ export interface UseCreatePortalPaperResult {
  * @throws {Error} When `PortalLink` is missing in graph namespace.
  */
 function getPortalLinkConstructor(graph: dia.Graph): PortalLinkConstructor {
-  const cellNamespace = graph.layerCollection?.cellNamespace as Record<string, unknown> | undefined;
+  const cellNamespace = graph.layerCollection?.cellNamespace;
   const reactLinkConstructor = cellNamespace?.PortalLink;
   if (typeof reactLinkConstructor === 'function') {
     return reactLinkConstructor as PortalLinkConstructor;
@@ -88,26 +82,25 @@ function getPortalLinkConstructor(graph: dia.Graph): PortalLinkConstructor {
 
 /**
  * Portals custom link content into the resolved link view container.
+ * Reads link data via useLinkData from CellIdContext and passes it to renderLink.
  * @param props - Link props.
- * @param props.link - Link data object.
  * @param props.portalElement - Link portal container element.
  * @param props.renderLink - Callback used to render link content.
  * @returns Portaled link content, or null when container is unavailable.
  */
-function LinkItem<LinkData = FlatLinkData>({
-  link,
+function LinkItem({
   portalElement,
   renderLink,
 }: {
-  readonly link: LinkData;
   readonly portalElement: SVGElement | HTMLElement;
-  readonly renderLink: RenderLink<LinkData>;
+  readonly renderLink: RenderLink;
 }) {
+  const data = useLinkData();
   if (!portalElement) {
     return null;
   }
 
-  const linkContent = renderLink(link);
+  const linkContent = renderLink(data);
   return createPortal(linkContent, portalElement);
 }
 
@@ -140,41 +133,29 @@ export function useCreatePortalPaper(
     throw new Error('Paper id is required. Please provide an id prop to the Paper component.');
   }
 
-  const elementsState = useElements();
-  const linksState = useLinks();
   const graphStore = useGraphStore();
-  const areElementsMeasured = useElementsLayout(selectAreElementsMeasured);
+  const areElementsMeasured = useAreElementsMeasured();
   const resetVersion = useInternalData(selectResetVersion);
-  const sizes = useElementsLayout(selectElementSizes);
   const previousResetVersionRef = useRef(-1);
 
-  useDebugValue(elementsState);
-  useDebugValue(linksState);
+  // Subscribe to container size — only re-renders when elements/links are added or removed.
+  // This replaces the expensive Object.keys(elementsState) which fired on every data change.
+  const elementIds = useContainerKeys(graphStore.graphView.elements);
+  const linkIds = useContainerKeys(graphStore.graphView.links);
 
-  const elementIds = useMemo(() => Object.keys(elementsState), [elementsState]);
-  const linkIds = useMemo(() => Object.keys(linksState), [linksState]);
-
-  const deferredElementsStateRaw = useDeferredValue(elementsState);
-  const deferredLinksStateRaw = useDeferredValue(linksState);
+  const deferredElementIdsRaw = useDeferredValue(elementIds);
+  const deferredLinkIdsRaw = useDeferredValue(linkIds);
   const shouldDefer = elementIds.length > 100 || linkIds.length > 100;
-  const deferredElementsState = shouldDefer ? deferredElementsStateRaw : elementsState;
-  const deferredLinksState = shouldDefer ? deferredLinksStateRaw : linksState;
   const featuresContext = useContext(PaperFeaturesContext);
 
-  const deferredElementIds = useMemo(
-    () => (shouldDefer ? Object.keys(deferredElementsState) : elementIds),
-    [shouldDefer, deferredElementsState, elementIds]
-  );
-  const deferredLinkIds = useMemo(
-    () => (shouldDefer ? Object.keys(deferredLinksState) : linkIds),
-    [shouldDefer, deferredLinksState, linkIds]
-  );
+  const deferredElementIds = shouldDefer ? deferredElementIdsRaw : elementIds;
+  const deferredLinkIds = shouldDefer ? deferredLinkIdsRaw : linkIds;
 
   const selectPaperVersion = useMemo(() => createSelectPaperVersion(id), [id]);
 
   // Subscribe to paper version to trigger re-renders on view mount/unmount changes
   const version = useInternalData(selectPaperVersion);
-  const { addPaper, graph, graphState } = useGraphStore();
+  const { addPaper, graph, graphView: gv } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
@@ -192,8 +173,8 @@ export function useCreatePortalPaper(
       const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
       const PortalLinkModel = getPortalLinkConstructor(graph);
       if (!link) {
-        const defaultAttributes = graphState.linkToAttributes({
-          data: {} as FlatLinkData,
+        const defaultAttributes = gv.linkToAttributes({
+          data: {},
         });
         return new PortalLinkModel(defaultAttributes);
       }
@@ -203,12 +184,12 @@ export function useCreatePortalPaper(
         }
         return link.clone();
       }
-      const attributes = graphState.linkToAttributes({
-        data: link as FlatLinkData,
+      const attributes = gv.linkToAttributes({
+        data: link,
       });
       return new PortalLinkModel(attributes);
     },
-    [defaultLink, graph, graphState]
+    [defaultLink, graph, gv]
   );
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);
@@ -216,8 +197,11 @@ export function useCreatePortalPaper(
   useLayoutEffect(() => {
     const hostElementForCreation = elementRef?.current;
 
+    // Default to transparent background unless user provides their own via background prop or style.backgroundColor
+    const hasUserBackground = paperOptions.background || options.style?.backgroundColor;
     const { paperStore, remove } = addPaper(id, {
       paperOptions: {
+        ...(hasUserBackground ? {} : { background: { color: 'transparent' } }),
         ...paperOptions,
         id,
         el: hostElementForCreation,
@@ -249,39 +233,6 @@ export function useCreatePortalPaper(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!paper) return;
-    const controller = new mvc.Listener();
-    /**
-     *
-     * @param cellView
-     * @param isDragging
-     */
-    function setState(cellView: dia.CellView, isDragging: boolean) {
-      const cell = cellView.model;
-      if (!cell) return;
-      const cellId = cell.id.toString();
-      if (!id) {
-        throw new Error(
-          'Paper id is required to update dragging state. Please provide an id prop to the Paper component.'
-        );
-      }
-      graphStore.updatePaperSnapshot(id, (previous) => {
-        return {
-          ...previous,
-          controlState: {
-            draggingIds: { ...previous.controlState?.draggingIds, [cellId]: isDragging },
-          },
-        };
-      });
-    }
-    controller.listenTo(paper, 'element:pointerdown', (cellView: dia.CellView) => {
-      setState(cellView, true);
-    });
-    controller.listenTo(paper, 'element:pointerup', (cellView: dia.CellView) => {
-      setState(cellView, false);
-    });
-  }, [graphStore, id, paper]);
   useLayoutEffect(() => {
     if (!paper) {
       isReadyNotifiedRef.current = false;
@@ -320,80 +271,9 @@ export function useCreatePortalPaper(
     }
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
 
-  const { elements, areElementsReady } = useMemo(() => {
-    if (!hasRenderElement) {
-      return { elements: null, areElementsReady: true };
-    }
-    let elemntsCount = 0;
-    const elements = deferredElementIds.map((elementId) => {
-      const elementState = deferredElementsState[elementId];
-      if (!elementState) {
-        return null;
-      }
-
-      const elementView = paperStore?.getElementView(elementId);
-      if (!elementView?.paper) {
-        return null;
-      }
-
-      const portalNode = (elementView.paper as PortalPaper).getCellViewPortalNode(elementView);
-
-      if (!portalNode?.isConnected) {
-        return null;
-      }
-      elemntsCount++;
-      return (
-        <CellIdContext.Provider key={elementId} value={elementId}>
-          {useHTMLOverlay && HTMLRendererContainer ? (
-            <>
-              <HTMLElementItem
-                {...elementState}
-                portalElement={HTMLRendererContainer}
-                renderElement={renderElement}
-                areElementsMeasured={areElementsMeasured}
-                id={elementId}
-              />
-              <SVGElementItem
-                {...elementState}
-                portalElement={portalNode}
-                renderElement={ElementHitArea}
-                areElementsMeasured={areElementsMeasured}
-                id={elementId}
-              />
-            </>
-          ) : (
-            <SVGElementItem
-              {...elementState}
-              portalElement={portalNode}
-              renderElement={renderElement}
-              areElementsMeasured={areElementsMeasured}
-              id={elementId}
-            />
-          )}
-        </CellIdContext.Provider>
-      );
-    });
-    return { elements, areElementsReady: elemntsCount === deferredElementIds.length };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    version,
-    HTMLRendererContainer,
-    areElementsMeasured,
-    deferredElementIds,
-    deferredElementsState,
-    hasRenderElement,
-    paperStore,
-    renderElement,
-    useHTMLOverlay,
-  ]);
-  useLayoutEffect(() => {
-    if (!areElementsReady) return;
+  useEffect(() => {
     if (!paper) return;
     if (!areElementsMeasured) return;
-    const { layoutState } = graphStore;
-    const { elements } = layoutState.getSnapshot();
-    const areElementsMeasured2 = selectAreElementsMeasured(elements);
-    if (!areElementsMeasured2) return;
     let isInitial = false;
     if (resetVersion !== previousResetVersionRef.current) {
       isInitial = true;
@@ -406,7 +286,63 @@ export function useCreatePortalPaper(
     };
     paper.trigger(PAPER_ELEMENTS_MEASURED, event);
     // we must have here sizes, as its called each time reference of size changes.
-  }, [areElementsMeasured, areElementsReady, sizes, paper, resetVersion, graphStore]);
+  }, [areElementsMeasured, paper, resetVersion, graphStore]);
+
+  const elements = useMemo(() => {
+    if (!hasRenderElement) {
+      return null;
+    }
+    return deferredElementIds.map((elementId) => {
+      const elementView = paperStore?.getElementView(elementId);
+      if (!elementView?.paper) {
+        return null;
+      }
+      if (!(elementView.paper instanceof PortalPaper)) {
+        return null;
+      }
+
+      const portalNode = elementView.paper.getCellViewPortalNode(elementView);
+
+      if (!portalNode?.isConnected) {
+        return null;
+      }
+
+      return (
+        <CellIdContext.Provider key={elementId} value={elementId}>
+          {useHTMLOverlay && HTMLRendererContainer ? (
+            <>
+              <HTMLElementItem
+                portalElement={HTMLRendererContainer}
+                renderElement={renderElement}
+                areElementsMeasured={areElementsMeasured}
+              />
+              <SVGElementItem
+                portalElement={portalNode}
+                renderElement={ElementHitArea}
+                areElementsMeasured={areElementsMeasured}
+              />
+            </>
+          ) : (
+            <SVGElementItem
+              portalElement={portalNode}
+              renderElement={renderElement}
+              areElementsMeasured={areElementsMeasured}
+            />
+          )}
+        </CellIdContext.Provider>
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    version,
+    HTMLRendererContainer,
+    areElementsMeasured,
+    deferredElementIds,
+    hasRenderElement,
+    paperStore,
+    renderElement,
+    useHTMLOverlay,
+  ]);
 
   const renderedLinks = useMemo(() => {
     if (!hasRenderLink || !renderLink) {
@@ -414,29 +350,27 @@ export function useCreatePortalPaper(
     }
 
     return deferredLinkIds.map((linkId) => {
-      const linkState = deferredLinksState[linkId];
-      if (!linkState) {
-        return null;
-      }
-
       const linkView = paperStore?.getLinkView(linkId);
       if (!linkView?.paper) {
         return null;
       }
 
-      const portalNode = (linkView.paper as PortalPaper).getCellViewPortalNode(linkView);
+      if (!(linkView.paper instanceof PortalPaper)) {
+        return;
+      }
+      const portalNode = linkView.paper.getCellViewPortalNode(linkView);
       if (!portalNode) {
         return null;
       }
 
       return (
         <CellIdContext.Provider key={linkId} value={linkId}>
-          <LinkItem link={linkState} portalElement={portalNode} renderLink={renderLink} />
+          <LinkItem portalElement={portalNode} renderLink={renderLink} />
         </CellIdContext.Provider>
       );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deferredLinkIds, version, deferredLinksState, hasRenderLink, paperStore, renderLink]);
+  }, [deferredLinkIds, version, hasRenderLink, paperStore, renderLink]);
   const content = useMemo(
     () => (
       <>

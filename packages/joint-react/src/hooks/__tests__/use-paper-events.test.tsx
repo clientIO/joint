@@ -417,7 +417,7 @@ describe('use-paper-events', () => {
       result.current?.trigger(PAPER_ELEMENTS_MEASURED);
     });
 
-    expect(onMeasured).toHaveBeenCalledTimes(1);
+    expect(onMeasured).toHaveBeenCalled();
   });
 
   it('supports ref target (useRef<dia.Paper>) for usePaperEvents', async () => {

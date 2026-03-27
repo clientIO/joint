@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { GraphStoreContext } from '../context';
 import type { GraphStore } from '../store';
+import type { CellData } from '../types/cell-data';
 
 /**
  * Custom hook to use a JointJS `GraphProvider` graph store.
@@ -9,10 +10,13 @@ import type { GraphStore } from '../store';
  * @returns The JointJS graph store.
  * @throws {Error} An error if the hook is used outside of a GraphProvider.
  */
-export function useGraphStore(): GraphStore {
+export function useGraphStore<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+>(): GraphStore<ElementData, LinkData> {
   const store = useContext(GraphStoreContext);
   if (!store) {
     throw new Error('useGraphStore must be used within a GraphProvider');
   }
-  return store;
+  return store as GraphStore<ElementData, LinkData>;
 }

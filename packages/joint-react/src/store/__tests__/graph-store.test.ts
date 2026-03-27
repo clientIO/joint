@@ -4,7 +4,7 @@ import { dia, shapes } from '@joint/core';
 import { GraphStore } from '../graph-store';
 import { PortalElement } from '../../models/portal-element';
 import { sendToDevTool } from '../../utils/dev-tools';
-import type { FlatElementData, FlatLinkData } from '../../types/data-types';
+
 
 jest.mock('../../utils/dev-tools', () => ({
   sendToDevTool: jest.fn(),
@@ -25,7 +25,7 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       expect(store).toBeDefined();
       expect(store.graph).toBeInstanceOf(dia.Graph);
-      expect(store.dataState).toBeDefined();
+      expect(store.graphView).toBeDefined();
       expect(store.internalState).toBeDefined();
     });
 
@@ -37,37 +37,37 @@ describe('GraphStore', () => {
 
     it('should initialize with empty elements and links by default', () => {
       const store = new GraphStore({});
-      const snapshot = store.dataState.getSnapshot();
+      const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
       expect(snapshot.elements).toEqual({});
       expect(snapshot.links).toEqual({});
     });
 
     it('should initialize with initialElements', () => {
-      const initialElements: Record<string, FlatElementData> = {
+      const initialElements = {
         'element-1': {
           x: 10,
           y: 20,
           width: 100,
           height: 50,
-          type: 'PortalElement',
+          data: {},
         },
-        'element-2': { x: 30, y: 40, width: 80, height: 60, type: 'PortalElement' },
+        'element-2': { data: {}, x: 30, y: 40, width: 80, height: 60 },
       };
       const store = new GraphStore({ initialElements });
-      const snapshot = store.dataState.getSnapshot();
+      const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
       expect(Object.keys(snapshot.elements)).toHaveLength(2);
       expect(snapshot.elements['element-1']).toBeDefined();
       expect(snapshot.elements['element-2']).toBeDefined();
     });
 
     it('should sync initial elements into graph immediately after construction', () => {
-      const initialElements: Record<string, FlatElementData> = {
+      const initialElements = {
         'element-1': {
           x: 10,
           y: 20,
           width: 100,
           height: 50,
-          type: 'PortalElement',
+          data: {},
         },
       };
 
@@ -78,30 +78,30 @@ describe('GraphStore', () => {
     });
 
     it('should initialize with initialLinks', () => {
-      const initialLinks: Record<string, FlatLinkData> = {
-        'link-1': { source: 'element-1', target: 'element-2', type: 'standard.Link' },
+      const initialLinks = {
+        'link-1': { data: {}, source: 'element-1', target: 'element-2' },
       };
       const store = new GraphStore({ initialLinks });
-      const snapshot = store.dataState.getSnapshot();
+      const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
       expect(Object.keys(snapshot.links)).toHaveLength(1);
       expect(snapshot.links['link-1']).toBeDefined();
     });
 
     it('should initialize with both initialElements and initialLinks', () => {
-      const initialElements: Record<string, FlatElementData> = {
+      const initialElements = {
         'element-1': {
           x: 10,
           y: 20,
           width: 100,
           height: 50,
-          type: 'PortalElement',
+          data: {},
         },
       };
-      const initialLinks: Record<string, FlatLinkData> = {
-        'link-1': { source: 'element-1', target: 'element-2', type: 'standard.Link' },
+      const initialLinks = {
+        'link-1': { data: {}, source: 'element-1', target: 'element-2' },
       };
       const store = new GraphStore({ initialElements, initialLinks });
-      const snapshot = store.dataState.getSnapshot();
+      const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
       expect(Object.keys(snapshot.elements)).toHaveLength(1);
       expect(Object.keys(snapshot.links)).toHaveLength(1);
     });
@@ -124,13 +124,13 @@ describe('GraphStore', () => {
       graph.addCell(existingElement);
       const cellCountBefore = graph.getCells().length;
 
-      const initialElements: Record<string, FlatElementData> = {
+      const initialElements = {
         'new-element': {
           x: 10,
           y: 20,
           width: 100,
           height: 50,
-          type: 'PortalElement',
+          data: {},
         },
       };
       const store = new GraphStore({ graph, initialElements });
@@ -380,34 +380,6 @@ describe('GraphStore', () => {
     });
   });
 
-  describe('hasMeasuredNode', () => {
-    it('should return false for non-measured nodes', () => {
-      const store = new GraphStore({});
-      expect(store.hasMeasuredNode('non-existent')).toBe(false);
-    });
-
-    it('should return true for measured nodes', () => {
-      const store = new GraphStore({});
-      const id = 'measured-element';
-
-      store.graph.addCell(
-        new PortalElement({
-          id,
-          position: { x: 10, y: 20 },
-          size: { width: 100, height: 50 },
-        })
-      );
-
-      const domElement = document.createElement('div');
-      store.setMeasuredNode({
-        id,
-        node: domElement,
-      });
-
-      expect(store.hasMeasuredNode(id)).toBe(true);
-    });
-  });
-
   describe('setMeasuredNode', () => {
     it('should register a node for measurement and return cleanup', () => {
       const store = new GraphStore({});
@@ -430,10 +402,8 @@ describe('GraphStore', () => {
       });
 
       expect(typeof cleanup).toBe('function');
-      expect(store.hasMeasuredNode(id)).toBe(true);
 
       cleanup();
-      expect(store.hasMeasuredNode(id)).toBe(false);
     });
   });
 
@@ -462,15 +432,15 @@ describe('GraphStore', () => {
     it('should sync state changes to graph', (done) => {
       const store = new GraphStore({});
       const id = 'sync-element';
-      const element: FlatElementData = {
+      const element = {
+        data: {},
         x: 10,
         y: 20,
         width: 100,
         height: 50,
-        type: 'PortalElement',
       };
 
-      store.graphState.updateGraph({
+      store.graphView.updateGraph({
         elements: { [id]: element },
         links: {},
         flag: 'updateFromReact',
@@ -500,7 +470,7 @@ describe('GraphStore', () => {
 
       // Wait for sync
       setTimeout(() => {
-        const snapshot = store.dataState.getSnapshot();
+        const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
         const stateElement = snapshot.elements['graph-element'];
         expect(stateElement).toBeDefined();
         done();
@@ -512,17 +482,18 @@ describe('GraphStore', () => {
         enableBatchUpdates: true,
         initialElements: {
           'batched-element': {
+            data: {},
             x: 0,
             y: 0,
             width: 100,
             height: 50,
-            type: 'PortalElement',
           },
         },
       });
 
       await waitFor(() => {
-        expect(store.layoutState.getSnapshot().elements.sizes['batched-element']).toBeDefined();
+        const layout = store.graphView.elementsLayout.get('batched-element');
+        expect(layout).toBeDefined();
       });
 
       const element = store.graph.getCell('batched-element');
@@ -535,28 +506,89 @@ describe('GraphStore', () => {
       element.set('size', { width: 240, height: 160 });
 
       await waitFor(() => {
-        const { positions, sizes } = store.layoutState.getSnapshot().elements;
-        expect(positions['batched-element']?.x).toBe(120);
-        expect(positions['batched-element']?.y).toBe(180);
-        expect(sizes['batched-element']?.width).toBe(240);
-        expect(sizes['batched-element']?.height).toBe(160);
+        const batchedLayout = store.graphView.elementsLayout.get('batched-element');
+        expect(batchedLayout?.x).toBe(120);
+        expect(batchedLayout?.y).toBe(180);
+        expect(batchedLayout?.width).toBe(240);
+        expect(batchedLayout?.height).toBe(160);
       });
 
-      const publicSnapshotDuringBatch = store.dataState.getSnapshot().elements['batched-element'];
-      expect(publicSnapshotDuringBatch?.x).toBe(0);
-      expect(publicSnapshotDuringBatch?.y).toBe(0);
-      expect(publicSnapshotDuringBatch?.width).toBe(100);
-      expect(publicSnapshotDuringBatch?.height).toBe(50);
+      // With container architecture, layout updates happen immediately during batch
+      // (only data updates are deferred). The elementsLayout container reflects the latest position.
+      const layoutDuringBatch = store.graphView.elementsLayout.get('batched-element');
+      expect(layoutDuringBatch?.x).toBe(120);
+      expect(layoutDuringBatch?.y).toBe(180);
 
       store.graph.stopBatch('test');
 
+      // After batch: layout is in elementsLayout container (not elements data container)
       await waitFor(() => {
-        const publicSnapshotAfterBatch = store.dataState.getSnapshot().elements['batched-element'];
-        expect(publicSnapshotAfterBatch?.x).toBe(120);
-        expect(publicSnapshotAfterBatch?.y).toBe(180);
-        expect(publicSnapshotAfterBatch?.width).toBe(240);
-        expect(publicSnapshotAfterBatch?.height).toBe(160);
+        const layoutAfterBatch = store.graphView.elementsLayout.get('batched-element');
+        expect(layoutAfterBatch?.x).toBe(120);
+        expect(layoutAfterBatch?.y).toBe(180);
+        expect(layoutAfterBatch?.width).toBe(240);
+        expect(layoutAfterBatch?.height).toBe(160);
       });
+    });
+  });
+
+  describe('controlled mode', () => {
+    it('onElementsChange should include updated position after drag', (done) => {
+      const receivedElements: Array<Record<string, unknown>> = [];
+
+      const store = new GraphStore({
+        initialElements: {
+          'el-1': { data: { label: 'test' }, x: 0, y: 0, width: 100, height: 50 },
+        },
+        onElementsChange: (elements) => {
+          receivedElements.push({ ...elements });
+        },
+      });
+
+      // Simulate drag — change position via JointJS API
+      const element = store.graph.getCell('el-1') as dia.Element;
+      element.position(200, 150);
+
+      setTimeout(() => {
+        expect(receivedElements.length).toBeGreaterThan(0);
+        const lastEmit = receivedElements.at(-1);
+        const element_ = lastEmit!['el-1'] as Record<string, unknown>;
+        expect(element_).toBeDefined();
+        // onElementsChange must include the updated position (merged from layout container)
+        expect(element_.x).toBe(200);
+        expect(element_.y).toBe(150);
+        // User data should still be present
+        expect((element_.data as Record<string, unknown>)?.label).toBe('test');
+        store.destroy(false);
+        done();
+      }, 100);
+    });
+
+    it('onElementsChange should include updated size after resize', (done) => {
+      const receivedElements: Array<Record<string, unknown>> = [];
+
+      const store = new GraphStore({
+        initialElements: {
+          'el-1': { data: { label: 'test' }, x: 0, y: 0, width: 100, height: 50 },
+        },
+        onElementsChange: (elements) => {
+          receivedElements.push({ ...elements });
+        },
+      });
+
+      const element = store.graph.getCell('el-1') as dia.Element;
+      element.resize(300, 200);
+
+      setTimeout(() => {
+        expect(receivedElements.length).toBeGreaterThan(0);
+        const lastEmit = receivedElements.at(-1);
+        const element_ = lastEmit!['el-1'] as Record<string, unknown>;
+        expect(element_).toBeDefined();
+        expect(element_.width).toBe(300);
+        expect(element_.height).toBe(200);
+        store.destroy(false);
+        done();
+      }, 100);
     });
   });
 });

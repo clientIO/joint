@@ -39,7 +39,7 @@
 
 import {
   GraphProvider,
-  type GraphProps,
+  useElementSize,
   type FlatElementData,
   type FlatLinkData,
   Paper,
@@ -54,13 +54,15 @@ import Peer, { type DataConnection } from 'peerjs';
 // ============================================================================
 
 /**
- * Custom element type with a label property.
+ * Custom element data with a label property.
  */
-type CustomElement = FlatElementData & { label: string };
+type ElementData = { label: string };
+
+type CustomElement = FlatElementData<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
-  '1': { label: 'Hello', x: 100, y: 15, width: 100, height: 50 },
-  '2': { label: 'World', x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
+  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
 };
 
 const defaultLinks: Record<string, FlatLinkData> = {
@@ -75,8 +77,8 @@ const defaultLinks: Record<string, FlatLinkData> = {
 // STEP 2: Custom Element Renderer
 // ============================================================================
 
-function RenderItem(props: CustomElement) {
-  const { label, width, height } = props;
+function RenderItem({ label }: Readonly<ElementData>) {
+  const { width, height } = useElementSize();
   return (
     <foreignObject width={width} height={height}>
       <div className="node">{label}</div>
@@ -94,7 +96,7 @@ function RenderItem(props: CustomElement) {
  */
 interface StateSyncMessage {
   type: 'state-update';
-  elements: Record<string, FlatElementData>;
+  elements: Record<string, CustomElement>;
   links: Record<string, FlatLinkData>;
 }
 
@@ -116,10 +118,16 @@ function createPeerJSManager(callbacks: {
   onPeerIdChange: (id: string | null) => void;
   onConnectionStatusChange: (status: ConnectionStatus) => void;
   onConnectedPeerIdChange: (id: string | null) => void;
-  onRemoteStateUpdate: (elements: Record<string, FlatElementData>, links: Record<string, FlatLinkData>) => void;
+  onRemoteStateUpdate: (
+    elements: Record<string, CustomElement>,
+    links: Record<string, FlatLinkData>
+  ) => void;
 }): {
   connectToPeer: (remotePeerId: string) => void;
-  sendStateUpdate: (elements: Record<string, FlatElementData>, links: Record<string, FlatLinkData>) => void;
+  sendStateUpdate: (
+    elements: Record<string, CustomElement>,
+    links: Record<string, FlatLinkData>
+  ) => void;
   isReceivingUpdate: () => boolean;
 } {
   // PeerJS connection management
@@ -127,10 +135,14 @@ function createPeerJSManager(callbacks: {
   const connectionsRef: DataConnection[] = [];
   let isReceiving = false;
 
-  const { onPeerIdChange, onConnectionStatusChange, onConnectedPeerIdChange, onRemoteStateUpdate } = callbacks;
+  const { onPeerIdChange, onConnectionStatusChange, onConnectedPeerIdChange, onRemoteStateUpdate } =
+    callbacks;
 
   // Send state update to all connected peers
-  const sendStateUpdate = (elements: Record<string, FlatElementData>, links: Record<string, FlatLinkData>) => {
+  const sendStateUpdate = (
+    elements: Record<string, CustomElement>,
+    links: Record<string, FlatLinkData>
+  ) => {
     // Don't send if we're currently receiving an update (prevent loops)
     if (isReceiving) {
       return;
@@ -305,7 +317,7 @@ function PaperApp({ onAddElement, onRemoveLast }: Readonly<PaperAppProps>) {
 // STEP 5: Main Component with PeerJS Integration
 // ============================================================================
 
-function Main(props: Readonly<GraphProps>) {
+function Main() {
   const [remotePeerId, setRemotePeerId] = useState('');
   const [peerId, setPeerId] = useState<string | null>(null);
   const [connectedPeerId, setConnectedPeerId] = useState<string | null>(null);
@@ -313,9 +325,7 @@ function Main(props: Readonly<GraphProps>) {
   const [copyFeedback, setCopyFeedback] = useState(false);
 
   // Graph state managed by React
-  const [elements, setElements] = useState<Record<string, FlatElementData>>(
-    defaultElements as Record<string, FlatElementData>
-  );
+  const [elements, setElements] = useState<Record<string, CustomElement>>(defaultElements);
   const [links, setLinks] = useState<Record<string, FlatLinkData>>(defaultLinks);
 
   // Refs to track latest state — avoids stale closures in callbacks
@@ -342,7 +352,7 @@ function Main(props: Readonly<GraphProps>) {
   // These callbacks are stable (no state in deps) because they use refs.
   // GraphStore captures them once at creation — stability is critical.
   const handleElementsChange = useCallback(
-    (action: React.SetStateAction<Record<string, FlatElementData>>) => {
+    (action: React.SetStateAction<Record<string, CustomElement>>) => {
       setElements((previous) => {
         const next = typeof action === 'function' ? action(previous) : action;
         elementsRef.current = next;
@@ -394,7 +404,7 @@ function Main(props: Readonly<GraphProps>) {
   const handleAddElement = useCallback(() => {
     const newId = Math.random().toString(36).slice(7);
     const newElement: CustomElement = {
-      label: 'New Node',
+      data: { label: 'New Node' },
       x: Math.random() * 200,
       y: Math.random() * 200,
       width: 100,
@@ -514,7 +524,6 @@ function Main(props: Readonly<GraphProps>) {
 
       {/* Graph */}
       <GraphProvider
-        {...props}
         elements={elements}
         links={links}
         onElementsChange={handleElementsChange}
@@ -556,6 +565,6 @@ function Main(props: Readonly<GraphProps>) {
  * ============================================================================
  */
 
-export default function App(props: Readonly<GraphProps>) {
-  return <Main {...props} />;
+export default function App() {
+  return <Main />;
 }

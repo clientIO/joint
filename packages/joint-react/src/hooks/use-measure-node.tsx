@@ -1,11 +1,10 @@
-/* eslint-disable quotes */
 import { useLayoutEffect, type RefObject } from 'react';
 import { useElementId } from './use-element-id';
 import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
-import { useElementLayout } from './use-element-layout';
 import { usePaper } from './use-paper';
-import type { ElementLayout } from '../state/state.types';
+import type { ElementLayout, ElementSize } from '../types/cell-data';
+import { useElementSize } from './use-element-size';
 
 /**
  * Controls element visibility until the first measurement completes.
@@ -65,8 +64,8 @@ const EMPTY_NODE_LAYOUT: ElementLayout = { x: 0, y: 0, width: 0, height: 0, angl
  * 3. Returns the current graph element's dimensions, which are always defined
  *
  * **Important constraints:**
- * - Only one `useMeasureNode` hook can be used per element. Using multiple hooks for the same element
- * will throw an error and cause unexpected behavior.
+ * - When multiple `useMeasureNode` hooks target the same element, the most recently mounted hook
+ *   takes precedence. When it unmounts, the previous hook becomes active again (stack semantics).
  * - Must be used within a `renderElement` function or a component rendered from within it.
  * - The returned values are always defined (width and height default to 0 if not set).
  * @param nodeRef - A reference to the HTML or SVG element to measure. The element must be rendered
@@ -78,7 +77,6 @@ const EMPTY_NODE_LAYOUT: ElementLayout = { x: 0, y: 0, width: 0, height: 0, angl
  *   - `x`: The current x position of the graph element (defaults to 0)
  *   - `y`: The current y position of the graph element (defaults to 0)
  *   - `angle`: The current angle of the graph element (defaults to 0)
- * @throws {Error} If multiple `useMeasureNode` hooks are used for the same element.
  * @throws {Error} If the cell is not a valid element.
  * @group Hooks
  * @example
@@ -151,12 +149,12 @@ const EMPTY_NODE_LAYOUT: ElementLayout = { x: 0, y: 0, width: 0, height: 0, angl
 export function useMeasureNode(
   nodeRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
-): ElementLayout {
+): ElementSize {
   const { transform, visibility } = options ?? EMPTY_OBJECT;
-  const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
+  const { graph, setMeasuredNode } = useGraphStore();
   const { paper } = usePaper();
   const id = useElementId();
-  const layout = useElementLayout(id) ?? EMPTY_NODE_LAYOUT;
+  const layout = useElementSize() ?? EMPTY_NODE_LAYOUT;
 
   useLayoutEffect(() => {
     const element = nodeRef.current;
@@ -168,21 +166,6 @@ export function useMeasureNode(
         '`useMeasureNode` can only be used with elements, not links. ' +
           `The cell with id "${id}" is not an element.`
       );
-    }
-    // Check if another useMeasureNode hook is already measuring this element
-    if (hasMeasuredNode(id) && process.env.NODE_ENV !== 'production') {
-      const errorMessage =
-        process.env.NODE_ENV === 'production'
-          ? `Multiple useMeasureNode hooks detected for element "${id}". Only one useMeasureNode hook can be used per element.`
-          : `Multiple useMeasureNode hooks detected for element with id "${id}".\n\n` +
-            'Only one useMeasureNode hook can be used per element. Multiple useMeasureNode hooks ' +
-            'trying to set the size for the same element will cause conflicts and unexpected behavior.\n\n' +
-            'Solution:\n' +
-            '- Use only one useMeasureNode hook per element\n' +
-            '- If you need multiple measurements, use a single useMeasureNode hook with a custom `transform` handler\n' +
-            "- Check your renderElement function to ensure you're not using multiple useMeasureNode hooks for the same element";
-
-      throw new Error(errorMessage);
     }
     if (!nodeRef.current) {
       return;
@@ -203,7 +186,7 @@ export function useMeasureNode(
     };
     // transform and visibility are not dependencies because they don't change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodeRef, graph, hasMeasuredNode, id, paper, setMeasuredNode]);
+  }, [nodeRef, graph, id, paper, setMeasuredNode]);
 
   return layout;
 }

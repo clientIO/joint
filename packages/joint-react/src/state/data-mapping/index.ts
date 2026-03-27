@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { FlatElementData, FlatLinkData } from '../../types/data-types';
+import type { CellData } from '../../types/cell-data';
 import type { ToElementAttributesOptions, ToElementDataOptions } from './element-mapper';
 import type { ToLinkAttributesOptions, ToLinkDataOptions } from './link-mapper';
 
@@ -17,20 +17,22 @@ export * from './link-mapper';
 export interface CellAttributes {
   id?: dia.Cell.ID;
   type: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- index signature needed for JointJS cell attribute compatibility
   [key: string]: any;
 }
 
 /**
  * Unified interface for data ↔ attribute mapping functions.
- * Reused across GraphProvider, GraphStore, and graphState.
+ * Reused across GraphProvider, GraphStore, and graphView.
  */
-export interface GraphMappings<ElementData = FlatElementData, LinkData = FlatLinkData> {
+export interface GraphMappings<
+  ElementData extends object = CellData,
+  LinkData extends object = CellData,
+> {
   readonly mapDataToElementAttributes?: (
     options: ToElementAttributesOptions<ElementData>
   ) => CellAttributes;
   readonly mapDataToLinkAttributes?: (options: ToLinkAttributesOptions<LinkData>) => CellAttributes;
-  readonly mapElementAttributesToData?: (
-    options: ToElementDataOptions<ElementData>
-  ) => ElementData;
+  readonly mapElementAttributesToData?: (options: ToElementDataOptions<ElementData>) => ElementData;
   readonly mapLinkAttributesToData?: (options: ToLinkDataOptions<LinkData>) => LinkData;
 }

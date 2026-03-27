@@ -79,6 +79,7 @@ describe('SVGText', () => {
           graphProviderProps: {
             elements: {
               '1': {
+                data: {},
                 width: 120,
                 height: 40,
               },

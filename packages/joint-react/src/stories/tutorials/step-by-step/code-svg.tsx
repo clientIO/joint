@@ -4,18 +4,18 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
   GraphProvider,
   Paper,
-  type GraphProps,
+  useElementSize,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
 
 // define element type with custom properties
-type CustomElement = FlatElementData & { color: string };
+type ElementData = { color: string };
 
 // define initial elements as Record
-const initialElements: Record<string, CustomElement> = {
-  '1': { color: PRIMARY, x: 100, y: 15, width: 100, height: 25 },
-  '2': { color: PRIMARY, x: 100, y: 200, width: 100, height: 25 },
+const initialElements: Record<string, FlatElementData<ElementData>> = {
+  '1': { data: { color: PRIMARY }, x: 100, y: 15, width: 100, height: 25 },
+  '2': { data: { color: PRIMARY }, x: 100, y: 200, width: 100, height: 25 },
 };
 
 // define initial edges as Record
@@ -28,7 +28,8 @@ const initialEdges: Record<string, FlatLinkData> = {
   },
 };
 
-function RenderItem({ width, height, color }: CustomElement) {
+function RenderItem({ color }: Readonly<ElementData>) {
+  const { width, height } = useElementSize();
   return <rect rx={10} ry={10} width={width} height={height} fill={color} />;
 }
 
@@ -40,9 +41,9 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App() {
   return (
-    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
+    <GraphProvider links={initialEdges} elements={initialElements}>
       <Main />
     </GraphProvider>
   );

@@ -7,7 +7,6 @@ import {
   GraphProvider,
   flatLinkDataToAttributes,
   type CellAttributes,
-  type GraphProps,
   type RenderElement,
   type ToLinkAttributesOptions,
   type FlatLinkData,
@@ -71,6 +70,7 @@ function Main() {
 }
 
 interface CustomLink extends FlatLinkData {
+  readonly [key: string]: unknown;
   readonly color: string;
 }
 
@@ -85,9 +85,9 @@ const links: Record<string, CustomLink> = {
 const mapDataToLinkAttributes = (
   options: ToLinkAttributesOptions<FlatLinkData>
 ): CellAttributes => {
-
-  const attributes = flatLinkDataToAttributes(options.data) as CellAttributes;
-  const { color } = options.data as CustomLink;
+  const data = options.data as CustomLink;
+  const attributes = flatLinkDataToAttributes(data) as CellAttributes;
+  const { color } = data;
   return {
     ...attributes,
     type: 'LinkModel',
@@ -95,11 +95,10 @@ const mapDataToLinkAttributes = (
   };
 };
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App() {
   return (
     <GraphProvider
-      {...props}
-      links={links}
+      links={links as Record<string, FlatLinkData>}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
       mapDataToLinkAttributes={mapDataToLinkAttributes}

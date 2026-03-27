@@ -19,9 +19,9 @@ describe('GraphProvider Controlled Mode', () => {
       let elementIds: string[] = [];
 
       function TestComponent() {
-        const elements = useElements((items) => Object.values(items));
+        const elements = useElements((items) => [...items.values()]);
         elementCount = elements.length;
-        elementIds = Object.keys(useElements((items) => items));
+        elementIds = [...useElements((items) => items).keys()];
         return null;
       }
 
@@ -51,9 +51,9 @@ describe('GraphProvider Controlled Mode', () => {
       let elementIds: string[] = [];
 
       function TestComponent() {
-        const elements = useElements((items) => Object.values(items));
+        const elements = useElements((items) => [...items.values()]);
         elementCount = elements.length;
-        elementIds = Object.keys(useElements((items) => items));
+        elementIds = [...useElements((items) => items).keys()];
         return null;
       }
 
@@ -95,7 +95,6 @@ describe('GraphProvider Controlled Mode', () => {
         '1': { width: 100, height: 100 },
       };
       const initialLink: FlatLinkData = {
-        type: 'standard.Link',
         source: '1',
         target: '2',
       };
@@ -104,8 +103,8 @@ describe('GraphProvider Controlled Mode', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => Object.keys(items).length);
-        linkCount = useLinks((items) => Object.keys(items).length);
+        elementCount = useElements((items) => items.size);
+        linkCount = useLinks((items) => items.size);
         return null;
       }
 
@@ -155,12 +154,10 @@ describe('GraphProvider Controlled Mode', () => {
       act(() => {
         setLinksExternal?.({
           'link1': {
-            type: 'standard.Link',
             source: '1',
             target: '2',
           },
           'link2': {
-            type: 'standard.Link',
             source: '2',
             target: '1',
           },
@@ -183,7 +180,7 @@ describe('GraphProvider Controlled Mode', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        const count = useElements((items) => Object.keys(items).length);
+        const count = useElements((items) => items.size);
         elementCount = count;
         return null;
       }
@@ -241,7 +238,7 @@ describe('GraphProvider Controlled Mode', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => Object.keys(items).length);
+        elementCount = useElements((items) => items.size);
         return null;
       }
 
@@ -292,7 +289,6 @@ describe('GraphProvider Controlled Mode', () => {
         '1': { width: 100, height: 100 },
       };
       const initialLink: FlatLinkData = {
-        type: 'standard.Link',
         source: '1',
         target: '2',
       };
@@ -301,8 +297,8 @@ describe('GraphProvider Controlled Mode', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => Object.keys(items).length);
-        linkCount = useLinks((items) => Object.keys(items).length);
+        elementCount = useElements((items) => items.size);
+        linkCount = useLinks((items) => items.size);
         return null;
       }
 
@@ -343,12 +339,10 @@ describe('GraphProvider Controlled Mode', () => {
         });
         setLinksExternal?.({
           'link1': {
-            type: 'standard.Link',
             source: '1',
             target: '2',
           },
           'link2': {
-            type: 'standard.Link',
             source: '2',
             target: '1',
           },
@@ -372,7 +366,7 @@ describe('GraphProvider Controlled Mode', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        const count = useElements((items) => Object.keys(items).length);
+        const count = useElements((items) => items.size);
         elementCount = count;
         return null;
       }
@@ -433,7 +427,7 @@ describe('GraphProvider Controlled Mode', () => {
       };
 
       let reactStateElements: Record<string, FlatElementData> = {};
-      let storeElements: Record<string, FlatElementData> = {};
+      let storeElements: Map<string, FlatElementData> = new Map();
 
       function TestComponent() {
         storeElements = useElements((items) => items);
@@ -478,7 +472,7 @@ describe('GraphProvider Controlled Mode', () => {
 
       await waitFor(() => {
         expect(Object.keys(reactStateElements).length).toBe(1);
-        expect(Object.keys(storeElements).length).toBe(1);
+        expect(storeElements.size).toBe(1);
       });
 
       // Simulate user interaction
@@ -490,9 +484,9 @@ describe('GraphProvider Controlled Mode', () => {
       await waitFor(
         () => {
           expect(Object.keys(reactStateElements).length).toBe(2);
-          expect(Object.keys(storeElements).length).toBe(2);
+          expect(storeElements.size).toBe(2);
           expect(reactStateElements['2']).toBeDefined();
-          expect(storeElements['2']).toBeDefined();
+          expect(storeElements.get('2')).toBeDefined();
         },
         { timeout: 3000 }
       );
@@ -626,7 +620,7 @@ describe('GraphProvider Controlled Mode', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => Object.keys(items).length);
+        elementCount = useElements((items) => items.size);
         return null;
       }
 
@@ -675,8 +669,8 @@ describe('GraphProvider Controlled Mode', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElements((items) => Object.keys(items).length);
-        linkCount = useLinks((items) => Object.keys(items).length);
+        elementCount = useElements((items) => items.size);
+        linkCount = useLinks((items) => items.size);
         return null;
       }
 

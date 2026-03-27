@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useId, useRef } from 'react';
 import type { FlatLinkData, FlatElementData } from '@joint/react';
-import { GraphProvider, jsx, Paper, usePaperEvents } from '@joint/react';
+import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
 
@@ -19,11 +19,9 @@ const ShapeTypes = {
 
 type ShapeType = typeof ShapeTypes[keyof typeof ShapeTypes];
 
-interface BaseElement extends FlatElementData {
+interface BaseElement {
   readonly shapeType: ShapeType;
   readonly label?: string;
-  readonly width: number;
-  readonly height: number;
 }
 
 interface SquareElement extends BaseElement {
@@ -108,33 +106,30 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 // ----------------------------------------------------------------------------
 // Initial Data
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, CustomElement> = {
+const initialElements: Record<string, FlatElementData<CustomElement>> = {
   square1: {
-    shapeType: ShapeTypes.square,
-    label: 'S1',
+    data: { shapeType: ShapeTypes.square, label: 'S1' },
     x: 100,
     y: 100,
     width: 80,
     height: 80,
   },
   square2: {
-    shapeType: ShapeTypes.square,
-    label: 'S2',
+    data: { shapeType: ShapeTypes.square, label: 'S2' },
     x: 340,
     y: 100,
     width: 80,
     height: 80,
   },
   ellipse1: {
-    shapeType: ShapeTypes.ellipse,
-    label: 'E',
+    data: { shapeType: ShapeTypes.ellipse, label: 'E' },
     x: 220,
     y: 300,
     width: 80,
     height: 80,
   },
   rectangle1: {
-    shapeType: ShapeTypes.rectangle,
+    data: { shapeType: ShapeTypes.rectangle },
     x: 100,
     y: 500,
     width: 320,
@@ -217,7 +212,8 @@ const AnchorsHighlighter = dia.HighlighterView.extend({
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function Rectangle({ width, height, label }: Readonly<SquareElement | RectangleElement>) {
+function Rectangle({ label }: Readonly<SquareElement | RectangleElement>) {
+  const { width, height } = useElementSize();
   return (
     <>
       <path
@@ -243,7 +239,8 @@ function Rectangle({ width, height, label }: Readonly<SquareElement | RectangleE
   );
 }
 
-function Ellipse({ width, height, label }: Readonly<EllipseElement>) {
+function Ellipse({ label }: Readonly<EllipseElement>) {
+  const { width, height } = useElementSize();
   return (
     <>
       <ellipse

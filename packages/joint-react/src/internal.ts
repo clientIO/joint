@@ -4,7 +4,7 @@
 
 // Internal Hooks
 export { useGraphStore } from './hooks/use-graph-store';
-export { useStore, useData, useInternalData } from './hooks/use-stores';
+export { useInternalData } from './hooks/use-stores';
 export { useImperativeApi } from './hooks/use-imperative-api';
 export { useElementViews } from './hooks/use-element-views';
 export type { OnPaperRenderElement } from './hooks/use-element-views';
@@ -32,17 +32,12 @@ export { FeaturesProvider } from './components';
 // Store Classes
 export { GraphStore, DEFAULT_CELL_NAMESPACE } from './store/graph-store';
 export type {
-  GraphDataState,
   GraphStoreInternalSnapshot,
-  GraphLayoutState as GraphStoreLayoutSnapshot,
-} from './state/state.types';
+  PaperStoreState,
+} from './store/graph-store';
 export type { GraphStoreOptions } from './store/graph-store';
 export { PaperStore } from './store/paper-store';
-export type { PaperStoreState } from './state/state.types';
 export type { PaperStoreOptions, AddPaperOptions } from './store/paper-store';
-
-// Graph State
-export type { GraphState } from './state/graph-state';
 
 // Contexts
 export {
@@ -54,8 +49,7 @@ export {
 } from './context';
 
 // State Primitives
-export { createState } from './utils/create-state';
-export type { ExternalStoreLike, State } from './utils/create-state';
+export { createAtom, type Atom } from './store/state-container';
 
 // Data-Mapping Defaults
 export {

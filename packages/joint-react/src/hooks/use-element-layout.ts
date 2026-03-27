@@ -1,17 +1,25 @@
-import { useContext } from 'react';
-import { useElementsLayout, useInternalData } from './use-stores';
+import { useCallback, useContext } from 'react';
 import type { CellId } from '../types/cell-id';
 import { CellIdContext } from '../context';
 import { isStrictEqual } from '../utils/selector-utils';
-import type { ElementLayout } from '../state/state.types';
-import { usePaper } from './use-paper';
+import type { ElementLayout } from '../types/cell-data';
+import { useGraphStore } from './use-graph-store';
+import { useContainerItem } from './use-container-item';
+
+/** Default layout returned when element has no layout data yet. */
 export const DEFAULT_LAYOUT: ElementLayout = {
   x: 0,
   y: 0,
-  width: 1,
-  height: 1,
   angle: 0,
+  height: 0,
+  width: 0,
 };
+
+/**
+ * Structural equality for full ElementLayout objects.
+ * @param a
+ * @param b
+ */
 const IS_EQUAL = (a: ElementLayout | undefined, b: ElementLayout | undefined): boolean => {
   if (a === b) return true;
   if (!a || !b) return false;
@@ -26,7 +34,7 @@ const IS_EQUAL = (a: ElementLayout | undefined, b: ElementLayout | undefined): b
 
 /**
  * Hook to get layout data (geometry) for a specific node.
- * Returns width, height, x, and y from the actual graph cell.
+ * Uses per-ID subscription via useContainerItem — only re-renders when THIS element's layout changes.
  * @returns The layout data (x, y, width, height, angle), selected data, or undefined if not found.
  * @group Hooks
  * @example
@@ -67,6 +75,9 @@ export function useElementLayout<S>(
   isEqual?: (a: S, b: S) => boolean
 ): ElementLayout | S | undefined {
   const contextId = useContext(CellIdContext);
+  const {
+    graphView: { elementsLayout },
+  } = useGraphStore();
 
   const isFirstArgumentSelector = typeof idOrSelector === 'function';
   const actualId = isFirstArgumentSelector ? contextId : (idOrSelector ?? contextId);
@@ -76,17 +87,12 @@ export function useElementLayout<S>(
 
   if (isFirstArgumentSelector) {
     actualSelector = idOrSelector;
-    // When user provides a custom selector, use their isEqual or Object.is (not IS_EQUAL).
     actualIsEqual = selectorOrIsEqual as ((a: S, b: S) => boolean) | undefined;
   } else {
     actualSelector = selectorOrIsEqual as ((layout: ElementLayout | undefined) => S) | undefined;
-    // When no selector: use IS_EQUAL for structural comparison of the full layout object.
-    // When selector provided: use their isEqual or fall through to Object.is.
     actualIsEqual = isEqual;
   }
 
-  // Default: IS_EQUAL when no selector (comparing full layout objects),
-  // isStrictEqual when selector is provided (comparing arbitrary return values).
   const defaultIsEqual = actualSelector
     ? (isStrictEqual as (a: S, b: S) => boolean)
     : (IS_EQUAL as (a: S, b: S) => boolean);
@@ -96,57 +102,35 @@ export function useElementLayout<S>(
     throw new Error('useElementLayout must be used inside Paper renderElement');
   }
 
-  return useElementsLayout((snapshot) => {
-    const angle = snapshot.angles[actualId];
-    const size = snapshot.sizes[actualId];
-    const position = snapshot.positions[actualId];
-    if (!size || !position) {
+  // Compose the selector: apply user selector if provided, otherwise return full layout
+  const composedSelector = useCallback(
+    (layout: ElementLayout): S => {
+      if (actualSelector) {
+        return actualSelector(layout);
+      }
+      return layout as S;
+    },
+    [actualSelector]
+  );
+
+  // Use per-ID subscription via useContainerItem — only fires when THIS element's layout changes
+  const result = useContainerItem(elementsLayout, actualId, composedSelector, resolvedIsEqual);
+
+  // When called without explicit ID (inside renderElement), default to DEFAULT_LAYOUT
+  // When called with explicit ID and element doesn't exist, return undefined
+  if (!actualSelector && result === undefined) {
+    const hasExplicitId = !isFirstArgumentSelector && idOrSelector !== undefined;
+    if (hasExplicitId) {
       return undefined as S;
     }
-    if (actualSelector) {
-      return actualSelector({
-        x: position.x,
-        y: position.y,
-        width: size.width,
-        height: size.height,
-        angle: angle ?? 0,
-      });
-    }
-    return {
-      x: position.x,
-      y: position.y,
-      width: size.width,
-      height: size.height,
-      angle: angle ?? 0,
-    } as S;
-  }, resolvedIsEqual);
-}
-
-/**
- * Hook to determine if an element is currently being dragged, based on changes in its layout.
- * Returns `true` if the element's position has changed since the last render, indicating a drag operation.
- * @returns `true` if the element is being dragged, otherwise `false`.
- * @group Hooks
- * @example
- * ```tsx
- * const isDragging = useIsElementDragging();
- * ```
- * Must be used within a component that has access to an element ID via context (e.g. inside `renderElement`).
- */
-
-export function useIsElementDragging(id?: string) {
-  const contextId = useContext(CellIdContext);
-  const actualId = id ?? contextId;
-  if (!actualId) {
-    throw new Error(
-      'useIsElementDragging must be provided either by an explicit ID or used inside Paper renderElement'
-    );
+    return DEFAULT_LAYOUT as S;
   }
-  const {
-    paper: { id: paperId = '' },
-  } = usePaper();
 
-  return useInternalData(({ papers }) => {
-    return papers[paperId].controlState?.draggingIds?.[actualId] ?? false;
-  });
+  // When selector provided, let it handle undefined by passing undefined through
+  if (actualSelector && result === undefined) {
+    // eslint-disable-next-line unicorn/no-useless-undefined -- TypeScript requires explicit argument for non-optional parameter
+    return actualSelector(undefined);
+  }
+
+  return result as S;
 }

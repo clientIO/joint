@@ -56,6 +56,7 @@ describe('PortalPaper', () => {
       },
       cellNamespace: DEFAULT_CELL_NAMESPACE,
       async: false, // Synchronous for testing
+      frozen: false, // Override PresetPaper default (frozen: true) for synchronous tests
       ...options,
     });
   }

@@ -3,18 +3,31 @@
 import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 
-import { GraphProvider, Paper, type RenderLink, useElementId, useLinkLayout } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  type FlatElementData,
+  type FlatLinkData,
+  type RenderLink,
+  useElementId,
+  useLinkLayout,
+} from '@joint/react';
 import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { PORTAL_LINK_TYPE } from '../../../models/portal-link';
 
-const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 15 },
-  '2': { label: 'Node 2', x: 100, y: 200 },
-  '3': { label: 'Node 3', x: 300, y: 100 },
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
+  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
+  '3': { data: { label: 'Node 3' }, x: 300, y: 100 },
 };
 
-const initialLinks: Record<string, { type: string; source: string; target: string }> = {
+const initialLinks: Record<string, FlatLinkData & { type: string }> = {
   'link-1': {
     type: PORTAL_LINK_TYPE,
     source: '1',
@@ -59,7 +72,7 @@ function LinkPath() {
 
 function Main({ usePortalLinks }: Readonly<{ usePortalLinks: boolean }>) {
   const renderElement = useCallback(
-    (element: { label: string }) => <HTMLNode className="node">{element.label}</HTMLNode>,
+    (element: NodeData) => <HTMLNode className="node">{element.label}</HTMLNode>,
     []
   );
 
@@ -81,7 +94,7 @@ export default function App() {
   const [usePortalLinks, setUsePortalLinks] = useState(true);
 
   return (
-    <GraphProvider elements={initialElements} links={initialLinks}>
+    <GraphProvider elements={initialElements} links={initialLinks} enableBatchUpdates>
       <div className="flex flex-col gap-2">
         <button
           type="button"

@@ -1,6 +1,19 @@
+/**
+ * Element size observer with stack-based multi-hook support.
+ *
+ * Tracks DOM element sizes via ResizeObserver and syncs them to the graph.
+ * Multiple `useMeasureNode` hooks can target the same cell ID — only the
+ * most recently added (active) node is observed. When it unmounts, the
+ * previous node in the stack becomes active again.
+ *
+ * Internal data structures:
+ * - `observedStacksByCellId`  — `Map<CellId, ObservedElement[]>` (last = active)
+ * - `activeObservedElementByDomNode` — `WeakMap` for O(1) lookup in the ResizeObserver callback
+ */
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { ElementLayout, ElementsLayoutState, GraphLayoutState } from '../state/state.types';
+import type { ElementLayout } from '../types/cell-data';
+import type { ElementLayout as ElementLayoutType } from '../types/cell-data';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // Epsilon value to avoid jitter due to sub-pixel rendering
@@ -73,7 +86,7 @@ interface Options {
     id: CellId
   ) => ElementLayoutOptionalXY & { element: dia.Element; angle: number };
   /** Function to get the current public snapshot containing all elements */
-  readonly getLayoutSnapshot: () => GraphLayoutState;
+  readonly getLayoutSnapshot: () => { elements: Map<string, ElementLayoutType> };
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (data: Record<CellId, ElementLayoutOptionalXY>) => void;
   readonly onObserveElement: (options: ObserveElementOptions) => void;
@@ -120,7 +133,7 @@ interface ProcessSizeChangeOptions {
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly snapshot: ElementsLayoutState;
+  readonly snapshot: Map<string, ElementLayoutType>;
   readonly mutableLayouts: Record<CellId, ElementLayoutOptionalXY>;
 }
 
@@ -140,9 +153,9 @@ function processSizeChange(options: ProcessSizeChangeOptions): boolean {
     mutableLayouts,
   } = options;
   const currentCellTransform = getCellTransform(observedElement.id);
-  const size = snapshot.sizes[observedElement.id];
+  const layout = snapshot.get(observedElement.id);
 
-  if (!size) {
+  if (!layout) {
     return false;
   }
 
@@ -201,23 +214,48 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     getLayoutSnapshot: getPublicSnapshot,
     onObserveElement,
   } = options;
-  const observedElementsByCellId = new Map<CellId, ObservedElement>();
-  const observedElementsByDomElement = new WeakMap<HTMLElement | SVGElement, ObservedElement>();
+
+  // Stack per cell ID: last entry is the active (observed) node.
+  // When the active node unmounts, the previous one becomes active again.
+  const observedStacksByCellId = new Map<CellId, ObservedElement[]>();
+
+  // Maps only the active DOM node to its ObservedElement for O(1) lookup in the ResizeObserver callback.
+  const activeObservedElementByDomNode = new WeakMap<HTMLElement | SVGElement, ObservedElement>();
+
+  // eslint-disable-next-line jsdoc/require-param, jsdoc/require-returns
+  /** Returns the active (last) element from the stack, or `undefined` if empty. */
+  function getActiveElement(stack: readonly ObservedElement[]): ObservedElement | undefined {
+    return stack.at(-1);
+  }
+
+  // eslint-disable-next-line jsdoc/require-param
+  /** Starts observing the given element and registers it in the active DOM node lookup. */
+  function activateElement(observedElement: ObservedElement) {
+    observer.observe(observedElement.node, resizeObserverOptions);
+    activeObservedElementByDomNode.set(observedElement.node, observedElement);
+  }
+
+  // eslint-disable-next-line jsdoc/require-param
+  /** Stops observing the given element and removes it from the active DOM node lookup. */
+  function deactivateElement(observedElement: ObservedElement) {
+    observer.unobserve(observedElement.node);
+    activeObservedElementByDomNode.delete(observedElement.node);
+  }
 
   const observer = new ResizeObserver((entries) => {
     let hasAnySizeChange = false;
     const { elements } = getPublicSnapshot();
     const mutableLayouts: Record<CellId, ElementLayoutOptionalXY> = {};
+
     for (const entry of entries) {
-      // We must be careful to not mutate the snapshot data.
       const { target, borderBoxSize } = entry;
-      const observedElement = observedElementsByDomElement.get(target as HTMLElement | SVGElement);
+      const observedElement = activeObservedElementByDomNode.get(
+        target as HTMLElement | SVGElement
+      );
       if (!observedElement) continue;
 
-      if (!observedElement) continue;
       observedElement.visibilityNode?.style.removeProperty('visibility');
 
-      // If borderBoxSize is not available or empty, continue to the next entry.
       if (!borderBoxSize || borderBoxSize.length === 0) {
         continue;
       }
@@ -240,7 +278,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         observedElement,
         getCellTransform,
         mutableLayouts,
-        snapshot: elements,
+        snapshot: elements as Map<string, ElementLayoutType>,
       });
 
       if (wasUpdated) {
@@ -258,6 +296,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
   return {
     add({ id, node, transform, visibilityNode }: SetMeasuredNodeOptions) {
       visibilityNode?.style.setProperty('visibility', 'hidden');
+
       const observedElement: ObservedElement = {
         id,
         node,
@@ -265,26 +304,78 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         transform,
         isMeasured: false,
       };
-      observer.observe(node, resizeObserverOptions);
-      observedElementsByCellId.set(id, observedElement);
-      observedElementsByDomElement.set(node, observedElement);
-      onObserveElement({ id, isRemoved: false, observedElements: observedElementsByCellId.size });
+
+      let stack = observedStacksByCellId.get(id);
+      const isFirstForCellId = !stack || stack.length === 0;
+
+      if (!stack) {
+        stack = [];
+        observedStacksByCellId.set(id, stack);
+      }
+
+      // Deactivate the current active node before pushing the new one
+      const previousActive = getActiveElement(stack);
+      if (previousActive) {
+        deactivateElement(previousActive);
+      }
+
+      stack.push(observedElement);
+      activateElement(observedElement);
+
+      if (isFirstForCellId) {
+        onObserveElement({
+          id,
+          isRemoved: false,
+          observedElements: observedStacksByCellId.size,
+        });
+      }
+
       return () => {
-        observer.unobserve(node);
-        observedElementsByCellId.delete(id);
-        observedElementsByDomElement.delete(node);
-        onObserveElement({ id, isRemoved: true, observedElements: observedElementsByCellId.size });
+        const currentStack = observedStacksByCellId.get(id);
+        if (!currentStack) return;
+
+        const isActive = getActiveElement(currentStack) === observedElement;
+
+        if (isActive) {
+          deactivateElement(observedElement);
+          currentStack.pop();
+
+          // Fall back to the previous node in the stack
+          const newActive = getActiveElement(currentStack);
+          if (newActive) {
+            activateElement(newActive);
+          }
+        } else {
+          // Remove non-active entry from the middle of the stack
+          const index = currentStack.indexOf(observedElement);
+          if (index !== -1) {
+            currentStack.splice(index, 1);
+          }
+        }
+
+        if (currentStack.length === 0) {
+          observedStacksByCellId.delete(id);
+          onObserveElement({
+            id,
+            isRemoved: true,
+            observedElements: observedStacksByCellId.size,
+          });
+        }
       };
     },
     clean() {
-      for (const [, { node }] of observedElementsByCellId.entries()) {
-        observer.unobserve(node);
+      // cleanup all observed nodes and clear all stacks
+      for (const [, stack] of observedStacksByCellId.entries()) {
+        for (const { node } of stack) {
+          observer.unobserve(node);
+        }
       }
-      observedElementsByCellId.clear();
+      observedStacksByCellId.clear();
       observer.disconnect();
     },
     has(id: CellId) {
-      return observedElementsByCellId.has(id);
+      const stack = observedStacksByCellId.get(id);
+      return !!stack && stack.length > 0;
     },
   };
 }

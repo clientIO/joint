@@ -1,64 +1,64 @@
+/* eslint-disable @typescript-eslint/unified-signatures */
+import { useMemo } from 'react';
+import type { CellData, FlatElementData } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
-import type { FlatElementData } from '../types/data-types';
-import { useData } from './use-stores';
-import { isStrictEqual, identitySelector } from '../utils/selector-utils';
+import { useGraphStore } from './use-graph-store';
+import { useContainerItems } from './use-container-items';
 
 /**
- * A hook to access `dia.graph` elements
+ * Hook to access full element items (`FlatElementData`) from the graph.
  *
- * This hook returns the selected elements from the graph store. It accepts:
- * - a selector function, which extracts the desired portion from the elements record.
- * - an optional `isEqual` function, used to compare previous and new values—ensuring
- * the component only re-renders when necessary.
+ * Returns items with `data`, `x`, `y`, `width`, `height`, `angle`, `ports`, etc.
  *
- * How it works:
- * 1. The hook subscribes to the elements of the graph store.
- * 2. It fetches the elements from the store and then applies the selector.
- * 3. To avoid unnecessary re-renders (especially since the selector could produce new
- * references on each call), the `isEqual` comparator (defaulting to strict equality via `Object.is`)
- * checks if the selected value really changed.
+ * Supports 3 call signatures:
+ *
+ * - **No args**: returns all elements as a stable `Map<CellId, FlatElementData>`.
+ * - **IDs**: returns a filtered subset. Subscribes per-ID — best performance for known subsets.
+ * - **Selector**: applies a selector over the full `Map`. Re-renders only when the selector output changes.
+ *
  * @example
- * Using without a selector (returns all elements as a Record):
  * ```tsx
- * const elements = useElements();
- * // elements is Record<CellId, FlatElementData>
- * ```
- * @example
- * Using with a selector (extract part of each element):
- * ```tsx
- * const elementIds = useElements((elements) => Object.keys(elements));
- * ```
- * @example
- * Using with a selector (extract specific element by id):
- * ```tsx
- * const maybeElementById = useElements((elements) => elements['id']);
- * ```
- * @example
- * Using with a custom isEqual function (e.g. comparing the count of elements):
- * ```tsx
- * const elementCount = useElements(
- *   (elements) => elements,
- *   (prev, next) => Object.keys(prev).length === Object.keys(next).length
- * );
+ * const all = useElements();
+ * const subset = useElements('id1', 'id2');
+ * const count = useElements((items) => items.size);
  * ```
  * @group Hooks
- * @param selector - A function to select a portion of the elements.
- * @param isEqual - A function to compare the previous and new values.
- * @returns - The selected elements.
  */
-export function useElements<
-  ElementData = FlatElementData,
-  SelectorReturnType = Record<CellId, ElementData>,
->(
-  selector: (
-    items: Record<CellId, ElementData>
-  ) => SelectorReturnType = identitySelector as () => SelectorReturnType,
-  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = isStrictEqual as (
-    a: SelectorReturnType,
-    b: SelectorReturnType
-  ) => boolean
-): SelectorReturnType {
-  return useData((snapshot) => {
-    return selector(snapshot.elements as Record<CellId, ElementData>);
-  }, isEqual);
+export function useElements<T extends object = CellData>(): Map<CellId, FlatElementData<T>>;
+export function useElements<T extends object = CellData>(
+  ...ids: [string, ...string[]]
+): Map<CellId, FlatElementData<T>>;
+export function useElements<T extends CellData, S>(
+  selector: (items: Map<CellId, FlatElementData<T>>) => S,
+  isEqual?: (a: S, b: S) => boolean
+): S;
+export function useElements<S = Map<CellId, FlatElementData>>(
+  ...args:
+    | []
+    | [string, ...string[]]
+    | [(items: Map<CellId, FlatElementData>) => S, ((a: S, b: S) => boolean)?]
+): Map<CellId, FlatElementData> | S {
+  const {
+    graphView: { elements },
+  } = useGraphStore();
+
+  const isSelectorMode = typeof args[0] === 'function';
+  const ids = isSelectorMode ? undefined : (args as string[]);
+
+  const stableIds = useMemo(
+    () => (ids && ids.length > 0 ? ids : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ids?.join(',')]
+  );
+
+  const idsOrSelector = isSelectorMode
+    ? (args[0] as (items: Map<string, FlatElementData>) => S)
+    : stableIds;
+  const isEqual = isSelectorMode ? (args[1] as ((a: S, b: S) => boolean) | undefined) : undefined;
+
+  return useContainerItems(
+    elements,
+    idsOrSelector as (items: Map<string, FlatElementData>) => S,
+    isEqual
+  ) as Map<CellId, FlatElementData> | S;
 }

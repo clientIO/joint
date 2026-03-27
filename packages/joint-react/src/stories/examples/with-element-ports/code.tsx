@@ -7,7 +7,6 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  useElements,
   flatElementDataToAttributes,
   type CellAttributes,
   type ToElementAttributesOptions,
@@ -15,6 +14,8 @@ import {
   type FlatElementPort,
   type FlatLinkData,
   type RenderElement,
+  useElementSize,
+  useElements,
 } from '@joint/react';
 import { useCallback } from 'react';
 
@@ -28,7 +29,14 @@ function trianglePath(w: number, h: number) {
 }
 
 function roundedRectPath(w: number, h: number) {
-  return V.rectToPath({ x: -w / 2, y: -h / 2, width: w, height: h, rx: Math.min(w, h) / 4, ry: Math.min(w, h) / 4 });
+  return V.rectToPath({
+    x: -w / 2,
+    y: -h / 2,
+    width: w,
+    height: h,
+    rx: Math.min(w, h) / 4,
+    ry: Math.min(w, h) / 4,
+  });
 }
 
 const SHAPE_OPTIONS = [
@@ -45,12 +53,22 @@ function resolveShape(shape: string, w: number, h: number): string {
   return shape;
 }
 
+// --- Data types ---
+
+interface PortNodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+  readonly color: string;
+}
+
 /**
  * Custom mapper that resolves named custom shapes (`triangle`, `rounded-rect`)
  * into SVG path strings sized to each port's width/height, then delegates
  * to the default flat mapper via `flatElementDataToAttributes`.
  */
-function mapDataToElementAttributes(options: ToElementAttributesOptions<PortElementData>) {
+function mapDataToElementAttributes(
+  options: ToElementAttributesOptions<FlatElementData<PortNodeData>>
+) {
   const { data } = options;
   const { ports, portStyle } = data;
   if (!ports) return flatElementDataToAttributes(data);
@@ -93,15 +111,9 @@ function getShapeLabel(shape: string): string {
   return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
 }
 
-interface PortElementData extends FlatElementData {
-  readonly label: string;
-  readonly color: string;
-}
-
-const initialElements: Record<string, PortElementData> = {
+const initialElements: Record<string, FlatElementData<PortNodeData>> = {
   'node-1': {
-    label: 'Node 1',
-    color: PRIMARY,
+    data: { label: 'Node 1', color: PRIMARY },
     x: 50,
     y: 100,
     width: 140,
@@ -125,8 +137,7 @@ const initialElements: Record<string, PortElementData> = {
     },
   },
   'node-2': {
-    label: 'Node 2',
-    color: SECONDARY,
+    data: { label: 'Node 2', color: SECONDARY },
     x: 350,
     y: 100,
     width: 140,
@@ -203,7 +214,8 @@ const rowStyle = {
 
 // --- Element Shape ---
 
-function ElementShape({ width = 0, height = 0, label, color }: Readonly<PortElementData>) {
+function ElementShape({ color, label }: Readonly<PortNodeData>) {
+  const { width, height } = useElementSize();
   return (
     <>
       <rect
@@ -395,11 +407,12 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
 interface ElementPortControlsProps {
   readonly id: string;
-  readonly element: PortElementData;
+  readonly element: FlatElementData<PortNodeData>;
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
   const portEntries = Object.entries(element.ports ?? {});
+  const { label } = element.data ?? { label: '' };
 
   return (
     <div
@@ -412,7 +425,7 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
       }}
     >
       <div style={{ fontWeight: 600, color: '#1f2937', fontSize: 13 }}>
-        {element.label}
+        {label}
         <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
           {portEntries.length} port{portEntries.length === 1 ? '' : 's'}
         </span>
@@ -428,16 +441,9 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
 // --- Main ---
 
 function Main() {
-  const elements = useElements<PortElementData>();
-  const renderElement: RenderElement<PortElementData> = useCallback(
-    (props) => (
-      <ElementShape
-        width={props.width}
-        height={props.height}
-        label={props.label}
-        color={props.color}
-      />
-    ),
+  const elements = useElements<PortNodeData>();
+  const renderElement: RenderElement<PortNodeData> = useCallback(
+    (props) => <ElementShape {...props} />,
     []
   );
 
@@ -488,7 +494,7 @@ function Main() {
           Port Properties
         </div>
 
-        {Object.entries(elements).map(([id, element]) => (
+        {[...elements.entries()].map(([id, element]) => (
           <ElementPortControls key={id} id={id} element={element} />
         ))}
       </div>
@@ -498,7 +504,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider
+    <GraphProvider<PortNodeData>
       elements={initialElements}
       links={initialLinks}
       mapDataToElementAttributes={mapDataToElementAttributes}

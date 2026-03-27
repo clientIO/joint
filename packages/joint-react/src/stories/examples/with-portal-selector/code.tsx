@@ -9,7 +9,7 @@ import {
   usePaper,
   usePaperEvents,
   useMeasureNode,
-  useElementLayout,
+  useElementSize,
   useFlatElementData,
   useFlatLinkData,
   type CellId,
@@ -32,15 +32,16 @@ const PAPER_CLASSNAME = 'border-1 border-gray-300 rounded-lg shadow-md overflow-
 const MINIMAP_WIDTH = 200;
 const MINIMAP_HEIGHT = 150;
 
-interface ElementData extends FlatElementData {
+interface ElementUserData {
+  readonly [key: string]: unknown;
   readonly type?: 'default' | 'error' | 'info';
   readonly title?: string;
   readonly color?: string;
   readonly jjType?: string;
 }
 
-interface LinkData extends FlatLinkData {
-  readonly className?: string;
+interface LinkUserData {
+  readonly [key: string]: unknown;
   readonly jjType?: string;
 }
 
@@ -87,35 +88,34 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const elements: Record<string, ElementData> = {
+const elements: Record<string, FlatElementData<ElementUserData>> = {
   '1': {
+    data: { title: 'This is error element' },
     x: 50,
     y: 110,
     angle: 30,
-    title: 'This is error element',
   },
   '2': {
+    data: { title: 'This is info element' },
     x: 550,
     y: 110,
-    title: 'This is info element',
   },
   '3': {
+    data: { color: '#f87171' },
     x: 50,
     y: 370,
-    color: '#f87171',
   },
   '4': {
+    data: { jjType: 'standard.Cylinder', color: '#60a5fa' },
     x: 550,
     y: 370,
     width: 100,
     height: 150,
-    jjType: 'standard.Cylinder',
-    color: '#60a5fa',
   },
 };
 
 // Links now use built-in theme properties: color, width, sourceMarker, targetMarker
-const links: Record<string, LinkData> = {
+const links: Record<string, FlatLinkData<LinkUserData>> = {
   link1: {
     source: '1',
     target: '2',
@@ -132,9 +132,9 @@ const links: Record<string, LinkData> = {
     // targetMarker: 'cross' as LinkMarkerName,
   },
   link3: {
+    data: { jjType: 'standard.ShadowLink' },
     source: '2',
     target: '4',
-    jjType: 'standard.ShadowLink',
     color: 'purple',
   },
 };
@@ -196,11 +196,8 @@ function Shape({
   );
 }
 
-function MinimapShape({ color = 'lightgray' }: Readonly<{ color?: string }>) {
-  const layout = useElementLayout();
-  if (!layout) return null;
-
-  const { width, height } = layout;
+function MinimapShape({ color = 'lightgray' }: Readonly<ElementUserData>) {
+  const { width, height } = useElementSize();
   return <rect width={width} height={height} fill={color} rx={10} ry={10} />;
 }
 
@@ -209,7 +206,7 @@ function MinimapShape({ color = 'lightgray' }: Readonly<{ color?: string }>) {
 // ============================================================================
 
 function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
-  const renderElement: RenderElement<ElementData> = useCallback(
+  const renderElement: RenderElement<ElementUserData> = useCallback(
     ({ color = 'white' }) => <MinimapShape color={color} />,
     []
   );
@@ -219,7 +216,7 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
   useEffect(() => {
     const { width, height } = paper.getComputedSize();
     const nextScale = Math.min(MINIMAP_WIDTH / width, MINIMAP_HEIGHT / height);
-    setScale(nextScale);
+    setScale(nextScale); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Derive scale from paper dimensions
   }, [paper]);
 
   return (
@@ -296,12 +293,12 @@ function RenderElementWithBadge({
   jjType,
   color = 'lightgray',
   title = 'No Title',
-}: Readonly<ElementData>) {
-  const layout = useElementLayout();
+}: Readonly<ElementUserData>) {
+  const { width } = useElementSize();
   return (
     <>
       {jjType ?? <Shape color={color} title={title} />}
-      <Badge x={layout.width + 10} y={-10} size={10} color={color} />
+      <Badge x={width + 10} y={-10} size={10} color={color} />
     </>
   );
 }
@@ -312,7 +309,7 @@ function Main() {
   const [showMinimap, setShowMinimap] = useState(false);
   const [selectedElement, setSelectedElement] = useState<CellId | null>(null);
 
-  const renderElement = useCallback((data: ElementData) => {
+  const renderElement = useCallback((data: ElementUserData) => {
     return <RenderElementWithBadge {...data} />;
   }, []);
 
@@ -384,9 +381,10 @@ function Main() {
 // ============================================================================
 
 export default function App() {
-  const elementMappers = useFlatElementData<ElementData>({
+  const elementMappers = useFlatElementData<FlatElementData<ElementUserData>>({
     mapAttributes: ({ attributes, data, graph }) => {
-      const { jjType, color = 'lightgray' } = data;
+      const userData = data.data as ElementUserData | undefined;
+      const { jjType, color = 'lightgray' } = userData ?? {};
       if (!jjType) return attributes;
       const defaults = graph.getTypeDefaults(jjType);
       return {
@@ -400,10 +398,12 @@ export default function App() {
     },
   }, []);
 
-  const linkMappers = useFlatLinkData<LinkData>({
+  const linkMappers = useFlatLinkData<FlatLinkData<LinkUserData>>({
     mapAttributes: ({ attributes, data, graph }) => {
-      const { jjType, color } = data;
+      const userData = data.data as LinkUserData | undefined;
+      const { jjType } = userData ?? {};
       if (!jjType) return attributes;
+      const { color } = data;
       const defaults = graph.getTypeDefaults(jjType);
       return {
         ...attributes,

@@ -5,6 +5,7 @@ import {
   Paper,
   useGraph,
   useElements,
+  useElementSize,
   type FlatElementData,
   type FlatLinkData,
   SVGText,
@@ -22,21 +23,19 @@ const ShapeTypes = {
   bulb: 'bulb',
 } as const;
 
-interface GeneratorElement extends FlatElementData {
+interface GeneratorData {
+  readonly [key: string]: unknown;
   readonly type: typeof ShapeTypes.generator;
-  readonly width: number;
-  readonly height: number;
   readonly power: number;
 }
 
-interface BulbElement extends FlatElementData {
+interface BulbData {
+  readonly [key: string]: unknown;
   readonly type: typeof ShapeTypes.bulb;
-  readonly width: number;
-  readonly height: number;
   readonly watts: number;
 }
 
-type ShapeElement = GeneratorElement | BulbElement;
+type ShapeData = GeneratorData | BulbData;
 
 // ----------------------------------------------------------------------------
 // Constants
@@ -68,30 +67,27 @@ const GENERATOR_ID = 'generator';
 // ----------------------------------------------------------------------------
 // Initial Data
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, ShapeElement> = {
+const initialElements: Record<string, FlatElementData<ShapeData>> = {
   generator: {
-    type: ShapeTypes.generator,
+    data: { type: ShapeTypes.generator, power: 0.9 },
     x: 50,
     y: 50,
     width: 60,
     height: 80,
-    power: 0.9,
   },
   bulb1: {
-    type: ShapeTypes.bulb,
+    data: { type: ShapeTypes.bulb, watts: 100 },
     x: 150,
     y: 45,
     width: 28,
     height: 30,
-    watts: 100,
   },
   bulb2: {
-    type: ShapeTypes.bulb,
+    data: { type: ShapeTypes.bulb, watts: 40 },
     x: 150,
     y: 105,
     width: 28,
     height: 30,
-    watts: 40,
   },
 };
 
@@ -121,7 +117,8 @@ const initialLinks: Record<string, FlatLinkData> = {
 // ----------------------------------------------------------------------------
 // Generator Component
 // ----------------------------------------------------------------------------
-function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
+function GeneratorNode({ power }: Readonly<GeneratorData>) {
+  const { width, height } = useElementSize();
   const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
   const { setElement } = useGraph();
@@ -160,7 +157,10 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
 
   const handleTogglePower = useCallback(() => {
     const newPower = power === 0 ? 1 : 0;
-    setElement(GENERATOR_ID, (previous) => ({ ...previous, power: newPower }));
+    setElement(GENERATOR_ID, (previous) => ({
+      ...previous,
+      data: { ...(previous.data as GeneratorData), power: newPower },
+    }));
   }, [power, setElement]);
 
   return (
@@ -229,13 +229,14 @@ function GeneratorNode({ width, height, power }: Readonly<GeneratorElement>) {
 // ----------------------------------------------------------------------------
 // Bulb Component
 // ----------------------------------------------------------------------------
-function BulbNode({ width, height, watts }: Readonly<BulbElement>) {
+function BulbNode({ watts }: Readonly<BulbData>) {
+  const { width, height } = useElementSize();
   const glassRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
 
   // Read generator power from the store (reactive)
-  const generatorPower = useElements<ShapeElement, number>(
-    (elements) => (elements[GENERATOR_ID] as GeneratorElement)?.power ?? 0
+  const generatorPower = useElements<ShapeData, number>(
+    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.power ?? 0
   );
 
   // Compute light state from generator power (derived state)
@@ -293,7 +294,7 @@ function BulbNode({ width, height, watts }: Readonly<BulbElement>) {
 // ----------------------------------------------------------------------------
 // Render Dispatcher
 // ----------------------------------------------------------------------------
-function RenderShapeElement(props: Readonly<ShapeElement>) {
+function RenderShapeElement(props: Readonly<ShapeData>) {
   switch (props.type) {
     case ShapeTypes.generator: {
       return <GeneratorNode {...props} />;
@@ -311,14 +312,17 @@ function PowerControl() {
   const { setElement } = useGraph();
 
   // Read generator power from store (reactive)
-  const power = useElements<ShapeElement, number>(
-    (elements) => (elements[GENERATOR_ID] as GeneratorElement)?.power ?? 0
+  const power = useElements<ShapeData, number>(
+    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.power ?? 0
   );
 
   const handlePowerChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newPower = event.target.valueAsNumber;
-      setElement(GENERATOR_ID, (previous) => ({ ...previous, power: newPower }));
+      setElement(GENERATOR_ID, (previous) => ({
+        ...previous,
+        data: { ...(previous.data as GeneratorData), power: newPower },
+      }));
     },
     [setElement]
   );
@@ -403,10 +407,7 @@ function Main() {
 // ----------------------------------------------------------------------------
 export default function App() {
   return (
-    <GraphProvider
-      elements={initialElements}
-      links={initialLinks}
-    >
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Main />
     </GraphProvider>
   );

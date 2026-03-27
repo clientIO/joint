@@ -3,7 +3,7 @@ export default {
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   modulePathIgnorePatterns: [String.raw`\.stories\.(ts|tsx)$`],
   transform: {
-    '^.+\\.tsx?$': [
+    '^.+\\.(ts|tsx|js|jsx|mjs)$': [
       '@swc/jest',
       {
         jsc: {
@@ -20,7 +20,8 @@ export default {
       },
     ],
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'], // Recognize file extensions
+  transformIgnorePatterns: ['/node_modules/(?!tinybench)'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'mjs'],
   setupFilesAfterEnv: [
     '<rootDir>/__mocks__/jest-setup.ts',
     '<rootDir>/__mocks__/development-mock.ts',
@@ -33,5 +34,5 @@ export default {
     '^storybook/theming$': '<rootDir>/__mocks__/storybook-mock.ts',
     '^storybook/internal/types$': '<rootDir>/__mocks__/storybook-mock.ts',
   },
-  testMatch: ['<rootDir>/src/**/*.{test,spec}.ts?(x)'], // Only run tests in src folder
+  testMatch: ['<rootDir>/src/**/*.{test,spec}.ts?(x)'],
 };

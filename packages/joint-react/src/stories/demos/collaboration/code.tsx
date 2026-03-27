@@ -12,10 +12,10 @@ import {
   useMeasureNode,
   type FlatElementData,
   type FlatLinkData,
-  type IncrementalStateChanges,
   type RenderElement,
+  type IncrementalContainerChanges,
 } from '@joint/react';
-import { useIsElementDragging, usePaperEvents } from '../../../hooks';
+import { usePaperEvents } from '../../../hooks';
 import Peer, { type DataConnection } from 'peerjs';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { configureStore, createSlice, type PayloadAction } from '@reduxjs/toolkit';
@@ -80,21 +80,25 @@ const USER_COLORS = ['#0071e3', '#ff9f0a', '#30d158', '#ff453a', '#bf5af2', '#64
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
-type AgentNode = FlatElementData & {
+type AgentNodeData = {
   readonly title: string;
   readonly role: string;
   readonly icon: string;
   readonly status: 'online' | 'busy' | 'idle';
 };
 
+type AgentNode = FlatElementData<AgentNodeData>;
+
 const PORT_R = 5;
 
 const initialElements: Record<string, AgentNode> = {
   orchestrator: {
-    title: 'Orchestrator',
-    role: 'Task delegation',
-    icon: 'fas fa-brain',
-    status: 'online',
+    data: {
+      title: 'Orchestrator',
+      role: 'Task delegation',
+      icon: 'fas fa-brain',
+      status: 'online',
+    },
     x: 250,
     y: 60,
     ports: {
@@ -118,10 +122,12 @@ const initialElements: Record<string, AgentNode> = {
     },
   },
   researcher: {
-    title: 'Researcher',
-    role: 'Data gathering',
-    icon: 'fas fa-search',
-    status: 'busy',
+    data: {
+      title: 'Researcher',
+      role: 'Data gathering',
+      icon: 'fas fa-search',
+      status: 'busy',
+    },
     x: 80,
     y: 300,
     ports: {
@@ -145,10 +151,12 @@ const initialElements: Record<string, AgentNode> = {
     },
   },
   writer: {
-    title: 'Writer',
-    role: 'Content creation',
-    icon: 'fas fa-pen-fancy',
-    status: 'idle',
+    data: {
+      title: 'Writer',
+      role: 'Content creation',
+      icon: 'fas fa-pen-fancy',
+      status: 'idle',
+    },
     x: 430,
     y: 300,
     ports: {
@@ -199,58 +207,38 @@ const initialLinks: Record<string, FlatLinkData> = {
 // ── Redux Store ─────────────────────────────────────────────────────────────
 
 interface GraphState {
-  readonly elements: Record<string, FlatElementData>;
+  readonly elements: Record<string, FlatElementData<AgentNodeData>>;
   readonly links: Record<string, FlatLinkData>;
 }
 
 const graphSlice = createSlice({
   name: 'graph',
   initialState: {
-    elements: initialElements as Record<string, FlatElementData>,
-    links: initialLinks as Record<string, FlatLinkData>,
-  } satisfies GraphState,
+    elements: initialElements,
+    links: initialLinks,
+  } satisfies GraphState as GraphState,
   reducers: {
-    applyIncrementalChanges: (state, action: PayloadAction<IncrementalStateChanges>) => {
+    applyIncrementalChanges: (state, action: PayloadAction<CollabChanges>) => {
       const { elements, links } = action.payload;
 
-      if (elements.reset) {
-        state.elements = elements.reset;
-      } else {
-        if (elements.added) {
-          for (const [id, data] of Object.entries(elements.added)) {
-            state.elements[id] = data;
-          }
-        }
-        if (elements.changed) {
-          for (const [id, data] of Object.entries(elements.changed)) {
-            state.elements[id] = data;
-          }
-        }
-        if (elements.removed) {
-          for (const id of Object.keys(elements.removed)) {
-            delete state.elements[id];
-          }
-        }
+      for (const [id, data] of elements.added) {
+        state.elements[id] = data as FlatElementData<AgentNodeData>;
+      }
+      for (const [id, data] of elements.changed) {
+        state.elements[id] = data as FlatElementData<AgentNodeData>;
+      }
+      for (const id of elements.removed) {
+        delete state.elements[id];
       }
 
-      if (links.reset) {
-        state.links = links.reset;
-      } else {
-        if (links.added) {
-          for (const [id, data] of Object.entries(links.added)) {
-            state.links[id] = data;
-          }
-        }
-        if (links.changed) {
-          for (const [id, data] of Object.entries(links.changed)) {
-            state.links[id] = data;
-          }
-        }
-        if (links.removed) {
-          for (const id of Object.keys(links.removed)) {
-            delete state.links[id];
-          }
-        }
+      for (const [id, data] of links.added) {
+        state.links[id] = data as FlatLinkData;
+      }
+      for (const [id, data] of links.changed) {
+        state.links[id] = data as FlatLinkData;
+      }
+      for (const id of links.removed) {
+        delete state.links[id];
       }
     },
   },
@@ -275,9 +263,11 @@ const selectLinks = (state: CollabRootState) => state.graph.links;
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
+type CollabChanges = IncrementalContainerChanges<FlatElementData<AgentNodeData>, FlatLinkData>;
+
 interface SyncMessage {
   readonly type: 'incremental' | 'presence' | 'drag';
-  readonly changes?: IncrementalStateChanges;
+  readonly changes?: CollabChanges;
   readonly userColor?: string;
   readonly userName?: string;
   readonly draggingIds?: string[];
@@ -286,7 +276,7 @@ interface SyncMessage {
 function createPeerManager(callbacks: {
   onPeerId: (id: string) => void;
   onStatus: (status: ConnectionStatus) => void;
-  onRemoteChanges: (changes: IncrementalStateChanges) => void;
+  onRemoteChanges: (changes: CollabChanges) => void;
   onPeerPresence: (color: string, name: string) => void;
   onRemoteDrag: (ids: string[]) => void;
 }) {
@@ -372,7 +362,7 @@ function createPeerManager(callbacks: {
       onStatus('connecting');
       connectTo(remotePeerId);
     },
-    sendChanges(changes: IncrementalStateChanges) {
+    sendChanges(changes: CollabChanges) {
       if (ignoreNext) return;
       const message: SyncMessage = { type: 'incremental', changes };
       for (const conn of outgoing) {
@@ -409,14 +399,12 @@ function createPeerManager(callbacks: {
 
 // ── Node Component ──────────────────────────────────────────────────────────
 
-function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNode>) {
+function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(contentRef);
   const theme = useTheme();
   const { selectorRef } = useMarkup();
-  const isDragging = useIsElementDragging();
   const isDark = theme === DARK;
-  const user = useContext(UserContext);
   const remoteDrag = useContext(RemoteDragContext);
   const elementId = useElementId();
   const isRemoteDragging = remoteDrag.dragging.has(elementId);
@@ -428,9 +416,9 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNode>) {
   };
   const statusColor = statusColors[status] ?? theme.muted;
 
-  const isActive = isDragging || isRemoteDragging;
-  const activeName = isDragging ? 'You' : remoteDrag.name;
-  const activeColor = isDragging ? user.color : remoteDrag.color;
+  const isActive = isRemoteDragging;
+  const activeName = remoteDrag.name;
+  const activeColor = remoteDrag.color;
 
   let borderColor: string = theme.cardBorder;
   if (isActive) borderColor = activeColor;
@@ -442,9 +430,9 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNode>) {
   const cardShadow = isActive ? activeShadow : defaultShadow;
 
   const defaultIconBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-  const iconBg = isDragging ? theme.accent : defaultIconBg;
-  const iconColor = isDragging ? '#fff' : theme.sub;
-  const iconGlow = isDragging && isDark ? `0 0 12px ${theme.accentGlow}` : 'none';
+  const iconBg = defaultIconBg;
+  const iconColor = theme.sub;
+  const iconGlow = 'none';
 
   return (
     <>
@@ -456,11 +444,10 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNode>) {
             width: 220,
             padding: '14px 16px',
             borderRadius: 16,
-            cursor: isDragging ? 'grabbing' : 'grab',
+            cursor: 'grab',
             backgroundColor: theme.card,
             border: `1px solid ${borderColor}`,
             boxShadow: cardShadow,
-            transform: isDragging ? 'scale(1.03)' : 'scale(1)',
             transition: 'transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease',
             backdropFilter: isDark ? 'blur(20px)' : 'none',
             WebkitBackdropFilter: isDark ? 'blur(20px)' : 'none',
@@ -697,7 +684,7 @@ function Toolbar() {
   const isDark = theme === DARK;
   const { setElement } = useGraph();
   const reduxStore = useStore<CollabRootState>();
-  const [simulating, setSimulating] = useState<Set<string>>(new Set());
+  const [simulating, setSimulating] = useState<Set<string>>(() => new Set());
   const intervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
   const toggleSimulate = useCallback(
@@ -771,7 +758,7 @@ function Toolbar() {
     ];
     const pick = agents[Math.floor(Math.random() * agents.length)];
     setElement(id, {
-      ...pick,
+      data: pick,
       x: 100 + Math.random() * 300,
       y: 100 + Math.random() * 300,
       ports: {
@@ -916,7 +903,7 @@ function GraphWithRedux() {
   const [myColor] = useState<string>(
     () => USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]
   );
-  const [remoteDragging, setRemoteDragging] = useState<Set<string>>(new Set());
+  const [remoteDragging, setRemoteDragging] = useState<Set<string>>(() => new Set());
 
   const [manager] = useState(() =>
     createPeerManager({
@@ -947,7 +934,7 @@ function GraphWithRedux() {
   );
 
   const handleIncrementalChange = useCallback(
-    (changes: IncrementalStateChanges) => {
+    (changes: CollabChanges) => {
       dispatch(applyIncrementalChanges(changes));
       manager.sendChanges(changes);
     },
@@ -961,7 +948,7 @@ function GraphWithRedux() {
   }
 
   // Theme element ports
-  const themedElements: Record<string, FlatElementData> = {};
+  const themedElements: Record<string, FlatElementData<AgentNodeData>> = {};
   for (const [id, element] of Object.entries(elements)) {
     themedElements[id] = {
       ...element,
@@ -996,7 +983,7 @@ function GraphWithRedux() {
           name: peerName ? peerName.slice(0, 6) : 'Peer',
         }}
       >
-        <GraphProvider
+        <GraphProvider<AgentNodeData>
           elements={themedElements}
           links={themedLinks}
           onIncrementalChange={handleIncrementalChange}
@@ -1024,7 +1011,7 @@ function GraphWithRedux() {
               return magnetT?.getAttribute('magnet') === 'passive';
             }}
             interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
-            renderElement={RenderAgentNode as unknown as RenderElement}
+            renderElement={RenderAgentNode as RenderElement<AgentNodeData>}
           />
           <ConnectionPanel
             peerId={peerId}

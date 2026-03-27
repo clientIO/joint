@@ -1,15 +1,20 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useElements, useMeasureNode } from '@joint/react';
+import { GraphProvider, Paper, useElementsLayout, useMeasureNode, type FlatElementData, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 15 },
-  '2': { label: 'Node 2', x: 100, y: 200 },
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
+  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
 };
 
-const initialEdges: Record<string, { source: string; target: string; color: string }> = {
+const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -17,9 +22,7 @@ const initialEdges: Record<string, { source: string; target: string; color: stri
   },
 };
 
-type BaseElementWithData = (typeof initialElements)[string];
-
-function ResizableNode({ label }: Readonly<BaseElementWithData>) {
+function ResizableNode({ label }: Readonly<NodeData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     const node = nodeRef.current;
@@ -55,8 +58,8 @@ function ResizableNode({ label }: Readonly<BaseElementWithData>) {
 }
 
 function Main() {
-  const elementsSize = useElements((items) =>
-    Object.values(items).map(({ width, height }) => `${width} x ${height}`)
+  const elementsSize = useElementsLayout<string[]>((layout) =>
+    [...layout.values()].map(({ width, height }) => `${width} x ${height}`)
   );
 
   return (

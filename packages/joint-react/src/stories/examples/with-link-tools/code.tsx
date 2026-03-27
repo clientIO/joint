@@ -6,7 +6,9 @@ import {
   jsx,
   Paper,
   usePaperEvents,
+  useElementSize,
   type RenderElement,
+  type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
 import { useCallback, useId } from 'react';
@@ -21,12 +23,14 @@ const initialEdges: Record<string, FlatLinkData> = {
   },
 };
 
-const initialElements: Record<
-  string,
-  { label: string; x: number; y: number; width: number; height: number }
-> = {
-  '1': { label: 'Node 1', x: 100, y: 10, width: 120, height: 30 },
-  '2': { label: 'Node 2', x: 100, y: 200, width: 120, height: 30 },
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node 1' }, x: 100, y: 10, width: 120, height: 30 },
+  '2': { data: { label: 'Node 2' }, x: 100, y: 200, width: 120, height: 30 },
 };
 
 // 1) creating link tools
@@ -70,9 +74,8 @@ const toolsView = new dia.ToolsView({
   tools: [boundaryTool, verticesTool, infoButton],
 });
 
-type BaseElementWithData = (typeof initialElements)[string];
-
-function RectElement({ width, height }: Readonly<BaseElementWithData>) {
+function RectElement() {
+  const { width, height } = useElementSize();
   return (
     <rect
       rx={5}
@@ -88,8 +91,8 @@ function RectElement({ width, height }: Readonly<BaseElementWithData>) {
 
 function Main() {
   const paperId = useId();
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (props) => <RectElement {...props} />,
+  const renderElement: RenderElement<NodeData> = useCallback(
+    () => <RectElement />,
     []
   );
 

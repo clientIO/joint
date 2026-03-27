@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { FlatLinkData, FlatLinkLabel, RenderElement, TransformOptions } from '@joint/react';
+import type { FlatElementData, FlatLinkData, FlatLinkLabel, RenderElement, TransformOptions } from '@joint/react';
 import { GraphProvider, Paper, useMarkup, useMeasureNode, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
@@ -13,74 +13,44 @@ const bevel = 2 * unit;
 const nodeFontSize = 13;
 const labelFontSize = 15;
 
-type NodeElement = {
-  label: string;
-  type: 'start' | 'step' | 'decision';
-  cx: number;
-  cy: number;
+type NodeElementData = {
+  readonly label: string;
+  readonly type: 'start' | 'step' | 'decision';
+  readonly cx: number;
+  readonly cy: number;
 };
 
-const flowchartNodes: Record<string, NodeElement> = {
-  start: { label: 'Start', type: 'start', cx: 60, cy: 40 },
+const flowchartNodes: Record<string, FlatElementData<NodeElementData>> = {
+  start: { data: { label: 'Start', type: 'start', cx: 60, cy: 40 } },
   addToCart: {
-    label: 'Add to Cart',
-    type: 'step',
-    cx: 195,
-    cy: 40,
+    data: { label: 'Add to Cart', type: 'step', cx: 195, cy: 40 },
   },
   checkoutItems: {
-    label: 'Checkout Items',
-    type: 'step',
-    cx: 365,
-    cy: 40,
+    data: { label: 'Checkout Items', type: 'step', cx: 365, cy: 40 },
   },
   addShippingInfo: {
-    label: 'Add Shipping Info',
-    type: 'step',
-    cx: 550,
-    cy: 40,
+    data: { label: 'Add Shipping Info', type: 'step', cx: 550, cy: 40 },
   },
   addPaymentInfo: {
-    label: 'Add Payment Info',
-    type: 'step',
-    cx: 550,
-    cy: 150,
+    data: { label: 'Add Payment Info', type: 'step', cx: 550, cy: 150 },
   },
   validPayment: {
-    label: 'Valid Payment?',
-    type: 'decision',
-    cx: 550,
-    cy: 270,
+    data: { label: 'Valid Payment?', type: 'decision', cx: 550, cy: 270 },
   },
   presentErrorMessage: {
-    label: 'Present Error Message',
-    type: 'step',
-    cx: 810,
-    cy: 380,
+    data: { label: 'Present Error Message', type: 'step', cx: 810, cy: 380 },
   },
   sendOrder: {
-    label: 'Send Order to Warehouse',
-    type: 'step',
-    cx: 230,
-    cy: 270,
+    data: { label: 'Send Order to Warehouse', type: 'step', cx: 230, cy: 270 },
   },
   packOrder: {
-    label: 'Pack Order',
-    type: 'step',
-    cx: 40,
-    cy: 380,
+    data: { label: 'Pack Order', type: 'step', cx: 40, cy: 380 },
   },
   qualityCheck: {
-    label: 'Quality Check?',
-    type: 'decision',
-    cx: 230,
-    cy: 500,
+    data: { label: 'Quality Check?', type: 'decision', cx: 230, cy: 500 },
   },
   shipItems: {
-    label: 'Ship Items to Customer',
-    type: 'step',
-    cx: 550,
-    cy: 500,
+    data: { label: 'Ship Items to Customer', type: 'step', cx: 550, cy: 500 },
   },
 };
 const TOP = { name: 'top', args: { useModelGeometry: true } } as const;
@@ -88,7 +58,7 @@ const BOTTOM = { name: 'bottom', args: { useModelGeometry: true } } as const;
 const LEFT = { name: 'left', args: { useModelGeometry: true } } as const;
 const RIGHT = { name: 'right', args: { useModelGeometry: true } } as const;
 
-const LINK_OPTIONS: Partial<Required<FlatLinkData>> = {
+const LINK_OPTIONS: Partial<FlatLinkData> = {
   z: 2,
   width: 2,
   className: 'jj-flow-line link',
@@ -244,7 +214,7 @@ interface PropsWithClick {
   readonly onMouseLeave?: () => void;
   readonly isToolActive?: boolean;
 }
-type FlowchartNodeProps = (typeof flowchartNodes)[string] & PropsWithClick;
+type FlowchartNodeProps = NodeElementData & PropsWithClick;
 
 function computeNodeBBox(options: TransformOptions & { padding: number; cx: number; cy: number }) {
   const { width: nodeWidth, height: nodeHeight, padding, cx, cy } = options;
@@ -381,7 +351,7 @@ const DecisionNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(DecisionN
 const StartNode = forwardRef<SVGRectElement, FlowchartNodeProps>(StartNodeRaw);
 const StepNode = forwardRef<SVGPolygonElement, FlowchartNodeProps>(StepNodeRaw);
 
-function RenderFlowchartNode(props: FlowchartNodeProps) {
+function RenderFlowchartNode(props: Readonly<NodeElementData>) {
   const { type } = props;
   const { selectorRef } = useMarkup();
 
@@ -507,7 +477,7 @@ function Main() {
       overflow={true}
       snapLabels={true}
       className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
-      renderElement={RenderFlowchartNode as unknown as RenderElement}
+      renderElement={RenderFlowchartNode as RenderElement<NodeElementData>}
       interactive={{ linkMove: false }}
       defaultConnectionPoint={{
         name: 'boundary',

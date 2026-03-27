@@ -61,7 +61,8 @@
     "lint": "eslint \"**/*.{ts,tsx}\"",
     "lint-fix": "yarn run lint --fix",
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
-    "docs:typedoc": "typedoc --out docs/api src"
+    "docs:typedoc": "typedoc --out docs/api src",
+    "bench": "jest --testMatch '<rootDir>/bench/**/*.{test,spec}.ts?(x)'"
   },
   "devDependencies": {
     "@andypf/json-viewer": "^2.1.10",
@@ -113,6 +114,7 @@
     "storybook": "^10.2.3",
     "storybook-multilevel-sort": "^2.1.0",
     "tailwindcss": "^4.2.2",
+    "tinybench": "^6.0.0",
     "ts-node": "^10.9.2",
     "typedoc": "^0.28.5",
     "typedoc-github-theme": "^0.3.0",
@@ -131,8 +133,8 @@
     "use-sync-external-store": "^1.6.0"
   },
   "peerDependencies": {
-    "react": ">=18 <20",
-    "react-dom": ">=18 <20"
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "volta": {
     "node": "22.14.0",

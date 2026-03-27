@@ -386,4 +386,175 @@ describe('useFlatLinkData', () => {
         expect(result.current.mapDataToLinkAttributes).not.toBe(firstForward);
         expect(result.current.mapLinkAttributesToData).not.toBe(firstReverse);
     });
+
+    // ── pick with non-existent keys ──────────────────────────────────────
+
+    it('pick ignores keys that do not exist in the reverse-mapped data', () => {
+        const { result } = renderHook(() => useFlatLinkData<FlatLinkData & { missing: string }>({
+            pick: ['source', 'target', 'missing'],
+        }));
+        const data = callReverseMapper(result.current, {
+            source: { id: 'a' },
+            target: { id: 'b' },
+            data: { source: 'a', target: 'b' },
+        });
+
+        expect(data).toEqual({ source: 'a', target: 'b' });
+        expect(data).not.toHaveProperty('missing');
+    });
+
+    // ── Defaults where result.data is falsy ─────────────────────────────
+
+    it('handles defaults when flatLinkDataToAttributes returns no data field', () => {
+        const { result } = renderHook(() => useFlatLinkData({
+            defaults: { color: 'red' },
+        }));
+        // Source/target are structural, no custom data keys
+        const cellJson = callForwardMapper(result.current, {
+            source: 'a',
+            target: 'b',
+        });
+
+        expect(cellJson.source).toBeDefined();
+        expect(cellJson.target).toBeDefined();
+    });
+
+    // ── Color changes with defaults (integration-style) ─────────────────
+
+    it('default color is applied when link data does not specify color', () => {
+        const { result } = renderHook(() => useFlatLinkData({
+            defaults: { color: '#ff0000' },
+        }));
+        const cellJson = callForwardMapper(result.current);
+
+        expect(cellJson.attrs?.line?.style?.stroke).toBe('#ff0000');
+    });
+
+    it('link data color overrides default color', () => {
+        const { result } = renderHook(() => useFlatLinkData({
+            defaults: { color: '#ff0000' },
+        }));
+        const cellJson = callForwardMapper(result.current, {
+            source: 'a',
+            target: 'b',
+            color: '#00ff00',
+        });
+
+        expect(cellJson.attrs?.line?.style?.stroke).toBe('#00ff00');
+    });
+
+    it('changing color via deps recreates mapper with new color', () => {
+        let linkColor = 'red';
+        const { result, rerender } = renderHook(() =>
+            useFlatLinkData({ defaults: { color: linkColor } }, [linkColor]),
+        );
+
+        // First render: red
+        const redJson = callForwardMapper(result.current);
+        expect(redJson.attrs?.line?.style?.stroke).toBe('red');
+
+        // Change color and re-render
+        linkColor = 'blue';
+        rerender();
+
+        const blueJson = callForwardMapper(result.current);
+        expect(blueJson.attrs?.line?.style?.stroke).toBe('blue');
+    });
+
+    it('changing width via deps recreates mapper with new width', () => {
+        let lineWidth = 2;
+        const { result, rerender } = renderHook(() =>
+            useFlatLinkData({ defaults: { width: lineWidth } }, [lineWidth]),
+        );
+
+        const thinJson = callForwardMapper(result.current);
+        expect(thinJson.attrs?.line?.style?.strokeWidth).toBe(2);
+
+        lineWidth = 5;
+        rerender();
+
+        const thickJson = callForwardMapper(result.current);
+        expect(thickJson.attrs?.line?.style?.strokeWidth).toBe(5);
+    });
+
+    // ── Forward + reverse round-trip ────────────────────────────────────
+
+    it('round-trip: forward then reverse preserves user data', () => {
+        const { result } = renderHook(() => useFlatLinkData({
+            defaults: { color: 'red', targetMarker: 'arrow' },
+        }));
+
+        // Forward: user data → cell attributes
+        const cellJson = callForwardMapper(result.current, {
+            source: 'node-1',
+            target: 'node-2',
+        });
+        expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
+
+        // Reverse: cell attributes → user data
+        const data = callReverseMapper(result.current, {
+            source: { id: 'node-1' },
+            target: { id: 'node-2' },
+            data: { source: 'node-1', target: 'node-2' },
+        });
+        expect(data.source).toBe('node-1');
+        expect(data.target).toBe('node-2');
+    });
+
+    // ── All options combined ────────────────────────────────────────────
+
+    it('defaults + mapAttributes + mapData + pick work together', () => {
+        const { result } = renderHook(() => useFlatLinkData<FlatLinkData & { enriched: boolean }>({
+            defaults: { color: 'red', width: 3 },
+            mapAttributes: ({ attributes }) => ({
+                ...attributes,
+                attrs: { ...attributes.attrs, custom: { stroke: 'green' } },
+            }),
+            mapData: ({ data }) => ({
+                ...data,
+                enriched: true,
+            }),
+            pick: ['source', 'target', 'enriched'],
+        }));
+
+        // Forward: defaults + mapAttributes
+        const cellJson = callForwardMapper(result.current);
+        expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
+        expect(cellJson.attrs?.custom).toEqual({ stroke: 'green' });
+
+        // Reverse: mapData + pick
+        const data = callReverseMapper(result.current, {
+            source: { id: 'a' },
+            target: { id: 'b' },
+            data: { source: 'a', target: 'b', label: 'test' },
+        });
+        expect(data).toEqual({ source: 'a', target: 'b', enriched: true });
+        expect(data).not.toHaveProperty('label');
+        expect(data).not.toHaveProperty('color');
+    });
+
+    // ── Callback defaults with color ────────────────────────────────────
+
+    it('callback defaults apply different colors based on link data', () => {
+        const { result } = renderHook(() => useFlatLinkData({
+            defaults: (data) => ({
+                color: data.source === 'error-node' ? 'red' : 'green',
+                width: data.source === 'error-node' ? 3 : 1,
+            }),
+        }));
+
+        const errorLink = callForwardMapper(result.current, {
+            source: 'error-node',
+            target: 'b',
+        });
+        expect(errorLink.attrs?.line?.style?.stroke).toBe('red');
+        expect(errorLink.attrs?.line?.style?.strokeWidth).toBe(3);
+
+        const normalLink = callForwardMapper(result.current, {
+            source: 'normal-node',
+            target: 'b',
+        });
+        expect(normalLink.attrs?.line?.style?.stroke).toBe('green');
+        expect(normalLink.attrs?.line?.style?.strokeWidth).toBe(1);
+    });
 });

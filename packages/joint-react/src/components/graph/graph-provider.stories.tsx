@@ -1,14 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import {
-  testElements,
-  testLinks,
-  type SimpleElement,
-} from '../../../.storybook/decorators/with-simple-data';
+import { testElements, testLinks } from '../../../.storybook/decorators/with-simple-data';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useEffect, useRef, useState } from 'react';
 import { useMeasureNode } from '../../hooks/use-measure-node';
+import { useElementSize } from '../../hooks/use-element-size';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { GraphProvider } from './graph-provider';
@@ -44,14 +41,14 @@ const links = {
   'l1': { source: '1', target: '2' },
 };
 
+function RenderElement() {
+  return <rect width={100} height={50} fill="blue" />;
+}
+
 function MyDiagram() {
   return (
     <GraphProvider elements={elements} links={links}>
-      <Paper
-        renderElement={({ width, height }) => (
-          <rect width={width} height={height} fill="blue" />
-        )}
-      />
+      <Paper renderElement={RenderElement} />
     </GraphProvider>
   );
 }
@@ -75,16 +72,17 @@ function MyDiagram() {
 
 export default meta;
 
-function RenderHTMLElement({ width, height }: Readonly<SimpleElement>) {
+function RenderHTMLElement() {
   const elementRef = useRef<HTMLDivElement>(null);
+  const size = useElementSize();
   useMeasureNode(elementRef);
   return (
-    <foreignObject joint-selector="placeholder" width={width} height={height}>
+    <foreignObject joint-selector="placeholder" width={size?.width} height={size?.height}>
       <div
         ref={elementRef}
         style={{
-          width,
-          height,
+          width: size?.width,
+          height: size?.height,
           boxShadow: '0 0 10px rgba(0,0,0,0.5)',
           display: 'flex',
           justifyContent: 'center',

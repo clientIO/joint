@@ -3,8 +3,8 @@ import {
   GraphProvider,
   Paper,
   usePaper,
+  useElementSize,
   useMeasureNode,
-  type GraphProps,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
@@ -12,10 +12,10 @@ import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Define element type with custom properties
-type CustomElement = FlatElementData & { data: { label: string } };
+type ElementData = { label: string };
 
 // Define initial elements as Record
-const initialElements: Record<string, CustomElement> = {
+const initialElements: Record<string, FlatElementData<ElementData>> = {
   '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 25 },
   '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 25 },
 };
@@ -66,12 +66,12 @@ function Controls() {
   );
 }
 function Main() {
-  const [isHTMLEnabled, setHTMLEnabled] = useState(true);
+  const [isHTMLEnabled, setIsHTMLEnabled] = useState(true);
 
   // Infer element type from the initial elements
 
   const renderItem = useCallback(
-    ({ data: { label }, width, height }: CustomElement) => {
+    ({ label }: ElementData) => {
       if (isHTMLEnabled) {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const elementRef = useRef<HTMLDivElement>(null);
@@ -83,6 +83,8 @@ function Main() {
           </div>
         );
       }
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const { width, height } = useElementSize();
       return <rect rx={10} ry={10} width={width} height={height} fill="blue" />;
     },
     [isHTMLEnabled]
@@ -100,7 +102,7 @@ function Main() {
         type="button"
         // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
         onClick={() => {
-          setHTMLEnabled((previous) => !previous);
+          setIsHTMLEnabled((previous) => !previous);
         }}
         className={`${BUTTON_CLASSNAME} mt-2`}
       >
@@ -110,9 +112,9 @@ function Main() {
   );
 }
 
-export default function App(props: Readonly<GraphProps>) {
+export default function App() {
   return (
-    <GraphProvider {...props} links={initialEdges} elements={initialElements}>
+    <GraphProvider links={initialEdges} elements={initialElements}>
       <Main />
     </GraphProvider>
   );

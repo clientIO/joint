@@ -1,17 +1,20 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useElementId, type FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, useElementId, type FlatElementData, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { useGraph } from '@joint/react';
 
-const initialElements: Record<
-  string,
-  { label: string; color: string; x: number; y: number; width: number; height: number }
-> = {
-  '1': { label: 'Node 1', color: PRIMARY, x: 100, y: 15, width: 100, height: 50 },
-  '2': { label: 'Node 2', color: PRIMARY, x: 100, y: 200, width: 100, height: 50 },
+interface NodeData {
+  readonly [key: string]: unknown;
+  readonly label: string;
+  readonly color: string;
+}
+
+const initialElements: Record<string, FlatElementData<NodeData>> = {
+  '1': { data: { label: 'Node 1', color: PRIMARY }, x: 100, y: 15, width: 100, height: 50 },
+  '2': { data: { label: 'Node 2', color: PRIMARY }, x: 100, y: 200, width: 100, height: 50 },
 };
 
 const initialEdges: Record<string, FlatLinkData> = {
@@ -22,9 +25,7 @@ const initialEdges: Record<string, FlatLinkData> = {
   },
 };
 
-type BaseElementWithData = (typeof initialElements)[string];
-
-function RenderElement({ color }: Readonly<BaseElementWithData>) {
+function RenderElement({ color }: Readonly<NodeData>) {
   const id = useElementId();
   const { setElement } = useGraph();
   return (
@@ -41,7 +42,7 @@ function RenderElement({ color }: Readonly<BaseElementWithData>) {
         className="nodrag"
         type="color"
         onChange={(event) => {
-          setElement(id, (previous) => ({ ...previous, color: event.target.value }));
+          setElement(id, (previous) => ({ ...previous, data: { ...previous.data as NodeData, color: event.target.value } }));
         }}
         defaultValue={color}
       />

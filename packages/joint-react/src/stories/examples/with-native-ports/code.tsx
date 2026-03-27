@@ -5,7 +5,7 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElementLayout,
+  useElementSize,
   useFlatElementData,
   useFlatLinkData,
   type FlatElementData,
@@ -26,7 +26,8 @@ const EMERALD = '#10b981';
 const PORT_IN = '#818cf8';
 const PORT_OUT = '#a78bfa';
 
-interface NativeElementData extends FlatElementData {
+interface NativeElementUserData {
+  readonly [key: string]: unknown;
   readonly color: string;
   readonly label: string;
   readonly inputPorts?: readonly string[];
@@ -91,36 +92,27 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
   return { groups, items };
 }
 
-const initialElements: Record<string, NativeElementData> = {
+const initialElements: Record<string, FlatElementData<NativeElementUserData>> = {
   'node-1': {
+    data: { color: INDIGO, label: 'Source', inputPorts: ['in-1', 'in-2'], outputPorts: ['out-1', 'out-2', 'out-3'] },
     x: 50,
     y: 100,
     width: 160,
     height: 100,
-    color: INDIGO,
-    label: 'Source',
-    inputPorts: ['in-1', 'in-2'],
-    outputPorts: ['out-1', 'out-2', 'out-3'],
   },
   'node-2': {
+    data: { color: VIOLET, label: 'Transform', inputPorts: ['in-1', 'in-2'], outputPorts: ['out-1', 'out-2'] },
     x: 380,
     y: 50,
     width: 160,
     height: 100,
-    color: VIOLET,
-    label: 'Transform',
-    inputPorts: ['in-1', 'in-2'],
-    outputPorts: ['out-1', 'out-2'],
   },
   'node-3': {
+    data: { color: INDIGO, label: 'Sink', inputPorts: ['in-1', 'in-2', 'in-3'], outputPorts: ['out-1'] },
     x: 380,
     y: 250,
     width: 160,
     height: 100,
-    color: INDIGO,
-    label: 'Sink',
-    inputPorts: ['in-1', 'in-2', 'in-3'],
-    outputPorts: ['out-1'],
   },
 };
 
@@ -158,7 +150,7 @@ const initialLinks: Record<string, FlatLinkData> = {
 };
 
 function Node({ color, label }: Readonly<{ color: string; label: string }>) {
-  const { width, height } = useElementLayout();
+  const { width, height } = useElementSize();
   const cx = width / 2;
   const cy = height / 2;
   return (
@@ -188,7 +180,7 @@ function Node({ color, label }: Readonly<{ color: string; label: string }>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<NativeElementData> = useCallback(
+  const renderElement: RenderElement<NativeElementUserData> = useCallback(
     (data) => <Node color={data.color} label={data.label} />,
     [],
   );
@@ -197,9 +189,10 @@ function Main() {
 }
 
 export default function App() {
-  const elementMappers = useFlatElementData<NativeElementData>({
+  const elementMappers = useFlatElementData<FlatElementData<NativeElementUserData>>({
     mapAttributes: ({ attributes, data }) => {
-      const ports = buildNativePorts(data.inputPorts, data.outputPorts);
+      const userData = data.data as NativeElementUserData | undefined;
+      const ports = buildNativePorts(userData?.inputPorts, userData?.outputPorts);
       if (!ports) return attributes;
       return { ...attributes, ports };
     }

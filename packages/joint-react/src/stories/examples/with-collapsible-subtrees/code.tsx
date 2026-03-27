@@ -7,8 +7,9 @@ import {
   jsx,
   Paper,
   SVGText,
-  useGraph,
   useElementId,
+  useElementSize,
+  useGraph,
   useMarkup,
   useNodesMeasuredEffect,
   usePaper,
@@ -22,10 +23,8 @@ import { DirectedGraph } from '@joint/layout-directed-graph';
 import '../index.css';
 
 // Base properties shared by all events
-interface BaseEvent extends FlatElementData {
+interface BaseEvent {
   readonly label: string;
-  readonly width: number;
-  readonly height: number;
   readonly collapsed?: boolean;
 }
 
@@ -59,90 +58,71 @@ type FTAElement =
   | ExternalEvent
   | ConditioningEvent;
 
-const initialElements: Record<string, FTAElement> = {
+const initialElements: Record<string, FlatElementData<FTAElement>> = {
   ot8h17: {
-    type: 'IntermediateEvent',
+    data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' },
     width: 120,
     height: 150,
-    label: 'Fall from Scaffolding',
-    gate: 'INHIBIT',
   },
   d8jpey: {
-    type: 'IntermediateEvent',
+    data: { type: 'IntermediateEvent', label: 'Fall from the Scaffolding', gate: 'AND' },
     width: 120,
     height: 150,
-    label: 'Fall from the Scaffolding',
-    gate: 'AND',
   },
   is079n: {
-    type: 'IntermediateEvent',
+    data: { type: 'IntermediateEvent', label: 'Safety Belt Not Working', gate: 'OR' },
     width: 120,
     height: 150,
-    label: 'Safety Belt Not Working',
-    gate: 'OR',
   },
   ht8wnb: {
-    type: 'IntermediateEvent',
+    data: { type: 'IntermediateEvent', label: 'Fall By Accident', gate: 'OR' },
     width: 120,
     height: 150,
-    label: 'Fall By Accident',
-    gate: 'OR',
   },
   '07vhpd': {
-    type: 'IntermediateEvent',
+    data: { type: 'IntermediateEvent', label: 'Broken By Equipment', gate: 'OR' },
     width: 120,
     height: 150,
-    label: 'Broken By Equipment',
-    gate: 'OR',
   },
   d8ojep: {
-    type: 'IntermediateEvent',
+    data: { type: 'IntermediateEvent', label: 'Did not Wear Safety Belt', gate: 'OR' },
     width: 120,
     height: 150,
-    label: 'Did not Wear Safety Belt',
-    gate: 'OR',
   },
   szf1q3: {
-    type: 'UndevelopedEvent',
+    data: { type: 'UndevelopedEvent', label: 'Slip and Fall' },
     width: 140,
     height: 80,
-    label: 'Slip and Fall',
   },
   kj5m9a: {
-    type: 'UndevelopedEvent',
+    data: { type: 'UndevelopedEvent', label: 'Lose Balance' },
     width: 140,
     height: 80,
-    label: 'Lose Balance',
   },
   tcv79r: {
-    type: 'UndevelopedEvent',
+    data: { type: 'UndevelopedEvent', label: 'Upholder Broken' },
     width: 140,
     height: 80,
-    label: 'Upholder Broken',
   },
   ylp4gu: {
-    type: 'BasicEvent',
+    data: { type: 'BasicEvent', label: 'Safety Belt Broken' },
     width: 80,
     height: 80,
-    label: 'Safety Belt Broken',
   },
   q2vwnc: {
-    type: 'BasicEvent',
+    data: { type: 'BasicEvent', label: 'Forgot to Wear' },
     width: 80,
     height: 80,
-    label: 'Forgot to Wear',
   },
   x8rboj: {
-    type: 'ExternalEvent',
+    data: { type: 'ExternalEvent', label: 'Take off When Walking' },
     width: 80,
     height: 100,
-    label: 'Take off When Walking',
   },
   mte5xr: {
-    type: 'ConditioningEvent',
+    data: { type: 'ConditioningEvent', label: 'Height and Ground Condition' },
     width: 140,
     height: 80,
-    label: 'Height and Ground Condition',
   },
 };
 
@@ -180,7 +160,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetMarker: 'none',
   },
   'link-4': {
-    id: 'link-4',
     source: 'is079n',
     target: 'd8ojep',
     z: -1,
@@ -189,7 +168,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetMarker: 'none',
   },
   'link-5': {
-    id: 'link-5',
     source: 'ht8wnb',
     target: 'szf1q3',
     z: -1,
@@ -198,7 +176,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetMarker: 'none',
   },
   'link-6': {
-    id: 'link-6',
     source: 'ht8wnb',
     target: 'kj5m9a',
     z: -1,
@@ -207,7 +184,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetMarker: 'none',
   },
   'link-7': {
-    id: 'link-7',
     source: '07vhpd',
     target: 'tcv79r',
     z: -1,
@@ -216,7 +192,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetMarker: 'none',
   },
   'link-8': {
-    id: 'link-8',
     source: '07vhpd',
     target: 'ylp4gu',
     z: -1,
@@ -225,7 +200,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetMarker: 'none',
   },
   'link-9': {
-    id: 'link-9',
     source: 'd8ojep',
     target: 'q2vwnc',
     z: -1,
@@ -313,7 +287,8 @@ function useGatePattern() {
 // ----------------------------------------------------------------------------
 // Shapes
 // ----------------------------------------------------------------------------
-function IntermediateEventNode({ label, width, height, gate }: Readonly<IntermediateEvent>) {
+function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
+  const { width, height } = useElementSize();
   const id = useElementId();
   const { setElement } = useGraph();
   const gatePatternUrl = useGatePattern();
@@ -359,7 +334,7 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
 
     setElement(id, (previous) => ({
       ...previous,
-      gate: nextGate,
+      data: { ...previous.data, gate: nextGate },
     }));
   }, [id, gate, setElement]);
 
@@ -426,7 +401,8 @@ function IntermediateEventNode({ label, width, height, gate }: Readonly<Intermed
   );
 }
 
-function UndevelopedEventNode({ label, width, height }: Readonly<UndevelopedEvent>) {
+function UndevelopedEventNode({ label }: Readonly<UndevelopedEvent>) {
+  const { width, height } = useElementSize();
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -457,9 +433,10 @@ function UndevelopedEventNode({ label, width, height }: Readonly<UndevelopedEven
   );
 }
 
-function BasicEventNode({ label, width, height }: Readonly<BasicEvent>) {
+function BasicEventNode(props: Readonly<BasicEvent>) {
+  const { width, height } = useElementSize();
   const bodyPatternUrl = useElementPattern();
-
+  const { label } = props;
   return (
     <>
       {/* Circle Body */}
@@ -490,7 +467,8 @@ function BasicEventNode({ label, width, height }: Readonly<BasicEvent>) {
   );
 }
 
-function ExternalEventNode({ label, width, height }: Readonly<ExternalEvent>) {
+function ExternalEventNode({ label }: Readonly<ExternalEvent>) {
+  const { width, height } = useElementSize();
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -521,7 +499,8 @@ function ExternalEventNode({ label, width, height }: Readonly<ExternalEvent>) {
   );
 }
 
-function ConditioningEventNode({ label, width, height }: Readonly<ConditioningEvent>) {
+function ConditioningEventNode({ label }: Readonly<ConditioningEvent>) {
+  const { width, height } = useElementSize();
   const bodyPatternUrl = useElementPattern();
 
   return (
@@ -756,13 +735,18 @@ function Main() {
 
   useNodesMeasuredEffect(paperId, handleElementsMeasured);
 
+  const renderElement = useCallback(
+    (props: Readonly<FTAElement>) => <RenderFTAElement {...props} />,
+    []
+  );
+
   return (
     <Paper
       ref={paperRef}
       id={paperId}
       height={600}
       className={PAPER_CLASSNAME}
-      renderElement={RenderFTAElement}
+      renderElement={renderElement}
       cellVisibility={cellVisibilityCallback}
       defaultConnector={{
         name: 'straight',
