@@ -33,8 +33,8 @@ async function flushMicrotasks(): Promise<void> {
 type TestElement = FlatElementData<{ readonly label: string }>;
 
 const TEST_ELEMENTS: Record<string, TestElement> = {
-  '1': { data: { label: 'Element1' }, x: 100, y: 0, width: 100, height: 50 },
-  '2': { data: { label: 'Element2' }, x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Element1' }, position: { x: 100, y: 0 }, size: { width: 100, height: 50 } },
+  '2': { data: { label: 'Element2' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
 };
 
 function TestFlickerElement() {

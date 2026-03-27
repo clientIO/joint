@@ -61,8 +61,8 @@ type ElementData = { label: string };
 type CustomElement = FlatElementData<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
-  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
+  '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
 };
 
 const defaultLinks: Record<string, FlatLinkData> = {
@@ -405,10 +405,8 @@ function Main() {
     const newId = Math.random().toString(36).slice(7);
     const newElement: CustomElement = {
       data: { label: 'New Node' },
-      x: Math.random() * 200,
-      y: Math.random() * 200,
-      width: 100,
-      height: 50,
+      position: { x: Math.random() * 200, y: Math.random() * 200 },
+      size: { width: 100, height: 50 },
     };
     setElements((previous) => {
       const next = { ...previous, [newId]: newElement };

@@ -28,10 +28,8 @@ function initialElements(xNodes = 15, yNodes = 30) {
       const id = `stress-${nodeId.toString()}`;
       nodes[id] = {
         data: { label: `Node ${nodeId}`, fontSize: 11 },
-        width: 50,
-        height: 20,
-        x: x * 100,
-        y: y * 50,
+        size: { width: 50, height: 20 },
+        position: { x: x * 100, y: y * 50 },
       };
 
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
@@ -86,8 +84,7 @@ function Main({
         for (const [id, node] of Object.entries(previousElements)) {
           newElements[id] = {
             ...node,
-            x: Math.random() * 1500,
-            y: Math.random() * 1500,
+            position: { x: Math.random() * 1500, y: Math.random() * 1500 },
           };
         }
 

@@ -18,10 +18,10 @@ interface ShapeData {
 const INTERACTIVE_OPTIONS = { labelMove: true } as const;
 
 const initialElements: Record<string, FlatElementData<ShapeData>> = {
-  '1': { data: { label: 'Node 1' }, x: 50, y: 50, width: 100, height: 40 },
-  '2': { data: { label: 'Node 2' }, x: 300, y: 50, width: 100, height: 40 },
-  '3': { data: { label: 'Node 3' }, x: 50, y: 200, width: 100, height: 40 },
-  '4': { data: { label: 'Node 4' }, x: 300, y: 200, width: 100, height: 40 },
+  '1': { data: { label: 'Node 1' }, position: { x: 50, y: 50 }, size: { width: 100, height: 40 } },
+  '2': { data: { label: 'Node 2' }, position: { x: 300, y: 50 }, size: { width: 100, height: 40 } },
+  '3': { data: { label: 'Node 3' }, position: { x: 50, y: 200 }, size: { width: 100, height: 40 } },
+  '4': { data: { label: 'Node 4' }, position: { x: 300, y: 200 }, size: { width: 100, height: 40 } },
 };
 
 const initialLinks: Record<string, FlatLinkData> = {

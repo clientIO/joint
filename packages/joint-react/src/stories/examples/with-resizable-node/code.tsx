@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useElementsLayout, useMeasureNode, type FlatElementData, type FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, useElements, useMeasureNode, type FlatElementData, type FlatLinkData } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -10,8 +10,8 @@ interface NodeData {
 }
 
 const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
-  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
+  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
 };
 
 const initialEdges: Record<string, FlatLinkData> = {
@@ -73,8 +73,8 @@ function ResizableNode({ label }: Readonly<NodeData>) {
 }
 
 function Main() {
-  const elementsSize = useElementsLayout<string[]>((layout) =>
-    [...layout.values()].map(({ width, height }) => `${width} x ${height}`)
+  const elementsSize = useElements<string[]>(
+    (elements) => [...elements.values()].map(({ size }) => `${size.width} x ${size.height}`)
   );
 
   return (

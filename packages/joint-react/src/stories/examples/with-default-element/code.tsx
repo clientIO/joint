@@ -16,18 +16,16 @@ const initialElements: Record<string, FlatElementData<Data>> = {
     data: {
       label: 'Lorem ipsum',
     },
-    x: 100,
-    y: 60,
+    position: { x: 100, y: 60 },
     ports: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } },
   },
   b: {
     // Explicit width - height is still determined by content
-    width: 100,
+    size: { width: 100, height: 40 },
     data: {
       label: 'dolor sit amet',
     },
-    x: 280,
-    y: 60,
+    position: { x: 280, y: 60 },
     ports: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
       in: { cx: 0, cy: 'calc(0.5 * h)' },
@@ -38,10 +36,8 @@ const initialElements: Record<string, FlatElementData<Data>> = {
     data: {
       label: 'consectetur adipiscing elit',
     },
-    x: 450,
-    y: 60,
-    width: 100,
-    height: 80,
+    position: { x: 450, y: 60 },
+    size: { width: 100, height: 80 },
     ports: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true } },
   },
 };

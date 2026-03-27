@@ -5,7 +5,7 @@ import type { Feature } from '../types/feature.types';
 
 export type { Feature } from '../types/feature.types';
 
-export const GraphStoreContext = createContext<GraphStore | null>(null);
+export const GraphStoreContext = createContext<GraphStore<any, any> | null>(null);
 export const PaperStoreContext = createContext<PaperStore | null>(null);
 
 export const CellIdContext = createContext<CellId | undefined>(undefined);
@@ -16,7 +16,11 @@ export const CellIdContext = createContext<CellId | undefined>(undefined);
  */
 export type DeferredFeatureCallback = (
   options:
-    | { readonly graphStore: GraphStore; readonly paperStore: PaperStore; readonly asChildren: boolean }
+    | {
+        readonly graphStore: GraphStore;
+        readonly paperStore: PaperStore;
+        readonly asChildren: boolean;
+      }
     | { readonly graphStore: GraphStore }
 ) => Feature;
 

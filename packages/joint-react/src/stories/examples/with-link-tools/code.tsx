@@ -29,8 +29,8 @@ interface NodeData {
 }
 
 const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 10, width: 120, height: 30 },
-  '2': { data: { label: 'Node 2' }, x: 100, y: 200, width: 120, height: 30 },
+  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 10 }, size: { width: 120, height: 30 } },
+  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 }, size: { width: 120, height: 30 } },
 };
 
 // 1) creating link tools

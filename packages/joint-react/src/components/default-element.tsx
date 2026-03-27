@@ -1,7 +1,7 @@
 import { useRef, type CSSProperties } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
 import { isString } from '../utils/is';
-import { useElement } from '../hooks';
+import { useElement, useElementId } from '../hooks';
 
 /**
  * Default element renderer: a `<div>` with a label, auto-sized via `useMeasureNode`.
@@ -46,7 +46,15 @@ function getStyle(width: number | undefined, height: number | undefined): CSSPro
     return { ...shared, width, overflowWrap: 'break-word' };
   }
   // Both → fixed box, text wraps but clipped at boundary
-  return { ...shared, width, height, overflowWrap: 'break-word', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+  return {
+    ...shared,
+    width,
+    height,
+    overflowWrap: 'break-word',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
 }
 
 interface DefaultElementProps {
@@ -64,6 +72,7 @@ interface DefaultElementProps {
 export function DefaultElement(props: Readonly<DefaultElementProps> = {}) {
   const { data, width, height } = useElement();
 
+  console.log({ width, height, id });
   const nodeRef = useRef<HTMLDivElement>(null);
   const layout = useMeasureNode(nodeRef);
   // Capture the user's initial intent — after measurement the graph syncs

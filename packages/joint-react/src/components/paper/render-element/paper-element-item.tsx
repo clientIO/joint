@@ -1,13 +1,9 @@
 import { useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../../../utils/typed-react';
-import {
-  useGraphStore,
-  useElementLayout,
-  usePaper,
-  useElementId,
-  useElementData,
-} from '../../../hooks';
+import { useGraphStore, usePaper, useElementId, useElementData } from '../../../hooks';
+import { useElementPosition } from '../../../hooks/use-element-position';
+import { useElementSize } from '../../../hooks/use-element-size';
 
 /**
  * Props for element item portal components.
@@ -62,7 +58,7 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
 
 /**
  * HTML element portal component with absolute positioning.
- * Reads layout (position/size) via useElementLayout for CSS positioning.
+ * Reads position/size from the elements container for CSS positioning.
  * @param props
  * @internal
  */
@@ -72,7 +68,8 @@ function HTMLElementItemComponent(props: ElementItemProps) {
   const data = useElementData();
   const graphStore = useGraphStore();
   const { paper } = usePaper();
-  const { width, height, x, y } = useElementLayout();
+  const { x, y } = useElementPosition();
+  const { width, height } = useElementSize();
 
   useLayoutEffect(() => {
     if (!areElementsMeasured) {
@@ -128,7 +125,6 @@ export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
  * @internal
  */
 export function ElementHitArea() {
-  const layout = useElementLayout();
-  const { width, height } = layout;
+  const { width, height } = useElementSize();
   return <rect width={width} height={height} fill="transparent" />;
 }

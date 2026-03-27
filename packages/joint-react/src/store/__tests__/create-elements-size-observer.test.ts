@@ -91,9 +91,9 @@ describe('createElementsSizeObserver', () => {
   let observer: GraphStoreObserver;
   let mockOnBatchUpdate: jest.Mock;
   let mockGetCellTransform: jest.Mock;
-  let mockGetLayoutSnapshot: jest.Mock;
+  let mockGetElements: jest.Mock;
   let mockOnObserveElement: jest.Mock;
-  let mockElementLayouts: Map<string, { width: number; height: number; x: number; y: number; angle: number }>;
+  let mockElements: Map<string, { size: { width: number; height: number }; position: { x: number; y: number } }>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let createElementsSizeObserver: any;
 
@@ -108,9 +108,9 @@ describe('createElementsSizeObserver', () => {
     createElementsSizeObserver =
       require('../create-elements-size-observer').createElementsSizeObserver;
 
-    mockElementLayouts = new Map([
-      ['element-1', { width: 1, height: 1, x: 0, y: 0, angle: 0 }],
-      ['element-2', { width: 1, height: 1, x: 0, y: 0, angle: 0 }],
+    mockElements = new Map([
+      ['element-1', { size: { width: 1, height: 1 }, position: { x: 0, y: 0 } }],
+      ['element-2', { size: { width: 1, height: 1 }, position: { x: 0, y: 0 } }],
     ]);
 
     mockOnBatchUpdate = jest.fn();
@@ -123,14 +123,12 @@ describe('createElementsSizeObserver', () => {
       angle: 0,
       element: { id } as dia.Element,
     }));
-    mockGetLayoutSnapshot = jest.fn(() => ({
-      elements: mockElementLayouts,
-    }));
+    mockGetElements = jest.fn(() => mockElements);
 
     observer = createElementsSizeObserver({
       onBatchUpdate: mockOnBatchUpdate,
       getCellTransform: mockGetCellTransform,
-      getLayoutSnapshot: mockGetLayoutSnapshot,
+      getElements: mockGetElements,
       onObserveElement: mockOnObserveElement,
     });
   });

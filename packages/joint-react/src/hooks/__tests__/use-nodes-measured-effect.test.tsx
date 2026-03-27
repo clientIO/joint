@@ -18,9 +18,9 @@ function createMockResizeEntry(target: Element): ResizeObserverEntry {
 
 const PAPER_ID = 'measured-test-paper';
 
-const ELEMENTS_WITH_SIZE: Record<string, Readonly<{ label: string; width: number; height: number }>> = {
-  a: { label: 'A', width: 100, height: 50 },
-  b: { label: 'B', width: 120, height: 60 },
+const ELEMENTS_WITH_SIZE: Record<string, Readonly<{ label: string; size: { width: number; height: number } }>> = {
+  a: { label: 'A', size: { width: 100, height: 50 } },
+  b: { label: 'B', size: { width: 120, height: 60 } },
 };
 
 const ELEMENTS_WITHOUT_SIZE: Record<string, Readonly<{ label: string }>> = {

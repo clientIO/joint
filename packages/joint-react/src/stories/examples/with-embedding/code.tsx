@@ -23,10 +23,8 @@ const initialElements: Record<string, FlatElementData> = {
     data: {
       label: 'Container',
     },
-    x: 50,
-    y: 50,
-    width: 300,
-    height: 200,
+    position: { x: 50, y: 50 },
+    size: { width: 300, height: 200 },
     z: 1,
   },
   child: {
@@ -116,7 +114,9 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({ elements }: Readonly<{ elements: Map<string, FlatElementData<EmbeddingElement>> }>) {
+function ElementDataView({
+  elements,
+}: Readonly<{ elements: Map<string, FlatElementData<EmbeddingElement>> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useElements() Data</h3>
@@ -159,11 +159,7 @@ const PAPER_STYLE = { flex: 1 };
 function Main() {
   return (
     <div className="flex w-full h-full">
-      <Paper
-        className={PAPER_CLASSNAME}
-        style={PAPER_STYLE}
-        embeddingMode
-      />
+      <Paper className={PAPER_CLASSNAME} style={PAPER_STYLE} embeddingMode />
       <InspectorPanel />
     </div>
   );

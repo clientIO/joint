@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/unified-signatures */
 import { useMemo } from 'react';
-import type { CellData } from '../types/cell-data';
 import type { CellId } from '../types/cell-id';
+import type { Link } from '../types/data-types';
 import { useGraphStore } from './use-graph-store';
 import { useContainerItems } from './use-container-items';
 
@@ -10,35 +9,29 @@ import { useContainerItems } from './use-container-items';
  *
  * Supports 3 call signatures:
  *
- * - **No args**: returns all links as a stable `Map`. Re-renders only when link data changes.
- * - **IDs**: returns a filtered subset. Subscribes per-ID — best performance for known subsets.
- * - **Selector**: applies a selector over the full `Map`. Re-renders only when the selector output changes.
+ * - **No args**: returns all links as a stable `Map`.
+ * - **IDs**: returns a filtered subset.
+ * - **Selector**: applies a selector over the full `Map`.
  *
- * @example
- * ```tsx
- * const all = useLinksData();
- * const subset = useLinksData('l1', 'l2');
- * const count = useLinksData((items) => items.size);
- * ```
  * @group Hooks
  */
-export function useLinksData<LinkData extends object = CellData>(): Map<CellId, LinkData>;
-export function useLinksData<LinkData extends object = CellData>(
+export function useLinksData<D extends object | undefined = undefined>(): Map<CellId, Link<D>>;
+export function useLinksData<D extends object | undefined = undefined>(
   ...ids: [string, ...string[]]
-): Map<CellId, LinkData>;
-export function useLinksData<LinkData extends object = CellData, S = Map<CellId, LinkData>>(
-  selector: (items: Map<CellId, LinkData>) => S,
+): Map<CellId, Link<D>>;
+export function useLinksData<D extends object | undefined = undefined, S = Map<CellId, Link<D>>>(
+  selector: (items: Map<CellId, Link<D>>) => S,
   isEqual?: (a: S, b: S) => boolean
 ): S;
-export function useLinksData<LinkData extends object = CellData, S = Map<CellId, LinkData>>(
+export function useLinksData<D extends object | undefined = undefined, S = Map<CellId, Link<D>>>(
   ...args:
     | []
     | [string, ...string[]]
-    | [(items: Map<CellId, LinkData>) => S, ((a: S, b: S) => boolean)?]
-): Map<CellId, LinkData> | S {
+    | [(items: Map<CellId, Link<D>>) => S, ((a: S, b: S) => boolean)?]
+): Map<CellId, Link<D>> | S {
   const {
     graphView: { links },
-  } = useGraphStore();
+  } = useGraphStore<undefined, D>();
 
   const isSelectorMode = typeof args[0] === 'function';
   const ids = isSelectorMode ? undefined : (args as string[]);
@@ -49,12 +42,12 @@ export function useLinksData<LinkData extends object = CellData, S = Map<CellId,
     [ids?.join(',')]
   );
 
-  const idsOrSelector: string[] | ((items: Map<string, CellData>) => S) | undefined = isSelectorMode
-    ? (args[0] as (items: Map<string, CellData>) => S)
+  const idsOrSelector = isSelectorMode
+    ? (args[0] as (items: Map<string, Link<D>>) => S)
     : stableIds;
   const isEqual = isSelectorMode ? (args[1] as ((a: S, b: S) => boolean) | undefined) : undefined;
 
-  return useContainerItems(links, idsOrSelector as (items: Map<string, CellData>) => S, isEqual) as
-    | Map<CellId, LinkData>
+  return useContainerItems(links, idsOrSelector as (items: Map<string, Link<D>>) => S, isEqual) as
+    | Map<CellId, Link<D>>
     | S;
 }

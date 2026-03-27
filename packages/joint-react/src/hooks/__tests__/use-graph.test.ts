@@ -3,14 +3,12 @@ import { graphProviderWrapper } from '../../utils/test-wrappers';
 import { useGraph } from '../use-graph';
 import { useElements } from '../use-elements';
 import { useLinks } from '../use-links';
-import { useElementLayout } from '../use-element-layout';
-import { useElementsLayout } from '../use-layouts';
 import { act } from 'react';
 import type { ReducerType } from '@reduxjs/toolkit';
 
 describe('useGraph', () => {
   const simpleWrapper = graphProviderWrapper({
-    elements: { '1': { width: 100, height: 100 } },
+    elements: { '1': { size: { width: 100, height: 100 } } },
   });
 
   it('should return graph instance and mutation methods', async () => {
@@ -50,8 +48,8 @@ describe('useGraph element mutations', () => {
   beforeEach(() => {
     wrapper = graphProviderWrapper({
       elements: {
-        '1': { x: 50, y: 50, width: 97, height: 99 },
-        '2': { x: 200, y: 200, width: 97, height: 99 },
+        '1': { position: { x: 50, y: 50 }, size: { width: 97, height: 99 } },
+        '2': { position: { x: 200, y: 200 }, size: { width: 97, height: 99 } },
       },
       links: {
         '3': { source: '1', target: '2' },
@@ -61,33 +59,33 @@ describe('useGraph element mutations', () => {
 
   it('should set and remove elements', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements(), elementsLayout: useElementsLayout() }),
+      () => ({ ...useGraph(), elements: useElements() }),
       { wrapper }
     );
 
     await waitFor(() => {
       expect(result.current.graph.getElements().length).toBe(2);
-      expect(result.current.elementsLayout.get('1')!.width).toBe(97);
+      expect(result.current.elements.get('1')!.size.width).toBe(97);
     });
 
-    act(() => result.current.setElement('1', { width: 1000 }));
+    act(() => result.current.setElement('1', { size: { width: 1000 } }));
 
     await waitFor(() => {
       expect(result.current.graph.getElements().length).toBe(2);
-      expect(result.current.elementsLayout.get('1')!.width).toBe(1000);
+      expect(result.current.elements.get('1')!.size.width).toBe(1000);
     });
 
-    act(() => result.current.setElement('10', { width: 999 }));
+    act(() => result.current.setElement('10', { size: { width: 999 } }));
 
     await waitFor(() => {
       expect(result.current.graph.getElements().length).toBe(3);
-      expect(result.current.elementsLayout.get('10')!.width).toBe(999);
+      expect(result.current.elements.get('10')!.size.width).toBe(999);
     });
 
-    act(() => result.current.setElement('2', (previous) => ({ ...previous, width: 500 })));
+    act(() => result.current.setElement('2', (previous) => ({ ...previous, size: { width: 500, height: previous.size?.height ?? 99 } })));
 
     await waitFor(() => {
-      expect(result.current.elementsLayout.get('2')!.width).toBe(500);
+      expect(result.current.elements.get('2')!.size.width).toBe(500);
     });
 
     act(() => result.current.removeElement('1'));
@@ -95,56 +93,56 @@ describe('useGraph element mutations', () => {
     await waitFor(() => {
       expect(result.current.graph.getElements().length).toBe(2);
       expect(result.current.elements.get('1')).toBeUndefined();
-      expect(result.current.elementsLayout.get('2')!.width).toBe(500);
+      expect(result.current.elements.get('2')!.size.width).toBe(500);
     });
   });
 
   it('should set size using updater', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elementsLayout: useElementsLayout() }),
+      () => ({ ...useGraph(), elements: useElements() }),
       { wrapper }
     );
 
     await waitFor(() => {
-      expect(result.current.elementsLayout.get('1')!.width).toBe(97);
+      expect(result.current.elements.get('1')!.size.width).toBe(97);
     });
 
-    act(() => result.current.setElement('1', (previous) => ({ ...previous, width: 200, height: 250 })));
+    act(() => result.current.setElement('1', (previous) => ({ ...previous, size: { width: 200, height: 250 } })));
 
     await waitFor(() => {
       const size = result.current.graph.getCell('1')?.get('size');
       expect(size?.width).toBe(200);
       expect(size?.height).toBe(250);
-      expect(result.current.elementsLayout.get('1')!.width).toBe(200);
-      expect(result.current.elementsLayout.get('1')!.height).toBe(250);
+      expect(result.current.elements.get('1')!.size.width).toBe(200);
+      expect(result.current.elements.get('1')!.size.height).toBe(250);
     });
   });
 
   it('should set angle correctly', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elementsLayout: useElementsLayout() }),
+      () => ({ ...useGraph(), elements: useElements() }),
       { wrapper }
     );
 
     await waitFor(() => {
-      expect(result.current.elementsLayout.get('1')).toBeDefined();
+      expect(result.current.elements.get('1')).toBeDefined();
     });
 
     act(() => result.current.setElement('1', (previous) => ({ ...previous, angle: 45 })));
 
     await waitFor(() => {
       expect(result.current.graph.getCell('1')?.get('angle')).toBe(45);
-      expect(result.current.elementsLayout.get('1')!.angle).toBe(45);
+      expect(result.current.elements.get('1')!.angle).toBe(45);
     });
   });
 
   it('should update custom data fields and reflect in useElements', async () => {
     const customWrapper = graphProviderWrapper({
-      elements: { '1': { data: { label: 'Initial Label' }, x: 50, y: 50, width: 100, height: 50 } },
+      elements: { '1': { data: { label: 'Initial Label' }, position: { x: 50, y: 50 }, size: { width: 100, height: 50 } } },
     });
 
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements(), elementsLayout: useElementsLayout() }),
+      () => ({ ...useGraph(), elements: useElements() }),
       { wrapper: customWrapper }
     );
 
@@ -156,32 +154,32 @@ describe('useGraph element mutations', () => {
 
     await waitFor(() => {
       expect((result.current.elements.get('1')!.data as Record<string, unknown>).label).toBe('Updated Label');
-      expect(result.current.elementsLayout.get('1')!.width).toBe(100);
+      expect(result.current.elements.get('1')!.size.width).toBe(100);
     });
   });
 
-  it('should update layout state when size is changed', async () => {
+  it('should update elements when size is changed', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), layout: useElementLayout('1') }),
+      () => ({ ...useGraph(), elements: useElements() }),
       { wrapper }
     );
 
     await waitFor(() => {
-      expect(result.current.layout?.width).toBe(97);
-      expect(result.current.layout?.height).toBe(99);
+      expect(result.current.elements.get('1')?.size.width).toBe(97);
+      expect(result.current.elements.get('1')?.size.height).toBe(99);
     });
 
-    act(() => result.current.setElement('1', (previous) => ({ ...previous, width: 400, height: 450 })));
+    act(() => result.current.setElement('1', (previous) => ({ ...previous, size: { width: 400, height: 450 } })));
 
     await waitFor(() => {
-      expect(result.current.layout?.width).toBe(400);
-      expect(result.current.layout?.height).toBe(450);
+      expect(result.current.elements.get('1')?.size.width).toBe(400);
+      expect(result.current.elements.get('1')?.size.height).toBe(450);
     });
   });
 
   it('should create a new element via updater when it does not exist', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElements(), elementsLayout: useElementsLayout() }),
+      () => ({ ...useGraph(), elements: useElements() }),
       { wrapper }
     );
 
@@ -194,26 +192,26 @@ describe('useGraph element mutations', () => {
     await waitFor(() => {
       expect(result.current.elements.get('new-el')).toBeDefined();
       expect((result.current.elements.get('new-el')!.data as Record<string, unknown>).label).toBe('Created');
-      expect(result.current.elementsLayout.get('new-el')!.x).toBe(0);
-      expect(result.current.elementsLayout.get('new-el')!.y).toBe(0);
-      expect(result.current.elementsLayout.get('new-el')!.width).toBe(1);
-      expect(result.current.elementsLayout.get('new-el')!.height).toBe(1);
+      expect(result.current.elements.get('new-el')!.position.x).toBe(0);
+      expect(result.current.elements.get('new-el')!.position.y).toBe(0);
+      expect(result.current.elements.get('new-el')!.size.width).toBe(1);
+      expect(result.current.elements.get('new-el')!.size.height).toBe(1);
     });
   });
 
   it('should sync element update during active batch', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elementsLayout: useElementsLayout() }),
+      () => ({ ...useGraph(), elements: useElements() }),
       { wrapper }
     );
 
     await waitFor(() => {
-      expect(result.current.elementsLayout.get('1')).toBeDefined();
+      expect(result.current.elements.get('1')).toBeDefined();
     });
 
     act(() => {
       result.current.graph.startBatch('test');
-      result.current.setElement('1', { x: 125, y: 175 });
+      result.current.setElement('1', { position: { x: 125, y: 175 } });
     });
 
     expect(result.current.graph.getCell('1')?.get('position')).toEqual({ x: 125, y: 175 });
@@ -221,8 +219,8 @@ describe('useGraph element mutations', () => {
     act(() => result.current.graph.stopBatch('test'));
 
     await waitFor(() => {
-      expect(result.current.elementsLayout.get('1')?.x).toBe(125);
-      expect(result.current.elementsLayout.get('1')?.y).toBe(175);
+      expect(result.current.elements.get('1')?.position.x).toBe(125);
+      expect(result.current.elements.get('1')?.position.y).toBe(175);
     });
   });
 });
@@ -233,8 +231,8 @@ describe('useGraph link mutations', () => {
   beforeEach(() => {
     wrapper = graphProviderWrapper({
       elements: {
-        '1': { x: 50, y: 50, width: 97, height: 99 },
-        '2': { x: 200, y: 200, width: 97, height: 99 },
+        '1': { position: { x: 50, y: 50 }, size: { width: 97, height: 99 } },
+        '2': { position: { x: 200, y: 200 }, size: { width: 97, height: 99 } },
       },
       links: {
         '3': { source: '1', target: '2' },

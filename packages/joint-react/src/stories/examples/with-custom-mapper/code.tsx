@@ -1,16 +1,15 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import type { dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
   Paper,
   useElements,
-  flatElementDataToAttributes,
-  flatAttributesToElementData,
+  elementToAttributes,
+  attributesToElement,
   type CellAttributes,
   type FlatElementData,
   type FlatLinkData,
-  type ToElementAttributesOptions,
-  type ToElementDataOptions,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -95,15 +94,15 @@ const mapDataToElementAttributes = ({
 /**
  * Reverse mapper: converts JointJS top-left position back to center-based data.
  */
-const mapElementAttributesToData = ({
-  attributes,
-}: ToElementDataOptions<FlatElementData<CenterElement>>): FlatElementData<CenterElement> => {
-  const result = flatAttributesToElementData(attributes);
+const mapAttributesToElement = (
+  attributes: dia.Element.Attributes
+): FlatElementData<CenterElement> => {
+  const result = attributesToElement(attributes);
   const userData = (result.data ?? {}) as Record<string, unknown>;
-  const x = (attributes.position?.x ?? 0) as number;
-  const y = (attributes.position?.y ?? 0) as number;
-  const width = (attributes.size?.width ?? 100) as number;
-  const height = (attributes.size?.height ?? 60) as number;
+  const x = attributes.position?.x ?? 0;
+  const y = attributes.position?.y ?? 0;
+  const width = attributes.size?.width ?? 100;
+  const height = attributes.size?.height ?? 60;
   // Wrap center-based coords + user data in `data` field for useElementData()
   return {
     data: { ...userData, cx: x + width / 2, cy: y + height / 2 },
@@ -121,13 +120,13 @@ function DataPanel() {
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Element Data (cx, cy)</h3>
-      {[...elements.entries()].map(([id, { data, width, height }]) => (
+      {[...elements.entries()].map(([id, { data, size }]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
-          <div className="font-bold mb-1">{data?.label}</div>
-          <div>cx: {Math.round(data?.cx ?? 0)}</div>
-          <div>cy: {Math.round(data?.cy ?? 0)}</div>
+          <div className="font-bold mb-1">{data.label}</div>
+          <div>cx: {Math.round(data.cx)}</div>
+          <div>cy: {Math.round(data.cy)}</div>
           <div className="text-gray-400 text-xs mt-1">
-            {width} &times; {height}
+            {size.width} &times; {size.height}
           </div>
         </div>
       ))}
@@ -148,11 +147,7 @@ function Main() {
   );
   return (
     <div className="flex w-full h-full">
-      <Paper
-        className={PAPER_CLASSNAME}
-        height={400}
-        style={PAPER_STYLE}
-      />
+      <Paper className={PAPER_CLASSNAME} height={400} style={PAPER_STYLE} />
       <DataPanel />
     </div>
   );
@@ -167,8 +162,8 @@ export default function App() {
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapDataToElementAttributes={mapDataToElementAttributes}
-      mapElementAttributesToData={mapElementAttributesToData}
+      mapElementToAttributes={mapElementToAttributes}
+      mapAttributesToElement={mapAttributesToElement}
     >
       <Main />
     </GraphProvider>

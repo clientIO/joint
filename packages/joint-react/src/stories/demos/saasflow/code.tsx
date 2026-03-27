@@ -6,11 +6,10 @@ import {
   useGraph,
   useMarkup,
   useMeasureNode,
-  useFlatElementData,
-  useFlatLinkData,
+  useElementDefaults,
+  useLinkDefaults,
   type FlatElementData,
   type FlatLinkData,
-  type RenderElement,
 } from '@joint/react';
 
 import type { dia } from '@joint/core';
@@ -87,8 +86,7 @@ const initialElements: Record<string, SaasNode> = {
       status: 'active',
       tags: ['Enterprise'],
     },
-    x: 200,
-    y: 20,
+    position: { x: 200, y: 20 },
   },
   pm: {
     data: {
@@ -99,8 +97,7 @@ const initialElements: Record<string, SaasNode> = {
       tags: ['Lead', 'Slack', 'Gmail'],
       progress: 76,
     },
-    x: 20,
-    y: 250,
+    position: { x: 20, y: 250 },
   },
   designer: {
     data: {
@@ -111,8 +108,7 @@ const initialElements: Record<string, SaasNode> = {
       tags: ['Figma', 'Notion'],
       progress: 44,
     },
-    x: 380,
-    y: 460,
+    position: { x: 380, y: 460 },
   },
 };
 
@@ -303,7 +299,7 @@ function ToolbarButton({
 
 function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | null> }>) {
   const theme = useTheme();
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<SaasNodeData>();
 
   const addNode = useCallback(() => {
     const id = `node-${Date.now()}`;
@@ -324,8 +320,7 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
         status: 'pending',
         tags: ['New'],
       },
-      x: 150 + Math.random() * 200, // eslint-disable-line sonarjs/pseudo-random
-      y: 200 + Math.random() * 200, // eslint-disable-line sonarjs/pseudo-random
+      position: { x: 150 + Math.random() * 200, y: 200 + Math.random() * 200 }, // eslint-disable-line sonarjs/pseudo-random
     } satisfies SaasNode);
   }, [setElement]);
 
@@ -444,8 +439,8 @@ function Main() {
   const theme = isDark ? DARK : LIGHT;
   const paperRef = useRef<dia.Paper | null>(null);
 
-  const elementDefaults = useFlatElementData({
-    defaults: () => ({
+  const elementDefaults = useElementDefaults<SaasNodeData>(
+    () => ({
       ports: {
         out: {
           cx: 'calc(0.5 * w)',
@@ -468,10 +463,11 @@ function Main() {
         },
       },
     }),
-  }, [theme]);
+    [theme]
+  );
 
-  const linkDefaults = useFlatLinkData({
-    defaults: {
+  const linkDefaults = useLinkDefaults(
+    {
       color: theme.link,
       labelStyle: {
         color: theme.sub,
@@ -479,7 +475,8 @@ function Main() {
         backgroundOutline: theme.cardBorder,
       },
     },
-  }, [theme]);
+    [theme]
+  );
 
   return (
     <GraphProvider
@@ -514,7 +511,7 @@ function Main() {
           return magnetT?.getAttribute('magnet') === 'passive';
         }}
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
-        renderElement={RenderSaasNode as RenderElement<SaasNodeData>}
+        renderElement={RenderSaasNode}
       />
       <Toolbar paperRef={paperRef} />
     </GraphProvider>

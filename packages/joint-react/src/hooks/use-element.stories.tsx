@@ -4,7 +4,7 @@ import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
-import type { FlatElementData } from '../types/data-types';
+import type { Element } from '../types/data-types';
 
 const API_URL = getAPILink('useElement');
 
@@ -68,7 +68,7 @@ type Story = TesterHookStory<typeof useElement>;
 export const WithId = makeStory<Story>({
   args: {
     useHook: useElement,
-    hookArgs: [(data: FlatElementData) => (data as Record<string, unknown>).id] as never,
+    hookArgs: [(data: Element) => (data as Record<string, unknown>).id] as never,
   },
   apiURL: API_URL,
   code: `import { useElement } from '@joint/react'
@@ -86,7 +86,7 @@ function Component() {
 export const WithCoordinates = makeStory<Story>({
   args: {
     useHook: useElement,
-    hookArgs: [(data: FlatElementData) => ({ x: data.x, y: data.y })] as never,
+    hookArgs: [(data: Element) => ({ x: data.x, y: data.y })] as never,
   },
   apiURL: API_URL,
   code: `import { useElement } from '@joint/react'
@@ -101,5 +101,5 @@ function Component() {
   description:
     'Extracts element coordinates (x, y) using a selector function. The component re-renders only when the position changes, not when other properties like size or color change.',
   details:
-    '**Use Case:** Perfect for displaying position information or creating position-dependent UI elements that don\'t need to update when other element properties change.',
+    "**Use Case:** Perfect for displaying position information or creating position-dependent UI elements that don't need to update when other element properties change.",
 });

@@ -1,4 +1,3 @@
-
 import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import '../index.css';
@@ -6,8 +5,8 @@ import {
   GraphProvider,
   Paper,
   useElementSize,
-  useFlatElementData,
-  useFlatLinkData,
+  elementToAttributes,
+  useLinkDefaults,
   type FlatElementData,
   type FlatLinkData,
   type RenderElement,
@@ -51,7 +50,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
     groups.in = {
       position: {
         name: 'ellipseSpread',
-        args: { startAngle: 180 - (inputPorts.length - 1) * STEP / 2, step: STEP },
+        args: { startAngle: 180 - ((inputPorts.length - 1) * STEP) / 2, step: STEP },
       },
       size: { width: 14, height: 14 },
       label: {
@@ -72,7 +71,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
     groups.out = {
       position: {
         name: 'ellipseSpread',
-        args: { startAngle: 360 - (outputPorts.length - 1) * STEP / 2, step: STEP },
+        args: { startAngle: 360 - ((outputPorts.length - 1) * STEP) / 2, step: STEP },
       },
       size: { width: 14, height: 14 },
       label: {
@@ -94,25 +93,34 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
 
 const initialElements: Record<string, FlatElementData<NativeElementUserData>> = {
   'node-1': {
-    data: { color: INDIGO, label: 'Source', inputPorts: ['in-1', 'in-2'], outputPorts: ['out-1', 'out-2', 'out-3'] },
-    x: 50,
-    y: 100,
-    width: 160,
-    height: 100,
+    data: {
+      color: INDIGO,
+      label: 'Source',
+      inputPorts: ['in-1', 'in-2'],
+      outputPorts: ['out-1', 'out-2', 'out-3'],
+    },
+    position: { x: 50, y: 100 },
+    size: { width: 160, height: 100 },
   },
   'node-2': {
-    data: { color: VIOLET, label: 'Transform', inputPorts: ['in-1', 'in-2'], outputPorts: ['out-1', 'out-2'] },
-    x: 380,
-    y: 50,
-    width: 160,
-    height: 100,
+    data: {
+      color: VIOLET,
+      label: 'Transform',
+      inputPorts: ['in-1', 'in-2'],
+      outputPorts: ['out-1', 'out-2'],
+    },
+    position: { x: 380, y: 50 },
+    size: { width: 160, height: 100 },
   },
   'node-3': {
-    data: { color: INDIGO, label: 'Sink', inputPorts: ['in-1', 'in-2', 'in-3'], outputPorts: ['out-1'] },
-    x: 380,
-    y: 250,
-    width: 160,
-    height: 100,
+    data: {
+      color: INDIGO,
+      label: 'Sink',
+      inputPorts: ['in-1', 'in-2', 'in-3'],
+      outputPorts: ['out-1'],
+    },
+    position: { x: 380, y: 250 },
+    size: { width: 160, height: 100 },
   },
 };
 
@@ -149,8 +157,20 @@ const initialLinks: Record<string, FlatLinkData> = {
   },
 };
 
+function mapNativeElementToAttributes(options: {
+  id: string;
+  element: FlatElementData<NativeElementUserData>;
+}) {
+  const { id, element } = options;
+  const userData = element.data as NativeElementUserData | undefined;
+  const ports = buildNativePorts(userData?.inputPorts, userData?.outputPorts);
+  const attributes = elementToAttributes({ id, element });
+  if (!ports) return attributes;
+  return { ...attributes, ports };
+}
+
 function Node({ color, label }: Readonly<{ color: string; label: string }>) {
-  const { width, height } = useElementSize();
+  const { width = 0, height = 0 } = useElementSize();
   const cx = width / 2;
   const cy = height / 2;
   return (
@@ -182,7 +202,7 @@ function Node({ color, label }: Readonly<{ color: string; label: string }>) {
 function Main() {
   const renderElement: RenderElement<NativeElementUserData> = useCallback(
     (data) => <Node color={data.color} label={data.label} />,
-    [],
+    []
   );
 
   return (
@@ -198,26 +218,15 @@ function Main() {
 }
 
 export default function App() {
-  const elementMappers = useFlatElementData<FlatElementData<NativeElementUserData>>({
-    mapAttributes: ({ attributes, data }) => {
-      const userData = data.data as NativeElementUserData | undefined;
-      const ports = buildNativePorts(userData?.inputPorts, userData?.outputPorts);
-      if (!ports) return attributes;
-      return { ...attributes, ports };
-    }
-  }, []);
-
-  const linkMappers = useFlatLinkData<FlatLinkData>({
-    defaults: {
-      color: EMERALD
-    }
+  const linkMappers = useLinkDefaults({
+    color: EMERALD,
   });
 
   return (
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      {...elementMappers}
+      mapElementToAttributes={mapNativeElementToAttributes}
       {...linkMappers}
     >
       <Main />

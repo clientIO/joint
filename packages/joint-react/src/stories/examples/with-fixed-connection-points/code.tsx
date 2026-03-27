@@ -109,31 +109,23 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 const initialElements: Record<string, FlatElementData<CustomElement>> = {
   square1: {
     data: { shapeType: ShapeTypes.square, label: 'S1' },
-    x: 100,
-    y: 100,
-    width: 80,
-    height: 80,
+    position: { x: 100, y: 100 },
+    size: { width: 80, height: 80 },
   },
   square2: {
     data: { shapeType: ShapeTypes.square, label: 'S2' },
-    x: 340,
-    y: 100,
-    width: 80,
-    height: 80,
+    position: { x: 340, y: 100 },
+    size: { width: 80, height: 80 },
   },
   ellipse1: {
     data: { shapeType: ShapeTypes.ellipse, label: 'E' },
-    x: 220,
-    y: 300,
-    width: 80,
-    height: 80,
+    position: { x: 220, y: 300 },
+    size: { width: 80, height: 80 },
   },
   rectangle1: {
     data: { shapeType: ShapeTypes.rectangle },
-    x: 100,
-    y: 500,
-    width: 320,
-    height: 40,
+    position: { x: 100, y: 500 },
+    size: { width: 320, height: 40 },
   },
 };
 

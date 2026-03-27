@@ -29,10 +29,8 @@ export const testElements: Record<
       color: PRIMARY,
       hoverColor: 'red',
     },
-    x: 100,
-    y: 20,
-    width: 150,
-    height: 50,
+    position: { x: 100, y: 20 },
+    size: { width: 150, height: 50 },
     angle: 0,
   },
   '2': {
@@ -41,10 +39,14 @@ export const testElements: Record<
       color: PRIMARY,
       hoverColor: 'blue',
     },
-    x: 200,
-    y: 250,
-    width: 150,
-    height: 50,
+    position: {
+      x: 200,
+      y: 250,
+    },
+    size: {
+      width: 150,
+      height: 50,
+    },
     angle: 0,
   },
 };
@@ -84,7 +86,10 @@ export function RenderItemDecorator(
 ) {
   return (
     <div style={{ width: '100%', height: 450 }}>
-      <GraphProvider elements={properties.elements ?? testElements} links={properties.links ?? testLinks}>
+      <GraphProvider
+        elements={properties.elements ?? testElements}
+        links={properties.links ?? testLinks}
+      >
         <Paper
           height={450}
           className={PAPER_CLASSNAME}
@@ -99,6 +104,7 @@ export function RenderItemDecorator(
 
 function RenderSimpleRectElement() {
   const size = useElementSize();
+
   const data = useElementData<{ color: string }>();
   return <rect width={size?.width} height={size?.height} fill={data?.color} />;
 }
@@ -116,18 +122,12 @@ export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX
 }
 
 export function SimpleRenderItemDecorator(Story: StoryFunction, { args }: StoryCtx) {
-  const component = useCallback(
-    () => <Story {...args} />,
-    [Story, args]
-  );
+  const component = useCallback(() => <Story {...args} />, [Story, args]);
   return <RenderItemDecorator renderElement={component} />;
 }
 
 export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryCtx) {
-  const component = useCallback(
-    () => <Story {...args} />,
-    [Story, args]
-  );
+  const component = useCallback(() => <Story {...args} />, [Story, args]);
   return (
     <RenderItemDecorator
       renderLink={component}

@@ -13,8 +13,8 @@ interface NodeData {
 }
 
 const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1', color: PRIMARY }, x: 100, y: 15, width: 100, height: 50 },
-  '2': { data: { label: 'Node 2', color: PRIMARY }, x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Node 1', color: PRIMARY }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
+  '2': { data: { label: 'Node 2', color: PRIMARY }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
 };
 
 const initialEdges: Record<string, FlatLinkData> = {
@@ -27,7 +27,7 @@ const initialEdges: Record<string, FlatLinkData> = {
 
 function RenderElement({ color }: Readonly<NodeData>) {
   const id = useElementId();
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<NodeData>();
   return (
     <HTMLNode
       style={{
@@ -42,7 +42,7 @@ function RenderElement({ color }: Readonly<NodeData>) {
         className="nodrag"
         type="color"
         onChange={(event) => {
-          setElement(id, (previous) => ({ ...previous, data: { ...previous.data as NodeData, color: event.target.value } }));
+          setElement(id, (previous) => ({ ...previous, data: { ...previous.data as unknown as NodeData, color: event.target.value } }));
         }}
         defaultValue={color}
       />

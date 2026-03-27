@@ -13,8 +13,8 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type Data = { label: string };
 const initialElements: Record<string, FlatElementData<Data>> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 10 },
-  '2': { data: { label: 'Node 2 with longer text' }, x: 250, y: 150 },
+  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 10 } },
+  '2': { data: { label: 'Node 2 with longer text' }, position: { x: 250, y: 150 } },
 };
 
 const initialEdges: Record<string, FlatLinkData> = {

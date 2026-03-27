@@ -85,8 +85,7 @@ const initialElements: Record<string, NodeType> = {
       nodeType: 'user-action',
       outputPorts: INITIAL_OUTPUT_PORTS,
     },
-    x: 50,
-    y: 50,
+    position: { x: 50, y: 50 },
     z: 10,
   },
   '2': {
@@ -96,8 +95,7 @@ const initialElements: Record<string, NodeType> = {
       nodeType: 'entity',
       outputPorts: INITIAL_OUTPUT_PORTS,
     },
-    x: 120,
-    y: 240,
+    position: { x: 120, y: 240 },
     z: 10,
   },
   '3': {
@@ -107,8 +105,7 @@ const initialElements: Record<string, NodeType> = {
       nodeType: 'user-action',
       outputPorts: INITIAL_OUTPUT_PORTS,
     },
-    x: 190,
-    y: 440,
+    position: { x: 190, y: 440 },
     z: 10,
   },
 };

@@ -70,24 +70,18 @@ const GENERATOR_ID = 'generator';
 const initialElements: Record<string, FlatElementData<ShapeData>> = {
   generator: {
     data: { type: ShapeTypes.generator, power: 0.9 },
-    x: 50,
-    y: 50,
-    width: 60,
-    height: 80,
+    position: { x: 50, y: 50 },
+    size: { width: 60, height: 80 },
   },
   bulb1: {
     data: { type: ShapeTypes.bulb, watts: 100 },
-    x: 150,
-    y: 45,
-    width: 28,
-    height: 30,
+    position: { x: 150, y: 45 },
+    size: { width: 28, height: 30 },
   },
   bulb2: {
     data: { type: ShapeTypes.bulb, watts: 40 },
-    x: 150,
-    y: 105,
-    width: 28,
-    height: 30,
+    position: { x: 150, y: 105 },
+    size: { width: 28, height: 30 },
   },
 };
 
@@ -121,7 +115,7 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
   const { width, height } = useElementSize();
   const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<ShapeData>();
 
   // Turbine blade path
   const turbinePath = `
@@ -159,7 +153,7 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
     const newPower = power === 0 ? 1 : 0;
     setElement(GENERATOR_ID, (previous) => ({
       ...previous,
-      data: { ...(previous.data as GeneratorData), power: newPower },
+      data: { ...(previous.data as unknown as GeneratorData), power: newPower },
     }));
   }, [power, setElement]);
 
@@ -309,7 +303,7 @@ function RenderShapeElement(props: Readonly<ShapeData>) {
 // Power Control Component
 // ----------------------------------------------------------------------------
 function PowerControl() {
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<ShapeData>();
 
   // Read generator power from store (reactive)
   const power = useElements<ShapeData, number>(
@@ -321,7 +315,7 @@ function PowerControl() {
       const newPower = event.target.valueAsNumber;
       setElement(GENERATOR_ID, (previous) => ({
         ...previous,
-        data: { ...(previous.data as GeneratorData), power: newPower },
+        data: { ...(previous.data as unknown as GeneratorData), power: newPower },
       }));
     },
     [setElement]

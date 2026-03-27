@@ -5,10 +5,9 @@ import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
 import {
   GraphProvider,
-  flatLinkDataToAttributes,
+  linkToAttributes,
   type CellAttributes,
   type RenderElement,
-  type ToLinkAttributesOptions,
   type FlatLinkData,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -56,11 +55,7 @@ class LinkModel extends shapes.standard.Link {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper
-        defaultLink={() => new LinkModel()}
-        className={PAPER_CLASSNAME}
-        height={280}
-      />
+      <Paper defaultLink={() => new LinkModel()} className={PAPER_CLASSNAME} height={280} />
     </div>
   );
 }
@@ -78,11 +73,9 @@ const links: Record<string, CustomLink> = {
   },
 };
 
-const mapDataToLinkAttributes = (
-  options: ToLinkAttributesOptions<FlatLinkData>
-): CellAttributes => {
-  const data = options.data as CustomLink;
-  const attributes = flatLinkDataToAttributes(data) as CellAttributes;
+const mapLinkToAttributes = (options: { id?: string; link: FlatLinkData }): CellAttributes => {
+  const data = options.link as CustomLink;
+  const attributes = linkToAttributes(options);
   const { color } = data;
   return {
     ...attributes,
@@ -97,7 +90,7 @@ export default function App() {
       links={links as Record<string, FlatLinkData>}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
-      mapDataToLinkAttributes={mapDataToLinkAttributes}
+      mapLinkToAttributes={mapLinkToAttributes}
     >
       <Main />
     </GraphProvider>

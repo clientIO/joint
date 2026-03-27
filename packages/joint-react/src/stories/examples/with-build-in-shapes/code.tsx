@@ -5,8 +5,9 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useFlatElementData,
-  useFlatLinkData,
+  elementToAttributes,
+  linkToAttributes,
+  type CellAttributes,
   type FlatElementData,
   type FlatLinkData,
 } from '@joint/react';
@@ -28,31 +29,31 @@ const SECONDARY = '#6366f1';
 const initialElements: Record<string, NativeElement> = {
   // Row 1: Basic shapes
   rectangle: {
-    x: 20, y: 20, width: 100, height: 50,
+    data: undefined, position: { x: 20, y: 20 }, size: { width: 100, height: 50 },
     type: 'standard.Rectangle',
     label: 'Rectangle',
     attrs: { body: { fill: PRIMARY }, label: { fill: 'white' } },
   },
   circle: {
-    x: 150, y: 20, width: 60, height: 60,
+    data: undefined, position: { x: 150, y: 20 }, size: { width: 60, height: 60 },
     type: 'standard.Circle',
     label: 'Circle',
     attrs: { body: { fill: SECONDARY, stroke: '#333333' }, label: { fill: 'white' } },
   },
   ellipse: {
-    x: 240, y: 20, width: 100, height: 50,
+    data: undefined, position: { x: 240, y: 20 }, size: { width: 100, height: 50 },
     type: 'standard.Ellipse',
     label: 'Ellipse',
     attrs: { body: { fill: PRIMARY, stroke: '#333333' }, label: { fill: 'white' } },
   },
   cylinder: {
-    x: 370, y: 10, width: 60, height: 70,
+    data: undefined, position: { x: 370, y: 10 }, size: { width: 60, height: 70 },
     type: 'standard.Cylinder',
     attrs: { body: { fill: SECONDARY }, top: { fill: '#4f46e5' } },
   },
   // Row 2: Path shapes
   path: {
-    x: 20, y: 110, width: 80, height: 80,
+    data: undefined, position: { x: 20, y: 110 }, size: { width: 80, height: 80 },
     type: 'standard.Path',
     label: 'Path',
     attrs: {
@@ -61,7 +62,7 @@ const initialElements: Record<string, NativeElement> = {
     },
   },
   polygon: {
-    x: 130, y: 110, width: 80, height: 80,
+    data: undefined, position: { x: 130, y: 110 }, size: { width: 80, height: 80 },
     type: 'standard.Polygon',
     label: 'Polygon',
     attrs: {
@@ -70,7 +71,7 @@ const initialElements: Record<string, NativeElement> = {
     },
   },
   polyline: {
-    x: 240, y: 110, width: 100, height: 80,
+    data: undefined, position: { x: 240, y: 110 }, size: { width: 100, height: 80 },
     type: 'standard.Polyline',
     label: 'Polyline',
     attrs: {
@@ -79,7 +80,7 @@ const initialElements: Record<string, NativeElement> = {
     },
   },
   textblock: {
-    x: 370, y: 110, width: 100, height: 60,
+    data: undefined, position: { x: 370, y: 110 }, size: { width: 100, height: 60 },
     type: 'standard.TextBlock',
     attrs: {
       body: { stroke: PRIMARY, fill: '#f3f4f6' },
@@ -88,7 +89,7 @@ const initialElements: Record<string, NativeElement> = {
   },
   // Row 3: Headered and Image shapes
   headered: {
-    x: 20, y: 220, width: 120, height: 80,
+    data: undefined, position: { x: 20, y: 220 }, size: { width: 120, height: 80 },
     type: 'standard.HeaderedRectangle',
     attrs: {
       body: { fill: '#e5e7eb' },
@@ -98,7 +99,7 @@ const initialElements: Record<string, NativeElement> = {
     },
   },
   image: {
-    x: 170, y: 220, width: 60, height: 60,
+    data: undefined, position: { x: 170, y: 220 }, size: { width: 60, height: 60 },
     type: 'standard.Image',
     label: 'Image',
     attrs: {
@@ -107,7 +108,7 @@ const initialElements: Record<string, NativeElement> = {
     },
   },
   'bordered-image': {
-    x: 260, y: 220, width: 70, height: 70,
+    data: undefined, position: { x: 260, y: 220 }, size: { width: 70, height: 70 },
     type: 'standard.BorderedImage',
     label: 'Bordered',
     attrs: {
@@ -117,7 +118,7 @@ const initialElements: Record<string, NativeElement> = {
     },
   },
   'embedded-image': {
-    x: 360, y: 220, width: 150, height: 70,
+    data: undefined, position: { x: 360, y: 220 }, size: { width: 150, height: 70 },
     type: 'standard.EmbeddedImage',
     label: 'Embedded',
     attrs: {
@@ -128,7 +129,7 @@ const initialElements: Record<string, NativeElement> = {
   },
   // Row 4: More shapes and link targets
   'inscribed-image': {
-    x: 20, y: 330, width: 70, height: 70,
+    data: undefined, position: { x: 20, y: 330 }, size: { width: 70, height: 70 },
     type: 'standard.InscribedImage',
     label: 'Inscribed',
     attrs: {
@@ -139,25 +140,25 @@ const initialElements: Record<string, NativeElement> = {
     },
   },
   'link-source': {
-    x: 150, y: 350, width: 80, height: 40,
+    data: undefined, position: { x: 150, y: 350 }, size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
     label: 'Source',
     attrs: { body: { fill: PRIMARY }, label: { fill: 'white' } },
   },
   'link-target-1': {
-    x: 350, y: 320, width: 80, height: 40,
+    data: undefined, position: { x: 350, y: 320 }, size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
     label: 'Target 1',
     attrs: { body: { fill: SECONDARY }, label: { fill: 'white' } },
   },
   'link-target-2': {
-    x: 350, y: 420, width: 80, height: 40,
+    data: undefined, position: { x: 350, y: 420 }, size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
     label: 'Target 2',
     attrs: { body: { fill: PRIMARY }, label: { fill: 'white' } },
   },
   'link-target-3': {
-    x: 520, y: 320, width: 80, height: 40,
+    data: undefined, position: { x: 520, y: 320 }, size: { width: 80, height: 40 },
     type: 'standard.Rectangle',
     label: 'Target 3',
     attrs: { body: { fill: SECONDARY }, label: { fill: 'white' } },
@@ -188,6 +189,36 @@ const initialLinks: Record<string, NativeLink> = {
   },
 };
 
+function mapElementToAttributes(options: {
+  id: string;
+  element: FlatElementData;
+}): CellAttributes {
+  const data = options.element as NativeElement;
+  const attributes = elementToAttributes(options);
+  return {
+    ...attributes,
+    type: data.type,
+    attrs: util.defaultsDeep(
+      { label: { text: data.label || '' } },
+      data.attrs || {},
+    ),
+  };
+}
+
+function mapLinkToAttributes(options: {
+  id?: string;
+  link: FlatLinkData;
+}): CellAttributes {
+  const data = options.link as NativeLink;
+  const attributes = linkToAttributes(options);
+  return {
+    ...attributes,
+    type: data.type,
+    attrs: util.defaultsDeep({}, data.attrs || {}),
+    ...(data.label && { labels: [{ attrs: { text: { text: data.label } } }] }),
+  };
+}
+
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
@@ -197,39 +228,12 @@ function Main() {
 }
 
 export default function App() {
-  const elementMappers = useFlatElementData({
-    mapAttributes: ({ attributes, data: rawData, graph }) => {
-      const data = rawData as NativeElement;
-      return {
-        ...attributes,
-        type: data.type,
-        attrs: util.defaultsDeep(
-          { label: { text: data.label || '' }},
-          data.attrs || {},
-          graph.getTypeDefaults(data.type).attrs || {},
-        ),
-      };
-    },
-  }, []);
-
-  const linkMappers = useFlatLinkData({
-    mapAttributes: ({ attributes, data: rawData, graph }) => {
-      const data = rawData as NativeLink;
-      return {
-        ...attributes,
-        type: data.type,
-        attrs: util.defaultsDeep({}, data.attrs || {}, graph.getTypeDefaults(data.type).attrs || {}),
-        ...(data.label && { labels: [{ attrs: { text: { text: data.label } } }] }),
-      };
-    },
-  }, []);
-
   return (
     <GraphProvider
       elements={initialElements as Record<string, FlatElementData>}
       links={initialLinks as Record<string, FlatLinkData>}
-      {...elementMappers}
-      {...linkMappers}
+      mapElementToAttributes={mapElementToAttributes}
+      mapLinkToAttributes={mapLinkToAttributes}
     >
       <Main />
     </GraphProvider>

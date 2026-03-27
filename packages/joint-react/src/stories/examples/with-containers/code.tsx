@@ -13,23 +13,19 @@ type ContainerData = {
 
 const elements: Record<string, FlatElementData<ContainerData>> = {
   container: {
-    x: 50,
-    y: 50,
-    width: 300,
-    height: 200,
+    position: { x: 50, y: 50 },
+    size: { width: 300, height: 200 },
     data: { label: 'Container', isContainer: true },
     z: 1,
   },
   'child-1': {
-    x: 70,
-    y: 80,
+    position: { x: 70, y: 80 },
     data: { label: 'Child 1' },
     parent: 'container',
     z: 2,
   },
   'child-2': {
-    x: 200,
-    y: 80,
+    position: { x: 200, y: 80 },
     data: { label: 'Child 2' },
     parent: 'container',
     z: 2,

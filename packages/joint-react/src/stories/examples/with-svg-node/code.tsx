@@ -25,8 +25,8 @@ interface NodeData {
 }
 
 const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
-  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
+  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
 };
 
 function RenderedRect({ label }: Readonly<NodeData>) {

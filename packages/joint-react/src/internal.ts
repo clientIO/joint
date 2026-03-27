@@ -31,10 +31,7 @@ export { FeaturesProvider } from './components';
 
 // Store Classes
 export { GraphStore, DEFAULT_CELL_NAMESPACE } from './store/graph-store';
-export type {
-  GraphStoreInternalSnapshot,
-  PaperStoreState,
-} from './store/graph-store';
+export type { GraphStoreInternalSnapshot, PaperStoreState } from './store/graph-store';
 export type { GraphStoreOptions } from './store/graph-store';
 export { PaperStore } from './store/paper-store';
 export type { PaperStoreOptions, AddPaperOptions } from './store/paper-store';
@@ -53,11 +50,11 @@ export { createAtom, type Atom } from './store/state-container';
 
 // Data-Mapping Defaults
 export {
-  flatMapDataToElementAttributes,
+  elementToAttributes as flatMapDataToElementAttributes,
   flatMapElementAttributesToData,
 } from './state/data-mapping/element-mapper';
 export {
-  flatMapDataToLinkAttributes,
+  linkToAttributes as flatMapDataToLinkAttributes,
   flatMapLinkAttributesToData,
 } from './state/data-mapping/link-mapper';
 

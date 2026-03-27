@@ -6,10 +6,6 @@ import {
   Paper,
   type FlatElementData,
   type FlatLinkData,
-  type ToElementAttributesOptions,
-  type ToElementDataOptions,
-  type ToLinkAttributesOptions,
-  type ToLinkDataOptions,
   type RenderElement,
   useElements,
 } from '@joint/react';
@@ -104,42 +100,51 @@ const LINK_USER_DATA_KEYS = Object.keys(Object.values(initialLinks)[0].data as o
  * Forward mapper: unwrap user data from the `data` field and pass it as cell JSON.
  * The store handles `id` automatically.
  */
-const mapDataToElementAttributes = ({
-  data,
-}: ToElementAttributesOptions<FlatElementData<CellJsonElement>>): dia.Cell.JSON => {
-  const userData = (data as FlatElementData<CellJsonElement>).data ?? {};
-  return { ...userData } as dia.Cell.JSON;
+const mapElementToAttributes = ({
+  element,
+}: { id: string; element: FlatElementData<CellJsonElement> }): dia.Cell.JSON => {
+  const userData = element.data ?? {};
+  return { ...userData } as unknown as dia.Cell.JSON;
 };
 
 /**
  * Reverse mapper: pick only the keys defined in the data format.
  * Wraps custom fields in `data` so useElementData() can access them.
  */
-const mapElementAttributesToData = ({
-  attributes,
-}: ToElementDataOptions<FlatElementData<CellJsonElement>>): FlatElementData<CellJsonElement> => {
+const mapAttributesToElement = (
+  attributes: dia.Element.Attributes
+): FlatElementData<CellJsonElement> => {
   const picked = util.pick(attributes, ELEMENT_KEYS) as CellJsonElement;
-  return { data: picked } as FlatElementData<CellJsonElement>;
+  return {
+    data: picked,
+    position: picked.position,
+    size: picked.size,
+  } as FlatElementData<CellJsonElement>;
 };
 
 /**
  * Forward mapper for links: data is already cell JSON — pass it through as-is.
  * The store handles `id` automatically.
  */
-const mapDataToLinkAttributes = ({
-  data,
-}: ToLinkAttributesOptions<FlatLinkData<CellJsonLink>>): dia.Cell.JSON => {
-  const linkData = data as FlatLinkData<CellJsonLink>;
-  const userData = linkData.data ?? {};
-  return { ...userData, source: linkData.source, target: linkData.target } as unknown as dia.Cell.JSON;
+const mapLinkToAttributes = ({
+  id,
+  link,
+}: { id?: string; link: FlatLinkData<CellJsonLink> }): dia.Cell.JSON => {
+  const userData = link.data ?? {};
+  return {
+    ...userData,
+    source: link.source,
+    target: link.target,
+    id,
+  } as unknown as dia.Cell.JSON;
 };
 
 /**
  * Reverse mapper: pick only the keys defined in the data format.
  */
-const mapLinkAttributesToData = ({
-  attributes,
-}: ToLinkDataOptions<FlatLinkData<CellJsonLink>>): FlatLinkData<CellJsonLink> => {
+const mapAttributesToLink = (
+  attributes: dia.Link.Attributes
+): FlatLinkData<CellJsonLink> => {
   const userData = util.pick(attributes, LINK_USER_DATA_KEYS) as CellJsonLink;
   return {
     data: userData,
@@ -189,17 +194,17 @@ function DataPanel() {
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Cell JSON Data</h3>
-      {[...elements.entries()].map(([id, { data, x, y, width, height }]) => (
+      {[...elements.entries()].map(([id, element]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
-          <div className="font-bold mb-1">{data?.label}</div>
+          <div className="font-bold mb-1">{element.data?.label}</div>
           <div>
-            position: {'{'}x: {Math.round(x ?? 0)}, y: {Math.round(y ?? 0)}
+            position: {'{'}x: {Math.round(element.position?.x ?? 0)}, y: {Math.round(element.position?.y ?? 0)}
             {'}'}
           </div>
           <div className="text-gray-400 text-xs mt-1">
-            size: {width ?? 0} &times; {height ?? 0}
+            size: {element.size?.width ?? 0} &times; {element.size?.height ?? 0}
           </div>
-          <div className="text-gray-400 text-xs">type: {data?.type}</div>
+          <div className="text-gray-400 text-xs">type: {element.data?.type}</div>
         </div>
       ))}
     </div>
@@ -239,10 +244,10 @@ export default function App() {
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapDataToElementAttributes={mapDataToElementAttributes}
-      mapElementAttributesToData={mapElementAttributesToData}
-      mapDataToLinkAttributes={mapDataToLinkAttributes}
-      mapLinkAttributesToData={mapLinkAttributesToData}
+      mapElementToAttributes={mapElementToAttributes}
+      mapAttributesToElement={mapAttributesToElement}
+      mapLinkToAttributes={mapLinkToAttributes}
+      mapAttributesToLink={mapAttributesToLink}
     >
       <Main />
     </GraphProvider>

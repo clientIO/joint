@@ -16,8 +16,8 @@ type ElementData = { label: string };
 
 // Define initial elements as Record
 const initialElements: Record<string, FlatElementData<ElementData>> = {
-  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 25 },
-  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 25 },
+  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 25 } },
+  '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 25 } },
 };
 
 // Define initial edges as Record

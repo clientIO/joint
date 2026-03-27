@@ -45,13 +45,11 @@ describe('GraphStore', () => {
     it('should initialize with initialElements', () => {
       const initialElements = {
         'element-1': {
-          x: 10,
-          y: 20,
-          width: 100,
-          height: 50,
-          data: {},
+          position: { x: 10, y: 20 },
+          size: { width: 100, height: 50 },
+          data: undefined,
         },
-        'element-2': { data: {}, x: 30, y: 40, width: 80, height: 60 },
+        'element-2': { data: undefined, position: { x: 30, y: 40 }, size: { width: 80, height: 60 } },
       };
       const store = new GraphStore({ initialElements });
       const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
@@ -63,11 +61,9 @@ describe('GraphStore', () => {
     it('should sync initial elements into graph immediately after construction', () => {
       const initialElements = {
         'element-1': {
-          x: 10,
-          y: 20,
-          width: 100,
-          height: 50,
-          data: {},
+          position: { x: 10, y: 20 },
+          size: { width: 100, height: 50 },
+          data: undefined,
         },
       };
 
@@ -79,7 +75,7 @@ describe('GraphStore', () => {
 
     it('should initialize with initialLinks', () => {
       const initialLinks = {
-        'link-1': { data: {}, source: 'element-1', target: 'element-2' },
+        'link-1': { source: 'element-1', target: 'element-2' },
       };
       const store = new GraphStore({ initialLinks });
       const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
@@ -90,15 +86,13 @@ describe('GraphStore', () => {
     it('should initialize with both initialElements and initialLinks', () => {
       const initialElements = {
         'element-1': {
-          x: 10,
-          y: 20,
-          width: 100,
-          height: 50,
-          data: {},
+          position: { x: 10, y: 20 },
+          size: { width: 100, height: 50 },
+          data: undefined,
         },
       };
       const initialLinks = {
-        'link-1': { data: {}, source: 'element-1', target: 'element-2' },
+        'link-1': { source: 'element-1', target: 'element-2' },
       };
       const store = new GraphStore({ initialElements, initialLinks });
       const snapshot = { elements: Object.fromEntries(store.graphView.elements.getFull()), links: Object.fromEntries(store.graphView.links.getFull()) };
@@ -126,11 +120,9 @@ describe('GraphStore', () => {
 
       const initialElements = {
         'new-element': {
-          x: 10,
-          y: 20,
-          width: 100,
-          height: 50,
-          data: {},
+          position: { x: 10, y: 20 },
+          size: { width: 100, height: 50 },
+          data: undefined,
         },
       };
       const store = new GraphStore({ graph, initialElements });
@@ -433,11 +425,9 @@ describe('GraphStore', () => {
       const store = new GraphStore({});
       const id = 'sync-element';
       const element = {
-        data: {},
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
+        data: undefined,
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
       };
 
       store.graphView.updateGraph({
@@ -479,21 +469,18 @@ describe('GraphStore', () => {
 
     it('should keep layout state live but defer public state during active graph batches', async () => {
       const store = new GraphStore({
-        enableBatchUpdates: true,
         initialElements: {
           'batched-element': {
-            data: {},
-            x: 0,
-            y: 0,
-            width: 100,
-            height: 50,
+            data: undefined,
+            position: { x: 0, y: 0 },
+            size: { width: 100, height: 50 },
           },
         },
       });
 
       await waitFor(() => {
-        const layout = store.graphView.elementsLayout.get('batched-element');
-        expect(layout).toBeDefined();
+        const elementData = store.graphView.elements.get('batched-element');
+        expect(elementData).toBeDefined();
       });
 
       const element = store.graph.getCell('batched-element');
@@ -506,28 +493,27 @@ describe('GraphStore', () => {
       element.set('size', { width: 240, height: 160 });
 
       await waitFor(() => {
-        const batchedLayout = store.graphView.elementsLayout.get('batched-element');
-        expect(batchedLayout?.x).toBe(120);
-        expect(batchedLayout?.y).toBe(180);
-        expect(batchedLayout?.width).toBe(240);
-        expect(batchedLayout?.height).toBe(160);
+        const batchedElement = store.graphView.elements.get('batched-element');
+        expect(batchedElement?.position?.x).toBe(120);
+        expect(batchedElement?.position?.y).toBe(180);
+        expect(batchedElement?.size?.width).toBe(240);
+        expect(batchedElement?.size?.height).toBe(160);
       });
 
-      // With container architecture, layout updates happen immediately during batch
-      // (only data updates are deferred). The elementsLayout container reflects the latest position.
-      const layoutDuringBatch = store.graphView.elementsLayout.get('batched-element');
-      expect(layoutDuringBatch?.x).toBe(120);
-      expect(layoutDuringBatch?.y).toBe(180);
+      // With container architecture, layout updates happen immediately during batch.
+      const elementDuringBatch = store.graphView.elements.get('batched-element');
+      expect(elementDuringBatch?.position?.x).toBe(120);
+      expect(elementDuringBatch?.position?.y).toBe(180);
 
       store.graph.stopBatch('test');
 
-      // After batch: layout is in elementsLayout container (not elements data container)
+      // After batch: position and size are in elements container
       await waitFor(() => {
-        const layoutAfterBatch = store.graphView.elementsLayout.get('batched-element');
-        expect(layoutAfterBatch?.x).toBe(120);
-        expect(layoutAfterBatch?.y).toBe(180);
-        expect(layoutAfterBatch?.width).toBe(240);
-        expect(layoutAfterBatch?.height).toBe(160);
+        const elementAfterBatch = store.graphView.elements.get('batched-element');
+        expect(elementAfterBatch?.position?.x).toBe(120);
+        expect(elementAfterBatch?.position?.y).toBe(180);
+        expect(elementAfterBatch?.size?.width).toBe(240);
+        expect(elementAfterBatch?.size?.height).toBe(160);
       });
     });
   });
@@ -538,7 +524,7 @@ describe('GraphStore', () => {
 
       const store = new GraphStore({
         initialElements: {
-          'el-1': { data: { label: 'test' }, x: 0, y: 0, width: 100, height: 50 },
+          'el-1': { data: { label: 'test' }, position: { x: 0, y: 0 }, size: { width: 100, height: 50 } },
         },
         onElementsChange: (elements) => {
           receivedElements.push({ ...elements });
@@ -555,8 +541,9 @@ describe('GraphStore', () => {
         const element_ = lastEmit!['el-1'] as Record<string, unknown>;
         expect(element_).toBeDefined();
         // onElementsChange must include the updated position (merged from layout container)
-        expect(element_.x).toBe(200);
-        expect(element_.y).toBe(150);
+        const pos = element_.position as { x: number; y: number };
+        expect(pos.x).toBe(200);
+        expect(pos.y).toBe(150);
         // User data should still be present
         expect((element_.data as Record<string, unknown>)?.label).toBe('test');
         store.destroy(false);
@@ -569,7 +556,7 @@ describe('GraphStore', () => {
 
       const store = new GraphStore({
         initialElements: {
-          'el-1': { data: { label: 'test' }, x: 0, y: 0, width: 100, height: 50 },
+          'el-1': { data: { label: 'test' }, position: { x: 0, y: 0 }, size: { width: 100, height: 50 } },
         },
         onElementsChange: (elements) => {
           receivedElements.push({ ...elements });
@@ -584,8 +571,9 @@ describe('GraphStore', () => {
         const lastEmit = receivedElements.at(-1);
         const element_ = lastEmit!['el-1'] as Record<string, unknown>;
         expect(element_).toBeDefined();
-        expect(element_.width).toBe(300);
-        expect(element_.height).toBe(200);
+        const sz = element_.size as { width: number; height: number };
+        expect(sz.width).toBe(300);
+        expect(sz.height).toBe(200);
         store.destroy(false);
         done();
       }, 100);

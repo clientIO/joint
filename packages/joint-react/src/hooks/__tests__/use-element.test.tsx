@@ -7,11 +7,9 @@ describe('use-element', () => {
     graphProviderProps: {
       elements: {
         '1': {
-          data: {},
-          width: 100,
-          height: 100,
-          x: 10,
-          y: 20,
+          data: undefined,
+          size: { width: 100, height: 100 },
+          position: { x: 10, y: 20 },
         },
       },
     },
@@ -32,8 +30,8 @@ describe('use-element', () => {
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
-      expect(result.current.width).toBe(100);
-      expect(result.current.height).toBe(100);
+      expect(result.current.size.width).toBe(100);
+      expect(result.current.size.height).toBe(100);
     });
   });
 });

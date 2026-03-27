@@ -1,6 +1,5 @@
 import type { dia } from '@joint/core';
-import type { FlatLinkData } from '../../types/data-types';
-import type { CellData } from '../../types/cell-data';
+import type { Link } from '../../types/data-types';
 import type { OmitWithoutIndexSignature } from '../../types';
 import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
@@ -16,26 +15,27 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
    * Default link for the paper - for example if there is new element added, this will be used as default.
    */
   readonly defaultLink?:
-    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<FlatLinkData>)
+    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<Link>)
     | dia.Link
-    | Partial<FlatLinkData>;
+    | Partial<Link>;
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */
-export type RenderElement<ElementData extends object = CellData> = (data: ElementData) => ReactNode;
+export type RenderElement<ElementData extends object | undefined = undefined> = (
+  data: ElementData
+) => ReactNode;
 
 /** Render function for links. Receives user data `D` from the link's `data` field. */
-export type RenderLink<LinkData extends object = CellData> = (data: LinkData) => ReactNode;
-
+export type RenderLink<LinkData extends object | undefined = undefined> = (
+  data: LinkData
+) => ReactNode;
 
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps
-  extends PortalPaperOptions,
-    PropsWithChildren {
+export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
   /**
    * Width of the paper host element.
    *

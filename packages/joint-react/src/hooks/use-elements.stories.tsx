@@ -1,9 +1,8 @@
-
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
-import type { FlatElementData } from '../types/data-types';
+import type { Element } from '../types/data-types';
 import type { CellData } from '../types/cell-data';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
@@ -89,10 +88,7 @@ export const Default = makeStory<Story>({
     hookArgs: [],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="All Elements" />
       </div>
     ),
@@ -110,13 +106,13 @@ function Component() {
 export const WithSelectedJustIds = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements: Map<string, CellData>) => [...elements.values()].map((element) => (element as Record<string, unknown>).id)],
+    hookArgs: [
+      (elements: Map<string, CellData>) =>
+        [...elements.values()].map((element) => (element as Record<string, unknown>).id),
+    ],
     render: (result) => (
       <span>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Element IDs" />
       </span>
     ),
@@ -137,10 +133,7 @@ export const WithGetJustSize = makeStory<Story>({
     hookArgs: [(elements: Map<string, CellData>) => elements.size],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Size of Elements" />
       </div>
     ),
@@ -161,16 +154,13 @@ export const WithJustPosition = makeStory<Story>({
     hookArgs: [
       (elements: Map<string, CellData>) =>
         [...elements.values()].map((element) => ({
-          x: (element as FlatElementData).x,
-          y: (element as FlatElementData).y,
+          x: (element as Element).x,
+          y: (element as Element).y,
         })),
     ],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Position" />
       </div>
     ),
@@ -193,17 +183,14 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
     hookArgs: [
       (elements: Map<string, CellData>) =>
         [...elements.values()].map((element) => ({
-          x: (element as FlatElementData).x,
-          y: (element as FlatElementData).y,
+          x: (element as Element).x,
+          y: (element as Element).y,
         })),
       (_previous: unknown, _next: unknown) => true,
     ],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Position" />
       </div>
     ),
@@ -227,14 +214,14 @@ export const WithAdditionalData = makeStory<Story>({
     useHook: useElements,
     hookArgs: [
       (elements: Map<string, CellData>) =>
-        [...elements.values()].map((element) => ({ id: (element as Record<string, unknown>).id, other: 'something' })),
+        [...elements.values()].map((element) => ({
+          id: (element as Record<string, unknown>).id,
+          other: 'something',
+        })),
     ],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Element with new data" />
       </div>
     ),

@@ -13,17 +13,13 @@ interface NodeData {
 const initialElements: Record<string, FlatElementData<NodeData>> = {
   '1': {
     data: { label: 'Node 1' },
-    x: 100,
-    y: 50,
-    width: 125,
-    height: 25,
+    position: { x: 100, y: 50 },
+    size: { width: 125, height: 25 },
   },
   '2': {
     data: { label: 'Node 2' },
-    x: 100,
-    y: 200,
-    width: 120,
-    height: 25,
+    position: { x: 100, y: 200 },
+    size: { width: 120, height: 25 },
   },
 };
 

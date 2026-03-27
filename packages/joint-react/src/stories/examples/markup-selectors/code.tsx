@@ -11,6 +11,7 @@ import {
   type OnTransformElement,
   PortalElement,
   PortalLink,
+  type FlatElementData,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
@@ -22,14 +23,11 @@ const ELEMENT_WIDTH = 160;
 const HEADER_COLOR = '#f6c744';
 
 interface StackedElement {
-  readonly [key: string]: unknown;
   readonly name: string;
   readonly labels: readonly string[];
-  readonly x: number;
-  readonly y: number;
 }
 
-const initialElements: Record<string, StackedElement> = {
+const initialElements: Record<string, FlatElementData<StackedElement>> = {
   '1': {
     data: {
       name: 'Component A',
@@ -102,7 +100,15 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
 
   return (
     <>
-      <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} rx={4} ry={4} />
+      <rect
+        width={width}
+        height={height}
+        fill={BG}
+        stroke={PRIMARY}
+        strokeWidth={2}
+        rx={4}
+        ry={4}
+      />
       {/* Header */}
       <g className="header">
         <rect width={width} height={HEADER_HEIGHT} fill={HEADER_COLOR} rx={4} ry={4} />
@@ -137,7 +143,15 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
         })}
       </g>
       {/* Border on top for clean rounded corners */}
-      <rect width={width} height={height} fill="none" stroke={PRIMARY} strokeWidth={2} rx={4} ry={4} />
+      <rect
+        width={width}
+        height={height}
+        fill="none"
+        stroke={PRIMARY}
+        strokeWidth={2}
+        rx={4}
+        ry={4}
+      />
     </>
   );
 }
@@ -160,7 +174,7 @@ function Main() {
         name: 'midSide',
         args: {
           mode: 'horizontal',
-        }
+        },
       }}
       highlighting={{
         connecting: {
@@ -170,9 +184,9 @@ function Main() {
             attrs: {
               stroke: LIGHT,
               strokeWidth: 3,
-            }
-          }
-        }
+            },
+          },
+        },
       }}
       defaultLink={{
         color: LIGHT,
@@ -187,15 +201,14 @@ function Main() {
 }
 
 class MyPortalElement extends PortalElement {
-
   defaults() {
     return {
       ...super.defaults(),
       attrs: {
         root: {
           magnet: false,
-        }
-      }
+        },
+      },
     };
   }
 
@@ -203,13 +216,16 @@ class MyPortalElement extends PortalElement {
 }
 
 export default function App() {
-  const graph = new dia.Graph({}, {
-    cellNamespace: {
-      ...shapes,
-      PortalElement: MyPortalElement,
-      PortalLink
+  const graph = new dia.Graph(
+    {},
+    {
+      cellNamespace: {
+        ...shapes,
+        PortalElement: MyPortalElement,
+        PortalLink,
+      },
     }
-  });
+  );
   return (
     <GraphProvider elements={initialElements} links={initialLinks} graph={graph}>
       <Main />

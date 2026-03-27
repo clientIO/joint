@@ -28,38 +28,31 @@ const elements: Record<string, FlatElementData<LayeredElementData>> = {
   // Background layer elements
   'bg-1': {
     data: { label: 'Background 1', color: '#374151', isBackground: true },
-    x: 20,
-    y: 20,
-    width: 200,
-    height: 150,
+    position: { x: 20, y: 20 },
+    size: { width: 200, height: 150 },
     layer: 'background',
   },
   'bg-2': {
     data: { label: 'Background 2', color: '#374151', isBackground: true },
-    x: 250,
-    y: 20,
-    width: 200,
-    height: 150,
+    position: { x: 250, y: 20 },
+    size: { width: 200, height: 150 },
     layer: 'background',
   },
   // Main layer elements
   'main-1': {
     data: { label: 'Main 1', color: PRIMARY },
-    x: 50,
-    y: 50,
+    position: { x: 50, y: 50 },
     layer: 'main',
   },
   'main-2': {
     data: { label: 'Main 2', color: PRIMARY },
-    x: 280,
-    y: 50,
+    position: { x: 280, y: 50 },
     layer: 'main',
   },
   // Foreground layer elements
   'fg-1': {
     data: { label: 'Foreground', color: SECONDARY },
-    x: 100,
-    y: 200,
+    position: { x: 100, y: 200 },
     layer: 'foreground',
   },
 };

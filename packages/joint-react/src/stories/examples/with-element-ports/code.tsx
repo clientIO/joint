@@ -7,9 +7,8 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  flatElementDataToAttributes,
+  elementToAttributes,
   type CellAttributes,
-  type ToElementAttributesOptions,
   type FlatElementData,
   type FlatElementPort,
   type FlatLinkData,
@@ -66,12 +65,13 @@ interface PortNodeData {
  * into SVG path strings sized to each port's width/height, then delegates
  * to the default flat mapper via `flatElementDataToAttributes`.
  */
-function mapDataToElementAttributes(
-  options: ToElementAttributesOptions<FlatElementData<PortNodeData>>
-) {
-  const { data } = options;
-  const { ports, portStyle } = data;
-  if (!ports) return flatElementDataToAttributes(data);
+function mapDataToElementAttributes(options: {
+  id: string;
+  element: FlatElementData<PortNodeData>;
+}) {
+  const { id, element } = options;
+  const { ports, portStyle } = element;
+  if (!ports) return elementToAttributes({ id, element });
 
   const defaultW = portStyle?.width ?? 10;
   const defaultH = portStyle?.height ?? 10;
@@ -88,7 +88,10 @@ function mapDataToElementAttributes(
     }
   }
 
-  const result = flatElementDataToAttributes({ ...data, ports: resolvedPorts }) as CellAttributes;
+  const result = elementToAttributes({
+    id,
+    element: { ...element, ports: resolvedPorts },
+  }) as CellAttributes;
 
   // Keep original shape names in cell.data so they survive round-trips.
   // The resolved SVG paths are already baked into the JointJS port config.
@@ -467,10 +470,10 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<PortNodeData>
+    <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapDataToElementAttributes={mapDataToElementAttributes}
+      mapElementToAttributes={mapDataToElementAttributes}
     >
       <Main />
     </GraphProvider>

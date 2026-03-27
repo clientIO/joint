@@ -1,46 +1,48 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 import { useMemo } from 'react';
-import type { CellData, FlatElementData } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
 import { useGraphStore } from './use-graph-store';
 import { useContainerItems } from './use-container-items';
+import type { ElementWithLayout } from '../types/data-types';
+
+/** Element container item type. */
 
 /**
- * Hook to access full element items (`FlatElementData`) from the graph.
+ * Hook to access full element items from the graph.
  *
- * Returns items with `data`, `x`, `y`, `width`, `height`, `angle`, `ports`, etc.
+ * Returns items with `data`, `position`, `size`, `angle`, `ports`, etc.
  *
  * Supports 3 call signatures:
  *
- * - **No args**: returns all elements as a stable `Map<CellId, FlatElementData>`.
- * - **IDs**: returns a filtered subset. Subscribes per-ID — best performance for known subsets.
- * - **Selector**: applies a selector over the full `Map`. Re-renders only when the selector output changes.
+ * - **No args**: returns all elements as a stable `Map`.
+ * - **IDs**: returns a filtered subset.
+ * - **Selector**: applies a selector over the full `Map`.
  *
- * @example
- * ```tsx
- * const all = useElements();
- * const subset = useElements('id1', 'id2');
- * const count = useElements((items) => items.size);
- * ```
  * @group Hooks
  */
-export function useElements<T extends object = CellData>(): Map<CellId, FlatElementData<T>>;
-export function useElements<T extends object = CellData>(
+export function useElements<T extends object | undefined = undefined>(): Map<
+  CellId,
+  ElementWithLayout<T>
+>;
+export function useElements<T extends object | undefined = undefined>(
   ...ids: [string, ...string[]]
-): Map<CellId, FlatElementData<T>>;
-export function useElements<T extends CellData, S>(
-  selector: (items: Map<CellId, FlatElementData<T>>) => S,
+): Map<CellId, ElementWithLayout<T>>;
+export function useElements<S>(
+  selector: (items: Map<CellId, ElementWithLayout>) => S,
   isEqual?: (a: S, b: S) => boolean
 ): S;
-export function useElements<S = Map<CellId, FlatElementData>>(
+export function useElements<
+  T extends object | undefined = undefined,
+  S = Map<CellId, ElementWithLayout<T>>,
+>(
   ...args:
     | []
     | [string, ...string[]]
-    | [(items: Map<CellId, FlatElementData>) => S, ((a: S, b: S) => boolean)?]
-): Map<CellId, FlatElementData> | S {
+    | [(items: Map<CellId, ElementWithLayout<T>>) => S, ((a: S, b: S) => boolean)?]
+): Map<CellId, ElementWithLayout<T>> | S {
   const {
     graphView: { elements },
-  } = useGraphStore();
+  } = useGraphStore<T>();
 
   const isSelectorMode = typeof args[0] === 'function';
   const ids = isSelectorMode ? undefined : (args as string[]);
@@ -52,13 +54,11 @@ export function useElements<S = Map<CellId, FlatElementData>>(
   );
 
   const idsOrSelector = isSelectorMode
-    ? (args[0] as (items: Map<string, FlatElementData>) => S)
+    ? (args[0] as (items: Map<CellId, ElementWithLayout<T>>) => S)
     : stableIds;
   const isEqual = isSelectorMode ? (args[1] as ((a: S, b: S) => boolean) | undefined) : undefined;
 
-  return useContainerItems(
-    elements,
-    idsOrSelector as (items: Map<string, FlatElementData>) => S,
-    isEqual
-  ) as Map<CellId, FlatElementData> | S;
+  return useContainerItems(elements, idsOrSelector, isEqual) as
+    | Map<CellId, ElementWithLayout<T>>
+    | S;
 }

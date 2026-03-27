@@ -1,13 +1,10 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import React, { useId, useRef } from 'react';
+import React, { useId } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import {
-  SimpleGraphDecorator,
-} from '../../../.storybook/decorators/with-simple-data';
+import { SimpleGraphDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { action } from 'storybook/actions';
 import { dia, linkTools } from '@joint/core';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -15,24 +12,12 @@ import { useMeasureNode } from '../../hooks/use-measure-node';
 import { getAPILink } from '../../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../../stories/utils/make-story';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
-import { useGraph } from '../../hooks/use-graph';
-import { useElementId } from '../../hooks/use-element-id';
 import { useNodesMeasuredEffect } from '../../hooks/use-nodes-measured-effect';
 import { usePaperEvents } from '../../hooks/use-paper-events';
 import { Paper } from './paper';
-import type { FlatElementData } from '../../types/data-types';
-import { GraphProvider } from '../graph/graph-provider';
-import { useElementData } from '../../hooks/use-element-data';
 import { useElementSize } from '../../hooks/use-element-size';
 
 export type Story = StoryObj<typeof Paper>;
-
-type StoryElementCustomData = {
-  readonly label: string;
-  readonly hoverColor: string;
-};
-
-type StoryElementData = FlatElementData<StoryElementCustomData>;
 
 const API_URL = getAPILink('Paper', 'variables');
 const meta: Meta<typeof Paper> = {
@@ -107,7 +92,7 @@ export default meta;
 
 function RenderRectElement() {
   const size = useElementSize();
-  return <rect rx={10} ry={10} width={size?.width} height={size?.height} fill={PRIMARY} />;
+  return <rect rx={10} ry={10} {...size} fill={PRIMARY} />;
 }
 
 function RenderHTMLElement() {
@@ -137,7 +122,7 @@ function RenderHTMLElement() {
 
 export const WithRectElement: Story = {
   args: {
-    renderElement: RenderRectElement as never,
+    renderElement: RenderRectElement,
     width: '100%',
     className: PAPER_CLASSNAME,
   },
@@ -305,7 +290,7 @@ export const WithLinkTools: Story = {
 
 export const WithCustomEvent: Story = {
   args: {
-    renderElement: RenderRectElement as never,
+    renderElement: RenderRectElement,
     width: '100%',
     className: PAPER_CLASSNAME,
   },
@@ -330,147 +315,5 @@ export const WithCustomEvent: Story = {
       'paper:test:custom': (...args: unknown[]) => onCustomEvent(...args),
     });
     return <Paper {...args} id={paperId} />;
-  },
-};
-
-export const WithDrawGrid: Story = {
-  args: {
-    renderElement: RenderHTMLElement as never,
-    className: PAPER_CLASSNAME,
-    drawGrid: { name: 'dot', thickness: 2, color: 'white' },
-    drawGridSize: 10,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Displays a visual grid overlay on the paper. Useful for alignment and design purposes. The grid can be customized with different patterns (dot, mesh, etc.) and colors.',
-      },
-    },
-  },
-};
-
-export const WithOnClickColorChange: Story = {
-  args: {},
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Demonstrates interactive element updates using `useGraph`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
-      },
-    },
-  },
-  render: () => {
-    function ColorChangeElement() {
-      const id = useElementId();
-      const size = useElementSize();
-      const data = useElementData<StoryElementCustomData>();
-      const { setElement } = useGraph();
-      return (
-        <div
-          className="node"
-          onClick={() => {
-            setElement(id, (previous) => ({ ...previous, data: { ...previous.data, hoverColor: 'blue' } }));
-          }}
-          style={{ width: size?.width, height: size?.height, backgroundColor: data?.hoverColor }}
-        ></div>
-      );
-    }
-    return (
-      <GraphProvider
-        elements={{
-          '1': {
-            data: { label: 'Element 1', hoverColor: 'red' },
-            width: 100,
-            height: 40,
-            x: 50,
-            y: 50,
-          } satisfies StoryElementData,
-          '2': {
-            data: { label: 'Element 1', hoverColor: 'red' },
-            width: 100,
-            height: 40,
-            x: 100,
-            y: 250,
-          } satisfies StoryElementData,
-        }}
-        links={{
-          l1: {
-            source: '1',
-            target: '2',
-          },
-        }}
-      >
-        <Paper
-          id="main"
-          useHTMLOverlay
-          className={PAPER_CLASSNAME}
-          height={400}
-          renderElement={() => <ColorChangeElement />}
-        />
-      </GraphProvider>
-    );
-  },
-};
-
-export const WithDataWithoutWidthAndHeightAndXAndY: Story = {
-  args: {},
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Demonstrates interactive element updates using `useGraph`. Click on an element to change its color. This shows how to update element properties in response to user interactions.',
-      },
-    },
-  },
-  render: () => {
-    function AutoSizedElement() {
-      const data = useElementData<StoryElementCustomData>();
-      const ref = useRef<SVGRectElement>(null);
-      useMeasureNode(ref, {
-        transform: ({ x, y, width, height, id }) => {
-          if (id === '1') {
-            return {
-              width,
-              height,
-              x: x + 200,
-              y: y + 200,
-            };
-          }
-          return {
-            width,
-            height,
-            x,
-            y,
-          };
-        },
-      });
-      return (
-        <>
-          <div></div>
-          <rect ref={ref} width={150} height={30} fill={data?.hoverColor} rx={10} ry={10} />;
-        </>
-      );
-    }
-    return (
-      <GraphProvider
-        elements={{
-          '1': {
-            data: { label: 'Element 1', hoverColor: 'red' },
-          } satisfies StoryElementData,
-          '2': { data: { label: 'Element 1', hoverColor: 'red' } } satisfies StoryElementData,
-        }}
-        links={{
-          l1: {
-            data: {},
-            source: '1',
-            target: '2',
-            color: PRIMARY,
-          },
-        }}
-      >
-        <Paper id="main" className={PAPER_CLASSNAME} height={400} renderElement={() => <AutoSizedElement />} />
-      </GraphProvider>
-    );
   },
 };

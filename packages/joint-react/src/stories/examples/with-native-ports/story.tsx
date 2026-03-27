@@ -15,7 +15,7 @@ export default {
     docs: {
       description: {
         component: `
-Demonstrates how to use native [JointJS ports](https://docs.jointjs.com/learn/features/ports) with @joint/react using \`useFlatElementData\` with \`mapAttributes\`.
+Demonstrates how to use native [JointJS ports](https://docs.jointjs.com/learn/features/ports) with @joint/react using \`useElementDefaults\` with \`mapAttributes\`.
 
 Elements are rendered as React components via \`renderElement\`, while native JointJS ports are added through \`mapAttributes\`. This combines React's rendering flexibility with JointJS's built-in port positioning and magnet behavior.
 
@@ -33,7 +33,7 @@ const elements = {
 };
 
 // mapAttributes adds native ports to the PortalElement
-const elementMappers = useFlatElementData({
+const elementMappers = useElementDefaults({
   mapAttributes: ({ attributes, data }) => {
     const ports = buildNativePorts(data.inputPorts, data.outputPorts);
     if (!ports) return attributes;
@@ -63,5 +63,5 @@ export const Default = makeStory({
   name: 'Native Ports',
   apiURL: 'https://docs.jointjs.com/learn/features/ports',
   description:
-    'React-rendered elements with native JointJS ports added via useFlatElementData mapAttributes, without React Port portals.',
+    'React-rendered elements with native JointJS ports added via useElementDefaults mapAttributes, without React Port portals.',
 });

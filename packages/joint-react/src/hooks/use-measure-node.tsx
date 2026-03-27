@@ -149,7 +149,7 @@ const EMPTY_NODE_LAYOUT: ElementLayout = { x: 0, y: 0, width: 0, height: 0, angl
 export function useMeasureNode(
   nodeRef: RefObject<HTMLElement | SVGElement | null>,
   options?: MeasureNodeOptions
-): ElementSize {
+): Required<ElementSize> {
   const { transform, visibility } = options ?? EMPTY_OBJECT;
   const { graph, setMeasuredNode } = useGraphStore();
   const { paper } = usePaper();

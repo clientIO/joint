@@ -1,11 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import {
-  GraphProvider,
-  Paper,
-  type FlatLinkData,
-  type RenderElement,
-} from '@joint/react';
+import { GraphProvider, Paper, type FlatLinkData, type RenderElement } from '@joint/react';
 import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 

@@ -96,8 +96,7 @@ const elements: Record<string, Element> = {
       description: 'This is longer text, it can be any message provided by the user',
       inputText: 'Node Text',
     },
-    x: 50,
-    y: 110,
+    position: { x: 50, y: 110 },
   },
   '2': {
     data: {
@@ -106,8 +105,7 @@ const elements: Record<string, Element> = {
       description: 'This is longer text, it can be any message provided by the user',
       inputText: '',
     },
-    x: 550,
-    y: 110,
+    position: { x: 550, y: 110 },
   },
   '3': {
     data: {
@@ -119,10 +117,8 @@ const elements: Record<string, Element> = {
         ['Row 7', 'Row 8', 'Row 9'],
       ],
     },
-    x: 50,
-    y: 370,
-    width: 400,
-    height: 200,
+    position: { x: 50, y: 370 },
+    size: { width: 400, height: 200 },
     ports: buildTablePorts([
       ['Row 1', 'Row 2', 'Row 3'],
       ['Row 4', 'Row 5', 'Row 6'],
@@ -171,7 +167,7 @@ function MessageComponent({
     }
   }
   const id = useElementId();
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<ElementData>();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);
   return (
@@ -195,7 +191,7 @@ function MessageComponent({
             onChange={({ target: { value } }) => {
               setElement(id, (previous) => ({
                 ...previous,
-                data: { ...previous.data, inputText: value },
+                data: { ...(previous.data as MessageElementData), inputText: value },
               }));
             }}
           />

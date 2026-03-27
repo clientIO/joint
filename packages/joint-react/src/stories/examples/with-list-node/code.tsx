@@ -22,8 +22,8 @@ interface ListNodeData {
 }
 
 const initialElements: Record<string, FlatElementData<ListNodeData>> = {
-  '1': { data: { label: 'Node 1', inputs: [] }, x: 100, y: 15 },
-  '2': { data: { label: 'Node 2', inputs: [] }, x: 500, y: 200 },
+  '1': { data: { label: 'Node 1', inputs: [] }, position: { x: 100, y: 15 } },
+  '2': { data: { label: 'Node 2', inputs: [] }, position: { x: 500, y: 200 } },
 };
 const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
@@ -53,11 +53,11 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
 
   const { width, height } = useMeasureNode(elementRef, { transform });
 
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<ListNodeData>();
 
   const addInput = () => {
     setElement(id, (previous) => {
-      const previousData = previous.data as ListNodeData | undefined;
+      const previousData = previous.data as unknown as ListNodeData;
       const previousInputs = Array.isArray(previousData?.inputs) ? previousData.inputs : [];
       return { ...previous, data: { ...previousData, inputs: [...previousInputs, ''] } };
     });
@@ -106,7 +106,7 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
                     const newInputs = [...inputs];
                     newInputs[index] = event.target.value;
                     setElement(id, (previous) => {
-                      const previousData = previous.data as ListNodeData | undefined;
+                      const previousData = previous.data as unknown as ListNodeData;
                       return { ...previous, data: { ...previousData, inputs: newInputs } };
                     });
                   }}

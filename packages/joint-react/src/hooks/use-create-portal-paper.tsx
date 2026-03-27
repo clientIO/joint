@@ -1,6 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
 import { dia } from '@joint/core';
+import type { Link } from '../types/data-types';
 import {
   useCallback,
   useDeferredValue,
@@ -173,8 +174,8 @@ export function useCreatePortalPaper(
       const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
       const PortalLinkModel = getPortalLinkConstructor(graph);
       if (!link) {
-        const defaultAttributes = gv.linkToAttributes({
-          data: {},
+        const defaultAttributes = gv.mapLinkToAttributes({
+          link: { data: {} },
         });
         return new PortalLinkModel(defaultAttributes);
       }
@@ -184,11 +185,12 @@ export function useCreatePortalPaper(
         }
         return link.clone();
       }
-      const attributes = gv.linkToAttributes({
-        data: link,
+      const attributes = gv.mapLinkToAttributes({
+        link: { data: {}, ...link },
       });
       return new PortalLinkModel(attributes);
     },
+
     [defaultLink, graph, gv]
   );
 
@@ -355,6 +357,7 @@ export function useCreatePortalPaper(
       if (!(linkView.paper instanceof PortalPaper)) {
         return;
       }
+
       const portalNode = linkView.paper.getCellViewPortalNode(linkView);
       if (!portalNode) {
         return null;
@@ -368,6 +371,7 @@ export function useCreatePortalPaper(
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deferredLinkIds, version, hasRenderLink, paperStore, renderLink]);
+
   const content = useMemo(
     () => (
       <>

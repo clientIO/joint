@@ -11,7 +11,7 @@ import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import { useGraph, useElementId, useLinks } from '../../../hooks';
 import { useNodesMeasuredEffect } from '../../../hooks/use-nodes-measured-effect';
 import type { ElementsMeasuredEvent } from '../../../types/event.types';
-import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
+import type { Element, Link } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../../models/portal-link';
@@ -30,16 +30,20 @@ function MeasuredListener({
   return null;
 }
 
-const elements: Record<string, FlatElementData<{ label: string }>> = {
-  '1': { data: { label: 'Node 1' }, width: 10, height: 10 },
-  '2': { data: { label: 'Node 2' }, width: 10, height: 10 },
+const elements: Record<string, Element<{ label: string }>> = {
+  '1': { data: { label: 'Node 1' }, size: { width: 10, height: 10 } },
+  '2': { data: { label: 'Node 2' }, size: { width: 10, height: 10 } },
 };
 
 function TestNode() {
   const id = useElementId();
   const size = useElementSize();
   return (
-    <div id={`node-${id}`} style={{ width: size?.width, height: size?.height }} className="test-node">
+    <div
+      id={`node-${id}`}
+      style={{ width: size?.width, height: size?.height }}
+      className="test-node"
+    >
       {id}
     </div>
   );
@@ -72,8 +76,8 @@ const PROP_HEIGHT = 180;
 
 type DefaultLinkProperty =
   | dia.Link
-  | Partial<FlatLinkData>
-  | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<FlatLinkData>);
+  | Partial<Link>
+  | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<Link>);
 
 type PortDragElementView = dia.ElementView & {
   findPortNode: (portId: string, selector?: string) => SVGElement | null;
@@ -187,22 +191,18 @@ function appendPaperHostSizeStyle(options: {
   };
 }
 
-function getPortDragElements(): Record<string, FlatElementData> {
+function getPortDragElements(): Record<string, Element> {
   return {
     [SOURCE_ELEMENT_ID]: {
       data: {},
-      x: 40,
-      y: 40,
-      width: 120,
-      height: 80,
+      position: { x: 40, y: 40 },
+      size: { width: 120, height: 80 },
       ports: { [SOURCE_PORT_ID]: { cx: 120, cy: 40 } },
     },
     [TARGET_ELEMENT_ID]: {
       data: {},
-      x: 320,
-      y: 40,
-      width: 120,
-      height: 80,
+      position: { x: 320, y: 40 },
+      size: { width: 120, height: 80 },
       ports: { [TARGET_PORT_ID]: { cx: 0, cy: 40 } },
     },
   };
@@ -284,10 +284,10 @@ async function dragLinkFromSourcePortToTargetPort(paper: dia.Paper): Promise<dia
 
 function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
   const ref: RefObject<dia.Paper | null> = { current: null };
-  let linksSnapshot: Map<string, FlatLinkData> = new Map();
+  let linksSnapshot: Map<string, Link> = new Map();
 
   function CaptureLinksSnapshot() {
-    linksSnapshot = useLinks() as unknown as Map<string, FlatLinkData>;
+    linksSnapshot = useLinks() as unknown as Map<string, Link>;
     return null;
   }
 
@@ -380,10 +380,7 @@ describe('Paper Component', () => {
   it('renders elements correctly with useHTMLOverlay enabled', async () => {
     render(
       <GraphProvider elements={elements}>
-        <Paper
-          useHTMLOverlay
-          renderElement={() => <TestLabelElement />}
-        />
+        <Paper useHTMLOverlay renderElement={() => <TestLabelElement />} />
       </GraphProvider>
     );
     await waitFor(() => {
@@ -395,9 +392,9 @@ describe('Paper Component', () => {
 
   it('calls onElementsMeasured when element sizes change', async () => {
     const onMeasuredMock = jest.fn();
-    const updatedElements: Record<string, FlatElementData<{ label: string }>> = {
-      '1': { data: { label: 'Node 1' }, width: 100, height: 50 },
-      '2': { data: { label: 'Node 2' }, width: 150, height: 75 },
+    const updatedElements: Record<string, Element<{ label: string }>> = {
+      '1': { data: { label: 'Node 1' }, size: { width: 100, height: 50 } },
+      '2': { data: { label: 'Node 2' }, size: { width: 150, height: 75 } },
     };
 
     const PAPER_ID = 'test-size-change';
@@ -708,8 +705,8 @@ describe('Paper Component', () => {
       string,
       { data: { label: string }; x: number; y: number; width: number; height: number }
     > = {
-      '1': { data: { label: 'Node 1' }, x: 0, y: 0, width: 10, height: 10 },
-      '2': { data: { label: 'Node 2' }, x: 0, y: 0, width: 10, height: 10 },
+      '1': { data: { label: 'Node 1' }, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
+      '2': { data: { label: 'Node 2' }, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
     };
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function UpdatePosition() {
@@ -722,10 +719,10 @@ describe('Paper Component', () => {
       }, [graph]);
       return null;
     }
-    let currentOutsideElements: Record<string, FlatElementData> = {};
+    let currentOutsideElements: Record<string, Element> = {};
     function Content() {
       const [currentElements, setCurrentElements] =
-        useState<Record<string, FlatElementData>>(elementsWithPosition);
+        useState<Record<string, Element>>(elementsWithPosition);
       currentOutsideElements = currentElements;
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
@@ -738,14 +735,13 @@ describe('Paper Component', () => {
     await waitFor(() => {
       const element1 = currentOutsideElements['1'];
       expect(element1).toBeDefined();
-      expect(element1.x).toBe(100);
-      expect(element1.y).toBe(100);
+      expect(element1.position?.x).toBe(100);
+      expect(element1.position?.y).toBe(100);
     });
   });
   it('should update elements via react state, and then reflect the changes in the paper', async () => {
     function Content() {
-      const [currentElements, setCurrentElements] =
-        useState<Record<string, FlatElementData>>(elements);
+      const [currentElements, setCurrentElements] = useState<Record<string, Element>>(elements);
 
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
@@ -760,7 +756,7 @@ describe('Paper Component', () => {
               setCurrentElements((els) => {
                 const newEls = { ...els };
                 if (newEls['1']) {
-                  newEls['1'] = { ...newEls['1'], width: 200, height: 200 };
+                  newEls['1'] = { ...newEls['1'], size: { width: 200, height: 200 } };
                 }
                 return newEls;
               });
@@ -1244,7 +1240,7 @@ describe('Paper Component', () => {
     });
 
     it('supports defaultLink as FlatLinkData object when dragging between ports', async () => {
-      const defaultLinkData: Partial<FlatLinkData> = {
+      const defaultLinkData: Partial<Link> = {
         data: { customProperty: 'flat-link-default' },
         color: '#ff5500',
         width: 7,
@@ -1287,7 +1283,7 @@ describe('Paper Component', () => {
 
     it('supports defaultLink callback returning FlatLinkData when dragging between ports', async () => {
       const defaultLinkCallback = jest.fn(
-        (_cellView: dia.CellView, _magnet: SVGElement): Partial<FlatLinkData> => ({
+        (_cellView: dia.CellView, _magnet: SVGElement): Partial<Link> => ({
           data: { customProperty: 'callback-flat-link-default' },
           color: '#22aa55',
           width: 4,
@@ -1414,7 +1410,7 @@ describe('Paper Component', () => {
         return (
           <GraphProvider
             elements={{
-              'el-1': { data: { label: 'Visible Node' }, width: 100, height: 50, x: 10, y: 10 },
+              'el-1': { data: { label: 'Visible Node' }, size: { width: 100, height: 50 }, position: { x: 10, y: 10 } },
             }}
           >
             <Paper
@@ -1422,9 +1418,7 @@ describe('Paper Component', () => {
               id="visibility-test"
               height={200}
               renderElement={(data: { label: string }) => <text>{data.label}</text>}
-              cellVisibility={(cell: dia.Cell) =>
-                !(hidden && String(cell.id) === 'el-1')
-              }
+              cellVisibility={(cell: dia.Cell) => !(hidden && String(cell.id) === 'el-1')}
             />
           </GraphProvider>
         );
@@ -1460,9 +1454,155 @@ describe('Paper Component', () => {
       });
 
       // Element should be visible again
-      await waitFor(() => {
-        expect(screen.getByText('Visible Node')).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Visible Node')).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
+    });
+  });
+
+  describe('renderLink — useLink layout', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useLink } = require('../../../hooks/use-link');
+
+    function TestLink() {
+      const link = useLink();
+      if (!link.layout) return <line data-testid="link-no-layout" />;
+      return (
+        <line
+          data-testid="link-with-layout"
+          data-source-x={link.layout.sourceX}
+          data-source-y={link.layout.sourceY}
+          data-target-x={link.layout.targetX}
+          data-target-y={link.layout.targetY}
+          data-d={link.layout.d}
+        />
+      );
+    }
+
+    const testElements: Record<string, Element<{ label: string }>> = {
+      'el-1': { data: { label: 'A' }, position: { x: 50, y: 50 }, size: { width: 100, height: 50 } },
+      'el-2': { data: { label: 'B' }, position: { x: 300, y: 200 }, size: { width: 100, height: 50 } },
+    };
+
+    const testLinks: Record<string, Link> = {
+      'link-1': { source: 'el-1', target: 'el-2' },
+    };
+
+    it('useLink provides layout with sourceX/sourceY/targetX/targetY on initial load', async () => {
+      await act(async () => {
+        render(
+          <GraphProvider elements={testElements} links={testLinks}>
+            <Paper
+              height={400}
+              renderElement={() => <rect width={100} height={50} />}
+              renderLink={() => <TestLink />}
+            />
+          </GraphProvider>
+        );
+      });
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('link-with-layout')).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
+
+      const linkElement = screen.getByTestId('link-with-layout');
+      const sourceX = Number(linkElement.getAttribute('data-source-x'));
+      const sourceY = Number(linkElement.getAttribute('data-source-y'));
+      const targetX = Number(linkElement.getAttribute('data-target-x'));
+      const targetY = Number(linkElement.getAttribute('data-target-y'));
+      const d = linkElement.getAttribute('data-d');
+
+      expect(sourceX + sourceY + targetX + targetY).toBeGreaterThan(0);
+      expect(d).toBeTruthy();
+      expect(d!.length).toBeGreaterThan(0);
+    });
+
+    it('useLink layout updates when connected element is moved', async () => {
+      let graphRef: dia.Graph | null = null;
+
+      function Wrapper() {
+        return (
+          <GraphProvider
+            ref={(ref) => { graphRef = ref; }}
+            elements={testElements}
+            links={testLinks}
+          >
+            <Paper
+              height={400}
+              renderElement={() => <rect width={100} height={50} />}
+              renderLink={() => <TestLink />}
+            />
+          </GraphProvider>
+        );
+      }
+
+      await act(async () => {
+        render(<Wrapper />);
+      });
+
+      // Wait for initial layout
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('link-with-layout')).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
+
+      const initialSourceX = Number(screen.getByTestId('link-with-layout').getAttribute('data-source-x'));
+
+      // Move source element
+      await act(async () => {
+        const el = graphRef?.getCell('el-1') as dia.Element;
+        el?.position(200, 200);
+      });
+
+      // Layout should update with new coordinates
+      await waitFor(
+        () => {
+          const newSourceX = Number(screen.getByTestId('link-with-layout').getAttribute('data-source-x'));
+          expect(newSourceX).not.toBe(initialSourceX);
+        },
+        { timeout: 3000 }
+      );
+    });
+
+    it('useLink layout works when graph is pre-populated (external graph)', async () => {
+      const graph = new dia.Graph({}, { cellNamespace: { ...shapes, PortalElement, PortalLink } });
+      graph.addCells([
+        new PortalElement({ id: 'ext-1', position: { x: 10, y: 10 }, size: { width: 80, height: 40 } }),
+        new PortalElement({ id: 'ext-2', position: { x: 200, y: 150 }, size: { width: 80, height: 40 } }),
+        new PortalLink({ id: 'ext-link', source: { id: 'ext-1' }, target: { id: 'ext-2' } }),
+      ]);
+
+      await act(async () => {
+        render(
+          <GraphProvider graph={graph}>
+            <Paper
+              height={400}
+              renderElement={() => <rect width={80} height={40} />}
+              renderLink={() => <TestLink />}
+            />
+          </GraphProvider>
+        );
+      });
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('link-with-layout')).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
+
+      const linkElement = screen.getByTestId('link-with-layout');
+      const d = linkElement.getAttribute('data-d');
+      expect(d).toBeTruthy();
+      expect(d!.length).toBeGreaterThan(0);
     });
   });
 });

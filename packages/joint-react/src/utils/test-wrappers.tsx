@@ -60,14 +60,12 @@ export const simpleRenderElementWrapper = paperRenderElementWrapper({
   graphProviderProps: {
     elements: {
       '1': {
-        data: {},
-        width: 97,
-        height: 99,
+        data: undefined,
+        size: { width: 97, height: 99 },
       },
     },
     links: {
       '3': {
-        data: {},
         source: '1',
         target: '2',
       },

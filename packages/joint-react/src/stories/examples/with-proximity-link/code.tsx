@@ -21,10 +21,10 @@ interface NodeData {
 }
 
 const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
-  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
-  '3': { data: { label: 'Node 3' }, x: 280, y: 100 },
-  '4': { data: { label: 'Node 4' }, x: 15, y: 100 },
+  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  '3': { data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
+  '4': { data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
 };
 
 const PROXIMITY_THRESHOLD = 60;
@@ -45,7 +45,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
 
   const { graph } = useGraph();
   const element = graph.getCell(id);
-  const closeIds = useElementsLayout(() => {
+  const closeIds = useElements(() => {
     const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
     const proximityElements = graph
       .findElementsInArea(area)
