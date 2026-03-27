@@ -214,7 +214,7 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
       <SVGText
         x={width / 2}
         y={height + 10}
-        fill={LIGHT}
+        fill={GENERATOR_DARK}
         fontSize={14}
         fontFamily="sans-serif"
         textAnchor="middle"
@@ -236,7 +236,7 @@ function BulbNode({ watts }: Readonly<BulbData>) {
 
   // Read generator power from the store (reactive)
   const generatorPower = useElements<ShapeData, number>(
-    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.power ?? 0
+    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.data?.power ?? 0
   );
 
   // Compute light state from generator power (derived state)
@@ -313,7 +313,7 @@ function PowerControl() {
 
   // Read generator power from store (reactive)
   const power = useElements<ShapeData, number>(
-    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.power ?? 0
+    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.data?.power ?? 0
   );
 
   const handlePowerChange = useCallback(

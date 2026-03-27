@@ -51,7 +51,7 @@ function Card({ label }: Readonly<Partial<Data>>) {
 
   return (
     <>
-      <rect width={width} height={height} fill="#333" stroke="#eee" strokeWidth="2"></rect>
+      <rect width={width} height={height} fill="#999" stroke="#333" strokeWidth="2"></rect>
       {imageHeight > 0 && (
         <image href={iconURL} x={gap} y={gap} width={imageWidth} height={imageHeight} />
       )}

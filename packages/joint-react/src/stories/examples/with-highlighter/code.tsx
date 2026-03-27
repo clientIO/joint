@@ -42,8 +42,8 @@ function RenderElement({ label }: Readonly<NodeData>) {
   const { width, height } = useElementSize();
   return (
     <g width={width} height={height} className="node">
-      <rect ref={selectorRef('body')} rx={10} ry={10} width={width} height={height} fill={PRIMARY} />
-      <text x={width / 2} y={height / 2} textAnchor="middle" dominantBaseline="middle" fill="#fff">
+      <rect ref={selectorRef('body')} rx={10} ry={10} width={width} height={height} stroke={PRIMARY} fill="white" />
+      <text x={width / 2} y={height / 2} textAnchor="middle" dominantBaseline="middle" fill="black">
         {label ?? 'Node'}
       </text>
     </g>

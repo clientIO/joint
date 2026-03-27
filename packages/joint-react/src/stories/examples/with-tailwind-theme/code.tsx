@@ -210,7 +210,6 @@ function Diagram() {
           className={PAPER_CLASSNAME}
           height={240}
           renderElement={renderElement}
-          background={{ color: '' }}
         />
       </GraphProvider>
     </div>

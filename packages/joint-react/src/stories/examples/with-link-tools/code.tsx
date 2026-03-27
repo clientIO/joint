@@ -74,27 +74,8 @@ const toolsView = new dia.ToolsView({
   tools: [boundaryTool, verticesTool, infoButton],
 });
 
-function RectElement() {
-  const { width, height } = useElementSize();
-  return (
-    <rect
-      rx={5}
-      ry={5}
-      width={width}
-      height={height}
-      stroke={PRIMARY}
-      strokeWidth="2"
-      fill="transparent"
-    />
-  );
-}
-
 function Main() {
   const paperId = useId();
-  const renderElement: RenderElement<NodeData> = useCallback(
-    () => <RectElement />,
-    []
-  );
 
   usePaperEvents(paperId, {
     'link:mouseenter': (linkView) => linkView.addTools(toolsView),
@@ -107,7 +88,6 @@ function Main() {
         id={paperId}
         className={PAPER_CLASSNAME}
         height={280}
-        renderElement={renderElement}
       />
       <div
         style={{

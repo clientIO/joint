@@ -646,7 +646,7 @@ function Main() {
       renderElement={RenderElement}
       defaultConnector={{ name: 'curve' }}
       defaultConnectionPoint={{ name: 'anchor' }}
-      background={{ color: '#0f172a' }}
+      style={{ backgroundColor: '#0f172a' }}
       interactive={{ stopDelegation: false }}
     />
   );

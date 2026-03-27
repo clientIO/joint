@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 import {
   GraphProvider,
@@ -16,7 +16,6 @@ const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
-    color: LIGHT,
   },
 };
 
@@ -49,14 +48,14 @@ function RenderedRect({ label }: Readonly<NodeData>) {
 
   return (
     <>
-      <rect rx={cornerRadius} ry={cornerRadius} width={width} height={height} fill={PRIMARY} />
+      <rect rx={cornerRadius} ry={cornerRadius} width={width} height={height} stroke={'black'} fill={'white'} />
       <text
         ref={textRef}
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill={TEXT}
+        fill={'black'}
         fontSize={14}
         fontWeight="bold"
       >

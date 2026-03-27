@@ -1,9 +1,9 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable react-hooks/exhaustive-deps */
- 
+
 /* eslint-disable unicorn/prevent-abbreviations */
- 
+
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // We have pre-loaded tailwind css
@@ -368,6 +368,8 @@ function Main() {
     >
       <Paper
         gridSize={5}
+        drawGrid={false}
+        style={{ backgroundColor: 'transparent' }}
         height={'100%'}
         defaultLink={{
           color: isDark ? 'rgba(255,255,255,0.35)' : '#000000',

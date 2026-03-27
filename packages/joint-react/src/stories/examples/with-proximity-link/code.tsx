@@ -7,11 +7,12 @@ import {
   useGraph,
   type FlatElementData,
   useElementsLayout,
+  DefaultElement,
 } from '@joint/react';
 import { util } from '@joint/core';
 import '../index.css';
 import { useEffect, useRef } from 'react';
-import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 
 interface NodeData {
@@ -41,7 +42,6 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
 
 function ResizableNode({ label }: Readonly<NodeData>) {
   const id = useElementId();
-  const nodeRef = useRef<HTMLDivElement>(null);
 
   const { graph } = useGraph();
   const element = graph.getCell(id);
@@ -60,7 +60,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
       setLink(linkId, {
         source,
         target,
-        color: SECONDARY,
+        color: PRIMARY,
         width: 2,
         dasharray: '5 5',
       });
@@ -73,14 +73,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
     };
   }, [closeIds, id, removeLink, setLink]);
 
-  const { width, height } = useMeasureNode(nodeRef);
-  return (
-    <foreignObject width={width} height={height}>
-      <div ref={nodeRef} className="node">
-        {label}
-      </div>
-    </foreignObject>
-  );
+  return <DefaultElement data={{ label }} />;
 }
 
 function Main() {

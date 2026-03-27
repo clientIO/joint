@@ -50,6 +50,21 @@ function ResizableNode({ label }: Readonly<NodeData>) {
         ref={nodeRef}
         className="resizable-node"
         onMouseDown={handleMouseDown} // prevent drag events from propagating
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: 8,
+          border: '1px solid #ed2637',
+          minWidth: 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 10,
+          fontFamily: 'Ppfraktionsans, sans-serif',
+          cursor: 'move',
+          color: '#131e29',
+          resize: 'both',
+          overflow: 'auto',
+        }}
       >
         {label}
       </div>

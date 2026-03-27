@@ -118,7 +118,7 @@ const initialElements: Record<string, FlatElementData<PortNodeData>> = {
     y: 100,
     width: 140,
     height: 80,
-    portStyle: { width: 16, height: 16, color: SECONDARY, labelColor: LIGHT },
+    portStyle: { width: 16, height: 16, color: SECONDARY },
     ports: {
       'out-1': {
         cx: 'calc(w)',
@@ -142,7 +142,7 @@ const initialElements: Record<string, FlatElementData<PortNodeData>> = {
     y: 100,
     width: 140,
     height: 80,
-    portStyle: { width: 16, height: 16, color: PRIMARY, labelColor: LIGHT },
+    portStyle: { width: 16, height: 16, color: PRIMARY },
     ports: {
       'in-1': {
         cx: 0,
@@ -170,7 +170,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'node-2',
     targetPort: 'in-1',
     targetAnchor: { name: 'left', args: { useModelGeometry: true } },
-    color: LIGHT,
     z: -1,
     connector: { name: 'curve' },
   },
@@ -181,7 +180,6 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: 'node-2',
     targetPort: 'in-2',
     targetAnchor: { name: 'left', args: { useModelGeometry: true } },
-    color: LIGHT,
     z: -1,
     connector: { name: 'curve' },
   },
@@ -211,36 +209,6 @@ const rowStyle = {
   alignItems: 'center',
   gap: 8,
 } as const;
-
-// --- Element Shape ---
-
-function ElementShape({ color, label }: Readonly<PortNodeData>) {
-  const { width, height } = useElementSize();
-  return (
-    <>
-      <rect
-        rx={8}
-        ry={8}
-        width={width}
-        height={height}
-        fill={color}
-        stroke="#333"
-        strokeWidth={2}
-      />
-      <text
-        x={width / 2}
-        y={height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill={TEXT}
-        fontSize={14}
-        fontWeight="bold"
-      >
-        {label}
-      </text>
-    </>
-  );
-}
 
 // --- Port Controls ---
 
@@ -442,17 +410,12 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
 
 function Main() {
   const elements = useElements<PortNodeData>();
-  const renderElement: RenderElement<PortNodeData> = useCallback(
-    (props) => <ElementShape {...props} />,
-    []
-  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 400, position: 'relative' }}>
       <Paper
         className={PAPER_CLASSNAME}
         height={400}
-        renderElement={renderElement}
         snapLinks={true}
         linkPinning={false}
         defaultConnectionPoint={{

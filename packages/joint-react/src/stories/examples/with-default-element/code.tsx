@@ -103,7 +103,7 @@ export default function App() {
         </button>
       </div>
       <GraphProvider elements={initialElements} links={initialLinks}>
-        <Paper className={PAPER_CLASSNAME.replace('bg-transparent', '')} height={240} />
+        <Paper className={PAPER_CLASSNAME} height={240} />
       </GraphProvider>
     </div>
   );

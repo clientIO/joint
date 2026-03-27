@@ -4,9 +4,9 @@ import { useEffect, useId, useState } from 'react';
 import { dia, util } from '@joint/core';
 import type { FlatLinkData, LinkMarker } from '@joint/react';
 import { GraphProvider, Paper, usePaperEvents, usePaper, jsx } from '@joint/react';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
 
-const BG_COLOR = 'white';
+const BG_COLOR = BG;
 const FG_COLOR = 'white';
 
 const markers: LinkMarker[] = [
@@ -500,6 +500,7 @@ function Main() {
       interactive={false}
       sorting={dia.Paper.sorting.NONE}
       style={{ background: BG_COLOR }}
+      drawGrid={false}
     />
   );
 }

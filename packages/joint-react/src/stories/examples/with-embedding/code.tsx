@@ -15,24 +15,13 @@ import {
 import { useCallback, useState } from 'react';
 
 // ============================================================================
-// Types
-// ============================================================================
-
-type EmbeddingElement = {
-  readonly label: string;
-  readonly color: string;
-  readonly [key: string]: unknown;
-};
-
-// ============================================================================
 // Data
 // ============================================================================
 
-const initialElements: Record<string, FlatElementData<EmbeddingElement>> = {
+const initialElements: Record<string, FlatElementData> = {
   container: {
     data: {
       label: 'Container',
-      color: PRIMARY,
     },
     x: 50,
     y: 50,
@@ -43,48 +32,15 @@ const initialElements: Record<string, FlatElementData<EmbeddingElement>> = {
   child: {
     data: {
       label: 'Drag me',
-      color: SECONDARY,
     },
     x: 100,
-    y: 100,
+    y: 180,
     width: 120,
     height: 60,
     z: 2,
     parent: 'container',
   },
 };
-
-// ============================================================================
-// Element Shape
-// ============================================================================
-
-function ElementShape({ label, color }: Readonly<EmbeddingElement>) {
-  const { width = 120, height = 60 } = useElementSize();
-  return (
-    <>
-      <rect
-        rx={8}
-        ry={8}
-        width={width}
-        height={height}
-        fill={color}
-        stroke="#333"
-        strokeWidth={2}
-      />
-      <text
-        x={width / 2}
-        y={height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="white"
-        fontSize={14}
-        fontWeight="bold"
-      >
-        {label}
-      </text>
-    </>
-  );
-}
 
 // ============================================================================
 // Raw Cell Attributes Hook
@@ -201,15 +157,10 @@ function CellAttributesView({
 const PAPER_STYLE = { flex: 1 };
 
 function Main() {
-  const renderElement: RenderElement<EmbeddingElement> = useCallback(
-    (props) => <ElementShape {...props} />,
-    []
-  );
   return (
     <div className="flex w-full h-full">
       <Paper
         className={PAPER_CLASSNAME}
-        renderElement={renderElement}
         style={PAPER_STYLE}
         embeddingMode
       />

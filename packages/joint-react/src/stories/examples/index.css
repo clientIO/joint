@@ -11,24 +11,23 @@
   color: #dde6ed;
   flex-direction: column;
 }
+
+.node:hover {
+  color: #131e29;
+  background-color: #ff9505;
+}
+
 body {
   font-family: Ppfraktionsans, sans-serif;
   color: #dde6ed;
 }
 
-.node:hover {
-  color: #131e29;
-  background-color: #dde6ed;
+.highlighted {
+  stroke: #ed2637;
+  stroke-width: 2px;
 }
 
-.intersected {
-  background-color: #ff9505;
-}
-.intersected:hover {
-  background-color: #ff9505;
-}
-
-.resizable-node {
+.rotatable-node {
   background-color: #ed2637;
   border-radius: 8px;
   min-width: 100px;
@@ -39,18 +38,7 @@ body {
   font-family: Ppfraktionsans, sans-serif;
   cursor: move;
   color: #dde6ed;
-
-  resize: both;
-  overflow: auto;
-}
-
-.resizable-node:hover {
-  background-color: #f9f9f9;
-}
-
-.highlighted {
-  stroke: #ed2637;
-  stroke-width: 2px;
+  flex-direction: column;
 }
 
 .rotatable-node__handle {

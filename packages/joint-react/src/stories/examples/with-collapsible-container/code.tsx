@@ -445,7 +445,7 @@ function Main() {
       renderElement={renderElement}
       cellVisibility={cellVisibility}
       interactive={{ linkMove: false }}
-      background={{ color: '#F3F7F6' }}
+      style={{ backgroundColor: '#F3F7F6' }}
       async
     />
   );

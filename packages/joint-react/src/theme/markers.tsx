@@ -48,8 +48,9 @@ export function resolveMarker(marker: LinkMarker | undefined): dia.SVGMarkerJSON
     return { markup: marker };
   }
   const markerAsRecord = marker as Record<string, unknown>;
-  if (!('type' in markerAsRecord) && typeof markerAsRecord.d === 'string') {
-    return { type: 'path', ...markerAsRecord } as dia.SVGMarkerJSON;
-  }
-  return marker as dia.SVGMarkerJSON;
+  return {
+    stroke: 'context-stroke',
+    fill: 'context-stroke',
+    ...markerAsRecord,
+  } as dia.SVGMarkerJSON;
 }

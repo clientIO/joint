@@ -1,6 +1,6 @@
 import type { FlatLinkData } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
-import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, LIGHT, BG } from 'storybook-config/theme';
 import type { LinkMarkerName } from '../../../theme/markers';
 import { linkMarkerShapes } from '../../../theme/markers';
 
@@ -46,6 +46,8 @@ export default function App() {
         className={`${PAPER_CLASSNAME} h-[400px]`}
         width="100%"
         interactive={false}
+        style={{ backgroundColor: BG }}
+        drawGrid={false}
       />
     </GraphProvider>
   );

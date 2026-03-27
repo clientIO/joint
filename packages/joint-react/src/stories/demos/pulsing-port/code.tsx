@@ -3,7 +3,7 @@
 import { useId, useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import type { FlatElementData, FlatElementPort } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG, SECONDARY } from 'storybook-config/theme';
 import {
   GraphProvider,
   jsx,
@@ -13,11 +13,10 @@ import {
   useLinks,
   useMeasureNode,
   useElementId,
+  DefaultElement,
 } from '@joint/react';
+import { Default } from './story';
 
-const NODE_WIDTH = 150;
-const NODE_HEIGHT = 55;
-const NODE_BORDER_RADIUS = 10;
 const PORT_SIZE = 20;
 const unit = 10;
 
@@ -30,7 +29,7 @@ const Pulse = dia.HighlighterView.extend({
     const { radius = PORT_SIZE / 2 } = this.options;
 
     return jsx(
-      <circle fill="none" r={radius} stroke={LIGHT} strokeWidth={2}>
+      <circle fill="none" r={radius} stroke={PRIMARY} strokeWidth={2}>
         <animate
           attributeName="r"
           from="8"
@@ -62,19 +61,19 @@ const Pulse = dia.HighlighterView.extend({
 
 const NODE_PORTS: Record<string, FlatElementPort> = {
   in: {
-    cx: NODE_WIDTH / 2,
+    cx: 'calc(w / 2)',
     cy: 0,
     width: PORT_SIZE,
     height: PORT_SIZE,
-    color: LIGHT,
+    color: PRIMARY,
     passive: true,
   },
   out: {
-    cx: NODE_WIDTH / 2,
-    cy: NODE_HEIGHT,
+    cx: 'calc(w / 2)',
+    cy: 'calc(h)',
     width: PORT_SIZE,
     height: PORT_SIZE,
-    color: LIGHT,
+    color: PRIMARY,
   },
 };
 
@@ -96,23 +95,13 @@ function NodeElement() {
   );
 
   return (
-    <>
-      <rect
-        ref={rectRef}
-        width={NODE_WIDTH}
-        height={NODE_HEIGHT}
-        stroke={PRIMARY}
-        strokeWidth={2}
-        strokeDasharray={isConnected ? '0' : '5,5'}
-        fill={isConnected ? PRIMARY : BG}
-        rx={NODE_BORDER_RADIUS}
-        ry={NODE_BORDER_RADIUS}
-      />
-      <SVGText fill="white" x={width / 2} y={height / 2 + 4} textAnchor="middle" fontSize={16}>
-        {id}
-      </SVGText>
-    </>
-  );
+    <DefaultElement label={id} style={{
+      borderColor: isConnected ? PRIMARY : '',
+      minWidth: 100,
+      minHeight: 50,
+    }}
+    />
+  )
 }
 
 const removeTool = new linkTools.Remove({

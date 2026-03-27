@@ -48,7 +48,7 @@ function createGraph(): dia.Graph {
     target: { id: 'el2' },
     attrs: {
       line: {
-        stroke: '#DDE6ED',
+        stroke: '#7f8c8d',
         strokeWidth: 2,
       },
     },

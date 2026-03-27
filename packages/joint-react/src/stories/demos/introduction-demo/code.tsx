@@ -6,7 +6,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, LIGHT, SECONDARY, BG } from 'storybook-config/theme';
 import './index.css';
 import {
   GraphProvider,
@@ -285,15 +285,16 @@ function MiniMap() {
   });
 
   return (
-    <div className="absolute bg-black bottom-6 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
+    <div className="absolute bottom-6 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
       <Paper
         id={minimapId}
         {...PAPER_PROPS}
         interactive={false}
         width={'100%'}
-        className={PAPER_CLASSNAME}
+        className={`${PAPER_CLASSNAME} h-full bg-gray-900 shadow-md`}
         height={'100%'}
         renderElement={MinimapRenderElement}
+        drawGrid={false}
       />
     </div>
   );
@@ -529,7 +530,7 @@ function Main() {
             },
           }}
           renderElement={renderElement}
-          className={`${PAPER_CLASSNAME} h-[600px]`}
+          className={`${PAPER_CLASSNAME} h-[600px] bg-gray-900 shadow-md`}
         />
 
         {isMinimapVisible && <MiniMap />}

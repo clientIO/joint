@@ -16,6 +16,7 @@ import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
 
 const SECONDARY = '#6366f1';
+const DARK = '#111827';
 
 type NodeData = {
   readonly label: string;
@@ -33,12 +34,12 @@ const initialLinks: Record<string, FlatLinkData> = {
   'link-1-2': {
     source: '1',
     target: '2',
-    color: LIGHT,
+    color: DARK,
   },
   'link-1-3': {
     source: '1',
     target: '3',
-    color: LIGHT,
+    color: DARK,
   },
 };
 

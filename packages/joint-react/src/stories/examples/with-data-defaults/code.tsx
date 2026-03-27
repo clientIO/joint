@@ -164,7 +164,12 @@ function Diagram() {
         mapDataToElementAttributes={mapDataToElementAttributes}
         mapDataToLinkAttributes={mapDataToLinkAttributes}
       >
-        <Paper className={PAPER_CLASSNAME} height={340} renderElement={renderElement} />
+        <Paper
+          className={PAPER_CLASSNAME}
+          height={340}
+          renderElement={renderElement}
+          style={{ backgroundColor: BG }}
+        />
       </GraphProvider>
     </>
   );
