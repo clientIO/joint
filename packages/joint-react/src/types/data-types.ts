@@ -1,4 +1,4 @@
-import type { anchors, connectionPoints, dia } from '@joint/core';
+import { anchors, connectionPoints, dia } from '@joint/core';
 import type { PortShape } from '../theme/element-theme';
 import type { LinkMarker } from '../theme/markers';
 import type { CellId } from './cell-id';

@@ -101,7 +101,7 @@ function Main() {
       />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {[...elements.entries()].map(([id, item]) => {
-          return <FlatElementData key={id} id={id} label={item.label} />;
+          return <FlatElementData key={id} id={id} label={item.data?.label as string} />;
         })}
       </div>
     </div>

@@ -98,7 +98,7 @@ const initialLinks: Record<string, FlatLinkData<CellJsonLink>> = {
 // Derive pick keys from the user data so the reverse mappers stay in sync
 // with the types automatically — add a property to the data and it flows through.
 const ELEMENT_KEYS = Object.keys(Object.values(initialElements)[0].data as object);
-const LINK_KEYS = Object.keys(Object.values(initialLinks)[0]);
+const LINK_USER_DATA_KEYS = Object.keys(Object.values(initialLinks)[0].data as object);
 
 /**
  * Forward mapper: unwrap user data from the `data` field and pass it as cell JSON.
@@ -129,7 +129,9 @@ const mapElementAttributesToData = ({
 const mapDataToLinkAttributes = ({
   data,
 }: ToLinkAttributesOptions<FlatLinkData<CellJsonLink>>): dia.Cell.JSON => {
-  return { ...data } as unknown as dia.Cell.JSON;
+  const linkData = data as FlatLinkData<CellJsonLink>;
+  const userData = linkData.data ?? {};
+  return { ...userData, source: linkData.source, target: linkData.target } as unknown as dia.Cell.JSON;
 };
 
 /**
@@ -138,7 +140,12 @@ const mapDataToLinkAttributes = ({
 const mapLinkAttributesToData = ({
   attributes,
 }: ToLinkDataOptions<FlatLinkData<CellJsonLink>>): FlatLinkData<CellJsonLink> => {
-  return util.pick(attributes, LINK_KEYS) as FlatLinkData<CellJsonLink>;
+  const userData = util.pick(attributes, LINK_USER_DATA_KEYS) as CellJsonLink;
+  return {
+    data: userData,
+    source: attributes.source as string,
+    target: attributes.target as string,
+  } as FlatLinkData<CellJsonLink>;
 };
 
 // ============================================================================

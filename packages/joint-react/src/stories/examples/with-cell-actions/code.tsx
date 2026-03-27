@@ -76,7 +76,7 @@ function RenderElement({ label, color }: Readonly<NodeData>) {
 
 interface ElementControlsProps {
   readonly id: string;
-  readonly element: NodeData;
+  readonly element?: NodeData;
 }
 
 function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
@@ -92,6 +92,9 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
     outline: 'none',
     transition: 'border-color 0.15s, box-shadow 0.15s',
   };
+  if (!element) {
+    return null;
+  }
 
   return (
     <div
@@ -440,7 +443,7 @@ function AddLinkForm() {
           <option value="">From...</option>
           {elementIds.map((id) => (
             <option key={id} value={id}>
-              {elements.get(id)?.label}
+              {elements.get(id)?.data?.label}
             </option>
           ))}
         </select>
@@ -452,7 +455,7 @@ function AddLinkForm() {
           <option value="">To...</option>
           {elementIds.map((id) => (
             <option key={id} value={id}>
-              {elements.get(id)?.label}
+              {elements.get(id)?.data?.label}
             </option>
           ))}
         </select>
@@ -543,7 +546,7 @@ function Main() {
           Nodes ({elements.size})
         </div>
         {[...elements.entries()].map(([id, element]) => (
-          <ElementControls key={id} id={id} element={element} />
+          <ElementControls key={id} id={id} element={element.data} />
         ))}
 
         {/* Link Controls */}

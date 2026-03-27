@@ -138,7 +138,7 @@ function Diagram() {
   const [theme, setTheme] = useState<Theme>('default');
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const elementDefaults = useFlatElementData<FlatElementData<NodeUserData>>({
+  const elementDefaults = useFlatElementData<NodeUserData>({
     defaults: {
       portStyle: {
         width: 15,

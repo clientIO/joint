@@ -42,7 +42,7 @@ function FlatElementData({ id, label }: Readonly<{ id: string; label: string }>)
       onChange={(event) =>
         setElement(id, (previous) => ({
           ...previous,
-          data: { ...previous.data, label: event.target.value },
+          data: { ...previous.data!, label: event.target.value },
         }))
       }
     />

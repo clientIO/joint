@@ -152,13 +152,13 @@ function DataPanel() {
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Element Data (cx, cy)</h3>
-      {[...elements.entries()].map(([id, element]) => (
+      {[...elements.entries()].map(([id, { data, width, height }]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
-          <div className="font-bold mb-1">{element.label}</div>
-          <div>cx: {Math.round(element.cx)}</div>
-          <div>cy: {Math.round(element.cy)}</div>
+          <div className="font-bold mb-1">{data?.label}</div>
+          <div>cx: {Math.round(data?.cx ?? 0)}</div>
+          <div>cy: {Math.round(data?.cy ?? 0)}</div>
           <div className="text-gray-400 text-xs mt-1">
-            {element.width} &times; {element.height}
+            {width} &times; {height}
           </div>
         </div>
       ))}

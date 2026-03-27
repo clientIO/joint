@@ -160,7 +160,7 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({ elements }: Readonly<{ elements: Map<string, EmbeddingElement> }>) {
+function ElementDataView({ elements }: Readonly<{ elements: Map<string, FlatElementData<EmbeddingElement>> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useElements() Data</h3>
