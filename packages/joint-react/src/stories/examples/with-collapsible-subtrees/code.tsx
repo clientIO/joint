@@ -755,7 +755,7 @@ function Main() {
       defaultRouter={{ name: 'orthogonal' }}
       interactive={false}
       async
-      background={{ color: BG }}
+      style={{ backgroundColor: BG }}
       drawGrid={false}
     />
   );

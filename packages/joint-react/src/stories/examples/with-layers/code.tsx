@@ -181,7 +181,7 @@ function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
           const cellLayer = cell.layer();
           return !cellLayer || !hiddenLayers.has(cellLayer);
         }}
-        background={{ color: BG }}
+        style={{ backgroundColor: BG }}
         drawGrid={false}
       />
     </div>

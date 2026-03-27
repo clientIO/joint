@@ -428,7 +428,7 @@ function Main() {
       renderElement={RenderElement}
       gridSize={20}
       drawGrid={{ name: 'mesh', args: { color: GRID_COLOR } }}
-      background={{ color: BG }}
+      style={{ backgroundColor: BG }}
       linkPinning={false}
       async
       // Connector/Router configuration

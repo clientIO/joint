@@ -251,7 +251,7 @@ function Main() {
       async
       gridSize={20}
       drawGrid={{ name: 'mesh' }}
-      background={{ color: BG }}
+      style={{ backgroundColor: BG }}
     />
   );
 }

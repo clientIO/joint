@@ -493,7 +493,7 @@ function Main() {
         id={PAPER_ID}
         height="100%"
         width="100%"
-        background={{ color: 'transparent' }}
+        style={{ backgroundColor: 'transparent' }}
         gridSize={5}
         drawGrid={false}
         overflow

@@ -325,7 +325,7 @@ function Main() {
       renderElement={renderElement}
       defaultRouter={{ name: 'normal' }}
       defaultConnector={{ name: 'rounded', args: { radius: 20 } }}
-      background={{ color: BG }}
+      style={{ backgroundColor: BG }}
       drawGrid={false}
     />
   );

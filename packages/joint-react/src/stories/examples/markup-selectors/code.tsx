@@ -180,7 +180,7 @@ function Main() {
       validateConnection={(sourceView, _sourceMagnet, targetView) =>
         sourceView.model.id !== targetView.model.id
       }
-      background={{ color: BG }}
+      style={{ backgroundColor: BG }}
       drawGrid={false}
     />
   );

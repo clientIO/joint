@@ -231,7 +231,7 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
         height="100%"
         scale={scale}
         renderElement={renderElement}
-        background={{ color: LIGHT }}
+        style={{ backgroundColor: LIGHT }}
         drawGrid={false}
       />
     </div>
@@ -351,7 +351,7 @@ function Main() {
           const type = cellView.model.get('type');
           return type === PORTAL_ELEMENT_TYPE ? defaultSelector : 'root';
         }}
-        background={{ color: BG }}
+        style={{ backgroundColor: BG }}
         drawGrid={false}
       >
         <Selection selectedId={selectedElement} />

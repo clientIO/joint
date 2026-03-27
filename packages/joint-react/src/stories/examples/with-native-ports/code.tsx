@@ -191,7 +191,7 @@ function Main() {
       height={420}
       renderElement={renderElement}
       linkPinning={false}
-      background={{ color: BG }}
+      style={{ backgroundColor: BG }}
       drawGrid={false}
     />
   );

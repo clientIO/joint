@@ -130,7 +130,7 @@ function Main() {
           },
         },
       }}
-      background={{ color: BG }}
+      style={{ backgroundColor: BG }}
       drawGrid={false}
     />
   );

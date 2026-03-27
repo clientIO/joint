@@ -168,7 +168,7 @@ function Diagram() {
           className={PAPER_CLASSNAME}
           height={340}
           renderElement={renderElement}
-          background={{ color: BG }}
+          style={{ backgroundColor: BG }}
         />
       </GraphProvider>
     </>

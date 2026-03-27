@@ -46,7 +46,7 @@ export default function App() {
         className={`${PAPER_CLASSNAME} h-[400px]`}
         width="100%"
         interactive={false}
-        background={{ color: BG }}
+        style={{ backgroundColor: BG }}
         drawGrid={false}
       />
     </GraphProvider>

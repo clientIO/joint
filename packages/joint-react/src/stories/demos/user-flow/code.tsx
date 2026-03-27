@@ -369,7 +369,7 @@ function Main() {
       <Paper
         gridSize={5}
         drawGrid={false}
-        background={{ color: 'transparent' }}
+        style={{ backgroundColor: 'transparent' }}
         height={'100%'}
         defaultLink={{
           color: isDark ? 'rgba(255,255,255,0.35)' : '#000000',

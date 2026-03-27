@@ -500,6 +500,7 @@ function Main() {
       interactive={false}
       sorting={dia.Paper.sorting.NONE}
       style={{ background: BG_COLOR }}
+      drawGrid={false}
     />
   );
 }

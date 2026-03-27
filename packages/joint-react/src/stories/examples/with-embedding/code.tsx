@@ -34,7 +34,7 @@ const initialElements: Record<string, FlatElementData> = {
       label: 'Drag me',
     },
     x: 100,
-    y: 100,
+    y: 180,
     width: 120,
     height: 60,
     z: 2,

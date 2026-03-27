@@ -782,7 +782,7 @@ function Main() {
       height={600}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
-      background={{ color: BG }}
+      style={{ backgroundColor: BG }}
       drawGrid={false}
     />
   );
