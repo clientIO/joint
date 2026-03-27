@@ -7,11 +7,12 @@ import {
   useElementId,
   type FlatElementData,
   useElementsLayout,
+  DefaultElement,
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
 import type { dia } from '@joint/core';
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 interface NodeData {
   readonly [key: string]: unknown;
@@ -35,14 +36,8 @@ function ResizableNode({ label }: Readonly<NodeData>) {
     return graph.findElementsUnderElement(element).length > 0;
   });
 
-  const { width, height } = useMeasureNode(nodeRef);
-
   return (
-    <foreignObject width={width} height={height}>
-      <div ref={nodeRef} className={`node ${isIntersected ? 'intersected' : ''}`}>
-        {label}
-      </div>
-    </foreignObject>
+    <DefaultElement label={label} style={{ borderColor: isIntersected ? PRIMARY : '' }} />
   );
 }
 

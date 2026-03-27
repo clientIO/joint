@@ -70,7 +70,7 @@ function RotatableNode({ label }: Readonly<NodeData>) {
   const { width, height } = useMeasureNode(elementRef);
   return (
     <foreignObject width={width} height={height} overflow="visible">
-      <div ref={elementRef} className="node">
+      <div ref={elementRef} className="rotatable-node">
         <div
           className="rotatable-node__handle"
           onPointerDown={handlePointerDown}

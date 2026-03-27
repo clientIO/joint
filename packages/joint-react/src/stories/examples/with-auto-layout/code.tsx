@@ -44,10 +44,7 @@ function RenderedRect({ label }: Readonly<ElementData>) {
 }
 
 function Main() {
-  const renderElement: RenderElement<ElementData> = useCallback(
-    (props) => <RenderedRect {...props} />,
-    []
-  );
+
   const { graph } = useGraph();
   const { setElement } = useGraph();
   const paperId = useId();
@@ -123,7 +120,6 @@ function Main() {
         id={paperId}
         className={PAPER_CLASSNAME}
         height={450}
-        renderElement={renderElement}
       />
     </div>
   );

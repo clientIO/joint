@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import { GraphProvider, Paper, useMeasureNode, useElementSize, type FlatElementData, type FlatLinkData, type RenderElement } from '@joint/react';
+import { GraphProvider, Paper, useMeasureNode, useElementSize, type FlatElementData, type FlatLinkData, type RenderElement, DefaultElement } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 interface NodeData {
@@ -48,21 +48,9 @@ function MiniMap() {
 }
 
 function RenderElement({ label, color }: Readonly<NodeData>) {
-  const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(elementRef);
-  return (
-    <foreignObject width={width} height={height}>
-      <div
-        ref={elementRef}
-        className="flex flex-col items-center rounded-sm"
-        style={{ background: color }}
-      >
-        Example
-        <div>{label}</div>
-      </div>
-    </foreignObject>
-  );
+  return <DefaultElement label={label} style={{ backgroundColor: color, color: 'white' }} />;
 }
+
 function Main() {
   return (
     <div className="flex flex-row relative">

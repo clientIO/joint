@@ -16,8 +16,8 @@ import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { Paper } from '../../../components/paper/paper';
 
 const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 15 },
-  '2': { label: 'Node 2', x: 100, y: 200 },
+  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
+  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
 };
 
 class LinkModel extends shapes.standard.Link {
@@ -34,11 +34,14 @@ class LinkModel extends shapes.standard.Link {
         connection: true,
         stroke: color,
         strokeWidth: 10,
-        strokeDasharray: '5,5',
         strokeLinejoin: 'round',
+        sourceMarker: {
+          type: 'circle',
+          r: 8,
+        },
         targetMarker: {
-          type: 'path',
-          d: 'M 10 -5 0 0 10 5 z',
+          type: 'circle',
+          r: 8,
         },
       },
       wrapper: {
@@ -50,20 +53,13 @@ class LinkModel extends shapes.standard.Link {
   }
 }
 
-type BaseElementWithData = (typeof initialElements)[string];
-
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <HTMLNode className="node">{element.label}</HTMLNode>,
-    []
-  );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
         defaultLink={() => new LinkModel()}
         className={PAPER_CLASSNAME}
         height={280}
-        renderElement={renderElement}
       />
     </div>
   );

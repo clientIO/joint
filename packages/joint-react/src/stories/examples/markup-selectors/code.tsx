@@ -31,14 +31,18 @@ interface StackedElement {
 
 const initialElements: Record<string, StackedElement> = {
   '1': {
-    name: 'Component A',
-    labels: ['Header', 'Body', 'Footer'],
+    data: {
+      name: 'Component A',
+      labels: ['Header', 'Body', 'Footer'],
+    },
     x: 50,
     y: 50,
   },
   '2': {
-    name: 'Component B',
-    labels: ['Input', 'Process', 'Output'],
+    data: {
+      name: 'Component B',
+      labels: ['Input', 'Process', 'Output'],
+    },
     x: 300,
     y: 50,
   },
@@ -85,16 +89,14 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
 
 function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const rows = labels?.length ?? 0;
-  const totalHeight = HEADER_HEIGHT + rows * ROW_HEIGHT;
   const { selectorRef } = useMarkup();
 
-  const transform: OnTransformElement = useCallback(() => {
+  const transform: OnTransformElement = useCallback(({ height }) => {
     return {
       width: ELEMENT_WIDTH,
-      height: totalHeight,
+      height: HEADER_HEIGHT + height,
     };
-  }, [totalHeight]);
+  });
 
   const { width, height } = useMeasureNode(contentRef, { transform });
 
@@ -119,24 +121,23 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
         </text>
       </g>
       {/* Attribute rows */}
-      {labels?.map((label, index) => {
-        const rowY = HEADER_HEIGHT + index * ROW_HEIGHT;
-        return (
-          <Item
-            key={label}
-            ref={selectorRef(`item-${index}`)}
-            label={label}
-            index={index}
-            width={width}
-            rowY={rowY}
-          />
-        );
-      })}
+      <g ref={contentRef}>
+        {labels?.map((label, index) => {
+          const rowY = HEADER_HEIGHT + index * ROW_HEIGHT;
+          return (
+            <Item
+              key={label}
+              ref={selectorRef(`item-${index}`)}
+              label={label}
+              index={index}
+              width={width}
+              rowY={rowY}
+            />
+          );
+        })}
+      </g>
       {/* Border on top for clean rounded corners */}
       <rect width={width} height={height} fill="none" stroke={PRIMARY} strokeWidth={2} rx={4} ry={4} />
-      <foreignObject width={1} height={1} opacity={0}>
-        <div ref={contentRef} style={{ width: ELEMENT_WIDTH, height: totalHeight }} />
-      </foreignObject>
     </>
   );
 }
@@ -179,6 +180,8 @@ function Main() {
       validateConnection={(sourceView, _sourceMagnet, targetView) =>
         sourceView.model.id !== targetView.model.id
       }
+      background={{ color: BG }}
+      drawGrid={false}
     />
   );
 }

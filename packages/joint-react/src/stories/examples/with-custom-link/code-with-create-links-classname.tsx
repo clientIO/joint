@@ -12,8 +12,8 @@ import './code-with-create-links-classname.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { label: 'Node 1', x: 100, y: 15 },
-  '2': { label: 'Node 2', x: 100, y: 200 },
+  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
+  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
 };
 
 const initialEdges: Record<string, FlatLinkData> = {
@@ -25,16 +25,10 @@ const initialEdges: Record<string, FlatLinkData> = {
   },
 };
 
-type BaseElementWithData = (typeof initialElements)[string];
-
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <HTMLNode className="node">{element.label}</HTMLNode>,
-    []
-  );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
+      <Paper className={PAPER_CLASSNAME} height={280} />
     </div>
   );
 }

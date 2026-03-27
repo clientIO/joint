@@ -12,7 +12,7 @@ import {
   type FlatLinkData,
   useElementId,
 } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { BG, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
 interface ListNodeData {
@@ -120,11 +120,20 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
     </>
   );
 }
+
 function Main() {
-  const renderElement = useCallback((element: ListNodeData) => {
-    return <ListElement {...element}>{element.label}</ListElement>;
+  const renderElement = useCallback(({ label, inputs }: ListNodeData) => {
+    return <ListElement inputs={inputs}>{label}</ListElement>;
   }, []);
-  return <Paper className={PAPER_CLASSNAME} height={500} renderElement={renderElement} />;
+  return (
+    <Paper
+      className={PAPER_CLASSNAME}
+      height={500}
+      renderElement={renderElement}
+      background={{ color: BG }}
+      drawGrid={false}
+    />
+  );
 }
 
 export default function App() {

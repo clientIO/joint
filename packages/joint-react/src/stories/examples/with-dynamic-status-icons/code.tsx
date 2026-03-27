@@ -1,4 +1,4 @@
- 
+
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type dia, g, highlighters, V } from '@joint/core';
@@ -251,6 +251,7 @@ function Main() {
       async
       gridSize={20}
       drawGrid={{ name: 'mesh' }}
+      background={{ color: BG }}
     />
   );
 }

@@ -24,7 +24,6 @@ export function createNextOutputPort(outputPorts: readonly OutputPort[]): Output
 export function appendOutputPort<Node extends OutputPortNode>(node: Node): Node {
   const nextPort = createNextOutputPort(node.outputPorts);
   const nextOutputPorts = [...node.outputPorts, nextPort];
-
   return {
     ...node,
     outputPorts: nextOutputPorts,

@@ -22,6 +22,7 @@ import {
   // type LinkMarkerName,
 } from '@joint/react';
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { BG, LIGHT } from 'storybook-config/theme';
 
 // ============================================================================
 // Types & Constants
@@ -230,6 +231,8 @@ function MiniMap({ paper }: Readonly<{ paper: dia.Paper }>) {
         height="100%"
         scale={scale}
         renderElement={renderElement}
+        background={{ color: LIGHT }}
+        drawGrid={false}
       />
     </div>
   );
@@ -348,6 +351,8 @@ function Main() {
           const type = cellView.model.get('type');
           return type === PORTAL_ELEMENT_TYPE ? defaultSelector : 'root';
         }}
+        background={{ color: BG }}
+        drawGrid={false}
       >
         <Selection selectedId={selectedElement} />
       </Paper>

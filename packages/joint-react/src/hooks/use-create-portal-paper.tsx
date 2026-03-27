@@ -197,11 +197,8 @@ export function useCreatePortalPaper(
   useLayoutEffect(() => {
     const hostElementForCreation = elementRef?.current;
 
-    // Default to transparent background unless user provides their own via background prop or style.backgroundColor
-    const hasUserBackground = paperOptions.background || options.style?.backgroundColor;
     const { paperStore, remove } = addPaper(id, {
       paperOptions: {
-        ...(hasUserBackground ? {} : { background: { color: 'transparent' } }),
         ...paperOptions,
         id,
         el: hostElementForCreation,

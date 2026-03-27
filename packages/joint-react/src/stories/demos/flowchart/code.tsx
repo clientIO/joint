@@ -479,6 +479,7 @@ function Main() {
       className={`${PAPER_CLASSNAME} flowchart-paper w-[200px]`}
       renderElement={RenderFlowchartNode as RenderElement<NodeElementData>}
       interactive={{ linkMove: false }}
+      drawGrid={false}
       defaultConnectionPoint={{
         name: 'boundary',
         args: {

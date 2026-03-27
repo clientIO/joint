@@ -3,7 +3,7 @@ import type { dia } from '@joint/core';
 import type { FlatLinkData, FlatElementData } from '@joint/react';
 import { GraphProvider, Paper, useMeasureNode, useElementSize } from '@joint/react';
 import { useRef } from 'react';
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { BG, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 type ContainerData = {
   readonly label: string;
@@ -77,7 +77,8 @@ function ChildElement({ label }: Readonly<ContainerData>) {
         ref={ref}
         style={{
           padding: '10px 10px',
-          backgroundColor: SECONDARY,
+          border: `1px solid ${SECONDARY}`,
+          background: BG,
           borderRadius: 6,
           color: 'white',
           fontSize: 14,
@@ -129,6 +130,8 @@ function Main() {
           },
         },
       }}
+      background={{ color: BG }}
+      drawGrid={false}
     />
   );
 }

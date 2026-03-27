@@ -1012,6 +1012,7 @@ function GraphWithRedux() {
             }}
             interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
             renderElement={RenderAgentNode as RenderElement<AgentNodeData>}
+            style={{ backgroundColor: theme.canvas }}
           />
           <ConnectionPanel
             peerId={peerId}

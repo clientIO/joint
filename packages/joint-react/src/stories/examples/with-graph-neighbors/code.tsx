@@ -13,7 +13,7 @@ import {
   type FlatLinkData,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
-import { LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 import '../index.css';
 import './styles.css';
@@ -325,6 +325,8 @@ function Main() {
       renderElement={renderElement}
       defaultRouter={{ name: 'normal' }}
       defaultConnector={{ name: 'rounded', args: { radius: 20 } }}
+      background={{ color: BG }}
+      drawGrid={false}
     />
   );
 }

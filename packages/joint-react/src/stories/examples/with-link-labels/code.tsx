@@ -34,9 +34,11 @@ const initialLinks: Record<string, FlatLinkData> = {
       main: {
         position: 0.5,
         text: 'Link 1-2',
-        color: 'yellow',
-        backgroundColor: 'gray',
-        backgroundPadding: 10,
+        color: 'blue',
+        backgroundShape: 'rect',
+        backgroundColor: 'white',
+        backgroundOutline: 'none',
+        backgroundPadding: 5,
       },
     },
   },
@@ -45,7 +47,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     target: '4',
     labels: {
       main: {
-        text: 'Link 1-4',
+        text: 'Default style',
       },
     },
   },
@@ -56,56 +58,32 @@ const initialLinks: Record<string, FlatLinkData> = {
       plus: {
         text: '+',
         position: 15,
-        color: LIGHT,
+        color: 'black',
         backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
         backgroundOutline: SECONDARY,
         backgroundOutlineWidth: 2,
-        backgroundColor: BG,
+        backgroundColor: LIGHT,
       },
       minus: {
         text: '-',
         position: -15,
-        color: LIGHT,
+        color: 'black',
         backgroundShape: 'M -10 -10 L 10 -10 L 10 10 L -10 10 Z',
         backgroundOutline: PRIMARY,
         backgroundOutlineWidth: 2,
-        backgroundColor: BG,
+        backgroundColor: LIGHT,
       },
     },
   },
 };
 
-function Shape({ label }: Readonly<ShapeData>) {
-  const { width, height } = useElementSize();
-  return (
-    <>
-      <rect width={width} height={height} rx={6} ry={6} fill="#ed2637" />
-      <text
-        x={width / 2}
-        y={height / 2}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="#dde6ed"
-        fontSize={13}
-        fontFamily="sans-serif"
-      >
-        {label}
-      </text>
-    </>
-  );
-}
-
 function Main() {
-  const renderElement: RenderElement<ShapeData> = useCallback((data) => {
-    return <Shape {...data} />;
-  }, []);
 
   return (
     <Paper
       width="100%"
       height={350}
       className={PAPER_CLASSNAME}
-      renderElement={renderElement}
       interactive={INTERACTIVE_OPTIONS}
     />
   );

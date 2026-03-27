@@ -5,12 +5,12 @@ import {
   Paper,
   useElements,
   useMeasureNode,
-  type FlatElementData,
+  type FlatElementData as LabelEditor,
   type FlatLinkData,
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
 interface NodeData {
@@ -19,20 +19,19 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1', color: '#ffffff' }, x: 100, y: 15, width: 100, height: 50 },
-  '2': { data: { label: 'Node 2', color: '#ffffff' }, x: 100, y: 200, width: 100, height: 50 },
+const initialElements: Record<string, LabelEditor<NodeData>> = {
+  '1': { data: { label: 'Node 1' }, x: 100, y: 15, width: 100 },
+  '2': { data: { label: 'Node 2' }, x: 100, y: 200, width: 100 },
 };
 
 const initialEdges: Record<string, FlatLinkData> = {
   'e1-2': {
     source: '1',
     target: '2',
-    color: PRIMARY,
   },
 };
 
-function FlatElementData({ id, label }: Readonly<{ id: string; label: string }>) {
+function LabelEditor({ id, label }: Readonly<{ id: string; label: string }>) {
   const { setElement } = useGraph<NodeData>();
   return (
     <input
@@ -49,26 +48,14 @@ function FlatElementData({ id, label }: Readonly<{ id: string; label: string }>)
   );
 }
 
-function RenderElement({ label }: Readonly<NodeData>) {
-  const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(elementRef);
-  return (
-    <foreignObject width={width} height={height}>
-      <div ref={elementRef} className="node">
-        {label}
-      </div>
-    </foreignObject>
-  );
-}
-
 function Main() {
   const elements = useElements<NodeData>();
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
+      <Paper className={PAPER_CLASSNAME} height={280} />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {[...elements.entries()].map(([id, item]) => {
-          return <FlatElementData key={id} id={id} label={item.data?.label ?? ''} />;
+          return <LabelEditor key={id} id={id} label={item.data?.label ?? ''} />;
         })}
       </div>
     </div>

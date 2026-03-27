@@ -1,8 +1,8 @@
- 
- 
- 
- 
- 
+
+
+
+
+
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
@@ -273,30 +273,6 @@ function RenderSaasNode({ title, subtitle, icon, status, tags, progress }: Reado
           )}
         </div>
       </foreignObject>
-
-      {/* Output port — bottom center */}
-      <circle
-        ref={selectorRef('out')}
-        magnet="active"
-        cursor="crosshair"
-        cx={width / 2}
-        cy={height}
-        r={PORT_R}
-        fill={theme.port}
-        stroke={theme.card}
-        strokeWidth={2}
-      />
-      {/* Input port — top center */}
-      <circle
-        ref={selectorRef('in')}
-        magnet="passive"
-        cx={width / 2}
-        cy={0}
-        r={PORT_R}
-        fill={theme.portFill}
-        stroke={theme.port}
-        strokeWidth={2}
-      />
     </>
   );
 }
@@ -522,8 +498,9 @@ function Main() {
         id={PAPER_ID}
         height="100%"
         width="100%"
-
+        background={{ color: 'transparent' }}
         gridSize={5}
+        drawGrid={false}
         overflow
         linkPinning={false}
         snapLinks={{ radius: 30 }}

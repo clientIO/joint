@@ -1,5 +1,5 @@
 
-import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import '../index.css';
 import {
@@ -185,7 +185,16 @@ function Main() {
     [],
   );
 
-  return <Paper className={PAPER_CLASSNAME} height={420} renderElement={renderElement} linkPinning={false} />;
+  return (
+    <Paper
+      className={PAPER_CLASSNAME}
+      height={420}
+      renderElement={renderElement}
+      linkPinning={false}
+      background={{ color: BG }}
+      drawGrid={false}
+    />
+  );
 }
 
 export default function App() {

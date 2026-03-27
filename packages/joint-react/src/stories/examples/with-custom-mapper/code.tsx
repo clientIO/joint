@@ -41,17 +41,17 @@ interface CenterElement {
 
 const initialElements: Record<string, FlatElementData<CenterElement>> = {
   'node-1': {
-    data: { cx: 150, cy: 130, width: 160, height: 60, label: 'Node 1', color: PRIMARY },
+    data: { cx: 150, cy: 130, label: 'Node One' },
     width: 160,
     height: 60,
   },
   'node-2': {
-    data: { cx: 450, cy: 100, width: 160, height: 60, label: 'Node 2', color: SECONDARY },
+    data: { cx: 450, cy: 100, label: 'Node Two' },
     width: 160,
     height: 60,
   },
   'node-3': {
-    data: { cx: 300, cy: 280, width: 160, height: 60, label: 'Node 3', color: '#10b981' },
+    data: { cx: 300, cy: 280, label: 'Node Three' },
     width: 160,
     height: 60,
   },
@@ -80,9 +80,9 @@ const initialLinks: Record<string, FlatLinkData> = {
 const mapDataToElementAttributes = ({
   data,
 }: ToElementAttributesOptions<FlatElementData<CenterElement>>): CellAttributes => {
-  const input = data as FlatElementData<CenterElement>;
-  const userData = (input.data ?? {}) as CenterElement;
-  const { cx = 0, cy = 0, width = 100, height = 60 } = userData;
+  const userData = (data.data ?? {}) as CenterElement;
+  const { cx = 0, cy = 0 } = userData;
+  const { width = 100, height = 60 } = data;
   return flatElementDataToAttributes({
     data: userData,
     x: cx - width / 2,
@@ -106,42 +106,11 @@ const mapElementAttributesToData = ({
   const height = (attributes.size?.height ?? 60) as number;
   // Wrap center-based coords + user data in `data` field for useElementData()
   return {
-    data: { ...userData, cx: x + width / 2, cy: y + height / 2, width, height },
+    data: { ...userData, cx: x + width / 2, cy: y + height / 2 },
     width,
     height,
   } as FlatElementData<CenterElement>;
 };
-
-// ============================================================================
-// Element Shape
-// ============================================================================
-
-function ElementShape({ label, color, width = 160, height = 60 }: Readonly<CenterElement>) {
-  return (
-    <>
-      <rect
-        rx={8}
-        ry={8}
-        width={width}
-        height={height}
-        fill={color}
-        stroke="#333"
-        strokeWidth={2}
-      />
-      <text
-        x={width / 2}
-        y={height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="white"
-        fontSize={14}
-        fontWeight="bold"
-      >
-        {label}
-      </text>
-    </>
-  );
-}
 
 // ============================================================================
 // Data Panel — shows live cx/cy values
@@ -182,7 +151,6 @@ function Main() {
       <Paper
         className={PAPER_CLASSNAME}
         height={400}
-        renderElement={renderElement}
         style={PAPER_STYLE}
       />
       <DataPanel />

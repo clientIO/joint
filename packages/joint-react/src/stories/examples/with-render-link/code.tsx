@@ -52,8 +52,8 @@ function LinkPath() {
     <>
       <path
         d={layout.d}
-        stroke={LIGHT}
-        opacity={0.05}
+        stroke={'red'}
+        opacity={0.2}
         strokeWidth={20}
         fill="none"
         strokeLinecap="round"
@@ -71,10 +71,6 @@ function LinkPath() {
 }
 
 function Main({ usePortalLinks }: Readonly<{ usePortalLinks: boolean }>) {
-  const renderElement = useCallback(
-    (element: NodeData) => <HTMLNode className="node">{element.label}</HTMLNode>,
-    []
-  );
 
   const renderLink: RenderLink = useCallback(() => <LinkPath />, []);
 
@@ -83,7 +79,6 @@ function Main({ usePortalLinks }: Readonly<{ usePortalLinks: boolean }>) {
       <Paper
         className={PAPER_CLASSNAME}
         height={280}
-        renderElement={renderElement}
         renderLink={usePortalLinks ? renderLink : undefined}
       />
     </div>
