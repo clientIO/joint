@@ -4,7 +4,7 @@ import { act, render, waitFor } from '@testing-library/react';
 import { GraphStoreContext } from '../../../context';
 import { GraphStore, DEFAULT_CELL_NAMESPACE } from '../../../store';
 import { dia, shapes } from '@joint/core';
-import { useElementsData, useLinksData } from '../../../hooks';
+import { useElements, useLinks } from '../../../hooks';
 import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../../paper/paper';
@@ -49,8 +49,8 @@ describe('graph', () => {
     let linkCount = 0;
     let elementCount = 0;
     function TestComponent() {
-      linkCount = useElementsData((items) => items.size);
-      elementCount = useLinksData((items) => {
+      linkCount = useElements((items) => items.size);
+      elementCount = useLinks((items) => {
         return items.size;
       });
       return null;
@@ -72,8 +72,8 @@ describe('graph', () => {
     let elementCount = 0;
     // eslint-disable-next-line sonarjs/no-identical-functions
     function TestComponent() {
-      linkCount = useElementsData((items) => items.size);
-      elementCount = useLinksData((items) => {
+      linkCount = useElements((items) => items.size);
+      elementCount = useLinks((items) => {
         return items.size;
       });
       return null;
@@ -109,7 +109,7 @@ describe('graph', () => {
     };
     let elementCount = 0;
     function TestComponent() {
-      elementCount = useElementsData((items) => items.size);
+      elementCount = useElements((items) => items.size);
       return null;
     }
     render(
@@ -147,7 +147,7 @@ describe('graph', () => {
     graph.addCell(cell);
     let currentElements: Map<string, FlatElementData> = new Map();
     function Elements() {
-      const elements = useElementsData();
+      const elements = useElements();
       currentElements = elements;
       return null;
     }
@@ -191,7 +191,7 @@ describe('graph', () => {
     let currentElements: Map<string, FlatElementData> = new Map();
     // eslint-disable-next-line sonarjs/no-identical-functions
     function Elements() {
-      const elements = useElementsData();
+      const elements = useElements();
       currentElements = elements;
       return null;
     }
@@ -240,8 +240,8 @@ describe('graph', () => {
     let elementCount = 0;
     // eslint-disable-next-line sonarjs/no-identical-functions
     function TestComponent() {
-      linkCount = useElementsData((items) => items.size);
-      elementCount = useLinksData((items) => {
+      linkCount = useElements((items) => items.size);
+      elementCount = useLinks((items) => {
         return items.size;
       });
       return null;
@@ -272,10 +272,10 @@ describe('graph', () => {
     let linkCount = 0;
     let elementCount = 0;
     function TestComponent() {
-      linkCount = useLinksData((items) => {
+      linkCount = useLinks((items) => {
         return items.size;
       });
-      elementCount = useElementsData((items) => {
+      elementCount = useElements((items) => {
         return items.size;
       });
       return null;

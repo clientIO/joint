@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import { paperRenderElementWrapper, getTestGraph } from '../../utils/test-wrappers';
 import { useElementLayout } from '../use-element-layout';
-import { useElementsLayout } from '../use-stores';
+import { useElementsLayout } from '../use-layouts';
 
 describe('useElementLayout', () => {
   it('should return node layout when used inside renderElement', async () => {

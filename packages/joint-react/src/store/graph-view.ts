@@ -62,10 +62,8 @@ export interface IncrementalContainerChanges<ElementData, LinkData> {
   };
 }
 
-interface GraphViewState<
-  ElementData extends object = CellData,
-  LinkData extends object = CellData,
-> extends GraphMappings<ElementData, LinkData> {
+interface GraphViewState<ElementData extends object = CellData, LinkData extends object = CellData>
+  extends GraphMappings<ElementData, LinkData> {
   readonly graph: dia.Graph;
   readonly enableBatchUpdates?: boolean;
   readonly getPaperStores: () => Map<string, PaperStore>;
@@ -159,10 +157,10 @@ export function graphView<
 
   const autoSizedElementIds = new Set<string>();
 
-  const elements = createContainer<ElementData>();
-  const links = createContainer<LinkData>();
-  const elementsLayout = createContainer<ElementLayout>();
-  const linksLayout = createContainer<Record<string, LinkLayout>>();
+  const elements = createContainer<ElementData>('Elements');
+  const links = createContainer<LinkData>('Links');
+  const elementsLayout = createContainer<ElementLayout>('Elements Layout');
+  const linksLayout = createContainer<Record<string, LinkLayout>>('Links Layout');
 
   function getPreviousElementData(element: dia.Element): ElementData | undefined {
     const { id } = element;
@@ -254,7 +252,6 @@ export function graphView<
         ? new Map<string, Record<string, LinkLayout>>()
         : undefined;
       const linkLayoutRemoved = trackChanges ? new Set<string>() : undefined;
-
       for (const [id, change] of changes) {
         switch (change.type) {
           case 'add':
@@ -462,42 +459,43 @@ export function graphView<
       // After updateGraph with isUpdateFromReact, graphChanges skips the events.
       // Populate containers directly so hooks see the data.
       const { elements: userElements, links: userLinks, flag } = update;
-      if (flag === 'updateFromReact') {
-        for (const [id, data] of Object.entries(userElements)) {
-          elements.set(id, data);
-          if (!hasDefinedSize(data as Record<string, unknown>)) {
-            autoSizedElementIds.add(id);
-          }
-          const cell = graph.getCell(id);
-          if (cell?.isElement()) {
-            const position = cell.position();
-            const size = cell.size();
-            const angle = cell.angle();
-            elementsLayout.set(id, { ...position, ...size, angle });
-          }
-        }
-        for (const [id, data] of Object.entries(userLinks)) {
-          links.set(id, data);
-        }
-        // Remove elements/links that are no longer in the user state
-        for (const [id] of elements.getFull()) {
-          if (!(id in userElements)) {
-            elements.delete(id);
-            elementsLayout.delete(id);
-          }
-        }
-        for (const [id] of links.getFull()) {
-          if (!(id in userLinks)) {
-            links.delete(id);
-            linksLayout.delete(id);
-          }
-        }
-        if (elements.getSize() > 0 || Object.keys(userElements).length > 0)
-          elements.commitChanges();
-        if (links.getSize() > 0 || Object.keys(userLinks).length > 0) links.commitChanges();
-        if (elementsLayout.getSize() > 0) elementsLayout.commitChanges();
-        if (linksLayout.getSize() > 0) linksLayout.commitChanges();
+      if (flag !== 'updateFromReact') {
+        return;
       }
+      for (const [id, data] of Object.entries(userElements)) {
+        elements.set(id, data);
+        if (!hasDefinedSize(data as Record<string, unknown>)) {
+          autoSizedElementIds.add(id);
+        }
+        const cell = graph.getCell(id);
+        if (cell?.isElement()) {
+          const position = cell.position();
+          const size = cell.size();
+          const angle = cell.angle();
+          elementsLayout.set(id, { ...position, ...size, angle });
+        }
+      }
+      for (const [id, data] of Object.entries(userLinks)) {
+        links.set(id, data);
+      }
+      // Remove elements/links that are no longer in the user state
+      for (const [id] of elements.getFull()) {
+        if (!(id in userElements)) {
+          elements.delete(id);
+          elementsLayout.delete(id);
+        }
+      }
+      for (const [id] of links.getFull()) {
+        if (!(id in userLinks)) {
+          links.delete(id);
+          linksLayout.delete(id);
+        }
+      }
+
+      if (elements.getSize() > 0 || Object.keys(userElements).length > 0) elements.commitChanges();
+      if (links.getSize() > 0 || Object.keys(userLinks).length > 0) links.commitChanges();
+      if (elementsLayout.getSize() > 0) elementsLayout.commitChanges();
+      if (linksLayout.getSize() > 0) linksLayout.commitChanges();
     },
     updateMappers(nextMappers: GraphMappings<ElementData, LinkData>) {
       let changed = false;
@@ -535,7 +533,23 @@ export function graphView<
       }
       if (!changed) return;
       // Re-sync all existing data through updated mappers
-      syncFromGraph();
+      const graphElements: dia.Cell.JSON[] = [];
+      const graphLinks: dia.Cell.JSON[] = [];
+
+      for (const [id, data] of elements.getFull()) {
+        const layout = elementsLayout.get(id);
+        const attributes = elementToAttributes({ id, data: data as ElementData });
+        graphElements.push({ ...attributes, ...layout, id });
+      }
+      for (const [id, data] of links.getFull()) {
+        const layout = linksLayout.get(id);
+        const attributes = linkToAttributes({ id, data: data as LinkData });
+        graphLinks.push({ ...attributes, ...layout, id });
+      }
+      graph.syncCells([...graphElements, ...graphLinks], {
+        remove: true,
+        isUpdateFromReact: true,
+      });
     },
     elementToData,
     elementToAttributes,

@@ -47,7 +47,7 @@ export function asReadonlyContainer<T>(container: Container<T>): ReadonlyContain
 /**
  * Creates a keyed container with per-id subscriptions and batched change notifications.
  */
-export function createContainer<T>(): Container<T> {
+export function createContainer<T>(_name?: string): Container<T> {
   const container = new Map<string, T>();
   const listeners = new Map<string, Set<() => void>>();
   const sizeListeners = new Set<() => void>();
@@ -71,6 +71,7 @@ export function createContainer<T>(): Container<T> {
       if (isStrictEqual(previous, value)) {
         return;
       }
+
       container.set(id, value);
       changes.push(id);
       version++;
@@ -110,6 +111,7 @@ export function createContainer<T>(): Container<T> {
           }
         }
         for (const listener of fullListeners) listener();
+
         changes = [];
       });
     },

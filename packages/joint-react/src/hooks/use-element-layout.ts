@@ -10,9 +10,9 @@ import { useContainerItem } from './use-container-item';
 export const DEFAULT_LAYOUT: ElementLayout = {
   x: 0,
   y: 0,
-  width: 1,
-  height: 1,
   angle: 0,
+  height: 0,
+  width: 0,
 };
 
 /**
@@ -75,7 +75,9 @@ export function useElementLayout<S>(
   isEqual?: (a: S, b: S) => boolean
 ): ElementLayout | S | undefined {
   const contextId = useContext(CellIdContext);
-  const { graphView: { elementsLayout } } = useGraphStore();
+  const {
+    graphView: { elementsLayout },
+  } = useGraphStore();
 
   const isFirstArgumentSelector = typeof idOrSelector === 'function';
   const actualId = isFirstArgumentSelector ? contextId : (idOrSelector ?? contextId);

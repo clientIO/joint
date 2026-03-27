@@ -3,7 +3,7 @@
 import {
   GraphProvider,
   Paper,
-  useElementsData,
+  useElements,
   useElementSize,
   type FlatElementData,
   type FlatLinkData,
@@ -53,13 +53,13 @@ function RenderElement({ color }: Readonly<NodeData>) {
 }
 
 function Main() {
-  const elements = useElementsData<NodeData>();
+  const elements = useElements<NodeData>();
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {[...elements.entries()].map(([id, item]) => {
-          return <FlatElementData key={id} id={id} color={item.color} />;
+          return <FlatElementData key={id} id={id} color={item.data?.color ?? PRIMARY} />;
         })}
       </div>
     </div>

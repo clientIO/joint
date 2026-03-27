@@ -1,10 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import {
-  testElements,
-  testLinks,
-} from '../../../.storybook/decorators/with-simple-data';
+import { testElements, testLinks } from '../../../.storybook/decorators/with-simple-data';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useEffect, useRef, useState } from 'react';
 import { useMeasureNode } from '../../hooks/use-measure-node';
@@ -27,7 +24,7 @@ The **GraphProvider** component provides a shared Graph context for all its desc
 
 **Key Features:**
 - Manages graph state (elements and links)
-- Provides context for hooks like \`useElement\`, \`useLinksData\`, \`useElementsData\`
+- Provides context for hooks like \`useElement\`, \`useLinks\`, \`useElements\`
 - Supports multiple Paper instances within the same provider
 - Handles graph updates and subscriptions efficiently
     `,

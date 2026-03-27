@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import React from 'react';
 import { createContainer, asReadonlyContainer } from '../../store/state-container';
 import { GraphStoreContext } from '../../context';
-import { useElementsData } from '../use-elements-data';
+import { useElements } from '../use-elements';
 
 interface TestElementData {
   readonly data: { readonly label: string };
@@ -36,11 +36,11 @@ function createTestContext() {
   return { elements, Wrapper };
 }
 
-describe('useElementsData', () => {
+describe('useElements', () => {
   it('returns empty Map when no elements exist', () => {
     const { Wrapper } = createTestContext();
 
-    const { result } = renderHook(() => useElementsData(), {
+    const { result } = renderHook(() => useElements(), {
       wrapper: Wrapper,
     });
 
@@ -54,7 +54,7 @@ describe('useElementsData', () => {
     elements.set('el-2', { data: { label: 'B' }, x: 50 });
     elements.commitChanges();
 
-    const { result } = renderHook(() => useElementsData(), {
+    const { result } = renderHook(() => useElements(), {
       wrapper: Wrapper,
     });
 
@@ -72,7 +72,7 @@ describe('useElementsData', () => {
     elements.set('el-3', { data: { label: 'C' }, x: 100 });
     elements.commitChanges();
 
-    const { result } = renderHook(() => useElementsData('el-1', 'el-3'), {
+    const { result } = renderHook(() => useElements('el-1', 'el-3'), {
       wrapper: Wrapper,
     });
 
@@ -89,7 +89,7 @@ describe('useElementsData', () => {
     elements.set('el-1', { data: { label: 'initial' }, x: 0 });
     elements.commitChanges();
 
-    const { result } = renderHook(() => useElementsData(), {
+    const { result } = renderHook(() => useElements(), {
       wrapper: Wrapper,
     });
 
@@ -109,7 +109,7 @@ describe('useElementsData', () => {
     elements.set('el-1', { data: { label: 'A' }, x: 0 });
     elements.commitChanges();
 
-    const { result } = renderHook(() => useElementsData(), {
+    const { result } = renderHook(() => useElements(), {
       wrapper: Wrapper,
     });
 

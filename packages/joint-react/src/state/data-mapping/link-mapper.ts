@@ -122,7 +122,9 @@ export function flatMapLinkAttributesToData<Link extends object = FlatLinkData>(
  * Public utility — caller provides the `id` separately.
  * @param data
  */
-export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
+export function flatLinkDataToAttributes<Data extends object = CellData>(
+  data: FlatLinkData<Data>
+): CellAttributes {
   if (!isLinkData(data)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
@@ -161,18 +163,22 @@ export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
 
   const attributes: Record<string, unknown> = {
     type: PORTAL_LINK_TYPE,
-    source: source ? toLinkEndAttribute(source, {
-      port: sourcePort,
-      anchor: sourceAnchor,
-      connectionPoint: sourceConnectionPoint,
-      magnet: sourceMagnet,
-    }) : undefined,
-    target: target ? toLinkEndAttribute(target, {
-      port: targetPort,
-      anchor: targetAnchor,
-      connectionPoint: targetConnectionPoint,
-      magnet: targetMagnet,
-    }) : undefined,
+    source: source
+      ? toLinkEndAttribute(source, {
+          port: sourcePort,
+          anchor: sourceAnchor,
+          connectionPoint: sourceConnectionPoint,
+          magnet: sourceMagnet,
+        })
+      : undefined,
+    target: target
+      ? toLinkEndAttribute(target, {
+          port: targetPort,
+          anchor: targetAnchor,
+          connectionPoint: targetConnectionPoint,
+          magnet: targetMagnet,
+        })
+      : undefined,
     attrs: buildLinkPresentationAttributes({
       color,
       width,
@@ -221,9 +227,9 @@ export function flatLinkDataToAttributes(data: FlatLinkData): CellAttributes {
  * Public utility — purely mechanical (nested → flat), no defaultAttributes filtering.
  * @param attributes
  */
-export function flatAttributesToLinkData<Link extends object = FlatLinkData>(
+export function flatAttributesToLinkData<Data extends object = CellData>(
   attributes: dia.Link.Attributes
-): Link {
+): FlatLinkData<Data> {
   const {
     data: userData,
     source,
@@ -265,5 +271,5 @@ export function flatAttributesToLinkData<Link extends object = FlatLinkData>(
   return {
     ...userData,
     ...linkData,
-  } as Link;
+  } as FlatLinkData<Data>;
 }

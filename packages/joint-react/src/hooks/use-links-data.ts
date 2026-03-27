@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unified-signatures */
 import { useMemo } from 'react';
 import type { CellData } from '../types/cell-data';
 import type { CellId } from '../types/cell-id';
@@ -21,29 +22,23 @@ import { useContainerItems } from './use-container-items';
  * ```
  * @group Hooks
  */
-export function useLinksData<
-  LinkData extends object = CellData,
->(): Map<CellId, LinkData>;
-export function useLinksData<
-  LinkData extends object = CellData,
->(...ids: [string, ...string[]]): Map<CellId, LinkData>;
-export function useLinksData<
-  LinkData extends object = CellData,
-  S = Map<CellId, LinkData>,
->(
+export function useLinksData<LinkData extends object = CellData>(): Map<CellId, LinkData>;
+export function useLinksData<LinkData extends object = CellData>(
+  ...ids: [string, ...string[]]
+): Map<CellId, LinkData>;
+export function useLinksData<LinkData extends object = CellData, S = Map<CellId, LinkData>>(
   selector: (items: Map<CellId, LinkData>) => S,
-  isEqual?: (a: S, b: S) => boolean,
+  isEqual?: (a: S, b: S) => boolean
 ): S;
-export function useLinksData<
-  LinkData extends object = CellData,
-  S = Map<CellId, LinkData>,
->(
+export function useLinksData<LinkData extends object = CellData, S = Map<CellId, LinkData>>(
   ...args:
     | []
     | [string, ...string[]]
     | [(items: Map<CellId, LinkData>) => S, ((a: S, b: S) => boolean)?]
 ): Map<CellId, LinkData> | S {
-  const { graphView: { links } } = useGraphStore();
+  const {
+    graphView: { links },
+  } = useGraphStore();
 
   const isSelectorMode = typeof args[0] === 'function';
   const ids = isSelectorMode ? undefined : (args as string[]);
@@ -59,9 +54,7 @@ export function useLinksData<
     : stableIds;
   const isEqual = isSelectorMode ? (args[1] as ((a: S, b: S) => boolean) | undefined) : undefined;
 
-  return useContainerItems(
-    links,
-    idsOrSelector as (items: Map<string, CellData>) => S,
-    isEqual
-  ) as Map<CellId, LinkData> | S;
+  return useContainerItems(links, idsOrSelector as (items: Map<string, CellData>) => S, isEqual) as
+    | Map<CellId, LinkData>
+    | S;
 }

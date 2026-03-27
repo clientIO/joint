@@ -25,7 +25,7 @@ export interface LinkEndAttributeOptions {
  */
 export function toLinkEndAttribute(
   end: FlatLinkEnd,
-  options?: LinkEndAttributeOptions,
+  options?: LinkEndAttributeOptions
 ): dia.Link.EndJSON {
   const base = (isString(end) ? { id: end } : end) as dia.Link.EndJSON;
   if (!options) return base;
@@ -63,9 +63,8 @@ export interface LinkEndData {
 export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
   const { port, anchor, connectionPoint, magnet } = end;
 
-  const endData: FlatLinkEnd = 'x' in end && 'y' in end
-    ? { x: end.x!, y: end.y! }
-    : end.id as CellId;
+  const endData: FlatLinkEnd =
+    'x' in end && 'y' in end ? { x: end.x!, y: end.y! } : (end.id as CellId);
 
   const result: LinkEndData = { end: endData };
   if (port !== undefined) result.port = port;
@@ -89,7 +88,7 @@ export function toLinkEndData(end: dia.Link.EndJSON): LinkEndData {
 export function assignEndDataProperties(
   linkData: Record<string, unknown>,
   endData: LinkEndData,
-  keys: { port: string; anchor: string; connectionPoint: string; magnet: string },
+  keys: { port: string; anchor: string; connectionPoint: string; magnet: string }
 ): void {
   if (endData.port) linkData[keys.port] = endData.port;
   if (endData.anchor) linkData[keys.anchor] = endData.anchor;
@@ -97,8 +96,18 @@ export function assignEndDataProperties(
   if (endData.magnet) linkData[keys.magnet] = endData.magnet;
 }
 
-const SOURCE_KEYS = { port: 'sourcePort', anchor: 'sourceAnchor', connectionPoint: 'sourceConnectionPoint', magnet: 'sourceMagnet' } as const;
-const TARGET_KEYS = { port: 'targetPort', anchor: 'targetAnchor', connectionPoint: 'targetConnectionPoint', magnet: 'targetMagnet' } as const;
+const SOURCE_KEYS = {
+  port: 'sourcePort',
+  anchor: 'sourceAnchor',
+  connectionPoint: 'sourceConnectionPoint',
+  magnet: 'sourceMagnet',
+} as const;
+const TARGET_KEYS = {
+  port: 'targetPort',
+  anchor: 'targetAnchor',
+  connectionPoint: 'targetConnectionPoint',
+  magnet: 'targetMagnet',
+} as const;
 
 export { SOURCE_KEYS, TARGET_KEYS };
 
@@ -118,7 +127,19 @@ export { SOURCE_KEYS, TARGET_KEYS };
 export function buildLinkPresentationAttributes(
   options: Required<FlatLinkPresentationData>
 ): Record<string, Nullable<attributes.SVGAttributes>> {
-  const { color, width, sourceMarker, targetMarker, className, dasharray, linecap, linejoin, wrapperWidth, wrapperColor, wrapperClassName } = options;
+  const {
+    color,
+    width,
+    sourceMarker,
+    targetMarker,
+    className,
+    dasharray,
+    linecap,
+    linejoin,
+    wrapperWidth,
+    wrapperColor,
+    wrapperClassName,
+  } = options;
 
   // Use inline `style` so that explicit values win over CSS theme rules
   // (inline style > CSS specificity). Empty strings are no-ops on the DOM,
@@ -140,8 +161,7 @@ export function buildLinkPresentationAttributes(
   }
 
   // Explicitly set to null to override the standard.Link default arrowhead
-  lineAttributes.targetMarker =
-    targetMarker === 'none' ? null : resolveMarker(targetMarker);
+  lineAttributes.targetMarker = targetMarker === 'none' ? null : resolveMarker(targetMarker);
 
   lineAttributes.class = `jr-link-line ${className}`.trim();
 
@@ -157,7 +177,7 @@ export function buildLinkPresentationAttributes(
         stroke: wrapperColor,
         // Note: `linecap` and `linejoin` are shared between the line and wrapper.
         strokeLinecap: linecap,
-        strokeLinejoin: linejoin
+        strokeLinejoin: linejoin,
       },
       class: `jr-link-wrapper ${wrapperClassName}`.trim(),
     },

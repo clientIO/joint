@@ -6,10 +6,10 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElementsData,
   useGraph,
   type RenderElement,
   type FlatElementData,
+  useElements,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
@@ -82,7 +82,7 @@ function Main() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const elementsLength = useElementsData((items) => items.size);
+  const elementsLength = useElements((items) => items.size);
   return (
     <div className="flex flex-col">
       <div className="mb-8 flex flex-row items-center">

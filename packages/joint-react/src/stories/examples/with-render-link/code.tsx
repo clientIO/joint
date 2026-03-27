@@ -42,7 +42,6 @@ const initialLinks: Record<string, FlatLinkData & { type: string }> = {
 
 function LinkPath() {
   const layout = useLinkLayout();
-  console.log(layout, 'Layout in LinkPath RenderLink - rendere'); // Debug log to verify layout data
   const id = useElementId();
 
   // Calculate midpoint for label
@@ -95,7 +94,7 @@ export default function App() {
   const [usePortalLinks, setUsePortalLinks] = useState(true);
 
   return (
-    <GraphProvider elements={initialElements} links={initialLinks}>
+    <GraphProvider elements={initialElements} links={initialLinks} enableBatchUpdates>
       <div className="flex flex-col gap-2">
         <button
           type="button"

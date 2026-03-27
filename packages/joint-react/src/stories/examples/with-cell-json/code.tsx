@@ -4,7 +4,6 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElementsData,
   type FlatElementData,
   type FlatLinkData,
   type ToElementAttributesOptions,
@@ -12,6 +11,7 @@ import {
   type ToLinkAttributesOptions,
   type ToLinkDataOptions,
   type RenderElement,
+  useElements,
 } from '@joint/react';
 import { useCallback } from 'react';
 
@@ -178,21 +178,21 @@ function ElementShape({ label, color, size }: Readonly<CellJsonElement>) {
 // ============================================================================
 
 function DataPanel() {
-  const elements = useElementsData<CellJsonElement>();
+  const elements = useElements<CellJsonElement>();
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Cell JSON Data</h3>
-      {[...elements.entries()].map(([id, element]) => (
+      {[...elements.entries()].map(([id, { data, x, y, width, height }]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
-          <div className="font-bold mb-1">{element.label}</div>
+          <div className="font-bold mb-1">{data?.label}</div>
           <div>
-            position: {'{'}x: {Math.round(element.position.x)}, y: {Math.round(element.position.y)}
+            position: {'{'}x: {Math.round(x ?? 0)}, y: {Math.round(y ?? 0)}
             {'}'}
           </div>
           <div className="text-gray-400 text-xs mt-1">
-            size: {element.size.width} &times; {element.size.height}
+            size: {width ?? 0} &times; {height ?? 0}
           </div>
-          <div className="text-gray-400 text-xs">type: {element.type}</div>
+          <div className="text-gray-400 text-xs">type: {data?.type}</div>
         </div>
       ))}
     </div>

@@ -49,12 +49,3 @@ export interface LinkLayout {
   readonly targetY: number;
   readonly d: string;
 }
-
-/** Default values for element layout when user omits them. */
-export const DEFAULT_ELEMENT_LAYOUT = {
-  x: 0,
-  y: 0,
-  width: 1,
-  height: 1,
-  angle: 0,
-} as const satisfies ElementLayout;

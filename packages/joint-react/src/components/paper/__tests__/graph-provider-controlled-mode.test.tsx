@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
-import { useElementsData, useLinksData, useGraph } from '../../../hooks';
+import { useElements, useLinks, useGraph } from '../../../hooks';
 import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 
@@ -19,9 +19,9 @@ describe('GraphProvider Controlled Mode', () => {
       let elementIds: string[] = [];
 
       function TestComponent() {
-        const elements = useElementsData((items) => [...items.values()]);
+        const elements = useElements((items) => [...items.values()]);
         elementCount = elements.length;
-        elementIds = [...useElementsData((items) => items).keys()];
+        elementIds = [...useElements((items) => items).keys()];
         return null;
       }
 
@@ -51,9 +51,9 @@ describe('GraphProvider Controlled Mode', () => {
       let elementIds: string[] = [];
 
       function TestComponent() {
-        const elements = useElementsData((items) => [...items.values()]);
+        const elements = useElements((items) => [...items.values()]);
         elementCount = elements.length;
-        elementIds = [...useElementsData((items) => items).keys()];
+        elementIds = [...useElements((items) => items).keys()];
         return null;
       }
 
@@ -103,8 +103,8 @@ describe('GraphProvider Controlled Mode', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElementsData((items) => items.size);
-        linkCount = useLinksData((items) => items.size);
+        elementCount = useElements((items) => items.size);
+        linkCount = useLinks((items) => items.size);
         return null;
       }
 
@@ -180,7 +180,7 @@ describe('GraphProvider Controlled Mode', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        const count = useElementsData((items) => items.size);
+        const count = useElements((items) => items.size);
         elementCount = count;
         return null;
       }
@@ -238,7 +238,7 @@ describe('GraphProvider Controlled Mode', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElementsData((items) => items.size);
+        elementCount = useElements((items) => items.size);
         return null;
       }
 
@@ -297,8 +297,8 @@ describe('GraphProvider Controlled Mode', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElementsData((items) => items.size);
-        linkCount = useLinksData((items) => items.size);
+        elementCount = useElements((items) => items.size);
+        linkCount = useLinks((items) => items.size);
         return null;
       }
 
@@ -366,7 +366,7 @@ describe('GraphProvider Controlled Mode', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        const count = useElementsData((items) => items.size);
+        const count = useElements((items) => items.size);
         elementCount = count;
         return null;
       }
@@ -430,7 +430,7 @@ describe('GraphProvider Controlled Mode', () => {
       let storeElements: Map<string, FlatElementData> = new Map();
 
       function TestComponent() {
-        storeElements = useElementsData((items) => items);
+        storeElements = useElements((items) => items);
         return null;
       }
 
@@ -620,7 +620,7 @@ describe('GraphProvider Controlled Mode', () => {
       let elementCount = 0;
 
       function TestComponent() {
-        elementCount = useElementsData((items) => items.size);
+        elementCount = useElements((items) => items.size);
         return null;
       }
 
@@ -669,8 +669,8 @@ describe('GraphProvider Controlled Mode', () => {
       let linkCount = 0;
 
       function TestComponent() {
-        elementCount = useElementsData((items) => items.size);
-        linkCount = useLinksData((items) => items.size);
+        elementCount = useElements((items) => items.size);
+        linkCount = useLinks((items) => items.size);
         return null;
       }
 

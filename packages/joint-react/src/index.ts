@@ -13,16 +13,17 @@ export { DefaultElement } from './components/default-element';
 // Hooks — Get Data
 export { useGraph } from './hooks/use-graph';
 export { usePaper } from './hooks/use-paper';
+export { useElements } from './hooks/use-elements';
+export { useLinks } from './hooks/use-links';
 export { useElement } from './hooks/use-element';
 export { useLink } from './hooks/use-link';
-
+export { useElementsLayout } from './hooks';
 // Hooks — Layout & Measurement
 export { useElementLayout } from './hooks/use-element-layout';
 export { useLinkLayout } from './hooks/use-link-layout';
 export type { LinkLayout } from './hooks/use-link-layout';
 export { useMeasureNode } from './hooks/use-measure-node';
 export type { OnTransformElement, TransformOptions } from './store/create-elements-size-observer';
-export { useElementsLayout, useLinksLayout } from './hooks/use-stores';
 export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
 
 // Hooks — Mappers
@@ -38,8 +39,6 @@ export { useElementData } from './hooks/use-element-data';
 export { useElementPosition } from './hooks/use-element-position';
 export { useElementSize } from './hooks/use-element-size';
 export { useLinkData } from './hooks/use-link-data';
-export { useElementsData } from './hooks/use-elements-data';
-export { useLinksData } from './hooks/use-links-data';
 
 // Hooks — Context
 export { useElementId } from './hooks/use-element-id';
@@ -58,13 +57,7 @@ export {
 } from './state/data-mapping/link-mapper';
 
 // Types — New (v2)
-export type {
-  CellData,
-  ElementLayout,
-  ElementPosition,
-  ElementSize,
-} from './types/cell-data';
-export { DEFAULT_ELEMENT_LAYOUT } from './types/cell-data';
+export type { CellData, ElementLayout, ElementPosition, ElementSize } from './types/cell-data';
 
 // Types — Legacy (kept for backwards compatibility)
 export type {

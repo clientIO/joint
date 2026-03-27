@@ -3,7 +3,7 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  useElementsData,
+  useElements,
   flatElementDataToAttributes,
   flatAttributesToElementData,
   type CellAttributes,
@@ -83,7 +83,13 @@ const mapDataToElementAttributes = ({
   const input = data as FlatElementData<CenterElement>;
   const userData = (input.data ?? {}) as CenterElement;
   const { cx = 0, cy = 0, width = 100, height = 60 } = userData;
-  return flatElementDataToAttributes({ data: userData, x: cx - width / 2, y: cy - height / 2, width, height });
+  return flatElementDataToAttributes({
+    data: userData,
+    x: cx - width / 2,
+    y: cy - height / 2,
+    width,
+    height,
+  });
 };
 
 /**
@@ -99,7 +105,11 @@ const mapElementAttributesToData = ({
   const width = (attributes.size?.width ?? 100) as number;
   const height = (attributes.size?.height ?? 60) as number;
   // Wrap center-based coords + user data in `data` field for useElementData()
-  return { data: { ...userData, cx: x + width / 2, cy: y + height / 2, width, height }, width, height } as FlatElementData<CenterElement>;
+  return {
+    data: { ...userData, cx: x + width / 2, cy: y + height / 2, width, height },
+    width,
+    height,
+  } as FlatElementData<CenterElement>;
 };
 
 // ============================================================================
@@ -138,7 +148,7 @@ function ElementShape({ label, color, width = 160, height = 60 }: Readonly<Cente
 // ============================================================================
 
 function DataPanel() {
-  const elements = useElementsData<CenterElement>();
+  const elements = useElements<CenterElement>();
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Element Data (cx, cy)</h3>
@@ -185,7 +195,6 @@ function Main() {
 // ============================================================================
 
 export default function App() {
-
   return (
     <GraphProvider
       elements={initialElements}

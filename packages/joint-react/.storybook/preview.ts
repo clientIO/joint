@@ -2,6 +2,7 @@ import type { Preview } from '@storybook/react-vite';
 import { theme } from './theme';
 import { withStrictMode } from './decorators/with-strict-mode';
 import './preview.css';
+import '../src/css/theme.css';
 
 export const decorators = [withStrictMode];
 
@@ -13,8 +14,8 @@ const preview: Preview = {
     },
     backgrounds: {
       options: {
-        dark: { name: 'Dark', value: theme.appBg }
-      }
+        dark: { name: 'Dark', value: theme.appBg },
+      },
     },
     parameters: {
       options: {
@@ -35,9 +36,9 @@ const preview: Preview = {
 
   initialGlobals: {
     backgrounds: {
-      value: 'dark'
-    }
-  }
+      value: 'dark',
+    },
+  },
 };
 
 export default preview;

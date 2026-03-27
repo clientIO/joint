@@ -96,6 +96,13 @@ export class GraphStore<ElementData extends object = CellData, LinkData extends 
   /** IDs of elements that have been measured by ResizeObserver. */
   private readonly measuredElementIds = new Set<CellId>();
 
+  public getGraphView<N extends object = CellData, L extends object = CellData>(): GraphView<
+    FlatElementData<N>,
+    FlatLinkData<L>
+  > {
+    return this.graphView as unknown as GraphView<FlatElementData<N>, FlatLinkData<L>>;
+  }
+
   constructor(public readonly config: GraphStoreOptions<ElementData, LinkData>) {
     const {
       initialElements = {},

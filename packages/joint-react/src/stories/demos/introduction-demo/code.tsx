@@ -12,10 +12,8 @@ import {
   GraphProvider,
   Paper,
   useElementId,
-  useElementsData,
   useGraph,
   useMeasureNode,
-  useLinksData,
   useNodesMeasuredEffect,
   type CellId,
   type FlatElementData,
@@ -24,6 +22,8 @@ import {
   type PaperProps,
   usePaperEvents,
   useElementSize,
+  useElements,
+  useLinks,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
@@ -193,7 +193,10 @@ function MessageComponent({
             className="w-full border-1 border-solid border-rose-white rounded-lg p-2 mt-3"
             placeholder="Type here..."
             onChange={({ target: { value } }) => {
-              setElement(id, (previous) => ({ ...previous, data: { ...previous.data, inputText: value } }));
+              setElement(id, (previous) => ({
+                ...previous,
+                data: { ...previous.data, inputText: value },
+              }));
             }}
           />
         </div>
@@ -425,8 +428,8 @@ function ToolBar(props: Readonly<ToolbarProps>) {
 
 // Show elements and links info
 function ElementsInfo() {
-  const elements = useElementsData();
-  const links = useLinksData();
+  const elements = useElements();
+  const links = useLinks();
   return (
     <div className="flex flex-col gap-2 mt-4">
       <div className="flex flex-col gap-2">

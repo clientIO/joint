@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
-import { useElementsData } from '../use-elements-data';
+import { useElements } from '../use-elements';
 
 describe('use-elements', () => {
   const wrapper = graphProviderWrapper({
@@ -30,7 +30,7 @@ describe('use-elements', () => {
     const { result } = renderHook(
       () => {
         renders();
-        return useElementsData();
+        return useElements();
       },
       {
         wrapper,
@@ -54,7 +54,7 @@ describe('use-elements', () => {
       () => {
         renders();
         // eslint-disable-next-line sonarjs/no-nested-functions
-        return useElementsData((elements) => [...elements.values()].map((item) => item.width));
+        return useElements((elements) => [...elements.values()].map((item) => item.width));
       },
       {
         wrapper,

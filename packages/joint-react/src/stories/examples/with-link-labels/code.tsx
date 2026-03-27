@@ -36,7 +36,7 @@ const initialLinks: Record<string, FlatLinkData> = {
         text: 'Link 1-2',
         color: 'yellow',
         backgroundColor: 'gray',
-        backgroundPadding: 10
+        backgroundPadding: 10,
       },
     },
   },
@@ -72,7 +72,7 @@ const initialLinks: Record<string, FlatLinkData> = {
         backgroundColor: BG,
       },
     },
-  }
+  },
 };
 
 function Shape({ label }: Readonly<ShapeData>) {

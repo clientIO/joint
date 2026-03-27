@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
-import { useLinksData } from '../use-links-data';
+import { useLinks } from '../use-links';
 import type { CellData } from '../../types/cell-data';
 import type { CellId } from '../../types/cell-id';
 
@@ -41,7 +41,7 @@ describe('use-links', () => {
     const { result } = renderHook(
       () => {
         renders();
-        return useLinksData();
+        return useLinks();
       },
       {
         wrapper,
@@ -61,7 +61,7 @@ describe('use-links', () => {
     const { result } = renderHook(
       () => {
         renders();
-        return useLinksData((links) => [...links.values()].map(getLinkSourceId));
+        return useLinks((links) => [...links.values()].map(getLinkSourceId));
       },
       {
         wrapper,

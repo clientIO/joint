@@ -4,7 +4,7 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  useElementsData,
+  useElements,
   useElementSize,
   type FlatElementData,
   type FlatLinkData,
@@ -157,7 +157,10 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
 
   const handleTogglePower = useCallback(() => {
     const newPower = power === 0 ? 1 : 0;
-    setElement(GENERATOR_ID, (previous) => ({ ...previous, data: { ...previous.data as GeneratorData, power: newPower } }));
+    setElement(GENERATOR_ID, (previous) => ({
+      ...previous,
+      data: { ...(previous.data as GeneratorData), power: newPower },
+    }));
   }, [power, setElement]);
 
   return (
@@ -232,7 +235,7 @@ function BulbNode({ watts }: Readonly<BulbData>) {
   const animationRef = useRef<Animation | null>(null);
 
   // Read generator power from the store (reactive)
-  const generatorPower = useElementsData<ShapeData, number>(
+  const generatorPower = useElements<ShapeData, number>(
     (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.power ?? 0
   );
 
@@ -309,14 +312,17 @@ function PowerControl() {
   const { setElement } = useGraph();
 
   // Read generator power from store (reactive)
-  const power = useElementsData<ShapeData, number>(
+  const power = useElements<ShapeData, number>(
     (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.power ?? 0
   );
 
   const handlePowerChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newPower = event.target.valueAsNumber;
-      setElement(GENERATOR_ID, (previous) => ({ ...previous, data: { ...previous.data as GeneratorData, power: newPower } }));
+      setElement(GENERATOR_ID, (previous) => ({
+        ...previous,
+        data: { ...(previous.data as GeneratorData), power: newPower },
+      }));
     },
     [setElement]
   );
@@ -401,10 +407,7 @@ function Main() {
 // ----------------------------------------------------------------------------
 export default function App() {
   return (
-    <GraphProvider
-      elements={initialElements}
-      links={initialLinks}
-    >
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Main />
     </GraphProvider>
   );

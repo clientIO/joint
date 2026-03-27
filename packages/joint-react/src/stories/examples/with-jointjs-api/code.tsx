@@ -154,12 +154,7 @@ function Main() {
   };
 
   return (
-    <Paper
-      id="my-paper"
-      className={PAPER_CLASSNAME}
-      height={380}
-      renderElement={renderElement}
-    />
+    <Paper id="my-paper" className={PAPER_CLASSNAME} height={380} renderElement={renderElement} />
   );
 }
 

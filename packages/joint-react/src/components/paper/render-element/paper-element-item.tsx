@@ -35,11 +35,7 @@ function SVGElementItemComponent(props: ElementItemProps) {
   const data = useElementData();
   const graphStore = useGraphStore();
   const { paper } = usePaper();
-
   useLayoutEffect(() => {
-    if (!areElementsMeasured) {
-      return;
-    }
     graphStore.clearViewForElementAndLinks({
       cellId: id,
       paper,

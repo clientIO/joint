@@ -7,7 +7,7 @@ import {
   useGraph,
   useElementId,
   useElementSize,
-  useElementsData,
+  useElements,
   useFlatLinkData,
   type FlatElementData,
   type FlatLinkData,
@@ -418,7 +418,7 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const { width, height } = useElementSize();
 
   // Use graph topology to find the connected product (inbound neighbor via link)
-  const { value, roi } = useElementsData<ShapeData, { value: number; roi: number }>((elements) => {
+  const { value, roi } = useElements<ShapeData, { value: number; roi: number }>((elements) => {
     const cell = graph.getCell(cellId);
     if (!cell?.isElement()) {
       return DEFAULT_ROI_VALUE;
@@ -431,12 +431,14 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
 
     const investmentItem = elements.get(INVESTMENT_ID);
     const productItem = elements.get(String(productCell.id));
-    if (investmentItem?.type !== 'Investment' || productItem?.type !== 'Product') {
+    if (investmentItem?.data?.type !== 'Investment' || productItem?.data?.type !== 'Product') {
       return DEFAULT_ROI_VALUE;
     }
-
-    const productValue = calculateProductValue(investmentItem, productItem);
-    const cost = (investmentItem.funds * productItem.percentage) / 100;
+    if (!investmentItem.data || !productItem.data) {
+      return DEFAULT_ROI_VALUE;
+    }
+    const productValue = calculateProductValue(investmentItem.data, productItem.data);
+    const cost = (investmentItem.data.funds * productItem.data.percentage) / 100;
     return { value: productValue, roi: calculateROI(cost, productValue) };
   });
 
@@ -501,9 +503,9 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const { width, height } = useElementSize();
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useElementsData<ShapeData, { value: number; roi: number }>((elements) => {
+  const { value, roi } = useElements<ShapeData, { value: number; roi: number }>((elements) => {
     const investmentItem = elements.get(INVESTMENT_ID);
-    if (investmentItem?.type !== 'Investment') {
+    if (investmentItem?.data?.type !== 'Investment') {
       return DEFAULT_ROI_VALUE;
     }
 
@@ -520,11 +522,11 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
       if (!productCell) continue;
 
       const productItem = elements.get(String(productCell.id));
-      if (productItem?.type !== 'Product') continue;
-      totalValue += calculateProductValue(investmentItem, productItem);
+      if (productItem?.data?.type !== 'Product') continue;
+      totalValue += calculateProductValue(investmentItem.data, productItem.data);
     }
 
-    return { value: totalValue, roi: calculateROI(investmentItem.funds, totalValue) };
+    return { value: totalValue, roi: calculateROI(investmentItem.data.funds, totalValue) };
   });
 
   return (

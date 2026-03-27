@@ -5,7 +5,8 @@ import { useContainerItem } from './use-container-item';
 
 const EMPTY_DATA = {} as CellData;
 
-const selectData = (item: CellData): unknown => (item as { readonly data: unknown }).data ?? EMPTY_DATA;
+const selectData = (item: CellData): unknown =>
+  (item as { readonly data: unknown }).data ?? EMPTY_DATA;
 
 /**
  * Returns the user data for the current element.
@@ -17,6 +18,8 @@ const selectData = (item: CellData): unknown => (item as { readonly data: unknow
  */
 export function useElementData<D extends object = CellData>(): D {
   const id = useElementId();
-  const { graphView: { elements } } = useGraphStore();
+  const {
+    graphView: { elements },
+  } = useGraphStore();
   return (useContainerItem(elements, id, selectData) ?? EMPTY_DATA) as D;
 }

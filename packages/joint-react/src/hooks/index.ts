@@ -1,7 +1,7 @@
 export * from './use-graph';
 export * from './use-paper';
-export * from './use-links-data';
-export * from './use-elements-data';
+export * from './use-elements';
+export * from './use-links';
 export * from './use-element';
 export * from './use-measure-node';
 export * from './use-element-layout';
@@ -26,5 +26,4 @@ export * from './use-element-data';
 export * from './use-element-position';
 export * from './use-element-size';
 export * from './use-link-data';
-export * from './use-elements-data';
-export * from './use-links-data';
+export * from './use-layouts';

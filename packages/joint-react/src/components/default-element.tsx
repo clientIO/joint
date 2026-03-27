@@ -1,8 +1,7 @@
 import { useRef, type CSSProperties } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
-import { useElementData } from '../hooks/use-element-data';
-import { useElementSize } from '../hooks/use-element-size';
 import { isString } from '../utils/is';
+import { useElement } from '../hooks';
 
 /**
  * Default element renderer: a `<div>` with a label, auto-sized via `useMeasureNode`.
@@ -55,22 +54,18 @@ function getStyle(width: number | undefined, height: number | undefined): CSSPro
  * @returns JSX element rendering a default node with the given label and dimensions.
  */
 export function DefaultElement() {
-  const data = useElementData<Record<string, unknown>>();
-  const size = useElementSize();
+  const { data, width, height } = useElement();
+
   const nodeRef = useRef<HTMLDivElement>(null);
   const layout = useMeasureNode(nodeRef);
   // Capture the user's initial intent — after measurement the graph syncs
   // height back into the data, so we'd wrongly switch to the fixed-box mode.
-  const initialHeightRef = useRef(size?.height);
+  const initialHeightRef = useRef(height);
   const label = isString(data?.label) ? data.label : undefined;
 
   return (
     <foreignObject width={layout.width} height={layout.height} overflow="visible">
-      <div
-        ref={nodeRef}
-        className="jr-element"
-        style={getStyle(size?.width, initialHeightRef.current)}
-      >
+      <div ref={nodeRef} className="jr-element" style={getStyle(width, initialHeightRef.current)}>
         {label}
       </div>
     </foreignObject>

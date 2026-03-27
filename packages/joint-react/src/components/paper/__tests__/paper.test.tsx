@@ -8,7 +8,7 @@ import { dia, shapes } from '@joint/core';
 import React from 'react';
 import { useMeasureNode } from '../../../hooks/use-measure-node';
 import { act, useEffect, useRef, useState, type RefObject } from 'react';
-import { useGraph, useElementId, useLinksData } from '../../../hooks';
+import { useGraph, useElementId, useLinks } from '../../../hooks';
 import { useNodesMeasuredEffect } from '../../../hooks/use-nodes-measured-effect';
 import type { ElementsMeasuredEvent } from '../../../types/event.types';
 import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
@@ -287,7 +287,7 @@ function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
   let linksSnapshot: Map<string, FlatLinkData> = new Map();
 
   function CaptureLinksSnapshot() {
-    linksSnapshot = useLinksData() as unknown as Map<string, FlatLinkData>;
+    linksSnapshot = useLinks() as unknown as Map<string, FlatLinkData>;
     return null;
   }
 

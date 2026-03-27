@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useRef } from 'react';
 import { paperRenderLinkWrapper, getTestGraph } from '../../utils/test-wrappers';
 import { useLinkLayout } from '../use-link-layout';
-import { useLinksLayout } from '../use-stores';
+import { useLinksLayout } from '../use-layouts';
 
 describe('useLinkLayout', () => {
   it('should return link layout when used inside renderLink', async () => {

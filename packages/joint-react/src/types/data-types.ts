@@ -306,21 +306,14 @@ export interface FlatLinkLabel {
  * @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
 // New type re-exports — use these in new code, old Flat* names kept for compatibility.
-export type {
-  CellData,
-  ElementLayout,
-  ElementPosition,
-  ElementSize,
-  DEFAULT_ELEMENT_LAYOUT,
-} from './cell-data';
+export type { CellData, ElementLayout, ElementPosition, ElementSize } from './cell-data';
 
 /**
  * Base interface for graph links.
  * The generic `D` represents the user's custom data, stored in the `data` field.
  * @group Graph
  */
-export interface FlatLinkData<D extends object = CellData>
-  extends FlatLinkPresentationData {
+export interface FlatLinkData<D extends object = CellData> extends FlatLinkPresentationData {
   /** User-provided custom data for this link. */
   readonly data?: D;
   /** Z-index of the cell. */

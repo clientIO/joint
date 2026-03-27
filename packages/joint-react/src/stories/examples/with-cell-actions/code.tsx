@@ -5,12 +5,12 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  useElementsData,
-  useLinksData,
   useElementLayout,
   useMeasureNode,
   type FlatElementData,
   type FlatLinkData,
+  useElements,
+  useLinks,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT } from 'storybook-config/theme';
@@ -312,7 +312,7 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 
 function AddElementForm() {
   const { setElement } = useGraph();
-  const elements = useElementsData<NodeData>();
+  const elements = useElements<NodeData>();
   const [label, setLabel] = useState('');
 
   const handleAdd = () => {
@@ -389,7 +389,7 @@ function AddElementForm() {
 
 function AddLinkForm() {
   const { setLink } = useGraph();
-  const elements = useElementsData<NodeData>();
+  const elements = useElements<NodeData>();
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
 
@@ -480,10 +480,8 @@ function AddLinkForm() {
 const DEFAULT_ROUTER = { name: 'normal' };
 const DEFAULT_CONNECTOR = { name: 'rounded', args: { radius: 10 } };
 function Main() {
-  const elements = useElementsData<NodeData>();
-  const links = useLinksData((items) =>
-    new Map([...items.entries()].map(([id, item]) => [id, item as FlatLinkData])),
-  );
+  const elements = useElements<NodeData>();
+  const links = useLinks();
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 500, position: 'relative' }}>
       {/* Canvas */}

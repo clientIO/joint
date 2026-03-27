@@ -3,7 +3,10 @@ import { useElementId } from './use-element-id';
 import { useGraphStore } from './use-graph-store';
 import { useContainerItem } from './use-container-item';
 
-const DEFAULT_SIZE: ElementSize = { width: 1, height: 1 };
+const DEFAULT_SIZE: ElementSize = {
+  width: 0,
+  height: 0,
+};
 
 const selectSize = (layout: ElementLayout): ElementSize => ({
   width: layout.width,
@@ -22,6 +25,8 @@ const isSizeEqual = (a: ElementSize, b: ElementSize): boolean =>
  */
 export function useElementSize(): ElementSize {
   const id = useElementId();
-  const { graphView: { elementsLayout } } = useGraphStore();
+  const {
+    graphView: { elementsLayout },
+  } = useGraphStore();
   return useContainerItem(elementsLayout, id, selectSize, isSizeEqual) ?? DEFAULT_SIZE;
 }

@@ -1,23 +1,23 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
-import { useLinksData } from './use-links-data';
+import { useLinks } from './use-links';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { HookTester } from '../stories/utils/hook-tester';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 
-const API_URL = getAPILink('useLinksData');
+const API_URL = getAPILink('useLinks');
 
 export type Story = StoryObj<typeof HookTester>;
 
 const meta: Meta<typeof HookTester> = {
-  title: 'Hooks/useLinksData',
+  title: 'Hooks/useLinks',
   component: HookTester,
   decorators: [SimpleGraphDecorator],
   tags: ['hook'],
   parameters: makeRootDocumentation({
     apiURL: API_URL,
     description: `
-The **useLinksData** hook provides access to all links in the graph. It supports selector functions for optimized re-renders, only updating when selected link properties change.
+The **useLinks** hook provides access to all links in the graph. It supports selector functions for optimized re-renders, only updating when selected link properties change.
 
 **Key Features:**
 - Returns all links in the graph as a Map keyed by ID
@@ -27,17 +27,17 @@ The **useLinksData** hook provides access to all links in the graph. It supports
     `,
     usage: `
 \`\`\`tsx
-import { useLinksData } from '@joint/react';
+import { useLinks } from '@joint/react';
 
 // Get all links (returns Map<CellId, CellData>)
 function Component() {
-  const links = useLinksData();
+  const links = useLinks();
   return <div>Total links: {links.size}</div>;
 }
 
 // Get specific properties (optimized)
 function OptimizedComponent() {
-  const linkIds = useLinksData((links) => [...links.values()].map(link => link.id));
+  const linkIds = useLinks((links) => [...links.values()].map(link => link.id));
   return <div>Link IDs: {linkIds.join(', ')}</div>;
 }
 \`\`\`
@@ -47,16 +47,16 @@ function OptimizedComponent() {
   - Returns: Transformed links data or full links Map if no selector provided
   - Re-renders only when selected properties change
     `,
-    code: `import { useLinksData } from '@joint/react'
+    code: `import { useLinks } from '@joint/react'
 
 function Component() {
-  const links = useLinksData();
+  const links = useLinks();
   return <div>Total links: {links.size}</div>;
 }
 
 // With selector for optimization
 function OptimizedComponent() {
-  const linkIds = useLinksData((links) => [...links.values()].map(link => link.id));
+  const linkIds = useLinks((links) => [...links.values()].map(link => link.id));
   return <div>Link IDs: {linkIds.join(', ')}</div>;
 }`,
   }),
@@ -66,15 +66,15 @@ export default meta;
 
 export const GetAllLinks: Story = makeStory<Story>({
   args: {
-    useHook: useLinksData,
+    useHook: useLinks,
     hookArgs: [],
     render: (result) => <DataRenderer data={result} name="All Links" />,
   },
   apiURL: API_URL,
-  code: `import { useLinksData } from '@joint/react'
+  code: `import { useLinks } from '@joint/react'
 
 function Component() {
-  const links = useLinksData(); // returns Map<CellId, CellData>
+  const links = useLinks(); // returns Map<CellId, CellData>
   return (
     <div>
       <p>Total links: {links.size}</p>
@@ -90,16 +90,16 @@ function Component() {
 
 export const GetLinkIds: Story = makeStory<Story>({
   args: {
-    useHook: useLinksData,
+    useHook: useLinks,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     hookArgs: [(links: any) => [...links.values()].map((link: any) => link.id)],
     render: (result) => <DataRenderer data={result} name="Link IDs" />,
   },
   apiURL: API_URL,
-  code: `import { useLinksData } from '@joint/react'
+  code: `import { useLinks } from '@joint/react'
 
 function Component() {
-  const linkIds = useLinksData((links) => [...links.values()].map(link => link.id));
+  const linkIds = useLinks((links) => [...links.values()].map(link => link.id));
   return <div>Link IDs: {linkIds.join(', ')}</div>;
 }`,
   description:

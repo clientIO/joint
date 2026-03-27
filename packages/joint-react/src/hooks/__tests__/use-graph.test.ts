@@ -1,10 +1,10 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import { useGraph } from '../use-graph';
-import { useElementsData } from '../use-elements-data';
-import { useLinksData } from '../use-links-data';
+import { useElements } from '../use-elements';
+import { useLinks } from '../use-links';
 import { useElementLayout } from '../use-element-layout';
-import { useElementsLayout } from '../use-stores';
+import { useElementsLayout } from '../use-layouts';
 import { act } from 'react';
 import type { ReducerType } from '@reduxjs/toolkit';
 
@@ -61,7 +61,7 @@ describe('useGraph element mutations', () => {
 
   it('should set and remove elements', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElementsData(), elementsLayout: useElementsLayout() }),
+      () => ({ ...useGraph(), elements: useElements(), elementsLayout: useElementsLayout() }),
       { wrapper }
     );
 
@@ -144,7 +144,7 @@ describe('useGraph element mutations', () => {
     });
 
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElementsData(), elementsLayout: useElementsLayout() }),
+      () => ({ ...useGraph(), elements: useElements(), elementsLayout: useElementsLayout() }),
       { wrapper: customWrapper }
     );
 
@@ -181,7 +181,7 @@ describe('useGraph element mutations', () => {
 
   it('should create a new element via updater when it does not exist', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), elements: useElementsData(), elementsLayout: useElementsLayout() }),
+      () => ({ ...useGraph(), elements: useElements(), elementsLayout: useElementsLayout() }),
       { wrapper }
     );
 
@@ -244,7 +244,7 @@ describe('useGraph link mutations', () => {
 
   it('should set, update, and remove links', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), links: useLinksData() }),
+      () => ({ ...useGraph(), links: useLinks() }),
       { wrapper }
     );
 
@@ -290,7 +290,7 @@ describe('useGraph link mutations', () => {
 
   it('should create a new link and make it visible in graph', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), links: useLinksData() }),
+      () => ({ ...useGraph(), links: useLinks() }),
       { wrapper }
     );
 
@@ -309,7 +309,7 @@ describe('useGraph link mutations', () => {
 
   it('should remove a pending link before it is synced', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), links: useLinksData() }),
+      () => ({ ...useGraph(), links: useLinks() }),
       { wrapper }
     );
 
@@ -330,7 +330,7 @@ describe('useGraph link mutations', () => {
 
   it('should create a new link via updater when it does not exist', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), links: useLinksData() }),
+      () => ({ ...useGraph(), links: useLinks() }),
       { wrapper }
     );
 
@@ -354,7 +354,7 @@ describe('useGraph link mutations', () => {
 
   it('should sync a new link during active batch', async () => {
     const { result } = renderHook(
-      () => ({ ...useGraph(), links: useLinksData() }),
+      () => ({ ...useGraph(), links: useLinks() }),
       { wrapper }
     );
 

@@ -2,6 +2,7 @@ import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { CellData } from '../types/cell-data';
 import type { ElementToAttribute, LinkToAttribute } from './graph-view';
+import { simpleScheduler } from '../utils/scheduler';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
@@ -38,12 +39,18 @@ export function graphChanges<
   ElementData extends object = CellData,
   LinkData extends object = CellData,
 >(options: Options<ElementData, LinkData>) {
-  const { graph, onChanges, enableBatchUpdates, elementToAttributes, linkToAttributes } = options;
+  const { graph, enableBatchUpdates, elementToAttributes, linkToAttributes } = options;
   const changes = new Map<string, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
   let isSyncedWithReact = true;
 
+  function onChanges(data: OnChangeOptions) {
+    simpleScheduler(() => {
+      if (data.changes.size === 0) return;
+      options.onChanges(data);
+    });
+  }
   /**
    * Returns true when inside a batch operation and batch updates are enabled.
    */

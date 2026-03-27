@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import React from 'react';
 import { createContainer, asReadonlyContainer } from '../../store/state-container';
 import { GraphStoreContext } from '../../context';
-import { useLinksData } from '../use-links-data';
+import { useLinks } from '../use-links';
 
 interface TestLinkData {
   readonly data: { readonly label: string };
@@ -35,11 +35,11 @@ function createTestContext() {
   return { links, Wrapper };
 }
 
-describe('useLinksData', () => {
+describe('useLinks', () => {
   it('returns empty Map when no links exist', () => {
     const { Wrapper } = createTestContext();
 
-    const { result } = renderHook(() => useLinksData(), {
+    const { result } = renderHook(() => useLinks(), {
       wrapper: Wrapper,
     });
 
@@ -53,7 +53,7 @@ describe('useLinksData', () => {
     links.set('l-2', { data: { label: 'Link B' } });
     links.commitChanges();
 
-    const { result } = renderHook(() => useLinksData(), {
+    const { result } = renderHook(() => useLinks(), {
       wrapper: Wrapper,
     });
 
@@ -71,7 +71,7 @@ describe('useLinksData', () => {
     links.set('l-3', { data: { label: 'Link C' } });
     links.commitChanges();
 
-    const { result } = renderHook(() => useLinksData('l-1', 'l-3'), {
+    const { result } = renderHook(() => useLinks('l-1', 'l-3'), {
       wrapper: Wrapper,
     });
 
@@ -90,7 +90,7 @@ describe('useLinksData', () => {
     links.commitChanges();
 
     const { result } = renderHook(
-      () => useLinksData((items) => items.size),
+      () => useLinks((items) => items.size),
       { wrapper: Wrapper },
     );
 
@@ -104,7 +104,7 @@ describe('useLinksData', () => {
     links.set('l-1', { data: { label: 'initial' } });
     links.commitChanges();
 
-    const { result } = renderHook(() => useLinksData(), {
+    const { result } = renderHook(() => useLinks(), {
       wrapper: Wrapper,
     });
 
