@@ -45,29 +45,21 @@ export function elementToAttributes<ElementData extends object | undefined = und
 
   const {
     data = {} as ElementData,
-    ports: topPorts,
-    portStyle: topPortStyle,
-    style,
+    ports,
+    portStyle,
     ...cellAttributes
   } = element;
 
-  // Prefer style-level ports (persisted from round-trips) over top-level
-  const effectivePorts = style?.ports ?? topPorts;
-  const effectivePortStyle = style?.portStyle ?? topPortStyle;
-
-  const effectiveStyle = (effectivePorts || effectivePortStyle)
-    ? { ports: effectivePorts, portStyle: effectivePortStyle }
-    : style;
-
   const attributes: CellAttributes = {
-    type, data,
-    style: effectiveStyle,
+    type,
+    data,
     ...cellAttributes,
   };
 
-  if (effectivePorts) {
-    attributes.ports = convertPorts(effectivePorts, effectivePortStyle);
+  if (ports) {
+    attributes.ports = convertPorts(ports, portStyle);
     attributes.portDefaults = createPortGroupsDefault();
+    attributes.style = { ports, portStyle };
   }
 
   return attributes;
@@ -104,21 +96,18 @@ export function attributesToElement<ElementData extends object | undefined = und
 
   const element: Element<ElementData> = {
     // element record should not include undefined values
-
-      data,
-      ports: style?.ports,
-      portStyle: style?.portStyle,
-      style,
-      position,
-      size,
-      angle,
-      z,
-      layer,
-      parent
-
+    data,
+    ...style,
+    position,
+    size,
+    angle,
+    z,
+    layer,
+    parent
   };
 
-  return element;
+  // filter out undefined values to avoid confusion between missing vs explicitly undefined
+  return { ...element };
 }
 
 export type MapAttributesToElement<ElementData extends object | undefined = undefined> =
