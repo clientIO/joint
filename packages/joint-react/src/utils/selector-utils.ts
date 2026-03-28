@@ -24,9 +24,13 @@ export function isShallowEqual(
 }
 
 export function isSizeEqual(a?: ElementSize, b?: ElementSize): boolean {
-  return isShallowEqual(a as Record<string, unknown>, b as Record<string, unknown>);
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.width === b.width && a.height === b.height;
 }
 
 export function isPositionEqual(a?: ElementPosition, b?: ElementPosition): boolean {
-  return isShallowEqual(a as Record<string, unknown>, b as Record<string, unknown>);
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.x === b.x && a.y === b.y;
 }
