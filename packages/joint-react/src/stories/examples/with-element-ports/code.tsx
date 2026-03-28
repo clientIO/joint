@@ -64,7 +64,7 @@ interface PortNodeData {
  */
 function mapDataToElementAttributes(options: { id: string; element: Element<PortNodeData> }) {
   const { id, element } = options;
-  const { ports, portStyle } = element;
+  const { ports, portStyle } = element.style ?? {};
   if (!ports) return elementToAttributes({ id, element });
 
   const defaultW = portStyle?.width ?? 10;
@@ -84,12 +84,12 @@ function mapDataToElementAttributes(options: { id: string; element: Element<Port
 
   const result = elementToAttributes({
     id,
-    element: { ...element, ports: resolvedPorts },
+    element: { ...element, style: { ...element.style, ports: resolvedPorts } },
   }) as CellAttributes;
 
-  // Keep original shape names in cell.data so they survive round-trips.
+  // Keep original shape names in cell.style so they survive round-trips.
   // The resolved SVG paths are already baked into the JointJS port config.
-  result.data.ports = ports;
+  result.style = { ...result.style, ports };
   return result;
 }
 
@@ -116,21 +116,23 @@ const initialElements: Record<string, Element<PortNodeData>> = {
       width: 140,
       height: 80,
     },
-    portStyle: { width: 16, height: 16, color: SECONDARY },
-    ports: {
-      'out-1': {
-        cx: 'calc(w)',
-        cy: 'calc(0.33 * h)',
-        label: 'Out 1',
-        shape: 'rounded-rect',
-        labelOffsetY: -15,
-      },
-      'out-2': {
-        cx: 'calc(w)',
-        cy: 'calc(0.66 * h)',
-        label: 'Out 2',
-        labelOffsetX: 10,
-        labelOffsetY: 15,
+    style: {
+      portStyle: { width: 16, height: 16, color: SECONDARY },
+      ports: {
+        'out-1': {
+          cx: 'calc(w)',
+          cy: 'calc(0.33 * h)',
+          label: 'Out 1',
+          shape: 'rounded-rect',
+          labelOffsetY: -15,
+        },
+        'out-2': {
+          cx: 'calc(w)',
+          cy: 'calc(0.66 * h)',
+          label: 'Out 2',
+          labelOffsetX: 10,
+          labelOffsetY: 15,
+        },
       },
     },
   },
@@ -141,21 +143,23 @@ const initialElements: Record<string, Element<PortNodeData>> = {
       width: 140,
       height: 80,
     },
-    portStyle: { width: 16, height: 16, color: PRIMARY },
-    ports: {
-      'in-1': {
-        cx: 0,
-        cy: 'calc(0.33 * h)',
-        shape: 'rect',
-        label: 'In 1',
-        labelOffsetY: -15,
-      },
-      'in-2': {
-        cx: 0,
-        cy: 'calc(0.66 * h)',
-        shape: 'triangle',
-        label: 'In 2',
-        labelOffsetY: 15,
+    style: {
+      portStyle: { width: 16, height: 16, color: PRIMARY },
+      ports: {
+        'in-1': {
+          cx: 0,
+          cy: 'calc(0.33 * h)',
+          shape: 'rect',
+          label: 'In 1',
+          labelOffsetY: -15,
+        },
+        'in-2': {
+          cx: 0,
+          cy: 'calc(0.66 * h)',
+          shape: 'triangle',
+          label: 'In 2',
+          labelOffsetY: 15,
+        },
       },
     },
   },
@@ -223,9 +227,12 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
   const updatePort = (updates: Partial<FlatElementPort>) => {
     setElement(elementId, (previous) => ({
       ...previous,
-      ports: previous.ports
-        ? { ...previous.ports, [portId]: { ...previous.ports[portId], ...updates } }
-        : previous.ports,
+      style: {
+        ...previous.style,
+        ports: previous.style?.ports
+          ? { ...previous.style.ports, [portId]: { ...previous.style.ports[portId], ...updates } }
+          : previous.style?.ports,
+      },
     }));
   };
 
@@ -378,7 +385,7 @@ interface ElementPortControlsProps {
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
-  const portEntries = Object.entries(element.ports ?? {});
+  const portEntries = Object.entries(element.style?.ports ?? {});
   const { label } = element.data ?? { label: '' };
 
   return (

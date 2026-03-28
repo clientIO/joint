@@ -33,11 +33,11 @@ describe('useFlatElementData', () => {
 
   it('applies static portDefaults to ports', () => {
     const { result } = renderHook(() =>
-      useElementDefaults({ portStyle: { color: 'red' } })
+      useElementDefaults({ style: { portStyle: { color: 'red' } } })
     );
     const cellJson = callForwardMapper(result.current, {
       ...minimalElementData,
-      ports: { p1: { cx: 0, cy: 0 } },
+      style: { ports: { p1: { cx: 0, cy: 0 } } },
     });
 
     const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
@@ -50,8 +50,10 @@ describe('useFlatElementData', () => {
     const { result } = renderHook(() =>
       useElementDefaults({
         size: { width: 200, height: 80 },
-        ports: {
-          out: { cx: 'calc(w)', cy: 'calc(0.5*h)' },
+        style: {
+          ports: {
+            out: { cx: 'calc(w)', cy: 'calc(0.5*h)' },
+          },
         },
       })
     );
@@ -79,8 +81,10 @@ describe('useFlatElementData', () => {
     const { result } = renderHook(() =>
       useElementDefaults({
         size: { width: 120, height: 60 },
-        ports: { p1: { cx: 0, cy: 0 } },
-        portStyle: { color: 'blue', width: 16 },
+        style: {
+          ports: { p1: { cx: 0, cy: 0 } },
+          portStyle: { color: 'blue', width: 16 },
+        },
       })
     );
     const cellJson = callForwardMapper(result.current, { data: {}, position: { x: 0, y: 0 } });
@@ -112,7 +116,7 @@ describe('useFlatElementData', () => {
       useElementDefaults(({ data: element }) => {
         const kind = (element.data as Record<string, unknown>)?.kind as string | undefined;
         return {
-          portStyle: { color: kind === 'start' ? 'green' : 'orange' },
+          style: { portStyle: { color: kind === 'start' ? 'green' : 'orange' } },
         };
       })
     );
@@ -121,7 +125,7 @@ describe('useFlatElementData', () => {
     const startJson = callForwardMapper(result.current, {
       ...minimalElementData,
       data: { kind: 'start' },
-      ports: { out: { cx: 'calc(w)', cy: 'calc(0.5*h)' } },
+      style: { ports: { out: { cx: 'calc(w)', cy: 'calc(0.5*h)' } } },
     });
     const startPorts = (startJson.ports as { items: Array<Record<string, unknown>> })?.items;
     expect(startPorts).toHaveLength(1);
@@ -132,9 +136,11 @@ describe('useFlatElementData', () => {
     const otherJson = callForwardMapper(result.current, {
       ...minimalElementData,
       data: { kind: 'process' },
-      ports: {
-        in: { cx: 0, cy: 'calc(0.5*h)' },
-        out: { cx: 'calc(w)', cy: 'calc(0.5*h)' },
+      style: {
+        ports: {
+          in: { cx: 0, cy: 'calc(0.5*h)' },
+          out: { cx: 'calc(w)', cy: 'calc(0.5*h)' },
+        },
       },
     });
     const otherPorts = (otherJson.ports as { items: Array<Record<string, unknown>> })?.items;
@@ -148,8 +154,10 @@ describe('useFlatElementData', () => {
   it('does not pollute cell.data with default-provided keys', () => {
     const { result } = renderHook(() =>
       useElementDefaults({
-        portStyle: { color: 'red' },
-        ports: { p1: { cx: 0, cy: 0 } },
+        style: {
+          portStyle: { color: 'red' },
+          ports: { p1: { cx: 0, cy: 0 } },
+        },
       })
     );
     const cellJson = callForwardMapper(result.current, {
@@ -163,26 +171,25 @@ describe('useFlatElementData', () => {
     expect(cellData).not.toHaveProperty('ports');
   });
 
-  it('preserves user-provided keys that overlap with defaults in cell.data', () => {
+  it('preserves user-provided style when it overlaps with defaults', () => {
     const { result } = renderHook(() =>
-      useElementDefaults({ portStyle: { color: 'red' } })
+      useElementDefaults({ style: { portStyle: { color: 'red' } } })
     );
     const cellJson = callForwardMapper(result.current, {
       data: {},
       position: { x: 10, y: 20 },
       size: { width: 100, height: 50 },
-      portStyle: { color: 'blue' },
-    } as Element);
-    const cellData = cellJson.data as Record<string, unknown>;
+      style: { portStyle: { color: 'blue' } },
+    });
 
-    expect(cellData).toHaveProperty('portStyle');
+    expect(cellJson.style).toMatchObject({ portStyle: { color: 'blue' } });
   });
 
   // ── Memoization ────────────────────────────────────────────────────────
 
   it('returns stable reference for static defaults', () => {
     const { result, rerender } = renderHook(() =>
-      useElementDefaults({ portStyle: { color: 'blue' } })
+      useElementDefaults({ style: { portStyle: { color: 'blue' } } })
     );
     const firstForward = result.current.mapElementToAttributes;
     rerender();
@@ -190,7 +197,7 @@ describe('useFlatElementData', () => {
   });
 
   const stableCallback = ({ data: element }: { data: Element }) => ({
-    portStyle: { color: (element.data as Record<string, unknown>)?.kind === 'a' ? 'red' : 'blue' },
+    style: { portStyle: { color: (element.data as Record<string, unknown>)?.kind === 'a' ? 'red' : 'blue' } },
   });
 
   it('returns stable reference for callback defaults', () => {
@@ -203,7 +210,7 @@ describe('useFlatElementData', () => {
   it('recreates mapper when deps change', () => {
     let color = 'red';
     const { result, rerender } = renderHook(() =>
-      useElementDefaults(() => ({ portStyle: { color } }), [color])
+      useElementDefaults(() => ({ style: { portStyle: { color } } }), [color])
     );
     const firstForward = result.current.mapElementToAttributes;
 
@@ -235,11 +242,11 @@ describe('useFlatElementData', () => {
 
   it('default color is applied when element data does not specify color', () => {
     const { result } = renderHook(() =>
-      useElementDefaults({ portStyle: { color: '#ff0000' } })
+      useElementDefaults({ style: { portStyle: { color: '#ff0000' } } })
     );
     const cellJson = callForwardMapper(result.current, {
       ...minimalElementData,
-      ports: { p1: { cx: 0, cy: 0 } },
+      style: { ports: { p1: { cx: 0, cy: 0 } } },
     });
 
     const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
@@ -249,13 +256,12 @@ describe('useFlatElementData', () => {
 
   it('element data color overrides default color', () => {
     const { result } = renderHook(() =>
-      useElementDefaults({ portStyle: { color: '#ff0000' } })
+      useElementDefaults({ style: { portStyle: { color: '#ff0000' } } })
     );
     const cellJson = callForwardMapper(result.current, {
       ...minimalElementData,
-      portStyle: { color: '#00ff00' },
-      ports: { p1: { cx: 0, cy: 0 } },
-    } as Element);
+      style: { portStyle: { color: '#00ff00' }, ports: { p1: { cx: 0, cy: 0 } } },
+    });
 
     const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
     const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
@@ -266,7 +272,7 @@ describe('useFlatElementData', () => {
     let portColor = 'red';
     const { result, rerender } = renderHook(() =>
       useElementDefaults(
-        { portStyle: { color: portColor } },
+        { style: { portStyle: { color: portColor } } },
         [portColor]
       )
     );
@@ -274,7 +280,7 @@ describe('useFlatElementData', () => {
     // First render: red
     const redJson = callForwardMapper(result.current, {
       ...minimalElementData,
-      ports: { p1: { cx: 0, cy: 0 } },
+      style: { ports: { p1: { cx: 0, cy: 0 } } },
     });
     const redPort = (redJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
     const redBody = (redPort?.attrs as Record<string, Record<string, any>>)?.portBody;
@@ -286,7 +292,7 @@ describe('useFlatElementData', () => {
 
     const blueJson = callForwardMapper(result.current, {
       ...minimalElementData,
-      ports: { p1: { cx: 0, cy: 0 } },
+      style: { ports: { p1: { cx: 0, cy: 0 } } },
     });
     const bluePort = (blueJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
     const blueBody = (bluePort?.attrs as Record<string, Record<string, any>>)?.portBody;

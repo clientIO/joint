@@ -20,12 +20,10 @@ const initialElements: Record<string, LabelEditor<NodeData>> = {
   '1': {
     data: { label: 'Node 1', color: '#4f46e5' },
     position: { x: 100, y: 15 },
-    size: { width: 100, height: 40 },
   },
   '2': {
     data: { label: 'Node 2', color: '#4f46e5' },
     position: { x: 100, y: 200 },
-    size: { width: 100, height: 40 },
   },
 };
 

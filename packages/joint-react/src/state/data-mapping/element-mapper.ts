@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { Element } from '../../types/data-types';
+import type { Element, ElementStyle } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -24,39 +24,19 @@ export function elementToAttributes<ElementData extends object | undefined = und
   }
 
   const {
-    data: customData = {},
-    position,
-    size,
-    angle,
-    z,
-    layer,
-    parent,
-    ports,
-    portStyle,
-    attrs,
     type = PORTAL_ELEMENT_TYPE,
+    data = {} as ElementData,
+    style,
+    ...cellJSON
   } = element;
 
-  const attributes: CellAttributes = { id, type };
+  const attributes: CellAttributes = { id, type, data, style, ...cellJSON };
 
-  if (attrs !== undefined) attributes.attrs = attrs;
-  if (position !== undefined) {
-    attributes.position = position;
-  }
-  if (size !== undefined) {
-    attributes.size = size;
-  }
-  if (angle !== undefined) attributes.angle = angle;
-  if (z !== undefined) attributes.z = z;
-  if (layer !== undefined) attributes.layer = layer;
-  if (parent !== undefined) attributes.parent = parent;
-
-  if (ports) {
+  if (style?.ports) {
+    const { ports, portStyle } = style;
     attributes.ports = convertPorts(ports, portStyle);
     attributes.portDefaults = createPortGroupsDefault();
   }
-
-  attributes.data = { ...customData, ports, portStyle };
 
   return attributes;
 }
@@ -70,25 +50,22 @@ export function elementToAttributes<ElementData extends object | undefined = und
 export function attributesToElement<ElementData extends object | undefined = undefined>(
   attributes: dia.Element.Attributes
 ): Element<ElementData> {
-  const { data: cellData, position, size, angle, z, layer, parent, attrs, type } = attributes;
-  const { ports, portStyle, ...data } = cellData ?? {};
+  const { data = {}, style, position, size, angle, z, layer, parent, attrs, type } = attributes;
 
-  const result: Element<ElementData> = {
+  const element: Element<ElementData> = {
     data,
   };
 
-  if (position) result.position = { x: position.x ?? 0, y: position.y ?? 0 };
-  if (size) result.size = { width: size.width ?? 0, height: size.height ?? 0 };
-  if (angle !== undefined) result.angle = angle;
-  if (ports !== undefined) result.ports = ports;
-  if (portStyle !== undefined) result.portStyle = portStyle;
-  if (z !== undefined) result.z = z;
-  if (layer !== undefined) result.layer = layer;
-  if (type !== undefined) result.type = type;
-  if (attrs) result.attrs = attrs as Record<string, Record<string, unknown>>;
-  if (parent) result.parent = parent;
-  if (attrs !== undefined) result.attrs = attrs as Record<string, Record<string, unknown>>;
-  return result;
+  if (position) element.position = { x: position.x ?? 0, y: position.y ?? 0 };
+  if (size) element.size = { width: size.width ?? 0, height: size.height ?? 0 };
+  if (angle !== undefined) element.angle = angle;
+  if (style) element.style = style;
+  if (z !== undefined) element.z = z;
+  if (layer !== undefined) element.layer = layer;
+  if (type !== undefined) element.type = type;
+  if (parent) element.parent = parent;
+  if (attrs !== undefined) element.attrs = attrs as Record<string, Record<string, unknown>>;
+  return element;
 }
 
 export type MapAttributesToElement<ElementData extends object | undefined = undefined> =

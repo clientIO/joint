@@ -81,26 +81,27 @@ describe('dataMapper', () => {
       expect(result).toHaveProperty('data.extra', 'also-included');
     });
 
-    it('should round-trip with ports on ElementItem level', () => {
+    it('should round-trip with ports under style', () => {
       const id = 'el-1';
       const element: Element = {
         data: { label: 'Node 1' },
         position: { x: 100, y: 50 },
         size: { width: 150, height: 60 },
-        ports: { p1: { cx: 0, cy: '50%' } },
+        style: { ports: { p1: { cx: 0, cy: '50%' } } },
       };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.position).toEqual({ x: 100, y: 50 });
       expect(cellJson.data).toMatchObject({ label: 'Node 1' });
+      expect(cellJson.style).toMatchObject({ ports: { p1: { cx: 0, cy: '50%' } } });
 
       graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
       const result = attributesToElement(cell.attributes);
 
       expect(result).toHaveProperty('data.label', 'Node 1');
-      // Ports stay on ElementItem level, not inside data
-      expect(result).toHaveProperty('ports');
+      // Ports stay under style, not inside data
+      expect(result).toHaveProperty('style.ports');
     });
   });
 
@@ -110,7 +111,7 @@ describe('dataMapper', () => {
         p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
       };
       const id = 'el-1';
-      const element: Element = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: Element = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, style: { ports } };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.ports).toBeDefined();
@@ -124,7 +125,7 @@ describe('dataMapper', () => {
         p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
       };
       const id = 'el-1';
-      const element: Element = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: Element = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, style: { ports } };
 
       const cellJson = elementToAttributes({ id, element });
       const [port] = cellJson.ports.items;
@@ -138,7 +139,7 @@ describe('dataMapper', () => {
         p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
       };
       const id = 'el-1';
-      const element: Element = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: Element = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, style: { ports } };
 
       const cellJson = elementToAttributes({ id, element });
       const portMarkup = cellJson.ports.items[0].markup;

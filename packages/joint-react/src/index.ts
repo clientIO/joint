@@ -50,6 +50,7 @@ export * from './state/data-mapping/link-mapper';
 export type { ElementPosition, ElementSize } from './types/cell-data';
 export type {
   Element as Element,
+  ElementStyle,
   FlatElementPort,
   Link as Link,
   FlatLinkEnd,

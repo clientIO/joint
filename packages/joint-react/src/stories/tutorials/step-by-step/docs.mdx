@@ -147,11 +147,13 @@ const elements = {
   '1': {
     x: 100,
     y: 100,
-    ports: {
-      items: [
-        { id: 'in', args: { x: 12, y: -6 }, attrs: { circle: { magnet: true } } },
-        { id: 'out', args: { x: 60, y: 48 }, attrs: { circle: { magnet: true } } },
-      ],
+    style: {
+      ports: {
+        items: [
+          { id: 'in', args: { x: 12, y: -6 }, attrs: { circle: { magnet: true } } },
+          { id: 'out', args: { x: 60, y: 48 }, attrs: { circle: { magnet: true } } },
+        ],
+      },
     },
   },
 };
@@ -161,7 +163,7 @@ const mapDataToElementAttributes = ({
   defaultAttributes,
 }: ToElementAttributesOptions<Element>): dia.Cell.JSON => ({
   ...defaultAttributes(),
-  ...(data.ports && { ports: data.ports }),
+  ...(data.style?.ports && { ports: data.style.ports }),
 });
 
 <GraphProvider elements={elements} mapDataToElementAttributes={mapDataToElementAttributes}>
