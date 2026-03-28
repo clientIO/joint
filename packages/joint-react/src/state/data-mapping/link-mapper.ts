@@ -7,7 +7,6 @@ import { mergeLabelsFromAttributes } from './convert-labels-reverse';
 import { buildLinkPresentationAttributes } from './link-attributes';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from '.';
-import type { LinkLayout } from '../../types/cell-data';
 
 /**
  * Type guard to check if data is link data.
@@ -137,6 +136,3 @@ export type MapAttributesToLink<LinkData extends object | undefined = undefined>
 
 export type MapLinkToAttributes<LinkData extends object | undefined = undefined> =
   typeof linkToAttributes<LinkData>;
-
-export type MapLinkToAttributesOptions<LinkData extends object | undefined = undefined> =
-  Parameters<MapLinkToAttributes<LinkData>>[0];
