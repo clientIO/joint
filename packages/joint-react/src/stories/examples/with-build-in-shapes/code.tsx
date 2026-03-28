@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type Element, type Link } from '@joint/react';
+import { GraphProvider, Paper, type Element, type Link, useElements } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
@@ -190,7 +190,7 @@ const initialLinks: Record<string, Link> = {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper className={PAPER_CLASSNAME} height={500} />
+      <Paper className={PAPER_CLASSNAME} height={500} interactive={true}/>
     </div>
   );
 }

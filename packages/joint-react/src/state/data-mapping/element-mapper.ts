@@ -1,5 +1,7 @@
+
+
 import { type dia } from '@joint/core';
-import type { Element, ElementStyle } from '../../types/data-types';
+import type { Element } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -14,25 +16,44 @@ function isElementData(data: unknown): data is Element {
   return isRecord(data);
 }
 
+/**
+ *
+ * @param options
+ * @param options.id
+ * @param options.element
+ */
 export function elementToAttributes<ElementData extends object | undefined = undefined>(options: {
   id: string;
   element: Element<ElementData>;
 }): CellAttributes {
-  const { id, element } = options;
+  const { element } = options;
   if (!isElementData(element)) {
-    throw new Error('Invalid element data: expected an object.');
+    throw new Error('Invalid element format: expected an object.');
   }
 
   const {
-    type = PORTAL_ELEMENT_TYPE,
-    data = {} as ElementData,
-    style,
-    ...cellJSON
+      type = PORTAL_ELEMENT_TYPE,
   } = element;
 
-  const attributes: CellAttributes = { id, type, data, style, ...cellJSON };
+  if (type !== PORTAL_ELEMENT_TYPE) {
+    // For non-portal elements, the element record is a cell JSON with optional `data`.
+    // Note: `style` is not supported on non-portal elements.
+    return element as CellAttributes;
+  }
+
+  // PortalElement mapping
+
+  const {
+    data = {} as ElementData,
+    style,
+    ...cellAttributes
+  } = element;
+
+  const attributes: CellAttributes = { type, data, style, ...cellAttributes };
 
   if (style?.ports) {
+    // Note: this will override any ports defined directly on the element.
+    // @todo should we warn if both are present?
     const { ports, portStyle } = style;
     attributes.ports = convertPorts(ports, portStyle);
     attributes.portDefaults = createPortGroupsDefault();
@@ -50,21 +71,40 @@ export function elementToAttributes<ElementData extends object | undefined = und
 export function attributesToElement<ElementData extends object | undefined = undefined>(
   attributes: dia.Element.Attributes
 ): Element<ElementData> {
-  const { data = {}, style, position, size, angle, z, layer, parent, attrs, type } = attributes;
+
+  const { type } = attributes;
+  if (type !== PORTAL_ELEMENT_TYPE) {
+    // For non-portal elements, we treat the entire attributes as the element record with optional `data`.
+    return attributes as Element<ElementData>;
+  }
+
+  // PortalElement mapping
+
+  const {
+    data,
+    style,
+    position,
+    size,
+    angle,
+    z,
+    layer,
+    parent,
+  } = attributes;
 
   const element: Element<ElementData> = {
-    data,
+    // element record should not include undefined values
+
+      data,
+      style,
+      position,
+      size,
+      angle,
+      z,
+      layer,
+      parent
+
   };
 
-  if (position) element.position = { x: position.x ?? 0, y: position.y ?? 0 };
-  if (size) element.size = { width: size.width ?? 0, height: size.height ?? 0 };
-  if (angle !== undefined) element.angle = angle;
-  if (style) element.style = style;
-  if (z !== undefined) element.z = z;
-  if (layer !== undefined) element.layer = layer;
-  if (type !== undefined) element.type = type;
-  if (parent) element.parent = parent;
-  if (attrs !== undefined) element.attrs = attrs as Record<string, Record<string, unknown>>;
   return element;
 }
 
