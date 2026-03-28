@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import { useState, useCallback, useRef } from 'react';
@@ -28,42 +28,34 @@ const initialElements: Record<string, Element<NodeUserData>> = {
     data: { label: 'Source' },
     position: { x: 50, y: 70 },
     size: { width: 120, height: 50 },
-    style: {
-      ports: {
-        out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
-      },
+    ports: {
+      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
   },
   b: {
     data: { label: 'Process' },
     position: { x: 290, y: 20 },
     size: { width: 120, height: 50 },
-    style: {
-      ports: {
-        in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
-        out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
-      },
+    ports: {
+      in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
+      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
   },
   c: {
     data: { label: 'Review' },
     position: { x: 290, y: 120 },
     size: { width: 120, height: 50 },
-    style: {
-      ports: {
-        in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
-        out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
-      },
+    ports: {
+      in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
+      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
   },
   d: {
     data: { label: 'Output' },
     position: { x: 550, y: 70 },
     size: { width: 120, height: 50 },
-    style: {
-      ports: {
-        in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
-      },
+    ports: {
+      in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
     },
   },
 };
@@ -135,19 +127,17 @@ function Diagram() {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const elementDefaults = useElementDefaults<NodeUserData>({
-    style: {
-      portStyle: {
-        width: 15,
-        height: 15,
-        className: `
-                    cursor-crosshair hover:fill-blue-500
-                    forest:hover:fill-lime-300
-                    ocean:hover:fill-cyan-200
-                    sunset:hover:fill-orange-400
-                `,
-      },
+    portStyle: {
+      width: 15,
+      height: 15,
+      className: `
+                  cursor-crosshair hover:fill-blue-500
+                  forest:hover:fill-lime-300
+                  ocean:hover:fill-cyan-200
+                  sunset:hover:fill-orange-400
+              `,
     },
-  });
+});
 
   const linkDefaults = useLinkDefaults({
     targetMarker: 'arrow',

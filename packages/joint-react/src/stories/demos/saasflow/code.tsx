@@ -435,27 +435,25 @@ function Main() {
 
   const elementDefaults = useElementDefaults<SaasNodeData>(
     {
-      style: {
-        ports: {
-          out: {
-            cx: 'calc(0.5 * w)',
-            cy: 'calc(h)',
-            width: PORT_R * 2,
-            height: PORT_R * 2,
-            color: theme.port,
-            outline: theme.canvas,
-            outlineWidth: 2,
-          },
-          in: {
-            cx: 'calc(0.5 * w)',
-            cy: 0,
-            width: PORT_R * 2,
-            height: PORT_R * 2,
-            color: theme.port,
-            outline: theme.canvas,
-            outlineWidth: 2,
-            passive: true,
-          },
+      ports: {
+        out: {
+          cx: 'calc(0.5 * w)',
+          cy: 'calc(h)',
+          width: PORT_R * 2,
+          height: PORT_R * 2,
+          color: theme.port,
+          outline: theme.canvas,
+          outlineWidth: 2,
+        },
+        in: {
+          cx: 'calc(0.5 * w)',
+          cy: 0,
+          width: PORT_R * 2,
+          height: PORT_R * 2,
+          color: theme.port,
+          outline: theme.canvas,
+          outlineWidth: 2,
+          passive: true,
         },
       },
     },

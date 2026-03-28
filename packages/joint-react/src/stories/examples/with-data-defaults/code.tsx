@@ -86,17 +86,15 @@ function Diagram() {
       }
       return {
         size: { width: 100, height: 40 },
-        style: {
-          portStyle: {
-            color,
-            shape: portShape,
-            width: 12,
-            height: 12,
-            outline: BG,
-            outlineWidth: 2,
-          },
-          ports: portsByType[data.type] ?? defaultPorts,
+        portStyle: {
+          color,
+          shape: portShape,
+          width: 12,
+          height: 12,
+          outline: BG,
+          outlineWidth: 2,
         },
+        ports: portsByType[data.type] ?? defaultPorts,
       };
     },
     [color, portShape]
