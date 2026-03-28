@@ -44,7 +44,7 @@ describe('graph', () => {
         size: { width: 100, height: 100 },
       },
     };
-    const link: Link = { source: 'element1', target: { x: 0, y: 0 } };
+    const link: Link = { source: { id: 'element1' }, target: { x: 0, y: 0 } };
     let linkCount = 0;
     let elementCount = 0;
     function TestComponent() {
@@ -238,7 +238,7 @@ describe('graph', () => {
         size: { width: 100, height: 100 },
       },
     };
-    const link: Link = { source: 'element1', target: { x: 0, y: 0 } };
+    const link: Link = { source: { id: 'element1' }, target: { x: 0, y: 0 } };
     let linkCount = 0;
     let elementCount = 0;
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -268,7 +268,7 @@ describe('graph', () => {
       },
     };
     const initialLink: Link = {
-      source: 'element1',
+      source: { id: 'element1' },
       target: { x: 0, y: 0 },
     };
     let linkCount = 0;
@@ -331,12 +331,12 @@ describe('graph', () => {
     act(() => {
       setLinksOutside?.({
         link2: {
-          source: 'element1',
-          target: 'element2',
+          source: { id: 'element1' },
+          target: { id: 'element2' },
         },
         link3: {
-          source: 'element1',
-          target: 'element2',
+          source: { id: 'element1' },
+          target: { id: 'element2' },
         },
       });
     });
@@ -372,13 +372,13 @@ describe('graph', () => {
 
     const links: Record<string, Link> = {
       'link-1': {
-        source: 'element-1',
-        target: 'element-2',
+        source: { id: 'element-1' },
+        target: { id: 'element-2' },
         z: 1,
       },
       'link-2': {
-        source: 'element-2',
-        target: 'element-1',
+        source: { id: 'element-2' },
+        target: { id: 'element-1' },
         z: 2,
         data: { customProperty: 'custom-value' },
       },
@@ -389,8 +389,8 @@ describe('graph', () => {
       ...new Map(
         receivedLinks.map((link) => [
           JSON.stringify({
-            source: link.source,
-            target: link.target,
+            sourceId: link.source?.id,
+            targetId: link.target?.id,
             z: link.z,
             customProperty: link.data?.customProperty,
           }),
@@ -436,13 +436,13 @@ describe('graph', () => {
     // Verify link data was passed (links no longer have id property)
     const uniqueReceivedLinks = getUniqueReceivedLinks();
     const link1 = uniqueReceivedLinks.find(
-      (link) => link.source === 'element-1' && link.target === 'element-2'
+      (link) => link.source?.id === 'element-1' && link.target?.id === 'element-2'
     );
     expect(link1).toBeDefined();
     expect(link1?.z).toBe(1);
 
     const link2 = uniqueReceivedLinks.find(
-      (link) => link.source === 'element-2' && link.target === 'element-1'
+      (link) => link.source?.id === 'element-2' && link.target?.id === 'element-1'
     );
     expect(link2).toBeDefined();
     expect(link2?.z).toBe(2);
@@ -464,8 +464,8 @@ describe('graph', () => {
 
     const initialLinks: Record<string, Link> = {
       'link-1': {
-        source: 'element-1',
-        target: 'element-2',
+        source: { id: 'element-1' },
+        target: { id: 'element-2' },
       },
     };
 
@@ -515,7 +515,7 @@ describe('graph', () => {
 
     // Verify initial link was received
     const initialLink = receivedLinks.find(
-      (link) => link.source === 'element-1' && link.target === 'element-2'
+      (link) => link.source?.id === 'element-1' && link.target?.id === 'element-2'
     );
     expect(initialLink).toBeDefined();
 
@@ -525,8 +525,8 @@ describe('graph', () => {
     act(() => {
       setLinksExternal?.({
         'link-2': {
-          source: 'element-2',
-          target: 'element-1',
+          source: { id: 'element-2' },
+          target: { id: 'element-1' },
           data: { customProperty: 'updated-value' },
         },
       });
@@ -541,7 +541,7 @@ describe('graph', () => {
 
     // Verify updated link was received
     const updatedLink = receivedLinks.find(
-      (link) => link.source === 'element-2' && link.target === 'element-1'
+      (link) => link.source?.id === 'element-2' && link.target?.id === 'element-1'
     );
     expect(updatedLink).toBeDefined();
     expect(updatedLink?.data?.customProperty).toBe('updated-value');

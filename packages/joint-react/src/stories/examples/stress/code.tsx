@@ -27,8 +27,8 @@ function initialElements(xNodes = 15, yNodes = 30) {
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
         const edgeIdString = `edge-${edgeId.toString()}`;
         edges[edgeIdString] = {
-          source: `stress-${recentNodeId.toString()}`,
-          target: `stress-${nodeId.toString()}`,
+          source: { id: `stress-${recentNodeId.toString()}` },
+          target: { id: `stress-${nodeId.toString()}` },
           z: -1,
           color: '#999999',
           dasharray: '5 2',

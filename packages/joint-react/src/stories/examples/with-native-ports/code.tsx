@@ -127,34 +127,24 @@ const initialElements: Record<string, Element<NativeElementUserData>> = {
 
 const initialLinks: Record<string, Link> = {
   'link-1': {
-    source: 'node-1',
-    sourcePort: 'out-1',
-    target: 'node-2',
-    targetPort: 'in-1',
+    source: { id: 'node-1', port: 'out-1' },
+    target: { id: 'node-2', port: 'in-1' },
   },
   'link-2': {
-    source: 'node-1',
-    sourcePort: 'out-2',
-    target: 'node-3',
-    targetPort: 'in-1',
+    source: { id: 'node-1', port: 'out-2' },
+    target: { id: 'node-3', port: 'in-1' },
   },
   'link-3': {
-    source: 'node-1',
-    sourcePort: 'out-3',
-    target: 'node-3',
-    targetPort: 'in-2',
+    source: { id: 'node-1', port: 'out-3' },
+    target: { id: 'node-3', port: 'in-2' },
   },
   'link-4': {
-    source: 'node-2',
-    sourcePort: 'out-1',
-    target: 'node-3',
-    targetPort: 'in-3',
+    source: { id: 'node-2', port: 'out-1' },
+    target: { id: 'node-3', port: 'in-3' },
   },
   'link-5': {
-    source: 'node-2',
-    sourcePort: 'out-2',
-    target: 'node-1',
-    targetPort: 'in-2',
+    source: { id: 'node-2', port: 'out-2' },
+    target: { id: 'node-1', port: 'in-2' },
   },
 };
 

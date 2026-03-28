@@ -10,7 +10,7 @@ describe('useLink', () => {
         '2': { data: undefined, position: { x: 100, y: 100 }, size: { width: 10, height: 10 } },
       },
       links: {
-        'link-1': { source: '1', target: '2', color: '#FF0000' },
+        'link-1': { source: { id: '1' }, target: { id: '2' }, color: '#FF0000' },
       },
     },
     paperProps: {
@@ -23,8 +23,8 @@ describe('useLink', () => {
 
     await waitFor(() => {
       expect(result.current).toBeDefined();
-      expect(result.current.source).toBe('1');
-      expect(result.current.target).toBe('2');
+      expect(result.current.source).toEqual({ id: '1' });
+      expect(result.current.target).toEqual({ id: '2' });
     });
   });
 
@@ -35,7 +35,7 @@ describe('useLink', () => {
     );
 
     await waitFor(() => {
-      expect(result.current).toBe('1');
+      expect(result.current).toEqual({ id: '1' });
     });
   });
 });

@@ -11,8 +11,8 @@ const initialElements: Record<string, Element<ElementData>> = {
 
 const initialEdges: Record<string, Link> = {
   'e1-2': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     color: PRIMARY,
     className: 'link',
   },

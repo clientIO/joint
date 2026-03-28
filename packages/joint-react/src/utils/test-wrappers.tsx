@@ -66,8 +66,8 @@ export const simpleRenderElementWrapper = paperRenderElementWrapper({
     },
     links: {
       '3': {
-        source: '1',
-        target: '2',
+        source: { id: '1' },
+        target: { id: '2' },
       },
     },
   },

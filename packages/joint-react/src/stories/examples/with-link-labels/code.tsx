@@ -30,8 +30,8 @@ const initialElements: Record<string, Element<ShapeData>> = {
 
 const initialLinks: Record<string, Link> = {
   'l1-2': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     color: 'blue',
     targetMarker: 'arrow',
     labels: {
@@ -47,8 +47,8 @@ const initialLinks: Record<string, Link> = {
     },
   },
   'l1-4': {
-    source: '1',
-    target: '4',
+    source: { id: '1' },
+    target: { id: '4' },
     labels: {
       main: {
         text: 'Default style',
@@ -56,8 +56,8 @@ const initialLinks: Record<string, Link> = {
     },
   },
   'l3-4': {
-    source: '3',
-    target: '4',
+    source: { id: '3' },
+    target: { id: '4' },
     labels: {
       plus: {
         text: '+',

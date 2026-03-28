@@ -35,8 +35,8 @@ describe('graph-state-selectors link mapping', () => {
       const link = attributesToLink(cell.attributes);
 
       expect(link).toMatchObject({
-        source: 'source-id',
-        target: 'target-id',
+        source: { id: 'source-id' },
+        target: { id: 'target-id' },
       });
       // User data is in the data field
       expect(link.data).toMatchObject({ key: 'value' });

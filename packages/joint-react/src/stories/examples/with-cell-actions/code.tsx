@@ -43,13 +43,13 @@ const initialElements: Record<string, Element<NodeData>> = {
 
 const initialLinks: Record<string, Link> = {
   'link-1-2': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     color: DARK,
   },
   'link-1-3': {
-    source: '1',
-    target: '3',
+    source: { id: '1' },
+    target: { id: '3' },
     color: DARK,
   },
 };
@@ -269,11 +269,7 @@ function ElementControls({
 }
 
 function getLinkEndpointId(endpoint: Link['source']): string {
-  if (typeof endpoint === 'string') return endpoint;
-  if (typeof endpoint === 'object' && 'id' in endpoint) {
-    return String(endpoint.id);
-  }
-  return 'unknown';
+  return String(endpoint?.id ?? 'unknown');
 }
 
 interface LinkControlsProps {
@@ -445,8 +441,8 @@ function AddLinkForm() {
 
     const newId = `link-${source}-${target}-${Date.now()}`;
     setLink(newId, {
-      source,
-      target,
+      source: { id: source },
+      target: { id: target },
       color: LIGHT,
     });
     setSource('');

@@ -84,8 +84,8 @@ const defaultElements: Record<string, CustomElement> = {
  */
 const defaultLinks: Record<string, Link> = {
   'e1-2': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     color: PRIMARY,
   },
 };
@@ -125,7 +125,7 @@ const graphSlice = createSlice({
       delete state.elements[removedElementId];
       if (removedElementId) {
         for (const [id, link] of Object.entries(state.links)) {
-          if (link.source === removedElementId || link.target === removedElementId) {
+          if (link.source?.id === removedElementId || link.target?.id === removedElementId) {
             delete state.links[id];
           }
         }

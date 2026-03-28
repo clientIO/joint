@@ -111,24 +111,18 @@ const initialElements: Record<string, NodeType> = {
 
 const initialLinks: Record<string, Link> = {
   link1: {
-    source: '1',
-    sourceMagnet: '1',
-    target: '2',
-    targetMagnet: 'in',
+    source: { id: '1', magnet: '1' },
+    target: { id: '2', magnet: 'in' },
     z: 11,
   },
   link2: {
-    source: '2',
-    sourceMagnet: '1',
-    target: '3',
-    targetMagnet: 'in',
+    source: { id: '2', magnet: '1' },
+    target: { id: '3', magnet: 'in' },
     z: 11,
   },
   link3: {
-    source: '3',
-    sourceMagnet: '2',
-    target: '1',
-    targetMagnet: 'in',
+    source: { id: '3', magnet: '2' },
+    target: { id: '1', magnet: 'in' },
     z: 11,
   },
 };
@@ -341,8 +335,8 @@ function Main() {
     setLinks((previous) => {
       const next: Record<string, Link> = {};
       for (const [linkId, link] of Object.entries(previous)) {
-        const isSource = link.source === id && link.sourceMagnet === portId;
-        const isTarget = link.target === id && link.targetMagnet === portId;
+        const isSource = link.source?.id === id && link.source?.magnet === portId;
+        const isTarget = link.target?.id === id && link.target?.magnet === portId;
         if (!isSource && !isTarget) {
           next[linkId] = link;
         }

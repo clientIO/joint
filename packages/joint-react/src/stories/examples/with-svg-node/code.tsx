@@ -14,8 +14,8 @@ import { useCallback, useRef } from 'react';
 
 const initialEdges: Record<string, Link> = {
   'e1-2': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
   },
 };
 

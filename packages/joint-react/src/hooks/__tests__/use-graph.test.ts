@@ -52,7 +52,7 @@ describe('useGraph element mutations', () => {
         '2': { position: { x: 200, y: 200 }, size: { width: 97, height: 99 } },
       },
       links: {
-        '3': { source: '1', target: '2' },
+        '3': { source: { id: '1' }, target: { id: '2' } },
       },
     });
   });
@@ -235,7 +235,7 @@ describe('useGraph link mutations', () => {
         '2': { position: { x: 200, y: 200 }, size: { width: 97, height: 99 } },
       },
       links: {
-        '3': { source: '1', target: '2' },
+        '3': { source: { id: '1' }, target: { id: '2' } },
       },
     });
   });
@@ -250,7 +250,7 @@ describe('useGraph link mutations', () => {
       expect(result.current.graph.getLinks().length).toBe(1);
     });
 
-    act(() => result.current.setLink('3', { source: '1', target: '2', color: '#001DFF' }));
+    act(() => result.current.setLink('3', { source: { id: '1' }, target: { id: '2' }, color: '#001DFF' }));
 
     await waitFor(() => {
       const link = result.current.graph.getCell('3');
@@ -264,7 +264,7 @@ describe('useGraph link mutations', () => {
       expect(link?.get('attrs')?.line?.style?.stroke ?? '').toBe('#FF0000');
     });
 
-    act(() => result.current.setLink('30', { source: '2', target: '1', color: '#00FF00' }));
+    act(() => result.current.setLink('30', { source: { id: '2' }, target: { id: '1' }, color: '#00FF00' }));
 
     await waitFor(() => {
       expect(result.current.graph.getLinks().length).toBe(2);
@@ -296,11 +296,11 @@ describe('useGraph link mutations', () => {
       expect(result.current.links.get('3')).toBeDefined();
     });
 
-    act(() => result.current.setLink('new-link', { source: '2', target: '1' }));
+    act(() => result.current.setLink('new-link', { source: { id: '2' }, target: { id: '1' } }));
 
     await waitFor(() => {
       expect(result.current.links.size).toBe(2);
-      expect(result.current.links.get('new-link')!.source).toBe('2');
+      expect(result.current.links.get('new-link')!.source).toEqual({ id: '2' });
       expect(result.current.graph.getLinks().length).toBe(2);
     });
   });
@@ -316,7 +316,7 @@ describe('useGraph link mutations', () => {
     });
 
     act(() => {
-      result.current.setLink('pending-link', { source: '2', target: '1', color: '#FF9505' });
+      result.current.setLink('pending-link', { source: { id: '2' }, target: { id: '1' }, color: '#FF9505' });
       result.current.removeLink('pending-link');
     });
 
@@ -338,15 +338,15 @@ describe('useGraph link mutations', () => {
 
     act(() => result.current.setLink('new-link-updater', (previous) => ({
       ...previous,
-      source: '1',
-      target: '2',
+      source: { id: '1' },
+      target: { id: '2' },
       color: '#123456',
     })));
 
     await waitFor(() => {
       expect(result.current.links.get('new-link-updater')).toBeDefined();
-      expect(result.current.links.get('new-link-updater')!.source).toBe('1');
-      expect(result.current.links.get('new-link-updater')!.target).toBe('2');
+      expect(result.current.links.get('new-link-updater')!.source).toEqual({ id: '1' });
+      expect(result.current.links.get('new-link-updater')!.target).toEqual({ id: '2' });
     });
   });
 
@@ -362,7 +362,7 @@ describe('useGraph link mutations', () => {
 
     act(() => {
       result.current.graph.startBatch('test');
-      result.current.setLink('batched-link', { source: '2', target: '1', color: '#FF9505' });
+      result.current.setLink('batched-link', { source: { id: '2' }, target: { id: '1' }, color: '#FF9505' });
     });
 
     expect(result.current.graph.getCell('batched-link')).toBeDefined();

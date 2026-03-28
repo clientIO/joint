@@ -97,13 +97,13 @@ const wireAppearance = {
 
 const initialLinks: Record<string, Link> = {
   wire1: {
-    source: 'generator',
-    target: 'bulb1',
+    source: { id: 'generator' },
+    target: { id: 'bulb1' },
     ...wireAppearance,
   },
   wire2: {
-    source: 'generator',
-    target: 'bulb2',
+    source: { id: 'generator' },
+    target: { id: 'bulb2' },
     ...wireAppearance,
   },
 };

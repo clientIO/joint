@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import { useState, useCallback, useRef } from 'react';
@@ -61,20 +61,16 @@ const initialElements: Record<string, Element<NodeUserData>> = {
 };
 
 const initialLinks: Record<string, Link> = {
-  'a→b': { source: 'a', sourcePort: 'out', target: 'b', targetPort: 'in' },
-  'a→c': { source: 'a', sourcePort: 'out', target: 'c', targetPort: 'in' },
+  'a→b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
+  'a→c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b→d': {
-    source: 'b',
-    sourcePort: 'out',
-    target: 'd',
-    targetPort: 'in',
+    source: { id: 'b', port: 'out' },
+    target: { id: 'd', port: 'in' },
     labels: { info: { text: 'approved' } },
   },
   'c→d': {
-    source: 'c',
-    sourcePort: 'out',
-    target: 'd',
-    targetPort: 'in',
+    source: { id: 'c', port: 'out' },
+    target: { id: 'd', port: 'in' },
     color: '#e11d48',
   },
 };
@@ -135,13 +131,13 @@ function Diagram() {
       width: 15,
       height: 15,
       className: `
-                    cursor-crosshair hover:fill-blue-500
-                    forest:hover:fill-lime-300
-                    ocean:hover:fill-cyan-200
-                    sunset:hover:fill-orange-400
-                `,
+                  cursor-crosshair hover:fill-blue-500
+                  forest:hover:fill-lime-300
+                  ocean:hover:fill-cyan-200
+                  sunset:hover:fill-orange-400
+              `,
     },
-  });
+});
 
   const linkDefaults = useLinkDefaults({
     targetMarker: 'arrow',
