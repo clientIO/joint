@@ -10,7 +10,7 @@ import { getLinkLayout } from '../store/update-layout-state';
 import type { dia } from '@joint/core';
 
 /** Link data resolved for the current paper — `layout` is the single paper's `LinkLayout`. */
-export type ResolvedLink<D extends object | undefined = undefined> = Omit<Link<D>, 'layout'> & {
+export type ResolvedLink<D extends object | undefined = undefined> = Link<D> & {
   layout: LinkLayout;
 };
 

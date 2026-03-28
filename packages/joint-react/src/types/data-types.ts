@@ -294,10 +294,11 @@ export interface FlatLinkLabel {
 }
 
 /**
- * Base fields shared by all link data variants.
+ * Portal link base fields — React-rendered links with flat presentation data.
+ * Does not include `type`; portal links use the internal `PORTAL_LINK_TYPE` automatically.
  * @group Graph
  */
-interface LinkBase extends FlatLinkPresentationData {
+export interface PortalLinkRecord extends FlatLinkPresentationData {
   /**
    * Source endpoint in JointJS format.
    * @example { id: 'el-1' }
@@ -340,20 +341,34 @@ interface LinkBase extends FlatLinkPresentationData {
   labels?: Record<string, FlatLinkLabel>;
 
   data?: Record<string, unknown>;
-  /** Jointjs type */
-  type?: string;
+
+  /** @internal */
+  /** Portal links must not specify a `type`. */
+  type?: never | 'PortalLink';
 }
 
 /**
- * Link data type with conditional `data` field.
+ * Native JointJS link — pass-through with statically known properties from
+ * `dia.Link.GenericAttributes`.
+ * Requires an explicit `type` string (e.g. `'standard.Link'`).
+ * @group Graph
+ */
+export type NativeLinkRecord = dia.Link.Attributes & { type: string };
+
+/**
+ * Link data type — union of portal and native JointJS links.
  *
+ * - **Portal link** (no `type`): React-rendered with flat presentation fields.
+ * - **Native link** (`type` present): Raw JointJS `dia.Link.Attributes` pass-through.
+ *
+ * Generic parameter:
  * - `Link` (no generic): `data` is optional.
- * - `Link<MyData>`: `data` is required (`MyData`).
+ * - `Link<MyData>`: `data` is required (`MyData`) on both variants.
  * @group Graph
  */
 export type Link<D extends object | undefined = undefined> = undefined extends D
-  ? LinkBase
-  : LinkBase & { data: D };
+  ? NativeLinkRecord | PortalLinkRecord
+  : (NativeLinkRecord | PortalLinkRecord) & { data: D };
 
 // ── Container Types (internal) ───────────────────────────────────────────────
 

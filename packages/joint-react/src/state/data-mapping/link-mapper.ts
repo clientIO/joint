@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { Link } from '../../types/data-types';
+import type { Link, PortalLinkRecord } from '../../types/data-types';
 import { defaultLinkStyle, LINK_PRESENTATION_KEYS } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
@@ -123,7 +123,7 @@ export function attributesToLink<LinkData extends object | undefined = undefined
   };
 
   // Presentation fields come from attributes.presentation
-  if (presentation.labels && Array.isArray(attributeLabels)) {
+  if (presentation?.labels && Array.isArray(attributeLabels)) {
     linkRecord.labels = mergeLabelsFromAttributes(presentation.labels, attributeLabels);
   }
 
