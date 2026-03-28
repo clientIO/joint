@@ -17,10 +17,11 @@ function isElementData(data: unknown): data is Element {
 }
 
 /**
- *
+ * Forward mapper: converts an Element record to JointJS cell attributes.
  * @param options
  * @param options.id
  * @param options.element
+ * @returns Cell attributes for the given element, with user data wrapped in `data` field for PortalElement.
  */
 export function elementToAttributes<ElementData extends object | undefined = undefined>(options: {
   id: string;
@@ -55,10 +56,10 @@ export function elementToAttributes<ElementData extends object | undefined = und
   if (portStyle) presentation.portStyle = portStyle;
 
   const attributes: CellAttributes = {
+    ...cellAttributes,
     type,
     data,
     presentation,
-    ...cellAttributes,
   };
 
   if (ports) {
@@ -70,7 +71,7 @@ export function elementToAttributes<ElementData extends object | undefined = und
 }
 
 /**
- * Converts JointJS element attributes back to Element shape.
+ * Converts JointJS element attributes back to Element record.
  * Public utility — purely mechanical, no defaultAttributes filtering.
  * @param attributes - The JointJS element attributes.
  * @returns The element item with user data in `data` field.
@@ -90,6 +91,8 @@ export function attributesToElement<ElementData extends object | undefined = und
   const {
     data,
     presentation,
+    // Supported JointJS element attributes that we want to include
+    // in the portal element record
     position,
     size,
     angle,
@@ -98,7 +101,7 @@ export function attributesToElement<ElementData extends object | undefined = und
     parent,
   } = attributes;
 
-  const element: Element<ElementData> = {
+  const elementRecord: Element<ElementData> = {
     ...presentation,
     data,
     position,
@@ -109,8 +112,13 @@ export function attributesToElement<ElementData extends object | undefined = und
     parent
   };
 
-  // filter out undefined values to avoid confusion between missing vs explicitly undefined
-  return { ...element };
+  // @todo what about attributes such a `stackIndex` or `direction` used in
+  // automatic layouts. If we put them inside the `data` field, they trigger
+  // unnecessary re-renders when they change. But if we put them at the top level,
+  // they get lost when converting back and forth between attributes and element.
+
+  // Filter out undefined values.
+  return { ...elementRecord };
 }
 
 export type MapAttributesToElement<ElementData extends object | undefined = undefined> =

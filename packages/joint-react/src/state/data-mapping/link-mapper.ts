@@ -18,6 +18,13 @@ function isLinkData(data: unknown): data is Link {
   return isRecord(data);
 }
 
+/**
+ * Forward mapper: converts a Link record to JointJS cell attributes.
+ * @param options
+ * @param options.id
+ * @param options.link
+ * @returns Cell attributes for the given link, with user data wrapped in `data` field for PortalLink.
+ */
 export function linkToAttributes<LinkData extends object | undefined = undefined>(options: {
   id?: string;
   link: Link<LinkData>;
@@ -36,78 +43,34 @@ export function linkToAttributes<LinkData extends object | undefined = undefined
 
   // PortalLink mapping
   const {
-    source,
-    target,
-    data,
-    z,
-    layer,
-    parent,
-    vertices,
-    router,
-    connector,
+    data = {},
+    // Presentation fields (color, width, etc.)
     labels,
     labelStyle,
-    color = defaultLinkStyle.color,
-    width = defaultLinkStyle.width,
-    sourceMarker = defaultLinkStyle.sourceMarker,
-    targetMarker = defaultLinkStyle.targetMarker,
-    className = defaultLinkStyle.className,
-    dasharray = defaultLinkStyle.dasharray,
-    linecap = defaultLinkStyle.linecap,
-    linejoin = defaultLinkStyle.linejoin,
-    wrapperWidth = defaultLinkStyle.wrapperWidth,
-    wrapperColor = defaultLinkStyle.wrapperColor,
-    wrapperClassName = defaultLinkStyle.wrapperClassName,
-    attrs,
-    type: _type,
-    ...rest
+    ...linkAttributes
   } = link;
 
-  const attributes: CellAttributes = {
-    id,
-    type,
-    source,
-    target,
-    attrs: buildLinkPresentationAttributes({
-      color,
-      width,
-      sourceMarker,
-      targetMarker,
-      className,
-      dasharray,
-      linecap,
-      linejoin,
-      wrapperWidth,
-      wrapperColor,
-      wrapperClassName,
-    }),
-  };
-
-  if (attrs !== undefined) attributes.attrs = { ...attributes.attrs, ...attrs };
-  if (z !== undefined) attributes.z = z;
-  if (layer !== undefined) attributes.layer = layer;
-  if (parent !== undefined) attributes.parent = parent;
-  if (vertices !== undefined) attributes.vertices = vertices;
-  if (router !== undefined) attributes.router = router;
-  if (connector !== undefined) attributes.connector = connector;
-
-  if (labels !== undefined) {
-    attributes.labels = Object.entries(labels).map(([labelId, label]) =>
-      convertLabel(labelId, label, labelStyle)
-    );
-  }
-
-  // Collect explicit presentation keys for round-trip
+  // Build presentation object from individual fields.
   const presentation: Record<string, unknown> = {};
+  if (labelStyle) presentation.labelStyle = labelStyle;
+  if (labels) presentation.labels = labels;
   for (const key of LINK_PRESENTATION_KEYS) {
     if (link[key] !== undefined) presentation[key] = link[key];
   }
-  if (labels !== undefined) presentation.labels = labels;
-  if (labelStyle !== undefined) presentation.labelStyle = labelStyle;
-  attributes.presentation = presentation;
 
-  // User data goes directly into attributes.data (no nesting)
-  attributes.data = { ...rest, ...data };
+  const attributes: CellAttributes = {
+    ...linkAttributes,
+    id,
+    type,
+    data,
+    presentation,
+    attrs: buildLinkPresentationAttributes(presentation, defaultLinkStyle),
+    labels: labels
+      ? Object.entries(labels).map(
+          ([labelId, label]) => convertLabel(labelId, label, labelStyle)
+        )
+      : []
+  };
 
   return attributes;
 }
@@ -116,6 +79,7 @@ export function linkToAttributes<LinkData extends object | undefined = undefined
  * Converts JointJS link attributes back to flat link data.
  * Public utility — purely mechanical (nested → flat), no defaultAttributes filtering.
  * @param attributes
+ * @returns Link data record with presentation fields (color, width, etc.) spread to top level and user data wrapped in `data` field for PortalLink.
  */
 export function attributesToLink<LinkData extends object | undefined = undefined>(
   attributes: dia.Link.Attributes
@@ -131,8 +95,9 @@ export function attributesToLink<LinkData extends object | undefined = undefined
 
   // PortalLink mapping
   const {
-    data: cellData,
+    data,
     presentation,
+    // Supported JointJS link attributes that we want to include
     source,
     target,
     z,
@@ -141,47 +106,30 @@ export function attributesToLink<LinkData extends object | undefined = undefined
     vertices,
     router,
     connector,
+    // The JointJS labels are used only to get the updated label positions.
     labels: attributeLabels,
   } = attributes;
 
-  const result: Record<string, unknown> = {
+  const linkRecord: Link<LinkData> = {
+    ...presentation,
+    data,
     source,
     target,
+    z,
+    layer,
+    parent,
+    vertices,
+    router,
+    connector,
   };
 
-  // Note: `attrs` is intentionally omitted — for PortalLinks, attrs are computed
-  // from presentation fields (color, width, etc.) and must not be round-tripped,
-  // otherwise stale computed attrs would override freshly-computed values.
-  if (z !== undefined) result.z = z;
-  if (layer !== undefined) result.layer = layer;
-  if (parent) result.parent = parent;
-  if (Array.isArray(vertices) && vertices.length > 0) {
-    result.vertices = vertices;
-  }
-  if (router !== undefined) result.router = router;
-  if (connector !== undefined) result.connector = connector;
-
   // Presentation fields come from attributes.presentation
-  const presentationData = presentation || {};
-  const dataLabels = presentationData.labels;
-  if (dataLabels && Array.isArray(attributeLabels)) {
-    result.labels = mergeLabelsFromAttributes(dataLabels, attributeLabels);
+  if (presentation.labels && Array.isArray(attributeLabels)) {
+    linkRecord.labels = mergeLabelsFromAttributes(presentation.labels, attributeLabels);
   }
 
-  // Spread presentation keys (color, width, etc.) back to top level
-  for (const key of LINK_PRESENTATION_KEYS) {
-    if (presentationData[key] !== undefined) result[key] = presentationData[key];
-  }
-  if (presentationData.labelStyle !== undefined) result.labelStyle = presentationData.labelStyle;
-
-  // Extract user data — remove internal 'layouts' field
-  const { layouts, ...userData } = cellData || {};
-
-  return {
-    ...result,
-    data: userData as LinkData,
-    layout: layouts as Record<string, LinkLayout> | undefined,
-  } as Link<LinkData>;
+  // Filter out undefined values.
+  return { ...linkRecord };
 }
 
 export type MapAttributesToLink<LinkData extends object | undefined = undefined> =

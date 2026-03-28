@@ -13,25 +13,27 @@ import { resolveMarker } from '../../theme/markers';
  *
  * `color` and `width` are set via inline `style` so they win over CSS theme
  * rules. Empty strings are no-ops, letting CSS variables from theme.css take over.
- * @param options - Theme-driven styling options for line and wrapper
+ * @param styleProperties - Theme-driven styling options for line and wrapper
+ * @param defaultStyle
  * @returns Record with `line` and `wrapper` attribute objects
  */
 export function buildLinkPresentationAttributes(
-  options: Required<FlatLinkPresentationData>
+  styleProperties: FlatLinkPresentationData,
+  defaultStyle: Required<FlatLinkPresentationData>
 ): Record<string, Nullable<attributes.SVGAttributes>> {
   const {
-    color,
-    width,
-    sourceMarker,
-    targetMarker,
-    className,
-    dasharray,
-    linecap,
-    linejoin,
-    wrapperWidth,
-    wrapperColor,
-    wrapperClassName,
-  } = options;
+    color = defaultStyle.color,
+    width = defaultStyle.width,
+    sourceMarker = defaultStyle.sourceMarker,
+    targetMarker = defaultStyle.targetMarker,
+    className = defaultStyle.className,
+    dasharray = defaultStyle.dasharray,
+    linecap = defaultStyle.linecap,
+    linejoin = defaultStyle.linejoin,
+    wrapperWidth = defaultStyle.wrapperWidth,
+    wrapperColor = defaultStyle.wrapperColor,
+    wrapperClassName = defaultStyle.wrapperClassName,
+  } = styleProperties;
 
   // Use inline `style` so that explicit values win over CSS theme rules
   // (inline style > CSS specificity). Empty strings are no-ops on the DOM,

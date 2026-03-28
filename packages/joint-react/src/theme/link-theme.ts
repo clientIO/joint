@@ -1,11 +1,13 @@
 import type { FlatLinkPresentationData } from '../types/data-types';
 
+export type LinkRecordStyle = Required<FlatLinkPresentationData>;
+
 /**
  * Internal fallback values for link line properties not set by data or defaults.
  * `color` and `width` default to `''`. Empty strings are no-ops on the DOM
  * inline style, letting CSS variables from theme.css take over.
  */
-export const defaultLinkStyle: Readonly<Required<FlatLinkPresentationData>> = {
+export const defaultLinkStyle: Readonly<LinkRecordStyle>= {
   color: '',
   width: '',
   sourceMarker: 'none',
