@@ -186,7 +186,7 @@ export function useCreatePortalPaper(
         return link.clone();
       }
       const attributes = gv.mapLinkToAttributes({
-        link: { data: {}, ...link },
+        link: { data: {}, ...link } as Link,
       });
       return new PortalLinkModel(attributes);
     },

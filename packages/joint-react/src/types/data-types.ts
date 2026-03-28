@@ -3,6 +3,7 @@ import type { PortShape } from '../theme/element-theme';
 import type { LinkMarker } from '../theme/markers';
 import type { LiteralUnion } from './index';
 import type { ElementPosition, ElementSize } from './cell-data';
+import type { PORTAL_ELEMENT_TYPE, PORTAL_LINK_TYPE } from '../internal';
 
 // ── Element Types ─────────────────────────────────────────────────────────────
 
@@ -11,7 +12,7 @@ import type { ElementPosition, ElementSize } from './cell-data';
  * Converted to full JointJS port format by the default element mapper.
  * @group Graph
  */
-export interface FlatElementPort {
+export interface PortalElementPort {
   /**
    * X position of the port (absolute positioning).
    * Supports calc() expressions (e.g., 'calc(w)').
@@ -98,11 +99,11 @@ export interface FlatElementPort {
 }
 
 /**
- * Base fields shared by all element data variants.
- * Layout fields use JointJS core types (`dia.Point`, `dia.Size`).
+ * Portal element fields — React-rendered elements with flat port configuration.
+ * Does not include `type`; portal elements use the internal `PORTAL_ELEMENT_TYPE` automatically.
  * @group Graph
  */
-interface ElementBase {
+export interface PortalElementRecord {
   /** Position of the element. */
   position?: ElementPosition;
   /** Size of the element. */
@@ -116,27 +117,37 @@ interface ElementBase {
   /** Layer id for the cell. */
   layer?: string;
   /** Style defaults applied to all ports. Individual port properties take precedence. */
-  portStyle?: Partial<FlatElementPort>;
+  portStyle?: Partial<PortalElementPort>;
   /** Ports of the element. */
-  ports?: Record<string, FlatElementPort>;
+  ports?: Record<string, PortalElementPort>;
   data?: Record<string, unknown>;
 
-  /** Jointjs type */
-  type?: string;
-  /** Attributes for built-in shapes */
-  attrs?: Record<string, Record<string, unknown>>;
+  /** @internal */
+  /** Portal elements must not specify a `type`. */
+  type?: never | typeof PORTAL_ELEMENT_TYPE;
 }
 
 /**
- * Element data type with conditional `data` field.
+ * Native JointJS element — pass-through to `dia.Element.Attributes`.
+ * Requires an explicit `type` string (e.g. `'standard.Rectangle'`).
+ * @group Graph
+ */
+export type NativeElementRecord = dia.Element.Attributes & { type: Exclude<string, typeof PORTAL_ELEMENT_TYPE> };
+
+/**
+ * Element data type — union of portal and native JointJS elements.
  *
+ * - **Portal element** (no `type`): React-rendered with flat port configuration.
+ * - **Native element** (`type` present): Raw JointJS `dia.Element.Attributes` pass-through.
+ *
+ * Generic parameter:
  * - `Element` (no generic): `data` is optional.
- * - `Element<MyData>`: `data` is required (`MyData`).
+ * - `Element<MyData>`: `data` is required (`MyData`) on both variants.
  * @group Graph
  */
 export type Element<D extends object | undefined = undefined> = undefined extends D
-  ? ElementBase
-  : ElementBase & { data: D };
+  ? NativeElementRecord | PortalElementRecord
+  : (NativeElementRecord | PortalElementRecord) & { data: D };
 
 // ── Link Types ────────────────────────────────────────────────────────────────
 
@@ -147,7 +158,7 @@ export type Element<D extends object | undefined = undefined> = undefined extend
  * `Required<FlatLinkPresentationData>` to provide fallback values.
  * @group Graph
  */
-export interface FlatLinkPresentationData {
+export interface PortalLinkPresentation {
   /**
    * Stroke color of the link line.
    * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
@@ -221,7 +232,7 @@ export interface FlatLinkPresentationData {
  * Simplified label definition for graph links.
  * @group Graph
  */
-export interface FlatLinkLabel {
+export interface PortalLinkLabel {
   /**
    * Label text content.
    */
@@ -298,7 +309,7 @@ export interface FlatLinkLabel {
  * Does not include `type`; portal links use the internal `PORTAL_LINK_TYPE` automatically.
  * @group Graph
  */
-export interface PortalLinkRecord extends FlatLinkPresentationData {
+export interface PortalLinkRecord extends PortalLinkPresentation {
   /**
    * Source endpoint in JointJS format.
    * @example { id: 'el-1' }
@@ -334,17 +345,17 @@ export interface PortalLinkRecord extends FlatLinkPresentationData {
   /**
    * Style defaults applied to all labels. Individual label properties take precedence.
    */
-  labelStyle?: Partial<FlatLinkLabel>;
+  labelStyle?: Partial<PortalLinkLabel>;
   /**
    * Link labels.
    */
-  labels?: Record<string, FlatLinkLabel>;
+  labels?: Record<string, PortalLinkLabel>;
 
   data?: Record<string, unknown>;
 
   /** @internal */
   /** Portal links must not specify a `type`. */
-  type?: never | 'PortalLink';
+  type?: never | typeof PORTAL_LINK_TYPE;
 }
 
 /**
@@ -353,7 +364,7 @@ export interface PortalLinkRecord extends FlatLinkPresentationData {
  * Requires an explicit `type` string (e.g. `'standard.Link'`).
  * @group Graph
  */
-export type NativeLinkRecord = dia.Link.Attributes & { type: string };
+export type NativeLinkRecord = dia.Link.Attributes & { type: Exclude<string, typeof PORTAL_LINK_TYPE> };
 
 /**
  * Link data type — union of portal and native JointJS links.

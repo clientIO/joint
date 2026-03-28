@@ -1,5 +1,5 @@
 import { type dia, util } from '@joint/core';
-import type { FlatLinkLabel } from '../../types/data-types';
+import type { PortalLinkLabel } from '../../types/data-types';
 import { defaultLabelStyle } from '../../theme/link-theme';
 
 /**
@@ -12,8 +12,8 @@ import { defaultLabelStyle } from '../../theme/link-theme';
  */
 export function convertLabel(
   id: string,
-  rawLabel: FlatLinkLabel,
-  labelStyle?: Partial<FlatLinkLabel>
+  rawLabel: PortalLinkLabel,
+  labelStyle?: Partial<PortalLinkLabel>
 ): dia.Link.Label & { id: string } {
   const label = labelStyle ? { ...labelStyle, ...rawLabel } : rawLabel;
   const {

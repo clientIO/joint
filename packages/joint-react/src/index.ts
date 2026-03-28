@@ -50,10 +50,10 @@ export * from './state/data-mapping/link-mapper';
 export type { ElementPosition, ElementSize } from './types/cell-data';
 export type {
   Element as Element,
-  FlatElementPort,
+  PortalElementPort as FlatElementPort,
   Link as Link,
-  FlatLinkLabel,
-  FlatLinkPresentationData,
+  PortalLinkLabel as FlatLinkLabel,
+  PortalLinkPresentation as FlatLinkPresentationData,
 } from './types/data-types';
 export type { PortShape as PortShape } from './theme/element-theme';
 export type { CellId } from './types/cell-id';
