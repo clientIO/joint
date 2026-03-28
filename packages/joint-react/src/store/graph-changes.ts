@@ -34,6 +34,7 @@ interface JointJSEventOptions {
   readonly isUpdateFromReact?: boolean;
   readonly [key: string]: unknown;
 }
+
 /**
  * Sets up listeners for JointJS graph mutations and translates them into incremental change events.
  * Batching is always on: layout changes are immediate, data changes fire on batch:stop.
