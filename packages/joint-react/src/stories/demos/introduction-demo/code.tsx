@@ -6,7 +6,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { PAPER_CLASSNAME, LIGHT, SECONDARY, BG } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
 import './index.css';
 import {
   GraphProvider,
@@ -16,9 +16,9 @@ import {
   useMeasureNode,
   useNodesMeasuredEffect,
   type CellId,
-  type FlatElementData,
+  type Element,
   type FlatElementPort,
-  type FlatLinkData,
+  type Link,
   type PaperProps,
   usePaperEvents,
   useElementSize,
@@ -43,7 +43,6 @@ type TableElementData = {
 };
 
 type ElementData = MessageElementData | TableElementData;
-type Element = FlatElementData<ElementData>;
 
 const MESSAGE_NODE_CLASSNAME =
   'flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm';
@@ -96,8 +95,7 @@ const elements: Record<string, Element> = {
       description: 'This is longer text, it can be any message provided by the user',
       inputText: 'Node Text',
     },
-    x: 50,
-    y: 110,
+    position: { x: 50, y: 110 },
   },
   '2': {
     data: {
@@ -106,8 +104,7 @@ const elements: Record<string, Element> = {
       description: 'This is longer text, it can be any message provided by the user',
       inputText: '',
     },
-    x: 550,
-    y: 110,
+    position: { x: 550, y: 110 },
   },
   '3': {
     data: {
@@ -119,10 +116,8 @@ const elements: Record<string, Element> = {
         ['Row 7', 'Row 8', 'Row 9'],
       ],
     },
-    x: 50,
-    y: 370,
-    width: 400,
-    height: 200,
+    position: { x: 50, y: 370 },
+    size: { width: 400, height: 200 },
     ports: buildTablePorts([
       ['Row 1', 'Row 2', 'Row 3'],
       ['Row 4', 'Row 5', 'Row 6'],
@@ -132,7 +127,7 @@ const elements: Record<string, Element> = {
 };
 
 // Create initial links from table element port to another element as Record
-const links: Record<string, FlatLinkData> = {
+const links: Record<string, Link> = {
   link2: {
     source: '3', // Port from table element
     sourcePort: 'out-3-0',
@@ -171,7 +166,7 @@ function MessageComponent({
     }
   }
   const id = useElementId();
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<ElementData>();
   const elementRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useMeasureNode(elementRef);
   return (
@@ -195,7 +190,7 @@ function MessageComponent({
             onChange={({ target: { value } }) => {
               setElement(id, (previous) => ({
                 ...previous,
-                data: { ...previous.data, inputText: value },
+                data: { ...(previous.data as MessageElementData), inputText: value },
               }));
             }}
           />

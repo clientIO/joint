@@ -1,32 +1,15 @@
-import type { ElementLayout, ElementSize } from '../types/cell-data';
-import { useElementId } from './use-element-id';
-import { useGraphStore } from './use-graph-store';
-import { useContainerItem } from './use-container-item';
+import type { ElementSize } from '../types/cell-data';
+import { useElement } from './use-element';
 
-const DEFAULT_SIZE: ElementSize = {
-  width: 0,
-  height: 0,
-};
-
-const selectSize = (layout: ElementLayout): ElementSize => ({
-  width: layout.width,
-  height: layout.height,
-});
-
-const isSizeEqual = (a: ElementSize, b: ElementSize): boolean =>
-  a.width === b.width && a.height === b.height;
-
+const EMPTY_SIZE: ElementSize = { width: 0, height: 0 };
 /**
- * Returns the size of the current element from the layout container.
+ * Returns the size of the current element.
  * Must be used inside `renderElement` or a component rendered within it.
- * Only re-renders when the element's size actually changes.
+ * Only re-renders when the element's size reference changes.
  * @returns The size `{ width, height }` of the current element.
  * @group Hooks
  */
-export function useElementSize(): ElementSize {
-  const id = useElementId();
-  const {
-    graphView: { elementsLayout },
-  } = useGraphStore();
-  return useContainerItem(elementsLayout, id, selectSize, isSizeEqual) ?? DEFAULT_SIZE;
+export function useElementSize(): Required<ElementSize> {
+  const { width = 0, height = 0 } = useElement((element) => element.size) ?? EMPTY_SIZE;
+  return { width, height };
 }

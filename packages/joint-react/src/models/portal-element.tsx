@@ -7,7 +7,6 @@ export const PORTAL_ELEMENT_TYPE = 'PortalElement';
  */
 export const PORTAL_SELECTOR = '__portal__';
 
-
 /**
  * A custom JointJS element that can render React components.
  * @group Models
@@ -44,6 +43,7 @@ export class PortalElement<Attributes = dia.Element.Attributes> extends dia.Elem
     return {
       ...super.defaults,
       type: PORTAL_ELEMENT_TYPE,
+      size: { width: 0, height: 0 },
     } as unknown as dia.Element.Attributes & Attributes;
   }
 }

@@ -6,10 +6,10 @@ import {
   GraphProvider,
   Paper,
   useElementSize,
-  useFlatElementData,
-  useFlatLinkData,
-  type FlatElementData,
-  type FlatLinkData,
+  useElementDefaults,
+  useLinkDefaults,
+  type Element,
+  type Link,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -23,23 +23,19 @@ interface NodeUserData {
   label: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeUserData>> = {
+const initialElements: Record<string, Element<NodeUserData>> = {
   a: {
     data: { label: 'Source' },
-    x: 50,
-    y: 70,
-    width: 120,
-    height: 50,
+    position: { x: 50, y: 70 },
+    size: { width: 120, height: 50 },
     ports: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
   },
   b: {
     data: { label: 'Process' },
-    x: 290,
-    y: 20,
-    width: 120,
-    height: 50,
+    position: { x: 290, y: 20 },
+    size: { width: 120, height: 50 },
     ports: {
       in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
@@ -47,10 +43,8 @@ const initialElements: Record<string, FlatElementData<NodeUserData>> = {
   },
   c: {
     data: { label: 'Review' },
-    x: 290,
-    y: 120,
-    width: 120,
-    height: 50,
+    position: { x: 290, y: 120 },
+    size: { width: 120, height: 50 },
     ports: {
       in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
@@ -58,17 +52,15 @@ const initialElements: Record<string, FlatElementData<NodeUserData>> = {
   },
   d: {
     data: { label: 'Output' },
-    x: 550,
-    y: 70,
-    width: 120,
-    height: 50,
+    position: { x: 550, y: 70 },
+    size: { width: 120, height: 50 },
     ports: {
       in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
     },
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'a→b': { source: 'a', sourcePort: 'out', target: 'b', targetPort: 'in' },
   'a→c': { source: 'a', sourcePort: 'out', target: 'c', targetPort: 'in' },
   'b→d': {
@@ -138,27 +130,23 @@ function Diagram() {
   const [theme, setTheme] = useState<Theme>('default');
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const elementDefaults = useFlatElementData<NodeUserData>({
-    defaults: {
-      portStyle: {
-        width: 15,
-        height: 15,
-        className: `
+  const elementDefaults = useElementDefaults<NodeUserData>({
+    portStyle: {
+      width: 15,
+      height: 15,
+      className: `
                     cursor-crosshair hover:fill-blue-500
                     forest:hover:fill-lime-300
                     ocean:hover:fill-cyan-200
                     sunset:hover:fill-orange-400
                 `,
-      },
     },
   });
 
-  const linkDefaults = useFlatLinkData({
-    defaults: {
-      targetMarker: 'arrow',
-      labelStyle: {
-        backgroundPadding: { x: 6, y: 4 },
-      },
+  const linkDefaults = useLinkDefaults({
+    targetMarker: 'arrow',
+    labelStyle: {
+      backgroundPadding: { x: 6, y: 4 },
     },
   });
 
@@ -198,7 +186,7 @@ function Diagram() {
           </label>
         ))}
       </fieldset>
-      <GraphProvider
+      <GraphProvider<NodeUserData, undefined>
         elements={elements}
         links={links}
         {...elementDefaults}
@@ -206,11 +194,7 @@ function Diagram() {
         onElementsChange={setElements}
         onLinksChange={setLinks}
       >
-        <Paper
-          className={PAPER_CLASSNAME}
-          height={240}
-          renderElement={renderElement}
-        />
+        <Paper className={PAPER_CLASSNAME} height={240} renderElement={renderElement} />
       </GraphProvider>
     </div>
   );

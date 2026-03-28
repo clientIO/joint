@@ -37,13 +37,7 @@
  * ============================================================================
  */
 
-import {
-  GraphProvider,
-  useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
-  Paper,
-} from '@joint/react';
+import { GraphProvider, useElementSize, type Element, type Link, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useState, type Dispatch, type SetStateAction } from 'react';
@@ -61,12 +55,12 @@ type ElementData = { label: string };
 /**
  * Full element type including layout and user data.
  */
-type CustomElement = FlatElementData<ElementData>;
+type CustomElement = Element<ElementData>;
 
 /**
  * Full link type.
  */
-type CustomLink = FlatLinkData;
+type CustomLink = Link;
 
 /**
  * Initial elements (nodes) for the graph.
@@ -76,8 +70,8 @@ type CustomLink = FlatLinkData;
  * - width, height: dimensions
  */
 const defaultElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
-  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
+  '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
 };
 
 /**
@@ -238,10 +232,8 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
             const newElement: CustomElement = {
               data: { label: 'New Node' },
               // Random position to spread elements across the canvas
-              x: Math.random() * 200,
-              y: Math.random() * 200,
-              width: 100,
-              height: 50,
+              position: { x: Math.random() * 200, y: Math.random() * 200 },
+              size: { width: 100, height: 50 },
             };
 
             // Step 3: Update React state using functional update

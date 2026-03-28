@@ -10,8 +10,8 @@ import {
   PortalLink,
   useMeasureNode,
   useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
 } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, BG } from 'storybook-config/theme';
@@ -24,48 +24,41 @@ interface LayeredElementData {
 }
 
 // Elements assigned to different layers
-const elements: Record<string, FlatElementData<LayeredElementData>> = {
+const elements: Record<string, Element<LayeredElementData>> = {
   // Background layer elements
   'bg-1': {
     data: { label: 'Background 1', color: '#374151', isBackground: true },
-    x: 20,
-    y: 20,
-    width: 200,
-    height: 150,
+    position: { x: 20, y: 20 },
+    size: { width: 200, height: 150 },
     layer: 'background',
   },
   'bg-2': {
     data: { label: 'Background 2', color: '#374151', isBackground: true },
-    x: 250,
-    y: 20,
-    width: 200,
-    height: 150,
+    position: { x: 250, y: 20 },
+    size: { width: 200, height: 150 },
     layer: 'background',
   },
   // Main layer elements
   'main-1': {
     data: { label: 'Main 1', color: PRIMARY },
-    x: 50,
-    y: 50,
+    position: { x: 50, y: 50 },
     layer: 'main',
   },
   'main-2': {
     data: { label: 'Main 2', color: PRIMARY },
-    x: 280,
-    y: 50,
+    position: { x: 280, y: 50 },
     layer: 'main',
   },
   // Foreground layer elements
   'fg-1': {
     data: { label: 'Foreground', color: SECONDARY },
-    x: 100,
-    y: 200,
+    position: { x: 100, y: 200 },
     layer: 'foreground',
   },
 };
 
 // Links assigned to layers
-const links: Record<string, FlatLinkData> = {
+const links: Record<string, Link> = {
   'link-1': {
     source: 'main-1',
     target: 'main-2',

@@ -7,8 +7,8 @@ import {
   useElements,
   useGraph,
   useMeasureNode,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
@@ -20,13 +20,25 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1', color: '#ffffff' }, x: 40, y: 70, width: 120, height: 80 },
-  '2': { data: { label: 'Node 2', color: '#ffffff' }, x: 170, y: 120, width: 120, height: 80 },
-  '3': { data: { label: 'Node 2', color: '#ffffff' }, x: 30, y: 180, width: 120, height: 80 },
+const initialElements: Record<string, Element<NodeData>> = {
+  '1': {
+    data: { label: 'Node 1', color: '#ffffff' },
+    position: { x: 40, y: 70 },
+    size: { width: 120, height: 80 },
+  },
+  '2': {
+    data: { label: 'Node 2', color: '#ffffff' },
+    position: { x: 170, y: 120 },
+    size: { width: 120, height: 80 },
+  },
+  '3': {
+    data: { label: 'Node 2', color: '#ffffff' },
+    position: { x: 30, y: 180 },
+    size: { width: 120, height: 80 },
+  },
 };
 
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-1': {
     source: '1',
     target: '2',
@@ -34,8 +46,8 @@ const initialEdges: Record<string, FlatLinkData> = {
   },
 };
 
-function FlatElementData({ id, label }: Readonly<{ id: string; label: string }>) {
-  const { setElement } = useGraph();
+function Element({ id, label }: Readonly<{ id: string; label: string }>) {
+  const { setElement } = useGraph<NodeData>();
   return (
     <input
       style={{ padding: 5, marginTop: 4 }}
@@ -43,7 +55,7 @@ function FlatElementData({ id, label }: Readonly<{ id: string; label: string }>)
       onChange={(event) =>
         setElement(id, (previous) => ({
           ...previous,
-          data: { ...(previous.data as NodeData), label: event.target.value },
+          data: { ...(previous.data as unknown as NodeData), label: event.target.value },
         }))
       }
       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -101,7 +113,7 @@ function Main() {
       />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {[...elements.entries()].map(([id, item]) => {
-          return <FlatElementData key={id} id={id} label={item.data?.label as string} />;
+          return <Element key={id} id={id} label={item.data?.label as string} />;
         })}
       </div>
     </div>

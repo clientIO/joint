@@ -37,13 +37,7 @@
  * ============================================================================
  */
 
-import {
-  GraphProvider,
-  useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
-  Paper,
-} from '@joint/react';
+import { GraphProvider, useElementSize, type Element, type Link, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback, useRef, useState } from 'react';
@@ -58,14 +52,14 @@ import Peer, { type DataConnection } from 'peerjs';
  */
 type ElementData = { label: string };
 
-type CustomElement = FlatElementData<ElementData>;
+type CustomElement = Element<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
-  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
+  '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
 };
 
-const defaultLinks: Record<string, FlatLinkData> = {
+const defaultLinks: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -97,7 +91,7 @@ function RenderItem({ label }: Readonly<ElementData>) {
 interface StateSyncMessage {
   type: 'state-update';
   elements: Record<string, CustomElement>;
-  links: Record<string, FlatLinkData>;
+  links: Record<string, Link>;
 }
 
 /**
@@ -120,14 +114,11 @@ function createPeerJSManager(callbacks: {
   onConnectedPeerIdChange: (id: string | null) => void;
   onRemoteStateUpdate: (
     elements: Record<string, CustomElement>,
-    links: Record<string, FlatLinkData>
+    links: Record<string, Link>
   ) => void;
 }): {
   connectToPeer: (remotePeerId: string) => void;
-  sendStateUpdate: (
-    elements: Record<string, CustomElement>,
-    links: Record<string, FlatLinkData>
-  ) => void;
+  sendStateUpdate: (elements: Record<string, CustomElement>, links: Record<string, Link>) => void;
   isReceivingUpdate: () => boolean;
 } {
   // PeerJS connection management
@@ -141,7 +132,7 @@ function createPeerJSManager(callbacks: {
   // Send state update to all connected peers
   const sendStateUpdate = (
     elements: Record<string, CustomElement>,
-    links: Record<string, FlatLinkData>
+    links: Record<string, Link>
   ) => {
     // Don't send if we're currently receiving an update (prevent loops)
     if (isReceiving) {
@@ -326,7 +317,7 @@ function Main() {
 
   // Graph state managed by React
   const [elements, setElements] = useState<Record<string, CustomElement>>(defaultElements);
-  const [links, setLinks] = useState<Record<string, FlatLinkData>>(defaultLinks);
+  const [links, setLinks] = useState<Record<string, Link>>(defaultLinks);
 
   // Refs to track latest state — avoids stale closures in callbacks
   // captured once by GraphStore at creation time.
@@ -366,7 +357,7 @@ function Main() {
   );
 
   const handleLinksChange = useCallback(
-    (action: React.SetStateAction<Record<string, FlatLinkData>>) => {
+    (action: React.SetStateAction<Record<string, Link>>) => {
       setLinks((previous) => {
         const next = typeof action === 'function' ? action(previous) : action;
         linksRef.current = next;
@@ -405,10 +396,8 @@ function Main() {
     const newId = Math.random().toString(36).slice(7);
     const newElement: CustomElement = {
       data: { label: 'New Node' },
-      x: Math.random() * 200,
-      y: Math.random() * 200,
-      width: 100,
-      height: 50,
+      position: { x: Math.random() * 200, y: Math.random() * 200 },
+      size: { width: 100, height: 50 },
     };
     setElements((previous) => {
       const next = { ...previous, [newId]: newElement };
@@ -431,7 +420,7 @@ function Main() {
 
       // Remove connected links
       setLinks((previousLinks) => {
-        const newLinks: Record<string, FlatLinkData> = {};
+        const newLinks: Record<string, Link> = {};
         for (const [id, link] of Object.entries(previousLinks)) {
           if (link.source !== removedElementId && link.target !== removedElementId) {
             newLinks[id] = link;

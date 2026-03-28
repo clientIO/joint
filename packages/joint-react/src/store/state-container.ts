@@ -2,14 +2,14 @@ import { isUpdater } from '../utils/is';
 import { simpleScheduler } from '../utils/scheduler';
 import { isStrictEqual } from '../utils/selector-utils';
 
-export type Update<T> = ((previous: T | undefined) => T) | T;
+export type Update<T> = ((previous: T | undefined) => T | undefined) | T;
 
 /**
  * Resolves an update value by applying it if it is a function, or returning it directly.
  * @param previous
  * @param updater
  */
-export function getValue<T>(previous: T, updater: Update<T>): T {
+export function getValue<T>(previous: T | undefined, updater: Update<T>): T | undefined {
   return isUpdater(updater) ? updater(previous) : updater;
 }
 

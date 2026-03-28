@@ -4,27 +4,32 @@ import {
   GraphProvider,
   Paper,
   useElements,
-  useMeasureNode,
-  type FlatElementData as LabelEditor,
-  type FlatLinkData,
+  type Element as LabelEditor,
+  type Link,
 } from '@joint/react';
 import '../index.css';
-import { useRef } from 'react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
 interface NodeData {
-  readonly [key: string]: unknown;
   readonly label: string;
   readonly color: string;
 }
 
 const initialElements: Record<string, LabelEditor<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 15, width: 100 },
-  '2': { data: { label: 'Node 2' }, x: 100, y: 200, width: 100 },
+  '1': {
+    data: { label: 'Node 1', color: '#4f46e5' },
+    position: { x: 100, y: 15 },
+    size: { width: 100, height: 40 },
+  },
+  '2': {
+    data: { label: 'Node 2', color: '#4f46e5' },
+    position: { x: 100, y: 200 },
+    size: { width: 100, height: 40 },
+  },
 };
 
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',

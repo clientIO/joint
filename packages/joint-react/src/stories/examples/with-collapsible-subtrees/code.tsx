@@ -1,8 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { FlatLinkData } from '@joint/react';
+import type { Link } from '@joint/react';
 import {
-  type FlatElementData,
+  type Element,
   GraphProvider,
   jsx,
   Paper,
@@ -58,75 +58,62 @@ type FTAElement =
   | ExternalEvent
   | ConditioningEvent;
 
-const initialElements: Record<string, FlatElementData<FTAElement>> = {
+const initialElements: Record<string, Element<FTAElement>> = {
   ot8h17: {
     data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' },
-    width: 120,
-    height: 150,
+    size: { width: 120, height: 150 },
   },
   d8jpey: {
     data: { type: 'IntermediateEvent', label: 'Fall from the Scaffolding', gate: 'AND' },
-    width: 120,
-    height: 150,
+    size: { width: 120, height: 150 },
   },
   is079n: {
     data: { type: 'IntermediateEvent', label: 'Safety Belt Not Working', gate: 'OR' },
-    width: 120,
-    height: 150,
+    size: { width: 120, height: 150 },
   },
   ht8wnb: {
     data: { type: 'IntermediateEvent', label: 'Fall By Accident', gate: 'OR' },
-    width: 120,
-    height: 150,
+    size: { width: 120, height: 150 },
   },
   '07vhpd': {
     data: { type: 'IntermediateEvent', label: 'Broken By Equipment', gate: 'OR' },
-    width: 120,
-    height: 150,
+    size: { width: 120, height: 150 },
   },
   d8ojep: {
     data: { type: 'IntermediateEvent', label: 'Did not Wear Safety Belt', gate: 'OR' },
-    width: 120,
-    height: 150,
+    size: { width: 120, height: 150 },
   },
   szf1q3: {
     data: { type: 'UndevelopedEvent', label: 'Slip and Fall' },
-    width: 140,
-    height: 80,
+    size: { width: 140, height: 80 },
   },
   kj5m9a: {
     data: { type: 'UndevelopedEvent', label: 'Lose Balance' },
-    width: 140,
-    height: 80,
+    size: { width: 140, height: 80 },
   },
   tcv79r: {
     data: { type: 'UndevelopedEvent', label: 'Upholder Broken' },
-    width: 140,
-    height: 80,
+    size: { width: 140, height: 80 },
   },
   ylp4gu: {
     data: { type: 'BasicEvent', label: 'Safety Belt Broken' },
-    width: 80,
-    height: 80,
+    size: { width: 80, height: 80 },
   },
   q2vwnc: {
     data: { type: 'BasicEvent', label: 'Forgot to Wear' },
-    width: 80,
-    height: 80,
+    size: { width: 80, height: 80 },
   },
   x8rboj: {
     data: { type: 'ExternalEvent', label: 'Take off When Walking' },
-    width: 80,
-    height: 100,
+    size: { width: 80, height: 100 },
   },
   mte5xr: {
     data: { type: 'ConditioningEvent', label: 'Height and Ground Condition' },
-    width: 140,
-    height: 80,
+    size: { width: 140, height: 80 },
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'link-0': {
     source: 'ot8h17',
     target: 'd8jpey',
@@ -290,7 +277,7 @@ function useGatePattern() {
 function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
   const { width, height } = useElementSize();
   const id = useElementId();
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<FTAElement>();
   const gatePatternUrl = useGatePattern();
   const { selectorRef } = useMarkup();
 
@@ -334,7 +321,7 @@ function IntermediateEventNode({ label, gate }: Readonly<IntermediateEvent>) {
 
     setElement(id, (previous) => ({
       ...previous,
-      data: { ...previous.data, gate: nextGate },
+      data: { ...(previous.data as IntermediateEvent), gate: nextGate },
     }));
   }, [id, gate, setElement]);
 

@@ -35,17 +35,17 @@ The `mapDataToElementAttributes` and `mapDataToLinkAttributes` props allow you t
     // For custom JointJS types, override the type
     if (jjType) {
       return {
-        ...flatElementDataToAttributes(data),
+        ...ElementToAttributes(data),
         type: jjType,
         attrs: { body: { fill: color } },
       };
     }
-    return flatElementDataToAttributes(data);
+    return ElementToAttributes(data);
   }}
   mapDataToLinkAttributes={({ data }) => {
     const { color, width, dashed } = data;
     return {
-      ...flatLinkDataToAttributes(data),
+      ...LinkToAttributes(data),
       attrs: {
         line: {
           stroke: color,

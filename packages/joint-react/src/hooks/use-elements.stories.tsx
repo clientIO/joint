@@ -1,10 +1,8 @@
-
 import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
-import type { FlatElementData } from '../types/data-types';
-import type { CellData } from '../types/cell-data';
+import type { Element } from '../types/data-types';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
@@ -89,10 +87,7 @@ export const Default = makeStory<Story>({
     hookArgs: [],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="All Elements" />
       </div>
     ),
@@ -110,13 +105,13 @@ function Component() {
 export const WithSelectedJustIds = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements: Map<string, CellData>) => [...elements.values()].map((element) => (element as Record<string, unknown>).id)],
+    hookArgs: [
+      (elements: Map<string, CellData>) =>
+        [...elements.values()].map((element) => (element as Record<string, unknown>).id),
+    ],
     render: (result) => (
       <span>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Element IDs" />
       </span>
     ),
@@ -134,13 +129,10 @@ function Component() {
 export const WithGetJustSize = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements: Map<string, CellData>) => elements.size],
+    hookArgs: [(elements: Map<string, object>) => elements.size],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Size of Elements" />
       </div>
     ),
@@ -159,18 +151,15 @@ export const WithJustPosition = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, CellData>) =>
+      (elements: Map<string, object>) =>
         [...elements.values()].map((element) => ({
-          x: (element as FlatElementData).x,
-          y: (element as FlatElementData).y,
+          x: (element as Element).x,
+          y: (element as Element).y,
         })),
     ],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Position" />
       </div>
     ),
@@ -191,19 +180,16 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, CellData>) =>
+      (elements: Map<string, Element>) =>
         [...elements.values()].map((element) => ({
-          x: (element as FlatElementData).x,
-          y: (element as FlatElementData).y,
+          x: element.position?.x,
+          y: element.position?.y,
         })),
       (_previous: unknown, _next: unknown) => true,
     ],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Position" />
       </div>
     ),
@@ -226,15 +212,15 @@ export const WithAdditionalData = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, CellData>) =>
-        [...elements.values()].map((element) => ({ id: (element as Record<string, unknown>).id, other: 'something' })),
+      (elements: Map<string, Element>) =>
+        [...elements.values()].map((element) => ({
+          id: element.id,
+          other: 'something',
+        })),
     ],
     render: (result) => (
       <div>
-        <Paper
-          className={PAPER_CLASSNAME}
-          renderElement={RenderRectElement}
-        />
+        <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
         <DataRenderer data={result} name="Element with new data" />
       </div>
     ),

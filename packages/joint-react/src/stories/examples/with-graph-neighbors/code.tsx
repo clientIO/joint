@@ -9,8 +9,8 @@ import {
   useGraph,
   useMarkup,
   usePaperEvents,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -26,66 +26,50 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
+const initialElements: Record<string, Element<NodeData>> = {
   server: {
     data: { label: 'Server' },
-    x: 300,
-    y: 30,
-    width: 120,
-    height: 40,
+    position: { x: 300, y: 30 },
+    size: { width: 120, height: 40 },
   },
   db: {
     data: { label: 'Database' },
-    x: 80,
-    y: 120,
-    width: 120,
-    height: 40,
+    position: { x: 80, y: 120 },
+    size: { width: 120, height: 40 },
   },
   cache: {
     data: { label: 'Cache' },
-    x: 520,
-    y: 120,
-    width: 120,
-    height: 40,
+    position: { x: 520, y: 120 },
+    size: { width: 120, height: 40 },
   },
   auth: {
     data: { label: 'Auth' },
-    x: 120,
-    y: 250,
-    width: 120,
-    height: 40,
+    position: { x: 120, y: 250 },
+    size: { width: 120, height: 40 },
   },
   api: {
     data: { label: 'API' },
-    x: 480,
-    y: 250,
-    width: 120,
-    height: 40,
+    position: { x: 480, y: 250 },
+    size: { width: 120, height: 40 },
   },
   worker: {
     data: { label: 'Worker' },
-    x: 80,
-    y: 380,
-    width: 120,
-    height: 40,
+    position: { x: 80, y: 380 },
+    size: { width: 120, height: 40 },
   },
   queue: {
     data: { label: 'Queue' },
-    x: 520,
-    y: 380,
-    width: 120,
-    height: 40,
+    position: { x: 520, y: 380 },
+    size: { width: 120, height: 40 },
   },
   logs: {
     data: { label: 'Logs' },
-    x: 300,
-    y: 420,
-    width: 120,
-    height: 40,
+    position: { x: 300, y: 420 },
+    size: { width: 120, height: 40 },
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'l-server-db': {
     source: 'server',
     target: 'db',
@@ -216,9 +200,7 @@ function highlightLinks(paper: dia.Paper, state: HighlightState) {
     });
   }
 
-  const otherLinks = graph
-    .getLinks()
-    .filter((l) => !state.connectedLinkIds.has(String(l.id)));
+  const otherLinks = graph.getLinks().filter((l) => !state.connectedLinkIds.has(String(l.id)));
   for (const link of otherLinks) {
     const view = paper.findViewByModel(link);
     if (!view) continue;

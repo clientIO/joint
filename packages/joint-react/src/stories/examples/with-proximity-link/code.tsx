@@ -2,16 +2,15 @@
 import {
   GraphProvider,
   Paper,
-  useMeasureNode,
   useElementId,
   useGraph,
-  type FlatElementData,
-  useElementsLayout,
+  type Element,
   DefaultElement,
+  useElements,
 } from '@joint/react';
 import { util } from '@joint/core';
 import '../index.css';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 
@@ -20,11 +19,11 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
-  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
-  '3': { data: { label: 'Node 3' }, x: 280, y: 100 },
-  '4': { data: { label: 'Node 4' }, x: 15, y: 100 },
+const initialElements: Record<string, Element<NodeData>> = {
+  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
+  '3': { data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
+  '4': { data: { label: 'Node 4' }, position: { x: 15, y: 100 } },
 };
 
 const PROXIMITY_THRESHOLD = 60;
@@ -45,7 +44,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
 
   const { graph } = useGraph();
   const element = graph.getCell(id);
-  const closeIds = useElementsLayout(() => {
+  const closeIds = useElements(() => {
     const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
     const proximityElements = graph
       .findElementsInArea(area)
@@ -73,7 +72,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
     };
   }, [closeIds, id, removeLink, setLink]);
 
-  return <DefaultElement data={{ label }} />;
+  return <DefaultElement label={label} />;
 }
 
 function Main() {

@@ -4,15 +4,15 @@ import React, { useState, useCallback } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
 import { useElements, useLinks, useGraph } from '../../../hooks';
-import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
+import type { Element, Link } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 
 describe('GraphProvider Controlled Mode', () => {
   describe('Basic useState integration', () => {
     it('should sync React state to store and graph on initial mount', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
-        '2': { width: 200, height: 200 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
+        '2': { size: { width: 200, height: 200 } },
       };
 
       let elementCount = 0;
@@ -26,7 +26,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -43,8 +43,8 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should update store when React state changes via useState', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
       };
 
       let elementCount = 0;
@@ -57,11 +57,11 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, FlatElementData>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
-        setElementsExternal = setElements as (elements: Record<string, FlatElementData>) => void;
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -78,9 +78,9 @@ describe('GraphProvider Controlled Mode', () => {
 
       act(() => {
         setElementsExternal?.({
-          '1': { width: 100, height: 100 },
-          '2': { width: 200, height: 200 },
-          '3': { width: 300, height: 300 },
+          '1': { size: { width: 100, height: 100 } },
+          '2': { size: { width: 200, height: 200 } },
+          '3': { size: { width: 300, height: 300 } },
         });
       });
 
@@ -91,10 +91,10 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle both elements and links in controlled mode', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
       };
-      const initialLink: FlatLinkData = {
+      const initialLink: Link = {
         source: '1',
         target: '2',
       };
@@ -108,16 +108,16 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, FlatElementData>) => void) | null = null;
-      let setLinksExternal: ((links: Record<string, FlatLinkData>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
+      let setLinksExternal: ((links: Record<string, Link>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
-        const [links, setLinks] = useState<Record<string, FlatLinkData>>(() => ({
-          'link1': initialLink,
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        const [links, setLinks] = useState<Record<string, Link>>(() => ({
+          link1: initialLink,
         }));
-        setElementsExternal = setElements as (elements: Record<string, FlatElementData>) => void;
-        setLinksExternal = setLinks as (links: Record<string, FlatLinkData>) => void;
+        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
+        setLinksExternal = setLinks as (links: Record<string, Link>) => void;
         return (
           <GraphProvider
             elements={elements}
@@ -140,8 +140,8 @@ describe('GraphProvider Controlled Mode', () => {
       // Update elements only
       act(() => {
         setElementsExternal?.({
-          '1': { width: 100, height: 100 },
-          '2': { width: 200, height: 200 },
+          '1': { size: { width: 100, height: 100 } },
+          '2': { size: { width: 200, height: 200 } },
         });
       });
 
@@ -153,11 +153,11 @@ describe('GraphProvider Controlled Mode', () => {
       // Update links only
       act(() => {
         setLinksExternal?.({
-          'link1': {
+          link1: {
             source: '1',
             target: '2',
           },
-          'link2': {
+          link2: {
             source: '2',
             target: '1',
           },
@@ -173,8 +173,8 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Rapid consecutive updates', () => {
     it('should handle rapid consecutive state updates correctly', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
       };
 
       let elementCount = 0;
@@ -185,11 +185,11 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, FlatElementData>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
-        setElementsExternal = setElements as (elements: Record<string, FlatElementData>) => void;
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -206,19 +206,19 @@ describe('GraphProvider Controlled Mode', () => {
       // Rapid consecutive updates
       act(() => {
         setElementsExternal?.({
-          '1': { width: 100, height: 100 },
-          '2': { width: 200, height: 200 },
+          '1': { size: { width: 100, height: 100 } },
+          '2': { size: { width: 200, height: 200 } },
         });
         setElementsExternal?.({
-          '1': { width: 100, height: 100 },
-          '2': { width: 200, height: 200 },
-          '3': { width: 300, height: 300 },
+          '1': { size: { width: 100, height: 100 } },
+          '2': { size: { width: 200, height: 200 } },
+          '3': { size: { width: 300, height: 300 } },
         });
         setElementsExternal?.({
-          '1': { width: 100, height: 100 },
-          '2': { width: 200, height: 200 },
-          '3': { width: 300, height: 300 },
-          '4': { width: 400, height: 400 },
+          '1': { size: { width: 100, height: 100 } },
+          '2': { size: { width: 200, height: 200 } },
+          '3': { size: { width: 300, height: 300 } },
+          '4': { size: { width: 400, height: 400 } },
         });
       });
 
@@ -231,8 +231,8 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle 10 rapid updates without losing state', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
       };
 
       let elementCount = 0;
@@ -242,11 +242,11 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, FlatElementData>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
-        setElementsExternal = setElements as (elements: Record<string, FlatElementData>) => void;
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -263,11 +263,10 @@ describe('GraphProvider Controlled Mode', () => {
       // 10 rapid updates
       act(() => {
         for (let index = 2; index <= 11; index++) {
-          const newElements: Record<string, FlatElementData> = {};
+          const newElements: Record<string, Element> = {};
           for (let elementIndex = 1; elementIndex <= index; elementIndex++) {
             newElements[String(elementIndex)] = {
-              width: 100 * elementIndex,
-              height: 100 * elementIndex,
+              size: { width: 100 * elementIndex, height: 100 * elementIndex },
             };
           }
           setElementsExternal?.(newElements);
@@ -285,10 +284,10 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Concurrent updates', () => {
     it('should handle concurrent element and link updates', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
       };
-      const initialLink: FlatLinkData = {
+      const initialLink: Link = {
         source: '1',
         target: '2',
       };
@@ -302,16 +301,16 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, FlatElementData>) => void) | null = null;
-      let setLinksExternal: ((links: Record<string, FlatLinkData>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
+      let setLinksExternal: ((links: Record<string, Link>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
-        const [links, setLinks] = useState<Record<string, FlatLinkData>>(() => ({
-          'link1': initialLink,
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        const [links, setLinks] = useState<Record<string, Link>>(() => ({
+          link1: initialLink,
         }));
-        setElementsExternal = setElements as (elements: Record<string, FlatElementData>) => void;
-        setLinksExternal = setLinks as (links: Record<string, FlatLinkData>) => void;
+        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
+        setLinksExternal = setLinks as (links: Record<string, Link>) => void;
         return (
           <GraphProvider
             elements={elements}
@@ -334,15 +333,15 @@ describe('GraphProvider Controlled Mode', () => {
       // Concurrent updates
       act(() => {
         setElementsExternal?.({
-          '1': { width: 100, height: 100 },
-          '2': { width: 200, height: 200 },
+          '1': { size: { width: 100, height: 100 } },
+          '2': { size: { width: 200, height: 200 } },
         });
         setLinksExternal?.({
-          'link1': {
+          link1: {
             source: '1',
             target: '2',
           },
-          'link2': {
+          link2: {
             source: '2',
             target: '1',
           },
@@ -359,8 +358,8 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle multiple rapid updates with callbacks', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
       };
 
       let elementCount = 0;
@@ -372,7 +371,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
 
         const handleAddElement = useCallback(() => {
           setElements((previous) => {
@@ -380,8 +379,7 @@ describe('GraphProvider Controlled Mode', () => {
             return {
               ...previous,
               [newId]: {
-                width: 100 * (Object.keys(previous).length + 1),
-                height: 100 * (Object.keys(previous).length + 1),
+                size: { width: 100 * (Object.keys(previous).length + 1), height: 100 * (Object.keys(previous).length + 1) },
               },
             };
           });
@@ -422,12 +420,12 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('User interaction sync back to React state', () => {
     it('should sync graph changes back to React state in controlled mode', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
       };
 
-      let reactStateElements: Record<string, FlatElementData> = {};
-      let storeElements: Map<string, FlatElementData> = new Map();
+      let reactStateElements: Record<string, Element> = {};
+      let storeElements: Map<string, Element> = new Map();
 
       function TestComponent() {
         storeElements = useElements((items) => items);
@@ -435,7 +433,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
         reactStateElements = elements;
 
         return (
@@ -456,7 +454,7 @@ describe('GraphProvider Controlled Mode', () => {
               id: '2',
               type: 'PortalElement',
               position: { x: 200, y: 200 },
-              size: { width: 200, height: 200 },
+              size: { size: { width: 200, height: 200 } },
             })
           );
         }, [graph]);
@@ -493,14 +491,14 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle element position changes from user interaction', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100, x: 0, y: 0 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 }, position: { x: 0, y: 0 } },
       };
 
-      let reactStateElements: Record<string, FlatElementData> = {};
+      let reactStateElements: Record<string, Element> = {};
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
         reactStateElements = elements;
 
         return (
@@ -532,8 +530,8 @@ describe('GraphProvider Controlled Mode', () => {
 
       await waitFor(() => {
         expect(Object.keys(reactStateElements).length).toBe(1);
-        expect(reactStateElements['1']?.x).toBe(0);
-        expect(reactStateElements['1']?.y).toBe(0);
+        expect(reactStateElements['1']?.position?.x).toBe(0);
+        expect(reactStateElements['1']?.position?.y).toBe(0);
       });
 
       // Simulate user interaction
@@ -545,8 +543,8 @@ describe('GraphProvider Controlled Mode', () => {
       await waitFor(
         () => {
           expect(Object.keys(reactStateElements).length).toBe(1);
-          expect(reactStateElements['1']?.x).toBe(100);
-          expect(reactStateElements['1']?.y).toBe(100);
+          expect(reactStateElements['1']?.position?.x).toBe(100);
+          expect(reactStateElements['1']?.position?.y).toBe(100);
         },
         { timeout: 3000 }
       );
@@ -555,11 +553,11 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('React state to graph position sync', () => {
     it('should update graph position when React state x,y changes via setElements', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100, x: 0, y: 0 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 }, position: { x: 0, y: 0 } },
       };
 
-      let reactStateElements: Record<string, FlatElementData> = {};
+      let reactStateElements: Record<string, Element> = {};
       let graphRef: dia.Graph | null = null;
 
       function TestComponent() {
@@ -568,12 +566,12 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, FlatElementData>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
         reactStateElements = elements;
-        setElementsExternal = setElements as (elements: Record<string, FlatElementData>) => void;
+        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -584,15 +582,15 @@ describe('GraphProvider Controlled Mode', () => {
       render(<ControlledGraph />);
 
       await waitFor(() => {
-        expect(reactStateElements['1']?.x).toBe(0);
-        expect(reactStateElements['1']?.y).toBe(0);
+        expect(reactStateElements['1']?.position?.x).toBe(0);
+        expect(reactStateElements['1']?.position?.y).toBe(0);
         expect(graphRef).not.toBeNull();
       });
 
       // Update position via React state
       act(() => {
         setElementsExternal?.({
-          '1': { width: 100, height: 100, x: 150, y: 250 },
+          '1': { size: { width: 100, height: 100 }, position: { x: 150, y: 250 } },
         });
       });
 
@@ -603,8 +601,8 @@ describe('GraphProvider Controlled Mode', () => {
           expect(cell).toBeDefined();
           expect(cell!.get('position')).toEqual({ x: 150, y: 250 });
           // React state should also reflect it
-          expect(reactStateElements['1']?.x).toBe(150);
-          expect(reactStateElements['1']?.y).toBe(250);
+          expect(reactStateElements['1']?.position?.x).toBe(150);
+          expect(reactStateElements['1']?.position?.y).toBe(250);
         },
         { timeout: 3000 }
       );
@@ -613,8 +611,8 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Edge cases', () => {
     it('should handle empty records correctly', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
       };
 
       let elementCount = 0;
@@ -624,11 +622,11 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, FlatElementData>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(() => initialElements);
-        setElementsExternal = setElements as (elements: Record<string, FlatElementData>) => void;
+        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -654,8 +652,8 @@ describe('GraphProvider Controlled Mode', () => {
       // Add elements back
       act(() => {
         setElementsExternal?.({
-          '1': { width: 100, height: 100 },
-          '2': { width: 200, height: 200 },
+          '1': { size: { width: 100, height: 100 } },
+          '2': { size: { width: 200, height: 200 } },
         });
       });
 
@@ -675,8 +673,8 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>({});
-        const [links, setLinks] = useState<Record<string, FlatLinkData>>({});
+        const [elements, setElements] = useState<Record<string, Element>>({});
+        const [links, setLinks] = useState<Record<string, Link>>({});
         return (
           <GraphProvider
             elements={elements}

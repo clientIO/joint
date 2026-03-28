@@ -1,30 +1,33 @@
 import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
-import type { CellData } from '../types/cell-data';
-import type { ElementToAttribute, LinkToAttribute } from './graph-view';
 import { simpleScheduler } from '../utils/scheduler';
+import type { Element, Link } from '../types/data-types';
+import type { MapElementToAttributes, MapLinkToAttributes } from '../state/data-mapping';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
-interface UpdateGraphOptions<
-  ElementData extends object = CellData,
-  LinkData extends object = CellData,
+
+export interface UpdateGraphOptions<
+  ElementData extends object | undefined = undefined,
+  LinkData extends object | undefined = undefined,
 > {
-  readonly elements: Record<string, ElementData>;
-  readonly links: Record<string, LinkData>;
+  readonly elements: Record<string, Element<ElementData>>;
+  readonly links: Record<string, Link<LinkData>>;
   readonly flag?: 'updateFromReact';
 }
 
 interface OnChangeOptions {
   readonly changes: Map<string, IncrementalChange<dia.Cell>>;
-  readonly onlyLayoutUpdate: boolean;
+  readonly isInsideBatch: boolean;
 }
-interface Options<ElementData extends object = CellData, LinkData extends object = CellData> {
+interface Options<
+  ElementData extends object | undefined = undefined,
+  LinkData extends object | undefined = undefined,
+> {
   readonly graph: dia.Graph;
-  readonly enableBatchUpdates?: boolean;
   readonly onChanges: (options: OnChangeOptions) => void;
-  readonly elementToAttributes: ElementToAttribute<ElementData>;
-  readonly linkToAttributes: LinkToAttribute<LinkData>;
+  readonly mapElementToAttributes: MapElementToAttributes<ElementData>;
+  readonly mapLinkToAttributes: MapLinkToAttributes<LinkData>;
 }
 
 interface JointJSEventOptions {
@@ -33,13 +36,13 @@ interface JointJSEventOptions {
 }
 /**
  * Sets up listeners for JointJS graph mutations and translates them into incremental change events.
- * @param options
+ * Batching is always on: layout changes are immediate, data changes fire on batch:stop.
  */
 export function graphChanges<
-  ElementData extends object = CellData,
-  LinkData extends object = CellData,
+  ElementData extends object | undefined = undefined,
+  LinkData extends object | undefined = undefined,
 >(options: Options<ElementData, LinkData>) {
-  const { graph, enableBatchUpdates, elementToAttributes, linkToAttributes } = options;
+  const { graph, mapElementToAttributes, mapLinkToAttributes } = options;
   const changes = new Map<string, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
@@ -47,29 +50,23 @@ export function graphChanges<
 
   function onChanges(data: OnChangeOptions) {
     simpleScheduler(() => {
-      if (data.changes.size === 0) return;
       options.onChanges(data);
     });
   }
+
   /**
-   * Returns true when inside a batch operation and batch updates are enabled.
+   * Returns true when inside a batch operation.
    */
-  function onlyLayoutUpdate() {
-    return !!(enableBatchUpdates && batchDepth > 0);
+  function isInsideBatch() {
+    return batchDepth > 0;
   }
 
   /**
    * Records a cell change and notifies the change handler.
-   * @param cell
-   * @param type
    */
   function onCellEvent(cell: dia.Cell, type: 'change' | 'add' | 'remove') {
-    if (type === 'remove') {
-      changes.set(String(cell.id), { type: 'remove', data: cell });
-    } else {
-      changes.set(String(cell.id), { type, data: cell });
-    }
-    onChanges({ changes, onlyLayoutUpdate: onlyLayoutUpdate() });
+    changes.set(String(cell.id), { type, data: cell });
+    onChanges({ changes, isInsideBatch: isInsideBatch() });
   }
 
   const controller = new mvc.Listener();
@@ -117,27 +114,25 @@ export function graphChanges<
       for (const cell of cells) {
         changes.set(String(cell.id), { type: 'add', data: cell });
       }
-      onChanges({ changes, onlyLayoutUpdate: onlyLayoutUpdate() });
+      onChanges({ changes, isInsideBatch: isInsideBatch() });
     }
   );
 
   controller.listenTo(graph, LAYOUT_UPDATE_EVENT, ({ changes: layoutChanges }) => {
-    onChanges({ changes: layoutChanges, onlyLayoutUpdate: true });
+    onChanges({ changes: layoutChanges, isInsideBatch: true });
   });
 
-  if (enableBatchUpdates) {
-    controller.listenTo(graph, 'batch:start', () => {
-      batchDepth += 1;
-    });
+  // Always-on batch tracking
+  controller.listenTo(graph, 'batch:start', () => {
+    batchDepth += 1;
+  });
 
-    controller.listenTo(graph, 'batch:stop', ({ isUpdateFromReact }: JointJSEventOptions) => {
-      batchDepth -= 1;
-      if (batchDepth > 0) return;
-      if (isUpdateFromReact) return;
-      if (changes.size === 0) return;
-      onChanges({ changes, onlyLayoutUpdate: onlyLayoutUpdate() });
-    });
-  }
+  controller.listenTo(graph, 'batch:stop', ({ isUpdateFromReact }: JointJSEventOptions) => {
+    batchDepth -= 1;
+    if (batchDepth > 0) return;
+    if (isUpdateFromReact) return;
+    onChanges({ changes, isInsideBatch: false });
+  });
 
   return {
     destroy() {
@@ -149,20 +144,24 @@ export function graphChanges<
         isSyncedWithReact = true;
         return;
       }
-      const graphElements = Object.entries(elements).map(([id, data]) => {
+      const graphElements: dia.Cell.JSON[] = Object.entries(elements).map(([id, element]) => {
         return {
-          ...elementToAttributes({ id, data }),
+          ...mapElementToAttributes({ id, element }),
           id,
         };
       });
-      const graphLinks = Object.entries(links).map(([id, data]) => ({
-        ...linkToAttributes({ id, data }),
+      const graphLinks: dia.Cell.JSON[] = Object.entries(links).map(([id, link]) => ({
+        ...mapLinkToAttributes({ id, link }),
         id,
       }));
+
+      graph.startBatch('updateFromReact');
+
       graph.syncCells([...graphElements, ...graphLinks], {
         remove: true,
         isUpdateFromReact: flag === 'updateFromReact',
       });
+      graph.stopBatch('updateFromReact');
     },
   };
 }

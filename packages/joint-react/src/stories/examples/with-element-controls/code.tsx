@@ -1,4 +1,10 @@
-import { GraphProvider, Paper, useElementSize, useNodesMeasuredEffect, type FlatElementData } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useElementSize,
+  useNodesMeasuredEffect,
+  type Element,
+} from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT, BG } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
@@ -71,71 +77,58 @@ function pos(index: number, w: number, h: number) {
   const col = index % COLUMNS_COUNT;
   const row = Math.floor(index / COLUMNS_COUNT);
   return {
-    x: MARGIN + col * COLUMNS_GAP + (COLUMNS_GAP - w) / 2,
-    y: MARGIN + row * ROW_GAP + (ROW_GAP - h) / 2,
+    position: {
+      x: MARGIN + col * COLUMNS_GAP + (COLUMNS_GAP - w) / 2,
+      y: MARGIN + row * ROW_GAP + (ROW_GAP - h) / 2,
+    },
+    size: { width: w, height: h },
   };
 }
 
 // ----------------------------------------------------------------------------
 // Initial Elements
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, FlatElementData<ControlledElement>> = {
+const initialElements: Record<string, Element<ControlledElement>> = {
   linkedProcess: {
     data: { type: 'linkedProcess', label: 'Linked Process' },
     ...pos(0, 120, 50),
-    width: 120,
-    height: 50,
   },
-  input: { data: { type: 'input', label: 'Input' }, ...pos(1, 100, 50), width: 100, height: 50 },
-  mark: { data: { type: 'mark', label: 'Mark' }, ...pos(2, 120, 50), width: 120, height: 50 },
-  actor: { data: { type: 'actor', label: 'Actor' }, ...pos(15, 50, 100), width: 50, height: 100 },
+  input: { data: { type: 'input', label: 'Input' }, ...pos(1, 100, 50) },
+  mark: { data: { type: 'mark', label: 'Mark' }, ...pos(2, 120, 50) },
+  actor: { data: { type: 'actor', label: 'Actor' }, ...pos(15, 50, 100) },
   parallelogram: {
     data: { type: 'parallelogram', label: 'Parallelogram', offset: 10 },
     ...pos(4, 80, 60),
-    width: 80,
-    height: 60,
   },
   hexagon: {
     data: { type: 'hexagon', label: 'Hexagon', offset: 20 },
     ...pos(5, 90, 60),
-    width: 90,
-    height: 60,
   },
-  step: { data: { type: 'step', label: 'Step', offset: 20 }, ...pos(6, 90, 60), width: 90, height: 60 },
+  step: { data: { type: 'step', label: 'Step', offset: 20 }, ...pos(6, 90, 60) },
   trapezoid: {
     data: { type: 'trapezoid', label: 'Trapezoid', offset: 20 },
     ...pos(7, 120, 60),
-    width: 120,
-    height: 60,
   },
   document: {
     data: { type: 'document', label: 'Document', offset: 20 },
     ...pos(8, 120, 50),
-    width: 120,
-    height: 50,
   },
-  shipment: { data: { type: 'shipment', label: 'Shipment' }, ...pos(3, 70, 50), width: 70, height: 50 },
-  plus: { data: { type: 'plus', label: 'Plus', offset: 20 }, ...pos(10, 70, 70), width: 70, height: 70 },
+  shipment: { data: { type: 'shipment', label: 'Shipment' }, ...pos(3, 70, 50) },
+  plus: { data: { type: 'plus', label: 'Plus', offset: 20 }, ...pos(10, 70, 70) },
   arrow: {
     data: { type: 'arrow', label: 'Arrow', arrowHeight: 33, thickness: 33 },
     ...pos(11, 100, 100),
-    width: 100,
-    height: 100,
   },
-  note: { data: { type: 'note', label: 'Note', offset: 20 }, ...pos(12, 100, 100), width: 100, height: 100 },
+  note: { data: { type: 'note', label: 'Note', offset: 20 }, ...pos(12, 100, 100) },
   table: {
     data: { type: 'table', label: 'Table', dividerX: 25, dividerY: 25 },
     ...pos(13, 100, 100),
-    width: 100,
-    height: 100,
   },
   cube: {
     data: { type: 'cube', label: 'Cube', cornerX: 100 / 3, cornerY: 40 },
     ...pos(14, 100, 100),
-    width: 100,
-    height: 100,
   },
-  card: { data: { type: 'card', label: 'Card', offset: 20 }, ...pos(9, 100, 60), width: 100, height: 60 },
+  card: { data: { type: 'card', label: 'Card', offset: 20 }, ...pos(9, 100, 60) },
 };
 
 // ----------------------------------------------------------------------------
@@ -768,10 +761,13 @@ function addElementControls(paper: dia.Paper) {
 function Main() {
   const paperId = useId();
 
-  const handleElementsMeasured = useCallback(({ isInitial, paper }: { isInitial: boolean; paper: dia.Paper }) => {
-    if (!isInitial) return;
-    addElementControls(paper);
-  }, []);
+  const handleElementsMeasured = useCallback(
+    ({ isInitial, paper }: { isInitial: boolean; paper: dia.Paper }) => {
+      if (!isInitial) return;
+      addElementControls(paper);
+    },
+    []
+  );
 
   useNodesMeasuredEffect(paperId, handleElementsMeasured);
 

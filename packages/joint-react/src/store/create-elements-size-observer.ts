@@ -13,7 +13,7 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
 import type { ElementLayout } from '../types/cell-data';
-import type { ElementLayout as ElementLayoutType } from '../types/cell-data';
+import type { Element } from '../types/data-types';
 
 const DEFAULT_OBSERVER_OPTIONS: ResizeObserverOptions = { box: 'border-box' };
 // Epsilon value to avoid jitter due to sub-pixel rendering
@@ -85,8 +85,8 @@ interface Options {
   readonly getCellTransform: (
     id: CellId
   ) => ElementLayoutOptionalXY & { element: dia.Element; angle: number };
-  /** Function to get the current public snapshot containing all elements */
-  readonly getLayoutSnapshot: () => { elements: Map<string, ElementLayoutType> };
+  /** Function to get the elements from the container */
+  readonly getElements: () => Map<string, Element>;
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (data: Record<CellId, ElementLayoutOptionalXY>) => void;
   readonly onObserveElement: (options: ObserveElementOptions) => void;
@@ -133,7 +133,7 @@ interface ProcessSizeChangeOptions {
   readonly measuredHeight: number;
   readonly observedElement: ObservedElement;
   readonly getCellTransform: Options['getCellTransform'];
-  readonly snapshot: Map<string, ElementLayoutType>;
+  readonly elements: Map<string, Element>;
   readonly mutableLayouts: Record<CellId, ElementLayoutOptionalXY>;
 }
 
@@ -149,13 +149,12 @@ function processSizeChange(options: ProcessSizeChangeOptions): boolean {
     measuredHeight,
     observedElement,
     getCellTransform,
-    snapshot,
+    elements,
     mutableLayouts,
   } = options;
   const currentCellTransform = getCellTransform(observedElement.id);
-  const layout = snapshot.get(observedElement.id);
 
-  if (!layout) {
+  if (!elements.has(observedElement.id)) {
     return false;
   }
 
@@ -211,7 +210,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     resizeObserverOptions = DEFAULT_OBSERVER_OPTIONS,
     getCellTransform,
     onBatchUpdate,
-    getLayoutSnapshot: getPublicSnapshot,
+    getElements,
     onObserveElement,
   } = options;
 
@@ -244,11 +243,12 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
 
   const observer = new ResizeObserver((entries) => {
     let hasAnySizeChange = false;
-    const { elements } = getPublicSnapshot();
+    const elements = getElements();
     const mutableLayouts: Record<CellId, ElementLayoutOptionalXY> = {};
 
     for (const entry of entries) {
       const { target, borderBoxSize } = entry;
+
       const observedElement = activeObservedElementByDomNode.get(
         target as HTMLElement | SVGElement
       );
@@ -278,7 +278,7 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
         observedElement,
         getCellTransform,
         mutableLayouts,
-        snapshot: elements as Map<string, ElementLayoutType>,
+        elements,
       });
 
       if (wasUpdated) {

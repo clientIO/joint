@@ -12,9 +12,8 @@ describe('use-paper-context', () => {
     graphProviderProps: {
       elements: {
         '1': {
-          data: {},
-          width: 100,
-          height: 100,
+          data: undefined,
+          size: { width: 100, height: 100 },
         },
       },
     },

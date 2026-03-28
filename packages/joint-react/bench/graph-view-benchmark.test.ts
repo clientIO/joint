@@ -44,11 +44,11 @@ function createWithGraphView(count: number) {
   const view = graphView({
     graph,
     getPaperStores: () => new Map<string, PaperStore>(),
+    mappings: {},
   });
 
   for (let index = 0; index < count; index++) {
     view.elements.subscribe(`el-${index}`, () => {});
-    view.elementsLayout.subscribe(`el-${index}`, () => {});
   }
   for (let index = 0; index < count - 1; index++) {
     view.links.subscribe(`link-${index}`, () => {});
@@ -75,7 +75,6 @@ function createWithGraphStore(count: number) {
 
   for (let index = 0; index < count; index++) {
     store.graphView.elements.subscribe(`el-${index}`, () => {});
-    store.graphView.elementsLayout.subscribe(`el-${index}`, () => {});
   }
   for (let index = 0; index < count - 1; index++) {
     store.graphView.links.subscribe(`link-${index}`, () => {});

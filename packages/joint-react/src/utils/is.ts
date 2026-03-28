@@ -41,13 +41,14 @@ export function isRef<T>(value: unknown): value is React.RefObject<T> {
 }
 
 /**
- * Returns `true` when both `width` and `height` are defined numbers in the given data.
+ * Returns `true` when the element has a defined `size` with numeric `width` and `height`.
  * When `false`, the element is considered auto-sized (size determined by `useMeasureNode`).
- * @param data - The element data record to check for width and height
- * @returns Whether both width and height are defined numbers
+ * @param data - The element data record to check for size
+ * @returns Whether size is defined with numeric width and height
  */
 export function hasDefinedSize(data: Record<string, unknown>): boolean {
-  return isNumber(data.width) && isNumber(data.height);
+  const size = data.size as Record<string, unknown> | undefined;
+  return isRecord(size) && isNumber(size.width) && isNumber(size.height);
 }
 
 export function hasProperty<T extends Record<string, unknown>>(

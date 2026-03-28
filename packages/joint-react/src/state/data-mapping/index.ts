@@ -1,7 +1,6 @@
 import type { dia } from '@joint/core';
-import type { CellData } from '../../types/cell-data';
-import type { ToElementAttributesOptions, ToElementDataOptions } from './element-mapper';
-import type { ToLinkAttributesOptions, ToLinkDataOptions } from './link-mapper';
+import type { MapAttributesToElement, MapElementToAttributes } from './element-mapper';
+import type { MapAttributesToLink, MapLinkToAttributes } from './link-mapper';
 
 export * from './convert-labels';
 export * from './convert-labels-reverse';
@@ -21,18 +20,20 @@ export interface CellAttributes {
   [key: string]: any;
 }
 
+export interface MapLinks<LinkData extends object | undefined = undefined> {
+  mapLinkToAttributes?: MapLinkToAttributes<LinkData>;
+  mapAttributesToLink?: MapAttributesToLink<LinkData>;
+}
+
+export interface MapElements<ElementData extends object | undefined = undefined> {
+  mapElementToAttributes?: MapElementToAttributes<ElementData>;
+  mapAttributesToElement?: MapAttributesToElement<ElementData>;
+}
 /**
  * Unified interface for data ↔ attribute mapping functions.
  * Reused across GraphProvider, GraphStore, and graphView.
  */
-export interface GraphMappings<
-  ElementData extends object = CellData,
-  LinkData extends object = CellData,
-> {
-  readonly mapDataToElementAttributes?: (
-    options: ToElementAttributesOptions<ElementData>
-  ) => CellAttributes;
-  readonly mapDataToLinkAttributes?: (options: ToLinkAttributesOptions<LinkData>) => CellAttributes;
-  readonly mapElementAttributesToData?: (options: ToElementDataOptions<ElementData>) => ElementData;
-  readonly mapLinkAttributesToData?: (options: ToLinkDataOptions<LinkData>) => LinkData;
-}
+export type GraphMappings<
+  ElementData extends object | undefined,
+  LinkData extends object | undefined,
+> = MapElements<ElementData> & MapLinks<LinkData>;

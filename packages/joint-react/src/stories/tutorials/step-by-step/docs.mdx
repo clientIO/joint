@@ -140,7 +140,7 @@ If you need full HTML support, enable the experimental `useHTMLOverlay` prop to 
 Ports allow you to define named connection points directly on element data and map them via `mapDataToElementAttributes`.
 
 ```tsx
-import { GraphProvider, type ToElementAttributesOptions, type FlatElementData } from '@joint/react';
+import { GraphProvider, type ToElementAttributesOptions, type Element } from '@joint/react';
 import type { dia } from '@joint/core';
 
 const elements = {
@@ -159,7 +159,7 @@ const elements = {
 const mapDataToElementAttributes = ({
   data,
   defaultAttributes,
-}: ToElementAttributesOptions<FlatElementData>): dia.Cell.JSON => ({
+}: ToElementAttributesOptions<Element>): dia.Cell.JSON => ({
   ...defaultAttributes(),
   ...(data.ports && { ports: data.ports }),
 });
@@ -226,8 +226,8 @@ ${CodeControlledMode}
 
 1. **State Management**: Use `useState` to manage elements and links as Records:
    ```tsx
-   const [elements, setElements] = useState<Record<string, FlatElementData>>(defaultElements);
-   const [links, setLinks] = useState<Record<string, FlatLinkData>>(defaultLinks);
+   const [elements, setElements] = useState<Record<string, Element>>(defaultElements);
+   const [links, setLinks] = useState<Record<string, Link>>(defaultLinks);
    ```
 
 2. **Controlled Mode**: Pass state and change handlers to `GraphProvider`:

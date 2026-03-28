@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { CellData, FlatElementData, FlatLinkData } from '../types/data-types';
+import type { Element, Link } from '../types/data-types';
 import { useGraphStore } from './use-graph-store';
 
 /**
@@ -12,19 +12,19 @@ function isUpdater<T extends object>(value: T | ((previous: T) => T)): value is 
   return typeof value === 'function';
 }
 
-const ELEMENT_DEFAULTS: FlatElementData = { data: {}, x: 0, y: 0 };
-const LINK_DEFAULTS: FlatLinkData = { data: {}, source: '', target: '' };
-
 /**
  * Result of the useGraph hook.
  */
-interface UseGraphResult<NodeData extends object = CellData, LinkData extends object = CellData> {
+interface UseGraphResult<
+  NodeData extends object | undefined = undefined,
+  LinkData extends object | undefined = undefined,
+> {
   /** The JointJS graph instance. */
   readonly graph: dia.Graph;
   /**
    * Sets or updates an element in the graph.
    *
-   * `previous` is typed as `FlatElementData` — includes `data`, `x`, `y`, `width`, `height`, etc.
+   * `previous` is typed as `Element` — includes `data`, `x`, `y`, `width`, `height`, etc.
    * @example
    * ```tsx
    * setElement('1', { x: 100, y: 150 });
@@ -33,9 +33,7 @@ interface UseGraphResult<NodeData extends object = CellData, LinkData extends ob
    */
   readonly setElement: (
     id: CellId,
-    attributesOrUpdater:
-      | FlatElementData<NodeData>
-      | ((previous: FlatElementData<NodeData>) => FlatElementData<NodeData>)
+    attributesOrUpdater: Element<NodeData> | ((previous: Element<NodeData>) => Element<NodeData>)
   ) => void;
   /**
    * Removes an element from the graph by its ID.
@@ -45,7 +43,7 @@ interface UseGraphResult<NodeData extends object = CellData, LinkData extends ob
   /**
    * Sets or updates a link in the graph.
    *
-   * `previous` is typed as `FlatLinkData` — includes `data`, `source`, `target`, `color`, etc.
+   * `previous` is typed as `Link` — includes `data`, `source`, `target`, `color`, etc.
    * @example
    * ```tsx
    * setLink('l-1', { source: '1', target: '2' });
@@ -54,9 +52,7 @@ interface UseGraphResult<NodeData extends object = CellData, LinkData extends ob
    */
   readonly setLink: (
     id: CellId,
-    attributesOrUpdater:
-      | FlatLinkData<LinkData>
-      | ((previous: FlatLinkData<LinkData>) => FlatLinkData<LinkData>)
+    attributesOrUpdater: Link<LinkData> | ((previous: Link<LinkData>) => Link<LinkData>)
   ) => void;
   /**
    * Removes a link from the graph by its ID.
@@ -65,6 +61,17 @@ interface UseGraphResult<NodeData extends object = CellData, LinkData extends ob
   readonly removeLink: (id: CellId) => void;
 }
 
+function getDefaultLink<LinkData extends object | undefined = undefined>(): Link<LinkData> {
+  return {
+    source: '',
+    target: '',
+  } as Link<LinkData>;
+}
+function getDefaultElement<
+  ElementData extends object | undefined = undefined,
+>(): Element<ElementData> {
+  return {} as Element<ElementData>;
+}
 /**
  * Custom hook to retrieve the graph instance and actions for manipulating elements and links.
  *
@@ -78,8 +85,8 @@ interface UseGraphResult<NodeData extends object = CellData, LinkData extends ob
  * ```
  */
 export function useGraph<
-  NodeData extends object = CellData,
-  LinkData extends object = CellData,
+  NodeData extends object | undefined = undefined,
+  LinkData extends object | undefined = undefined,
 >(): UseGraphResult<NodeData, LinkData> {
   const graphStore = useGraphStore();
 
@@ -89,23 +96,21 @@ export function useGraph<
 
       setElement(id, attributesOrUpdater) {
         const graphView = graphStore.getGraphView<NodeData, LinkData>();
-        const existing = (graphView.elements.get(String(id)) ??
-          ELEMENT_DEFAULTS) as FlatElementData<NodeData>;
+        const existing: Element<NodeData> =
+          graphView.elements.get(String(id)) ?? getDefaultElement<NodeData>();
 
         const attributes = isUpdater(attributesOrUpdater)
           ? attributesOrUpdater(existing)
           : attributesOrUpdater;
 
         const mergedData = {
-          ...ELEMENT_DEFAULTS,
           ...existing,
           ...attributes,
-        } as FlatElementData<NodeData>;
+        } as Element<NodeData>;
 
-        graphStore.graphView.updateAutoSizedElement(String(id), mergedData);
-        const cellAttributes = graphView.elementToAttributes({
+        const cellAttributes = graphView.mapElementToAttributes({
           id: String(id),
-          data: mergedData,
+          element: mergedData,
         });
         graphStore.graph.syncCells([{ ...cellAttributes, id } as dia.Cell.JSON], { remove: false });
       },
@@ -116,22 +121,20 @@ export function useGraph<
 
       setLink(id, attributesOrUpdater) {
         const graphView = graphStore.getGraphView<NodeData, LinkData>();
-        const existing = (graphView.links.get(String(id)) ??
-          LINK_DEFAULTS) as FlatLinkData<LinkData>;
+        const existing = graphView.links.get(String(id)) ?? getDefaultLink<LinkData>();
 
         const attributes = isUpdater(attributesOrUpdater)
           ? attributesOrUpdater(existing)
           : attributesOrUpdater;
 
-        const mergedData: FlatLinkData<LinkData> = {
-          ...LINK_DEFAULTS,
+        const mergedData: Link<LinkData> = {
           ...existing,
           ...attributes,
-        } as FlatLinkData<LinkData>;
+        } as Link<LinkData>;
 
-        const cellAttributes = graphView.linkToAttributes({
+        const cellAttributes = graphView.mapLinkToAttributes({
           id: String(id),
-          data: mergedData,
+          link: mergedData,
         });
         graphStore.graph.syncCells([{ ...cellAttributes, id } as dia.Cell.JSON], { remove: false });
       },

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { GraphProvider, Paper, type FlatElementData, type FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, type Element, type Link } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jr-* CSS variable defaults (including element styles)
@@ -9,25 +9,23 @@ import '../../../css/theme.css';
 import './dark-theme.css';
 
 type Data = { label: string };
-const initialElements: Record<string, FlatElementData<Data>> = {
+const initialElements: Record<string, Element<Data>> = {
   a: {
     // No width or height — element should size to fit label
     // label: 'Lorem ipsum',
     data: {
       label: 'Lorem ipsum',
     },
-    x: 100,
-    y: 60,
+    position: { x: 100, y: 60 },
     ports: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } },
   },
   b: {
     // Explicit width - height is still determined by content
-    width: 100,
+    size: { width: 100, height: 40 },
     data: {
       label: 'dolor sit amet',
     },
-    x: 280,
-    y: 60,
+    position: { x: 280, y: 60 },
     ports: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
       in: { cx: 0, cy: 'calc(0.5 * h)' },
@@ -38,17 +36,15 @@ const initialElements: Record<string, FlatElementData<Data>> = {
     data: {
       label: 'consectetur adipiscing elit',
     },
-    x: 450,
-    y: 60,
-    width: 100,
-    height: 80,
+    position: { x: 450, y: 60 },
+    size: { width: 100, height: 80 },
     ports: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true } },
   },
 };
 
 const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'a-b': {
     source: 'a',
     sourcePort: 'out',

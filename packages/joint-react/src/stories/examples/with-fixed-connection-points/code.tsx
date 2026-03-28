@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useId, useRef } from 'react';
-import type { FlatLinkData, FlatElementData } from '@joint/react';
+import type { Link, Element } from '@joint/react';
 import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
@@ -17,7 +17,7 @@ const ShapeTypes = {
   ellipse: 'ellipse',
 } as const;
 
-type ShapeType = typeof ShapeTypes[keyof typeof ShapeTypes];
+type ShapeType = (typeof ShapeTypes)[keyof typeof ShapeTypes];
 
 interface BaseElement {
   readonly shapeType: ShapeType;
@@ -106,38 +106,30 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 // ----------------------------------------------------------------------------
 // Initial Data
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, FlatElementData<CustomElement>> = {
+const initialElements: Record<string, Element<CustomElement>> = {
   square1: {
     data: { shapeType: ShapeTypes.square, label: 'S1' },
-    x: 100,
-    y: 100,
-    width: 80,
-    height: 80,
+    position: { x: 100, y: 100 },
+    size: { width: 80, height: 80 },
   },
   square2: {
     data: { shapeType: ShapeTypes.square, label: 'S2' },
-    x: 340,
-    y: 100,
-    width: 80,
-    height: 80,
+    position: { x: 340, y: 100 },
+    size: { width: 80, height: 80 },
   },
   ellipse1: {
     data: { shapeType: ShapeTypes.ellipse, label: 'E' },
-    x: 220,
-    y: 300,
-    width: 80,
-    height: 80,
+    position: { x: 220, y: 300 },
+    size: { width: 80, height: 80 },
   },
   rectangle1: {
     data: { shapeType: ShapeTypes.rectangle },
-    x: 100,
-    y: 500,
-    width: 320,
-    height: 40,
+    position: { x: 100, y: 500 },
+    size: { width: 320, height: 40 },
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   link1: {
     source: 'square1',
     sourceAnchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } },
@@ -145,7 +137,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetAnchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } },
     color: LIGHT,
     width: 2,
-    targetMarker: 'arrow'
+    targetMarker: 'arrow',
   },
   link2: {
     source: 'ellipse1',
@@ -154,7 +146,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetAnchor: { name: 'modelCenter', args: { dx: -80, dy: -20 } },
     color: LIGHT,
     width: 2,
-    targetMarker: 'arrow'
+    targetMarker: 'arrow',
   },
   link3: {
     source: 'rectangle1',
@@ -163,7 +155,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetAnchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
     color: LIGHT,
     width: 2,
-    targetMarker: 'arrow'
+    targetMarker: 'arrow',
   },
   link4: {
     source: 'square2',
@@ -172,7 +164,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetAnchor: { name: 'modelCenter', args: { dx: 0, dy: -40 } },
     color: LIGHT,
     width: 2,
-    targetMarker: 'arrow'
+    targetMarker: 'arrow',
   },
   link5: {
     source: 'square2',
@@ -181,7 +173,7 @@ const initialLinks: Record<string, FlatLinkData> = {
     targetAnchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } },
     color: LIGHT,
     width: 2,
-    targetMarker: 'arrow'
+    targetMarker: 'arrow',
   },
 };
 
@@ -273,7 +265,6 @@ function Ellipse({ label }: Readonly<EllipseElement>) {
 // Element Rendering
 // ----------------------------------------------------------------------------
 function RenderElement(element: CustomElement) {
-
   switch (element.shapeType) {
     case ShapeTypes.square:
     case ShapeTypes.rectangle: {
@@ -289,13 +280,7 @@ function RenderElement(element: CustomElement) {
 // Tool Markup
 // ----------------------------------------------------------------------------
 const anchorButtonMarkup = jsx(
-  <circle
-    r={6}
-    stroke={ANCHOR_STROKE}
-    strokeWidth={4}
-    fill={ANCHOR_FILL}
-    cursor="pointer"
-  />
+  <circle r={6} stroke={ANCHOR_STROKE} strokeWidth={4} fill={ANCHOR_FILL} cursor="pointer" />
 );
 
 const removeButtonMarkup = jsx(
@@ -350,7 +335,7 @@ function getLinkTools(_linkView: dia.LinkView) {
       distance: 40,
       markup: removeButtonMarkup,
       visibility: (view) => view.getConnectionLength() > 200,
-    })
+    }),
   ];
 
   return tools;
@@ -373,51 +358,48 @@ function Main() {
     };
   }, []);
 
-  usePaperEvents(
-    paperId,
-    {
-      'cell:mouseenter': (cellView) => {
-        const jointPaper = cellView.paper;
-        if (!jointPaper) {
-          return;
-        }
+  usePaperEvents(paperId, {
+    'cell:mouseenter': (cellView) => {
+      const jointPaper = cellView.paper;
+      if (!jointPaper) {
+        return;
+      }
 
-        jointPaper.removeTools();
+      jointPaper.removeTools();
 
-        if (timeoutIdRef.current) {
-          clearTimeout(timeoutIdRef.current);
-          timeoutIdRef.current = null;
-        }
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
 
-        const tools = cellView.model.isLink()
-          ? getLinkTools(cellView as dia.LinkView)
-          : getElementTools(cellView as dia.ElementView);
+      const tools = cellView.model.isLink()
+        ? getLinkTools(cellView as dia.LinkView)
+        : getElementTools(cellView as dia.ElementView);
 
-        const toolsView = new dia.ToolsView({ tools });
-        cellView.addTools(toolsView);
-        currentToolsViewRef.current = toolsView;
-      },
-      'cell:mouseleave': () => {
-        timeoutIdRef.current = setTimeout(() => {
-          currentToolsViewRef.current?.remove();
-          currentToolsViewRef.current = null;
-          timeoutIdRef.current = null;
-        }, 1000);
+      const toolsView = new dia.ToolsView({ tools });
+      cellView.addTools(toolsView);
+      currentToolsViewRef.current = toolsView;
+    },
+    'cell:mouseleave': () => {
+      timeoutIdRef.current = setTimeout(() => {
+        currentToolsViewRef.current?.remove();
+        currentToolsViewRef.current = null;
+        timeoutIdRef.current = null;
+      }, 1000);
 
-        currentToolsViewRef.current?.el.classList.add(
-          'opacity-0',
-          'transition-opacity',
-          'duration-300',
-          'delay-300'
-        );
-      },
-      'element:pointermove': (elementView) => {
-        if (elementView.hasTools()) {
-          elementView.removeTools();
-        }
-      },
-    }
-  );
+      currentToolsViewRef.current?.el.classList.add(
+        'opacity-0',
+        'transition-opacity',
+        'duration-300',
+        'delay-300'
+      );
+    },
+    'element:pointermove': (elementView) => {
+      if (elementView.hasTools()) {
+        elementView.removeTools();
+      }
+    },
+  });
 
   return (
     <Paper
@@ -475,10 +457,7 @@ function Main() {
 // ----------------------------------------------------------------------------
 export default function App() {
   return (
-    <GraphProvider
-      elements={initialElements}
-      links={initialLinks}
-    >
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <Main />
     </GraphProvider>
   );

@@ -6,8 +6,8 @@ import {
   useGraph,
   useElements,
   useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   SVGText,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
@@ -67,27 +67,21 @@ const GENERATOR_ID = 'generator';
 // ----------------------------------------------------------------------------
 // Initial Data
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, FlatElementData<ShapeData>> = {
+const initialElements: Record<string, Element<ShapeData>> = {
   generator: {
     data: { type: ShapeTypes.generator, power: 0.9 },
-    x: 50,
-    y: 50,
-    width: 60,
-    height: 80,
+    position: { x: 50, y: 50 },
+    size: { width: 60, height: 80 },
   },
   bulb1: {
     data: { type: ShapeTypes.bulb, watts: 100 },
-    x: 150,
-    y: 45,
-    width: 28,
-    height: 30,
+    position: { x: 150, y: 45 },
+    size: { width: 28, height: 30 },
   },
   bulb2: {
     data: { type: ShapeTypes.bulb, watts: 40 },
-    x: 150,
-    y: 105,
-    width: 28,
-    height: 30,
+    position: { x: 150, y: 105 },
+    size: { width: 28, height: 30 },
   },
 };
 
@@ -101,7 +95,7 @@ const wireAppearance = {
   z: -1,
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   wire1: {
     source: 'generator',
     target: 'bulb1',
@@ -121,7 +115,7 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
   const { width, height } = useElementSize();
   const turbinePathRef = useRef<SVGPathElement>(null);
   const animationRef = useRef<Animation | null>(null);
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<ShapeData>();
 
   // Turbine blade path
   const turbinePath = `
@@ -159,7 +153,7 @@ function GeneratorNode({ power }: Readonly<GeneratorData>) {
     const newPower = power === 0 ? 1 : 0;
     setElement(GENERATOR_ID, (previous) => ({
       ...previous,
-      data: { ...(previous.data as GeneratorData), power: newPower },
+      data: { ...(previous.data as unknown as GeneratorData), power: newPower },
     }));
   }, [power, setElement]);
 
@@ -235,9 +229,12 @@ function BulbNode({ watts }: Readonly<BulbData>) {
   const animationRef = useRef<Animation | null>(null);
 
   // Read generator power from the store (reactive)
-  const generatorPower = useElements<ShapeData, number>(
-    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.data?.power ?? 0
-  );
+  const generatorPower = useElements<ShapeData, number>((elements) => {
+    const item = elements.get(GENERATOR_ID);
+    if (!item) return 0;
+    if (item.data.type !== ShapeTypes.generator) return 0;
+    return item.data.power;
+  });
 
   // Compute light state from generator power (derived state)
   const light = Math.round(generatorPower * 100) >= watts;
@@ -309,19 +306,22 @@ function RenderShapeElement(props: Readonly<ShapeData>) {
 // Power Control Component
 // ----------------------------------------------------------------------------
 function PowerControl() {
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<ShapeData>();
 
   // Read generator power from store (reactive)
-  const power = useElements<ShapeData, number>(
-    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.data?.power ?? 0
-  );
+  const power = useElements<ShapeData, number>((elements) => {
+    const item = elements.get(GENERATOR_ID);
+    if (!item) return 0;
+    if (item.data.type !== ShapeTypes.generator) return 0;
+    return item.data.power;
+  });
 
   const handlePowerChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newPower = event.target.valueAsNumber;
       setElement(GENERATOR_ID, (previous) => ({
         ...previous,
-        data: { ...(previous.data as GeneratorData), power: newPower },
+        data: { ...(previous.data as unknown as GeneratorData), power: newPower },
       }));
     },
     [setElement]

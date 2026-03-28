@@ -6,16 +6,26 @@
  * but constraints throughout the codebase use `extends object` which
  * allows both interfaces and type aliases.
  */
-export type CellData = Record<string, unknown>;
 
-// ── Shared ──────────────────────────────────────────────────────────────────
+// ── Element Layout Aliases ──────────────────────────────────────────────────
 
-// ── Element Layout ──────────────────────────────────────────────────────────
+/** Position of an element — alias for `dia.Point`. */
+export type ElementPosition = {
+  readonly x?: number;
+  readonly y?: number;
+};
+
+/** Size of an element — alias for `dia.Size`. */
+export type ElementSize = {
+  readonly width?: number;
+  readonly height?: number;
+};
+
+// ── Element Layout (internal — used by size observer) ───────────────────────
 
 /**
- * Layout properties stored in elementsLayout container.
- * All fields required — concrete values after initialization.
- * @group Graph
+ * Flat element layout used internally by the size observer and transform callbacks.
+ * @internal
  */
 export interface ElementLayout {
   readonly x: number;
@@ -25,22 +35,12 @@ export interface ElementLayout {
   readonly angle: number;
 }
 
-/** Subset of ElementLayout representing only the position. */
-export interface ElementPosition {
-  readonly x: number;
-  readonly y: number;
-}
-
-/** Subset of ElementLayout representing only the size. */
-export interface ElementSize {
-  readonly width: number;
-  readonly height: number;
-}
+// ── Link Layout (internal) ──────────────────────────────────────────────────
 
 /**
- * Layout data for a single link.
+ * Layout data for a single link on a specific paper.
  * Contains source/target endpoint coordinates and the SVG path data.
- * @group Graph
+ * @internal
  */
 export interface LinkLayout {
   readonly sourceX: number;

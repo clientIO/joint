@@ -1,27 +1,9 @@
-import { type dia, util } from '@joint/core';
-import type { FlatLinkData, FlatLinkLabel } from '../../types/data-types';
-import type { CellData } from '../../types/cell-data';
+import { type dia } from '@joint/core';
+import type { Link } from '../../types/data-types';
 import { defaultLinkStyle, LINK_PRESENTATION_KEYS } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
-
-export interface ToLinkAttributesOptions<LinkData extends object = CellData> {
-  readonly id: string;
-  readonly data: LinkData;
-  readonly graph: dia.Graph;
-  readonly toAttributes?: (data: LinkData) => CellAttributes;
-}
-
-export interface ToLinkDataOptions<LinkData extends object = CellData> {
-  readonly id: string;
-  readonly attributes: dia.Link.Attributes;
-  readonly defaultAttributes: dia.Link.Attributes;
-  readonly link: dia.Link;
-  readonly previousData?: LinkData;
-  readonly graph: dia.Graph;
-  readonly toData?: (attributes: dia.Link.Attributes) => LinkData;
-}
 import {
   assignEndDataProperties,
   SOURCE_KEYS,
@@ -31,101 +13,24 @@ import {
   buildLinkPresentationAttributes,
 } from './link-attributes';
 import { isRecord } from '../../utils/is';
-import type { CellAttributes } from './index';
-
-// ────────────────────────────────────────────────────────────────────────────
-// React → JointJS
-// ────────────────────────────────────────────────────────────────────────────
+import type { CellAttributes } from '.';
+import type { LinkLayout } from '../../types/cell-data';
 
 /**
  * Type guard to check if data is link data.
  * @param data - The data to check.
  * @returns True if the data is a record (link data).
  */
-function isLinkData(data: unknown): data is FlatLinkData {
+function isLinkData(data: unknown): data is Link {
   return isRecord(data);
 }
-/**
- * Maps flat link data to JointJS cell attributes.
- *
- * Properties are grouped by sync direction:
- * - **↔ Two-way** — synced back to React state when the graph changes
- *   (`source`, `target`, `z`, `layer`, `parent`, `vertices`, `router`, `connector`, `labels`)
- * - **→ Presentation** — converted to `attrs.line` / `attrs.wrapper`,
- *   then stored in `cell.data` for round-trip preservation
- *   (`color`, `width`, `sourceMarker`, `targetMarker`, `className`, `dasharray`,
- *    `linecap`, `linejoin`, `wrapperWidth`, `wrapperColor`, `wrapperClassName`)
- *
- * Any remaining properties are treated as user data and stored in `cell.data`.
- * @param options - The link id and data to convert
- * @returns The JointJS cell JSON attributes
- */
-export function flatMapDataToLinkAttributes<Link extends object = FlatLinkData>(
-  options: Pick<ToLinkAttributesOptions<Link>, 'id' | 'data'>
-): CellAttributes {
-  const { id, data } = options;
-  if (!isLinkData(data)) {
-    throw new Error('Invalid link data: expected an object with link properties.');
-  }
-  return { ...flatLinkDataToAttributes(data), id };
-}
 
-// ────────────────────────────────────────────────────────────────────────────
-// JointJS → React
-// ────────────────────────────────────────────────────────────────────────────
-
-/**
- * Maps JointJS link attributes back to flat link data.
- *
- * Picks the two-way properties (`source`, `target`, `z`, `layer`, `parent`,
- * `vertices`, `labels`) from `cell.attributes` and merges them with `cell.data`
- * (which holds presentation props + user data saved during forward mapping).
- *
- * For labels, position and offset from `attributes.labels` (which may be
- * updated by interactive `labelMove`) are merged with the styling data
- * stored in `cell.data.labels`.
- *
- * Internal properties (`type`, `attrs`, `markup`) are not mapped back.
- * @param options - The JointJS cell and optional previous data for shape preservation
- * @returns The flat link data
- */
-export function flatMapLinkAttributesToData<Link extends object = FlatLinkData>(
-  options: Pick<ToLinkDataOptions<Link>, 'attributes' | 'defaultAttributes'>
-): Link {
-  const { attributes, defaultAttributes } = options;
-  const data = flatAttributesToLinkData<Link>(attributes);
-
-  // Filter out values that match model defaults (not needed in React state)
-  const result = data as Record<string, unknown>;
-  if (attributes.z !== undefined && attributes.z === defaultAttributes.z) delete result.z;
-  if (attributes.layer !== undefined && attributes.layer === defaultAttributes.layer)
-    delete result.layer;
-  if (Array.isArray(attributes.vertices) && attributes.vertices.length === 0)
-    delete result.vertices;
-  if (attributes.router !== undefined && util.isEqual(attributes.router, defaultAttributes.router))
-    delete result.router;
-  if (
-    attributes.connector !== undefined &&
-    util.isEqual(attributes.connector, defaultAttributes.connector)
-  )
-    delete result.connector;
-
-  return result as Link;
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-// Public composable utilities
-// ────────────────────────────────────────────────────────────────────────────
-
-/**
- * Converts flat link data to JointJS cell attributes.
- * Public utility — caller provides the `id` separately.
- * @param data
- */
-export function flatLinkDataToAttributes<Data extends object = CellData>(
-  data: FlatLinkData<Data>
-): CellAttributes {
-  if (!isLinkData(data)) {
+export function linkToAttributes<LinkData extends object | undefined = undefined>(options: {
+  id?: string;
+  link: Link<LinkData>;
+}): CellAttributes {
+  const { id, link } = options;
+  if (!isLinkData(link)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
   const {
@@ -158,11 +63,14 @@ export function flatLinkDataToAttributes<Data extends object = CellData>(
     wrapperWidth = defaultLinkStyle.wrapperWidth,
     wrapperColor = defaultLinkStyle.wrapperColor,
     wrapperClassName = defaultLinkStyle.wrapperClassName,
-    ...userData
-  } = data;
+    attrs,
+    type = PORTAL_LINK_TYPE,
+    ...rest
+  } = link;
 
-  const attributes: Record<string, unknown> = {
-    type: PORTAL_LINK_TYPE,
+  const attributes: CellAttributes = {
+    id,
+    type,
     source: source
       ? toLinkEndAttribute(source, {
           port: sourcePort,
@@ -194,6 +102,7 @@ export function flatLinkDataToAttributes<Data extends object = CellData>(
     }),
   };
 
+  if (attrs !== undefined) attributes.attrs = { ...attributes.attrs, ...attrs };
   if (z !== undefined) attributes.z = z;
   if (layer !== undefined) attributes.layer = layer;
   if (parent !== undefined) attributes.parent = parent;
@@ -209,17 +118,17 @@ export function flatLinkDataToAttributes<Data extends object = CellData>(
 
   const presentationData: Record<string, unknown> = {};
   for (const key of LINK_PRESENTATION_KEYS) {
-    if (data[key] !== undefined) presentationData[key] = data[key];
+    if (link[key] !== undefined) presentationData[key] = link[key];
   }
 
   attributes.data = {
-    ...userData,
+    ...rest,
     labels,
     labelStyle,
     ...presentationData,
   };
 
-  return attributes as CellAttributes;
+  return attributes;
 }
 
 /**
@@ -227,11 +136,11 @@ export function flatLinkDataToAttributes<Data extends object = CellData>(
  * Public utility — purely mechanical (nested → flat), no defaultAttributes filtering.
  * @param attributes
  */
-export function flatAttributesToLinkData<Data extends object = CellData>(
+export function attributesToLink<LinkData extends object | undefined = undefined>(
   attributes: dia.Link.Attributes
-): FlatLinkData<Data> {
+): Link<LinkData> {
   const {
-    data: userData,
+    data: cellData,
     source,
     target,
     z,
@@ -241,35 +150,50 @@ export function flatAttributesToLinkData<Data extends object = CellData>(
     router,
     connector,
     labels: attributeLabels,
+    attrs,
+    type,
   } = attributes;
 
   const sourceData = toLinkEndData(source);
   const targetData = toLinkEndData(target);
 
-  const linkData: Record<string, unknown> = {
+  const result: Record<string, unknown> = {
     source: sourceData.end,
     target: targetData.end,
   };
 
-  assignEndDataProperties(linkData, sourceData, SOURCE_KEYS);
-  assignEndDataProperties(linkData, targetData, TARGET_KEYS);
+  assignEndDataProperties(result, sourceData, SOURCE_KEYS);
+  assignEndDataProperties(result, targetData, TARGET_KEYS);
 
-  if (z !== undefined) linkData.z = z;
-  if (layer !== undefined) linkData.layer = layer;
-  if (parent) linkData.parent = parent;
+  if (type !== undefined) result.type = type;
+  if (attrs) result.attrs = attrs;
+  if (z !== undefined) result.z = z;
+  if (layer !== undefined) result.layer = layer;
+  if (parent) result.parent = parent;
   if (Array.isArray(vertices) && vertices.length > 0) {
-    linkData.vertices = vertices;
+    result.vertices = vertices;
   }
-  if (router !== undefined) linkData.router = router;
-  if (connector !== undefined) linkData.connector = connector;
+  if (router !== undefined) result.router = router;
+  if (connector !== undefined) result.connector = connector;
 
-  const dataLabels = userData?.labels as Record<string, FlatLinkLabel> | undefined;
+  const dataLabels = cellData?.labels;
   if (dataLabels && Array.isArray(attributeLabels)) {
-    linkData.labels = mergeLabelsFromAttributes(dataLabels, attributeLabels);
+    result.labels = mergeLabelsFromAttributes(dataLabels, attributeLabels);
   }
 
+  const { layouts, ...data } = cellData || {}; // Ensure cellData is an object to avoid spreading undefined
   return {
-    ...userData,
-    ...linkData,
-  } as FlatLinkData<Data>;
+    data: data as LinkData,
+    layout: layouts as Record<string, LinkLayout> | undefined,
+    ...result,
+  } as Link<LinkData>;
 }
+
+export type MapAttributesToLink<LinkData extends object | undefined = undefined> =
+  typeof attributesToLink<LinkData>;
+
+export type MapLinkToAttributes<LinkData extends object | undefined = undefined> =
+  typeof linkToAttributes<LinkData>;
+
+export type MapLinkToAttributesOptions<LinkData extends object | undefined = undefined> =
+  Parameters<MapLinkToAttributes<LinkData>>[0];

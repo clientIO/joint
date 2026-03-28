@@ -1,23 +1,19 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
+import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 import { V } from '@joint/core';
 import {
   GraphProvider,
   Paper,
   useGraph,
-  flatElementDataToAttributes,
+  elementToAttributes,
   type CellAttributes,
-  type ToElementAttributesOptions,
-  type FlatElementData,
+  type Element,
   type FlatElementPort,
-  type FlatLinkData,
-  type RenderElement,
-  useElementSize,
+  type Link,
   useElements,
 } from '@joint/react';
-import { useCallback } from 'react';
 
 const SECONDARY = '#6366f1';
 
@@ -64,14 +60,12 @@ interface PortNodeData {
 /**
  * Custom mapper that resolves named custom shapes (`triangle`, `rounded-rect`)
  * into SVG path strings sized to each port's width/height, then delegates
- * to the default flat mapper via `flatElementDataToAttributes`.
+ * to the default flat mapper via `ElementToAttributes`.
  */
-function mapDataToElementAttributes(
-  options: ToElementAttributesOptions<FlatElementData<PortNodeData>>
-) {
-  const { data } = options;
-  const { ports, portStyle } = data;
-  if (!ports) return flatElementDataToAttributes(data);
+function mapDataToElementAttributes(options: { id: string; element: Element<PortNodeData> }) {
+  const { id, element } = options;
+  const { ports, portStyle } = element;
+  if (!ports) return elementToAttributes({ id, element });
 
   const defaultW = portStyle?.width ?? 10;
   const defaultH = portStyle?.height ?? 10;
@@ -88,11 +82,14 @@ function mapDataToElementAttributes(
     }
   }
 
-  const result = flatElementDataToAttributes({ ...data, ports: resolvedPorts }) as CellAttributes;
+  const result = elementToAttributes({
+    id,
+    element: { ...element, ports: resolvedPorts },
+  }) as CellAttributes;
 
   // Keep original shape names in cell.data so they survive round-trips.
   // The resolved SVG paths are already baked into the JointJS port config.
-  (result.data as Record<string, unknown>).ports = ports;
+  result.data.ports = ports;
   return result;
 }
 
@@ -111,13 +108,14 @@ function getShapeLabel(shape: string): string {
   return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
 }
 
-const initialElements: Record<string, FlatElementData<PortNodeData>> = {
+const initialElements: Record<string, Element<PortNodeData>> = {
   'node-1': {
     data: { label: 'Node 1', color: PRIMARY },
-    x: 50,
-    y: 100,
-    width: 140,
-    height: 80,
+    position: { x: 50, y: 100 },
+    size: {
+      width: 140,
+      height: 80,
+    },
     portStyle: { width: 16, height: 16, color: SECONDARY },
     ports: {
       'out-1': {
@@ -138,10 +136,11 @@ const initialElements: Record<string, FlatElementData<PortNodeData>> = {
   },
   'node-2': {
     data: { label: 'Node 2', color: SECONDARY },
-    x: 350,
-    y: 100,
-    width: 140,
-    height: 80,
+    position: { x: 350, y: 100 },
+    size: {
+      width: 140,
+      height: 80,
+    },
     portStyle: { width: 16, height: 16, color: PRIMARY },
     ports: {
       'in-1': {
@@ -162,7 +161,7 @@ const initialElements: Record<string, FlatElementData<PortNodeData>> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'link-1': {
     source: 'node-1',
     sourcePort: 'out-1',
@@ -375,7 +374,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
 interface ElementPortControlsProps {
   readonly id: string;
-  readonly element: FlatElementData<PortNodeData>;
+  readonly element: Element<PortNodeData>;
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
@@ -467,10 +466,10 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider<PortNodeData>
+    <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapDataToElementAttributes={mapDataToElementAttributes}
+      mapElementToAttributes={mapDataToElementAttributes}
     >
       <Main />
     </GraphProvider>

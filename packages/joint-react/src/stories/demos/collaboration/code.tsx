@@ -10,8 +10,8 @@ import {
   useGraph,
   useMarkup,
   useMeasureNode,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type RenderElement,
   type IncrementalContainerChanges,
 } from '@joint/react';
@@ -87,7 +87,7 @@ type AgentNodeData = {
   readonly status: 'online' | 'busy' | 'idle';
 };
 
-type AgentNode = FlatElementData<AgentNodeData>;
+type AgentNode = Element<AgentNodeData>;
 
 const PORT_R = 5;
 
@@ -99,8 +99,7 @@ const initialElements: Record<string, AgentNode> = {
       icon: 'fas fa-brain',
       status: 'online',
     },
-    x: 250,
-    y: 60,
+    position: { x: 250, y: 60 },
     ports: {
       out: {
         cx: 'calc(0.5 * w)',
@@ -128,8 +127,7 @@ const initialElements: Record<string, AgentNode> = {
       icon: 'fas fa-search',
       status: 'busy',
     },
-    x: 80,
-    y: 300,
+    position: { x: 80, y: 300 },
     ports: {
       out: {
         cx: 'calc(0.5 * w)',
@@ -157,8 +155,7 @@ const initialElements: Record<string, AgentNode> = {
       icon: 'fas fa-pen-fancy',
       status: 'idle',
     },
-    x: 430,
-    y: 300,
+    position: { x: 430, y: 300 },
     ports: {
       out: {
         cx: 'calc(0.5 * w)',
@@ -181,7 +178,7 @@ const initialElements: Record<string, AgentNode> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'o-r': {
     source: 'orchestrator',
     sourcePort: 'out',
@@ -207,8 +204,8 @@ const initialLinks: Record<string, FlatLinkData> = {
 // ── Redux Store ─────────────────────────────────────────────────────────────
 
 interface GraphState {
-  readonly elements: Record<string, FlatElementData<AgentNodeData>>;
-  readonly links: Record<string, FlatLinkData>;
+  readonly elements: Record<string, Element<AgentNodeData>>;
+  readonly links: Record<string, Link>;
 }
 
 const graphSlice = createSlice({
@@ -222,20 +219,20 @@ const graphSlice = createSlice({
       const { elements, links } = action.payload;
 
       for (const [id, data] of elements.added) {
-        state.elements[id] = data as FlatElementData<AgentNodeData>;
+        state.elements[id] = data as unknown as Element<AgentNodeData>;
       }
       for (const [id, data] of elements.changed) {
-        state.elements[id] = data as FlatElementData<AgentNodeData>;
+        state.elements[id] = data as unknown as Element<AgentNodeData>;
       }
       for (const id of elements.removed) {
         delete state.elements[id];
       }
 
       for (const [id, data] of links.added) {
-        state.links[id] = data as FlatLinkData;
+        state.links[id] = data as Link;
       }
       for (const [id, data] of links.changed) {
-        state.links[id] = data as FlatLinkData;
+        state.links[id] = data as Link;
       }
       for (const id of links.removed) {
         delete state.links[id];
@@ -263,7 +260,7 @@ const selectLinks = (state: CollabRootState) => state.graph.links;
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
-type CollabChanges = IncrementalContainerChanges<FlatElementData<AgentNodeData>, FlatLinkData>;
+type CollabChanges = IncrementalContainerChanges<AgentNodeData>;
 
 interface SyncMessage {
   readonly type: 'incremental' | 'presence' | 'drag';
@@ -682,7 +679,7 @@ const SIMULATE_NODES = [
 function Toolbar() {
   const theme = useTheme();
   const isDark = theme === DARK;
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<AgentNodeData>();
   const reduxStore = useStore<CollabRootState>();
   const [simulating, setSimulating] = useState<Set<string>>(() => new Set());
   const intervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
@@ -705,8 +702,8 @@ function Toolbar() {
           const state = reduxStore.getState().graph.elements[nodeId] as AgentNode | undefined;
           if (!state) return previous;
 
-          const centerX = state.x ?? 250;
-          const centerY = state.y ?? 200;
+          const centerX = state.position?.x ?? 250;
+          const centerY = state.position?.y ?? 200;
           const radius = 30 + Math.random() * 40;
           let angle = Math.random() * Math.PI * 2;
           const speed = 0.03 + Math.random() * 0.02;
@@ -719,7 +716,7 @@ function Toolbar() {
             const current = reduxStore.getState().graph.elements[nodeId];
             if (!current) return;
 
-            setElement(nodeId, { ...current, x, y });
+            setElement(nodeId, { ...current, position: { x, y } } as AgentNode);
           }, 30);
 
           intervalsRef.current.set(nodeId, interval);
@@ -759,8 +756,7 @@ function Toolbar() {
     const pick = agents[Math.floor(Math.random() * agents.length)];
     setElement(id, {
       data: pick,
-      x: 100 + Math.random() * 300,
-      y: 100 + Math.random() * 300,
+      position: { x: 100 + Math.random() * 300, y: 100 + Math.random() * 300 },
       ports: {
         out: {
           cx: 'calc(0.5 * w)',
@@ -780,7 +776,7 @@ function Toolbar() {
           passive: true,
         },
       },
-    } satisfies AgentNode);
+    } as AgentNode);
   }, [setElement, theme]);
 
   return (
@@ -942,13 +938,13 @@ function GraphWithRedux() {
   );
 
   // Theme links
-  const themedLinks: Record<string, FlatLinkData> = {};
+  const themedLinks: Record<string, Link> = {};
   for (const [id, link] of Object.entries(links)) {
     themedLinks[id] = { ...link, color: theme.link };
   }
 
   // Theme element ports
-  const themedElements: Record<string, FlatElementData<AgentNodeData>> = {};
+  const themedElements: Record<string, Element<AgentNodeData>> = {};
   for (const [id, element] of Object.entries(elements)) {
     themedElements[id] = {
       ...element,
@@ -983,7 +979,7 @@ function GraphWithRedux() {
           name: peerName ? peerName.slice(0, 6) : 'Peer',
         }}
       >
-        <GraphProvider<AgentNodeData>
+        <GraphProvider
           elements={themedElements}
           links={themedLinks}
           onIncrementalChange={handleIncrementalChange}

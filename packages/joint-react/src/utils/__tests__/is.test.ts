@@ -46,33 +46,33 @@ describe('is.ts utility functions', () => {
   });
 
   describe('hasDefinedSize', () => {
-    test('returns true when both width and height are numbers', () => {
-      expect(is.hasDefinedSize({ width: 100, height: 50 })).toBe(true);
-      expect(is.hasDefinedSize({ width: 0, height: 0 })).toBe(true);
+    test('returns true when size has numeric width and height', () => {
+      expect(is.hasDefinedSize({ size: { width: 100, height: 50 } })).toBe(true);
+      expect(is.hasDefinedSize({ size: { width: 0, height: 0 } })).toBe(true);
     });
 
-    test('returns false when width is undefined', () => {
-      expect(is.hasDefinedSize({ height: 50 })).toBe(false);
-      expect(is.hasDefinedSize({ width: undefined, height: 50 })).toBe(false);
+    test('returns false when size is missing width', () => {
+      expect(is.hasDefinedSize({ size: { height: 50 } })).toBe(false);
+      expect(is.hasDefinedSize({ size: { width: undefined, height: 50 } })).toBe(false);
     });
 
-    test('returns false when height is undefined', () => {
-      expect(is.hasDefinedSize({ width: 100 })).toBe(false);
-      expect(is.hasDefinedSize({ width: 100, height: undefined })).toBe(false);
+    test('returns false when size is missing height', () => {
+      expect(is.hasDefinedSize({ size: { width: 100 } })).toBe(false);
+      expect(is.hasDefinedSize({ size: { width: 100, height: undefined } })).toBe(false);
     });
 
-    test('returns false when both are undefined', () => {
+    test('returns false when size is missing', () => {
       expect(is.hasDefinedSize({})).toBe(false);
     });
 
-    test('returns false for non-number values', () => {
-      expect(is.hasDefinedSize({ width: '100', height: 50 })).toBe(false);
-      expect(is.hasDefinedSize({ width: null, height: 50 })).toBe(false);
+    test('returns false for non-number values in size', () => {
+      expect(is.hasDefinedSize({ size: { width: '100', height: 50 } })).toBe(false);
+      expect(is.hasDefinedSize({ size: { width: null, height: 50 } })).toBe(false);
     });
 
     test('works with generic user data containing extra properties', () => {
-      expect(is.hasDefinedSize({ x: 0, y: 0, width: 100, height: 50, label: 'test' })).toBe(true);
-      expect(is.hasDefinedSize({ x: 0, y: 0, label: 'test' })).toBe(false);
+      expect(is.hasDefinedSize({ position: { x: 0, y: 0 }, size: { width: 100, height: 50 }, label: 'test' })).toBe(true);
+      expect(is.hasDefinedSize({ position: { x: 0, y: 0 }, label: 'test' })).toBe(false);
     });
   });
 });

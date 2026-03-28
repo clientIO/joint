@@ -3,12 +3,12 @@ import { useState, useCallback } from 'react';
 import {
   GraphProvider,
   Paper,
-  useFlatElementData,
+  useElementDefaults,
   useElementSize,
-  useFlatLinkData,
-  type FlatElementData,
+  useLinkDefaults,
+  type Element,
   type FlatElementPort,
-  type FlatLinkData,
+  type Link,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
@@ -19,15 +19,15 @@ interface ElementData {
 }
 
 // Minimal persisted data — no ports, no styling.
-// Ports and theme are provided by useFlatElementData based on element kind.
-const initialElements: Record<string, FlatElementData<ElementData>> = {
-  a: { data: { label: 'Start', type: 'source' }, x: 50, y: 140 },
-  b: { data: { label: 'Process', type: 'process' }, x: 250, y: 50 },
-  c: { data: { label: 'Review', type: 'process' }, x: 250, y: 230 },
-  d: { data: { label: 'Done', type: 'sink' }, x: 480, y: 140 },
+// Ports and theme are provided by useElementDefaults based on element kind.
+const initialElements: Record<string, Element<ElementData>> = {
+  a: { data: { label: 'Start', type: 'source' }, position: { x: 50, y: 140 } },
+  b: { data: { label: 'Process', type: 'process' }, position: { x: 250, y: 50 } },
+  c: { data: { label: 'Review', type: 'process' }, position: { x: 250, y: 230 } },
+  d: { data: { label: 'Done', type: 'sink' }, position: { x: 480, y: 140 } },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'a-b': { source: 'a', target: 'b', sourcePort: 'out', targetPort: 'in' },
   'a-c': { source: 'a', target: 'c', sourcePort: 'out', targetPort: 'in' },
   'b-d': {
@@ -82,45 +82,40 @@ function Diagram() {
   const color = alternate ? SECONDARY : PRIMARY;
   const portShape = alternate ? ('rect' as const) : ('ellipse' as const);
 
-  const { mapDataToElementAttributes } = useFlatElementData<ElementData>(
-    {
-      defaults: (rawData) => {
-        const { data } = rawData;
-        if (!data) {
-          return rawData;
-        }
-        return {
-          width: 100,
-          height: 40,
-          portStyle: {
-            color,
-            shape: portShape,
-            width: 12,
-            height: 12,
-            outline: BG,
-            outlineWidth: 2,
-          },
-          ports: portsByType[data.type] ?? defaultPorts,
-        };
-      },
+  const { mapElementToAttributes } = useElementDefaults<ElementData>(
+    ({ data: rawData }) => {
+      const { data } = rawData;
+      if (!data) {
+        return rawData;
+      }
+      return {
+        size: { width: 100, height: 40 },
+        portStyle: {
+          color,
+          shape: portShape,
+          width: 12,
+          height: 12,
+          outline: BG,
+          outlineWidth: 2,
+        },
+        ports: portsByType[data.type] ?? defaultPorts,
+      };
     },
     [color, portShape]
   );
 
-  const { mapDataToLinkAttributes } = useFlatLinkData(
+  const { mapLinkToAttributes } = useLinkDefaults<undefined>(
     {
-      defaults: {
-        color,
-        width: 3,
-        targetMarker: 'arrow',
-        labelStyle: {
-          color: LIGHT,
-          fontSize: 11,
-          fontFamily: 'monospace',
-          backgroundPadding: { x: 10, y: 5 },
-          backgroundColor: '#1e293b',
-          backgroundOutline: color,
-        },
+      color,
+      width: 3,
+      targetMarker: 'arrow',
+      labelStyle: {
+        color: LIGHT,
+        fontSize: 11,
+        fontFamily: 'monospace',
+        backgroundPadding: { x: 10, y: 5 },
+        backgroundColor: '#1e293b',
+        backgroundOutline: color,
       },
     },
     [color]
@@ -156,13 +151,13 @@ function Diagram() {
       >
         {alternate ? '\u25A0 Square ports' : '\u25CF Round ports'}
       </button>
-      <GraphProvider
+      <GraphProvider<ElementData, undefined>
         elements={elements}
         links={links}
         onElementsChange={setElements}
         onLinksChange={setLinks}
-        mapDataToElementAttributes={mapDataToElementAttributes}
-        mapDataToLinkAttributes={mapDataToLinkAttributes}
+        mapElementToAttributes={mapElementToAttributes}
+        mapLinkToAttributes={mapLinkToAttributes}
       >
         <Paper
           className={PAPER_CLASSNAME}

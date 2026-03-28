@@ -1,31 +1,24 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import type { dia } from '@joint/core';
-import type { CellId } from '../types/cell-id';
-import type {
-  LinkLayout,
-  ElementLayout,
-} from '../types/cell-data';
-import type { PaperStore } from './paper-store';
+import type { ElementPosition, ElementSize, LinkLayout } from '../types/cell-data';
 
 /**
  * Default point used as fallback when position is not available.
  */
 const DEFAULT_POINT = { x: 0, y: 0 } as const;
 
-/**
- * Options for updating layout state.
- */
-export interface UpdateLayoutStateOptions {
-  readonly graph: dia.Graph;
-  readonly papers?: Map<string, PaperStore>;
+/** Layout fields extracted from a JointJS element for the elements container. */
+export interface ElementLayoutFields {
+  readonly position: ElementPosition;
+  readonly size: ElementSize;
+  readonly angle: number;
 }
 
 /**
- * Extracts the layout (position, size, angle) from a JointJS element.
+ * Extracts layout fields (position, size, angle) from a JointJS element.
  * @param element - The JointJS element to extract layout from
- * @returns The node layout or null if the element has no size
+ * @returns The layout fields or null if the element has no size
  */
-export function getElementLayout(element: dia.Element): ElementLayout | null {
+export function getElementLayoutFields(element: dia.Element): ElementLayoutFields | null {
   const size = element.get('size');
   const position = element.get('position') ?? DEFAULT_POINT;
   const angle = element.get('angle') ?? 0;
@@ -33,10 +26,8 @@ export function getElementLayout(element: dia.Element): ElementLayout | null {
     return null;
   }
   return {
-    x: position.x ?? 0,
-    y: position.y ?? 0,
-    width: size?.width ?? 0,
-    height: size?.height ?? 0,
+    position: { x: position.x ?? 0, y: position.y ?? 0 },
+    size: { width: size?.width ?? 0, height: size?.height ?? 0 },
     angle,
   };
 }
@@ -57,47 +48,5 @@ export function getLinkLayout(linkView: dia.LinkView): LinkLayout {
     targetX: targetPoint.x,
     targetY: targetPoint.y,
     d,
-  };
-}
-
-/**
- * Updates layout state (element layouts and per-paper link layouts).
- * @param options - The update options
- * @returns A snapshot of the current graph layout using Maps
- */
-export function getLayout(options: UpdateLayoutStateOptions): { elements: Map<string, ElementLayout>; links: Map<string, Record<CellId, LinkLayout>> } {
-  const { graph, papers } = options;
-  const elementLayouts = new Map<string, ElementLayout>();
-  const linkLayoutsPerPaper = new Map<string, Record<CellId, LinkLayout>>();
-  const elements = graph.getElements();
-
-  for (const element of elements) {
-    const layout = getElementLayout(element);
-    if (!layout) continue;
-    elementLayouts.set(element.id as string, layout);
-  }
-
-  if (papers) {
-    const links = graph.getLinks();
-    for (const [paperId, paperStore] of papers) {
-      const { paper } = paperStore;
-      if (!paper) continue;
-
-      const paperLinkLayouts: Record<CellId, LinkLayout> = {};
-
-      for (const link of links) {
-        const linkView = paper.findViewByModel(link) as dia.LinkView | null;
-        if (!linkView) continue;
-        const newLinkLayout = getLinkLayout(linkView);
-        paperLinkLayouts[link.id] = newLinkLayout;
-      }
-
-      linkLayoutsPerPaper.set(paperId, paperLinkLayouts);
-    }
-  }
-
-  return {
-    elements: elementLayouts,
-    links: linkLayoutsPerPaper,
   };
 }

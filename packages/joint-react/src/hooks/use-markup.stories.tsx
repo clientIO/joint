@@ -4,30 +4,26 @@ import { RenderItemDecorator } from '../../.storybook/decorators/with-simple-dat
 import '../stories/examples/index.css';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../stories/utils/make-story';
-import { useElementLayout } from './use-element-layout';
 import { useCallback } from 'react';
 import { PRIMARY } from '../../.storybook/theme';
-import type { FlatElementData } from '../types/data-types';
-import type { FlatLinkData } from '../types/data-types';
+import type { Element } from '../types/data-types';
+import type { Link } from '../types/data-types';
+import { useElementSize } from './use-element-size';
 
-const elements: Record<string, FlatElementData> = {
+const elements: Record<string, Element> = {
   '1': {
-    x: 100,
-    y: 20,
-    width: 150,
-    height: 50,
+    size: { width: 150, height: 50 },
+    position: { x: 100, y: 20 },
     z: 1,
   },
   '2': {
-    x: 200,
-    y: 250,
-    width: 150,
-    height: 50,
+    size: { width: 150, height: 50 },
+    position: { x: 200, y: 250 },
     z: 1,
   },
 };
 
-const links: Record<string, FlatLinkData> = {
+const links: Record<string, Link> = {
   'l-1': {
     source: '1',
     sourceMagnet: 'my-selector',
@@ -39,7 +35,7 @@ const links: Record<string, FlatLinkData> = {
 };
 
 function Hook() {
-  const { width, height } = useElementLayout();
+  const { width, height } = useElementSize();
   const { selectorRef } = useMarkup();
   return (
     <>

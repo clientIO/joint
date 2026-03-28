@@ -32,13 +32,7 @@
  * ============================================================================
  */
 
-import {
-  GraphProvider,
-  useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
-  Paper,
-} from '@joint/react';
+import { GraphProvider, useElementSize, type Element, type Link, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback } from 'react';
@@ -53,14 +47,14 @@ import { atom, createStore, useAtomValue, useSetAtom, Provider as JotaiProvider 
  */
 type ElementData = { label: string };
 
-type CustomElement = FlatElementData<ElementData>;
+type CustomElement = Element<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, x: 100, y: 15, width: 100, height: 50 },
-  '2': { data: { label: 'World' }, x: 100, y: 200, width: 100, height: 50 },
+  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
+  '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
 };
 
-const defaultLinks: Record<string, FlatLinkData> = {
+const defaultLinks: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -100,7 +94,7 @@ const elementsAtom = atom<Record<string, CustomElement>>(defaultElements);
 /**
  * Jotai atom for graph links.
  */
-const linksAtom = atom<Record<string, FlatLinkData>>(defaultLinks);
+const linksAtom = atom<Record<string, Link>>(defaultLinks);
 
 // ============================================================================
 // STEP 4: Component Implementation
@@ -126,10 +120,8 @@ function PaperApp() {
             const newId = Math.random().toString(36).slice(7);
             const newElement: CustomElement = {
               data: { label: 'New Node' },
-              x: Math.random() * 200,
-              y: Math.random() * 200,
-              width: 100,
-              height: 50,
+              position: { x: Math.random() * 200, y: Math.random() * 200 },
+              size: { width: 100, height: 50 },
             };
 
             setElements((currentElements) => ({
@@ -162,7 +154,7 @@ function PaperApp() {
             const { [removedElementId]: _removed, ...newElements } = currentElements;
 
             // Remove links connected to the removed element
-            const newLinks: Record<string, FlatLinkData> = {};
+            const newLinks: Record<string, Link> = {};
             for (const [id, link] of Object.entries(currentLinks)) {
               if (link.source !== removedElementId && link.target !== removedElementId) {
                 newLinks[id] = link;
@@ -203,7 +195,7 @@ function Main() {
   );
 
   const handleLinksChange = useCallback(
-    (updater: React.SetStateAction<Record<string, FlatLinkData>>) => {
+    (updater: React.SetStateAction<Record<string, Link>>) => {
       const newLinks = typeof updater === 'function' ? updater(jotaiStore.get(linksAtom)) : updater;
       jotaiSetLinks(newLinks);
     },

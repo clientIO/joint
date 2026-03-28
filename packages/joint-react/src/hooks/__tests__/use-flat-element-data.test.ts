@@ -1,542 +1,311 @@
 import { renderHook } from '@testing-library/react';
-import { useFlatElementData } from '../use-flat-element-data';
+import { useElementDefaults } from '../use-element-defaults';
 import { defaultPortStyle } from '../../theme/element-theme';
-import type { FlatElementData } from '../../types/data-types';
+import type { Element } from '../../types/data-types';
 
 describe('useFlatElementData', () => {
+  const minimalElementData: Element = {
+    data: {},
+    position: { x: 10, y: 20 },
+    size: { width: 100, height: 50 },
+  };
 
-    const minimalElementData: FlatElementData = {
-        data: {},
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
-    };
+  function callForwardMapper(
+    hook: ReturnType<typeof useElementDefaults<any>>,
+    element: Element = minimalElementData
+  ) {
+    return hook.mapElementToAttributes!({
+      id: 'el-1',
+      element,
+    });
+  }
 
-    const mockGraph = {} as never;
+  // ── No options ─────────────────────────────────────────────────────────
 
-    function callForwardMapper(
-        hook: ReturnType<typeof useFlatElementData<any>>,
-        data: FlatElementData = minimalElementData,
-    ) {
-        return hook.mapDataToElementAttributes!({
-            id: 'el-1',
-            data,
-            graph: mockGraph,
-        });
-    }
+  it('returns passthrough flat mapper when no options given', () => {
+    const { result } = renderHook(() => useElementDefaults({}));
+    const cellJson = callForwardMapper(result.current);
+    expect(cellJson.position).toEqual({ x: 10, y: 20 });
+    expect(cellJson.size).toEqual({ width: 100, height: 50 });
+  });
 
-    function callReverseMapper(
-        hook: ReturnType<typeof useFlatElementData<any>>,
-        attributes: Record<string, unknown> = {},
-    ) {
-        return hook.mapElementAttributesToData!({
-            id: 'el-1',
-            attributes: attributes as never,
-            defaultAttributes: {} as never,
-            element: {} as never,
-            graph: mockGraph,
-        });
-    }
+  // ── Defaults only ──────────────────────────────────────────────────────
 
-    // ── No options ─────────────────────────────────────────────────────────
-
-    it('returns passthrough flat mapper when no options given', () => {
-        const { result } = renderHook(() => useFlatElementData());
-        const cellJson = callForwardMapper(result.current);
-        expect(cellJson.position).toEqual({ x: 10, y: 20 });
-        expect(cellJson.size).toEqual({ width: 100, height: 50 });
+  it('applies static portDefaults to ports', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({ portStyle: { color: 'red' } })
+    );
+    const cellJson = callForwardMapper(result.current, {
+      ...minimalElementData,
+      ports: { p1: { cx: 0, cy: 0 } },
     });
 
-    it('returns passthrough reverse mapper when no options given', () => {
-        const { result } = renderHook(() => useFlatElementData());
-        const data = callReverseMapper(result.current, {
-            position: { x: 10, y: 20 },
-            size: { width: 100, height: 50 },
-            data: { label: 'hello' },
-        });
-        expect(data).toEqual({ data: { label: 'hello' } });
+    const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
+    const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
+    expect(portBody?.style?.fill).toBe('red');
+    expect(portBody?.style?.strokeWidth).toBe(defaultPortStyle.outlineWidth);
+  });
+
+  it('applies static data defaults (ports, dimensions)', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({
+        size: { width: 200, height: 80 },
+        ports: {
+          out: { cx: 'calc(w)', cy: 'calc(0.5*h)' },
+        },
+      })
+    );
+    const cellJson = callForwardMapper(result.current, { data: {}, position: { x: 50, y: 50 } });
+
+    expect(cellJson.size).toEqual({ width: 200, height: 80 });
+    const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
+    expect(portItem).toBeDefined();
+  });
+
+  it('element data takes precedence over static data defaults', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({ size: { width: 200, height: 80 } })
+    );
+    const cellJson = callForwardMapper(result.current, {
+      data: {},
+      position: { x: 10, y: 20 },
+      size: { width: 300, height: 100 },
     });
 
-    // ── Defaults only ──────────────────────────────────────────────────────
+    expect(cellJson.size).toEqual({ width: 300, height: 100 });
+  });
 
-    it('applies static portDefaults to ports', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: { portStyle: { color: 'red' } },
-        }));
-        const cellJson = callForwardMapper(result.current, {
-            ...minimalElementData,
-            ports: { p1: { cx: 0, cy: 0 } },
-        });
+  it('applies portDefaults to all ports', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({
+        size: { width: 120, height: 60 },
+        ports: { p1: { cx: 0, cy: 0 } },
+        portStyle: { color: 'blue', width: 16 },
+      })
+    );
+    const cellJson = callForwardMapper(result.current, { data: {}, position: { x: 0, y: 0 } });
 
-        const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
-        const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
-        expect(portBody?.style?.fill).toBe('red');
-        expect(portBody?.style?.strokeWidth).toBe(defaultPortStyle.outlineWidth);
-    });
+    expect(cellJson.size).toEqual({ width: 120, height: 60 });
+    const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
+    const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
+    expect(portBody?.style?.fill).toBe('blue');
+    expect(portItem?.size).toEqual({ width: 16, height: defaultPortStyle.height });
+  });
 
-    it('applies static data defaults (ports, dimensions)', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: {
-                width: 200,
-                height: 80,
-                ports: {
-                    out: { cx: 'calc(w)', cy: 'calc(0.5*h)' },
-                },
-            },
-        }));
-        const cellJson = callForwardMapper(result.current, { data: {}, x: 50, y: 50 });
+  // ── Defaults with size ──────────────────────────────────────────
 
-        expect(cellJson.size).toEqual({ width: 200, height: 80 });
-        const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
-        expect(portItem).toBeDefined();
-    });
+  it('defaults with size produce correct size and are not in result.data', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({ size: { width: 150, height: 75 } })
+    );
+    const cellJson = callForwardMapper(result.current, { data: {}, position: { x: 10, y: 20 } });
 
-    it('element data takes precedence over static data defaults', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: { width: 200, height: 80 },
-        }));
-        const cellJson = callForwardMapper(result.current, {
-            data: {},
-            x: 10,
-            y: 20,
-            width: 300,
-            height: 100,
-        });
+    expect(cellJson.size).toEqual({ width: 150, height: 75 });
+    const cellData = cellJson.data as Record<string, unknown>;
+    expect(cellData).not.toHaveProperty('size');
+  });
 
-        expect(cellJson.size).toEqual({ width: 300, height: 100 });
-    });
+  // ── Callback defaults ──────────────────────────────────────────────────
 
-    it('applies portDefaults to all ports', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: {
-                width: 120,
-                height: 60,
-                ports: { p1: { cx: 0, cy: 0 } },
-                portStyle: { color: 'blue', width: 16 },
-            },
-        }));
-        const cellJson = callForwardMapper(result.current, { data: {}, x: 0, y: 0 });
-
-        expect(cellJson.size).toEqual({ width: 120, height: 60 });
-        const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
-        const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
-        expect(portBody?.style?.fill).toBe('blue');
-        expect(portItem?.size).toEqual({ width: 16, height: defaultPortStyle.height });
-    });
-
-    // ── Defaults with width/height ──────────────────────────────────────────
-
-    it('defaults with width/height produce correct size and are not in result.data', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: { width: 150, height: 75 },
-        }));
-        const cellJson = callForwardMapper(result.current, { data: {}, x: 10, y: 20 });
-
-        expect(cellJson.size).toEqual({ width: 150, height: 75 });
-        const cellData = cellJson.data as Record<string, unknown>;
-        expect(cellData).not.toHaveProperty('width');
-        expect(cellData).not.toHaveProperty('height');
-    });
-
-    // ── Callback defaults ──────────────────────────────────────────────────
-
-    it('applies per-element defaults via callback', () => {
-        const portsByKind: Record<string, Record<string, { cx: number | string; cy: string }>> = {
-            start: { out: { cx: 'calc(w)', cy: 'calc(0.5*h)' } },
+  it('applies per-element defaults via callback', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults(({ data: element }) => {
+        const kind = (element.data as Record<string, unknown>)?.kind as string | undefined;
+        return {
+          portStyle: { color: kind === 'start' ? 'green' : 'orange' },
         };
-        const defaultPorts = {
-            in: { cx: 0, cy: 'calc(0.5*h)' },
-            out: { cx: 'calc(w)', cy: 'calc(0.5*h)' },
-        };
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: (data) => {
-                const kind = (data.data as Record<string, unknown>)?.kind as string | undefined;
-                const ports = portsByKind[kind as string] ?? defaultPorts;
-                return {
-                    ports,
-                    portStyle: { color: kind === 'start' ? 'green' : 'orange' },
-                };
-            },
-        }));
+      })
+    );
 
-        // "start" element — 1 port, green
-        const startJson = callForwardMapper(result.current, { ...minimalElementData, data: { kind: 'start' } });
-        const startPorts = (startJson.ports as { items: Array<Record<string, unknown>> })?.items;
-        expect(startPorts).toHaveLength(1);
-        const startBody = (startPorts[0]?.attrs as Record<string, Record<string, any>>)?.portBody;
-        expect(startBody?.style?.fill).toBe('green');
+    // "start" element — gets green port color
+    const startJson = callForwardMapper(result.current, {
+      ...minimalElementData,
+      data: { kind: 'start' },
+      ports: { out: { cx: 'calc(w)', cy: 'calc(0.5*h)' } },
+    });
+    const startPorts = (startJson.ports as { items: Array<Record<string, unknown>> })?.items;
+    expect(startPorts).toHaveLength(1);
+    const startBody = (startPorts[0]?.attrs as Record<string, Record<string, any>>)?.portBody;
+    expect(startBody?.style?.fill).toBe('green');
 
-        // Other element — 2 ports, orange
-        const otherJson = callForwardMapper(result.current, { ...minimalElementData, data: { kind: 'process' } });
-        const otherPorts = (otherJson.ports as { items: Array<Record<string, unknown>> })?.items;
-        expect(otherPorts).toHaveLength(2);
-        const otherBody = (otherPorts[0]?.attrs as Record<string, Record<string, any>>)?.portBody;
-        expect(otherBody?.style?.fill).toBe('orange');
+    // Other element — gets orange port color
+    const otherJson = callForwardMapper(result.current, {
+      ...minimalElementData,
+      data: { kind: 'process' },
+      ports: {
+        in: { cx: 0, cy: 'calc(0.5*h)' },
+        out: { cx: 'calc(w)', cy: 'calc(0.5*h)' },
+      },
+    });
+    const otherPorts = (otherJson.ports as { items: Array<Record<string, unknown>> })?.items;
+    expect(otherPorts).toHaveLength(2);
+    const otherBody = (otherPorts[0]?.attrs as Record<string, Record<string, any>>)?.portBody;
+    expect(otherBody?.style?.fill).toBe('orange');
+  });
+
+  // ── Round-trip pollution (defaults) ─────────────────────────────────────
+
+  it('does not pollute cell.data with default-provided keys', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({
+        portStyle: { color: 'red' },
+        ports: { p1: { cx: 0, cy: 0 } },
+      })
+    );
+    const cellJson = callForwardMapper(result.current, {
+      data: {},
+      position: { x: 10, y: 20 },
+      size: { width: 100, height: 50 },
+    });
+    const cellData = cellJson.data as Record<string, unknown>;
+
+    expect(cellData).not.toHaveProperty('portStyle');
+    expect(cellData).not.toHaveProperty('ports');
+  });
+
+  it('preserves user-provided keys that overlap with defaults in cell.data', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({ portStyle: { color: 'red' } })
+    );
+    const cellJson = callForwardMapper(result.current, {
+      data: {},
+      position: { x: 10, y: 20 },
+      size: { width: 100, height: 50 },
+      portStyle: { color: 'blue' },
+    } as Element);
+    const cellData = cellJson.data as Record<string, unknown>;
+
+    expect(cellData).toHaveProperty('portStyle');
+  });
+
+  // ── Memoization ────────────────────────────────────────────────────────
+
+  it('returns stable reference for static defaults', () => {
+    const { result, rerender } = renderHook(() =>
+      useElementDefaults({ portStyle: { color: 'blue' } })
+    );
+    const firstForward = result.current.mapElementToAttributes;
+    rerender();
+    expect(result.current.mapElementToAttributes).toBe(firstForward);
+  });
+
+  const stableCallback = ({ data: element }: { data: Element }) => ({
+    portStyle: { color: (element.data as Record<string, unknown>)?.kind === 'a' ? 'red' : 'blue' },
+  });
+
+  it('returns stable reference for callback defaults', () => {
+    const { result, rerender } = renderHook(() => useElementDefaults(stableCallback));
+    const firstForward = result.current.mapElementToAttributes;
+    rerender();
+    expect(result.current.mapElementToAttributes).toBe(firstForward);
+  });
+
+  it('recreates mapper when deps change', () => {
+    let color = 'red';
+    const { result, rerender } = renderHook(() =>
+      useElementDefaults(() => ({ portStyle: { color } }), [color])
+    );
+    const firstForward = result.current.mapElementToAttributes;
+
+    // Same deps — stable
+    rerender();
+    expect(result.current.mapElementToAttributes).toBe(firstForward);
+
+    // Deps change — new reference
+    color = 'blue';
+    rerender();
+    expect(result.current.mapElementToAttributes).not.toBe(firstForward);
+  });
+
+  // ── Defaults where result.data is falsy ─────────────────────────────
+
+  it('handles defaults when elementToAttributes returns no data field', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({ position: { x: 5, y: 10 } })
+    );
+    const cellJson = callForwardMapper(result.current, {
+      position: { x: 50, y: 60 },
+      size: { width: 100, height: 50 },
     });
 
-    // ── Round-trip pollution (defaults) ─────────────────────────────────────
+    expect(cellJson.position).toEqual({ x: 50, y: 60 });
+  });
 
-    it('does not pollute cell.data with default-provided keys', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: {
-                portStyle: { color: 'red' },
-                ports: { p1: { cx: 0, cy: 0 } },
-            },
-        }));
-        const cellJson = callForwardMapper(result.current, {
-            data: {}, x: 10, y: 20, width: 100, height: 50,
-        });
-        const cellData = cellJson.data as Record<string, unknown>;
+  // ── Color changes with defaults (integration-style) ─────────────────
 
-        expect(cellData).not.toHaveProperty('portStyle');
-        expect(cellData).not.toHaveProperty('ports');
+  it('default color is applied when element data does not specify color', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({ portStyle: { color: '#ff0000' } })
+    );
+    const cellJson = callForwardMapper(result.current, {
+      ...minimalElementData,
+      ports: { p1: { cx: 0, cy: 0 } },
     });
 
-    it('preserves user-provided keys that overlap with defaults in cell.data', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: { portStyle: { color: 'red' } },
-        }));
-        const cellJson = callForwardMapper(result.current, {
-            data: {}, x: 10, y: 20, width: 100, height: 50,
-            portStyle: { color: 'blue' },
-        } as FlatElementData);
-        const cellData = cellJson.data as Record<string, unknown>;
+    const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
+    const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
+    expect(portBody?.style?.fill).toBe('#ff0000');
+  });
 
-        expect(cellData).toHaveProperty('portStyle');
+  it('element data color overrides default color', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({ portStyle: { color: '#ff0000' } })
+    );
+    const cellJson = callForwardMapper(result.current, {
+      ...minimalElementData,
+      portStyle: { color: '#00ff00' },
+      ports: { p1: { cx: 0, cy: 0 } },
+    } as Element);
+
+    const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
+    const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
+    expect(portBody?.style?.fill).toBe('#00ff00');
+  });
+
+  it('changing color via deps recreates mapper with new color', () => {
+    let portColor = 'red';
+    const { result, rerender } = renderHook(() =>
+      useElementDefaults(
+        { portStyle: { color: portColor } },
+        [portColor]
+      )
+    );
+
+    // First render: red
+    const redJson = callForwardMapper(result.current, {
+      ...minimalElementData,
+      ports: { p1: { cx: 0, cy: 0 } },
     });
+    const redPort = (redJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
+    const redBody = (redPort?.attrs as Record<string, Record<string, any>>)?.portBody;
+    expect(redBody?.style?.fill).toBe('red');
 
-    // ── Pick only ──────────────────────────────────────────────────────────
+    // Change color and re-render
+    portColor = 'blue';
+    rerender();
 
-    it('pick filters reverse-mapped data to only picked keys', () => {
-        const { result } = renderHook(() => useFlatElementData<FlatElementData & { label: string; kind: string }>({
-            pick: ['data'],
-        }));
-        const data = callReverseMapper(result.current, {
-            position: { x: 10, y: 20 },
-            size: { width: 100, height: 50 },
-            z: 5,
-            data: { label: 'hello', kind: 'process', extra: 'should-be-removed' },
-        });
-
-        expect(data).toEqual({ data: { label: 'hello', kind: 'process', extra: 'should-be-removed' } });
-        expect(data).not.toHaveProperty('x');
-        expect(data).not.toHaveProperty('y');
-        expect(data).not.toHaveProperty('width');
-        expect(data).not.toHaveProperty('height');
-        expect(data).not.toHaveProperty('z');
+    const blueJson = callForwardMapper(result.current, {
+      ...minimalElementData,
+      ports: { p1: { cx: 0, cy: 0 } },
     });
+    const bluePort = (blueJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
+    const blueBody = (bluePort?.attrs as Record<string, Record<string, any>>)?.portBody;
+    expect(blueBody?.style?.fill).toBe('blue');
+  });
 
-    // ── Defaults + Pick ────────────────────────────────────────────────────
+  // ── Forward round-trip ────────────────────────────────────────────
 
-    it('defaults + pick: forward applies defaults, reverse strips to picked keys', () => {
-        const { result } = renderHook(() => useFlatElementData<FlatElementData & { label: string }>({
-            defaults: { width: 100, height: 50 },
-            pick: ['data'],
-        }));
+  it('forward mapper applies defaults correctly', () => {
+    const { result } = renderHook(() =>
+      useElementDefaults({ size: { width: 200, height: 100 } })
+    );
 
-        // Forward: defaults applied
-        const cellJson = callForwardMapper(result.current, { x: 10, y: 20, data: { label: 'test' } } as never);
-        expect(cellJson.size).toEqual({ width: 100, height: 50 });
-        const cellData = cellJson.data as Record<string, unknown>;
-        expect(cellData).not.toHaveProperty('width');
-        expect(cellData).not.toHaveProperty('height');
-
-        // Reverse: only picked keys
-        const data = callReverseMapper(result.current, {
-            position: { x: 10, y: 20 },
-            size: { width: 100, height: 50 },
-            data: { label: 'test' },
-        });
-        expect(data).toEqual({ data: { label: 'test' } });
-        expect(data).not.toHaveProperty('x');
-        expect(data).not.toHaveProperty('width');
+    // Forward: user data → cell attributes
+    const cellJson = callForwardMapper(result.current, {
+      data: { label: 'my-node', kind: 'task' },
+      position: { x: 30, y: 40 },
     });
-
-    // ── Pick preserves interactive values ───────────────────────────────────
-
-    it('pick preserves picked values even after user interaction (e.g. data in pick)', () => {
-        const { result } = renderHook(() => useFlatElementData<FlatElementData & { label: string }>({
-            defaults: { width: 100, height: 50 },
-            pick: ['data'],
-        }));
-
-        // Simulate: user resized to 200x100
-        const data = callReverseMapper(result.current, {
-            position: { x: 10, y: 20 },
-            size: { width: 200, height: 100 },
-            data: { label: 'test' },
-        });
-        expect(data).toEqual({ data: { label: 'test' } });
-        expect(data).not.toHaveProperty('x');
-        expect(data).not.toHaveProperty('y');
-    });
-
-    // ── mapAttributes (forward post-processing) ────────────────────────────
-
-    it('mapAttributes post-processes forward-mapped attributes', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            mapAttributes: ({ attributes }) => ({
-                ...attributes,
-                attrs: { body: { fill: 'red' } },
-            }),
-        }));
-
-        const cellJson = callForwardMapper(result.current);
-        expect(cellJson.attrs).toEqual({ body: { fill: 'red' } });
-        expect(cellJson.position).toEqual({ x: 10, y: 20 });
-    });
-
-    it('mapAttributes receives original data and graph', () => {
-        let receivedData: FlatElementData | undefined;
-        let receivedGraph: unknown;
-
-        const { result } = renderHook(() => useFlatElementData({
-            mapAttributes: ({ attributes, data, graph }) => {
-                receivedData = data;
-                receivedGraph = graph;
-                return attributes;
-            },
-        }));
-
-        callForwardMapper(result.current);
-        expect(receivedData).toEqual(minimalElementData);
-        expect(receivedGraph).toBe(mockGraph);
-    });
-
-    // ── mapData (reverse post-processing) ──────────────────────────────────
-
-    it('mapData post-processes reverse-mapped data', () => {
-        const { result } = renderHook(() => useFlatElementData<FlatElementData & { custom: string }>({
-            mapData: ({ data }) => ({
-                ...data,
-                custom: 'injected',
-            }),
-        }));
-
-        const data = callReverseMapper(result.current, {
-            position: { x: 10, y: 20 },
-            size: { width: 100, height: 50 },
-            data: { label: 'hello' },
-        });
-        expect(data.custom).toBe('injected');
-        expect((data as Record<string, unknown>).data).toEqual({ label: 'hello' });
-    });
-
-    it('mapData runs before pick', () => {
-        const { result } = renderHook(() => useFlatElementData<FlatElementData & { label: string; derived: string }>({
-            mapData: ({ data }) => ({
-                ...data,
-                derived: 'computed',
-            }),
-            pick: ['data', 'derived'],
-        }));
-
-        const data = callReverseMapper(result.current, {
-            position: { x: 10, y: 20 },
-            size: { width: 100, height: 50 },
-            data: { label: 'hello' },
-        });
-        expect(data).toEqual({ data: { label: 'hello' }, derived: 'computed' });
-        expect(data).not.toHaveProperty('x');
-    });
-
-    // ── Memoization ────────────────────────────────────────────────────────
-
-    it('returns stable reference for static defaults', () => {
-        const { result, rerender } = renderHook(() =>
-            useFlatElementData({ defaults: { portStyle: { color: 'blue' } } }),
-        );
-        const firstForward = result.current.mapDataToElementAttributes;
-        const firstReverse = result.current.mapElementAttributesToData;
-        rerender();
-        expect(result.current.mapDataToElementAttributes).toBe(firstForward);
-        expect(result.current.mapElementAttributesToData).toBe(firstReverse);
-    });
-
-    const stableCallback = (data: FlatElementData) => ({
-        portStyle: { color: (data.data as Record<string, unknown>)?.kind === 'a' ? 'red' : 'blue' },
-    });
-
-    it('returns stable reference for callback defaults', () => {
-        const { result, rerender } = renderHook(() =>
-            useFlatElementData({ defaults: stableCallback }),
-        );
-        const firstForward = result.current.mapDataToElementAttributes;
-        const firstReverse = result.current.mapElementAttributesToData;
-        rerender();
-        expect(result.current.mapDataToElementAttributes).toBe(firstForward);
-        expect(result.current.mapElementAttributesToData).toBe(firstReverse);
-    });
-
-    it('recreates mapper when deps change', () => {
-        let color = 'red';
-        const { result, rerender } = renderHook(() =>
-            useFlatElementData({ defaults: () => ({ portStyle: { color } }) }, [color]),
-        );
-        const firstForward = result.current.mapDataToElementAttributes;
-        const firstReverse = result.current.mapElementAttributesToData;
-
-        // Same deps — stable
-        rerender();
-        expect(result.current.mapDataToElementAttributes).toBe(firstForward);
-        expect(result.current.mapElementAttributesToData).toBe(firstReverse);
-
-        // Deps change — new reference
-        color = 'blue';
-        rerender();
-        expect(result.current.mapDataToElementAttributes).not.toBe(firstForward);
-        expect(result.current.mapElementAttributesToData).not.toBe(firstReverse);
-    });
-
-    // ── pick with non-existent keys ──────────────────────────────────────
-
-    it('pick ignores keys that do not exist in the reverse-mapped data', () => {
-        const { result } = renderHook(() => useFlatElementData<FlatElementData & { missing: string }>({
-            pick: ['data', 'missing'],
-        }));
-        const data = callReverseMapper(result.current, {
-            position: { x: 10, y: 20 },
-            size: { width: 100, height: 50 },
-            data: { label: 'hello' },
-        });
-
-        expect(data).toEqual({ data: { label: 'hello' } });
-        expect(data).not.toHaveProperty('missing');
-    });
-
-    // ── Defaults where result.data is falsy ─────────────────────────────
-
-    it('handles defaults when flatElementDataToAttributes returns no data field', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: { x: 5, y: 10 },
-        }));
-        // Only position defaults, no user data keys — result.data may be empty/undefined
-        const cellJson = callForwardMapper(result.current, {
-            x: 50,
-            y: 60,
-            width: 100,
-            height: 50,
-        });
-
-        expect(cellJson.position).toEqual({ x: 50, y: 60 });
-    });
-
-    // ── Color changes with defaults (integration-style) ─────────────────
-
-    it('default color is applied when element data does not specify color', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: { portStyle: { color: '#ff0000' } },
-        }));
-        const cellJson = callForwardMapper(result.current, {
-            ...minimalElementData,
-            ports: { p1: { cx: 0, cy: 0 } },
-        });
-
-        const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
-        const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
-        expect(portBody?.style?.fill).toBe('#ff0000');
-    });
-
-    it('element data color overrides default color', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: { portStyle: { color: '#ff0000' } },
-        }));
-        const cellJson = callForwardMapper(result.current, {
-            ...minimalElementData,
-            portStyle: { color: '#00ff00' },
-            ports: { p1: { cx: 0, cy: 0 } },
-        } as FlatElementData);
-
-        const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
-        const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;
-        expect(portBody?.style?.fill).toBe('#00ff00');
-    });
-
-    it('changing color via deps recreates mapper with new color', () => {
-        let portColor = 'red';
-        const { result, rerender } = renderHook(() =>
-            useFlatElementData({
-                defaults: { portStyle: { color: portColor } },
-            }, [portColor]),
-        );
-
-        // First render: red
-        const redJson = callForwardMapper(result.current, {
-            ...minimalElementData,
-            ports: { p1: { cx: 0, cy: 0 } },
-        });
-        const redPort = (redJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
-        const redBody = (redPort?.attrs as Record<string, Record<string, any>>)?.portBody;
-        expect(redBody?.style?.fill).toBe('red');
-
-        // Change color and re-render
-        portColor = 'blue';
-        rerender();
-
-        const blueJson = callForwardMapper(result.current, {
-            ...minimalElementData,
-            ports: { p1: { cx: 0, cy: 0 } },
-        });
-        const bluePort = (blueJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
-        const blueBody = (bluePort?.attrs as Record<string, Record<string, any>>)?.portBody;
-        expect(blueBody?.style?.fill).toBe('blue');
-    });
-
-    // ── Forward + reverse round-trip ────────────────────────────────────
-
-    it('round-trip: forward then reverse preserves user data', () => {
-        const { result } = renderHook(() => useFlatElementData({
-            defaults: { width: 200, height: 100 },
-        }));
-
-        // Forward: user data → cell attributes
-        const cellJson = callForwardMapper(result.current, {
-            data: { label: 'my-node', kind: 'task' },
-            x: 30,
-            y: 40,
-        });
-        expect(cellJson.size).toEqual({ width: 200, height: 100 });
-        expect(cellJson.position).toEqual({ x: 30, y: 40 });
-
-        // Reverse: cell attributes → user data
-        const data = callReverseMapper(result.current, {
-            position: cellJson.position,
-            size: cellJson.size,
-            data: cellJson.data,
-        });
-        expect((data as Record<string, unknown>).data).toEqual({ label: 'my-node', kind: 'task' });
-    });
-
-    // ── All options combined ────────────────────────────────────────────
-
-    it('defaults + mapAttributes + mapData + pick work together', () => {
-        const { result } = renderHook(() => useFlatElementData<FlatElementData & { enriched: boolean }>({
-            defaults: { width: 120, height: 60 },
-            mapAttributes: ({ attributes }) => ({
-                ...attributes,
-                attrs: { body: { fill: 'yellow' } },
-            }),
-            mapData: ({ data }) => ({
-                ...data,
-                enriched: true,
-            }),
-            pick: ['data', 'enriched'],
-        }));
-
-        // Forward: defaults + mapAttributes
-        const cellJson = callForwardMapper(result.current, { data: { label: 'test' }, x: 0, y: 0 });
-        expect(cellJson.size).toEqual({ width: 120, height: 60 });
-        expect(cellJson.attrs).toEqual({ body: { fill: 'yellow' } });
-
-        // Reverse: mapData + pick
-        const data = callReverseMapper(result.current, {
-            position: { x: 0, y: 0 },
-            size: { width: 120, height: 60 },
-            data: { label: 'test' },
-        });
-        expect(data).toEqual({ data: { label: 'test' }, enriched: true });
-        expect(data).not.toHaveProperty('x');
-        expect(data).not.toHaveProperty('width');
-    });
+    expect(cellJson.size).toEqual({ width: 200, height: 100 });
+    expect(cellJson.position).toEqual({ x: 30, y: 40 });
+  });
 });

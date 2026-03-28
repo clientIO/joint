@@ -5,10 +5,9 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  useElementLayout,
   useMeasureNode,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   useElements,
   useLinks,
 } from '@joint/react';
@@ -24,13 +23,25 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node A', color: PRIMARY }, x: 50, y: 50, width: 120, height: 60 },
-  '2': { data: { label: 'Node B', color: SECONDARY }, x: 250, y: 50, width: 120, height: 60 },
-  '3': { data: { label: 'Node C', color: PRIMARY }, x: 150, y: 180, width: 120, height: 60 },
+const initialElements: Record<string, Element<NodeData>> = {
+  '1': {
+    data: { label: 'Node A', color: PRIMARY },
+    position: { x: 50, y: 50 },
+    size: { width: 120, height: 60 },
+  },
+  '2': {
+    data: { label: 'Node B', color: SECONDARY },
+    position: { x: 250, y: 50 },
+    size: { width: 120, height: 60 },
+  },
+  '3': {
+    data: { label: 'Node C', color: PRIMARY },
+    position: { x: 150, y: 180 },
+    size: { width: 120, height: 60 },
+  },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'link-1-2': {
     source: '1',
     target: '2',
@@ -78,11 +89,19 @@ function RenderElement({ label, color }: Readonly<NodeData>) {
 interface ElementControlsProps {
   readonly id: string;
   readonly element?: NodeData;
+  readonly position?: { x?: number; y?: number };
+  readonly size?: { width?: number; height?: number };
+  readonly angle?: number;
 }
 
-function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
-  const { setElement, removeElement } = useGraph();
-  const layout = useElementLayout(id);
+function ElementControls({
+  id,
+  element,
+  position,
+  size: layout,
+  angle,
+}: Readonly<ElementControlsProps>) {
+  const { setElement, removeElement } = useGraph<NodeData>();
   const inputStyle = {
     padding: '6px 10px',
     border: '1px solid rgba(0, 0, 0, 0.15)',
@@ -158,18 +177,24 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
         <label style={{ width: 45, fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Pos</label>
         <input
           type="number"
-          value={layout?.x ?? 0}
+          value={position?.x ?? 0}
           onChange={(event) =>
-            setElement(id, (previous) => ({ ...previous, x: Number(event.target.value) }))
+            setElement(id, (previous) => ({
+              ...previous,
+              position: { x: Number(event.target.value), y: previous.position?.y ?? 0 },
+            }))
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="X"
         />
         <input
           type="number"
-          value={layout?.y ?? 0}
+          value={position?.y ?? 0}
           onChange={(event) =>
-            setElement(id, (previous) => ({ ...previous, y: Number(event.target.value) }))
+            setElement(id, (previous) => ({
+              ...previous,
+              position: { x: previous.position?.x ?? 0, y: Number(event.target.value) },
+            }))
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="Y"
@@ -183,7 +208,10 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           type="number"
           value={layout?.width ?? 0}
           onChange={(event) =>
-            setElement(id, (previous) => ({ ...previous, width: Number(event.target.value) }))
+            setElement(id, (previous) => ({
+              ...previous,
+              size: { width: Number(event.target.value), height: previous.size?.height ?? 0 },
+            }))
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="W"
@@ -192,7 +220,10 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           type="number"
           value={layout?.height ?? 0}
           onChange={(event) =>
-            setElement(id, (previous) => ({ ...previous, height: Number(event.target.value) }))
+            setElement(id, (previous) => ({
+              ...previous,
+              size: { width: previous.size?.width ?? 0, height: Number(event.target.value) },
+            }))
           }
           style={{ ...inputStyle, width: 65 }}
           placeholder="H"
@@ -206,13 +237,13 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
           type="range"
           min="0"
           max="360"
-          value={layout?.angle ?? 0}
+          value={angle ?? 0}
           onChange={(event) =>
             setElement(id, (previous) => ({ ...previous, angle: Number(event.target.value) }))
           }
           style={{ flex: 1, accentColor: PRIMARY }}
         />
-        <span style={{ fontSize: 11, width: 32, color: '#6b7280' }}>{layout?.angle ?? 0}°</span>
+        <span style={{ fontSize: 11, width: 32, color: '#6b7280' }}>{angle ?? 0}°</span>
       </div>
 
       {/* Remove */}
@@ -237,7 +268,7 @@ function ElementControls({ id, element }: Readonly<ElementControlsProps>) {
   );
 }
 
-function getLinkEndpointId(endpoint: FlatLinkData['source']): string {
+function getLinkEndpointId(endpoint: Link['source']): string {
   if (typeof endpoint === 'string') return endpoint;
   if (typeof endpoint === 'object' && 'id' in endpoint) {
     return String(endpoint.id);
@@ -247,7 +278,7 @@ function getLinkEndpointId(endpoint: FlatLinkData['source']): string {
 
 interface LinkControlsProps {
   readonly id: string;
-  readonly link: FlatLinkData;
+  readonly link: Link;
 }
 
 function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
@@ -315,8 +346,8 @@ function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
 }
 
 function AddElementForm() {
-  const { setElement } = useGraph();
-  const elements = useElements<NodeData>();
+  const { setElement } = useGraph<NodeData>();
+  const elements = useElements();
   const [label, setLabel] = useState('');
 
   const handleAdd = () => {
@@ -334,10 +365,8 @@ function AddElementForm() {
 
     setElement(newId, {
       data: { label: label.trim(), color: PRIMARY },
-      x: randomX,
-      y: randomY,
-      width: 120,
-      height: 60,
+      position: { x: randomX, y: randomY },
+      size: { width: 120, height: 60 },
     });
     setLabel('');
   };
@@ -393,7 +422,7 @@ function AddElementForm() {
 
 function AddLinkForm() {
   const { setLink } = useGraph();
-  const elements = useElements<NodeData>();
+  const elements = useElements();
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
 
@@ -444,7 +473,7 @@ function AddLinkForm() {
           <option value="">From...</option>
           {elementIds.map((id) => (
             <option key={id} value={id}>
-              {elements.get(id)?.data?.label}
+              {(elements.get(id)?.data as NodeData | undefined)?.label}
             </option>
           ))}
         </select>
@@ -456,7 +485,7 @@ function AddLinkForm() {
           <option value="">To...</option>
           {elementIds.map((id) => (
             <option key={id} value={id}>
-              {elements.get(id)?.data?.label}
+              {(elements.get(id)?.data as NodeData | undefined)?.label}
             </option>
           ))}
         </select>
@@ -547,7 +576,14 @@ function Main() {
           Nodes ({elements.size})
         </div>
         {[...elements.entries()].map(([id, element]) => (
-          <ElementControls key={id} id={id} element={element.data} />
+          <ElementControls
+            key={id}
+            id={id}
+            element={element.data}
+            position={element.position}
+            size={element.size}
+            angle={element.angle}
+          />
         ))}
 
         {/* Link Controls */}

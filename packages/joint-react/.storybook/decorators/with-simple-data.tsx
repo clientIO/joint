@@ -4,8 +4,8 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
-import type { FlatElementData } from '@joint/react';
-import { GraphProvider, useElementId, useMeasureNode, type FlatLinkData } from '@joint/react';
+import type { Element } from '@joint/react';
+import { GraphProvider, useElementId, useMeasureNode, type Link } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
@@ -17,7 +17,7 @@ export type StoryCtx = StoryContext<any, any>;
 
 export const testElements: Record<
   string,
-  FlatElementData<{
+  Element<{
     label: string;
     color: string;
     hoverColor: string;
@@ -29,10 +29,8 @@ export const testElements: Record<
       color: PRIMARY,
       hoverColor: 'red',
     },
-    x: 100,
-    y: 20,
-    width: 150,
-    height: 50,
+    position: { x: 100, y: 20 },
+    size: { width: 150, height: 50 },
     angle: 0,
   },
   '2': {
@@ -41,16 +39,20 @@ export const testElements: Record<
       color: PRIMARY,
       hoverColor: 'blue',
     },
-    x: 200,
-    y: 250,
-    width: 150,
-    height: 50,
+    position: {
+      x: 200,
+      y: 250,
+    },
+    size: {
+      width: 150,
+      height: 50,
+    },
     angle: 0,
   },
 };
 
 export type SimpleElement = (typeof testElements)[string];
-export const testLinks: Record<string, FlatLinkData> = {
+export const testLinks: Record<string, Link> = {
   'l-1': {
     source: '1',
     target: '2',
@@ -78,13 +80,16 @@ export function RenderItemDecorator(
   properties: Readonly<{
     renderElement: () => JSX.Element;
     renderLink?: () => JSX.Element;
-    elements?: Record<string, FlatElementData>;
-    links?: Record<string, FlatLinkData>;
+    elements?: Record<string, Element>;
+    links?: Record<string, Link>;
   }>
 ) {
   return (
     <div style={{ width: '100%', height: 450 }}>
-      <GraphProvider elements={properties.elements ?? testElements} links={properties.links ?? testLinks}>
+      <GraphProvider
+        elements={properties.elements ?? testElements}
+        links={properties.links ?? testLinks}
+      >
         <Paper
           height={450}
           className={PAPER_CLASSNAME}
@@ -99,6 +104,7 @@ export function RenderItemDecorator(
 
 function RenderSimpleRectElement() {
   const size = useElementSize();
+
   const data = useElementData<{ color: string }>();
   return <rect width={size?.width} height={size?.height} fill={data?.color} />;
 }
@@ -116,18 +122,12 @@ export function RenderGraphViewWithChildren(properties: Readonly<{ children: JSX
 }
 
 export function SimpleRenderItemDecorator(Story: StoryFunction, { args }: StoryCtx) {
-  const component = useCallback(
-    () => <Story {...args} />,
-    [Story, args]
-  );
+  const component = useCallback(() => <Story {...args} />, [Story, args]);
   return <RenderItemDecorator renderElement={component} />;
 }
 
 export function SimpleRenderLinkDecorator(Story: StoryFunction, { args }: StoryCtx) {
-  const component = useCallback(
-    () => <Story {...args} />,
-    [Story, args]
-  );
+  const component = useCallback(() => <Story {...args} />, [Story, args]);
   return (
     <RenderItemDecorator
       renderLink={component}

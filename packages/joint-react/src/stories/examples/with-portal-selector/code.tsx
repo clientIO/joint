@@ -10,18 +10,18 @@ import {
   usePaperEvents,
   useMeasureNode,
   useElementSize,
-  useFlatElementData,
-  useFlatLinkData,
+  elementToAttributes,
+  linkToAttributes,
   type CellId,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type PaperProps,
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
   // PortalLinkView,
   // type LinkMarkerName,
 } from '@joint/react';
-import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { BG, LIGHT } from 'storybook-config/theme';
 
 // ============================================================================
@@ -89,34 +89,29 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const elements: Record<string, FlatElementData<ElementUserData>> = {
+const elements: Record<string, Element<ElementUserData>> = {
   '1': {
     data: { title: 'This is error element' },
-    x: 50,
-    y: 110,
+    position: { x: 50, y: 110 },
     angle: 30,
   },
   '2': {
     data: { title: 'This is info element' },
-    x: 550,
-    y: 110,
+    position: { x: 550, y: 110 },
   },
   '3': {
     data: { color: '#f87171' },
-    x: 50,
-    y: 370,
+    position: { x: 50, y: 370 },
   },
   '4': {
     data: { jjType: 'standard.Cylinder', color: '#60a5fa' },
-    x: 550,
-    y: 370,
-    width: 100,
-    height: 150,
+    position: { x: 550, y: 370 },
+    size: { width: 100, height: 150 },
   },
 };
 
 // Links now use built-in theme properties: color, width, sourceMarker, targetMarker
-const links: Record<string, FlatLinkData<LinkUserData>> = {
+const links: Record<string, Link> = {
   link1: {
     source: '1',
     target: '2',
@@ -386,47 +381,41 @@ function Main() {
 // ============================================================================
 
 export default function App() {
-  const elementMappers = useFlatElementData<FlatElementData<ElementUserData>>({
-    mapAttributes: ({ attributes, data, graph }) => {
-      const userData = data.data as ElementUserData | undefined;
+  const mapElementToAttributes = useMemo(() => {
+    return ({ id, element }: { id: string; element: Element<ElementUserData> }) => {
+      const attributes = elementToAttributes({ id, element });
+      const userData = element.data as ElementUserData | undefined;
       const { jjType, color = 'lightgray' } = userData ?? {};
       if (!jjType) return attributes;
-      const defaults = graph.getTypeDefaults(jjType);
       return {
         ...attributes,
         type: jjType,
-        attrs: util.defaultsDeep(
-          { body: { fill: color }, top: { fill: color } },
-          defaults.attrs || {},
-        ),
+        attrs: util.defaultsDeep({ body: { fill: color }, top: { fill: color } }, {}),
       };
-    },
+    };
   }, []);
 
-  const linkMappers = useFlatLinkData<FlatLinkData<LinkUserData>>({
-    mapAttributes: ({ attributes, data, graph }) => {
-      const userData = data.data as LinkUserData | undefined;
+  const mapLinkToAttributes = useMemo(() => {
+    return ({ id, link }: { id?: string; link: Link }) => {
+      const attributes = linkToAttributes({ id, link });
+      const userData = link.data as LinkUserData | undefined;
       const { jjType } = userData ?? {};
       if (!jjType) return attributes;
-      const { color } = data;
-      const defaults = graph.getTypeDefaults(jjType);
+      const { color } = link;
       return {
         ...attributes,
         type: jjType,
-        attrs: util.defaultsDeep(
-          { line: { stroke: color } },
-          defaults.attrs || {},
-        ),
+        attrs: util.defaultsDeep({ line: { stroke: color } }, {}),
       };
-    },
+    };
   }, []);
 
   return (
     <GraphProvider
       elements={elements}
       links={links}
-      {...elementMappers}
-      {...linkMappers}
+      mapElementToAttributes={mapElementToAttributes}
+      mapLinkToAttributes={mapLinkToAttributes}
     >
       <Main />
     </GraphProvider>

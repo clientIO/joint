@@ -23,7 +23,7 @@ By default, @joint/react renders elements using a custom \`PortalElement\` type.
 
 \`\`\`tsx
 // Define element type with native shape type
-interface NativeElement extends FlatElementData {
+interface NativeElement extends Element {
   type: string; // 'standard.Rectangle', 'standard.Circle', etc.
 }
 
@@ -31,7 +31,7 @@ interface NativeElement extends FlatElementData {
 const mapDataToElementAttributes = ({
   data,
 }: ToElementAttributesOptions<NativeElement>): dia.Cell.JSON => {
-  return { ...flatElementDataToAttributes(data), type: data.type };
+  return { ...ElementToAttributes(data), type: data.type };
 };
 
 // Pass to GraphProvider

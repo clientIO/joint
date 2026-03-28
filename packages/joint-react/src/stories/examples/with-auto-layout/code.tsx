@@ -3,14 +3,7 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
-import {
-  GraphProvider,
-  Paper,
-  useGraph,
-  type RenderElement,
-  type FlatElementData,
-  useElements,
-} from '@joint/react';
+import { GraphProvider, Paper, useGraph, type Element, useElements } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -19,16 +12,16 @@ const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 
 type ElementData = { label: string };
-const initialElements: Record<string, FlatElementData<ElementData>> = {
-  '1': { data: { label: 'Node 1' }, width: 100, height: 50 },
-  '2': { data: { label: 'Node 2' }, width: 100, height: 50 },
-  '3': { data: { label: 'Node 3' }, width: 100, height: 50 },
-  '4': { data: { label: 'Node 4' }, width: 100, height: 50 },
-  '5': { data: { label: 'Node 5' }, width: 100, height: 50 },
-  '6': { data: { label: 'Node 6' }, width: 100, height: 50 },
-  '7': { data: { label: 'Node 7' }, width: 100, height: 50 },
-  '8': { data: { label: 'Node 8' }, width: 100, height: 50 },
-  '9': { data: { label: 'Node 9' }, width: 100, height: 50 },
+const initialElements: Record<string, Element<ElementData>> = {
+  '1': { data: { label: 'Node 1' }, size: { width: 100, height: 50 } },
+  '2': { data: { label: 'Node 2' }, size: { width: 100, height: 50 } },
+  '3': { data: { label: 'Node 3' }, size: { width: 100, height: 50 } },
+  '4': { data: { label: 'Node 4' }, size: { width: 100, height: 50 } },
+  '5': { data: { label: 'Node 5' }, size: { width: 100, height: 50 } },
+  '6': { data: { label: 'Node 6' }, size: { width: 100, height: 50 } },
+  '7': { data: { label: 'Node 7' }, size: { width: 100, height: 50 } },
+  '8': { data: { label: 'Node 8' }, size: { width: 100, height: 50 } },
+  '9': { data: { label: 'Node 9' }, size: { width: 100, height: 50 } },
 };
 
 function RenderedRect({ label }: Readonly<ElementData>) {
@@ -44,9 +37,8 @@ function RenderedRect({ label }: Readonly<ElementData>) {
 }
 
 function Main() {
-
   const { graph } = useGraph();
-  const { setElement } = useGraph();
+  const { setElement } = useGraph<ElementData>();
   const paperId = useId();
   const paperRef = useRef<dia.Paper | null>(null);
 
@@ -104,8 +96,7 @@ function Main() {
             const newId = `${Math.random()}`;
             setElement(newId, {
               data: { label: `Node ${elementsLength + 1}` },
-              width: 100,
-              height: 50,
+              size: { width: 100, height: 50 },
             });
             makeLayoutWithGrid({ graph, gridXSize });
           }}
@@ -115,12 +106,7 @@ function Main() {
           Add Node
         </button>
       </div>
-      <Paper
-        ref={paperRef}
-        id={paperId}
-        className={PAPER_CLASSNAME}
-        height={450}
-      />
+      <Paper ref={paperRef} id={paperId} className={PAPER_CLASSNAME} height={450} />
     </div>
   );
 }

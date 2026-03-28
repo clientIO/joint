@@ -1,7 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import { GraphProvider, Paper, useMeasureNode, useElementSize, type FlatElementData, type FlatLinkData, type RenderElement, DefaultElement } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useMeasureNode,
+  useElementSize,
+  type Element,
+  type Link,
+  type RenderElement,
+  DefaultElement,
+} from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 interface NodeData {
@@ -10,11 +19,19 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1', color: PRIMARY }, x: 100, y: 10, width: 100, height: 50 },
-  '2': { data: { label: 'Node 2', color: SECONDARY }, x: 100, y: 200, width: 100, height: 50 },
+const initialElements: Record<string, Element<NodeData>> = {
+  '1': {
+    data: { label: 'Node 1', color: PRIMARY },
+    position: { x: 100, y: 10 },
+    size: { width: 100, height: 50 },
+  },
+  '2': {
+    data: { label: 'Node 2', color: SECONDARY },
+    position: { x: 100, y: 200 },
+    size: { width: 100, height: 50 },
+  },
 };
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',

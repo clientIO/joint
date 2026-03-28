@@ -1,13 +1,12 @@
 import type { dia } from '@joint/core';
 import type { CellId } from '../../types/cell-id';
-import React, { forwardRef, useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
-import type { CellData } from '../../types/cell-data';
+import React, { useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
 import { useImperativeApi } from '../../hooks/use-imperative-api';
 import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { GraphMappings } from '../../state/data-mapping';
 import type { IncrementalContainerChanges } from '../../store/graph-view';
-import type { FlatElementData, FlatLinkData } from '../../types/data-types';
+import type { Element, Link } from '../../types/data-types';
 
 /**
  * Props for the GraphProvider component.
@@ -15,9 +14,9 @@ import type { FlatElementData, FlatLinkData } from '../../types/data-types';
  * @template Link - The type of links in the graph
  */
 export interface GraphProviderProps<
-  ElementData extends object = CellData,
-  LinkData extends object = CellData,
-> extends GraphMappings<FlatElementData<ElementData>, FlatLinkData<LinkData>> {
+  ElementData extends object | undefined = undefined,
+  LinkData extends object | undefined = undefined,
+> extends GraphMappings<ElementData, LinkData> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph
@@ -41,7 +40,7 @@ export interface GraphProviderProps<
   /**
    * Pre-created GraphStore instance to use.
    */
-  readonly store?: GraphStore;
+  readonly store?: GraphStore<ElementData, LinkData>;
 
   /**
    * When enabled, graph state updates are deferred during JointJS batch operations
@@ -58,7 +57,7 @@ export interface GraphProviderProps<
    *
    * **Uncontrolled mode:** If neither is provided, this is only used for initial elements.
    */
-  readonly elements?: Record<CellId, FlatElementData<ElementData>>;
+  readonly elements?: Record<CellId, Element<ElementData>>;
 
   /**
    * Links (edges) to be added to the graph as a Record keyed by cell ID.
@@ -67,120 +66,116 @@ export interface GraphProviderProps<
    *
    * **Uncontrolled mode:** If neither is provided, this is only used for initial links.
    */
-  readonly links?: Record<CellId, FlatLinkData<LinkData>>;
+  readonly links?: Record<CellId, Link<LinkData>>;
 
   /**
    * Callback triggered when elements (nodes) change in the graph.
    * Enables React-controlled mode for elements.
    */
-  readonly onElementsChange?: Dispatch<
-    SetStateAction<Record<CellId, FlatElementData<ElementData>>>
-  >;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<CellId, Element<ElementData>>>>;
 
   /**
    * Callback triggered when links (edges) change in the graph.
    * Enables React-controlled mode for links.
    */
-  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, FlatLinkData<LinkData>>>>;
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, Link<LinkData>>>>;
 
   /**
    * Callback triggered with granular incremental change information when graph state changes.
    * Enables incremental-controlled mode. Can be used with external stores (Redux, Zustand, etc.).
    */
   readonly onIncrementalChange?: (
-    changes: IncrementalContainerChanges<FlatElementData<ElementData>, FlatLinkData<LinkData>>
+    changes: IncrementalContainerChanges<ElementData, LinkData>
   ) => void;
 }
 
-/**
- * GraphBase component that handles all modes: uncontrolled, React-controlled, and incremental-controlled.
- */
-const GraphBase = forwardRef<dia.Graph, GraphProviderProps>(
-  function GraphBase(props, forwardedRef) {
-    const {
-      children,
-      store,
-      elements,
-      links,
-      onElementsChange,
-      onLinksChange,
-      onIncrementalChange,
-      ...rest
-    } = props;
+function GraphBase<
+  ElementData extends object | undefined = undefined,
+  LinkData extends object | undefined = undefined,
+>(props: GraphProviderProps<ElementData, LinkData>, forwardedRef: React.Ref<dia.Graph | null>) {
+  const {
+    children,
+    store,
+    elements,
+    links,
+    onElementsChange,
+    onLinksChange,
+    onIncrementalChange,
+    ...rest
+  } = props;
 
-    const isControlledMode =
-      Boolean(onIncrementalChange) || Boolean(onElementsChange) || Boolean(onLinksChange);
+  const isControlledMode =
+    Boolean(onIncrementalChange) || Boolean(onElementsChange) || Boolean(onLinksChange);
 
-    const { isReady, ref } = useImperativeApi<GraphStore, dia.Graph>(
-      {
-        instanceSelector: (instance) => instance.graph,
-        forwardedRef,
-        onLoad() {
-          const graphStore =
-            store ??
-            new GraphStore({
-              ...rest,
-              initialElements: elements,
-              initialLinks: links,
-              onIncrementalChange,
-              onElementsChange,
-              onLinksChange,
-            });
+  const { isReady, ref } = useImperativeApi<GraphStore<ElementData, LinkData>, dia.Graph>(
+    {
+      instanceSelector: (instance) => instance.graph,
+      forwardedRef,
+      onLoad() {
+        const graphStore =
+          store ??
+          new GraphStore<ElementData, LinkData>({
+            ...rest,
+            initialElements: elements,
+            initialLinks: links,
+            onIncrementalChange,
+            onElementsChange,
+            onLinksChange,
+          });
 
-          return {
-            cleanup() {
-              if (store) {
-                return;
-              }
-              graphStore.destroy(!!rest.graph);
-            },
-            instance: graphStore,
-          };
-        },
+        return {
+          cleanup() {
+            if (store) {
+              return;
+            }
+            graphStore.destroy(!!rest.graph);
+          },
+          instance: graphStore,
+        };
       },
-      []
-    );
+    },
+    []
+  );
 
-    const {
-      mapDataToElementAttributes,
-      mapDataToLinkAttributes,
-      mapElementAttributesToData,
-      mapLinkAttributesToData,
-    } = rest;
+  const {
+    mapElementToAttributes,
+    mapLinkToAttributes,
+    mapAttributesToElement,
+    mapAttributesToLink,
+  } = rest;
 
-    useLayoutEffect(() => {
-      if (!isReady || !ref.current) return;
-      ref.current.graphView.updateMappers({
-        mapDataToElementAttributes,
-        mapDataToLinkAttributes,
-        mapElementAttributesToData,
-        mapLinkAttributesToData,
-      });
-    }, [
-      mapDataToElementAttributes,
-      mapDataToLinkAttributes,
-      mapElementAttributesToData,
-      mapLinkAttributesToData,
-      isReady,
-      ref,
-    ]);
+  useLayoutEffect(() => {
+    if (!isReady || !ref.current) return;
+    ref.current.graphView.updateMappers({
+      mapElementToAttributes,
+      mapLinkToAttributes,
+      mapAttributesToElement,
+      mapAttributesToLink,
+    });
+  }, [
+    mapElementToAttributes,
+    mapLinkToAttributes,
+    mapAttributesToElement,
+    mapAttributesToLink,
+    isReady,
+    ref,
+  ]);
 
-    useLayoutEffect(() => {
-      if (!isControlledMode || !isReady || !ref.current) return;
-      ref.current.graphView.updateGraph({
-        elements: elements ?? {},
-        links: links ?? {},
-        flag: 'updateFromReact',
-      });
-    }, [elements, links, isControlledMode, isReady, ref]);
+  useLayoutEffect(() => {
+    if (!isControlledMode || !isReady || !ref.current) return;
+    ref.current.graphView.updateGraph({
+      elements: elements ?? {},
+      links: links ?? {},
+      flag: 'updateFromReact',
+    });
+  }, [elements, links, isControlledMode, isReady, ref]);
 
-    if (!isReady) {
-      return null;
-    }
-
-    return <GraphStoreContext.Provider value={ref.current}>{children}</GraphStoreContext.Provider>;
+  if (!isReady) {
+    return null;
   }
-);
+
+  return <GraphStoreContext.Provider value={ref.current}>{children}</GraphStoreContext.Provider>;
+}
 
 /**
  * GraphProvider is the main component that provides graph context to its children.
@@ -218,8 +213,8 @@ const GraphBase = forwardRef<dia.Graph, GraphProviderProps>(
  * @see GraphProviderProps for all available props
  */
 export const GraphProvider = GraphBase as <
-  ElementData extends object = CellData,
-  LinkData extends object = CellData,
+  ElementData extends object | undefined = undefined,
+  LinkData extends object | undefined = undefined,
 >(
   props: GraphProviderProps<ElementData, LinkData> & {
     ref?: React.Ref<dia.Graph | null>;

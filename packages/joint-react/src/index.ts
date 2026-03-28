@@ -17,24 +17,20 @@ export { useElements } from './hooks/use-elements';
 export { useLinks } from './hooks/use-links';
 export { useElement } from './hooks/use-element';
 export { useLink } from './hooks/use-link';
-export { useElementsLayout } from './hooks';
-// Hooks — Layout & Measurement
-export { useElementLayout } from './hooks/use-element-layout';
-export { useLinkLayout } from './hooks/use-link-layout';
-export type { LinkLayout } from './hooks/use-link-layout';
+export type { ResolvedLink } from './hooks/use-link';
+
+// Hooks — Measurement
 export { useMeasureNode } from './hooks/use-measure-node';
 export type { OnTransformElement, TransformOptions } from './store/create-elements-size-observer';
-export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
-
-// Hooks — Mappers
-export { useFlatElementData } from './hooks/use-flat-element-data';
-export { useFlatLinkData } from './hooks/use-flat-link-data';
+export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect'; // Hooks — Mappers
+export { useElementDefaults as useElementDefaults } from './hooks/use-element-defaults';
+export { useLinkDefaults as useLinkDefaults } from './hooks/use-link-defaults';
 
 // Hooks — Events
 export { usePaperEvents } from './hooks/use-paper-events';
 export { useGraphEvents } from './hooks/use-graph-events';
 
-// Hooks — New Data API (v2)
+// Hooks — Data API (v2)
 export { useElementData } from './hooks/use-element-data';
 export { useElementPosition } from './hooks/use-element-position';
 export { useElementSize } from './hooks/use-element-size';
@@ -47,23 +43,15 @@ export { useMarkup } from './hooks/use-markup';
 
 // Utilities
 export { jsx } from './utils/joint-jsx/jsx-to-markup';
-export {
-  flatElementDataToAttributes,
-  flatAttributesToElementData,
-} from './state/data-mapping/element-mapper';
-export {
-  flatLinkDataToAttributes,
-  flatAttributesToLinkData,
-} from './state/data-mapping/link-mapper';
+export * from './state/data-mapping/element-mapper';
+export * from './state/data-mapping/link-mapper';
 
-// Types — New (v2)
-export type { CellData, ElementLayout, ElementPosition, ElementSize } from './types/cell-data';
-
-// Types — Legacy (kept for backwards compatibility)
+// Types
+export type { ElementPosition, ElementSize } from './types/cell-data';
 export type {
-  FlatElementData,
+  Element as Element,
   FlatElementPort,
-  FlatLinkData,
+  Link as Link,
   FlatLinkEnd,
   FlatLinkLabel,
   FlatLinkPresentationData,
@@ -82,11 +70,6 @@ export { PortalPaper } from './models/portal-paper';
 
 // Data mapping types
 export type { CellAttributes } from './state/data-mapping';
-export type {
-  ToElementAttributesOptions,
-  ToElementDataOptions,
-} from './state/data-mapping/element-mapper';
-export type { ToLinkAttributesOptions, ToLinkDataOptions } from './state/data-mapping/link-mapper';
 
 // Store types
 export type { IncrementalContainerChanges } from './store/graph-view';

@@ -1,8 +1,6 @@
 import { dia } from '@joint/core';
-import type { PaperStore } from '../../store';
 import { DEFAULT_CELL_NAMESPACE } from '../../store/graph-store';
 import { graphView, type IncrementalContainerChanges } from '../graph-view';
-import type { CellData } from '../../types/cell-data';
 
 function createGraph(): dia.Graph {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
@@ -15,15 +13,32 @@ function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, h
 /** Flush pending microtasks so commitChanges callbacks execute. */
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
+/** Clone incremental changes to capture snapshot (source Maps are cleared after callback). */
+function cloneChanges(c: IncrementalContainerChanges): IncrementalContainerChanges {
+  return {
+    elements: {
+      added: new Map(c.elements.added),
+      changed: new Map(c.elements.changed),
+      removed: new Set(c.elements.removed),
+    },
+    links: {
+      added: new Map(c.links.added),
+      changed: new Map(c.links.changed),
+      removed: new Set(c.links.removed),
+    },
+  };
+}
+
 describe('graphView onIncrementalChange', () => {
   it('fires with added elements when element is added to graph', async () => {
     const graph = createGraph();
-    const allChanges: Array<IncrementalContainerChanges<CellData, CellData>> = [];
+    const allChanges: Array<IncrementalContainerChanges> = [];
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
-      onIncrementalChange: (c) => allChanges.push(c),
+
+      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
+      mappings: {},
     });
 
     addElement(graph, 'el-1');
@@ -32,19 +47,19 @@ describe('graphView onIncrementalChange', () => {
     expect(allChanges.length).toBeGreaterThan(0);
     const lastChange = allChanges.at(-1);
     expect(lastChange!.elements.added.has('el-1')).toBe(true);
-    expect(lastChange!.elementsLayout.added.has('el-1')).toBe(true);
 
     view.destroy();
   });
 
   it('fires with removed elements when element is removed', async () => {
     const graph = createGraph();
-    const allChanges: Array<IncrementalContainerChanges<CellData, CellData>> = [];
+    const allChanges: Array<IncrementalContainerChanges> = [];
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
-      onIncrementalChange: (c) => allChanges.push(c),
+
+      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
+      mappings: {},
     });
 
     addElement(graph, 'el-1');
@@ -61,14 +76,15 @@ describe('graphView onIncrementalChange', () => {
     view.destroy();
   });
 
-  it('fires layout changes on position update', async () => {
+  it('fires element changes on position update', async () => {
     const graph = createGraph();
-    const allChanges: Array<IncrementalContainerChanges<CellData, CellData>> = [];
+    const allChanges: Array<IncrementalContainerChanges> = [];
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
-      onIncrementalChange: (c) => allChanges.push(c),
+
+      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
+      mappings: {},
     });
 
     addElement(graph, 'el-1');
@@ -80,10 +96,10 @@ describe('graphView onIncrementalChange', () => {
 
     expect(allChanges.length).toBeGreaterThan(0);
     const lastChange = allChanges.at(-1);
-    expect(lastChange!.elementsLayout.changed.has('el-1')).toBe(true);
-    const layout = lastChange!.elementsLayout.changed.get('el-1');
-    expect(layout?.x).toBe(200);
-    expect(layout?.y).toBe(100);
+    expect(lastChange!.elements.changed.has('el-1')).toBe(true);
+    const changed = lastChange!.elements.changed.get('el-1');
+    expect(changed?.position?.x).toBe(200);
+    expect(changed?.position?.y).toBe(100);
 
     view.destroy();
   });
@@ -93,14 +109,14 @@ describe('graphView onIncrementalChange', () => {
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
+      mappings: {},
     });
 
     addElement(graph, 'el-1');
     await flush();
 
     expect(view.elements.get('el-1')).toBeDefined();
-    expect(view.elementsLayout.get('el-1')).toBeDefined();
 
     view.destroy();
   });
@@ -111,91 +127,69 @@ describe('graphView onIncrementalChange', () => {
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
       onIncrementalChange: () => {
-        containerValueDuringCallback = view.elementsLayout.get('el-1');
+        containerValueDuringCallback = view.elements.get('el-1');
       },
+      mappings: {},
     });
 
     addElement(graph, 'el-1');
     await flush();
 
     expect(containerValueDuringCallback).toBeDefined();
-    expect((containerValueDuringCallback as { x: number }).x).toBe(10);
+    expect((containerValueDuringCallback as { position: { x: number } }).position.x).toBe(10);
 
     view.destroy();
   });
 
-  it('does NOT update elements data container on position-only change', async () => {
+  it('updates elements container on position change', async () => {
     const graph = createGraph();
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
+      mappings: {},
     });
 
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
 
-    // Capture the data reference after initial add
-    const dataAfterAdd = view.elements.get('el-1');
-    expect(dataAfterAdd).toBeDefined();
-
-    // Track if elements container notifies subscribers
-    let elementsNotified = false;
-    view.elements.subscribe('el-1', () => {
-      elementsNotified = true;
-    });
-
-    // Change ONLY position — this should update elementsLayout, NOT elements
+    // Change position
     (graph.getCell('el-1') as dia.Element).position(200, 100);
     await flush();
 
-    // elementsLayout should be updated
-    const layout = view.elementsLayout.get('el-1');
-    expect(layout?.x).toBe(200);
-    expect(layout?.y).toBe(100);
-
-    // elements data container should NOT have been updated
-    const dataAfterMove = view.elements.get('el-1');
-    expect(dataAfterMove).toBe(dataAfterAdd); // same reference — not re-computed
-    expect(elementsNotified).toBe(false); // no notification fired
+    // Elements container should reflect the new position
+    const elementData = view.elements.get('el-1');
+    expect(elementData?.position?.x).toBe(200);
+    expect(elementData?.position?.y).toBe(100);
   });
 
-  it('does NOT update elements data container on size-only change', async () => {
+  it('updates elements container on size change', async () => {
     const graph = createGraph();
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
+      mappings: {},
     });
 
     addElement(graph, 'el-1', 10, 20, 100, 50);
     await flush();
 
-    const dataAfterAdd = view.elements.get('el-1');
-
-    let elementsNotified = false;
-    view.elements.subscribe('el-1', () => {
-      elementsNotified = true;
-    });
-
-    // Change ONLY size
+    // Change size
     (graph.getCell('el-1') as dia.Element).resize(200, 100);
     await flush();
 
-    const layout = view.elementsLayout.get('el-1');
-    expect(layout?.width).toBe(200);
-    expect(layout?.height).toBe(100);
-
-    // elements data should NOT change
-    expect(view.elements.get('el-1')).toBe(dataAfterAdd);
-    expect(elementsNotified).toBe(false);
+    const elementData = view.elements.get('el-1');
+    expect(elementData?.size?.width).toBe(200);
+    expect(elementData?.size?.height).toBe(100);
   });
 
   it('DOES update elements data container on attribute change', async () => {
     const graph = createGraph();
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
+      mappings: {},
     });
 
     addElement(graph, 'el-1', 10, 20, 100, 50);

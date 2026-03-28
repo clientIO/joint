@@ -8,13 +8,13 @@ import {
   usePaperEvents,
   useElementSize,
   type RenderElement,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
 } from '@joint/react';
 import { useCallback, useId } from 'react';
 import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -28,9 +28,13 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 10, width: 120, height: 30 },
-  '2': { data: { label: 'Node 2' }, x: 100, y: 200, width: 120, height: 30 },
+const initialElements: Record<string, Element<NodeData>> = {
+  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 10 }, size: { width: 120, height: 30 } },
+  '2': {
+    data: { label: 'Node 2' },
+    position: { x: 100, y: 200 },
+    size: { width: 120, height: 30 },
+  },
 };
 
 // 1) creating link tools
@@ -84,11 +88,7 @@ function Main() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper
-        id={paperId}
-        className={PAPER_CLASSNAME}
-        height={280}
-      />
+      <Paper id={paperId} className={PAPER_CLASSNAME} height={280} />
       <div
         style={{
           position: 'absolute',

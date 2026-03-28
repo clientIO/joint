@@ -10,7 +10,11 @@ import { defaultLabelStyle } from '../../theme/link-theme';
  * @param labelStyle - Optional style defaults for label properties
  * @returns The full JointJS label definition
  */
-export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: Partial<FlatLinkLabel>): dia.Link.Label & { id: string } {
+export function convertLabel(
+  id: string,
+  rawLabel: FlatLinkLabel,
+  labelStyle?: Partial<FlatLinkLabel>
+): dia.Link.Label & { id: string } {
   const label = labelStyle ? { ...labelStyle, ...rawLabel } : rawLabel;
   const {
     text,
@@ -42,7 +46,11 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
   };
 
   const labelBodyAttributes: Record<string, unknown> = {
-    style: { fill: backgroundColor, stroke: backgroundOutline, strokeWidth: backgroundOutlineWidth },
+    style: {
+      fill: backgroundColor,
+      stroke: backgroundOutline,
+      strokeWidth: backgroundOutlineWidth,
+    },
   };
 
   let bodyTagName: string;
@@ -83,12 +91,12 @@ export function convertLabel(id: string, rawLabel: FlatLinkLabel, labelStyle?: P
       {
         tagName: bodyTagName,
         selector: 'labelBody',
-        className: `jr-link-label-body ${backgroundClassName}`.trim()
+        className: `jr-link-label-body ${backgroundClassName}`.trim(),
       },
       {
         tagName: 'text',
         selector: 'labelText',
-        className: `jr-link-label-text ${className}`.trim()
+        className: `jr-link-label-text ${className}`.trim(),
       },
     ],
     attrs: {

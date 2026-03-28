@@ -1,9 +1,15 @@
-
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type dia, g, highlighters, V } from '@joint/core';
-import type { FlatElementData } from '@joint/react';
-import { GraphProvider, Paper, SVGText, useElementSize, useGraph, useNodesMeasuredEffect } from '@joint/react';
+import type { Element } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  SVGText,
+  useElementSize,
+  useGraph,
+  useNodesMeasuredEffect,
+} from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 
@@ -21,34 +27,26 @@ interface ShapeElement {
   readonly label: string;
 }
 
-const initialElements: Record<string, FlatElementData<ShapeElement>> = {
+const initialElements: Record<string, Element<ShapeElement>> = {
   rectangle: {
     data: { type: ShapeTypes.rectangle, label: 'Rectangle' },
-    width: 100,
-    height: 100,
-    x: 20,
-    y: 20,
+    size: { width: 100, height: 100 },
+    position: { x: 20, y: 20 },
   },
   circle: {
     data: { type: ShapeTypes.circle, label: 'Circle' },
-    width: 100,
-    height: 100,
-    x: 160,
-    y: 20,
+    size: { width: 100, height: 100 },
+    position: { x: 160, y: 20 },
   },
   ellipse: {
     data: { type: ShapeTypes.ellipse, label: 'Ellipse' },
-    width: 150,
-    height: 100,
-    x: 320,
-    y: 20,
+    size: { width: 150, height: 100 },
+    position: { x: 320, y: 20 },
   },
   path: {
     data: { type: ShapeTypes.path, label: 'Path' },
-    width: 100,
-    height: 100,
-    x: 520,
-    y: 20,
+    size: { width: 100, height: 100 },
+    position: { x: 520, y: 20 },
   },
 };
 

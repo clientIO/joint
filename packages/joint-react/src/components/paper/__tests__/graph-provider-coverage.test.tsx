@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
-import type { FlatElementData, FlatLinkData } from '../../../types/data-types';
+import type { Element, Link } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { GraphStore } from '../../../store';
 
@@ -19,7 +19,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>({});
+        const [elements, setElements] = useState<Record<string, Element>>({});
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -43,7 +43,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [links, setLinks] = useState<Record<string, FlatLinkData>>({});
+        const [links, setLinks] = useState<Record<string, Link>>({});
         return (
           <GraphProvider links={links} onLinksChange={setLinks}>
             <TestComponent />
@@ -59,8 +59,8 @@ describe('GraphProvider Coverage Tests', () => {
     });
 
     it('should handle only elements controlled (not links)', async () => {
-      const initialElements: Record<string, FlatElementData> = {
-        '1': { width: 100, height: 100 },
+      const initialElements: Record<string, Element> = {
+        '1': { size: { width: 100, height: 100 } },
       };
 
       let elementCount = 0;
@@ -73,7 +73,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, FlatElementData>>(initialElements);
+        const [elements, setElements] = useState<Record<string, Element>>(initialElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -90,7 +90,7 @@ describe('GraphProvider Coverage Tests', () => {
     });
 
     it('should handle only links controlled (not elements)', async () => {
-      const initialLink: FlatLinkData = {
+      const initialLink: Link = {
         source: '1',
         target: '2',
       };
@@ -105,7 +105,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [links, setLinks] = useState<Record<string, FlatLinkData>>(() => ({
+        const [links, setLinks] = useState<Record<string, Link>>(() => ({
           link1: initialLink,
         }));
         return (
@@ -135,9 +135,9 @@ describe('GraphProvider Coverage Tests', () => {
 
   describe('GraphProvider edge cases', () => {
     it('should handle unmeasured elements (width/height <= 1)', async () => {
-      const unmeasuredElements: Record<string, FlatElementData> = {
-        '1': { width: 0, height: 0 },
-        '2': { width: 1, height: 1 },
+      const unmeasuredElements: Record<string, Element> = {
+        '1': { size: { width: 0, height: 0 } },
+        '2': { size: { width: 1, height: 1 } },
       };
 
       let elementCount = 0;
@@ -148,8 +148,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] =
-          useState<Record<string, FlatElementData>>(unmeasuredElements);
+        const [elements, setElements] = useState<Record<string, Element>>(unmeasuredElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />

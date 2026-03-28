@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { forwardRef, useCallback, useRef } from 'react';
@@ -6,11 +7,12 @@ import {
   Paper,
   useMeasureNode,
   useMarkup,
-  type FlatLinkData,
+  type Link,
   type RenderElement,
   type OnTransformElement,
   PortalElement,
   PortalLink,
+  type Element,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
@@ -22,33 +24,28 @@ const ELEMENT_WIDTH = 160;
 const HEADER_COLOR = '#f6c744';
 
 interface StackedElement {
-  readonly [key: string]: unknown;
   readonly name: string;
   readonly labels: readonly string[];
-  readonly x: number;
-  readonly y: number;
 }
 
-const initialElements: Record<string, StackedElement> = {
+const initialElements: Record<string, Element<StackedElement>> = {
   '1': {
     data: {
       name: 'Component A',
       labels: ['Header', 'Body', 'Footer'],
     },
-    x: 50,
-    y: 50,
+    position: { x: 50, y: 50 },
   },
   '2': {
     data: {
       name: 'Component B',
       labels: ['Input', 'Process', 'Output'],
     },
-    x: 300,
-    y: 50,
+    position: { x: 300, y: 50 },
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'e1-2': {
     source: '1',
     sourceMagnet: 'item-2',
@@ -88,7 +85,7 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
 });
 
 function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
-  const contentRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef(null);
   const { selectorRef } = useMarkup();
 
   const transform: OnTransformElement = useCallback(({ height }) => {
@@ -96,13 +93,21 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
       width: ELEMENT_WIDTH,
       height: HEADER_HEIGHT + height,
     };
-  });
+  }, []);
 
-  const { width, height } = useMeasureNode(contentRef, { transform });
+  const { width = 0, height = 0 } = useMeasureNode(contentRef, { transform });
 
   return (
     <>
-      <rect width={width} height={height} fill={BG} stroke={PRIMARY} strokeWidth={2} rx={4} ry={4} />
+      <rect
+        width={width}
+        height={height}
+        fill={BG}
+        stroke={PRIMARY}
+        strokeWidth={2}
+        rx={4}
+        ry={4}
+      />
       {/* Header */}
       <g className="header">
         <rect width={width} height={HEADER_HEIGHT} fill={HEADER_COLOR} rx={4} ry={4} />
@@ -137,7 +142,15 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
         })}
       </g>
       {/* Border on top for clean rounded corners */}
-      <rect width={width} height={height} fill="none" stroke={PRIMARY} strokeWidth={2} rx={4} ry={4} />
+      <rect
+        width={width}
+        height={height}
+        fill="none"
+        stroke={PRIMARY}
+        strokeWidth={2}
+        rx={4}
+        ry={4}
+      />
     </>
   );
 }
@@ -160,7 +173,7 @@ function Main() {
         name: 'midSide',
         args: {
           mode: 'horizontal',
-        }
+        },
       }}
       highlighting={{
         connecting: {
@@ -170,9 +183,9 @@ function Main() {
             attrs: {
               stroke: LIGHT,
               strokeWidth: 3,
-            }
-          }
-        }
+            },
+          },
+        },
       }}
       defaultLink={{
         color: LIGHT,
@@ -187,15 +200,14 @@ function Main() {
 }
 
 class MyPortalElement extends PortalElement {
-
   defaults() {
     return {
       ...super.defaults(),
       attrs: {
         root: {
           magnet: false,
-        }
-      }
+        },
+      },
     };
   }
 
@@ -203,13 +215,16 @@ class MyPortalElement extends PortalElement {
 }
 
 export default function App() {
-  const graph = new dia.Graph({}, {
-    cellNamespace: {
-      ...shapes,
-      PortalElement: MyPortalElement,
-      PortalLink
+  const graph = new dia.Graph(
+    {},
+    {
+      cellNamespace: {
+        ...shapes,
+        PortalElement: MyPortalElement,
+        PortalLink,
+      },
     }
-  });
+  );
   return (
     <GraphProvider elements={initialElements} links={initialLinks} graph={graph}>
       <Main />

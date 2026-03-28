@@ -1,7 +1,6 @@
- 
+
 import { dia, shapes } from '@joint/core';
-import { flatMapLinkAttributesToData } from '../../state/data-mapping';
-import { resolveCellDefaults } from '../../state/data-mapping/resolve-cell-defaults';
+import { attributesToLink } from '../../state/data-mapping';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
 
@@ -19,7 +18,7 @@ describe('graph-state-selectors link mapping', () => {
     graph.clear();
   });
 
-  describe('flatMapLinkAttributesToData', () => {
+  describe('attributesToLink', () => {
     it('should extract link attributes correctly', () => {
       const id = 'link-1';
       const cellJson = {
@@ -33,16 +32,14 @@ describe('graph-state-selectors link mapping', () => {
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Link;
 
-      const link = flatMapLinkAttributesToData({
-        attributes: cell.attributes,
-        defaultAttributes: resolveCellDefaults(cell),
-      });
+      const link = attributesToLink(cell.attributes);
 
       expect(link).toMatchObject({
         source: 'source-id',
         target: 'target-id',
-        key: 'value', // data properties are spread to top level
       });
+      // User data is in the data field
+      expect(link.data).toMatchObject({ key: 'value' });
       // Internal JointJS properties are not mapped back
       expect(link).not.toHaveProperty('id');
       expect(link).not.toHaveProperty('markup');

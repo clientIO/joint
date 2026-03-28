@@ -19,7 +19,7 @@ export const defaultLinkStyle: Readonly<Required<FlatLinkPresentationData>> = {
   linejoin: '',
 };
 
-/** A presentation key on FlatLinkData, mapped to SVG attrs by buildLinkPresentationAttributes. */
+/** A presentation key on Link, mapped to SVG attrs by buildLinkPresentationAttributes. */
 export type LinkPresentationKey = keyof FlatLinkPresentationData;
 
 /** Presentation keys for runtime iteration. Derived from {@link defaultLinkStyle}. */
