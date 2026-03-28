@@ -50,16 +50,20 @@ export function elementToAttributes<ElementData extends object | undefined = und
     ...cellAttributes
   } = element;
 
+  const presentation: Record<string, unknown> = {};
+  if (ports) presentation.ports = ports;
+  if (portStyle) presentation.portStyle = portStyle;
+
   const attributes: CellAttributes = {
     type,
     data,
+    presentation,
     ...cellAttributes,
   };
 
   if (ports) {
     attributes.ports = convertPorts(ports, portStyle);
     attributes.portDefaults = createPortGroupsDefault();
-    attributes.presentation = { ports, portStyle };
   }
 
   return attributes;
@@ -95,9 +99,8 @@ export function attributesToElement<ElementData extends object | undefined = und
   } = attributes;
 
   const element: Element<ElementData> = {
-    // element record should not include undefined values
-    data,
     ...presentation,
+    data,
     position,
     size,
     angle,
