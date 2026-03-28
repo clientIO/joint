@@ -5,8 +5,8 @@ import {
   Paper,
   useElementSize,
   useLinkDefaults,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -22,7 +22,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
+const initialElements: Record<string, Element<NodeData>> = {
   a: { data: { label: 'Source' }, position: { x: 50, y: 60 }, size: { width: 120, height: 50 } },
   b: { data: { label: 'Process' }, position: { x: 280, y: 20 }, size: { width: 120, height: 50 } },
   c: { data: { label: 'Review' }, position: { x: 280, y: 120 }, size: { width: 120, height: 50 } },
@@ -31,7 +31,7 @@ const initialElements: Record<string, FlatElementData<NodeData>> = {
 
 // Links: no explicit color/width — CSS variables provide styling.
 // One link overrides color to show per-link precedence.
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'a→b': {
     source: 'a',
     target: 'b',
@@ -131,7 +131,7 @@ function Diagram() {
           <code>color</code> prop.
         </span>
       </div>
-      <GraphProvider
+      <GraphProvider<NodeData>
         elements={elements}
         links={links}
         onElementsChange={setElements}

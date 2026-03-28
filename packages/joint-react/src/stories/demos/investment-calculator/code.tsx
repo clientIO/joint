@@ -9,8 +9,8 @@ import {
   useElementSize,
   useElements,
   useLinkDefaults,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCallback, useEffect, useRef } from 'react';
@@ -44,7 +44,7 @@ type OverallPerformanceData = {
 
 type ShapeData = InvestmentData | ProductData | ProductPerformanceData | OverallPerformanceData;
 
-type ShapeElement = FlatElementData<ShapeData>;
+type ShapeElement = Element<ShapeData>;
 
 // ----------------------------------------------------------------------------
 // Constants
@@ -146,7 +146,7 @@ const initialElements: Record<string, ShapeElement> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   link1: {
     source: 'investment',
     sourceAnchor: { name: 'top', args: { dy: 1 } },
@@ -335,7 +335,7 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
       for (const productId of sortedIds) {
         if (diff === 0) break;
         setElement(productId, (previous) => {
-          const data = previous.data;
+          const { data } = previous;
           if (data.type !== 'Product') return previous;
           const previousPercentage = data.percentage;
           const adjusted = Math.max(previousPercentage + diff, 0);
@@ -404,7 +404,7 @@ function ProductPerformanceNode({ label }: Readonly<ProductPerformanceData>) {
   const { width, height } = useElementSize();
 
   // Use graph topology to find the connected product (inbound neighbor via link)
-  const { value, roi } = useElements<{ value: number; roi: number }>((elements) => {
+  const { value, roi } = useElements((elements) => {
     const cell = graph.getCell(cellId);
     if (!cell?.isElement()) {
       return DEFAULT_ROI_VALUE;
@@ -488,9 +488,9 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const { width, height } = useElementSize();
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useElements<{ value: number; roi: number }>((elements) => {
+  const { value, roi } = useElements((elements) => {
     const investmentItem = elements.get(INVESTMENT_ID);
-    const investmentData = investmentItem?.data as unknown as ShapeData | undefined;
+    const investmentData = investmentItem?.data;
     if (investmentData?.type !== 'Investment') {
       return DEFAULT_ROI_VALUE;
     }
@@ -653,7 +653,7 @@ export default function App() {
   });
 
   return (
-    <GraphProvider
+    <GraphProvider<ShapeData>
       elements={initialElements}
       links={initialLinks}
       mapLinkToAttributes={mapLinkToAttributes}

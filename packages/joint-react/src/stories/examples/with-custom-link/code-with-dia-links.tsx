@@ -7,16 +7,29 @@ import {
   GraphProvider,
   linkToAttributes,
   type CellAttributes,
-  type RenderElement,
-  type FlatLinkData,
+  type Element,
+  type Link,
 } from '@joint/react';
-import { useCallback } from 'react';
-import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import { Paper } from '../../../components/paper/paper';
 
-const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
-  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
+type ElementData = { label: string; color: string };
+const initialElements: Record<string, Element<ElementData>> = {
+  '1': {
+    data: { label: 'Node 1', color: PRIMARY },
+    position: { x: 100, y: 15 },
+    size: {
+      width: 140,
+      height: 50,
+    },
+  },
+  '2': {
+    data: { label: 'Node 2', color: PRIMARY },
+    position: { x: 100, y: 200 },
+    size: {
+      width: 140,
+      height: 50,
+    },
+  },
 };
 
 class LinkModel extends shapes.standard.Link {
@@ -60,7 +73,7 @@ function Main() {
   );
 }
 
-interface CustomLink extends FlatLinkData {
+interface CustomLink extends Link {
   readonly [key: string]: unknown;
   readonly color: string;
 }
@@ -73,7 +86,7 @@ const links: Record<string, CustomLink> = {
   },
 };
 
-const mapLinkToAttributes = (options: { id?: string; link: FlatLinkData }): CellAttributes => {
+const mapLinkToAttributes = (options: { id?: string; link: Link }): CellAttributes => {
   const data = options.link as CustomLink;
   const attributes = linkToAttributes(options);
   const { color } = data;
@@ -87,7 +100,7 @@ const mapLinkToAttributes = (options: { id?: string; link: FlatLinkData }): Cell
 export default function App() {
   return (
     <GraphProvider
-      links={links as Record<string, FlatLinkData>}
+      links={links as Record<string, Link>}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
       mapLinkToAttributes={mapLinkToAttributes}

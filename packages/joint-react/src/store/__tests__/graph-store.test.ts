@@ -468,6 +468,9 @@ describe('GraphStore', () => {
     });
 
     it('should keep layout state live but defer public state during active graph batches', async () => {
+      /** Flush pending microtasks so scheduled callbacks execute. */
+      const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
+
       const store = new GraphStore({
         initialElements: {
           'batched-element': {
@@ -478,10 +481,12 @@ describe('GraphStore', () => {
         },
       });
 
-      await waitFor(() => {
-        const elementData = store.graphView.elements.get('batched-element');
-        expect(elementData).toBeDefined();
-      });
+      // Allow initial sync microtasks to settle
+      await flush();
+      await flush();
+
+      const elementData = store.graphView.elements.get('batched-element');
+      expect(elementData).toBeDefined();
 
       const element = store.graph.getCell('batched-element');
       if (!element?.isElement()) {
@@ -492,29 +497,27 @@ describe('GraphStore', () => {
       element.set('position', { x: 120, y: 180 });
       element.set('size', { width: 240, height: 160 });
 
-      await waitFor(() => {
-        const batchedElement = store.graphView.elements.get('batched-element');
-        expect(batchedElement?.position?.x).toBe(120);
-        expect(batchedElement?.position?.y).toBe(180);
-        expect(batchedElement?.size?.width).toBe(240);
-        expect(batchedElement?.size?.height).toBe(160);
-      });
+      // Flush microtasks to process deferred onChanges
+      await flush();
+      await flush();
 
-      // With container architecture, layout updates happen immediately during batch.
-      const elementDuringBatch = store.graphView.elements.get('batched-element');
-      expect(elementDuringBatch?.position?.x).toBe(120);
-      expect(elementDuringBatch?.position?.y).toBe(180);
+      // With container architecture, layout updates happen during batch via deferred scheduler.
+      const batchedElement = store.graphView.elements.get('batched-element');
+      expect(batchedElement?.position?.x).toBe(120);
+      expect(batchedElement?.position?.y).toBe(180);
+      expect(batchedElement?.size?.width).toBe(240);
+      expect(batchedElement?.size?.height).toBe(160);
 
       store.graph.stopBatch('test');
+      await flush();
+      await flush();
 
       // After batch: position and size are in elements container
-      await waitFor(() => {
-        const elementAfterBatch = store.graphView.elements.get('batched-element');
-        expect(elementAfterBatch?.position?.x).toBe(120);
-        expect(elementAfterBatch?.position?.y).toBe(180);
-        expect(elementAfterBatch?.size?.width).toBe(240);
-        expect(elementAfterBatch?.size?.height).toBe(160);
-      });
+      const elementAfterBatch = store.graphView.elements.get('batched-element');
+      expect(elementAfterBatch?.position?.x).toBe(120);
+      expect(elementAfterBatch?.position?.y).toBe(180);
+      expect(elementAfterBatch?.size?.width).toBe(240);
+      expect(elementAfterBatch?.size?.height).toBe(160);
     });
   });
 

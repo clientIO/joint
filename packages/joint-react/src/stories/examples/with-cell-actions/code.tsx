@@ -6,8 +6,8 @@ import {
   Paper,
   useGraph,
   useMeasureNode,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   useElements,
   useLinks,
 } from '@joint/react';
@@ -23,7 +23,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
+const initialElements: Record<string, Element<NodeData>> = {
   '1': {
     data: { label: 'Node A', color: PRIMARY },
     position: { x: 50, y: 50 },
@@ -41,7 +41,7 @@ const initialElements: Record<string, FlatElementData<NodeData>> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'link-1-2': {
     source: '1',
     target: '2',
@@ -94,7 +94,13 @@ interface ElementControlsProps {
   readonly angle?: number;
 }
 
-function ElementControls({ id, element, position, size: layout, angle }: Readonly<ElementControlsProps>) {
+function ElementControls({
+  id,
+  element,
+  position,
+  size: layout,
+  angle,
+}: Readonly<ElementControlsProps>) {
   const { setElement, removeElement } = useGraph<NodeData>();
   const inputStyle = {
     padding: '6px 10px',
@@ -262,7 +268,7 @@ function ElementControls({ id, element, position, size: layout, angle }: Readonl
   );
 }
 
-function getLinkEndpointId(endpoint: FlatLinkData['source']): string {
+function getLinkEndpointId(endpoint: Link['source']): string {
   if (typeof endpoint === 'string') return endpoint;
   if (typeof endpoint === 'object' && 'id' in endpoint) {
     return String(endpoint.id);
@@ -272,7 +278,7 @@ function getLinkEndpointId(endpoint: FlatLinkData['source']): string {
 
 interface LinkControlsProps {
   readonly id: string;
-  readonly link: FlatLinkData;
+  readonly link: Link;
 }
 
 function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
@@ -570,7 +576,14 @@ function Main() {
           Nodes ({elements.size})
         </div>
         {[...elements.entries()].map(([id, element]) => (
-          <ElementControls key={id} id={id} element={element.data} position={element.position} size={element.size} angle={element.angle} />
+          <ElementControls
+            key={id}
+            id={id}
+            element={element.data}
+            position={element.position}
+            size={element.size}
+            angle={element.angle}
+          />
         ))}
 
         {/* Link Controls */}

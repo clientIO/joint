@@ -14,8 +14,8 @@ import {
   useMarkup,
   useMeasureNode,
   type CellId,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type RenderElement,
 } from '@joint/react';
 import {
@@ -29,7 +29,6 @@ import {
 } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
 import { anchors } from '@joint/core';
-
 
 const ThemeContext = createContext(false);
 
@@ -70,7 +69,7 @@ type NodeData = {
   readonly outputPorts: readonly OutputPort[];
 };
 
-type NodeType = FlatElementData<NodeData>;
+type NodeType = Element<NodeData>;
 
 const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
   { id: '1', label: 'Port 1' },
@@ -110,7 +109,7 @@ const initialElements: Record<string, NodeType> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   link1: {
     source: '1',
     sourceMagnet: '1',
@@ -295,12 +294,11 @@ function RenderElementBase({
 }
 const RenderElement = memo(RenderElementBase);
 function Main() {
-  const [elements, setElements] =
-    useState<Record<string, FlatElementData<NodeData>>>(initialElements);
+  const [elements, setElements] = useState<Record<string, Element<NodeData>>>(initialElements);
   const isDark = useContext(ThemeContext);
 
-  function fixLinks(initialLinks: Record<string, FlatLinkData>) {
-    const next: Record<string, FlatLinkData> = {};
+  function fixLinks(initialLinks: Record<string, Link>) {
+    const next: Record<string, Link> = {};
     for (const [linkId, link] of Object.entries(initialLinks)) {
       next[linkId] = {
         ...link,
@@ -309,7 +307,7 @@ function Main() {
     }
     return next;
   }
-  const [links, setLinks] = useState<Record<string, FlatLinkData>>(() => fixLinks(initialLinks));
+  const [links, setLinks] = useState<Record<string, Link>>(() => fixLinks(initialLinks));
   useLayoutEffect(() => {
     setLinks(fixLinks); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Sync link colors with theme
   }, [isDark]);
@@ -341,7 +339,7 @@ function Main() {
       };
     });
     setLinks((previous) => {
-      const next: Record<string, FlatLinkData> = {};
+      const next: Record<string, Link> = {};
       for (const [linkId, link] of Object.entries(previous)) {
         const isSource = link.source === id && link.sourceMagnet === portId;
         const isTarget = link.target === id && link.targetMagnet === portId;
@@ -362,6 +360,8 @@ function Main() {
     <GraphProvider
       elements={elements}
       links={links}
+      onElementsChange={setElements}
+      onLinksChange={setLinks}
     >
       <Paper
         gridSize={5}

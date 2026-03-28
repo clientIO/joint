@@ -1,4 +1,10 @@
-import { GraphProvider, Paper, useElementSize, useNodesMeasuredEffect, type FlatElementData } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useElementSize,
+  useNodesMeasuredEffect,
+  type Element,
+} from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT, BG } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
@@ -82,7 +88,7 @@ function pos(index: number, w: number, h: number) {
 // ----------------------------------------------------------------------------
 // Initial Elements
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, FlatElementData<ControlledElement>> = {
+const initialElements: Record<string, Element<ControlledElement>> = {
   linkedProcess: {
     data: { type: 'linkedProcess', label: 'Linked Process' },
     ...pos(0, 120, 50),
@@ -755,10 +761,13 @@ function addElementControls(paper: dia.Paper) {
 function Main() {
   const paperId = useId();
 
-  const handleElementsMeasured = useCallback(({ isInitial, paper }: { isInitial: boolean; paper: dia.Paper }) => {
-    if (!isInitial) return;
-    addElementControls(paper);
-  }, []);
+  const handleElementsMeasured = useCallback(
+    ({ isInitial, paper }: { isInitial: boolean; paper: dia.Paper }) => {
+      if (!isInitial) return;
+      addElementControls(paper);
+    },
+    []
+  );
 
   useNodesMeasuredEffect(paperId, handleElementsMeasured);
 

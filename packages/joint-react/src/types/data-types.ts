@@ -3,7 +3,8 @@ import type { PortShape } from '../theme/element-theme';
 import type { LinkMarker } from '../theme/markers';
 import type { CellId } from './cell-id';
 import type { LiteralUnion } from './index';
-import type { ElementPosition, ElementSize, LinkLayout } from './cell-data';
+import type { ElementPosition, ElementSize } from './cell-data';
+import { useElement, useElementData, useElements } from '../hooks';
 
 // ── Element Types ─────────────────────────────────────────────────────────────
 
@@ -120,17 +121,24 @@ interface ElementBase {
   portStyle?: Partial<FlatElementPort>;
   /** Ports of the element. */
   ports?: Record<string, FlatElementPort>;
+
+  data?: Record<string, unknown>;
+
+  /** Jointjs type */
+  type?: string;
+  /** Attributes for built-in shapes */
+  attrs?: Record<string, Record<string, unknown>>;
 }
 
 /**
  * Element data type with conditional `data` field.
  *
- * - `FlatElementData` (no generic): `data` is optional.
- * - `FlatElementData<MyData>`: `data` is required (`MyData`).
+ * - `Element` (no generic): `data` is optional.
+ * - `Element<MyData>`: `data` is required (`MyData`).
  * @group Graph
  */
-export type Element<D extends object | undefined = undefined> = [D] extends [never]
-  ? ElementBase & { data?: Record<string, unknown> }
+export type Element<D extends object | undefined = undefined> = undefined extends D
+  ? ElementBase
   : ElementBase & { data: D };
 
 // ── Link Types ────────────────────────────────────────────────────────────────
@@ -379,13 +387,18 @@ interface LinkBase extends FlatLinkPresentationData {
   labels?: Record<string, FlatLinkLabel>;
 
   data?: Record<string, unknown>;
+
+  /** Jointjs type */
+  type?: string;
+  /** Attributes for built-in shapes */
+  attrs?: Record<string, Record<string, unknown>>;
 }
 
 /**
  * Link data type with conditional `data` field.
  *
- * - `FlatLinkData` (no generic): `data` is optional.
- * - `FlatLinkData<MyData>`: `data` is required (`MyData`).
+ * - `Link` (no generic): `data` is optional.
+ * - `Link<MyData>`: `data` is required (`MyData`).
  * @group Graph
  */
 export type Link<D extends object | undefined = undefined> = undefined extends D

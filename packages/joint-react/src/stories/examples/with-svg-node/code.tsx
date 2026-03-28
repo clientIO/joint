@@ -5,14 +5,14 @@ import {
   GraphProvider,
   Paper,
   useMeasureNode,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type OnTransformElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
 
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -24,7 +24,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
+const initialElements: Record<string, Element<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
 };
@@ -48,7 +48,14 @@ function RenderedRect({ label }: Readonly<NodeData>) {
 
   return (
     <>
-      <rect rx={cornerRadius} ry={cornerRadius} width={width} height={height} stroke={'black'} fill={'white'} />
+      <rect
+        rx={cornerRadius}
+        ry={cornerRadius}
+        width={width}
+        height={height}
+        stroke={'black'}
+        fill={'white'}
+      />
       <text
         ref={textRef}
         x={width / 2}

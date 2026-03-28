@@ -3,7 +3,6 @@ import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
 import type { Element } from '../types/data-types';
-import type { CellData } from '../types/cell-data';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
@@ -130,7 +129,7 @@ function Component() {
 export const WithGetJustSize = makeStory<Story>({
   args: {
     useHook: useElements,
-    hookArgs: [(elements: Map<string, CellData>) => elements.size],
+    hookArgs: [(elements: Map<string, object>) => elements.size],
     render: (result) => (
       <div>
         <Paper className={PAPER_CLASSNAME} renderElement={RenderRectElement} />
@@ -152,7 +151,7 @@ export const WithJustPosition = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, CellData>) =>
+      (elements: Map<string, object>) =>
         [...elements.values()].map((element) => ({
           x: (element as Element).x,
           y: (element as Element).y,
@@ -181,10 +180,10 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, CellData>) =>
+      (elements: Map<string, Element>) =>
         [...elements.values()].map((element) => ({
-          x: (element as Element).x,
-          y: (element as Element).y,
+          x: element.position?.x,
+          y: element.position?.y,
         })),
       (_previous: unknown, _next: unknown) => true,
     ],
@@ -213,9 +212,9 @@ export const WithAdditionalData = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, CellData>) =>
+      (elements: Map<string, Element>) =>
         [...elements.values()].map((element) => ({
-          id: (element as Record<string, unknown>).id,
+          id: element.id,
           other: 'something',
         })),
     ],

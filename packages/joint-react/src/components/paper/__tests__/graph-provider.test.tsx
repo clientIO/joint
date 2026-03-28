@@ -144,7 +144,7 @@ describe('graph', () => {
   });
 
   it('should use graph provided by PaperOptions', async () => {
-    const graph = new dia.Graph({}, { cellNamespace: shapes });
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
     let currentElements: Map<string, Element> = new Map();
@@ -186,10 +186,11 @@ describe('graph', () => {
   });
 
   it('should use store provided by PaperOptions', async () => {
-    const graph = new dia.Graph();
-    const store = new GraphStore({ graph });
+    const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
+    // Add cell before creating the store so syncFromGraph picks it up
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
+    const store = new GraphStore({ graph });
     let currentElements: Map<string, Element> = new Map();
     // eslint-disable-next-line sonarjs/no-identical-functions
     function Elements() {
@@ -205,9 +206,10 @@ describe('graph', () => {
       </GraphProvider>
     );
 
-    expect(graph.getCell('element1')).toBe(cell);
-
+    // The store's updateMappers may replace the cell via syncCells,
+    // so we only check that the cell with the same id still exists.
     await waitFor(() => {
+      expect(graph.getCell('element1')).toBeDefined();
       expect(graph.getCells()).toHaveLength(1);
       expect(currentElements.size).toBe(1);
     });
@@ -345,11 +347,14 @@ describe('graph', () => {
     });
   });
 
-  it('should pass ref instance to the GraphProvider component', () => {
+  it('should pass ref instance to the GraphProvider component', async () => {
     // eslint-disable-next-line @eslint-react/no-create-ref
     const graphRef = createRef<dia.Graph>();
     render(<GraphProvider ref={graphRef} />);
-    expect(graphRef.current).not.toBeNull();
+    // The ref is set asynchronously after the useImperativeApi layout effect
+    await waitFor(() => {
+      expect(graphRef.current).not.toBeNull();
+    });
     expect(graphRef.current?.getCells).toBeDefined();
   });
 

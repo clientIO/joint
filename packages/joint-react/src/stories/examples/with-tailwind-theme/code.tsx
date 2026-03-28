@@ -8,8 +8,8 @@ import {
   useElementSize,
   useElementDefaults,
   useLinkDefaults,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -23,7 +23,7 @@ interface NodeUserData {
   label: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeUserData>> = {
+const initialElements: Record<string, Element<NodeUserData>> = {
   a: {
     data: { label: 'Source' },
     position: { x: 50, y: 70 },
@@ -60,7 +60,7 @@ const initialElements: Record<string, FlatElementData<NodeUserData>> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'a→b': { source: 'a', sourcePort: 'out', target: 'b', targetPort: 'in' },
   'a→c': { source: 'a', sourcePort: 'out', target: 'c', targetPort: 'in' },
   'b→d': {
@@ -194,11 +194,7 @@ function Diagram() {
         onElementsChange={setElements}
         onLinksChange={setLinks}
       >
-        <Paper
-          className={PAPER_CLASSNAME}
-          height={240}
-          renderElement={renderElement}
-        />
+        <Paper className={PAPER_CLASSNAME} height={240} renderElement={renderElement} />
       </GraphProvider>
     </div>
   );

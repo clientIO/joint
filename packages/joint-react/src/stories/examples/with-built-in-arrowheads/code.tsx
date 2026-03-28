@@ -1,4 +1,4 @@
-import type { FlatLinkData } from '@joint/react';
+import type { Link } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
 import { PAPER_CLASSNAME, LIGHT, BG } from 'storybook-config/theme';
 import type { LinkMarkerName } from '../../../theme/markers';
@@ -10,10 +10,12 @@ const GAP_Y = 80;
 const COLS = 3;
 const PADDING = 60;
 
-const markerNames = Object.keys(linkMarkerShapes).filter((name) => name !== 'none') as LinkMarkerName[];
+const markerNames = Object.keys(linkMarkerShapes).filter(
+  (name) => name !== 'none'
+) as LinkMarkerName[];
 
 function buildGrid() {
-  const links: Record<string, FlatLinkData> = {};
+  const links: Record<string, Link> = {};
 
   for (const [index, name] of markerNames.entries()) {
     const col = index % COLS;

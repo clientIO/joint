@@ -1,5 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useMarkup, useElementSize, type FlatElementData, type FlatLinkData, type PortalPaper, usePaperEvents } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useMarkup,
+  useElementSize,
+  type Element,
+  type Link,
+  type PortalPaper,
+  usePaperEvents,
+} from '@joint/react';
 import { type dia, highlighters } from '@joint/core';
 import '../index.css';
 import { useId, useRef } from 'react';
@@ -10,7 +19,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
+const initialElements: Record<string, Element<NodeData>> = {
   '1': {
     data: { label: 'Node 1' },
     position: { x: 100, y: 50 },
@@ -23,7 +32,7 @@ const initialElements: Record<string, FlatElementData<NodeData>> = {
   },
 };
 
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -38,7 +47,15 @@ function RenderElement({ label }: Readonly<NodeData>) {
   const { width, height } = useElementSize();
   return (
     <g width={width} height={height} className="node">
-      <rect ref={selectorRef('body')} rx={10} ry={10} width={width} height={height} stroke={PRIMARY} fill="white" />
+      <rect
+        ref={selectorRef('body')}
+        rx={10}
+        ry={10}
+        width={width}
+        height={height}
+        stroke={PRIMARY}
+        fill="white"
+      />
       <text x={width / 2} y={height / 2} textAnchor="middle" dominantBaseline="middle" fill="black">
         {label ?? 'Node'}
       </text>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unified-signatures */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useMemo } from 'react';
 import type { Link } from '../types/data-types';

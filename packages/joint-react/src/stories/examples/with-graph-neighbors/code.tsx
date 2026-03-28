@@ -9,8 +9,8 @@ import {
   useGraph,
   useMarkup,
   usePaperEvents,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -26,7 +26,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
+const initialElements: Record<string, Element<NodeData>> = {
   server: {
     data: { label: 'Server' },
     position: { x: 300, y: 30 },
@@ -69,7 +69,7 @@ const initialElements: Record<string, FlatElementData<NodeData>> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'l-server-db': {
     source: 'server',
     target: 'db',
@@ -200,9 +200,7 @@ function highlightLinks(paper: dia.Paper, state: HighlightState) {
     });
   }
 
-  const otherLinks = graph
-    .getLinks()
-    .filter((l) => !state.connectedLinkIds.has(String(l.id)));
+  const otherLinks = graph.getLinks().filter((l) => !state.connectedLinkIds.has(String(l.id)));
   for (const link of otherLinks) {
     const view = paper.findViewByModel(link);
     if (!view) continue;

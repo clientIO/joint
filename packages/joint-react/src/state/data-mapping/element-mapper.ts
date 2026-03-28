@@ -33,10 +33,13 @@ export function elementToAttributes<ElementData extends object | undefined = und
     parent,
     ports,
     portStyle,
+    attrs,
+    type = PORTAL_ELEMENT_TYPE,
   } = element;
 
-  const attributes: CellAttributes = { id, type: PORTAL_ELEMENT_TYPE };
+  const attributes: CellAttributes = { id, type };
 
+  if (attrs !== undefined) attributes.attrs = attrs;
   if (position !== undefined) {
     attributes.position = position;
   }
@@ -59,7 +62,7 @@ export function elementToAttributes<ElementData extends object | undefined = und
 }
 
 /**
- * Converts JointJS element attributes back to FlatElementData shape.
+ * Converts JointJS element attributes back to Element shape.
  * Public utility — purely mechanical, no defaultAttributes filtering.
  * @param attributes - The JointJS element attributes.
  * @returns The element item with user data in `data` field.
@@ -67,21 +70,24 @@ export function elementToAttributes<ElementData extends object | undefined = und
 export function attributesToElement<ElementData extends object | undefined = undefined>(
   attributes: dia.Element.Attributes
 ): Element<ElementData> {
-  const { data: cellData, position, size, angle, z, layer, parent } = attributes;
+  const { data: cellData, position, size, angle, z, layer, parent, attrs, type } = attributes;
   const { ports, portStyle, ...data } = cellData ?? {};
 
   const result: Element<ElementData> = {
     data,
   };
 
-  if (position) result.position = { x: position.x, y: position.y };
-  if (size) result.size = { width: size.width, height: size.height };
+  if (position) result.position = { x: position.x ?? 0, y: position.y ?? 0 };
+  if (size) result.size = { width: size.width ?? 0, height: size.height ?? 0 };
   if (angle !== undefined) result.angle = angle;
   if (ports !== undefined) result.ports = ports;
   if (portStyle !== undefined) result.portStyle = portStyle;
   if (z !== undefined) result.z = z;
   if (layer !== undefined) result.layer = layer;
+  if (type !== undefined) result.type = type;
+  if (attrs) result.attrs = attrs as Record<string, Record<string, unknown>>;
   if (parent) result.parent = parent;
+  if (attrs !== undefined) result.attrs = attrs as Record<string, Record<string, unknown>>;
   return result;
 }
 
@@ -90,3 +96,6 @@ export type MapAttributesToElement<ElementData extends object | undefined = unde
 
 export type MapElementToAttributes<ElementData extends object | undefined = undefined> =
   typeof elementToAttributes<ElementData>;
+
+export type MapElementToAttributesOptions<ElementData extends object | undefined = undefined> =
+  Parameters<MapElementToAttributes<ElementData>>[0];

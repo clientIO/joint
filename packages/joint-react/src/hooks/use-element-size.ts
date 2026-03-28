@@ -1,6 +1,7 @@
 import type { ElementSize } from '../types/cell-data';
 import { useElement } from './use-element';
 
+const EMPTY_SIZE: ElementSize = { width: 0, height: 0 };
 /**
  * Returns the size of the current element.
  * Must be used inside `renderElement` or a component rendered within it.
@@ -9,5 +10,6 @@ import { useElement } from './use-element';
  * @group Hooks
  */
 export function useElementSize(): Required<ElementSize> {
-  return useElement((element) => element.size);
+  const { width = 0, height = 0 } = useElement((element) => element.size) ?? EMPTY_SIZE;
+  return { width, height };
 }

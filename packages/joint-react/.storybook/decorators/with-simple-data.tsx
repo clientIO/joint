@@ -4,8 +4,8 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
-import type { FlatElementData } from '@joint/react';
-import { GraphProvider, useElementId, useMeasureNode, type FlatLinkData } from '@joint/react';
+import type { Element } from '@joint/react';
+import { GraphProvider, useElementId, useMeasureNode, type Link } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
@@ -17,7 +17,7 @@ export type StoryCtx = StoryContext<any, any>;
 
 export const testElements: Record<
   string,
-  FlatElementData<{
+  Element<{
     label: string;
     color: string;
     hoverColor: string;
@@ -52,7 +52,7 @@ export const testElements: Record<
 };
 
 export type SimpleElement = (typeof testElements)[string];
-export const testLinks: Record<string, FlatLinkData> = {
+export const testLinks: Record<string, Link> = {
   'l-1': {
     source: '1',
     target: '2',
@@ -80,8 +80,8 @@ export function RenderItemDecorator(
   properties: Readonly<{
     renderElement: () => JSX.Element;
     renderLink?: () => JSX.Element;
-    elements?: Record<string, FlatElementData>;
-    links?: Record<string, FlatLinkData>;
+    elements?: Record<string, Element>;
+    links?: Record<string, Link>;
   }>
 ) {
   return (

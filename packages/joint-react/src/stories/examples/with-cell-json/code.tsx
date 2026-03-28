@@ -4,8 +4,8 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type RenderElement,
   useElements,
 } from '@joint/react';
@@ -40,7 +40,7 @@ interface CellJsonLink {
 // Data
 // ============================================================================
 
-const initialElements: Record<string, FlatElementData<CellJsonElement>> = {
+const initialElements: Record<string, Element<CellJsonElement>> = {
   'node-1': {
     data: {
       type: 'PortalElement',
@@ -70,7 +70,7 @@ const initialElements: Record<string, FlatElementData<CellJsonElement>> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData<CellJsonLink>> = {
+const initialLinks: Record<string, Link<CellJsonLink>> = {
   'link-1': {
     data: {
       type: 'PortalLink',
@@ -102,7 +102,10 @@ const LINK_USER_DATA_KEYS = Object.keys(Object.values(initialLinks)[0].data as o
  */
 const mapElementToAttributes = ({
   element,
-}: { id: string; element: FlatElementData<CellJsonElement> }): dia.Cell.JSON => {
+}: {
+  id: string;
+  element: Element<CellJsonElement>;
+}): dia.Cell.JSON => {
   const userData = element.data ?? {};
   return { ...userData } as unknown as dia.Cell.JSON;
 };
@@ -111,15 +114,13 @@ const mapElementToAttributes = ({
  * Reverse mapper: pick only the keys defined in the data format.
  * Wraps custom fields in `data` so useElementData() can access them.
  */
-const mapAttributesToElement = (
-  attributes: dia.Element.Attributes
-): FlatElementData<CellJsonElement> => {
+const mapAttributesToElement = (attributes: dia.Element.Attributes): Element<CellJsonElement> => {
   const picked = util.pick(attributes, ELEMENT_KEYS) as CellJsonElement;
   return {
     data: picked,
     position: picked.position,
     size: picked.size,
-  } as FlatElementData<CellJsonElement>;
+  } as Element<CellJsonElement>;
 };
 
 /**
@@ -129,7 +130,10 @@ const mapAttributesToElement = (
 const mapLinkToAttributes = ({
   id,
   link,
-}: { id?: string; link: FlatLinkData<CellJsonLink> }): dia.Cell.JSON => {
+}: {
+  id?: string;
+  link: Link<CellJsonLink>;
+}): dia.Cell.JSON => {
   const userData = link.data ?? {};
   return {
     ...userData,
@@ -142,15 +146,13 @@ const mapLinkToAttributes = ({
 /**
  * Reverse mapper: pick only the keys defined in the data format.
  */
-const mapAttributesToLink = (
-  attributes: dia.Link.Attributes
-): FlatLinkData<CellJsonLink> => {
+const mapAttributesToLink = (attributes: dia.Link.Attributes): Link<CellJsonLink> => {
   const userData = util.pick(attributes, LINK_USER_DATA_KEYS) as CellJsonLink;
   return {
     data: userData,
     source: attributes.source as string,
     target: attributes.target as string,
-  } as FlatLinkData<CellJsonLink>;
+  } as Link<CellJsonLink>;
 };
 
 // ============================================================================
@@ -198,7 +200,8 @@ function DataPanel() {
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
           <div className="font-bold mb-1">{element.data?.label}</div>
           <div>
-            position: {'{'}x: {Math.round(element.position?.x ?? 0)}, y: {Math.round(element.position?.y ?? 0)}
+            position: {'{'}x: {Math.round(element.position?.x ?? 0)}, y:{' '}
+            {Math.round(element.position?.y ?? 0)}
             {'}'}
           </div>
           <div className="text-gray-400 text-xs mt-1">

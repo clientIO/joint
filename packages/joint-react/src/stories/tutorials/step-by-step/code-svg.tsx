@@ -1,25 +1,19 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import {
-  GraphProvider,
-  Paper,
-  useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
-} from '@joint/react';
+import { GraphProvider, Paper, useElementSize, type Element, type Link } from '@joint/react';
 
 // define element type with custom properties
 type ElementData = { color: string };
 
 // define initial elements as Record
-const initialElements: Record<string, FlatElementData<ElementData>> = {
+const initialElements: Record<string, Element<ElementData>> = {
   '1': { data: { color: PRIMARY }, position: { x: 100, y: 15 }, size: { width: 100, height: 25 } },
   '2': { data: { color: PRIMARY }, position: { x: 100, y: 200 }, size: { width: 100, height: 25 } },
 };
 
 // define initial edges as Record
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',

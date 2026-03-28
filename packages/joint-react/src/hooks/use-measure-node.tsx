@@ -3,7 +3,7 @@ import { useElementId } from './use-element-id';
 import { useGraphStore } from './use-graph-store';
 import type { OnTransformElement } from '../store/create-elements-size-observer';
 import { usePaper } from './use-paper';
-import type { ElementLayout, ElementSize } from '../types/cell-data';
+import type { ElementSize } from '../types/cell-data';
 import { useElementSize } from './use-element-size';
 
 /**
@@ -48,7 +48,6 @@ export interface MeasureNodeOptions {
 }
 
 const EMPTY_OBJECT: MeasureNodeOptions = {};
-const EMPTY_NODE_LAYOUT: ElementLayout = { x: 0, y: 0, width: 0, height: 0, angle: 0 };
 
 /**
  * Custom hook to automatically measure the size of a DOM element and synchronize it with the graph element's size.
@@ -154,7 +153,7 @@ export function useMeasureNode(
   const { graph, setMeasuredNode } = useGraphStore();
   const { paper } = usePaper();
   const id = useElementId();
-  const layout = useElementSize() ?? EMPTY_NODE_LAYOUT;
+  const layout = useElementSize();
 
   useLayoutEffect(() => {
     const element = nodeRef.current;

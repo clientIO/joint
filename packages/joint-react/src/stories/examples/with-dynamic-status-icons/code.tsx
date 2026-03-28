@@ -1,9 +1,15 @@
-
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type dia, g, highlighters, V } from '@joint/core';
-import type { FlatElementData } from '@joint/react';
-import { GraphProvider, Paper, SVGText, useElementSize, useGraph, useNodesMeasuredEffect } from '@joint/react';
+import type { Element } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  SVGText,
+  useElementSize,
+  useGraph,
+  useNodesMeasuredEffect,
+} from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 
@@ -21,7 +27,7 @@ interface ShapeElement {
   readonly label: string;
 }
 
-const initialElements: Record<string, FlatElementData<ShapeElement>> = {
+const initialElements: Record<string, Element<ShapeElement>> = {
   rectangle: {
     data: { type: ShapeTypes.rectangle, label: 'Rectangle' },
     size: { width: 100, height: 100 },

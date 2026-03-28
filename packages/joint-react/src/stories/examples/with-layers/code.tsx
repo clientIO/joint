@@ -10,8 +10,8 @@ import {
   PortalLink,
   useMeasureNode,
   useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
 } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, BG } from 'storybook-config/theme';
@@ -24,7 +24,7 @@ interface LayeredElementData {
 }
 
 // Elements assigned to different layers
-const elements: Record<string, FlatElementData<LayeredElementData>> = {
+const elements: Record<string, Element<LayeredElementData>> = {
   // Background layer elements
   'bg-1': {
     data: { label: 'Background 1', color: '#374151', isBackground: true },
@@ -58,7 +58,7 @@ const elements: Record<string, FlatElementData<LayeredElementData>> = {
 };
 
 // Links assigned to layers
-const links: Record<string, FlatLinkData> = {
+const links: Record<string, Link> = {
   'link-1': {
     source: 'main-1',
     target: 'main-2',

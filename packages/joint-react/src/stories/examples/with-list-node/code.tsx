@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable @eslint-react/no-array-index-key */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
@@ -8,24 +9,23 @@ import {
   Paper,
   useMeasureNode,
   type OnTransformElement,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   useElementId,
 } from '@joint/react';
 import { BG, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
 interface ListNodeData {
-  readonly [key: string]: unknown;
   readonly label: string;
   readonly inputs: string[];
 }
 
-const initialElements: Record<string, FlatElementData<ListNodeData>> = {
+const initialElements: Record<string, Element<ListNodeData>> = {
   '1': { data: { label: 'Node 1', inputs: [] }, position: { x: 100, y: 15 } },
   '2': { data: { label: 'Node 2', inputs: [] }, position: { x: 500, y: 200 } },
 };
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -123,7 +123,11 @@ function ListElement({ children, inputs }: PropsWithChildren<ListNodeData>) {
 
 function Main() {
   const renderElement = useCallback(({ label, inputs }: ListNodeData) => {
-    return <ListElement inputs={inputs}>{label}</ListElement>;
+    return (
+      <ListElement label={label} inputs={inputs}>
+        {label}
+      </ListElement>
+    );
   }, []);
   return (
     <Paper

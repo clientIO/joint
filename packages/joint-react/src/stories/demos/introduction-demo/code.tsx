@@ -6,7 +6,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import React from 'react';
 import { dia, highlighters, linkTools } from '@joint/core';
-import { PAPER_CLASSNAME, LIGHT, SECONDARY, BG } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, LIGHT, SECONDARY } from 'storybook-config/theme';
 import './index.css';
 import {
   GraphProvider,
@@ -16,9 +16,9 @@ import {
   useMeasureNode,
   useNodesMeasuredEffect,
   type CellId,
-  type FlatElementData,
+  type Element,
   type FlatElementPort,
-  type FlatLinkData,
+  type Link,
   type PaperProps,
   usePaperEvents,
   useElementSize,
@@ -43,7 +43,6 @@ type TableElementData = {
 };
 
 type ElementData = MessageElementData | TableElementData;
-type Element = FlatElementData<ElementData>;
 
 const MESSAGE_NODE_CLASSNAME =
   'flex flex-row border-1 border-solid border-white/20 text-white rounded-lg p-4 min-w-[250px] min-h-[100px] bg-gray-900 shadow-sm';
@@ -128,7 +127,7 @@ const elements: Record<string, Element> = {
 };
 
 // Create initial links from table element port to another element as Record
-const links: Record<string, FlatLinkData> = {
+const links: Record<string, Link> = {
   link2: {
     source: '3', // Port from table element
     sourcePort: 'out-3-0',

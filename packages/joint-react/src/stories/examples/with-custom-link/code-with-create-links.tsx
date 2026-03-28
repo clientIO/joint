@@ -1,15 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { GraphProvider, Paper, type FlatLinkData, type RenderElement } from '@joint/react';
-import { useCallback } from 'react';
-import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
-
-const initialElements: Record<string, { label: string; x: number; y: number }> = {
-  '1': { data: { label: 'Node 1' }, x: 100, y: 15 },
-  '2': { data: { label: 'Node 2' }, x: 100, y: 200 },
+import { GraphProvider, Paper, type Element, type Link } from '@joint/react';
+type ElementData = { label: string };
+const initialElements: Record<string, Element<ElementData>> = {
+  '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
+  '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
 };
 
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',

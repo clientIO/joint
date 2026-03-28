@@ -99,14 +99,14 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    * @example
    * Example with `global component`:
    * ```tsx
-   * function RenderLink({ id, ...data }: FlatLinkData) {
+   * function RenderLink({ id, ...data }: Link) {
    *   return <text>Link {id}</text>;
    * }
    * ```
    * @example
    * Example with `local component`:
    * ```tsx
-   * const renderLink: RenderLink<FlatLinkData> = useCallback(
+   * const renderLink: RenderLink<Link> = useCallback(
    *   (link) => <text>{link.source} → {link.target}</text>,
    *   []
    * )

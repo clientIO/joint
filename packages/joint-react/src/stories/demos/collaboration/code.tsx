@@ -10,8 +10,8 @@ import {
   useGraph,
   useMarkup,
   useMeasureNode,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type RenderElement,
   type IncrementalContainerChanges,
 } from '@joint/react';
@@ -87,7 +87,7 @@ type AgentNodeData = {
   readonly status: 'online' | 'busy' | 'idle';
 };
 
-type AgentNode = FlatElementData<AgentNodeData>;
+type AgentNode = Element<AgentNodeData>;
 
 const PORT_R = 5;
 
@@ -178,7 +178,7 @@ const initialElements: Record<string, AgentNode> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'o-r': {
     source: 'orchestrator',
     sourcePort: 'out',
@@ -204,8 +204,8 @@ const initialLinks: Record<string, FlatLinkData> = {
 // ── Redux Store ─────────────────────────────────────────────────────────────
 
 interface GraphState {
-  readonly elements: Record<string, FlatElementData<AgentNodeData>>;
-  readonly links: Record<string, FlatLinkData>;
+  readonly elements: Record<string, Element<AgentNodeData>>;
+  readonly links: Record<string, Link>;
 }
 
 const graphSlice = createSlice({
@@ -219,20 +219,20 @@ const graphSlice = createSlice({
       const { elements, links } = action.payload;
 
       for (const [id, data] of elements.added) {
-        state.elements[id] = data as unknown as FlatElementData<AgentNodeData>;
+        state.elements[id] = data as unknown as Element<AgentNodeData>;
       }
       for (const [id, data] of elements.changed) {
-        state.elements[id] = data as unknown as FlatElementData<AgentNodeData>;
+        state.elements[id] = data as unknown as Element<AgentNodeData>;
       }
       for (const id of elements.removed) {
         delete state.elements[id];
       }
 
       for (const [id, data] of links.added) {
-        state.links[id] = data as FlatLinkData;
+        state.links[id] = data as Link;
       }
       for (const [id, data] of links.changed) {
-        state.links[id] = data as FlatLinkData;
+        state.links[id] = data as Link;
       }
       for (const id of links.removed) {
         delete state.links[id];
@@ -938,13 +938,13 @@ function GraphWithRedux() {
   );
 
   // Theme links
-  const themedLinks: Record<string, FlatLinkData> = {};
+  const themedLinks: Record<string, Link> = {};
   for (const [id, link] of Object.entries(links)) {
     themedLinks[id] = { ...link, color: theme.link };
   }
 
   // Theme element ports
-  const themedElements: Record<string, FlatElementData<AgentNodeData>> = {};
+  const themedElements: Record<string, Element<AgentNodeData>> = {};
   for (const [id, element] of Object.entries(elements)) {
     themedElements[id] = {
       ...element,

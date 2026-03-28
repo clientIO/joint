@@ -1,5 +1,4 @@
 import { dia } from '@joint/core';
-import type { PaperStore } from '../../store';
 import { DEFAULT_CELL_NAMESPACE } from '../../store/graph-store';
 import { graphView, type IncrementalContainerChanges } from '../graph-view';
 
@@ -14,6 +13,22 @@ function addElement(graph: dia.Graph, id: string, x = 10, y = 20, width = 100, h
 /** Flush pending microtasks so commitChanges callbacks execute. */
 const flush = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
+/** Clone incremental changes to capture snapshot (source Maps are cleared after callback). */
+function cloneChanges(c: IncrementalContainerChanges): IncrementalContainerChanges {
+  return {
+    elements: {
+      added: new Map(c.elements.added),
+      changed: new Map(c.elements.changed),
+      removed: new Set(c.elements.removed),
+    },
+    links: {
+      added: new Map(c.links.added),
+      changed: new Map(c.links.changed),
+      removed: new Set(c.links.removed),
+    },
+  };
+}
+
 describe('graphView onIncrementalChange', () => {
   it('fires with added elements when element is added to graph', async () => {
     const graph = createGraph();
@@ -21,8 +36,8 @@ describe('graphView onIncrementalChange', () => {
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
-      onIncrementalChange: (c) => allChanges.push(c),
+
+      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
       mappings: {},
     });
 
@@ -42,8 +57,8 @@ describe('graphView onIncrementalChange', () => {
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
-      onIncrementalChange: (c) => allChanges.push(c),
+
+      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
       mappings: {},
     });
 
@@ -67,8 +82,8 @@ describe('graphView onIncrementalChange', () => {
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
-      onIncrementalChange: (c) => allChanges.push(c),
+
+      onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
       mappings: {},
     });
 
@@ -94,7 +109,7 @@ describe('graphView onIncrementalChange', () => {
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
       mappings: {},
     });
 
@@ -112,7 +127,7 @@ describe('graphView onIncrementalChange', () => {
 
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
       onIncrementalChange: () => {
         containerValueDuringCallback = view.elements.get('el-1');
       },
@@ -132,7 +147,7 @@ describe('graphView onIncrementalChange', () => {
     const graph = createGraph();
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
       mappings: {},
     });
 
@@ -153,7 +168,7 @@ describe('graphView onIncrementalChange', () => {
     const graph = createGraph();
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
       mappings: {},
     });
 
@@ -173,7 +188,7 @@ describe('graphView onIncrementalChange', () => {
     const graph = createGraph();
     const view = graphView({
       graph,
-      getPaperStores: () => new Map<string, PaperStore>(),
+
       mappings: {},
     });
 

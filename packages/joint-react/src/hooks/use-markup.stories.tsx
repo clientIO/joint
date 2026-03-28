@@ -12,17 +12,13 @@ import { useElementSize } from './use-element-size';
 
 const elements: Record<string, Element> = {
   '1': {
-    x: 100,
-    y: 20,
-    width: 150,
-    height: 50,
+    size: { width: 150, height: 50 },
+    position: { x: 100, y: 20 },
     z: 1,
   },
   '2': {
-    x: 200,
-    y: 250,
-    width: 150,
-    height: 50,
+    size: { width: 150, height: 50 },
+    position: { x: 200, y: 250 },
     z: 1,
   },
 };

@@ -289,4 +289,129 @@ describe('dataMapper', () => {
       expect(attributesToLink).toBeInstanceOf(Function);
     });
   });
+
+  describe('element attrs handling', () => {
+    it('should not include attrs when undefined (PortalElement default)', () => {
+      const cellJson = elementToAttributes({
+        id: 'el-1',
+        element: { data: undefined, position: { x: 0, y: 0 }, size: { width: 100, height: 50 } },
+      });
+      expect(cellJson).not.toHaveProperty('attrs');
+    });
+
+    it('should pass attrs through when provided', () => {
+      const cellJson = elementToAttributes({
+        id: 'el-1',
+        element: {
+          position: { x: 0, y: 0 },
+          size: { width: 100, height: 50 },
+          attrs: { body: { fill: 'red' }, label: { text: 'Hello', fill: 'white' } },
+        },
+      });
+      expect(cellJson.attrs).toEqual({ body: { fill: 'red' }, label: { text: 'Hello', fill: 'white' } });
+    });
+
+    it('should pass custom type through', () => {
+      const cellJson = elementToAttributes({
+        id: 'el-1',
+        element: { position: { x: 0, y: 0 }, size: { width: 100, height: 50 }, type: 'standard.Rectangle' },
+      });
+      expect(cellJson.type).toBe('standard.Rectangle');
+    });
+
+    it('should round-trip attrs and type', () => {
+      const cellJson = elementToAttributes({
+        id: 'el-1',
+        element: {
+          position: { x: 10, y: 20 },
+          size: { width: 80, height: 40 },
+          type: 'standard.Rectangle',
+          attrs: { body: { fill: 'blue' }, label: { text: 'Test', fill: 'white' } },
+        },
+      });
+
+      graph.addCell(cellJson as dia.Cell.JSON);
+      const cell = graph.getCell('el-1') as dia.Element;
+      const result = attributesToElement(cell.attributes);
+
+      expect(result.type).toBe('standard.Rectangle');
+      expect(result.attrs).toBeDefined();
+    });
+  });
+
+  describe('built-in shapes (native JointJS)', () => {
+    it('standard.Rectangle should render with correct body size after addCell', () => {
+      const cellJson = elementToAttributes({
+        id: 'rect-1',
+        element: {
+          position: { x: 20, y: 20 },
+          size: { width: 100, height: 50 },
+          type: 'standard.Rectangle',
+          attrs: { body: { fill: 'red' }, label: { fill: 'white', text: 'Rectangle' } },
+        },
+      });
+
+      graph.addCell(cellJson as dia.Cell.JSON);
+      const cell = graph.getCell('rect-1') as dia.Element;
+
+      // Cell should have the correct size
+      expect(cell.size()).toEqual({ width: 100, height: 50 });
+      expect(cell.position()).toEqual({ x: 20, y: 20 });
+
+      // The body attrs from standard.Rectangle defaults should be preserved
+      // (refWidth, refHeight etc.) — user attrs should merge, not replace
+      const bodyAttrs = cell.attr('body');
+      expect(bodyAttrs.fill).toBe('red');
+      // refWidth/refHeight come from standard.Rectangle defaults
+      expect(bodyAttrs.width).toBe('calc(w)');
+      expect(bodyAttrs.height).toBe('calc(h)');
+    });
+
+    it('standard.Rectangle should work via syncCells (not just addCell)', () => {
+      const cellJson = elementToAttributes({
+        id: 'sync-rect',
+        element: {
+          position: { x: 0, y: 0 },
+          size: { width: 120, height: 60 },
+          type: 'standard.Rectangle',
+          attrs: { body: { fill: 'green' }, label: { fill: 'white', text: 'Synced' } },
+        },
+      });
+
+      // syncCells is what GraphProvider actually uses
+      graph.syncCells([cellJson as dia.Cell.JSON], { remove: true });
+      const cell = graph.getCell('sync-rect') as dia.Element;
+
+      expect(cell).toBeDefined();
+      expect(cell.size()).toEqual({ width: 120, height: 60 });
+
+      const bodyAttrs = cell.attr('body');
+      expect(bodyAttrs.fill).toBe('green');
+      // Model defaults should be preserved
+      expect(bodyAttrs.width).toBe('calc(w)');
+      expect(bodyAttrs.height).toBe('calc(h)');
+    });
+
+    it('standard.Circle should preserve default body attrs', () => {
+      const cellJson = elementToAttributes({
+        id: 'circle-1',
+        element: {
+          position: { x: 0, y: 0 },
+          size: { width: 60, height: 60 },
+          type: 'standard.Circle',
+          attrs: { body: { fill: 'blue', stroke: '#333' }, label: { fill: 'white', text: 'Circle' } },
+        },
+      });
+
+      graph.addCell(cellJson as dia.Cell.JSON);
+      const cell = graph.getCell('circle-1') as dia.Element;
+
+      const bodyAttrs = cell.attr('body');
+      expect(bodyAttrs.fill).toBe('blue');
+      expect(bodyAttrs.stroke).toBe('#333');
+      // Default circle attrs should still be present (standard.Circle uses calc(s/2))
+      expect(bodyAttrs.cx).toBe('calc(s/2)');
+      expect(bodyAttrs.cy).toBe('calc(s/2)');
+    });
+  });
 });

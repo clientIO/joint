@@ -1,24 +1,22 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { type dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
   Paper,
   useElements,
-  useElementSize,
   useGraph,
   useGraphEvents,
-  type FlatElementData,
-  type RenderElement,
+  type Element,
 } from '@joint/react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 // ============================================================================
 // Data
 // ============================================================================
-
-const initialElements: Record<string, FlatElementData> = {
+type Data = { label: string };
+const initialElements: Record<string, Element<Data>> = {
   container: {
     data: {
       label: 'Container',
@@ -31,10 +29,8 @@ const initialElements: Record<string, FlatElementData> = {
     data: {
       label: 'Drag me',
     },
-    x: 100,
-    y: 180,
-    width: 120,
-    height: 60,
+    position: { x: 100, y: 180 },
+    size: { width: 120, height: 60 },
     z: 2,
     parent: 'container',
   },
@@ -75,7 +71,7 @@ type Tab = 'data' | 'cell';
 
 function InspectorPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('data');
-  const elements = useElements<EmbeddingElement>();
+  const elements = useElements<Data>();
   const rawAttributes = useRawAttributes();
 
   return (
@@ -114,9 +110,7 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({
-  elements,
-}: Readonly<{ elements: Map<string, FlatElementData<EmbeddingElement>> }>) {
+function ElementDataView({ elements }: Readonly<{ elements: Map<string, Element<Data>> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useElements() Data</h3>

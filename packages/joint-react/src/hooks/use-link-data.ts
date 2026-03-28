@@ -1,7 +1,6 @@
-import type { CellData } from '../types/cell-data';
 import { useLink } from './use-link';
 
-const EMPTY_DATA = {} as CellData;
+const EMPTY_DATA = {};
 
 /**
  * Returns the user data for the current link.

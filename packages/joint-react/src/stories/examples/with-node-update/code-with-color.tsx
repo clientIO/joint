@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useElementId, type FlatElementData, type FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, useElementId, type Element, type Link } from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
@@ -12,12 +12,20 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
-  '1': { data: { label: 'Node 1', color: PRIMARY }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
-  '2': { data: { label: 'Node 2', color: PRIMARY }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
+const initialElements: Record<string, Element<NodeData>> = {
+  '1': {
+    data: { label: 'Node 1', color: PRIMARY },
+    position: { x: 100, y: 15 },
+    size: { width: 100, height: 50 },
+  },
+  '2': {
+    data: { label: 'Node 2', color: PRIMARY },
+    position: { x: 100, y: 200 },
+    size: { width: 100, height: 50 },
+  },
 };
 
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -42,7 +50,10 @@ function RenderElement({ color }: Readonly<NodeData>) {
         className="nodrag"
         type="color"
         onChange={(event) => {
-          setElement(id, (previous) => ({ ...previous, data: { ...previous.data as unknown as NodeData, color: event.target.value } }));
+          setElement(id, (previous) => ({
+            ...previous,
+            data: { ...(previous.data as unknown as NodeData), color: event.target.value },
+          }));
         }}
         defaultValue={color}
       />

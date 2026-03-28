@@ -6,9 +6,9 @@ import {
   useElementDefaults,
   useElementSize,
   useLinkDefaults,
-  type FlatElementData,
+  type Element,
   type FlatElementPort,
-  type FlatLinkData,
+  type Link,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
@@ -20,14 +20,14 @@ interface ElementData {
 
 // Minimal persisted data — no ports, no styling.
 // Ports and theme are provided by useElementDefaults based on element kind.
-const initialElements: Record<string, FlatElementData<ElementData>> = {
+const initialElements: Record<string, Element<ElementData>> = {
   a: { data: { label: 'Start', type: 'source' }, position: { x: 50, y: 140 } },
   b: { data: { label: 'Process', type: 'process' }, position: { x: 250, y: 50 } },
   c: { data: { label: 'Review', type: 'process' }, position: { x: 250, y: 230 } },
   d: { data: { label: 'Done', type: 'sink' }, position: { x: 480, y: 140 } },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'a-b': { source: 'a', target: 'b', sourcePort: 'out', targetPort: 'in' },
   'a-c': { source: 'a', target: 'c', sourcePort: 'out', targetPort: 'in' },
   'b-d': {

@@ -49,9 +49,9 @@ export * from './state/data-mapping/link-mapper';
 // Types
 export type { ElementPosition, ElementSize } from './types/cell-data';
 export type {
-  Element as FlatElementData,
+  Element as Element,
   FlatElementPort,
-  Link as FlatLinkData,
+  Link as Link,
   FlatLinkEnd,
   FlatLinkLabel,
   FlatLinkPresentationData,

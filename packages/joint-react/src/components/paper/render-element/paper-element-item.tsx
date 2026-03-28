@@ -63,23 +63,12 @@ export const SVGElementItem = typedMemo(SVGElementItemComponent);
  * @internal
  */
 function HTMLElementItemComponent(props: ElementItemProps) {
-  const { renderElement, portalElement, areElementsMeasured } = props;
+  const { renderElement, portalElement } = props;
   const id = useElementId();
   const data = useElementData();
-  const graphStore = useGraphStore();
-  const { paper } = usePaper();
+
   const { x, y } = useElementPosition();
   const { width, height } = useElementSize();
-
-  useLayoutEffect(() => {
-    if (!areElementsMeasured) {
-      return;
-    }
-    graphStore.clearViewForElementAndLinks({
-      cellId: id,
-      paper,
-    });
-  }, [id, graphStore, areElementsMeasured, paper]);
 
   const style = useMemo(
     (): CSSProperties => ({

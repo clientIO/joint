@@ -1,5 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider, Paper, useElements, usePaper, useMeasureNode, useElementId, type FlatElementData, type FlatLinkData } from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useElements,
+  usePaper,
+  useMeasureNode,
+  useElementId,
+  type Element,
+  type Link,
+} from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -10,12 +19,12 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, FlatElementData<NodeData>> = {
+const initialElements: Record<string, Element<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 20, y: 100 } },
   '2': { data: { label: 'Node 2' }, position: { x: 200, y: 100 } },
 };
 
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',
@@ -83,8 +92,8 @@ function RotatableNode({ label }: Readonly<NodeData>) {
 }
 
 function Main() {
-  const elementRotation = useElements<string[]>(
-    (elements) => [...elements.values()].map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
+  const elementRotation = useElements((elements) =>
+    [...elements.values()].map(({ angle }) => `${angle?.toString().padStart(3, '0')} deg`)
   );
 
   return (

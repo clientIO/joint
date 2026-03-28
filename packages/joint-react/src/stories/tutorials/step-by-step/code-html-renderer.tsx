@@ -5,8 +5,8 @@ import {
   usePaper,
   useElementSize,
   useMeasureNode,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
 } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -15,13 +15,13 @@ import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 type ElementData = { label: string };
 
 // Define initial elements as Record
-const initialElements: Record<string, FlatElementData<ElementData>> = {
+const initialElements: Record<string, Element<ElementData>> = {
   '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 25 } },
   '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 25 } },
 };
 
 // Define initial edges as Record
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',

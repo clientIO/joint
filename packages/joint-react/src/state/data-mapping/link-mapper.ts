@@ -63,12 +63,14 @@ export function linkToAttributes<LinkData extends object | undefined = undefined
     wrapperWidth = defaultLinkStyle.wrapperWidth,
     wrapperColor = defaultLinkStyle.wrapperColor,
     wrapperClassName = defaultLinkStyle.wrapperClassName,
+    attrs,
+    type = PORTAL_LINK_TYPE,
     ...rest
   } = link;
 
   const attributes: CellAttributes = {
     id,
-    type: PORTAL_LINK_TYPE,
+    type,
     source: source
       ? toLinkEndAttribute(source, {
           port: sourcePort,
@@ -100,6 +102,7 @@ export function linkToAttributes<LinkData extends object | undefined = undefined
     }),
   };
 
+  if (attrs !== undefined) attributes.attrs = { ...attributes.attrs, ...attrs };
   if (z !== undefined) attributes.z = z;
   if (layer !== undefined) attributes.layer = layer;
   if (parent !== undefined) attributes.parent = parent;
@@ -147,6 +150,8 @@ export function attributesToLink<LinkData extends object | undefined = undefined
     router,
     connector,
     labels: attributeLabels,
+    attrs,
+    type,
   } = attributes;
 
   const sourceData = toLinkEndData(source);
@@ -160,6 +165,8 @@ export function attributesToLink<LinkData extends object | undefined = undefined
   assignEndDataProperties(result, sourceData, SOURCE_KEYS);
   assignEndDataProperties(result, targetData, TARGET_KEYS);
 
+  if (type !== undefined) result.type = type;
+  if (attrs) result.attrs = attrs;
   if (z !== undefined) result.z = z;
   if (layer !== undefined) result.layer = layer;
   if (parent) result.parent = parent;
@@ -187,3 +194,6 @@ export type MapAttributesToLink<LinkData extends object | undefined = undefined>
 
 export type MapLinkToAttributes<LinkData extends object | undefined = undefined> =
   typeof linkToAttributes<LinkData>;
+
+export type MapLinkToAttributesOptions<LinkData extends object | undefined = undefined> =
+  Parameters<MapLinkToAttributes<LinkData>>[0];

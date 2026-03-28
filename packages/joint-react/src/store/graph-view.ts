@@ -1,3 +1,4 @@
+/* eslint-disable prefer-destructuring */
 /* eslint-disable unicorn/explicit-length-check */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
@@ -103,6 +104,7 @@ export function graphView<
                 data.attributes
               ) as ElementWithLayout<ElementData>;
 
+              // elements.set(id, elementDataRaw);
               elements.set(id, (previous) => {
                 const { data: userData, position, size, ...rest } = elementDataRaw;
                 const newElement = previous ? { ...previous, ...rest } : elementDataRaw;
@@ -238,12 +240,7 @@ export function graphView<
       for (const [id, data] of Object.entries(userElements)) {
         const cell = graph.getCell(id);
         if (cell?.isElement()) {
-          elements.set(id, {
-            position: cell.position(),
-            size: cell.size(),
-            angle: cell.angle(),
-            ...data,
-          });
+          elements.set(id, data as ElementWithLayout<ElementData>);
         }
       }
       for (const [id, data] of Object.entries(userLinks)) {
@@ -265,10 +262,38 @@ export function graphView<
       if (links.getSize() > 0 || Object.keys(userLinks).length > 0) links.commitChanges();
     },
     updateMappers(nextMappers: GraphMappings<ElementData, LinkData>) {
-      mapAttributesToElement = nextMappers.mapAttributesToElement ?? mapAttributesToElement;
-      mapAttributesToLink = nextMappers.mapAttributesToLink ?? mapAttributesToLink;
-      mapElementToAttributes = nextMappers.mapElementToAttributes ?? mapElementToAttributes;
-      mapLinkToAttributes = nextMappers.mapLinkToAttributes ?? mapLinkToAttributes;
+      // Only update mappers that actually changed
+      let changed = false;
+      if (
+        nextMappers.mapAttributesToElement &&
+        nextMappers.mapAttributesToElement !== mapAttributesToElement
+      ) {
+        mapAttributesToElement = nextMappers.mapAttributesToElement;
+        changed = true;
+      }
+      if (
+        nextMappers.mapAttributesToLink &&
+        nextMappers.mapAttributesToLink !== mapAttributesToLink
+      ) {
+        mapAttributesToLink = nextMappers.mapAttributesToLink;
+        changed = true;
+      }
+      if (
+        nextMappers.mapElementToAttributes &&
+        nextMappers.mapElementToAttributes !== mapElementToAttributes
+      ) {
+        mapElementToAttributes = nextMappers.mapElementToAttributes;
+        changed = true;
+      }
+      if (
+        nextMappers.mapLinkToAttributes &&
+        nextMappers.mapLinkToAttributes !== mapLinkToAttributes
+      ) {
+        mapLinkToAttributes = nextMappers.mapLinkToAttributes;
+        changed = true;
+      }
+      // Skip re-sync if no mapper actually changed
+      if (!changed) return;
       // Re-sync all existing data through updated mappers
       const graphElements: dia.Cell.JSON[] = [];
       const graphLinks: dia.Cell.JSON[] = [];

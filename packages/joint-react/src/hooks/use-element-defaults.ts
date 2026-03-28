@@ -10,8 +10,7 @@ export function useElementDefaults<Data extends object | undefined = undefined>(
     | ((options: { data: Element<Data>; id?: CellId }) => Partial<Element<Data>>),
   deps: DependencyList = []
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- `any` lets GraphProvider infer ElementData from `elements` prop without requiring an explicit type parameter on the hook.
-  return useMemo((): { mapElementToAttributes: MapElementToAttributes<any> } => {
+  return useMemo((): { mapElementToAttributes: MapElementToAttributes<Data> } => {
     return {
       mapElementToAttributes: (mapOptions) => {
         {
@@ -25,7 +24,7 @@ export function useElementDefaults<Data extends object | undefined = undefined>(
 
           let result: CellAttributes;
           if (resolved) {
-            const element = { ...resolved, ...mapOptions.element } as Element<Data>;
+            const element = { ...resolved, ...mapOptions.element };
             result = elementToAttributes({ id: mapOptions.id, element });
 
             // Strip default-provided keys from cell.data so they don't

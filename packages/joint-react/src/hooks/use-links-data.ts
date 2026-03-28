@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unified-signatures */
 import { useMemo } from 'react';
 import type { CellId } from '../types/cell-id';
 import type { Link } from '../types/data-types';

@@ -11,7 +11,6 @@ export function useLinkDefaults<Data extends object | undefined = undefined>(
   deps: DependencyList = []
 ) {
   return useMemo(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- `any` lets GraphProvider infer LinkData from `links` prop without requiring an explicit type parameter on the hook.
     (): {
       mapLinkToAttributes: MapLinkToAttributes<Data>;
     } => {

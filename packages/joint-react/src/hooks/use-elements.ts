@@ -27,10 +27,10 @@ export function useElements<T extends object | undefined = undefined>(): Map<
 export function useElements<T extends object | undefined = undefined>(
   ...ids: [string, ...string[]]
 ): Map<CellId, ElementWithLayout<T>>;
-export function useElements<S>(
-  selector: (items: Map<CellId, ElementWithLayout>) => S,
-  isEqual?: (a: S, b: S) => boolean
-): S;
+export function useElements<
+  T extends object | undefined = undefined,
+  S = Map<CellId, ElementWithLayout<T>>,
+>(selector: (items: Map<CellId, ElementWithLayout<T>>) => S, isEqual?: (a: S, b: S) => boolean): S;
 export function useElements<
   T extends object | undefined = undefined,
   S = Map<CellId, ElementWithLayout<T>>,
@@ -58,7 +58,5 @@ export function useElements<
     : stableIds;
   const isEqual = isSelectorMode ? (args[1] as ((a: S, b: S) => boolean) | undefined) : undefined;
 
-  return useContainerItems(elements, idsOrSelector, isEqual) as
-    | Map<CellId, ElementWithLayout<T>>
-    | S;
+  return useContainerItems(elements, idsOrSelector, isEqual);
 }

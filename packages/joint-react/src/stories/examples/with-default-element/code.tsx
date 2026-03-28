@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { GraphProvider, Paper, type FlatElementData, type FlatLinkData } from '@joint/react';
+import { GraphProvider, Paper, type Element, type Link } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jr-* CSS variable defaults (including element styles)
@@ -9,7 +9,7 @@ import '../../../css/theme.css';
 import './dark-theme.css';
 
 type Data = { label: string };
-const initialElements: Record<string, FlatElementData<Data>> = {
+const initialElements: Record<string, Element<Data>> = {
   a: {
     // No width or height — element should size to fit label
     // label: 'Lorem ipsum',
@@ -44,7 +44,7 @@ const initialElements: Record<string, FlatElementData<Data>> = {
 
 const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'a-b': {
     source: 'a',
     sourcePort: 'out',

@@ -169,7 +169,13 @@ describe('graphChanges', () => {
       element.remove({ isUpdateFromReact: true });
       await flush();
 
-      expect(onChanges).not.toHaveBeenCalled();
+      // batch:stop still fires onChanges, but it should not contain a 'remove' entry for el-1
+      // because the remove event itself was filtered by isUpdateFromReact
+      for (const call of onChanges.mock.calls) {
+        const { changes } = call[0];
+        const change = changes.get('el-1');
+        expect(change?.type).not.toBe('remove');
+      }
     });
   });
 
@@ -204,14 +210,18 @@ describe('graphChanges', () => {
       expect(afterBatch.isInsideBatch).toBe(false);
     });
 
-    it('does not fire extra onChanges on batch stop if no changes', async () => {
+    it('fires onChanges on batch stop even with no cell changes', async () => {
       const { graph, onChanges } = setup();
 
       graph.startBatch('update');
       graph.stopBatch('update');
       await flush();
 
-      expect(onChanges).not.toHaveBeenCalled();
+      // batch:stop always fires onChanges with the current (empty) changes map
+      expect(onChanges).toHaveBeenCalled();
+      const { changes, isInsideBatch } = onChanges.mock.calls.at(-1)[0];
+      expect(changes.size).toBe(0);
+      expect(isInsideBatch).toBe(false);
     });
 
     it('handles nested batches — only fires on outermost stop', async () => {

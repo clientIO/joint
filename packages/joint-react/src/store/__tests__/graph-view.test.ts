@@ -1,5 +1,4 @@
 import { dia } from '@joint/core';
-import type { PaperStore } from '../../store';
 import { DEFAULT_CELL_NAMESPACE } from '../../store/graph-store';
 import { graphView } from '../graph-view';
 
@@ -11,7 +10,6 @@ function setup() {
   const graph = createGraph();
   const view = graphView({
     graph,
-    getPaperStores: () => new Map<string, PaperStore>(),
     mappings: {},
   });
   return { graph, view };
@@ -325,23 +323,11 @@ describe('graphView', () => {
   });
 
   describe('link layout', () => {
-    it('populates link layout when link is added with paper stores', async () => {
+    it('link data is populated when link is added (layout resolved by useLink at render time)', async () => {
       const graph = createGraph();
-
-      // Create a mock paper that returns a fake linkView with layout data
-      const mockLinkView = {
-        sourcePoint: { x: 10, y: 20 },
-        targetPoint: { x: 300, y: 400 },
-        getSerializedConnection: () => 'M 10 20 L 300 400',
-      };
-      const mockPaper = {
-        findViewByModel: () => mockLinkView,
-      } as unknown as import('@joint/core').dia.Paper;
-      const mockPaperStore = { paper: mockPaper } as unknown as PaperStore;
 
       const view = graphView({
         graph,
-        getPaperStores: () => new Map([['paper-1', mockPaperStore]]),
         mappings: {},
       });
 
@@ -350,43 +336,20 @@ describe('graphView', () => {
       addLink(graph, 'link-1', 'el-1', 'el-2');
       await flush();
 
-      // Link layout should be populated after link add
+      // Link data is in the container; layout is resolved at render time by useLink
       const linkData = view.links.get('link-1');
       expect(linkData).toBeDefined();
-      expect(linkData?.layout['paper-1']).toBeDefined();
-      expect(linkData?.layout['paper-1'].sourceX).toBe(10);
-      expect(linkData?.layout['paper-1'].sourceY).toBe(20);
-      expect(linkData?.layout['paper-1'].targetX).toBe(300);
-      expect(linkData?.layout['paper-1'].targetY).toBe(400);
-      expect(linkData?.layout['paper-1'].d).toBe('M 10 20 L 300 400');
+      expect(linkData?.source).toBe('el-1');
+      expect(linkData?.target).toBe('el-2');
 
       view.destroy();
     });
 
-    it('updates link layout when connected element position changes', async () => {
+    it('updates link data when connected element position changes', async () => {
       const graph = createGraph();
-      let callCount = 0;
-
-      const mockLinkView = {
-        get sourcePoint() {
-          return { x: callCount > 0 ? 50 : 10, y: callCount > 0 ? 60 : 20 };
-        },
-        get targetPoint() {
-          return { x: 300, y: 400 };
-        },
-        getSerializedConnection: () => {
-          callCount++;
-          return `M ${callCount > 1 ? 50 : 10} 20 L 300 400`;
-        },
-      };
-      const mockPaper = {
-        findViewByModel: () => mockLinkView,
-      } as unknown as import('@joint/core').dia.Paper;
-      const mockPaperStore = { paper: mockPaper } as unknown as PaperStore;
 
       const view = graphView({
         graph,
-        getPaperStores: () => new Map([['paper-1', mockPaperStore]]),
         mappings: {},
       });
 
@@ -395,50 +358,48 @@ describe('graphView', () => {
       addLink(graph, 'link-1', 'el-1', 'el-2');
       await flush();
 
-      const layoutBefore = view.links.get('link-1');
-      expect(layoutBefore).toBeDefined();
+      const linkBefore = view.links.get('link-1');
+      expect(linkBefore).toBeDefined();
 
-      // Move connected element — link layout should update
+      // Move connected element — link data should be re-set (new reference)
       (graph.getCell('el-1') as dia.Element).position(50, 60);
       await flush();
 
-      const layoutAfter = view.links.get('link-1');
-      expect(layoutAfter).toBeDefined();
-      // Layout reference should have changed (new object)
-      expect(layoutAfter).not.toBe(layoutBefore);
+      const linkAfter = view.links.get('link-1');
+      expect(linkAfter).toBeDefined();
+      // Link reference should have changed because connected element moved
+      expect(linkAfter).not.toBe(linkBefore);
 
       view.destroy();
     });
 
-    it('link layout is empty when no papers exist', async () => {
-      const { graph, view } = setup(); // setup uses empty paper stores
+    it('link data exists without layout field (layout resolved at render time)', async () => {
+      const { graph, view } = setup();
       addElement(graph, 'el-1');
       addElement(graph, 'el-2');
       addLink(graph, 'link-1', 'el-1', 'el-2');
       await flush();
 
-      // Without papers, link layout is empty (no paper entries)
+      // Link data is in the container; layout is resolved at render time by useLink
       const linkData = view.links.get('link-1');
-      expect(
-        linkData === undefined || !linkData.layout || Object.keys(linkData.layout).length === 0
-      ).toBe(true);
+      expect(linkData).toBeDefined();
+      // The container link data does not have a layout field
+      expect((linkData as Record<string, unknown>).layout).toBeUndefined();
 
       view.destroy();
     });
   });
 
-  describe('link layout — late paper mount', () => {
-    it('link layout is populated after paper mounts (updateGraph before paper exists)', async () => {
+  describe('link data — late paper mount', () => {
+    it('link data is populated after updateGraph (layout resolved at render time by useLink)', async () => {
       const graph = createGraph();
-      const paperStores = new Map<string, PaperStore>();
 
       const view = graphView({
         graph,
-        getPaperStores: () => paperStores,
         mappings: {},
       });
 
-      // Step 1: updateGraph with no paper — link layout will be empty
+      // updateGraph populates link data in the container
       view.updateGraph({
         elements: {
           'el-1': { data: undefined, position: { x: 10, y: 20 } },
@@ -451,38 +412,13 @@ describe('graphView', () => {
       });
       await flush();
 
-      // Link exists but layout is empty (no paper yet)
-      const linkBefore = view.links.get('link-1');
-      expect(linkBefore).toBeDefined();
-      expect(!linkBefore?.layout || Object.keys(linkBefore.layout).length === 0).toBe(true);
+      // Link exists in the container with source/target info
+      const linkData = view.links.get('link-1');
+      expect(linkData).toBeDefined();
+      expect(linkData?.source).toBe('el-1');
+      expect(linkData?.target).toBe('el-2');
 
-      // Step 2: Paper mounts — simulate by adding paper store and triggering LAYOUT_UPDATE_EVENT
-      const mockLinkView = {
-        sourcePoint: { x: 10, y: 20 },
-        targetPoint: { x: 300, y: 400 },
-        getSerializedConnection: () => 'M 10 20 L 300 400',
-      };
-      const mockPaper = {
-        findViewByModel: (id: string) => {
-          if (id === 'link-1') return mockLinkView;
-          return null;
-        },
-      };
-      const mockPaperStore = { paper: mockPaper } as unknown as PaperStore;
-      paperStores.set('paper-1', mockPaperStore);
-
-      // Simulate onViewMountChange — LAYOUT_UPDATE_EVENT fires for mounted link
-      const linkCell = graph.getCell('link-1');
-      graph.trigger('layout:update', {
-        changes: new Map([['link-1', { type: 'add' as const, data: linkCell }]]),
-      });
-      await flush();
-
-      // Step 3: Link layout should now be populated
-      const linkAfter = view.links.get('link-1');
-      expect(linkAfter).toBeDefined();
-      expect(linkAfter?.layout['paper-1']).toBeDefined();
-      expect(linkAfter?.layout['paper-1'].d).toBe('M 10 20 L 300 400');
+      // Layout is no longer stored in the container — it is resolved at render time by useLink
 
       view.destroy();
     });
@@ -494,7 +430,7 @@ describe('graphView', () => {
       let lastIncrementalChanges: unknown = null;
       const view = graphView({
         graph,
-        getPaperStores: () => new Map<string, PaperStore>(),
+
         mappings: {},
         onIncrementalChange: (changes) => {
           lastIncrementalChanges = changes;
@@ -564,7 +500,7 @@ describe('graphView', () => {
       let lastChanges: { elements: unknown; links: unknown } | null = null;
       const view = graphView({
         graph,
-        getPaperStores: () => new Map<string, PaperStore>(),
+
         mappings: {},
         onIncrementalChange: (changes) => {
           lastChanges = changes as { elements: unknown; links: unknown };

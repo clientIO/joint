@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { forwardRef, useCallback, useRef } from 'react';
@@ -6,12 +7,12 @@ import {
   Paper,
   useMeasureNode,
   useMarkup,
-  type FlatLinkData,
+  type Link,
   type RenderElement,
   type OnTransformElement,
   PortalElement,
   PortalLink,
-  type FlatElementData,
+  type Element,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
@@ -27,26 +28,24 @@ interface StackedElement {
   readonly labels: readonly string[];
 }
 
-const initialElements: Record<string, FlatElementData<StackedElement>> = {
+const initialElements: Record<string, Element<StackedElement>> = {
   '1': {
     data: {
       name: 'Component A',
       labels: ['Header', 'Body', 'Footer'],
     },
-    x: 50,
-    y: 50,
+    position: { x: 50, y: 50 },
   },
   '2': {
     data: {
       name: 'Component B',
       labels: ['Input', 'Process', 'Output'],
     },
-    x: 300,
-    y: 50,
+    position: { x: 300, y: 50 },
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'e1-2': {
     source: '1',
     sourceMagnet: 'item-2',
@@ -86,7 +85,7 @@ const Item = forwardRef<SVGGElement, ItemProps>(function Item({ label, index, wi
 });
 
 function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
-  const contentRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef(null);
   const { selectorRef } = useMarkup();
 
   const transform: OnTransformElement = useCallback(({ height }) => {
@@ -94,9 +93,9 @@ function StackedNode({ name, labels }: Readonly<Partial<StackedElement>>) {
       width: ELEMENT_WIDTH,
       height: HEADER_HEIGHT + height,
     };
-  });
+  }, []);
 
-  const { width, height } = useMeasureNode(contentRef, { transform });
+  const { width = 0, height = 0 } = useMeasureNode(contentRef, { transform });
 
   return (
     <>

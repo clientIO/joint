@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useId, useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
-import type { FlatElementData, FlatElementPort } from '@joint/react';
+import type { Element, FlatElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG, SECONDARY } from 'storybook-config/theme';
 import {
   GraphProvider,
@@ -77,7 +77,7 @@ const NODE_PORTS: Record<string, FlatElementPort> = {
   },
 };
 
-const elements: Record<string, FlatElementData> = {
+const elements: Record<string, Element> = {
   '1': { data: undefined, position: { x: 50, y: 50 }, ports: NODE_PORTS },
   '2': { data: undefined, position: { x: 350, y: 50 }, ports: NODE_PORTS },
   '3': { data: undefined, position: { x: 150, y: 250 }, ports: NODE_PORTS },
@@ -95,13 +95,15 @@ function NodeElement() {
   );
 
   return (
-    <DefaultElement label={id} style={{
-      borderColor: isConnected ? PRIMARY : '',
-      minWidth: 100,
-      minHeight: 50,
-    }}
+    <DefaultElement
+      label={id}
+      style={{
+        borderColor: isConnected ? PRIMARY : '',
+        minWidth: 100,
+        minHeight: 50,
+      }}
     />
-  )
+  );
 }
 
 const removeTool = new linkTools.Remove({

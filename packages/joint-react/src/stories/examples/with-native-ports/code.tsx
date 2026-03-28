@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import '../index.css';
@@ -7,8 +8,8 @@ import {
   useElementSize,
   elementToAttributes,
   useLinkDefaults,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -91,7 +92,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
   return { groups, items };
 }
 
-const initialElements: Record<string, FlatElementData<NativeElementUserData>> = {
+const initialElements: Record<string, Element<NativeElementUserData>> = {
   'node-1': {
     data: {
       color: INDIGO,
@@ -124,7 +125,7 @@ const initialElements: Record<string, FlatElementData<NativeElementUserData>> = 
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'link-1': {
     source: 'node-1',
     sourcePort: 'out-1',
@@ -159,7 +160,7 @@ const initialLinks: Record<string, FlatLinkData> = {
 
 function mapNativeElementToAttributes(options: {
   id: string;
-  element: FlatElementData<NativeElementUserData>;
+  element: Element<NativeElementUserData>;
 }) {
   const { id, element } = options;
   const userData = element.data as NativeElementUserData | undefined;
@@ -223,7 +224,7 @@ export default function App() {
   });
 
   return (
-    <GraphProvider
+    <GraphProvider<NativeElementUserData>
       elements={initialElements}
       links={initialLinks}
       mapElementToAttributes={mapNativeElementToAttributes}

@@ -49,7 +49,6 @@ export function useLink<D extends object | undefined = undefined, R = ResolvedLi
 
   // Wrap the user selector to resolve layout live from the paper view
   const resolvedSelector = (item: Link<D>): R => {
-    // eslint-disable-next-line sonarjs/no-unused-vars
     const { ...rest } = item;
 
     // Read layout directly from the paper's link view — always fresh

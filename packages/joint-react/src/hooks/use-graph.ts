@@ -24,7 +24,7 @@ interface UseGraphResult<
   /**
    * Sets or updates an element in the graph.
    *
-   * `previous` is typed as `FlatElementData` — includes `data`, `x`, `y`, `width`, `height`, etc.
+   * `previous` is typed as `Element` — includes `data`, `x`, `y`, `width`, `height`, etc.
    * @example
    * ```tsx
    * setElement('1', { x: 100, y: 150 });
@@ -43,7 +43,7 @@ interface UseGraphResult<
   /**
    * Sets or updates a link in the graph.
    *
-   * `previous` is typed as `FlatLinkData` — includes `data`, `source`, `target`, `color`, etc.
+   * `previous` is typed as `Link` — includes `data`, `source`, `target`, `color`, etc.
    * @example
    * ```tsx
    * setLink('l-1', { source: '1', target: '2' });

@@ -1,23 +1,17 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import type { FlatElementData, OnTransformElement } from '@joint/react';
-import {
-  GraphProvider,
-  Paper,
-  useMeasureNode,
-  type FlatLinkData,
-  type RenderElement,
-} from '@joint/react';
+import type { Element, OnTransformElement } from '@joint/react';
+import { GraphProvider, Paper, useMeasureNode, type Link, type RenderElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type Data = { label: string };
-const initialElements: Record<string, FlatElementData<Data>> = {
+const initialElements: Record<string, Element<Data>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 10 } },
   '2': { data: { label: 'Node 2 with longer text' }, position: { x: 250, y: 150 } },
 };
 
-const initialEdges: Record<string, FlatLinkData> = {
+const initialEdges: Record<string, Link> = {
   'e1-2': {
     source: '1',
     target: '2',

@@ -6,8 +6,8 @@ import {
   useGraph,
   useElements,
   useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   SVGText,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
@@ -67,7 +67,7 @@ const GENERATOR_ID = 'generator';
 // ----------------------------------------------------------------------------
 // Initial Data
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, FlatElementData<ShapeData>> = {
+const initialElements: Record<string, Element<ShapeData>> = {
   generator: {
     data: { type: ShapeTypes.generator, power: 0.9 },
     position: { x: 50, y: 50 },
@@ -95,7 +95,7 @@ const wireAppearance = {
   z: -1,
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   wire1: {
     source: 'generator',
     target: 'bulb1',
@@ -229,9 +229,12 @@ function BulbNode({ watts }: Readonly<BulbData>) {
   const animationRef = useRef<Animation | null>(null);
 
   // Read generator power from the store (reactive)
-  const generatorPower = useElements<ShapeData, number>(
-    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.data?.power ?? 0
-  );
+  const generatorPower = useElements<ShapeData, number>((elements) => {
+    const item = elements.get(GENERATOR_ID);
+    if (!item) return 0;
+    if (item.data.type !== ShapeTypes.generator) return 0;
+    return item.data.power;
+  });
 
   // Compute light state from generator power (derived state)
   const light = Math.round(generatorPower * 100) >= watts;
@@ -306,9 +309,12 @@ function PowerControl() {
   const { setElement } = useGraph<ShapeData>();
 
   // Read generator power from store (reactive)
-  const power = useElements<ShapeData, number>(
-    (elements) => (elements.get(GENERATOR_ID) as GeneratorData)?.data?.power ?? 0
-  );
+  const power = useElements<ShapeData, number>((elements) => {
+    const item = elements.get(GENERATOR_ID);
+    if (!item) return 0;
+    if (item.data.type !== ShapeTypes.generator) return 0;
+    return item.data.power;
+  });
 
   const handlePowerChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {

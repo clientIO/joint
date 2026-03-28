@@ -100,8 +100,10 @@ export function clearConnectedLinkViews(
     linkView._sourceMagnet = null;
     // @ts-expect-error we use private jointjs api method
     linkView._targetMagnet = null;
+    // Use async: true so magnet resolution happens after React ref callbacks
+    // (selectorRef from useMarkup) have registered port elements on the view.
     // @ts-expect-error we use private jointjs api method
-    linkView.requestConnectionUpdate({ async: false });
+    linkView.requestConnectionUpdate({ async: true });
     changes.set(String(link.id), { type: 'change', data: link });
   }
   return changes;

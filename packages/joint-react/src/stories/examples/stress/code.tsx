@@ -1,15 +1,8 @@
 /* eslint-disable sonarjs/pseudo-random */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import {
-  GraphProvider,
-  Paper,
-  useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
-} from '@joint/react';
+import { GraphProvider, Paper, type Element, type Link } from '@joint/react';
 import '../index.css';
-import React, { useCallback, useRef, useState, startTransition, memo } from 'react';
-import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import React, { useCallback, useState, startTransition } from 'react';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 interface StressNodeData {
   readonly label: string;
@@ -17,8 +10,8 @@ interface StressNodeData {
 }
 
 function initialElements(xNodes = 15, yNodes = 30) {
-  const nodes: Record<string, FlatElementData<StressNodeData>> = {};
-  const edges: Record<string, FlatLinkData> = {};
+  const nodes: Record<string, Element<StressNodeData>> = {};
+  const edges: Record<string, Link> = {};
   let nodeId = 1;
   let edgeId = 1;
   let recentNodeId: number | null = null;
@@ -27,8 +20,7 @@ function initialElements(xNodes = 15, yNodes = 30) {
     for (let x = 0; x < xNodes; x++) {
       const id = `stress-${nodeId.toString()}`;
       nodes[id] = {
-        data: { label: `Node ${nodeId}`, fontSize: 11 },
-        size: { width: 50, height: 20 },
+        data: { label: `Node ${nodeId}`, fontSize: 11, className: 'text-xs' },
         position: { x: x * 100, y: y * 50 },
       };
 
@@ -38,6 +30,9 @@ function initialElements(xNodes = 15, yNodes = 30) {
           source: `stress-${recentNodeId.toString()}`,
           target: `stress-${nodeId.toString()}`,
           z: -1,
+          color: '#999999',
+          dasharray: '5 2',
+          width: 1,
         };
         edgeId++;
       }
@@ -52,35 +47,15 @@ function initialElements(xNodes = 15, yNodes = 30) {
 
 const { nodes: initialNodes, edges: initialEdges } = initialElements(15, 30);
 
-const RenderElement = memo(function RenderElement({ label, fontSize }: Readonly<StressNodeData>) {
-  const { width, height } = useElementSize();
-  const elementRef = useRef<HTMLDivElement>(null);
-  return (
-    <foreignObject width={width} height={height}>
-      <div
-        ref={elementRef}
-        className="flex flex-col items-center justify-center rounded-sm text-xs"
-        style={{ background: PRIMARY, color: '#ffffff', fontSize, width, height }}
-      >
-        {label}
-      </div>
-    </foreignObject>
-  );
-});
-
 function Main({
   setElements,
 }: Readonly<{
-  setElements: React.Dispatch<
-    React.SetStateAction<Record<string, FlatElementData<StressNodeData>>>
-  >;
+  setElements: React.Dispatch<React.SetStateAction<Record<string, Element<StressNodeData>>>>;
 }>) {
-  const renderElement = useCallback((data: StressNodeData) => <RenderElement {...data} />, []);
-
   const updatePos = useCallback(() => {
     startTransition(() => {
       setElements((previousElements) => {
-        const newElements: Record<string, FlatElementData<StressNodeData>> = {};
+        const newElements: Record<string, Element<StressNodeData>> = {};
         for (const [id, node] of Object.entries(previousElements)) {
           newElements[id] = {
             ...node,
@@ -95,12 +70,7 @@ function Main({
 
   return (
     <div className="flex flex-row relative">
-      <Paper
-        id="main-view"
-        className={PAPER_CLASSNAME}
-        height={600}
-        renderElement={renderElement}
-      />
+      <Paper id="main-view" className={PAPER_CLASSNAME} height={600} />
       <div className="absolute top-4 right-4">
         <button
           type="button"
@@ -115,9 +85,8 @@ function Main({
 }
 
 export default function App() {
-  const [elements, setElements] =
-    useState<Record<string, FlatElementData<StressNodeData>>>(initialNodes);
-  const [links, setLinks] = useState<Record<string, FlatLinkData>>(initialEdges);
+  const [elements, setElements] = useState<Record<string, Element<StressNodeData>>>(initialNodes);
+  const [links, setLinks] = useState<Record<string, Link>>(initialEdges);
 
   return (
     <GraphProvider

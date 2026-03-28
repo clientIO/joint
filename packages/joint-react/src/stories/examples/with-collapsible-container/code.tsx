@@ -8,8 +8,8 @@ import {
   useGraph,
   usePaperEvents,
   SVGText,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   useElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -80,7 +80,7 @@ type ContainerUserData = ContainerElement | ChildElement;
 // Initial Data
 // ============================================================================
 
-const elements: Record<string, FlatElementData<ContainerUserData>> = {
+const elements: Record<string, Element<ContainerUserData>> = {
   'container-a': {
     data: { elementType: ElementType.Container, title: 'Container A', collapsed: false },
     position: { x: 50, y: 50 },
@@ -131,7 +131,7 @@ const elements: Record<string, FlatElementData<ContainerUserData>> = {
   },
 };
 
-const links: Record<string, FlatLinkData> = {
+const links: Record<string, Link> = {
   'link-1-2': {
     source: 'child-1',
     target: 'child-2',

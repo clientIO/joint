@@ -1,8 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { FlatLinkData } from '@joint/react';
+import type { Link } from '@joint/react';
 import {
-  type FlatElementData,
+  type Element,
   GraphProvider,
   jsx,
   Paper,
@@ -58,7 +58,7 @@ type FTAElement =
   | ExternalEvent
   | ConditioningEvent;
 
-const initialElements: Record<string, FlatElementData<FTAElement>> = {
+const initialElements: Record<string, Element<FTAElement>> = {
   ot8h17: {
     data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' },
     size: { width: 120, height: 150 },
@@ -113,7 +113,7 @@ const initialElements: Record<string, FlatElementData<FTAElement>> = {
   },
 };
 
-const initialLinks: Record<string, FlatLinkData> = {
+const initialLinks: Record<string, Link> = {
   'link-0': {
     source: 'ot8h17',
     target: 'd8jpey',

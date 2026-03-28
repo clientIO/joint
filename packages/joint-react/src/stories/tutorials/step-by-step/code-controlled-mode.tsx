@@ -37,13 +37,7 @@
  * ============================================================================
  */
 
-import {
-  GraphProvider,
-  useElementSize,
-  type FlatElementData,
-  type FlatLinkData,
-  Paper,
-} from '@joint/react';
+import { GraphProvider, useElementSize, type Element, type Link, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useState, type Dispatch, type SetStateAction } from 'react';
@@ -61,12 +55,12 @@ type ElementData = { label: string };
 /**
  * Full element type including layout and user data.
  */
-type CustomElement = FlatElementData<ElementData>;
+type CustomElement = Element<ElementData>;
 
 /**
  * Full link type.
  */
-type CustomLink = FlatLinkData;
+type CustomLink = Link;
 
 /**
  * Initial elements (nodes) for the graph.

@@ -20,4 +20,3 @@ export interface PaperEventMap extends dia.Paper.EventMap {
   // react paper events
   [PAPER_ELEMENTS_MEASURED]: (event: ElementsMeasuredEvent) => void;
 }
-

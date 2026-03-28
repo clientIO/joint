@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { dia } from '@joint/core';
-import type { FlatLinkData, FlatElementData } from '@joint/react';
+import type { Link, Element } from '@joint/react';
 import { GraphProvider, Paper, useMeasureNode, useElementSize } from '@joint/react';
 import { useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -11,7 +11,7 @@ type ContainerData = {
   readonly [key: string]: unknown;
 };
 
-const elements: Record<string, FlatElementData<ContainerData>> = {
+const elements: Record<string, Element<ContainerData>> = {
   container: {
     position: { x: 50, y: 50 },
     size: { width: 300, height: 200 },
@@ -32,7 +32,7 @@ const elements: Record<string, FlatElementData<ContainerData>> = {
   },
 };
 
-const links: Record<string, FlatLinkData> = {
+const links: Record<string, Link> = {
   'link-1': {
     source: 'child-1',
     target: 'child-2',

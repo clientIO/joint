@@ -13,15 +13,15 @@ import {
   elementToAttributes,
   linkToAttributes,
   type CellId,
-  type FlatElementData,
-  type FlatLinkData,
+  type Element,
+  type Link,
   type PaperProps,
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
   // PortalLinkView,
   // type LinkMarkerName,
 } from '@joint/react';
-import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { BG, LIGHT } from 'storybook-config/theme';
 
 // ============================================================================
@@ -89,7 +89,7 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const elements: Record<string, FlatElementData<ElementUserData>> = {
+const elements: Record<string, Element<ElementUserData>> = {
   '1': {
     data: { title: 'This is error element' },
     position: { x: 50, y: 110 },
@@ -111,7 +111,7 @@ const elements: Record<string, FlatElementData<ElementUserData>> = {
 };
 
 // Links now use built-in theme properties: color, width, sourceMarker, targetMarker
-const links: Record<string, FlatLinkData> = {
+const links: Record<string, Link> = {
   link1: {
     source: '1',
     target: '2',
@@ -382,7 +382,7 @@ function Main() {
 
 export default function App() {
   const mapElementToAttributes = useMemo(() => {
-    return ({ id, element }: { id: string; element: FlatElementData<ElementUserData> }) => {
+    return ({ id, element }: { id: string; element: Element<ElementUserData> }) => {
       const attributes = elementToAttributes({ id, element });
       const userData = element.data as ElementUserData | undefined;
       const { jjType, color = 'lightgray' } = userData ?? {};
@@ -396,7 +396,7 @@ export default function App() {
   }, []);
 
   const mapLinkToAttributes = useMemo(() => {
-    return ({ id, link }: { id?: string; link: FlatLinkData }) => {
+    return ({ id, link }: { id?: string; link: Link }) => {
       const attributes = linkToAttributes({ id, link });
       const userData = link.data as LinkUserData | undefined;
       const { jjType } = userData ?? {};
