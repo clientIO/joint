@@ -561,6 +561,231 @@ describe('graphView', () => {
     });
   });
 
+  describe('selective reference stability', () => {
+    it('preserves data reference when only position changes', async () => {
+      const { graph, view } = setup();
+      addElement(graph, 'el-1', 10, 20, 100, 50);
+      await flush();
+
+      const before = view.elements.get('el-1')!;
+      const dataBefore = before.data;
+
+      (graph.getCell('el-1') as dia.Element).position(50, 60);
+      await flush();
+
+      const after = view.elements.get('el-1')!;
+      // Position should change
+      expect(after.position).toEqual({ x: 50, y: 60 });
+      // Data reference should be preserved (not recreated)
+      expect(after.data).toBe(dataBefore);
+    });
+
+    it('preserves position reference when only data changes', async () => {
+      const { graph, view } = setup();
+      addElement(graph, 'el-1', 10, 20, 100, 50);
+      await flush();
+
+      const before = view.elements.get('el-1')!;
+      const positionBefore = before.position;
+
+      (graph.getCell('el-1') as dia.Element).set('data', { label: 'changed' });
+      await flush();
+
+      const after = view.elements.get('el-1')!;
+      // Data should change
+      expect(after.data).toEqual({ label: 'changed' });
+      // Position reference should be preserved
+      expect(after.position).toBe(positionBefore);
+    });
+
+    it('preserves size reference when only position changes', async () => {
+      const { graph, view } = setup();
+      addElement(graph, 'el-1', 10, 20, 100, 50);
+      await flush();
+
+      const before = view.elements.get('el-1')!;
+      const sizeBefore = before.size;
+
+      (graph.getCell('el-1') as dia.Element).position(50, 60);
+      await flush();
+
+      const after = view.elements.get('el-1')!;
+      expect(after.size).toBe(sizeBefore);
+    });
+
+    it('element has correct data and size after add (no regression)', async () => {
+      const { graph, view } = setup();
+      graph.addCell({
+        id: 'el-1',
+        type: 'PortalElement',
+        position: { x: 10, y: 20 },
+        size: { width: 200, height: 100 },
+        data: { label: 'Hello' },
+      });
+      await flush();
+
+      const element = view.elements.get('el-1')!;
+      expect(element.position).toEqual({ x: 10, y: 20 });
+      expect(element.size).toEqual({ width: 200, height: 100 });
+      expect(element.data).toEqual({ label: 'Hello' });
+    });
+
+    it('element preserves correct values after internal attribute change', async () => {
+      const { graph, view } = setup();
+      graph.addCell({
+        id: 'el-1',
+        type: 'PortalElement',
+        position: { x: 10, y: 20 },
+        size: { width: 200, height: 100 },
+        data: { label: 'Hello' },
+      });
+      await flush();
+
+      // Simulate an internal JointJS attribute change (like attrs update during rendering)
+      (graph.getCell('el-1') as dia.Element).set('attrs', { body: { fill: 'red' } });
+      await flush();
+
+      const element = view.elements.get('el-1')!;
+      expect(element.position).toEqual({ x: 10, y: 20 });
+      expect(element.size).toEqual({ width: 200, height: 100 });
+      expect(element.data).toEqual({ label: 'Hello' });
+    });
+  });
+
+  describe('LAYOUT_UPDATE_EVENT (insertView path)', () => {
+    it('element retains correct size after layout update with stale model.changed', async () => {
+      const { graph, view } = setup();
+      // Step 1: Add element normally
+      graph.addCell({
+        id: 'el-1',
+        type: 'PortalElement',
+        position: { x: 10, y: 20 },
+        size: { width: 200, height: 100 },
+        data: { label: 'Hello' },
+      });
+      await flush();
+
+      const elementBefore = view.elements.get('el-1')!;
+      expect(elementBefore.size).toEqual({ width: 200, height: 100 });
+      expect(elementBefore.data).toEqual({ label: 'Hello' });
+
+      // Step 2: Simulate what insertView does — fire LAYOUT_UPDATE_EVENT
+      // with { type: 'add', data: cell }. At this point, cell.changed might
+      // be stale (e.g., an internal set() cleared it or changed unrelated attrs).
+      const cell = graph.getCell('el-1') as dia.Element;
+
+      // Simulate JointJS internal attr change that modifies model.changed
+      // to contain only unrelated attributes (like during rendering)
+      cell.set('attrs', { body: { fill: 'blue' } });
+
+      // Now fire LAYOUT_UPDATE_EVENT with this cell — simulating insertView
+      const layoutChanges = new Map([
+        ['el-1', { type: 'add' as const, data: cell }],
+      ]);
+      graph.trigger('layout:update', { changes: layoutChanges });
+      await flush();
+      await flush(); // Extra flush for the scheduled callback
+
+      const elementAfter = view.elements.get('el-1')!;
+      expect(elementAfter.size).toEqual({ width: 200, height: 100 });
+      expect(elementAfter.position).toEqual({ x: 10, y: 20 });
+      expect(elementAfter.data).toEqual({ label: 'Hello' });
+    });
+
+    it('element retains size after batch resize (multiple set calls)', async () => {
+      const { graph, view } = setup();
+      // Add element with initial size
+      graph.addCell({
+        id: 'el-1',
+        type: 'PortalElement',
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
+        data: { label: 'Resize me' },
+      });
+      await flush();
+
+      const elementBefore = view.elements.get('el-1')!;
+      expect(elementBefore.size).toEqual({ width: 100, height: 50 });
+
+      // Simulate onBatchUpdate from resize observer:
+      // Multiple set() calls in a batch — model.changed only keeps the LAST one
+      const cell = graph.getCell('el-1') as dia.Element;
+      graph.startBatch('resize');
+      cell.set('size', { width: 300, height: 200 });
+      cell.set('position', { x: 15, y: 25 });
+      graph.stopBatch('resize');
+      await flush();
+
+      const elementAfter = view.elements.get('el-1')!;
+      // Both size AND position must reflect the new values
+      expect(elementAfter.size).toEqual({ width: 300, height: 200 });
+      expect(elementAfter.position).toEqual({ x: 15, y: 25 });
+      expect(elementAfter.data).toEqual({ label: 'Resize me' });
+    });
+
+    it('element retains position after batch where size is set last', async () => {
+      const { graph, view } = setup();
+      graph.addCell({
+        id: 'el-1',
+        type: 'PortalElement',
+        position: { x: 10, y: 20 },
+        size: { width: 100, height: 50 },
+        data: { label: 'Test' },
+      });
+      await flush();
+
+      const cell = graph.getCell('el-1') as dia.Element;
+      graph.startBatch('resize');
+      cell.set('position', { x: 50, y: 60 });
+      cell.set('size', { width: 300, height: 200 });
+      graph.stopBatch('resize');
+      await flush();
+
+      const element = view.elements.get('el-1')!;
+      // Both must be updated regardless of set() order
+      expect(element.position).toEqual({ x: 50, y: 60 });
+      expect(element.size).toEqual({ width: 300, height: 200 });
+    });
+
+    it('element has correct values when layout update is first processing (no previous)', async () => {
+      const graph = createGraph();
+      const view = graphView({ graph, mappings: {} });
+
+      // Simulate controlled mode: updateGraph sets element, but events are filtered
+      view.updateGraph({
+        elements: {
+          'el-1': {
+            data: { label: 'Test' },
+            position: { x: 50, y: 60 },
+            size: { width: 150, height: 80 },
+          },
+        },
+        links: {},
+        flag: 'updateFromReact',
+      });
+      await flush();
+
+      const elementBefore = view.elements.get('el-1')!;
+      expect(elementBefore.size).toEqual({ width: 150, height: 80 });
+
+      // Now fire LAYOUT_UPDATE_EVENT — simulating insertView after paper mount
+      const cell = graph.getCell('el-1') as dia.Element;
+      const layoutChanges = new Map([
+        ['el-1', { type: 'add' as const, data: cell }],
+      ]);
+      graph.trigger('layout:update', { changes: layoutChanges });
+      await flush();
+      await flush();
+
+      const elementAfter = view.elements.get('el-1')!;
+      expect(elementAfter.size).toEqual({ width: 150, height: 80 });
+      expect(elementAfter.position).toEqual({ x: 50, y: 60 });
+      expect(elementAfter.data).toEqual({ label: 'Test' });
+
+      view.destroy();
+    });
+  });
+
   describe('isUpdateFromReact filtering', () => {
     it('ignores changes with isUpdateFromReact flag', async () => {
       const { graph, view } = setup();

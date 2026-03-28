@@ -17,6 +17,7 @@ import {
 } from '../state/data-mapping';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
+import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-utils';
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalContainerChanges<
@@ -39,7 +40,7 @@ interface GraphViewState<
   ElementData extends object | undefined = undefined,
   LinkData extends object | undefined = undefined,
 > {
-  readonly mappings: Required<GraphMappings<ElementData, LinkData>>;
+  readonly mappings: GraphMappings<ElementData, LinkData>;
   readonly graph: dia.Graph;
   readonly onIncrementalChange?: (
     changes: IncrementalContainerChanges<ElementData, LinkData>
@@ -96,35 +97,30 @@ export function graphView<
               }
               hasLinkChange = true;
             } else if (data.isElement()) {
-              const hasChanges = Object.keys(data.changed).length > 0;
-              const hasChangedData = hasChanges ? !!data.changed.data : true;
-              const hasChangedPosition = hasChanges ? !!data.changed.position : true;
-              const hasChangedSize = hasChanges ? !!data.changed.size : true;
-              const elementDataRaw = mapAttributesToElement(
-                data.attributes
-              ) as ElementWithLayout<ElementData>;
-
-              // elements.set(id, elementDataRaw);
+              // Compare values directly instead of relying on model.changed,
+              // because Backbone's changed hash only reflects the last set() call
+              // and loses intermediate changes within a batch.
               elements.set(id, (previous) => {
-                const { data: userData, position, size, ...rest } = elementDataRaw;
-                const newElement = previous ? { ...previous, ...rest } : elementDataRaw;
-                if (hasChangedData) {
-                  newElement.data = userData;
-                }
-                if (hasChangedPosition) {
-                  newElement.position = position;
-                }
-                if (hasChangedSize) {
-                  newElement.size = size;
-                }
-                return newElement;
+                const newElementData = mapAttributesToElement(
+                  data.attributes
+                ) as ElementWithLayout<ElementData>;
+                if (!previous) return newElementData;
+                const { data: userData, position, size, ...rest } = newElementData;
+                const { data: prevUserData, position: prevPosition, size: prevSize } = previous;
+                return {
+                  ...previous,
+                  ...rest,
+                  data: isShallowEqual(prevUserData, userData) ? prevUserData : userData,
+                  position: isPositionEqual(prevPosition, position) ? prevPosition : position,
+                  size: isSizeEqual(prevSize, size) ? prevSize : size,
+                };
               });
               if (trackChanges) {
                 if (isAdd) {
-                  elementAdded!.set(id, elementDataRaw);
+                  elementAdded!.set(id, elements.get(id)!);
                 } else {
                   // Only mark as changed if relevant data actually changed (not just an attribute update that doesn't affect the element data/position/size)
-                  elementChanged!.set(id, elementDataRaw);
+                  elementChanged!.set(id, elements.get(id)!);
                 }
               }
               // When an element changes, also update connected links since their layout may be affected
@@ -240,7 +236,12 @@ export function graphView<
       for (const [id, data] of Object.entries(userElements)) {
         const cell = graph.getCell(id);
         if (cell?.isElement()) {
-          elements.set(id, data as ElementWithLayout<ElementData>);
+          elements.set(id, {
+            position: cell.position(),
+            size: cell.size(),
+            angle: cell.angle(),
+            ...data,
+          });
         }
       }
       for (const [id, data] of Object.entries(userLinks)) {
