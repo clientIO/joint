@@ -10,7 +10,6 @@ import {
   useElements,
   useElementSize,
   PortalElement,
-  PortalLink,
 } from '@joint/react';
 import { useCallback, useMemo } from 'react';
 
@@ -31,10 +30,8 @@ interface ElementData {
   readonly color: string;
 }
 
-interface LinkData {
-  readonly [key: string]: unknown;
-  readonly type: string;
-}
+// eslint-disable-next-line sonarjs/redundant-type-aliases
+type LinkData = undefined;
 
 // ============================================================================
 // Data
@@ -72,25 +69,23 @@ const initialElements: Record<string, Element<ElementData>> = {
 
 const initialLinks: Record<string, Link<LinkData>> = {
   'link-1': {
-    data: {
-      type: 'PortalLink',
-    },
+    type: 'standard.Link',
     source: { id: 'node-1' },
     target: { id: 'node-2' },
+    labels: [{ attrs: { text: { text: 'Link 1' } } }],
   },
   'link-2': {
-    data: {
-      type: 'PortalLink',
-    },
+    type: 'standard.Link',
     source: { id: 'node-1' },
     target: { id: 'node-3' },
+    labels: [{ attrs: { text: { text: 'Link 1' } } }],
   },
 };
 
 // Derive pick keys from the user data so the reverse mappers stay in sync
 // with the types automatically — add a property to the data and it flows through.
 const ELEMENT_KEYS = Object.keys(Object.values(initialElements)[0]);
-const LINK_USER_DATA_KEYS = Object.keys(Object.values(initialLinks)[0].data as object);
+const LINK_KEYS = Object.keys(Object.values(initialLinks)[0] as object);
 
 /**
  * Reverse mapper: pick only the keys defined in the data format.
@@ -101,35 +96,10 @@ const mapAttributesToElement = (options: { element: Element<ElementData> }): dia
 };
 
 /**
- * Forward mapper for links: data is already cell JSON — pass it through as-is.
- * The store handles `id` automatically.
- */
-const mapLinkToAttributes = ({
-  id,
-  link,
-}: {
-  id?: string;
-  link: Link<LinkData>;
-}): dia.Cell.JSON => {
-  const userData = link.data ?? {};
-  return {
-    ...userData,
-    source: link.source,
-    target: link.target,
-    id,
-  } as unknown as dia.Cell.JSON;
-};
-
-/**
  * Reverse mapper: pick only the keys defined in the data format.
  */
-const mapAttributesToLink = (attributes: dia.Link.Attributes): Link<LinkData> => {
-  const userData = util.pick(attributes, LINK_USER_DATA_KEYS) as LinkData;
-  return {
-    data: userData,
-    source: attributes.source,
-    target: attributes.target,
-  } as Link<LinkData>;
+const mapAttributesToLink = (options: { link: Link<LinkData> }): dia.Link.Attributes => {
+  return util.pick(options.link, LINK_KEYS);
 };
 
 // ============================================================================
@@ -224,7 +194,6 @@ export default function App() {
     return new dia.Graph({}, {
       cellNamespace: {
         ...shapes,
-        PortalLink,
         MyPortalElement: PortalElement,
       }
     });
@@ -235,7 +204,6 @@ export default function App() {
       elements={initialElements}
       links={initialLinks}
       mapElementToAttributes={mapAttributesToElement}
-      mapLinkToAttributes={mapLinkToAttributes}
       mapAttributesToLink={mapAttributesToLink}
     >
       <Main />
