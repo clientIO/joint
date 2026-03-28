@@ -298,12 +298,6 @@ export interface FlatLinkLabel {
  * @group Graph
  */
 interface LinkBase extends FlatLinkPresentationData {
-  /** Z-index of the cell. */
-  z?: number;
-  /** Parent element id. */
-  parent?: string;
-  /** Layer id for the cell. */
-  layer?: string;
   /**
    * Source endpoint in JointJS format.
    * @example { id: 'el-1' }
@@ -318,6 +312,12 @@ interface LinkBase extends FlatLinkPresentationData {
    * @example { x: 300, y: 400 }
    */
   target?: dia.Link.EndJSON;
+  /** Z-index of the cell. */
+  z?: number;
+  /** Parent element id. */
+  parent?: string;
+  /** Layer id for the cell. */
+  layer?: string;
   /**
    * Link vertices (waypoints).
    */
@@ -340,11 +340,8 @@ interface LinkBase extends FlatLinkPresentationData {
   labels?: Record<string, FlatLinkLabel>;
 
   data?: Record<string, unknown>;
-
   /** Jointjs type */
   type?: string;
-  /** Attributes for built-in shapes */
-  attrs?: Record<string, Record<string, unknown>>;
 }
 
 /**
