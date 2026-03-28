@@ -37,7 +37,7 @@ export function elementToAttributes<ElementData extends object | undefined = und
 
   if (type !== PORTAL_ELEMENT_TYPE) {
     // For non-portal elements, the element record is a cell JSON with optional `data`.
-    // Note: `style` is not supported on non-portal elements.
+    // Note: `presentation` is not supported on non-portal elements.
     return element as CellAttributes;
   }
 
@@ -59,7 +59,7 @@ export function elementToAttributes<ElementData extends object | undefined = und
   if (ports) {
     attributes.ports = convertPorts(ports, portStyle);
     attributes.portDefaults = createPortGroupsDefault();
-    attributes.style = { ports, portStyle };
+    attributes.presentation = { ports, portStyle };
   }
 
   return attributes;
@@ -85,7 +85,7 @@ export function attributesToElement<ElementData extends object | undefined = und
 
   const {
     data,
-    style,
+    presentation,
     position,
     size,
     angle,
@@ -97,7 +97,7 @@ export function attributesToElement<ElementData extends object | undefined = und
   const element: Element<ElementData> = {
     // element record should not include undefined values
     data,
-    ...style,
+    ...presentation,
     position,
     size,
     angle,

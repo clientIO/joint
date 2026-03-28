@@ -93,7 +93,7 @@ describe('dataMapper', () => {
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.position).toEqual({ x: 100, y: 50 });
       expect(cellJson.data).toMatchObject({ label: 'Node 1' });
-      expect(cellJson.style).toMatchObject({ ports: { p1: { cx: 0, cy: '50%' } } });
+      expect(cellJson.presentation).toMatchObject({ ports: { p1: { cx: 0, cy: '50%' } } });
 
       graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;

@@ -100,18 +100,6 @@ export interface FlatElementPort {
 }
 
 /**
- * Presentation style for an element (ports and port defaults).
- * Stored in `cell.style` on the JointJS model, separate from user `data`.
- * @group Graph
- */
-export interface ElementStyle {
-  /** Style defaults applied to all ports. Individual port properties take precedence. */
-  portStyle?: Partial<FlatElementPort>;
-  /** Ports of the element. */
-  ports?: Record<string, FlatElementPort>;
-}
-
-/**
  * Base fields shared by all element data variants.
  * Layout fields use JointJS core types (`dia.Point`, `dia.Size`).
  * @group Graph
@@ -133,9 +121,6 @@ interface ElementBase {
   portStyle?: Partial<FlatElementPort>;
   /** Ports of the element. */
   ports?: Record<string, FlatElementPort>;
-  /** Element presentation style (ports, port defaults). Used internally by the mapper for cell persistence. */
-  style?: ElementStyle;
-
   data?: Record<string, unknown>;
 
   /** Jointjs type */

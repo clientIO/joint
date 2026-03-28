@@ -87,9 +87,9 @@ function mapDataToElementAttributes(options: { id: string; element: Element<Port
     element: { ...element, ports: resolvedPorts },
   }) as CellAttributes;
 
-  // Keep original shape names in cell.style so they survive round-trips.
+  // Keep original shape names in cell.presentation so they survive round-trips.
   // The resolved SVG paths are already baked into the JointJS port config.
-  result.style = { ...result.style, ports: ports };
+  result.presentation = { ...result.presentation, ports: ports };
   return result;
 }
 
