@@ -78,9 +78,9 @@ const NODE_PORTS: Record<string, FlatElementPort> = {
 };
 
 const elements: Record<string, Element> = {
-  '1': { position: { x: 50, y: 50 }, style: { ports: NODE_PORTS } },
-  '2': { position: { x: 350, y: 50 }, style: { ports: NODE_PORTS } },
-  '3': { position: { x: 150, y: 250 }, style: { ports: NODE_PORTS } },
+  '1': { position: { x: 50, y: 50 }, ports: NODE_PORTS },
+  '2': { position: { x: 350, y: 50 }, ports: NODE_PORTS },
+  '3': { position: { x: 150, y: 250 }, ports: NODE_PORTS },
 };
 
 function NodeElement() {

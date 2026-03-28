@@ -129,7 +129,11 @@ interface ElementBase {
   parent?: string;
   /** Layer id for the cell. */
   layer?: string;
-  /** Element presentation style (ports, port defaults). */
+  /** Style defaults applied to all ports. Individual port properties take precedence. */
+  portStyle?: Partial<FlatElementPort>;
+  /** Ports of the element. */
+  ports?: Record<string, FlatElementPort>;
+  /** Element presentation style (ports, port defaults). Used internally by the mapper for cell persistence. */
   style?: ElementStyle;
 
   data?: Record<string, unknown>;

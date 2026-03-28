@@ -45,17 +45,28 @@ export function elementToAttributes<ElementData extends object | undefined = und
 
   const {
     data = {} as ElementData,
+    ports: topPorts,
+    portStyle: topPortStyle,
     style,
     ...cellAttributes
   } = element;
 
-  const attributes: CellAttributes = { type, data, style, ...cellAttributes };
+  // Prefer style-level ports (persisted from round-trips) over top-level
+  const effectivePorts = style?.ports ?? topPorts;
+  const effectivePortStyle = style?.portStyle ?? topPortStyle;
 
-  if (style?.ports) {
-    // Note: this will override any ports defined directly on the element.
-    // @todo should we warn if both are present?
-    const { ports, portStyle } = style;
-    attributes.ports = convertPorts(ports, portStyle);
+  const effectiveStyle = (effectivePorts || effectivePortStyle)
+    ? { ports: effectivePorts, portStyle: effectivePortStyle }
+    : style;
+
+  const attributes: CellAttributes = {
+    type, data,
+    style: effectiveStyle,
+    ...cellAttributes,
+  };
+
+  if (effectivePorts) {
+    attributes.ports = convertPorts(effectivePorts, effectivePortStyle);
     attributes.portDefaults = createPortGroupsDefault();
   }
 
@@ -95,6 +106,8 @@ export function attributesToElement<ElementData extends object | undefined = und
     // element record should not include undefined values
 
       data,
+      ports: style?.ports,
+      portStyle: style?.portStyle,
       style,
       position,
       size,

@@ -197,13 +197,13 @@ function getPortDragElements(): Record<string, Element> {
       data: {},
       position: { x: 40, y: 40 },
       size: { width: 120, height: 80 },
-      style: { ports: { [SOURCE_PORT_ID]: { cx: 120, cy: 40 } } },
+      ports: { [SOURCE_PORT_ID]: { cx: 120, cy: 40 } },
     },
     [TARGET_ELEMENT_ID]: {
       data: {},
       position: { x: 320, y: 40 },
       size: { width: 120, height: 80 },
-      style: { ports: { [TARGET_PORT_ID]: { cx: 0, cy: 40 } } },
+      ports: { [TARGET_PORT_ID]: { cx: 0, cy: 40 } },
     },
   };
 }

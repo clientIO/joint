@@ -17,7 +17,7 @@ const initialElements: Record<string, Element<Data>> = {
       label: 'Lorem ipsum',
     },
     position: { x: 100, y: 60 },
-    style: { ports: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } } },
+    ports: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } },
   },
   b: {
     // Explicit width - height is still determined by content
@@ -26,11 +26,9 @@ const initialElements: Record<string, Element<Data>> = {
       label: 'dolor sit amet',
     },
     position: { x: 280, y: 60 },
-    style: {
-      ports: {
-        out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
-        in: { cx: 0, cy: 'calc(0.5 * h)' },
-      },
+    ports: {
+      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
+      in: { cx: 0, cy: 'calc(0.5 * h)' },
     },
   },
   c: {
@@ -40,7 +38,7 @@ const initialElements: Record<string, Element<Data>> = {
     },
     position: { x: 450, y: 60 },
     size: { width: 100, height: 80 },
-    style: { ports: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true } } },
+    ports: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true } },
   },
 };
 

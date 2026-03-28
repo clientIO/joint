@@ -24,15 +24,8 @@ export function useElementDefaults<Data extends object | undefined = undefined>(
 
           let result: CellAttributes;
           if (resolved) {
-            const element = {
-              ...resolved,
-              ...mapOptions.element,
-              style: { ...resolved?.style, ...mapOptions.element?.style },
-            };
+            const element = { ...resolved, ...mapOptions.element };
             result = elementToAttributes({ id: mapOptions.id, element });
-
-            // Only persist user-provided style — defaults were only needed for conversion.
-            result.style = mapOptions.element?.style;
 
             // Strip default-provided keys from cell.data so they don't
             // pollute React state on round-trip (e.g. after element move).
@@ -40,7 +33,6 @@ export function useElementDefaults<Data extends object | undefined = undefined>(
               const cellData = result.data;
               const userData = mapOptions.element;
               for (const key of Object.keys(resolved)) {
-                if (key === 'style') continue;
                 if (!(key in userData)) {
                   // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
                   delete cellData[key];
