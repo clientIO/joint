@@ -62,10 +62,7 @@ interface UseGraphResult<
 }
 
 function getDefaultLink<LinkData extends object | undefined = undefined>(): Link<LinkData> {
-  return {
-    source: '',
-    target: '',
-  } as Link<LinkData>;
+  return {} as Link<LinkData>;
 }
 function getDefaultElement<
   ElementData extends object | undefined = undefined,

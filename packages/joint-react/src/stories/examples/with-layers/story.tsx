@@ -59,8 +59,8 @@ const elements = {
 
 const links = {
   'link-1': {
-    source: 'main-element',
-    target: 'another-element',
+    source: { id: 'main-element' },
+    target: { id: 'another-element' },
     layer: 'main',
     className: 'fade-in', // CSS class for animations
   },

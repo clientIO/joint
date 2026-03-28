@@ -163,22 +163,14 @@ const initialElements: Record<string, Element<PortNodeData>> = {
 
 const initialLinks: Record<string, Link> = {
   'link-1': {
-    source: 'node-1',
-    sourcePort: 'out-1',
-    sourceAnchor: { name: 'right', args: { useModelGeometry: true } },
-    target: 'node-2',
-    targetPort: 'in-1',
-    targetAnchor: { name: 'left', args: { useModelGeometry: true } },
+    source: { id: 'node-1', port: 'out-1', anchor: { name: 'right', args: { useModelGeometry: true } } },
+    target: { id: 'node-2', port: 'in-1', anchor: { name: 'left', args: { useModelGeometry: true } } },
     z: -1,
     connector: { name: 'curve' },
   },
   'link-2': {
-    source: 'node-1',
-    sourcePort: 'out-2',
-    sourceAnchor: { name: 'right', args: { useModelGeometry: true } },
-    target: 'node-2',
-    targetPort: 'in-2',
-    targetAnchor: { name: 'left', args: { useModelGeometry: true } },
+    source: { id: 'node-1', port: 'out-2', anchor: { name: 'right', args: { useModelGeometry: true } } },
+    target: { id: 'node-2', port: 'in-2', anchor: { name: 'left', args: { useModelGeometry: true } } },
     z: -1,
     connector: { name: 'curve' },
   },

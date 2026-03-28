@@ -30,13 +30,13 @@ const initialElements: Record<string, Element<NodeData>> = {
 const initialLinks: Record<string, Link & { type: string }> = {
   'link-1': {
     type: PORTAL_LINK_TYPE,
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
   },
   'link-2': {
     type: PORTAL_LINK_TYPE,
-    source: '2',
-    target: '3',
+    source: { id: '2' },
+    target: { id: '3' },
   },
 };
 

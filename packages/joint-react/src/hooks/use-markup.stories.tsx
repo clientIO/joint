@@ -25,10 +25,8 @@ const elements: Record<string, Element> = {
 
 const links: Record<string, Link> = {
   'l-1': {
-    source: '1',
-    sourceMagnet: 'my-selector',
-    target: '2',
-    targetMagnet: 'my-selector',
+    source: { id: '1', magnet: 'my-selector' },
+    target: { id: '2', magnet: 'my-selector' },
     color: PRIMARY,
     z: 2,
   },

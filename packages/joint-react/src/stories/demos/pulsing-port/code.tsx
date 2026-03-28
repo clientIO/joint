@@ -90,7 +90,7 @@ function NodeElement() {
 
   const isConnected = useLinks((links) =>
     [...links.values()].some((link) => {
-      return link.source === id || link.target === id;
+      return link.source?.id === id || link.target?.id === id;
     })
   );
 

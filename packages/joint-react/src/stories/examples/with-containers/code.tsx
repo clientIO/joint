@@ -34,8 +34,8 @@ const elements: Record<string, Element<ContainerData>> = {
 
 const links: Record<string, Link> = {
   'link-1': {
-    source: 'child-1',
-    target: 'child-2',
+    source: { id: 'child-1' },
+    target: { id: 'child-2' },
     parent: 'container',
     color: 'white',
     z: 2,

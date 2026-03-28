@@ -4,14 +4,7 @@ import { defaultLinkStyle, LINK_PRESENTATION_KEYS } from '../../theme/link-theme
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
-import {
-  assignEndDataProperties,
-  SOURCE_KEYS,
-  TARGET_KEYS,
-  toLinkEndAttribute,
-  toLinkEndData,
-  buildLinkPresentationAttributes,
-} from './link-attributes';
+import { buildLinkPresentationAttributes } from './link-attributes';
 import { isRecord } from '../../utils/is';
 import type { CellAttributes } from '.';
 import type { LinkLayout } from '../../types/cell-data';
@@ -33,17 +26,19 @@ export function linkToAttributes<LinkData extends object | undefined = undefined
   if (!isLinkData(link)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
+
+  const { type = PORTAL_LINK_TYPE } = link;
+
+  // Non-portal: 1:1 JointJS pass-through (same as elementToAttributes)
+  if (type !== PORTAL_LINK_TYPE) {
+    return link as CellAttributes;
+  }
+
+  // PortalLink mapping
   const {
     source,
     target,
-    sourcePort,
-    targetPort,
-    sourceAnchor,
-    targetAnchor,
-    sourceConnectionPoint,
-    targetConnectionPoint,
-    sourceMagnet,
-    targetMagnet,
+    data,
     z,
     layer,
     parent,
@@ -64,29 +59,15 @@ export function linkToAttributes<LinkData extends object | undefined = undefined
     wrapperColor = defaultLinkStyle.wrapperColor,
     wrapperClassName = defaultLinkStyle.wrapperClassName,
     attrs,
-    type = PORTAL_LINK_TYPE,
+    type: _type,
     ...rest
   } = link;
 
   const attributes: CellAttributes = {
     id,
     type,
-    source: source
-      ? toLinkEndAttribute(source, {
-          port: sourcePort,
-          anchor: sourceAnchor,
-          connectionPoint: sourceConnectionPoint,
-          magnet: sourceMagnet,
-        })
-      : undefined,
-    target: target
-      ? toLinkEndAttribute(target, {
-          port: targetPort,
-          anchor: targetAnchor,
-          connectionPoint: targetConnectionPoint,
-          magnet: targetMagnet,
-        })
-      : undefined,
+    source,
+    target,
     attrs: buildLinkPresentationAttributes({
       color,
       width,
@@ -116,17 +97,17 @@ export function linkToAttributes<LinkData extends object | undefined = undefined
     );
   }
 
-  const presentationData: Record<string, unknown> = {};
+  // Collect explicit presentation keys for round-trip
+  const presentation: Record<string, unknown> = {};
   for (const key of LINK_PRESENTATION_KEYS) {
-    if (link[key] !== undefined) presentationData[key] = link[key];
+    if (link[key] !== undefined) presentation[key] = link[key];
   }
+  if (labels !== undefined) presentation.labels = labels;
+  if (labelStyle !== undefined) presentation.labelStyle = labelStyle;
+  attributes.presentation = presentation;
 
-  attributes.data = {
-    ...rest,
-    labels,
-    labelStyle,
-    ...presentationData,
-  };
+  // User data goes directly into attributes.data (no nesting)
+  attributes.data = { ...rest, ...data };
 
   return attributes;
 }
@@ -139,8 +120,19 @@ export function linkToAttributes<LinkData extends object | undefined = undefined
 export function attributesToLink<LinkData extends object | undefined = undefined>(
   attributes: dia.Link.Attributes
 ): Link<LinkData> {
+
+  const { type } = attributes;
+
+  // Non-portal: shallow copy so the container gets a new reference on each call,
+  // which allows connected-link re-renders when a neighbor element moves.
+  if (type !== PORTAL_LINK_TYPE) {
+    return { ...attributes } as Link<LinkData>;
+  }
+
+  // PortalLink mapping
   const {
     data: cellData,
+    presentation,
     source,
     target,
     z,
@@ -150,23 +142,16 @@ export function attributesToLink<LinkData extends object | undefined = undefined
     router,
     connector,
     labels: attributeLabels,
-    attrs,
-    type,
   } = attributes;
 
-  const sourceData = toLinkEndData(source);
-  const targetData = toLinkEndData(target);
-
   const result: Record<string, unknown> = {
-    source: sourceData.end,
-    target: targetData.end,
+    source,
+    target,
   };
 
-  assignEndDataProperties(result, sourceData, SOURCE_KEYS);
-  assignEndDataProperties(result, targetData, TARGET_KEYS);
-
-  if (type !== undefined) result.type = type;
-  if (attrs) result.attrs = attrs;
+  // Note: `attrs` is intentionally omitted — for PortalLinks, attrs are computed
+  // from presentation fields (color, width, etc.) and must not be round-tripped,
+  // otherwise stale computed attrs would override freshly-computed values.
   if (z !== undefined) result.z = z;
   if (layer !== undefined) result.layer = layer;
   if (parent) result.parent = parent;
@@ -176,16 +161,26 @@ export function attributesToLink<LinkData extends object | undefined = undefined
   if (router !== undefined) result.router = router;
   if (connector !== undefined) result.connector = connector;
 
-  const dataLabels = cellData?.labels;
+  // Presentation fields come from attributes.presentation
+  const presentationData = presentation || {};
+  const dataLabels = presentationData.labels;
   if (dataLabels && Array.isArray(attributeLabels)) {
     result.labels = mergeLabelsFromAttributes(dataLabels, attributeLabels);
   }
 
-  const { layouts, ...data } = cellData || {}; // Ensure cellData is an object to avoid spreading undefined
+  // Spread presentation keys (color, width, etc.) back to top level
+  for (const key of LINK_PRESENTATION_KEYS) {
+    if (presentationData[key] !== undefined) result[key] = presentationData[key];
+  }
+  if (presentationData.labelStyle !== undefined) result.labelStyle = presentationData.labelStyle;
+
+  // Extract user data — remove internal 'layouts' field
+  const { layouts, ...userData } = cellData || {};
+
   return {
-    data: data as LinkData,
-    layout: layouts as Record<string, LinkLayout> | undefined,
     ...result,
+    data: userData as LinkData,
+    layout: layouts as Record<string, LinkLayout> | undefined,
   } as Link<LinkData>;
 }
 

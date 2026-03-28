@@ -113,10 +113,8 @@ const initialElements: Record<string, SaasNode> = {
 
 const initialLinks: Record<string, Link> = {
   'client-pm': {
-    source: 'client',
-    sourcePort: 'out',
-    target: 'pm',
-    targetPort: 'in',
+    source: { id: 'client', port: 'out' },
+    target: { id: 'pm', port: 'in' },
     width: 2,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     targetMarker: 'none',
@@ -130,10 +128,8 @@ const initialLinks: Record<string, Link> = {
     },
   },
   'pm-designer': {
-    source: 'pm',
-    sourcePort: 'out',
-    target: 'designer',
-    targetPort: 'in',
+    source: { id: 'pm', port: 'out' },
+    target: { id: 'designer', port: 'in' },
     width: 2,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     dasharray: '6,4',

@@ -75,15 +75,15 @@ const initialLinks: Record<string, Link<LinkData>> = {
     data: {
       type: 'PortalLink',
     },
-    source: 'node-1',
-    target: 'node-2',
+    source: { id: 'node-1' },
+    target: { id: 'node-2' },
   },
   'link-2': {
     data: {
       type: 'PortalLink',
     },
-    source: 'node-1',
-    target: 'node-3',
+    source: { id: 'node-1' },
+    target: { id: 'node-3' },
   },
 };
 
@@ -127,8 +127,8 @@ const mapAttributesToLink = (attributes: dia.Link.Attributes): Link<LinkData> =>
   const userData = util.pick(attributes, LINK_USER_DATA_KEYS) as LinkData;
   return {
     data: userData,
-    source: attributes.source as string,
-    target: attributes.target as string,
+    source: attributes.source,
+    target: attributes.target,
   } as Link<LinkData>;
 };
 

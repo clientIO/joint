@@ -69,20 +69,16 @@ const initialElements: Record<string, Element<NodeUserData>> = {
 };
 
 const initialLinks: Record<string, Link> = {
-  'a→b': { source: 'a', sourcePort: 'out', target: 'b', targetPort: 'in' },
-  'a→c': { source: 'a', sourcePort: 'out', target: 'c', targetPort: 'in' },
+  'a→b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
+  'a→c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b→d': {
-    source: 'b',
-    sourcePort: 'out',
-    target: 'd',
-    targetPort: 'in',
+    source: { id: 'b', port: 'out' },
+    target: { id: 'd', port: 'in' },
     labels: { info: { text: 'approved' } },
   },
   'c→d': {
-    source: 'c',
-    sourcePort: 'out',
-    target: 'd',
-    targetPort: 'in',
+    source: { id: 'c', port: 'out' },
+    target: { id: 'd', port: 'in' },
     color: '#e11d48',
   },
 };

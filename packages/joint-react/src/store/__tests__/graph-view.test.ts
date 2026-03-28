@@ -339,8 +339,8 @@ describe('graphView', () => {
       // Link data is in the container; layout is resolved at render time by useLink
       const linkData = view.links.get('link-1');
       expect(linkData).toBeDefined();
-      expect(linkData?.source).toBe('el-1');
-      expect(linkData?.target).toBe('el-2');
+      expect(linkData?.source).toEqual({ id: 'el-1' });
+      expect(linkData?.target).toEqual({ id: 'el-2' });
 
       view.destroy();
     });
@@ -406,7 +406,7 @@ describe('graphView', () => {
           'el-2': { data: undefined, position: { x: 300, y: 400 } },
         },
         links: {
-          'link-1': { source: 'el-1', target: 'el-2' },
+          'link-1': { source: { id: 'el-1' }, target: { id: 'el-2' } },
         },
         flag: 'updateFromReact',
       });
@@ -415,8 +415,8 @@ describe('graphView', () => {
       // Link exists in the container with source/target info
       const linkData = view.links.get('link-1');
       expect(linkData).toBeDefined();
-      expect(linkData?.source).toBe('el-1');
-      expect(linkData?.target).toBe('el-2');
+      expect(linkData?.source).toEqual({ id: 'el-1' });
+      expect(linkData?.target).toEqual({ id: 'el-2' });
 
       // Layout is no longer stored in the container — it is resolved at render time by useLink
 
@@ -444,7 +444,7 @@ describe('graphView', () => {
           b: { data: { label: 'B' }, position: { x: 200, y: 200 } },
         },
         links: {
-          'a-b': { source: 'a', target: 'b' },
+          'a-b': { source: { id: 'a' }, target: { id: 'b' } },
         },
         flag: 'updateFromReact',
       });

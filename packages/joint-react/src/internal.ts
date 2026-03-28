@@ -51,25 +51,18 @@ export { createAtom, type Atom } from './store/state-container';
 // Data-Mapping Defaults
 export {
   elementToAttributes as flatMapDataToElementAttributes,
-  flatMapElementAttributesToData,
+  attributesToElement as flatMapElementAttributesToData,
 } from './state/data-mapping/element-mapper';
 export {
   linkToAttributes as flatMapDataToLinkAttributes,
-  flatMapLinkAttributesToData,
+  attributesToLink as flatMapLinkAttributesToData,
 } from './state/data-mapping/link-mapper';
 
 // Data-Mapping Internals
 export { convertLabel } from './state/data-mapping/convert-labels';
 export { mergeLabelsFromAttributes } from './state/data-mapping/convert-labels-reverse';
 export { convertPorts, createPortGroupsDefault } from './state/data-mapping/convert-ports';
-export {
-  toLinkEndAttribute,
-  toLinkEndData,
-  buildLinkPresentationAttributes,
-  SOURCE_KEYS,
-  TARGET_KEYS,
-  assignEndDataProperties,
-} from './state/data-mapping/link-attributes';
+export { buildLinkPresentationAttributes } from './state/data-mapping/link-attributes';
 export { resolveCellDefaults } from './state/data-mapping/resolve-cell-defaults';
 
 // Render Internals

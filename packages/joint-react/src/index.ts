@@ -52,7 +52,6 @@ export type {
   Element as Element,
   FlatElementPort,
   Link as Link,
-  FlatLinkEnd,
   FlatLinkLabel,
   FlatLinkPresentationData,
 } from './types/data-types';

@@ -1,10 +1,8 @@
-import type { anchors, connectionPoints, dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import type { PortShape } from '../theme/element-theme';
 import type { LinkMarker } from '../theme/markers';
-import type { CellId } from './cell-id';
 import type { LiteralUnion } from './index';
 import type { ElementPosition, ElementSize } from './cell-data';
-import { useElement, useElementData, useElements } from '../hooks';
 
 // ── Element Types ─────────────────────────────────────────────────────────────
 
@@ -141,18 +139,6 @@ export type Element<D extends object | undefined = undefined> = undefined extend
   : ElementBase & { data: D };
 
 // ── Link Types ────────────────────────────────────────────────────────────────
-
-/**
- * Link endpoint definition.
- *
- * - A string is an element ID (connects to the element's center).
- * - An object with `x` and `y` connects to a fixed point on the canvas.
- *
- * Port, anchor, connectionPoint and magnet are specified via separate
- * top-level properties on {@link Link} (e.g. `sourcePort`, `sourceAnchor`).
- * @group Graph
- */
-export type FlatLinkEnd = CellId | { x: number; y: number };
 
 /**
  * Visual/presentation attributes for a link line and its wrapper.
@@ -319,51 +305,19 @@ interface LinkBase extends FlatLinkPresentationData {
   /** Layer id for the cell. */
   layer?: string;
   /**
-   * Source element id or point.
+   * Source endpoint in JointJS format.
+   * @example { id: 'el-1' }
+   * @example { id: 'el-1', port: 'p1', anchor: { name: 'center' } }
+   * @example { x: 100, y: 200 }
    */
-  source?: FlatLinkEnd;
+  source?: dia.Link.EndJSON;
   /**
-   * Target element id or point.
+   * Target endpoint in JointJS format.
+   * @example { id: 'el-2' }
+   * @example { id: 'el-2', port: 'p2', anchor: { name: 'center' } }
+   * @example { x: 300, y: 400 }
    */
-  target?: FlatLinkEnd;
-  /**
-   * Source port id.
-   */
-  sourcePort?: string;
-  /**
-   * Target port id.
-   */
-  targetPort?: string;
-  /**
-   * Source anchor definition.
-   * @see https://docs.jointjs.com/learn/features/links/anchors
-   */
-  sourceAnchor?: anchors.AnchorJSON;
-  /**
-   * Target anchor definition.
-   * @see https://docs.jointjs.com/learn/features/links/anchors
-   */
-  targetAnchor?: anchors.AnchorJSON;
-  /**
-   * Source connection point definition.
-   * @see https://docs.jointjs.com/learn/features/links/connection-points
-   */
-  sourceConnectionPoint?: connectionPoints.ConnectionPointJSON;
-  /**
-   * Target connection point definition.
-   * @see https://docs.jointjs.com/learn/features/links/connection-points
-   */
-  targetConnectionPoint?: connectionPoints.ConnectionPointJSON;
-  /**
-   * Source magnet selector.
-   * CSS selector of the SVG element used as the connection magnet on the source.
-   */
-  sourceMagnet?: string;
-  /**
-   * Target magnet selector.
-   * CSS selector of the SVG element used as the connection magnet on the target.
-   */
-  targetMagnet?: string;
+  target?: dia.Link.EndJSON;
   /**
    * Link vertices (waypoints).
    */

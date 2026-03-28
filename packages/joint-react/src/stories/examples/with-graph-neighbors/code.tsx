@@ -71,53 +71,53 @@ const initialElements: Record<string, Element<NodeData>> = {
 
 const initialLinks: Record<string, Link> = {
   'l-server-db': {
-    source: 'server',
-    target: 'db',
+    source: { id: 'server' },
+    target: { id: 'db' },
     color: LIGHT,
   },
   'l-server-cache': {
-    source: 'server',
-    target: 'cache',
+    source: { id: 'server' },
+    target: { id: 'cache' },
     color: LIGHT,
   },
   'l-server-api': {
-    source: 'server',
-    target: 'api',
+    source: { id: 'server' },
+    target: { id: 'api' },
     color: LIGHT,
   },
   'l-db-auth': {
-    source: 'db',
-    target: 'auth',
+    source: { id: 'db' },
+    target: { id: 'auth' },
     color: LIGHT,
   },
   'l-cache-api': {
-    source: 'cache',
-    target: 'api',
+    source: { id: 'cache' },
+    target: { id: 'api' },
     color: LIGHT,
   },
   'l-auth-worker': {
-    source: 'auth',
-    target: 'worker',
+    source: { id: 'auth' },
+    target: { id: 'worker' },
     color: LIGHT,
   },
   'l-api-queue': {
-    source: 'api',
-    target: 'queue',
+    source: { id: 'api' },
+    target: { id: 'queue' },
     color: LIGHT,
   },
   'l-worker-logs': {
-    source: 'worker',
-    target: 'logs',
+    source: { id: 'worker' },
+    target: { id: 'logs' },
     color: LIGHT,
   },
   'l-queue-logs': {
-    source: 'queue',
-    target: 'logs',
+    source: { id: 'queue' },
+    target: { id: 'logs' },
     color: LIGHT,
   },
   'l-db-cache': {
-    source: 'db',
-    target: 'cache',
+    source: { id: 'db' },
+    target: { id: 'cache' },
     color: LIGHT,
   },
 };

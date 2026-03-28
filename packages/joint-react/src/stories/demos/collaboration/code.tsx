@@ -186,20 +186,16 @@ const initialElements: Record<string, AgentNode> = {
 
 const initialLinks: Record<string, Link> = {
   'o-r': {
-    source: 'orchestrator',
-    sourcePort: 'out',
-    target: 'researcher',
-    targetPort: 'in',
+    source: { id: 'orchestrator', port: 'out' },
+    target: { id: 'researcher', port: 'in' },
     color: DARK.link,
     width: 1.5,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     targetMarker: 'none',
   },
   'o-w': {
-    source: 'orchestrator',
-    sourcePort: 'out',
-    target: 'writer',
-    targetPort: 'in',
+    source: { id: 'orchestrator', port: 'out' },
+    target: { id: 'writer', port: 'in' },
     color: DARK.link,
     width: 1.5,
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },

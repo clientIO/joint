@@ -83,8 +83,8 @@ const defaultElements: Record<string, CustomElement> = {
  */
 const defaultLinks: Record<string, CustomLink> = {
   'e1-2': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     color: PRIMARY,
   },
 };

@@ -80,8 +80,8 @@ interface CustomLink extends Link {
 
 const links: Record<string, CustomLink> = {
   '1123': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     color: PRIMARY,
   },
 };

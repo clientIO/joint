@@ -46,17 +46,13 @@ const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'c
 
 const initialLinks: Record<string, Link> = {
   'a-b': {
-    source: 'a',
-    sourcePort: 'out',
-    target: 'b',
-    targetPort: 'in',
+    source: { id: 'a', port: 'out' },
+    target: { id: 'b', port: 'in' },
     targetMarker: 'arrow',
   },
   'b-c': {
-    source: 'b',
-    sourcePort: 'out',
-    target: 'c',
-    targetPort: 'in',
+    source: { id: 'b', port: 'out' },
+    target: { id: 'c', port: 'in' },
     targetMarker: 'arrow',
   },
 };
