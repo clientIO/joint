@@ -175,10 +175,12 @@ export function useImperativeApi<Instance, InstanceSelector = Instance>(
   // Expose the instance via the forwarded ref, if there is one
   useImperativeHandle(
     forwardedRef,
-    () =>
-      instanceSelector
-        ? instanceSelector(instanceRef.current!)
-        : (instanceRef.current! as InstanceSelector),
+    () => {
+      if (!instanceRef.current) return null as InstanceSelector;
+      return instanceSelector
+        ? instanceSelector(instanceRef.current)
+        : (instanceRef.current as InstanceSelector);
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [instanceRef, isReady]
   );

@@ -127,9 +127,15 @@ export function useGraph<
           ? attributesOrUpdater(existing)
           : attributesOrUpdater;
 
+        // Strip round-tripped attrs — linkToAttributes regenerates presentation
+        // attrs from color/width/etc. Keeping stale attrs would override new values.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { attrs: _a, ...existingClean } = existing;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { attrs: _b, ...attributesClean } = attributes;
         const mergedData: Link<LinkData> = {
-          ...existing,
-          ...attributes,
+          ...existingClean,
+          ...attributesClean,
         } as Link<LinkData>;
 
         const cellAttributes = graphView.mapLinkToAttributes({

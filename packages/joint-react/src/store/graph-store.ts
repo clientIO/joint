@@ -427,6 +427,16 @@ export class GraphStore<
     }
 
     elementView.cleanNodesCache();
-    clearConnectedLinkViews(paper, this.graph, cellId, onValidateLink);
+    const linkChanges = clearConnectedLinkViews(paper, this.graph, cellId, onValidateLink);
+    // Queue link changes — afterRender will flush them once JointJS finishes
+    // its async render cycle and link views have correct geometry.
+    if (linkChanges?.size) {
+      for (const [, store] of this.paperStores) {
+        if (store.paper === paper) {
+          store.addPendingLinkChanges(linkChanges);
+          break;
+        }
+      }
+    }
   };
 }

@@ -1,6 +1,9 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../../store/graph-store';
 import { graphView } from '../graph-view';
+import { linkToAttributes } from '../../state/data-mapping/link-mapper';
+import type { Link } from '../../types/data-types';
+import type { CellAttributes, MapLinkToAttributes } from '../../state/data-mapping';
 
 function createGraph() {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
@@ -679,9 +682,7 @@ describe('graphView', () => {
       cell.set('attrs', { body: { fill: 'blue' } });
 
       // Now fire LAYOUT_UPDATE_EVENT with this cell — simulating insertView
-      const layoutChanges = new Map([
-        ['el-1', { type: 'add' as const, data: cell }],
-      ]);
+      const layoutChanges = new Map([['el-1', { type: 'add' as const, data: cell }]]);
       graph.trigger('layout:update', { changes: layoutChanges });
       await flush();
       await flush(); // Extra flush for the scheduled callback
@@ -770,9 +771,7 @@ describe('graphView', () => {
 
       // Now fire LAYOUT_UPDATE_EVENT — simulating insertView after paper mount
       const cell = graph.getCell('el-1') as dia.Element;
-      const layoutChanges = new Map([
-        ['el-1', { type: 'add' as const, data: cell }],
-      ]);
+      const layoutChanges = new Map([['el-1', { type: 'add' as const, data: cell }]]);
       graph.trigger('layout:update', { changes: layoutChanges });
       await flush();
       await flush();
@@ -799,6 +798,144 @@ describe('graphView', () => {
 
       // Data should not have changed because the event was filtered
       expect(view.elements.get('el-1')).toBe(before);
+    });
+  });
+
+  describe('updateMappers — link defaults re-sync', () => {
+    function createLinkMapper(color: string): MapLinkToAttributes {
+      return (mapOptions: { id?: string; link: Link }) => {
+        const merged: Link = { color, width: 3, ...mapOptions.link };
+        return linkToAttributes({ link: merged, id: mapOptions.id });
+      };
+    }
+
+    it('updates JointJS link attrs when mapLinkToAttributes changes', async () => {
+      const graph = createGraph();
+      const initialMapper = createLinkMapper('red');
+
+      const view = graphView({
+        graph,
+        mappings: { mapLinkToAttributes: initialMapper },
+      });
+
+      // Populate via updateGraph (simulates controlled-mode initial render)
+      view.updateGraph({
+        elements: {
+          a: { data: undefined, position: { x: 0, y: 0 }, size: { width: 50, height: 50 } },
+          b: { data: undefined, position: { x: 200, y: 0 }, size: { width: 50, height: 50 } },
+        },
+        links: {
+          'a-b': { source: 'a', target: 'b' },
+        },
+        flag: 'updateFromReact',
+      });
+      await flush();
+
+      // Verify initial color
+      const linkBefore = graph.getCell('a-b') as dia.Link;
+      expect(linkBefore.attr('line/style/stroke')).toBe('red');
+
+      // Simulate useLinkDefaults changing color → new mapper reference
+      const updatedMapper = createLinkMapper('blue');
+      view.updateMappers({ mapLinkToAttributes: updatedMapper });
+
+      // JointJS model should now have the updated color
+      const linkAfter = graph.getCell('a-b') as dia.Link;
+      expect(linkAfter.attr('line/style/stroke')).toBe('blue');
+
+      view.destroy();
+    });
+
+    it('updates link color after container is populated by LAYOUT_UPDATE_EVENT (Paper view mount)', async () => {
+      const graph = createGraph();
+      const initialMapper = createLinkMapper('red');
+
+      const view = graphView({
+        graph,
+        mappings: { mapLinkToAttributes: initialMapper },
+      });
+
+      // Populate via updateGraph (simulates controlled-mode initial render)
+      view.updateGraph({
+        elements: {
+          a: { data: undefined, position: { x: 0, y: 0 }, size: { width: 50, height: 50 } },
+          b: { data: undefined, position: { x: 200, y: 0 }, size: { width: 50, height: 50 } },
+        },
+        links: {
+          'a-b': { source: 'a', target: 'b' },
+        },
+        flag: 'updateFromReact',
+      });
+      await flush();
+
+      // Simulate Paper view mount: LAYOUT_UPDATE_EVENT fires, which triggers
+      // onChanges → mapAttributesToLink → container now has round-tripped attrs
+      // (including attrs.line.style.stroke = 'red')
+      const linkCell = graph.getCell('a-b') as dia.Link;
+      const layoutChanges = new Map([['a-b', { type: 'add' as const, data: linkCell }]]);
+      graph.trigger('layout:update', { changes: layoutChanges });
+      await flush();
+      await flush();
+
+      // The container link data now has stale attrs from the round-trip.
+      // Verify the stale attrs are in the container:
+      const containerLink = view.links.get('a-b')!;
+      expect((containerLink as Record<string, unknown>).attrs).toBeDefined();
+
+      // Now simulate useLinkDefaults changing color → new mapper
+      const updatedMapper = createLinkMapper('blue');
+      view.updateMappers({ mapLinkToAttributes: updatedMapper });
+
+      // JointJS model should have the NEW color, not the stale one
+      expect(linkCell.attr('line/style/stroke')).toBe('blue');
+
+      view.destroy();
+    });
+
+    it('preserves updated link attrs after subsequent updateGraph call', async () => {
+      const graph = createGraph();
+      const initialMapper = createLinkMapper('red');
+
+      const view = graphView({
+        graph,
+        mappings: { mapLinkToAttributes: initialMapper },
+      });
+
+      view.updateGraph({
+        elements: {
+          a: { data: undefined, position: { x: 0, y: 0 }, size: { width: 50, height: 50 } },
+          b: { data: undefined, position: { x: 200, y: 0 }, size: { width: 50, height: 50 } },
+        },
+        links: {
+          'a-b': { source: 'a', target: 'b' },
+        },
+        flag: 'updateFromReact',
+      });
+      await flush();
+
+      // Change mapper (simulates useLinkDefaults with new color)
+      const updatedMapper = createLinkMapper('blue');
+      view.updateMappers({ mapLinkToAttributes: updatedMapper });
+
+      // Now simulate a subsequent React render that calls updateGraph
+      // (e.g., user drags an element, triggering onElementsChange → re-render)
+      view.updateGraph({
+        elements: {
+          a: { data: undefined, position: { x: 50, y: 50 }, size: { width: 50, height: 50 } },
+          b: { data: undefined, position: { x: 200, y: 0 }, size: { width: 50, height: 50 } },
+        },
+        links: {
+          'a-b': { source: 'a', target: 'b' },
+        },
+        flag: 'updateFromReact',
+      });
+      await flush();
+
+      // Color should still be blue (the updated mapper), not red (the old one)
+      const link = graph.getCell('a-b') as dia.Link;
+      expect(link.attr('line/style/stroke')).toBe('blue');
+
+      view.destroy();
     });
   });
 });

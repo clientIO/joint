@@ -5,9 +5,9 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 import { useContainerItem } from './use-container-item';
 import type { Link } from '../types/data-types';
 import type { LinkLayout } from '../types/cell-data';
-import { PaperStoreContext } from '../context';
 import { getLinkLayout } from '../store/update-layout-state';
 import type { dia } from '@joint/core';
+import { usePaperStore } from './use-paper';
 
 /** Link data resolved for the current paper — `layout` is the single paper's `LinkLayout`. */
 export type ResolvedLink<D extends object | undefined = undefined> = Omit<Link<D>, 'layout'> & {
@@ -41,7 +41,7 @@ export function useLink<D extends object | undefined = undefined, R = ResolvedLi
   isEqual: (a: R, b: R) => boolean = isStrictEqual
 ): R {
   const id = useLinkId();
-  const paperStore = useContext(PaperStoreContext);
+  const paperStore = usePaperStore();
   const paper = paperStore?.paper as dia.Paper | undefined;
   const {
     graphView: { links },

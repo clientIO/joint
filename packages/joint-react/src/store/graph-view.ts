@@ -295,6 +295,11 @@ export function graphView<
       }
       // Skip re-sync if no mapper actually changed
       if (!changed) return;
+      // Keep graphChanges in sync so subsequent updateGraph calls use the new mappers
+      graphChangesController.updateMappers({
+        mapElementToAttributes,
+        mapLinkToAttributes,
+      });
       // Re-sync all existing data through updated mappers
       const graphElements: dia.Cell.JSON[] = [];
       const graphLinks: dia.Cell.JSON[] = [];
@@ -304,7 +309,15 @@ export function graphView<
         graphElements.push({ ...attributes, id });
       }
       for (const [id, link] of links.getFull()) {
-        const attributes = mapLinkToAttributes({ id, link });
+        // Strip attrs — they are recomputed by the mapper from flat presentation
+        // properties (color, width, etc.). Container data may carry stale
+        // round-tripped attrs from attributesToLink that would otherwise
+        // override the freshly computed values.
+        const { attrs: _staleAttrs, ...linkWithoutAttrs } = link as Record<string, unknown>;
+        const attributes = mapLinkToAttributes({
+          id,
+          link: linkWithoutAttrs as unknown as Link<LinkData>,
+        });
         graphLinks.push({ ...attributes, id });
       }
       graph.syncCells([...graphElements, ...graphLinks], {

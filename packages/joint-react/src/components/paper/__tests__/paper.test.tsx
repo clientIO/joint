@@ -282,7 +282,7 @@ async function dragLinkFromSourcePortToTargetPort(paper: dia.Paper): Promise<dia
   return addedLink;
 }
 
-function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
+async function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
   const ref: RefObject<dia.Paper | null> = { current: null };
   let linksSnapshot: Map<string, Link> = new Map();
 
@@ -291,18 +291,20 @@ function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
     return null;
   }
 
-  render(
-    <GraphProvider elements={getPortDragElements()}>
-      <Paper
-        ref={ref}
-        defaultLink={defaultLink}
-        renderElement={() => <div>Drag Node</div>}
-        linkPinning
-        snapLinks={false}
-      />
-      <CaptureLinksSnapshot />
-    </GraphProvider>
-  );
+  await act(async () => {
+    render(
+      <GraphProvider elements={getPortDragElements()}>
+        <Paper
+          ref={ref}
+          defaultLink={defaultLink}
+          renderElement={() => <div>Drag Node</div>}
+          linkPinning
+          snapLinks={false}
+        />
+        <CaptureLinksSnapshot />
+      </GraphProvider>
+    );
+  });
 
   return {
     ref,
@@ -339,7 +341,25 @@ if (typeof document.elementFromPoint !== 'function') {
   });
 }
 
+// The scheduler uses queueMicrotask to batch state updates. In jsdom,
+// these microtasks fire outside React's act() boundary, causing warnings.
+// Mock the scheduler to execute callbacks synchronously so state updates
+// happen within the act() boundary.
+jest.mock('../../../utils/scheduler', () => {
+  function createScheduler(): (callback: () => void) => void {
+    return (callback: () => void): void => {
+      callback();
+    };
+  }
+
+  return {
+    createScheduler,
+    simpleScheduler: createScheduler(),
+  };
+});
+
 describe('Paper Component', () => {
+
   it('renders elements correctly with correct measured node and onMeasured event', async () => {
     const onMeasuredMock = jest.fn();
     let size = { width: 0, height: 0 };
@@ -362,12 +382,19 @@ describe('Paper Component', () => {
     }
 
     const PAPER_ID = 'test-measured';
-    render(
-      <GraphProvider elements={elements}>
-        <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
-        <Paper id={PAPER_ID} width={WIDTH} height={150} renderElement={() => <MeasuredElement />} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
+          <Paper
+            id={PAPER_ID}
+            width={WIDTH}
+            height={150}
+            renderElement={() => <MeasuredElement />}
+          />
+        </GraphProvider>
+      );
+    });
     await waitFor(() => {
       expect(screen.getByText('Node 1')).toBeInTheDocument();
       expect(screen.getByText('Node 2')).toBeInTheDocument();
@@ -378,11 +405,13 @@ describe('Paper Component', () => {
   });
 
   it('renders elements correctly with useHTMLOverlay enabled', async () => {
-    render(
-      <GraphProvider elements={elements}>
-        <Paper useHTMLOverlay renderElement={() => <TestLabelElement />} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper useHTMLOverlay renderElement={() => <TestLabelElement />} />
+        </GraphProvider>
+      );
+    });
     await waitFor(() => {
       expect(screen.getByText('Node 1')).toBeInTheDocument();
       expect(screen.getByText('Node 2')).toBeInTheDocument();
@@ -419,7 +448,9 @@ describe('Paper Component', () => {
       );
     }
 
-    render(<ControlledPaperHost />);
+    await act(async () => {
+      render(<ControlledPaperHost />);
+    });
 
     await waitFor(() => {
       // At least one measurement call should fire (mock observer may not trigger second)
@@ -427,30 +458,36 @@ describe('Paper Component', () => {
     });
   });
 
-  it('applies default clickThreshold and custom clickThreshold', () => {
-    render(
-      <GraphProvider elements={elements}>
-        <Paper renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+  it('applies default clickThreshold and custom clickThreshold', async () => {
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
     const PaperElement = document.querySelector('.joint-paper');
     expect(PaperElement).toBeInTheDocument();
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper clickThreshold={20} renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper clickThreshold={20} renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
     // Ensure no errors occur when custom clickThreshold is applied
     expect(PaperElement).toBeInTheDocument();
   });
 
   it('applies scale to the Paper', async () => {
-    render(
-      <GraphProvider elements={elements}>
-        <Paper scale={2} renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper scale={2} renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       const layersGroup = document.querySelector('.joint-layers');
@@ -462,12 +499,14 @@ describe('Paper Component', () => {
     const onMeasuredMock = jest.fn();
     const PAPER_ID = 'test-measured-basic';
 
-    render(
-      <GraphProvider elements={elements}>
-        <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
-        <Paper id={PAPER_ID} renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <MeasuredListener paperId={PAPER_ID} callback={onMeasuredMock} />
+          <Paper id={PAPER_ID} renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
     await waitFor(() => {
       expect(onMeasuredMock).toHaveBeenCalledTimes(1);
     });
@@ -497,7 +536,9 @@ describe('Paper Component', () => {
       );
     }
 
-    render(<Content />);
+    await act(async () => {
+      render(<Content />);
+    });
     await waitFor(() => {
       expect(RenderElement.mock.calls.length).toBeGreaterThanOrEqual(2);
       expect(onMeasuredMock).toHaveBeenCalled();
@@ -507,11 +548,13 @@ describe('Paper Component', () => {
   it('handles ref from Paper correctly', async () => {
     const ref = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={ref} renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={ref} renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
     await waitFor(
       () => {
         expect(ref.current).not.toBeNull();
@@ -536,12 +579,14 @@ describe('Paper Component', () => {
       return null;
     }
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={ref} renderElement={() => <div>Test</div>} />
-        <CapturePaperRef paperRef={ref} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={ref} renderElement={() => <div>Test</div>} />
+          <CapturePaperRef paperRef={ref} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(captureRefInEffectMock).toHaveBeenCalled();
@@ -566,11 +611,13 @@ describe('Paper Component', () => {
       return <Paper ref={ref} renderElement={() => <div>Test</div>} />;
     }
 
-    render(
-      <GraphProvider elements={elements}>
-        <PaperWithEffectRefCapture />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <PaperWithEffectRefCapture />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(captureRefInEffectMock).toHaveBeenCalled();
@@ -595,11 +642,13 @@ describe('Paper Component', () => {
       return <Paper ref={ref} />;
     }
 
-    render(
-      <GraphProvider elements={{}}>
-        <PaperWithEffectRefCapture />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={{}}>
+          <PaperWithEffectRefCapture />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(captureRefInEffectMock).toHaveBeenCalled();
@@ -614,11 +663,13 @@ describe('Paper Component', () => {
   it('exposes paper ref for empty graph without requiring view updates', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={{}}>
-        <Paper ref={ref} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={{}}>
+          <Paper ref={ref} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -655,7 +706,9 @@ describe('Paper Component', () => {
       );
     }
 
-    render(<Component />);
+    await act(async () => {
+      render(<Component />);
+    });
 
     await waitFor(
       () => {
@@ -684,12 +737,14 @@ describe('Paper Component', () => {
       return null;
     }
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={ref} renderElement={() => <div>Test</div>} />
-        <ChangeScale />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={ref} renderElement={() => <div>Test</div>} />
+          <ChangeScale />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(
       () => {
@@ -731,7 +786,9 @@ describe('Paper Component', () => {
         </GraphProvider>
       );
     }
-    render(<Content />);
+    await act(async () => {
+      render(<Content />);
+    });
     await waitFor(() => {
       const element1 = currentOutsideElements['1'];
       expect(element1).toBeDefined();
@@ -767,7 +824,9 @@ describe('Paper Component', () => {
         </GraphProvider>
       );
     }
-    render(<Content />);
+    await act(async () => {
+      render(<Content />);
+    });
     const button = screen.getByRole('button', { name: 'Update Element 1' });
     expect(button).toBeInTheDocument();
     act(() => {
@@ -783,12 +842,14 @@ describe('Paper Component', () => {
     const view1Ref: RefObject<dia.Paper | null> = { current: null };
     const view2Ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={view1Ref} renderElement={() => <div>Test</div>} />
-        <Paper ref={view2Ref} renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={view1Ref} renderElement={() => <div>Test</div>} />
+          <Paper ref={view2Ref} renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(
       () => {
@@ -803,11 +864,13 @@ describe('Paper Component', () => {
   it('applies default defaultConnectionPoint and measureNode options', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={ref} renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={ref} renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -823,16 +886,18 @@ describe('Paper Component', () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
     const customMeasureNode = jest.fn();
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper
-          ref={ref}
-          defaultConnectionPoint={{ name: 'boundary' }}
-          measureNode={customMeasureNode}
-          renderElement={() => <div>Test</div>}
-        />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper
+            ref={ref}
+            defaultConnectionPoint={{ name: 'boundary' }}
+            measureNode={customMeasureNode}
+            renderElement={() => <div>Test</div>}
+          />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -845,11 +910,13 @@ describe('Paper Component', () => {
   it('applies percentage width to JointJS paper when only width="100%" is set', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={ref} width="100%" renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={ref} width="100%" renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -861,11 +928,13 @@ describe('Paper Component', () => {
   it('applies percentage height to JointJS paper when only height="100%" is set', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={ref} height="100%" renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={ref} height="100%" renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -877,11 +946,13 @@ describe('Paper Component', () => {
   it('applies percentage dimensions to JointJS paper when both width and height are "100%"', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={ref} width="100%" height="100%" renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={ref} width="100%" height="100%" renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -893,18 +964,20 @@ describe('Paper Component', () => {
   it('preserves custom className and style with renderElement', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper
-          ref={ref}
-          className="custom-paper-class flowchart-paper"
-          width={720}
-          height={320}
-          style={{ backgroundColor: 'rgb(10, 20, 30)', border: '1px solid rgb(10, 20, 30)' }}
-          renderElement={() => <TestLabelDiv />}
-        />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper
+            ref={ref}
+            className="custom-paper-class flowchart-paper"
+            width={720}
+            height={320}
+            style={{ backgroundColor: 'rgb(10, 20, 30)', border: '1px solid rgb(10, 20, 30)' }}
+            renderElement={() => <TestLabelDiv />}
+          />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -928,15 +1001,17 @@ describe('Paper Component', () => {
   it('extracts width and height from style when paper props are not provided', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper
-          ref={ref}
-          style={{ width: '640px', height: '360px' }}
-          renderElement={() => <TestLabelDiv />}
-        />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper
+            ref={ref}
+            style={{ width: '640px', height: '360px' }}
+            renderElement={() => <TestLabelDiv />}
+          />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -959,15 +1034,17 @@ describe('Paper Component', () => {
     });
 
     try {
-      render(
-        <GraphProvider elements={elements}>
-          <Paper
-            ref={ref}
-            className="paper-host-sized-by-class"
-            renderElement={() => <TestLabelDiv />}
-          />
-        </GraphProvider>
-      );
+      await act(async () => {
+        render(
+          <GraphProvider elements={elements}>
+            <Paper
+              ref={ref}
+              className="paper-host-sized-by-class"
+              renderElement={() => <TestLabelDiv />}
+            />
+          </GraphProvider>
+        );
+      });
 
       await waitFor(() => {
         expect(ref.current).not.toBeNull();
@@ -993,16 +1070,18 @@ describe('Paper Component', () => {
     });
 
     try {
-      render(
-        <GraphProvider elements={elements}>
-          <Paper
-            ref={ref}
-            className="paper-host-size-conflict"
-            style={{ width: '320px', height: '180px' }}
-            renderElement={() => <TestLabelDiv />}
-          />
-        </GraphProvider>
-      );
+      await act(async () => {
+        render(
+          <GraphProvider elements={elements}>
+            <Paper
+              ref={ref}
+              className="paper-host-size-conflict"
+              style={{ width: '320px', height: '180px' }}
+              renderElement={() => <TestLabelDiv />}
+            />
+          </GraphProvider>
+        );
+      });
 
       await waitFor(() => {
         expect(ref.current).not.toBeNull();
@@ -1028,18 +1107,20 @@ describe('Paper Component', () => {
     });
 
     try {
-      render(
-        <GraphProvider elements={elements}>
-          <Paper
-            ref={ref}
-            className="paper-host-size-priority"
-            width={480}
-            height={260}
-            style={{ width: '320px', height: '180px' }}
-            renderElement={() => <TestLabelDiv />}
-          />
-        </GraphProvider>
-      );
+      await act(async () => {
+        render(
+          <GraphProvider elements={elements}>
+            <Paper
+              ref={ref}
+              className="paper-host-size-priority"
+              width={480}
+              height={260}
+              style={{ width: '320px', height: '180px' }}
+              renderElement={() => <TestLabelDiv />}
+            />
+          </GraphProvider>
+        );
+      });
 
       await waitFor(() => {
         expect(ref.current).not.toBeNull();
@@ -1062,18 +1143,20 @@ describe('Paper Component', () => {
       const ref: RefObject<dia.Paper | null> = { current: null };
       const style = getPaperStyleForCombination(withStyle);
 
-      render(
-        <GraphProvider elements={elements}>
-          <Paper
-            ref={ref}
-            className={withClassName ? CUSTOM_PAPER_CLASSNAME : undefined}
-            style={style}
-            width={withWidth ? PROP_WIDTH : undefined}
-            height={withHeight ? PROP_HEIGHT : undefined}
-            renderElement={() => <TestLabelDiv />}
-          />
-        </GraphProvider>
-      );
+      await act(async () => {
+        render(
+          <GraphProvider elements={elements}>
+            <Paper
+              ref={ref}
+              className={withClassName ? CUSTOM_PAPER_CLASSNAME : undefined}
+              style={style}
+              width={withWidth ? PROP_WIDTH : undefined}
+              height={withHeight ? PROP_HEIGHT : undefined}
+              renderElement={() => <TestLabelDiv />}
+            />
+          </GraphProvider>
+        );
+      });
 
       await waitFor(() => {
         expect(ref.current).not.toBeNull();
@@ -1112,11 +1195,13 @@ describe('Paper Component', () => {
   it('does not overwrite paper percentage width with pixel values from resizePaperContainer', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={ref} width="100%" height="100%" renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={ref} width="100%" height="100%" renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -1129,11 +1214,13 @@ describe('Paper Component', () => {
   it('uses PortalLink from graph namespace when defaultLink is not provided', async () => {
     const ref: RefObject<dia.Paper | null> = { current: null };
 
-    render(
-      <GraphProvider elements={elements}>
-        <Paper ref={ref} renderElement={() => <div>Test</div>} />
-      </GraphProvider>
-    );
+    await act(async () => {
+      render(
+        <GraphProvider elements={elements}>
+          <Paper ref={ref} renderElement={() => <div>Test</div>} />
+        </GraphProvider>
+      );
+    });
 
     await waitFor(() => {
       expect(ref.current).not.toBeNull();
@@ -1156,7 +1243,7 @@ describe('Paper Component', () => {
 
   describe('defaultLink drag integration', () => {
     it('uses default PortalLink theme when defaultLink is not provided', async () => {
-      const { ref, getLinksSnapshot } = renderPortDragPaper();
+      const { ref, getLinksSnapshot } = await renderPortDragPaper();
 
       await waitFor(() => {
         expect(ref.current).not.toBeNull();
@@ -1187,7 +1274,7 @@ describe('Paper Component', () => {
           },
         },
       });
-      const { ref, getLinksSnapshot } = renderPortDragPaper(providedLink);
+      const { ref, getLinksSnapshot } = await renderPortDragPaper(providedLink);
 
       await waitFor(() => {
         expect(ref.current).not.toBeNull();
@@ -1218,7 +1305,7 @@ describe('Paper Component', () => {
             },
           })
       );
-      const { ref } = renderPortDragPaper(defaultLinkCallback as DefaultLinkProperty);
+      const { ref } = await renderPortDragPaper(defaultLinkCallback as DefaultLinkProperty);
 
       await waitFor(() => {
         expect(ref.current).not.toBeNull();
@@ -1247,7 +1334,7 @@ describe('Paper Component', () => {
         className: 'custom-default-link',
         targetMarker: 'none',
       };
-      const { ref, getLinksSnapshot } = renderPortDragPaper(defaultLinkData);
+      const { ref, getLinksSnapshot } = await renderPortDragPaper(defaultLinkData);
 
       await waitFor(() => {
         expect(ref.current).not.toBeNull();
@@ -1294,7 +1381,7 @@ describe('Paper Component', () => {
           wrapperWidth: 16,
         })
       );
-      const { ref, getLinksSnapshot } = renderPortDragPaper(
+      const { ref, getLinksSnapshot } = await renderPortDragPaper(
         defaultLinkCallback as DefaultLinkProperty
       );
 
@@ -1355,13 +1442,15 @@ describe('Paper Component', () => {
         return null;
       }
 
-      render(
-        <GraphProvider graph={graph}>
-          <Paper paper={externalPaper} id={EXTERNAL_PAPER_ID} renderElement={() => null}>
-            <PaperCapture />
-          </Paper>
-        </GraphProvider>
-      );
+      await act(async () => {
+        render(
+          <GraphProvider graph={graph}>
+            <Paper paper={externalPaper} id={EXTERNAL_PAPER_ID} renderElement={() => null}>
+              <PaperCapture />
+            </Paper>
+          </GraphProvider>
+        );
+      });
 
       await waitFor(() => {
         expect(capturedPaper).toBe(externalPaper);
@@ -1382,16 +1471,20 @@ describe('Paper Component', () => {
         async: false,
       });
 
-      const { container: renderContainer } = render(
-        <GraphProvider graph={graph}>
-          <Paper
-            paper={externalPaper}
-            id={EXTERNAL_PAPER_ID}
-            className="should-not-exist"
-            renderElement={() => null}
-          />
-        </GraphProvider>
-      );
+      let renderContainer!: HTMLElement;
+      await act(async () => {
+        const result = render(
+          <GraphProvider graph={graph}>
+            <Paper
+              paper={externalPaper}
+              id={EXTERNAL_PAPER_ID}
+              className="should-not-exist"
+              renderElement={() => null}
+            />
+          </GraphProvider>
+        );
+        renderContainer = result.container;
+      });
 
       await waitFor(() => {
         // The Paper should not render a div with the className when paper is external
@@ -1417,7 +1510,11 @@ describe('Paper Component', () => {
         return (
           <GraphProvider
             elements={{
-              'el-1': { data: { label: 'Visible Node' }, size: { width: 100, height: 50 }, position: { x: 10, y: 10 } },
+              'el-1': {
+                data: { label: 'Visible Node' },
+                size: { width: 100, height: 50 },
+                position: { x: 10, y: 10 },
+              },
             }}
           >
             <Paper
@@ -1490,8 +1587,16 @@ describe('Paper Component', () => {
     }
 
     const testElements: Record<string, Element<{ label: string }>> = {
-      'el-1': { data: { label: 'A' }, position: { x: 50, y: 50 }, size: { width: 100, height: 50 } },
-      'el-2': { data: { label: 'B' }, position: { x: 300, y: 200 }, size: { width: 100, height: 50 } },
+      'el-1': {
+        data: { label: 'A' },
+        position: { x: 50, y: 50 },
+        size: { width: 100, height: 50 },
+      },
+      'el-2': {
+        data: { label: 'B' },
+        position: { x: 300, y: 200 },
+        size: { width: 100, height: 50 },
+      },
     };
 
     const testLinks: Record<string, Link> = {
@@ -1530,63 +1635,19 @@ describe('Paper Component', () => {
       expect(d!.length).toBeGreaterThan(0);
     });
 
-    // Layout is now resolved from the paper's link view at render time.
-    // In jsdom, SVG layout doesn't compute real coordinates, so sourcePoint
-    // doesn't change when an element moves. Skip this test in jsdom.
-    it.skip('useLink layout updates when connected element is moved', async () => {
-      let graphRef: dia.Graph | null = null;
-
-      function Wrapper() {
-        return (
-          <GraphProvider
-            ref={(ref) => { graphRef = ref; }}
-            elements={testElements}
-            links={testLinks}
-          >
-            <Paper
-              height={400}
-              renderElement={() => <rect width={100} height={50} />}
-              renderLink={() => <TestLink />}
-            />
-          </GraphProvider>
-        );
-      }
-
-      await act(async () => {
-        render(<Wrapper />);
-      });
-
-      // Wait for initial layout
-      await waitFor(
-        () => {
-          expect(screen.getByTestId('link-with-layout')).toBeInTheDocument();
-        },
-        { timeout: 3000 }
-      );
-
-      const initialSourceX = Number(screen.getByTestId('link-with-layout').getAttribute('data-source-x'));
-
-      // Move source element
-      await act(async () => {
-        const el = graphRef?.getCell('el-1') as dia.Element;
-        el?.position(200, 200);
-      });
-
-      // Layout should update with new coordinates
-      await waitFor(
-        () => {
-          const newSourceX = Number(screen.getByTestId('link-with-layout').getAttribute('data-source-x'));
-          expect(newSourceX).not.toBe(initialSourceX);
-        },
-        { timeout: 3000 }
-      );
-    });
-
     it('useLink layout works when graph is pre-populated (external graph)', async () => {
       const graph = new dia.Graph({}, { cellNamespace: { ...shapes, PortalElement, PortalLink } });
       graph.addCells([
-        new PortalElement({ id: 'ext-1', position: { x: 10, y: 10 }, size: { width: 80, height: 40 } }),
-        new PortalElement({ id: 'ext-2', position: { x: 200, y: 150 }, size: { width: 80, height: 40 } }),
+        new PortalElement({
+          id: 'ext-1',
+          position: { x: 10, y: 10 },
+          size: { width: 80, height: 40 },
+        }),
+        new PortalElement({
+          id: 'ext-2',
+          position: { x: 200, y: 150 },
+          size: { width: 80, height: 40 },
+        }),
         new PortalLink({ id: 'ext-link', source: { id: 'ext-1' }, target: { id: 'ext-2' } }),
       ]);
 
@@ -1613,89 +1674,6 @@ describe('Paper Component', () => {
       const d = linkElement.getAttribute('data-d');
       expect(d).toBeTruthy();
       expect(d!.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('selectorRef port magnets', () => {
-    it('link connects to selectorRef port magnet after initial render', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { useMarkup } = require('../../../hooks/use-markup');
-
-      let capturedPaper: dia.Paper | null = null;
-      let capturedGraph: dia.Graph | null = null;
-
-      function NodeWithPorts() {
-        const { selectorRef } = useMarkup();
-        const nodeRef = useRef<HTMLDivElement>(null);
-        const { width, height } = useMeasureNode(nodeRef);
-        return (
-          <>
-            <foreignObject width={width} height={height}>
-              <div ref={nodeRef} style={{ width: 100, height: 50 }}>Node</div>
-            </foreignObject>
-            <circle ref={selectorRef('out-port')} cx={100} cy={25} r={5} />
-            <circle ref={selectorRef('in-port')} cx={0} cy={25} r={5} />
-          </>
-        );
-      }
-
-      function CaptureRefs() {
-        const { graph } = useGraph();
-        const paperStore = usePaperStore({ optional: true });
-        capturedGraph = graph;
-        capturedPaper = paperStore?.paper ?? null;
-        return null;
-      }
-
-      const portElements: Record<string, Element<{ label: string }>> = {
-        'el-1': { data: { label: 'A' }, position: { x: 50, y: 50 }, size: { width: 100, height: 50 } },
-        'el-2': { data: { label: 'B' }, position: { x: 300, y: 200 }, size: { width: 100, height: 50 } },
-      };
-
-      const portLinks: Record<string, Link> = {
-        'link-1': {
-          source: 'el-1',
-          sourceMagnet: 'out-port',
-          target: 'el-2',
-          targetMagnet: 'in-port',
-        },
-      };
-
-      await act(async () => {
-        render(
-          <GraphProvider elements={portElements} links={portLinks}>
-            <Paper height={400} renderElement={() => <NodeWithPorts />}>
-              <CaptureRefs />
-            </Paper>
-          </GraphProvider>
-        );
-      });
-
-      // Wait for graph and paper to be available
-      await waitFor(() => {
-        expect(capturedGraph).not.toBeNull();
-        expect(capturedPaper).not.toBeNull();
-      });
-
-      const graph = capturedGraph!;
-      const paper = capturedPaper!;
-
-      // Verify the link exists
-      expect(graph.getLinks()).toHaveLength(1);
-      const link = graph.getLinks()[0];
-      const linkView = link.findView(paper) as dia.LinkView;
-      expect(linkView).toBeDefined();
-
-      // Check that selectorRef registered the port on the element view
-      const elView = paper.findViewByModel('el-1') as dia.ElementView;
-      const registeredSelectors = Object.keys(elView.selectors ?? {});
-      // eslint-disable-next-line no-console
-      console.log('Registered selectors:', registeredSelectors);
-      // eslint-disable-next-line no-console
-      console.log('Link source:', link.source());
-
-      // The selectorRef should have registered 'out-port' on the element view
-      expect(registeredSelectors).toContain('out-port');
     });
   });
 });

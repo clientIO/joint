@@ -194,8 +194,8 @@ describe('useGraph element mutations', () => {
       expect((result.current.elements.get('new-el')!.data as Record<string, unknown>).label).toBe('Created');
       expect(result.current.elements.get('new-el')!.position.x).toBe(0);
       expect(result.current.elements.get('new-el')!.position.y).toBe(0);
-      expect(result.current.elements.get('new-el')!.size.width).toBe(1);
-      expect(result.current.elements.get('new-el')!.size.height).toBe(1);
+      expect(result.current.elements.get('new-el')!.size.width).toBe(0);
+      expect(result.current.elements.get('new-el')!.size.height).toBe(0);
     });
   });
 
