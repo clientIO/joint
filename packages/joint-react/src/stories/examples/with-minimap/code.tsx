@@ -6,8 +6,8 @@ import {
   Paper,
   useMeasureNode,
   useElementSize,
-  type ElementRecord,
-  type LinkRecord,
+  type PortalElementRecord,
+  type PortalLinkRecord,
   type RenderElement,
   DefaultElement,
 } from '@joint/react';
@@ -19,7 +19,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 10 },
@@ -31,7 +31,7 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
     size: { width: 100, height: 50 },
   },
 };
-const initialEdges: Record<string, LinkRecord> = {
+const initialEdges: Record<string, PortalLinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },

@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { type dia, g, highlighters, V } from '@joint/core';
-import type { ElementRecord } from '@joint/react';
+import type { PortalElementRecord } from '@joint/react';
 import {
   GraphProvider,
   Paper,
@@ -27,7 +27,7 @@ interface ShapeElement {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<ShapeElement>> = {
+const initialElements: Record<string, PortalElementRecord<ShapeElement>> = {
   rectangle: {
     data: { type: ShapeTypes.rectangle, label: 'Rectangle' },
     size: { width: 100, height: 100 },

@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useElementId, type ElementRecord, type LinkRecord } from '@joint/react';
+import { GraphProvider, Paper, useElementId, type PortalElementRecord, type PortalLinkRecord } from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
@@ -12,7 +12,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 15 },
@@ -25,7 +25,7 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
   },
 };
 
-const initialEdges: Record<string, LinkRecord> = {
+const initialEdges: Record<string, PortalLinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },

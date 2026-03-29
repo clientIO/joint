@@ -49,15 +49,15 @@ export * from './state/data-mapping/link-mapper';
 // Types
 export type { ElementPosition, ElementSize } from './types/cell-data';
 export type {
-  ElementRecord as AnyElementRecord,
-  PortalElementRecord as ElementRecord,
+  ElementRecord,
+  PortalElementRecord,
   NativeElementRecord,
-  PortalElementRecordPort as ElementRecordPort,
-  LinkRecord as AnyLinkRecord,
-  PortalLinkRecord as LinkRecord,
+  PortalElementRecordPort,
+  LinkRecord,
+  PortalLinkRecord,
   NativeLinkRecord,
-  PortalLinkRecordLabel as LinkRecordLabel,
-  PortalLinkRecordPresentation as LinkRecordPresentation,
+  PortalLinkRecordLabel,
+  PortalLinkRecordPresentation,
 } from './types/data-types';
 export type { PortShape as PortShape } from './theme/element-theme';
 export type { CellId } from './types/cell-id';

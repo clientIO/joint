@@ -6,8 +6,8 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  type ElementRecord,
-  type LinkRecord,
+  type PortalElementRecord,
+  type PortalLinkRecord,
   type RenderLink,
   useElementId,
   useLink,
@@ -21,13 +21,13 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   '3': { data: { label: 'Node 3' }, position: { x: 300, y: 100 } },
 };
 
-const initialLinks: Record<string, LinkRecord & { type: string }> = {
+const initialLinks: Record<string, PortalLinkRecord & { type: string }> = {
   'link-1': {
     type: PORTAL_LINK_TYPE,
     source: { id: '1' },

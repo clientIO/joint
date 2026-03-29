@@ -1,8 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { LinkRecord } from '@joint/react';
+import type { PortalLinkRecord } from '@joint/react';
 import {
-  type ElementRecord,
+  type PortalElementRecord,
   GraphProvider,
   jsx,
   Paper,
@@ -58,7 +58,7 @@ type FTAElement =
   | ExternalEvent
   | ConditioningEvent;
 
-const initialElements: Record<string, ElementRecord<FTAElement>> = {
+const initialElements: Record<string, PortalElementRecord<FTAElement>> = {
   ot8h17: {
     data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' },
     size: { width: 120, height: 150 },
@@ -113,7 +113,7 @@ const initialElements: Record<string, ElementRecord<FTAElement>> = {
   },
 };
 
-const initialLinks: Record<string, LinkRecord> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'link-0': {
     source: { id: 'ot8h17' },
     target: { id: 'd8jpey' },

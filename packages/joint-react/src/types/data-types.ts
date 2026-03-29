@@ -104,6 +104,8 @@ export interface PortalElementRecordPort {
  * @group Graph
  */
 export interface PortalElementRecord<D extends object = Record<string, unknown>> {
+  /** @internal Portal elements must not specify a `type`. */
+  type?: never | typeof PORTAL_ELEMENT_TYPE;
   /** Position of the element. */
   position?: ElementPosition;
   /** Size of the element. */
@@ -122,9 +124,6 @@ export interface PortalElementRecord<D extends object = Record<string, unknown>>
   ports?: Record<string, PortalElementRecordPort>;
   /** Custom user data. */
   data?: D;
-
-  /** @internal Portal elements must not specify a `type`. */
-  type?: never | typeof PORTAL_ELEMENT_TYPE;
 }
 
 /**
@@ -310,6 +309,8 @@ export interface PortalLinkRecordLabel {
  * @group Graph
  */
 export interface PortalLinkRecord<D extends object = Record<string, unknown>> extends PortalLinkRecordPresentation {
+  /** @internal Portal links must not specify a `type`. */
+  type?: never | typeof PORTAL_LINK_TYPE;
   /**
    * Source endpoint in JointJS format.
    * @example { id: 'el-1' }
@@ -352,9 +353,6 @@ export interface PortalLinkRecord<D extends object = Record<string, unknown>> ex
   labels?: Record<string, PortalLinkRecordLabel>;
   /** Custom user data. */
   data?: D;
-
-  /** @internal Portal links must not specify a `type`. */
-  type?: never | typeof PORTAL_LINK_TYPE;
 }
 
 /**

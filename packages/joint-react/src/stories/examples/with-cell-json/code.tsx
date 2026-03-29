@@ -6,8 +6,8 @@ import {
   Paper,
   type NativeElementRecord,
   type NativeLinkRecord,
-  type AnyElementRecord,
-  type AnyLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
   type CellAttributes,
   type RenderElement,
   useElements,
@@ -94,14 +94,14 @@ const LINK_KEYS = Object.keys(Object.values(initialLinks)[0] as object);
  * Reverse mapper: pick only the keys defined in the data format.
  * Wraps custom fields in `data` so useElementData() can access them.
  */
-const mapAttributesToElement = (options: { id: string; element: AnyElementRecord<ElementData> }): CellAttributes => {
+const mapAttributesToElement = (options: { id: string; element: ElementRecord<ElementData> }): CellAttributes => {
   return util.pick(options.element, ELEMENT_KEYS) as CellAttributes;
 };
 
 /**
  * Reverse mapper: pick only the keys defined in the data format.
  */
-const mapLinkToAttrs = (options: { id?: string; link: AnyLinkRecord }): CellAttributes => {
+const mapLinkToAttrs = (options: { id?: string; link: LinkRecord }): CellAttributes => {
   return util.pick(options.link, LINK_KEYS) as CellAttributes;
 };
 

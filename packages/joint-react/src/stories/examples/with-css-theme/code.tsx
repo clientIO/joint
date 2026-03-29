@@ -5,10 +5,10 @@ import {
   Paper,
   useElementSize,
   useLinkDefaults,
+  type PortalElementRecord,
+  type PortalLinkRecord,
   type ElementRecord,
   type LinkRecord,
-  type AnyElementRecord,
-  type AnyLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -24,7 +24,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   a: { data: { label: 'Source' }, position: { x: 50, y: 60 }, size: { width: 120, height: 50 } },
   b: { data: { label: 'Process' }, position: { x: 280, y: 20 }, size: { width: 120, height: 50 } },
   c: { data: { label: 'Review' }, position: { x: 280, y: 120 }, size: { width: 120, height: 50 } },
@@ -33,7 +33,7 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
 
 // Links: no explicit color/width — CSS variables provide styling.
 // One link overrides color to show per-link precedence.
-const initialLinks: Record<string, LinkRecord> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'a→b': {
     source: { id: 'a' },
     target: { id: 'b' },
@@ -85,8 +85,8 @@ function Node({ label }: Readonly<{ label: string }>) {
 }
 
 function Diagram() {
-  const [elements, setElements] = useState<Record<string, AnyElementRecord<NodeData>>>(initialElements);
-  const [links, setLinks] = useState<Record<string, AnyLinkRecord>>(initialLinks);
+  const [elements, setElements] = useState<Record<string, ElementRecord<NodeData>>>(initialElements);
+  const [links, setLinks] = useState<Record<string, LinkRecord>>(initialLinks);
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 

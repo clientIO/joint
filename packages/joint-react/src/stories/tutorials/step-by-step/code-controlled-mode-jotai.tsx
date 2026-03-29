@@ -32,7 +32,7 @@
  * ============================================================================
  */
 
-import { GraphProvider, useElementSize, type ElementRecord, type LinkRecord, Paper } from '@joint/react';
+import { GraphProvider, useElementSize, type PortalElementRecord, type PortalLinkRecord, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useCallback } from 'react';
@@ -47,14 +47,14 @@ import { atom, createStore, useAtomValue, useSetAtom, Provider as JotaiProvider 
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementRecord<ElementData>;
+type CustomElement = PortalElementRecord<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
   '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
   '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
 };
 
-const defaultLinks: Record<string, LinkRecord> = {
+const defaultLinks: Record<string, PortalLinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
@@ -94,7 +94,7 @@ const elementsAtom = atom<Record<string, CustomElement>>(defaultElements);
 /**
  * Jotai atom for graph links.
  */
-const linksAtom = atom<Record<string, LinkRecord>>(defaultLinks);
+const linksAtom = atom<Record<string, PortalLinkRecord>>(defaultLinks);
 
 // ============================================================================
 // STEP 4: Component Implementation
@@ -154,7 +154,7 @@ function PaperApp() {
             const { [removedElementId]: _removed, ...newElements } = currentElements;
 
             // Remove links connected to the removed element
-            const newLinks: Record<string, LinkRecord> = {};
+            const newLinks: Record<string, PortalLinkRecord> = {};
             for (const [id, link] of Object.entries(currentLinks)) {
               if (link.source !== removedElementId && link.target !== removedElementId) {
                 newLinks[id] = link;
@@ -195,7 +195,7 @@ function Main() {
   );
 
   const handleLinksChange = useCallback(
-    (updater: React.SetStateAction<Record<string, LinkRecord>>) => {
+    (updater: React.SetStateAction<Record<string, PortalLinkRecord>>) => {
       const newLinks = typeof updater === 'function' ? updater(jotaiStore.get(linksAtom)) : updater;
       jotaiSetLinks(newLinks);
     },

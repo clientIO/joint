@@ -5,14 +5,14 @@ import {
   GraphProvider,
   Paper,
   useMeasureNode,
-  type ElementRecord,
-  type LinkRecord,
+  type PortalElementRecord,
+  type PortalLinkRecord,
   type OnTransformElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useRef } from 'react';
 
-const initialEdges: Record<string, LinkRecord> = {
+const initialEdges: Record<string, PortalLinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
@@ -24,7 +24,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
 };

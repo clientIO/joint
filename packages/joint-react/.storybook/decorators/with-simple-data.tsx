@@ -4,7 +4,7 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
-import { GraphProvider, useElementId, useMeasureNode, type ElementRecord, type LinkRecord } from '@joint/react';
+import { GraphProvider, useElementId, useMeasureNode, type PortalElementRecord, type PortalLinkRecord } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
@@ -20,7 +20,7 @@ type TestElementData = {
   hoverColor: string;
 };
 
-export const testElements: Record<string, ElementRecord<TestElementData>> = {
+export const testElements: Record<string, PortalElementRecord<TestElementData>> = {
   '1': {
     data: {
       label: 'Node 1',
@@ -50,7 +50,7 @@ export const testElements: Record<string, ElementRecord<TestElementData>> = {
 };
 
 export type SimpleElement = (typeof testElements)[string];
-export const testLinks: Record<string, LinkRecord> = {
+export const testLinks: Record<string, PortalLinkRecord> = {
   'l-1': {
     source: '1',
     target: '2',
@@ -78,8 +78,8 @@ export function RenderItemDecorator(
   properties: Readonly<{
     renderElement: () => JSX.Element;
     renderLink?: () => JSX.Element;
-    elements?: Record<string, ElementRecord>;
-    links?: Record<string, LinkRecord>;
+    elements?: Record<string, PortalElementRecord>;
+    links?: Record<string, PortalLinkRecord>;
   }>
 ) {
   return (

@@ -9,9 +9,9 @@ import {
   useElementSize,
   useElements,
   useLinkDefaults,
+  type PortalElementRecord,
+  type PortalLinkRecord,
   type ElementRecord,
-  type LinkRecord,
-  type AnyElementRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCallback, useEffect, useRef } from 'react';
@@ -45,7 +45,7 @@ type OverallPerformanceData = {
 
 type ShapeData = InvestmentData | ProductData | ProductPerformanceData | OverallPerformanceData;
 
-type ShapeElement = ElementRecord<ShapeData>;
+type ShapeElement = PortalElementRecord<ShapeData>;
 
 // ----------------------------------------------------------------------------
 // Constants
@@ -147,7 +147,7 @@ const initialElements: Record<string, ShapeElement> = {
   },
 };
 
-const initialLinks: Record<string, LinkRecord> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   link1: {
     source: { id: 'investment', anchor: { name: 'top', args: { dy: 1 } } },
     target: { id: 'gold', anchor: { name: 'left', args: { dx: -5 } } },
@@ -329,7 +329,7 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
           const previousPercentage = data.percentage;
           const adjusted = Math.max(previousPercentage + diff, 0);
           diff = Math.min(previousPercentage + diff, 0);
-          return { ...previous, data: { ...data, percentage: adjusted } } as AnyElementRecord<ShapeData>;
+          return { ...previous, data: { ...data, percentage: adjusted } } as ElementRecord<ShapeData>;
         });
       }
     },

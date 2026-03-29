@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useId, useRef } from 'react';
-import type { LinkRecord, ElementRecord } from '@joint/react';
+import type { PortalLinkRecord, PortalElementRecord } from '@joint/react';
 import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
@@ -106,7 +106,7 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 // ----------------------------------------------------------------------------
 // Initial Data
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, ElementRecord<CustomElement>> = {
+const initialElements: Record<string, PortalElementRecord<CustomElement>> = {
   square1: {
     data: { shapeType: ShapeTypes.square, label: 'S1' },
     position: { x: 100, y: 100 },
@@ -129,7 +129,7 @@ const initialElements: Record<string, ElementRecord<CustomElement>> = {
   },
 };
 
-const initialLinks: Record<string, LinkRecord> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   link1: {
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
     target: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } } },

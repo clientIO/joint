@@ -6,11 +6,11 @@ import {
   useElementDefaults,
   useElementSize,
   useLinkDefaults,
+  type PortalElementRecord,
+  type PortalElementRecordPort,
+  type PortalLinkRecord,
   type ElementRecord,
-  type ElementRecordPort,
   type LinkRecord,
-  type AnyElementRecord,
-  type AnyLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
@@ -22,14 +22,14 @@ interface ElementData {
 
 // Minimal persisted data — no ports, no styling.
 // Ports and theme are provided by useElementDefaults based on element kind.
-const initialElements: Record<string, ElementRecord<ElementData>> = {
+const initialElements: Record<string, PortalElementRecord<ElementData>> = {
   a: { data: { label: 'Start', type: 'source' }, position: { x: 50, y: 140 } },
   b: { data: { label: 'Process', type: 'process' }, position: { x: 250, y: 50 } },
   c: { data: { label: 'Review', type: 'process' }, position: { x: 250, y: 230 } },
   d: { data: { label: 'Done', type: 'sink' }, position: { x: 480, y: 140 } },
 };
 
-const initialLinks: Record<string, LinkRecord> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'a-b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
   'a-c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b-d': {
@@ -44,14 +44,14 @@ const initialLinks: Record<string, LinkRecord> = {
   },
 };
 
-const outPort: ElementRecordPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
-const inPort: ElementRecordPort = { cx: 0, cy: 'calc(0.5*h)' };
+const outPort: PortalElementRecordPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
+const inPort: PortalElementRecordPort = { cx: 0, cy: 'calc(0.5*h)' };
 
-const portsByType: Record<string, Record<string, ElementRecordPort>> = {
+const portsByType: Record<string, Record<string, PortalElementRecordPort>> = {
   source: { out: outPort },
   sink: { in: inPort },
 };
-const defaultPorts: Record<string, ElementRecordPort> = { in: inPort, out: outPort };
+const defaultPorts: Record<string, PortalElementRecordPort> = { in: inPort, out: outPort };
 
 function Element({ label, color }: Readonly<{ label: string; color: string }>) {
   const { width, height } = useElementSize();
@@ -74,8 +74,8 @@ function Element({ label, color }: Readonly<{ label: string; color: string }>) {
 }
 
 function Diagram() {
-  const [elements, setElements] = useState<Record<string, AnyElementRecord<ElementData>>>(initialElements);
-  const [links, setLinks] = useState<Record<string, AnyLinkRecord>>(initialLinks);
+  const [elements, setElements] = useState<Record<string, ElementRecord<ElementData>>>(initialElements);
+  const [links, setLinks] = useState<Record<string, LinkRecord>>(initialLinks);
   const [alternate, setAlternate] = useState(false);
   const color = alternate ? SECONDARY : PRIMARY;
   const portShape = alternate ? ('rect' as const) : ('ellipse' as const);

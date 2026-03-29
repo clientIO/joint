@@ -16,9 +16,9 @@ import {
   useMeasureNode,
   useNodesMeasuredEffect,
   type CellId,
-  type ElementRecord,
-  type ElementRecordPort,
-  type LinkRecord,
+  type PortalElementRecord,
+  type PortalElementRecordPort,
+  type PortalLinkRecord,
   type PaperProps,
   usePaperEvents,
   useElementSize,
@@ -53,7 +53,7 @@ const BUTTON_CLASSNAME =
 const ROW_HEIGHT_OFFSET = 45;
 const PORT_START_Y = 65;
 
-function buildTablePorts(rows: string[][]): Record<string, ElementRecordPort> {
+function buildTablePorts(rows: string[][]): Record<string, PortalElementRecordPort> {
   return Object.fromEntries(
     rows.map((_, index) => [
       `out-3-${index}`,
@@ -87,7 +87,7 @@ const PAPER_PROPS: PaperProps = {
 };
 
 // Create initial elements and links with typing support as Records
-const elements: Record<string, ElementRecord> = {
+const elements: Record<string, PortalElementRecord> = {
   '1': {
     data: {
       elementType: 'alert',
@@ -127,7 +127,7 @@ const elements: Record<string, ElementRecord> = {
 };
 
 // Create initial links from table element port to another element as Record
-const links: Record<string, LinkRecord> = {
+const links: Record<string, PortalLinkRecord> = {
   link2: {
     source: { id: '3', port: 'out-3-0' }, // Port from table element
     target: { id: '1' },

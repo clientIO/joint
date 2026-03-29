@@ -7,8 +7,8 @@
 import {
   GraphProvider,
   useElementSize,
-  type ElementRecord,
-  type LinkRecord,
+  type PortalElementRecord,
+  type PortalLinkRecord,
   Paper,
   type IncrementalContainerChanges,
 } from '@joint/react';
@@ -58,13 +58,13 @@ import undoable, { ActionCreators } from 'redux-undo';
  */
 type ElementData = { label: string };
 
-type CustomElement = ElementRecord<ElementData>;
+type CustomElement = PortalElementRecord<ElementData>;
 
 interface GraphState {
   /** Record of all elements (nodes) in the graph keyed by ID */
   readonly elements: Record<string, CustomElement>;
   /** Record of all links (edges) in the graph keyed by ID */
-  readonly links: Record<string, LinkRecord>;
+  readonly links: Record<string, PortalLinkRecord>;
 }
 
 // ============================================================================
@@ -82,7 +82,7 @@ const defaultElements: Record<string, CustomElement> = {
 /**
  * Initial links for the graph.
  */
-const defaultLinks: Record<string, LinkRecord> = {
+const defaultLinks: Record<string, PortalLinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
@@ -154,10 +154,10 @@ const graphSlice = createSlice({
 
       // Handle link incremental changes
       for (const [id, data] of links.added) {
-        state.links[id] = data as LinkRecord;
+        state.links[id] = data as PortalLinkRecord;
       }
       for (const [id, data] of links.changed) {
-        state.links[id] = data as LinkRecord;
+        state.links[id] = data as PortalLinkRecord;
       }
       for (const id of links.removed) {
         delete state.links[id];

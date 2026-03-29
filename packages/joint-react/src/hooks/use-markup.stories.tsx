@@ -6,10 +6,10 @@ import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../stories/utils/make-story';
 import { useCallback } from 'react';
 import { PRIMARY } from '../../.storybook/theme';
-import type { ElementRecord, LinkRecord } from '@joint/react';
+import type { PortalElementRecord, PortalLinkRecord } from '@joint/react';
 import { useElementSize } from './use-element-size';
 
-const elements: Record<string, ElementRecord> = {
+const elements: Record<string, PortalElementRecord> = {
   '1': {
     size: { width: 150, height: 50 },
     position: { x: 100, y: 20 },
@@ -22,7 +22,7 @@ const elements: Record<string, ElementRecord> = {
   },
 };
 
-const links: Record<string, LinkRecord> = {
+const links: Record<string, PortalLinkRecord> = {
   'l-1': {
     source: { id: '1', magnet: 'my-selector' },
     target: { id: '2', magnet: 'my-selector' },

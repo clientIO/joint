@@ -4,7 +4,7 @@ import {
   Paper,
   useElementId,
   useGraph,
-  type ElementRecord,
+  type PortalElementRecord,
   DefaultElement,
   useElements,
 } from '@joint/react';
@@ -19,7 +19,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, ElementRecord<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   '3': { data: { label: 'Node 3' }, position: { x: 280, y: 100 } },

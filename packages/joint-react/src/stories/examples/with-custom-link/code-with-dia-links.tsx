@@ -7,14 +7,14 @@ import {
   GraphProvider,
   linkToAttributes,
   type CellAttributes,
-  type ElementRecord,
+  type PortalElementRecord,
+  type PortalLinkRecord,
   type LinkRecord,
-  type AnyLinkRecord,
 } from '@joint/react';
 import { Paper } from '../../../components/paper/paper';
 
 type ElementData = { label: string; color: string };
-const initialElements: Record<string, ElementRecord<ElementData>> = {
+const initialElements: Record<string, PortalElementRecord<ElementData>> = {
   '1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 15 },
@@ -74,7 +74,7 @@ function Main() {
   );
 }
 
-interface CustomLink extends LinkRecord {
+interface CustomLink extends PortalLinkRecord {
   readonly color: string;
 }
 
@@ -86,7 +86,7 @@ const links: Record<string, CustomLink> = {
   },
 };
 
-const mapLinkToAttributes = (options: { id?: string; link: AnyLinkRecord }): CellAttributes => {
+const mapLinkToAttributes = (options: { id?: string; link: LinkRecord }): CellAttributes => {
   const data = options.link as CustomLink;
   const attributes = linkToAttributes(options);
   const { color } = data;
@@ -100,7 +100,7 @@ const mapLinkToAttributes = (options: { id?: string; link: AnyLinkRecord }): Cel
 export default function App() {
   return (
     <GraphProvider
-      links={links as Record<string, AnyLinkRecord>}
+      links={links as Record<string, LinkRecord>}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
       mapLinkToAttributes={mapLinkToAttributes}

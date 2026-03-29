@@ -9,10 +9,10 @@ import {
   useGraph,
   elementToAttributes,
   type CellAttributes,
+  type PortalElementRecord,
   type ElementRecord,
-  type AnyElementRecord,
-  type ElementRecordPort,
-  type LinkRecord,
+  type PortalElementRecordPort,
+  type PortalLinkRecord,
   useElements,
 } from '@joint/react';
 
@@ -63,7 +63,7 @@ interface PortNodeData {
  * into SVG path strings sized to each port's width/height, then delegates
  * to the default flat mapper via `ElementToAttributes`.
  */
-function mapDataToElementAttributes(options: { id: string; element: AnyElementRecord<PortNodeData> }) {
+function mapDataToElementAttributes(options: { id: string; element: ElementRecord<PortNodeData> }) {
   const { id, element } = options;
   const { ports, portStyle } = element;
   if (!ports) return elementToAttributes({ id, element });
@@ -71,7 +71,7 @@ function mapDataToElementAttributes(options: { id: string; element: AnyElementRe
   const defaultW = portStyle?.width ?? 10;
   const defaultH = portStyle?.height ?? 10;
 
-  const resolvedPorts: Record<string, ElementRecordPort> = {};
+  const resolvedPorts: Record<string, PortalElementRecordPort> = {};
   for (const [portId, port] of Object.entries(ports)) {
     const { shape } = port;
     if (shape && shape !== 'ellipse' && shape !== 'rect') {
@@ -109,7 +109,7 @@ function getShapeLabel(shape: string): string {
   return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
 }
 
-const initialElements: Record<string, ElementRecord<PortNodeData>> = {
+const initialElements: Record<string, PortalElementRecord<PortNodeData>> = {
   'node-1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 50, y: 100 },
@@ -162,7 +162,7 @@ const initialElements: Record<string, ElementRecord<PortNodeData>> = {
   },
 };
 
-const initialLinks: Record<string, LinkRecord> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'link-1': {
     source: { id: 'node-1', port: 'out-1', anchor: { name: 'right', args: { useModelGeometry: true } } },
     target: { id: 'node-2', port: 'in-1', anchor: { name: 'left', args: { useModelGeometry: true } } },
@@ -207,15 +207,15 @@ const rowStyle = {
 interface PortControlProps {
   readonly elementId: string;
   readonly portId: string;
-  readonly port: ElementRecordPort;
+  readonly port: PortalElementRecordPort;
 }
 
 function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
   const { setElement } = useGraph();
 
-  const updatePort = (updates: Partial<ElementRecordPort>) => {
+  const updatePort = (updates: Partial<PortalElementRecordPort>) => {
     setElement(elementId, (previous) => {
-      const el = previous as ElementRecord;
+      const el = previous as PortalElementRecord;
       return {
         ...el,
         ports: el.ports ? { ...el.ports, [portId]: { ...el.ports[portId], ...updates } } : el.ports,
@@ -368,7 +368,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
 interface ElementPortControlsProps {
   readonly id: string;
-  readonly element: AnyElementRecord<PortNodeData>;
+  readonly element: ElementRecord<PortNodeData>;
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {

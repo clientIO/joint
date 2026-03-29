@@ -2,11 +2,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { render, waitFor, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, useGraph, type ElementRecord, type LinkRecord } from '../../../index';
+import { GraphProvider, Paper, useGraph, type PortalElementRecord, type PortalLinkRecord } from '../../../index';
 import { useCallback } from 'react';
 import { useElementData } from '../../../hooks/use-element-data';
 
-type TestElement = ElementRecord<{ label: string }>;
+type TestElement = PortalElementRecord<{ label: string }>;
 
 const elements: Record<string, TestElement> = {
   '1': { data: { label: 'Hello' }, position: { x: 100, y: 0 }, size: { width: 100, height: 50 } },
@@ -18,7 +18,7 @@ function TestElementRenderer() {
   return <div className="html-node">{data?.label}</div>;
 }
 
-const links: Record<string, LinkRecord> = {
+const links: Record<string, PortalLinkRecord> = {
   'link-1': {
     data: {},
     source: { id: '1' },

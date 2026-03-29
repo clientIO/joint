@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
- 
+
 /**
  * Test suite to catch the "link flickering" bug.
  *
@@ -18,7 +18,7 @@
  */
 import { render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, type ElementRecord, type LinkRecord } from '../../../index';
+import { GraphProvider, Paper, type PortalElementRecord, type PortalLinkRecord } from '../../../index';
 import { useElementData } from '../../../hooks/use-element-data';
 
 /**
@@ -30,7 +30,7 @@ async function flushMicrotasks(): Promise<void> {
   });
 }
 
-type TestElement = ElementRecord<{ readonly label: string }>;
+type TestElement = PortalElementRecord<{ readonly label: string }>;
 
 const TEST_ELEMENTS: Record<string, TestElement> = {
   '1': { data: { label: 'Element1' }, position: { x: 100, y: 0 }, size: { width: 100, height: 50 } },
@@ -51,7 +51,7 @@ function TestFlickerElementSvg() {
   );
 }
 
-const TEST_LINKS: Record<string, LinkRecord> = {
+const TEST_LINKS: Record<string, PortalLinkRecord> = {
   'link-1': {
     data: {},
     source: { id: '1' },
@@ -292,7 +292,7 @@ describe('Paper link flickering prevention', () => {
       const result = checkLinkElementConsistency(container);
       // Log any inconsistency for debugging
       if (!result.isConsistent) {
-         
+
         console.warn(`Inconsistency at microtask ${index}: links=${result.linksHavePaths}, elements=${result.elementsHaveContent}`);
       }
       await flushMicrotasks();
@@ -358,12 +358,12 @@ describe('Paper link flickering prevention', () => {
     );
 
     if (flickeringOccurred) {
-       
+
       console.warn('FLICKERING DETECTED! Links rendered before elements.');
       const flickeringEntries = timingLog.filter(
         (entry) => entry.linksHavePaths && !entry.elementsHaveContent
       );
-       
+
       console.warn('Flickering entries:', flickeringEntries);
     }
 

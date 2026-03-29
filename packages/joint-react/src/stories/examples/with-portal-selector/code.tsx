@@ -13,10 +13,10 @@ import {
   elementToAttributes,
   linkToAttributes,
   type CellId,
+  type PortalElementRecord,
+  type PortalLinkRecord,
   type ElementRecord,
   type LinkRecord,
-  type AnyElementRecord,
-  type AnyLinkRecord,
   type PaperProps,
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
@@ -91,7 +91,7 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const elements: Record<string, ElementRecord<ElementUserData>> = {
+const elements: Record<string, PortalElementRecord<ElementUserData>> = {
   '1': {
     data: { title: 'This is error element' },
     position: { x: 50, y: 110 },
@@ -113,7 +113,7 @@ const elements: Record<string, ElementRecord<ElementUserData>> = {
 };
 
 // Links now use built-in theme properties: color, width, sourceMarker, targetMarker
-const links: Record<string, LinkRecord> = {
+const links: Record<string, PortalLinkRecord> = {
   link1: {
     source: { id: '1' },
     target: { id: '2' },
@@ -384,7 +384,7 @@ function Main() {
 
 export default function App() {
   const mapElementToAttributes = useMemo(() => {
-    return ({ id, element }: { id: string; element: AnyElementRecord<ElementUserData> }) => {
+    return ({ id, element }: { id: string; element: ElementRecord<ElementUserData> }) => {
       const attributes = elementToAttributes({ id, element });
       const userData = element.data as ElementUserData | undefined;
       const { jjType, color = 'lightgray' } = userData ?? {};
@@ -398,7 +398,7 @@ export default function App() {
   }, []);
 
   const mapLinkToAttributes = useMemo(() => {
-    return ({ id, link }: { id?: string; link: AnyLinkRecord }) => {
+    return ({ id, link }: { id?: string; link: LinkRecord }) => {
       const attributes = linkToAttributes({ id, link });
       const userData = link.data as LinkUserData | undefined;
       const { jjType } = userData ?? {};

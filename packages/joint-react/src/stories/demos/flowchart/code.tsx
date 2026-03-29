@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { ElementRecord, LinkRecord, LinkRecordLabel, RenderElement, TransformOptions } from '@joint/react';
+import type { PortalElementRecord, PortalLinkRecord, PortalLinkRecordLabel, RenderElement, TransformOptions } from '@joint/react';
 import { GraphProvider, Paper, useMarkup, useMeasureNode, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
@@ -20,7 +20,7 @@ type NodeElementData = {
   readonly cy: number;
 };
 
-const flowchartNodes: Record<string, ElementRecord<NodeElementData>> = {
+const flowchartNodes: Record<string, PortalElementRecord<NodeElementData>> = {
   start: { data: { label: 'Start', type: 'start', cx: 60, cy: 40 } },
   addToCart: {
     data: { label: 'Add to Cart', type: 'step', cx: 195, cy: 40 },
@@ -58,7 +58,7 @@ const BOTTOM = { name: 'bottom', args: { useModelGeometry: true } } as const;
 const LEFT = { name: 'left', args: { useModelGeometry: true } } as const;
 const RIGHT = { name: 'right', args: { useModelGeometry: true } } as const;
 
-const LINK_OPTIONS: Partial<LinkRecord> = {
+const LINK_OPTIONS: Partial<PortalLinkRecord> = {
   z: 2,
   width: 2,
   className: 'jj-flow-line link',
@@ -94,7 +94,7 @@ function bevelRectPath(px: number, py: number, bv: number): string {
   ].join(' ');
 }
 
-const LABEL: LinkRecordLabel = {
+const LABEL: PortalLinkRecordLabel = {
   text: '',
   className: 'jj-flow-label-text',
   backgroundClassName: 'jj-flow-label-body',
@@ -104,7 +104,7 @@ const LABEL: LinkRecordLabel = {
   backgroundShape: bevelRectPath(labelPx, labelPy, bevel),
 };
 
-const flowchartLinks: Record<string, LinkRecord> = {
+const flowchartLinks: Record<string, PortalLinkRecord> = {
   // start(50,40) → addToCart(200,40): horizontal right
   flow1: {
     ...LINK_OPTIONS,

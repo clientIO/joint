@@ -3,7 +3,7 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
-import { GraphProvider, Paper, useGraph, type ElementRecord, useElements } from '@joint/react';
+import { GraphProvider, Paper, useGraph, type PortalElementRecord, useElements } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -12,7 +12,7 @@ const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 
 type ElementData = { label: string };
-const initialElements: Record<string, ElementRecord<ElementData>> = {
+const initialElements: Record<string, PortalElementRecord<ElementData>> = {
   '1': { data: { label: 'Node 1' }, size: { width: 100, height: 50 } },
   '2': { data: { label: 'Node 2' }, size: { width: 100, height: 50 } },
   '3': { data: { label: 'Node 3' }, size: { width: 100, height: 50 } },
