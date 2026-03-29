@@ -17,7 +17,7 @@ import {
   useNodesMeasuredEffect,
   type CellId,
   type PortalElementRecord,
-  type PortalElementRecordPort,
+  type PortalElementPort,
   type PortalLinkRecord,
   type PaperProps,
   usePaperEvents,
@@ -53,7 +53,7 @@ const BUTTON_CLASSNAME =
 const ROW_HEIGHT_OFFSET = 45;
 const PORT_START_Y = 65;
 
-function buildTablePorts(rows: string[][]): Record<string, PortalElementRecordPort> {
+function buildTablePorts(rows: string[][]): Record<string, PortalElementPort> {
   return Object.fromEntries(
     rows.map((_, index) => [
       `out-3-${index}`,

@@ -52,12 +52,12 @@ export type {
   ElementRecord,
   PortalElementRecord,
   NativeElementRecord,
-  PortalElementRecordPort,
+  PortalElementPort,
   LinkRecord,
   PortalLinkRecord,
   NativeLinkRecord,
-  PortalLinkRecordLabel,
-  PortalLinkRecordPresentation,
+  PortalLinkLabel,
+  PortalLinkPresentation,
 } from './types/data-types';
 export type { PortShape as PortShape } from './theme/element-theme';
 export type { CellId } from './types/cell-id';

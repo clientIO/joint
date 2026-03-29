@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useId, useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
-import type { PortalElementRecord, PortalElementRecordPort } from '@joint/react';
+import type { PortalElementRecord, PortalElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG, SECONDARY } from 'storybook-config/theme';
 import {
   GraphProvider,
@@ -59,7 +59,7 @@ const Pulse = dia.HighlighterView.extend({
   },
 });
 
-const NODE_PORTS: Record<string, PortalElementRecordPort> = {
+const NODE_PORTS: Record<string, PortalElementPort> = {
   in: {
     cx: 'calc(w / 2)',
     cy: 0,

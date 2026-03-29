@@ -7,7 +7,7 @@ import {
   useElementSize,
   useLinkDefaults,
   type PortalElementRecord,
-  type PortalElementRecordPort,
+  type PortalElementPort,
   type PortalLinkRecord,
   type ElementRecord,
   type LinkRecord,
@@ -44,14 +44,14 @@ const initialLinks: Record<string, PortalLinkRecord> = {
   },
 };
 
-const outPort: PortalElementRecordPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
-const inPort: PortalElementRecordPort = { cx: 0, cy: 'calc(0.5*h)' };
+const outPort: PortalElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
+const inPort: PortalElementPort = { cx: 0, cy: 'calc(0.5*h)' };
 
-const portsByType: Record<string, Record<string, PortalElementRecordPort>> = {
+const portsByType: Record<string, Record<string, PortalElementPort>> = {
   source: { out: outPort },
   sink: { in: inPort },
 };
-const defaultPorts: Record<string, PortalElementRecordPort> = { in: inPort, out: outPort };
+const defaultPorts: Record<string, PortalElementPort> = { in: inPort, out: outPort };
 
 function Element({ label, color }: Readonly<{ label: string; color: string }>) {
   const { width, height } = useElementSize();

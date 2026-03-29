@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { PortalElementRecord, PortalLinkRecord, PortalLinkRecordLabel, RenderElement, TransformOptions } from '@joint/react';
+import type { PortalElementRecord, PortalLinkRecord, PortalLinkLabel, RenderElement, TransformOptions } from '@joint/react';
 import { GraphProvider, Paper, useMarkup, useMeasureNode, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
@@ -94,7 +94,7 @@ function bevelRectPath(px: number, py: number, bv: number): string {
   ].join(' ');
 }
 
-const LABEL: PortalLinkRecordLabel = {
+const LABEL: PortalLinkLabel = {
   text: '',
   className: 'jj-flow-label-text',
   backgroundClassName: 'jj-flow-label-body',

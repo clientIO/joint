@@ -12,7 +12,7 @@ import type { PORTAL_ELEMENT_TYPE, PORTAL_LINK_TYPE } from '../internal';
  * Converted to full JointJS port format by the default element mapper.
  * @group Graph
  */
-export interface PortalElementRecordPort {
+export interface PortalElementPort {
   /**
    * X position of the port (absolute positioning).
    * Supports calc() expressions (e.g., 'calc(w)').
@@ -119,9 +119,9 @@ export interface PortalElementRecord<D extends object = Record<string, unknown>>
   /** Layer id for the cell. */
   layer?: string;
   /** Style defaults applied to all ports. Individual port properties take precedence. */
-  portStyle?: Partial<PortalElementRecordPort>;
+  portStyle?: Partial<PortalElementPort>;
   /** Ports of the element. */
-  ports?: Record<string, PortalElementRecordPort>;
+  ports?: Record<string, PortalElementPort>;
   /** Custom user data. */
   data?: D;
 }
@@ -157,7 +157,7 @@ export type ElementRecord<D extends object = Record<string, unknown>> =
  * `Required<LinkRecordPresentation>` to provide fallback values.
  * @group Graph
  */
-export interface PortalLinkRecordPresentation {
+export interface PortalLinkPresentation {
   /**
    * Stroke color of the link line.
    * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
@@ -231,7 +231,7 @@ export interface PortalLinkRecordPresentation {
  * Simplified label definition for graph links.
  * @group Graph
  */
-export interface PortalLinkRecordLabel {
+export interface PortalLinkLabel {
   /**
    * Label text content.
    */
@@ -308,7 +308,7 @@ export interface PortalLinkRecordLabel {
  * Does not include `type`; portal links use the internal `PORTAL_LINK_TYPE` automatically.
  * @group Graph
  */
-export interface PortalLinkRecord<D extends object = Record<string, unknown>> extends PortalLinkRecordPresentation {
+export interface PortalLinkRecord<D extends object = Record<string, unknown>> extends PortalLinkPresentation {
   /** @internal Portal links must not specify a `type`. */
   type?: never | typeof PORTAL_LINK_TYPE;
   /**
@@ -346,11 +346,11 @@ export interface PortalLinkRecord<D extends object = Record<string, unknown>> ex
   /**
    * Style defaults applied to all labels. Individual label properties take precedence.
    */
-  labelStyle?: Partial<PortalLinkRecordLabel>;
+  labelStyle?: Partial<PortalLinkLabel>;
   /**
    * Link labels.
    */
-  labels?: Record<string, PortalLinkRecordLabel>;
+  labels?: Record<string, PortalLinkLabel>;
   /** Custom user data. */
   data?: D;
 }

@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { PortalLinkRecordLabel } from '../../types/data-types';
+import type { PortalLinkLabel } from '../../types/data-types';
 import type { Mutable } from '../../types';
 
 /**
@@ -7,7 +7,7 @@ import type { Mutable } from '../../types';
  *
  * For each JointJS label with a stored `id`, the `position.distance` and
  * `position.offset` values (which may have been updated by interactive
- * `labelMove`) are merged into the corresponding {@link PortalLinkRecordLabel}.
+ * `labelMove`) are merged into the corresponding {@link PortalLinkLabel}.
  * When `offset` is absent in the JointJS label, it is removed from the
  * flat label to avoid stale values.
  * @param dataLabels - The original flat label Record (from `cell.data.labels`)
@@ -15,14 +15,14 @@ import type { Mutable } from '../../types';
  * @returns A new Record with merged position/offset values
  */
 export function mergeLabelsFromAttributes(
-  dataLabels: Record<string, PortalLinkRecordLabel>,
+  dataLabels: Record<string, PortalLinkLabel>,
   attributeLabels: dia.Link.Label[],
-): Record<string, PortalLinkRecordLabel> {
-  const mergedLabels: Record<string, PortalLinkRecordLabel> = {};
+): Record<string, PortalLinkLabel> {
+  const mergedLabels: Record<string, PortalLinkLabel> = {};
   for (const attributeLabel of attributeLabels) {
     const { id } = (attributeLabel as dia.Link.Label & { id?: string });
     if (!id || !(id in dataLabels)) continue;
-    const flatLabel: Mutable<PortalLinkRecordLabel> = { ...dataLabels[id] };
+    const flatLabel: Mutable<PortalLinkLabel> = { ...dataLabels[id] };
     const pos = attributeLabel.position as dia.Link.LabelPosition | undefined;
     if (pos) {
       if (pos.distance === undefined) {

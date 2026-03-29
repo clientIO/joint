@@ -11,7 +11,7 @@ import {
   type CellAttributes,
   type PortalElementRecord,
   type ElementRecord,
-  type PortalElementRecordPort,
+  type PortalElementPort,
   type PortalLinkRecord,
   useElements,
 } from '@joint/react';
@@ -71,7 +71,7 @@ function mapDataToElementAttributes(options: { id: string; element: ElementRecor
   const defaultW = portStyle?.width ?? 10;
   const defaultH = portStyle?.height ?? 10;
 
-  const resolvedPorts: Record<string, PortalElementRecordPort> = {};
+  const resolvedPorts: Record<string, PortalElementPort> = {};
   for (const [portId, port] of Object.entries(ports)) {
     const { shape } = port;
     if (shape && shape !== 'ellipse' && shape !== 'rect') {
@@ -207,13 +207,13 @@ const rowStyle = {
 interface PortControlProps {
   readonly elementId: string;
   readonly portId: string;
-  readonly port: PortalElementRecordPort;
+  readonly port: PortalElementPort;
 }
 
 function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
   const { setElement } = useGraph();
 
-  const updatePort = (updates: Partial<PortalElementRecordPort>) => {
+  const updatePort = (updates: Partial<PortalElementPort>) => {
     setElement(elementId, (previous) => {
       const el = previous as PortalElementRecord;
       return {
