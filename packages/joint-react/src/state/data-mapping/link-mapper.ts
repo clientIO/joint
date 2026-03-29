@@ -24,7 +24,7 @@ function isLinkData(data: unknown): data is MixedLinkRecord {
  * @param options.link
  * @returns Cell attributes for the given link, with user data wrapped in `data` field for PortalLink.
  */
-export function linkToAttributes<LinkData extends object | undefined = undefined>(options: {
+export function linkToAttributes<LinkData extends object = Record<string, unknown>>(options: {
   id?: string;
   link: MixedLinkRecord<LinkData>;
 }): CellAttributes {
@@ -80,7 +80,7 @@ export function linkToAttributes<LinkData extends object | undefined = undefined
  * @param attributes
  * @returns Link data record with presentation fields (color, width, etc.) spread to top level and user data wrapped in `data` field for PortalLink.
  */
-export function attributesToLink<LinkData extends object | undefined = undefined>(
+export function attributesToLink<LinkData extends object = Record<string, unknown>>(
   attributes: dia.Link.Attributes
 ): MixedLinkRecord<LinkData> {
 
@@ -131,8 +131,8 @@ export function attributesToLink<LinkData extends object | undefined = undefined
   return { ...linkRecord };
 }
 
-export type MapAttributesToLink<LinkData extends object | undefined = undefined> =
+export type MapAttributesToLink<LinkData extends object = Record<string, unknown>> =
   typeof attributesToLink<LinkData>;
 
-export type MapLinkToAttributes<LinkData extends object | undefined = undefined> =
+export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> =
   typeof linkToAttributes<LinkData>;

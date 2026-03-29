@@ -21,8 +21,8 @@ import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalContainerChanges<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   readonly elements: {
     readonly added: Map<string, MixedElementRecord<ElementData>>;
@@ -37,8 +37,8 @@ export interface IncrementalContainerChanges<
 }
 
 interface GraphViewState<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   readonly mappings: GraphMappings<ElementData, LinkData>;
   readonly graph: dia.Graph;
@@ -48,8 +48,8 @@ interface GraphViewState<
 }
 
 export function graphView<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(options: GraphViewState<ElementData, LinkData>) {
   const { graph, onIncrementalChange, mappings } = options;
 
@@ -241,7 +241,7 @@ export function graphView<
             size: cell.size(),
             angle: cell.angle(),
             ...data,
-          });
+          } as ElementWithLayout<ElementData>);
         }
       }
       for (const [id, data] of Object.entries(userLinks)) {
@@ -336,6 +336,6 @@ export function graphView<
 }
 
 export type GraphView<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > = ReturnType<typeof graphView<ElementData, LinkData>>;

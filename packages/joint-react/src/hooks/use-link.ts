@@ -10,7 +10,8 @@ import type { dia } from '@joint/core';
 import { usePaperStore } from './use-paper';
 
 /** Link data resolved for the current paper — `layout` is the single paper's `LinkLayout`. */
-export type ResolvedLink<D extends object | undefined = undefined> = MixedLinkRecord<D> & {
+export type ResolvedLink<D extends object = Record<string, unknown>> = MixedLinkRecord<D> & {
+  data: D;
   layout: LinkLayout;
 };
 
@@ -37,7 +38,7 @@ export type ResolvedLink<D extends object | undefined = undefined> = MixedLinkRe
  * @returns The selected link data.
  * @group Hooks
  */
-export function useLink<D extends object | undefined = undefined, R = ResolvedLink<D>>(
+export function useLink<D extends object = Record<string, unknown>, R = ResolvedLink<D>>(
   selector: (item: ResolvedLink<D>) => R = identitySelector as (item: ResolvedLink<D>) => R,
   isEqual: (a: R, b: R) => boolean = isStrictEqual
 ): R {
@@ -46,7 +47,7 @@ export function useLink<D extends object | undefined = undefined, R = ResolvedLi
   const paper = paperStore?.paper as dia.Paper | undefined;
   const {
     graphView: { links },
-  } = useGraphStore<undefined, D>();
+  } = useGraphStore<any, D>();
   // Wrap the user selector to resolve layout live from the paper view
   const resolvedSelector = (item: MixedLinkRecord<D>): R => {
     const { ...rest } = item;

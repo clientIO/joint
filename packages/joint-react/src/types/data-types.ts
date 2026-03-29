@@ -103,7 +103,7 @@ export interface ElementRecordPort {
  * Does not include `type`; portal elements use the internal `PORTAL_ELEMENT_TYPE` automatically.
  * @group Graph
  */
-export type ElementRecord<D extends object | undefined = undefined> = {
+export interface ElementRecord<D extends object = Record<string, unknown>> {
   /** Position of the element. */
   position?: ElementPosition;
   /** Size of the element. */
@@ -120,33 +120,29 @@ export type ElementRecord<D extends object | undefined = undefined> = {
   portStyle?: Partial<ElementRecordPort>;
   /** Ports of the element. */
   ports?: Record<string, ElementRecordPort>;
-  data?: Record<string, unknown>;
+  /** Custom user data. */
+  data?: D;
 
   /** @internal Portal elements must not specify a `type`. */
   type?: never | typeof PORTAL_ELEMENT_TYPE;
-} & (undefined extends D ? unknown : { data: D });
+}
 
 /**
  * Native JointJS element — pass-through to `dia.Element.Attributes`.
  * Requires an explicit `type` string (e.g. `'standard.Rectangle'`).
  * @group Graph
  */
-export type NativeElementRecord<D extends object | undefined = undefined> = dia.Element.Attributes
-  & { type: Exclude<string, typeof PORTAL_ELEMENT_TYPE> }
-  & (undefined extends D ? unknown : { data: D });
+export type NativeElementRecord<D extends object = Record<string, unknown>> = dia.Element.Attributes
+  & { type: Exclude<string, typeof PORTAL_ELEMENT_TYPE>; data?: D };
 
 /**
  * Element data type — union of portal and native JointJS elements.
  *
  * - **Portal element** (no `type`): React-rendered with flat port configuration.
  * - **Native element** (`type` present): Raw JointJS `dia.Element.Attributes` pass-through.
- *
- * Generic parameter:
- * - `MixedElementRecord` (no generic): `data` is optional.
- * - `MixedElementRecord<MyData>`: `data` is required (`MyData`) on both variants.
  * @group Graph
  */
-export type MixedElementRecord<D extends object | undefined = undefined> =
+export type MixedElementRecord<D extends object = Record<string, unknown>> =
   | NativeElementRecord<D>
   | ElementRecord<D>;
 
@@ -310,7 +306,7 @@ export interface LinkRecordLabel {
  * Does not include `type`; portal links use the internal `PORTAL_LINK_TYPE` automatically.
  * @group Graph
  */
-export type LinkRecord<D extends object | undefined = undefined> = LinkRecordPresentation & {
+export interface LinkRecord<D extends object = Record<string, unknown>> extends LinkRecordPresentation {
   /**
    * Source endpoint in JointJS format.
    * @example { id: 'el-1' }
@@ -351,35 +347,29 @@ export type LinkRecord<D extends object | undefined = undefined> = LinkRecordPre
    * Link labels.
    */
   labels?: Record<string, LinkRecordLabel>;
-
-  data?: Record<string, unknown>;
+  /** Custom user data. */
+  data?: D;
 
   /** @internal Portal links must not specify a `type`. */
   type?: never | typeof PORTAL_LINK_TYPE;
-} & (undefined extends D ? unknown : { data: D });
+}
 
 /**
- * Native JointJS link — pass-through with statically known properties from
- * `dia.Link.GenericAttributes`.
+ * Native JointJS link — pass-through to `dia.Link.Attributes`.
  * Requires an explicit `type` string (e.g. `'standard.Link'`).
  * @group Graph
  */
-export type NativeLinkRecord<D extends object | undefined = undefined> = dia.Link.Attributes
-  & { type: Exclude<string, typeof PORTAL_LINK_TYPE> }
-  & (undefined extends D ? unknown : { data: D });
+export type NativeLinkRecord<D extends object = Record<string, unknown>> = dia.Link.Attributes
+  & { type: Exclude<string, typeof PORTAL_LINK_TYPE>; data?: D };
 
 /**
  * Link data type — union of portal and native JointJS links.
  *
  * - **Portal link** (no `type`): React-rendered with flat presentation fields.
  * - **Native link** (`type` present): Raw JointJS `dia.Link.Attributes` pass-through.
- *
- * Generic parameter:
- * - `MixedLinkRecord` (no generic): `data` is optional.
- * - `MixedLinkRecord<MyData>`: `data` is required (`MyData`) on both variants.
  * @group Graph
  */
-export type MixedLinkRecord<D extends object | undefined = undefined> =
+export type MixedLinkRecord<D extends object = Record<string, unknown>> =
   | NativeLinkRecord<D>
   | LinkRecord<D>;
 
@@ -390,7 +380,8 @@ export type MixedLinkRecord<D extends object | undefined = undefined> =
  * Used internally by graph-view containers and returned by hooks like `useElement`.
  * @group Graph
  */
-export type ElementWithLayout<E extends object | undefined = undefined> = MixedElementRecord<E> & {
+export type ElementWithLayout<E extends object = Record<string, unknown>> = MixedElementRecord<E> & {
+  data: E;
   position: Required<ElementPosition>;
   size: Required<ElementSize>;
   angle: number;

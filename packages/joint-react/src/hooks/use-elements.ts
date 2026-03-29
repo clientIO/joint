@@ -20,19 +20,19 @@ import type { ElementWithLayout } from '../types/data-types';
  *
  * @group Hooks
  */
-export function useElements<T extends object | undefined = undefined>(): Map<
+export function useElements<T extends object = Record<string, unknown>>(): Map<
   CellId,
   ElementWithLayout<T>
 >;
-export function useElements<T extends object | undefined = undefined>(
+export function useElements<T extends object = Record<string, unknown>>(
   ...ids: [string, ...string[]]
 ): Map<CellId, ElementWithLayout<T>>;
 export function useElements<
-  T extends object | undefined = undefined,
+  T extends object = Record<string, unknown>,
   S = Map<CellId, ElementWithLayout<T>>,
 >(selector: (items: Map<CellId, ElementWithLayout<T>>) => S, isEqual?: (a: S, b: S) => boolean): S;
 export function useElements<
-  T extends object | undefined = undefined,
+  T extends object = Record<string, unknown>,
   S = Map<CellId, ElementWithLayout<T>>,
 >(
   ...args:

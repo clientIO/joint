@@ -8,6 +8,7 @@ import {
   useMeasureNode,
   type ElementRecord,
   type LinkRecord,
+  type MixedElementRecord,
   type MixedLinkRecord,
   useElements,
   useLinks,
@@ -143,8 +144,8 @@ function ElementControls({
           onChange={(event) =>
             setElement(id, (previous) => ({
               ...previous,
-              data: { ...previous.data, label: event.target.value },
-            }))
+              data: { ...previous.data!, label: event.target.value },
+            } as MixedElementRecord<NodeData>))
           }
           style={{ ...inputStyle, flex: 1 }}
         />
@@ -159,8 +160,8 @@ function ElementControls({
           onChange={(event) =>
             setElement(id, (previous) => ({
               ...previous,
-              data: { ...previous.data, color: event.target.value },
-            }))
+              data: { ...previous.data!, color: event.target.value },
+            } as MixedElementRecord<NodeData>))
           }
           style={{
             width: 36,

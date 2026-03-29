@@ -11,6 +11,7 @@ import {
   useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
+  type MixedElementRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCallback, useEffect, useRef } from 'react';
@@ -324,11 +325,11 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
         if (diff === 0) break;
         setElement(productId, (previous) => {
           const { data } = previous;
-          if (data.type !== 'Product') return previous;
+          if (!data || data.type !== 'Product') return previous;
           const previousPercentage = data.percentage;
           const adjusted = Math.max(previousPercentage + diff, 0);
           diff = Math.min(previousPercentage + diff, 0);
-          return { ...previous, data: { ...data, percentage: adjusted } };
+          return { ...previous, data: { ...data, percentage: adjusted } } as MixedElementRecord<ShapeData>;
         });
       }
     },
@@ -476,7 +477,7 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
   const { width, height } = useElementSize();
 
   // Use graph topology: walk embedded performance cells, find their inbound product neighbors
-  const { value, roi } = useElements((elements) => {
+  const { value, roi } = useElements<ShapeData, typeof DEFAULT_ROI_VALUE>((elements) => {
     const investmentItem = elements.get(INVESTMENT_ID);
     const investmentData = investmentItem?.data;
     if (investmentData?.type !== 'Investment') {
@@ -496,7 +497,7 @@ function OverallPerformanceNode(_props: Readonly<OverallPerformanceData>) {
       if (!productCell) continue;
 
       const productItem = elements.get(String(productCell.id));
-      const productData = productItem?.data as unknown as ShapeData | undefined;
+      const productData = productItem?.data;
       if (productData?.type !== 'Product') continue;
       totalValue += calculateProductValue(investmentData, productData);
     }

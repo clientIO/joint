@@ -184,7 +184,7 @@ function Diagram() {
           </label>
         ))}
       </fieldset>
-      <GraphProvider<NodeUserData, undefined>
+      <GraphProvider<NodeUserData>
         elements={elements}
         links={links}
         {...elementDefaults}

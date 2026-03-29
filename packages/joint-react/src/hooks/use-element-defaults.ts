@@ -5,7 +5,7 @@ import type { MixedElementRecord } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
 
 
-export function useElementDefaults<Data extends object | undefined = undefined>(
+export function useElementDefaults<Data extends object = Record<string, unknown>>(
   defaults:
     | Partial<MixedElementRecord<Data>>
     | ((options: { data: MixedElementRecord<Data>; id?: CellId }) => Partial<MixedElementRecord<Data>>),
@@ -26,7 +26,7 @@ export function useElementDefaults<Data extends object | undefined = undefined>(
 
           let result: CellAttributes;
           if (resolved) {
-            const element = { ...resolved, ...mapOptions.element };
+            const element = { ...resolved, ...mapOptions.element } as MixedElementRecord<Data>;
             result = elementToAttributes({ id: mapOptions.id, element });
 
             // Strip default-provided keys from cell.data so they don't

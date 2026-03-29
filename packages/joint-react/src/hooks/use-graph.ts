@@ -16,8 +16,8 @@ function isUpdater<T extends object>(value: T | ((previous: T) => T)): value is 
  * Result of the useGraph hook.
  */
 interface UseGraphResult<
-  NodeData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  NodeData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   /** The JointJS graph instance. */
   readonly graph: dia.Graph;
@@ -61,11 +61,11 @@ interface UseGraphResult<
   readonly removeLink: (id: CellId) => void;
 }
 
-function getDefaultLink<LinkData extends object | undefined = undefined>(): MixedLinkRecord<LinkData> {
+function getDefaultLink<LinkData extends object = Record<string, unknown>>(): MixedLinkRecord<LinkData> {
   return {} as MixedLinkRecord<LinkData>;
 }
 function getDefaultElement<
-  ElementData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
 >(): MixedElementRecord<ElementData> {
   return {} as MixedElementRecord<ElementData>;
 }
@@ -82,8 +82,8 @@ function getDefaultElement<
  * ```
  */
 export function useGraph<
-  NodeData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  NodeData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(): UseGraphResult<NodeData, LinkData> {
   const graphStore = useGraphStore();
 

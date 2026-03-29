@@ -20,12 +20,12 @@ export interface CellAttributes {
   [key: string]: any;
 }
 
-export interface MapLinks<LinkData extends object | undefined = undefined> {
+export interface MapLinks<LinkData extends object = Record<string, unknown>> {
   mapLinkToAttributes?: MapLinkToAttributes<LinkData>;
   mapAttributesToLink?: MapAttributesToLink<LinkData>;
 }
 
-export interface MapElements<ElementData extends object | undefined = undefined> {
+export interface MapElements<ElementData extends object = Record<string, unknown>> {
   mapElementToAttributes?: MapElementToAttributes<ElementData>;
   mapAttributesToElement?: MapAttributesToElement<ElementData>;
 }
@@ -34,6 +34,6 @@ export interface MapElements<ElementData extends object | undefined = undefined>
  * Reused across GraphProvider, GraphStore, and graphView.
  */
 export type GraphMappings<
-  ElementData extends object | undefined,
-  LinkData extends object | undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > = MapElements<ElementData> & MapLinks<LinkData>;

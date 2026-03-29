@@ -59,8 +59,8 @@ export interface MeasureSnapshot {
  * Configuration options for creating a GraphStore instance.
  */
 export interface GraphStoreOptions<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > extends GraphMappings<ElementData, LinkData> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
@@ -77,8 +77,8 @@ export interface GraphStoreOptions<
  * Central store for managing graph state, synchronization, and paper instances.
  */
 export class GraphStore<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<MeasureSnapshot>;
@@ -93,8 +93,8 @@ export class GraphStore<
   private readonly measuredElementIds = new Set<CellId>();
 
   public getGraphView<
-    N extends object | undefined = undefined,
-    L extends object | undefined = undefined,
+    N extends object = Record<string, unknown>,
+    L extends object = Record<string, unknown>,
   >(): GraphView<N, L> {
     return this.graphView as unknown as GraphView<N, L>;
   }

@@ -24,7 +24,7 @@ import type { ElementWithLayout } from '../types/data-types';
  * @returns The selected element data.
  * @group Hooks
  */
-export function useElement<D extends object | undefined = undefined, R = ElementWithLayout<D>>(
+export function useElement<D extends object = Record<string, unknown>, R = ElementWithLayout<D>>(
   selector: (item: ElementWithLayout<D>) => R = identitySelector as (
     item: ElementWithLayout<D>
   ) => R,

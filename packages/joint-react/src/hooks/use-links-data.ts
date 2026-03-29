@@ -16,15 +16,15 @@ import { useContainerItems } from './use-container-items';
  *
  * @group Hooks
  */
-export function useLinksData<D extends object | undefined = undefined>(): Map<CellId, MixedLinkRecord<D>>;
-export function useLinksData<D extends object | undefined = undefined>(
+export function useLinksData<D extends object = Record<string, unknown>>(): Map<CellId, MixedLinkRecord<D>>;
+export function useLinksData<D extends object = Record<string, unknown>>(
   ...ids: [string, ...string[]]
 ): Map<CellId, MixedLinkRecord<D>>;
-export function useLinksData<D extends object | undefined = undefined, S = Map<CellId, MixedLinkRecord<D>>>(
+export function useLinksData<D extends object = Record<string, unknown>, S = Map<CellId, MixedLinkRecord<D>>>(
   selector: (items: Map<CellId, MixedLinkRecord<D>>) => S,
   isEqual?: (a: S, b: S) => boolean
 ): S;
-export function useLinksData<D extends object | undefined = undefined, S = Map<CellId, MixedLinkRecord<D>>>(
+export function useLinksData<D extends object = Record<string, unknown>, S = Map<CellId, MixedLinkRecord<D>>>(
   ...args:
     | []
     | [string, ...string[]]
@@ -32,7 +32,7 @@ export function useLinksData<D extends object | undefined = undefined, S = Map<C
 ): Map<CellId, MixedLinkRecord<D>> | S {
   const {
     graphView: { links },
-  } = useGraphStore<undefined, D>();
+  } = useGraphStore<any, D>();
 
   const isSelectorMode = typeof args[0] === 'function';
   const ids = isSelectorMode ? undefined : (args as string[]);

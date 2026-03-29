@@ -20,7 +20,7 @@ function initialElements(xNodes = 15, yNodes = 30) {
     for (let x = 0; x < xNodes; x++) {
       const id = `stress-${nodeId.toString()}`;
       nodes[id] = {
-        data: { label: `Node ${nodeId}`, fontSize: 11, className: 'text-xs' },
+        data: { label: `Node ${nodeId}`, fontSize: 11 },
         position: { x: x * 100, y: y * 50 },
       };
 

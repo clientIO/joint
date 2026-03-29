@@ -14,8 +14,8 @@ import type { MixedElementRecord, MixedLinkRecord } from '../../types/data-types
  * @template Link - The type of links in the graph
  */
 export interface GraphProviderProps<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > extends GraphMappings<ElementData, LinkData> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
@@ -90,8 +90,8 @@ export interface GraphProviderProps<
 }
 
 function GraphBase<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(props: GraphProviderProps<ElementData, LinkData> & { ref?: React.Ref<dia.Graph | null> }) {
   const {
     children,
@@ -214,8 +214,8 @@ function GraphBase<
  * @see GraphProviderProps for all available props
  */
 export const GraphProvider = GraphBase as <
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(
   props: GraphProviderProps<ElementData, LinkData> & {
     ref?: React.Ref<dia.Graph | null>;

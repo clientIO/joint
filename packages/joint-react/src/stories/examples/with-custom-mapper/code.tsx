@@ -70,7 +70,7 @@ const initialLinks: Record<string, LinkRecord> = {
 const mapElementToAttributes = (
   data: MapElementToAttributesOptions<CenterElement>
 ): CellAttributes => {
-  const userData = data.element.data;
+  const userData = data.element.data!;
   const { cx = 0, cy = 0 } = userData;
   const { width = 100, height = 60 } = data.element.size ?? {}; // Support both element-level and data-level size
   return elementToAttributes<CenterElement>({
@@ -95,7 +95,7 @@ const mapAttributesToElement = (attributes: dia.Element.Attributes): ElementReco
   const height = attributes.size?.height ?? 60;
   // Wrap center-based coords + user data in `data` field for useElementData()
   return {
-    data: { ...userData, cx: x + width / 2, cy: y + height / 2 },
+    data: { ...userData!, cx: x + width / 2, cy: y + height / 2 },
     position: { x, y },
     size: { width, height },
   };
@@ -112,9 +112,9 @@ function DataPanel() {
       <h3 className="text-base font-bold mb-3">Element Data (cx, cy)</h3>
       {[...elements.entries()].map(([id, { data, size }]) => (
         <div key={id} className="mb-3 p-2 rounded bg-gray-800">
-          <div className="font-bold mb-1">{data.label}</div>
-          <div>cx: {Math.round(data.cx)}</div>
-          <div>cy: {Math.round(data.cy)}</div>
+          <div className="font-bold mb-1">{data?.label}</div>
+          <div>cx: {Math.round(data?.cx ?? 0)}</div>
+          <div>cy: {Math.round(data?.cy ?? 0)}</div>
           <div className="text-gray-400 text-xs mt-1">
             {size.width} &times; {size.height}
           </div>

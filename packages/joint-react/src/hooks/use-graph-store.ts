@@ -10,8 +10,8 @@ import type { GraphStore } from '../store';
  * @throws {Error} An error if the hook is used outside of a GraphProvider.
  */
 export function useGraphStore<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(): GraphStore<ElementData, LinkData> {
   const store = useContext(GraphStoreContext);
   if (!store) {

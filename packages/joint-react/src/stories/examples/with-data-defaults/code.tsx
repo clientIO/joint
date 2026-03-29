@@ -102,7 +102,7 @@ function Diagram() {
     [color, portShape]
   );
 
-  const { mapLinkToAttributes } = useLinkDefaults<undefined>(
+  const { mapLinkToAttributes } = useLinkDefaults(
     {
       color,
       width: 3,
@@ -149,7 +149,7 @@ function Diagram() {
       >
         {alternate ? '\u25A0 Square ports' : '\u25CF Round ports'}
       </button>
-      <GraphProvider<ElementData, undefined>
+      <GraphProvider<ElementData>
         elements={elements}
         links={links}
         onElementsChange={setElements}

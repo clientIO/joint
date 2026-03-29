@@ -8,8 +8,8 @@ import type { MapElementToAttributes, MapLinkToAttributes } from '../state/data-
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
 
 export interface UpdateGraphOptions<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   readonly elements: Record<string, MixedElementRecord<ElementData>>;
   readonly links: Record<string, MixedLinkRecord<LinkData>>;
@@ -21,8 +21,8 @@ interface OnChangeOptions {
   readonly isInsideBatch: boolean;
 }
 interface Options<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   readonly graph: dia.Graph;
   readonly onChanges: (options: OnChangeOptions) => void;
@@ -40,8 +40,8 @@ interface JointJSEventOptions {
  * Batching is always on: layout changes are immediate, data changes fire on batch:stop.
  */
 export function graphChanges<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(options: Options<ElementData, LinkData>) {
   const { graph } = options;
   let { mapElementToAttributes, mapLinkToAttributes } = options;

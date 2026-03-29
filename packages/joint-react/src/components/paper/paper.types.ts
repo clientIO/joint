@@ -21,12 +21,12 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */
-export type RenderElement<ElementData extends object | undefined = undefined> = (
+export type RenderElement<ElementData extends object = Record<string, unknown>> = (
   data: ElementData
 ) => ReactNode;
 
 /** Render function for links. Receives user data `D` from the link's `data` field. */
-export type RenderLink<LinkData extends object | undefined = undefined> = (
+export type RenderLink<LinkData extends object = Record<string, unknown>> = (
   data: LinkData
 ) => ReactNode;
 

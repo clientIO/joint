@@ -137,7 +137,7 @@ const graphSlice = createSlice({
      */
     applyIncrementalChanges: (
       state,
-      action: PayloadAction<IncrementalContainerChanges<ElementData, undefined>>
+      action: PayloadAction<IncrementalContainerChanges<ElementData>>
     ) => {
       const { elements, links } = action.payload;
 
@@ -242,14 +242,14 @@ function GraphWithRedux() {
   // onIncrementalChange receives granular change info (added/changed/removed/reset)
   // and dispatches a single Redux action with the full incremental change payload.
   const handleIncrementalChange = useCallback(
-    (changes: IncrementalContainerChanges<ElementData, undefined>) => {
+    (changes: IncrementalContainerChanges<ElementData>) => {
       dispatch(applyIncrementalChanges(changes));
     },
     [dispatch]
   );
 
   return (
-    <GraphProvider<ElementData, undefined>
+    <GraphProvider<ElementData>
       elements={elements}
       links={links}
       enableBatchUpdates

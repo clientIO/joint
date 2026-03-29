@@ -23,7 +23,7 @@ function isElementData(data: unknown): data is MixedElementRecord {
  * @param options.element
  * @returns Cell attributes for the given element, with user data wrapped in `data` field for PortalElement.
  */
-export function elementToAttributes<ElementData extends object | undefined = undefined>(options: {
+export function elementToAttributes<ElementData extends object = Record<string, unknown>>(options: {
   id: string;
   element: MixedElementRecord<ElementData>;
 }): CellAttributes {
@@ -77,7 +77,7 @@ export function elementToAttributes<ElementData extends object | undefined = und
  * @param attributes - The JointJS element attributes.
  * @returns The element item with user data in `data` field.
  */
-export function attributesToElement<ElementData extends object | undefined = undefined>(
+export function attributesToElement<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes
 ): MixedElementRecord<ElementData> {
 
@@ -122,11 +122,11 @@ export function attributesToElement<ElementData extends object | undefined = und
   return { ...elementRecord };
 }
 
-export type MapAttributesToElement<ElementData extends object | undefined = undefined> =
+export type MapAttributesToElement<ElementData extends object = Record<string, unknown>> =
   typeof attributesToElement<ElementData>;
 
-export type MapElementToAttributes<ElementData extends object | undefined = undefined> =
+export type MapElementToAttributes<ElementData extends object = Record<string, unknown>> =
   typeof elementToAttributes<ElementData>;
 
-export type MapElementToAttributesOptions<ElementData extends object | undefined = undefined> =
+export type MapElementToAttributesOptions<ElementData extends object = Record<string, unknown>> =
   Parameters<MapElementToAttributes<ElementData>>[0];

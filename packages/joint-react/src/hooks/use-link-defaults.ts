@@ -4,7 +4,7 @@ import type { CellAttributes, MapLinkToAttributes } from '../state/data-mapping'
 import type { MixedLinkRecord } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
 
-export function useLinkDefaults<Data extends object | undefined = undefined>(
+export function useLinkDefaults<Data extends object = Record<string, unknown>>(
   defaults:
     | Partial<MixedLinkRecord<Data>>
     | ((options: { link: MixedLinkRecord<Data>; id?: CellId }) => Partial<MixedLinkRecord<Data>>),
@@ -20,7 +20,7 @@ export function useLinkDefaults<Data extends object | undefined = undefined>(
 
           let result: CellAttributes;
           if (resolved) {
-            const mergedData: MixedLinkRecord<Data> = { ...resolved, ...mapOptions.link };
+            const mergedData = { ...resolved, ...mapOptions.link } as MixedLinkRecord<Data>;
             result = linkToAttributes({ link: mergedData, id: mapOptions.id });
 
             // Strip default-provided keys from cell.data so they don't
