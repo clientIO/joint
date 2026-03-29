@@ -47,10 +47,8 @@ const initialElements: Record<string, Element<StackedElement>> = {
 
 const initialLinks: Record<string, Link> = {
   'e1-2': {
-    source: '1',
-    sourceMagnet: 'item-2',
-    target: '2',
-    targetMagnet: 'item-2',
+    source: { id: '1', magnet: 'item-2' },
+    target: { id: '2', magnet: 'item-2' },
     color: LIGHT,
   },
 };

@@ -23,8 +23,8 @@ const initialElements: Record<string, Element<ElementData>> = {
 // Define initial edges as Record
 const initialEdges: Record<string, Link> = {
   'e1-2': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     color: '#3498db', // Primary color
     width: 2,
   },

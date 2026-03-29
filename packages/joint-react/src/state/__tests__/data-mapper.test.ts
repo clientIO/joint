@@ -3,7 +3,7 @@
 import { dia, shapes } from '@joint/core';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
-import type { Element, FlatElementPort, Link } from '../../types/data-types';
+import type { Element, PortalElementPort, Link } from '../../types/data-types';
 import {
   elementToAttributes,
   linkToAttributes,
@@ -81,7 +81,7 @@ describe('dataMapper', () => {
       expect(result).toHaveProperty('data.extra', 'also-included');
     });
 
-    it('should round-trip with ports on ElementItem level', () => {
+    it('should round-trip with ports', () => {
       const id = 'el-1';
       const element: Element = {
         data: { label: 'Node 1' },
@@ -93,20 +93,21 @@ describe('dataMapper', () => {
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.position).toEqual({ x: 100, y: 50 });
       expect(cellJson.data).toMatchObject({ label: 'Node 1' });
+      expect(cellJson.presentation).toMatchObject({ ports: { p1: { cx: 0, cy: '50%' } } });
 
       graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
       const result = attributesToElement(cell.attributes);
 
       expect(result).toHaveProperty('data.label', 'Node 1');
-      // Ports stay on ElementItem level, not inside data
+      // Ports are available at top level
       expect(result).toHaveProperty('ports');
     });
   });
 
   describe('element ports conversion', () => {
     it('should convert simplified ports to JointJS format', () => {
-      const ports: Record<string, FlatElementPort> = {
+      const ports: Record<string, PortalElementPort> = {
         p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
       };
       const id = 'el-1';
@@ -120,7 +121,7 @@ describe('dataMapper', () => {
     });
 
     it('should convert port with label', () => {
-      const ports: Record<string, FlatElementPort> = {
+      const ports: Record<string, PortalElementPort> = {
         p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
       };
       const id = 'el-1';
@@ -134,7 +135,7 @@ describe('dataMapper', () => {
     });
 
     it('should handle rect shape ports', () => {
-      const ports: Record<string, FlatElementPort> = {
+      const ports: Record<string, PortalElementPort> = {
         p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
       };
       const id = 'el-1';
@@ -149,7 +150,7 @@ describe('dataMapper', () => {
   describe('link round-trip', () => {
     it('should convert link data to JointJS and back', () => {
       const id = 'link-1';
-      const link: Link = { source: 'el-1', target: 'el-2' };
+      const link: Link = { source: { id: 'el-1' }, target: { id: 'el-2' } };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.source).toEqual({ id: 'el-1' });
@@ -161,27 +162,27 @@ describe('dataMapper', () => {
       const cell = graph.getCell(id) as dia.Link;
       const result = attributesToLink(cell.attributes);
 
-      expect(result.source).toBe('el-1');
-      expect(result.target).toBe('el-2');
+      expect(result.source).toEqual({ id: 'el-1' });
+      expect(result.target).toEqual({ id: 'el-2' });
     });
 
     it('should apply theme defaults', () => {
       const id = 'link-1';
-      const link: Link = { source: 'a', target: 'b' };
+      const link: Link = { source: { id: 'a' }, target: { id: 'b' } };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
       expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
-      // Theme-defaulted values should NOT be stored in data
-      expect(cellJson.data?.color).toBeUndefined();
-      expect(cellJson.data?.width).toBeUndefined();
+      // Theme-defaulted values should NOT be stored in presentation
+      expect(cellJson.presentation?.color).toBeUndefined();
+      expect(cellJson.presentation?.width).toBeUndefined();
     });
 
     it('should apply custom theme props', () => {
       const id = 'link-1';
       const link: Link = {
-        source: 'a',
-        target: 'b',
+        source: { id: 'a' },
+        target: { id: 'b' },
         color: 'red',
         width: 4,
         dasharray: '5 5',
@@ -193,14 +194,13 @@ describe('dataMapper', () => {
       expect(cellJson.attrs?.line?.style?.strokeDasharray).toBe('5 5');
     });
 
-    it('should store user data in cell.data alongside theme props', () => {
-      type MyLink = Link & { weight: number };
+    it('should store user data in cell.data', () => {
       const id = 'link-1';
-      const link: MyLink = { source: 'a', target: 'b', weight: 5 };
+      const link: Link = { source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.data?.weight).toBe(5);
-      // Theme-defaulted values should NOT be stored in data
+      // Presentation values are not in data
       expect(cellJson.data?.color).toBeUndefined();
     });
 
@@ -225,8 +225,8 @@ describe('dataMapper', () => {
     it('should convert labels Record to JointJS labels array', () => {
       const id = 'link-1';
       const link: Link = {
-        source: 'a',
-        target: 'b',
+        source: { id: 'a' },
+        target: { id: 'b' },
         labels: {
           lbl1: { text: 'Yes', position: 0.3 },
           lbl2: { text: 'No', position: 0.7, offset: 20 },
@@ -245,8 +245,8 @@ describe('dataMapper', () => {
     it('should round-trip labels with position and offset changes', () => {
       const id = 'link-1';
       const link: Link = {
-        source: 'a',
-        target: 'b',
+        source: { id: 'a' },
+        target: { id: 'b' },
         labels: {
           lbl1: { text: 'Yes', position: 0.3 },
         },
@@ -269,10 +269,8 @@ describe('dataMapper', () => {
     it('should handle source/target with ports', () => {
       const id = 'link-1';
       const link: Link = {
-        source: 'el-1',
-        target: 'el-2',
-        sourcePort: 'p1',
-        targetPort: 'p2',
+        source: { id: 'el-1', port: 'p1' },
+        target: { id: 'el-2', port: 'p2' },
       };
 
       const cellJson = linkToAttributes({ id, link });

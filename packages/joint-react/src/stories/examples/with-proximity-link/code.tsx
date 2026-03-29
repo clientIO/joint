@@ -34,8 +34,8 @@ function getProximityLink(id: dia.Cell.ID, closeId: dia.Cell.ID) {
   );
   return {
     linkId: `${source}-${target}`,
-    source,
-    target,
+    source: { id: source },
+    target: { id: target },
   };
 }
 

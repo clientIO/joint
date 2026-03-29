@@ -33,23 +33,23 @@ const initialElements: Record<string, Element<NodeData>> = {
 // One link overrides color to show per-link precedence.
 const initialLinks: Record<string, Link> = {
   'a→b': {
-    source: 'a',
-    target: 'b',
+    source: { id: 'a' },
+    target: { id: 'b' },
     labels: { flow: { text: 'async' } },
   },
   'a→c': {
-    source: 'a',
-    target: 'c',
+    source: { id: 'a' },
+    target: { id: 'c' },
     labels: { flow: { text: 'sync' } },
   },
   'b→d': {
-    source: 'b',
-    target: 'd',
+    source: { id: 'b' },
+    target: { id: 'd' },
     labels: { status: { text: 'approved' } },
   },
   'c→d': {
-    source: 'c',
-    target: 'd',
+    source: { id: 'c' },
+    target: { id: 'd' },
     color: '#f59e0b', // explicit override — inline style beats CSS variables
     width: 3,
     labels: { status: { text: 'pending' } },

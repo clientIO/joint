@@ -16,8 +16,8 @@ import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme'
 
 const initialEdges: Record<string, Link> = {
   'e1-2': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     color: PRIMARY,
     dasharray: '5 5',
   },

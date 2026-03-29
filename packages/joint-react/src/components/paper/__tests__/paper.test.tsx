@@ -359,7 +359,6 @@ jest.mock('../../../utils/scheduler', () => {
 });
 
 describe('Paper Component', () => {
-
   it('renders elements correctly with correct measured node and onMeasured event', async () => {
     const onMeasuredMock = jest.fn();
     let size = { width: 0, height: 0 };
@@ -1348,9 +1347,7 @@ describe('Paper Component', () => {
       expect(createdLink.attr(['line', 'class'])).toBe('jr-link-line custom-default-link');
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
-          data: expect.objectContaining({
-            customProperty: 'flat-link-default',
-          }),
+          customProperty: 'flat-link-default',
         })
       );
 
@@ -1359,17 +1356,17 @@ describe('Paper Component', () => {
       });
 
       const [createdLinkData] = [...getLinksSnapshot().values()];
-      // Presentation data (color, width) and user data are stored in the `data` field
-      // by the default attributesToLink mapper
-      const linkCellData = createdLinkData.data as Record<string, unknown>;
-      expect(linkCellData.color).toBe('#ff5500');
-      expect(linkCellData.width).toBe(7);
-      const nestedData = linkCellData.data as Record<string, unknown>;
-      expect(nestedData.customProperty).toBe('flat-link-default');
-      expect(createdLinkData.source).toBe(SOURCE_ELEMENT_ID);
-      expect(createdLinkData.target).toBe(TARGET_ELEMENT_ID);
-      expect(createdLinkData.sourcePort).toBe(SOURCE_PORT_ID);
-      expect(createdLinkData.targetPort).toBe(TARGET_PORT_ID);
+      // Presentation data is in the presentation field;
+      // user data is directly in data
+      expect(createdLinkData.color).toBe('#ff5500');
+      expect(createdLinkData.width).toBe(7);
+      expect(createdLinkData.data?.customProperty).toBe('flat-link-default');
+      expect(createdLinkData.source).toEqual(
+        expect.objectContaining({ id: SOURCE_ELEMENT_ID, port: SOURCE_PORT_ID })
+      );
+      expect(createdLinkData.target).toEqual(
+        expect.objectContaining({ id: TARGET_ELEMENT_ID, port: TARGET_PORT_ID })
+      );
     });
 
     it('supports defaultLink callback returning FlatLinkData when dragging between ports', async () => {
@@ -1398,9 +1395,7 @@ describe('Paper Component', () => {
       expect(createdLink.attr(['wrapper', 'style', 'strokeWidth'])).toBe(16);
       expect(createdLink.get('data')).toEqual(
         expect.objectContaining({
-          data: expect.objectContaining({
-            customProperty: 'callback-flat-link-default',
-          }),
+          customProperty: 'callback-flat-link-default',
         })
       );
 
@@ -1409,13 +1404,11 @@ describe('Paper Component', () => {
       });
 
       const [createdLinkData] = [...getLinksSnapshot().values()];
-      // Presentation data and user data are stored in the `data` field
-      const linkCellData = createdLinkData.data as Record<string, unknown>;
-      expect(linkCellData.color).toBe('#22aa55');
-      expect(linkCellData.width).toBe(4);
-      expect(linkCellData.wrapperWidth).toBe(16);
-      const nestedData = linkCellData.data as Record<string, unknown>;
-      expect(nestedData.customProperty).toBe('callback-flat-link-default');
+      // Presentation data comes from the presentation field
+      expect(createdLinkData.color).toBe('#22aa55');
+      expect(createdLinkData.width).toBe(4);
+      expect(createdLinkData.wrapperWidth).toBe(16);
+      expect(createdLinkData.data?.customProperty).toBe('callback-flat-link-default');
     });
   });
 
@@ -1600,7 +1593,7 @@ describe('Paper Component', () => {
     };
 
     const testLinks: Record<string, Link> = {
-      'link-1': { source: 'el-1', target: 'el-2' },
+      'link-1': { source: { id: 'el-1' }, target: { id: 'el-2' } },
     };
 
     it('useLink provides layout with sourceX/sourceY/targetX/targetY on initial load', async () => {

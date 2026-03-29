@@ -113,24 +113,24 @@ const elements: Record<string, Element<ElementUserData>> = {
 // Links now use built-in theme properties: color, width, sourceMarker, targetMarker
 const links: Record<string, Link> = {
   link1: {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     width: 4,
     color: 'orange',
     // targetMarker: 'arrow' as LinkMarkerName,
     className: 'dashed-link',
   },
   link2: {
-    source: '3',
-    target: '4',
+    source: { id: '3' },
+    target: { id: '4' },
     color: 'green',
     // sourceMarker: 'circle' as LinkMarkerName,
     // targetMarker: 'cross' as LinkMarkerName,
   },
   link3: {
     data: { jjType: 'standard.ShadowLink' },
-    source: '2',
-    target: '4',
+    source: { id: '2' },
+    target: { id: '4' },
     color: 'purple',
   },
 };

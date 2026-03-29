@@ -1,11 +1,13 @@
-import type { FlatLinkPresentationData } from '../types/data-types';
+import type { PortalLinkPresentation } from '../types/data-types';
+
+export type LinkRecordStyle = Required<PortalLinkPresentation>;
 
 /**
  * Internal fallback values for link line properties not set by data or defaults.
  * `color` and `width` default to `''`. Empty strings are no-ops on the DOM
  * inline style, letting CSS variables from theme.css take over.
  */
-export const defaultLinkStyle: Readonly<Required<FlatLinkPresentationData>> = {
+export const defaultLinkStyle: Readonly<LinkRecordStyle>= {
   color: '',
   width: '',
   sourceMarker: 'none',
@@ -20,7 +22,7 @@ export const defaultLinkStyle: Readonly<Required<FlatLinkPresentationData>> = {
 };
 
 /** A presentation key on Link, mapped to SVG attrs by buildLinkPresentationAttributes. */
-export type LinkPresentationKey = keyof FlatLinkPresentationData;
+export type LinkPresentationKey = keyof PortalLinkPresentation;
 
 /** Presentation keys for runtime iteration. Derived from {@link defaultLinkStyle}. */
 export const LINK_PRESENTATION_KEYS = Object.keys(defaultLinkStyle) as LinkPresentationKey[];

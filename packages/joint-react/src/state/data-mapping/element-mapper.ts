@@ -1,5 +1,7 @@
+
+
 import { type dia } from '@joint/core';
-import type { Element } from '../../types/data-types';
+import type { Element, PortalElementRecord } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -14,55 +16,63 @@ function isElementData(data: unknown): data is Element {
   return isRecord(data);
 }
 
+/**
+ * Forward mapper: converts an Element record to JointJS cell attributes.
+ * @param options
+ * @param options.id
+ * @param options.element
+ * @returns Cell attributes for the given element, with user data wrapped in `data` field for PortalElement.
+ */
 export function elementToAttributes<ElementData extends object | undefined = undefined>(options: {
   id: string;
   element: Element<ElementData>;
 }): CellAttributes {
-  const { id, element } = options;
+  const { element } = options;
   if (!isElementData(element)) {
-    throw new Error('Invalid element data: expected an object.');
+    throw new Error('Invalid element format: expected an object.');
   }
 
   const {
-    data: customData = {},
-    position,
-    size,
-    angle,
-    z,
-    layer,
-    parent,
-    ports,
-    portStyle,
-    attrs,
-    type = PORTAL_ELEMENT_TYPE,
+      type = PORTAL_ELEMENT_TYPE,
   } = element;
 
-  const attributes: CellAttributes = { id, type };
+  if (type !== PORTAL_ELEMENT_TYPE) {
+    // For non-portal elements, the element record is a cell JSON with optional `data`.
+    // Note: `presentation` is not supported on non-portal elements.
+    return element as CellAttributes;
+  }
 
-  if (attrs !== undefined) attributes.attrs = attrs;
-  if (position !== undefined) {
-    attributes.position = position;
-  }
-  if (size !== undefined) {
-    attributes.size = size;
-  }
-  if (angle !== undefined) attributes.angle = angle;
-  if (z !== undefined) attributes.z = z;
-  if (layer !== undefined) attributes.layer = layer;
-  if (parent !== undefined) attributes.parent = parent;
+  // PortalElement mapping
+  const portalElement = element as PortalElementRecord;
+
+  const {
+    data = {} as ElementData,
+    ports,
+    portStyle,
+    ...cellAttributes
+  } = portalElement;
+
+  const presentation: Record<string, unknown> = {};
+  if (ports) presentation.ports = ports;
+  if (portStyle) presentation.portStyle = portStyle;
+
+  const attributes: CellAttributes = {
+    ...cellAttributes,
+    type,
+    data,
+    presentation,
+  };
 
   if (ports) {
     attributes.ports = convertPorts(ports, portStyle);
     attributes.portDefaults = createPortGroupsDefault();
   }
 
-  attributes.data = { ...customData, ports, portStyle };
-
   return attributes;
 }
 
 /**
- * Converts JointJS element attributes back to Element shape.
+ * Converts JointJS element attributes back to Element record.
  * Public utility — purely mechanical, no defaultAttributes filtering.
  * @param attributes - The JointJS element attributes.
  * @returns The element item with user data in `data` field.
@@ -70,25 +80,46 @@ export function elementToAttributes<ElementData extends object | undefined = und
 export function attributesToElement<ElementData extends object | undefined = undefined>(
   attributes: dia.Element.Attributes
 ): Element<ElementData> {
-  const { data: cellData, position, size, angle, z, layer, parent, attrs, type } = attributes;
-  const { ports, portStyle, ...data } = cellData ?? {};
 
-  const result: Element<ElementData> = {
+  const { type } = attributes;
+  if (type !== PORTAL_ELEMENT_TYPE) {
+    // For non-portal elements, we treat the entire attributes as the element record with optional `data`.
+    return attributes as Element<ElementData>;
+  }
+
+  // PortalElement mapping
+
+  const {
     data,
+    presentation,
+    // Supported JointJS element attributes that we want to include
+    // in the portal element record
+    position,
+    size,
+    angle,
+    z,
+    layer,
+    parent,
+  } = attributes;
+
+  const elementRecord: Element<ElementData> = {
+    ...presentation,
+    data,
+    position,
+    size,
+    angle,
+    z,
+    layer,
+    parent
   };
 
-  if (position) result.position = { x: position.x ?? 0, y: position.y ?? 0 };
-  if (size) result.size = { width: size.width ?? 0, height: size.height ?? 0 };
-  if (angle !== undefined) result.angle = angle;
-  if (ports !== undefined) result.ports = ports;
-  if (portStyle !== undefined) result.portStyle = portStyle;
-  if (z !== undefined) result.z = z;
-  if (layer !== undefined) result.layer = layer;
-  if (type !== undefined) result.type = type;
-  if (attrs) result.attrs = attrs as Record<string, Record<string, unknown>>;
-  if (parent) result.parent = parent;
-  if (attrs !== undefined) result.attrs = attrs as Record<string, Record<string, unknown>>;
-  return result;
+  // @todo what about attributes such a `stackIndex` or `direction` used in
+  // automatic layouts. If we put them inside the `data` field, they trigger
+  // unnecessary re-renders when they change. But if we put them at the top level,
+  // they get lost when converting back and forth between attributes and element.
+
+  // Filter out undefined values.
+  return { ...elementRecord };
 }
 
 export type MapAttributesToElement<ElementData extends object | undefined = undefined> =

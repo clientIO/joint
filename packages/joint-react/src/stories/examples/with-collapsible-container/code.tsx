@@ -133,8 +133,8 @@ const elements: Record<string, Element<ContainerUserData>> = {
 
 const links: Record<string, Link> = {
   'link-1-2': {
-    source: 'child-1',
-    target: 'child-2',
+    source: { id: 'child-1' },
+    target: { id: 'child-2' },
     z: 2,
     color: LINK_COLOR,
     width: 1,
@@ -144,8 +144,8 @@ const links: Record<string, Link> = {
     },
   },
   'link-1-3': {
-    source: 'child-1',
-    target: 'child-3',
+    source: { id: 'child-1' },
+    target: { id: 'child-3' },
     z: 2,
     color: LINK_COLOR,
     width: 1,
@@ -155,8 +155,8 @@ const links: Record<string, Link> = {
     },
   },
   'link-4-5': {
-    source: 'child-4',
-    target: 'child-5',
+    source: { id: 'child-4' },
+    target: { id: 'child-5' },
     z: 4,
     color: LINK_COLOR,
     width: 1,
@@ -166,8 +166,8 @@ const links: Record<string, Link> = {
     },
   },
   'link-1-b': {
-    source: 'child-1',
-    target: 'container-b',
+    source: { id: 'child-1' },
+    target: { id: 'container-b' },
     z: 4,
     color: LINK_COLOR,
     width: 1,

@@ -28,20 +28,16 @@ const initialElements: Record<string, Element<ElementData>> = {
 };
 
 const initialLinks: Record<string, Link> = {
-  'a-b': { source: 'a', target: 'b', sourcePort: 'out', targetPort: 'in' },
-  'a-c': { source: 'a', target: 'c', sourcePort: 'out', targetPort: 'in' },
+  'a-b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
+  'a-c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b-d': {
-    source: 'b',
-    target: 'd',
-    sourcePort: 'out',
-    targetPort: 'in',
+    source: { id: 'b', port: 'out' },
+    target: { id: 'd', port: 'in' },
     labels: { status: { text: 'approved' } },
   },
   'c-d': {
-    source: 'c',
-    target: 'd',
-    sourcePort: 'out',
-    targetPort: 'in',
+    source: { id: 'c', port: 'out' },
+    target: { id: 'd', port: 'in' },
     labels: { status: { text: 'pending' } },
   },
 };

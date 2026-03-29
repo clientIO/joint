@@ -11,6 +11,7 @@ import {
   type Link,
 } from '@joint/react';
 import { Paper } from '../../../components/paper/paper';
+import type { PortalLinkRecord } from '../../../types/data-types';
 
 type ElementData = { label: string; color: string };
 const initialElements: Record<string, Element<ElementData>> = {
@@ -73,15 +74,14 @@ function Main() {
   );
 }
 
-interface CustomLink extends Link {
-  readonly [key: string]: unknown;
+interface CustomLink extends PortalLinkRecord {
   readonly color: string;
 }
 
 const links: Record<string, CustomLink> = {
   '1123': {
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
     color: PRIMARY,
   },
 };

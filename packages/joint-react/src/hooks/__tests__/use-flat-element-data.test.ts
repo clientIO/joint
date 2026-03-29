@@ -163,7 +163,7 @@ describe('useFlatElementData', () => {
     expect(cellData).not.toHaveProperty('ports');
   });
 
-  it('preserves user-provided keys that overlap with defaults in cell.data', () => {
+  it('preserves user-provided style when it overlaps with defaults', () => {
     const { result } = renderHook(() =>
       useElementDefaults({ portStyle: { color: 'red' } })
     );
@@ -172,10 +172,9 @@ describe('useFlatElementData', () => {
       position: { x: 10, y: 20 },
       size: { width: 100, height: 50 },
       portStyle: { color: 'blue' },
-    } as Element);
-    const cellData = cellJson.data as Record<string, unknown>;
+    });
 
-    expect(cellData).toHaveProperty('portStyle');
+    expect(cellJson.presentation).toMatchObject({ portStyle: { color: 'blue' } });
   });
 
   // ── Memoization ────────────────────────────────────────────────────────
@@ -253,9 +252,8 @@ describe('useFlatElementData', () => {
     );
     const cellJson = callForwardMapper(result.current, {
       ...minimalElementData,
-      portStyle: { color: '#00ff00' },
-      ports: { p1: { cx: 0, cy: 0 } },
-    } as Element);
+      portStyle: { color: '#00ff00' }, ports: { p1: { cx: 0, cy: 0 } },
+    });
 
     const portItem = (cellJson.ports as { items: Array<Record<string, unknown>> })?.items[0];
     const portBody = (portItem?.attrs as Record<string, Record<string, any>>)?.portBody;

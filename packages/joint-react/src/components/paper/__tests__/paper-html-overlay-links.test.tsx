@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { render, waitFor, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, useGraph, type FlatElementData, type FlatLinkData } from '../../../index';
+import { GraphProvider, Paper, useGraph, type FlatElementData, type Link } from '../../../index';
 import { useCallback } from 'react';
 import { useElementData } from '../../../hooks/use-element-data';
 
@@ -18,11 +18,11 @@ function TestElementRenderer() {
   return <div className="html-node">{data?.label}</div>;
 }
 
-const links: Record<string, FlatLinkData> = {
+const links: Record<string, Link> = {
   'link-1': {
     data: {},
-    source: '1',
-    target: '2',
+    source: { id: '1' },
+    target: { id: '2' },
   },
 };
 

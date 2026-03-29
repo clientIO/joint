@@ -10,7 +10,7 @@ import type { dia } from '@joint/core';
 import { usePaperStore } from './use-paper';
 
 /** Link data resolved for the current paper — `layout` is the single paper's `LinkLayout`. */
-export type ResolvedLink<D extends object | undefined = undefined> = Omit<Link<D>, 'layout'> & {
+export type ResolvedLink<D extends object | undefined = undefined> = Link<D> & {
   layout: LinkLayout;
 };
 
@@ -47,10 +47,8 @@ export function useLink<D extends object | undefined = undefined, R = ResolvedLi
   const {
     graphView: { links },
   } = useGraphStore<undefined, D>();
-  console.log('render-use-link', id);
   // Wrap the user selector to resolve layout live from the paper view
   const resolvedSelector = (item: Link<D>): R => {
-    console.log('called use-link resolvedSelector');
     const { ...rest } = item;
 
     // Read layout directly from the paper's link view — always fresh.

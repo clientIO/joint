@@ -49,13 +49,13 @@ const initialElements: Record<string, Element<CenterElement>> = {
 
 const initialLinks: Record<string, Link> = {
   'link-1': {
-    source: 'node-1',
-    target: 'node-2',
+    source: { id: 'node-1' },
+    target: { id: 'node-2' },
     color: PRIMARY,
   },
   'link-2': {
-    source: 'node-1',
-    target: 'node-3',
+    source: { id: 'node-1' },
+    target: { id: 'node-3' },
     color: PRIMARY,
   },
 };

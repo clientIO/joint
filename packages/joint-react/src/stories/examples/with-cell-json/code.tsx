@@ -1,5 +1,5 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { util, type dia } from '@joint/core';
+import { shapes, util, dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
@@ -8,8 +8,10 @@ import {
   type Link,
   type RenderElement,
   useElements,
+  useElementSize,
+  PortalElement,
 } from '@joint/react';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 // ============================================================================
 // Types
@@ -22,145 +24,90 @@ const SECONDARY = '#6366f1';
  * with custom properties (`label`, `color`) at the top level.
  * The mapper is near-identity.
  */
-interface CellJsonElement {
+interface ElementData {
   readonly [key: string]: unknown;
-  readonly type: string;
-  readonly position: { x: number; y: number };
-  readonly size: { width: number; height: number };
   readonly label: string;
   readonly color: string;
 }
 
-interface CellJsonLink {
-  readonly [key: string]: unknown;
-  readonly type: string;
-}
+// eslint-disable-next-line sonarjs/redundant-type-aliases
+type LinkData = undefined;
 
 // ============================================================================
 // Data
 // ============================================================================
 
-const initialElements: Record<string, Element<CellJsonElement>> = {
+const initialElements: Record<string, Element<ElementData>> = {
   'node-1': {
+    position: { x: 70, y: 100 },
+    size: { width: 160, height: 60 },
+    type: 'MyPortalElement',
     data: {
-      type: 'PortalElement',
-      position: { x: 70, y: 100 },
-      size: { width: 160, height: 60 },
       label: 'Node 1',
       color: PRIMARY,
     },
   },
   'node-2': {
+    position: { x: 370, y: 70 },
+    size: { width: 160, height: 60 },
+    type: 'MyPortalElement',
     data: {
-      type: 'PortalElement',
-      position: { x: 370, y: 70 },
-      size: { width: 160, height: 60 },
       label: 'Node 2',
       color: SECONDARY,
     },
   },
   'node-3': {
+    position: { x: 220, y: 250 },
+    size: { width: 160, height: 60 },
+    type: 'MyPortalElement',
     data: {
-      type: 'PortalElement',
-      position: { x: 220, y: 250 },
-      size: { width: 160, height: 60 },
       label: 'Node 3',
       color: '#10b981',
     },
   },
 };
 
-const initialLinks: Record<string, Link<CellJsonLink>> = {
+const initialLinks: Record<string, Link<LinkData>> = {
   'link-1': {
-    data: {
-      type: 'PortalLink',
-    },
-    source: 'node-1',
-    target: 'node-2',
+    type: 'standard.Link',
+    source: { id: 'node-1' },
+    target: { id: 'node-2' },
+    labels: [{ attrs: { text: { text: 'Link 1' } } }],
   },
   'link-2': {
-    data: {
-      type: 'PortalLink',
-    },
-    source: 'node-1',
-    target: 'node-3',
+    type: 'standard.Link',
+    source: { id: 'node-1' },
+    target: { id: 'node-3' },
+    labels: [{ attrs: { text: { text: 'Link 1' } } }],
   },
 };
-
-// ============================================================================
-// Identity Mappers: data IS JointJS cell JSON
-// ============================================================================
 
 // Derive pick keys from the user data so the reverse mappers stay in sync
 // with the types automatically — add a property to the data and it flows through.
-const ELEMENT_KEYS = Object.keys(Object.values(initialElements)[0].data as object);
-const LINK_USER_DATA_KEYS = Object.keys(Object.values(initialLinks)[0].data as object);
-
-/**
- * Forward mapper: unwrap user data from the `data` field and pass it as cell JSON.
- * The store handles `id` automatically.
- */
-const mapElementToAttributes = ({
-  element,
-}: {
-  id: string;
-  element: Element<CellJsonElement>;
-}): dia.Cell.JSON => {
-  const userData = element.data ?? {};
-  return { ...userData } as unknown as dia.Cell.JSON;
-};
+const ELEMENT_KEYS = Object.keys(Object.values(initialElements)[0]);
+const LINK_KEYS = Object.keys(Object.values(initialLinks)[0] as object);
 
 /**
  * Reverse mapper: pick only the keys defined in the data format.
  * Wraps custom fields in `data` so useElementData() can access them.
  */
-const mapAttributesToElement = (attributes: dia.Element.Attributes): Element<CellJsonElement> => {
-  const picked = util.pick(attributes, ELEMENT_KEYS) as CellJsonElement;
-  return {
-    data: picked,
-    position: picked.position,
-    size: picked.size,
-  } as Element<CellJsonElement>;
-};
-
-/**
- * Forward mapper for links: data is already cell JSON — pass it through as-is.
- * The store handles `id` automatically.
- */
-const mapLinkToAttributes = ({
-  id,
-  link,
-}: {
-  id?: string;
-  link: Link<CellJsonLink>;
-}): dia.Cell.JSON => {
-  const userData = link.data ?? {};
-  return {
-    ...userData,
-    source: link.source,
-    target: link.target,
-    id,
-  } as unknown as dia.Cell.JSON;
+const mapAttributesToElement = (options: { element: Element<ElementData> }): dia.Element.Attributes => {
+  return util.pick(options.element, ELEMENT_KEYS);
 };
 
 /**
  * Reverse mapper: pick only the keys defined in the data format.
  */
-const mapAttributesToLink = (attributes: dia.Link.Attributes): Link<CellJsonLink> => {
-  const userData = util.pick(attributes, LINK_USER_DATA_KEYS) as CellJsonLink;
-  return {
-    data: userData,
-    source: attributes.source as string,
-    target: attributes.target as string,
-  } as Link<CellJsonLink>;
+const mapAttributesToLink = (options: { link: Link<LinkData> }): dia.Link.Attributes => {
+  return util.pick(options.link, LINK_KEYS);
 };
 
 // ============================================================================
 // Element Shape
 // ============================================================================
 
-function ElementShape({ label, color, size }: Readonly<CellJsonElement>) {
-  const { width = 160, height = 60 } = size ?? {};
+function ElementShape({ label, color }: Readonly<ElementData>) {
+  const { width, height } = useElementSize();
   return (
     <>
       <rect
@@ -192,7 +139,7 @@ function ElementShape({ label, color, size }: Readonly<CellJsonElement>) {
 // ============================================================================
 
 function DataPanel() {
-  const elements = useElements<CellJsonElement>();
+  const elements = useElements<ElementData>();
   return (
     <div className="p-4 min-w-[200px] text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Cell JSON Data</h3>
@@ -207,7 +154,7 @@ function DataPanel() {
           <div className="text-gray-400 text-xs mt-1">
             size: {element.size?.width ?? 0} &times; {element.size?.height ?? 0}
           </div>
-          <div className="text-gray-400 text-xs">type: {element.data?.type}</div>
+          <div className="text-gray-400 text-xs">type: {element.type}</div>
         </div>
       ))}
     </div>
@@ -221,7 +168,7 @@ function DataPanel() {
 const PAPER_STYLE = { flex: 1 };
 
 function Main() {
-  const renderElement: RenderElement<CellJsonElement> = useCallback(
+  const renderElement: RenderElement<ElementData> = useCallback(
     (props) => <ElementShape {...props} />,
     []
   );
@@ -243,13 +190,20 @@ function Main() {
 // ============================================================================
 
 export default function App() {
+  const graph = useMemo(() => {
+    return new dia.Graph({}, {
+      cellNamespace: {
+        ...shapes,
+        MyPortalElement: PortalElement,
+      }
+    });
+  }, []);
   return (
     <GraphProvider
+      graph={graph}
       elements={initialElements}
       links={initialLinks}
-      mapElementToAttributes={mapElementToAttributes}
-      mapAttributesToElement={mapAttributesToElement}
-      mapLinkToAttributes={mapLinkToAttributes}
+      mapElementToAttributes={mapAttributesToElement}
       mapAttributesToLink={mapAttributesToLink}
     >
       <Main />

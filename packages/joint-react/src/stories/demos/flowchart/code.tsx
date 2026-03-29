@@ -63,8 +63,6 @@ const LINK_OPTIONS: Partial<Link> = {
   width: 2,
   className: 'jj-flow-line link',
   wrapperClassName: 'jj-flow-outline',
-  sourceMagnet: 'body',
-  targetMagnet: 'body',
   targetMarker: {
     d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z`,
     class: 'jj-flow-arrowhead',
@@ -110,102 +108,78 @@ const flowchartLinks: Record<string, Link> = {
   // start(50,40) → addToCart(200,40): horizontal right
   flow1: {
     ...LINK_OPTIONS,
-    source: 'start',
-    target: 'addToCart',
-    sourceAnchor: RIGHT,
-    targetAnchor: LEFT,
+    source: { id: 'start', magnet: 'body', anchor: RIGHT },
+    target: { id: 'addToCart', magnet: 'body', anchor: LEFT },
   },
   // addToCart(200,40) → checkoutItems(350,40): horizontal right
   flow2: {
     ...LINK_OPTIONS,
-    source: 'addToCart',
-    target: 'checkoutItems',
-    sourceAnchor: RIGHT,
-    targetAnchor: LEFT,
+    source: { id: 'addToCart', magnet: 'body', anchor: RIGHT },
+    target: { id: 'checkoutItems', magnet: 'body', anchor: LEFT },
   },
   // checkoutItems(350,40) → addShippingInfo(500,40): horizontal right
   flow3: {
     ...LINK_OPTIONS,
-    source: 'checkoutItems',
-    target: 'addShippingInfo',
-    sourceAnchor: RIGHT,
-    targetAnchor: LEFT,
+    source: { id: 'checkoutItems', magnet: 'body', anchor: RIGHT },
+    target: { id: 'addShippingInfo', magnet: 'body', anchor: LEFT },
   },
   // addShippingInfo(500,40) → addPaymentInfo(500,140): vertical down
   flow4: {
     ...LINK_OPTIONS,
-    source: 'addShippingInfo',
-    target: 'addPaymentInfo',
-    sourceAnchor: BOTTOM,
-    targetAnchor: TOP,
+    source: { id: 'addShippingInfo', magnet: 'body', anchor: BOTTOM },
+    target: { id: 'addPaymentInfo', magnet: 'body', anchor: TOP },
   },
   // addPaymentInfo(500,140) → validPayment(500,250): vertical down
   flow5: {
     ...LINK_OPTIONS,
-    source: 'addPaymentInfo',
-    target: 'validPayment',
-    sourceAnchor: BOTTOM,
-    targetAnchor: TOP,
+    source: { id: 'addPaymentInfo', magnet: 'body', anchor: BOTTOM },
+    target: { id: 'validPayment', magnet: 'body', anchor: TOP },
   },
   // validPayment(500,250) → presentErrorMessage(750,350): down-right
   flow6: {
     ...LINK_OPTIONS,
-    source: 'validPayment',
-    target: 'presentErrorMessage',
+    source: { id: 'validPayment', magnet: 'body', anchor: BOTTOM },
+    target: { id: 'presentErrorMessage', magnet: 'body', anchor: LEFT },
     labels: { no: { ...LABEL, text: 'No' } },
-    sourceAnchor: BOTTOM,
-    targetAnchor: LEFT,
   },
   // presentErrorMessage(750,350) → addPaymentInfo(500,140): up-left
   flow7: {
     ...LINK_OPTIONS,
-    source: 'presentErrorMessage',
-    target: 'addPaymentInfo',
-    sourceAnchor: TOP,
-    targetAnchor: RIGHT,
+    source: { id: 'presentErrorMessage', magnet: 'body', anchor: TOP },
+    target: { id: 'addPaymentInfo', magnet: 'body', anchor: RIGHT },
   },
   // validPayment(500,250) → sendOrder(200,250): horizontal left
   flow8: {
     ...LINK_OPTIONS,
-    source: 'validPayment',
-    target: 'sendOrder',
+    source: { id: 'validPayment', magnet: 'body', anchor: LEFT },
+    target: { id: 'sendOrder', magnet: 'body', anchor: RIGHT },
     labels: { yes: { ...LABEL, text: 'Yes' } },
-    sourceAnchor: LEFT,
-    targetAnchor: RIGHT,
   },
   // sendOrder(200,250) → packOrder(40,350): down-left
   flow9: {
     ...LINK_OPTIONS,
-    source: 'sendOrder',
-    target: 'packOrder',
-    sourceAnchor: LEFT,
-    targetAnchor: TOP,
+    source: { id: 'sendOrder', magnet: 'body', anchor: LEFT },
+    target: { id: 'packOrder', magnet: 'body', anchor: TOP },
   },
   // packOrder(40,350) → qualityCheck(200,460): down-right
   flow10: {
     ...LINK_OPTIONS,
-    source: 'packOrder',
-    target: 'qualityCheck',
-    sourceAnchor: BOTTOM,
-    targetAnchor: LEFT,
+    source: { id: 'packOrder', magnet: 'body', anchor: BOTTOM },
+    target: { id: 'qualityCheck', magnet: 'body', anchor: LEFT },
   },
   // qualityCheck(200,460) → shipItems(500,460): horizontal right
   flow11: {
     ...LINK_OPTIONS,
-    source: 'qualityCheck',
-    target: 'shipItems',
+    source: { id: 'qualityCheck', magnet: 'body', anchor: RIGHT },
+    target: { id: 'shipItems', magnet: 'body', anchor: LEFT },
     labels: { ok: { ...LABEL, text: 'Ok' } },
-    sourceAnchor: RIGHT,
-    targetAnchor: LEFT,
   },
   // qualityCheck(200,460) → sendOrder(200,250): vertical up
   flow12: {
     ...LINK_OPTIONS,
-    source: 'qualityCheck',
-    target: 'sendOrder',
+    source: { id: 'qualityCheck', magnet: 'body', anchor: TOP },
+    target: { id: 'sendOrder', magnet: 'body', anchor: BOTTOM },
     labels: { notOk: { ...LABEL, text: 'Not Ok' } },
-    sourceAnchor: TOP,
-    targetAnchor: BOTTOM,
   },
 };
 

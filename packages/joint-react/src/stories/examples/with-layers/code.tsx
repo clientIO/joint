@@ -60,15 +60,15 @@ const elements: Record<string, Element<LayeredElementData>> = {
 // Links assigned to layers
 const links: Record<string, Link> = {
   'link-1': {
-    source: 'main-1',
-    target: 'main-2',
+    source: { id: 'main-1' },
+    target: { id: 'main-2' },
     color: PRIMARY,
     layer: 'main',
     className: 'fade-in',
   },
   'link-2': {
-    source: 'main-2',
-    target: 'fg-1',
+    source: { id: 'main-2' },
+    target: { id: 'fg-1' },
     color: SECONDARY,
     layer: 'foreground',
     className: 'fade-in',
