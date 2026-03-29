@@ -1325,7 +1325,7 @@ describe('Paper Component', () => {
       expect(createdLink.getTargetCell()?.id).toBe(TARGET_ELEMENT_ID);
     });
 
-    it('supports defaultLink as FlatLinkData object when dragging between ports', async () => {
+    it('supports defaultLink as LinkRecord object when dragging between ports', async () => {
       const defaultLinkData: Partial<AnyLinkRecord> = {
         data: { customProperty: 'flat-link-default' },
         color: '#ff5500',
@@ -1369,7 +1369,7 @@ describe('Paper Component', () => {
       );
     });
 
-    it('supports defaultLink callback returning FlatLinkData when dragging between ports', async () => {
+    it('supports defaultLink callback returning LinkRecord when dragging between ports', async () => {
       const defaultLinkCallback = jest.fn(
         (_cellView: dia.CellView, _magnet: SVGElement): Partial<AnyLinkRecord> => ({
           data: { customProperty: 'callback-flat-link-default' },
