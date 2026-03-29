@@ -1,7 +1,6 @@
 
-
 import { type dia } from '@joint/core';
-import type { ElementRecord, PortalElementRecord } from '../../types/data-types';
+import type { ElementRecord, ElementPort } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -17,11 +16,11 @@ function isElementData(data: unknown): data is ElementRecord {
 }
 
 /**
- * Forward mapper: converts an Element record to JointJS cell attributes.
- * @param options
- * @param options.id
- * @param options.element
- * @returns Cell attributes for the given element, with user data wrapped in `data` field for PortalElement.
+ * Forward mapper: converts an ElementRecord to JointJS cell attributes.
+ *
+ * - `portMap` → converted to native `ports`, stored as `portMap` on the model for reverse mapping.
+ * - `ports` → passed through as-is (native JointJS format).
+ * - Both present → throws an error.
  */
 export function elementToAttributes<ElementData extends object = Record<string, unknown>>(options: {
   id: string;
@@ -33,27 +32,19 @@ export function elementToAttributes<ElementData extends object = Record<string, 
   }
 
   const {
-      type = PORTAL_ELEMENT_TYPE,
+    data = {} as ElementData,
+    portMap,
+    portStyle,
+    type = PORTAL_ELEMENT_TYPE,
+    ...cellAttributes
   } = element;
 
-  if (type !== PORTAL_ELEMENT_TYPE) {
-    // For non-portal elements, the element record is a cell JSON with optional `data`.
-    // Note: `presentation` is not supported on non-portal elements.
-    return element as CellAttributes;
+  if (portMap && element.ports) {
+    throw new Error('Cannot use both "portMap" and "ports" on the same element.');
   }
 
-  // PortalElement mapping
-  const portalElement = element as PortalElementRecord;
-
-  const {
-    data = {} as ElementData,
-    ports,
-    portStyle,
-    ...cellAttributes
-  } = portalElement;
-
   const presentation: Record<string, unknown> = {};
-  if (ports) presentation.ports = ports;
+  if (portMap) presentation.portMap = portMap;
   if (portStyle) presentation.portStyle = portStyle;
 
   const attributes: CellAttributes = {
@@ -63,43 +54,36 @@ export function elementToAttributes<ElementData extends object = Record<string, 
     presentation,
   };
 
-  if (ports) {
-    attributes.ports = convertPorts(ports, portStyle);
+  if (portMap) {
+    attributes.ports = convertPorts(portMap, portStyle);
     attributes.portDefaults = createPortGroupsDefault();
+    attributes.portMap = portMap;
   }
 
   return attributes;
 }
 
 /**
- * Converts JointJS element attributes back to Element record.
- * Public utility — purely mechanical, no defaultAttributes filtering.
- * @param attributes - The JointJS element attributes.
- * @returns The element item with user data in `data` field.
+ * Converts JointJS element attributes back to an ElementRecord.
+ *
+ * - `portMap` on model → return `portMap` (ignore native `ports`).
+ * - No `portMap` → return `ports` as-is.
  */
 export function attributesToElement<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
 
-  const { type } = attributes;
-  if (type !== PORTAL_ELEMENT_TYPE) {
-    // For non-portal elements, we treat the entire attributes as the element record with optional `data`.
-    return attributes as ElementRecord<ElementData>;
-  }
-
-  // PortalElement mapping
-
   const {
     data,
     presentation,
-    // Supported JointJS element attributes that we want to include
-    // in the portal element record
+    portMap,
     position,
     size,
     angle,
     z,
     layer,
     parent,
+    type,
   } = attributes;
 
   const elementRecord: ElementRecord<ElementData> = {
@@ -110,15 +94,21 @@ export function attributesToElement<ElementData extends object = Record<string, 
     angle,
     z,
     layer,
-    parent
+    parent,
   };
 
-  // @todo what about attributes such a `stackIndex` or `direction` used in
-  // automatic layouts. If we put them inside the `data` field, they trigger
-  // unnecessary re-renders when they change. But if we put them at the top level,
-  // they get lost when converting back and forth between attributes and element.
+  // If portMap exists on the model, return it (ignore native ports).
+  if (portMap) {
+    elementRecord.portMap = portMap;
+  } else if (attributes.ports) {
+    elementRecord.ports = attributes.ports;
+  }
 
-  // Filter out undefined values.
+  // Only include type if it's not the default portal type.
+  if (type && type !== PORTAL_ELEMENT_TYPE) {
+    elementRecord.type = type;
+  }
+
   return { ...elementRecord };
 }
 

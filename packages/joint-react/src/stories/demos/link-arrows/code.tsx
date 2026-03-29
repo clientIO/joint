@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from 'react';
 import { dia, util } from '@joint/core';
-import type { PortalLinkRecord, LinkMarker } from '@joint/react';
+import type { LinkRecord, LinkMarker } from '@joint/react';
 import { GraphProvider, Paper, usePaperEvents, usePaper, jsx } from '@joint/react';
 import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
 
@@ -382,8 +382,8 @@ const LINKS_PER_ROW = 10;
 const LINK_BBOX_WIDTH = 40;
 const LINK_BBOX_HEIGHT = 100;
 
-function buildLinks(): Record<string, PortalLinkRecord> {
-  const links: Record<string, PortalLinkRecord> = {};
+function buildLinks(): Record<string, LinkRecord> {
+  const links: Record<string, LinkRecord> = {};
   for (const [index, marker] of markers.entries()) {
     const col = index % LINKS_PER_ROW;
     const row = Math.floor(index / LINKS_PER_ROW);
@@ -392,10 +392,12 @@ function buildLinks(): Record<string, PortalLinkRecord> {
     links[`marker-${index + 1}`] = {
       source: { x, y },
       target: { x: x + LINK_BBOX_WIDTH, y: y + LINK_BBOX_HEIGHT },
-      color: FG_COLOR,
-      width: 2,
-      sourceMarker: marker,
-      targetMarker: marker,
+      style: {
+        color: FG_COLOR,
+        width: 2,
+        sourceMarker: marker,
+        targetMarker: marker,
+      },
     };
   }
   return links;

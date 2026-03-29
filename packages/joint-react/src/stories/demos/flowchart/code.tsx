@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { PortalElementRecord, PortalLinkRecord, PortalLinkLabel, RenderElement, TransformOptions } from '@joint/react';
+import type { ElementRecord, LinkRecord, LinkLabel, RenderElement, TransformOptions } from '@joint/react';
 import { GraphProvider, Paper, useMarkup, useMeasureNode, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
@@ -20,7 +20,7 @@ type NodeElementData = {
   readonly cy: number;
 };
 
-const flowchartNodes: Record<string, PortalElementRecord<NodeElementData>> = {
+const flowchartNodes: Record<string, ElementRecord<NodeElementData>> = {
   start: { data: { label: 'Start', type: 'start', cx: 60, cy: 40 } },
   addToCart: {
     data: { label: 'Add to Cart', type: 'step', cx: 195, cy: 40 },
@@ -58,14 +58,16 @@ const BOTTOM = { name: 'bottom', args: { useModelGeometry: true } } as const;
 const LEFT = { name: 'left', args: { useModelGeometry: true } } as const;
 const RIGHT = { name: 'right', args: { useModelGeometry: true } } as const;
 
-const LINK_OPTIONS: Partial<PortalLinkRecord> = {
+const LINK_OPTIONS: Partial<LinkRecord> = {
   z: 2,
-  width: 2,
-  className: 'jj-flow-line link',
-  wrapperClassName: 'jj-flow-outline',
-  targetMarker: {
-    d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z`,
-    class: 'jj-flow-arrowhead',
+  style: {
+    width: 2,
+    className: 'jj-flow-line link',
+    wrapperClassName: 'jj-flow-outline',
+    targetMarker: {
+      d: `M 0 0 L ${2 * unit} ${unit} L ${2 * unit} -${unit} Z`,
+      class: 'jj-flow-arrowhead',
+    },
   },
 };
 
@@ -94,7 +96,7 @@ function bevelRectPath(px: number, py: number, bv: number): string {
   ].join(' ');
 }
 
-const LABEL: PortalLinkLabel = {
+const LABEL: LinkLabel = {
   text: '',
   className: 'jj-flow-label-text',
   backgroundClassName: 'jj-flow-label-body',
@@ -104,7 +106,7 @@ const LABEL: PortalLinkLabel = {
   backgroundShape: bevelRectPath(labelPx, labelPy, bevel),
 };
 
-const flowchartLinks: Record<string, PortalLinkRecord> = {
+const flowchartLinks: Record<string, LinkRecord> = {
   // start(50,40) → addToCart(200,40): horizontal right
   flow1: {
     ...LINK_OPTIONS,
@@ -140,7 +142,7 @@ const flowchartLinks: Record<string, PortalLinkRecord> = {
     ...LINK_OPTIONS,
     source: { id: 'validPayment', magnet: 'body', anchor: BOTTOM },
     target: { id: 'presentErrorMessage', magnet: 'body', anchor: LEFT },
-    labels: { no: { ...LABEL, text: 'No' } },
+    labelMap: { no: { ...LABEL, text: 'No' } },
   },
   // presentErrorMessage(750,350) → addPaymentInfo(500,140): up-left
   flow7: {
@@ -153,7 +155,7 @@ const flowchartLinks: Record<string, PortalLinkRecord> = {
     ...LINK_OPTIONS,
     source: { id: 'validPayment', magnet: 'body', anchor: LEFT },
     target: { id: 'sendOrder', magnet: 'body', anchor: RIGHT },
-    labels: { yes: { ...LABEL, text: 'Yes' } },
+    labelMap: { yes: { ...LABEL, text: 'Yes' } },
   },
   // sendOrder(200,250) → packOrder(40,350): down-left
   flow9: {
@@ -172,14 +174,14 @@ const flowchartLinks: Record<string, PortalLinkRecord> = {
     ...LINK_OPTIONS,
     source: { id: 'qualityCheck', magnet: 'body', anchor: RIGHT },
     target: { id: 'shipItems', magnet: 'body', anchor: LEFT },
-    labels: { ok: { ...LABEL, text: 'Ok' } },
+    labelMap: { ok: { ...LABEL, text: 'Ok' } },
   },
   // qualityCheck(200,460) → sendOrder(200,250): vertical up
   flow12: {
     ...LINK_OPTIONS,
     source: { id: 'qualityCheck', magnet: 'body', anchor: TOP },
     target: { id: 'sendOrder', magnet: 'body', anchor: BOTTOM },
-    labels: { notOk: { ...LABEL, text: 'Not Ok' } },
+    labelMap: { notOk: { ...LABEL, text: 'Not Ok' } },
   },
 };
 

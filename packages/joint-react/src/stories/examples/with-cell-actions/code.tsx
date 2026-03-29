@@ -6,8 +6,6 @@ import {
   Paper,
   useGraph,
   useMeasureNode,
-  type PortalElementRecord,
-  type PortalLinkRecord,
   type ElementRecord,
   type LinkRecord,
   useElements,
@@ -25,7 +23,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, PortalElementRecord<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node A', color: PRIMARY },
     position: { x: 50, y: 50 },
@@ -43,7 +41,7 @@ const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-1-2': {
     source: { id: '1' },
     target: { id: '2' },

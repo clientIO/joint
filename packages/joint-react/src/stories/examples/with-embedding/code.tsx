@@ -8,7 +8,6 @@ import {
   useElements,
   useGraph,
   useGraphEvents,
-  type PortalElementRecord,
   type ElementRecord,
 } from '@joint/react';
 import { useState } from 'react';
@@ -17,7 +16,7 @@ import { useState } from 'react';
 // Data
 // ============================================================================
 type Data = { label: string };
-const initialElements: Record<string, PortalElementRecord<Data>> = {
+const initialElements: Record<string, ElementRecord<Data>> = {
   container: {
     data: {
       label: 'Container',

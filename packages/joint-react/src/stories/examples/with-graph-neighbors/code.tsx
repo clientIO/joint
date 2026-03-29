@@ -9,8 +9,8 @@ import {
   useGraph,
   useMarkup,
   usePaperEvents,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -26,7 +26,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, PortalElementRecord<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   server: {
     data: { label: 'Server' },
     position: { x: 300, y: 30 },
@@ -69,56 +69,56 @@ const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'l-server-db': {
     source: { id: 'server' },
     target: { id: 'db' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
   'l-server-cache': {
     source: { id: 'server' },
     target: { id: 'cache' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
   'l-server-api': {
     source: { id: 'server' },
     target: { id: 'api' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
   'l-db-auth': {
     source: { id: 'db' },
     target: { id: 'auth' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
   'l-cache-api': {
     source: { id: 'cache' },
     target: { id: 'api' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
   'l-auth-worker': {
     source: { id: 'auth' },
     target: { id: 'worker' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
   'l-api-queue': {
     source: { id: 'api' },
     target: { id: 'queue' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
   'l-worker-logs': {
     source: { id: 'worker' },
     target: { id: 'logs' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
   'l-queue-logs': {
     source: { id: 'queue' },
     target: { id: 'logs' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
   'l-db-cache': {
     source: { id: 'db' },
     target: { id: 'cache' },
-    color: LIGHT,
+    style: { color: LIGHT },
   },
 };
 

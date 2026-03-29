@@ -3,7 +3,7 @@
 import { dia, shapes } from '@joint/core';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
-import type { ElementRecord, PortalElementPort, LinkRecord } from '../../types/data-types';
+import type { ElementRecord, ElementPort, LinkRecord } from '../../types/data-types';
 import {
   elementToAttributes,
   linkToAttributes,
@@ -28,7 +28,7 @@ describe('dataMapper', () => {
   describe('element round-trip', () => {
     it('should convert ElementInput to JointJS and back', () => {
       const id = 'el-1';
-      const element: ElementRecord<undefined> = { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } };
+      const element: ElementRecord = { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.position).toEqual({ x: 10, y: 20 });
@@ -87,13 +87,13 @@ describe('dataMapper', () => {
         data: { label: 'Node 1' },
         position: { x: 100, y: 50 },
         size: { width: 150, height: 60 },
-        ports: { p1: { cx: 0, cy: '50%' } },
+        portMap: { p1: { cx: 0, cy: '50%' } },
       };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.position).toEqual({ x: 100, y: 50 });
       expect(cellJson.data).toMatchObject({ label: 'Node 1' });
-      expect(cellJson.presentation).toMatchObject({ ports: { p1: { cx: 0, cy: '50%' } } });
+      expect(cellJson.presentation).toMatchObject({ portMap: { p1: { cx: 0, cy: '50%' } } });
 
       graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
@@ -101,13 +101,13 @@ describe('dataMapper', () => {
 
       expect(result).toHaveProperty('data.label', 'Node 1');
       // Ports are available at top level
-      expect(result).toHaveProperty('ports');
+      expect(result).toHaveProperty('portMap');
     });
   });
 
   describe('element ports conversion', () => {
     it('should convert simplified ports to JointJS format', () => {
-      const ports: Record<string, PortalElementPort> = {
+      const ports: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
       };
       const id = 'el-1';
@@ -121,7 +121,7 @@ describe('dataMapper', () => {
     });
 
     it('should convert port with label', () => {
-      const ports: Record<string, PortalElementPort> = {
+      const ports: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
       };
       const id = 'el-1';
@@ -135,7 +135,7 @@ describe('dataMapper', () => {
     });
 
     it('should handle rect shape ports', () => {
-      const ports: Record<string, PortalElementPort> = {
+      const ports: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
       };
       const id = 'el-1';
@@ -227,7 +227,7 @@ describe('dataMapper', () => {
       const link: LinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
-        labels: {
+        labelMap: {
           lbl1: { text: 'Yes', position: 0.3 },
           lbl2: { text: 'No', position: 0.7, offset: 20 },
         },
@@ -247,7 +247,7 @@ describe('dataMapper', () => {
       const link: LinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
-        labels: {
+        labelMap: {
           lbl1: { text: 'Yes', position: 0.3 },
         },
       };
@@ -262,8 +262,8 @@ describe('dataMapper', () => {
       cell.labels(labels);
 
       const result = attributesToLink(cell.attributes);
-      expect(result.labels).toBeDefined();
-      expect(result.labels!['lbl1']).toMatchObject({ text: 'Yes', position: 0.6, offset: 15 });
+      expect(result.labelMap).toBeDefined();
+      expect(result.labelMap!['lbl1']).toMatchObject({ text: 'Yes', position: 0.6, offset: 15 });
     });
 
     it('should handle source/target with ports', () => {

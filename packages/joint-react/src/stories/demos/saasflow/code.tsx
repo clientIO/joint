@@ -7,8 +7,8 @@ import {
   useMeasureNode,
   useElementDefaults,
   useLinkDefaults,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 
 import type { dia } from '@joint/core';
@@ -72,7 +72,7 @@ type SaasNodeData = {
   readonly progress?: number;
 };
 
-type SaasNode = PortalElementRecord<SaasNodeData>;
+type SaasNode = ElementRecord<SaasNodeData>;
 
 const PORT_R = 5;
 
@@ -111,14 +111,13 @@ const initialElements: Record<string, SaasNode> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'client-pm': {
     source: { id: 'client', port: 'out' },
     target: { id: 'pm', port: 'in' },
-    width: 2,
+    style: { width: 2, targetMarker: 'none' },
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
-    targetMarker: 'none',
-    labels: {
+    labelMap: {
       assigns: {
         text: 'Assigns',
         fontSize: 10,
@@ -130,15 +129,17 @@ const initialLinks: Record<string, PortalLinkRecord> = {
   'pm-designer': {
     source: { id: 'pm', port: 'out' },
     target: { id: 'designer', port: 'in' },
-    width: 2,
-    connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
-    dasharray: '6,4',
-    targetMarker: {
-      d: 'M 0 -4 L 8 0 L 0 4 Z',
-      fill: 'context-stroke',
-      stroke: 'none',
+    style: {
+      width: 2,
+      dasharray: '6,4',
+      targetMarker: {
+        d: 'M 0 -4 L 8 0 L 0 4 Z',
+        fill: 'context-stroke',
+        stroke: 'none',
+      },
     },
-    labels: {
+    connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
+    labelMap: {
       delegates: {
         text: 'Delegates',
         fontSize: 10,
@@ -435,7 +436,7 @@ function Main() {
 
   const elementDefaults = useElementDefaults<SaasNodeData>(
     {
-      ports: {
+      portMap: {
         out: {
           cx: 'calc(0.5 * w)',
           cy: 'calc(h)',
@@ -462,7 +463,7 @@ function Main() {
 
   const linkDefaults = useLinkDefaults(
     {
-      color: theme.link,
+      style: { color: theme.link },
       labelStyle: {
         color: theme.sub,
         backgroundColor: theme.canvas,
@@ -498,7 +499,7 @@ function Main() {
           args: { cornerType: 'cubic', cornerPreserveAspectRatio: true },
         }}
         defaultConnectionPoint={{ name: 'boundary', args: { offset: 8, extrapolate: true } }}
-        defaultLink={{ color: theme.link, width: 2, targetMarker: 'none' }}
+        defaultLink={{ style: { color: theme.link, width: 2, targetMarker: 'none' } }}
         validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
         validateConnection={(cellViewS, _magnetS, cellViewT, magnetT) => {
           if (cellViewS === cellViewT) return false;

@@ -252,7 +252,7 @@ describe('graphChanges', () => {
       const { graph, controller } = setup();
       controller.updateGraph({
         elements: {
-          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as ElementRecord<undefined>,
+          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as ElementRecord,
         },
         links: {},
       });
@@ -277,7 +277,7 @@ describe('graphChanges', () => {
 
       controller.updateGraph({
         elements: {
-          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as ElementRecord<undefined>,
+          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as ElementRecord,
         },
         links: {},
         flag: 'updateFromReact',

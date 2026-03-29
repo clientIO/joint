@@ -9,9 +9,8 @@ import {
   useElementSize,
   useElements,
   useLinkDefaults,
-  type PortalElementRecord,
-  type PortalLinkRecord,
   type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCallback, useEffect, useRef } from 'react';
@@ -45,7 +44,7 @@ type OverallPerformanceData = {
 
 type ShapeData = InvestmentData | ProductData | ProductPerformanceData | OverallPerformanceData;
 
-type ShapeElement = PortalElementRecord<ShapeData>;
+type ShapeElement = ElementRecord<ShapeData>;
 
 // ----------------------------------------------------------------------------
 // Constants
@@ -147,7 +146,7 @@ const initialElements: Record<string, ShapeElement> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: 'investment', anchor: { name: 'top', args: { dy: 1 } } },
     target: { id: 'gold', anchor: { name: 'left', args: { dx: -5 } } },
@@ -166,19 +165,19 @@ const initialLinks: Record<string, PortalLinkRecord> = {
   link4: {
     source: { id: 'gold', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'goldPerf', anchor: { name: 'left', args: { dx: -5 } } },
-    color: GOLD_COLOR,
+    style: { color: GOLD_COLOR },
     z: 4,
   },
   link5: {
     source: { id: 'bitcoin', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'bitcoinPerf', anchor: { name: 'left', args: { dx: -5 } } },
-    color: BTC_COLOR,
+    style: { color: BTC_COLOR },
     z: 5,
   },
   link6: {
     source: { id: 'sp500', anchor: { name: 'right', args: { dx: -1 } } },
     target: { id: 'sp500Perf', anchor: { name: 'left', args: { dx: -5 } } },
-    color: SP500_COLOR,
+    style: { color: SP500_COLOR },
     z: 7,
   },
 };
@@ -634,11 +633,13 @@ function Main() {
 
 export default function App() {
   const { mapLinkToAttributes } = useLinkDefaults({
-    color: LINK_COLOR,
-    width: 2,
-    linecap: 'butt',
-    sourceMarker: 'circle',
-    targetMarker: 'arrow',
+    style: {
+      color: LINK_COLOR,
+      width: 2,
+      linecap: 'butt',
+      sourceMarker: 'circle',
+      targetMarker: 'arrow',
+    },
   });
 
   return (

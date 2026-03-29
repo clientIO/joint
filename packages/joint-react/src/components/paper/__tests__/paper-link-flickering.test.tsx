@@ -18,7 +18,7 @@
  */
 import { render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, type PortalElementRecord, type PortalLinkRecord } from '../../../index';
+import { GraphProvider, Paper, type ElementRecord, type LinkRecord } from '../../../index';
 import { useElementData } from '../../../hooks/use-element-data';
 
 /**
@@ -30,7 +30,7 @@ async function flushMicrotasks(): Promise<void> {
   });
 }
 
-type TestElement = PortalElementRecord<{ readonly label: string }>;
+type TestElement = ElementRecord<{ readonly label: string }>;
 
 const TEST_ELEMENTS: Record<string, TestElement> = {
   '1': { data: { label: 'Element1' }, position: { x: 100, y: 0 }, size: { width: 100, height: 50 } },
@@ -51,7 +51,7 @@ function TestFlickerElementSvg() {
   );
 }
 
-const TEST_LINKS: Record<string, PortalLinkRecord> = {
+const TEST_LINKS: Record<string, LinkRecord> = {
   'link-1': {
     data: {},
     source: { id: '1' },

@@ -5,8 +5,6 @@ import {
   Paper,
   useElementSize,
   useLinkDefaults,
-  type PortalElementRecord,
-  type PortalLinkRecord,
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
@@ -24,7 +22,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, PortalElementRecord<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   a: { data: { label: 'Source' }, position: { x: 50, y: 60 }, size: { width: 120, height: 50 } },
   b: { data: { label: 'Process' }, position: { x: 280, y: 20 }, size: { width: 120, height: 50 } },
   c: { data: { label: 'Review' }, position: { x: 280, y: 120 }, size: { width: 120, height: 50 } },
@@ -33,28 +31,30 @@ const initialElements: Record<string, PortalElementRecord<NodeData>> = {
 
 // Links: no explicit color/width — CSS variables provide styling.
 // One link overrides color to show per-link precedence.
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'a→b': {
     source: { id: 'a' },
     target: { id: 'b' },
-    labels: { flow: { text: 'async' } },
+    labelMap: { flow: { text: 'async' } },
   },
   'a→c': {
     source: { id: 'a' },
     target: { id: 'c' },
-    labels: { flow: { text: 'sync' } },
+    labelMap: { flow: { text: 'sync' } },
   },
   'b→d': {
     source: { id: 'b' },
     target: { id: 'd' },
-    labels: { status: { text: 'approved' } },
+    labelMap: { status: { text: 'approved' } },
   },
   'c→d': {
     source: { id: 'c' },
     target: { id: 'd' },
-    color: '#f59e0b', // explicit override — inline style beats CSS variables
-    width: 3,
-    labels: { status: { text: 'pending' } },
+    style: {
+      color: '#f59e0b', // explicit override — inline style beats CSS variables
+      width: 3,
+    },
+    labelMap: { status: { text: 'pending' } },
   },
 };
 
@@ -90,7 +90,7 @@ function Diagram() {
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const { mapLinkToAttributes } = useLinkDefaults({ targetMarker: 'arrow' });
+  const { mapLinkToAttributes } = useLinkDefaults({ style: { targetMarker: 'arrow' } });
 
   const renderElement: RenderElement<NodeData> = useCallback(
     (data) => <Node label={data.label} />,

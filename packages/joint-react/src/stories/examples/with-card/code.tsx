@@ -1,21 +1,21 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import type { PortalElementRecord, OnTransformElement } from '@joint/react';
-import { GraphProvider, Paper, useMeasureNode, type PortalLinkRecord, type RenderElement } from '@joint/react';
+import type { ElementRecord, OnTransformElement } from '@joint/react';
+import { GraphProvider, Paper, useMeasureNode, type LinkRecord, type RenderElement } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 type Data = { label: string };
-const initialElements: Record<string, PortalElementRecord<Data>> = {
+const initialElements: Record<string, ElementRecord<Data>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 10 } },
   '2': { data: { label: 'Node 2 with longer text' }, position: { x: 250, y: 150 } },
 };
 
-const initialEdges: Record<string, PortalLinkRecord> = {
+const initialEdges: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
-    color: PRIMARY,
+    style: { color: PRIMARY },
   },
 };
 

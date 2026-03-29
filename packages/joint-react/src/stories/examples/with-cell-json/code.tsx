@@ -4,8 +4,6 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  type NativeElementRecord,
-  type NativeLinkRecord,
   type ElementRecord,
   type LinkRecord,
   type CellAttributes,
@@ -40,7 +38,7 @@ type LinkData = undefined;
 // Data
 // ============================================================================
 
-const initialElements: Record<string, NativeElementRecord<ElementData>> = {
+const initialElements: Record<string, ElementRecord<ElementData>> = {
   'node-1': {
     position: { x: 70, y: 100 },
     size: { width: 160, height: 60 },
@@ -70,7 +68,7 @@ const initialElements: Record<string, NativeElementRecord<ElementData>> = {
   },
 };
 
-const initialLinks: Record<string, NativeLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-1': {
     type: 'standard.Link',
     source: { id: 'node-1' },

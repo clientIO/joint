@@ -6,10 +6,8 @@ import {
   useElementDefaults,
   useElementSize,
   useLinkDefaults,
-  type PortalElementRecord,
-  type PortalElementPort,
-  type PortalLinkRecord,
   type ElementRecord,
+  type ElementPort,
   type LinkRecord,
   type RenderElement,
 } from '@joint/react';
@@ -22,36 +20,36 @@ interface ElementData {
 
 // Minimal persisted data — no ports, no styling.
 // Ports and theme are provided by useElementDefaults based on element kind.
-const initialElements: Record<string, PortalElementRecord<ElementData>> = {
+const initialElements: Record<string, ElementRecord<ElementData>> = {
   a: { data: { label: 'Start', type: 'source' }, position: { x: 50, y: 140 } },
   b: { data: { label: 'Process', type: 'process' }, position: { x: 250, y: 50 } },
   c: { data: { label: 'Review', type: 'process' }, position: { x: 250, y: 230 } },
   d: { data: { label: 'Done', type: 'sink' }, position: { x: 480, y: 140 } },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'a-b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
   'a-c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b-d': {
     source: { id: 'b', port: 'out' },
     target: { id: 'd', port: 'in' },
-    labels: { status: { text: 'approved' } },
+    labelMap: { status: { text: 'approved' } },
   },
   'c-d': {
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
-    labels: { status: { text: 'pending' } },
+    labelMap: { status: { text: 'pending' } },
   },
 };
 
-const outPort: PortalElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
-const inPort: PortalElementPort = { cx: 0, cy: 'calc(0.5*h)' };
+const outPort: ElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
+const inPort: ElementPort = { cx: 0, cy: 'calc(0.5*h)' };
 
-const portsByType: Record<string, Record<string, PortalElementPort>> = {
+const portsByType: Record<string, Record<string, ElementPort>> = {
   source: { out: outPort },
   sink: { in: inPort },
 };
-const defaultPorts: Record<string, PortalElementPort> = { in: inPort, out: outPort };
+const defaultPorts: Record<string, ElementPort> = { in: inPort, out: outPort };
 
 function Element({ label, color }: Readonly<{ label: string; color: string }>) {
   const { width, height } = useElementSize();
@@ -96,7 +94,7 @@ function Diagram() {
           outline: BG,
           outlineWidth: 2,
         },
-        ports: portsByType[data.type] ?? defaultPorts,
+        portMap: portsByType[data.type] ?? defaultPorts,
       };
     },
     [color, portShape]
@@ -104,9 +102,11 @@ function Diagram() {
 
   const { mapLinkToAttributes } = useLinkDefaults(
     {
-      color,
-      width: 3,
-      targetMarker: 'arrow',
+      style: {
+        color,
+        width: 3,
+        targetMarker: 'arrow',
+      },
       labelStyle: {
         color: LIGHT,
         fontSize: 11,

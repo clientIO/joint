@@ -37,7 +37,7 @@
  * ============================================================================
  */
 
-import { GraphProvider, useElementSize, type PortalElementRecord, type PortalLinkRecord, Paper } from '@joint/react';
+import { GraphProvider, useElementSize, type ElementRecord, type LinkRecord, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useState, type Dispatch, type SetStateAction } from 'react';
@@ -55,12 +55,12 @@ type ElementData = { label: string };
 /**
  * Full element type including layout and user data.
  */
-type CustomElement = PortalElementRecord<ElementData>;
+type CustomElement = ElementRecord<ElementData>;
 
 /**
  * Full link type.
  */
-type CustomLink = PortalLinkRecord;
+type CustomLink = LinkRecord;
 
 /**
  * Initial elements (nodes) for the graph.
@@ -85,7 +85,7 @@ const defaultLinks: Record<string, CustomLink> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
-    color: PRIMARY,
+    style: { color: PRIMARY },
   },
 };
 

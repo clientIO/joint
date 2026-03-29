@@ -50,14 +50,10 @@ export * from './state/data-mapping/link-mapper';
 export type { ElementPosition, ElementSize } from './types/cell-data';
 export type {
   ElementRecord,
-  PortalElementRecord,
-  NativeElementRecord,
-  PortalElementPort,
+  ElementPort,
   LinkRecord,
-  PortalLinkRecord,
-  NativeLinkRecord,
-  PortalLinkLabel,
-  PortalLinkPresentation,
+  LinkStyle,
+  LinkLabel,
 } from './types/data-types';
 export type { PortShape as PortShape } from './theme/element-theme';
 export type { CellId } from './types/cell-id';

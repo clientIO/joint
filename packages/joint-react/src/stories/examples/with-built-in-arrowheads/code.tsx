@@ -26,11 +26,13 @@ function buildGrid() {
     links[name] = {
       source: { x, y },
       target: { x: x + LINK_LENGTH, y },
-      color: LIGHT,
-      width: 2,
-      sourceMarker: name,
-      targetMarker: name,
-      labels: {
+      style: {
+        color: LIGHT,
+        width: 2,
+        sourceMarker: name,
+        targetMarker: name,
+      },
+      labelMap: {
         label: { text: name, color: LIGHT, backgroundColor: '#023345', backgroundBorderRadius: 4 },
       },
     };

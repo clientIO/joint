@@ -16,9 +16,9 @@ import {
   useMeasureNode,
   useNodesMeasuredEffect,
   type CellId,
-  type PortalElementRecord,
-  type PortalElementPort,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type ElementPort,
+  type LinkRecord,
   type PaperProps,
   usePaperEvents,
   useElementSize,
@@ -53,7 +53,7 @@ const BUTTON_CLASSNAME =
 const ROW_HEIGHT_OFFSET = 45;
 const PORT_START_Y = 65;
 
-function buildTablePorts(rows: string[][]): Record<string, PortalElementPort> {
+function buildTablePorts(rows: string[][]): Record<string, ElementPort> {
   return Object.fromEntries(
     rows.map((_, index) => [
       `out-3-${index}`,
@@ -87,7 +87,7 @@ const PAPER_PROPS: PaperProps = {
 };
 
 // Create initial elements and links with typing support as Records
-const elements: Record<string, PortalElementRecord> = {
+const elements: Record<string, ElementRecord> = {
   '1': {
     data: {
       elementType: 'alert',
@@ -118,7 +118,7 @@ const elements: Record<string, PortalElementRecord> = {
     },
     position: { x: 50, y: 370 },
     size: { width: 400, height: 200 },
-    ports: buildTablePorts([
+    portMap: buildTablePorts([
       ['Row 1', 'Row 2', 'Row 3'],
       ['Row 4', 'Row 5', 'Row 6'],
       ['Row 7', 'Row 8', 'Row 9'],
@@ -127,16 +127,18 @@ const elements: Record<string, PortalElementRecord> = {
 };
 
 // Create initial links from table element port to another element as Record
-const links: Record<string, PortalLinkRecord> = {
+const links: Record<string, LinkRecord> = {
   link2: {
     source: { id: '3', port: 'out-3-0' }, // Port from table element
     target: { id: '1' },
-    color: LIGHT,
-    width: 2,
-    className: 'link',
-    dasharray: '5,5',
-    targetMarker: {
-      d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
+    style: {
+      color: LIGHT,
+      width: 2,
+      className: 'link',
+      dasharray: '5,5',
+      targetMarker: {
+        d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
+      },
     },
   },
 };
@@ -515,12 +517,14 @@ function Main() {
           ref={paperCtxRef}
           {...PAPER_PROPS}
           defaultLink={{
-            color: LIGHT,
-            width: 2,
-            className: 'link',
-            dasharray: '5,5',
-            targetMarker: {
-              d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
+            style: {
+              color: LIGHT,
+              width: 2,
+              className: 'link',
+              dasharray: '5,5',
+              targetMarker: {
+                d: 'M 0 0 L 8 4 L 8 -4 Z', // Larger arrowhead
+              },
             },
           }}
           renderElement={renderElement}

@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { dia } from '@joint/core';
-import type { PortalLinkRecord, PortalElementRecord } from '@joint/react';
+import type { LinkRecord, ElementRecord } from '@joint/react';
 import { GraphProvider, Paper, useMeasureNode, useElementSize } from '@joint/react';
 import { useRef } from 'react';
 import { BG, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -11,7 +11,7 @@ type ContainerData = {
   readonly [key: string]: unknown;
 };
 
-const elements: Record<string, PortalElementRecord<ContainerData>> = {
+const elements: Record<string, ElementRecord<ContainerData>> = {
   container: {
     position: { x: 50, y: 50 },
     size: { width: 300, height: 200 },
@@ -32,12 +32,12 @@ const elements: Record<string, PortalElementRecord<ContainerData>> = {
   },
 };
 
-const links: Record<string, PortalLinkRecord> = {
+const links: Record<string, LinkRecord> = {
   'link-1': {
     source: { id: 'child-1' },
     target: { id: 'child-2' },
     parent: 'container',
-    color: 'white',
+    style: { color: 'white' },
     z: 2,
   },
 };

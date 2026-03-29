@@ -4,7 +4,7 @@ import {
   Paper,
   useElementId,
   useGraph,
-  type PortalElementRecord,
+  type ElementRecord,
   DefaultElement,
   useElements,
 } from '@joint/react';
@@ -19,7 +19,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, PortalElementRecord<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   '3': { data: { label: 'Node 3' }, position: { x: 280, y: 100 } },
@@ -59,9 +59,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
       setLink(linkId, {
         source,
         target,
-        color: PRIMARY,
-        width: 2,
-        dasharray: '5 5',
+        style: { color: PRIMARY, width: 2, dasharray: '5 5' },
       });
     }
     return () => {

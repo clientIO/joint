@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
 import type { LinkRecord } from '../../types/data-types';
-import { defaultLinkStyle, LINK_PRESENTATION_KEYS } from '../../theme/link-theme';
+import { defaultLinkStyle } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
 import { mergeLabelsFromAttributes } from './convert-labels-reverse';
@@ -18,11 +18,12 @@ function isLinkData(data: unknown): data is LinkRecord {
 }
 
 /**
- * Forward mapper: converts a Link record to JointJS cell attributes.
- * @param options
- * @param options.id
- * @param options.link
- * @returns Cell attributes for the given link, with user data wrapped in `data` field for PortalLink.
+ * Forward mapper: converts a LinkRecord to JointJS cell attributes.
+ *
+ * - `labelMap` → converted to native `labels` array, stored as `labelMap` on the model for reverse mapping.
+ * - `labels` (array) → passed through as-is (native JointJS format).
+ * - Both present → throws an error.
+ * - `style` → converted to SVG `attrs` via `buildLinkPresentationAttributes`.
  */
 export function linkToAttributes<LinkData extends object = Record<string, unknown>>(options: {
   id?: string;
@@ -33,29 +34,23 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
     throw new Error('Invalid link data: expected an object with link properties.');
   }
 
-  const { type = PORTAL_LINK_TYPE } = link;
-
-  // Non-portal: 1:1 JointJS pass-through (same as elementToAttributes)
-  if (type !== PORTAL_LINK_TYPE) {
-    return link as CellAttributes;
+  if (link.labelMap && link.labels) {
+    throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
   }
 
-  // PortalLink mapping
   const {
     data = {},
-    // Presentation fields (color, width, etc.)
-    labels,
+    style,
+    labelMap,
     labelStyle,
+    type = PORTAL_LINK_TYPE,
     ...linkAttributes
   } = link;
 
-  // Build presentation object from individual fields.
   const presentation: Record<string, unknown> = {};
+  if (style) presentation.style = style;
   if (labelStyle) presentation.labelStyle = labelStyle;
-  if (labels) presentation.labels = labels;
-  for (const key of LINK_PRESENTATION_KEYS) {
-    if (link[key] !== undefined) presentation[key] = link[key];
-  }
+  if (labelMap) presentation.labelMap = labelMap;
 
   const attributes: CellAttributes = {
     ...linkAttributes,
@@ -63,40 +58,33 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
     type,
     data,
     presentation,
-    attrs: buildLinkPresentationAttributes(presentation, defaultLinkStyle),
-    labels: labels
-      ? Object.entries(labels).map(
+    attrs: style
+      ? buildLinkPresentationAttributes(style, defaultLinkStyle)
+      : linkAttributes.attrs,
+    labels: labelMap
+      ? Object.entries(labelMap).map(
           ([labelId, label]) => convertLabel(labelId, label, labelStyle)
         )
-      : []
+      : link.labels ?? [],
   };
 
   return attributes;
 }
 
 /**
- * Converts JointJS link attributes back to flat link data.
- * Public utility — purely mechanical (nested → flat), no defaultAttributes filtering.
- * @param attributes
- * @returns Link data record with presentation fields (color, width, etc.) spread to top level and user data wrapped in `data` field for PortalLink.
+ * Converts JointJS link attributes back to a LinkRecord.
+ *
+ * - `labelMap` on model → return `labelMap` (ignore native `labels`).
+ * - No `labelMap` → return `labels` as-is.
+ * - `style` → return from presentation.
  */
 export function attributesToLink<LinkData extends object = Record<string, unknown>>(
   attributes: dia.Link.Attributes
 ): LinkRecord<LinkData> {
 
-  const { type } = attributes;
-
-  // Non-portal: shallow copy so the container gets a new reference on each call,
-  // which allows connected-link re-renders when a neighbor element moves.
-  if (type !== PORTAL_LINK_TYPE) {
-    return { ...attributes } as LinkRecord<LinkData>;
-  }
-
-  // PortalLink mapping
   const {
     data,
     presentation,
-    // Supported JointJS link attributes that we want to include
     source,
     target,
     z,
@@ -105,12 +93,11 @@ export function attributesToLink<LinkData extends object = Record<string, unknow
     vertices,
     router,
     connector,
-    // The JointJS labels are used only to get the updated label positions.
+    type,
     labels: attributeLabels,
   } = attributes;
 
   const linkRecord: LinkRecord<LinkData> = {
-    ...presentation,
     data,
     source,
     target,
@@ -122,12 +109,26 @@ export function attributesToLink<LinkData extends object = Record<string, unknow
     connector,
   };
 
-  // Presentation fields come from attributes.presentation
-  if (presentation?.labels && Array.isArray(attributeLabels)) {
-    linkRecord.labels = mergeLabelsFromAttributes(presentation.labels, attributeLabels);
+  // Restore style from presentation
+  if (presentation?.style) {
+    linkRecord.style = presentation.style;
+  }
+  if (presentation?.labelStyle) {
+    linkRecord.labelStyle = presentation.labelStyle;
   }
 
-  // Filter out undefined values.
+  // Restore labelMap from presentation, merging updated positions from native labels
+  if (presentation?.labelMap && Array.isArray(attributeLabels)) {
+    linkRecord.labelMap = mergeLabelsFromAttributes(presentation.labelMap, attributeLabels);
+  } else if (Array.isArray(attributeLabels)) {
+    linkRecord.labels = attributeLabels;
+  }
+
+  // Only include type if it's not the default portal type.
+  if (type && type !== PORTAL_LINK_TYPE) {
+    linkRecord.type = type;
+  }
+
   return { ...linkRecord };
 }
 

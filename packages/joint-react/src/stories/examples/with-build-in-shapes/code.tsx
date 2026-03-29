@@ -1,11 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type NativeElementRecord, type NativeLinkRecord, useElements } from '@joint/react';
+import { GraphProvider, Paper, type ElementRecord, type LinkRecord, useElements } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-const initialElements: Record<string, NativeElementRecord> = {
+const initialElements: Record<string, ElementRecord> = {
   // Row 1: Basic shapes
   rectangle: {
     position: { x: 20, y: 20 },
@@ -163,7 +163,7 @@ const initialElements: Record<string, NativeElementRecord> = {
   },
 };
 
-const initialLinks: Record<string, NativeLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-standard': {
     source: { id: 'link-source' },
     target: { id: 'link-target-1' },
