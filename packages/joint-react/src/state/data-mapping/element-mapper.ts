@@ -1,7 +1,7 @@
 
 
 import { type dia } from '@joint/core';
-import type { AnyElementRecord, ElementRecord } from '../../types/data-types';
+import type { ElementRecord, PortalElementRecord } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -12,7 +12,7 @@ import type { CellAttributes } from './index';
  * @param data - The data to validate
  * @returns True if the data is a valid element data record
  */
-function isElementData(data: unknown): data is AnyElementRecord {
+function isElementData(data: unknown): data is ElementRecord {
   return isRecord(data);
 }
 
@@ -25,7 +25,7 @@ function isElementData(data: unknown): data is AnyElementRecord {
  */
 export function elementToAttributes<ElementData extends object = Record<string, unknown>>(options: {
   id: string;
-  element: AnyElementRecord<ElementData>;
+  element: ElementRecord<ElementData>;
 }): CellAttributes {
   const { element } = options;
   if (!isElementData(element)) {
@@ -43,7 +43,7 @@ export function elementToAttributes<ElementData extends object = Record<string, 
   }
 
   // PortalElement mapping
-  const portalElement = element as ElementRecord;
+  const portalElement = element as PortalElementRecord;
 
   const {
     data = {} as ElementData,
@@ -79,12 +79,12 @@ export function elementToAttributes<ElementData extends object = Record<string, 
  */
 export function attributesToElement<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes
-): AnyElementRecord<ElementData> {
+): ElementRecord<ElementData> {
 
   const { type } = attributes;
   if (type !== PORTAL_ELEMENT_TYPE) {
     // For non-portal elements, we treat the entire attributes as the element record with optional `data`.
-    return attributes as AnyElementRecord<ElementData>;
+    return attributes as ElementRecord<ElementData>;
   }
 
   // PortalElement mapping
@@ -102,7 +102,7 @@ export function attributesToElement<ElementData extends object = Record<string, 
     parent,
   } = attributes;
 
-  const elementRecord: AnyElementRecord<ElementData> = {
+  const elementRecord: ElementRecord<ElementData> = {
     ...presentation,
     data,
     position,

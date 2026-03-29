@@ -12,7 +12,7 @@ import type { PORTAL_ELEMENT_TYPE, PORTAL_LINK_TYPE } from '../internal';
  * Converted to full JointJS port format by the default element mapper.
  * @group Graph
  */
-export interface ElementRecordPort {
+export interface PortalElementRecordPort {
   /**
    * X position of the port (absolute positioning).
    * Supports calc() expressions (e.g., 'calc(w)').
@@ -103,7 +103,7 @@ export interface ElementRecordPort {
  * Does not include `type`; portal elements use the internal `PORTAL_ELEMENT_TYPE` automatically.
  * @group Graph
  */
-export interface ElementRecord<D extends object = Record<string, unknown>> {
+export interface PortalElementRecord<D extends object = Record<string, unknown>> {
   /** Position of the element. */
   position?: ElementPosition;
   /** Size of the element. */
@@ -117,9 +117,9 @@ export interface ElementRecord<D extends object = Record<string, unknown>> {
   /** Layer id for the cell. */
   layer?: string;
   /** Style defaults applied to all ports. Individual port properties take precedence. */
-  portStyle?: Partial<ElementRecordPort>;
+  portStyle?: Partial<PortalElementRecordPort>;
   /** Ports of the element. */
-  ports?: Record<string, ElementRecordPort>;
+  ports?: Record<string, PortalElementRecordPort>;
   /** Custom user data. */
   data?: D;
 
@@ -145,9 +145,9 @@ export interface NativeElementRecord<D extends object = Record<string, unknown>>
  * - **Native element** (`type` present): Raw JointJS `dia.Element.Attributes` pass-through.
  * @group Graph
  */
-export type AnyElementRecord<D extends object = Record<string, unknown>> =
+export type ElementRecord<D extends object = Record<string, unknown>> =
   | NativeElementRecord<D>
-  | ElementRecord<D>;
+  | PortalElementRecord<D>;
 
 // ── Link Types ────────────────────────────────────────────────────────────────
 
@@ -158,7 +158,7 @@ export type AnyElementRecord<D extends object = Record<string, unknown>> =
  * `Required<LinkRecordPresentation>` to provide fallback values.
  * @group Graph
  */
-export interface LinkRecordPresentation {
+export interface PortalLinkRecordPresentation {
   /**
    * Stroke color of the link line.
    * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
@@ -232,7 +232,7 @@ export interface LinkRecordPresentation {
  * Simplified label definition for graph links.
  * @group Graph
  */
-export interface LinkRecordLabel {
+export interface PortalLinkRecordLabel {
   /**
    * Label text content.
    */
@@ -309,7 +309,7 @@ export interface LinkRecordLabel {
  * Does not include `type`; portal links use the internal `PORTAL_LINK_TYPE` automatically.
  * @group Graph
  */
-export interface LinkRecord<D extends object = Record<string, unknown>> extends LinkRecordPresentation {
+export interface PortalLinkRecord<D extends object = Record<string, unknown>> extends PortalLinkRecordPresentation {
   /**
    * Source endpoint in JointJS format.
    * @example { id: 'el-1' }
@@ -345,11 +345,11 @@ export interface LinkRecord<D extends object = Record<string, unknown>> extends 
   /**
    * Style defaults applied to all labels. Individual label properties take precedence.
    */
-  labelStyle?: Partial<LinkRecordLabel>;
+  labelStyle?: Partial<PortalLinkRecordLabel>;
   /**
    * Link labels.
    */
-  labels?: Record<string, LinkRecordLabel>;
+  labels?: Record<string, PortalLinkRecordLabel>;
   /** Custom user data. */
   data?: D;
 
@@ -375,9 +375,9 @@ export interface NativeLinkRecord<D extends object = Record<string, unknown>>
  * - **Native link** (`type` present): Raw JointJS `dia.Link.Attributes` pass-through.
  * @group Graph
  */
-export type AnyLinkRecord<D extends object = Record<string, unknown>> =
+export type LinkRecord<D extends object = Record<string, unknown>> =
   | NativeLinkRecord<D>
-  | LinkRecord<D>;
+  | PortalLinkRecord<D>;
 
 // ── Container Types (internal) ───────────────────────────────────────────────
 
@@ -386,7 +386,7 @@ export type AnyLinkRecord<D extends object = Record<string, unknown>> =
  * Used internally by graph-view containers and returned by hooks like `useElement`.
  * @group Graph
  */
-export type ElementWithLayout<E extends object = Record<string, unknown>> = AnyElementRecord<E> & {
+export type ElementWithLayout<E extends object = Record<string, unknown>> = ElementRecord<E> & {
   data: E;
   position: Required<ElementPosition>;
   size: Required<ElementSize>;

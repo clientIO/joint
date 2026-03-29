@@ -1,5 +1,5 @@
 import type { attributes } from '@joint/core';
-import type { LinkRecordPresentation } from '../../types/data-types';
+import type { PortalLinkRecordPresentation } from '../../types/data-types';
 import type { Nullable } from '../../types';
 import { resolveMarker } from '../../theme/markers';
 
@@ -18,8 +18,8 @@ import { resolveMarker } from '../../theme/markers';
  * @returns Record with `line` and `wrapper` attribute objects
  */
 export function buildLinkPresentationAttributes(
-  styleProperties: LinkRecordPresentation,
-  defaultStyle: Required<LinkRecordPresentation>
+  styleProperties: PortalLinkRecordPresentation,
+  defaultStyle: Required<PortalLinkRecordPresentation>
 ): Record<string, Nullable<attributes.SVGAttributes>> {
   const {
     color = defaultStyle.color,

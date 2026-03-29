@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { AnyLinkRecord } from '../../types/data-types';
+import type { LinkRecord } from '../../types/data-types';
 import type { OmitWithoutIndexSignature } from '../../types';
 import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
@@ -15,9 +15,9 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
    * Default link for the paper - for example if there is new element added, this will be used as default.
    */
   readonly defaultLink?:
-    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<AnyLinkRecord>)
+    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<LinkRecord>)
     | dia.Link
-    | Partial<AnyLinkRecord>;
+    | Partial<LinkRecord>;
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */

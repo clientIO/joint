@@ -1,13 +1,13 @@
 import { type DependencyList, useMemo } from 'react';
 import { linkToAttributes } from '../state/data-mapping/link-mapper';
 import type { CellAttributes, MapLinkToAttributes } from '../state/data-mapping';
-import type { AnyLinkRecord } from '../types/data-types';
+import type { LinkRecord } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
 
 export function useLinkDefaults<Data extends object = Record<string, unknown>>(
   defaults:
-    | Partial<AnyLinkRecord<Data>>
-    | ((options: { link: AnyLinkRecord<Data>; id?: CellId }) => Partial<AnyLinkRecord<Data>>),
+    | Partial<LinkRecord<Data>>
+    | ((options: { link: LinkRecord<Data>; id?: CellId }) => Partial<LinkRecord<Data>>),
   deps: DependencyList = []
 ) {
   return useMemo(
@@ -20,7 +20,7 @@ export function useLinkDefaults<Data extends object = Record<string, unknown>>(
 
           let result: CellAttributes;
           if (resolved) {
-            const mergedData = { ...resolved, ...mapOptions.link } as AnyLinkRecord<Data>;
+            const mergedData = { ...resolved, ...mapOptions.link } as LinkRecord<Data>;
             result = linkToAttributes({ link: mergedData, id: mapOptions.id });
 
             // Strip default-provided keys from cell.data so they don't

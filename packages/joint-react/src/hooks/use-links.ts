@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useMemo } from 'react';
-import type { AnyLinkRecord } from '../types/data-types';
+import type { LinkRecord } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
 import { useGraphStore } from './use-graph-store';
 import { useContainerItems } from './use-container-items';
@@ -19,20 +19,20 @@ import { useContainerItems } from './use-container-items';
  *
  * @group Hooks
  */
-export function useLinks<T extends object = Record<string, unknown>>(): Map<CellId, AnyLinkRecord<T>>;
+export function useLinks<T extends object = Record<string, unknown>>(): Map<CellId, LinkRecord<T>>;
 export function useLinks<T extends object = Record<string, unknown>>(
   ...ids: [string, ...string[]]
-): Map<CellId, AnyLinkRecord<T>>;
+): Map<CellId, LinkRecord<T>>;
 export function useLinks<T extends object = Record<string, unknown>, S = unknown>(
-  selector: (items: Map<CellId, AnyLinkRecord<T>>) => S,
+  selector: (items: Map<CellId, LinkRecord<T>>) => S,
   isEqual?: (a: S, b: S) => boolean
 ): S;
-export function useLinks<T extends object = Record<string, unknown>, S = Map<CellId, AnyLinkRecord<T>>>(
+export function useLinks<T extends object = Record<string, unknown>, S = Map<CellId, LinkRecord<T>>>(
   ...args:
     | []
     | [string, ...string[]]
-    | [(items: Map<CellId, AnyLinkRecord<T>>) => S, ((a: S, b: S) => boolean)?]
-): Map<CellId, AnyLinkRecord<T>> | S {
+    | [(items: Map<CellId, LinkRecord<T>>) => S, ((a: S, b: S) => boolean)?]
+): Map<CellId, LinkRecord<T>> | S {
   const {
     graphView: { links },
   } = useGraphStore<any, T>();
@@ -47,7 +47,7 @@ export function useLinks<T extends object = Record<string, unknown>, S = Map<Cel
   );
 
   if (isSelectorMode) {
-    const selector = args[0] as (items: Map<string, AnyLinkRecord<T>>) => S;
+    const selector = args[0] as (items: Map<string, LinkRecord<T>>) => S;
     const isEqual = args[1] as ((a: S, b: S) => boolean) | undefined;
     return useContainerItems(links, selector, isEqual);
   }

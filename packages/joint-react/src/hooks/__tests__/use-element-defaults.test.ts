@@ -1,10 +1,10 @@
 import { renderHook } from '@testing-library/react';
 import { useElementDefaults } from '../use-element-defaults';
 import { defaultPortStyle } from '../../theme/element-theme';
-import type { AnyElementRecord } from '../../types/data-types';
+import type { ElementRecord } from '../../types/data-types';
 
 describe('useElementDefaults', () => {
-  const minimalElementData: AnyElementRecord = {
+  const minimalElementData: ElementRecord = {
     data: {},
     position: { x: 10, y: 20 },
     size: { width: 100, height: 50 },
@@ -12,7 +12,7 @@ describe('useElementDefaults', () => {
 
   function callForwardMapper(
     hook: ReturnType<typeof useElementDefaults<any>>,
-    element: AnyElementRecord = minimalElementData
+    element: ElementRecord = minimalElementData
   ) {
     return hook.mapElementToAttributes!({
       id: 'el-1',
@@ -188,7 +188,7 @@ describe('useElementDefaults', () => {
     expect(result.current.mapElementToAttributes).toBe(firstForward);
   });
 
-  const stableCallback = ({ data: element }: { data: AnyElementRecord }) => ({
+  const stableCallback = ({ data: element }: { data: ElementRecord }) => ({
     portStyle: { color: (element.data as Record<string, unknown>)?.kind === 'a' ? 'red' : 'blue' },
   });
 

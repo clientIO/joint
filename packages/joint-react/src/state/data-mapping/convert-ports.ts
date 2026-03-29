@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { ElementRecordPort } from '../../types/data-types';
+import type { PortalElementRecordPort } from '../../types/data-types';
 import { defaultPortStyle } from '../../theme/element-theme';
 
 /**
@@ -9,7 +9,7 @@ import { defaultPortStyle } from '../../theme/element-theme';
  * @param portStyle - Optional style defaults for port properties
  * @returns The full JointJS port definition
  */
-function convertPort(id: string, rawPort: ElementRecordPort, portStyle?: Partial<ElementRecordPort>): dia.Element.Port {
+function convertPort(id: string, rawPort: PortalElementRecordPort, portStyle?: Partial<PortalElementRecordPort>): dia.Element.Port {
   const port = portStyle ? { ...portStyle, ...rawPort } : rawPort;
   const {
     cx,
@@ -113,7 +113,7 @@ export function createPortGroupsDefault(): { groups: Record<string, dia.Element.
  * @param portStyle - Optional style defaults for port properties
  * @returns The full JointJS ports object with groups and items
  */
-export function convertPorts(ports: Record<string, ElementRecordPort>, portStyle?: Partial<ElementRecordPort>): {
+export function convertPorts(ports: Record<string, PortalElementRecordPort>, portStyle?: Partial<PortalElementRecordPort>): {
   groups: Record<string, dia.Element.PortGroup>;
   items: dia.Element.Port[];
 } {

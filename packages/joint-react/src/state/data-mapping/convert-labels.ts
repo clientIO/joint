@@ -1,5 +1,5 @@
 import { type dia, util } from '@joint/core';
-import type { LinkRecordLabel } from '../../types/data-types';
+import type { PortalLinkRecordLabel } from '../../types/data-types';
 import { defaultLabelStyle } from '../../theme/link-theme';
 
 /**
@@ -12,8 +12,8 @@ import { defaultLabelStyle } from '../../theme/link-theme';
  */
 export function convertLabel(
   id: string,
-  rawLabel: LinkRecordLabel,
-  labelStyle?: Partial<LinkRecordLabel>
+  rawLabel: PortalLinkRecordLabel,
+  labelStyle?: Partial<PortalLinkRecordLabel>
 ): dia.Link.Label & { id: string } {
   const label = labelStyle ? { ...labelStyle, ...rawLabel } : rawLabel;
   const {
