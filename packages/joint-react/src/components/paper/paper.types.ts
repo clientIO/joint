@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import type { Link } from '../../types/data-types';
+import type { MixedLinkRecord } from '../../types/data-types';
 import type { OmitWithoutIndexSignature } from '../../types';
 import type { PortalSelector } from '../../models/portal-paper.types';
 import type { OnPaperRenderElement } from '../../hooks/use-element-views';
@@ -15,9 +15,9 @@ export interface PortalPaperOptions extends PortalPaperOptionsBase {
    * Default link for the paper - for example if there is new element added, this will be used as default.
    */
   readonly defaultLink?:
-    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<Link>)
+    | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<MixedLinkRecord>)
     | dia.Link
-    | Partial<Link>;
+    | Partial<MixedLinkRecord>;
 }
 
 /** Render function for elements. Receives user data `D` from the element's `data` field. */
@@ -62,10 +62,10 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
   readonly height?: dia.Paper.Dimension;
   /**
    * A function that renders the element.
-   * 
+   *
    * Note: JointJS works with SVG by default, so `renderElement` is appended inside an SVG node.
    * To render HTML elements, use the experimental `useHTMLOverlay` prop or an SVG `foreignObject`.
-   * 
+   *
    * This is called when the element data changes.
    * @example
    * Example with `global component`:
@@ -78,7 +78,7 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    * @example
    * Example with `local component`:
    * ```tsx
-   * 
+   *
   type BaseElementWithData = InferElement<typeof initialElements>
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
       (element) => <HTMLElement className="node">{element.label}</HTMLElement>,

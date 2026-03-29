@@ -2,7 +2,7 @@ import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/
 import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
-import type { Element } from '../types/data-types';
+import type { PortalElementRecord } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
@@ -106,7 +106,7 @@ export const WithSelectedJustIds = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, CellData>) =>
+      (elements: Map<string, PortalElementRecord>) =>
         [...elements.values()].map((element) => (element as Record<string, unknown>).id),
     ],
     render: (result) => (
@@ -153,8 +153,8 @@ export const WithJustPosition = makeStory<Story>({
     hookArgs: [
       (elements: Map<string, object>) =>
         [...elements.values()].map((element) => ({
-          x: (element as Element).x,
-          y: (element as Element).y,
+          x: (element as Record<string, unknown>).x,
+          y: (element as Record<string, unknown>).y,
         })),
     ],
     render: (result) => (
@@ -180,7 +180,7 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, Element>) =>
+      (elements: Map<string, PortalElementRecord>) =>
         [...elements.values()].map((element) => ({
           x: element.position?.x,
           y: element.position?.y,
@@ -212,9 +212,9 @@ export const WithAdditionalData = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, Element>) =>
+      (elements: Map<string, PortalElementRecord>) =>
         [...elements.values()].map((element) => ({
-          id: element.id,
+          id: (element as Record<string, unknown>).id,
           other: 'something',
         })),
     ],

@@ -8,7 +8,8 @@ import {
   useElements,
   useGraph,
   useGraphEvents,
-  type Element,
+  type PortalElementRecord,
+  type MixedElementRecord,
 } from '@joint/react';
 import { useState } from 'react';
 
@@ -16,7 +17,7 @@ import { useState } from 'react';
 // Data
 // ============================================================================
 type Data = { label: string };
-const initialElements: Record<string, Element<Data>> = {
+const initialElements: Record<string, PortalElementRecord<Data>> = {
   container: {
     data: {
       label: 'Container',
@@ -110,7 +111,7 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({ elements }: Readonly<{ elements: Map<string, Element<Data>> }>) {
+function ElementDataView({ elements }: Readonly<{ elements: Map<string, MixedElementRecord<Data>> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useElements() Data</h3>

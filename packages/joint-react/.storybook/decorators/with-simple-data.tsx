@@ -4,8 +4,7 @@
 // @ts-expect-error do not provide typings.
 import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 import { useCallback, useRef, type HTMLProps, type JSX, type PropsWithChildren } from 'react';
-import type { Element } from '@joint/react';
-import { GraphProvider, useElementId, useMeasureNode, type Link } from '@joint/react';
+import { GraphProvider, useElementId, useMeasureNode, type PortalElementRecord, type PortalLinkRecord } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 import type { PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { Paper } from '../../src/components/paper/paper';
@@ -15,14 +14,13 @@ import { useElementSize } from '../../src/hooks/use-element-size';
 export type StoryFunction = PartialStoryFn<any, any>;
 export type StoryCtx = StoryContext<any, any>;
 
-export const testElements: Record<
-  string,
-  Element<{
-    label: string;
-    color: string;
-    hoverColor: string;
-  }>
-> = {
+type TestElementData = {
+  label: string;
+  color: string;
+  hoverColor: string;
+};
+
+export const testElements: Record<string, PortalElementRecord<TestElementData>> = {
   '1': {
     data: {
       label: 'Node 1',
@@ -52,7 +50,7 @@ export const testElements: Record<
 };
 
 export type SimpleElement = (typeof testElements)[string];
-export const testLinks: Record<string, Link> = {
+export const testLinks: Record<string, PortalLinkRecord> = {
   'l-1': {
     source: '1',
     target: '2',
@@ -80,8 +78,8 @@ export function RenderItemDecorator(
   properties: Readonly<{
     renderElement: () => JSX.Element;
     renderLink?: () => JSX.Element;
-    elements?: Record<string, Element>;
-    links?: Record<string, Link>;
+    elements?: Record<string, PortalElementRecord>;
+    links?: Record<string, PortalLinkRecord>;
   }>
 ) {
   return (

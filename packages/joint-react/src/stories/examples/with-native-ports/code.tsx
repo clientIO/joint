@@ -8,8 +8,9 @@ import {
   useElementSize,
   elementToAttributes,
   useLinkDefaults,
-  type Element,
-  type Link,
+  type PortalElementRecord,
+  type MixedElementRecord,
+  type PortalLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
@@ -92,7 +93,7 @@ function buildNativePorts(inputPorts?: readonly string[], outputPorts?: readonly
   return { groups, items };
 }
 
-const initialElements: Record<string, Element<NativeElementUserData>> = {
+const initialElements: Record<string, PortalElementRecord<NativeElementUserData>> = {
   'node-1': {
     data: {
       color: INDIGO,
@@ -125,7 +126,7 @@ const initialElements: Record<string, Element<NativeElementUserData>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'link-1': {
     source: { id: 'node-1', port: 'out-1' },
     target: { id: 'node-2', port: 'in-1' },
@@ -150,7 +151,7 @@ const initialLinks: Record<string, Link> = {
 
 function mapNativeElementToAttributes(options: {
   id: string;
-  element: Element<NativeElementUserData>;
+  element: MixedElementRecord<NativeElementUserData>;
 }) {
   const { id, element } = options;
   const userData = element.data as NativeElementUserData | undefined;

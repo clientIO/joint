@@ -16,9 +16,9 @@ import {
   useMeasureNode,
   useNodesMeasuredEffect,
   type CellId,
-  type Element,
+  type PortalElementRecord,
   type FlatElementPort,
-  type Link,
+  type PortalLinkRecord,
   type PaperProps,
   usePaperEvents,
   useElementSize,
@@ -87,7 +87,7 @@ const PAPER_PROPS: PaperProps = {
 };
 
 // Create initial elements and links with typing support as Records
-const elements: Record<string, Element> = {
+const elements: Record<string, PortalElementRecord> = {
   '1': {
     data: {
       elementType: 'alert',
@@ -127,7 +127,7 @@ const elements: Record<string, Element> = {
 };
 
 // Create initial links from table element port to another element as Record
-const links: Record<string, Link> = {
+const links: Record<string, PortalLinkRecord> = {
   link2: {
     source: { id: '3', port: 'out-3-0' }, // Port from table element
     target: { id: '1' },

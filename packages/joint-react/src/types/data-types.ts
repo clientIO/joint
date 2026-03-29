@@ -103,7 +103,7 @@ export interface PortalElementPort {
  * Does not include `type`; portal elements use the internal `PORTAL_ELEMENT_TYPE` automatically.
  * @group Graph
  */
-export interface PortalElementRecord {
+export type PortalElementRecord<D extends object | undefined = undefined> = {
   /** Position of the element. */
   position?: ElementPosition;
   /** Size of the element. */
@@ -122,17 +122,18 @@ export interface PortalElementRecord {
   ports?: Record<string, PortalElementPort>;
   data?: Record<string, unknown>;
 
-  /** @internal */
-  /** Portal elements must not specify a `type`. */
+  /** @internal Portal elements must not specify a `type`. */
   type?: never | typeof PORTAL_ELEMENT_TYPE;
-}
+} & (undefined extends D ? unknown : { data: D });
 
 /**
  * Native JointJS element — pass-through to `dia.Element.Attributes`.
  * Requires an explicit `type` string (e.g. `'standard.Rectangle'`).
  * @group Graph
  */
-export type NativeElementRecord = dia.Element.Attributes & { type: Exclude<string, typeof PORTAL_ELEMENT_TYPE> };
+export type NativeElementRecord<D extends object | undefined = undefined> = dia.Element.Attributes
+  & { type: Exclude<string, typeof PORTAL_ELEMENT_TYPE> }
+  & (undefined extends D ? unknown : { data: D });
 
 /**
  * Element data type — union of portal and native JointJS elements.
@@ -141,13 +142,13 @@ export type NativeElementRecord = dia.Element.Attributes & { type: Exclude<strin
  * - **Native element** (`type` present): Raw JointJS `dia.Element.Attributes` pass-through.
  *
  * Generic parameter:
- * - `Element` (no generic): `data` is optional.
- * - `Element<MyData>`: `data` is required (`MyData`) on both variants.
+ * - `MixedElementRecord` (no generic): `data` is optional.
+ * - `MixedElementRecord<MyData>`: `data` is required (`MyData`) on both variants.
  * @group Graph
  */
-export type Element<D extends object | undefined = undefined> = undefined extends D
-  ? NativeElementRecord | PortalElementRecord
-  : (NativeElementRecord | PortalElementRecord) & { data: D };
+export type MixedElementRecord<D extends object | undefined = undefined> =
+  | NativeElementRecord<D>
+  | PortalElementRecord<D>;
 
 // ── Link Types ────────────────────────────────────────────────────────────────
 
@@ -309,7 +310,7 @@ export interface PortalLinkLabel {
  * Does not include `type`; portal links use the internal `PORTAL_LINK_TYPE` automatically.
  * @group Graph
  */
-export interface PortalLinkRecord extends PortalLinkPresentation {
+export type PortalLinkRecord<D extends object | undefined = undefined> = PortalLinkPresentation & {
   /**
    * Source endpoint in JointJS format.
    * @example { id: 'el-1' }
@@ -353,10 +354,9 @@ export interface PortalLinkRecord extends PortalLinkPresentation {
 
   data?: Record<string, unknown>;
 
-  /** @internal */
-  /** Portal links must not specify a `type`. */
+  /** @internal Portal links must not specify a `type`. */
   type?: never | typeof PORTAL_LINK_TYPE;
-}
+} & (undefined extends D ? unknown : { data: D });
 
 /**
  * Native JointJS link — pass-through with statically known properties from
@@ -364,7 +364,9 @@ export interface PortalLinkRecord extends PortalLinkPresentation {
  * Requires an explicit `type` string (e.g. `'standard.Link'`).
  * @group Graph
  */
-export type NativeLinkRecord = dia.Link.Attributes & { type: Exclude<string, typeof PORTAL_LINK_TYPE> };
+export type NativeLinkRecord<D extends object | undefined = undefined> = dia.Link.Attributes
+  & { type: Exclude<string, typeof PORTAL_LINK_TYPE> }
+  & (undefined extends D ? unknown : { data: D });
 
 /**
  * Link data type — union of portal and native JointJS links.
@@ -373,13 +375,13 @@ export type NativeLinkRecord = dia.Link.Attributes & { type: Exclude<string, typ
  * - **Native link** (`type` present): Raw JointJS `dia.Link.Attributes` pass-through.
  *
  * Generic parameter:
- * - `Link` (no generic): `data` is optional.
- * - `Link<MyData>`: `data` is required (`MyData`) on both variants.
+ * - `MixedLinkRecord` (no generic): `data` is optional.
+ * - `MixedLinkRecord<MyData>`: `data` is required (`MyData`) on both variants.
  * @group Graph
  */
-export type Link<D extends object | undefined = undefined> = undefined extends D
-  ? NativeLinkRecord | PortalLinkRecord
-  : (NativeLinkRecord | PortalLinkRecord) & { data: D };
+export type MixedLinkRecord<D extends object | undefined = undefined> =
+  | NativeLinkRecord<D>
+  | PortalLinkRecord<D>;
 
 // ── Container Types (internal) ───────────────────────────────────────────────
 
@@ -388,7 +390,7 @@ export type Link<D extends object | undefined = undefined> = undefined extends D
  * Used internally by graph-view containers and returned by hooks like `useElement`.
  * @group Graph
  */
-export type ElementWithLayout<E extends object | undefined = undefined> = Element<E> & {
+export type ElementWithLayout<E extends object | undefined = undefined> = MixedElementRecord<E> & {
   position: Required<ElementPosition>;
   size: Required<ElementSize>;
   angle: number;

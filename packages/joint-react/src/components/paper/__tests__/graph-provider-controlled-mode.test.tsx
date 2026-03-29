@@ -4,13 +4,13 @@ import React, { useState, useCallback } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
 import { useElements, useLinks, useGraph } from '../../../hooks';
-import type { Element, Link } from '../../../types/data-types';
+import type { MixedElementRecord, MixedLinkRecord } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 
 describe('GraphProvider Controlled Mode', () => {
   describe('Basic useState integration', () => {
     it('should sync React state to store and graph on initial mount', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
         '2': { size: { width: 200, height: 200 } },
       };
@@ -26,7 +26,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -43,7 +43,7 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should update store when React state changes via useState', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
       };
 
@@ -57,11 +57,11 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, MixedElementRecord>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
-        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, MixedElementRecord>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -91,10 +91,10 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle both elements and links in controlled mode', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
       };
-      const initialLink: Link = {
+      const initialLink: MixedLinkRecord = {
         source: '1',
         target: '2',
       };
@@ -108,16 +108,16 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
-      let setLinksExternal: ((links: Record<string, Link>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, MixedElementRecord>) => void) | null = null;
+      let setLinksExternal: ((links: Record<string, MixedLinkRecord>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
-        const [links, setLinks] = useState<Record<string, Link>>(() => ({
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
+        const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(() => ({
           link1: initialLink,
         }));
-        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
-        setLinksExternal = setLinks as (links: Record<string, Link>) => void;
+        setElementsExternal = setElements as (elements: Record<string, MixedElementRecord>) => void;
+        setLinksExternal = setLinks as (links: Record<string, MixedLinkRecord>) => void;
         return (
           <GraphProvider
             elements={elements}
@@ -173,7 +173,7 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Rapid consecutive updates', () => {
     it('should handle rapid consecutive state updates correctly', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
       };
 
@@ -185,11 +185,11 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, MixedElementRecord>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
-        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, MixedElementRecord>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -231,7 +231,7 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle 10 rapid updates without losing state', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
       };
 
@@ -242,11 +242,11 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, MixedElementRecord>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
-        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, MixedElementRecord>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -263,7 +263,7 @@ describe('GraphProvider Controlled Mode', () => {
       // 10 rapid updates
       act(() => {
         for (let index = 2; index <= 11; index++) {
-          const newElements: Record<string, Element> = {};
+          const newElements: Record<string, MixedElementRecord> = {};
           for (let elementIndex = 1; elementIndex <= index; elementIndex++) {
             newElements[String(elementIndex)] = {
               size: { width: 100 * elementIndex, height: 100 * elementIndex },
@@ -284,10 +284,10 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Concurrent updates', () => {
     it('should handle concurrent element and link updates', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
       };
-      const initialLink: Link = {
+      const initialLink: MixedLinkRecord = {
         source: '1',
         target: '2',
       };
@@ -301,16 +301,16 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
-      let setLinksExternal: ((links: Record<string, Link>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, MixedElementRecord>) => void) | null = null;
+      let setLinksExternal: ((links: Record<string, MixedLinkRecord>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
-        const [links, setLinks] = useState<Record<string, Link>>(() => ({
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
+        const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(() => ({
           link1: initialLink,
         }));
-        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
-        setLinksExternal = setLinks as (links: Record<string, Link>) => void;
+        setElementsExternal = setElements as (elements: Record<string, MixedElementRecord>) => void;
+        setLinksExternal = setLinks as (links: Record<string, MixedLinkRecord>) => void;
         return (
           <GraphProvider
             elements={elements}
@@ -358,7 +358,7 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle multiple rapid updates with callbacks', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
       };
 
@@ -371,7 +371,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
 
         const handleAddElement = useCallback(() => {
           setElements((previous) => {
@@ -420,12 +420,12 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('User interaction sync back to React state', () => {
     it('should sync graph changes back to React state in controlled mode', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
       };
 
-      let reactStateElements: Record<string, Element> = {};
-      let storeElements: Map<string, Element> = new Map();
+      let reactStateElements: Record<string, MixedElementRecord> = {};
+      let storeElements: Map<string, MixedElementRecord> = new Map();
 
       function TestComponent() {
         storeElements = useElements((items) => items);
@@ -433,7 +433,7 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
         reactStateElements = elements;
 
         return (
@@ -491,14 +491,14 @@ describe('GraphProvider Controlled Mode', () => {
     });
 
     it('should handle element position changes from user interaction', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 }, position: { x: 0, y: 0 } },
       };
 
-      let reactStateElements: Record<string, Element> = {};
+      let reactStateElements: Record<string, MixedElementRecord> = {};
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
         reactStateElements = elements;
 
         return (
@@ -553,11 +553,11 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('React state to graph position sync', () => {
     it('should update graph position when React state x,y changes via setElements', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 }, position: { x: 0, y: 0 } },
       };
 
-      let reactStateElements: Record<string, Element> = {};
+      let reactStateElements: Record<string, MixedElementRecord> = {};
       let graphRef: dia.Graph | null = null;
 
       function TestComponent() {
@@ -566,12 +566,12 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, MixedElementRecord>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
         reactStateElements = elements;
-        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
+        setElementsExternal = setElements as (elements: Record<string, MixedElementRecord>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -611,7 +611,7 @@ describe('GraphProvider Controlled Mode', () => {
 
   describe('Edge cases', () => {
     it('should handle empty records correctly', async () => {
-      const initialElements: Record<string, Element> = {
+      const initialElements: Record<string, MixedElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
       };
 
@@ -622,11 +622,11 @@ describe('GraphProvider Controlled Mode', () => {
         return null;
       }
 
-      let setElementsExternal: ((elements: Record<string, Element>) => void) | null = null;
+      let setElementsExternal: ((elements: Record<string, MixedElementRecord>) => void) | null = null;
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
-        setElementsExternal = setElements as (elements: Record<string, Element>) => void;
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
+        setElementsExternal = setElements as (elements: Record<string, MixedElementRecord>) => void;
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -673,8 +673,8 @@ describe('GraphProvider Controlled Mode', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, Element>>({});
-        const [links, setLinks] = useState<Record<string, Link>>({});
+        const [elements, setElements] = useState<Record<string, MixedElementRecord>>({});
+        const [links, setLinks] = useState<Record<string, MixedLinkRecord>>({});
         return (
           <GraphProvider
             elements={elements}

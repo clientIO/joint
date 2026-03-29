@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/pseudo-random */
-import { GraphProvider, Paper, type Element, type Link } from '@joint/react';
+import { GraphProvider, Paper, type PortalElementRecord, type PortalLinkRecord } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useState, startTransition } from 'react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -10,8 +10,8 @@ interface StressNodeData {
 }
 
 function initialElements(xNodes = 15, yNodes = 30) {
-  const nodes: Record<string, Element<StressNodeData>> = {};
-  const edges: Record<string, Link> = {};
+  const nodes: Record<string, PortalElementRecord<StressNodeData>> = {};
+  const edges: Record<string, PortalLinkRecord> = {};
   let nodeId = 1;
   let edgeId = 1;
   let recentNodeId: number | null = null;
@@ -50,12 +50,12 @@ const { nodes: initialNodes, edges: initialEdges } = initialElements(15, 30);
 function Main({
   setElements,
 }: Readonly<{
-  setElements: React.Dispatch<React.SetStateAction<Record<string, Element<StressNodeData>>>>;
+  setElements: React.Dispatch<React.SetStateAction<Record<string, PortalElementRecord<StressNodeData>>>>;
 }>) {
   const updatePos = useCallback(() => {
     startTransition(() => {
       setElements((previousElements) => {
-        const newElements: Record<string, Element<StressNodeData>> = {};
+        const newElements: Record<string, PortalElementRecord<StressNodeData>> = {};
         for (const [id, node] of Object.entries(previousElements)) {
           newElements[id] = {
             ...node,
@@ -85,15 +85,15 @@ function Main({
 }
 
 export default function App() {
-  const [elements, setElements] = useState<Record<string, Element<StressNodeData>>>(initialNodes);
-  const [links, setLinks] = useState<Record<string, Link>>(initialEdges);
+  const [elements, setElements] = useState<Record<string, PortalElementRecord<StressNodeData>>>(initialNodes);
+  const [links, setLinks] = useState<Record<string, PortalLinkRecord>>(initialEdges);
 
   return (
     <GraphProvider
       elements={elements}
       links={links}
-      onElementsChange={setElements}
-      onLinksChange={setLinks}
+      onElementsChange={setElements as never}
+      onLinksChange={setLinks as never}
     >
       <Main setElements={setElements} />
     </GraphProvider>

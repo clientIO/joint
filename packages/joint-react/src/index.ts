@@ -49,9 +49,13 @@ export * from './state/data-mapping/link-mapper';
 // Types
 export type { ElementPosition, ElementSize } from './types/cell-data';
 export type {
-  Element as Element,
+  MixedElementRecord as MixedElementRecord,
+  PortalElementRecord,
+  NativeElementRecord,
   PortalElementPort as FlatElementPort,
-  Link as Link,
+  MixedLinkRecord as MixedLinkRecord,
+  PortalLinkRecord,
+  NativeLinkRecord,
   PortalLinkLabel as FlatLinkLabel,
   PortalLinkPresentation as FlatLinkPresentationData,
 } from './types/data-types';

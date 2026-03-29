@@ -9,8 +9,8 @@ import {
   useGraph,
   useMarkup,
   usePaperEvents,
-  type Element,
-  type Link,
+  type PortalElementRecord,
+  type PortalLinkRecord,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -26,7 +26,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, Element<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   server: {
     data: { label: 'Server' },
     position: { x: 300, y: 30 },
@@ -69,7 +69,7 @@ const initialElements: Record<string, Element<NodeData>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'l-server-db': {
     source: { id: 'server' },
     target: { id: 'db' },

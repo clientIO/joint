@@ -8,8 +8,10 @@ import {
   useElementSize,
   useElementDefaults,
   useLinkDefaults,
-  type Element,
-  type Link,
+  type PortalElementRecord,
+  type PortalLinkRecord,
+  type MixedElementRecord,
+  type MixedLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -23,7 +25,7 @@ interface NodeUserData {
   label: string;
 }
 
-const initialElements: Record<string, Element<NodeUserData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeUserData>> = {
   a: {
     data: { label: 'Source' },
     position: { x: 50, y: 70 },
@@ -60,7 +62,7 @@ const initialElements: Record<string, Element<NodeUserData>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'a→b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
   'a→c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b→d': {
@@ -121,8 +123,8 @@ const themeLabels: Record<Theme, string> = {
 };
 
 function Diagram() {
-  const [elements, setElements] = useState(initialElements);
-  const [links, setLinks] = useState(initialLinks);
+  const [elements, setElements] = useState<Record<string, MixedElementRecord<NodeUserData>>>(initialElements);
+  const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(initialLinks);
   const [theme, setTheme] = useState<Theme>('default');
   const wrapperRef = useRef<HTMLDivElement>(null);
 

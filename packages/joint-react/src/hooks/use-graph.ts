@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { Element, Link } from '../types/data-types';
+import type { MixedElementRecord, MixedLinkRecord } from '../types/data-types';
 import { useGraphStore } from './use-graph-store';
 
 /**
@@ -33,7 +33,7 @@ interface UseGraphResult<
    */
   readonly setElement: (
     id: CellId,
-    attributesOrUpdater: Element<NodeData> | ((previous: Element<NodeData>) => Element<NodeData>)
+    attributesOrUpdater: MixedElementRecord<NodeData> | ((previous: MixedElementRecord<NodeData>) => MixedElementRecord<NodeData>)
   ) => void;
   /**
    * Removes an element from the graph by its ID.
@@ -52,7 +52,7 @@ interface UseGraphResult<
    */
   readonly setLink: (
     id: CellId,
-    attributesOrUpdater: Link<LinkData> | ((previous: Link<LinkData>) => Link<LinkData>)
+    attributesOrUpdater: MixedLinkRecord<LinkData> | ((previous: MixedLinkRecord<LinkData>) => MixedLinkRecord<LinkData>)
   ) => void;
   /**
    * Removes a link from the graph by its ID.
@@ -61,13 +61,13 @@ interface UseGraphResult<
   readonly removeLink: (id: CellId) => void;
 }
 
-function getDefaultLink<LinkData extends object | undefined = undefined>(): Link<LinkData> {
-  return {} as Link<LinkData>;
+function getDefaultLink<LinkData extends object | undefined = undefined>(): MixedLinkRecord<LinkData> {
+  return {} as MixedLinkRecord<LinkData>;
 }
 function getDefaultElement<
   ElementData extends object | undefined = undefined,
->(): Element<ElementData> {
-  return {} as Element<ElementData>;
+>(): MixedElementRecord<ElementData> {
+  return {} as MixedElementRecord<ElementData>;
 }
 /**
  * Custom hook to retrieve the graph instance and actions for manipulating elements and links.
@@ -93,7 +93,7 @@ export function useGraph<
 
       setElement(id, attributesOrUpdater) {
         const graphView = graphStore.getGraphView<NodeData, LinkData>();
-        const existing: Element<NodeData> =
+        const existing: MixedElementRecord<NodeData> =
           graphView.elements.get(String(id)) ?? getDefaultElement<NodeData>();
 
         const attributes = isUpdater(attributesOrUpdater)
@@ -103,7 +103,7 @@ export function useGraph<
         const mergedData = {
           ...existing,
           ...attributes,
-        } as Element<NodeData>;
+        } as MixedElementRecord<NodeData>;
 
         const cellAttributes = graphView.mapElementToAttributes({
           id: String(id),
@@ -124,10 +124,10 @@ export function useGraph<
           ? attributesOrUpdater(existing)
           : attributesOrUpdater;
 
-        const mergedData: Link<LinkData> = {
+        const mergedData: MixedLinkRecord<LinkData> = {
           ...existing,
           ...attributes,
-        } as Link<LinkData>;
+        } as MixedLinkRecord<LinkData>;
         const cellAttributes = graphView.mapLinkToAttributes({
           id: String(id),
           link: mergedData,

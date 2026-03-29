@@ -7,12 +7,12 @@ import {
   Paper,
   useMeasureNode,
   useMarkup,
-  type Link,
+  type PortalLinkRecord,
   type RenderElement,
   type OnTransformElement,
   PortalElement,
   PortalLink,
-  type Element,
+  type PortalElementRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
@@ -28,7 +28,7 @@ interface StackedElement {
   readonly labels: readonly string[];
 }
 
-const initialElements: Record<string, Element<StackedElement>> = {
+const initialElements: Record<string, PortalElementRecord<StackedElement>> = {
   '1': {
     data: {
       name: 'Component A',
@@ -45,7 +45,7 @@ const initialElements: Record<string, Element<StackedElement>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'e1-2': {
     source: { id: '1', magnet: 'item-2' },
     target: { id: '2', magnet: 'item-2' },

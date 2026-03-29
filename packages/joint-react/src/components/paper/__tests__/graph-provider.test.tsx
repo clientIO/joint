@@ -5,7 +5,7 @@ import { GraphStoreContext } from '../../../context';
 import { GraphStore, DEFAULT_CELL_NAMESPACE } from '../../../store';
 import { dia, shapes } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
-import type { Element, Link } from '../../../types/data-types';
+import type { MixedElementRecord, MixedLinkRecord } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../../paper/paper';
 import { useLink } from '../../../hooks/use-link';
@@ -39,12 +39,12 @@ describe('graph', () => {
   });
 
   it('should render graph provider with links and elements', async () => {
-    const elements: Record<string, Element> = {
+    const elements: Record<string, MixedElementRecord> = {
       element1: {
         size: { width: 100, height: 100 },
       },
     };
-    const link: Link = { source: { id: 'element1' }, target: { x: 0, y: 0 } };
+    const link: MixedLinkRecord = { source: { id: 'element1' }, target: { x: 0, y: 0 } };
     let linkCount = 0;
     let elementCount = 0;
     function TestComponent() {
@@ -105,7 +105,7 @@ describe('graph', () => {
   });
 
   it('should initialize with default elements', async () => {
-    const elements: Record<string, Element> = {
+    const elements: Record<string, MixedElementRecord> = {
       element1: { size: { width: 100, height: 100 } },
       element2: { size: { width: 200, height: 200 } },
     };
@@ -147,7 +147,7 @@ describe('graph', () => {
     const graph = new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
-    let currentElements: Map<string, Element> = new Map();
+    let currentElements: Map<string, MixedElementRecord> = new Map();
     function Elements() {
       const elements = useElements();
       currentElements = elements;
@@ -191,7 +191,7 @@ describe('graph', () => {
     const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     graph.addCell(cell);
     const store = new GraphStore({ graph });
-    let currentElements: Map<string, Element> = new Map();
+    let currentElements: Map<string, MixedElementRecord> = new Map();
     // eslint-disable-next-line sonarjs/no-identical-functions
     function Elements() {
       const elements = useElements();
@@ -233,12 +233,12 @@ describe('graph', () => {
   });
 
   it('should render graph provider with links and elements - with explicit react type', async () => {
-    const elements: Record<string, Element> = {
+    const elements: Record<string, MixedElementRecord> = {
       element1: {
         size: { width: 100, height: 100 },
       },
     };
-    const link: Link = { source: { id: 'element1' }, target: { x: 0, y: 0 } };
+    const link: MixedLinkRecord = { source: { id: 'element1' }, target: { x: 0, y: 0 } };
     let linkCount = 0;
     let elementCount = 0;
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -262,12 +262,12 @@ describe('graph', () => {
   });
 
   it('should update graph in controlled mode', async () => {
-    const initialElements: Record<string, Element> = {
+    const initialElements: Record<string, MixedElementRecord> = {
       element1: {
         size: { width: 100, height: 100 },
       },
     };
-    const initialLink: Link = {
+    const initialLink: MixedLinkRecord = {
       source: { id: 'element1' },
       target: { x: 0, y: 0 },
     };
@@ -283,16 +283,16 @@ describe('graph', () => {
       return null;
     }
 
-    let setElementsOutside: ((elements: Record<string, Element>) => void) | null = null;
-    let setLinksOutside: ((links: Record<string, Link>) => void) | null = null;
+    let setElementsOutside: ((elements: Record<string, MixedElementRecord>) => void) | null = null;
+    let setLinksOutside: ((links: Record<string, MixedLinkRecord>) => void) | null = null;
 
     function Graph() {
-      const [elements, setElements] = useState<Record<string, Element>>(() => initialElements);
-      const [links, setLinks] = useState<Record<string, Link>>(() => ({
+      const [elements, setElements] = useState<Record<string, MixedElementRecord>>(() => initialElements);
+      const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(() => ({
         link1: initialLink,
       }));
-      setElementsOutside = setElements as unknown as (elements: Record<string, Element>) => void;
-      setLinksOutside = setLinks as unknown as (links: Record<string, Link>) => void;
+      setElementsOutside = setElements as unknown as (elements: Record<string, MixedElementRecord>) => void;
+      setLinksOutside = setLinks as unknown as (links: Record<string, MixedLinkRecord>) => void;
       return (
         <GraphProvider
           elements={elements}
@@ -359,7 +359,7 @@ describe('graph', () => {
   });
 
   it('should pass correct link data to renderLink function', async () => {
-    const elements: Record<string, Element> = {
+    const elements: Record<string, MixedElementRecord> = {
       'element-1': {
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
@@ -370,7 +370,7 @@ describe('graph', () => {
       },
     };
 
-    const links: Record<string, Link> = {
+    const links: Record<string, MixedLinkRecord> = {
       'link-1': {
         source: { id: 'element-1' },
         target: { id: 'element-2' },
@@ -384,7 +384,7 @@ describe('graph', () => {
       },
     };
 
-    const receivedLinks: Link[] = [];
+    const receivedLinks: MixedLinkRecord[] = [];
     const getUniqueReceivedLinks = () => [
       ...new Map(
         receivedLinks.map((link) => [
@@ -403,7 +403,7 @@ describe('graph', () => {
       const data = useLink();
       React.useEffect(() => {
         if (data) {
-          receivedLinks.push(data as unknown as Link);
+          receivedLinks.push(data as unknown as MixedLinkRecord);
         }
       }, [data]);
       return <g data-testid="link" />;
@@ -451,7 +451,7 @@ describe('graph', () => {
 
   // TODO: Pre-existing issue — link views are not re-rendered when links change in controlled mode
   it.skip('should pass updated link data to renderLink when links change', async () => {
-    const elements: Record<string, Element> = {
+    const elements: Record<string, MixedElementRecord> = {
       'element-1': {
         position: { x: 0, y: 0 },
         size: { width: 100, height: 100 },
@@ -462,14 +462,14 @@ describe('graph', () => {
       },
     };
 
-    const initialLinks: Record<string, Link> = {
+    const initialLinks: Record<string, MixedLinkRecord> = {
       'link-1': {
         source: { id: 'element-1' },
         target: { id: 'element-2' },
       },
     };
 
-    const receivedLinks: Link[] = [];
+    const receivedLinks: MixedLinkRecord[] = [];
 
     // Reuses same pattern as CaptureLinkData above — identical by design for clarity
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -477,17 +477,17 @@ describe('graph', () => {
       const data = useLink();
       React.useEffect(() => {
         if (data) {
-          receivedLinks.push(data as unknown as Link);
+          receivedLinks.push(data as unknown as MixedLinkRecord);
         }
       }, [data]);
       return <g data-testid="link" />;
     }
 
-    let setLinksExternal: ((links: Record<string, Link>) => void) | null = null;
+    let setLinksExternal: ((links: Record<string, MixedLinkRecord>) => void) | null = null;
 
     function ControlledGraph() {
-      const [links, setLinks] = useState<Record<string, Link>>(() => initialLinks);
-      setLinksExternal = setLinks as unknown as (links: Record<string, Link>) => void;
+      const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(() => initialLinks);
+      setLinksExternal = setLinks as unknown as (links: Record<string, MixedLinkRecord>) => void;
 
       const renderLink = useCallback(() => <CaptureLinkDataUpdated />, []);
 

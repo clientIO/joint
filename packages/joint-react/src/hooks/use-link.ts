@@ -3,14 +3,14 @@ import { useLinkId } from './use-link-id';
 import { useGraphStore } from './use-graph-store';
 import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 import { useContainerItem } from './use-container-item';
-import type { Link } from '../types/data-types';
+import type { MixedLinkRecord } from '../types/data-types';
 import type { LinkLayout } from '../types/cell-data';
 import { getLinkLayout } from '../store/update-layout-state';
 import type { dia } from '@joint/core';
 import { usePaperStore } from './use-paper';
 
 /** Link data resolved for the current paper — `layout` is the single paper's `LinkLayout`. */
-export type ResolvedLink<D extends object | undefined = undefined> = Link<D> & {
+export type ResolvedLink<D extends object | undefined = undefined> = MixedLinkRecord<D> & {
   layout: LinkLayout;
 };
 
@@ -48,7 +48,7 @@ export function useLink<D extends object | undefined = undefined, R = ResolvedLi
     graphView: { links },
   } = useGraphStore<undefined, D>();
   // Wrap the user selector to resolve layout live from the paper view
-  const resolvedSelector = (item: Link<D>): R => {
+  const resolvedSelector = (item: MixedLinkRecord<D>): R => {
     const { ...rest } = item;
 
     // Read layout directly from the paper's link view — always fresh.

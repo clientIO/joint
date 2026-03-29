@@ -37,7 +37,7 @@
  * ============================================================================
  */
 
-import { GraphProvider, useElementSize, type Element, type Link, Paper } from '@joint/react';
+import { GraphProvider, useElementSize, type PortalElementRecord, type PortalLinkRecord, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useState, type Dispatch, type SetStateAction } from 'react';
@@ -55,12 +55,12 @@ type ElementData = { label: string };
 /**
  * Full element type including layout and user data.
  */
-type CustomElement = Element<ElementData>;
+type CustomElement = PortalElementRecord<ElementData>;
 
 /**
  * Full link type.
  */
-type CustomLink = Link;
+type CustomLink = PortalLinkRecord;
 
 /**
  * Initial elements (nodes) for the graph.
@@ -387,8 +387,8 @@ function Main() {
       links={links}
       // Enable controlled mode by providing change handlers
       // When the graph changes (user interaction), GraphProvider will call these
-      onElementsChange={setElements}
-      onLinksChange={setLinks}
+      onElementsChange={setElements as never}
+      onLinksChange={setLinks as never}
     >
       {/*
         Pass state setters to child component so it can update the graph

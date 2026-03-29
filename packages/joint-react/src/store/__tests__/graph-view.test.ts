@@ -2,7 +2,7 @@ import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../../store/graph-store';
 import { graphView } from '../graph-view';
 import { linkToAttributes } from '../../state/data-mapping/link-mapper';
-import type { Link } from '../../types/data-types';
+import type { MixedLinkRecord } from '../../types/data-types';
 import type { CellAttributes, MapLinkToAttributes } from '../../state/data-mapping';
 
 function createGraph() {
@@ -803,8 +803,8 @@ describe('graphView', () => {
 
   describe('updateMappers — link defaults re-sync', () => {
     function createLinkMapper(color: string): MapLinkToAttributes {
-      return (mapOptions: { id?: string; link: Link }) => {
-        const merged: Link = { color, width: 3, ...mapOptions.link };
+      return (mapOptions: { id?: string; link: MixedLinkRecord }) => {
+        const merged: MixedLinkRecord = { color, width: 3, ...mapOptions.link };
         return linkToAttributes({ link: merged, id: mapOptions.id });
       };
     }

@@ -6,9 +6,11 @@ import {
   useElementDefaults,
   useElementSize,
   useLinkDefaults,
-  type Element,
+  type PortalElementRecord,
   type FlatElementPort,
-  type Link,
+  type PortalLinkRecord,
+  type MixedElementRecord,
+  type MixedLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
@@ -20,14 +22,14 @@ interface ElementData {
 
 // Minimal persisted data — no ports, no styling.
 // Ports and theme are provided by useElementDefaults based on element kind.
-const initialElements: Record<string, Element<ElementData>> = {
+const initialElements: Record<string, PortalElementRecord<ElementData>> = {
   a: { data: { label: 'Start', type: 'source' }, position: { x: 50, y: 140 } },
   b: { data: { label: 'Process', type: 'process' }, position: { x: 250, y: 50 } },
   c: { data: { label: 'Review', type: 'process' }, position: { x: 250, y: 230 } },
   d: { data: { label: 'Done', type: 'sink' }, position: { x: 480, y: 140 } },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'a-b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
   'a-c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b-d': {
@@ -72,8 +74,8 @@ function Element({ label, color }: Readonly<{ label: string; color: string }>) {
 }
 
 function Diagram() {
-  const [elements, setElements] = useState(initialElements);
-  const [links, setLinks] = useState(initialLinks);
+  const [elements, setElements] = useState<Record<string, MixedElementRecord<ElementData>>>(initialElements);
+  const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(initialLinks);
   const [alternate, setAlternate] = useState(false);
   const color = alternate ? SECONDARY : PRIMARY;
   const portShape = alternate ? ('rect' as const) : ('ellipse' as const);

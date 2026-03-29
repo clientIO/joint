@@ -1,13 +1,14 @@
 import { type DependencyList, useMemo } from 'react';
 import { elementToAttributes } from '../state/data-mapping/element-mapper';
 import type { CellAttributes, MapElementToAttributes } from '../state/data-mapping';
-import type { Element } from '../types/data-types';
+import type { MixedElementRecord } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
+
 
 export function useElementDefaults<Data extends object | undefined = undefined>(
   defaults:
-    | Partial<Element<Data>>
-    | ((options: { data: Element<Data>; id?: CellId }) => Partial<Element<Data>>),
+    | Partial<MixedElementRecord<Data>>
+    | ((options: { data: MixedElementRecord<Data>; id?: CellId }) => Partial<MixedElementRecord<Data>>),
   deps: DependencyList = []
 ) {
   return useMemo((): { mapElementToAttributes: MapElementToAttributes<Data> } => {
@@ -17,6 +18,7 @@ export function useElementDefaults<Data extends object | undefined = undefined>(
           const resolved =
             typeof defaults === 'function'
               ? defaults({
+                  // @todo  - this should be `element` not `data`
                   data: mapOptions.element,
                   id: mapOptions.id,
                 })

@@ -7,14 +7,14 @@ import {
   GraphProvider,
   linkToAttributes,
   type CellAttributes,
-  type Element,
-  type Link,
+  type PortalElementRecord,
+  type PortalLinkRecord,
+  type MixedLinkRecord,
 } from '@joint/react';
 import { Paper } from '../../../components/paper/paper';
-import type { PortalLinkRecord } from '../../../types/data-types';
 
 type ElementData = { label: string; color: string };
-const initialElements: Record<string, Element<ElementData>> = {
+const initialElements: Record<string, PortalElementRecord<ElementData>> = {
   '1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 15 },
@@ -86,7 +86,7 @@ const links: Record<string, CustomLink> = {
   },
 };
 
-const mapLinkToAttributes = (options: { id?: string; link: Link }): CellAttributes => {
+const mapLinkToAttributes = (options: { id?: string; link: MixedLinkRecord }): CellAttributes => {
   const data = options.link as CustomLink;
   const attributes = linkToAttributes(options);
   const { color } = data;
@@ -100,7 +100,7 @@ const mapLinkToAttributes = (options: { id?: string; link: Link }): CellAttribut
 export default function App() {
   return (
     <GraphProvider
-      links={links as Record<string, Link>}
+      links={links as Record<string, MixedLinkRecord>}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
       mapLinkToAttributes={mapLinkToAttributes}

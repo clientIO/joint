@@ -9,9 +9,10 @@ import {
   useGraph,
   elementToAttributes,
   type CellAttributes,
-  type Element,
+  type PortalElementRecord,
+  type MixedElementRecord,
   type FlatElementPort,
-  type Link,
+  type PortalLinkRecord,
   useElements,
 } from '@joint/react';
 
@@ -62,7 +63,7 @@ interface PortNodeData {
  * into SVG path strings sized to each port's width/height, then delegates
  * to the default flat mapper via `ElementToAttributes`.
  */
-function mapDataToElementAttributes(options: { id: string; element: Element<PortNodeData> }) {
+function mapDataToElementAttributes(options: { id: string; element: MixedElementRecord<PortNodeData> }) {
   const { id, element } = options;
   const { ports, portStyle } = element;
   if (!ports) return elementToAttributes({ id, element });
@@ -108,7 +109,7 @@ function getShapeLabel(shape: string): string {
   return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
 }
 
-const initialElements: Record<string, Element<PortNodeData>> = {
+const initialElements: Record<string, PortalElementRecord<PortNodeData>> = {
   'node-1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 50, y: 100 },
@@ -161,7 +162,7 @@ const initialElements: Record<string, Element<PortNodeData>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'link-1': {
     source: { id: 'node-1', port: 'out-1', anchor: { name: 'right', args: { useModelGeometry: true } } },
     target: { id: 'node-2', port: 'in-1', anchor: { name: 'left', args: { useModelGeometry: true } } },
@@ -213,12 +214,13 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
   const { setElement } = useGraph();
 
   const updatePort = (updates: Partial<FlatElementPort>) => {
-    setElement(elementId, (previous) => ({
-      ...previous,
-      ports: previous.ports
-        ? { ...previous.ports, [portId]: { ...previous.ports[portId], ...updates } }
-        : previous.ports,
-    }));
+    setElement(elementId, (previous) => {
+      const el = previous as PortalElementRecord;
+      return {
+        ...el,
+        ports: el.ports ? { ...el.ports, [portId]: { ...el.ports[portId], ...updates } } : el.ports,
+      };
+    });
   };
 
   return (
@@ -366,7 +368,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
 interface ElementPortControlsProps {
   readonly id: string;
-  readonly element: Element<PortNodeData>;
+  readonly element: MixedElementRecord<PortNodeData>;
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {

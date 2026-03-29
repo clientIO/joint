@@ -8,13 +8,13 @@ import {
   usePaperEvents,
   useElementSize,
   type RenderElement,
-  type Element,
-  type Link,
+  type PortalElementRecord,
+  type PortalLinkRecord,
 } from '@joint/react';
 import { useCallback, useId } from 'react';
 import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const initialEdges: Record<string, Link> = {
+const initialEdges: Record<string, PortalLinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
@@ -28,7 +28,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, Element<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 10 }, size: { width: 120, height: 30 } },
   '2': {
     data: { label: 'Node 2' },

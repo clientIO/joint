@@ -14,8 +14,10 @@ import {
   useMarkup,
   useMeasureNode,
   type CellId,
-  type Element,
-  type Link,
+  type PortalElementRecord,
+  type PortalLinkRecord,
+  type MixedElementRecord,
+  type MixedLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import {
@@ -69,7 +71,7 @@ type NodeData = {
   readonly outputPorts: readonly OutputPort[];
 };
 
-type NodeType = Element<NodeData>;
+type NodeType = PortalElementRecord<NodeData>;
 
 const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
   { id: '1', label: 'Port 1' },
@@ -109,7 +111,7 @@ const initialElements: Record<string, NodeType> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   link1: {
     source: { id: '1', magnet: '1' },
     target: { id: '2', magnet: 'in' },
@@ -288,11 +290,11 @@ function RenderElementBase({
 }
 const RenderElement = memo(RenderElementBase);
 function Main() {
-  const [elements, setElements] = useState<Record<string, Element<NodeData>>>(initialElements);
+  const [elements, setElements] = useState<Record<string, MixedElementRecord<NodeData>>>(initialElements);
   const isDark = useContext(ThemeContext);
 
-  function fixLinks(initialLinks: Record<string, Link>) {
-    const next: Record<string, Link> = {};
+  function fixLinks(initialLinks: Record<string, MixedLinkRecord>) {
+    const next: Record<string, MixedLinkRecord> = {};
     for (const [linkId, link] of Object.entries(initialLinks)) {
       next[linkId] = {
         ...link,
@@ -301,7 +303,7 @@ function Main() {
     }
     return next;
   }
-  const [links, setLinks] = useState<Record<string, Link>>(() => fixLinks(initialLinks));
+  const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(() => fixLinks(initialLinks));
   useLayoutEffect(() => {
     setLinks(fixLinks); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Sync link colors with theme
   }, [isDark]);
@@ -333,7 +335,7 @@ function Main() {
       };
     });
     setLinks((previous) => {
-      const next: Record<string, Link> = {};
+      const next: Record<string, MixedLinkRecord> = {};
       for (const [linkId, link] of Object.entries(previous)) {
         const isSource = link.source?.id === id && link.source?.magnet === portId;
         const isTarget = link.target?.id === id && link.target?.magnet === portId;

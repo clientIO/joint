@@ -1,19 +1,19 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { GraphProvider, Paper, useElementSize, type Element, type Link } from '@joint/react';
+import { GraphProvider, Paper, useElementSize, type PortalElementRecord, type PortalLinkRecord } from '@joint/react';
 
 // define element type with custom properties
 type ElementData = { color: string };
 
 // define initial elements as Record
-const initialElements: Record<string, Element<ElementData>> = {
+const initialElements: Record<string, PortalElementRecord<ElementData>> = {
   '1': { data: { color: PRIMARY }, position: { x: 100, y: 15 }, size: { width: 100, height: 25 } },
   '2': { data: { color: PRIMARY }, position: { x: 100, y: 200 }, size: { width: 100, height: 25 } },
 };
 
 // define initial edges as Record
-const initialEdges: Record<string, Link> = {
+const initialEdges: Record<string, PortalLinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },

@@ -1,17 +1,17 @@
 import { renderHook } from '@testing-library/react';
 import { useLinkDefaults } from '../use-link-defaults';
 import { defaultLinkStyle, defaultLabelStyle } from '../../theme/link-theme';
-import type { Link } from '../../types/data-types';
+import type { MixedLinkRecord } from '../../types/data-types';
 
 describe('useFlatLinkData', () => {
-  const minimalLinkData: Link = {
+  const minimalLinkData: MixedLinkRecord = {
     source: { id: 'a' },
     target: { id: 'b' },
   };
 
   function callForwardMapper(
     hook: ReturnType<typeof useLinkDefaults<any>>,
-    link: Link = minimalLinkData
+    link: MixedLinkRecord = minimalLinkData
   ) {
     return hook.mapLinkToAttributes!({
       id: 'link-1',
@@ -40,7 +40,7 @@ describe('useFlatLinkData', () => {
   });
 
   it('applies full line style override', () => {
-    const fullOverride: Partial<Link> = {
+    const fullOverride: Partial<MixedLinkRecord> = {
       color: '#00ff00',
       width: 5,
       sourceMarker: 'arrow',
@@ -211,7 +211,7 @@ describe('useFlatLinkData', () => {
     expect(result.current.mapLinkToAttributes).toBe(firstForward);
   });
 
-  const stableCallback = ({ link }: { link: Link }) => ({
+  const stableCallback = ({ link }: { link: MixedLinkRecord }) => ({
     color: link.source?.id === 'a' ? 'red' : 'blue',
   });
 

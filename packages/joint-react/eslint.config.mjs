@@ -11,6 +11,12 @@ export default defineConfig([
   {
     files: ['src/**/*.{js,jsx,ts,tsx}', '.storybook/**/*.{js,jsx,ts,tsx}'],
   },
+  {
+    "rules": {
+      "jsdoc/require-returns": "off",
+      "jsdoc/require-jsdoc": "off"
+    }
+  }
   ...jsConfig,
   ...tsConfig,
   ...reactTsConfig,

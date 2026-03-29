@@ -3,7 +3,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
-import type { Element, ElementWithLayout, Link } from '../types/data-types';
+import type { MixedElementRecord, ElementWithLayout, MixedLinkRecord } from '../types/data-types';
 import {
   type GraphMappings,
   type MapAttributesToElement,
@@ -25,13 +25,13 @@ export interface IncrementalContainerChanges<
   LinkData extends object | undefined = undefined,
 > {
   readonly elements: {
-    readonly added: Map<string, Element<ElementData>>;
-    readonly changed: Map<string, Element<ElementData>>;
+    readonly added: Map<string, MixedElementRecord<ElementData>>;
+    readonly changed: Map<string, MixedElementRecord<ElementData>>;
     readonly removed: Set<string>;
   };
   readonly links: {
-    readonly added: Map<string, Link<LinkData>>;
-    readonly changed: Map<string, Link<LinkData>>;
+    readonly added: Map<string, MixedLinkRecord<LinkData>>;
+    readonly changed: Map<string, MixedLinkRecord<LinkData>>;
     readonly removed: Set<string>;
   };
 }
@@ -61,14 +61,14 @@ export function graphView<
   } = mappings;
 
   const elements = createContainer<ElementWithLayout<ElementData>>('Elements');
-  const links = createContainer<Link<LinkData>>('Links');
+  const links = createContainer<MixedLinkRecord<LinkData>>('Links');
 
   const trackChanges = onIncrementalChange !== undefined;
-  const elementAdded = trackChanges ? new Map<string, Element<ElementData>>() : undefined;
-  const elementChanged = trackChanges ? new Map<string, Element<ElementData>>() : undefined;
+  const elementAdded = trackChanges ? new Map<string, MixedElementRecord<ElementData>>() : undefined;
+  const elementChanged = trackChanges ? new Map<string, MixedElementRecord<ElementData>>() : undefined;
   const elementRemoved = trackChanges ? new Set<string>() : undefined;
-  const linkAdded = trackChanges ? new Map<string, Link<LinkData>>() : undefined;
-  const linkChanged = trackChanges ? new Map<string, Link<LinkData>>() : undefined;
+  const linkAdded = trackChanges ? new Map<string, MixedLinkRecord<LinkData>>() : undefined;
+  const linkChanged = trackChanges ? new Map<string, MixedLinkRecord<LinkData>>() : undefined;
   const linkRemoved = trackChanges ? new Set<string>() : undefined;
 
   const graphChangesController = graphChanges({
@@ -316,7 +316,7 @@ export function graphView<
         const { attrs: _staleAttrs, ...linkWithoutAttrs } = link as Record<string, unknown>;
         const attributes = mapLinkToAttributes({
           id,
-          link: linkWithoutAttrs as unknown as Link<LinkData>,
+          link: linkWithoutAttrs as unknown as MixedLinkRecord<LinkData>,
         });
         graphLinks.push({ ...attributes, id });
       }

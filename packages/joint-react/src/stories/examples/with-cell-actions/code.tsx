@@ -6,8 +6,9 @@ import {
   Paper,
   useGraph,
   useMeasureNode,
-  type Element,
-  type Link,
+  type PortalElementRecord,
+  type PortalLinkRecord,
+  type MixedLinkRecord,
   useElements,
   useLinks,
 } from '@joint/react';
@@ -23,7 +24,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, Element<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node A', color: PRIMARY },
     position: { x: 50, y: 50 },
@@ -41,7 +42,7 @@ const initialElements: Record<string, Element<NodeData>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'link-1-2': {
     source: { id: '1' },
     target: { id: '2' },
@@ -268,13 +269,13 @@ function ElementControls({
   );
 }
 
-function getLinkEndpointId(endpoint: Link['source']): string {
+function getLinkEndpointId(endpoint: MixedLinkRecord['source']): string {
   return String(endpoint?.id ?? 'unknown');
 }
 
 interface LinkControlsProps {
   readonly id: string;
-  readonly link: Link;
+  readonly link: MixedLinkRecord;
 }
 
 function LinkControls({ id, link }: Readonly<LinkControlsProps>) {

@@ -3,7 +3,7 @@ import {
   Paper,
   useElementSize,
   useNodesMeasuredEffect,
-  type Element,
+  type PortalElementRecord,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT, BG } from 'storybook-config/theme';
@@ -88,7 +88,7 @@ function pos(index: number, w: number, h: number) {
 // ----------------------------------------------------------------------------
 // Initial Elements
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, Element<ControlledElement>> = {
+const initialElements: Record<string, PortalElementRecord<ControlledElement>> = {
   linkedProcess: {
     data: { type: 'linkedProcess', label: 'Linked Process' },
     ...pos(0, 120, 50),

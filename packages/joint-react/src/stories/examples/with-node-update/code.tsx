@@ -4,8 +4,8 @@ import {
   GraphProvider,
   Paper,
   useElements,
-  type Element as LabelEditor,
-  type Link,
+  type PortalElementRecord,
+  type PortalLinkRecord,
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -16,7 +16,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, LabelEditor<NodeData>> = {
+const initialElements: Record<string, PortalElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node 1', color: '#4f46e5' },
     position: { x: 100, y: 15 },
@@ -27,7 +27,7 @@ const initialElements: Record<string, LabelEditor<NodeData>> = {
   },
 };
 
-const initialEdges: Record<string, Link> = {
+const initialEdges: Record<string, PortalLinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },

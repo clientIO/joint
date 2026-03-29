@@ -1,7 +1,7 @@
 
 
 import { type dia } from '@joint/core';
-import type { Element, PortalElementRecord } from '../../types/data-types';
+import type { MixedElementRecord, PortalElementRecord } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -12,7 +12,7 @@ import type { CellAttributes } from './index';
  * @param data - The data to validate
  * @returns True if the data is a valid element data record
  */
-function isElementData(data: unknown): data is Element {
+function isElementData(data: unknown): data is MixedElementRecord {
   return isRecord(data);
 }
 
@@ -25,7 +25,7 @@ function isElementData(data: unknown): data is Element {
  */
 export function elementToAttributes<ElementData extends object | undefined = undefined>(options: {
   id: string;
-  element: Element<ElementData>;
+  element: MixedElementRecord<ElementData>;
 }): CellAttributes {
   const { element } = options;
   if (!isElementData(element)) {
@@ -79,12 +79,12 @@ export function elementToAttributes<ElementData extends object | undefined = und
  */
 export function attributesToElement<ElementData extends object | undefined = undefined>(
   attributes: dia.Element.Attributes
-): Element<ElementData> {
+): MixedElementRecord<ElementData> {
 
   const { type } = attributes;
   if (type !== PORTAL_ELEMENT_TYPE) {
     // For non-portal elements, we treat the entire attributes as the element record with optional `data`.
-    return attributes as Element<ElementData>;
+    return attributes as MixedElementRecord<ElementData>;
   }
 
   // PortalElement mapping
@@ -102,7 +102,7 @@ export function attributesToElement<ElementData extends object | undefined = und
     parent,
   } = attributes;
 
-  const elementRecord: Element<ElementData> = {
+  const elementRecord: MixedElementRecord<ElementData> = {
     ...presentation,
     data,
     position,

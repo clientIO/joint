@@ -10,8 +10,8 @@ import {
   useGraph,
   useMarkup,
   useMeasureNode,
-  type Element,
-  type Link,
+  type PortalElementRecord,
+  type PortalLinkRecord,
   type RenderElement,
   type IncrementalContainerChanges,
 } from '@joint/react';
@@ -87,7 +87,7 @@ type AgentNodeData = {
   readonly status: 'online' | 'busy' | 'idle';
 };
 
-type AgentNode = Element<AgentNodeData>;
+type AgentNode = PortalElementRecord<AgentNodeData>;
 
 const PORT_R = 5;
 
@@ -178,7 +178,7 @@ const initialElements: Record<string, AgentNode> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, PortalLinkRecord> = {
   'o-r': {
     source: { id: 'orchestrator', port: 'out' },
     target: { id: 'researcher', port: 'in' },
@@ -200,8 +200,8 @@ const initialLinks: Record<string, Link> = {
 // ── Redux Store ─────────────────────────────────────────────────────────────
 
 interface GraphState {
-  readonly elements: Record<string, Element<AgentNodeData>>;
-  readonly links: Record<string, Link>;
+  readonly elements: Record<string, PortalElementRecord<AgentNodeData>>;
+  readonly links: Record<string, PortalLinkRecord>;
 }
 
 const graphSlice = createSlice({
@@ -215,20 +215,20 @@ const graphSlice = createSlice({
       const { elements, links } = action.payload;
 
       for (const [id, data] of elements.added) {
-        state.elements[id] = data as unknown as Element<AgentNodeData>;
+        state.elements[id] = data as unknown as PortalElementRecord<AgentNodeData>;
       }
       for (const [id, data] of elements.changed) {
-        state.elements[id] = data as unknown as Element<AgentNodeData>;
+        state.elements[id] = data as unknown as PortalElementRecord<AgentNodeData>;
       }
       for (const id of elements.removed) {
         delete state.elements[id];
       }
 
       for (const [id, data] of links.added) {
-        state.links[id] = data as Link;
+        state.links[id] = data as PortalLinkRecord;
       }
       for (const [id, data] of links.changed) {
-        state.links[id] = data as Link;
+        state.links[id] = data as PortalLinkRecord;
       }
       for (const id of links.removed) {
         delete state.links[id];
@@ -934,13 +934,13 @@ function GraphWithRedux() {
   );
 
   // Theme links
-  const themedLinks: Record<string, Link> = {};
+  const themedLinks: Record<string, PortalLinkRecord> = {};
   for (const [id, link] of Object.entries(links)) {
     themedLinks[id] = { ...link, color: theme.link };
   }
 
   // Theme element ports
-  const themedElements: Record<string, Element<AgentNodeData>> = {};
+  const themedElements: Record<string, PortalElementRecord<AgentNodeData>> = {};
   for (const [id, element] of Object.entries(elements)) {
     themedElements[id] = {
       ...element,
