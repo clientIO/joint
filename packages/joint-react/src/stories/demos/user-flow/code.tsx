@@ -16,8 +16,8 @@ import {
   type CellId,
   type ElementRecord,
   type LinkRecord,
-  type MixedElementRecord,
-  type MixedLinkRecord,
+  type AnyElementRecord,
+  type AnyLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import {
@@ -290,11 +290,11 @@ function RenderElementBase({
 }
 const RenderElement = memo(RenderElementBase);
 function Main() {
-  const [elements, setElements] = useState<Record<string, MixedElementRecord<NodeData>>>(initialElements);
+  const [elements, setElements] = useState<Record<string, AnyElementRecord<NodeData>>>(initialElements);
   const isDark = useContext(ThemeContext);
 
-  function fixLinks(initialLinks: Record<string, MixedLinkRecord>) {
-    const next: Record<string, MixedLinkRecord> = {};
+  function fixLinks(initialLinks: Record<string, AnyLinkRecord>) {
+    const next: Record<string, AnyLinkRecord> = {};
     for (const [linkId, link] of Object.entries(initialLinks)) {
       next[linkId] = {
         ...link,
@@ -303,7 +303,7 @@ function Main() {
     }
     return next;
   }
-  const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(() => fixLinks(initialLinks));
+  const [links, setLinks] = useState<Record<string, AnyLinkRecord>>(() => fixLinks(initialLinks));
   useLayoutEffect(() => {
     setLinks(fixLinks); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Sync link colors with theme
   }, [isDark]);
@@ -335,7 +335,7 @@ function Main() {
       };
     });
     setLinks((previous) => {
-      const next: Record<string, MixedLinkRecord> = {};
+      const next: Record<string, AnyLinkRecord> = {};
       for (const [linkId, link] of Object.entries(previous)) {
         const isSource = link.source?.id === id && link.source?.magnet === portId;
         const isTarget = link.target?.id === id && link.target?.magnet === portId;

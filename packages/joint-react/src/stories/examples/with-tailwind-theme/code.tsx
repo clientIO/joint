@@ -10,8 +10,8 @@ import {
   useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
-  type MixedElementRecord,
-  type MixedLinkRecord,
+  type AnyElementRecord,
+  type AnyLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -123,8 +123,8 @@ const themeLabels: Record<Theme, string> = {
 };
 
 function Diagram() {
-  const [elements, setElements] = useState<Record<string, MixedElementRecord<NodeUserData>>>(initialElements);
-  const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(initialLinks);
+  const [elements, setElements] = useState<Record<string, AnyElementRecord<NodeUserData>>>(initialElements);
+  const [links, setLinks] = useState<Record<string, AnyLinkRecord>>(initialLinks);
   const [theme, setTheme] = useState<Theme>('default');
   const wrapperRef = useRef<HTMLDivElement>(null);
 

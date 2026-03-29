@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { dia } from '@joint/core';
 import { useElements, useLinks } from '../../../hooks';
-import type { MixedElementRecord, MixedLinkRecord } from '../../../types/data-types';
+import type { AnyElementRecord, AnyLinkRecord } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { GraphStore } from '../../../store';
 
@@ -19,7 +19,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, MixedElementRecord>>({});
+        const [elements, setElements] = useState<Record<string, AnyElementRecord>>({});
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -43,7 +43,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [links, setLinks] = useState<Record<string, MixedLinkRecord>>({});
+        const [links, setLinks] = useState<Record<string, AnyLinkRecord>>({});
         return (
           <GraphProvider links={links} onLinksChange={setLinks}>
             <TestComponent />
@@ -59,7 +59,7 @@ describe('GraphProvider Coverage Tests', () => {
     });
 
     it('should handle only elements controlled (not links)', async () => {
-      const initialElements: Record<string, MixedElementRecord> = {
+      const initialElements: Record<string, AnyElementRecord> = {
         '1': { size: { width: 100, height: 100 } },
       };
 
@@ -73,7 +73,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(initialElements);
+        const [elements, setElements] = useState<Record<string, AnyElementRecord>>(initialElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />
@@ -90,7 +90,7 @@ describe('GraphProvider Coverage Tests', () => {
     });
 
     it('should handle only links controlled (not elements)', async () => {
-      const initialLink: MixedLinkRecord = {
+      const initialLink: AnyLinkRecord = {
         source: '1',
         target: '2',
       };
@@ -105,7 +105,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(() => ({
+        const [links, setLinks] = useState<Record<string, AnyLinkRecord>>(() => ({
           link1: initialLink,
         }));
         return (
@@ -135,7 +135,7 @@ describe('GraphProvider Coverage Tests', () => {
 
   describe('GraphProvider edge cases', () => {
     it('should handle unmeasured elements (width/height <= 1)', async () => {
-      const unmeasuredElements: Record<string, MixedElementRecord> = {
+      const unmeasuredElements: Record<string, AnyElementRecord> = {
         '1': { size: { width: 0, height: 0 } },
         '2': { size: { width: 1, height: 1 } },
       };
@@ -148,7 +148,7 @@ describe('GraphProvider Coverage Tests', () => {
       }
 
       function ControlledGraph() {
-        const [elements, setElements] = useState<Record<string, MixedElementRecord>>(unmeasuredElements);
+        const [elements, setElements] = useState<Record<string, AnyElementRecord>>(unmeasuredElements);
         return (
           <GraphProvider elements={elements} onElementsChange={setElements}>
             <TestComponent />

@@ -132,8 +132,11 @@ export interface ElementRecord<D extends object = Record<string, unknown>> {
  * Requires an explicit `type` string (e.g. `'standard.Rectangle'`).
  * @group Graph
  */
-export type NativeElementRecord<D extends object = Record<string, unknown>> = dia.Element.Attributes
-  & { type: Exclude<string, typeof PORTAL_ELEMENT_TYPE>; data?: D };
+export interface NativeElementRecord<D extends object = Record<string, unknown>>
+  extends dia.Element.Attributes {
+  type: Exclude<string, typeof PORTAL_ELEMENT_TYPE>;
+  data?: D;
+}
 
 /**
  * Element data type — union of portal and native JointJS elements.
@@ -142,7 +145,7 @@ export type NativeElementRecord<D extends object = Record<string, unknown>> = di
  * - **Native element** (`type` present): Raw JointJS `dia.Element.Attributes` pass-through.
  * @group Graph
  */
-export type MixedElementRecord<D extends object = Record<string, unknown>> =
+export type AnyElementRecord<D extends object = Record<string, unknown>> =
   | NativeElementRecord<D>
   | ElementRecord<D>;
 
@@ -359,8 +362,11 @@ export interface LinkRecord<D extends object = Record<string, unknown>> extends 
  * Requires an explicit `type` string (e.g. `'standard.Link'`).
  * @group Graph
  */
-export type NativeLinkRecord<D extends object = Record<string, unknown>> = dia.Link.Attributes
-  & { type: Exclude<string, typeof PORTAL_LINK_TYPE>; data?: D };
+export interface NativeLinkRecord<D extends object = Record<string, unknown>>
+  extends dia.Link.Attributes {
+  type: Exclude<string, typeof PORTAL_LINK_TYPE>;
+  data?: D;
+}
 
 /**
  * Link data type — union of portal and native JointJS links.
@@ -369,7 +375,7 @@ export type NativeLinkRecord<D extends object = Record<string, unknown>> = dia.L
  * - **Native link** (`type` present): Raw JointJS `dia.Link.Attributes` pass-through.
  * @group Graph
  */
-export type MixedLinkRecord<D extends object = Record<string, unknown>> =
+export type AnyLinkRecord<D extends object = Record<string, unknown>> =
   | NativeLinkRecord<D>
   | LinkRecord<D>;
 
@@ -380,7 +386,7 @@ export type MixedLinkRecord<D extends object = Record<string, unknown>> =
  * Used internally by graph-view containers and returned by hooks like `useElement`.
  * @group Graph
  */
-export type ElementWithLayout<E extends object = Record<string, unknown>> = MixedElementRecord<E> & {
+export type ElementWithLayout<E extends object = Record<string, unknown>> = AnyElementRecord<E> & {
   data: E;
   position: Required<ElementPosition>;
   size: Required<ElementSize>;

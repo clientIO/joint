@@ -9,7 +9,7 @@ import {
   useGraph,
   useGraphEvents,
   type ElementRecord,
-  type MixedElementRecord,
+  type AnyElementRecord,
 } from '@joint/react';
 import { useState } from 'react';
 
@@ -111,7 +111,7 @@ function InspectorPanel() {
   );
 }
 
-function ElementDataView({ elements }: Readonly<{ elements: Map<string, MixedElementRecord<Data>> }>) {
+function ElementDataView({ elements }: Readonly<{ elements: Map<string, AnyElementRecord<Data>> }>) {
   return (
     <>
       <h3 className="text-base font-bold mb-3">useElements() Data</h3>

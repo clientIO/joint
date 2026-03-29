@@ -11,7 +11,7 @@ import {
   useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
-  type MixedElementRecord,
+  type AnyElementRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCallback, useEffect, useRef } from 'react';
@@ -329,7 +329,7 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
           const previousPercentage = data.percentage;
           const adjusted = Math.max(previousPercentage + diff, 0);
           diff = Math.min(previousPercentage + diff, 0);
-          return { ...previous, data: { ...data, percentage: adjusted } } as MixedElementRecord<ShapeData>;
+          return { ...previous, data: { ...data, percentage: adjusted } } as AnyElementRecord<ShapeData>;
         });
       }
     },

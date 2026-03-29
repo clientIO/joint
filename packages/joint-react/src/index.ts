@@ -49,11 +49,11 @@ export * from './state/data-mapping/link-mapper';
 // Types
 export type { ElementPosition, ElementSize } from './types/cell-data';
 export type {
-  MixedElementRecord,
+  AnyElementRecord,
   ElementRecord,
   NativeElementRecord,
   ElementRecordPort,
-  MixedLinkRecord,
+  AnyLinkRecord,
   LinkRecord,
   NativeLinkRecord,
   LinkRecordLabel,

@@ -7,8 +7,8 @@ import {
   useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
-  type MixedElementRecord,
-  type MixedLinkRecord,
+  type AnyElementRecord,
+  type AnyLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -85,8 +85,8 @@ function Node({ label }: Readonly<{ label: string }>) {
 }
 
 function Diagram() {
-  const [elements, setElements] = useState<Record<string, MixedElementRecord<NodeData>>>(initialElements);
-  const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(initialLinks);
+  const [elements, setElements] = useState<Record<string, AnyElementRecord<NodeData>>>(initialElements);
+  const [links, setLinks] = useState<Record<string, AnyLinkRecord>>(initialLinks);
   const [isDark, setIsDark] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 

@@ -9,7 +9,7 @@ import {
   elementToAttributes,
   useLinkDefaults,
   type ElementRecord,
-  type MixedElementRecord,
+  type AnyElementRecord,
   type LinkRecord,
   type RenderElement,
 } from '@joint/react';
@@ -151,7 +151,7 @@ const initialLinks: Record<string, LinkRecord> = {
 
 function mapNativeElementToAttributes(options: {
   id: string;
-  element: MixedElementRecord<NativeElementUserData>;
+  element: AnyElementRecord<NativeElementUserData>;
 }) {
   const { id, element } = options;
   const userData = element.data as NativeElementUserData | undefined;

@@ -9,7 +9,7 @@ import {
   type CellAttributes,
   type ElementRecord,
   type LinkRecord,
-  type MixedLinkRecord,
+  type AnyLinkRecord,
 } from '@joint/react';
 import { Paper } from '../../../components/paper/paper';
 
@@ -86,7 +86,7 @@ const links: Record<string, CustomLink> = {
   },
 };
 
-const mapLinkToAttributes = (options: { id?: string; link: MixedLinkRecord }): CellAttributes => {
+const mapLinkToAttributes = (options: { id?: string; link: AnyLinkRecord }): CellAttributes => {
   const data = options.link as CustomLink;
   const attributes = linkToAttributes(options);
   const { color } = data;
@@ -100,7 +100,7 @@ const mapLinkToAttributes = (options: { id?: string; link: MixedLinkRecord }): C
 export default function App() {
   return (
     <GraphProvider
-      links={links as Record<string, MixedLinkRecord>}
+      links={links as Record<string, AnyLinkRecord>}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
       mapLinkToAttributes={mapLinkToAttributes}

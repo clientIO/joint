@@ -10,7 +10,7 @@ import {
   elementToAttributes,
   type CellAttributes,
   type ElementRecord,
-  type MixedElementRecord,
+  type AnyElementRecord,
   type ElementRecordPort,
   type LinkRecord,
   useElements,
@@ -63,7 +63,7 @@ interface PortNodeData {
  * into SVG path strings sized to each port's width/height, then delegates
  * to the default flat mapper via `ElementToAttributes`.
  */
-function mapDataToElementAttributes(options: { id: string; element: MixedElementRecord<PortNodeData> }) {
+function mapDataToElementAttributes(options: { id: string; element: AnyElementRecord<PortNodeData> }) {
   const { id, element } = options;
   const { ports, portStyle } = element;
   if (!ports) return elementToAttributes({ id, element });
@@ -368,7 +368,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
 interface ElementPortControlsProps {
   readonly id: string;
-  readonly element: MixedElementRecord<PortNodeData>;
+  readonly element: AnyElementRecord<PortNodeData>;
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {

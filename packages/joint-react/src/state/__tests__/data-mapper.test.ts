@@ -3,7 +3,7 @@
 import { dia, shapes } from '@joint/core';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
-import type { MixedElementRecord, ElementRecordPort, MixedLinkRecord } from '../../types/data-types';
+import type { AnyElementRecord, ElementRecordPort, AnyLinkRecord } from '../../types/data-types';
 import {
   elementToAttributes,
   linkToAttributes,
@@ -28,7 +28,7 @@ describe('dataMapper', () => {
   describe('element round-trip', () => {
     it('should convert ElementInput to JointJS and back', () => {
       const id = 'el-1';
-      const element: MixedElementRecord<undefined> = { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } };
+      const element: AnyElementRecord<undefined> = { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.position).toEqual({ x: 10, y: 20 });
@@ -47,7 +47,7 @@ describe('dataMapper', () => {
 
     it('should store user data in data field and extract on reverse', () => {
       const id = 'el-1';
-      const element: MixedElementRecord = {
+      const element: AnyElementRecord = {
         data: { label: 'Hello', color: 'red' },
         position: { x: 0, y: 0 },
         size: { width: 50, height: 50 },
@@ -83,7 +83,7 @@ describe('dataMapper', () => {
 
     it('should round-trip with ports', () => {
       const id = 'el-1';
-      const element: MixedElementRecord = {
+      const element: AnyElementRecord = {
         data: { label: 'Node 1' },
         position: { x: 100, y: 50 },
         size: { width: 150, height: 60 },
@@ -111,7 +111,7 @@ describe('dataMapper', () => {
         p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
       };
       const id = 'el-1';
-      const element: MixedElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: AnyElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.ports).toBeDefined();
@@ -125,7 +125,7 @@ describe('dataMapper', () => {
         p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
       };
       const id = 'el-1';
-      const element: MixedElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: AnyElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
 
       const cellJson = elementToAttributes({ id, element });
       const [port] = cellJson.ports.items;
@@ -139,7 +139,7 @@ describe('dataMapper', () => {
         p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
       };
       const id = 'el-1';
-      const element: MixedElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: AnyElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
 
       const cellJson = elementToAttributes({ id, element });
       const portMarkup = cellJson.ports.items[0].markup;
@@ -150,7 +150,7 @@ describe('dataMapper', () => {
   describe('link round-trip', () => {
     it('should convert link data to JointJS and back', () => {
       const id = 'link-1';
-      const link: MixedLinkRecord = { source: { id: 'el-1' }, target: { id: 'el-2' } };
+      const link: AnyLinkRecord = { source: { id: 'el-1' }, target: { id: 'el-2' } };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.source).toEqual({ id: 'el-1' });
@@ -168,7 +168,7 @@ describe('dataMapper', () => {
 
     it('should apply theme defaults', () => {
       const id = 'link-1';
-      const link: MixedLinkRecord = { source: { id: 'a' }, target: { id: 'b' } };
+      const link: AnyLinkRecord = { source: { id: 'a' }, target: { id: 'b' } };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
@@ -180,7 +180,7 @@ describe('dataMapper', () => {
 
     it('should apply custom theme props', () => {
       const id = 'link-1';
-      const link: MixedLinkRecord = {
+      const link: AnyLinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
         color: 'red',
@@ -196,7 +196,7 @@ describe('dataMapper', () => {
 
     it('should store user data in cell.data', () => {
       const id = 'link-1';
-      const link: MixedLinkRecord = { source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
+      const link: AnyLinkRecord = { source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.data?.weight).toBe(5);
@@ -224,7 +224,7 @@ describe('dataMapper', () => {
 
     it('should convert labels Record to JointJS labels array', () => {
       const id = 'link-1';
-      const link: MixedLinkRecord = {
+      const link: AnyLinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
         labels: {
@@ -244,7 +244,7 @@ describe('dataMapper', () => {
 
     it('should round-trip labels with position and offset changes', () => {
       const id = 'link-1';
-      const link: MixedLinkRecord = {
+      const link: AnyLinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
         labels: {
@@ -268,7 +268,7 @@ describe('dataMapper', () => {
 
     it('should handle source/target with ports', () => {
       const id = 'link-1';
-      const link: MixedLinkRecord = {
+      const link: AnyLinkRecord = {
         source: { id: 'el-1', port: 'p1' },
         target: { id: 'el-2', port: 'p2' },
       };

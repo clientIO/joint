@@ -1,14 +1,14 @@
 import { type DependencyList, useMemo } from 'react';
 import { elementToAttributes } from '../state/data-mapping/element-mapper';
 import type { CellAttributes, MapElementToAttributes } from '../state/data-mapping';
-import type { MixedElementRecord } from '../types/data-types';
+import type { AnyElementRecord } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
 
 
 export function useElementDefaults<Data extends object = Record<string, unknown>>(
   defaults:
-    | Partial<MixedElementRecord<Data>>
-    | ((options: { data: MixedElementRecord<Data>; id?: CellId }) => Partial<MixedElementRecord<Data>>),
+    | Partial<AnyElementRecord<Data>>
+    | ((options: { data: AnyElementRecord<Data>; id?: CellId }) => Partial<AnyElementRecord<Data>>),
   deps: DependencyList = []
 ) {
   return useMemo((): { mapElementToAttributes: MapElementToAttributes<Data> } => {
@@ -26,7 +26,7 @@ export function useElementDefaults<Data extends object = Record<string, unknown>
 
           let result: CellAttributes;
           if (resolved) {
-            const element = { ...resolved, ...mapOptions.element } as MixedElementRecord<Data>;
+            const element = { ...resolved, ...mapOptions.element } as AnyElementRecord<Data>;
             result = elementToAttributes({ id: mapOptions.id, element });
 
             // Strip default-provided keys from cell.data so they don't

@@ -1,7 +1,7 @@
 import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
-import type { MixedElementRecord, MixedLinkRecord } from '../types/data-types';
+import type { AnyElementRecord, AnyLinkRecord } from '../types/data-types';
 import type { MapElementToAttributes, MapLinkToAttributes } from '../state/data-mapping';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
@@ -11,8 +11,8 @@ export interface UpdateGraphOptions<
   ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
 > {
-  readonly elements: Record<string, MixedElementRecord<ElementData>>;
-  readonly links: Record<string, MixedLinkRecord<LinkData>>;
+  readonly elements: Record<string, AnyElementRecord<ElementData>>;
+  readonly links: Record<string, AnyLinkRecord<LinkData>>;
   readonly flag?: 'updateFromReact';
 }
 

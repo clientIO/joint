@@ -9,8 +9,8 @@ import {
   type ElementRecord,
   type ElementRecordPort,
   type LinkRecord,
-  type MixedElementRecord,
-  type MixedLinkRecord,
+  type AnyElementRecord,
+  type AnyLinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
@@ -74,8 +74,8 @@ function Element({ label, color }: Readonly<{ label: string; color: string }>) {
 }
 
 function Diagram() {
-  const [elements, setElements] = useState<Record<string, MixedElementRecord<ElementData>>>(initialElements);
-  const [links, setLinks] = useState<Record<string, MixedLinkRecord>>(initialLinks);
+  const [elements, setElements] = useState<Record<string, AnyElementRecord<ElementData>>>(initialElements);
+  const [links, setLinks] = useState<Record<string, AnyLinkRecord>>(initialLinks);
   const [alternate, setAlternate] = useState(false);
   const color = alternate ? SECONDARY : PRIMARY;
   const portShape = alternate ? ('rect' as const) : ('ellipse' as const);

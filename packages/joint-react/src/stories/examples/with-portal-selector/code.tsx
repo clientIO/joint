@@ -15,8 +15,8 @@ import {
   type CellId,
   type ElementRecord,
   type LinkRecord,
-  type MixedElementRecord,
-  type MixedLinkRecord,
+  type AnyElementRecord,
+  type AnyLinkRecord,
   type PaperProps,
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
@@ -384,7 +384,7 @@ function Main() {
 
 export default function App() {
   const mapElementToAttributes = useMemo(() => {
-    return ({ id, element }: { id: string; element: MixedElementRecord<ElementUserData> }) => {
+    return ({ id, element }: { id: string; element: AnyElementRecord<ElementUserData> }) => {
       const attributes = elementToAttributes({ id, element });
       const userData = element.data as ElementUserData | undefined;
       const { jjType, color = 'lightgray' } = userData ?? {};
@@ -398,7 +398,7 @@ export default function App() {
   }, []);
 
   const mapLinkToAttributes = useMemo(() => {
-    return ({ id, link }: { id?: string; link: MixedLinkRecord }) => {
+    return ({ id, link }: { id?: string; link: AnyLinkRecord }) => {
       const attributes = linkToAttributes({ id, link });
       const userData = link.data as LinkUserData | undefined;
       const { jjType } = userData ?? {};

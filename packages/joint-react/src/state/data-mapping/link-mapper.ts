@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { MixedLinkRecord } from '../../types/data-types';
+import type { AnyLinkRecord } from '../../types/data-types';
 import { defaultLinkStyle, LINK_PRESENTATION_KEYS } from '../../theme/link-theme';
 import { PORTAL_LINK_TYPE } from '../../models/portal-link';
 import { convertLabel } from './convert-labels';
@@ -13,7 +13,7 @@ import type { CellAttributes } from '.';
  * @param data - The data to check.
  * @returns True if the data is a record (link data).
  */
-function isLinkData(data: unknown): data is MixedLinkRecord {
+function isLinkData(data: unknown): data is AnyLinkRecord {
   return isRecord(data);
 }
 
@@ -26,7 +26,7 @@ function isLinkData(data: unknown): data is MixedLinkRecord {
  */
 export function linkToAttributes<LinkData extends object = Record<string, unknown>>(options: {
   id?: string;
-  link: MixedLinkRecord<LinkData>;
+  link: AnyLinkRecord<LinkData>;
 }): CellAttributes {
   const { id, link } = options;
   if (!isLinkData(link)) {
@@ -82,14 +82,14 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
  */
 export function attributesToLink<LinkData extends object = Record<string, unknown>>(
   attributes: dia.Link.Attributes
-): MixedLinkRecord<LinkData> {
+): AnyLinkRecord<LinkData> {
 
   const { type } = attributes;
 
   // Non-portal: shallow copy so the container gets a new reference on each call,
   // which allows connected-link re-renders when a neighbor element moves.
   if (type !== PORTAL_LINK_TYPE) {
-    return { ...attributes } as MixedLinkRecord<LinkData>;
+    return { ...attributes } as AnyLinkRecord<LinkData>;
   }
 
   // PortalLink mapping
@@ -109,7 +109,7 @@ export function attributesToLink<LinkData extends object = Record<string, unknow
     labels: attributeLabels,
   } = attributes;
 
-  const linkRecord: MixedLinkRecord<LinkData> = {
+  const linkRecord: AnyLinkRecord<LinkData> = {
     ...presentation,
     data,
     source,

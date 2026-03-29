@@ -6,7 +6,7 @@ import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { GraphMappings } from '../../state/data-mapping';
 import type { IncrementalContainerChanges } from '../../store/graph-view';
-import type { MixedElementRecord, MixedLinkRecord } from '../../types/data-types';
+import type { AnyElementRecord, AnyLinkRecord } from '../../types/data-types';
 
 /**
  * Props for the GraphProvider component.
@@ -57,7 +57,7 @@ export interface GraphProviderProps<
    *
    * **Uncontrolled mode:** If neither is provided, this is only used for initial elements.
    */
-  readonly elements?: Record<CellId, MixedElementRecord<ElementData>>;
+  readonly elements?: Record<CellId, AnyElementRecord<ElementData>>;
 
   /**
    * Links (edges) to be added to the graph as a Record keyed by cell ID.
@@ -66,19 +66,19 @@ export interface GraphProviderProps<
    *
    * **Uncontrolled mode:** If neither is provided, this is only used for initial links.
    */
-  readonly links?: Record<CellId, MixedLinkRecord<LinkData>>;
+  readonly links?: Record<CellId, AnyLinkRecord<LinkData>>;
 
   /**
    * Callback triggered when elements (nodes) change in the graph.
    * Enables React-controlled mode for elements.
    */
-  readonly onElementsChange?: Dispatch<SetStateAction<Record<CellId, MixedElementRecord<ElementData>>>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<CellId, AnyElementRecord<ElementData>>>>;
 
   /**
    * Callback triggered when links (edges) change in the graph.
    * Enables React-controlled mode for links.
    */
-  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, MixedLinkRecord<LinkData>>>>;
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, AnyLinkRecord<LinkData>>>>;
 
   /**
    * Callback triggered with granular incremental change information when graph state changes.

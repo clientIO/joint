@@ -8,8 +8,8 @@ import {
   useMeasureNode,
   type ElementRecord,
   type LinkRecord,
-  type MixedElementRecord,
-  type MixedLinkRecord,
+  type AnyElementRecord,
+  type AnyLinkRecord,
   useElements,
   useLinks,
 } from '@joint/react';
@@ -145,7 +145,7 @@ function ElementControls({
             setElement(id, (previous) => ({
               ...previous,
               data: { ...previous.data!, label: event.target.value },
-            } as MixedElementRecord<NodeData>))
+            } as AnyElementRecord<NodeData>))
           }
           style={{ ...inputStyle, flex: 1 }}
         />
@@ -161,7 +161,7 @@ function ElementControls({
             setElement(id, (previous) => ({
               ...previous,
               data: { ...previous.data!, color: event.target.value },
-            } as MixedElementRecord<NodeData>))
+            } as AnyElementRecord<NodeData>))
           }
           style={{
             width: 36,
@@ -270,13 +270,13 @@ function ElementControls({
   );
 }
 
-function getLinkEndpointId(endpoint: MixedLinkRecord['source']): string {
+function getLinkEndpointId(endpoint: AnyLinkRecord['source']): string {
   return String(endpoint?.id ?? 'unknown');
 }
 
 interface LinkControlsProps {
   readonly id: string;
-  readonly link: MixedLinkRecord;
+  readonly link: AnyLinkRecord;
 }
 
 function LinkControls({ id, link }: Readonly<LinkControlsProps>) {
