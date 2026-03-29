@@ -1,4 +1,4 @@
-import type { PortalLinkRecord } from '@joint/react';
+import type { LinkRecord } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
 import { PAPER_CLASSNAME, LIGHT, BG } from 'storybook-config/theme';
 import type { LinkMarkerName } from '../../../theme/markers';
@@ -15,7 +15,7 @@ const markerNames = Object.keys(linkMarkerShapes).filter(
 ) as LinkMarkerName[];
 
 function buildGrid() {
-  const links: Record<string, PortalLinkRecord> = {};
+  const links: Record<string, LinkRecord> = {};
 
   for (const [index, name] of markerNames.entries()) {
     const col = index % COLS;

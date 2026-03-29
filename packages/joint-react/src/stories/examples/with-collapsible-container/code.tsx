@@ -8,8 +8,8 @@ import {
   useGraph,
   usePaperEvents,
   SVGText,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
   useElementSize,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -80,7 +80,7 @@ type ContainerUserData = ContainerElement | ChildElement;
 // Initial Data
 // ============================================================================
 
-const elements: Record<string, PortalElementRecord<ContainerUserData>> = {
+const elements: Record<string, ElementRecord<ContainerUserData>> = {
   'container-a': {
     data: { elementType: ElementType.Container, title: 'Container A', collapsed: false },
     position: { x: 50, y: 50 },
@@ -131,7 +131,7 @@ const elements: Record<string, PortalElementRecord<ContainerUserData>> = {
   },
 };
 
-const links: Record<string, PortalLinkRecord> = {
+const links: Record<string, LinkRecord> = {
   'link-1-2': {
     source: { id: 'child-1' },
     target: { id: 'child-2' },

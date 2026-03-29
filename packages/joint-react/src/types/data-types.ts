@@ -12,7 +12,7 @@ import type { PORTAL_ELEMENT_TYPE, PORTAL_LINK_TYPE } from '../internal';
  * Converted to full JointJS port format by the default element mapper.
  * @group Graph
  */
-export interface PortalElementPort {
+export interface ElementRecordPort {
   /**
    * X position of the port (absolute positioning).
    * Supports calc() expressions (e.g., 'calc(w)').
@@ -103,7 +103,7 @@ export interface PortalElementPort {
  * Does not include `type`; portal elements use the internal `PORTAL_ELEMENT_TYPE` automatically.
  * @group Graph
  */
-export type PortalElementRecord<D extends object | undefined = undefined> = {
+export type ElementRecord<D extends object | undefined = undefined> = {
   /** Position of the element. */
   position?: ElementPosition;
   /** Size of the element. */
@@ -117,9 +117,9 @@ export type PortalElementRecord<D extends object | undefined = undefined> = {
   /** Layer id for the cell. */
   layer?: string;
   /** Style defaults applied to all ports. Individual port properties take precedence. */
-  portStyle?: Partial<PortalElementPort>;
+  portStyle?: Partial<ElementRecordPort>;
   /** Ports of the element. */
-  ports?: Record<string, PortalElementPort>;
+  ports?: Record<string, ElementRecordPort>;
   data?: Record<string, unknown>;
 
   /** @internal Portal elements must not specify a `type`. */
@@ -148,7 +148,7 @@ export type NativeElementRecord<D extends object | undefined = undefined> = dia.
  */
 export type MixedElementRecord<D extends object | undefined = undefined> =
   | NativeElementRecord<D>
-  | PortalElementRecord<D>;
+  | ElementRecord<D>;
 
 // ── Link Types ────────────────────────────────────────────────────────────────
 
@@ -156,10 +156,10 @@ export type MixedElementRecord<D extends object | undefined = undefined> =
  * Visual/presentation attributes for a link line and its wrapper.
  *
  * All properties are optional.  `defaultLinkStyle` satisfies the full
- * `Required<FlatLinkPresentationData>` to provide fallback values.
+ * `Required<LinkRecordPresentation>` to provide fallback values.
  * @group Graph
  */
-export interface PortalLinkPresentation {
+export interface LinkRecordPresentation {
   /**
    * Stroke color of the link line.
    * Accepts any CSS color value, including CSS variables like `'var(--my-color)'`.
@@ -233,7 +233,7 @@ export interface PortalLinkPresentation {
  * Simplified label definition for graph links.
  * @group Graph
  */
-export interface PortalLinkLabel {
+export interface LinkRecordLabel {
   /**
    * Label text content.
    */
@@ -310,7 +310,7 @@ export interface PortalLinkLabel {
  * Does not include `type`; portal links use the internal `PORTAL_LINK_TYPE` automatically.
  * @group Graph
  */
-export type PortalLinkRecord<D extends object | undefined = undefined> = PortalLinkPresentation & {
+export type LinkRecord<D extends object | undefined = undefined> = LinkRecordPresentation & {
   /**
    * Source endpoint in JointJS format.
    * @example { id: 'el-1' }
@@ -346,11 +346,11 @@ export type PortalLinkRecord<D extends object | undefined = undefined> = PortalL
   /**
    * Style defaults applied to all labels. Individual label properties take precedence.
    */
-  labelStyle?: Partial<PortalLinkLabel>;
+  labelStyle?: Partial<LinkRecordLabel>;
   /**
    * Link labels.
    */
-  labels?: Record<string, PortalLinkLabel>;
+  labels?: Record<string, LinkRecordLabel>;
 
   data?: Record<string, unknown>;
 
@@ -381,7 +381,7 @@ export type NativeLinkRecord<D extends object | undefined = undefined> = dia.Lin
  */
 export type MixedLinkRecord<D extends object | undefined = undefined> =
   | NativeLinkRecord<D>
-  | PortalLinkRecord<D>;
+  | LinkRecord<D>;
 
 // ── Container Types (internal) ───────────────────────────────────────────────
 

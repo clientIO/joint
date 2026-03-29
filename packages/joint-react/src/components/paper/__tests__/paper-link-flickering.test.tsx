@@ -18,7 +18,7 @@
  */
 import { render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, type FlatElementData, type PortalLinkRecord } from '../../../index';
+import { GraphProvider, Paper, type FlatElementData, type LinkRecord } from '../../../index';
 import { useElementData } from '../../../hooks/use-element-data';
 
 /**
@@ -51,7 +51,7 @@ function TestFlickerElementSvg() {
   );
 }
 
-const TEST_LINKS: Record<string, PortalLinkRecord> = {
+const TEST_LINKS: Record<string, LinkRecord> = {
   'link-1': {
     data: {},
     source: { id: '1' },

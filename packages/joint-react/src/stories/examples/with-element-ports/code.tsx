@@ -9,10 +9,10 @@ import {
   useGraph,
   elementToAttributes,
   type CellAttributes,
-  type PortalElementRecord,
+  type ElementRecord,
   type MixedElementRecord,
-  type FlatElementPort,
-  type PortalLinkRecord,
+  type ElementRecordPort,
+  type LinkRecord,
   useElements,
 } from '@joint/react';
 
@@ -71,7 +71,7 @@ function mapDataToElementAttributes(options: { id: string; element: MixedElement
   const defaultW = portStyle?.width ?? 10;
   const defaultH = portStyle?.height ?? 10;
 
-  const resolvedPorts: Record<string, FlatElementPort> = {};
+  const resolvedPorts: Record<string, ElementRecordPort> = {};
   for (const [portId, port] of Object.entries(ports)) {
     const { shape } = port;
     if (shape && shape !== 'ellipse' && shape !== 'rect') {
@@ -109,7 +109,7 @@ function getShapeLabel(shape: string): string {
   return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
 }
 
-const initialElements: Record<string, PortalElementRecord<PortNodeData>> = {
+const initialElements: Record<string, ElementRecord<PortNodeData>> = {
   'node-1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 50, y: 100 },
@@ -162,7 +162,7 @@ const initialElements: Record<string, PortalElementRecord<PortNodeData>> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-1': {
     source: { id: 'node-1', port: 'out-1', anchor: { name: 'right', args: { useModelGeometry: true } } },
     target: { id: 'node-2', port: 'in-1', anchor: { name: 'left', args: { useModelGeometry: true } } },
@@ -207,15 +207,15 @@ const rowStyle = {
 interface PortControlProps {
   readonly elementId: string;
   readonly portId: string;
-  readonly port: FlatElementPort;
+  readonly port: ElementRecordPort;
 }
 
 function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
   const { setElement } = useGraph();
 
-  const updatePort = (updates: Partial<FlatElementPort>) => {
+  const updatePort = (updates: Partial<ElementRecordPort>) => {
     setElement(elementId, (previous) => {
-      const el = previous as PortalElementRecord;
+      const el = previous as ElementRecord;
       return {
         ...el,
         ports: el.ports ? { ...el.ports, [portId]: { ...el.ports[portId], ...updates } } : el.ports,

@@ -14,8 +14,8 @@ import {
   useMarkup,
   useMeasureNode,
   type CellId,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
   type MixedElementRecord,
   type MixedLinkRecord,
   type RenderElement,
@@ -71,7 +71,7 @@ type NodeData = {
   readonly outputPorts: readonly OutputPort[];
 };
 
-type NodeType = PortalElementRecord<NodeData>;
+type NodeType = ElementRecord<NodeData>;
 
 const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
   { id: '1', label: 'Port 1' },
@@ -111,7 +111,7 @@ const initialElements: Record<string, NodeType> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: '1', magnet: '1' },
     target: { id: '2', magnet: 'in' },

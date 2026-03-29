@@ -6,8 +6,8 @@ import {
   useGraph,
   useElements,
   useElementSize,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
   SVGText,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY, TEXT } from 'storybook-config/theme';
@@ -67,7 +67,7 @@ const GENERATOR_ID = 'generator';
 // ----------------------------------------------------------------------------
 // Initial Data
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, PortalElementRecord<ShapeData>> = {
+const initialElements: Record<string, ElementRecord<ShapeData>> = {
   generator: {
     data: { type: ShapeTypes.generator, power: 0.9 },
     position: { x: 50, y: 50 },
@@ -95,7 +95,7 @@ const wireAppearance = {
   z: -1,
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   wire1: {
     source: { id: 'generator' },
     target: { id: 'bulb1' },

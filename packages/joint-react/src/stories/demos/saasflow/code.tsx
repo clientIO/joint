@@ -7,8 +7,8 @@ import {
   useMeasureNode,
   useElementDefaults,
   useLinkDefaults,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 
 import type { dia } from '@joint/core';
@@ -72,7 +72,7 @@ type SaasNodeData = {
   readonly progress?: number;
 };
 
-type SaasNode = PortalElementRecord<SaasNodeData>;
+type SaasNode = ElementRecord<SaasNodeData>;
 
 const PORT_R = 5;
 
@@ -111,7 +111,7 @@ const initialElements: Record<string, SaasNode> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'client-pm': {
     source: { id: 'client', port: 'out' },
     target: { id: 'pm', port: 'in' },

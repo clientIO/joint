@@ -9,8 +9,8 @@ import {
   useElementSize,
   useElements,
   useLinkDefaults,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useCallback, useEffect, useRef } from 'react';
@@ -44,7 +44,7 @@ type OverallPerformanceData = {
 
 type ShapeData = InvestmentData | ProductData | ProductPerformanceData | OverallPerformanceData;
 
-type ShapeElement = PortalElementRecord<ShapeData>;
+type ShapeElement = ElementRecord<ShapeData>;
 
 // ----------------------------------------------------------------------------
 // Constants
@@ -146,7 +146,7 @@ const initialElements: Record<string, ShapeElement> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: 'investment', anchor: { name: 'top', args: { dy: 1 } } },
     target: { id: 'gold', anchor: { name: 'left', args: { dx: -5 } } },

@@ -10,8 +10,8 @@ import {
   PortalLink,
   useMeasureNode,
   useElementSize,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, BG } from 'storybook-config/theme';
@@ -24,7 +24,7 @@ interface LayeredElementData {
 }
 
 // Elements assigned to different layers
-const elements: Record<string, PortalElementRecord<LayeredElementData>> = {
+const elements: Record<string, ElementRecord<LayeredElementData>> = {
   // Background layer elements
   'bg-1': {
     data: { label: 'Background 1', color: '#374151', isBackground: true },
@@ -58,7 +58,7 @@ const elements: Record<string, PortalElementRecord<LayeredElementData>> = {
 };
 
 // Links assigned to layers
-const links: Record<string, PortalLinkRecord> = {
+const links: Record<string, LinkRecord> = {
   'link-1': {
     source: { id: 'main-1' },
     target: { id: 'main-2' },

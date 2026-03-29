@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { render, waitFor, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { GraphProvider, Paper, useGraph, type FlatElementData, type PortalLinkRecord } from '../../../index';
+import { GraphProvider, Paper, useGraph, type FlatElementData, type LinkRecord } from '../../../index';
 import { useCallback } from 'react';
 import { useElementData } from '../../../hooks/use-element-data';
 
@@ -18,7 +18,7 @@ function TestElementRenderer() {
   return <div className="html-node">{data?.label}</div>;
 }
 
-const links: Record<string, PortalLinkRecord> = {
+const links: Record<string, LinkRecord> = {
   'link-1': {
     data: {},
     source: { id: '1' },

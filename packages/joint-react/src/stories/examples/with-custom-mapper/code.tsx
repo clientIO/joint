@@ -7,8 +7,8 @@ import {
   useElements,
   attributesToElement,
   type CellAttributes,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
   elementToAttributes,
   type MapElementToAttributesOptions,
 } from '@joint/react';
@@ -32,7 +32,7 @@ interface CenterElement {
 // Data
 // ============================================================================
 
-const initialElements: Record<string, PortalElementRecord<CenterElement>> = {
+const initialElements: Record<string, ElementRecord<CenterElement>> = {
   'node-1': {
     data: { cx: 150, cy: 130, label: 'Node One' },
     size: { width: 160, height: 60 },
@@ -47,7 +47,7 @@ const initialElements: Record<string, PortalElementRecord<CenterElement>> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-1': {
     source: { id: 'node-1' },
     target: { id: 'node-2' },
@@ -86,7 +86,7 @@ const mapElementToAttributes = (
 /**
  * Reverse mapper: converts JointJS top-left position back to center-based data.
  */
-const mapAttributesToElement = (attributes: dia.Element.Attributes): PortalElementRecord<CenterElement> => {
+const mapAttributesToElement = (attributes: dia.Element.Attributes): ElementRecord<CenterElement> => {
   const result = attributesToElement<CenterElement>(attributes);
   const userData = result.data;
   const x = attributes.position?.x ?? 0;

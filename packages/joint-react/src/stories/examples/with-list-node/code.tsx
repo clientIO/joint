@@ -9,8 +9,8 @@ import {
   Paper,
   useMeasureNode,
   type OnTransformElement,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
   useElementId,
 } from '@joint/react';
 import { BG, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -21,11 +21,11 @@ interface ListNodeData {
   readonly inputs: string[];
 }
 
-const initialElements: Record<string, PortalElementRecord<ListNodeData>> = {
+const initialElements: Record<string, ElementRecord<ListNodeData>> = {
   '1': { data: { label: 'Node 1', inputs: [] }, position: { x: 100, y: 15 } },
   '2': { data: { label: 'Node 2', inputs: [] }, position: { x: 500, y: 200 } },
 };
-const initialEdges: Record<string, PortalLinkRecord> = {
+const initialEdges: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },

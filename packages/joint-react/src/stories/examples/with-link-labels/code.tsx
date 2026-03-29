@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import {
-  type PortalElementRecord,
+  type ElementRecord,
   GraphProvider,
   Paper,
   useElementSize,
-  type PortalLinkRecord,
+  type LinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -17,7 +17,7 @@ interface ShapeData {
 
 const INTERACTIVE_OPTIONS = { labelMove: true } as const;
 
-const initialElements: Record<string, PortalElementRecord<ShapeData>> = {
+const initialElements: Record<string, ElementRecord<ShapeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 50, y: 50 }, size: { width: 100, height: 40 } },
   '2': { data: { label: 'Node 2' }, position: { x: 300, y: 50 }, size: { width: 100, height: 40 } },
   '3': { data: { label: 'Node 3' }, position: { x: 50, y: 200 }, size: { width: 100, height: 40 } },
@@ -28,7 +28,7 @@ const initialElements: Record<string, PortalElementRecord<ShapeData>> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'l1-2': {
     source: { id: '1' },
     target: { id: '2' },

@@ -1,7 +1,7 @@
 
 
 import { type dia } from '@joint/core';
-import type { MixedElementRecord, PortalElementRecord } from '../../types/data-types';
+import type { MixedElementRecord, ElementRecord } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -43,7 +43,7 @@ export function elementToAttributes<ElementData extends object | undefined = und
   }
 
   // PortalElement mapping
-  const portalElement = element as PortalElementRecord;
+  const portalElement = element as ElementRecord;
 
   const {
     data = {} as ElementData,

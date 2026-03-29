@@ -2,7 +2,7 @@ import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/
 import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
-import type { PortalElementRecord } from '@joint/react';
+import type { ElementRecord } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
@@ -106,7 +106,7 @@ export const WithSelectedJustIds = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, PortalElementRecord>) =>
+      (elements: Map<string, ElementRecord>) =>
         [...elements.values()].map((element) => (element as Record<string, unknown>).id),
     ],
     render: (result) => (
@@ -180,7 +180,7 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, PortalElementRecord>) =>
+      (elements: Map<string, ElementRecord>) =>
         [...elements.values()].map((element) => ({
           x: element.position?.x,
           y: element.position?.y,
@@ -212,7 +212,7 @@ export const WithAdditionalData = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [
-      (elements: Map<string, PortalElementRecord>) =>
+      (elements: Map<string, ElementRecord>) =>
         [...elements.values()].map((element) => ({
           id: (element as Record<string, unknown>).id,
           other: 'something',

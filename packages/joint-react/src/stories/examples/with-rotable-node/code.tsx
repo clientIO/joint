@@ -6,8 +6,8 @@ import {
   usePaper,
   useMeasureNode,
   useElementId,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
@@ -19,12 +19,12 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, PortalElementRecord<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 20, y: 100 } },
   '2': { data: { label: 'Node 2' }, position: { x: 200, y: 100 } },
 };
 
-const initialEdges: Record<string, PortalLinkRecord> = {
+const initialEdges: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },

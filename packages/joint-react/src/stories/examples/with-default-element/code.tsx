@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { GraphProvider, Paper, type PortalElementRecord, type PortalLinkRecord } from '@joint/react';
+import { GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jr-* CSS variable defaults (including element styles)
@@ -9,7 +9,7 @@ import '../../../css/theme.css';
 import './dark-theme.css';
 
 type Data = { label: string };
-const initialElements: Record<string, PortalElementRecord<Data>> = {
+const initialElements: Record<string, ElementRecord<Data>> = {
   a: {
     // No width or height — element should size to fit label
     // label: 'Lorem ipsum',
@@ -44,7 +44,7 @@ const initialElements: Record<string, PortalElementRecord<Data>> = {
 
 const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'a-b': {
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },

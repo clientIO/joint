@@ -6,9 +6,9 @@ import {
   useElementDefaults,
   useElementSize,
   useLinkDefaults,
-  type PortalElementRecord,
-  type FlatElementPort,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type ElementRecordPort,
+  type LinkRecord,
   type MixedElementRecord,
   type MixedLinkRecord,
   type RenderElement,
@@ -22,14 +22,14 @@ interface ElementData {
 
 // Minimal persisted data — no ports, no styling.
 // Ports and theme are provided by useElementDefaults based on element kind.
-const initialElements: Record<string, PortalElementRecord<ElementData>> = {
+const initialElements: Record<string, ElementRecord<ElementData>> = {
   a: { data: { label: 'Start', type: 'source' }, position: { x: 50, y: 140 } },
   b: { data: { label: 'Process', type: 'process' }, position: { x: 250, y: 50 } },
   c: { data: { label: 'Review', type: 'process' }, position: { x: 250, y: 230 } },
   d: { data: { label: 'Done', type: 'sink' }, position: { x: 480, y: 140 } },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'a-b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
   'a-c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b-d': {
@@ -44,14 +44,14 @@ const initialLinks: Record<string, PortalLinkRecord> = {
   },
 };
 
-const outPort: FlatElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
-const inPort: FlatElementPort = { cx: 0, cy: 'calc(0.5*h)' };
+const outPort: ElementRecordPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
+const inPort: ElementRecordPort = { cx: 0, cy: 'calc(0.5*h)' };
 
-const portsByType: Record<string, Record<string, FlatElementPort>> = {
+const portsByType: Record<string, Record<string, ElementRecordPort>> = {
   source: { out: outPort },
   sink: { in: inPort },
 };
-const defaultPorts: Record<string, FlatElementPort> = { in: inPort, out: outPort };
+const defaultPorts: Record<string, ElementRecordPort> = { in: inPort, out: outPort };
 
 function Element({ label, color }: Readonly<{ label: string; color: string }>) {
   const { width, height } = useElementSize();

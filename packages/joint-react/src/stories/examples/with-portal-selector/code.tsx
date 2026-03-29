@@ -13,8 +13,8 @@ import {
   elementToAttributes,
   linkToAttributes,
   type CellId,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
   type MixedElementRecord,
   type MixedLinkRecord,
   type PaperProps,
@@ -91,7 +91,7 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const elements: Record<string, PortalElementRecord<ElementUserData>> = {
+const elements: Record<string, ElementRecord<ElementUserData>> = {
   '1': {
     data: { title: 'This is error element' },
     position: { x: 50, y: 110 },
@@ -113,7 +113,7 @@ const elements: Record<string, PortalElementRecord<ElementUserData>> = {
 };
 
 // Links now use built-in theme properties: color, width, sourceMarker, targetMarker
-const links: Record<string, PortalLinkRecord> = {
+const links: Record<string, LinkRecord> = {
   link1: {
     source: { id: '1' },
     target: { id: '2' },

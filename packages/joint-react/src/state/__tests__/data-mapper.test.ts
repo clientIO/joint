@@ -3,7 +3,7 @@
 import { dia, shapes } from '@joint/core';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
-import type { MixedElementRecord, PortalElementPort, MixedLinkRecord } from '../../types/data-types';
+import type { MixedElementRecord, ElementRecordPort, MixedLinkRecord } from '../../types/data-types';
 import {
   elementToAttributes,
   linkToAttributes,
@@ -107,7 +107,7 @@ describe('dataMapper', () => {
 
   describe('element ports conversion', () => {
     it('should convert simplified ports to JointJS format', () => {
-      const ports: Record<string, PortalElementPort> = {
+      const ports: Record<string, ElementRecordPort> = {
         p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
       };
       const id = 'el-1';
@@ -121,7 +121,7 @@ describe('dataMapper', () => {
     });
 
     it('should convert port with label', () => {
-      const ports: Record<string, PortalElementPort> = {
+      const ports: Record<string, ElementRecordPort> = {
         p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
       };
       const id = 'el-1';
@@ -135,7 +135,7 @@ describe('dataMapper', () => {
     });
 
     it('should handle rect shape ports', () => {
-      const ports: Record<string, PortalElementPort> = {
+      const ports: Record<string, ElementRecordPort> = {
         p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
       };
       const id = 'el-1';

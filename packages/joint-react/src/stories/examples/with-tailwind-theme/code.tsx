@@ -8,8 +8,8 @@ import {
   useElementSize,
   useElementDefaults,
   useLinkDefaults,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
   type MixedElementRecord,
   type MixedLinkRecord,
   type RenderElement,
@@ -25,7 +25,7 @@ interface NodeUserData {
   label: string;
 }
 
-const initialElements: Record<string, PortalElementRecord<NodeUserData>> = {
+const initialElements: Record<string, ElementRecord<NodeUserData>> = {
   a: {
     data: { label: 'Source' },
     position: { x: 50, y: 70 },
@@ -62,7 +62,7 @@ const initialElements: Record<string, PortalElementRecord<NodeUserData>> = {
   },
 };
 
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'a→b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
   'a→c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b→d': {

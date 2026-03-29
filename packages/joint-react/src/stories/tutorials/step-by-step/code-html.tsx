@@ -5,8 +5,8 @@ import {
   Paper,
   useElementSize,
   useMeasureNode,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
@@ -15,13 +15,13 @@ import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 type ElementData = { label: string };
 
 // define initial elements as Record
-const initialElements: Record<string, PortalElementRecord<ElementData>> = {
+const initialElements: Record<string, ElementRecord<ElementData>> = {
   '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
   '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
 };
 
 // define initial edges as Record
-const initialEdges: Record<string, PortalLinkRecord> = {
+const initialEdges: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },

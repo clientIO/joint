@@ -5,8 +5,8 @@ import {
   Paper,
   useElementSize,
   useLinkDefaults,
-  type PortalElementRecord,
-  type PortalLinkRecord,
+  type ElementRecord,
+  type LinkRecord,
   type MixedElementRecord,
   type MixedLinkRecord,
   type RenderElement,
@@ -24,7 +24,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, PortalElementRecord<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   a: { data: { label: 'Source' }, position: { x: 50, y: 60 }, size: { width: 120, height: 50 } },
   b: { data: { label: 'Process' }, position: { x: 280, y: 20 }, size: { width: 120, height: 50 } },
   c: { data: { label: 'Review' }, position: { x: 280, y: 120 }, size: { width: 120, height: 50 } },
@@ -33,7 +33,7 @@ const initialElements: Record<string, PortalElementRecord<NodeData>> = {
 
 // Links: no explicit color/width — CSS variables provide styling.
 // One link overrides color to show per-link precedence.
-const initialLinks: Record<string, PortalLinkRecord> = {
+const initialLinks: Record<string, LinkRecord> = {
   'a→b': {
     source: { id: 'a' },
     target: { id: 'b' },

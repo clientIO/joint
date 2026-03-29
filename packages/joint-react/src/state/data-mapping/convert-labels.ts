@@ -1,9 +1,9 @@
 import { type dia, util } from '@joint/core';
-import type { PortalLinkLabel } from '../../types/data-types';
+import type { LinkRecordLabel } from '../../types/data-types';
 import { defaultLabelStyle } from '../../theme/link-theme';
 
 /**
- * Converts a simplified FlatLinkLabel into a JointJS dia.Link.Label
+ * Converts a simplified LinkRecordLabel into a JointJS dia.Link.Label
  * using the PortalLink's defaultLabel selectors (labelText, labelBody).
  * @param id - The unique identifier for the label
  * @param rawLabel - The simplified label definition
@@ -12,8 +12,8 @@ import { defaultLabelStyle } from '../../theme/link-theme';
  */
 export function convertLabel(
   id: string,
-  rawLabel: PortalLinkLabel,
-  labelStyle?: Partial<PortalLinkLabel>
+  rawLabel: LinkRecordLabel,
+  labelStyle?: Partial<LinkRecordLabel>
 ): dia.Link.Label & { id: string } {
   const label = labelStyle ? { ...labelStyle, ...rawLabel } : rawLabel;
   const {

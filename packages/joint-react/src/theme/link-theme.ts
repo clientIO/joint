@@ -1,6 +1,6 @@
-import type { PortalLinkPresentation } from '../types/data-types';
+import type { LinkRecordPresentation } from '../types/data-types';
 
-export type LinkRecordStyle = Required<PortalLinkPresentation>;
+export type LinkRecordStyle = Required<LinkRecordPresentation>;
 
 /**
  * Internal fallback values for link line properties not set by data or defaults.
@@ -22,7 +22,7 @@ export const defaultLinkStyle: Readonly<LinkRecordStyle>= {
 };
 
 /** A presentation key on Link, mapped to SVG attrs by buildLinkPresentationAttributes. */
-export type LinkPresentationKey = keyof PortalLinkPresentation;
+export type LinkPresentationKey = keyof LinkRecordPresentation;
 
 /** Presentation keys for runtime iteration. Derived from {@link defaultLinkStyle}. */
 export const LINK_PRESENTATION_KEYS = Object.keys(defaultLinkStyle) as LinkPresentationKey[];
