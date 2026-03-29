@@ -8,6 +8,7 @@ import { DEFAULT_HIGHLIGHTING } from '../models/preset-paper';
 import type { Feature } from '../types/feature.types';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { PaperStoreState } from './graph-store';
+import { simpleScheduler } from '../utils/scheduler';
 
 type PaperHighlighting = Extract<dia.Paper.Options['highlighting'], Record<string, unknown>>;
 /**
@@ -78,6 +79,9 @@ export class PaperStore {
 
   public features: Record<string, Feature> = {};
 
+  /** Link changes pending flush — populated by clearView, flushed in afterRender. */
+  private pendingLinkChanges: Map<string, IncrementalChange<dia.Cell>> = new Map();
+
   constructor(options: PaperStoreOptions) {
     const {
       graphStore,
@@ -122,6 +126,7 @@ export class PaperStore {
         afterRender: (() => {
           // Re-entrance guard to prevent infinite loops
           let isProcessing = false;
+          const store = this;
           return function (this: PortalPaper) {
             if (isProcessing) {
               return;
@@ -130,6 +135,10 @@ export class PaperStore {
 
             // Check if any pending links can now be shown
             this.checkPendingLinks();
+
+            // Flush pending link changes — link views now have correct geometry
+            // after JointJS finished its async render cycle.
+            store.flushPendingLinkChanges(graphStore);
 
             isProcessing = false;
           };
@@ -148,6 +157,31 @@ export class PaperStore {
     if (scale !== undefined) {
       this.paper.scale(scale);
     }
+  }
+
+  /**
+   * Queues link changes for flush after the next JointJS render cycle.
+   * @param changes - Link changes to queue
+   */
+  public addPendingLinkChanges(changes: Map<string, IncrementalChange<dia.Cell>>): void {
+    for (const [id, change] of changes) {
+      this.pendingLinkChanges.set(id, change);
+    }
+  }
+
+  /**
+   * Flushes pending link changes via setPaperViews so React re-reads correct link layout.
+   * Called from afterRender when JointJS has finished rendering.
+   */
+  private flushPendingLinkChanges(graphStore: GraphStore): void {
+    simpleScheduler(() => {
+      if (this.pendingLinkChanges.size === 0) {
+        return;
+      }
+      const changes = this.pendingLinkChanges;
+      this.pendingLinkChanges = new Map();
+      graphStore.setPaperViews(this.paperId, changes);
+    });
   }
 
   public getElementView(id: CellId): dia.ElementView | undefined {

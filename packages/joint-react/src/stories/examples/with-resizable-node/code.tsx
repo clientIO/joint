@@ -80,22 +80,9 @@ function ResizableNode({ label }: Readonly<NodeData>) {
 }
 
 function Main() {
-  const elementsSize = useElements((elements) =>
-    [...elements.values()].map(({ size }) => `${size.width} x ${size.height}`)
-  );
-
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper className={PAPER_CLASSNAME} height={280} renderElement={ResizableNode} />
-      <div>
-        <u>width & height</u>
-        {elementsSize.map((size, index) => (
-          // eslint-disable-next-line @eslint-react/no-array-index-key
-          <div className="text" key={`${index}-${size}`} style={{ marginLeft: 10 }}>
-            {index + 1}. {size}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

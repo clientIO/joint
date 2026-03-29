@@ -92,7 +92,7 @@ export interface GraphProviderProps<
 function GraphBase<
   ElementData extends object | undefined = undefined,
   LinkData extends object | undefined = undefined,
->(props: GraphProviderProps<ElementData, LinkData>, forwardedRef: React.Ref<dia.Graph | null>) {
+>(props: GraphProviderProps<ElementData, LinkData> & { ref?: React.Ref<dia.Graph | null> }) {
   const {
     children,
     store,
@@ -101,6 +101,7 @@ function GraphBase<
     onElementsChange,
     onLinksChange,
     onIncrementalChange,
+    ref: forwardedRef,
     ...rest
   } = props;
 

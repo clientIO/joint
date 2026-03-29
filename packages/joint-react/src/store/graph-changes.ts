@@ -43,7 +43,8 @@ export function graphChanges<
   ElementData extends object | undefined = undefined,
   LinkData extends object | undefined = undefined,
 >(options: Options<ElementData, LinkData>) {
-  const { graph, mapElementToAttributes, mapLinkToAttributes } = options;
+  const { graph } = options;
+  let { mapElementToAttributes, mapLinkToAttributes } = options;
   const changes = new Map<string, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
@@ -138,6 +139,17 @@ export function graphChanges<
   return {
     destroy() {
       controller.stopListening();
+    },
+    updateMappers(nextMappers: {
+      mapElementToAttributes?: MapElementToAttributes<ElementData>;
+      mapLinkToAttributes?: MapLinkToAttributes<LinkData>;
+    }) {
+      if (nextMappers.mapElementToAttributes) {
+        mapElementToAttributes = nextMappers.mapElementToAttributes;
+      }
+      if (nextMappers.mapLinkToAttributes) {
+        mapLinkToAttributes = nextMappers.mapLinkToAttributes;
+      }
     },
     updateGraph(update: UpdateGraphOptions<ElementData, LinkData>) {
       const { elements, links, flag } = update;

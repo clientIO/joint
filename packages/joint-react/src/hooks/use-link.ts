@@ -5,9 +5,9 @@ import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 import { useContainerItem } from './use-container-item';
 import type { Link } from '../types/data-types';
 import type { LinkLayout } from '../types/cell-data';
-import { PaperStoreContext } from '../context';
 import { getLinkLayout } from '../store/update-layout-state';
 import type { dia } from '@joint/core';
+import { usePaperStore } from './use-paper';
 
 /** Link data resolved for the current paper — `layout` is the single paper's `LinkLayout`. */
 export type ResolvedLink<D extends object | undefined = undefined> = Link<D> & {
@@ -20,6 +20,7 @@ export type ResolvedLink<D extends object | undefined = undefined> = Link<D> & {
  *
  * Returns link data with the current paper's layout resolved
  * (source/target coordinates and SVG path).
+ * @experimental
  *
  * @example
  * ```tsx
@@ -41,21 +42,24 @@ export function useLink<D extends object | undefined = undefined, R = ResolvedLi
   isEqual: (a: R, b: R) => boolean = isStrictEqual
 ): R {
   const id = useLinkId();
-  const paperStore = useContext(PaperStoreContext);
+  const paperStore = usePaperStore();
   const paper = paperStore?.paper as dia.Paper | undefined;
   const {
     graphView: { links },
   } = useGraphStore<undefined, D>();
-
   // Wrap the user selector to resolve layout live from the paper view
   const resolvedSelector = (item: Link<D>): R => {
     const { ...rest } = item;
 
-    // Read layout directly from the paper's link view — always fresh
+    // Read layout directly from the paper's link view — always fresh.
+    // Force-flush any pending async view updates first so the connection
+    // geometry reflects the latest element positions.
     let paperLayout: LinkLayout | undefined;
     if (paper) {
       const linkView = paper.findViewByModel(id) as dia.LinkView | null;
       if (linkView) {
+        // @ts-expect-error - dumpView is not typed to return a layout, but it does include the layout properties
+        paper.dumpView(linkView);
         paperLayout = getLinkLayout(linkView);
       }
     }

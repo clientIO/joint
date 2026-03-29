@@ -95,6 +95,7 @@ export interface PaperProps extends PortalPaperOptions, PropsWithChildren {
    * Note: JointJS works with SVG by default, so `renderLink` content is appended inside an SVG node.
    * To render HTML elements, use an SVG `foreignObject`.
    *
+   * @experimental - this feature is experimental and may have limitations or issues. Use at your own risk.
    * This is called when the link data changes.
    * @example
    * Example with `global component`:

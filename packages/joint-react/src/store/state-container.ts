@@ -189,9 +189,11 @@ export function createAtom<T>(initialValue: T): Atom<T> {
       return;
     }
     value = newValue;
-    for (const listener of listeners) {
-      listener();
-    }
+    simpleScheduler(() => {
+      for (const listener of listeners) {
+        listener();
+      }
+    });
   }
 
   /**

@@ -1,6 +1,8 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { paperRenderLinkWrapper } from '../../utils/test-wrappers';
 import { useLink } from '../use-link';
+import { useGraph } from '../use-graph';
+import type { dia } from '@joint/core';
 
 describe('useLink', () => {
   const wrapper = paperRenderLinkWrapper({
@@ -37,5 +39,65 @@ describe('useLink', () => {
     await waitFor(() => {
       expect(result.current).toEqual({ id: '1' });
     });
+  });
+
+  it('layout.d should match native JointJS link path after element move', async () => {
+    let graphRef: dia.Graph | null = null;
+
+    const moveWrapper = paperRenderLinkWrapper({
+      graphProviderProps: {
+        elements: {
+          a: { data: undefined, position: { x: 0, y: 0 }, size: { width: 100, height: 50 } },
+          b: { data: undefined, position: { x: 300, y: 200 }, size: { width: 100, height: 50 } },
+        },
+        links: {
+          'link-1': { source: 'a', target: 'b' },
+        },
+      },
+      paperProps: {
+        renderLink: () => <line />,
+      },
+    });
+
+    const { result } = renderHook(
+      () => {
+        const { graph } = useGraph();
+        graphRef = graph;
+        return useLink();
+      },
+      { wrapper: moveWrapper }
+    );
+
+    // Wait for initial render with layout
+    await waitFor(() => {
+      expect(result.current.layout).toBeDefined();
+      expect(result.current.layout!.d).not.toBe('');
+    });
+
+    const initialD = result.current.layout!.d;
+
+    // Move element — simulates user dragging
+    act(() => {
+      const element = graphRef!.getCell('b') as dia.Element;
+      element.position(100, 400);
+    });
+
+    // After move, layout.d should update to match the new native link path
+    await waitFor(() => {
+      const layout = result.current.layout;
+      expect(layout).toBeDefined();
+      expect(layout!.d).not.toBe('');
+      // The path must have changed from the initial position
+      expect(layout!.d).not.toBe(initialD);
+    });
+
+    // Verify the React layout matches the actual JointJS link view path
+    const linkCell = graphRef!.getCell('link-1') as dia.Link;
+    const paper = graphRef!.findView(linkCell)?.paper;
+    if (paper) {
+      const linkView = paper.findViewByModel(linkCell) as dia.LinkView;
+      const nativeD = linkView.getSerializedConnection?.() ?? '';
+      expect(result.current.layout!.d).toBe(nativeD);
+    }
   });
 });

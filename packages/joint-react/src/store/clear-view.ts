@@ -82,9 +82,8 @@ export function clearConnectedLinkViews(
   const changes: Map<string, IncrementalChange<dia.Cell>> = new Map();
   const cell = graph.getCell(cellId);
   if (!cell) {
-    return;
+    return changes;
   }
-  changes.set(String(cell.id), { type: 'change', data: cell });
 
   for (const link of graph.getConnectedLinks(cell)) {
     if (!shouldClearLink(link, cellId, onValidateLink)) {
@@ -100,8 +99,6 @@ export function clearConnectedLinkViews(
     linkView._sourceMagnet = null;
     // @ts-expect-error we use private jointjs api method
     linkView._targetMagnet = null;
-    // Use async: true so magnet resolution happens after React ref callbacks
-    // (selectorRef from useMarkup) have registered port elements on the view.
     // @ts-expect-error we use private jointjs api method
     linkView.requestConnectionUpdate({ async: true });
     changes.set(String(link.id), { type: 'change', data: link });

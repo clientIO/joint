@@ -128,7 +128,6 @@ export function useGraph<
           ...existing,
           ...attributes,
         } as Link<LinkData>;
-
         const cellAttributes = graphView.mapLinkToAttributes({
           id: String(id),
           link: mergedData,
