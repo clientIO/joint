@@ -3,7 +3,7 @@ import { useElementDefaults } from '../use-element-defaults';
 import { defaultPortStyle } from '../../theme/element-theme';
 import type { AnyElementRecord } from '../../types/data-types';
 
-describe('useFlatElementData', () => {
+describe('useElementDefaults', () => {
   const minimalElementData: AnyElementRecord = {
     data: {},
     position: { x: 10, y: 20 },

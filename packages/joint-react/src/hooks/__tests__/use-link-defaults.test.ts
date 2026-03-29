@@ -3,7 +3,7 @@ import { useLinkDefaults } from '../use-link-defaults';
 import { defaultLinkStyle, defaultLabelStyle } from '../../theme/link-theme';
 import type { AnyLinkRecord } from '../../types/data-types';
 
-describe('useFlatLinkData', () => {
+describe('useLinkDefaults', () => {
   const minimalLinkData: AnyLinkRecord = {
     source: { id: 'a' },
     target: { id: 'b' },
