@@ -20,6 +20,7 @@ export type ResolvedLink<D extends object | undefined = undefined> = Omit<Link<D
  *
  * Returns link data with the current paper's layout resolved
  * (source/target coordinates and SVG path).
+ * @experimental
  *
  * @example
  * ```tsx
@@ -46,16 +47,21 @@ export function useLink<D extends object | undefined = undefined, R = ResolvedLi
   const {
     graphView: { links },
   } = useGraphStore<undefined, D>();
-
+  console.log('render-use-link', id);
   // Wrap the user selector to resolve layout live from the paper view
   const resolvedSelector = (item: Link<D>): R => {
+    console.log('called use-link resolvedSelector');
     const { ...rest } = item;
 
-    // Read layout directly from the paper's link view — always fresh
+    // Read layout directly from the paper's link view — always fresh.
+    // Force-flush any pending async view updates first so the connection
+    // geometry reflects the latest element positions.
     let paperLayout: LinkLayout | undefined;
     if (paper) {
       const linkView = paper.findViewByModel(id) as dia.LinkView | null;
       if (linkView) {
+        // @ts-expect-error - dumpView is not typed to return a layout, but it does include the layout properties
+        paper.dumpView(linkView);
         paperLayout = getLinkLayout(linkView);
       }
     }

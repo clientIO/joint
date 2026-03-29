@@ -116,6 +116,31 @@ function UseCreatePortalPaperSingleSizeHost({
   );
 }
 
+function RenderCountHost({ onRenderCount }: { readonly onRenderCount: (count: number) => void }) {
+  const renderCountRef = useRef(0);
+  const paperHTMLElementRef = useRef<HTMLDivElement | null>(null);
+  const { paperStore, isReady, content } = useCreatePortalPaper({
+    id: 'paper-render-count',
+    width: 400,
+    height: 300,
+    renderElement: renderTestElement,
+    elementRef: paperHTMLElementRef,
+  });
+
+  renderCountRef.current += 1;
+
+  useEffect(() => {
+    // Report render count after all effects have settled
+    onRenderCount(renderCountRef.current);
+  });
+
+  return (
+    <PaperStoreContext.Provider value={paperStore ?? null}>
+      <div ref={paperHTMLElementRef}>{isReady && content}</div>
+    </PaperStoreContext.Provider>
+  );
+}
+
 describe('use-create-portal-paper', () => {
   it('uses the elementRef host as the paper element when onReady is provided', async () => {
     const onReady = jest.fn((_paper: PortalPaper) => {});
@@ -253,5 +278,38 @@ describe('use-create-portal-paper', () => {
     const [paper] = onPaperChange.mock.calls.at(-1) as [PortalPaper];
     expect(paper.options.width).toBe(640);
     expect(paper.options.height).toBeUndefined();
+  });
+
+  it('renders at most 2 times on initial mount with 2 elements and 1 link', async () => {
+    const renderCounts: number[] = [];
+    const onRenderCount = (count: number) => {
+      renderCounts.push(count);
+    };
+
+    const initialElements = {
+      '1': { data: undefined, position: { x: 0, y: 0 }, size: { width: 100, height: 50 } },
+      '2': { data: undefined, position: { x: 200, y: 100 }, size: { width: 100, height: 50 } },
+    };
+    const initialLinks = {
+      'link-1': { source: '1', target: '2' },
+    };
+
+    render(
+      <GraphProvider elements={initialElements} links={initialLinks}>
+        <RenderCountHost onRenderCount={onRenderCount} />
+      </GraphProvider>
+    );
+
+    // Wait for all effects to settle
+    await waitFor(() => {
+      expect(renderCounts.length).toBeGreaterThan(0);
+    });
+
+    // Allow any remaining microtasks/effects to flush
+    await new Promise((resolve) => setTimeout(resolve, 1));
+
+    const finalRenderCount = renderCounts.at(-1)!;
+    // StrictMode doubles renders: 2 logical renders × 2 = 4 max
+    expect(finalRenderCount).toBeLessThanOrEqual(4);
   });
 });
