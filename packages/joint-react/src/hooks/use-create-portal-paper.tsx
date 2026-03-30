@@ -23,7 +23,7 @@ import { useContainerKeys } from './use-container-keys';
 import type { PaperStore } from '../store';
 import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
-import { DefaultElement } from '../components/default-element';
+import { HTMLHost } from '../components/html-host';
 
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
@@ -105,6 +105,8 @@ function LinkItem({
   return createPortal(linkContent, portalElement);
 }
 
+const SimpleHTMLElement = (data: Record<string, unknown>) => <HTMLHost style={{ textAlign: 'center' }}>{data?.label as string}</HTMLHost>;
+
 /**
  * Creates and manages a React-backed JointJS paper instance lifecycle.
  * @param options - Hook options with paper settings and behavior overrides.
@@ -114,7 +116,7 @@ export function useCreatePortalPaper(
   options: Readonly<UseCreatePortalPaperOptions>
 ): UseCreatePortalPaperResult {
   const {
-    renderElement = DefaultElement,
+    renderElement = SimpleHTMLElement,
     renderLink,
     defaultLink,
     useHTMLOverlay,

@@ -37,7 +37,7 @@
  * ============================================================================
  */
 
-import { GraphProvider, useElementSize, type ElementRecord, type LinkRecord, Paper } from '@joint/react';
+import { GraphProvider, HTMLHost, type ElementRecord, type LinkRecord, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useState, type Dispatch, type SetStateAction } from 'react';
@@ -106,12 +106,7 @@ const defaultLinks: Record<string, CustomLink> = {
  * @returns JSX to render inside the element
  */
 function RenderItem({ label }: Readonly<ElementData>) {
-  const { width, height } = useElementSize();
-  return (
-    <foreignObject width={width} height={height}>
-      <div className="node">{label}</div>
-    </foreignObject>
-  );
+  return <HTMLHost className="node">{label}</HTMLHost>;
 }
 
 // ============================================================================

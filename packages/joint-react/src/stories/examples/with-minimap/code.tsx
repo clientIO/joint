@@ -1,15 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import {
   GraphProvider,
   Paper,
-  useMeasureNode,
   useElementSize,
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
-  DefaultElement,
+  HTMLHost,
 } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -65,7 +64,7 @@ function MiniMap() {
 }
 
 function RenderElement({ label, color }: Readonly<NodeData>) {
-  return <DefaultElement label={label} style={{ backgroundColor: color, color: 'white' }} />;
+  return <HTMLHost style={{ backgroundColor: color, color: 'white' }}>{label}</HTMLHost>;
 }
 
 function Main() {

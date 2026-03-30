@@ -17,15 +17,17 @@ const initialElements: Record<string, ElementRecord<Data>> = {
       label: 'Lorem ipsum',
     },
     position: { x: 100, y: 60 },
+    // no size → auto-size to content
     portMap: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } },
   },
   b: {
     // Explicit width - height is still determined by content
-    size: { width: 100, height: 40 },
     data: {
       label: 'dolor sit amet',
     },
     position: { x: 280, y: 60 },
+    // width only → text wraps, height grows to fit
+    size: { width: 100 },
     portMap: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
       in: { cx: 0, cy: 'calc(0.5 * h)' },
@@ -37,8 +39,21 @@ const initialElements: Record<string, ElementRecord<Data>> = {
       label: 'consectetur adipiscing elit',
     },
     position: { x: 450, y: 60 },
+    // width and height → fixed box, text wraps but clipped at boundary
     size: { width: 100, height: 80 },
-    portMap: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true } },
+    portMap: {
+      in: { cx: 0, cy: 'calc(0.5 * h)', passive: true },
+      out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', passive: true },
+    },
+  },
+  d: {
+    data: {
+      label: 'no size (auto)',
+    },
+    position: { x: 620, y: 60 },
+    // height only → text wraps, width grows to fit
+    size: { height: 60 },
+    portMap: { in: { cx: 0, cy: 'calc(0.5 * h)' } },
   },
 };
 
@@ -53,6 +68,11 @@ const initialLinks: Record<string, LinkRecord> = {
   'b-c': {
     source: { id: 'b', port: 'out' },
     target: { id: 'c', port: 'in' },
+    style: { targetMarker: 'arrow' },
+  },
+  'c-d': {
+    source: { id: 'c', port: 'out' },
+    target: { id: 'd', port: 'in' },
     style: { targetMarker: 'arrow' },
   },
 };

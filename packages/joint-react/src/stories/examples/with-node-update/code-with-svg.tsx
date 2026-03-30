@@ -3,7 +3,6 @@
 import { GraphProvider, Paper, useElementSize, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
-import { useGraph } from '@joint/react';
 
 const initialElements: Record<string, ElementRecord> = {
   '1': { position: { x: 100, y: 15 }, size: { width: 130, height: 35 } },
@@ -18,23 +17,6 @@ const initialEdges: Record<string, LinkRecord> = {
     width: 1,
   },
 };
-
-function Element({ id, color }: Readonly<{ id: string; color: string }>) {
-  const { setElement } = useGraph();
-  return (
-    <input
-      className="nodrag"
-      type="color"
-      value={color}
-      onChange={(event) =>
-        setElement(id, (previous) => ({
-          ...previous,
-          data: { ...previous.data, color: event.target.value },
-        }))
-      }
-    />
-  );
-}
 
 function RenderElement() {
   const { width, height } = useElementSize();

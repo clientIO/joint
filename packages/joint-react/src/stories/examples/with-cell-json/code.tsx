@@ -31,9 +31,6 @@ interface ElementData {
   readonly color: string;
 }
 
-// eslint-disable-next-line sonarjs/redundant-type-aliases
-type LinkData = undefined;
-
 // ============================================================================
 // Data
 // ============================================================================

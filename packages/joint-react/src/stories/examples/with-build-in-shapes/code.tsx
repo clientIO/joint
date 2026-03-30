@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type ElementRecord, type LinkRecord, useElements } from '@joint/react';
+import { GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 

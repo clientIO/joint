@@ -1,11 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   GraphProvider,
   Paper,
   useGraph,
-  useMeasureNode,
+  HTMLHost,
   type ElementRecord,
   type LinkRecord,
   useElements,
@@ -57,30 +57,24 @@ const initialLinks: Record<string, LinkRecord> = {
 // --- Node Component ---
 
 function RenderElement({ label, color }: Readonly<NodeData>) {
-  const elementRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(elementRef);
-
   return (
-    <foreignObject width={width} height={height}>
-      <div
-        ref={elementRef}
-        style={{
-          backgroundColor: color,
-          borderRadius: 8,
-          padding: '12px 16px',
-          color: 'white',
-          fontWeight: 500,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          minWidth: 80,
-          minHeight: 40,
-        }}
-      >
-        {label}
-      </div>
-    </foreignObject>
+    <HTMLHost
+      style={{
+        backgroundColor: color,
+        borderRadius: 8,
+        padding: '12px 16px',
+        color: 'white',
+        fontWeight: 500,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        minWidth: 80,
+        minHeight: 40,
+      }}
+    >
+      {label}
+    </HTMLHost>
   );
 }
 

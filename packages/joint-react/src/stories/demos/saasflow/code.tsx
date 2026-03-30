@@ -4,7 +4,7 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  useMeasureNode,
+  HTMLHost,
   useElementDefaults,
   useLinkDefaults,
   type ElementRecord,
@@ -182,84 +182,77 @@ function ProgressBar({
 }
 
 function RenderSaasNode({ title, subtitle, icon, status, tags, progress }: Readonly<SaasNodeData>) {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(contentRef);
   const theme = useTheme();
   const isDark = theme === DARK;
 
   return (
-    <>
-      <foreignObject width={width} height={height} overflow="visible">
+    <HTMLHost
+      className="rounded-2xl px-5 py-4 select-none"
+      style={{
+        width: 260,
+        cursor: 'grab',
+        backgroundColor: theme.card,
+        border: `1px solid ${theme.cardBorder}`,
+        boxShadow: `0 8px 32px rgba(0,0,0,${isDark ? 0.4 : 0.08})`,
+        transition: 'transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease',
+      }}
+    >
+      <div className="flex items-center gap-3 mb-2">
         <div
-          ref={contentRef}
-          className="rounded-2xl px-5 py-4 select-none"
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0"
           style={{
-            width: 260,
-            cursor: 'grab',
-            backgroundColor: theme.card,
-            border: `1px solid ${theme.cardBorder}`,
-            boxShadow: `0 8px 32px rgba(0,0,0,${isDark ? 0.4 : 0.08})`,
-            transition: 'transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease',
+            backgroundColor: theme.accentSoft,
+            color: theme.accent,
+            transition: 'all 150ms ease',
           }}
         >
-          <div className="flex items-center gap-3 mb-2">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0"
+          <i className={icon} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <StatusDot status={status} />
+            <span className="text-sm font-semibold truncate" style={{ color: theme.text }}>
+              {title}
+            </span>
+          </div>
+          <span className="text-xs block mt-0.5" style={{ color: theme.sub }}>
+            {subtitle}
+          </span>
+        </div>
+      </div>
+
+      {tags && tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="text-[10px] font-medium px-2.5 py-0.5 rounded-full"
               style={{
-                backgroundColor: theme.accentSoft,
+                backgroundColor: theme.badge,
+                border: `1px solid ${theme.badgeBorder}`,
                 color: theme.accent,
-                transition: 'all 150ms ease',
               }}
             >
-              <i className={icon} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <StatusDot status={status} />
-                <span className="text-sm font-semibold truncate" style={{ color: theme.text }}>
-                  {title}
-                </span>
-              </div>
-              <span className="text-xs block mt-0.5" style={{ color: theme.sub }}>
-                {subtitle}
-              </span>
-            </div>
-          </div>
-
-          {tags && tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-[10px] font-medium px-2.5 py-0.5 rounded-full"
-                  style={{
-                    backgroundColor: theme.badge,
-                    border: `1px solid ${theme.badgeBorder}`,
-                    color: theme.accent,
-                  }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {progress !== undefined && (
-            <div className="mt-3">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px]" style={{ color: theme.sub }}>
-                  Progress
-                </span>
-                <span className="text-[10px] font-semibold" style={{ color: theme.accent }}>
-                  {progress}%
-                </span>
-              </div>
-              <ProgressBar value={progress} theme={theme} />
-            </div>
-          )}
+              {tag}
+            </span>
+          ))}
         </div>
-      </foreignObject>
-    </>
+      )}
+
+      {progress !== undefined && (
+        <div className="mt-3">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px]" style={{ color: theme.sub }}>
+              Progress
+            </span>
+            <span className="text-[10px] font-semibold" style={{ color: theme.accent }}>
+              {progress}%
+            </span>
+          </div>
+          <ProgressBar value={progress} theme={theme} />
+        </div>
+      )}
+    </HTMLHost>
   );
 }
 

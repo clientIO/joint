@@ -3,19 +3,16 @@
 import { useId, useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import type { ElementRecord, ElementPort } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG, SECONDARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
   GraphProvider,
   jsx,
   Paper,
-  SVGText,
   usePaperEvents,
   useLinks,
-  useMeasureNode,
   useElementId,
-  DefaultElement,
+  HTMLHost,
 } from '@joint/react';
-import { Default } from './story';
 
 const PORT_SIZE = 20;
 const unit = 10;
@@ -85,8 +82,6 @@ const elements: Record<string, ElementRecord> = {
 
 function NodeElement() {
   const id = useElementId();
-  const rectRef = useRef<SVGRectElement>(null);
-  const { width, height } = useMeasureNode(rectRef);
 
   const isConnected = useLinks((links) =>
     [...links.values()].some((link) => {
@@ -95,14 +90,14 @@ function NodeElement() {
   );
 
   return (
-    <DefaultElement
-      label={id}
+    <HTMLHost
       style={{
+        textAlign: 'center',
         borderColor: isConnected ? PRIMARY : '',
         minWidth: 100,
         minHeight: 50,
       }}
-    />
+    >{id}</HTMLHost>
   );
 }
 

@@ -6,7 +6,6 @@ import {
   useElementSize,
   type ElementRecord,
   type LinkRecord,
-  type PortalPaper,
   usePaperEvents,
 } from '@joint/react';
 import { type dia, highlighters } from '@joint/core';

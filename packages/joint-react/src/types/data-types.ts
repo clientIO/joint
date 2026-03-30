@@ -105,10 +105,10 @@ export interface ElementPort {
  * @group Graph
  */
 export interface ElementRecord<D extends object = Record<string, unknown>>
-  extends dia.Element.Attributes {
-  /** Position of the element. Partial allowed — missing fields default to 0. */
+  extends Omit<dia.Element.Attributes, 'position' | 'size'> {
+  /** Position of the element. Fields default to 0 when omitted. */
   position?: ElementPosition;
-  /** Size of the element. Partial allowed — missing fields use defaults. */
+  /** Size of the element. Fields use defaults when omitted. */
   size?: ElementSize;
   /** Custom user data. */
   data?: D;

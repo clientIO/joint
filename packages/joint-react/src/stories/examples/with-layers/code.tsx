@@ -2,13 +2,12 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, shapes } from '@joint/core';
-import type { PortalPaper } from '@joint/react';
 import {
   GraphProvider,
   Paper,
   PortalElement,
   PortalLink,
-  useMeasureNode,
+  HTMLHost,
   useElementSize,
   type ElementRecord,
   type LinkRecord,
@@ -97,29 +96,24 @@ function BackgroundNode({ label, color }: Readonly<LayeredElementData>) {
 }
 
 function ElementNode({ label, color }: Readonly<LayeredElementData>) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(ref);
-
   return (
-    <foreignObject width={width} height={height} className="fade-in">
-      <div
-        ref={ref}
-        style={{
-          padding: '12px 20px',
-          backgroundColor: color,
-          borderRadius: 8,
-          color: 'white',
-          fontSize: 14,
-          fontWeight: 500,
-          cursor: 'move',
-          display: 'inline-block',
-          whiteSpace: 'nowrap',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-        }}
-      >
-        {label}
-      </div>
-    </foreignObject>
+    <HTMLHost
+      className="fade-in"
+      style={{
+        padding: '12px 20px',
+        backgroundColor: color,
+        borderRadius: 8,
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 500,
+        cursor: 'move',
+        display: 'inline-block',
+        whiteSpace: 'nowrap',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+      }}
+    >
+      {label}
+    </HTMLHost>
   );
 }
 
