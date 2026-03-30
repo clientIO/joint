@@ -21,6 +21,7 @@ const shared: CSSProperties = {
   boxSizing: 'border-box',
   textAlign: 'center',
   overflow: 'hidden',
+  position: 'static',
 };
 
 // No width, no height → single line, auto-sized to content
@@ -83,7 +84,8 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
   const initialWidthRef = useRef(width);
   const initialHeightRef = useRef(height);
   const baseStyle = getStyle(initialWidthRef.current, initialHeightRef.current);
-  const mergedStyle = style ? { ...baseStyle, ...style } : baseStyle;
+  // Force static positioning — Safari mispositions foreignObject children with position: relative or backdrop-filter.
+  const mergedStyle = style ? { ...baseStyle, ...style, position: 'static' as const } : baseStyle;
   const mergedClassName = className ? `jr-element ${className}` : 'jr-element';
 
   return (
