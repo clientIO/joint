@@ -8,7 +8,7 @@ import {
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
-  DefaultElement,
+  HTMLHost,
 } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -64,7 +64,7 @@ function MiniMap() {
 }
 
 function RenderElement({ label, color }: Readonly<NodeData>) {
-  return <DefaultElement style={{ backgroundColor: color, color: 'white' }}>{label}</DefaultElement>;
+  return <HTMLHost style={{ backgroundColor: color, color: 'white' }}>{label}</HTMLHost>;
 }
 
 function Main() {

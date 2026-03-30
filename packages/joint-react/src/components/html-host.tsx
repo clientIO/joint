@@ -14,7 +14,7 @@ import { useElementSize } from '../hooks';
  * Themed via CSS variables on `.jr-element`.
  * @example
  * ```tsx
- * <Paper renderElement={({ label }) => <DefaultElement>{label}</DefaultElement>} />
+ * <Paper renderElement={({ label }) => <HTMLHost>{label}</HTMLHost>} />
  * ```
  */
 const shared: CSSProperties = {
@@ -56,14 +56,14 @@ function getStyle(width: number | undefined, height: number | undefined): CSSPro
   };
 }
 
-export type DefaultElementProps = HTMLAttributes<HTMLDivElement>;
+export type HTMLHostProps = HTMLAttributes<HTMLDivElement>;
 
 /**
  * Default element renderer: a measured `<div>` inside a `<foreignObject>`.
  * All props are passed through to the inner `<div>`.
  * @param props - Standard HTML div attributes (children, style, className, event handlers, etc.).
  */
-export function DefaultElement(props: Readonly<DefaultElementProps> = {}) {
+export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
   const { style, className, ...rest } = props;
   const { width, height } = useElementSize();
   const nodeRef = useRef<HTMLDivElement>(null);

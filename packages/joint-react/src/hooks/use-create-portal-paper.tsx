@@ -23,7 +23,7 @@ import { useContainerKeys } from './use-container-keys';
 import type { PaperStore } from '../store';
 import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
-import { DefaultElement } from '../components/default-element';
+import { HTMLHost } from '../components/html-host';
 
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
@@ -114,7 +114,7 @@ export function useCreatePortalPaper(
   options: Readonly<UseCreatePortalPaperOptions>
 ): UseCreatePortalPaperResult {
   const {
-    renderElement = (data: Record<string, unknown>) => <DefaultElement>{data?.label as string}</DefaultElement>,
+    renderElement = (data: Record<string, unknown>) => <HTMLHost>{data?.label as string}</HTMLHost>,
     renderLink,
     defaultLink,
     useHTMLOverlay,

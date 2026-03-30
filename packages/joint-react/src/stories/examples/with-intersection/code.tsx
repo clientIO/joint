@@ -5,7 +5,7 @@ import {
   Paper,
   useElementId,
   type ElementRecord,
-  DefaultElement,
+  HTMLHost,
   useElements,
 } from '@joint/react';
 import '../index.css';
@@ -33,7 +33,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
     return graph.findElementsUnderElement(element).length > 0;
   });
 
-  return <DefaultElement style={{ borderColor: isIntersected ? PRIMARY : '' }}>{label}</DefaultElement>;
+  return <HTMLHost style={{ borderColor: isIntersected ? PRIMARY : '' }}>{label}</HTMLHost>;
 }
 
 function Main() {

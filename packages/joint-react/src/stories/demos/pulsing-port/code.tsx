@@ -12,7 +12,7 @@ import {
   useLinks,
   useMeasureNode,
   useElementId,
-  DefaultElement,
+  HTMLHost,
 } from '@joint/react';
 
 const PORT_SIZE = 20;
@@ -93,13 +93,13 @@ function NodeElement() {
   );
 
   return (
-    <DefaultElement
+    <HTMLHost
       style={{
         borderColor: isConnected ? PRIMARY : '',
         minWidth: 100,
         minHeight: 50,
       }}
-    >{id}</DefaultElement>
+    >{id}</HTMLHost>
   );
 }
 
