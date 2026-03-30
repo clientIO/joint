@@ -105,6 +105,8 @@ function LinkItem({
   return createPortal(linkContent, portalElement);
 }
 
+const SimpleHTMLElement = (data: Record<string, unknown>) => <HTMLHost>{data?.label as string}</HTMLHost>;
+
 /**
  * Creates and manages a React-backed JointJS paper instance lifecycle.
  * @param options - Hook options with paper settings and behavior overrides.
@@ -114,7 +116,7 @@ export function useCreatePortalPaper(
   options: Readonly<UseCreatePortalPaperOptions>
 ): UseCreatePortalPaperResult {
   const {
-    renderElement = (data: Record<string, unknown>) => <HTMLHost>{data?.label as string}</HTMLHost>,
+    renderElement = SimpleHTMLElement,
     renderLink,
     defaultLink,
     useHTMLOverlay,

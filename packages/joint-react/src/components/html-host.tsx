@@ -41,8 +41,20 @@ function getStyle(width: number | undefined, height: number | undefined): CSSPro
     return autoStyle;
   }
   // Width only → text wraps, height grows to fit
-  if (!hasSize(height)) {
+  if (hasSize(width) && !hasSize(height)) {
     return { ...shared, width, overflowWrap: 'break-word' };
+  }
+  // Height only → single line, auto-width, vertically centered
+  if (!hasSize(width) && hasSize(height)) {
+    return {
+      ...shared,
+      width: 'max-content',
+      height,
+      whiteSpace: 'nowrap',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    };
   }
   // Both → fixed box, text wraps but clipped at boundary
   return {
@@ -68,8 +80,9 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
   const { width, height } = useElementSize();
   const nodeRef = useRef<HTMLDivElement>(null);
   const measuredSize = useMeasureNode(nodeRef);
+  const initialWidthRef = useRef(width);
   const initialHeightRef = useRef(height);
-  const baseStyle = getStyle(width, initialHeightRef.current);
+  const baseStyle = getStyle(initialWidthRef.current, initialHeightRef.current);
   const mergedStyle = style ? { ...baseStyle, ...style } : baseStyle;
   const mergedClassName = className ? `jr-element ${className}` : 'jr-element';
 
