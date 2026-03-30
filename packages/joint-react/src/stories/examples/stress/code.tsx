@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/pseudo-random */
-import { GraphProvider, Paper, type Element, type Link } from '@joint/react';
+import { GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useState, startTransition } from 'react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -10,8 +10,8 @@ interface StressNodeData {
 }
 
 function initialElements(xNodes = 15, yNodes = 30) {
-  const nodes: Record<string, Element<StressNodeData>> = {};
-  const edges: Record<string, Link> = {};
+  const nodes: Record<string, ElementRecord<StressNodeData>> = {};
+  const edges: Record<string, LinkRecord> = {};
   let nodeId = 1;
   let edgeId = 1;
   let recentNodeId: number | null = null;
@@ -20,7 +20,7 @@ function initialElements(xNodes = 15, yNodes = 30) {
     for (let x = 0; x < xNodes; x++) {
       const id = `stress-${nodeId.toString()}`;
       nodes[id] = {
-        data: { label: `Node ${nodeId}`, fontSize: 11, className: 'text-xs' },
+        data: { label: `Node ${nodeId}`, fontSize: 11 },
         position: { x: x * 100, y: y * 50 },
       };
 
@@ -30,9 +30,7 @@ function initialElements(xNodes = 15, yNodes = 30) {
           source: { id: `stress-${recentNodeId.toString()}` },
           target: { id: `stress-${nodeId.toString()}` },
           z: -1,
-          color: '#999999',
-          dasharray: '5 2',
-          width: 1,
+          style: { color: '#999999', dasharray: '5 2', width: 1 },
         };
         edgeId++;
       }
@@ -50,12 +48,12 @@ const { nodes: initialNodes, edges: initialEdges } = initialElements(15, 30);
 function Main({
   setElements,
 }: Readonly<{
-  setElements: React.Dispatch<React.SetStateAction<Record<string, Element<StressNodeData>>>>;
+  setElements: React.Dispatch<React.SetStateAction<Record<string, ElementRecord<StressNodeData>>>>;
 }>) {
   const updatePos = useCallback(() => {
     startTransition(() => {
       setElements((previousElements) => {
-        const newElements: Record<string, Element<StressNodeData>> = {};
+        const newElements: Record<string, ElementRecord<StressNodeData>> = {};
         for (const [id, node] of Object.entries(previousElements)) {
           newElements[id] = {
             ...node,
@@ -85,15 +83,15 @@ function Main({
 }
 
 export default function App() {
-  const [elements, setElements] = useState<Record<string, Element<StressNodeData>>>(initialNodes);
-  const [links, setLinks] = useState<Record<string, Link>>(initialEdges);
+  const [elements, setElements] = useState<Record<string, ElementRecord<StressNodeData>>>(initialNodes);
+  const [links, setLinks] = useState<Record<string, LinkRecord>>(initialEdges);
 
   return (
     <GraphProvider
       elements={elements}
       links={links}
-      onElementsChange={setElements}
-      onLinksChange={setLinks}
+      onElementsChange={setElements as never}
+      onLinksChange={setLinks as never}
     >
       <Main setElements={setElements} />
     </GraphProvider>

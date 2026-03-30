@@ -11,7 +11,7 @@ import { act, useEffect, useRef, useState, type RefObject } from 'react';
 import { useGraph, useElementId, useLinks } from '../../../hooks';
 import { useNodesMeasuredEffect } from '../../../hooks/use-nodes-measured-effect';
 import type { ElementsMeasuredEvent } from '../../../types/event.types';
-import type { Element, Link } from '../../../types/data-types';
+import type { ElementRecord, LinkRecord } from '../../../types/data-types';
 import { GraphProvider } from '../../graph/graph-provider';
 import { Paper } from '../paper';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../../models/portal-link';
@@ -30,7 +30,7 @@ function MeasuredListener({
   return null;
 }
 
-const elements: Record<string, Element<{ label: string }>> = {
+const elements: Record<string, ElementRecord<{ label: string }>> = {
   '1': { data: { label: 'Node 1' }, size: { width: 10, height: 10 } },
   '2': { data: { label: 'Node 2' }, size: { width: 10, height: 10 } },
 };
@@ -76,8 +76,8 @@ const PROP_HEIGHT = 180;
 
 type DefaultLinkProperty =
   | dia.Link
-  | Partial<Link>
-  | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<Link>);
+  | Partial<LinkRecord>
+  | ((cellView: dia.CellView, magnet: SVGElement) => dia.Link | Partial<LinkRecord>);
 
 type PortDragElementView = dia.ElementView & {
   findPortNode: (portId: string, selector?: string) => SVGElement | null;
@@ -191,19 +191,19 @@ function appendPaperHostSizeStyle(options: {
   };
 }
 
-function getPortDragElements(): Record<string, Element> {
+function getPortDragElements(): Record<string, ElementRecord> {
   return {
     [SOURCE_ELEMENT_ID]: {
       data: {},
       position: { x: 40, y: 40 },
       size: { width: 120, height: 80 },
-      ports: { [SOURCE_PORT_ID]: { cx: 120, cy: 40 } },
+      portMap: { [SOURCE_PORT_ID]: { cx: 120, cy: 40 } },
     },
     [TARGET_ELEMENT_ID]: {
       data: {},
       position: { x: 320, y: 40 },
       size: { width: 120, height: 80 },
-      ports: { [TARGET_PORT_ID]: { cx: 0, cy: 40 } },
+      portMap: { [TARGET_PORT_ID]: { cx: 0, cy: 40 } },
     },
   };
 }
@@ -284,10 +284,10 @@ async function dragLinkFromSourcePortToTargetPort(paper: dia.Paper): Promise<dia
 
 async function renderPortDragPaper(defaultLink?: DefaultLinkProperty) {
   const ref: RefObject<dia.Paper | null> = { current: null };
-  let linksSnapshot: Map<string, Link> = new Map();
+  let linksSnapshot: Map<string, LinkRecord> = new Map();
 
   function CaptureLinksSnapshot() {
-    linksSnapshot = useLinks() as unknown as Map<string, Link>;
+    linksSnapshot = useLinks() as unknown as Map<string, LinkRecord>;
     return null;
   }
 
@@ -420,7 +420,7 @@ describe('Paper Component', () => {
 
   it('calls onElementsMeasured when element sizes change', async () => {
     const onMeasuredMock = jest.fn();
-    const updatedElements: Record<string, Element<{ label: string }>> = {
+    const updatedElements: Record<string, ElementRecord<{ label: string }>> = {
       '1': { data: { label: 'Node 1' }, size: { width: 100, height: 50 } },
       '2': { data: { label: 'Node 2' }, size: { width: 150, height: 75 } },
     };
@@ -773,10 +773,10 @@ describe('Paper Component', () => {
       }, [graph]);
       return null;
     }
-    let currentOutsideElements: Record<string, Element> = {};
+    let currentOutsideElements: Record<string, ElementRecord> = {};
     function Content() {
       const [currentElements, setCurrentElements] =
-        useState<Record<string, Element>>(elementsWithPosition);
+        useState<Record<string, ElementRecord>>(elementsWithPosition);
       currentOutsideElements = currentElements;
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
@@ -797,7 +797,7 @@ describe('Paper Component', () => {
   });
   it('should update elements via react state, and then reflect the changes in the paper', async () => {
     function Content() {
-      const [currentElements, setCurrentElements] = useState<Record<string, Element>>(elements);
+      const [currentElements, setCurrentElements] = useState<Record<string, ElementRecord>>(elements);
 
       return (
         <GraphProvider elements={currentElements} onElementsChange={setCurrentElements}>
@@ -1325,8 +1325,8 @@ describe('Paper Component', () => {
       expect(createdLink.getTargetCell()?.id).toBe(TARGET_ELEMENT_ID);
     });
 
-    it('supports defaultLink as FlatLinkData object when dragging between ports', async () => {
-      const defaultLinkData: Partial<Link> = {
+    it('supports defaultLink as LinkRecord object when dragging between ports', async () => {
+      const defaultLinkData: Partial<LinkRecord> = {
         data: { customProperty: 'flat-link-default' },
         color: '#ff5500',
         width: 7,
@@ -1369,9 +1369,9 @@ describe('Paper Component', () => {
       );
     });
 
-    it('supports defaultLink callback returning FlatLinkData when dragging between ports', async () => {
+    it('supports defaultLink callback returning LinkRecord when dragging between ports', async () => {
       const defaultLinkCallback = jest.fn(
-        (_cellView: dia.CellView, _magnet: SVGElement): Partial<Link> => ({
+        (_cellView: dia.CellView, _magnet: SVGElement): Partial<LinkRecord> => ({
           data: { customProperty: 'callback-flat-link-default' },
           color: '#22aa55',
           width: 4,
@@ -1579,7 +1579,7 @@ describe('Paper Component', () => {
       );
     }
 
-    const testElements: Record<string, Element<{ label: string }>> = {
+    const testElements: Record<string, ElementRecord<{ label: string }>> = {
       'el-1': {
         data: { label: 'A' },
         position: { x: 50, y: 50 },
@@ -1592,7 +1592,7 @@ describe('Paper Component', () => {
       },
     };
 
-    const testLinks: Record<string, Link> = {
+    const testLinks: Record<string, LinkRecord> = {
       'link-1': { source: { id: 'el-1' }, target: { id: 'el-2' } },
     };
 

@@ -6,8 +6,8 @@ import {
   Paper,
   useMeasureNode,
   useElementSize,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
   type RenderElement,
   DefaultElement,
 } from '@joint/react';
@@ -19,7 +19,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, Element<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 10 },
@@ -31,7 +31,7 @@ const initialElements: Record<string, Element<NodeData>> = {
     size: { width: 100, height: 50 },
   },
 };
-const initialEdges: Record<string, Link> = {
+const initialEdges: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },

@@ -9,6 +9,6 @@ const EMPTY_DATA = {};
  * @returns The user data `D` for the current element.
  * @group Hooks
  */
-export function useElementData<D extends object | undefined = undefined>(): D {
+export function useElementData<D extends object = Record<string, unknown>>(): D {
   return useElement((element) => element.data ?? EMPTY_DATA) as D;
 }

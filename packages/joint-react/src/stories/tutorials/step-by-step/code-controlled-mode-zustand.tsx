@@ -33,7 +33,7 @@
  * ============================================================================
  */
 
-import { GraphProvider, useElementSize, type Element, type Link, Paper } from '@joint/react';
+import { GraphProvider, useElementSize, type ElementRecord, type LinkRecord, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { create } from 'zustand';
@@ -47,18 +47,18 @@ import { create } from 'zustand';
  */
 type ElementData = { label: string };
 
-type CustomElement = Element<ElementData>;
+type CustomElement = ElementRecord<ElementData>;
 
 const defaultElements: Record<string, CustomElement> = {
   '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
   '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
 };
 
-const defaultLinks: Record<string, Link> = {
+const defaultLinks: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
-    color: PRIMARY,
+    style: { color: PRIMARY },
   },
 };
 
@@ -86,11 +86,11 @@ interface GraphStore {
   /** Record of all elements (nodes) in the graph keyed by ID */
   elements: Record<string, CustomElement>;
   /** Record of all links (edges) in the graph keyed by ID */
-  links: Record<string, Link>;
+  links: Record<string, LinkRecord>;
   /** Action to set elements (used by onElementsChange callback) */
   setElements: (updater: React.SetStateAction<Record<string, CustomElement>>) => void;
   /** Action to set links (used by onLinksChange callback) */
-  setLinks: (updater: React.SetStateAction<Record<string, Link>>) => void;
+  setLinks: (updater: React.SetStateAction<Record<string, LinkRecord>>) => void;
   /** Action to add a new element */
   addElement: (id: string, data: CustomElement) => void;
   /** Action to remove the last element */
@@ -111,7 +111,7 @@ const useGraphStore = create<GraphStore>((set) => ({
     }));
   },
 
-  setLinks: (updater: React.SetStateAction<Record<string, Link>>) => {
+  setLinks: (updater: React.SetStateAction<Record<string, LinkRecord>>) => {
     set((state) => ({
       links: typeof updater === 'function' ? updater(state.links) : updater,
     }));
@@ -136,7 +136,7 @@ const useGraphStore = create<GraphStore>((set) => ({
       // eslint-disable-next-line sonarjs/no-unused-vars
       const { [removedElementId]: _removed, ...newElements } = state.elements;
 
-      const newLinks: Record<string, Link> = {};
+      const newLinks: Record<string, LinkRecord> = {};
       for (const [id, link] of Object.entries(state.links)) {
         if (link.source !== removedElementId && link.target !== removedElementId) {
           newLinks[id] = link;
@@ -215,8 +215,8 @@ function Main() {
     <GraphProvider
       elements={elements}
       links={links}
-      onElementsChange={setElements}
-      onLinksChange={setLinks}
+      onElementsChange={setElements as never}
+      onLinksChange={setLinks as never}
     >
       <PaperApp />
     </GraphProvider>

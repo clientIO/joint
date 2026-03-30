@@ -3,14 +3,15 @@ import { useLinkId } from './use-link-id';
 import { useGraphStore } from './use-graph-store';
 import { isStrictEqual, identitySelector } from '../utils/selector-utils';
 import { useContainerItem } from './use-container-item';
-import type { Link } from '../types/data-types';
+import type { LinkRecord } from '../types/data-types';
 import type { LinkLayout } from '../types/cell-data';
 import { getLinkLayout } from '../store/update-layout-state';
 import type { dia } from '@joint/core';
 import { usePaperStore } from './use-paper';
 
 /** Link data resolved for the current paper — `layout` is the single paper's `LinkLayout`. */
-export type ResolvedLink<D extends object | undefined = undefined> = Link<D> & {
+export type ResolvedLink<D extends object = Record<string, unknown>> = LinkRecord<D> & {
+  data: D;
   layout: LinkLayout;
 };
 
@@ -37,7 +38,7 @@ export type ResolvedLink<D extends object | undefined = undefined> = Link<D> & {
  * @returns The selected link data.
  * @group Hooks
  */
-export function useLink<D extends object | undefined = undefined, R = ResolvedLink<D>>(
+export function useLink<D extends object = Record<string, unknown>, R = ResolvedLink<D>>(
   selector: (item: ResolvedLink<D>) => R = identitySelector as (item: ResolvedLink<D>) => R,
   isEqual: (a: R, b: R) => boolean = isStrictEqual
 ): R {
@@ -46,9 +47,9 @@ export function useLink<D extends object | undefined = undefined, R = ResolvedLi
   const paper = paperStore?.paper as dia.Paper | undefined;
   const {
     graphView: { links },
-  } = useGraphStore<undefined, D>();
+  } = useGraphStore<any, D>();
   // Wrap the user selector to resolve layout live from the paper view
-  const resolvedSelector = (item: Link<D>): R => {
+  const resolvedSelector = (item: LinkRecord<D>): R => {
     const { ...rest } = item;
 
     // Read layout directly from the paper's link view — always fresh.

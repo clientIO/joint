@@ -13,8 +13,8 @@ import {
   elementToAttributes,
   linkToAttributes,
   type CellId,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
   type PaperProps,
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
@@ -89,7 +89,7 @@ const PAPER_PROPS: PaperProps = {
 // Data
 // ============================================================================
 
-const elements: Record<string, Element<ElementUserData>> = {
+const elements: Record<string, ElementRecord<ElementUserData>> = {
   '1': {
     data: { title: 'This is error element' },
     position: { x: 50, y: 110 },
@@ -111,19 +111,21 @@ const elements: Record<string, Element<ElementUserData>> = {
 };
 
 // Links now use built-in theme properties: color, width, sourceMarker, targetMarker
-const links: Record<string, Link> = {
+const links: Record<string, LinkRecord> = {
   link1: {
     source: { id: '1' },
     target: { id: '2' },
-    width: 4,
-    color: 'orange',
-    // targetMarker: 'arrow' as LinkMarkerName,
-    className: 'dashed-link',
+    style: {
+      width: 4,
+      color: 'orange',
+      // targetMarker: 'arrow' as LinkMarkerName,
+      className: 'dashed-link',
+    },
   },
   link2: {
     source: { id: '3' },
     target: { id: '4' },
-    color: 'green',
+    style: { color: 'green' },
     // sourceMarker: 'circle' as LinkMarkerName,
     // targetMarker: 'cross' as LinkMarkerName,
   },
@@ -131,7 +133,7 @@ const links: Record<string, Link> = {
     data: { jjType: 'standard.ShadowLink' },
     source: { id: '2' },
     target: { id: '4' },
-    color: 'purple',
+    style: { color: 'purple' },
   },
 };
 
@@ -382,7 +384,7 @@ function Main() {
 
 export default function App() {
   const mapElementToAttributes = useMemo(() => {
-    return ({ id, element }: { id: string; element: Element<ElementUserData> }) => {
+    return ({ id, element }: { id: string; element: ElementRecord<ElementUserData> }) => {
       const attributes = elementToAttributes({ id, element });
       const userData = element.data as ElementUserData | undefined;
       const { jjType, color = 'lightgray' } = userData ?? {};
@@ -396,7 +398,7 @@ export default function App() {
   }, []);
 
   const mapLinkToAttributes = useMemo(() => {
-    return ({ id, link }: { id?: string; link: Link }) => {
+    return ({ id, link }: { id?: string; link: LinkRecord }) => {
       const attributes = linkToAttributes({ id, link });
       const userData = link.data as LinkUserData | undefined;
       const { jjType } = userData ?? {};

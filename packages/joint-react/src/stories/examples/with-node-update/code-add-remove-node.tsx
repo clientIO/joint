@@ -7,8 +7,8 @@ import {
   useElements,
   useGraph,
   useMeasureNode,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
@@ -20,7 +20,7 @@ interface NodeData {
   readonly color: string;
 }
 
-const initialElements: Record<string, Element<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node 1', color: '#ffffff' },
     position: { x: 40, y: 70 },
@@ -38,7 +38,7 @@ const initialElements: Record<string, Element<NodeData>> = {
   },
 };
 
-const initialEdges: Record<string, Link> = {
+const initialEdges: Record<string, LinkRecord> = {
   'e1-1': {
     source: { id: '1' },
     target: { id: '2' },

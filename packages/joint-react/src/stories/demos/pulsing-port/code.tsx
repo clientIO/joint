@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { useId, useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
-import type { Element, FlatElementPort } from '@joint/react';
+import type { ElementRecord, ElementPort } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG, SECONDARY } from 'storybook-config/theme';
 import {
   GraphProvider,
@@ -59,7 +59,7 @@ const Pulse = dia.HighlighterView.extend({
   },
 });
 
-const NODE_PORTS: Record<string, FlatElementPort> = {
+const NODE_PORTS: Record<string, ElementPort> = {
   in: {
     cx: 'calc(w / 2)',
     cy: 0,
@@ -77,10 +77,10 @@ const NODE_PORTS: Record<string, FlatElementPort> = {
   },
 };
 
-const elements: Record<string, Element> = {
-  '1': { position: { x: 50, y: 50 }, ports: NODE_PORTS },
-  '2': { position: { x: 350, y: 50 }, ports: NODE_PORTS },
-  '3': { position: { x: 150, y: 250 }, ports: NODE_PORTS },
+const elements: Record<string, ElementRecord> = {
+  '1': { position: { x: 50, y: 50 }, portMap: NODE_PORTS },
+  '2': { position: { x: 350, y: 50 }, portMap: NODE_PORTS },
+  '3': { position: { x: 150, y: 250 }, portMap: NODE_PORTS },
 };
 
 function NodeElement() {
@@ -125,8 +125,7 @@ function Main() {
     <Paper
       id={paperId}
       defaultLink={{
-        color: PRIMARY,
-        targetMarker: 'arrow',
+        style: { color: PRIMARY, targetMarker: 'arrow' },
       }}
       width="100%"
       renderElement={NodeElement}

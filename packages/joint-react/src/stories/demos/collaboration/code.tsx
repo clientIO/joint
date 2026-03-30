@@ -10,8 +10,8 @@ import {
   useGraph,
   useMarkup,
   useMeasureNode,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
   type RenderElement,
   type IncrementalContainerChanges,
 } from '@joint/react';
@@ -87,7 +87,7 @@ type AgentNodeData = {
   readonly status: 'online' | 'busy' | 'idle';
 };
 
-type AgentNode = Element<AgentNodeData>;
+type AgentNode = ElementRecord<AgentNodeData>;
 
 const PORT_R = 5;
 
@@ -100,7 +100,7 @@ const initialElements: Record<string, AgentNode> = {
       status: 'online',
     },
     position: { x: 250, y: 60 },
-    ports: {
+    portMap: {
       out: {
         cx: 'calc(0.5 * w)',
         cy: 'calc(h)',
@@ -128,7 +128,7 @@ const initialElements: Record<string, AgentNode> = {
       status: 'busy',
     },
     position: { x: 80, y: 300 },
-    ports: {
+    portMap: {
       out: {
         cx: 'calc(0.5 * w)',
         cy: 'calc(h)',
@@ -156,7 +156,7 @@ const initialElements: Record<string, AgentNode> = {
       status: 'idle',
     },
     position: { x: 430, y: 300 },
-    ports: {
+    portMap: {
       out: {
         cx: 'calc(0.5 * w)',
         cy: 'calc(h)',
@@ -178,30 +178,26 @@ const initialElements: Record<string, AgentNode> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   'o-r': {
     source: { id: 'orchestrator', port: 'out' },
     target: { id: 'researcher', port: 'in' },
-    color: DARK.link,
-    width: 1.5,
+    style: { color: DARK.link, width: 1.5, targetMarker: 'none' },
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
-    targetMarker: 'none',
   },
   'o-w': {
     source: { id: 'orchestrator', port: 'out' },
     target: { id: 'writer', port: 'in' },
-    color: DARK.link,
-    width: 1.5,
+    style: { color: DARK.link, width: 1.5, targetMarker: 'none' },
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
-    targetMarker: 'none',
   },
 };
 
 // ── Redux Store ─────────────────────────────────────────────────────────────
 
 interface GraphState {
-  readonly elements: Record<string, Element<AgentNodeData>>;
-  readonly links: Record<string, Link>;
+  readonly elements: Record<string, ElementRecord<AgentNodeData>>;
+  readonly links: Record<string, LinkRecord>;
 }
 
 const graphSlice = createSlice({
@@ -215,20 +211,20 @@ const graphSlice = createSlice({
       const { elements, links } = action.payload;
 
       for (const [id, data] of elements.added) {
-        state.elements[id] = data as unknown as Element<AgentNodeData>;
+        state.elements[id] = data as unknown as ElementRecord<AgentNodeData>;
       }
       for (const [id, data] of elements.changed) {
-        state.elements[id] = data as unknown as Element<AgentNodeData>;
+        state.elements[id] = data as unknown as ElementRecord<AgentNodeData>;
       }
       for (const id of elements.removed) {
         delete state.elements[id];
       }
 
       for (const [id, data] of links.added) {
-        state.links[id] = data as Link;
+        state.links[id] = data as LinkRecord;
       }
       for (const [id, data] of links.changed) {
-        state.links[id] = data as Link;
+        state.links[id] = data as LinkRecord;
       }
       for (const id of links.removed) {
         delete state.links[id];
@@ -753,7 +749,7 @@ function Toolbar() {
     setElement(id, {
       data: pick,
       position: { x: 100 + Math.random() * 300, y: 100 + Math.random() * 300 },
-      ports: {
+      portMap: {
         out: {
           cx: 'calc(0.5 * w)',
           cy: 'calc(h)',
@@ -934,17 +930,17 @@ function GraphWithRedux() {
   );
 
   // Theme links
-  const themedLinks: Record<string, Link> = {};
+  const themedLinks: Record<string, LinkRecord> = {};
   for (const [id, link] of Object.entries(links)) {
-    themedLinks[id] = { ...link, color: theme.link };
+    themedLinks[id] = { ...link, style: { ...link.style, color: theme.link } };
   }
 
   // Theme element ports
-  const themedElements: Record<string, Element<AgentNodeData>> = {};
+  const themedElements: Record<string, ElementRecord<AgentNodeData>> = {};
   for (const [id, element] of Object.entries(elements)) {
     themedElements[id] = {
       ...element,
-      ports: {
+      portMap: {
         out: {
           cx: 'calc(0.5 * w)',
           cy: 'calc(h)',
@@ -996,7 +992,7 @@ function GraphWithRedux() {
               args: { cornerType: 'cubic', cornerPreserveAspectRatio: true },
             }}
             defaultConnectionPoint={{ name: 'boundary', args: { offset: 6, extrapolate: true } }}
-            defaultLink={{ color: theme.link, width: 1.5, targetMarker: 'none' }}
+            defaultLink={{ style: { color: theme.link, width: 1.5, targetMarker: 'none' } }}
             validateMagnet={(_cellView, magnet) => magnet.getAttribute('magnet') !== 'passive'}
             validateConnection={(cellViewS, _magnetS, cellViewT, magnetT) => {
               if (cellViewS === cellViewT) return false;

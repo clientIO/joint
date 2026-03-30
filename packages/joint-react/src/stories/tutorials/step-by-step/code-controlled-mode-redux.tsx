@@ -7,8 +7,8 @@
 import {
   GraphProvider,
   useElementSize,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
   Paper,
   type IncrementalContainerChanges,
 } from '@joint/react';
@@ -58,13 +58,13 @@ import undoable, { ActionCreators } from 'redux-undo';
  */
 type ElementData = { label: string };
 
-type CustomElement = Element<ElementData>;
+type CustomElement = ElementRecord<ElementData>;
 
 interface GraphState {
   /** Record of all elements (nodes) in the graph keyed by ID */
   readonly elements: Record<string, CustomElement>;
   /** Record of all links (edges) in the graph keyed by ID */
-  readonly links: Record<string, Link>;
+  readonly links: Record<string, LinkRecord>;
 }
 
 // ============================================================================
@@ -82,11 +82,11 @@ const defaultElements: Record<string, CustomElement> = {
 /**
  * Initial links for the graph.
  */
-const defaultLinks: Record<string, Link> = {
+const defaultLinks: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
-    color: PRIMARY,
+    style: { color: PRIMARY },
   },
 };
 
@@ -137,7 +137,7 @@ const graphSlice = createSlice({
      */
     applyIncrementalChanges: (
       state,
-      action: PayloadAction<IncrementalContainerChanges<ElementData, undefined>>
+      action: PayloadAction<IncrementalContainerChanges<ElementData>>
     ) => {
       const { elements, links } = action.payload;
 
@@ -154,10 +154,10 @@ const graphSlice = createSlice({
 
       // Handle link incremental changes
       for (const [id, data] of links.added) {
-        state.links[id] = data as Link;
+        state.links[id] = data as LinkRecord;
       }
       for (const [id, data] of links.changed) {
-        state.links[id] = data as Link;
+        state.links[id] = data as LinkRecord;
       }
       for (const id of links.removed) {
         delete state.links[id];
@@ -242,14 +242,14 @@ function GraphWithRedux() {
   // onIncrementalChange receives granular change info (added/changed/removed/reset)
   // and dispatches a single Redux action with the full incremental change payload.
   const handleIncrementalChange = useCallback(
-    (changes: IncrementalContainerChanges<ElementData, undefined>) => {
+    (changes: IncrementalContainerChanges<ElementData>) => {
       dispatch(applyIncrementalChanges(changes));
     },
     [dispatch]
   );
 
   return (
-    <GraphProvider<ElementData, undefined>
+    <GraphProvider<ElementData>
       elements={elements}
       links={links}
       enableBatchUpdates

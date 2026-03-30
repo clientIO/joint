@@ -1,8 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { Link } from '@joint/react';
+import type { LinkRecord } from '@joint/react';
 import {
-  type Element,
+  type ElementRecord,
   GraphProvider,
   jsx,
   Paper,
@@ -58,7 +58,7 @@ type FTAElement =
   | ExternalEvent
   | ConditioningEvent;
 
-const initialElements: Record<string, Element<FTAElement>> = {
+const initialElements: Record<string, ElementRecord<FTAElement>> = {
   ot8h17: {
     data: { type: 'IntermediateEvent', label: 'Fall from Scaffolding', gate: 'INHIBIT' },
     size: { width: 120, height: 150 },
@@ -113,94 +113,72 @@ const initialElements: Record<string, Element<FTAElement>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-0': {
     source: { id: 'ot8h17' },
     target: { id: 'd8jpey' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-1': {
     source: { id: 'd8jpey' },
     target: { id: 'is079n' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-2': {
     source: { id: 'd8jpey' },
     target: { id: 'ht8wnb' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-3': {
     source: { id: 'is079n' },
     target: { id: '07vhpd' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-4': {
     source: { id: 'is079n' },
     target: { id: 'd8ojep' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-5': {
     source: { id: 'ht8wnb' },
     target: { id: 'szf1q3' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-6': {
     source: { id: 'ht8wnb' },
     target: { id: 'kj5m9a' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-7': {
     source: { id: '07vhpd' },
     target: { id: 'tcv79r' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-8': {
     source: { id: '07vhpd' },
     target: { id: 'ylp4gu' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-9': {
     source: { id: 'd8ojep' },
     target: { id: 'q2vwnc' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-10': {
     source: { id: 'd8ojep' },
     target: { id: 'x8rboj' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
   'link-11': {
     source: {
@@ -212,9 +190,7 @@ const initialLinks: Record<string, Link> = {
     },
     target: { id: 'mte5xr' },
     z: -1,
-    color: PRIMARY,
-    width: 2,
-    targetMarker: 'none',
+    style: { color: PRIMARY, width: 2, targetMarker: 'none' },
   },
 };
 

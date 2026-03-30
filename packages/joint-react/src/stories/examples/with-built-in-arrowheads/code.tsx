@@ -1,4 +1,4 @@
-import type { Link } from '@joint/react';
+import type { LinkRecord } from '@joint/react';
 import { GraphProvider, Paper } from '@joint/react';
 import { PAPER_CLASSNAME, LIGHT, BG } from 'storybook-config/theme';
 import type { LinkMarkerName } from '../../../theme/markers';
@@ -15,7 +15,7 @@ const markerNames = Object.keys(linkMarkerShapes).filter(
 ) as LinkMarkerName[];
 
 function buildGrid() {
-  const links: Record<string, Link> = {};
+  const links: Record<string, LinkRecord> = {};
 
   for (const [index, name] of markerNames.entries()) {
     const col = index % COLS;
@@ -26,11 +26,13 @@ function buildGrid() {
     links[name] = {
       source: { x, y },
       target: { x: x + LINK_LENGTH, y },
-      color: LIGHT,
-      width: 2,
-      sourceMarker: name,
-      targetMarker: name,
-      labels: {
+      style: {
+        color: LIGHT,
+        width: 2,
+        sourceMarker: name,
+        targetMarker: name,
+      },
+      labelMap: {
         label: { text: name, color: LIGHT, backgroundColor: '#023345', backgroundBorderRadius: 4 },
       },
     };

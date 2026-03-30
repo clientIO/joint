@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useMemo } from 'react';
-import type { Link } from '../types/data-types';
+import type { LinkRecord } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
 import { useGraphStore } from './use-graph-store';
 import { useContainerItems } from './use-container-items';
@@ -19,23 +19,23 @@ import { useContainerItems } from './use-container-items';
  *
  * @group Hooks
  */
-export function useLinks<T extends object | undefined = undefined>(): Map<CellId, Link<T>>;
-export function useLinks<T extends object | undefined = undefined>(
+export function useLinks<T extends object = Record<string, unknown>>(): Map<CellId, LinkRecord<T>>;
+export function useLinks<T extends object = Record<string, unknown>>(
   ...ids: [string, ...string[]]
-): Map<CellId, Link<T>>;
-export function useLinks<T extends object | undefined = undefined, S = unknown>(
-  selector: (items: Map<CellId, Link<T>>) => S,
+): Map<CellId, LinkRecord<T>>;
+export function useLinks<T extends object = Record<string, unknown>, S = unknown>(
+  selector: (items: Map<CellId, LinkRecord<T>>) => S,
   isEqual?: (a: S, b: S) => boolean
 ): S;
-export function useLinks<T extends object | undefined = undefined, S = Map<CellId, Link<T>>>(
+export function useLinks<T extends object = Record<string, unknown>, S = Map<CellId, LinkRecord<T>>>(
   ...args:
     | []
     | [string, ...string[]]
-    | [(items: Map<CellId, Link<T>>) => S, ((a: S, b: S) => boolean)?]
-): Map<CellId, Link<T>> | S {
+    | [(items: Map<CellId, LinkRecord<T>>) => S, ((a: S, b: S) => boolean)?]
+): Map<CellId, LinkRecord<T>> | S {
   const {
     graphView: { links },
-  } = useGraphStore<undefined, T>();
+  } = useGraphStore<any, T>();
 
   const isSelectorMode = typeof args[0] === 'function';
   const ids = isSelectorMode ? undefined : (args as string[]);
@@ -47,7 +47,7 @@ export function useLinks<T extends object | undefined = undefined, S = Map<CellI
   );
 
   if (isSelectorMode) {
-    const selector = args[0] as (items: Map<string, Link<T>>) => S;
+    const selector = args[0] as (items: Map<string, LinkRecord<T>>) => S;
     const isEqual = args[1] as ((a: S, b: S) => boolean) | undefined;
     return useContainerItems(links, selector, isEqual);
   }

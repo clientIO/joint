@@ -1,18 +1,18 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
 import { graphChanges } from '../graph-changes';
-import type { Element, Link } from '../../types/data-types';
+import type { ElementRecord, LinkRecord } from '../../types/data-types';
 import { elementToAttributes, linkToAttributes } from '../../state/data-mapping';
 
 function createGraph() {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 }
 
-function defaultElementToAttributes({ id, element }: { id: string; element: Element }) {
+function defaultElementToAttributes({ id, element }: { id: string; element: ElementRecord }) {
   return elementToAttributes({ id, element });
 }
 
-function defaultLinkToAttributes({ id, link }: { id?: string; link: Link }) {
+function defaultLinkToAttributes({ id, link }: { id?: string; link: LinkRecord }) {
   return linkToAttributes({ id: id ?? '', link });
 }
 
@@ -252,7 +252,7 @@ describe('graphChanges', () => {
       const { graph, controller } = setup();
       controller.updateGraph({
         elements: {
-          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as Element<undefined>,
+          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as ElementRecord,
         },
         links: {},
       });
@@ -277,7 +277,7 @@ describe('graphChanges', () => {
 
       controller.updateGraph({
         elements: {
-          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as Element<undefined>,
+          'el-1': { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } } as ElementRecord,
         },
         links: {},
         flag: 'updateFromReact',

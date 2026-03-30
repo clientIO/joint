@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { useEffect, useId, useRef } from 'react';
-import type { Link, Element } from '@joint/react';
+import type { LinkRecord, ElementRecord } from '@joint/react';
 import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
@@ -106,7 +106,7 @@ function findClosestAnchor(anchors: dia.Point[], relativePoint: dia.Point): dia.
 // ----------------------------------------------------------------------------
 // Initial Data
 // ----------------------------------------------------------------------------
-const initialElements: Record<string, Element<CustomElement>> = {
+const initialElements: Record<string, ElementRecord<CustomElement>> = {
   square1: {
     data: { shapeType: ShapeTypes.square, label: 'S1' },
     position: { x: 100, y: 100 },
@@ -129,41 +129,31 @@ const initialElements: Record<string, Element<CustomElement>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: -20 } } },
     target: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: -20 } } },
-    color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow',
+    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
   link2: {
     source: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: -80, dy: -20 } } },
-    color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow',
+    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
   link3: {
     source: { id: 'rectangle1', anchor: { name: 'modelCenter', args: { dx: 80, dy: -20 } } },
     target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } } },
-    color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow',
+    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
   link4: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 20 } } },
     target: { id: 'ellipse1', anchor: { name: 'modelCenter', args: { dx: 0, dy: -40 } } },
-    color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow',
+    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
   link5: {
     source: { id: 'square2', anchor: { name: 'modelCenter', args: { dx: -40, dy: 0 } } },
     target: { id: 'square1', anchor: { name: 'modelCenter', args: { dx: 40, dy: 0 } } },
-    color: LIGHT,
-    width: 2,
-    targetMarker: 'arrow',
+    style: { color: LIGHT, width: 2, targetMarker: 'arrow' },
   },
 };
 

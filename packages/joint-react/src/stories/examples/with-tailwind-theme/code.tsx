@@ -8,8 +8,8 @@ import {
   useElementSize,
   useElementDefaults,
   useLinkDefaults,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -23,12 +23,12 @@ interface NodeUserData {
   label: string;
 }
 
-const initialElements: Record<string, Element<NodeUserData>> = {
+const initialElements: Record<string, ElementRecord<NodeUserData>> = {
   a: {
     data: { label: 'Source' },
     position: { x: 50, y: 70 },
     size: { width: 120, height: 50 },
-    ports: {
+    portMap: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
   },
@@ -36,7 +36,7 @@ const initialElements: Record<string, Element<NodeUserData>> = {
     data: { label: 'Process' },
     position: { x: 290, y: 20 },
     size: { width: 120, height: 50 },
-    ports: {
+    portMap: {
       in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
@@ -45,7 +45,7 @@ const initialElements: Record<string, Element<NodeUserData>> = {
     data: { label: 'Review' },
     position: { x: 290, y: 120 },
     size: { width: 120, height: 50 },
-    ports: {
+    portMap: {
       in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
@@ -54,24 +54,24 @@ const initialElements: Record<string, Element<NodeUserData>> = {
     data: { label: 'Output' },
     position: { x: 550, y: 70 },
     size: { width: 120, height: 50 },
-    ports: {
+    portMap: {
       in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
     },
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   'a→b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
   'a→c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b→d': {
     source: { id: 'b', port: 'out' },
     target: { id: 'd', port: 'in' },
-    labels: { info: { text: 'approved' } },
+    labelMap: { info: { text: 'approved' } },
   },
   'c→d': {
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
-    color: '#e11d48',
+    style: { color: '#e11d48' },
   },
 };
 
@@ -121,8 +121,8 @@ const themeLabels: Record<Theme, string> = {
 };
 
 function Diagram() {
-  const [elements, setElements] = useState(initialElements);
-  const [links, setLinks] = useState(initialLinks);
+  const [elements, setElements] = useState<Record<string, ElementRecord<NodeUserData>>>(initialElements);
+  const [links, setLinks] = useState<Record<string, LinkRecord>>(initialLinks);
   const [theme, setTheme] = useState<Theme>('default');
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -131,16 +131,16 @@ function Diagram() {
       width: 15,
       height: 15,
       className: `
-                  cursor-crosshair hover:fill-blue-500
-                  forest:hover:fill-lime-300
-                  ocean:hover:fill-cyan-200
-                  sunset:hover:fill-orange-400
-              `,
+          cursor-crosshair hover:fill-blue-500
+          forest:hover:fill-lime-300
+          ocean:hover:fill-cyan-200
+          sunset:hover:fill-orange-400
+      `,
     },
 });
 
   const linkDefaults = useLinkDefaults({
-    targetMarker: 'arrow',
+    style: { targetMarker: 'arrow' },
     labelStyle: {
       backgroundPadding: { x: 6, y: 4 },
     },
@@ -182,7 +182,7 @@ function Diagram() {
           </label>
         ))}
       </fieldset>
-      <GraphProvider<NodeUserData, undefined>
+      <GraphProvider<NodeUserData>
         elements={elements}
         links={links}
         {...elementDefaults}

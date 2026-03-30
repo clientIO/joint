@@ -3,7 +3,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
-import type { Element, ElementWithLayout, Link } from '../types/data-types';
+import type { ElementRecord, ElementWithLayout, LinkRecord } from '../types/data-types';
 import {
   type GraphMappings,
   type MapAttributesToElement,
@@ -21,24 +21,24 @@ import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalContainerChanges<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   readonly elements: {
-    readonly added: Map<string, Element<ElementData>>;
-    readonly changed: Map<string, Element<ElementData>>;
+    readonly added: Map<string, ElementRecord<ElementData>>;
+    readonly changed: Map<string, ElementRecord<ElementData>>;
     readonly removed: Set<string>;
   };
   readonly links: {
-    readonly added: Map<string, Link<LinkData>>;
-    readonly changed: Map<string, Link<LinkData>>;
+    readonly added: Map<string, LinkRecord<LinkData>>;
+    readonly changed: Map<string, LinkRecord<LinkData>>;
     readonly removed: Set<string>;
   };
 }
 
 interface GraphViewState<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   readonly mappings: GraphMappings<ElementData, LinkData>;
   readonly graph: dia.Graph;
@@ -48,8 +48,8 @@ interface GraphViewState<
 }
 
 export function graphView<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(options: GraphViewState<ElementData, LinkData>) {
   const { graph, onIncrementalChange, mappings } = options;
 
@@ -61,14 +61,14 @@ export function graphView<
   } = mappings;
 
   const elements = createContainer<ElementWithLayout<ElementData>>('Elements');
-  const links = createContainer<Link<LinkData>>('Links');
+  const links = createContainer<LinkRecord<LinkData>>('Links');
 
   const trackChanges = onIncrementalChange !== undefined;
-  const elementAdded = trackChanges ? new Map<string, Element<ElementData>>() : undefined;
-  const elementChanged = trackChanges ? new Map<string, Element<ElementData>>() : undefined;
+  const elementAdded = trackChanges ? new Map<string, ElementRecord<ElementData>>() : undefined;
+  const elementChanged = trackChanges ? new Map<string, ElementRecord<ElementData>>() : undefined;
   const elementRemoved = trackChanges ? new Set<string>() : undefined;
-  const linkAdded = trackChanges ? new Map<string, Link<LinkData>>() : undefined;
-  const linkChanged = trackChanges ? new Map<string, Link<LinkData>>() : undefined;
+  const linkAdded = trackChanges ? new Map<string, LinkRecord<LinkData>>() : undefined;
+  const linkChanged = trackChanges ? new Map<string, LinkRecord<LinkData>>() : undefined;
   const linkRemoved = trackChanges ? new Set<string>() : undefined;
 
   const graphChangesController = graphChanges({
@@ -241,7 +241,7 @@ export function graphView<
             size: cell.size(),
             angle: cell.angle(),
             ...data,
-          });
+          } as ElementWithLayout<ElementData>);
         }
       }
       for (const [id, data] of Object.entries(userLinks)) {
@@ -316,7 +316,7 @@ export function graphView<
         const { attrs: _staleAttrs, ...linkWithoutAttrs } = link as Record<string, unknown>;
         const attributes = mapLinkToAttributes({
           id,
-          link: linkWithoutAttrs as unknown as Link<LinkData>,
+          link: linkWithoutAttrs as unknown as LinkRecord<LinkData>,
         });
         graphLinks.push({ ...attributes, id });
       }
@@ -336,6 +336,6 @@ export function graphView<
 }
 
 export type GraphView<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > = ReturnType<typeof graphView<ElementData, LinkData>>;

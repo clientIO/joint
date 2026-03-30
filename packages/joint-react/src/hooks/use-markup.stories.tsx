@@ -6,11 +6,10 @@ import { getAPILink } from '../stories/utils/get-api-documentation-link';
 import { makeRootDocumentation } from '../stories/utils/make-story';
 import { useCallback } from 'react';
 import { PRIMARY } from '../../.storybook/theme';
-import type { Element } from '../types/data-types';
-import type { Link } from '../types/data-types';
+import type { ElementRecord, LinkRecord } from '@joint/react';
 import { useElementSize } from './use-element-size';
 
-const elements: Record<string, Element> = {
+const elements: Record<string, ElementRecord> = {
   '1': {
     size: { width: 150, height: 50 },
     position: { x: 100, y: 20 },
@@ -23,7 +22,7 @@ const elements: Record<string, Element> = {
   },
 };
 
-const links: Record<string, Link> = {
+const links: Record<string, LinkRecord> = {
   'l-1': {
     source: { id: '1', magnet: 'my-selector' },
     target: { id: '2', magnet: 'my-selector' },

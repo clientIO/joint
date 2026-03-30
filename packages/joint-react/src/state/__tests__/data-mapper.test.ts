@@ -3,7 +3,7 @@
 import { dia, shapes } from '@joint/core';
 import { PortalElement } from '../../models/portal-element';
 import { PortalLink, PORTAL_LINK_TYPE } from '../../models/portal-link';
-import type { Element, PortalElementPort, Link } from '../../types/data-types';
+import type { ElementRecord, ElementPort, LinkRecord } from '../../types/data-types';
 import {
   elementToAttributes,
   linkToAttributes,
@@ -28,7 +28,7 @@ describe('dataMapper', () => {
   describe('element round-trip', () => {
     it('should convert ElementInput to JointJS and back', () => {
       const id = 'el-1';
-      const element: Element<undefined> = { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } };
+      const element: ElementRecord = { data: undefined, position: { x: 10, y: 20 }, size: { width: 100, height: 50 } };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.position).toEqual({ x: 10, y: 20 });
@@ -47,7 +47,7 @@ describe('dataMapper', () => {
 
     it('should store user data in data field and extract on reverse', () => {
       const id = 'el-1';
-      const element: Element = {
+      const element: ElementRecord = {
         data: { label: 'Hello', color: 'red' },
         position: { x: 0, y: 0 },
         size: { width: 50, height: 50 },
@@ -83,17 +83,17 @@ describe('dataMapper', () => {
 
     it('should round-trip with ports', () => {
       const id = 'el-1';
-      const element: Element = {
+      const element: ElementRecord = {
         data: { label: 'Node 1' },
         position: { x: 100, y: 50 },
         size: { width: 150, height: 60 },
-        ports: { p1: { cx: 0, cy: '50%' } },
+        portMap: { p1: { cx: 0, cy: '50%' } },
       };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.position).toEqual({ x: 100, y: 50 });
       expect(cellJson.data).toMatchObject({ label: 'Node 1' });
-      expect(cellJson.presentation).toMatchObject({ ports: { p1: { cx: 0, cy: '50%' } } });
+      expect(cellJson.presentation).toMatchObject({ portMap: { p1: { cx: 0, cy: '50%' } } });
 
       graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
@@ -101,17 +101,17 @@ describe('dataMapper', () => {
 
       expect(result).toHaveProperty('data.label', 'Node 1');
       // Ports are available at top level
-      expect(result).toHaveProperty('ports');
+      expect(result).toHaveProperty('portMap');
     });
   });
 
   describe('element ports conversion', () => {
     it('should convert simplified ports to JointJS format', () => {
-      const ports: Record<string, PortalElementPort> = {
+      const ports: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
       };
       const id = 'el-1';
-      const element: Element = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: ElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.ports).toBeDefined();
@@ -121,11 +121,11 @@ describe('dataMapper', () => {
     });
 
     it('should convert port with label', () => {
-      const ports: Record<string, PortalElementPort> = {
+      const ports: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
       };
       const id = 'el-1';
-      const element: Element = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: ElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
 
       const cellJson = elementToAttributes({ id, element });
       const [port] = cellJson.ports.items;
@@ -135,11 +135,11 @@ describe('dataMapper', () => {
     });
 
     it('should handle rect shape ports', () => {
-      const ports: Record<string, PortalElementPort> = {
+      const ports: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
       };
       const id = 'el-1';
-      const element: Element = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: ElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
 
       const cellJson = elementToAttributes({ id, element });
       const portMarkup = cellJson.ports.items[0].markup;
@@ -150,7 +150,7 @@ describe('dataMapper', () => {
   describe('link round-trip', () => {
     it('should convert link data to JointJS and back', () => {
       const id = 'link-1';
-      const link: Link = { source: { id: 'el-1' }, target: { id: 'el-2' } };
+      const link: LinkRecord = { source: { id: 'el-1' }, target: { id: 'el-2' } };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.source).toEqual({ id: 'el-1' });
@@ -168,7 +168,7 @@ describe('dataMapper', () => {
 
     it('should apply theme defaults', () => {
       const id = 'link-1';
-      const link: Link = { source: { id: 'a' }, target: { id: 'b' } };
+      const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' } };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
@@ -180,7 +180,7 @@ describe('dataMapper', () => {
 
     it('should apply custom theme props', () => {
       const id = 'link-1';
-      const link: Link = {
+      const link: LinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
         color: 'red',
@@ -196,7 +196,7 @@ describe('dataMapper', () => {
 
     it('should store user data in cell.data', () => {
       const id = 'link-1';
-      const link: Link = { source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
+      const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' }, data: { weight: 5 } };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.data?.weight).toBe(5);
@@ -224,10 +224,10 @@ describe('dataMapper', () => {
 
     it('should convert labels Record to JointJS labels array', () => {
       const id = 'link-1';
-      const link: Link = {
+      const link: LinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
-        labels: {
+        labelMap: {
           lbl1: { text: 'Yes', position: 0.3 },
           lbl2: { text: 'No', position: 0.7, offset: 20 },
         },
@@ -244,10 +244,10 @@ describe('dataMapper', () => {
 
     it('should round-trip labels with position and offset changes', () => {
       const id = 'link-1';
-      const link: Link = {
+      const link: LinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
-        labels: {
+        labelMap: {
           lbl1: { text: 'Yes', position: 0.3 },
         },
       };
@@ -262,13 +262,13 @@ describe('dataMapper', () => {
       cell.labels(labels);
 
       const result = attributesToLink(cell.attributes);
-      expect(result.labels).toBeDefined();
-      expect(result.labels!['lbl1']).toMatchObject({ text: 'Yes', position: 0.6, offset: 15 });
+      expect(result.labelMap).toBeDefined();
+      expect(result.labelMap!['lbl1']).toMatchObject({ text: 'Yes', position: 0.6, offset: 15 });
     });
 
     it('should handle source/target with ports', () => {
       const id = 'link-1';
-      const link: Link = {
+      const link: LinkRecord = {
         source: { id: 'el-1', port: 'p1' },
         target: { id: 'el-2', port: 'p2' },
       };

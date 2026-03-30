@@ -9,9 +9,9 @@ import {
   useGraph,
   elementToAttributes,
   type CellAttributes,
-  type Element,
-  type FlatElementPort,
-  type Link,
+  type ElementRecord,
+  type ElementPort,
+  type LinkRecord,
   useElements,
 } from '@joint/react';
 
@@ -62,16 +62,16 @@ interface PortNodeData {
  * into SVG path strings sized to each port's width/height, then delegates
  * to the default flat mapper via `ElementToAttributes`.
  */
-function mapDataToElementAttributes(options: { id: string; element: Element<PortNodeData> }) {
+function mapDataToElementAttributes(options: { id: string; element: ElementRecord<PortNodeData> }) {
   const { id, element } = options;
-  const { ports, portStyle } = element;
-  if (!ports) return elementToAttributes({ id, element });
+  const { portMap, portStyle } = element;
+  if (!portMap) return elementToAttributes({ id, element });
 
   const defaultW = portStyle?.width ?? 10;
   const defaultH = portStyle?.height ?? 10;
 
-  const resolvedPorts: Record<string, FlatElementPort> = {};
-  for (const [portId, port] of Object.entries(ports)) {
+  const resolvedPorts: Record<string, ElementPort> = {};
+  for (const [portId, port] of Object.entries(portMap)) {
     const { shape } = port;
     if (shape && shape !== 'ellipse' && shape !== 'rect') {
       const w = port.width ?? defaultW;
@@ -84,12 +84,12 @@ function mapDataToElementAttributes(options: { id: string; element: Element<Port
 
   const result = elementToAttributes({
     id,
-    element: { ...element, ports: resolvedPorts },
+    element: { ...element, portMap: resolvedPorts },
   }) as CellAttributes;
 
   // Keep original shape names in cell.presentation so they survive round-trips.
   // The resolved SVG paths are already baked into the JointJS port config.
-  result.presentation = { ...result.presentation, ports: ports };
+  result.presentation = { ...result.presentation, portMap: portMap };
   return result;
 }
 
@@ -108,7 +108,7 @@ function getShapeLabel(shape: string): string {
   return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
 }
 
-const initialElements: Record<string, Element<PortNodeData>> = {
+const initialElements: Record<string, ElementRecord<PortNodeData>> = {
   'node-1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 50, y: 100 },
@@ -117,7 +117,7 @@ const initialElements: Record<string, Element<PortNodeData>> = {
       height: 80,
     },
     portStyle: { width: 16, height: 16, color: SECONDARY },
-    ports: {
+    portMap: {
       'out-1': {
         cx: 'calc(w)',
         cy: 'calc(0.33 * h)',
@@ -142,7 +142,7 @@ const initialElements: Record<string, Element<PortNodeData>> = {
       height: 80,
     },
     portStyle: { width: 16, height: 16, color: PRIMARY },
-    ports: {
+    portMap: {
       'in-1': {
         cx: 0,
         cy: 'calc(0.33 * h)',
@@ -161,7 +161,7 @@ const initialElements: Record<string, Element<PortNodeData>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-1': {
     source: { id: 'node-1', port: 'out-1', anchor: { name: 'right', args: { useModelGeometry: true } } },
     target: { id: 'node-2', port: 'in-1', anchor: { name: 'left', args: { useModelGeometry: true } } },
@@ -206,19 +206,20 @@ const rowStyle = {
 interface PortControlProps {
   readonly elementId: string;
   readonly portId: string;
-  readonly port: FlatElementPort;
+  readonly port: ElementPort;
 }
 
 function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
   const { setElement } = useGraph();
 
-  const updatePort = (updates: Partial<FlatElementPort>) => {
-    setElement(elementId, (previous) => ({
-      ...previous,
-      ports: previous.ports
-        ? { ...previous.ports, [portId]: { ...previous.ports[portId], ...updates } }
-        : previous.ports,
-    }));
+  const updatePort = (updates: Partial<ElementPort>) => {
+    setElement(elementId, (previous) => {
+      const el = previous as ElementRecord;
+      return {
+        ...el,
+        portMap: el.portMap ? { ...el.portMap, [portId]: { ...el.portMap[portId], ...updates } } : el.portMap,
+      };
+    });
   };
 
   return (
@@ -366,11 +367,11 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
 
 interface ElementPortControlsProps {
   readonly id: string;
-  readonly element: Element<PortNodeData>;
+  readonly element: ElementRecord<PortNodeData>;
 }
 
 function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>) {
-  const portEntries = Object.entries(element.ports ?? {});
+  const portEntries = Object.entries(element.portMap ?? {});
   const { label } = element.data ?? { label: '' };
 
   return (
@@ -413,7 +414,7 @@ function Main() {
           name: 'anchor',
         }}
         defaultLink={{
-          color: LIGHT,
+          style: { color: LIGHT },
         }}
       />
 

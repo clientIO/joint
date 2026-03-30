@@ -9,6 +9,6 @@ const EMPTY_DATA = {};
  * @returns The user data `D` for the current link.
  * @group Hooks
  */
-export function useLinkData<D extends object | undefined = undefined>(): D {
+export function useLinkData<D extends object = Record<string, unknown>>(): D {
   return useLink((l) => l.data ?? EMPTY_DATA) as D;
 }

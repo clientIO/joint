@@ -37,7 +37,7 @@
  * ============================================================================
  */
 
-import { GraphProvider, useElementSize, type Element, type Link, Paper } from '@joint/react';
+import { GraphProvider, useElementSize, type ElementRecord, type LinkRecord, Paper } from '@joint/react';
 import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { useState, type Dispatch, type SetStateAction } from 'react';
@@ -55,12 +55,12 @@ type ElementData = { label: string };
 /**
  * Full element type including layout and user data.
  */
-type CustomElement = Element<ElementData>;
+type CustomElement = ElementRecord<ElementData>;
 
 /**
  * Full link type.
  */
-type CustomLink = Link;
+type CustomLink = LinkRecord;
 
 /**
  * Initial elements (nodes) for the graph.
@@ -85,7 +85,7 @@ const defaultLinks: Record<string, CustomLink> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
-    color: PRIMARY,
+    style: { color: PRIMARY },
   },
 };
 
@@ -145,7 +145,7 @@ interface PaperAppProps {
 function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) {
   return (
     <div className="flex flex-col gap-4">
-      {/* 
+      {/*
         Paper component renders the graph canvas.
         - width/height: dimensions of the canvas
         - renderElement: custom renderer for elements (defined above)
@@ -153,16 +153,16 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
       */}
       <Paper className={PAPER_CLASSNAME} height={400} renderElement={RenderItem} />
 
-      {/* 
+      {/*
         ========================================================================
         CONTROLS SECTION - Understanding How State Updates Work
         ========================================================================
-        
+
         These buttons demonstrate how to update the graph in controlled mode.
         The key principle: NEVER directly modify the JointJS graph. Instead,
         always update React state, and GraphProvider will automatically sync
         the changes to the graph.
-        
+
         STATE UPDATE FLOW:
         1. User clicks button → onClick handler executes
         2. Handler calls onElementsChange/onLinksChange with new state
@@ -171,7 +171,7 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
         5. GraphProvider receives new elements/links props
         6. GraphProvider detects change and syncs to JointJS graph
         7. Graph visually updates
-        
+
         WHY FUNCTIONAL UPDATES?
         We use the functional form: (prev) => newValue
         This ensures we always work with the latest state, even if multiple
@@ -180,39 +180,39 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
       */}
       {/* Dark-themed controls */}
       <div className="flex flex-wrap gap-2 justify-start p-4 bg-gray-800 rounded-lg border border-gray-700">
-        {/* 
+        {/*
           ======================================================================
           ADD ELEMENT BUTTON
           ======================================================================
-          
+
           WHAT IT DOES:
           Creates a new element and adds it to the graph.
-          
+
           HOW IT WORKS:
           1. Creates a new element object with:
              - Random ID (using Math.random for uniqueness)
              - Label "New Node"
              - Random position (x, y between 0-200)
              - Fixed dimensions (100x50)
-          
+
           2. Updates state using functional update:
              onElementsChange((elements) => [...elements, newElement])
-             
+
              This:
              - Takes the current elements array
              - Spreads it into a new array
              - Adds the new element at the end
              - Returns the new array
-          
+
           3. React updates state → Component re-renders
-          
+
           4. GraphProvider detects the new elements prop
-          
+
           5. GraphProvider syncs the new element to JointJS graph
              - Creates a new JointJS element
              - Adds it to the graph
              - Graph visually updates
-          
+
           WHY THIS WORKS:
           - We're updating React state, not the graph directly
           - GraphProvider handles all the JointJS synchronization
@@ -255,36 +255,36 @@ function PaperApp({ onElementsChange, onLinksChange }: Readonly<PaperAppProps>) 
           Add Element
         </button>
 
-        {/* 
+        {/*
           ======================================================================
           REMOVE LAST ELEMENT BUTTON
           ======================================================================
-          
+
           WHAT IT DOES:
           Removes the last element from the graph. If no elements remain,
           also clears all links (since links need source/target elements).
-          
+
           HOW IT WORKS:
           1. Updates elements state using functional update:
              onElementsChange((elements) => elements.slice(0, -1))
-             
+
              This:
              - Takes the current elements array
              - Uses slice(0, -1) to get all elements except the last one
              - Returns the new array
-          
+
           2. Checks if any elements remain:
              - If no elements: clears all links (links need elements to exist)
              - If elements remain: links stay (GraphProvider will handle
                removing orphaned links automatically)
-          
+
           3. React updates state → Component re-renders
-          
+
           4. GraphProvider detects the change:
              - Removes the element from JointJS graph
              - Automatically removes any links connected to that element
              - Graph visually updates
-          
+
           WHY WE CLEAR LINKS:
           Links require source and target elements. If we remove all elements,
           any remaining links would be invalid. GraphProvider will handle
@@ -387,8 +387,8 @@ function Main() {
       links={links}
       // Enable controlled mode by providing change handlers
       // When the graph changes (user interaction), GraphProvider will call these
-      onElementsChange={setElements}
-      onLinksChange={setLinks}
+      onElementsChange={setElements as never}
+      onLinksChange={setLinks as never}
     >
       {/*
         Pass state setters to child component so it can update the graph

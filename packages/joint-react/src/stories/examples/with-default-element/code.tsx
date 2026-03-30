@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { GraphProvider, Paper, type Element, type Link } from '@joint/react';
+import { GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jr-* CSS variable defaults (including element styles)
@@ -9,7 +9,7 @@ import '../../../css/theme.css';
 import './dark-theme.css';
 
 type Data = { label: string };
-const initialElements: Record<string, Element<Data>> = {
+const initialElements: Record<string, ElementRecord<Data>> = {
   a: {
     // No width or height — element should size to fit label
     // label: 'Lorem ipsum',
@@ -17,7 +17,7 @@ const initialElements: Record<string, Element<Data>> = {
       label: 'Lorem ipsum',
     },
     position: { x: 100, y: 60 },
-    ports: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } },
+    portMap: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } },
   },
   b: {
     // Explicit width - height is still determined by content
@@ -26,7 +26,7 @@ const initialElements: Record<string, Element<Data>> = {
       label: 'dolor sit amet',
     },
     position: { x: 280, y: 60 },
-    ports: {
+    portMap: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
       in: { cx: 0, cy: 'calc(0.5 * h)' },
     },
@@ -38,22 +38,22 @@ const initialElements: Record<string, Element<Data>> = {
     },
     position: { x: 450, y: 60 },
     size: { width: 100, height: 80 },
-    ports: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true } },
+    portMap: { in: { cx: 0, cy: 'calc(0.5 * h)', passive: true } },
   },
 };
 
 const TOOLBAR_STYLE = { marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' } as const;
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   'a-b': {
     source: { id: 'a', port: 'out' },
     target: { id: 'b', port: 'in' },
-    targetMarker: 'arrow',
+    style: { targetMarker: 'arrow' },
   },
   'b-c': {
     source: { id: 'b', port: 'out' },
     target: { id: 'c', port: 'in' },
-    targetMarker: 'arrow',
+    style: { targetMarker: 'arrow' },
   },
 };
 

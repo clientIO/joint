@@ -4,8 +4,9 @@ import '../index.css';
 import {
   GraphProvider,
   Paper,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
+  type CellAttributes,
   type RenderElement,
   useElements,
   useElementSize,
@@ -37,7 +38,7 @@ type LinkData = undefined;
 // Data
 // ============================================================================
 
-const initialElements: Record<string, Element<ElementData>> = {
+const initialElements: Record<string, ElementRecord<ElementData>> = {
   'node-1': {
     position: { x: 70, y: 100 },
     size: { width: 160, height: 60 },
@@ -67,7 +68,7 @@ const initialElements: Record<string, Element<ElementData>> = {
   },
 };
 
-const initialLinks: Record<string, Link<LinkData>> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-1': {
     type: 'standard.Link',
     source: { id: 'node-1' },
@@ -91,15 +92,15 @@ const LINK_KEYS = Object.keys(Object.values(initialLinks)[0] as object);
  * Reverse mapper: pick only the keys defined in the data format.
  * Wraps custom fields in `data` so useElementData() can access them.
  */
-const mapAttributesToElement = (options: { element: Element<ElementData> }): dia.Element.Attributes => {
-  return util.pick(options.element, ELEMENT_KEYS);
+const mapAttributesToElement = (options: { id: string; element: ElementRecord<ElementData> }): CellAttributes => {
+  return util.pick(options.element, ELEMENT_KEYS) as CellAttributes;
 };
 
 /**
  * Reverse mapper: pick only the keys defined in the data format.
  */
-const mapAttributesToLink = (options: { link: Link<LinkData> }): dia.Link.Attributes => {
-  return util.pick(options.link, LINK_KEYS);
+const mapLinkToAttrs = (options: { id?: string; link: LinkRecord }): CellAttributes => {
+  return util.pick(options.link, LINK_KEYS) as CellAttributes;
 };
 
 // ============================================================================
@@ -204,7 +205,7 @@ export default function App() {
       elements={initialElements}
       links={initialLinks}
       mapElementToAttributes={mapAttributesToElement}
-      mapAttributesToLink={mapAttributesToLink}
+      mapLinkToAttributes={mapLinkToAttrs}
     >
       <Main />
     </GraphProvider>

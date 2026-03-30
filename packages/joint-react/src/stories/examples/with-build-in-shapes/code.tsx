@@ -1,11 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
-import { GraphProvider, Paper, type Element, type Link, useElements } from '@joint/react';
+import { GraphProvider, Paper, type ElementRecord, type LinkRecord, useElements } from '@joint/react';
 
 const SECONDARY = '#6366f1';
 
-const initialElements: Record<string, Element> = {
+const initialElements: Record<string, ElementRecord> = {
   // Row 1: Basic shapes
   rectangle: {
     position: { x: 20, y: 20 },
@@ -163,27 +163,27 @@ const initialElements: Record<string, Element> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-standard': {
     source: { id: 'link-source' },
     target: { id: 'link-target-1' },
     type: 'standard.Link',
     attrs: { line: { stroke: PRIMARY } },
-    labels: { lbl: { text: 'Link' } },
+    labels: [{ attrs: { text: { text: 'Link' } } }],
   },
   'link-double': {
     source: { id: 'link-source' },
     target: { id: 'link-target-2' },
     type: 'standard.DoubleLink',
     attrs: { line: { stroke: SECONDARY }, outline: { stroke: '#c7d2fe' } },
-    labels: { lbl: { text: 'DoubleLink' } },
+    labels: [{ attrs: { text: { text: 'DoubleLink' } } }],
   },
   'link-shadow': {
     source: { id: 'link-target-1' },
     target: { id: 'link-target-3' },
     type: 'standard.ShadowLink',
     attrs: { line: { stroke: PRIMARY }, shadow: { stroke: '#9ca3af' } },
-    labels: { lbl: { text: 'ShadowLink' } },
+    labels: [{ attrs: { text: { text: 'ShadowLink' } } }],
   },
 };
 
@@ -198,8 +198,8 @@ function Main() {
 export default function App() {
   return (
     <GraphProvider
-      elements={initialElements as Record<string, Element>}
-      links={initialLinks as Record<string, Link>}
+      elements={initialElements}
+      links={initialLinks}
     >
       <Main />
     </GraphProvider>

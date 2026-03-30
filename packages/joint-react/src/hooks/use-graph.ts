@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { dia } from '@joint/core';
 import type { CellId } from '../types/cell-id';
-import type { Element, Link } from '../types/data-types';
+import type { ElementRecord, LinkRecord } from '../types/data-types';
 import { useGraphStore } from './use-graph-store';
 
 /**
@@ -16,8 +16,8 @@ function isUpdater<T extends object>(value: T | ((previous: T) => T)): value is 
  * Result of the useGraph hook.
  */
 interface UseGraphResult<
-  NodeData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  NodeData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   /** The JointJS graph instance. */
   readonly graph: dia.Graph;
@@ -33,7 +33,7 @@ interface UseGraphResult<
    */
   readonly setElement: (
     id: CellId,
-    attributesOrUpdater: Element<NodeData> | ((previous: Element<NodeData>) => Element<NodeData>)
+    attributesOrUpdater: ElementRecord<NodeData> | ((previous: ElementRecord<NodeData>) => ElementRecord<NodeData>)
   ) => void;
   /**
    * Removes an element from the graph by its ID.
@@ -52,7 +52,7 @@ interface UseGraphResult<
    */
   readonly setLink: (
     id: CellId,
-    attributesOrUpdater: Link<LinkData> | ((previous: Link<LinkData>) => Link<LinkData>)
+    attributesOrUpdater: LinkRecord<LinkData> | ((previous: LinkRecord<LinkData>) => LinkRecord<LinkData>)
   ) => void;
   /**
    * Removes a link from the graph by its ID.
@@ -61,13 +61,13 @@ interface UseGraphResult<
   readonly removeLink: (id: CellId) => void;
 }
 
-function getDefaultLink<LinkData extends object | undefined = undefined>(): Link<LinkData> {
-  return {} as Link<LinkData>;
+function getDefaultLink<LinkData extends object = Record<string, unknown>>(): LinkRecord<LinkData> {
+  return {} as LinkRecord<LinkData>;
 }
 function getDefaultElement<
-  ElementData extends object | undefined = undefined,
->(): Element<ElementData> {
-  return {} as Element<ElementData>;
+  ElementData extends object = Record<string, unknown>,
+>(): ElementRecord<ElementData> {
+  return {} as ElementRecord<ElementData>;
 }
 /**
  * Custom hook to retrieve the graph instance and actions for manipulating elements and links.
@@ -82,8 +82,8 @@ function getDefaultElement<
  * ```
  */
 export function useGraph<
-  NodeData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  NodeData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(): UseGraphResult<NodeData, LinkData> {
   const graphStore = useGraphStore();
 
@@ -93,7 +93,7 @@ export function useGraph<
 
       setElement(id, attributesOrUpdater) {
         const graphView = graphStore.getGraphView<NodeData, LinkData>();
-        const existing: Element<NodeData> =
+        const existing: ElementRecord<NodeData> =
           graphView.elements.get(String(id)) ?? getDefaultElement<NodeData>();
 
         const attributes = isUpdater(attributesOrUpdater)
@@ -103,7 +103,7 @@ export function useGraph<
         const mergedData = {
           ...existing,
           ...attributes,
-        } as Element<NodeData>;
+        } as ElementRecord<NodeData>;
 
         const cellAttributes = graphView.mapElementToAttributes({
           id: String(id),
@@ -124,10 +124,10 @@ export function useGraph<
           ? attributesOrUpdater(existing)
           : attributesOrUpdater;
 
-        const mergedData: Link<LinkData> = {
+        const mergedData: LinkRecord<LinkData> = {
           ...existing,
           ...attributes,
-        } as Link<LinkData>;
+        } as LinkRecord<LinkData>;
         const cellAttributes = graphView.mapLinkToAttributes({
           id: String(id),
           link: mergedData,

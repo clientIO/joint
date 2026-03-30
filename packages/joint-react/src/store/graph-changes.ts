@@ -1,18 +1,18 @@
 import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
-import type { Element, Link } from '../types/data-types';
+import type { ElementRecord, LinkRecord } from '../types/data-types';
 import type { MapElementToAttributes, MapLinkToAttributes } from '../state/data-mapping';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
 
 export interface UpdateGraphOptions<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
-  readonly elements: Record<string, Element<ElementData>>;
-  readonly links: Record<string, Link<LinkData>>;
+  readonly elements: Record<string, ElementRecord<ElementData>>;
+  readonly links: Record<string, LinkRecord<LinkData>>;
   readonly flag?: 'updateFromReact';
 }
 
@@ -21,8 +21,8 @@ interface OnChangeOptions {
   readonly isInsideBatch: boolean;
 }
 interface Options<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   readonly graph: dia.Graph;
   readonly onChanges: (options: OnChangeOptions) => void;
@@ -40,8 +40,8 @@ interface JointJSEventOptions {
  * Batching is always on: layout changes are immediate, data changes fire on batch:stop.
  */
 export function graphChanges<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(options: Options<ElementData, LinkData>) {
   const { graph } = options;
   let { mapElementToAttributes, mapLinkToAttributes } = options;

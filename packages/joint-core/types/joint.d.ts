@@ -1010,7 +1010,7 @@ export namespace dia {
             connector?: connectors.Connector | connectors.ConnectorJSON;
         }
 
-        interface Attributes extends Cell.GenericAttributes<Cell.Selectors> {
+        interface Attributes extends GenericAttributes<Cell.Selectors> {
         }
 
         interface LabelPosition {

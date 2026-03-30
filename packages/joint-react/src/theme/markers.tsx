@@ -14,10 +14,10 @@ export const linkMarkerShapes = {
     <path d="M 10 4 L 0 0 L 10 -4" fill="none" stroke-width="2" stroke="context-stroke" />
   ),
   circle: jsx(<circle r="4" fill="context-stroke" stroke-width="2" />),
-  'circle-outline': jsx(<circle r="4" fill="none" stroke-width="2" />),
+  'circle-outline': jsx(<circle r="4" fill="none" stroke-width="2" stroke="context-stroke" />),
   diamond: jsx(<path d="M 0 0 L 5 -5 L 10 0 L 5 5 z" fill="context-stroke" stroke-width="2" />),
-  bar: jsx(<path d="M 0 -5 V 5" stroke-width="2" />),
-  cross: jsx(<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke-width="2" />),
+  bar: jsx(<path d="M 0 -5 V 5" stroke-width="2" stroke="context-stroke" />),
+  cross: jsx(<path d="M 3 -5 L 12 5 M 3 5 L 12 -5" stroke-width="2" stroke="context-stroke" />),
 } as const satisfies Record<string, dia.SVGMarkerJSON | null>;
 
 export type LinkMarkerName = keyof typeof linkMarkerShapes;

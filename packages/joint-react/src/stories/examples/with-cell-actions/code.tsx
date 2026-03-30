@@ -6,8 +6,8 @@ import {
   Paper,
   useGraph,
   useMeasureNode,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
   useElements,
   useLinks,
 } from '@joint/react';
@@ -23,7 +23,7 @@ type NodeData = {
   readonly [key: string]: unknown;
 };
 
-const initialElements: Record<string, Element<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node A', color: PRIMARY },
     position: { x: 50, y: 50 },
@@ -41,7 +41,7 @@ const initialElements: Record<string, Element<NodeData>> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-1-2': {
     source: { id: '1' },
     target: { id: '2' },
@@ -142,8 +142,8 @@ function ElementControls({
           onChange={(event) =>
             setElement(id, (previous) => ({
               ...previous,
-              data: { ...previous.data, label: event.target.value },
-            }))
+              data: { ...previous.data!, label: event.target.value },
+            } as ElementRecord<NodeData>))
           }
           style={{ ...inputStyle, flex: 1 }}
         />
@@ -158,8 +158,8 @@ function ElementControls({
           onChange={(event) =>
             setElement(id, (previous) => ({
               ...previous,
-              data: { ...previous.data, color: event.target.value },
-            }))
+              data: { ...previous.data!, color: event.target.value },
+            } as ElementRecord<NodeData>))
           }
           style={{
             width: 36,
@@ -268,13 +268,13 @@ function ElementControls({
   );
 }
 
-function getLinkEndpointId(endpoint: Link['source']): string {
+function getLinkEndpointId(endpoint: LinkRecord['source']): string {
   return String(endpoint?.id ?? 'unknown');
 }
 
 interface LinkControlsProps {
   readonly id: string;
-  readonly link: Link;
+  readonly link: LinkRecord;
 }
 
 function LinkControls({ id, link }: Readonly<LinkControlsProps>) {

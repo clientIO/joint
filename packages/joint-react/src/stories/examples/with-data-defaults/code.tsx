@@ -6,9 +6,9 @@ import {
   useElementDefaults,
   useElementSize,
   useLinkDefaults,
-  type Element,
-  type FlatElementPort,
-  type Link,
+  type ElementRecord,
+  type ElementPort,
+  type LinkRecord,
   type RenderElement,
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
@@ -20,36 +20,36 @@ interface ElementData {
 
 // Minimal persisted data — no ports, no styling.
 // Ports and theme are provided by useElementDefaults based on element kind.
-const initialElements: Record<string, Element<ElementData>> = {
+const initialElements: Record<string, ElementRecord<ElementData>> = {
   a: { data: { label: 'Start', type: 'source' }, position: { x: 50, y: 140 } },
   b: { data: { label: 'Process', type: 'process' }, position: { x: 250, y: 50 } },
   c: { data: { label: 'Review', type: 'process' }, position: { x: 250, y: 230 } },
   d: { data: { label: 'Done', type: 'sink' }, position: { x: 480, y: 140 } },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   'a-b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
   'a-c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
   'b-d': {
     source: { id: 'b', port: 'out' },
     target: { id: 'd', port: 'in' },
-    labels: { status: { text: 'approved' } },
+    labelMap: { status: { text: 'approved' } },
   },
   'c-d': {
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
-    labels: { status: { text: 'pending' } },
+    labelMap: { status: { text: 'pending' } },
   },
 };
 
-const outPort: FlatElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
-const inPort: FlatElementPort = { cx: 0, cy: 'calc(0.5*h)' };
+const outPort: ElementPort = { cx: 'calc(w)', cy: 'calc(0.5*h)' };
+const inPort: ElementPort = { cx: 0, cy: 'calc(0.5*h)' };
 
-const portsByType: Record<string, Record<string, FlatElementPort>> = {
+const portsByType: Record<string, Record<string, ElementPort>> = {
   source: { out: outPort },
   sink: { in: inPort },
 };
-const defaultPorts: Record<string, FlatElementPort> = { in: inPort, out: outPort };
+const defaultPorts: Record<string, ElementPort> = { in: inPort, out: outPort };
 
 function Element({ label, color }: Readonly<{ label: string; color: string }>) {
   const { width, height } = useElementSize();
@@ -72,8 +72,8 @@ function Element({ label, color }: Readonly<{ label: string; color: string }>) {
 }
 
 function Diagram() {
-  const [elements, setElements] = useState(initialElements);
-  const [links, setLinks] = useState(initialLinks);
+  const [elements, setElements] = useState<Record<string, ElementRecord<ElementData>>>(initialElements);
+  const [links, setLinks] = useState<Record<string, LinkRecord>>(initialLinks);
   const [alternate, setAlternate] = useState(false);
   const color = alternate ? SECONDARY : PRIMARY;
   const portShape = alternate ? ('rect' as const) : ('ellipse' as const);
@@ -94,17 +94,19 @@ function Diagram() {
           outline: BG,
           outlineWidth: 2,
         },
-        ports: portsByType[data.type] ?? defaultPorts,
+        portMap: portsByType[data.type] ?? defaultPorts,
       };
     },
     [color, portShape]
   );
 
-  const { mapLinkToAttributes } = useLinkDefaults<undefined>(
+  const { mapLinkToAttributes } = useLinkDefaults(
     {
-      color,
-      width: 3,
-      targetMarker: 'arrow',
+      style: {
+        color,
+        width: 3,
+        targetMarker: 'arrow',
+      },
       labelStyle: {
         color: LIGHT,
         fontSize: 11,
@@ -147,7 +149,7 @@ function Diagram() {
       >
         {alternate ? '\u25A0 Square ports' : '\u25CF Round ports'}
       </button>
-      <GraphProvider<ElementData, undefined>
+      <GraphProvider<ElementData>
         elements={elements}
         links={links}
         onElementsChange={setElements}

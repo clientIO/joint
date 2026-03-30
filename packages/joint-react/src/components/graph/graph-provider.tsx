@@ -6,7 +6,7 @@ import { GraphStoreContext } from '../../context';
 import { GraphStore } from '../../store';
 import type { GraphMappings } from '../../state/data-mapping';
 import type { IncrementalContainerChanges } from '../../store/graph-view';
-import type { Element, Link } from '../../types/data-types';
+import type { ElementRecord, LinkRecord } from '../../types/data-types';
 
 /**
  * Props for the GraphProvider component.
@@ -14,8 +14,8 @@ import type { Element, Link } from '../../types/data-types';
  * @template Link - The type of links in the graph
  */
 export interface GraphProviderProps<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > extends GraphMappings<ElementData, LinkData> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
@@ -57,7 +57,7 @@ export interface GraphProviderProps<
    *
    * **Uncontrolled mode:** If neither is provided, this is only used for initial elements.
    */
-  readonly elements?: Record<CellId, Element<ElementData>>;
+  readonly elements?: Record<CellId, ElementRecord<ElementData>>;
 
   /**
    * Links (edges) to be added to the graph as a Record keyed by cell ID.
@@ -66,19 +66,19 @@ export interface GraphProviderProps<
    *
    * **Uncontrolled mode:** If neither is provided, this is only used for initial links.
    */
-  readonly links?: Record<CellId, Link<LinkData>>;
+  readonly links?: Record<CellId, LinkRecord<LinkData>>;
 
   /**
    * Callback triggered when elements (nodes) change in the graph.
    * Enables React-controlled mode for elements.
    */
-  readonly onElementsChange?: Dispatch<SetStateAction<Record<CellId, Element<ElementData>>>>;
+  readonly onElementsChange?: Dispatch<SetStateAction<Record<CellId, ElementRecord<ElementData>>>>;
 
   /**
    * Callback triggered when links (edges) change in the graph.
    * Enables React-controlled mode for links.
    */
-  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, Link<LinkData>>>>;
+  readonly onLinksChange?: Dispatch<SetStateAction<Record<CellId, LinkRecord<LinkData>>>>;
 
   /**
    * Callback triggered with granular incremental change information when graph state changes.
@@ -90,8 +90,8 @@ export interface GraphProviderProps<
 }
 
 function GraphBase<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(props: GraphProviderProps<ElementData, LinkData> & { ref?: React.Ref<dia.Graph | null> }) {
   const {
     children,
@@ -214,8 +214,8 @@ function GraphBase<
  * @see GraphProviderProps for all available props
  */
 export const GraphProvider = GraphBase as <
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 >(
   props: GraphProviderProps<ElementData, LinkData> & {
     ref?: React.Ref<dia.Graph | null>;

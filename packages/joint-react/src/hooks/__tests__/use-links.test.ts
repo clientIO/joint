@@ -1,11 +1,11 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 import { useLinks } from '../use-links';
-import type { CellData } from '../../types/cell-data';
+import type { LinkRecord } from '../../types/data-types';
 import type { CellId } from '../../types/cell-id';
 
 // Extract link source ID - source can be ID (string/number) or EndJSON object
-function getLinkSourceId(link: CellData) {
+function getLinkSourceId(link: LinkRecord) {
   const {source} = link;
   if (typeof source === 'object' && source != null && 'id' in source) {
     return (source as { id: CellId }).id;

@@ -23,7 +23,7 @@ import { createAtom, type Atom } from './state-container';
 import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
 import { graphView, type GraphView, type IncrementalContainerChanges } from './graph-view';
-import type { Element, Link } from '../types/data-types';
+import type { ElementRecord, LinkRecord } from '../types/data-types';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -59,26 +59,26 @@ export interface MeasureSnapshot {
  * Configuration options for creating a GraphStore instance.
  */
 export interface GraphStoreOptions<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > extends GraphMappings<ElementData, LinkData> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
-  readonly initialElements?: Record<CellId, Element<ElementData>>;
-  readonly initialLinks?: Record<CellId, Link<LinkData>>;
+  readonly initialElements?: Record<CellId, ElementRecord<ElementData>>;
+  readonly initialLinks?: Record<CellId, LinkRecord<LinkData>>;
   readonly onIncrementalChange?: (
     changes: IncrementalContainerChanges<ElementData, LinkData>
   ) => void;
-  readonly onElementsChange?: (elements: Record<string, Element<ElementData>>) => void;
-  readonly onLinksChange?: (links: Record<string, Link<LinkData>>) => void;
+  readonly onElementsChange?: (elements: Record<string, ElementRecord<ElementData>>) => void;
+  readonly onLinksChange?: (links: Record<string, LinkRecord<LinkData>>) => void;
 }
 /**
  * Central store for managing graph state, synchronization, and paper instances.
  */
 export class GraphStore<
-  ElementData extends object | undefined = undefined,
-  LinkData extends object | undefined = undefined,
+  ElementData extends object = Record<string, unknown>,
+  LinkData extends object = Record<string, unknown>,
 > {
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
   public readonly measureState: Atom<MeasureSnapshot>;
@@ -93,8 +93,8 @@ export class GraphStore<
   private readonly measuredElementIds = new Set<CellId>();
 
   public getGraphView<
-    N extends object | undefined = undefined,
-    L extends object | undefined = undefined,
+    N extends object = Record<string, unknown>,
+    L extends object = Record<string, unknown>,
   >(): GraphView<N, L> {
     return this.graphView as unknown as GraphView<N, L>;
   }
@@ -165,7 +165,7 @@ export class GraphStore<
           measuredElements: this.measuredElementIds.size,
         }));
       },
-      getElements: () => this.graphView.elements.getFull() as Map<CellId, Element>,
+      getElements: () => this.graphView.elements.getFull() as Map<CellId, ElementRecord>,
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('resize');
         for (const [id, data] of Object.entries(updatedElements)) {
@@ -219,7 +219,7 @@ export class GraphStore<
     }
   }
 
-  private detectNeedSomeElementBeMeasured(elements: Record<CellId, Element<ElementData>>) {
+  private detectNeedSomeElementBeMeasured(elements: Record<CellId, ElementRecord<ElementData>>) {
     for (const element of Object.values(elements)) {
       if (element.size?.width == undefined || element.size?.height == undefined) {
         return true;
@@ -232,8 +232,8 @@ export class GraphStore<
     onIncrementalChange:
       | ((changes: IncrementalContainerChanges<ElementData, LinkData>) => void)
       | undefined,
-    onElementsChange: ((elements: Record<string, Element<ElementData>>) => void) | undefined,
-    onLinksChange: ((links: Record<string, Link<LinkData>>) => void) | undefined
+    onElementsChange: ((elements: Record<string, ElementRecord<ElementData>>) => void) | undefined,
+    onLinksChange: ((links: Record<string, LinkRecord<LinkData>>) => void) | undefined
   ): ((changes: IncrementalContainerChanges<ElementData, LinkData>) => void) | undefined {
     if (!onIncrementalChange && !onElementsChange && !onLinksChange) {
       return undefined;
@@ -253,7 +253,7 @@ export class GraphStore<
 
   private notifyElementsChange(
     changes: IncrementalContainerChanges<ElementData, LinkData>,
-    onElementsChange: (elements: Record<string, Element<ElementData>>) => void
+    onElementsChange: (elements: Record<string, ElementRecord<ElementData>>) => void
   ) {
     const hasElementChanges =
       changes.elements.added.size > 0 ||
@@ -262,7 +262,7 @@ export class GraphStore<
 
     if (!hasElementChanges) return;
 
-    const elements: Record<string, Element<ElementData>> = {};
+    const elements: Record<string, ElementRecord<ElementData>> = {};
     for (const [id, item] of this.graphView.elements.getFull()) {
       elements[id] = item;
     }
@@ -272,7 +272,7 @@ export class GraphStore<
 
   private notifyLinksChange(
     changes: IncrementalContainerChanges<ElementData, LinkData>,
-    onLinksChange: (links: Record<string, Link<LinkData>>) => void
+    onLinksChange: (links: Record<string, LinkRecord<LinkData>>) => void
   ) {
     const hasLinkChanges =
       changes.links.added.size > 0 ||
@@ -286,7 +286,7 @@ export class GraphStore<
         const { ...linkData } = item;
         return [id, linkData];
       })
-    ) as Record<string, Link<LinkData>>;
+    ) as Record<string, LinkRecord<LinkData>>;
     onLinksChange(links);
   }
 

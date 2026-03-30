@@ -1,15 +1,16 @@
 import { type dia } from '@joint/core';
-import type { PortalElementPort } from '../../types/data-types';
+import type { ElementPort } from '../../types/data-types';
 import { defaultPortStyle } from '../../theme/element-theme';
 
+
 /**
- * Converts a simplified FlatElementPort to a full JointJS port definition.
+ * Converts a simplified ElementPort to a full JointJS port definition.
  * @param id - The port identifier
  * @param rawPort - The simplified port definition
  * @param portStyle - Optional style defaults for port properties
  * @returns The full JointJS port definition
  */
-function convertPort(id: string, rawPort: PortalElementPort, portStyle?: Partial<PortalElementPort>): dia.Element.Port {
+function convertPort(id: string, rawPort: ElementPort, portStyle?: Partial<ElementPort>): dia.Element.Port {
   const port = portStyle ? { ...portStyle, ...rawPort } : rawPort;
   const {
     cx,
@@ -108,12 +109,12 @@ export function createPortGroupsDefault(): { groups: Record<string, dia.Element.
 }
 
 /**
- * Converts a simplified FlatElementPort record to the full JointJS ports object.
+ * Converts a simplified ElementPort record to the full JointJS ports object.
  * @param ports - Record of simplified port definitions keyed by port ID
  * @param portStyle - Optional style defaults for port properties
  * @returns The full JointJS ports object with groups and items
  */
-export function convertPorts(ports: Record<string, PortalElementPort>, portStyle?: Partial<PortalElementPort>): {
+export function convertPorts(ports: Record<string, ElementPort>, portStyle?: Partial<ElementPort>): {
   groups: Record<string, dia.Element.PortGroup>;
   items: dia.Element.Port[];
 } {

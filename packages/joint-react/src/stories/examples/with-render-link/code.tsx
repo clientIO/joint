@@ -1,40 +1,36 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 
 import {
   GraphProvider,
   Paper,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
   type RenderLink,
   useElementId,
   useLink,
 } from '@joint/react';
 import { useCallback, useState } from 'react';
-import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
-import { PORTAL_LINK_TYPE } from '../../../models/portal-link';
 
 interface NodeData {
   readonly [key: string]: unknown;
   readonly label: string;
 }
 
-const initialElements: Record<string, Element<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': { data: { label: 'Node 1' }, position: { x: 100, y: 15 } },
   '2': { data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
   '3': { data: { label: 'Node 3' }, position: { x: 300, y: 100 } },
 };
 
-const initialLinks: Record<string, Link & { type: string }> = {
+const initialLinks: Record<string, LinkRecord> = {
   'link-1': {
-    type: PORTAL_LINK_TYPE,
     source: { id: '1' },
     target: { id: '2' },
   },
   'link-2': {
-    type: PORTAL_LINK_TYPE,
     source: { id: '2' },
     target: { id: '3' },
   },
@@ -90,7 +86,7 @@ export default function App() {
   const [usePortalLinks, setUsePortalLinks] = useState(true);
 
   return (
-    <GraphProvider elements={initialElements} links={initialLinks} enableBatchUpdates>
+    <GraphProvider elements={initialElements} links={initialLinks}>
       <div className="flex flex-col gap-2">
         <button
           type="button"

@@ -1,17 +1,17 @@
 import { renderHook } from '@testing-library/react';
 import { useLinkDefaults } from '../use-link-defaults';
 import { defaultLinkStyle, defaultLabelStyle } from '../../theme/link-theme';
-import type { Link } from '../../types/data-types';
+import type { LinkRecord } from '../../types/data-types';
 
-describe('useFlatLinkData', () => {
-  const minimalLinkData: Link = {
+describe('useLinkDefaults', () => {
+  const minimalLinkData: LinkRecord = {
     source: { id: 'a' },
     target: { id: 'b' },
   };
 
   function callForwardMapper(
     hook: ReturnType<typeof useLinkDefaults<any>>,
-    link: Link = minimalLinkData
+    link: LinkRecord = minimalLinkData
   ) {
     return hook.mapLinkToAttributes!({
       id: 'link-1',
@@ -25,14 +25,14 @@ describe('useFlatLinkData', () => {
     const { result } = renderHook(() => useLinkDefaults({}));
     const cellJson = callForwardMapper(result.current);
 
-    expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
-    expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
+    // No style provided → no attrs built; CSS theme variables handle defaults
+    expect(cellJson.attrs?.line?.style).toBeUndefined();
   });
 
   // ── Static defaults ─────────────────────────────────────────────────
 
   it('applies static line style defaults', () => {
-    const { result } = renderHook(() => useLinkDefaults({ color: 'red' }));
+    const { result } = renderHook(() => useLinkDefaults({ style: { color: 'red' } }));
     const cellJson = callForwardMapper(result.current);
 
     expect(cellJson.attrs?.line?.style?.stroke).toBe('red');
@@ -40,18 +40,20 @@ describe('useFlatLinkData', () => {
   });
 
   it('applies full line style override', () => {
-    const fullOverride: Partial<Link> = {
-      color: '#00ff00',
-      width: 5,
-      sourceMarker: 'arrow',
-      targetMarker: 'circle',
-      className: 'my-line',
-      dasharray: '5,5',
-      linecap: 'round',
-      linejoin: 'bevel',
-      wrapperWidth: 12,
-      wrapperColor: 'blue',
-      wrapperClassName: 'my-wrapper',
+    const fullOverride: Partial<LinkRecord> = {
+      style: {
+        color: '#00ff00',
+        width: 5,
+        sourceMarker: 'arrow',
+        targetMarker: 'circle',
+        className: 'my-line',
+        dasharray: '5,5',
+        linecap: 'round',
+        linejoin: 'bevel',
+        wrapperWidth: 12,
+        wrapperColor: 'blue',
+        wrapperClassName: 'my-wrapper',
+      },
     };
     const { result } = renderHook(() => useLinkDefaults(fullOverride));
     const cellJson = callForwardMapper(result.current);
@@ -64,15 +66,15 @@ describe('useFlatLinkData', () => {
   });
 
   it('link data takes precedence over defaults', () => {
-    const { result } = renderHook(() => useLinkDefaults({ color: 'red', width: 5 }));
+    const { result } = renderHook(() => useLinkDefaults({ style: { color: 'red', width: 5 } }));
     const cellJson = callForwardMapper(result.current, {
       source: { id: 'a' },
       target: { id: 'b' },
-      color: 'blue',
+      style: { color: 'blue', width: 3 },
     });
 
     expect(cellJson.attrs?.line?.style?.stroke).toBe('blue');
-    expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(5);
+    expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(3);
   });
 
   // ── labelStyle ──────────────────────────────────────────────────────
@@ -90,7 +92,7 @@ describe('useFlatLinkData', () => {
     const cellJson = callForwardMapper(result.current, {
       source: { id: 'a' },
       target: { id: 'b' },
-      labels: {
+      labelMap: {
         'lbl-1': { text: 'Hello' },
       },
     });
@@ -110,7 +112,7 @@ describe('useFlatLinkData', () => {
     const cellJson = callForwardMapper(result.current, {
       source: { id: 'a' },
       target: { id: 'b' },
-      labels: {
+      labelMap: {
         'lbl-1': { text: 'Hello', color: 'green' },
       },
     });
@@ -126,7 +128,7 @@ describe('useFlatLinkData', () => {
     const cellJson = callForwardMapper(result.current, {
       source: { id: 'a' },
       target: { id: 'b' },
-      labels: { 'lbl-1': { text: 'Hello' } },
+      labelMap: { 'lbl-1': { text: 'Hello' } },
     });
 
     const label = (cellJson.labels as Array<Record<string, unknown>>)?.[0];
@@ -140,7 +142,7 @@ describe('useFlatLinkData', () => {
   it('applies per-link defaults via callback', () => {
     const { result } = renderHook(() =>
       useLinkDefaults(({ link }) => ({
-        color: link.source?.id === 'a' ? 'red' : 'blue',
+        style: { color: link.source?.id === 'a' ? 'red' : 'blue' },
       }))
     );
 
@@ -158,6 +160,7 @@ describe('useFlatLinkData', () => {
     const cellJson = callForwardMapper(result.current);
     const cellData = cellJson.data as Record<string, unknown>;
 
+    expect(cellData).not.toHaveProperty('style');
     expect(cellData).not.toHaveProperty('color');
     expect(cellData).not.toHaveProperty('width');
   });
@@ -165,39 +168,35 @@ describe('useFlatLinkData', () => {
   it('does not pollute cell.data with default-provided keys', () => {
     const { result } = renderHook(() =>
       useLinkDefaults({
-        color: 'red',
-        width: 3,
+        style: { color: 'red', width: 3 },
         labelStyle: { color: '#fff', fontSize: 11 },
       })
     );
     const cellJson = callForwardMapper(result.current);
     const cellData = cellJson.data as Record<string, unknown>;
 
-    expect(cellData).not.toHaveProperty('color');
-    expect(cellData).not.toHaveProperty('width');
+    expect(cellData).not.toHaveProperty('style');
     expect(cellData).not.toHaveProperty('labelStyle');
   });
 
   it('preserves user-provided presentation keys in cell.presentation', () => {
     const { result } = renderHook(() =>
       useLinkDefaults({
-        color: 'red',
-        width: 3,
+        style: { color: 'red', width: 3 },
       })
     );
     const cellJson = callForwardMapper(result.current, {
       source: { id: 'a' },
       target: { id: 'b' },
-      color: 'blue',
+      style: { color: 'blue' },
     });
     const presentation = cellJson.presentation as Record<string, unknown>;
     const cellData = cellJson.data as Record<string, unknown>;
 
-    // Explicitly provided color overrides the default in presentation
-    expect(presentation).toHaveProperty('color', 'blue');
-    // Default-provided width is also in presentation (merged from defaults)
-    expect(presentation).toHaveProperty('width', 3);
+    // Explicitly provided style overrides the default in presentation
+    expect(presentation).toHaveProperty('style', { color: 'blue' });
     // Neither leaks into data
+    expect(cellData).not.toHaveProperty('style');
     expect(cellData).not.toHaveProperty('color');
     expect(cellData).not.toHaveProperty('width');
   });
@@ -205,14 +204,14 @@ describe('useFlatLinkData', () => {
   // ── Memoization ────────────────────────────────────────────────────────
 
   it('returns stable reference for static defaults', () => {
-    const { result, rerender } = renderHook(() => useLinkDefaults({ color: 'red' }));
+    const { result, rerender } = renderHook(() => useLinkDefaults({ style: { color: 'red' } }));
     const firstForward = result.current.mapLinkToAttributes;
     rerender();
     expect(result.current.mapLinkToAttributes).toBe(firstForward);
   });
 
-  const stableCallback = ({ link }: { link: Link }) => ({
-    color: link.source?.id === 'a' ? 'red' : 'blue',
+  const stableCallback = ({ link }: { link: LinkRecord }) => ({
+    style: { color: link.source?.id === 'a' ? 'red' : 'blue' },
   });
 
   it('returns stable reference for callback defaults', () => {
@@ -225,7 +224,7 @@ describe('useFlatLinkData', () => {
   it('recreates mapper when deps change', () => {
     let color = 'red';
     const { result, rerender } = renderHook(() =>
-      useLinkDefaults(() => ({ color }), [color])
+      useLinkDefaults(() => ({ style: { color } }), [color])
     );
     const firstForward = result.current.mapLinkToAttributes;
 
@@ -241,7 +240,7 @@ describe('useFlatLinkData', () => {
 
   it('handles defaults when linkToAttributes returns no data field', () => {
     const { result } = renderHook(() =>
-      useLinkDefaults({ color: 'red' })
+      useLinkDefaults({ style: { color: 'red' } })
     );
     const cellJson = callForwardMapper(result.current, {
       source: { id: 'a' },
@@ -256,7 +255,7 @@ describe('useFlatLinkData', () => {
 
   it('default color is applied when link data does not specify color', () => {
     const { result } = renderHook(() =>
-      useLinkDefaults({ color: '#ff0000' })
+      useLinkDefaults({ style: { color: '#ff0000' } })
     );
     const cellJson = callForwardMapper(result.current);
 
@@ -265,12 +264,12 @@ describe('useFlatLinkData', () => {
 
   it('link data color overrides default color', () => {
     const { result } = renderHook(() =>
-      useLinkDefaults({ color: '#ff0000' })
+      useLinkDefaults({ style: { color: '#ff0000' } })
     );
     const cellJson = callForwardMapper(result.current, {
       source: { id: 'a' },
       target: { id: 'b' },
-      color: '#00ff00',
+      style: { color: '#00ff00' },
     });
 
     expect(cellJson.attrs?.line?.style?.stroke).toBe('#00ff00');
@@ -279,7 +278,7 @@ describe('useFlatLinkData', () => {
   it('changing color via deps recreates mapper with new color', () => {
     let linkColor = 'red';
     const { result, rerender } = renderHook(() =>
-      useLinkDefaults({ color: linkColor }, [linkColor])
+      useLinkDefaults({ style: { color: linkColor } }, [linkColor])
     );
 
     // First render: red
@@ -297,7 +296,7 @@ describe('useFlatLinkData', () => {
   it('changing width via deps recreates mapper with new width', () => {
     let lineWidth = 2;
     const { result, rerender } = renderHook(() =>
-      useLinkDefaults({ width: lineWidth }, [lineWidth])
+      useLinkDefaults({ style: { width: lineWidth } }, [lineWidth])
     );
 
     const thinJson = callForwardMapper(result.current);
@@ -314,7 +313,7 @@ describe('useFlatLinkData', () => {
 
   it('forward mapper applies defaults correctly', () => {
     const { result } = renderHook(() =>
-      useLinkDefaults({ color: 'red', targetMarker: 'arrow' })
+      useLinkDefaults({ style: { color: 'red', targetMarker: 'arrow' } })
     );
 
     const cellJson = callForwardMapper(result.current, {
@@ -329,8 +328,10 @@ describe('useFlatLinkData', () => {
   it('callback defaults apply different colors based on link data', () => {
     const { result } = renderHook(() =>
       useLinkDefaults(({ link }) => ({
-        color: link.source?.id === 'error-node' ? 'red' : 'green',
-        width: link.source?.id === 'error-node' ? 3 : 1,
+        style: {
+          color: link.source?.id === 'error-node' ? 'red' : 'green',
+          width: link.source?.id === 'error-node' ? 3 : 1,
+        },
       }))
     );
 

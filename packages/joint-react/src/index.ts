@@ -49,11 +49,11 @@ export * from './state/data-mapping/link-mapper';
 // Types
 export type { ElementPosition, ElementSize } from './types/cell-data';
 export type {
-  Element as Element,
-  PortalElementPort as FlatElementPort,
-  Link as Link,
-  PortalLinkLabel as FlatLinkLabel,
-  PortalLinkPresentation as FlatLinkPresentationData,
+  ElementRecord,
+  ElementPort,
+  LinkRecord,
+  LinkStyle,
+  LinkLabel,
 } from './types/data-types';
 export type { PortShape as PortShape } from './theme/element-theme';
 export type { CellId } from './types/cell-id';

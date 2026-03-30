@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
 import { dia } from '@joint/core';
-import type { Link } from '../types/data-types';
+import type { LinkRecord } from '../types/data-types';
 import {
   useCallback,
   useDeferredValue,
@@ -186,7 +186,7 @@ export function useCreatePortalPaper(
         return link.clone();
       }
       const attributes = gv.mapLinkToAttributes({
-        link: { data: {}, ...link } as Link,
+        link: { data: {}, ...link } as LinkRecord,
       });
       return new PortalLinkModel(attributes);
     },

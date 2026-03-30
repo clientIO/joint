@@ -4,7 +4,7 @@ import type { Meta } from '@storybook/react-vite';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { makeRootDocumentation, makeStory } from '../stories/utils/make-story';
 import { getAPILink } from '../stories/utils/get-api-documentation-link';
-import type { Element } from '../types/data-types';
+import type { ElementRecord } from '@joint/react';
 
 const API_URL = getAPILink('useElement');
 
@@ -68,7 +68,7 @@ type Story = TesterHookStory<typeof useElement>;
 export const WithId = makeStory<Story>({
   args: {
     useHook: useElement,
-    hookArgs: [(data: Element) => (data as Record<string, unknown>).id] as never,
+    hookArgs: [(data: ElementRecord) => (data as Record<string, unknown>).id] as never,
   },
   apiURL: API_URL,
   code: `import { useElement } from '@joint/react'
@@ -86,7 +86,7 @@ function Component() {
 export const WithCoordinates = makeStory<Story>({
   args: {
     useHook: useElement,
-    hookArgs: [(data: Element) => ({ x: data.x, y: data.y })] as never,
+    hookArgs: [(data: ElementRecord) => ({ x: (data as Record<string, unknown>).x, y: (data as Record<string, unknown>).y })] as never,
   },
   apiURL: API_URL,
   code: `import { useElement } from '@joint/react'

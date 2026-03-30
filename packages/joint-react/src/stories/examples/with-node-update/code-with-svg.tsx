@@ -1,16 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useElementSize, type Element, type Link } from '@joint/react';
+import { GraphProvider, Paper, useElementSize, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
-const initialElements: Record<string, Element> = {
+const initialElements: Record<string, ElementRecord> = {
   '1': { position: { x: 100, y: 15 }, size: { width: 130, height: 35 } },
   '2': { position: { x: 100, y: 200 }, size: { width: 130, height: 35 } },
 };
 
-const initialEdges: Record<string, Link> = {
+const initialEdges: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },

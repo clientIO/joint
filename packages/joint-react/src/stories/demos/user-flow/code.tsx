@@ -14,8 +14,8 @@ import {
   useMarkup,
   useMeasureNode,
   type CellId,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
   type RenderElement,
 } from '@joint/react';
 import {
@@ -69,7 +69,7 @@ type NodeData = {
   readonly outputPorts: readonly OutputPort[];
 };
 
-type NodeType = Element<NodeData>;
+type NodeType = ElementRecord<NodeData>;
 
 const INITIAL_OUTPUT_PORTS: readonly OutputPort[] = [
   { id: '1', label: 'Port 1' },
@@ -109,7 +109,7 @@ const initialElements: Record<string, NodeType> = {
   },
 };
 
-const initialLinks: Record<string, Link> = {
+const initialLinks: Record<string, LinkRecord> = {
   link1: {
     source: { id: '1', magnet: '1' },
     target: { id: '2', magnet: 'in' },
@@ -288,20 +288,20 @@ function RenderElementBase({
 }
 const RenderElement = memo(RenderElementBase);
 function Main() {
-  const [elements, setElements] = useState<Record<string, Element<NodeData>>>(initialElements);
+  const [elements, setElements] = useState<Record<string, ElementRecord<NodeData>>>(initialElements);
   const isDark = useContext(ThemeContext);
 
-  function fixLinks(initialLinks: Record<string, Link>) {
-    const next: Record<string, Link> = {};
+  function fixLinks(initialLinks: Record<string, LinkRecord>) {
+    const next: Record<string, LinkRecord> = {};
     for (const [linkId, link] of Object.entries(initialLinks)) {
       next[linkId] = {
         ...link,
-        color: isDark ? 'rgba(255,255,255,0.35)' : '#000000',
+        style: { ...link.style, color: isDark ? 'rgba(255,255,255,0.35)' : '#000000' },
       };
     }
     return next;
   }
-  const [links, setLinks] = useState<Record<string, Link>>(() => fixLinks(initialLinks));
+  const [links, setLinks] = useState<Record<string, LinkRecord>>(() => fixLinks(initialLinks));
   useLayoutEffect(() => {
     setLinks(fixLinks); // eslint-disable-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect -- Sync link colors with theme
   }, [isDark]);
@@ -333,7 +333,7 @@ function Main() {
       };
     });
     setLinks((previous) => {
-      const next: Record<string, Link> = {};
+      const next: Record<string, LinkRecord> = {};
       for (const [linkId, link] of Object.entries(previous)) {
         const isSource = link.source?.id === id && link.source?.magnet === portId;
         const isTarget = link.target?.id === id && link.target?.magnet === portId;
@@ -363,7 +363,7 @@ function Main() {
         style={{ backgroundColor: 'transparent' }}
         height={'100%'}
         defaultLink={{
-          color: isDark ? 'rgba(255,255,255,0.35)' : '#000000',
+          style: { color: isDark ? 'rgba(255,255,255,0.35)' : '#000000' },
         }}
         width={'100%'}
         renderElement={renderElement}

@@ -5,8 +5,8 @@ import {
   usePaper,
   useElementSize,
   useMeasureNode,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
 } from '@joint/react';
 import '../../examples/index.css';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -15,18 +15,17 @@ import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 type ElementData = { label: string };
 
 // Define initial elements as Record
-const initialElements: Record<string, Element<ElementData>> = {
+const initialElements: Record<string, ElementRecord<ElementData>> = {
   '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 25 } },
   '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 25 } },
 };
 
 // Define initial edges as Record
-const initialEdges: Record<string, Link> = {
+const initialEdges: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
-    color: '#3498db', // Primary color
-    width: 2,
+    style: { color: '#3498db', width: 2 }, // Primary color
   },
 };
 

@@ -4,8 +4,8 @@ import {
   Paper,
   useMarkup,
   useElementSize,
-  type Element,
-  type Link,
+  type ElementRecord,
+  type LinkRecord,
   type PortalPaper,
   usePaperEvents,
 } from '@joint/react';
@@ -19,7 +19,7 @@ interface NodeData {
   readonly label: string;
 }
 
-const initialElements: Record<string, Element<NodeData>> = {
+const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node 1' },
     position: { x: 100, y: 50 },
@@ -32,11 +32,11 @@ const initialElements: Record<string, Element<NodeData>> = {
   },
 };
 
-const initialEdges: Record<string, Link> = {
+const initialEdges: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
-    color: PRIMARY,
+    style: { color: PRIMARY },
   },
 };
 
