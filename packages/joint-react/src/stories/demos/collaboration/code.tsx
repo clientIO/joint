@@ -7,9 +7,10 @@ import {
   GraphProvider,
   Paper,
   useElementId,
+  useElementSize,
   useGraph,
   useMarkup,
-  useMeasureNode,
+  HTMLHost,
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
@@ -389,8 +390,7 @@ function createPeerManager(callbacks: {
 // ── Node Component ──────────────────────────────────────────────────────────
 
 function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>) {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(contentRef);
+  const { width, height } = useElementSize();
   const theme = useTheme();
   const { selectorRef } = useMarkup();
   const isDark = theme === DARK;
@@ -425,77 +425,74 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>)
 
   return (
     <>
-      <foreignObject width={width} height={height} overflow="visible">
-        <div
-          ref={contentRef}
-          className="select-none relative"
-          style={{
-            width: 220,
-            padding: '14px 16px',
-            borderRadius: 16,
-            cursor: 'grab',
-            backgroundColor: theme.card,
-            border: `1px solid ${borderColor}`,
-            boxShadow: cardShadow,
-            transition: 'transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease',
-            backdropFilter: isDark ? 'blur(20px)' : 'none',
-            WebkitBackdropFilter: isDark ? 'blur(20px)' : 'none',
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0"
-              style={{
-                backgroundColor: iconBg,
-                color: iconColor,
-                boxShadow: iconGlow,
-                transition: 'all 120ms ease',
-              }}
-            >
-              <i className={icon} />
+      <HTMLHost
+        className="select-none relative"
+        style={{
+          width: 220,
+          padding: '14px 16px',
+          borderRadius: 16,
+          cursor: 'grab',
+          backgroundColor: theme.card,
+          border: `1px solid ${borderColor}`,
+          boxShadow: cardShadow,
+          transition: 'transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease',
+          backdropFilter: isDark ? 'blur(20px)' : 'none',
+          WebkitBackdropFilter: isDark ? 'blur(20px)' : 'none',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0"
+            style={{
+              backgroundColor: iconBg,
+              color: iconColor,
+              boxShadow: iconGlow,
+              transition: 'all 120ms ease',
+            }}
+          >
+            <i className={icon} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span
+                className="text-[13px] font-medium"
+                style={{ color: theme.text, letterSpacing: '-0.01em' }}
+              >
+                {title}
+              </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="text-[13px] font-medium"
-                  style={{ color: theme.text, letterSpacing: '-0.01em' }}
-                >
-                  {title}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span
-                  className="w-1.5 h-1.5 rounded-full shrink-0"
-                  style={{ backgroundColor: statusColor }}
-                />
-                <span className="text-[11px]" style={{ color: theme.sub }}>
-                  {role}
-                </span>
-              </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span
+                className="w-1.5 h-1.5 rounded-full shrink-0"
+                style={{ backgroundColor: statusColor }}
+              />
+              <span className="text-[11px]" style={{ color: theme.sub }}>
+                {role}
+              </span>
             </div>
           </div>
-
-          {/* User badge — floats above the card when anyone drags */}
-          {isActive && (
-            <div
-              className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-              style={{
-                top: -28,
-                backgroundColor: activeColor,
-                color: '#fff',
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: '0.02em',
-                boxShadow: `0 2px 8px ${activeColor}66`,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-white/80" />
-              {activeName}
-            </div>
-          )}
         </div>
-      </foreignObject>
+
+        {/* User badge — floats above the card when anyone drags */}
+        {isActive && (
+          <div
+            className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+            style={{
+              top: -28,
+              backgroundColor: activeColor,
+              color: '#fff',
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.02em',
+              boxShadow: `0 2px 8px ${activeColor}66`,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-white/80" />
+            {activeName}
+          </div>
+        )}
+      </HTMLHost>
 
       <circle
         ref={selectorRef('out')}
