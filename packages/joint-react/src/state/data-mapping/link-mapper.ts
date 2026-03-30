@@ -20,10 +20,12 @@ function isLinkData(data: unknown): data is LinkRecord {
 /**
  * Forward mapper: converts a LinkRecord to JointJS cell attributes.
  *
- * - `labelMap` → converted to native `labels` array, stored as `labelMap` on the model for reverse mapping.
+ * - `labelMap` → converted to native `labels` array, stored on the model for reverse mapping.
  * - `labels` (array) → passed through as-is (native JointJS format).
  * - Both present → throws an error.
  * - `style` → converted to SVG `attrs` via `buildLinkPresentationAttributes`.
+ *
+ * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
 export function linkToAttributes<LinkData extends object = Record<string, unknown>>(options: {
   id?: string;
@@ -43,30 +45,34 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
     style,
     labelMap,
     labelStyle,
+    labels,
     type = PORTAL_LINK_TYPE,
     ...linkAttributes
   } = link;
-
-  const presentation: Record<string, unknown> = {};
-  if (style) presentation.style = style;
-  if (labelStyle) presentation.labelStyle = labelStyle;
-  if (labelMap) presentation.labelMap = labelMap;
 
   const attributes: CellAttributes = {
     ...linkAttributes,
     id,
     type,
     data,
-    presentation,
-    attrs: style
-      ? buildLinkPresentationAttributes(style, defaultLinkStyle)
-      : linkAttributes.attrs,
-    labels: labelMap
-      ? Object.entries(labelMap).map(
-          ([labelId, label]) => convertLabel(labelId, label, labelStyle)
-        )
-      : link.labels ?? [],
   };
+
+  if (style) {
+    attributes.attrs = buildLinkPresentationAttributes(style, defaultLinkStyle);
+    attributes.style = style;
+  }
+  if (labelStyle) attributes.labelStyle = labelStyle;
+  if (labelMap) {
+    if (labels) {
+      throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
+    }
+    attributes.labels = Object.entries(labelMap).map(
+      ([labelId, label]) => convertLabel(labelId, label, labelStyle)
+    );
+    attributes.labelMap = labelMap;
+  } else {
+    attributes.labels = labels ?? [];
+  }
 
   return attributes;
 }
@@ -74,9 +80,11 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
 /**
  * Converts JointJS link attributes back to a LinkRecord.
  *
- * - `labelMap` on model → return `labelMap` (ignore native `labels`).
+ * - `style` on model → return in record.
+ * - `labelMap` on model → return `labelMap` (merge updated positions from native `labels`).
  * - No `labelMap` → return `labels` as-is.
- * - `style` → return from presentation.
+ *
+ * 1:1 mapping — no `presentation` wrapper.
  */
 export function attributesToLink<LinkData extends object = Record<string, unknown>>(
   attributes: dia.Link.Attributes
@@ -84,7 +92,9 @@ export function attributesToLink<LinkData extends object = Record<string, unknow
 
   const {
     data,
-    presentation,
+    style,
+    labelMap,
+    labelStyle,
     source,
     target,
     z,
@@ -109,22 +119,16 @@ export function attributesToLink<LinkData extends object = Record<string, unknow
     connector,
   };
 
-  // Restore style from presentation
-  if (presentation?.style) {
-    linkRecord.style = presentation.style;
-  }
-  if (presentation?.labelStyle) {
-    linkRecord.labelStyle = presentation.labelStyle;
-  }
+  if (style) linkRecord.style = style;
+  if (labelStyle) linkRecord.labelStyle = labelStyle;
 
-  // Restore labelMap from presentation, merging updated positions from native labels
-  if (presentation?.labelMap && Array.isArray(attributeLabels)) {
-    linkRecord.labelMap = mergeLabelsFromAttributes(presentation.labelMap, attributeLabels);
+  // Restore labelMap, merging updated positions from native labels
+  if (labelMap && Array.isArray(attributeLabels)) {
+    linkRecord.labelMap = mergeLabelsFromAttributes(labelMap, attributeLabels);
   } else if (Array.isArray(attributeLabels)) {
     linkRecord.labels = attributeLabels;
   }
 
-  // Only include type if it's not the default portal type.
   if (type && type !== PORTAL_LINK_TYPE) {
     linkRecord.type = type;
   }

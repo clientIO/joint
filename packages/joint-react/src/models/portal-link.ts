@@ -1,7 +1,11 @@
 import { dia } from '@joint/core';
 import { PORTAL_SELECTOR } from './portal-element';
+import { buildLinkPresentationAttributes } from '../internal';
+import { defaultLinkStyle } from '../theme/link-theme';
 
 export const PORTAL_LINK_TYPE = 'PortalLink';
+
+const defaultPresentationAttrs: dia.Link.Attributes['attrs'] = buildLinkPresentationAttributes({}, defaultLinkStyle);
 
 /**
  * A custom JointJS link that can render React components.
@@ -34,14 +38,7 @@ export class PortalLink<Attributes = dia.Link.Attributes> extends dia.Link<
     return {
       ...super.defaults,
       type: PORTAL_LINK_TYPE,
-      attrs: {
-        wrapper: {
-          connection: true,
-        },
-        line: {
-          connection: true,
-        },
-      },
+      attrs: defaultPresentationAttrs,
     } as unknown as dia.Link.Attributes & Attributes;
   }
 

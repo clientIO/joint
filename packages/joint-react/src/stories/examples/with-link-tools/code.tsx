@@ -6,20 +6,22 @@ import {
   jsx,
   Paper,
   usePaperEvents,
-  useElementSize,
-  type RenderElement,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
-import { useCallback, useId } from 'react';
-import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
+import { useId } from 'react';
+import { PRIMARY, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
+
+const WHITE = '#fff';
 
 const initialEdges: Record<string, LinkRecord> = {
   'e1-2': {
     source: { id: '1' },
     target: { id: '2' },
-    color: PRIMARY,
-    dasharray: '5 5',
+    style: {
+      color: PRIMARY,
+      dasharray: '5 5',
+    }
   },
 };
 
@@ -41,7 +43,7 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
 const verticesTool = new linkTools.Vertices({
   handleClass: linkTools.Vertices.VertexHandle.extend({
     style: {
-      fill: BG,
+      fill: WHITE,
       stroke: SECONDARY,
       strokeWidth: 2,
     },
@@ -57,7 +59,7 @@ const infoButton = new linkTools.Button({
   // using jsx utility by joint-jsx, convert jsx to markup
   markup: jsx(
     <>
-      <circle r="8" fill={BG} stroke={PRIMARY} strokeWidth="2" cursor="pointer" />
+      <circle r="8" fill={WHITE} stroke={PRIMARY} strokeWidth="2" cursor="pointer" />
       <path
         d="M -5 0 L 5 0 M 0 -5 L 0 5"
         fill="none"

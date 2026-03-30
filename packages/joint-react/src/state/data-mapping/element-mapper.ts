@@ -1,6 +1,5 @@
-
 import { type dia } from '@joint/core';
-import type { ElementRecord, ElementPort } from '../../types/data-types';
+import type { ElementRecord } from '../../types/data-types';
 import { PORTAL_ELEMENT_TYPE } from '../../models/portal-element';
 import { convertPorts, createPortGroupsDefault } from './convert-ports';
 import { isRecord } from '../../utils/is';
@@ -18,9 +17,11 @@ function isElementData(data: unknown): data is ElementRecord {
 /**
  * Forward mapper: converts an ElementRecord to JointJS cell attributes.
  *
- * - `portMap` → converted to native `ports`, stored as `portMap` on the model for reverse mapping.
+ * - `portMap` → converted to native `ports`, stored on the model for reverse mapping.
  * - `ports` → passed through as-is (native JointJS format).
  * - Both present → throws an error.
+ *
+ * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
 export function elementToAttributes<ElementData extends object = Record<string, unknown>>(options: {
   id: string;
@@ -35,30 +36,28 @@ export function elementToAttributes<ElementData extends object = Record<string, 
     data = {} as ElementData,
     portMap,
     portStyle,
+    ports,
     type = PORTAL_ELEMENT_TYPE,
     ...cellAttributes
   } = element;
-
-  if (portMap && element.ports) {
-    throw new Error('Cannot use both "portMap" and "ports" on the same element.');
-  }
-
-  const presentation: Record<string, unknown> = {};
-  if (portMap) presentation.portMap = portMap;
-  if (portStyle) presentation.portStyle = portStyle;
 
   const attributes: CellAttributes = {
     ...cellAttributes,
     type,
     data,
-    presentation,
   };
 
   if (portMap) {
+    if (ports) {
+      throw new Error('Cannot use both "portMap" and "ports" on the same element.');
+    }
     attributes.ports = convertPorts(portMap, portStyle);
     attributes.portDefaults = createPortGroupsDefault();
     attributes.portMap = portMap;
+  } else {
+    attributes.ports = ports ?? {};
   }
+  if (portStyle) attributes.portStyle = portStyle;
 
   return attributes;
 }
@@ -68,6 +67,8 @@ export function elementToAttributes<ElementData extends object = Record<string, 
  *
  * - `portMap` on model → return `portMap` (ignore native `ports`).
  * - No `portMap` → return `ports` as-is.
+ *
+ * 1:1 mapping — no `presentation` wrapper.
  */
 export function attributesToElement<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes
@@ -75,8 +76,8 @@ export function attributesToElement<ElementData extends object = Record<string, 
 
   const {
     data,
-    presentation,
     portMap,
+    portStyle,
     position,
     size,
     angle,
@@ -87,7 +88,6 @@ export function attributesToElement<ElementData extends object = Record<string, 
   } = attributes;
 
   const elementRecord: ElementRecord<ElementData> = {
-    ...presentation,
     data,
     position,
     size,
@@ -97,14 +97,13 @@ export function attributesToElement<ElementData extends object = Record<string, 
     parent,
   };
 
-  // If portMap exists on the model, return it (ignore native ports).
   if (portMap) {
     elementRecord.portMap = portMap;
   } else if (attributes.ports) {
     elementRecord.ports = attributes.ports;
   }
+  if (portStyle) elementRecord.portStyle = portStyle;
 
-  // Only include type if it's not the default portal type.
   if (type && type !== PORTAL_ELEMENT_TYPE) {
     elementRecord.type = type;
   }
