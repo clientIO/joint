@@ -84,7 +84,6 @@ const elements: Record<string, ElementRecord> = {
 function NodeElement() {
   const id = useElementId();
   const rectRef = useRef<SVGRectElement>(null);
-  const { width, height } = useMeasureNode(rectRef);
 
   const isConnected = useLinks((links) =>
     [...links.values()].some((link) => {

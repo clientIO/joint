@@ -426,7 +426,7 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>)
   return (
     <>
       <HTMLHost
-        className="select-none relative"
+        className="select-none"
         style={{
           width: 220,
           padding: '14px 16px',
@@ -436,8 +436,6 @@ function RenderAgentNode({ title, role, icon, status }: Readonly<AgentNodeData>)
           border: `1px solid ${borderColor}`,
           boxShadow: cardShadow,
           transition: 'transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease',
-          backdropFilter: isDark ? 'blur(20px)' : 'none',
-          WebkitBackdropFilter: isDark ? 'blur(20px)' : 'none',
         }}
       >
         <div className="flex items-center gap-3">
