@@ -2,7 +2,6 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia, shapes } from '@joint/core';
-import type { PortalPaper } from '@joint/react';
 import {
   GraphProvider,
   Paper,

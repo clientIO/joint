@@ -18,10 +18,8 @@ import {
   type PaperProps,
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
-  // PortalLinkView,
-  // type LinkMarkerName,
 } from '@joint/react';
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { BG, LIGHT } from 'storybook-config/theme';
 
 // ============================================================================

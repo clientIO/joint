@@ -2,7 +2,6 @@
 import {
   GraphProvider,
   Paper,
-  useElements,
   useMeasureNode,
   type ElementRecord,
   type LinkRecord,

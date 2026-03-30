@@ -98,7 +98,7 @@ function RenderElement(props: Readonly<ContainerData>) {
 }
 
 function validateParentChildRelationship(
-  childView: dia.CellView,
+  _childView: dia.CellView,
   parentView: dia.CellView
 ): boolean {
   // Only allow embedding into container elements

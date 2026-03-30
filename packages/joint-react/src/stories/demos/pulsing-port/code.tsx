@@ -3,19 +3,17 @@
 import { useId, useRef } from 'react';
 import { dia, highlighters, linkTools, V } from '@joint/core';
 import type { ElementRecord, ElementPort } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG, SECONDARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
   GraphProvider,
   jsx,
   Paper,
-  SVGText,
   usePaperEvents,
   useLinks,
   useMeasureNode,
   useElementId,
   DefaultElement,
 } from '@joint/react';
-import { Default } from './story';
 
 const PORT_SIZE = 20;
 const unit = 10;

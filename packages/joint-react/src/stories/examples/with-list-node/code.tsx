@@ -3,7 +3,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import '../index.css';
-import React, { useCallback, useRef, type PropsWithChildren } from 'react';
+import { useCallback, useRef, type PropsWithChildren } from 'react';
 import {
   GraphProvider,
   Paper,

@@ -1,13 +1,10 @@
-import { useCallback } from 'react';
 import {
   type ElementRecord,
   GraphProvider,
   Paper,
-  useElementSize,
   type LinkRecord,
-  type RenderElement,
 } from '@joint/react';
-import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 
 interface ShapeData {

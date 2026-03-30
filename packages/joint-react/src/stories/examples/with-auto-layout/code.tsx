@@ -24,18 +24,6 @@ const initialElements: Record<string, ElementRecord<ElementData>> = {
   '9': { data: { label: 'Node 9' }, size: { width: 100, height: 50 } },
 };
 
-function RenderedRect({ label }: Readonly<ElementData>) {
-  const elementRef = useRef<HTMLDivElement>(null);
-
-  return (
-    <foreignObject width={100} height={50}>
-      <div ref={elementRef} className="node">
-        {label}
-      </div>
-    </foreignObject>
-  );
-}
-
 function Main() {
   const { graph } = useGraph();
   const { setElement } = useGraph<ElementData>();
