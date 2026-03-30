@@ -1,18 +1,20 @@
-import { useRef, type CSSProperties, type ReactNode } from 'react';
+import { useRef, type CSSProperties, type HTMLAttributes } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
 import { useElementSize } from '../hooks';
 
 /**
- * Default element renderer: a `<div>` with a label, auto-sized via `useMeasureNode`.
+ * Default element renderer: a `<div>` auto-sized via `useMeasureNode`.
  *
- * When `width`/`height` are present in the data, they set explicit CSS dimensions
- * on the `<div>`, making the element that exact size.
- * When omitted, the element auto-sizes to fit its content.
+ * All props are spread onto the inner `<div>`, so you can pass `children`,
+ * `style`, `className`, event handlers, `data-*` attributes, etc.
+ *
+ * When `width`/`height` are present in the element data, the `<div>` gets
+ * explicit CSS dimensions. When omitted, it auto-sizes to fit its content.
  *
  * Themed via CSS variables on `.jr-element`.
  * @example
  * ```tsx
- * <Paper renderElement={() => <DefaultElement />} />
+ * <Paper renderElement={({ label }) => <DefaultElement>{label}</DefaultElement>} />
  * ```
  */
 const shared: CSSProperties = {
@@ -54,35 +56,26 @@ function getStyle(width: number | undefined, height: number | undefined): CSSPro
   };
 }
 
-interface DefaultElementProps {
-  readonly children?: ReactNode;
-  readonly style?: CSSProperties;
-  readonly className?: string;
-}
+export type DefaultElementProps = HTMLAttributes<HTMLDivElement>;
 
 /**
- * Default element renderer: a `<div>` auto-sized via `useMeasureNode`.
- * Pass content as children.
- * @param props - Optional children, style, and className overrides.
- * @returns JSX element rendering a default node with the given label and dimensions.
+ * Default element renderer: a measured `<div>` inside a `<foreignObject>`.
+ * All props are passed through to the inner `<div>`.
+ * @param props - Standard HTML div attributes (children, style, className, event handlers, etc.).
  */
 export function DefaultElement(props: Readonly<DefaultElementProps> = {}) {
-  const { children } = props;
+  const { style, className, ...rest } = props;
   const { width, height } = useElementSize();
   const nodeRef = useRef<HTMLDivElement>(null);
   const measuredSize = useMeasureNode(nodeRef);
-  // Capture the user's initial intent — after measurement the graph syncs
-  // height back into the data, so we'd wrongly switch to the fixed-box mode.
   const initialHeightRef = useRef(height);
   const baseStyle = getStyle(width, initialHeightRef.current);
-  const mergedStyle = props.style ? { ...baseStyle, ...props.style } : baseStyle;
-  const className = props.className ? `jr-element ${props.className}` : 'jr-element';
+  const mergedStyle = style ? { ...baseStyle, ...style } : baseStyle;
+  const mergedClassName = className ? `jr-element ${className}` : 'jr-element';
 
   return (
     <foreignObject {...measuredSize} overflow="visible">
-      <div ref={nodeRef} className={className} style={mergedStyle}>
-        {children}
-      </div>
+      <div ref={nodeRef} {...rest} className={mergedClassName} style={mergedStyle} />
     </foreignObject>
   );
 }
