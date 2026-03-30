@@ -94,13 +94,12 @@ function NodeElement() {
 
   return (
     <DefaultElement
-      label={id}
       style={{
         borderColor: isConnected ? PRIMARY : '',
         minWidth: 100,
         minHeight: 50,
       }}
-    />
+    >{id}</DefaultElement>
   );
 }
 

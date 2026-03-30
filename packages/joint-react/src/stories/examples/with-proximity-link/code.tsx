@@ -70,7 +70,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
     };
   }, [closeIds, id, removeLink, setLink]);
 
-  return <DefaultElement label={label} />;
+  return <DefaultElement>{label}</DefaultElement>;
 }
 
 function Main() {

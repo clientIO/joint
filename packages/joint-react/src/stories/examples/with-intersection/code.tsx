@@ -33,7 +33,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
     return graph.findElementsUnderElement(element).length > 0;
   });
 
-  return <DefaultElement label={label} style={{ borderColor: isIntersected ? PRIMARY : '' }} />;
+  return <DefaultElement style={{ borderColor: isIntersected ? PRIMARY : '' }}>{label}</DefaultElement>;
 }
 
 function Main() {

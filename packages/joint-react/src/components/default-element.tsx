@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties } from 'react';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
 import { useElementSize } from '../hooks';
 
@@ -55,19 +55,19 @@ function getStyle(width: number | undefined, height: number | undefined): CSSPro
 }
 
 interface DefaultElementProps {
-  readonly label?: string;
+  readonly children?: ReactNode;
   readonly style?: CSSProperties;
   readonly className?: string;
 }
 
 /**
- * Default element renderer: a `<div>` with a label, auto-sized via `useMeasureNode`.
- * Obtains data and size via hooks (useElementData, useElementSize).
- * @param props - Optional label, style, and className overrides.
+ * Default element renderer: a `<div>` auto-sized via `useMeasureNode`.
+ * Pass content as children.
+ * @param props - Optional children, style, and className overrides.
  * @returns JSX element rendering a default node with the given label and dimensions.
  */
 export function DefaultElement(props: Readonly<DefaultElementProps> = {}) {
-  const { label } = props;
+  const { children } = props;
   const { width, height } = useElementSize();
   const nodeRef = useRef<HTMLDivElement>(null);
   const measuredSize = useMeasureNode(nodeRef);
@@ -81,7 +81,7 @@ export function DefaultElement(props: Readonly<DefaultElementProps> = {}) {
   return (
     <foreignObject {...measuredSize} overflow="visible">
       <div ref={nodeRef} className={className} style={mergedStyle}>
-        {label}
+        {children}
       </div>
     </foreignObject>
   );

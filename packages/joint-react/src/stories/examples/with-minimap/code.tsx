@@ -64,7 +64,7 @@ function MiniMap() {
 }
 
 function RenderElement({ label, color }: Readonly<NodeData>) {
-  return <DefaultElement label={label} style={{ backgroundColor: color, color: 'white' }} />;
+  return <DefaultElement style={{ backgroundColor: color, color: 'white' }}>{label}</DefaultElement>;
 }
 
 function Main() {

@@ -114,7 +114,7 @@ export function useCreatePortalPaper(
   options: Readonly<UseCreatePortalPaperOptions>
 ): UseCreatePortalPaperResult {
   const {
-    renderElement = DefaultElement,
+    renderElement = (data: Record<string, unknown>) => <DefaultElement>{data?.label as string}</DefaultElement>,
     renderLink,
     defaultLink,
     useHTMLOverlay,
