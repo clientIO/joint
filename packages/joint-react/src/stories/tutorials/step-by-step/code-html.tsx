@@ -1,10 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import React from 'react';
 import {
   GraphProvider,
   Paper,
-  useElementSize,
-  useMeasureNode,
+  HTMLHost,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
@@ -29,16 +27,7 @@ const initialEdges: Record<string, LinkRecord> = {
   },
 };
 function RenderItem({ label }: Readonly<ElementData>) {
-  const { width, height } = useElementSize();
-  const elementRef = React.useRef<HTMLDivElement>(null);
-  useMeasureNode(elementRef);
-  return (
-    <foreignObject width={width} height={height}>
-      <div ref={elementRef} className="node">
-        {label}
-      </div>
-    </foreignObject>
-  );
+  return <HTMLHost className="node">{label}</HTMLHost>;
 }
 
 function Main() {

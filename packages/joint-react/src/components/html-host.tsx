@@ -19,7 +19,6 @@ import { useElementSize } from '../hooks';
  */
 const shared: CSSProperties = {
   boxSizing: 'border-box',
-  textAlign: 'center',
   overflow: 'hidden',
   position: 'static',
 };

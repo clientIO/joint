@@ -6,7 +6,7 @@
 
 import {
   GraphProvider,
-  useElementSize,
+  HTMLHost,
   type ElementRecord,
   type LinkRecord,
   Paper,
@@ -220,12 +220,7 @@ const selectLinks = (state: GraphRootState) => (state.graph as UndoableGraphStat
  * Custom render function for graph elements.
  */
 function RenderItem({ label }: Readonly<ElementData>) {
-  const { width, height } = useElementSize();
-  return (
-    <foreignObject width={width} height={height}>
-      <div className="node">{label}</div>
-    </foreignObject>
-  );
+  return <HTMLHost className="node">{label}</HTMLHost>;
 }
 
 /**

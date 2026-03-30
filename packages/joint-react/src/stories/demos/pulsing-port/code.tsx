@@ -10,7 +10,6 @@ import {
   Paper,
   usePaperEvents,
   useLinks,
-  useMeasureNode,
   useElementId,
   HTMLHost,
 } from '@joint/react';
@@ -93,6 +92,7 @@ function NodeElement() {
   return (
     <HTMLHost
       style={{
+        textAlign: 'center',
         borderColor: isConnected ? PRIMARY : '',
         minWidth: 100,
         minHeight: 50,

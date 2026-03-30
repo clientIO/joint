@@ -105,7 +105,7 @@ function LinkItem({
   return createPortal(linkContent, portalElement);
 }
 
-const SimpleHTMLElement = (data: Record<string, unknown>) => <HTMLHost>{data?.label as string}</HTMLHost>;
+const SimpleHTMLElement = (data: Record<string, unknown>) => <HTMLHost style={{ textAlign: 'center' }}>{data?.label as string}</HTMLHost>;
 
 /**
  * Creates and manages a React-backed JointJS paper instance lifecycle.

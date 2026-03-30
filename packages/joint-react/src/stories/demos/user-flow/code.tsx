@@ -11,8 +11,9 @@ import {
   GraphProvider,
   Paper,
   useElementId,
+  useElementSize,
   useMarkup,
-  useMeasureNode,
+  HTMLHost,
   type CellId,
   type ElementRecord,
   type LinkRecord,
@@ -24,7 +25,6 @@ import {
   useCallback,
   useContext,
   useLayoutEffect,
-  useRef,
   useState,
 } from 'react';
 import { appendOutputPort, type OutputPort } from './port-utilities';
@@ -142,8 +142,7 @@ function RenderElementBase({
 }: Readonly<RenderElementProps>) {
   const id = useElementId();
   const { selectorRef } = useMarkup();
-  const contentRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(contentRef);
+  const { width, height } = useElementSize();
 
   let icon: string;
   switch (nodeType) {
@@ -191,27 +190,24 @@ function RenderElementBase({
   return (
     <>
       {/* Content of the node */}
-      <foreignObject width={width} height={height} overflow="visible">
-        <div
-          ref={contentRef}
-          style={{
-            width: getNodeWidth(outputPorts.length),
-            paddingBottom: PORT_PILL_HEIGHT + 10,
-          }}
-          className={`cursor-move w-75 rounded-lg px-4 py-2 flex flex-col border ${cardBg} ${cardBorder} ${cardText} ${cardShadow} ${draggingClass}`}
-        >
-          <div className="flex flex-1 flex-row items-center px-2 py-1 mb-2">
-            <i className={`fas fa-${icon} ${cardText}`}></i>
-            <div className="flex flex-col flex-1 ml-4">
-              <div className={cardText}>{title}</div>
-              <div className={`text-sm ${cardText}`}>{description}</div>
-            </div>
-          </div>
-          <div className={`text-xs py-1 ${cardSubtext}`}>
-            Ports: in + {outputPorts.length} outputs
+      <HTMLHost
+        style={{
+          width: getNodeWidth(outputPorts.length),
+          paddingBottom: PORT_PILL_HEIGHT + 10,
+        }}
+        className={`cursor-move w-75 rounded-lg px-4 py-2 flex flex-col border ${cardBg} ${cardBorder} ${cardText} ${cardShadow} ${draggingClass}`}
+      >
+        <div className="flex flex-1 flex-row items-center px-2 py-1 mb-2">
+          <i className={`fas fa-${icon} ${cardText}`}></i>
+          <div className="flex flex-col flex-1 ml-4">
+            <div className={cardText}>{title}</div>
+            <div className={`text-sm ${cardText}`}>{description}</div>
           </div>
         </div>
-      </foreignObject>
+        <div className={`text-xs py-1 ${cardSubtext}`}>
+          Ports: in + {outputPorts.length} outputs
+        </div>
+      </HTMLHost>
       {/* Input port */}
       <circle
         ref={selectorRef('in')}

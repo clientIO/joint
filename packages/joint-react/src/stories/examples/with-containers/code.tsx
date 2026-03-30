@@ -1,8 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { dia } from '@joint/core';
 import type { LinkRecord, ElementRecord } from '@joint/react';
-import { GraphProvider, Paper, useMeasureNode, useElementSize } from '@joint/react';
-import { useRef } from 'react';
+import { GraphProvider, Paper, HTMLHost, useElementSize } from '@joint/react';
 import { BG, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 type ContainerData = {
@@ -64,29 +63,23 @@ function ContainerNode({ label }: Readonly<ContainerData>) {
 }
 
 function ChildElement({ label }: Readonly<ContainerData>) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { width, height } = useMeasureNode(ref);
-
   return (
-    <foreignObject width={width} height={height}>
-      <div
-        ref={ref}
-        style={{
-          padding: '10px 10px',
-          border: `1px solid ${SECONDARY}`,
-          background: BG,
-          borderRadius: 6,
-          color: 'white',
-          fontSize: 14,
-          fontWeight: 500,
-          cursor: 'move',
-          display: 'inline-block',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {label}
-      </div>
-    </foreignObject>
+    <HTMLHost
+      style={{
+        padding: '10px 10px',
+        border: `1px solid ${SECONDARY}`,
+        background: BG,
+        borderRadius: 6,
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 500,
+        cursor: 'move',
+        display: 'inline-block',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label}
+    </HTMLHost>
   );
 }
 
