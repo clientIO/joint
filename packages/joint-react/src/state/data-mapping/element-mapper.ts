@@ -6,15 +6,6 @@ import { isRecord } from '../../utils/is';
 import type { CellAttributes } from './index';
 
 /**
- * Checks if the given data is a valid element data object.
- * @param data - The data to validate
- * @returns True if the data is a valid element data record
- */
-function isElementData(data: unknown): data is ElementRecord {
-  return isRecord(data);
-}
-
-/**
  * Forward mapper: converts an ElementRecord to JointJS cell attributes.
  *
  * - `portMap` → converted to native `ports`, stored on the model for reverse mapping.
@@ -28,7 +19,7 @@ export function elementToAttributes<ElementData extends object = Record<string, 
   element: ElementRecord<ElementData>;
 }): CellAttributes {
   const { element } = options;
-  if (!isElementData(element)) {
+  if (!isRecord(element)) {
     throw new Error('Invalid element format: expected an object.');
   }
 

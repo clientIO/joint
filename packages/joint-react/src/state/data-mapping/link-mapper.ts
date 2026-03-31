@@ -9,15 +9,6 @@ import { isRecord } from '../../utils/is';
 import type { CellAttributes } from '.';
 
 /**
- * Type guard to check if data is link data.
- * @param data - The data to check.
- * @returns True if the data is a record (link data).
- */
-function isLinkData(data: unknown): data is LinkRecord {
-  return isRecord(data);
-}
-
-/**
  * Forward mapper: converts a LinkRecord to JointJS cell attributes.
  *
  * - `labelMap` → converted to native `labels` array, stored on the model for reverse mapping.
@@ -32,7 +23,7 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
   link: LinkRecord<LinkData>;
 }): CellAttributes {
   const { id, link } = options;
-  if (!isLinkData(link)) {
+  if (!isRecord(link)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
 
