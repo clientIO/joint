@@ -305,34 +305,20 @@ export function graphView<
       const graphLinks: dia.Cell.JSON[] = [];
 
       for (const [id, element] of elements.getFull()) {
-        // Strip stale presentation keys (ports, portStyle) that were
-        // round-tripped into the container via attributesToElement.
-        // These must be recomputed by the new mapper from its defaults.
-        const cleanElement = { ...(element as Record<string, unknown>) };
-        Reflect.deleteProperty(cleanElement, 'ports');
-        Reflect.deleteProperty(cleanElement, 'portStyle');
-        Reflect.deleteProperty(cleanElement, 'presentation');
         const attributes = mapElementToAttributes({
           id,
-          element: cleanElement as ElementRecord<ElementData>,
+          element,
         });
         graphElements.push({ ...attributes, id });
       }
       for (const [id, link] of links.getFull()) {
-        // Strip stale presentation keys (color, width, attrs, labelStyle, etc.)
-        // that were round-tripped into the container via attributesToLink.
-        // These must be recomputed by the new mapper from its defaults.
-        const cleanLink = { ...(link as Record<string, unknown>) };
-
-        Reflect.deleteProperty(cleanLink, 'style');
-        Reflect.deleteProperty(cleanLink, 'labelStyle');
-
         const attributes = mapLinkToAttributes({
           id,
-          link: cleanLink as unknown as LinkRecord<LinkData>,
+          link,
         });
         graphLinks.push({ ...attributes, id });
       }
+
       graph.syncCells([...graphElements, ...graphLinks], {
         remove: true,
         isUpdateFromReact: true,
