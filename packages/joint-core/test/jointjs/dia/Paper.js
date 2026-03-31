@@ -2982,11 +2982,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 viewManagement: true,
                 cellVisibility: (cell) => {
                     const position = cell.position();
-                    if (position.x > 200) {
-                        return false;
-                    }
 
-                    return true;
+                    return position.x <= 200;
                 },
             });
 
@@ -3001,11 +2998,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             assert.notOk(view.el.parentElement, 'View element is removed from the DOM when the cell is hidden');
 
-            paper.updateCellsVisibility({
-                cellVisibility: () => {
-                    return true;
-                }
-            });
+            paper.updateCellsVisibility({ cellVisibility: () => true });
 
             assert.equal(view.el.getAttribute('transform'), 'translate(300,0)', 'View has correct transform attribute after visibility update');
         });

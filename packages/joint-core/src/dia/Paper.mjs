@@ -1936,8 +1936,8 @@ export const Paper = View.extend({
                             this.registerUnmountedView(view);
                             this._hideView(view);
                         }
-                        // The view is not mounted. We can just update the unmounted list.
-                        // We ADD the current flag to the flag that was already scheduled.
+                        // At this point the view is not mounted (either it was just unmounted or was already unmounted).
+                        // Merge the current flag into any already-scheduled updates for this unmounted view.
                         this._mergeUnmountedViewScheduledUpdates(cid, currentFlag);
 
                         // Delete the current update as it has been processed.
