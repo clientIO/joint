@@ -1935,12 +1935,11 @@ export const Paper = View.extend({
                             // The view is currently mounted. Hide the view (detach or remove it).
                             this.registerUnmountedView(view);
                             this._hideView(view);
-                            this._mergeUnmountedViewScheduledUpdates(cid, currentFlag); // preserve pending flags
-                        } else {
-                            // The view is not mounted. We can just update the unmounted list.
-                            // We ADD the current flag to the flag that was already scheduled.
-                            this._mergeUnmountedViewScheduledUpdates(cid, currentFlag);
                         }
+                        // The view is not mounted. We can just update the unmounted list.
+                        // We ADD the current flag to the flag that was already scheduled.
+                        this._mergeUnmountedViewScheduledUpdates(cid, currentFlag);
+
                         // Delete the current update as it has been processed.
                         delete priorityUpdates[cid];
                         unmountCount++;
