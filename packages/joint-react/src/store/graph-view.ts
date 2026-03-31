@@ -18,7 +18,6 @@ import {
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
 import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-utils';
-import { LINK_PRESENTATION_KEYS } from '../theme/link-theme';
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalContainerChanges<
@@ -324,13 +323,10 @@ export function graphView<
         // that were round-tripped into the container via attributesToLink.
         // These must be recomputed by the new mapper from its defaults.
         const cleanLink = { ...(link as Record<string, unknown>) };
-        Reflect.deleteProperty(cleanLink, 'attrs');
+
         Reflect.deleteProperty(cleanLink, 'style');
-        Reflect.deleteProperty(cleanLink, 'presentation');
         Reflect.deleteProperty(cleanLink, 'labelStyle');
-        for (const key of LINK_PRESENTATION_KEYS) {
-          Reflect.deleteProperty(cleanLink, key);
-        }
+
         const attributes = mapLinkToAttributes({
           id,
           link: cleanLink as unknown as LinkRecord<LinkData>,

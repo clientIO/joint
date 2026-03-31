@@ -74,20 +74,8 @@ export function elementToAttributes<ElementData extends object = Record<string, 
 export function attributesToElement<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
-
-  const {
-    data,
-    portMap,
-    portStyle,
-    position,
-    size,
-    angle,
-    z,
-    layer,
-    parent,
-    type,
-    attrs,
-  } = attributes;
+  const { data, portMap, portStyle, position, size, angle, z, layer, parent, type, attrs } =
+    attributes;
 
   const elementRecord: ElementRecord<ElementData> = {
     data,
