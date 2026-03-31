@@ -152,10 +152,10 @@ function mapNativeElementToAttributes(options: {
   id: string;
   element: ElementRecord<NativeElementUserData>;
 }) {
-  const { id, element } = options;
+  const { element } = options;
   const userData = element.data as NativeElementUserData | undefined;
   const ports = buildNativePorts(userData?.inputPorts, userData?.outputPorts);
-  const attributes = elementToAttributes({ id, element });
+  const attributes = elementToAttributes(element);
   if (!ports) return attributes;
   return { ...attributes, ports };
 }

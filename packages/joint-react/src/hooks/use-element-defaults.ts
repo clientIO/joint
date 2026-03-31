@@ -27,7 +27,8 @@ export function useElementDefaults<Data extends object = Record<string, unknown>
           let result: CellAttributes;
           if (resolved) {
             const element = { ...resolved, ...mapOptions.element } as ElementRecord<Data>;
-            result = elementToAttributes({ id: mapOptions.id, element });
+            result = elementToAttributes(element);
+            result.id = mapOptions.id;
 
             // Strip default-provided keys from cell.data so they don't
             // pollute React state on round-trip (e.g. after element move).

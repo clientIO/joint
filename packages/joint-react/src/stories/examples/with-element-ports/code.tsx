@@ -83,8 +83,8 @@ function mapDataToElementAttributes(options: { id: string; element: ElementRecor
   }
 
   const result = elementToAttributes({
-    id,
-    element: { ...element, portMap: resolvedPorts },
+    ...element,
+    portMap: resolvedPorts,
   }) as CellAttributes;
 
   // preserve original portMap for reverse mapping and editing

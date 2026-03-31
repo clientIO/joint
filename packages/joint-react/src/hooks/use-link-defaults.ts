@@ -21,7 +21,8 @@ export function useLinkDefaults<Data extends object = Record<string, unknown>>(
           let result: CellAttributes;
           if (resolved) {
             const mergedData = { ...resolved, ...mapOptions.link } as LinkRecord<Data>;
-            result = linkToAttributes({ link: mergedData, id: mapOptions.id });
+            result = linkToAttributes(mergedData);
+            result.id = mapOptions.id;
 
             // Strip default-provided keys from cell.data so they don't
             // pollute React state on round-trip (e.g. after link reconnect).

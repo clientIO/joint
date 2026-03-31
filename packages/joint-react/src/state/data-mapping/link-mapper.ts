@@ -18,11 +18,9 @@ import type { CellAttributes } from '.';
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function linkToAttributes<LinkData extends object = Record<string, unknown>>(options: {
-  id: string;
-  link: LinkRecord<LinkData>;
-}): CellAttributes {
-  const { link } = options;
+export function linkToAttributes<LinkData extends object = Record<string, unknown>>(
+  link: LinkRecord<LinkData>
+): CellAttributes {
   if (!isRecord(link)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
@@ -117,4 +115,4 @@ export type MapAttributesToLink<LinkData extends object = Record<string, unknown
   typeof attributesToLink<LinkData>;
 
 export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> =
-  typeof linkToAttributes<LinkData>;
+  (options: { id: string; link: LinkRecord<LinkData> }) => CellAttributes;

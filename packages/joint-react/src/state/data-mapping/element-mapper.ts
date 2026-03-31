@@ -14,11 +14,9 @@ import type { CellAttributes } from './index';
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function elementToAttributes<ElementData extends object = Record<string, unknown>>(options: {
-  id: string;
-  element: ElementRecord<ElementData>;
-}): CellAttributes {
-  const { element } = options;
+export function elementToAttributes<ElementData extends object = Record<string, unknown>>(
+  element: ElementRecord<ElementData>
+): CellAttributes {
   if (!isRecord(element)) {
     throw new Error('Invalid element format: expected an object.');
   }
@@ -100,7 +98,7 @@ export type MapAttributesToElement<ElementData extends object = Record<string, u
   typeof attributesToElement<ElementData>;
 
 export type MapElementToAttributes<ElementData extends object = Record<string, unknown>> =
-  typeof elementToAttributes<ElementData>;
+  (options: { id: string; element: ElementRecord<ElementData> }) => CellAttributes;
 
 export type MapElementToAttributesOptions<ElementData extends object = Record<string, unknown>> =
   Parameters<MapElementToAttributes<ElementData>>[0];

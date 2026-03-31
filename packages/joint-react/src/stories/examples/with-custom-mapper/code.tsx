@@ -74,12 +74,9 @@ const mapElementToAttributes = (
   const { cx = 0, cy = 0 } = userData;
   const { width = 100, height = 60 } = data.element.size ?? {}; // Support both element-level and data-level size
   return elementToAttributes<CenterElement>({
-    ...data,
-    element: {
-      ...data.element,
-      position: { x: cx - width / 2, y: cy - height / 2 },
-      size: { width, height },
-    },
+    ...data.element,
+    position: { x: cx - width / 2, y: cy - height / 2 },
+    size: { width, height },
   });
 };
 

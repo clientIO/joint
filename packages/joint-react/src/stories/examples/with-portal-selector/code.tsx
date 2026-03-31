@@ -382,8 +382,8 @@ function Main() {
 
 export default function App() {
   const mapElementToAttributes = useMemo(() => {
-    return ({ id, element }: { id: string; element: ElementRecord<ElementUserData> }) => {
-      const attributes = elementToAttributes({ id, element });
+    return ({ element }: { id: string; element: ElementRecord<ElementUserData> }) => {
+      const attributes = elementToAttributes(element);
       const userData = element.data as ElementUserData | undefined;
       const { jjType, color = 'lightgray' } = userData ?? {};
       if (!jjType) return attributes;
@@ -396,8 +396,8 @@ export default function App() {
   }, []);
 
   const mapLinkToAttributes = useMemo(() => {
-    return ({ id, link }: { id?: string; link: LinkRecord }) => {
-      const attributes = linkToAttributes({ id, link });
+    return ({ link }: { id?: string; link: LinkRecord }) => {
+      const attributes = linkToAttributes(link);
       const userData = link.data as LinkUserData | undefined;
       const { jjType } = userData ?? {};
       if (!jjType) return attributes;

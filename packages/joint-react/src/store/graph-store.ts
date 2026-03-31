@@ -111,8 +111,8 @@ export class GraphStore<
       onLinksChange,
       mapAttributesToElement = attributesToElement,
       mapAttributesToLink = attributesToLink,
-      mapElementToAttributes = elementToAttributes,
-      mapLinkToAttributes = linkToAttributes,
+      mapElementToAttributes = ({ id, element }) => ({ ...elementToAttributes(element), id }),
+      mapLinkToAttributes = ({ id, link }) => ({ ...linkToAttributes(link), id }),
     } = config;
 
     this.graph =

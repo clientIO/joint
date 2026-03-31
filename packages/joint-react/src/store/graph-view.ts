@@ -56,8 +56,8 @@ export function graphView<
   let {
     mapAttributesToElement = attributesToElement,
     mapAttributesToLink = attributesToLink,
-    mapElementToAttributes = elementToAttributes,
-    mapLinkToAttributes = linkToAttributes,
+    mapElementToAttributes = ({ id, element }) => ({ ...elementToAttributes(element), id }),
+    mapLinkToAttributes = ({ id, link }) => ({ ...linkToAttributes(link), id }),
   } = mappings;
 
   const elements = createContainer<ElementWithLayout<ElementData>>('Elements');
