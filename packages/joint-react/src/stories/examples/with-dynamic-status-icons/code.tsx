@@ -11,7 +11,7 @@ import {
   useNodesMeasuredEffect,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useRef } from 'react';
-import { BG, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
+import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 
 const ShapeTypes = {
   rectangle: 'rectangle',
@@ -249,7 +249,7 @@ function Main() {
       async
       gridSize={20}
       drawGrid={{ name: 'mesh' }}
-      style={{ backgroundColor: BG }}
+      style={PAPER_STYLE}
     />
   );
 }

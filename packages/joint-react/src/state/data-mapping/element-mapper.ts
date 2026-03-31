@@ -74,6 +74,7 @@ export function attributesToElement<ElementData extends object = Record<string, 
     // Ports
     portMap,
     ports,
+    portDefaults,
     // 1:1 mapping of all other fields directly on the model
     ...elementRecord
   } = attributes;
@@ -84,6 +85,7 @@ export function attributesToElement<ElementData extends object = Record<string, 
     elementRecord.portMap = portMap;
   } else if (ports) {
     elementRecord.ports = ports;
+    elementRecord.portDefaults = portDefaults;
   }
 
   // Only a custom type should be included in the element record.

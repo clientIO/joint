@@ -20,7 +20,7 @@ import {
   PORTAL_ELEMENT_TYPE,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { BG, LIGHT } from 'storybook-config/theme';
+import { LIGHT, PAPER_STYLE } from 'storybook-config/theme';
 
 // ============================================================================
 // Types & Constants
@@ -346,7 +346,7 @@ function Main() {
           const type = cellView.model.get('type');
           return type === PORTAL_ELEMENT_TYPE ? defaultSelector : 'root';
         }}
-        style={{ backgroundColor: BG }}
+        style={PAPER_STYLE}
         drawGrid={false}
       >
         <Selection selectedId={selectedElement} />

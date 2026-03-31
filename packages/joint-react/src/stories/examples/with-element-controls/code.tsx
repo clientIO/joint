@@ -6,7 +6,7 @@ import {
   type ElementRecord,
 } from '@joint/react';
 import '../index.css';
-import { PAPER_CLASSNAME, PRIMARY, LIGHT, TEXT, BG } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, LIGHT, TEXT } from 'storybook-config/theme';
 import { dia, elementTools, g } from '@joint/core';
 import { useCallback, useId } from 'react';
 
@@ -778,7 +778,7 @@ function Main() {
       height={600}
       className={PAPER_CLASSNAME}
       renderElement={renderElement}
-      style={{ backgroundColor: BG }}
+      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

@@ -13,7 +13,7 @@ import {
   type LinkRecord,
 } from '@joint/react';
 import { highlighters, type dia } from '@joint/core';
-import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 import '../index.css';
 import './styles.css';
@@ -307,7 +307,7 @@ function Main() {
       renderElement={renderElement}
       defaultRouter={{ name: 'normal' }}
       defaultConnector={{ name: 'rounded', args: { radius: 20 } }}
-      style={{ backgroundColor: BG }}
+      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

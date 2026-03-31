@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PAPER_CLASSNAME, BG } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PAPER_STYLE } from 'storybook-config/theme';
 import type { dia } from '@joint/core';
 import '../index.css';
 import {
@@ -202,7 +202,7 @@ function Main() {
       height={420}
       renderElement={renderElement}
       linkPinning={false}
-      style={{ backgroundColor: BG }}
+      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

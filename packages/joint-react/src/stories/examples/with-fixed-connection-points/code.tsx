@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef } from 'react';
 import type { LinkRecord, ElementRecord } from '@joint/react';
 import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents } from '@joint/react';
-import { PAPER_CLASSNAME, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
 
 import '../index.css';
@@ -390,7 +390,7 @@ function Main() {
       renderElement={RenderElement}
       gridSize={20}
       drawGrid={{ name: 'mesh', args: { color: GRID_COLOR } }}
-      style={{ backgroundColor: BG }}
+      style={PAPER_STYLE}
       linkPinning={false}
       async
       // Connector/Router configuration

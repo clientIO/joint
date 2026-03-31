@@ -15,7 +15,7 @@ import {
   usePaper,
   usePaperEvents,
 } from '@joint/react';
-import { BG, LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
+import { BG, LIGHT, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, TEXT } from 'storybook-config/theme';
 import { useCallback, useId, useMemo, useRef } from 'react';
 import { dia, elementTools } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
@@ -720,7 +720,7 @@ function Main() {
       defaultRouter={{ name: 'orthogonal' }}
       interactive={false}
       async
-      style={{ backgroundColor: BG }}
+      style={PAPER_STYLE}
       drawGrid={false}
     />
   );
