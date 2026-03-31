@@ -45,7 +45,8 @@ export class PortalElement<Attributes = dia.Element.Attributes> extends dia.Elem
       type: PORTAL_ELEMENT_TYPE,
       size: { width: 0, height: 0 },
       data: {},
-      presentation: {},
+      ports: null,
+      portDefaults: null,
     } as unknown as dia.Element.Attributes & Attributes;
   }
 }

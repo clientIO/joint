@@ -48,10 +48,13 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
     data,
   };
 
+  // style/attrs dual-format: if `style` is present, `attrs` will be generated from it.
   if (style) {
     attributes.attrs = buildLinkPresentationAttributes(style, defaultLinkStyle);
     attributes.style = style;
   }
+
+  // labelMap/labels dual-format: if `labelMap` is present, `labels` will be generated from it.
   if (labelStyle) attributes.labelStyle = labelStyle;
   if (labelMap) {
     if (labels) {
@@ -62,7 +65,7 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
     );
     attributes.labelMap = labelMap;
   } else {
-    attributes.labels = labels ?? [];
+    attributes.labels = labels ?? null;
   }
 
   return attributes;

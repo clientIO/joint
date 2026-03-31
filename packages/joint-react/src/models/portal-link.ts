@@ -39,6 +39,7 @@ export class PortalLink<Attributes = dia.Link.Attributes> extends dia.Link<
       ...super.defaults,
       type: PORTAL_LINK_TYPE,
       attrs: defaultPresentationAttrs,
+      labels: null,
     } as unknown as dia.Link.Attributes & Attributes;
   }
 

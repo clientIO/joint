@@ -26,8 +26,8 @@ export function elementToAttributes<ElementData extends object = Record<string, 
   const {
     data = {} as ElementData,
     portMap,
-    portStyle,
     ports,
+    portDefaults,
     type = PORTAL_ELEMENT_TYPE,
     ...cellAttributes
   } = element;
@@ -38,17 +38,21 @@ export function elementToAttributes<ElementData extends object = Record<string, 
     data,
   };
 
+  // portMap/ports dual-format: if `portMap` is present, `ports` will be generated from it.
   if (portMap) {
     if (ports) {
       throw new Error('Cannot use both "portMap" and "ports" on the same element.');
     }
-    attributes.ports = convertPorts(portMap, portStyle);
+    if (portDefaults) {
+      throw new Error('Cannot use both "portMap" and "portDefaults" on the same element. Port defaults are generated automatically when using portMap.');
+    }
+    attributes.ports = convertPorts(portMap, element.portStyle);
     attributes.portDefaults = createPortGroupsDefault();
     attributes.portMap = portMap;
   } else {
-    attributes.ports = ports ?? {};
+    attributes.ports = ports ?? null;
+    attributes.portDefaults = portDefaults ?? null;
   }
-  if (portStyle) attributes.portStyle = portStyle;
 
   return attributes;
 }
