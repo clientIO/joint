@@ -13,6 +13,7 @@ import {
   type RefObject,
   type ReactNode,
   useContext,
+  CSSProperties,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
@@ -105,7 +106,28 @@ function LinkItem({
   return createPortal(linkContent, portalElement);
 }
 
-const SimpleHTMLElement = (data: Record<string, unknown>) => <HTMLHost style={{ textAlign: 'center' }}>{data?.label as string}</HTMLHost>;
+const defaultHTMLHostStyle: CSSProperties = {
+  boxSizing: 'border-box',
+  overflow: 'hidden',
+  textAlign: 'center',
+  wordBreak: 'break-word',
+  minWidth: 80,
+  maxWidth: 200,
+}
+
+/**
+ * The default element if the user doesn't provide a renderElement function.
+ * Renders the label in an HTMLHost.
+ * @param data - Element data containing the label to render.
+ * @returns A JSX element rendering the label inside an HTMLHost with default styling.
+ */
+const defaultRenderElement = (data: Record<string, unknown>) => {
+  return (
+    <HTMLHost style={defaultHTMLHostStyle}>
+      {data?.label as string}
+    </HTMLHost>
+  );
+};
 
 /**
  * Creates and manages a React-backed JointJS paper instance lifecycle.
@@ -116,7 +138,7 @@ export function useCreatePortalPaper(
   options: Readonly<UseCreatePortalPaperOptions>
 ): UseCreatePortalPaperResult {
   const {
-    renderElement = SimpleHTMLElement,
+    renderElement = defaultRenderElement,
     renderLink,
     defaultLink,
     useHTMLOverlay,
