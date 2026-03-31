@@ -1,6 +1,7 @@
 import { useRef, type CSSProperties, type HTMLAttributes } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
-import { useElementSize } from '../hooks';
+import { useElement, useElementSize } from '../hooks';
+import { ElementRecord } from '../types/data-types';
 
 /**
  * Default element renderer: a `<div>` auto-sized via `useMeasureNode`.
@@ -17,55 +18,8 @@ import { useElementSize } from '../hooks';
  * <Paper renderElement={({ label }) => <HTMLHost>{label}</HTMLHost>} />
  * ```
  */
-const shared: CSSProperties = {
-  boxSizing: 'border-box',
-  overflow: 'hidden',
-  position: 'static',
-};
-
-// No width, no height → single line, auto-sized to content
-const autoStyle: CSSProperties = {
-  ...shared,
-  width: 'max-content',
-  whiteSpace: 'nowrap',
-  textOverflow: 'ellipsis',
-  minWidth: 80,
-};
-
-function hasSize(size?: number) {
-  return typeof size === 'number' && size > 0;
-}
-
-function getStyle(width: number | undefined, height: number | undefined): CSSProperties {
-  if (!hasSize(width) && !hasSize(height)) {
-    return autoStyle;
-  }
-  // Width only → text wraps, height grows to fit
-  if (hasSize(width) && !hasSize(height)) {
-    return { ...shared, width, overflowWrap: 'break-word' };
-  }
-  // Height only → single line, auto-width, vertically centered
-  if (!hasSize(width) && hasSize(height)) {
-    return {
-      ...shared,
-      width: 'max-content',
-      height,
-      whiteSpace: 'nowrap',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    };
-  }
-  // Both → fixed box, text wraps but clipped at boundary
-  return {
-    ...shared,
-    width,
-    height,
-    overflowWrap: 'break-word',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
+function hasSizeSet(value?: number): value is number {
+  return typeof value === 'number' && value > 0;
 }
 
 export type HTMLHostProps = HTMLAttributes<HTMLDivElement>;
@@ -82,9 +36,12 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
   const measuredSize = useMeasureNode(nodeRef);
   const initialWidthRef = useRef(width);
   const initialHeightRef = useRef(height);
-  const baseStyle = getStyle(initialWidthRef.current, initialHeightRef.current);
+  const sizeStyle: CSSProperties = {
+    width: hasSizeSet(initialWidthRef.current) ? initialWidthRef.current : 'max-content',
+    height: hasSizeSet(initialHeightRef.current) ? initialHeightRef.current : undefined,
+  };
   // Force static positioning — Safari mispositions foreignObject children with position: relative or backdrop-filter.
-  const mergedStyle = style ? { ...baseStyle, ...style, position: 'static' as const } : baseStyle;
+  const mergedStyle: CSSProperties = { ...sizeStyle, ...style, position: 'static' };
   const mergedClassName = className ? `jr-element ${className}` : 'jr-element';
 
   return (
