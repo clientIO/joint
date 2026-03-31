@@ -1,6 +1,6 @@
 import { dia } from '@joint/core';
 import { PORTAL_SELECTOR } from './portal-element';
-import { buildLinkPresentationAttributes } from '../internal';
+import { buildLinkPresentationAttributes } from '../state/data-mapping/link-attributes';
 import { defaultLinkStyle } from '../theme/link-theme';
 
 export const PORTAL_LINK_TYPE = 'PortalLink';

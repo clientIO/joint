@@ -250,21 +250,21 @@ describe('useGraph link mutations', () => {
       expect(result.current.graph.getLinks().length).toBe(1);
     });
 
-    act(() => result.current.setLink('3', { source: { id: '1' }, target: { id: '2' }, color: '#001DFF' }));
+    act(() => result.current.setLink('3', { source: { id: '1' }, target: { id: '2' }, style: { color: '#001DFF' } }));
 
     await waitFor(() => {
       const link = result.current.graph.getCell('3');
       expect(link?.get('attrs')?.line?.style?.stroke ?? '').toBe('#001DFF');
     });
 
-    act(() => result.current.setLink('3', (previous) => ({ ...previous, color: '#FF0000' })));
+    act(() => result.current.setLink('3', (previous) => ({ ...previous, style: { color: '#FF0000' } })));
 
     await waitFor(() => {
       const link = result.current.graph.getCell('3');
       expect(link?.get('attrs')?.line?.style?.stroke ?? '').toBe('#FF0000');
     });
 
-    act(() => result.current.setLink('30', { source: { id: '2' }, target: { id: '1' }, color: '#00FF00' }));
+    act(() => result.current.setLink('30', { source: { id: '2' }, target: { id: '1' }, style: { color: '#00FF00' } }));
 
     await waitFor(() => {
       expect(result.current.graph.getLinks().length).toBe(2);

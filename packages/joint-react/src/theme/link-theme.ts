@@ -24,9 +24,6 @@ export const defaultLinkStyle: Readonly<RequiredLinkStyle> = {
 /** A presentation key on Link, mapped to SVG attrs by buildLinkPresentationAttributes. */
 export type LinkPresentationKey = keyof LinkStyle;
 
-/** Presentation keys for runtime iteration. Derived from {@link defaultLinkStyle}. */
-export const LINK_PRESENTATION_KEYS = Object.keys(defaultLinkStyle) as LinkPresentationKey[];
-
 /**
  * Internal fallback values for label properties not set by labelStyle or individual labels.
  */

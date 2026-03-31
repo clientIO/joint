@@ -757,7 +757,7 @@ describe('Paper Component', () => {
     // Create elements with initial x/y so they can be synced back
     const elementsWithPosition: Record<
       string,
-      { data: { label: string }; x: number; y: number; width: number; height: number }
+      { data: { label: string }; position: { x: number; y: number }; size: { width: number; height: number } }
     > = {
       '1': { data: { label: 'Node 1' }, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
       '2': { data: { label: 'Node 2' }, position: { x: 0, y: 0 }, size: { width: 10, height: 10 } },
@@ -1328,10 +1328,12 @@ describe('Paper Component', () => {
     it('supports defaultLink as LinkRecord object when dragging between ports', async () => {
       const defaultLinkData: Partial<LinkRecord> = {
         data: { customProperty: 'flat-link-default' },
-        color: '#ff5500',
-        width: 7,
-        className: 'custom-default-link',
-        targetMarker: 'none',
+        style: {
+          color: '#ff5500',
+          width: 7,
+          className: 'custom-default-link',
+          targetMarker: 'none',
+        },
       };
       const { ref, getLinksSnapshot } = await renderPortDragPaper(defaultLinkData);
 
@@ -1356,10 +1358,10 @@ describe('Paper Component', () => {
       });
 
       const [createdLinkData] = [...getLinksSnapshot().values()];
-      // Presentation data is in the presentation field;
+      // Style data is stored in the style field;
       // user data is directly in data
-      expect(createdLinkData.color).toBe('#ff5500');
-      expect(createdLinkData.width).toBe(7);
+      expect(createdLinkData.style?.color).toBe('#ff5500');
+      expect(createdLinkData.style?.width).toBe(7);
       expect(createdLinkData.data?.customProperty).toBe('flat-link-default');
       expect(createdLinkData.source).toEqual(
         expect.objectContaining({ id: SOURCE_ELEMENT_ID, port: SOURCE_PORT_ID })
@@ -1373,9 +1375,11 @@ describe('Paper Component', () => {
       const defaultLinkCallback = jest.fn(
         (_cellView: dia.CellView, _magnet: SVGElement): Partial<LinkRecord> => ({
           data: { customProperty: 'callback-flat-link-default' },
-          color: '#22aa55',
-          width: 4,
-          wrapperWidth: 16,
+          style: {
+            color: '#22aa55',
+            width: 4,
+            wrapperWidth: 16,
+          },
         })
       );
       const { ref, getLinksSnapshot } = await renderPortDragPaper(
@@ -1404,10 +1408,10 @@ describe('Paper Component', () => {
       });
 
       const [createdLinkData] = [...getLinksSnapshot().values()];
-      // Presentation data comes from the presentation field
-      expect(createdLinkData.color).toBe('#22aa55');
-      expect(createdLinkData.width).toBe(4);
-      expect(createdLinkData.wrapperWidth).toBe(16);
+      // Style data is stored in the style field
+      expect(createdLinkData.style?.color).toBe('#22aa55');
+      expect(createdLinkData.style?.width).toBe(4);
+      expect(createdLinkData.style?.wrapperWidth).toBe(16);
       expect(createdLinkData.data?.customProperty).toBe('callback-flat-link-default');
     });
   });

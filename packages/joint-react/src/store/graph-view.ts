@@ -305,21 +305,20 @@ export function graphView<
       const graphLinks: dia.Cell.JSON[] = [];
 
       for (const [id, element] of elements.getFull()) {
-        const attributes = mapElementToAttributes({ id, element });
+        const attributes = mapElementToAttributes({
+          id,
+          element,
+        });
         graphElements.push({ ...attributes, id });
       }
       for (const [id, link] of links.getFull()) {
-        // Strip attrs — they are recomputed by the mapper from flat presentation
-        // properties (color, width, etc.). Container data may carry stale
-        // round-tripped attrs from attributesToLink that would otherwise
-        // override the freshly computed values.
-        const { attrs: _staleAttrs, ...linkWithoutAttrs } = link as Record<string, unknown>;
         const attributes = mapLinkToAttributes({
           id,
-          link: linkWithoutAttrs as unknown as LinkRecord<LinkData>,
+          link,
         });
         graphLinks.push({ ...attributes, id });
       }
+
       graph.syncCells([...graphElements, ...graphLinks], {
         remove: true,
         isUpdateFromReact: true,

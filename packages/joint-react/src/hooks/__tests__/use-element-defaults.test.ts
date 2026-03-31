@@ -174,7 +174,7 @@ describe('useElementDefaults', () => {
       portStyle: { color: 'blue' },
     });
 
-    expect(cellJson.presentation).toMatchObject({ portStyle: { color: 'blue' } });
+    expect(cellJson.portStyle).toMatchObject({ color: 'blue' });
   });
 
   // ── Memoization ────────────────────────────────────────────────────────
