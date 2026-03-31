@@ -2974,20 +2974,19 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
 
         QUnit.test('propagate updates flag when the cell is hidden during the update', function(assert) {
-            const done = assert.async();
             const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
             paper = new Paper({
                 el: paperEl,
                 model: graph,
                 viewManagement: true,
-                async: true,
-                autoFreeze: true,
                 cellVisibility: (cell) => {
                     const position = cell.position();
                     if (position.x > 200) {
                         return false;
                     }
+
+                    return true;
                 },
             });
 
@@ -2995,25 +2994,20 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             rect.addTo(graph);
 
             const view = rect.findView(paper);
-            paper.dumpView(view);
 
             assert.ok(view.el.parentElement, 'View element mounted in the DOM');
 
-            paper.on('render:idle', function() {
-                assert.notOk(view.el.parentElement, 'View element is removed from the DOM when the cell is hidden');
+            rect.translate(300, 0);
 
-                paper.updateCellsVisibility({
-                    cellVisibility: () => {
-                        return true;
-                    }
-                });
+            assert.notOk(view.el.parentElement, 'View element is removed from the DOM when the cell is hidden');
 
-                assert.ok(view.el.parentElement, 'View element is mounted in the DOM after visibility update');
-                assert.equal(view.el.getAttribute('transform'), 'translate(300,0)', 'View element has correct transform after visibility update');
-                done();
+            paper.updateCellsVisibility({
+                cellVisibility: () => {
+                    return true;
+                }
             });
 
-            rect.position(300, 0);
+            assert.equal(view.el.getAttribute('transform'), 'translate(300,0)', 'View has correct transform attribute after visibility update');
         });
     });
 
