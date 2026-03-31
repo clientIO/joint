@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { dia } from '@joint/core';
 import type { LinkRecord } from '../types/data-types';
+import type {
+  CSSProperties} from 'react';
 import {
   useCallback,
   useDeferredValue,
@@ -12,8 +14,7 @@ import {
   useState,
   type RefObject,
   type ReactNode,
-  useContext,
-  CSSProperties,
+  useContext
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
@@ -113,7 +114,7 @@ const defaultHTMLHostStyle: CSSProperties = {
   wordBreak: 'break-word',
   minWidth: 80,
   maxWidth: 200,
-}
+};
 
 /**
  * The default element if the user doesn't provide a renderElement function.

@@ -101,5 +101,5 @@ function Component() {
   description:
     'Extracts element coordinates (x, y) using a selector function. The component re-renders only when the position changes, not when other properties like size or color change.',
   details:
-    "**Use Case:** Perfect for displaying position information or creating position-dependent UI elements that don't need to update when other element properties change.",
+    '**Use Case:** Perfect for displaying position information or creating position-dependent UI elements that don\'t need to update when other element properties change.',
 });

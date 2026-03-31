@@ -324,7 +324,7 @@ function ProductNode({ name, label, percentage, color }: Readonly<ProductData>) 
         if (diff === 0) break;
         setElement(productId, (previous) => {
           const { data } = previous;
-          if (!data || data.type !== 'Product') return previous;
+          if (data?.type !== 'Product') return previous;
           const previousPercentage = data.percentage;
           const adjusted = Math.max(previousPercentage + diff, 0);
           diff = Math.min(previousPercentage + diff, 0);
