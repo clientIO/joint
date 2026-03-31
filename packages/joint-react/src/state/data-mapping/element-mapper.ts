@@ -73,28 +73,25 @@ export function elementToAttributes<ElementData extends object = Record<string, 
 export function attributesToElement<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
-  const { data, portMap, portStyle, position, size, angle, z, layer, parent, type, attrs } =
-    attributes;
 
-  const elementRecord: ElementRecord<ElementData> = {
-    data,
-    position,
-    size,
-    angle,
-    z,
-    layer,
-    parent,
-  };
+  const {
+    type,
+    // Ports
+    portMap,
+    ports,
+    // 1:1 mapping of all other fields directly on the model
+    ...elementRecord
+  } = attributes;
 
-  if (attrs) elementRecord.attrs = attrs;
-
+  // The element record can have either `portMap` or `ports`, but not both.
+  // If `portMap` is present, it means the `ports` were generated from it.
   if (portMap) {
     elementRecord.portMap = portMap;
-  } else if (attributes.ports) {
-    elementRecord.ports = attributes.ports;
+  } else if (ports) {
+    elementRecord.ports = ports;
   }
-  if (portStyle) elementRecord.portStyle = portStyle;
 
+  // Only a custom type should be included in the element record.
   if (type && type !== PORTAL_ELEMENT_TYPE) {
     elementRecord.type = type;
   }

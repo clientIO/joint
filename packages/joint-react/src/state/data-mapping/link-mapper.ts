@@ -91,44 +91,32 @@ export function attributesToLink<LinkData extends object = Record<string, unknow
 ): LinkRecord<LinkData> {
 
   const {
-    data,
-    style,
-    labelMap,
-    labelStyle,
-    source,
-    target,
-    z,
-    layer,
-    parent,
-    vertices,
-    router,
-    connector,
     type,
-    labels: attributeLabels,
+    // Labels
+    labelMap,
+    labels,
+    // Link style
+    style,
+    attrs,
+    // 1:1 mapping of all other fields directly on the model
+    ...linkRecord
   } = attributes;
 
-  const linkRecord: LinkRecord<LinkData> = {
-    data,
-    source,
-    target,
-    z,
-    layer,
-    parent,
-    vertices,
-    router,
-    connector,
-  };
-
-  if (style) linkRecord.style = style;
-  if (labelStyle) linkRecord.labelStyle = labelStyle;
-
-  // Restore labelMap, merging updated positions from native labels
-  if (labelMap && Array.isArray(attributeLabels)) {
-    linkRecord.labelMap = mergeLabelsFromAttributes(labelMap, attributeLabels);
-  } else if (Array.isArray(attributeLabels)) {
-    linkRecord.labels = attributeLabels;
+  // style/attrs dual-format: if `style` is present, `attrs` was generated from it.
+  if (style) {
+    linkRecord.style = style;
+  } else if (attrs) {
+    linkRecord.attrs = attrs;
   }
 
+  // labelMap/labels dual-format: if `labelMap` is present, `labels` was generated from it.
+  if (labelMap && Array.isArray(labels)) {
+    linkRecord.labelMap = mergeLabelsFromAttributes(labelMap, labels);
+  } else if (Array.isArray(labels)) {
+    linkRecord.labels = labels;
+  }
+
+  // Only a custom type should be included in the link record.
   if (type && type !== PORTAL_LINK_TYPE) {
     linkRecord.type = type;
   }
