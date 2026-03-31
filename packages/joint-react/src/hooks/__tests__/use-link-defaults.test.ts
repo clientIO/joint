@@ -190,12 +190,11 @@ describe('useLinkDefaults', () => {
       target: { id: 'b' },
       style: { color: 'blue' },
     });
-    const presentation = cellJson.presentation as Record<string, unknown>;
     const cellData = cellJson.data as Record<string, unknown>;
 
-    // Explicitly provided style overrides the default in presentation
-    expect(presentation).toHaveProperty('style', { color: 'blue' });
-    // Neither leaks into data
+    // Explicitly provided style is stored directly on the cell attributes
+    expect(cellJson).toHaveProperty('style', { color: 'blue' });
+    // Style does not leak into data
     expect(cellData).not.toHaveProperty('style');
     expect(cellData).not.toHaveProperty('color');
     expect(cellData).not.toHaveProperty('width');

@@ -53,10 +53,11 @@ export function useElements<
     [ids?.join(',')]
   );
 
-  const idsOrSelector = isSelectorMode
-    ? (args[0] as (items: Map<CellId, ElementWithLayout<T>>) => S)
-    : stableIds;
-  const isEqual = isSelectorMode ? (args[1] as ((a: S, b: S) => boolean) | undefined) : undefined;
+  if (isSelectorMode) {
+    const selector = args[0] as (items: Map<CellId, ElementWithLayout<T>>) => S;
+    const isEqual = args[1] as ((a: S, b: S) => boolean) | undefined;
+    return useContainerItems(elements, selector, isEqual);
+  }
 
-  return useContainerItems(elements, idsOrSelector, isEqual);
+  return useContainerItems(elements, stableIds);
 }

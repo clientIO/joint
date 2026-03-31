@@ -27,7 +27,7 @@ export function elementToAttributes<ElementData extends object = Record<string, 
   id: string;
   element: ElementRecord<ElementData>;
 }): CellAttributes {
-  const { element } = options;
+  const { id, element } = options;
   if (!isElementData(element)) {
     throw new Error('Invalid element format: expected an object.');
   }
@@ -43,6 +43,7 @@ export function elementToAttributes<ElementData extends object = Record<string, 
 
   const attributes: CellAttributes = {
     ...cellAttributes,
+    id,
     type,
     data,
   };
@@ -85,6 +86,7 @@ export function attributesToElement<ElementData extends object = Record<string, 
     layer,
     parent,
     type,
+    attrs,
   } = attributes;
 
   const elementRecord: ElementRecord<ElementData> = {
@@ -96,6 +98,8 @@ export function attributesToElement<ElementData extends object = Record<string, 
     layer,
     parent,
   };
+
+  if (attrs) elementRecord.attrs = attrs;
 
   if (portMap) {
     elementRecord.portMap = portMap;

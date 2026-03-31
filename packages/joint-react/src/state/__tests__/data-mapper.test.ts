@@ -93,7 +93,7 @@ describe('dataMapper', () => {
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.position).toEqual({ x: 100, y: 50 });
       expect(cellJson.data).toMatchObject({ label: 'Node 1' });
-      expect(cellJson.presentation).toMatchObject({ portMap: { p1: { cx: 0, cy: '50%' } } });
+      expect(cellJson.portMap).toEqual({ p1: { cx: 0, cy: '50%' } });
 
       graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
@@ -107,11 +107,11 @@ describe('dataMapper', () => {
 
   describe('element ports conversion', () => {
     it('should convert simplified ports to JointJS format', () => {
-      const ports: Record<string, ElementPort> = {
+      const portMap: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0.5, width: 10, height: 10, color: 'blue' },
       };
       const id = 'el-1';
-      const element: ElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: ElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, portMap };
 
       const cellJson = elementToAttributes({ id, element });
       expect(cellJson.ports).toBeDefined();
@@ -121,11 +121,11 @@ describe('dataMapper', () => {
     });
 
     it('should convert port with label', () => {
-      const ports: Record<string, ElementPort> = {
+      const portMap: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0.5, label: 'Port A', labelPosition: 'outside', labelColor: 'red' },
       };
       const id = 'el-1';
-      const element: ElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: ElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, portMap };
 
       const cellJson = elementToAttributes({ id, element });
       const [port] = cellJson.ports.items;
@@ -135,11 +135,11 @@ describe('dataMapper', () => {
     });
 
     it('should handle rect shape ports', () => {
-      const ports: Record<string, ElementPort> = {
+      const portMap: Record<string, ElementPort> = {
         p1: { cx: 0, cy: 0, width: 20, height: 10, shape: 'rect' },
       };
       const id = 'el-1';
-      const element: ElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, ports };
+      const element: ElementRecord = { position: { x: 0, y: 0 }, size: { width: 100, height: 100 }, portMap };
 
       const cellJson = elementToAttributes({ id, element });
       const portMarkup = cellJson.ports.items[0].markup;
@@ -156,7 +156,6 @@ describe('dataMapper', () => {
       expect(cellJson.source).toEqual({ id: 'el-1' });
       expect(cellJson.target).toEqual({ id: 'el-2' });
       expect(cellJson.type).toBe(PORTAL_LINK_TYPE);
-      expect(cellJson.attrs?.line).toBeDefined();
 
       graph.addCell(cellJson as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Link;
@@ -168,14 +167,11 @@ describe('dataMapper', () => {
 
     it('should apply theme defaults', () => {
       const id = 'link-1';
-      const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' } };
+      const link: LinkRecord = { source: { id: 'a' }, target: { id: 'b' }, style: {} };
 
       const cellJson = linkToAttributes({ id, link });
       expect(cellJson.attrs?.line?.style?.stroke).toBe(defaultLinkStyle.color);
       expect(cellJson.attrs?.line?.style?.strokeWidth).toBe(defaultLinkStyle.width);
-      // Theme-defaulted values should NOT be stored in presentation
-      expect(cellJson.presentation?.color).toBeUndefined();
-      expect(cellJson.presentation?.width).toBeUndefined();
     });
 
     it('should apply custom theme props', () => {
@@ -183,9 +179,11 @@ describe('dataMapper', () => {
       const link: LinkRecord = {
         source: { id: 'a' },
         target: { id: 'b' },
-        color: 'red',
-        width: 4,
-        dasharray: '5 5',
+        style: {
+          color: 'red',
+          width: 4,
+          dasharray: '5 5',
+        },
       };
 
       const cellJson = linkToAttributes({ id, link });

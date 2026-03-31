@@ -18,6 +18,7 @@ import {
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
 import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-utils';
+import { LINK_PRESENTATION_KEYS } from '../theme/link-theme';
 
 /** Incremental change set emitted by graphView after container commits. */
 export interface IncrementalContainerChanges<
@@ -305,18 +306,34 @@ export function graphView<
       const graphLinks: dia.Cell.JSON[] = [];
 
       for (const [id, element] of elements.getFull()) {
-        const attributes = mapElementToAttributes({ id, element });
+        // Strip stale presentation keys (ports, portStyle) that were
+        // round-tripped into the container via attributesToElement.
+        // These must be recomputed by the new mapper from its defaults.
+        const cleanElement = { ...(element as Record<string, unknown>) };
+        Reflect.deleteProperty(cleanElement, 'ports');
+        Reflect.deleteProperty(cleanElement, 'portStyle');
+        Reflect.deleteProperty(cleanElement, 'presentation');
+        const attributes = mapElementToAttributes({
+          id,
+          element: cleanElement as ElementRecord<ElementData>,
+        });
         graphElements.push({ ...attributes, id });
       }
       for (const [id, link] of links.getFull()) {
-        // Strip attrs — they are recomputed by the mapper from flat presentation
-        // properties (color, width, etc.). Container data may carry stale
-        // round-tripped attrs from attributesToLink that would otherwise
-        // override the freshly computed values.
-        const { attrs: _staleAttrs, ...linkWithoutAttrs } = link as Record<string, unknown>;
+        // Strip stale presentation keys (color, width, attrs, labelStyle, etc.)
+        // that were round-tripped into the container via attributesToLink.
+        // These must be recomputed by the new mapper from its defaults.
+        const cleanLink = { ...(link as Record<string, unknown>) };
+        Reflect.deleteProperty(cleanLink, 'attrs');
+        Reflect.deleteProperty(cleanLink, 'style');
+        Reflect.deleteProperty(cleanLink, 'presentation');
+        Reflect.deleteProperty(cleanLink, 'labelStyle');
+        for (const key of LINK_PRESENTATION_KEYS) {
+          Reflect.deleteProperty(cleanLink, key);
+        }
         const attributes = mapLinkToAttributes({
           id,
-          link: linkWithoutAttrs as unknown as LinkRecord<LinkData>,
+          link: cleanLink as unknown as LinkRecord<LinkData>,
         });
         graphLinks.push({ ...attributes, id });
       }
