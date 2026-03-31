@@ -67,8 +67,8 @@ function mapDataToElementAttributes(options: { id: string; element: ElementRecor
   const { portMap, portStyle } = element;
   if (!portMap) return elementToAttributes({ id, element });
 
-  const defaultW = portStyle?.width ?? 10;
-  const defaultH = portStyle?.height ?? 10;
+  const defaultW = portStyle?.width ?? 16;
+  const defaultH = portStyle?.height ?? 16;
 
   const resolvedPorts: Record<string, ElementPort> = {};
   for (const [portId, port] of Object.entries(portMap)) {
@@ -87,9 +87,8 @@ function mapDataToElementAttributes(options: { id: string; element: ElementRecor
     element: { ...element, portMap: resolvedPorts },
   }) as CellAttributes;
 
-  // Keep original shape names in cell.presentation so they survive round-trips.
-  // The resolved SVG paths are already baked into the JointJS port config.
-  result.presentation = { ...result.presentation, portMap: portMap };
+  // preserve original portMap for reverse mapping and editing
+  result.portMap = portMap;
   return result;
 }
 
@@ -279,7 +278,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
         <label style={labelStyle}>Size</label>
         <input
           type="number"
-          value={port.width ?? 10}
+          value={port.width ?? 16}
           onChange={(event) => updatePort({ width: Number(event.target.value) })}
           style={{ ...inputStyle, width: 55 }}
           min={4}
@@ -288,7 +287,7 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
         <span style={{ fontSize: 11, color: '#9ca3af' }}>&times;</span>
         <input
           type="number"
-          value={port.height ?? 10}
+          value={port.height ?? 16}
           onChange={(event) => updatePort({ height: Number(event.target.value) })}
           style={{ ...inputStyle, width: 55 }}
           min={4}
