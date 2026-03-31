@@ -19,31 +19,27 @@ import type { CellAttributes } from '.';
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
 export function linkToAttributes<LinkData extends object = Record<string, unknown>>(options: {
-  id?: string;
+  id: string;
   link: LinkRecord<LinkData>;
 }): CellAttributes {
-  const { id, link } = options;
+  const { link } = options;
   if (!isRecord(link)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
 
-  if (link.labelMap && link.labels) {
-    throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
-  }
-
   const {
-    data = {},
-    style,
-    labelMap,
-    labelStyle,
-    labels,
+    data = {} as LinkData,
     type = PORTAL_LINK_TYPE,
+    // Link style
+    style,
+    // Labels
+    labelMap,
+    labels,
     ...linkAttributes
   } = link;
 
   const attributes: CellAttributes = {
     ...linkAttributes,
-    id,
     type,
     data,
   };
@@ -55,13 +51,12 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
   }
 
   // labelMap/labels dual-format: if `labelMap` is present, `labels` will be generated from it.
-  if (labelStyle) attributes.labelStyle = labelStyle;
   if (labelMap) {
     if (labels) {
       throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
     }
     attributes.labels = Object.entries(labelMap).map(
-      ([labelId, label]) => convertLabel(labelId, label, labelStyle)
+      ([labelId, label]) => convertLabel(labelId, label, link.labelStyle)
     );
     attributes.labelMap = labelMap;
   } else {
