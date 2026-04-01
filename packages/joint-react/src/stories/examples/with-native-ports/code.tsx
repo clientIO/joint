@@ -6,7 +6,7 @@ import {
   GraphProvider,
   Paper,
   useElementSize,
-  elementToAttributes,
+  buildAttributesFromElement,
   useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
@@ -155,7 +155,7 @@ function mapNativeElementToAttributes(options: {
   const { element } = options;
   const userData = element.data as NativeElementUserData | undefined;
   const ports = buildNativePorts(userData?.inputPorts, userData?.outputPorts);
-  const attributes = elementToAttributes(element);
+  const attributes = buildAttributesFromElement(element);
   if (!ports) return attributes;
   return { ...attributes, ports };
 }

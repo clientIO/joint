@@ -5,7 +5,7 @@ import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
 import {
   GraphProvider,
-  linkToAttributes,
+  buildAttributesFromLink,
   type CellAttributes,
   type ElementRecord,
   type LinkRecord,
@@ -87,7 +87,7 @@ const links: Record<string, CustomLink> = {
 
 const mapLinkToAttributes = (options: { id?: string; link: LinkRecord }): CellAttributes => {
   const data = options.link as CustomLink;
-  const attributes = linkToAttributes(options);
+  const attributes = buildAttributesFromLink(options);
   const color = data.style?.color ?? PRIMARY;
   return {
     ...attributes,

@@ -2,18 +2,18 @@ import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../graph-store';
 import { graphChanges } from '../graph-changes';
 import type { ElementRecord, LinkRecord } from '../../types/data-types';
-import { elementToAttributes, linkToAttributes } from '../../state/data-mapping';
+import { buildAttributesFromElement, buildAttributesFromLink } from '../../state/data-mapping';
 
 function createGraph() {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
 }
 
 function defaultElementToAttributes({ id, element }: { id: string; element: ElementRecord }) {
-  return elementToAttributes(element);
+  return buildAttributesFromElement(element);
 }
 
 function defaultLinkToAttributes({ id, link }: { id?: string; link: LinkRecord }) {
-  return linkToAttributes(link);
+  return buildAttributesFromLink(link);
 }
 
 function setup() {

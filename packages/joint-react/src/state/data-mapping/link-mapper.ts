@@ -18,7 +18,7 @@ import type { CellAttributes } from '.';
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function linkToAttributes<LinkData extends object = Record<string, unknown>>(
+export function buildAttributesFromLink<LinkData extends object = Record<string, unknown>>(
   link: LinkRecord<LinkData>
 ): CellAttributes {
   if (!isRecord(link)) {
@@ -73,7 +73,7 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
  *
  * 1:1 mapping — no `presentation` wrapper.
  */
-export function attributesToLink<LinkData extends object = Record<string, unknown>>(
+export function buildLinkFromAttributes<LinkData extends object = Record<string, unknown>>(
   attributes: dia.Link.Attributes
 ): LinkRecord<LinkData> {
 
@@ -113,7 +113,7 @@ export function attributesToLink<LinkData extends object = Record<string, unknow
 }
 
 export type MapAttributesToLink<LinkData extends object = Record<string, unknown>> =
-  typeof attributesToLink<LinkData>;
+  typeof buildLinkFromAttributes<LinkData>;
 
 export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> =
   (options: { id: string; link: LinkRecord<LinkData> }) => CellAttributes;

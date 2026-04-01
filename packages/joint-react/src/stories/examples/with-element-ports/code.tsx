@@ -7,7 +7,7 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  elementToAttributes,
+  buildAttributesFromElement,
   type CellAttributes,
   type ElementRecord,
   type ElementPort,
@@ -65,7 +65,7 @@ interface PortNodeData {
 function mapDataToElementAttributes(options: { id: string; element: ElementRecord<PortNodeData> }) {
   const { id, element } = options;
   const { portMap, portStyle } = element;
-  if (!portMap) return elementToAttributes({ id, element });
+  if (!portMap) return buildAttributesFromElement({ id, element });
 
   const defaultW = portStyle?.width ?? 16;
   const defaultH = portStyle?.height ?? 16;
@@ -82,7 +82,7 @@ function mapDataToElementAttributes(options: { id: string; element: ElementRecor
     }
   }
 
-  const result = elementToAttributes({
+  const result = buildAttributesFromElement({
     ...element,
     portMap: resolvedPorts,
   }) as CellAttributes;

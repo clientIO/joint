@@ -1,10 +1,10 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../../store/graph-store';
 import { graphView } from '../graph-view';
-import { linkToAttributes } from '../../state/data-mapping/link-mapper';
+import { buildAttributesFromLink } from '../../state/data-mapping/link-mapper';
 import type { ElementRecord, LinkRecord } from '../../types/data-types';
 import type { CellAttributes, MapElementToAttributes, MapLinkToAttributes } from '../../state/data-mapping';
-import { elementToAttributes } from '../../state/data-mapping';
+import { buildAttributesFromElement } from '../../state/data-mapping';
 
 function createGraph() {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
@@ -809,7 +809,7 @@ describe('graphView', () => {
           style: { color, width: 3 },
           ...mapOptions.link,
         };
-        return linkToAttributes(merged);
+        return buildAttributesFromLink(merged);
       };
     }
 
@@ -960,7 +960,7 @@ describe('graphView', () => {
           },
           ...mapOptions.element,
         };
-        return elementToAttributes(merged);
+        return buildAttributesFromElement(merged);
       };
     }
 

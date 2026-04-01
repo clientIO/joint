@@ -14,7 +14,7 @@ import type { CellAttributes } from './index';
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function elementToAttributes<ElementData extends object = Record<string, unknown>>(
+export function buildAttributesFromElement<ElementData extends object = Record<string, unknown>>(
   element: ElementRecord<ElementData>
 ): CellAttributes {
   if (!isRecord(element)) {
@@ -63,7 +63,7 @@ export function elementToAttributes<ElementData extends object = Record<string, 
  *
  * 1:1 mapping — no `presentation` wrapper.
  */
-export function attributesToElement<ElementData extends object = Record<string, unknown>>(
+export function buildElementFromAttributes<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
 
@@ -96,7 +96,7 @@ export function attributesToElement<ElementData extends object = Record<string, 
 }
 
 export type MapAttributesToElement<ElementData extends object = Record<string, unknown>> =
-  typeof attributesToElement<ElementData>;
+  typeof buildElementFromAttributes<ElementData>;
 
 export type MapElementToAttributes<ElementData extends object = Record<string, unknown>> =
   (options: { id: string; element: ElementRecord<ElementData> }) => CellAttributes;

@@ -5,11 +5,11 @@ import {
   GraphProvider,
   Paper,
   useElements,
-  attributesToElement,
+  buildElementFromAttributes,
   type CellAttributes,
   type ElementRecord,
   type LinkRecord,
-  elementToAttributes,
+  buildAttributesFromElement,
   type MapElementToAttributesOptions,
 } from '@joint/react';
 
@@ -73,7 +73,7 @@ const mapElementToAttributes = (
   const userData = data.element.data!;
   const { cx = 0, cy = 0 } = userData;
   const { width = 100, height = 60 } = data.element.size ?? {}; // Support both element-level and data-level size
-  return elementToAttributes<CenterElement>({
+  return buildAttributesFromElement<CenterElement>({
     ...data.element,
     position: { x: cx - width / 2, y: cy - height / 2 },
     size: { width, height },
@@ -84,7 +84,7 @@ const mapElementToAttributes = (
  * Reverse mapper: converts JointJS top-left position back to center-based data.
  */
 const mapAttributesToElement = (attributes: dia.Element.Attributes): ElementRecord<CenterElement> => {
-  const result = attributesToElement<CenterElement>(attributes);
+  const result = buildElementFromAttributes<CenterElement>(attributes);
   const userData = result.data;
   const x = attributes.position?.x ?? 0;
   const y = attributes.position?.y ?? 0;

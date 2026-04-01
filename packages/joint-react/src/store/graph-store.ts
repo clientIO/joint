@@ -11,10 +11,10 @@ import {
 import { PortalElement } from '../models/portal-element';
 import { PortalLink } from '../models/portal-link';
 import {
-  attributesToElement,
-  attributesToLink,
-  elementToAttributes,
-  linkToAttributes,
+  buildElementFromAttributes,
+  buildLinkFromAttributes,
+  buildAttributesFromElement,
+  buildAttributesFromLink,
   type GraphMappings,
 } from '../state/data-mapping';
 import { clearConnectedLinkViews } from './clear-view';
@@ -109,10 +109,10 @@ export class GraphStore<
       onIncrementalChange,
       onElementsChange,
       onLinksChange,
-      mapAttributesToElement = attributesToElement,
-      mapAttributesToLink = attributesToLink,
-      mapElementToAttributes = ({ id, element }) => ({ ...elementToAttributes(element), id }),
-      mapLinkToAttributes = ({ id, link }) => ({ ...linkToAttributes(link), id }),
+      mapAttributesToElement = buildElementFromAttributes,
+      mapAttributesToLink = buildLinkFromAttributes,
+      mapElementToAttributes = ({ id, element }) => ({ ...buildAttributesFromElement(element), id }),
+      mapLinkToAttributes = ({ id, link }) => ({ ...buildAttributesFromLink(link), id }),
     } = config;
 
     this.graph =

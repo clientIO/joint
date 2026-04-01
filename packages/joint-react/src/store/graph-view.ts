@@ -10,10 +10,10 @@ import {
   type MapAttributesToLink,
   type MapElementToAttributes,
   type MapLinkToAttributes,
-  attributesToElement,
-  attributesToLink,
-  elementToAttributes,
-  linkToAttributes,
+  buildElementFromAttributes,
+  buildLinkFromAttributes,
+  buildAttributesFromElement,
+  buildAttributesFromLink,
 } from '../state/data-mapping';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
@@ -54,10 +54,10 @@ export function graphView<
   const { graph, onIncrementalChange, mappings } = options;
 
   let {
-    mapAttributesToElement = attributesToElement,
-    mapAttributesToLink = attributesToLink,
-    mapElementToAttributes = ({ id, element }) => ({ ...elementToAttributes(element), id }),
-    mapLinkToAttributes = ({ id, link }) => ({ ...linkToAttributes(link), id }),
+    mapAttributesToElement = buildElementFromAttributes,
+    mapAttributesToLink = buildLinkFromAttributes,
+    mapElementToAttributes = ({ id, element }) => ({ ...buildAttributesFromElement(element), id }),
+    mapLinkToAttributes = ({ id, link }) => ({ ...buildAttributesFromLink(link), id }),
   } = mappings;
 
   const elements = createContainer<ElementWithLayout<ElementData>>('Elements');
