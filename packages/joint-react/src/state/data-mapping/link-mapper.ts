@@ -9,15 +9,6 @@ import { isRecord } from '../../utils/is';
 import type { CellAttributes } from '.';
 
 /**
- * Type guard to check if data is link data.
- * @param data - The data to check.
- * @returns True if the data is a record (link data).
- */
-function isLinkData(data: unknown): data is LinkRecord {
-  return isRecord(data);
-}
-
-/**
  * Forward mapper: converts a LinkRecord to JointJS cell attributes.
  *
  * - `labelMap` → converted to native `labels` array, stored on the model for reverse mapping.
@@ -27,51 +18,47 @@ function isLinkData(data: unknown): data is LinkRecord {
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function linkToAttributes<LinkData extends object = Record<string, unknown>>(options: {
-  id?: string;
-  link: LinkRecord<LinkData>;
-}): CellAttributes {
-  const { id, link } = options;
-  if (!isLinkData(link)) {
+export function buildAttributesFromLink<LinkData extends object = Record<string, unknown>>(
+  link: LinkRecord<LinkData>
+): CellAttributes {
+  if (!isRecord(link)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
 
-  if (link.labelMap && link.labels) {
-    throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
-  }
-
   const {
-    data = {},
-    style,
-    labelMap,
-    labelStyle,
-    labels,
+    data = {} as LinkData,
     type = PORTAL_LINK_TYPE,
+    // Link style
+    style,
+    // Labels
+    labelMap,
+    labels,
     ...linkAttributes
   } = link;
 
   const attributes: CellAttributes = {
     ...linkAttributes,
-    id,
     type,
     data,
   };
 
+  // style/attrs dual-format: if `style` is present, `attrs` will be generated from it.
   if (style) {
     attributes.attrs = buildLinkPresentationAttributes(style, defaultLinkStyle);
     attributes.style = style;
   }
-  if (labelStyle) attributes.labelStyle = labelStyle;
+
+  // labelMap/labels dual-format: if `labelMap` is present, `labels` will be generated from it.
   if (labelMap) {
     if (labels) {
       throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
     }
     attributes.labels = Object.entries(labelMap).map(
-      ([labelId, label]) => convertLabel(labelId, label, labelStyle)
+      ([labelId, label]) => convertLabel(labelId, label, link.labelStyle)
     );
     attributes.labelMap = labelMap;
   } else {
-    attributes.labels = labels ?? [];
+    attributes.labels = labels ?? null;
   }
 
   return attributes;
@@ -86,49 +73,38 @@ export function linkToAttributes<LinkData extends object = Record<string, unknow
  *
  * 1:1 mapping — no `presentation` wrapper.
  */
-export function attributesToLink<LinkData extends object = Record<string, unknown>>(
+export function buildLinkFromAttributes<LinkData extends object = Record<string, unknown>>(
   attributes: dia.Link.Attributes
 ): LinkRecord<LinkData> {
 
   const {
-    data,
-    style,
-    labelMap,
-    labelStyle,
-    source,
-    target,
-    z,
-    layer,
-    parent,
-    vertices,
-    router,
-    connector,
+    id,
     type,
-    labels: attributeLabels,
+    // Labels
+    labelMap,
+    labels,
+    // Link style
+    style,
+    attrs,
+    // 1:1 mapping of all other fields directly on the model
+    ...linkRecord
   } = attributes;
 
-  const linkRecord: LinkRecord<LinkData> = {
-    data,
-    source,
-    target,
-    z,
-    layer,
-    parent,
-    vertices,
-    router,
-    connector,
-  };
-
-  if (style) linkRecord.style = style;
-  if (labelStyle) linkRecord.labelStyle = labelStyle;
-
-  // Restore labelMap, merging updated positions from native labels
-  if (labelMap && Array.isArray(attributeLabels)) {
-    linkRecord.labelMap = mergeLabelsFromAttributes(labelMap, attributeLabels);
-  } else if (Array.isArray(attributeLabels)) {
-    linkRecord.labels = attributeLabels;
+  // style/attrs dual-format: if `style` is present, `attrs` was generated from it.
+  if (style) {
+    linkRecord.style = style;
+  } else if (attrs) {
+    linkRecord.attrs = attrs;
   }
 
+  // labelMap/labels dual-format: if `labelMap` is present, `labels` was generated from it.
+  if (labelMap && Array.isArray(labels)) {
+    linkRecord.labelMap = mergeLabelsFromAttributes(labelMap, labels);
+  } else if (Array.isArray(labels)) {
+    linkRecord.labels = labels;
+  }
+
+  // Only a custom type should be included in the link record.
   if (type && type !== PORTAL_LINK_TYPE) {
     linkRecord.type = type;
   }
@@ -137,7 +113,7 @@ export function attributesToLink<LinkData extends object = Record<string, unknow
 }
 
 export type MapAttributesToLink<LinkData extends object = Record<string, unknown>> =
-  typeof attributesToLink<LinkData>;
+  typeof buildLinkFromAttributes<LinkData>;
 
 export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> =
-  typeof linkToAttributes<LinkData>;
+  (options: { id: string; link: LinkRecord<LinkData> }) => CellAttributes;

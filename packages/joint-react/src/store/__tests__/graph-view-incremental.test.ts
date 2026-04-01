@@ -32,7 +32,7 @@ function cloneChanges(c: IncrementalContainerChanges): IncrementalContainerChang
 describe('graphView onIncrementalChange', () => {
   it('fires with added elements when element is added to graph', async () => {
     const graph = createGraph();
-    const allChanges: Array<IncrementalContainerChanges> = [];
+    const allChanges: IncrementalContainerChanges[] = [];
 
     const view = graphView({
       graph,
@@ -53,7 +53,7 @@ describe('graphView onIncrementalChange', () => {
 
   it('fires with removed elements when element is removed', async () => {
     const graph = createGraph();
-    const allChanges: Array<IncrementalContainerChanges> = [];
+    const allChanges: IncrementalContainerChanges[] = [];
 
     const view = graphView({
       graph,
@@ -78,7 +78,7 @@ describe('graphView onIncrementalChange', () => {
 
   it('fires element changes on position update', async () => {
     const graph = createGraph();
-    const allChanges: Array<IncrementalContainerChanges> = [];
+    const allChanges: IncrementalContainerChanges[] = [];
 
     const view = graphView({
       graph,

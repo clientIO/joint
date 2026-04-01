@@ -44,8 +44,11 @@ export class PortalElement<Attributes = dia.Element.Attributes> extends dia.Elem
       ...super.defaults,
       type: PORTAL_ELEMENT_TYPE,
       size: { width: 0, height: 0 },
+      // Explicitly set attributes to avoid triggering `change` events.
+      // See `element-mapper.ts` to see the values representing "no value"
       data: {},
-      presentation: {},
+      ports: null,
+      portDefaults: null,
     } as unknown as dia.Element.Attributes & Attributes;
   }
 }

@@ -1,5 +1,5 @@
 import { type DependencyList, useMemo } from 'react';
-import { elementToAttributes } from '../state/data-mapping/element-mapper';
+import { buildAttributesFromElement } from '../state/data-mapping/element-mapper';
 import type { CellAttributes, MapElementToAttributes } from '../state/data-mapping';
 import type { ElementRecord } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
@@ -27,7 +27,8 @@ export function useElementDefaults<Data extends object = Record<string, unknown>
           let result: CellAttributes;
           if (resolved) {
             const element = { ...resolved, ...mapOptions.element } as ElementRecord<Data>;
-            result = elementToAttributes({ id: mapOptions.id, element });
+            result = buildAttributesFromElement(element);
+            result.id = mapOptions.id;
 
             // Strip default-provided keys from cell.data so they don't
             // pollute React state on round-trip (e.g. after element move).
@@ -42,7 +43,7 @@ export function useElementDefaults<Data extends object = Record<string, unknown>
               }
             }
           } else {
-            result = elementToAttributes(mapOptions);
+            result = buildAttributesFromElement(mapOptions);
           }
 
           return result;

@@ -13,7 +13,7 @@ import {
   type LinkRecord,
   useElementId,
 } from '@joint/react';
-import { BG, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
 interface ListNodeData {
@@ -134,7 +134,7 @@ function Main() {
       className={PAPER_CLASSNAME}
       height={500}
       renderElement={renderElement}
-      style={{ backgroundColor: BG }}
+      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

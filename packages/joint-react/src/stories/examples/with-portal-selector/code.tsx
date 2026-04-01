@@ -10,8 +10,8 @@ import {
   usePaperEvents,
   useMeasureNode,
   useElementSize,
-  elementToAttributes,
-  linkToAttributes,
+  buildAttributesFromElement,
+  buildAttributesFromLink,
   type CellId,
   type ElementRecord,
   type LinkRecord,
@@ -20,7 +20,7 @@ import {
   PORTAL_ELEMENT_TYPE,
 } from '@joint/react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { BG, LIGHT } from 'storybook-config/theme';
+import { LIGHT, PAPER_STYLE } from 'storybook-config/theme';
 
 // ============================================================================
 // Types & Constants
@@ -346,7 +346,7 @@ function Main() {
           const type = cellView.model.get('type');
           return type === PORTAL_ELEMENT_TYPE ? defaultSelector : 'root';
         }}
-        style={{ backgroundColor: BG }}
+        style={PAPER_STYLE}
         drawGrid={false}
       >
         <Selection selectedId={selectedElement} />
@@ -382,8 +382,8 @@ function Main() {
 
 export default function App() {
   const mapElementToAttributes = useMemo(() => {
-    return ({ id, element }: { id: string; element: ElementRecord<ElementUserData> }) => {
-      const attributes = elementToAttributes({ id, element });
+    return ({ element }: { id: string; element: ElementRecord<ElementUserData> }) => {
+      const attributes = buildAttributesFromElement(element);
       const userData = element.data as ElementUserData | undefined;
       const { jjType, color = 'lightgray' } = userData ?? {};
       if (!jjType) return attributes;
@@ -396,8 +396,8 @@ export default function App() {
   }, []);
 
   const mapLinkToAttributes = useMemo(() => {
-    return ({ id, link }: { id?: string; link: LinkRecord }) => {
-      const attributes = linkToAttributes({ id, link });
+    return ({ link }: { id?: string; link: LinkRecord }) => {
+      const attributes = buildAttributesFromLink(link);
       const userData = link.data as LinkUserData | undefined;
       const { jjType } = userData ?? {};
       if (!jjType) return attributes;

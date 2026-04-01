@@ -1621,11 +1621,11 @@ describe('Paper Component', () => {
       );
 
       const linkElement = screen.getByTestId('link-with-layout');
-      const sourceX = Number(linkElement.getAttribute('data-source-x'));
-      const sourceY = Number(linkElement.getAttribute('data-source-y'));
-      const targetX = Number(linkElement.getAttribute('data-target-x'));
-      const targetY = Number(linkElement.getAttribute('data-target-y'));
-      const d = linkElement.getAttribute('data-d');
+      const sourceX = Number(linkElement.dataset.sourceX);
+      const sourceY = Number(linkElement.dataset.sourceY);
+      const targetX = Number(linkElement.dataset.targetX);
+      const targetY = Number(linkElement.dataset.targetY);
+      const { d } = linkElement.dataset;
 
       expect(sourceX + sourceY + targetX + targetY).toBeGreaterThan(0);
       expect(d).toBeTruthy();
@@ -1668,7 +1668,7 @@ describe('Paper Component', () => {
       );
 
       const linkElement = screen.getByTestId('link-with-layout');
-      const d = linkElement.getAttribute('data-d');
+      const { d } = linkElement.dataset;
       expect(d).toBeTruthy();
       expect(d!.length).toBeGreaterThan(0);
     });

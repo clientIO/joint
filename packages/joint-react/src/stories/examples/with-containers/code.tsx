@@ -2,7 +2,7 @@
 import type { dia } from '@joint/core';
 import type { LinkRecord, ElementRecord } from '@joint/react';
 import { GraphProvider, Paper, HTMLHost, useElementSize } from '@joint/react';
-import { BG, PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { BG, PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 type ContainerData = {
   readonly label: string;
@@ -119,7 +119,7 @@ function Main() {
           },
         },
       }}
-      style={{ backgroundColor: BG }}
+      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

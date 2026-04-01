@@ -1,5 +1,5 @@
 import { type DependencyList, useMemo } from 'react';
-import { linkToAttributes } from '../state/data-mapping/link-mapper';
+import { buildAttributesFromLink } from '../state/data-mapping/link-mapper';
 import type { CellAttributes, MapLinkToAttributes } from '../state/data-mapping';
 import type { LinkRecord } from '../types/data-types';
 import type { CellId } from '../types/cell-id';
@@ -21,7 +21,8 @@ export function useLinkDefaults<Data extends object = Record<string, unknown>>(
           let result: CellAttributes;
           if (resolved) {
             const mergedData = { ...resolved, ...mapOptions.link } as LinkRecord<Data>;
-            result = linkToAttributes({ link: mergedData, id: mapOptions.id });
+            result = buildAttributesFromLink(mergedData);
+            result.id = mapOptions.id;
 
             // Strip default-provided keys from cell.data so they don't
             // pollute React state on round-trip (e.g. after link reconnect).
@@ -35,7 +36,8 @@ export function useLinkDefaults<Data extends object = Record<string, unknown>>(
               }
             }
           } else {
-            result = linkToAttributes({ link: mapOptions.link, id: mapOptions.id });
+            result = buildAttributesFromLink(mapOptions.link);
+            result.id = mapOptions.id;
           }
 
           return result;

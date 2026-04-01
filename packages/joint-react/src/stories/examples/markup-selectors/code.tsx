@@ -14,7 +14,7 @@ import {
   PortalLink,
   type ElementRecord,
 } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
 import { dia, shapes } from '@joint/core';
 
@@ -191,7 +191,7 @@ function Main() {
       validateConnection={(sourceView, _sourceMagnet, targetView) =>
         sourceView.model.id !== targetView.model.id
       }
-      style={{ backgroundColor: BG }}
+      style={PAPER_STYLE}
       drawGrid={false}
     />
   );

@@ -13,7 +13,7 @@ import {
   type LinkRecord,
 } from '@joint/react';
 import { useMemo, useRef, useState } from 'react';
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY, BG } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 interface LayeredElementData {
   readonly [key: string]: unknown;
@@ -168,7 +168,7 @@ function Main({ hiddenLayers, toggleLayer }: Readonly<MainProps>) {
           const cellLayer = cell.layer();
           return !cellLayer || !hiddenLayers.has(cellLayer);
         }}
-        style={{ backgroundColor: BG }}
+        style={PAPER_STYLE}
         drawGrid={false}
       />
     </div>

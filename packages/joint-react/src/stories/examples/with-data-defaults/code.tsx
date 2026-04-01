@@ -11,7 +11,7 @@ import {
   type LinkRecord,
   type RenderElement,
 } from '@joint/react';
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY, LIGHT, BG } from 'storybook-config/theme';
 
 interface ElementData {
   label: string;
@@ -161,7 +161,7 @@ function Diagram() {
           className={PAPER_CLASSNAME}
           height={340}
           renderElement={renderElement}
-          style={{ backgroundColor: BG }}
+          style={PAPER_STYLE}
         />
       </GraphProvider>
     </>

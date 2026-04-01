@@ -6,15 +6,6 @@ import { isRecord } from '../../utils/is';
 import type { CellAttributes } from './index';
 
 /**
- * Checks if the given data is a valid element data object.
- * @param data - The data to validate
- * @returns True if the data is a valid element data record
- */
-function isElementData(data: unknown): data is ElementRecord {
-  return isRecord(data);
-}
-
-/**
  * Forward mapper: converts an ElementRecord to JointJS cell attributes.
  *
  * - `portMap` → converted to native `ports`, stored on the model for reverse mapping.
@@ -23,20 +14,18 @@ function isElementData(data: unknown): data is ElementRecord {
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function elementToAttributes<ElementData extends object = Record<string, unknown>>(options: {
-  id: string;
-  element: ElementRecord<ElementData>;
-}): CellAttributes {
-  const { element } = options;
-  if (!isElementData(element)) {
+export function buildAttributesFromElement<ElementData extends object = Record<string, unknown>>(
+  element: ElementRecord<ElementData>
+): CellAttributes {
+  if (!isRecord(element)) {
     throw new Error('Invalid element format: expected an object.');
   }
 
   const {
     data = {} as ElementData,
     portMap,
-    portStyle,
     ports,
+    portDefaults,
     type = PORTAL_ELEMENT_TYPE,
     ...cellAttributes
   } = element;
@@ -47,17 +36,21 @@ export function elementToAttributes<ElementData extends object = Record<string, 
     data,
   };
 
+  // portMap/ports dual-format: if `portMap` is present, `ports` will be generated from it.
   if (portMap) {
     if (ports) {
       throw new Error('Cannot use both "portMap" and "ports" on the same element.');
     }
-    attributes.ports = convertPorts(portMap, portStyle);
+    if (portDefaults) {
+      throw new Error('Cannot use both "portMap" and "portDefaults" on the same element. Port defaults are generated automatically when using portMap.');
+    }
+    attributes.ports = convertPorts(portMap, element.portStyle);
     attributes.portDefaults = createPortGroupsDefault();
     attributes.portMap = portMap;
   } else {
-    attributes.ports = ports ?? {};
+    attributes.ports = ports ?? null;
+    attributes.portDefaults = portDefaults ?? null;
   }
-  if (portStyle) attributes.portStyle = portStyle;
 
   return attributes;
 }
@@ -70,31 +63,31 @@ export function elementToAttributes<ElementData extends object = Record<string, 
  *
  * 1:1 mapping — no `presentation` wrapper.
  */
-export function attributesToElement<ElementData extends object = Record<string, unknown>>(
+export function buildElementFromAttributes<ElementData extends object = Record<string, unknown>>(
   attributes: dia.Element.Attributes
 ): ElementRecord<ElementData> {
-  const { data, portMap, portStyle, position, size, angle, z, layer, parent, type, attrs } =
-    attributes;
 
-  const elementRecord: ElementRecord<ElementData> = {
-    data,
-    position,
-    size,
-    angle,
-    z,
-    layer,
-    parent,
-  };
+  const {
+    id,
+    type,
+    // Ports
+    portMap,
+    ports,
+    portDefaults,
+    // 1:1 mapping of all other fields directly on the model
+    ...elementRecord
+  } = attributes;
 
-  if (attrs) elementRecord.attrs = attrs;
-
+  // The element record can have either `portMap` or `ports`, but not both.
+  // If `portMap` is present, it means the `ports` were generated from it.
   if (portMap) {
     elementRecord.portMap = portMap;
-  } else if (attributes.ports) {
-    elementRecord.ports = attributes.ports;
+  } else if (ports) {
+    elementRecord.ports = ports;
+    elementRecord.portDefaults = portDefaults;
   }
-  if (portStyle) elementRecord.portStyle = portStyle;
 
+  // Only a custom type should be included in the element record.
   if (type && type !== PORTAL_ELEMENT_TYPE) {
     elementRecord.type = type;
   }
@@ -103,10 +96,7 @@ export function attributesToElement<ElementData extends object = Record<string, 
 }
 
 export type MapAttributesToElement<ElementData extends object = Record<string, unknown>> =
-  typeof attributesToElement<ElementData>;
+  typeof buildElementFromAttributes<ElementData>;
 
 export type MapElementToAttributes<ElementData extends object = Record<string, unknown>> =
-  typeof elementToAttributes<ElementData>;
-
-export type MapElementToAttributesOptions<ElementData extends object = Record<string, unknown>> =
-  Parameters<MapElementToAttributes<ElementData>>[0];
+  (options: { id: string; element: ElementRecord<ElementData> }) => CellAttributes;

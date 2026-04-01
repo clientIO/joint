@@ -28,3 +28,5 @@ export const BUTTON_CLASSNAME =
 
 export const PAPER_CLASSNAME =
   'border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-4 mr-2 h-[400px] w-full';
+
+export const PAPER_STYLE = { backgroundColor: BG } as const;
