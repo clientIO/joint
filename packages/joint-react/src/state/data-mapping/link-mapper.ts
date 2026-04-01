@@ -19,11 +19,14 @@ import type { CellAttributes } from '.';
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
 export function buildAttributesFromLink<LinkData extends object = Record<string, unknown>>(
-  link: LinkRecord<LinkData>
+  link: LinkRecord<LinkData>,
+  defaults?: Partial<LinkRecord<LinkData>>
 ): CellAttributes {
   if (!isRecord(link)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
+
+  const merged = defaults ? { ...defaults, ...link } : link;
 
   const {
     data = {} as LinkData,
@@ -34,12 +37,18 @@ export function buildAttributesFromLink<LinkData extends object = Record<string,
     labelMap,
     labels,
     ...linkAttributes
-  } = link;
+  } = merged;
+
+  // Track which keys came from defaults so the reverse mapper can omit them.
+  const omit = defaults
+    ? Object.keys(defaults).filter(key => !(key in link))
+    : [];
 
   const attributes: CellAttributes = {
     ...linkAttributes,
     type,
     data,
+    metadata: omit.length > 0 ? { omit } : {},
   };
 
   // style/attrs dual-format: if `style` is present, `attrs` will be generated from it.
@@ -54,7 +63,7 @@ export function buildAttributesFromLink<LinkData extends object = Record<string,
       throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
     }
     attributes.labels = Object.entries(labelMap).map(
-      ([labelId, label]) => convertLabel(labelId, label, link.labelStyle)
+      ([labelId, label]) => convertLabel(labelId, label, merged.labelStyle)
     );
     attributes.labelMap = labelMap;
   } else {
@@ -86,6 +95,8 @@ export function buildLinkFromAttributes<LinkData extends object = Record<string,
     // Link style
     style,
     attrs,
+    // Metadata (default-provided key tracking)
+    metadata,
     // 1:1 mapping of all other fields directly on the model
     ...linkRecord
   } = attributes;
@@ -107,6 +118,14 @@ export function buildLinkFromAttributes<LinkData extends object = Record<string,
   // Only a custom type should be included in the link record.
   if (type && type !== PORTAL_LINK_TYPE) {
     linkRecord.type = type;
+  }
+
+  // Remove keys that came from defaults (not user-provided) to prevent round-trip pollution.
+  const omit = metadata?.omit;
+  if (omit) {
+    for (const key of omit) {
+      Reflect.deleteProperty(linkRecord, key);
+    }
   }
 
   return { ...linkRecord };
