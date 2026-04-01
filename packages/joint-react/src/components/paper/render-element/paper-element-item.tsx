@@ -11,7 +11,7 @@ import { useElementSize } from '../../../hooks/use-element-size';
  */
 export interface ElementItemProps {
   /** Function that renders the element content. Receives element data from hooks internally. */
-  readonly renderElement: (element: unknown) => ReactNode;
+  readonly renderElement: (element: Record<string, unknown>) => ReactNode;
   /** The DOM element to portal into. */
   readonly portalElement: SVGElement | HTMLElement | null;
   /** Whether all auto-sized elements have been measured. */
