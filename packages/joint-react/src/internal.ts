@@ -50,12 +50,12 @@ export { createAtom, type Atom } from './store/state-container';
 
 // Data-Mapping Defaults
 export {
-  buildAttributesFromElement as getAttributesFromElement,
-  buildElementFromAttributes as getElementFromAttributes,
+  buildAttributesFromElement,
+  buildElementFromAttributes,
 } from './state/data-mapping/element-mapper';
 export {
-  buildAttributesFromLink as getAttributesFromLink,
-  buildLinkFromAttributes as getLinkFromAttributes,
+  buildAttributesFromLink,
+  buildLinkFromAttributes,
 } from './state/data-mapping/link-mapper';
 
 // Data-Mapping Internals
