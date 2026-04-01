@@ -32,7 +32,7 @@ export type HTMLHostProps = HTMLAttributes<HTMLDivElement>;
  * @param props - Standard HTML div attributes (children, style, className, event handlers, etc.).
  */
 export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
-  const { style, className, ...rest } = props;
+  const { style, ...rest } = props;
   const { width, height } = useElementSize();
   const nodeRef = useRef<HTMLDivElement>(null);
   const measuredSize = useMeasureNode(nodeRef);
@@ -44,11 +44,10 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
   };
   // Force static positioning — Safari mispositions foreignObject children with position: relative or backdrop-filter.
   const mergedStyle: CSSProperties = { ...sizeStyle, ...style, position: 'static' };
-  const mergedClassName = className || undefined;
 
   return (
     <foreignObject {...measuredSize} overflow="visible">
-      <div ref={nodeRef} {...rest} className={mergedClassName} style={mergedStyle} />
+      <div ref={nodeRef} {...rest} style={mergedStyle} />
     </foreignObject>
   );
 }
