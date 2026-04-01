@@ -32,7 +32,8 @@
       "require": "./dist/cjs/internal.js"
     },
     "./src/*": "./src/*",
-    "./scripts/*": "./scripts/*.ts"
+    "./scripts/*": "./scripts/*.ts",
+    "./css/*": "./src/css/*"
   },
   "sideEffects": false,
   "files": [
