@@ -801,17 +801,27 @@ export const CellView = View.extend({
             if (typeof measureNode === 'function') {
                 // Measure the node bounding box using the paper's measureNode method.
                 metrics.boundingRect = measureNode(magnet, this);
-            } else if (magnet instanceof HTMLElement) {
-                // For HTML elements, use getBoundingClientRect() and convert to this.el's coordinate
-                // space via the inverse of its screen CTM. This matches the coordinate space that
-                // getNodeMatrix returns for SVG elements (i.e. relative to the cellView SVG element).
-                const { left, top, width, height } = magnet.getBoundingClientRect();
-                const ctm = this.el.getScreenCTM().inverse();
-                const tl = V.transformPoint({ x: left, y: top }, ctm);
-                const br = V.transformPoint({ x: left + width, y: top + height }, ctm);
-                metrics.boundingRect = { x: tl.x, y: tl.y, width: br.x - tl.x, height: br.y - tl.y };
             } else {
-                metrics.boundingRect = V(magnet).getBBox();
+                if (magnet instanceof HTMLElement) {
+                    if (!magnet.checkVisibility()) {
+                        // If the element is not visible, we cannot rely on `getBoundingClientRect()` method.
+                        // Fall back to the closest SVG ancestor and use its bbox instead.
+                        let svgAncestor = magnet.parentNode;
+                        while (svgAncestor && !(svgAncestor instanceof SVGElement)) {
+                            svgAncestor = svgAncestor.parentNode;
+                        }
+                        if (svgAncestor) {
+                            metrics.boundingRect = V(svgAncestor).getBBox();
+                        }
+                    } else {
+                        const { left, top, width, height } = magnet.getBoundingClientRect();
+                        // We need to transform the bounding rect from the screen coordinate system to the relative SVG coordinate system.
+                        const ctm = this.getRootTranslateMatrix().inverse();
+                        metrics.boundingRect = V.transformRect({ x: left, y: top, width, height }, ctm);
+                    }
+                } else {
+                    metrics.boundingRect = V(magnet).getBBox();
+                }
             }
         }
         return new Rect(metrics.boundingRect);
