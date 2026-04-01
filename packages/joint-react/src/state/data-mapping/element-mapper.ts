@@ -100,6 +100,3 @@ export type MapAttributesToElement<ElementData extends object = Record<string, u
 
 export type MapElementToAttributes<ElementData extends object = Record<string, unknown>> =
   (options: { id: string; element: ElementRecord<ElementData> }) => CellAttributes;
-
-export type MapElementToAttributesOptions<ElementData extends object = Record<string, unknown>> =
-  Parameters<MapElementToAttributes<ElementData>>[0];

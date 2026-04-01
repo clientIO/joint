@@ -10,7 +10,6 @@ import {
   type ElementRecord,
   type LinkRecord,
   buildAttributesFromElement,
-  type MapElementToAttributesOptions,
 } from '@joint/react';
 
 // ============================================================================
@@ -68,7 +67,7 @@ const initialLinks: Record<string, LinkRecord> = {
  * Forward mapper: converts center-based data to JointJS top-left position.
  */
 const mapElementToAttributes = (
-  data: MapElementToAttributesOptions<CenterElement>
+  data: { id: string; element: ElementRecord<CenterElement> }
 ): CellAttributes => {
   const userData = data.element.data!;
   const { cx = 0, cy = 0 } = userData;
