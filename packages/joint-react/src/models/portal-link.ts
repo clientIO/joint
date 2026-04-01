@@ -39,6 +39,9 @@ export class PortalLink<Attributes = dia.Link.Attributes> extends dia.Link<
       ...super.defaults,
       type: PORTAL_LINK_TYPE,
       attrs: defaultPresentationAttrs,
+      // Explicitly set attributes to avoid triggering `change` events.
+      // See `link-mapper.ts` to see the values representing "no value"
+      data: {},
       labels: null,
     } as unknown as dia.Link.Attributes & Attributes;
   }
