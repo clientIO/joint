@@ -15,14 +15,11 @@ import type { CellAttributes } from './index';
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
 export function buildAttributesFromElement<ElementData extends object = Record<string, unknown>>(
-  element: ElementRecord<ElementData>,
-  defaults?: Partial<ElementRecord<ElementData>>
+  element: ElementRecord<ElementData>
 ): CellAttributes {
   if (!isRecord(element)) {
     throw new Error('Invalid element format: expected an object.');
   }
-
-  const merged = defaults ? { ...defaults, ...element } : element;
 
   const {
     data = {} as ElementData,
@@ -31,18 +28,12 @@ export function buildAttributesFromElement<ElementData extends object = Record<s
     portDefaults,
     type = PORTAL_ELEMENT_TYPE,
     ...cellAttributes
-  } = merged;
-
-  // Track which keys came from defaults so the reverse mapper can omit them.
-  const omit = defaults
-    ? Object.keys(defaults).filter(key => !(key in element))
-    : [];
+  } = element;
 
   const attributes: CellAttributes = {
     ...cellAttributes,
     type,
     data,
-    metadata: omit.length > 0 ? { omit } : {},
   };
 
   // portMap/ports dual-format: if `portMap` is present, `ports` will be generated from it.
@@ -53,7 +44,7 @@ export function buildAttributesFromElement<ElementData extends object = Record<s
     if (portDefaults) {
       throw new Error('Cannot use both "portMap" and "portDefaults" on the same element. Port defaults are generated automatically when using portMap.');
     }
-    attributes.ports = convertPorts(portMap, merged.portStyle);
+    attributes.ports = convertPorts(portMap, element.portStyle);
     attributes.portDefaults = createPortGroupsDefault();
     attributes.portMap = portMap;
   } else {

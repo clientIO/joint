@@ -19,14 +19,11 @@ import type { CellAttributes } from '.';
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
 export function buildAttributesFromLink<LinkData extends object = Record<string, unknown>>(
-  link: LinkRecord<LinkData>,
-  defaults?: Partial<LinkRecord<LinkData>>
+  link: LinkRecord<LinkData>
 ): CellAttributes {
   if (!isRecord(link)) {
     throw new Error('Invalid link data: expected an object with link properties.');
   }
-
-  const merged = defaults ? { ...defaults, ...link } : link;
 
   const {
     data = {} as LinkData,
@@ -37,18 +34,12 @@ export function buildAttributesFromLink<LinkData extends object = Record<string,
     labelMap,
     labels,
     ...linkAttributes
-  } = merged;
-
-  // Track which keys came from defaults so the reverse mapper can omit them.
-  const omit = defaults
-    ? Object.keys(defaults).filter(key => !(key in link))
-    : [];
+  } = link;
 
   const attributes: CellAttributes = {
     ...linkAttributes,
     type,
     data,
-    metadata: omit.length > 0 ? { omit } : {},
   };
 
   // style/attrs dual-format: if `style` is present, `attrs` will be generated from it.
@@ -63,7 +54,7 @@ export function buildAttributesFromLink<LinkData extends object = Record<string,
       throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
     }
     attributes.labels = Object.entries(labelMap).map(
-      ([labelId, label]) => convertLabel(labelId, label, merged.labelStyle)
+      ([labelId, label]) => convertLabel(labelId, label, link.labelStyle)
     );
     attributes.labelMap = labelMap;
   } else {

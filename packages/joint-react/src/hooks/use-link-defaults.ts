@@ -10,21 +10,29 @@ export function useLinkDefaults<Data extends object = Record<string, unknown>>(
     | ((options: { link: LinkRecord<Data>; id?: CellId }) => Partial<LinkRecord<Data>>),
   deps: DependencyList = []
 ) {
-  return useMemo(
-    (): {
-      mapLinkToAttributes: MapLinkToAttributes<Data>;
-    } => {
-      return {
-        mapLinkToAttributes: (mapOptions) => {
-          const resolvedDefaults = typeof defaults === 'function' ? defaults(mapOptions) : defaults;
+  return useMemo((): { mapLinkToAttributes: MapLinkToAttributes<Data> } => {
+    return {
+      mapLinkToAttributes: (mapOptions) => {
+        const resolvedDefaults =
+          typeof defaults === 'function'
+            ? defaults(mapOptions)
+            : defaults;
 
-          const attributes = buildAttributesFromLink(mapOptions.link, resolvedDefaults);
-          attributes.id = mapOptions.id;
-          return attributes;
-        },
-      };
-    },
+        const merged = resolvedDefaults
+          ? { ...resolvedDefaults, ...mapOptions.link } as LinkRecord<Data>
+          : mapOptions.link;
+
+        const attributes = buildAttributesFromLink(merged);
+        attributes.id = mapOptions.id;
+
+        // Track which keys came from defaults so the reverse mapper can omit them.
+        if (resolvedDefaults) {
+          attributes.metadata = { ...attributes.metadata, omit: Object.keys(resolvedDefaults) };
+        }
+
+        return attributes;
+      },
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    deps
-  );
+   }, deps);
 }
