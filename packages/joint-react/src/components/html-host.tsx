@@ -54,6 +54,8 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
 export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
   const { style, ...rest } = props;
   const { width, height } = useElementSize();
+  // Store the initial width and height to determine if they were set or not.
+  // @todo - the computed size should not be stored back to the element record
   const initialWidthRef = useRef(width);
   const initialHeightRef = useRef(height);
   const hasWidth = hasSizeSet(initialWidthRef.current);
