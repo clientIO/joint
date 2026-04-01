@@ -33,7 +33,7 @@
     },
     "./src/*": "./src/*",
     "./scripts/*": "./scripts/*.ts",
-    "./css/*": "./css/*"
+    "./css/*": "./src/css/*"
   },
   "sideEffects": false,
   "files": [
