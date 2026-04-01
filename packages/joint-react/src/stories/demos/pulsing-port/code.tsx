@@ -11,7 +11,7 @@ import {
   usePaperEvents,
   useLinks,
   useElementId,
-  HTMLHost,
+  DefaultElement,
 } from '@joint/react';
 
 const PORT_SIZE = 20;
@@ -90,14 +90,14 @@ function NodeElement() {
   );
 
   return (
-    <HTMLHost
+    <DefaultElement
       style={{
         textAlign: 'center',
         borderColor: isConnected ? PRIMARY : '',
         minWidth: 100,
         minHeight: 50,
       }}
-    >{id}</HTMLHost>
+    >{id}</DefaultElement>
   );
 }
 

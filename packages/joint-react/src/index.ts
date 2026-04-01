@@ -9,6 +9,9 @@ export type { PaperProps, RenderElement, RenderLink } from './components/paper/p
 export { SVGText } from './components/svg-text/svg-text';
 export type { SVGTextProps } from './components/svg-text/svg-text';
 export { HTMLHost } from './components/html-host';
+export type { HTMLHostProps } from './components/html-host';
+export { DefaultElement } from './components/default-element';
+export type { DefaultElementProps } from './components/default-element';
 
 // Hooks — Get Data
 export { useGraph } from './hooks/use-graph';

@@ -1,10 +1,10 @@
 import { useRef, type CSSProperties, type HTMLAttributes } from 'react';
 import { useMeasureNode } from '../hooks/use-measure-node';
-import { useElement, useElementSize } from '../hooks';
-import { ElementRecord } from '../types/data-types';
+import { useElementSize } from '../hooks';
 
 /**
- * Default element renderer: a `<div>` auto-sized via `useMeasureNode`.
+ * Style-neutral element host: a `<div>` inside a `<foreignObject>`, auto-sized
+ * via `useMeasureNode`.
  *
  * All props are spread onto the inner `<div>`, so you can pass `children`,
  * `style`, `className`, event handlers, `data-*` attributes, etc.
@@ -12,10 +12,12 @@ import { ElementRecord } from '../types/data-types';
  * When `width`/`height` are present in the element data, the `<div>` gets
  * explicit CSS dimensions. When omitted, it auto-sizes to fit its content.
  *
- * Themed via CSS variables on `.jr-element`.
+ * Does **not** apply any default theme class. For themed styling via
+ * `--jr-element-*` CSS variables, use {@link DefaultElement} instead.
+ *
  * @example
  * ```tsx
- * <Paper renderElement={({ label }) => <HTMLHost>{label}</HTMLHost>} />
+ * <Paper renderElement={({ label }) => <HTMLHost className="my-node">{label}</HTMLHost>} />
  * ```
  */
 function hasSizeSet(value?: number): value is number {
@@ -25,7 +27,7 @@ function hasSizeSet(value?: number): value is number {
 export type HTMLHostProps = HTMLAttributes<HTMLDivElement>;
 
 /**
- * Default element renderer: a measured `<div>` inside a `<foreignObject>`.
+ * Style-neutral element host: a measured `<div>` inside a `<foreignObject>`.
  * All props are passed through to the inner `<div>`.
  * @param props - Standard HTML div attributes (children, style, className, event handlers, etc.).
  */
@@ -42,7 +44,7 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
   };
   // Force static positioning — Safari mispositions foreignObject children with position: relative or backdrop-filter.
   const mergedStyle: CSSProperties = { ...sizeStyle, ...style, position: 'static' };
-  const mergedClassName = className ? `jr-element ${className}` : 'jr-element';
+  const mergedClassName = className || undefined;
 
   return (
     <foreignObject {...measuredSize} overflow="visible">

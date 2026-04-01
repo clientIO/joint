@@ -5,7 +5,7 @@ import {
   useElementId,
   useGraph,
   type ElementRecord,
-  HTMLHost,
+  DefaultElement,
   useElements,
 } from '@joint/react';
 import { util } from '@joint/core';
@@ -70,7 +70,7 @@ function ResizableNode({ label }: Readonly<NodeData>) {
     };
   }, [closeIds, id, removeLink, setLink]);
 
-  return <HTMLHost>{label}</HTMLHost>;
+  return <DefaultElement>{label}</DefaultElement>;
 }
 
 function Main() {
