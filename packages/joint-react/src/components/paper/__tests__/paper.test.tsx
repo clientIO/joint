@@ -1625,7 +1625,7 @@ describe('Paper Component', () => {
       const sourceY = Number(linkElement.dataset.sourceY);
       const targetX = Number(linkElement.dataset.targetX);
       const targetY = Number(linkElement.dataset.targetY);
-      const d = linkElement.dataset.d;
+      const { d } = linkElement.dataset;
 
       expect(sourceX + sourceY + targetX + targetY).toBeGreaterThan(0);
       expect(d).toBeTruthy();
@@ -1668,7 +1668,7 @@ describe('Paper Component', () => {
       );
 
       const linkElement = screen.getByTestId('link-with-layout');
-      const d = linkElement.dataset.d;
+      const { d } = linkElement.dataset;
       expect(d).toBeTruthy();
       expect(d!.length).toBeGreaterThan(0);
     });

@@ -68,6 +68,7 @@ export function attributesToElement<ElementData extends object = Record<string, 
 ): ElementRecord<ElementData> {
 
   const {
+    id,
     type,
     // Ports
     portMap,

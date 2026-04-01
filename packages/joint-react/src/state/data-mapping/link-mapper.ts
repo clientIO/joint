@@ -78,6 +78,7 @@ export function attributesToLink<LinkData extends object = Record<string, unknow
 ): LinkRecord<LinkData> {
 
   const {
+    id,
     type,
     // Labels
     labelMap,

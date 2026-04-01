@@ -809,7 +809,7 @@ describe('graphView', () => {
           style: { color, width: 3 },
           ...mapOptions.link,
         };
-        return linkToAttributes({ link: merged, id: mapOptions.id });
+        return linkToAttributes(merged);
       };
     }
 
@@ -960,7 +960,7 @@ describe('graphView', () => {
           },
           ...mapOptions.element,
         };
-        return elementToAttributes({ id: mapOptions.id, element: merged });
+        return elementToAttributes(merged);
       };
     }
 

@@ -9,11 +9,11 @@ function createGraph() {
 }
 
 function defaultElementToAttributes({ id, element }: { id: string; element: ElementRecord }) {
-  return elementToAttributes({ id, element });
+  return elementToAttributes(element);
 }
 
 function defaultLinkToAttributes({ id, link }: { id?: string; link: LinkRecord }) {
-  return linkToAttributes({ id: id ?? '', link });
+  return linkToAttributes(link);
 }
 
 function setup() {
