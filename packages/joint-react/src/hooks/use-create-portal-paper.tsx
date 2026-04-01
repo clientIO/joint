@@ -23,7 +23,7 @@ import { useContainerKeys } from './use-container-keys';
 import type { PaperStore } from '../store';
 import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
-import { DefaultElement } from '../components/default-element';
+import { DefaultHTMLHost } from '../components/default-html-host';
 
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
@@ -107,15 +107,15 @@ function LinkItem({
 
 /**
  * The default element if the user doesn't provide a renderElement function.
- * Renders the label in a DefaultElement.
+ * Renders the label in a DefaultHTMLHost.
  * @param data - Element data containing the label to render.
- * @returns A JSX element rendering the label inside a DefaultElement with default styling.
+ * @returns A JSX element rendering the label inside a DefaultHTMLHost with default styling.
  */
 const defaultRenderElement = (data: Record<string, unknown>) => {
   return (
-    <DefaultElement>
+    <DefaultHTMLHost>
       {data?.label as string}
-    </DefaultElement>
+    </DefaultHTMLHost>
   );
 };
 
