@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/pseudo-random */
-import { GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
+import { DefaultHTMLHost, GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useState, startTransition } from 'react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -22,6 +22,7 @@ function initialElements(xNodes = 15, yNodes = 30) {
       nodes[id] = {
         data: { label: `Node ${nodeId}`, fontSize: 11 },
         position: { x: x * 100, y: y * 50 },
+        size: { width: 80, height: 30 },
       };
 
       if (recentNodeId !== null && nodeId <= xNodes * yNodes) {
@@ -68,7 +69,17 @@ function Main({
 
   return (
     <div className="flex flex-row relative">
-      <Paper id="main-view" className={PAPER_CLASSNAME} height={600} />
+      <Paper id="main-view" className={PAPER_CLASSNAME} height={600} renderElement={
+        (data: { label: string }) => {
+          const style: React.CSSProperties = {
+            fontSize: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          };
+          return <DefaultHTMLHost useModelGeometry style={style}>{data.label}</DefaultHTMLHost>;
+        }
+      }/>
       <div className="absolute top-4 right-4">
         <button
           type="button"

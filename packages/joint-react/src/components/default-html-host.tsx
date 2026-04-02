@@ -1,7 +1,7 @@
-import { type CSSProperties, type HTMLAttributes } from 'react';
-import { HTMLHost } from './html-host';
+import { type CSSProperties } from 'react';
+import { HTMLHost, type HTMLHostProps } from './html-host';
 
-export type DefaultHTMLHostProps = HTMLAttributes<HTMLDivElement>;
+export type DefaultHTMLHostProps = HTMLHostProps;
 
 const DEFAULT_STYLE: CSSProperties = {
   boxSizing: 'border-box',
@@ -21,7 +21,7 @@ const DEFAULT_STYLE: CSSProperties = {
  *
  * Use `HTMLHost` directly when you want full control without default styles.
  * Use `DefaultHTMLHost` for out-of-the-box themed appearance.
- * @param props - Standard HTML div attributes (children, style, className, event handlers, etc.).
+ * @param props - HTML div attributes plus optional `measure` flag.
  * @returns A themed HTMLHost element with the `jr-element` CSS class applied.
  * @example
  * ```tsx

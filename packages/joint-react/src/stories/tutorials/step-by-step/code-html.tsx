@@ -14,8 +14,8 @@ type ElementData = { label: string };
 
 // define initial elements as Record
 const initialElements: Record<string, ElementRecord<ElementData>> = {
-  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
-  '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
+  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 } },
+  '2': { data: { label: 'World' }, position: { x: 100, y: 200 } },
 };
 
 // define initial edges as Record
@@ -27,7 +27,7 @@ const initialEdges: Record<string, LinkRecord> = {
   },
 };
 function RenderItem({ label }: Readonly<ElementData>) {
-  return <HTMLHost className="node">{label}</HTMLHost>;
+  return <HTMLHost useModelGeometry className="node" style={{ width: 100, height: 50 }}>{label}</HTMLHost>;
 }
 
 function Main() {

@@ -59,18 +59,17 @@ const initialLinks: Record<string, LinkRecord> = {
 function RenderElement({ label, color }: Readonly<NodeData>) {
   return (
     <HTMLHost
+      useModelGeometry
       style={{
+        overflow: 'auto',
         backgroundColor: color,
         borderRadius: 8,
-        padding: '12px 16px',
         color: 'white',
         fontWeight: 500,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        minWidth: 80,
-        minHeight: 40,
       }}
     >
       {label}
@@ -356,7 +355,6 @@ function AddElementForm() {
     setElement(newId, {
       data: { label: label.trim(), color: PRIMARY },
       position: { x: randomX, y: randomY },
-      size: { width: 120, height: 60 },
     });
     setLabel('');
   };

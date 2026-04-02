@@ -23,17 +23,14 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node 1', color: '#ffffff' },
     position: { x: 40, y: 70 },
-    size: { width: 120, height: 80 },
   },
   '2': {
     data: { label: 'Node 2', color: '#ffffff' },
-    position: { x: 170, y: 120 },
-    size: { width: 120, height: 80 },
+    position: { x: 270, y: 120 },
   },
   '3': {
     data: { label: 'Node 2', color: '#ffffff' },
     position: { x: 30, y: 180 },
-    size: { width: 120, height: 80 },
   },
 };
 
@@ -63,16 +60,14 @@ function Element({ id, label }: Readonly<{ id: string; label: string }>) {
 }
 
 function RenderElement({ label }: Readonly<NodeData>) {
-  const { graph } = useGraph();
+  const { removeElement } = useGraph();
   const id = useElementId();
   return (
-    <HTMLHost className="node flex flex-1 justify-center items-center w-30">
+    <HTMLHost className="min-w-[120px] bg-white rounded-lg border border-gray-300 shadow-md">
       <div className="flex flex-1 justify-center items-center py-2 flex-col mx-4">
-        <span className="mb-1 text-sm">{label}</span>
+        <span className="mb-1 text-sm break-all text-black">{label}</span>
         <button
-          onClick={() => {
-            graph.getCell(id).remove();
-          }}
+          onClick={() => removeElement(id)}
           type="button"
           className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
         >
@@ -91,6 +86,7 @@ function Main() {
         className={PAPER_CLASSNAME}
         clickThreshold={10}
         interactive={{ linkMove: false }}
+        defaultAnchor={{ name: 'midSide' }}
         defaultRouter={{ name: 'rightAngle', args: { margin: 40 } }}
         defaultConnector={{
           name: 'straight',
