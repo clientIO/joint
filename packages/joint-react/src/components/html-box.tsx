@@ -8,6 +8,9 @@ const BASE_STYLE: CSSProperties = {
   overflow: 'hidden',
   textAlign: 'center',
   wordBreak: 'break-word',
+  display: 'flex',
+  alignItems: 'top',
+  justifyContent: 'center',
 };
 
 const AUTO_SIZE_STYLE: CSSProperties = {
