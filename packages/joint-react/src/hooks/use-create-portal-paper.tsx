@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { dia } from '@joint/core';
 import type { LinkRecord } from '../types/data-types';
-import type {
-  CSSProperties} from 'react';
 import {
   useCallback,
   useDeferredValue,
@@ -25,7 +23,7 @@ import { useContainerKeys } from './use-container-keys';
 import type { PaperStore } from '../store';
 import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
-import { HTMLHost } from '../components/html-host';
+import { DefaultHTMLHost } from '../components/default-html-host';
 
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
@@ -107,26 +105,17 @@ function LinkItem({
   return createPortal(linkContent, portalElement);
 }
 
-const defaultHTMLHostStyle: CSSProperties = {
-  boxSizing: 'border-box',
-  overflow: 'hidden',
-  textAlign: 'center',
-  wordBreak: 'break-word',
-  minWidth: 80,
-  maxWidth: 200,
-};
-
 /**
  * The default element if the user doesn't provide a renderElement function.
- * Renders the label in an HTMLHost.
+ * Renders the label in a DefaultHTMLHost.
  * @param data - Element data containing the label to render.
- * @returns A JSX element rendering the label inside an HTMLHost with default styling.
+ * @returns A JSX element rendering the label inside a DefaultHTMLHost with default styling.
  */
 const defaultRenderElement = (data: Record<string, unknown>) => {
   return (
-    <HTMLHost style={defaultHTMLHostStyle}>
+    <DefaultHTMLHost>
       {data?.label as string}
-    </HTMLHost>
+    </DefaultHTMLHost>
   );
 };
 
