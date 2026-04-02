@@ -61,16 +61,14 @@ const links: Record<string, LinkRecord> = {
   'link-1': {
     source: { id: 'main-1' },
     target: { id: 'main-2' },
-    color: PRIMARY,
+    style: { color: PRIMARY, className: 'fade-in' },
     layer: 'main',
-    className: 'fade-in',
   },
   'link-2': {
     source: { id: 'main-2' },
     target: { id: 'fg-1' },
-    color: SECONDARY,
-    layer: 'foreground',
-    className: 'fade-in',
+    style: { color: SECONDARY, className: 'fade-in' },
+    layer: 'foreground'
   },
 };
 
