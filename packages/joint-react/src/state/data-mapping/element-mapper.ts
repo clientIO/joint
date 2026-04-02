@@ -74,6 +74,8 @@ export function buildElementFromAttributes<ElementData extends object = Record<s
     portMap,
     ports,
     portDefaults,
+    // Metadata (default-provided key tracking)
+    metadata,
     // 1:1 mapping of all other fields directly on the model
     ...elementRecord
   } = attributes;
@@ -90,6 +92,16 @@ export function buildElementFromAttributes<ElementData extends object = Record<s
   // Only a custom type should be included in the element record.
   if (type && type !== PORTAL_ELEMENT_TYPE) {
     elementRecord.type = type;
+  }
+
+  // Remove keys that came from defaults (not user-provided) to prevent round-trip pollution.
+  const omit = metadata?.omit;
+  if (omit) {
+    for (const key of omit) {
+      // @todo - it should be possible to omit size and position defaults as well
+      if (key === 'size' || key === 'position') continue;
+      Reflect.deleteProperty(elementRecord, key);
+    }
   }
 
   return { ...elementRecord };

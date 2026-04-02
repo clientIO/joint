@@ -86,6 +86,8 @@ export function buildLinkFromAttributes<LinkData extends object = Record<string,
     // Link style
     style,
     attrs,
+    // Metadata (default-provided key tracking)
+    metadata,
     // 1:1 mapping of all other fields directly on the model
     ...linkRecord
   } = attributes;
@@ -107,6 +109,14 @@ export function buildLinkFromAttributes<LinkData extends object = Record<string,
   // Only a custom type should be included in the link record.
   if (type && type !== PORTAL_LINK_TYPE) {
     linkRecord.type = type;
+  }
+
+  // Remove keys that came from defaults (not user-provided) to prevent round-trip pollution.
+  const omit = metadata?.omit;
+  if (omit) {
+    for (const key of omit) {
+      Reflect.deleteProperty(linkRecord, key);
+    }
   }
 
   return { ...linkRecord };

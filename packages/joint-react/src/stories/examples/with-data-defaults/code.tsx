@@ -15,16 +15,19 @@ import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, SECONDARY, LIGHT, BG } from 'sto
 
 interface ElementData {
   label: string;
-  type: 'source' | 'process' | 'sink';
+}
+
+interface PortElement extends ElementRecord<ElementData> {
+  kind: 'source' | 'process' | 'sink';
 }
 
 // Minimal persisted data — no ports, no styling.
 // Ports and theme are provided by useElementDefaults based on element kind.
-const initialElements: Record<string, ElementRecord<ElementData>> = {
-  a: { data: { label: 'Start', type: 'source' }, position: { x: 50, y: 140 } },
-  b: { data: { label: 'Process', type: 'process' }, position: { x: 250, y: 50 } },
-  c: { data: { label: 'Review', type: 'process' }, position: { x: 250, y: 230 } },
-  d: { data: { label: 'Done', type: 'sink' }, position: { x: 480, y: 140 } },
+const initialElements: Record<string, PortElement> = {
+  a: { kind: 'source', data: { label: 'Start' }, position: { x: 50, y: 140 } },
+  b: { kind: 'process', data: { label: 'Process' }, position: { x: 250, y: 50 } },
+  c: { kind: 'process', data: { label: 'Review'}, position: { x: 250, y: 230 } },
+  d: { kind: 'sink', data: { label: 'Done' }, position: { x: 480, y: 140 } },
 };
 
 const initialLinks: Record<string, LinkRecord> = {
@@ -79,11 +82,7 @@ function Diagram() {
   const portShape = alternate ? ('rect' as const) : ('ellipse' as const);
 
   const { mapElementToAttributes } = useElementDefaults<ElementData>(
-    ({ data: rawData }) => {
-      const { data } = rawData;
-      if (!data) {
-        return rawData;
-      }
+    ({ element }) => {
       return {
         size: { width: 100, height: 40 },
         portStyle: {
@@ -94,7 +93,7 @@ function Diagram() {
           outline: BG,
           outlineWidth: 2,
         },
-        portMap: portsByType[data.type] ?? defaultPorts,
+        portMap: portsByType[element.kind!] ?? defaultPorts,
       };
     },
     [color, portShape]

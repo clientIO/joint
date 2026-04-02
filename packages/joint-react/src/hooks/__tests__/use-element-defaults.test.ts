@@ -109,7 +109,7 @@ describe('useElementDefaults', () => {
 
   it('applies per-element defaults via callback', () => {
     const { result } = renderHook(() =>
-      useElementDefaults(({ data: element }) => {
+      useElementDefaults(({ element }) => {
         const kind = (element.data as Record<string, unknown>)?.kind as string | undefined;
         return {
           portStyle: { color: kind === 'start' ? 'green' : 'orange' },
@@ -188,7 +188,7 @@ describe('useElementDefaults', () => {
     expect(result.current.mapElementToAttributes).toBe(firstForward);
   });
 
-  const stableCallback = ({ data: element }: { data: ElementRecord }) => ({
+  const stableCallback = ({ element }: { element: ElementRecord }) => ({
     portStyle: { color: (element.data as Record<string, unknown>)?.kind === 'a' ? 'red' : 'blue' },
   });
 
