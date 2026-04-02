@@ -13,7 +13,7 @@ import {
   type ElementPort,
   type LinkRecord,
   useElements,
-  DefaultHTMLHost,
+  HTMLBox,
 } from '@joint/react';
 
 const SECONDARY = '#6366f1';
@@ -398,6 +398,10 @@ function ElementPortControls({ id, element }: Readonly<ElementPortControlsProps>
   );
 }
 
+function RenderElement(data: { label: string }) {
+  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+}
+
 // --- Main ---
 
 function Main() {
@@ -406,11 +410,7 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: 400, position: 'relative' }}>
       <Paper
-        renderElement={(data: { label: string }) => {
-          return (
-            <DefaultHTMLHost useModelGeometry>{data.label}</DefaultHTMLHost>
-          )
-        }}
+        renderElement={RenderElement}
         className={PAPER_CLASSNAME}
         height={400}
         snapLinks={true}

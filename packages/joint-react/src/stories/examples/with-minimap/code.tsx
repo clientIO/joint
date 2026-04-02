@@ -8,7 +8,7 @@ import {
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
-  DefaultHTMLHost,
+  HTMLBox,
 } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -65,9 +65,9 @@ function MiniMap() {
 
 function RenderElement({ label, color }: Readonly<NodeData>) {
   return (
-    <DefaultHTMLHost useModelGeometry style={{ backgroundColor: color, color: 'white', alignItems: 'center', justifyContent: 'center', display: 'flex', borderRadius: 10 }}>
+    <HTMLBox useModelGeometry style={{ backgroundColor: color, color: 'white', alignItems: 'center', justifyContent: 'center', display: 'flex', borderRadius: 10 }}>
       {label}
-    </DefaultHTMLHost>
+    </HTMLBox>
   );
 }
 

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { GraphProvider, Paper, DefaultHTMLHost, type ElementRecord, type LinkRecord } from '@joint/react';
+import { GraphProvider, Paper, HTMLBox, type ElementRecord, type LinkRecord } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jr-* CSS variable defaults (including element styles)
@@ -82,9 +82,9 @@ const initialLinks: Record<string, LinkRecord> = {
 
 function RenderElement({ label, width, height }: Readonly<Data>) {
   return (
-    <DefaultHTMLHost style={{ width, height }}>
+    <HTMLBox style={{ width, height }}>
       {label}
-    </DefaultHTMLHost>
+    </HTMLBox>
   );
 }
 

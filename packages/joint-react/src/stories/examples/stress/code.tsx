@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/pseudo-random */
-import { DefaultHTMLHost, GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
+import { HTMLBox, GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
 import React, { useCallback, useState, startTransition } from 'react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -7,6 +7,17 @@ import { PAPER_CLASSNAME } from 'storybook-config/theme';
 interface StressNodeData {
   readonly label: string;
   readonly fontSize: number;
+}
+
+const RENDER_ELEMENT_STYLE: React.CSSProperties = {
+  fontSize: 12,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+function RenderElement(data: { label: string }) {
+  return <HTMLBox useModelGeometry style={RENDER_ELEMENT_STYLE}>{data.label}</HTMLBox>;
 }
 
 function initialElements(xNodes = 15, yNodes = 30) {
@@ -69,17 +80,7 @@ function Main({
 
   return (
     <div className="flex flex-row relative">
-      <Paper id="main-view" className={PAPER_CLASSNAME} height={600} renderElement={
-        (data: { label: string }) => {
-          const style: React.CSSProperties = {
-            fontSize: 12,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          };
-          return <DefaultHTMLHost useModelGeometry style={style}>{data.label}</DefaultHTMLHost>;
-        }
-      }/>
+      <Paper id="main-view" className={PAPER_CLASSNAME} height={600} renderElement={RenderElement}/>
       <div className="absolute top-4 right-4">
         <button
           type="button"

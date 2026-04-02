@@ -91,7 +91,7 @@ function MeasuredHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivEl
       nodeRef={nodeRef}
       width={measuredSize.width}
       height={measuredSize.height}
-      style={{ ...style, width: 'max-content', height: 'max-content' }}
+      style={{ width: 'max-content', height: 'max-content', ...style }}
       {...rest}
     />
   );

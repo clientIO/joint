@@ -23,7 +23,7 @@ import { useContainerKeys } from './use-container-keys';
 import type { PaperStore } from '../store';
 import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
-import { DefaultHTMLHost } from '../components/default-html-host';
+import { HTMLBox } from '../components/default-html-host';
 
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
@@ -113,9 +113,9 @@ function LinkItem({
  */
 const defaultRenderElement = (data: Record<string, unknown>) => {
   return (
-    <DefaultHTMLHost>
+    <HTMLBox>
       {data?.label as string}
-    </DefaultHTMLHost>
+    </HTMLBox>
   );
 };
 

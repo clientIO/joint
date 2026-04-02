@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { DefaultHTMLHost, GraphProvider, Paper, useElementId, type ElementRecord, type LinkRecord } from '@joint/react';
+import { HTMLBox, GraphProvider, Paper, useElementId, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
 import { PRIMARY, LIGHT, PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
@@ -36,7 +36,7 @@ function RenderElement({ color }: Readonly<NodeData>) {
   const id = useElementId();
   const { setElement } = useGraph<NodeData>();
   return (
-    <DefaultHTMLHost useModelGeometry
+    <HTMLBox useModelGeometry
       style={{ backgroundColor: color }}
       className="node"
     >
@@ -51,7 +51,7 @@ function RenderElement({ color }: Readonly<NodeData>) {
         }}
         defaultValue={color}
       />
-    </DefaultHTMLHost>
+    </HTMLBox>
   );
 }
 function Main() {

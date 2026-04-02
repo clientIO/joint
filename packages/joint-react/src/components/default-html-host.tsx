@@ -1,13 +1,16 @@
 import { type CSSProperties } from 'react';
 import { HTMLHost, type HTMLHostProps } from './html-host';
 
-export type DefaultHTMLHostProps = HTMLHostProps;
+export type HTMLBoxProps = HTMLHostProps;
 
-const DEFAULT_STYLE: CSSProperties = {
+const BASE_STYLE: CSSProperties = {
   boxSizing: 'border-box',
   overflow: 'hidden',
   textAlign: 'center',
   wordBreak: 'break-word',
+};
+
+const AUTO_SIZE_STYLE: CSSProperties = {
   minWidth: 80,
   minHeight: 40,
   maxWidth: 200,
@@ -28,9 +31,15 @@ const DEFAULT_STYLE: CSSProperties = {
  * <Paper renderElement={({ label }) => <DefaultHTMLHost>{label}</DefaultHTMLHost>} />
  * ```
  */
-export function DefaultHTMLHost(props: Readonly<DefaultHTMLHostProps> = {}) {
-  const { className, style, ...rest } = props;
+export function HTMLBox(props: Readonly<HTMLBoxProps> = {}) {
+  const { className, style, useModelGeometry, ...rest } = props;
   const mergedClassName = className ? `jr-element ${className}` : 'jr-element';
-  const mergedStyle = style ? { ...DEFAULT_STYLE, ...style } : DEFAULT_STYLE;
-  return <HTMLHost {...rest} className={mergedClassName} style={mergedStyle} />;
+  const baseStyle = useModelGeometry ? BASE_STYLE : { ...BASE_STYLE, ...AUTO_SIZE_STYLE };
+  const mergedStyle = style ? { ...baseStyle, ...style } : baseStyle;
+  return <HTMLHost
+    {...rest}
+    useModelGeometry={useModelGeometry}
+    className={mergedClassName}
+    style={mergedStyle}
+  />;
 }

@@ -3,7 +3,7 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
-import { GraphProvider, Paper, useGraph, type ElementRecord, useElements, DefaultHTMLHost } from '@joint/react';
+import { GraphProvider, Paper, useGraph, type ElementRecord, useElements, HTMLBox } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -60,7 +60,7 @@ function Main() {
   }, []);
 
   const renderElement = useCallback((data: { label: string }) => {
-    return <DefaultHTMLHost useModelGeometry>{data.label}</DefaultHTMLHost>;
+    return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
   }, []);
 
   const elementsLength = useElements((items) => items.size);
