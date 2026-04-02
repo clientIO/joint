@@ -3,7 +3,7 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import '../index.css';
-import { GraphProvider, Paper, useGraph, type ElementRecord, useElements } from '@joint/react';
+import { GraphProvider, Paper, useGraph, type ElementRecord, useElements, DefaultHTMLHost } from '@joint/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { dia } from '@joint/core';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
@@ -59,6 +59,10 @@ function Main() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const renderElement = useCallback((data: { label: string }) => {
+    return <DefaultHTMLHost useModelGeometry>{data.label}</DefaultHTMLHost>;
+  }, []);
+
   const elementsLength = useElements((items) => items.size);
   return (
     <div className="flex flex-col">
@@ -94,7 +98,13 @@ function Main() {
           Add Node
         </button>
       </div>
-      <Paper ref={paperRef} id={paperId} className={PAPER_CLASSNAME} height={450} />
+      <Paper
+        ref={paperRef}
+        id={paperId}
+        className={PAPER_CLASSNAME}
+        height={450}
+        renderElement={renderElement}
+      />
     </div>
   );
 }
