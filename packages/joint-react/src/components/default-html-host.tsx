@@ -10,6 +10,7 @@ const DEFAULT_STYLE: CSSProperties = {
   wordBreak: 'break-word',
   minWidth: 80,
   minHeight: 40,
+  maxWidth: 200,
 };
 
 /**
