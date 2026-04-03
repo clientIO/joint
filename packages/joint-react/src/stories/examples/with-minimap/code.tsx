@@ -8,7 +8,7 @@ import {
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
-  HTMLHost,
+  HTMLBox,
 } from '@joint/react';
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
@@ -22,12 +22,12 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
   '1': {
     data: { label: 'Node 1', color: PRIMARY },
     position: { x: 100, y: 10 },
-    size: { width: 100, height: 50 },
+    size: { width: 120, height: 60 },
   },
   '2': {
     data: { label: 'Node 2', color: SECONDARY },
     position: { x: 100, y: 200 },
-    size: { width: 100, height: 50 },
+    size: { width: 120, height: 60 },
   },
 };
 const initialEdges: Record<string, LinkRecord> = {
@@ -64,7 +64,11 @@ function MiniMap() {
 }
 
 function RenderElement({ label, color }: Readonly<NodeData>) {
-  return <HTMLHost style={{ backgroundColor: color, color: 'white' }}>{label}</HTMLHost>;
+  return (
+    <HTMLBox useModelGeometry style={{ backgroundColor: color, color: 'white', alignItems: 'center', justifyContent: 'center', display: 'flex', borderRadius: 10 }}>
+      {label}
+    </HTMLBox>
+  );
 }
 
 function Main() {

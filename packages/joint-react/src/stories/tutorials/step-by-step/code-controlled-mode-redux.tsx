@@ -75,8 +75,8 @@ interface GraphState {
  * Initial elements for the graph.
  */
 const defaultElements: Record<string, CustomElement> = {
-  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 }, size: { width: 100, height: 50 } },
-  '2': { data: { label: 'World' }, position: { x: 100, y: 200 }, size: { width: 100, height: 50 } },
+  '1': { data: { label: 'Hello' }, position: { x: 100, y: 15 } },
+  '2': { data: { label: 'World' }, position: { x: 100, y: 200 } },
 };
 
 /**
@@ -220,7 +220,7 @@ const selectLinks = (state: GraphRootState) => (state.graph as UndoableGraphStat
  * Custom render function for graph elements.
  */
 function RenderItem({ label }: Readonly<ElementData>) {
-  return <HTMLHost className="node">{label}</HTMLHost>;
+  return <HTMLHost useModelGeometry className="node" style={{ width: 100, height: 50 }}>{label}</HTMLHost>;
 }
 
 /**
@@ -318,7 +318,6 @@ function ReduxConnectedPaperApp() {
             const newElement: CustomElement = {
               data: { label: 'New Node' },
               position: { x: Math.random() * 200, y: Math.random() * 200 },
-              size: { width: 100, height: 50 },
             };
             dispatch(addElement({ id: newId, ...newElement }));
           }}

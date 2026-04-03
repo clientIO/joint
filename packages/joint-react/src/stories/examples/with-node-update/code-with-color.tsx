@@ -1,9 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { GraphProvider, Paper, useElementId, type ElementRecord, type LinkRecord } from '@joint/react';
+import { HTMLBox, GraphProvider, Paper, useElementId, type ElementRecord, type LinkRecord } from '@joint/react';
 import '../index.css';
-import { PRIMARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
-import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
+import { PRIMARY, LIGHT, PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import { useGraph } from '@joint/react';
 
 interface NodeData {
@@ -19,7 +18,7 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
     size: { width: 100, height: 50 },
   },
   '2': {
-    data: { label: 'Node 2', color: PRIMARY },
+    data: { label: 'Node 2', color: SECONDARY },
     position: { x: 100, y: 200 },
     size: { width: 100, height: 50 },
   },
@@ -37,13 +36,8 @@ function RenderElement({ color }: Readonly<NodeData>) {
   const id = useElementId();
   const { setElement } = useGraph<NodeData>();
   return (
-    <HTMLNode
-      style={{
-        backgroundColor: color,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
+    <HTMLBox useModelGeometry
+      style={{ backgroundColor: color }}
       className="node"
     >
       <input
@@ -57,7 +51,7 @@ function RenderElement({ color }: Readonly<NodeData>) {
         }}
         defaultValue={color}
       />
-    </HTMLNode>
+    </HTMLBox>
   );
 }
 function Main() {

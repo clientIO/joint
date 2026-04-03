@@ -10,8 +10,8 @@ export { SVGText } from './components/svg-text/svg-text';
 export type { SVGTextProps } from './components/svg-text/svg-text';
 export { HTMLHost } from './components/html-host';
 export type { HTMLHostProps } from './components/html-host';
-export { DefaultHTMLHost } from './components/default-html-host';
-export type { DefaultHTMLHostProps } from './components/default-html-host';
+export { HTMLBox } from './components/html-box';
+export type { HTMLBoxProps } from './components/html-box';
 
 // Hooks — Get Data
 export { useGraph } from './hooks/use-graph';

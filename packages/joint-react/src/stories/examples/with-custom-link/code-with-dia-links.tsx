@@ -5,8 +5,6 @@ import type { dia } from '@joint/core';
 import { shapes, util } from '@joint/core';
 import {
   GraphProvider,
-  buildAttributesFromLink,
-  type CellAttributes,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
@@ -68,32 +66,18 @@ class LinkModel extends shapes.standard.Link {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper defaultLink={() => new LinkModel()} className={PAPER_CLASSNAME} height={280} />
+      <Paper className={PAPER_CLASSNAME} height={280} />
     </div>
   );
 }
 
-interface CustomLink extends LinkRecord {
-  readonly data?: { color: string };
-}
-
-const links: Record<string, CustomLink> = {
+const links: Record<string, LinkRecord> = {
   '1123': {
     source: { id: '1' },
     target: { id: '2' },
-    style: { color: PRIMARY },
-  },
-};
-
-const mapLinkToAttributes = (options: { id?: string; link: LinkRecord }): CellAttributes => {
-  const data = options.link as CustomLink;
-  const attributes = buildAttributesFromLink(options);
-  const color = data.style?.color ?? PRIMARY;
-  return {
-    ...attributes,
     type: 'LinkModel',
-    attrs: LinkModel.getPresentationAttributes(color),
-  };
+    attrs: LinkModel.getPresentationAttributes(PRIMARY)
+  },
 };
 
 export default function App() {
@@ -102,7 +86,6 @@ export default function App() {
       links={links as Record<string, LinkRecord>}
       elements={initialElements}
       cellNamespace={{ LinkModel }}
-      mapLinkToAttributes={mapLinkToAttributes}
     >
       <Main />
     </GraphProvider>

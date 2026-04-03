@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { GraphProvider, Paper, type ElementRecord, type LinkRecord } from '@joint/react';
+import { GraphProvider, Paper, HTMLBox, type ElementRecord, type LinkRecord } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 // Base theme — provides --jr-* CSS variable defaults (including element styles)
@@ -8,51 +8,54 @@ import '../../../css/theme.css';
 // Dark theme overrides
 import './dark-theme.css';
 
-type Data = { label: string };
+interface Data {
+  readonly label: string;
+  readonly width?: number;
+  readonly height?: number;
+  readonly [key: string]: unknown;
+}
+
 const initialElements: Record<string, ElementRecord<Data>> = {
   a: {
-    // No width or height — element should size to fit label
-    // label: 'Lorem ipsum',
+    // No width or height — element auto-sizes to fit label
     data: {
-      label: 'Lorem ipsum',
+      label: 'no width or height',
     },
     position: { x: 100, y: 60 },
-    // no size → auto-size to content
     portMap: { out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' } },
   },
   b: {
-    // Explicit width - height is still determined by content
+    // Explicit width — height grows to fit content
     data: {
-      label: 'dolor sit amet',
+      label: 'fixed width, auto height',
+      width: 120,
     },
     position: { x: 280, y: 60 },
-    // width only → text wraps, height grows to fit
-    size: { width: 100 },
     portMap: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)' },
       in: { cx: 0, cy: 'calc(0.5 * h)' },
     },
   },
   c: {
-    // Explicit width and height - content should be clipped
+    // Explicit width and height — fixed box, content clipped
     data: {
-      label: 'consectetur adipiscing elit',
+      label: 'fixed width and height',
+      width: 120,
+      height: 80,
     },
     position: { x: 450, y: 60 },
-    // width and height → fixed box, text wraps but clipped at boundary
-    size: { width: 100, height: 80 },
     portMap: {
       in: { cx: 0, cy: 'calc(0.5 * h)', passive: true },
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', passive: true },
     },
   },
   d: {
+    // Explicit height — width grows to fit content
     data: {
-      label: 'no size (auto)',
+      label: 'auto width, fixed height',
+      height: 120,
     },
     position: { x: 620, y: 60 },
-    // height only → text wraps, width grows to fit
-    size: { height: 60 },
     portMap: { in: { cx: 0, cy: 'calc(0.5 * h)' } },
   },
 };
@@ -76,6 +79,14 @@ const initialLinks: Record<string, LinkRecord> = {
     style: { targetMarker: 'arrow' },
   },
 };
+
+function RenderElement({ label, width, height }: Readonly<Data>) {
+  return (
+    <HTMLBox style={{ width, height }}>
+      {label}
+    </HTMLBox>
+  );
+}
 
 export default function App() {
   const [isDark, setIsDark] = useState(false);
@@ -115,7 +126,7 @@ export default function App() {
         </button>
       </div>
       <GraphProvider elements={initialElements} links={initialLinks}>
-        <Paper className={PAPER_CLASSNAME} height={240} />
+        <Paper className={PAPER_CLASSNAME} height={240} renderElement={RenderElement} />
       </GraphProvider>
     </div>
   );

@@ -3,6 +3,7 @@ import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { type dia } from '@joint/core';
 import '../index.css';
 import {
+  HTMLBox,
   GraphProvider,
   Paper,
   useElements,
@@ -150,10 +151,16 @@ function CellAttributesView({
 
 const PAPER_STYLE = { flex: 1 };
 
+function RenderElement(data: { label: string }) {
+  return <HTMLBox useModelGeometry>{data.label}</HTMLBox>;
+}
+
 function Main() {
   return (
     <div className="flex w-full h-full">
-      <Paper className={PAPER_CLASSNAME} style={PAPER_STYLE} embeddingMode />
+      <Paper className={PAPER_CLASSNAME} style={PAPER_STYLE} embeddingMode
+        renderElement={RenderElement}
+      />
       <InspectorPanel />
     </div>
   );

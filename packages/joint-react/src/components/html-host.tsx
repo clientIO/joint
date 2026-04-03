@@ -8,25 +8,27 @@ import { useElementSize } from '../hooks';
  * All props are spread onto the inner `<div>`, so you can pass `children`,
  * `style`, `className`, event handlers, `data-*` attributes, etc.
  *
- * When both `width` and `height` are present in the element data, the host
- * renders with explicit dimensions and skips DOM measurement entirely.
- * When either is missing, it auto-sizes via `useMeasureNode`.
+ * By default, the host measures its content via `useMeasureNode` and syncs
+ * the size back to the graph element. Set `useModelGeometry` to skip
+ * measurement and render with the element's dimensions from the model instead.
  *
  * Does **not** apply any default theme class. For themed styling via
  * `--jr-element-*` CSS variables, use {@link DefaultHTMLHost} instead.
  *
  * @example
  * ```tsx
- * <Paper renderElement={({ label }) => <HTMLHost className="my-node">{label}</HTMLHost>} />
+ * <Paper renderElement={({ label }) => (
+ *   <HTMLHost className="my-node">{label}</HTMLHost>
+ * )} />
  * ```
  */
-function hasSizeSet(value?: number): value is number {
-  return typeof value === 'number' && value > 0;
+
+export interface HTMLHostProps extends HTMLAttributes<HTMLDivElement> {
+  /** Skip DOM measurement and use the element's size from the model. Default: `false`. */
+  readonly useModelGeometry?: boolean;
 }
 
-export type HTMLHostProps = HTMLAttributes<HTMLDivElement>;
-
-interface HTMLFrameProps extends HTMLHostProps {
+interface HTMLFrameProps extends Omit<HTMLHostProps, 'useModelGeometry'> {
   readonly nodeRef?: RefObject<HTMLDivElement | null>;
   readonly width?: number;
   readonly height?: number;
@@ -49,24 +51,24 @@ function HTMLFrame({ nodeRef, width, height, style, ...rest }: Readonly<HTMLFram
 /**
  * Style-neutral element host: a measured `<div>` inside a `<foreignObject>`.
  * All props are passed through to the inner `<div>`.
- * @param props - Standard HTML div attributes (children, style, className, event handlers, etc.).
+ * @param props - HTML div attributes plus optional `useModelGeometry` flag.
  */
 export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
-  const { style, ...rest } = props;
+  const { useModelGeometry = false, ...rest } = props;
+
+  return useModelGeometry ? (
+    <StaticHTMLFrame {...rest} />
+  ) : (
+    <MeasuredHTMLFrame {...rest} />
+  );
+}
+
+/**
+ * Internal component that uses the element's size from the model.
+ * Rendered when `useModelGeometry` is set.
+ */
+function StaticHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
   const { width, height } = useElementSize();
-  // Store the initial width and height to determine if they were set or not.
-  // @todo - the computed size should not be stored back to the element record
-  const initialWidthRef = useRef(width);
-  const initialHeightRef = useRef(height);
-  const hasWidth = hasSizeSet(initialWidthRef.current);
-  const hasHeight = hasSizeSet(initialHeightRef.current);
-
-  if (!hasWidth || !hasHeight) {
-    const cssWidth = hasWidth ? initialWidthRef.current : 'max-content';
-    const cssHeight = hasHeight ? initialHeightRef.current : undefined;
-    return <MeasuredHTMLHost width={cssWidth} height={cssHeight} style={style} {...rest} />;
-  }
-
   return (
     <HTMLFrame
       width={width}
@@ -77,16 +79,11 @@ export function HTMLHost(props: Readonly<HTMLHostProps> = {}) {
   );
 }
 
-interface MeasuredHTMLHostProps extends HTMLHostProps {
-  readonly width: CSSProperties['width'];
-  readonly height: CSSProperties['height'];
-}
-
 /**
  * Internal component that measures its DOM node and syncs the size to the graph element.
- * Used when at least one dimension (width or height) is not explicitly set.
+ * Rendered by default when `useModelGeometry` is not set.
  */
-function MeasuredHTMLHost({ width, height, style, ...rest }: Readonly<MeasuredHTMLHostProps>) {
+function MeasuredHTMLFrame({ style, ...rest }: Readonly<HTMLAttributes<HTMLDivElement>>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const measuredSize = useMeasureNode(nodeRef);
   return (
@@ -94,7 +91,7 @@ function MeasuredHTMLHost({ width, height, style, ...rest }: Readonly<MeasuredHT
       nodeRef={nodeRef}
       width={measuredSize.width}
       height={measuredSize.height}
-      style={{ width, height, ...style }}
+      style={{ width: 'max-content', height: 'max-content', ...style }}
       {...rest}
     />
   );
