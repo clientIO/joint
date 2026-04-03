@@ -1,0 +1,38 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+#paper {
+    position: absolute;
+    right: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+#logo {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+}
+
+.joint-highlighted {
+    stroke: #5a87f7;
+    stroke-width: 3;
+
+    &.label rect {
+        fill: #e9effe;
+        stroke: #5a87f7;
+    }
+
+    &.label text {
+        stroke: none;
+    }
+}
+
+.handsontable .table-header {
+    background: #fcfdc4;
+}

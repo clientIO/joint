@@ -1,0 +1,42 @@
+#paper-container {
+    position: absolute;
+    right: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow: scroll;
+
+    .joint-paper {
+        margin: 10px auto;
+
+        .hexagon-grid {
+            &:not(.disabled) {
+                cursor: cell;
+
+                .hexagon:hover {
+                    fill: #e5fbff;
+                }
+            }
+
+            .hexagon {
+                fill: #f3f7f6;
+                stroke: #c0c4c3;
+                stroke-width: 1;
+            }
+        }
+
+        svg {
+            overflow: visible;
+        }
+    }
+}
+
+#logo {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: #ffffff;
+    border: 1px solid #d3d3d3;
+    padding: 5px;
+    box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.3);
+}

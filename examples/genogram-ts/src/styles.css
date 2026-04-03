@@ -1,0 +1,70 @@
+#paper-container {
+    position: absolute;
+    right: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+#controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+#dataset-select,
+#link-style-toggle {
+    padding: 6px 10px;
+    font-size: 14px;
+    font-family: Arial, helvetica, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+}
+
+#link-style-toggle:hover {
+    background: #f0f0f0;
+}
+
+#logo {
+    position: absolute;
+    bottom: 10px;
+    left: 0px;
+}
+
+.joint-paper {
+    border: 1px solid #e2e8dd;
+}
+
+.joint-element {
+    transition: opacity 0.3s ease;
+}
+
+.joint-element.dimmed {
+    opacity: 0.1;
+}
+
+/* We avoid using opacity for links because their segments can overlap.
+With opacity, intersections would appear darker, creating visual artifacts.
+Instead, we lighten the stroke color directly. */
+.joint-link [joint-selector="line"] {
+    transition: stroke 0.3s ease;
+}
+
+.joint-link.dimmed [joint-selector="line"] {
+    stroke: #e2e8dd;
+}
+
+.hover-highlight {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+
+    @starting-style {
+        opacity: 0;
+    }
+}
