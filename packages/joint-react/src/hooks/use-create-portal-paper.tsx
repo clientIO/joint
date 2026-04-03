@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable @typescript-eslint/no-shadow */
-import { dia } from '@joint/core';
+import { dia, util } from '@joint/core';
 import type { LinkRecord } from '../types/data-types';
 import {
   useCallback,
@@ -188,7 +188,9 @@ export function useCreatePortalPaper(
       const link = isDefaultLinkFactory ? defaultLink(cellView, magnet) : defaultLink;
       const PortalLinkModel = getPortalLinkConstructor(graph);
       if (!link) {
+        const id = util.uuid();
         const defaultAttributes = gv.mapLinkToAttributes({
+          id,
           link: { data: {} },
         });
         return new PortalLinkModel(defaultAttributes);
@@ -199,7 +201,9 @@ export function useCreatePortalPaper(
         }
         return link.clone();
       }
+      const id = util.uuid();
       const attributes = gv.mapLinkToAttributes({
+        id,
         link: { data: {}, ...link } as LinkRecord,
       });
       return new PortalLinkModel(attributes);
