@@ -544,7 +544,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isUpwardsShorter = topD < bottomD;
 
             let ignoreMargin = false;
-            if (ignoreOverlappingMargin && Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) {
+            if (ignoreOverlappingMargin &&
+                ((Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) ||
+                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin))) {
                 ignoreMargin = true;
             }
 
@@ -609,9 +611,12 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isUpwardsShorter = topD < bottomD;
 
             let ignoreMargin = false;
-            if (ignoreOverlappingMargin && Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) {
+            if (ignoreOverlappingMargin &&
+                ((Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) ||
+                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin))) {
                 ignoreMargin = true;
             }
+
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
             if (((y >= smy0 && y <= smy1) || (y >= tmy0 && y <= tmy1)) && !ignoreMargin) {
@@ -673,7 +678,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isLeftShorter = leftD < rightD;
 
             let ignoreMargin = false;
-            if (ignoreOverlappingMargin && Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) {
+            if (ignoreOverlappingMargin &&
+                ((Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) ||
+                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin))) {
                 ignoreMargin = true;
             }
 
@@ -738,7 +745,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isLeftShorter = leftD < rightD;
 
             let ignoreMargin = false;
-            if (ignoreOverlappingMargin && Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) {
+            if (ignoreOverlappingMargin &&
+                ((Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) ||
+                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin))) {
                 ignoreMargin = true;
             }
 
