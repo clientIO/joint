@@ -819,7 +819,7 @@ QUnit.module('cellView', function(hooks) {
             QUnit.test('result is cached after the first call', function(assert) {
                 sinon.stub(htmlMagnet, 'checkVisibility').returns(true);
                 const getBCRStub = sinon.stub(htmlMagnet, 'getBoundingClientRect').returns({
-                    left: 50, top: 30, width: 100, height: 80
+                    x: 50, y: 30, width: 100, height: 80
                 });
                 sinon.stub(htmlMagnet, 'offsetWidth').get(() => 100);
                 sinon.stub(htmlMagnet, 'offsetHeight').get(() => 80);
