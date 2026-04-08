@@ -804,20 +804,24 @@ export const CellView = View.extend({
             } else {
                 if (magnet instanceof HTMLElement) {
                     if (!magnet.checkVisibility()) {
-                        // If the element is not visible, we cannot rely on `getBoundingClientRect()` method.
-                        // Fall back to the closest SVG ancestor and use its bbox instead.
-                        let svgAncestor = magnet.parentNode;
-                        while (svgAncestor && !(svgAncestor instanceof SVGElement)) {
-                            svgAncestor = svgAncestor.parentNode;
-                        }
-                        if (svgAncestor) {
-                            metrics.boundingRect = V(svgAncestor).getBBox();
-                        }
+                        console.warn('CellView: a magnet is defined as an invisible HTML element. Its position cannot be calculated, which means the magnet position will be incorrect. Check your magnet definitions, or provide a custom `measureNode` method in the paper options.');
+
+                        metrics.boundingRect = new Rect();
                     } else {
-                        const { left, top, width, height } = magnet.getBoundingClientRect();
-                        // We need to transform the bounding rect from the screen coordinate system to the relative SVG coordinate system.
-                        const ctm = this.getRootTranslateMatrix().inverse();
-                        metrics.boundingRect = V.transformRect({ x: left, y: top, width, height }, ctm);
+                        const clientRect = new Rect(magnet.getBoundingClientRect());
+                        const clientCenter = clientRect.center();
+                        const localCenter = this.paper.clientToLocalPoint(clientCenter);
+                        const ctm = this.getRootTranslateMatrix().multiply(this.getNodeRotateMatrix(magnet)).inverse();
+                        const preRotationCenter = V.transformPoint(localCenter, ctm);
+                        // get non-rotated bounding box dimensions
+                        const w = magnet.offsetWidth;
+                        const h = magnet.offsetHeight;
+                        metrics.boundingRect = new Rect(
+                            preRotationCenter.x - w / 2,
+                            preRotationCenter.y - h / 2,
+                            w,
+                            h
+                        );
                     }
                 } else {
                     metrics.boundingRect = V(magnet).getBBox();
