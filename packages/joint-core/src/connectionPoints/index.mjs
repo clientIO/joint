@@ -100,7 +100,10 @@ function rectangleIntersection(line, view, magnet, opt) {
         ? getNodeModelBBox(view, magnet, false)
         : view.getNodeUnrotatedBBox(magnet);
     if (opt.stroke) bboxWORotation.inflate(stroke(magnet) / 2);
-    const center = bboxWORotation.center();
+
+    // Use model center because rotation is applied around the center of the model.
+    const center = view.model.getBBox().center();
+
     const lineWORotation = line.clone().rotate(center, angle);
     const intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
     const cp = (intersections)
@@ -156,7 +159,9 @@ function boundaryIntersection(line, view, magnet, opt) {
     }
 
     if (!V.isSVGGraphicsElement(node)) {
-        if (node === magnet || !V.isSVGGraphicsElement(magnet)) return anchor;
+        if (node === magnet || !V.isSVGGraphicsElement(magnet)) {
+            return rectangleIntersection(line, view, magnet, opt);
+        }
         node = magnet;
     }
 
