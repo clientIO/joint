@@ -4,8 +4,8 @@ import {
   type ElementRecord, type ElementPort, type LinkRecord, usePaper,
 } from '@joint/react';
 import {
-  directLinks, orthogonalLinks, curveLinks,
-  type DirectLinksOptions, type OrthogonalLinksOptions, type CurveLinksOptions,
+  straightLinks, orthogonalLinks, curvedLinks,
+  type StraightLinksOptions, type OrthogonalLinksOptions, type CurvedLinksOptions,
   type AnchorMode,
 } from '../../../presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -135,7 +135,7 @@ function RenderElement(data: Readonly<NodeData>) {
 
 // ── Preset builder ──────────────────────────────────────────────────────────
 
-type PresetName = 'direct' | 'orthogonal' | 'curve';
+type PresetName = 'straight' | 'orthogonal' | 'curved';
 
 function buildPreset(
   name: PresetName,
@@ -144,33 +144,35 @@ function buildPreset(
   targetOffset: number,
   cornerType: OrthogonalLinksOptions['cornerType'],
   cornerRadius: number,
+  straightWhileDragging: boolean,
 ) {
   const base = { mode, sourceOffset, targetOffset };
   switch (name) {
-    case 'direct': return directLinks({ sourceOffset, targetOffset } satisfies DirectLinksOptions);
-    case 'orthogonal': return orthogonalLinks({ ...base, cornerType, cornerRadius } satisfies OrthogonalLinksOptions);
-    case 'curve': return curveLinks(base satisfies CurveLinksOptions);
+    case 'straight': return straightLinks({ sourceOffset, targetOffset } satisfies StraightLinksOptions);
+    case 'orthogonal': return orthogonalLinks({ ...base, cornerType, cornerRadius, straightWhileDragging } satisfies OrthogonalLinksOptions);
+    case 'curved': return curvedLinks({ ...base, straightWhileDragging } satisfies CurvedLinksOptions);
   }
 }
 
 // ── Controls ────────────────────────────────────────────────────────────────
 
-const PRESET_NAMES: PresetName[] = ['direct', 'orthogonal', 'curve'];
+const PRESET_NAMES: PresetName[] = ['straight', 'orthogonal', 'curved'];
 const ANCHOR_MODES: AnchorMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical'];
 const CORNER_TYPES: NonNullable<OrthogonalLinksOptions['cornerType']>[] = ['cubic', 'line', 'point', 'gap'];
 
 function PresetPicker() {
-  const [preset, setPreset] = useState<PresetName>('curve');
+  const [preset, setPreset] = useState<PresetName>('curved');
   const [anchorMode, setAnchorMode] = useState<AnchorMode>('horizontal');
   const [sourceOffset, setSourceOffset] = useState(0);
   const [targetOffset, setTargetOffset] = useState(0);
   const [cornerType, setCornerType] = useState<OrthogonalLinksOptions['cornerType']>('cubic');
   const [cornerRadius, setCornerRadius] = useState(8);
+  const [straightWhileDragging, setDirectWhileDragging] = useState(true);
 
   const { paper } = usePaper('main-paper');
   const linkPreset = useMemo(
-    () => buildPreset(preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius),
-    [preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius]
+    () => buildPreset(preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhileDragging),
+    [preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhileDragging]
   );
 
   useEffect(() => {
@@ -217,7 +219,7 @@ function PresetPicker() {
 
         {/* Shared options */}
         <div className="flex items-center gap-3">
-          {preset !== 'direct' && (
+          {preset !== 'straight' && (
             <label className="flex items-center gap-1.5 text-slate-600">
               <span className="text-xs">mode</span>
               <select
@@ -249,6 +251,17 @@ function PresetPicker() {
               onChange={(event) => setTargetOffset(Number(event.target.value))}
             />
           </label>
+          {preset !== 'straight' && (
+            <label className="flex items-center gap-1.5 text-slate-600 cursor-pointer">
+              <input
+                type="checkbox"
+                className="accent-indigo-500"
+                checked={straightWhileDragging}
+                onChange={(event) => setDirectWhileDragging(event.target.checked)}
+              />
+              <span className="text-xs">straight while dragging</span>
+            </label>
+          )}
         </div>
 
         {/* Orthogonal-specific options */}
