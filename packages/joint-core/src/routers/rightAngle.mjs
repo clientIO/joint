@@ -465,7 +465,7 @@ function moveAndExpandBBox(bbox, direction, margin) {
 function routeBetweenPoints(source, target, opt = {}) {
     const { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
     const { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight, margin: targetMargin } = target;
-    const { targetInSourceBBox = false, ignoreOverlappingMargin } = opt;
+    const { targetInSourceBBox = false, minMargin } = opt;
 
     const tx1 = tx0 + targetWidth;
     const ty1 = ty0 + targetHeight;
@@ -544,9 +544,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isUpwardsShorter = topD < bottomD;
 
             let ignoreMargin = false;
-            if (ignoreOverlappingMargin &&
-                ((Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) ||
-                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin))) {
+            if (minMargin &&
+                ((Math.abs(smy1 - tmy0) <= minMargin) ||
+                (Math.abs(smy0 - tmy1) <= minMargin))) {
                 ignoreMargin = true;
             }
 
@@ -611,9 +611,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isUpwardsShorter = topD < bottomD;
 
             let ignoreMargin = false;
-            if (ignoreOverlappingMargin &&
-                ((Math.abs(smy1 - tmy0) <= ignoreOverlappingMargin) ||
-                (Math.abs(smy0 - tmy1) <= ignoreOverlappingMargin))) {
+            if (minMargin &&
+                ((Math.abs(smy1 - tmy0) <= minMargin) ||
+                (Math.abs(smy0 - tmy1) <= minMargin))) {
                 ignoreMargin = true;
             }
 
@@ -678,9 +678,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isLeftShorter = leftD < rightD;
 
             let ignoreMargin = false;
-            if (ignoreOverlappingMargin &&
-                ((Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) ||
-                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin))) {
+            if (minMargin &&
+                ((Math.abs(smx1 - tmx0) <= minMargin) ||
+                (Math.abs(smx0 - tmx1) <= minMargin))) {
                 ignoreMargin = true;
             }
 
@@ -745,9 +745,9 @@ function routeBetweenPoints(source, target, opt = {}) {
             const isLeftShorter = leftD < rightD;
 
             let ignoreMargin = false;
-            if (ignoreOverlappingMargin &&
-                ((Math.abs(smx1 - tmx0) <= ignoreOverlappingMargin) ||
-                (Math.abs(smx0 - tmx1) <= ignoreOverlappingMargin))) {
+            if (minMargin &&
+                ((Math.abs(smx1 - tmx0) <= minMargin) ||
+                (Math.abs(smx0 - tmx1) <= minMargin))) {
                 ignoreMargin = true;
             }
 
@@ -1536,7 +1536,7 @@ function getLoopCoordinates(direction, angle, margin) {
 }
 
 function rightAngleRouter(vertices, opt, linkView) {
-    const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, ignoreOverlappingMargin = null } = opt;
+    const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, minMargin = null } = opt;
     const margin = opt.margin || 20;
     const useVertices = opt.useVertices || false;
 
@@ -1549,7 +1549,7 @@ function rightAngleRouter(vertices, opt, linkView) {
     const resultVertices = [];
 
     if (!useVertices || vertices.length === 0) {
-        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint, { ignoreOverlappingMargin }));
+        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint, { minMargin }));
     }
 
     const verticesData = vertices.map((v) => pointDataFromVertex(v));
@@ -1595,7 +1595,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             // No need to create a route, use the `routeBetweenPoints` to construct a route
             firstVertex.direction = resolvedSourceDirection;
             firstVertex.margin = margin;
-            resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { targetInSourceBBox: true, ignoreOverlappingMargin }), firstVertex.point);
+            resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { targetInSourceBBox: true, minMargin }), firstVertex.point);
         }
     } else {
         // The first point responsible for the initial direction of the route
@@ -1603,7 +1603,7 @@ function rightAngleRouter(vertices, opt, linkView) {
         const direction = resolveInitialDirection(sourcePoint, firstVertex, next);
         firstVertex.direction = direction;
 
-        resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { ignoreOverlappingMargin }), firstVertex.point);
+        resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { minMargin }), firstVertex.point);
     }
 
     for (let i = 0; i < verticesData.length - 1; i++) {
@@ -1654,7 +1654,7 @@ function rightAngleRouter(vertices, opt, linkView) {
         from.direction = fromDirection;
         to.direction = toDirection;
 
-        resultVertices.push(...routeBetweenPoints(from, to, { ignoreOverlappingMargin }), to.point);
+        resultVertices.push(...routeBetweenPoints(from, to, { minMargin }), to.point);
     }
 
     const lastVertex = verticesData[verticesData.length - 1];
@@ -1676,7 +1676,7 @@ function rightAngleRouter(vertices, opt, linkView) {
 
             lastVertex.direction = definedDirection;
 
-            let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { ignoreOverlappingMargin });
+            let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minMargin });
             const [p1, p2] = simplifyPoints([...lastSegmentRoute, targetPoint.point]);
 
             const lastSegment = new g.Line(p1, p2);
@@ -1701,10 +1701,10 @@ function rightAngleRouter(vertices, opt, linkView) {
             } else if (isVertexInside && resolvedTargetDirection !== OPPOSITE_DIRECTIONS[definedDirection]) {
                 lastVertex.margin = margin;
                 lastVertex.direction = resolvedTargetDirection;
-                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { ignoreOverlappingMargin });
+                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minMargin });
             } else if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
                 lastVertex.margin = margin;
-                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { ignoreOverlappingMargin });
+                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint, { minMargin });
             }
 
             resultVertices.push(...lastSegmentRoute);
@@ -1745,7 +1745,7 @@ function rightAngleRouter(vertices, opt, linkView) {
             from.direction = fromDirection;
             to.direction = toDirection;
 
-            resultVertices.push(...routeBetweenPoints(from, to, { ignoreOverlappingMargin }));
+            resultVertices.push(...routeBetweenPoints(from, to, { minMargin }));
         }
     }
 
