@@ -803,11 +803,7 @@ export const CellView = View.extend({
                 metrics.boundingRect = measureNode(magnet, this);
             } else {
                 if (magnet instanceof HTMLElement) {
-                    if (!magnet.checkVisibility()) {
-                        console.warn('CellView: a magnet is defined as an invisible HTML element. Its position cannot be calculated, which means the magnet position will be incorrect. Check your magnet definitions, or provide a custom `measureNode` method in the paper options.');
-
-                        metrics.boundingRect = new Rect();
-                    } else {
+                    if (magnet.checkVisibility()) {
                         const clientRect = new Rect(magnet.getBoundingClientRect());
                         const clientCenter = clientRect.center();
                         const localCenter = this.paper.clientToLocalPoint(clientCenter);
@@ -822,6 +818,10 @@ export const CellView = View.extend({
                             w,
                             h
                         );
+                    } else {
+                        console.warn('dia.CellView: A node is not part of the render tree — it may not be visible, or not attached to the DOM. Its bounding box cannot be measured, so anything that depends on its position will be incorrect. Ensure the node and its containing elements are visible and attached to the DOM, or provide a custom measureNode method in the paper options.');
+
+                        metrics.boundingRect = new Rect();
                     }
                 } else {
                     metrics.boundingRect = V(magnet).getBBox();
