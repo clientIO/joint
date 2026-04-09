@@ -1,6 +1,8 @@
 import V from './V/index.mjs';
 
 export { version } from '../dist/version.mjs';
+export { V };
+export const Vectorizer = V;
 export * as layout from './layout/index.mjs';
 export { env } from './env/index.mjs';
 export { config } from './config/index.mjs';
@@ -16,7 +18,5 @@ export * as routers from './routers/index.mjs';
 export * as util from './util/index.mjs';
 export * as linkTools from './linkTools/index.mjs';
 export * as elementTools from './elementTools/index.mjs';
-export { V };
-export const Vectorizer = V;
 export * as g from './g/index.mjs';
 export { setTheme } from './setTheme.mjs';
