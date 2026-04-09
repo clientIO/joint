@@ -192,6 +192,7 @@ function PresetPicker() {
         height={500}
         renderElement={RenderElement}
         gridSize={1}
+        drawGridSize={20}
         {...linkPreset}
       />
       <div className="flex flex-wrap items-center gap-4 px-3 py-2 mt-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-sans select-none">
