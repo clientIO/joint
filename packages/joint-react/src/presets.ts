@@ -36,6 +36,19 @@ export const connectionPoint: connectionPoints.ConnectionPoint = (
 
 const USE_MODEL_GEOMETRY = { useModelGeometry: true } as const;
 
+/**
+ * Anchor that uses `center` with model geometry for the root element and ports,
+ * and plain `center` (DOM-measured) for custom magnets.
+ */
+const modelCenterAnchor: anchors.Anchor = (
+  elementView, magnet, ref, _, endType, linkView
+) => {
+  if (magnet === elementView.el || magnet.getAttribute('port')) {
+    return anchors.center(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
+  }
+  return anchors.center(elementView, magnet, ref, _, endType, linkView);
+};
+
 /** Mode for the `midSide` anchor used on root elements and custom magnets. */
 export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto';
 
@@ -77,13 +90,9 @@ export const outwardsConnectionPoint: connectionPoints.ConnectionPoint = (
   const port = portId && element.getPort(portId);
 
   if (!port) {
-    if (endMagnet === endView.el) {
-      // For the root <g> element, use rectangle with model geometry.
-      return endPathSegmentLine.end.clone();
-    }
-    // For non-port magnets, don't use model geometry, because the DOM node needs to be measured.
-    const boundaryArgs = {} as connectionPoints.ConnectionPointArgumentsMap['boundary'];
-    return connectionPoints.boundary(endPathSegmentLine, endView, endMagnet, boundaryArgs, endType, linkView);
+    // The connection point is the anchor itself
+    // (already on the boundary of the port / magnet)
+    return endPathSegmentLine.end.clone();
   }
 
   const anchor = endPathSegmentLine.end.clone();
@@ -98,59 +107,6 @@ export const outwardsConnectionPoint: connectionPoints.ConnectionPoint = (
   }
   return anchor;
 };
-
-// export const outwardsAnchor: anchors.Anchor = (
-//   elementView,
-//   magnet,
-//   ref,
-//   _,
-//   endType,
-//   linkView
-// ) => {
-
-//   if (magnet === elementView.el) {
-//     // For the root <g> element, use midSide with model geometry.
-//     return anchors.midSide(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
-//   }
-//   const element = elementView.model as dia.Element;
-//   const portId = magnet.getAttribute('port');
-//   const port = portId && element.getPort(portId);
-
-//   if (!port) {
-//     // Don't use model geometry here, because the DOM node needs to be measured.
-//     return anchors.center(elementView, magnet, ref, _, endType, linkView);
-//   }
-
-//   const portBBox = element.getPortBBox(portId);
-//   const anchorOptions: anchors.BBoxAnchorArguments = {
-//     useModelGeometry: true,
-//     dx: 0,
-//     dy: 0,
-//   };
-
-//   const side = portBBox.sideNearestToPoint(element.getCenter());
-//   switch (side) {
-//     case 'left': {
-//       anchorOptions.dx = portBBox.width / 2;
-//       break;
-//     }
-//     case 'right': {
-//       anchorOptions.dx = -portBBox.width / 2;
-//       break;
-//     }
-//     case 'top': {
-//       anchorOptions.dy = portBBox.height / 2;
-//       break;
-//     }
-//     case 'bottom': {
-//       anchorOptions.dy = -portBBox.height / 2;
-//       break;
-//     }
-//     // No default
-//   }
-
-//   return anchors.center(elementView, magnet, ref, anchorOptions, endType, linkView);
-// };
 
 /**
  * Wraps a router so it falls back to straight-line routing when either end
@@ -184,7 +140,7 @@ export function boundaryUntilConnected(cp: connectionPoints.ConnectionPoint): co
     if (!link.getSourceCell() || !link.getTargetCell()) {
       return connectionPoint(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
     }
-    return cp(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
+    return cp.call(linkView, endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
   };
 }
 
@@ -247,7 +203,7 @@ export function directLinks(options: DirectLinksOptions = {}): LinkPreset {
   return {
     defaultRouter: { name: 'normal' },
     defaultConnector: { name: 'straight' },
-    defaultAnchor: smartAnchor(),
+    defaultAnchor: modelCenterAnchor,
     defaultConnectionPoint: withOffsets(connectionPoint, sourceOffset, targetOffset),
   };
 }
@@ -272,7 +228,9 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
     targetOffset = 0
   } = options;
   return {
-    defaultRouter: directUntilConnected(routerFns.rightAngle),
+    defaultRouter: directUntilConnected((vertices, _args, linkView) =>
+      routerFns.rightAngle(vertices, { useVertices: true }, linkView)
+    ),
     defaultConnector: {
       name: 'straight',
       args: { cornerType, cornerRadius },
