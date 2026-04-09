@@ -69,6 +69,7 @@ export type { LinkMarkerName, LinkMarker } from './theme/markers';
 // Models
 export { PortalElement, PORTAL_ELEMENT_TYPE } from './models/portal-element';
 export { PortalLink, PORTAL_LINK_TYPE } from './models/portal-link';
+export { PortalLinkView } from './models/portal-link-view';
 export { PortalPaper } from './models/portal-paper';
 
 // Data mapping types

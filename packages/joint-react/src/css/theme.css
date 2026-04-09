@@ -26,6 +26,14 @@
  *   3. Theme variables — `--jr-*` CSS custom properties (@layer base)
  */
 
+:root {
+  --jr-link-color: #333333;
+  --jr-link-connecting-color: #1971c2;
+  --jr-link-connecting-dash: 8 4;
+  --jr-link-snapped-color: var(--jr-link-connecting-color);
+  --jr-link-snapped-dash: none;
+}
+
 @layer base {
 
   /* ── Links ─────────────────────────────────────────────────────────────── */
@@ -35,6 +43,16 @@
     stroke-width: var(--jr-link-width, 2);
     stroke-dasharray: var(--jr-link-dash);
     stroke-linecap: var(--jr-link-line-cap, 'butt');
+  }
+
+  :where(.jr-link--connecting) {
+    --jr-link-color: var(--jr-link-connecting-color);
+    --jr-link-dash: var(--jr-link-connecting-dash);
+  }
+
+  :where(.jr-link--snapped) {
+    --jr-link-color: var(--jr-link-snapped-color);
+    --jr-link-dash: var(--jr-link-snapped-dash);
   }
 
   :where(.jr-link-wrapper) {

@@ -24,8 +24,8 @@ export const connectionPoint: connectionPoints.ConnectionPoint = (
   endType,
   linkView,
 ) => {
-  const rectangleArgs = { useModelGeometry: true } as connectionPoints.ConnectionPointArgumentsMap['rectangle'];
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
+    const rectangleArgs = { useModelGeometry: true } as connectionPoints.ConnectionPointArgumentsMap['rectangle'];
     return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, rectangleArgs, endType, linkView);
   }
   const boundaryArgs = {} as connectionPoints.ConnectionPointArgumentsMap['boundary'];

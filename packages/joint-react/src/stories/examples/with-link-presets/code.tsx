@@ -10,15 +10,16 @@ interface NodeData {
   readonly [key: string]: unknown;
 }
 
-const PORT_OUT: ElementPort = { cx: 'calc(w)', cy: 'calc(0.5 * h)', color: PRIMARY };
-const PORT_IN: ElementPort = { cx: 0, cy: 'calc(0.5 * h)', color: SECONDARY, passive: true };
+const PORT_OUT: ElementPort = { cx: 'calc(w)', cy: 'calc(h/2)', width: 16, height: 16 };
+const PORT_IN: ElementPort = { cx: 0, cy: 'calc(h/2)', passive: true, width: 16, height: 16 };
+const PORT_ERROR: ElementPort = { cx: 'calc(w/2)', cy: 'calc(h)', width: 16, height: 16, attrs: { body: { fill: 'red' } } };
 
 const initialElements: Record<string, ElementRecord<NodeData>> = {
   a: {
     data: { label: 'Node A' },
     position: { x: 50, y: 50 },
     size: { width: 120, height: 60 },
-    portMap: { out: PORT_OUT },
+    portMap: { out: PORT_OUT, error: PORT_ERROR },
   },
   b: {
     data: { label: 'Node B' },
@@ -44,16 +45,7 @@ const initialLinks: Record<string, LinkRecord> = {
     target: { id: 'b', port: 'in' },
     style: { color: PRIMARY, targetMarker: 'arrow' },
   },
-  'a-c': {
-    source: { id: 'a' },
-    target: { id: 'c' },
-    style: { color: SECONDARY, targetMarker: 'arrow' },
-  },
-  'b-d': {
-    source: { id: 'b', port: 'out' },
-    target: { id: 'd' },
-    style: { color: PRIMARY, targetMarker: 'arrow' },
-  },
+
   'c-d': {
     source: { id: 'c' },
     target: { id: 'd' },
@@ -91,7 +83,7 @@ const LABEL_STYLE = {
 
 
 function PresetPicker() {
-  const [preset, setPreset] = useState<PresetName>('orthogonal');
+  const [preset, setPreset] = useState<PresetName>('curve');
   const { paper } = usePaper('main-paper');
 
   useEffect(() => {
