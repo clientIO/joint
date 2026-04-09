@@ -144,13 +144,13 @@ function buildPreset(
   targetOffset: number,
   cornerType: OrthogonalLinksOptions['cornerType'],
   cornerRadius: number,
-  straightWhileDragging: boolean,
+  straightWhenDisconnected: boolean,
 ) {
   const base = { mode, sourceOffset, targetOffset };
   switch (name) {
     case 'straight': return straightLinks({ sourceOffset, targetOffset } satisfies StraightLinksOptions);
-    case 'orthogonal': return orthogonalLinks({ ...base, cornerType, cornerRadius, straightWhileDragging } satisfies OrthogonalLinksOptions);
-    case 'curved': return curvedLinks({ ...base, straightWhileDragging } satisfies CurvedLinksOptions);
+    case 'orthogonal': return orthogonalLinks({ ...base, cornerType, cornerRadius, straightWhenDisconnected } satisfies OrthogonalLinksOptions);
+    case 'curved': return curvedLinks({ ...base, straightWhenDisconnected } satisfies CurvedLinksOptions);
   }
 }
 
@@ -167,12 +167,12 @@ function PresetPicker() {
   const [targetOffset, setTargetOffset] = useState(0);
   const [cornerType, setCornerType] = useState<OrthogonalLinksOptions['cornerType']>('cubic');
   const [cornerRadius, setCornerRadius] = useState(8);
-  const [straightWhileDragging, setDirectWhileDragging] = useState(true);
+  const [straightWhenDisconnected, setDirectWhileDragging] = useState(true);
 
   const { paper } = usePaper('main-paper');
   const linkPreset = useMemo(
-    () => buildPreset(preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhileDragging),
-    [preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhileDragging]
+    () => buildPreset(preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhenDisconnected),
+    [preset, anchorMode, sourceOffset, targetOffset, cornerType, cornerRadius, straightWhenDisconnected]
   );
 
   useEffect(() => {
@@ -191,6 +191,7 @@ function PresetPicker() {
         className={PAPER_CLASSNAME}
         height={500}
         renderElement={RenderElement}
+        gridSize={1}
         {...linkPreset}
       />
       <div className="flex flex-wrap items-center gap-4 px-3 py-2 mt-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-sans select-none">
@@ -256,10 +257,10 @@ function PresetPicker() {
               <input
                 type="checkbox"
                 className="accent-indigo-500"
-                checked={straightWhileDragging}
+                checked={straightWhenDisconnected}
                 onChange={(event) => setDirectWhileDragging(event.target.checked)}
               />
-              <span className="text-xs">straight while dragging</span>
+              <span className="text-xs">straight when disconnected</span>
             </label>
           )}
         </div>

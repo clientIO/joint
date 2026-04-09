@@ -200,7 +200,7 @@ interface BaseLinkOptions {
   /** Offset (in px) applied to the connection point at the target end. Default: `0`. */
   readonly targetOffset?: number;
   /** Use straight-line routing while dragging (when an end is not connected). Default: `true`. */
-  readonly straightWhileDragging?: boolean;
+  readonly straightWhenDisconnected?: boolean;
 }
 
 /**
@@ -248,6 +248,9 @@ export interface OrthogonalLinksOptions extends BaseLinkOptions {
  * Orthogonal (right-angle) links between elements.
  * Routes links with horizontal and vertical segments only, avoiding element overlap.
  */
+const rightAngleRouter: routers.Router = (vertices, _args, linkView) =>
+  routerFns.rightAngle(vertices, { useVertices: true }, linkView);
+
 export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPreset {
   const {
     cornerType = 'cubic',
@@ -255,21 +258,23 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
     mode,
     sourceOffset = 0,
     targetOffset = 0,
-    straightWhileDragging = true,
+    straightWhenDisconnected = true,
   } = options;
-  const rightAngleRouter: routers.Router = (vertices, _args, linkView) =>
-    routerFns.rightAngle(vertices, { useVertices: true }, linkView);
+
+  if (straightWhenDisconnected) {
+    return {
+      defaultRouter: straightRouterUntilConnected(rightAngleRouter),
+      defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
+      defaultAnchor: centerAnchorUntilConnected(smartAnchor(mode)),
+      defaultConnectionPoint: withOffsets(boundaryUntilConnected(outwardsConnectionPoint), sourceOffset, targetOffset),
+    };
+  }
+
   return {
-    defaultRouter: straightWhileDragging ? straightRouterUntilConnected(rightAngleRouter) : rightAngleRouter,
-    defaultConnector: {
-      name: 'straight',
-      args: { cornerType, cornerRadius },
-    },
-    defaultAnchor: straightWhileDragging ? centerAnchorUntilConnected(smartAnchor(mode)) : smartAnchor(mode),
-    defaultConnectionPoint: withOffsets(
-      straightWhileDragging ? boundaryUntilConnected(outwardsConnectionPoint) : outwardsConnectionPoint,
-      sourceOffset, targetOffset
-    ),
+    defaultRouter: rightAngleRouter,
+    defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
+    defaultAnchor: smartAnchor(mode),
+    defaultConnectionPoint: withOffsets(outwardsConnectionPoint, sourceOffset, targetOffset),
   };
 }
 
@@ -279,17 +284,28 @@ export interface CurvedLinksOptions extends BaseLinkOptions {}
  * Smooth curved links between elements.
  * Renders links as bezier curves for a softer, more organic look.
  */
+const outwardsCurveConnector: connectorTypes.Connector = (sourcePoint, targetPoint, routePoints, _args, linkView) =>
+  connectorFns.curve(sourcePoint, targetPoint, routePoints, {
+    sourceDirection: connectorFns.curve.TangentDirections.OUTWARDS,
+    targetDirection: connectorFns.curve.TangentDirections.OUTWARDS,
+  }, linkView);
+
 export function curvedLinks(options: CurvedLinksOptions = {}): LinkPreset {
-  const { mode, sourceOffset = 0, targetOffset = 0, straightWhileDragging = true } = options;
-  const curveConnector: connectorTypes.Connector = (sourcePoint, targetPoint, routePoints, _args, linkView) =>
-    connectorFns.curve(sourcePoint, targetPoint, routePoints, { sourceDirection: connectorFns.curve.TangentDirections.OUTWARDS, targetDirection: connectorFns.curve.TangentDirections.OUTWARDS }, linkView);
+  const { mode, sourceOffset = 0, targetOffset = 0, straightWhenDisconnected = true } = options;
+
+  if (straightWhenDisconnected) {
+    return {
+      defaultRouter: { name: 'normal' },
+      defaultConnector: straightConnectorUntilConnected(outwardsCurveConnector),
+      defaultAnchor: centerAnchorUntilConnected(smartAnchor(mode)),
+      defaultConnectionPoint: withOffsets(boundaryUntilConnected(outwardsConnectionPoint), sourceOffset, targetOffset),
+    };
+  }
+
   return {
     defaultRouter: { name: 'normal' },
-    defaultConnector: straightWhileDragging ? straightConnectorUntilConnected(curveConnector) : curveConnector,
-    defaultAnchor: straightWhileDragging ? centerAnchorUntilConnected(smartAnchor(mode)) : smartAnchor(mode),
-    defaultConnectionPoint: withOffsets(
-      straightWhileDragging ? boundaryUntilConnected(outwardsConnectionPoint) : outwardsConnectionPoint,
-      sourceOffset, targetOffset
-    ),
+    defaultConnector: outwardsCurveConnector,
+    defaultAnchor: smartAnchor(mode),
+    defaultConnectionPoint: withOffsets(outwardsConnectionPoint, sourceOffset, targetOffset),
   };
 }
