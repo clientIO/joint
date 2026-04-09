@@ -31,6 +31,11 @@
       "import": "./dist/esm/internal.js",
       "require": "./dist/cjs/internal.js"
     },
+    "./presets": {
+      "types": "./dist/types/presets.d.ts",
+      "import": "./dist/esm/presets.js",
+      "require": "./dist/cjs/presets.js"
+    },
     "./src/*": "./src/*",
     "./scripts/*": "./scripts/*.ts",
     "./css/*": "./src/css/*"

@@ -1,7 +1,7 @@
 import { createRollupConfig } from './scripts/create-rollup-config';
 
 export default createRollupConfig({
-  entries: ['src/index.ts', 'src/internal.ts'],
+  entries: ['src/index.ts', 'src/internal.ts', 'src/presets.ts'],
   external: [
     'react',
     'react-dom',
