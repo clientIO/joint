@@ -162,25 +162,28 @@ export function straightConnectorUntilConnected(connector: connectorTypes.Connec
 }
 
 /**
- * Wraps an anchor so it falls back to `modelCenterAnchor` while dragging.
+ * Wraps an anchor — uses `connected` when both ends are attached, `disconnected` otherwise.
  */
-function centerAnchorUntilConnected(anchor: anchors.Anchor): anchors.Anchor {
+function anchorWhenConnected(connected: anchors.Anchor, disconnected: anchors.Anchor): anchors.Anchor {
   return (elementView, magnet, ref, opt, endType, linkView) => {
     const link = linkView.model;
     if (!link.getSourceCell() || !link.getTargetCell()) {
-      return modelCenterAnchor(elementView, magnet, ref, opt, endType, linkView);
+      return disconnected(elementView, magnet, ref, opt, endType, linkView);
     }
-    return anchor(elementView, magnet, ref, opt, endType, linkView);
+    return connected(elementView, magnet, ref, opt, endType, linkView);
   };
 }
 
-export function boundaryUntilConnected(cp: connectionPoints.ConnectionPoint): connectionPoints.ConnectionPoint {
+/**
+ * Wraps a connection point — uses `connected` when both ends are attached, `disconnected` otherwise.
+ */
+function connectionPointWhenConnected(connected: connectionPoints.ConnectionPoint, disconnected: connectionPoints.ConnectionPoint): connectionPoints.ConnectionPoint {
   return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
     const link = linkView.model;
     if (!link.getSourceCell() || !link.getTargetCell()) {
-      return connectionPoint(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
+      return disconnected(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
     }
-    return cp.call(linkView, endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
+    return connected(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
   };
 }
 
@@ -278,8 +281,11 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
     return {
       defaultRouter: straightRouterUntilConnected(rightAngleRouter),
       defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
-      defaultAnchor: centerAnchorUntilConnected(smartAnchor(mode)),
-      defaultConnectionPoint: withOffsets(boundaryUntilConnected(outwardsConnectionPoint), sourceOffset, targetOffset),
+      defaultAnchor: anchorWhenConnected(smartAnchor(mode), modelCenterAnchor),
+      defaultConnectionPoint: connectionPointWhenConnected(
+        withOffsets(outwardsConnectionPoint, sourceOffset, targetOffset),
+        withOffsets(connectionPoint, sourceOffset, targetOffset)
+      ),
     };
   }
 
@@ -310,8 +316,11 @@ export function curvedLinks(options: CurvedLinksOptions = {}): LinkPreset {
     return {
       defaultRouter: { name: 'normal' },
       defaultConnector: straightConnectorUntilConnected(outwardsCurveConnector),
-      defaultAnchor: centerAnchorUntilConnected(smartAnchor(mode, sourceOffset, targetOffset)),
-      defaultConnectionPoint: boundaryUntilConnected(connectionPoints.anchor as connectionPoints.ConnectionPoint),
+      defaultAnchor: anchorWhenConnected(smartAnchor(mode, sourceOffset, targetOffset), modelCenterAnchor),
+      defaultConnectionPoint: connectionPointWhenConnected(
+        connectionPoints.anchor as connectionPoints.ConnectionPoint,
+        withOffsets(connectionPoint, sourceOffset, targetOffset)
+      ),
     };
   }
 
