@@ -13,5 +13,4 @@ export * from './polygon.mjs';
 export * from './rect.mjs';
 export * from './types.mjs';
 
-import * as _intersection from './intersection.mjs';
-export const intersection = _intersection;
+export * as intersection from './intersection.mjs';
