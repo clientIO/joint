@@ -59,16 +59,17 @@ export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' 
  * - Other magnets → `midSide` (DOM-based).
  * @param mode - The `midSide` mode. Default: `undefined` (midSide default).
  */
-export function smartAnchor(mode?: AnchorMode): anchors.Anchor {
-  const rootArgs = mode ? { useModelGeometry: true, mode } : USE_MODEL_GEOMETRY;
-  const magnetArgs = { mode } as anchors.MidSideAnchorArguments;
+export function smartAnchor(mode: AnchorMode = 'auto', sourceOffset = 0, targetOffset = 0): anchors.Anchor {
   return (elementView, magnet, ref, _, endType, linkView) => {
+    const padding = endType === 'source' ? sourceOffset : targetOffset;
+    const rootArgs = { useModelGeometry: true, rotate: true, mode, padding };
     if (magnet === elementView.el) {
       return anchors.midSide(elementView, magnet, ref, rootArgs, endType, linkView);
     }
     if (magnet.getAttribute('port')) {
       return anchors.center(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
     }
+    const magnetArgs = { mode, rotate: true, padding } as anchors.MidSideAnchorArguments;
     return anchors.midSide(elementView, magnet, ref, magnetArgs, endType, linkView);
   };
 }
@@ -297,15 +298,15 @@ export function curvedLinks(options: CurvedLinksOptions = {}): LinkPreset {
     return {
       defaultRouter: { name: 'normal' },
       defaultConnector: straightConnectorUntilConnected(outwardsCurveConnector),
-      defaultAnchor: centerAnchorUntilConnected(smartAnchor(mode)),
-      defaultConnectionPoint: withOffsets(boundaryUntilConnected(outwardsConnectionPoint), sourceOffset, targetOffset),
+      defaultAnchor: centerAnchorUntilConnected(smartAnchor(mode, sourceOffset, targetOffset)),
+      defaultConnectionPoint: boundaryUntilConnected(outwardsConnectionPoint),
     };
   }
 
   return {
     defaultRouter: { name: 'normal' },
     defaultConnector: outwardsCurveConnector,
-    defaultAnchor: smartAnchor(mode),
-    defaultConnectionPoint: withOffsets(outwardsConnectionPoint, sourceOffset, targetOffset),
+    defaultAnchor: smartAnchor(mode, sourceOffset, targetOffset),
+    defaultConnectionPoint: outwardsConnectionPoint,
   };
 }
