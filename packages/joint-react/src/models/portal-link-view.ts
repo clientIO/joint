@@ -5,13 +5,8 @@ const LINK_SNAPPED_CN = 'jr-link--snapped';
 
 /**
  * Custom LinkView for PortalLink models.
- *
- * Currently a minimal extension point — extends `dia.LinkView` without
- * additional behavior. Registered via `cellViewNamespace` so JointJS
- * automatically uses it for all `PortalLink` cells.
  */
 export class PortalLinkView extends dia.LinkView {
-  // Extension point for future PortalLink-specific behavior.
 
   _beforeArrowheadMove(data: unknown) {
     // @ts-expect-error Protected method override

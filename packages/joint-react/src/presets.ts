@@ -1,5 +1,5 @@
 import type { dia, routers } from '@joint/core';
-import { anchors, connectionPoints, connectors, routers as routerFns } from '@joint/core';
+import { anchors, connectionPoints, routers as routerFns } from '@joint/core';
 
 /**
  * Default connection point function for React-rendered elements.
@@ -34,26 +34,31 @@ export const connectionPoint: connectionPoints.ConnectionPoint = (
 };
 
 
-const USE_MODEL_GEOMETRY = {
-  useModelGeometry: true,
-  // mode: 'horizontal'
-} as const;
+const USE_MODEL_GEOMETRY = { useModelGeometry: true } as const;
+
+/** Mode for the `midSide` anchor used on root elements and custom magnets. */
+export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto';
 
 /**
- * Anchor that uses `center` with model geometry for the root element and ports,
- * and plain `center` (DOM-measured) for other magnets.
+ * Creates an anchor function that chooses the anchor position based on the magnet type:
+ * - Root element → `midSide` with model geometry and the given `mode`.
+ * - Port magnet → `center` with model geometry.
+ * - Other magnets → `midSide` (DOM-based).
+ * @param mode - The `midSide` mode. Default: `undefined` (midSide default).
  */
-export const modelCenterAnchor: anchors.Anchor = (
-  elementView, magnet, ref, _, endType, linkView
-) => {
-  if (magnet === elementView.el) {
-    return anchors.midSide(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
-  }
-  if (magnet.getAttribute('port')) {
-    return anchors.center(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
-  }
-  return anchors.center(elementView, magnet, ref, _, endType, linkView);
-};
+export function smartAnchor(mode?: AnchorMode): anchors.Anchor {
+  const rootArgs = mode ? { useModelGeometry: true, mode } : USE_MODEL_GEOMETRY;
+  const magnetArgs = { mode } as anchors.MidSideAnchorArguments;
+  return (elementView, magnet, ref, _, endType, linkView) => {
+    if (magnet === elementView.el) {
+      return anchors.midSide(elementView, magnet, ref, rootArgs, endType, linkView);
+    }
+    if (magnet.getAttribute('port')) {
+      return anchors.center(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
+    }
+    return anchors.midSide(elementView, magnet, ref, magnetArgs, endType, linkView);
+  };
+}
 
 /**
  * Connection point that shifts the anchor outward from the element center for ports.
@@ -73,10 +78,12 @@ export const outwardsConnectionPoint: connectionPoints.ConnectionPoint = (
 
   if (!port) {
     if (endMagnet === endView.el) {
+      // For the root <g> element, use rectangle with model geometry.
       return endPathSegmentLine.end.clone();
     }
-    const rectangleArgs = { useModelGeometry: true } as connectionPoints.ConnectionPointArgumentsMap['rectangle'];
-    return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, rectangleArgs, endType, linkView);
+    // For non-port magnets, don't use model geometry, because the DOM node needs to be measured.
+    const boundaryArgs = {} as connectionPoints.ConnectionPointArgumentsMap['boundary'];
+    return connectionPoints.boundary(endPathSegmentLine, endView, endMagnet, boundaryArgs, endType, linkView);
   }
 
   const anchor = endPathSegmentLine.end.clone();
@@ -183,13 +190,15 @@ export function boundaryUntilConnected(cp: connectionPoints.ConnectionPoint): co
 
 /**
  * Ready-made Paper configurations for common link routing styles.
- * Spread a preset onto `<Paper>` to apply its router, connector, anchor,
- * and connection point settings.
+ * Each preset is a function that returns Paper props for router, connector,
+ * anchor, and connection point. Call with no args for defaults, or pass
+ * options to customize.
  * @example
  * ```tsx
  * import { orthogonalLinks } from '@joint/react/presets';
  *
- * <Paper {...orthogonalLinks} />
+ * const linkPreset = orthogonalLinks();
+ * <Paper {...linkPreset} />
  * ```
  */
 
@@ -200,44 +209,99 @@ type LinkPreset = Pick<
   'defaultRouter' | 'defaultConnector' | 'defaultAnchor' | 'defaultConnectionPoint'
 >;
 
+interface BaseLinkOptions {
+  /** Anchor mode for root elements and custom magnets. Passed to `midSide`. */
+  readonly mode?: AnchorMode;
+  /** Offset (in px) applied to the connection point at the source end. Default: `0`. */
+  readonly sourceOffset?: number;
+  /** Offset (in px) applied to the connection point at the target end. Default: `0`. */
+  readonly targetOffset?: number;
+}
+
+/**
+ * Wraps a connection point function and applies per-end offsets to the result.
+ */
+function withOffsets(
+  cp: connectionPoints.ConnectionPoint,
+  sourceOffset: number,
+  targetOffset: number,
+): connectionPoints.ConnectionPoint {
+  if (sourceOffset === 0 && targetOffset === 0) return cp;
+  return (endPathSegmentLine, endView, endMagnet, opt, endType, linkView) => {
+    const point = cp(endPathSegmentLine, endView, endMagnet, opt, endType, linkView);
+    const offset = endType === 'source' ? sourceOffset : targetOffset;
+    if (offset === 0) return point;
+    const ref = endPathSegmentLine.start;
+    return point.move(ref, -offset);
+  };
+}
+
+export interface DirectLinksOptions extends BaseLinkOptions {}
+
 /**
  * Direct (straight-line) links between elements.
  * The shortest path with no routing — a single line from source to target.
  */
-export const directLinks: LinkPreset = {
-  defaultRouter: { name: 'normal' },
-  defaultConnector: { name: 'straight' },
-  defaultAnchor: { name: 'center' },
-  defaultConnectionPoint: { name: 'boundary' },
-};
+export function directLinks(options: DirectLinksOptions = {}): LinkPreset {
+  const { sourceOffset = 0, targetOffset = 0 } = options;
+  return {
+    defaultRouter: { name: 'normal' },
+    defaultConnector: { name: 'straight' },
+    defaultAnchor: smartAnchor(),
+    defaultConnectionPoint: withOffsets(connectionPoint, sourceOffset, targetOffset),
+  };
+}
+
+export interface OrthogonalLinksOptions extends BaseLinkOptions {
+  /** Corner style. Default: `'cubic'`. */
+  readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
+  /** Corner radius for the rounded connector (in px). Default: `8`. */
+  readonly cornerRadius?: number;
+}
 
 /**
  * Orthogonal (right-angle) links between elements.
  * Routes links with horizontal and vertical segments only, avoiding element overlap.
  */
-export const orthogonalLinks: LinkPreset = {
-  defaultRouter: directUntilConnected(routerFns.rightAngle),
-  defaultConnector: {
-    name: 'straight',
-    args: { cornerType: 'cubic', cornerRadius: 8 }
-  },
-  defaultAnchor: modelCenterAnchor,
-  defaultConnectionPoint: boundaryUntilConnected(outwardsConnectionPoint)
-};
+export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPreset {
+  const {
+    cornerType = 'cubic',
+    cornerRadius = 8,
+    mode,
+    sourceOffset = 0,
+    targetOffset = 0
+  } = options;
+  return {
+    defaultRouter: directUntilConnected(routerFns.rightAngle),
+    defaultConnector: {
+      name: 'straight',
+      args: { cornerType, cornerRadius },
+    },
+    defaultAnchor: smartAnchor(mode),
+    defaultConnectionPoint: withOffsets(
+      boundaryUntilConnected(outwardsConnectionPoint), sourceOffset, targetOffset
+    ),
+  };
+}
+
+export interface CurveLinksOptions extends BaseLinkOptions {}
 
 /**
  * Smooth curved links between elements.
  * Renders links as bezier curves for a softer, more organic look.
  */
-export const curveLinks: LinkPreset = {
-  defaultRouter: { name: 'normal' },
-  defaultConnector: {
-    name: 'curve',
-    args: {
-      sourceDirection: 'outwards',
-      targetDirection: 'outwards'
-    }
-  },
-  defaultAnchor: modelCenterAnchor,
-  defaultConnectionPoint: outwardsConnectionPoint
-};
+export function curveLinks(options: CurveLinksOptions = {}): LinkPreset {
+  const { mode, sourceOffset = 0, targetOffset = 0 } = options;
+  return {
+    defaultRouter: { name: 'normal' },
+    defaultConnector: {
+      name: 'curve',
+      args: {
+        sourceDirection: 'outwards',
+        targetDirection: 'outwards',
+      },
+    },
+    defaultAnchor: smartAnchor(mode),
+    defaultConnectionPoint: withOffsets(outwardsConnectionPoint, sourceOffset, targetOffset),
+  };
+}

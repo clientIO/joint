@@ -19,6 +19,7 @@ import {
   type LinkRecord,
   type RenderElement,
 } from '@joint/react';
+
 import {
   createContext,
   memo,

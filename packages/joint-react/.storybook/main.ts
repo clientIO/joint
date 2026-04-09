@@ -54,11 +54,12 @@ const config: StorybookConfig = {
   // extend Vite config here to resolve libraries properly (in storybook)
   viteFinal: async (config) => {
     config.resolve = config.resolve || {};
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@joint/react': path.resolve(__dirname, '../src/index.ts'),
-      '@joint/react/src/*': path.resolve(__dirname, '../src/*'),
-    };
+    config.resolve.alias = [
+      // Subpath exports must come before the bare package alias
+      { find: '@joint/react/internal', replacement: path.resolve(__dirname, '../src/internal.ts') },
+      { find: '@joint/react/presets', replacement: path.resolve(__dirname, '../src/presets.ts') },
+      { find: '@joint/react', replacement: path.resolve(__dirname, '../src/index.ts') },
+    ];
     return config;
   },
 };
