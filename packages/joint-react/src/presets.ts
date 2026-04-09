@@ -62,12 +62,24 @@ export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' 
 export function smartAnchor(mode: AnchorMode = 'auto', sourceOffset = 0, targetOffset = 0): anchors.Anchor {
   return (elementView, magnet, ref, _, endType, linkView) => {
     const padding = endType === 'source' ? sourceOffset : targetOffset;
-    const rootArgs = { useModelGeometry: true, rotate: true, mode, padding };
     if (magnet === elementView.el) {
+      const rootArgs = { useModelGeometry: true, rotate: true, mode, padding };
       return anchors.midSide(elementView, magnet, ref, rootArgs, endType, linkView);
     }
-    if (magnet.getAttribute('port')) {
-      return anchors.center(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
+    const element = elementView.model as dia.Element;
+    const portId = magnet.getAttribute('port');
+    if (portId && element.hasPort(portId)) {
+      const point = anchors.center(elementView, magnet, ref, USE_MODEL_GEOMETRY, endType, linkView);
+      const portBBox = element.getPortBBox(portId);
+      const side = portBBox.sideNearestToPoint(element.getCenter());
+      switch (side) {
+        case 'left': { point.x += portBBox.width / 2 + padding; break; }
+        case 'right': { point.x -= portBBox.width / 2 + padding; break; }
+        case 'top': { point.y += portBBox.height / 2 + padding; break; }
+        case 'bottom': { point.y -= portBBox.height / 2 + padding; break; }
+        // No default
+      }
+      return point;
     }
     const magnetArgs = { mode, rotate: true, padding } as anchors.MidSideAnchorArguments;
     return anchors.midSide(elementView, magnet, ref, magnetArgs, endType, linkView);
@@ -299,7 +311,7 @@ export function curvedLinks(options: CurvedLinksOptions = {}): LinkPreset {
       defaultRouter: { name: 'normal' },
       defaultConnector: straightConnectorUntilConnected(outwardsCurveConnector),
       defaultAnchor: centerAnchorUntilConnected(smartAnchor(mode, sourceOffset, targetOffset)),
-      defaultConnectionPoint: boundaryUntilConnected(outwardsConnectionPoint),
+      defaultConnectionPoint: boundaryUntilConnected(connectionPoints.anchor as connectionPoints.ConnectionPoint),
     };
   }
 
@@ -307,6 +319,6 @@ export function curvedLinks(options: CurvedLinksOptions = {}): LinkPreset {
     defaultRouter: { name: 'normal' },
     defaultConnector: outwardsCurveConnector,
     defaultAnchor: smartAnchor(mode, sourceOffset, targetOffset),
-    defaultConnectionPoint: outwardsConnectionPoint,
+    defaultConnectionPoint: { name: 'anchor' },
   };
 }
