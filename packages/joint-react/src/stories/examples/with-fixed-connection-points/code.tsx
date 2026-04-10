@@ -5,6 +5,16 @@ import type { LinkRecord, ElementRecord } from '@joint/react';
 import { GraphProvider, jsx, Paper, useElementSize, usePaperEvents } from '@joint/react';
 import { PAPER_CLASSNAME, PAPER_STYLE, BG, PRIMARY, TEXT, LIGHT } from 'storybook-config/theme';
 import { dia, elementTools, linkTools, highlighters, shapes, g } from '@joint/core';
+import { orthogonalLinks } from '@joint/react/presets';
+
+const ORTHOGONAL_LINKS = orthogonalLinks({
+  straightWhenDisconnected: false,
+  cornerType: 'line',
+  cornerRadius: 5,
+  margin: 40,
+  sourceOffset: 10,
+  targetOffset: 10
+});
 
 import '../index.css';
 
@@ -393,10 +403,7 @@ function Main() {
       style={PAPER_STYLE}
       linkPinning={false}
       async
-      // Connector/Router configuration
-      defaultConnector={{ name: 'straight', args: { cornerType: 'line' } }}
-      defaultRouter={{ name: 'rightAngle', args: { useVertices: true, margin: 40 } }}
-      defaultConnectionPoint={{ name: 'anchor', args: { offset: 10 } }}
+      {...ORTHOGONAL_LINKS}
       // Connection strategy - find closest anchor point
       connectionStrategy={(end, view, _magnet, coords) => {
         const model = view.model as dia.Element;
