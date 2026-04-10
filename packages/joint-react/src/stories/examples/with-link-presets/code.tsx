@@ -22,19 +22,18 @@ interface NodeData {
 
 const PORT_OUT: ElementPort = { cx: 'calc(w)', cy: 'calc(h/2)', width: 16, height: 16 };
 const PORT_IN: ElementPort = { cx: 0, cy: 'calc(h/2)', passive: true, width: 16, height: 16 };
-
-const MAGNET_RADIUS = 6;
+const PORT_ERROR: ElementPort = { cx: 'calc(w/2)', cy: 'calc(h)', width: 16, height: 16 };
 
 const initialElements: Record<string, ElementRecord<NodeData>> = {
   a: {
     data: { label: 'Port A' },
     position: { x: 50, y: 50 },
     size: { width: 120, height: 60 },
-    portMap: { out: PORT_OUT },
+    portMap: { out: PORT_OUT, error: PORT_ERROR },
   },
   b: {
     data: { label: 'Port B' },
-    position: { x: 350, y: 50 },
+    position: { x: 350, y: 80 },
     size: { width: 120, height: 60 },
     portMap: { in: PORT_IN, out: PORT_OUT },
   },
@@ -45,7 +44,7 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
   },
   d: {
     data: { label: 'Root B' },
-    position: { x: 500, y: 220 },
+    position: { x: 500, y: 250 },
     size: { width: 120, height: 60 },
   },
   e: {
@@ -55,7 +54,7 @@ const initialElements: Record<string, ElementRecord<NodeData>> = {
   },
   f: {
     data: { label: 'Magnet B', type: 'svg' },
-    position: { x: 420, y: 370 },
+    position: { x: 420, y: 400 },
     size: { width: 140, height: 80 },
   },
 };

@@ -90,7 +90,13 @@ export function smartAnchor(mode: AnchorMode = 'auto', sourceOffset = 0, targetO
  * Connection point that shifts the anchor outward from the element center for ports.
  * For non-port magnets, falls back to `rectangle` with model geometry.
  */
-export const outwardsConnectionPoint: connectionPoints.ConnectionPoint = (
+/**
+ * Connection point for elements using `smartAnchor`.
+ * For ports: returns the anchor (already at port edge via smartAnchor).
+ * For root element: returns the anchor (already on boundary via midSide).
+ * For custom magnets: uses `rectangle` with model geometry.
+ */
+export const smartConnectionPoint: connectionPoints.ConnectionPoint = (
   endPathSegmentLine,
   endView,
   endMagnet,
@@ -98,27 +104,13 @@ export const outwardsConnectionPoint: connectionPoints.ConnectionPoint = (
   endType,
   linkView,
 ) => {
-  const element = (endView as dia.ElementView).model as dia.Element;
-  const portId = endMagnet.getAttribute('port');
-  const port = portId && element.getPort(portId);
-
-  if (!port) {
-    // The connection point is the anchor itself
-    // (already on the boundary of the port / magnet)
+  // Ports and root element — anchor is already positioned correctly by smartAnchor.
+  if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
     return endPathSegmentLine.end.clone();
   }
-
-  const anchor = endPathSegmentLine.end.clone();
-  const portBBox = element.getPortBBox(portId);
-  const side = portBBox.sideNearestToPoint(element.getCenter());
-  switch (side) {
-    case 'left': { anchor.x += portBBox.width / 2; break; }
-    case 'right': { anchor.x -= portBBox.width / 2; break; }
-    case 'top': { anchor.y += portBBox.height / 2; break; }
-    case 'bottom': { anchor.y -= portBBox.height / 2; break; }
-    // No default
-  }
-  return anchor;
+  // Custom magnets — use rectangle with model geometry.
+  const rectangleArgs = { useModelGeometry: true } as connectionPoints.ConnectionPointArgumentsMap['rectangle'];
+  return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, rectangleArgs, endType, linkView);
 };
 
 /**
@@ -282,9 +274,10 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
       defaultRouter: straightRouterUntilConnected(rightAngleRouter),
       defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
       defaultAnchor: anchorWhenConnected(smartAnchor(mode), modelCenterAnchor),
-      defaultConnectionPoint: connectionPointWhenConnected(
-        withOffsets(outwardsConnectionPoint, sourceOffset, targetOffset),
-        withOffsets(connectionPoint, sourceOffset, targetOffset)
+      defaultConnectionPoint: withOffsets(
+        connectionPointWhenConnected(smartConnectionPoint, connectionPoint),
+        sourceOffset,
+        targetOffset
       ),
     };
   }
@@ -293,7 +286,7 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
     defaultRouter: rightAngleRouter,
     defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
     defaultAnchor: smartAnchor(mode),
-    defaultConnectionPoint: withOffsets(outwardsConnectionPoint, sourceOffset, targetOffset),
+    defaultConnectionPoint: withOffsets(smartConnectionPoint, sourceOffset, targetOffset),
   };
 }
 
