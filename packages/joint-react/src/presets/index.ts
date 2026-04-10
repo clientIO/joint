@@ -2,9 +2,9 @@ export { type AnchorMode } from './anchors';
 export {
   straightLinks,
   orthogonalLinks,
-  curvedLinks,
+  smoothLinks,
   type LinkPreset,
   type StraightLinksOptions,
   type OrthogonalLinksOptions,
-  type CurvedLinksOptions,
+  type SmoothLinksOptions,
 } from './link-presets';

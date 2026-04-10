@@ -4,8 +4,8 @@ import {
   type ElementRecord, type ElementPort, type LinkRecord, usePaper,
 } from '@joint/react';
 import {
-  straightLinks, orthogonalLinks, curvedLinks,
-  type StraightLinksOptions, type OrthogonalLinksOptions, type CurvedLinksOptions,
+  straightLinks, orthogonalLinks, smoothLinks,
+  type StraightLinksOptions, type OrthogonalLinksOptions, type SmoothLinksOptions,
   type AnchorMode,
 } from '../../../presets';
 import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
@@ -134,7 +134,7 @@ function RenderElement(data: Readonly<NodeData>) {
 
 // ── Preset builder ──────────────────────────────────────────────────────────
 
-type PresetName = 'straight' | 'orthogonal' | 'curved';
+type PresetName = 'straight' | 'orthogonal' | 'smooth';
 
 function buildPreset(
   name: PresetName,
@@ -149,18 +149,18 @@ function buildPreset(
   switch (name) {
     case 'straight': return straightLinks({ sourceOffset, targetOffset } satisfies StraightLinksOptions);
     case 'orthogonal': return orthogonalLinks({ ...base, cornerType, cornerRadius, straightWhenDisconnected } satisfies OrthogonalLinksOptions);
-    case 'curved': return curvedLinks({ ...base, straightWhenDisconnected } satisfies CurvedLinksOptions);
+    case 'smooth': return smoothLinks({ ...base, straightWhenDisconnected } satisfies SmoothLinksOptions);
   }
 }
 
 // ── Controls ────────────────────────────────────────────────────────────────
 
-const PRESET_NAMES: PresetName[] = ['straight', 'orthogonal', 'curved'];
+const PRESET_NAMES: PresetName[] = ['straight', 'orthogonal', 'smooth'];
 const ANCHOR_MODES: AnchorMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical'];
 const CORNER_TYPES: NonNullable<OrthogonalLinksOptions['cornerType']>[] = ['cubic', 'line', 'point', 'gap'];
 
 function PresetPicker() {
-  const [preset, setPreset] = useState<PresetName>('curved');
+  const [preset, setPreset] = useState<PresetName>('smooth');
   const [anchorMode, setAnchorMode] = useState<AnchorMode>('horizontal');
   const [sourceOffset, setSourceOffset] = useState(0);
   const [targetOffset, setTargetOffset] = useState(0);

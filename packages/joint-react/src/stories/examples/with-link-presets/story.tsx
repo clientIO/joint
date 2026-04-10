@@ -14,7 +14,7 @@ export default {
       description: {
         story:
           'Demonstrates link presets from `@joint/react/presets`. ' +
-          'Switch between `straightLinks`, `orthogonalLinks`, and `curvedLinks` ' +
+          'Switch between `straightLinks`, `orthogonalLinks`, and `smoothLinks` ' +
           'to change the routing, connector, anchor, and connection point of all links.',
       },
       source: {

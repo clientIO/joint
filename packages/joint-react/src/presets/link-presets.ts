@@ -41,17 +41,22 @@ interface BaseLinkOptions {
   readonly straightWhenDisconnected?: boolean;
 }
 
-export interface StraightLinksOptions extends BaseLinkOptions {}
+export interface StraightLinksOptions extends BaseLinkOptions {
+  /** Corner style at vertices. Default: `'point'`. */
+  readonly cornerType?: 'point' | 'cubic' | 'line' | 'gap';
+  /** Corner radius at vertices (in px). Default: `0`. */
+  readonly cornerRadius?: number;
+}
 
 /**
  * Straight-line links between elements.
  * The shortest path with no routing — a single line from source to target.
  */
 export function straightLinks(options: StraightLinksOptions = {}): LinkPreset {
-  const { sourceOffset = 0, targetOffset = 0 } = options;
+  const { sourceOffset = 0, targetOffset = 0, cornerType = 'point', cornerRadius = 0 } = options;
   return {
     defaultRouter: { name: 'normal' },
-    defaultConnector: { name: 'straight' },
+    defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
     defaultAnchor: centerAnchor,
     defaultConnectionPoint: withOffsets(boundaryPoint, sourceOffset, targetOffset),
   };
@@ -95,13 +100,13 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
   };
 }
 
-export interface CurvedLinksOptions extends BaseLinkOptions {}
+export interface SmoothLinksOptions extends BaseLinkOptions {}
 
 /**
  * Smooth curved links between elements.
  * Renders links as bezier curves for a softer, more organic look.
  */
-export function curvedLinks(options: CurvedLinksOptions = {}): LinkPreset {
+export function smoothLinks(options: SmoothLinksOptions = {}): LinkPreset {
   const { mode, sourceOffset = 0, targetOffset = 0, straightWhenDisconnected = true } = options;
 
   if (straightWhenDisconnected) {
