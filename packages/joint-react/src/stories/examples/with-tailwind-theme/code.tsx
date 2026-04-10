@@ -6,8 +6,6 @@ import {
   GraphProvider,
   Paper,
   useElementSize,
-  useElementDefaults,
-  useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
   type RenderElement,
@@ -23,55 +21,82 @@ interface NodeUserData {
   label: string;
 }
 
+const PORT_STYLE = {
+  width: 15,
+  height: 15,
+  className: `
+      cursor-crosshair hover:fill-blue-500
+      forest:hover:fill-lime-300
+      ocean:hover:fill-cyan-200
+      sunset:hover:fill-orange-400
+  `,
+} as const;
+
+const ELEMENT_SIZE = { width: 120, height: 50 };
+
 const initialElements: Record<string, ElementRecord<NodeUserData>> = {
   a: {
     data: { label: 'Source' },
     position: { x: 50, y: 70 },
-    size: { width: 120, height: 50 },
+    size: ELEMENT_SIZE,
     portMap: {
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
+    portStyle: PORT_STYLE,
   },
   b: {
     data: { label: 'Process' },
     position: { x: 290, y: 20 },
-    size: { width: 120, height: 50 },
+    size: ELEMENT_SIZE,
     portMap: {
       in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
+    portStyle: PORT_STYLE,
   },
   c: {
     data: { label: 'Review' },
     position: { x: 290, y: 120 },
-    size: { width: 120, height: 50 },
+    size: ELEMENT_SIZE,
     portMap: {
       in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
       out: { cx: 'calc(w)', cy: 'calc(0.5 * h)', label: 'out' },
     },
+    portStyle: PORT_STYLE,
   },
   d: {
     data: { label: 'Output' },
     position: { x: 550, y: 70 },
-    size: { width: 120, height: 50 },
+    size: ELEMENT_SIZE,
     portMap: {
       in: { cx: 0, cy: 'calc(0.5 * h)', label: 'in' },
     },
+    portStyle: PORT_STYLE,
   },
 };
 
 const initialLinks: Record<string, LinkRecord> = {
-  'a→b': { source: { id: 'a', port: 'out' }, target: { id: 'b', port: 'in' } },
-  'a→c': { source: { id: 'a', port: 'out' }, target: { id: 'c', port: 'in' } },
+  'a→b': {
+    source: { id: 'a', port: 'out' },
+    target: { id: 'b', port: 'in' },
+    style: { targetMarker: 'arrow' },
+  },
+  'a→c': {
+    source: { id: 'a', port: 'out' },
+    target: { id: 'c', port: 'in' },
+    style: { targetMarker: 'arrow' },
+  },
   'b→d': {
     source: { id: 'b', port: 'out' },
     target: { id: 'd', port: 'in' },
     labelMap: { info: { text: 'approved' } },
+    style: { targetMarker: 'arrow' },
+    labelStyle: { backgroundPadding: { x: 6, y: 4 } },
   },
   'c→d': {
     source: { id: 'c', port: 'out' },
     target: { id: 'd', port: 'in' },
-    style: { color: '#e11d48' },
+    style: { color: '#e11d48', targetMarker: 'arrow' },
   },
 };
 
@@ -126,26 +151,6 @@ function Diagram() {
   const [theme, setTheme] = useState<Theme>('default');
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const elementDefaults = useElementDefaults<NodeUserData>({
-    portStyle: {
-      width: 15,
-      height: 15,
-      className: `
-          cursor-crosshair hover:fill-blue-500
-          forest:hover:fill-lime-300
-          ocean:hover:fill-cyan-200
-          sunset:hover:fill-orange-400
-      `,
-    },
-});
-
-  const linkDefaults = useLinkDefaults({
-    style: { targetMarker: 'arrow' },
-    labelStyle: {
-      backgroundPadding: { x: 6, y: 4 },
-    },
-  });
-
   const renderElement: RenderElement<NodeUserData> = useCallback(
     (data) => <Node label={data.label} />,
     []
@@ -185,8 +190,6 @@ function Diagram() {
       <GraphProvider<NodeUserData>
         elements={elements}
         links={links}
-        {...elementDefaults}
-        {...linkDefaults}
         onElementsChange={setElements}
         onLinksChange={setLinks}
       >

@@ -1,15 +1,11 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import type { dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
   Paper,
   useElements,
-  buildElementFromAttributes,
-  type CellAttributes,
   type ElementRecord,
   type LinkRecord,
-  buildAttributesFromElement,
 } from '@joint/react';
 
 // ============================================================================
@@ -19,29 +15,34 @@ import {
 /**
  * Element user data uses center position (cx, cy) instead of
  * JointJS's top-left position (x, y).
+ * The cx/cy values are derived from position + size for display purposes.
  */
 interface CenterElement {
-  readonly cx: number;
-  readonly cy: number;
   readonly label: string;
-  // readonly color: string;
 }
 
 // ============================================================================
 // Data
 // ============================================================================
 
+/**
+ * Initial elements store standard top-left position. The DataPanel derives
+ * center coordinates (cx, cy) from position + size for display.
+ */
 const initialElements: Record<string, ElementRecord<CenterElement>> = {
   'node-1': {
-    data: { cx: 150, cy: 130, label: 'Node One' },
+    data: { label: 'Node One' },
+    position: { x: 70, y: 100 },
     size: { width: 160, height: 60 },
   },
   'node-2': {
-    data: { cx: 450, cy: 100, label: 'Node Two' },
+    data: { label: 'Node Two' },
+    position: { x: 370, y: 70 },
     size: { width: 160, height: 60 },
   },
   'node-3': {
-    data: { cx: 300, cy: 280, label: 'Node Three' },
+    data: { label: 'Node Three' },
+    position: { x: 220, y: 250 },
     size: { width: 160, height: 60 },
   },
 };
@@ -60,44 +61,6 @@ const initialLinks: Record<string, LinkRecord> = {
 };
 
 // ============================================================================
-// Custom Mapper: center position (cx, cy) ↔ top-left position (x, y)
-// ============================================================================
-
-/**
- * Forward mapper: converts center-based data to JointJS top-left position.
- */
-const mapElementToAttributes = (
-  data: { id: string; element: ElementRecord<CenterElement> }
-): CellAttributes => {
-  const userData = data.element.data!;
-  const { cx = 0, cy = 0 } = userData;
-  const { width = 100, height = 60 } = data.element.size ?? {}; // Support both element-level and data-level size
-  return buildAttributesFromElement<CenterElement>({
-    ...data.element,
-    position: { x: cx - width / 2, y: cy - height / 2 },
-    size: { width, height },
-  });
-};
-
-/**
- * Reverse mapper: converts JointJS top-left position back to center-based data.
- */
-const mapAttributesToElement = (attributes: dia.Element.Attributes): ElementRecord<CenterElement> => {
-  const result = buildElementFromAttributes<CenterElement>(attributes);
-  const userData = result.data;
-  const x = attributes.position?.x ?? 0;
-  const y = attributes.position?.y ?? 0;
-  const width = attributes.size?.width ?? 100;
-  const height = attributes.size?.height ?? 60;
-  // Wrap center-based coords + user data in `data` field for useElementData()
-  return {
-    data: { ...userData!, cx: x + width / 2, cy: y + height / 2 },
-    position: { x, y },
-    size: { width, height },
-  };
-};
-
-// ============================================================================
 // Data Panel — shows live cx/cy values
 // ============================================================================
 
@@ -106,16 +69,22 @@ function DataPanel() {
   return (
     <div className="p-4 min-w-50 text-sm font-mono">
       <h3 className="text-base font-bold mb-3">Element Data (cx, cy)</h3>
-      {[...elements.entries()].map(([id, { data, size }]) => (
-        <div key={id} className="mb-3 p-2 rounded bg-gray-800">
-          <div className="font-bold mb-1">{data?.label}</div>
-          <div>cx: {Math.round(data?.cx ?? 0)}</div>
-          <div>cy: {Math.round(data?.cy ?? 0)}</div>
-          <div className="text-gray-400 text-xs mt-1">
-            {size.width} &times; {size.height}
+      {[...elements.entries()].map(([id, { data, position, size }]) => {
+        const x = position?.x ?? 0;
+        const y = position?.y ?? 0;
+        const width = size?.width ?? 100;
+        const height = size?.height ?? 60;
+        return (
+          <div key={id} className="mb-3 p-2 rounded bg-gray-800">
+            <div className="font-bold mb-1">{data?.label}</div>
+            <div>cx: {Math.round(x + width / 2)}</div>
+            <div>cy: {Math.round(y + height / 2)}</div>
+            <div className="text-gray-400 text-xs mt-1">
+              {width} &times; {height}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -144,8 +113,6 @@ export default function App() {
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapElementToAttributes={mapElementToAttributes}
-      mapAttributesToElement={mapAttributesToElement}
     >
       <Main />
     </GraphProvider>

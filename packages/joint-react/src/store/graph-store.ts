@@ -10,13 +10,6 @@ import {
 } from './create-elements-size-observer';
 import { PortalElement } from '../models/portal-element';
 import { PortalLink } from '../models/portal-link';
-import {
-  buildElementFromAttributes,
-  buildLinkFromAttributes,
-  buildAttributesFromElement,
-  buildAttributesFromLink,
-  type GraphMappings,
-} from '../state/data-mapping';
 import { clearConnectedLinkViews } from './clear-view';
 import { LAYOUT_UPDATE_EVENT } from './graph-changes';
 import { createAtom, type Atom } from './state-container';
@@ -61,7 +54,7 @@ export interface MeasureSnapshot {
 export interface GraphStoreOptions<
   ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
-> extends GraphMappings<ElementData, LinkData> {
+> {
   readonly graph?: dia.Graph;
   readonly cellNamespace?: unknown;
   readonly cellModel?: typeof dia.Cell;
@@ -109,10 +102,6 @@ export class GraphStore<
       onIncrementalChange,
       onElementsChange,
       onLinksChange,
-      mapAttributesToElement = buildElementFromAttributes,
-      mapAttributesToLink = buildLinkFromAttributes,
-      mapElementToAttributes = ({ id, element }) => ({ ...buildAttributesFromElement(element), id }),
-      mapLinkToAttributes = ({ id, link }) => ({ ...buildAttributesFromLink(link), id }),
     } = config;
 
     this.graph =
@@ -136,12 +125,6 @@ export class GraphStore<
 
     this.graphView = graphView<ElementData, LinkData>({
       graph: this.graph,
-      mappings: {
-        mapAttributesToElement,
-        mapLinkToAttributes,
-        mapAttributesToLink,
-        mapElementToAttributes,
-      },
       onIncrementalChange: this.buildIncrementalChangeHandler(
         onIncrementalChange,
         onElementsChange,

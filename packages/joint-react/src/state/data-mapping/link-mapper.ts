@@ -53,8 +53,8 @@ export function buildAttributesFromLink<LinkData extends object = Record<string,
     if (labels) {
       throw new Error('Cannot use both "labelMap" and "labels" on the same link.');
     }
-    attributes.labels = Object.entries(labelMap).map(
-      ([labelId, label]) => convertLabel(labelId, label, link.labelStyle)
+    attributes.labels = Object.entries(labelMap).map(([labelId, label]) =>
+      convertLabel(labelId, label, link.labelStyle)
     );
     attributes.labelMap = labelMap;
   } else {
@@ -73,10 +73,9 @@ export function buildAttributesFromLink<LinkData extends object = Record<string,
  *
  * 1:1 mapping — no `presentation` wrapper.
  */
-export function buildLinkFromAttributes<LinkData extends object = Record<string, unknown>>(
+export function mapAttributesToLink<LinkData extends object = Record<string, unknown>>(
   attributes: dia.Link.Attributes
 ): LinkRecord<LinkData> {
-
   const {
     id,
     type,
@@ -123,7 +122,16 @@ export function buildLinkFromAttributes<LinkData extends object = Record<string,
 }
 
 export type MapAttributesToLink<LinkData extends object = Record<string, unknown>> =
-  typeof buildLinkFromAttributes<LinkData>;
+  typeof mapAttributesToLink<LinkData>;
 
-export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> =
-  (options: { id: string; link: LinkRecord<LinkData> }) => CellAttributes;
+export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> = (options: {
+  id: string;
+  link: LinkRecord<LinkData>;
+}) => CellAttributes;
+
+export function mapLinkToAttributes<LinkData extends object = Record<string, unknown>>(
+  options: { id: string } & LinkRecord<LinkData>
+): CellAttributes {
+  const { id, link } = options;
+  return { ...buildAttributesFromLink(link), id };
+}

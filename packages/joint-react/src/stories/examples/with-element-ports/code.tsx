@@ -7,8 +7,6 @@ import {
   GraphProvider,
   Paper,
   useGraph,
-  buildAttributesFromElement,
-  type CellAttributes,
   type ElementRecord,
   type ElementPort,
   type LinkRecord,
@@ -58,41 +56,6 @@ interface PortNodeData {
   readonly color: string;
 }
 
-/**
- * Custom mapper that resolves named custom shapes (`triangle`, `rounded-rect`)
- * into SVG path strings sized to each port's width/height, then delegates
- * to the default flat mapper via `ElementToAttributes`.
- */
-function mapDataToElementAttributes(options: { id: string; element: ElementRecord<PortNodeData> }) {
-  const { id, element } = options;
-  const { portMap, portStyle } = element;
-  if (!portMap) return buildAttributesFromElement({ id, element });
-
-  const defaultW = portStyle?.width ?? 16;
-  const defaultH = portStyle?.height ?? 16;
-
-  const resolvedPorts: Record<string, ElementPort> = {};
-  for (const [portId, port] of Object.entries(portMap)) {
-    const { shape } = port;
-    if (shape && shape !== 'ellipse' && shape !== 'rect') {
-      const w = port.width ?? defaultW;
-      const h = port.height ?? defaultH;
-      resolvedPorts[portId] = { ...port, shape: resolveShape(shape, w, h) };
-    } else {
-      resolvedPorts[portId] = port;
-    }
-  }
-
-  const result = buildAttributesFromElement({
-    ...element,
-    portMap: resolvedPorts,
-  }) as CellAttributes;
-
-  // preserve original portMap for reverse mapping and editing
-  result.portMap = portMap;
-  return result;
-}
-
 const LABEL_POSITION_OPTIONS = [
   'outside',
   'inside',
@@ -108,6 +71,8 @@ function getShapeLabel(shape: string): string {
   return SHAPE_OPTIONS.find((o) => o.value === shape)?.label ?? 'Path';
 }
 
+const PORT_SIZE = 16;
+
 const initialElements: Record<string, ElementRecord<PortNodeData>> = {
   'node-1': {
     data: { label: 'Node 1', color: PRIMARY },
@@ -116,13 +81,13 @@ const initialElements: Record<string, ElementRecord<PortNodeData>> = {
       width: 140,
       height: 80,
     },
-    portStyle: { width: 16, height: 16, color: SECONDARY },
+    portStyle: { width: PORT_SIZE, height: PORT_SIZE, color: SECONDARY },
     portMap: {
       'out-1': {
         cx: 'calc(w)',
         cy: 'calc(0.33 * h)',
         label: 'Out 1',
-        shape: 'rounded-rect',
+        shape: resolveShape('rounded-rect', PORT_SIZE, PORT_SIZE),
         labelOffsetY: -15,
       },
       'out-2': {
@@ -141,7 +106,7 @@ const initialElements: Record<string, ElementRecord<PortNodeData>> = {
       width: 140,
       height: 80,
     },
-    portStyle: { width: 16, height: 16, color: PRIMARY },
+    portStyle: { width: PORT_SIZE, height: PORT_SIZE, color: PRIMARY },
     portMap: {
       'in-1': {
         cx: 0,
@@ -153,7 +118,7 @@ const initialElements: Record<string, ElementRecord<PortNodeData>> = {
       'in-2': {
         cx: 0,
         cy: 'calc(0.66 * h)',
-        shape: 'triangle',
+        shape: resolveShape('triangle', PORT_SIZE, PORT_SIZE),
         label: 'In 2',
         labelOffsetY: 15,
       },
@@ -263,7 +228,10 @@ function PortControl({ elementId, portId, port }: Readonly<PortControlProps>) {
         <label style={labelStyle}>Shape</label>
         <select
           value={port.shape ?? 'ellipse'}
-          onChange={(event) => updatePort({ shape: event.target.value })}
+          onChange={(event) => {
+            const shape = resolveShape(event.target.value, port.width ?? PORT_SIZE, port.height ?? PORT_SIZE);
+            updatePort({ shape });
+          }}
           style={{ ...inputStyle, flex: 1, cursor: 'pointer' }}
         >
           {SHAPE_OPTIONS.map((o) => (
@@ -467,7 +435,6 @@ export default function App() {
     <GraphProvider
       elements={initialElements}
       links={initialLinks}
-      mapElementToAttributes={mapDataToElementAttributes}
     >
       <Main />
     </GraphProvider>

@@ -1,19 +1,11 @@
-/* eslint-disable prefer-destructuring */
 /* eslint-disable unicorn/explicit-length-check */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
 import type { ElementRecord, ElementWithLayout, LinkRecord } from '../types/data-types';
 import {
-  type GraphMappings,
-  type MapAttributesToElement,
-  type MapAttributesToLink,
-  type MapElementToAttributes,
-  type MapLinkToAttributes,
-  buildElementFromAttributes,
-  buildLinkFromAttributes,
-  buildAttributesFromElement,
-  buildAttributesFromLink,
+  mapAttributesToElement,
+  mapAttributesToLink,
 } from '../state/data-mapping';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
@@ -40,7 +32,6 @@ interface GraphViewState<
   ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
 > {
-  readonly mappings: GraphMappings<ElementData, LinkData>;
   readonly graph: dia.Graph;
   readonly onIncrementalChange?: (
     changes: IncrementalContainerChanges<ElementData, LinkData>
@@ -51,14 +42,7 @@ export function graphView<
   ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
 >(options: GraphViewState<ElementData, LinkData>) {
-  const { graph, onIncrementalChange, mappings } = options;
-
-  let {
-    mapAttributesToElement = buildElementFromAttributes,
-    mapAttributesToLink = buildLinkFromAttributes,
-    mapElementToAttributes = ({ id, element }) => ({ ...buildAttributesFromElement(element), id }),
-    mapLinkToAttributes = ({ id, link }) => ({ ...buildAttributesFromLink(link), id }),
-  } = mappings;
+  const { graph, onIncrementalChange } = options;
 
   const elements = createContainer<ElementWithLayout<ElementData>>('Elements');
   const links = createContainer<LinkRecord<LinkData>>('Links');
@@ -72,8 +56,6 @@ export function graphView<
   const linkRemoved = trackChanges ? new Set<string>() : undefined;
 
   const graphChangesController = graphChanges({
-    mapElementToAttributes,
-    mapLinkToAttributes,
     graph,
     onChanges: ({ changes, isInsideBatch }) => {
       let hasElementChange = false;
@@ -86,7 +68,7 @@ export function graphView<
           case 'change': {
             const isAdd = type === 'add';
             if (data.isLink()) {
-              const linkData = mapAttributesToLink(data.attributes);
+              const linkData = mapAttributesToLink<LinkData>(data.attributes);
               links.set(id, linkData);
               if (trackChanges) {
                 if (isAdd) {
@@ -106,13 +88,19 @@ export function graphView<
                 ) as ElementWithLayout<ElementData>;
                 if (!previous) return newElementData;
                 const { data: userData, position, size, ...rest } = newElementData;
-                const { data: prevUserData, position: prevPosition, size: prevSize } = previous;
+                const {
+                  data: previousUserData,
+                  position: previousPosition,
+                  size: previousSize,
+                } = previous;
                 return {
                   ...previous,
                   ...rest,
-                  data: isShallowEqual(prevUserData, userData) ? prevUserData : userData,
-                  position: isPositionEqual(prevPosition, position) ? prevPosition : position,
-                  size: isSizeEqual(prevSize, size) ? prevSize : size,
+                  data: isShallowEqual(previousUserData, userData) ? previousUserData : userData,
+                  position: isPositionEqual(previousPosition, position)
+                    ? previousPosition
+                    : position,
+                  size: isSizeEqual(previousSize, size) ? previousSize : size,
                 };
               });
               if (trackChanges) {
@@ -126,7 +114,7 @@ export function graphView<
               // When an element changes, also update connected links since their layout may be affected
               for (const link of graph.getConnectedLinks(data)) {
                 const linkId = String(link.id);
-                const linkData = mapAttributesToLink(link.attributes);
+                const linkData = mapAttributesToLink<LinkData>(link.attributes);
                 links.set(linkId, linkData);
                 hasLinkChange = true;
               }
@@ -213,7 +201,7 @@ export function graphView<
         const data = mapAttributesToElement(cell.attributes);
         elements.set(id, data as ElementWithLayout<ElementData>);
       } else if (cell.isLink()) {
-        const data = mapAttributesToLink(cell.attributes);
+        const data = mapAttributesToLink<LinkData>(cell.attributes);
         links.set(id, data);
       }
     }
@@ -262,75 +250,9 @@ export function graphView<
       if (elements.getSize() > 0 || Object.keys(userElements).length > 0) elements.commitChanges();
       if (links.getSize() > 0 || Object.keys(userLinks).length > 0) links.commitChanges();
     },
-    updateMappers(nextMappers: GraphMappings<ElementData, LinkData>) {
-      // Only update mappers that actually changed
-      let changed = false;
-      if (
-        nextMappers.mapAttributesToElement &&
-        nextMappers.mapAttributesToElement !== mapAttributesToElement
-      ) {
-        mapAttributesToElement = nextMappers.mapAttributesToElement;
-        changed = true;
-      }
-      if (
-        nextMappers.mapAttributesToLink &&
-        nextMappers.mapAttributesToLink !== mapAttributesToLink
-      ) {
-        mapAttributesToLink = nextMappers.mapAttributesToLink;
-        changed = true;
-      }
-      if (
-        nextMappers.mapElementToAttributes &&
-        nextMappers.mapElementToAttributes !== mapElementToAttributes
-      ) {
-        mapElementToAttributes = nextMappers.mapElementToAttributes;
-        changed = true;
-      }
-      if (
-        nextMappers.mapLinkToAttributes &&
-        nextMappers.mapLinkToAttributes !== mapLinkToAttributes
-      ) {
-        mapLinkToAttributes = nextMappers.mapLinkToAttributes;
-        changed = true;
-      }
-      // Skip re-sync if no mapper actually changed
-      if (!changed) return;
-      // Keep graphChanges in sync so subsequent updateGraph calls use the new mappers
-      graphChangesController.updateMappers({
-        mapElementToAttributes,
-        mapLinkToAttributes,
-      });
-      // Re-sync all existing data through updated mappers
-      const graphElements: dia.Cell.JSON[] = [];
-      const graphLinks: dia.Cell.JSON[] = [];
-
-      for (const [id, element] of elements.getFull()) {
-        const attributes = mapElementToAttributes({
-          id,
-          element,
-        });
-        graphElements.push({ ...attributes, id });
-      }
-      for (const [id, link] of links.getFull()) {
-        const attributes = mapLinkToAttributes({
-          id,
-          link,
-        });
-        graphLinks.push({ ...attributes, id });
-      }
-
-      graph.syncCells([...graphElements, ...graphLinks], {
-        remove: true,
-        isUpdateFromReact: true,
-      });
-    },
     destroy() {
       graphChangesController.destroy();
     },
-    mapAttributesToElement: mapAttributesToElement as MapAttributesToElement<ElementData>,
-    mapAttributesToLink: mapAttributesToLink as MapAttributesToLink<LinkData>,
-    mapElementToAttributes: mapElementToAttributes as MapElementToAttributes<ElementData>,
-    mapLinkToAttributes: mapLinkToAttributes as MapLinkToAttributes<LinkData>,
   };
 }
 

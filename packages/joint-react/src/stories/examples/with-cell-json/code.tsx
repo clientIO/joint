@@ -1,12 +1,11 @@
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { shapes, util, dia } from '@joint/core';
+import { shapes, dia } from '@joint/core';
 import '../index.css';
 import {
   GraphProvider,
   Paper,
   type ElementRecord,
   type LinkRecord,
-  type CellAttributes,
   type RenderElement,
   useElements,
   useElementSize,
@@ -78,26 +77,6 @@ const initialLinks: Record<string, LinkRecord> = {
     target: { id: 'node-3' },
     labels: [{ attrs: { text: { text: 'Link 1' } } }],
   },
-};
-
-// Derive pick keys from the user data so the reverse mappers stay in sync
-// with the types automatically — add a property to the data and it flows through.
-const ELEMENT_KEYS = Object.keys(Object.values(initialElements)[0]);
-const LINK_KEYS = Object.keys(Object.values(initialLinks)[0] as object);
-
-/**
- * Reverse mapper: pick only the keys defined in the data format.
- * Wraps custom fields in `data` so useElementData() can access them.
- */
-const mapAttributesToElement = (options: { id: string; element: ElementRecord<ElementData> }): CellAttributes => {
-  return util.pick(options.element, ELEMENT_KEYS) as CellAttributes;
-};
-
-/**
- * Reverse mapper: pick only the keys defined in the data format.
- */
-const mapLinkToAttrs = (options: { id?: string; link: LinkRecord }): CellAttributes => {
-  return util.pick(options.link, LINK_KEYS) as CellAttributes;
 };
 
 // ============================================================================
@@ -201,8 +180,6 @@ export default function App() {
       graph={graph}
       elements={initialElements}
       links={initialLinks}
-      mapElementToAttributes={mapAttributesToElement}
-      mapLinkToAttributes={mapLinkToAttrs}
     >
       <Main />
     </GraphProvider>

@@ -38,7 +38,6 @@ describe('graphView onIncrementalChange', () => {
       graph,
 
       onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
-      mappings: {},
     });
 
     addElement(graph, 'el-1');
@@ -59,7 +58,6 @@ describe('graphView onIncrementalChange', () => {
       graph,
 
       onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
-      mappings: {},
     });
 
     addElement(graph, 'el-1');
@@ -84,7 +82,6 @@ describe('graphView onIncrementalChange', () => {
       graph,
 
       onIncrementalChange: (c) => allChanges.push(cloneChanges(c)),
-      mappings: {},
     });
 
     addElement(graph, 'el-1');
@@ -110,7 +107,7 @@ describe('graphView onIncrementalChange', () => {
     const view = graphView({
       graph,
 
-      mappings: {},
+
     });
 
     addElement(graph, 'el-1');
@@ -131,7 +128,7 @@ describe('graphView onIncrementalChange', () => {
       onIncrementalChange: () => {
         containerValueDuringCallback = view.elements.get('el-1');
       },
-      mappings: {},
+
     });
 
     addElement(graph, 'el-1');
@@ -148,7 +145,7 @@ describe('graphView onIncrementalChange', () => {
     const view = graphView({
       graph,
 
-      mappings: {},
+
     });
 
     addElement(graph, 'el-1', 10, 20, 100, 50);
@@ -169,7 +166,7 @@ describe('graphView onIncrementalChange', () => {
     const view = graphView({
       graph,
 
-      mappings: {},
+
     });
 
     addElement(graph, 'el-1', 10, 20, 100, 50);
@@ -189,7 +186,7 @@ describe('graphView onIncrementalChange', () => {
     const view = graphView({
       graph,
 
-      mappings: {},
+
     });
 
     addElement(graph, 'el-1', 10, 20, 100, 50);

@@ -2,7 +2,7 @@ import { mvc, type dia } from '@joint/core';
 import type { IncrementalChange } from '../state/incremental.types';
 import { simpleScheduler } from '../utils/scheduler';
 import type { ElementRecord, LinkRecord } from '../types/data-types';
-import type { MapElementToAttributes, MapLinkToAttributes } from '../state/data-mapping';
+import { mapElementToAttributes, mapLinkToAttributes } from '../state/data-mapping';
 
 /** Custom graph event signalling a layout-only update (position/size/angle change). */
 export const LAYOUT_UPDATE_EVENT = 'layout:update';
@@ -20,14 +20,9 @@ interface OnChangeOptions {
   readonly changes: Map<string, IncrementalChange<dia.Cell>>;
   readonly isInsideBatch: boolean;
 }
-interface Options<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
-> {
+interface Options {
   readonly graph: dia.Graph;
   readonly onChanges: (options: OnChangeOptions) => void;
-  readonly mapElementToAttributes: MapElementToAttributes<ElementData>;
-  readonly mapLinkToAttributes: MapLinkToAttributes<LinkData>;
 }
 
 interface JointJSEventOptions {
@@ -39,12 +34,8 @@ interface JointJSEventOptions {
  * Sets up listeners for JointJS graph mutations and translates them into incremental change events.
  * Batching is always on: layout changes are immediate, data changes fire on batch:stop.
  */
-export function graphChanges<
-  ElementData extends object = Record<string, unknown>,
-  LinkData extends object = Record<string, unknown>,
->(options: Options<ElementData, LinkData>) {
+export function graphChanges(options: Options) {
   const { graph } = options;
-  let { mapElementToAttributes, mapLinkToAttributes } = options;
   const changes = new Map<string, IncrementalChange<dia.Cell>>();
 
   let batchDepth = 0;
@@ -140,18 +131,11 @@ export function graphChanges<
     destroy() {
       controller.stopListening();
     },
-    updateMappers(nextMappers: {
-      mapElementToAttributes?: MapElementToAttributes<ElementData>;
-      mapLinkToAttributes?: MapLinkToAttributes<LinkData>;
-    }) {
-      if (nextMappers.mapElementToAttributes) {
-        mapElementToAttributes = nextMappers.mapElementToAttributes;
-      }
-      if (nextMappers.mapLinkToAttributes) {
-        mapLinkToAttributes = nextMappers.mapLinkToAttributes;
-      }
-    },
-    updateGraph(update: UpdateGraphOptions<ElementData, LinkData>) {
+
+    updateGraph<
+      ElementData extends object = Record<string, unknown>,
+      LinkData extends object = Record<string, unknown>,
+    >(update: UpdateGraphOptions<ElementData, LinkData>) {
       const { elements, links, flag } = update;
       if (!isSyncedWithReact) {
         isSyncedWithReact = true;
@@ -159,7 +143,7 @@ export function graphChanges<
       }
       const graphElements: dia.Cell.JSON[] = Object.entries(elements).map(([id, element]) => {
         return {
-          ...mapElementToAttributes({ id, element }),
+          ...mapElementToAttributes({ id, ...element }),
           id,
         };
       });

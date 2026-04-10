@@ -5,14 +5,12 @@ import {
   Paper,
   useGraph,
   HTMLHost,
-  useElementDefaults,
-  useLinkDefaults,
   type ElementRecord,
   type LinkRecord,
 } from '@joint/react';
 
 import type { dia } from '@joint/core';
-import { createContext, useCallback, useContext, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 // ── Theme ───────────────────────────────────────────────────────────────────
 
@@ -86,6 +84,11 @@ const initialElements: Record<string, SaasNode> = {
       tags: ['Enterprise'],
     },
     position: { x: 200, y: 20 },
+    portMap: {
+      out: { cx: 'calc(0.5 * w)', cy: 'calc(h)', width: PORT_R * 2, height: PORT_R * 2 },
+      in: { cx: 'calc(0.5 * w)', cy: 0, width: PORT_R * 2, height: PORT_R * 2, passive: true },
+    },
+    portStyle: { color: DARK.port, outline: DARK.canvas, outlineWidth: 2 },
   },
   pm: {
     data: {
@@ -97,6 +100,11 @@ const initialElements: Record<string, SaasNode> = {
       progress: 76,
     },
     position: { x: 20, y: 250 },
+    portMap: {
+      out: { cx: 'calc(0.5 * w)', cy: 'calc(h)', width: PORT_R * 2, height: PORT_R * 2 },
+      in: { cx: 'calc(0.5 * w)', cy: 0, width: PORT_R * 2, height: PORT_R * 2, passive: true },
+    },
+    portStyle: { color: DARK.port, outline: DARK.canvas, outlineWidth: 2 },
   },
   designer: {
     data: {
@@ -108,6 +116,11 @@ const initialElements: Record<string, SaasNode> = {
       progress: 44,
     },
     position: { x: 380, y: 460 },
+    portMap: {
+      out: { cx: 'calc(0.5 * w)', cy: 'calc(h)', width: PORT_R * 2, height: PORT_R * 2 },
+      in: { cx: 'calc(0.5 * w)', cy: 0, width: PORT_R * 2, height: PORT_R * 2, passive: true },
+    },
+    portStyle: { color: DARK.port, outline: DARK.canvas, outlineWidth: 2 },
   },
 };
 
@@ -115,7 +128,7 @@ const initialLinks: Record<string, LinkRecord> = {
   'client-pm': {
     source: { id: 'client', port: 'out' },
     target: { id: 'pm', port: 'in' },
-    style: { width: 2, targetMarker: 'none' },
+    style: { color: DARK.link, width: 2, targetMarker: 'none' },
     connector: { name: 'straight', args: { cornerType: 'cubic', cornerPreserveAspectRatio: true } },
     labelMap: {
       assigns: {
@@ -125,11 +138,13 @@ const initialLinks: Record<string, LinkRecord> = {
         backgroundPadding: { x: 8, y: 4 },
       },
     },
+    labelStyle: { color: DARK.sub, backgroundColor: DARK.canvas, backgroundOutline: DARK.cardBorder },
   },
   'pm-designer': {
     source: { id: 'pm', port: 'out' },
     target: { id: 'designer', port: 'in' },
     style: {
+      color: DARK.link,
       width: 2,
       dasharray: '6,4',
       targetMarker: {
@@ -147,6 +162,7 @@ const initialLinks: Record<string, LinkRecord> = {
         backgroundPadding: { x: 8, y: 4 },
       },
     },
+    labelStyle: { color: DARK.sub, backgroundColor: DARK.canvas, backgroundOutline: DARK.cardBorder },
   },
 };
 
@@ -309,8 +325,13 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
         tags: ['New'],
       },
       position: { x: 150 + Math.random() * 200, y: 200 + Math.random() * 200 }, // eslint-disable-line sonarjs/pseudo-random
+      portMap: {
+        out: { cx: 'calc(0.5 * w)', cy: 'calc(h)', width: PORT_R * 2, height: PORT_R * 2 },
+        in: { cx: 'calc(0.5 * w)', cy: 0, width: PORT_R * 2, height: PORT_R * 2, passive: true },
+      },
+      portStyle: { color: theme.port, outline: theme.canvas, outlineWidth: 2 },
     } satisfies SaasNode);
-  }, [setElement]);
+  }, [setElement, theme]);
 
   const onFit = useCallback(() => {
     paperRef.current?.transformToFitContent({
@@ -422,56 +443,39 @@ function Toolbar({ paperRef }: Readonly<{ paperRef: React.RefObject<dia.Paper | 
 
 const PAPER_ID = 'saasflow-paper';
 
+function ThemeUpdater() {
+  const isDark = useContext(ThemeContext);
+  const theme = isDark ? DARK : LIGHT;
+  const { graph, setElement, setLink } = useGraph<SaasNodeData>();
+
+  useEffect(() => {
+    for (const element of graph.getElements()) {
+      setElement(String(element.id), (previous) => ({
+        ...previous,
+        portStyle: { color: theme.port, outline: theme.canvas, outlineWidth: 2 },
+      }));
+    }
+    for (const link of graph.getLinks()) {
+      setLink(String(link.id), (previous) => ({
+        ...previous,
+        style: { ...previous.style, color: theme.link },
+        labelStyle: { color: theme.sub, backgroundColor: theme.canvas, backgroundOutline: theme.cardBorder },
+      }));
+    }
+  }, [theme, graph, setElement, setLink]);
+
+  return null;
+}
+
 function Main() {
   const isDark = useContext(ThemeContext);
   const theme = isDark ? DARK : LIGHT;
   const paperRef = useRef<dia.Paper | null>(null);
 
-  const elementDefaults = useElementDefaults<SaasNodeData>(
-    {
-      portMap: {
-        out: {
-          cx: 'calc(0.5 * w)',
-          cy: 'calc(h)',
-          width: PORT_R * 2,
-          height: PORT_R * 2,
-          color: theme.port,
-          outline: theme.canvas,
-          outlineWidth: 2,
-        },
-        in: {
-          cx: 'calc(0.5 * w)',
-          cy: 0,
-          width: PORT_R * 2,
-          height: PORT_R * 2,
-          color: theme.port,
-          outline: theme.canvas,
-          outlineWidth: 2,
-          passive: true,
-        },
-      },
-    },
-    [theme]
-  );
-
-  const linkDefaults = useLinkDefaults(
-    {
-      style: { color: theme.link },
-      labelStyle: {
-        color: theme.sub,
-        backgroundColor: theme.canvas,
-        backgroundOutline: theme.cardBorder,
-      },
-    },
-    [theme]
-  );
-
   return (
     <GraphProvider<SaasNodeData>
       elements={initialElements}
       links={initialLinks}
-      {...elementDefaults}
-      {...linkDefaults}
     >
       <Paper
         ref={paperRef}
@@ -501,6 +505,7 @@ function Main() {
         interactive={(cellView) => (cellView.model.isLink() ? false : { linkMove: false })}
         renderElement={RenderSaasNode}
       />
+      <ThemeUpdater />
       <Toolbar paperRef={paperRef} />
     </GraphProvider>
   );

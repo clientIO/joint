@@ -25,6 +25,7 @@ import { PortalPaper } from '../models/portal-paper';
 import type { PaperProps, RenderLink } from '../components/paper/paper.types';
 import { HTMLBox } from '../components/html-box';
 
+import { mapLinkToAttributes } from '../state/data-mapping';
 import { assignOptions } from '../utils/object-utilities';
 import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
@@ -170,7 +171,7 @@ export function useCreatePortalPaper(
 
   // Subscribe to paper version to trigger re-renders on view mount/unmount changes
   const version = useInternalData(selectPaperVersion);
-  const { addPaper, graph, graphView: gv } = useGraphStore();
+  const { addPaper, graph } = useGraphStore();
   const paperStore = usePaperStore(id);
   const { paper } = paperStore ?? {};
 
@@ -189,7 +190,7 @@ export function useCreatePortalPaper(
       const PortalLinkModel = getPortalLinkConstructor(graph);
       if (!link) {
         const id = util.uuid();
-        const defaultAttributes = gv.mapLinkToAttributes({
+        const defaultAttributes = mapLinkToAttributes({
           id,
           link: { data: {} },
         });
@@ -202,14 +203,14 @@ export function useCreatePortalPaper(
         return link.clone();
       }
       const id = util.uuid();
-      const attributes = gv.mapLinkToAttributes({
+      const attributes = mapLinkToAttributes({
         id,
         link: { data: {}, ...link } as LinkRecord,
       });
       return new PortalLinkModel(attributes);
     },
 
-    [defaultLink, graph, gv]
+    [defaultLink, graph]
   );
 
   const isReady = !!paper && (isExternalPaper || !elementRef || !!elementRef.current);

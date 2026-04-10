@@ -7,8 +7,8 @@ import type { ElementRecord, ElementPort, LinkRecord } from '../../types/data-ty
 import {
   buildAttributesFromElement,
   buildAttributesFromLink,
-  buildElementFromAttributes,
-  buildLinkFromAttributes,
+  mapAttributesToElement,
+  mapAttributesToLink,
 } from '../data-mapping';
 import { defaultLinkStyle } from '../../theme/link-theme';
 
@@ -41,7 +41,7 @@ describe('dataMapper', () => {
 
       graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
-      const result = buildElementFromAttributes(cell.attributes);
+      const result = mapAttributesToElement(cell.attributes);
 
       // Layout fields included via position/size
       expect(result).toMatchObject({
@@ -65,7 +65,7 @@ describe('dataMapper', () => {
 
       graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
-      const result = buildElementFromAttributes(cell.attributes);
+      const result = mapAttributesToElement(cell.attributes);
 
       expect(result).toHaveProperty('data.label', 'Hello');
       expect(result).toHaveProperty('data.color', 'red');
@@ -83,7 +83,7 @@ describe('dataMapper', () => {
       graph.addCell(cellJson);
       const cell = graph.getCell(id) as dia.Element;
 
-      const result = buildElementFromAttributes(cell.attributes);
+      const result = mapAttributesToElement(cell.attributes);
       expect(result).toHaveProperty('data.known', 'value');
       expect(result).toHaveProperty('data.extra', 'also-included');
     });
@@ -104,7 +104,7 @@ describe('dataMapper', () => {
 
       graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Element;
-      const result = buildElementFromAttributes(cell.attributes);
+      const result = mapAttributesToElement(cell.attributes);
 
       expect(result).toHaveProperty('data.label', 'Node 1');
       // Ports are available at top level
@@ -178,7 +178,7 @@ describe('dataMapper', () => {
 
       graph.addCell({ ...cellJson, id } as dia.Cell.JSON);
       const cell = graph.getCell(id) as dia.Link;
-      const result = buildLinkFromAttributes(cell.attributes);
+      const result = mapAttributesToLink(cell.attributes);
 
       expect(result.source).toEqual({ id: 'el-1' });
       expect(result.target).toEqual({ id: 'el-2' });
@@ -234,7 +234,7 @@ describe('dataMapper', () => {
       const cell = graph.getCell(id) as dia.Link;
 
       // previousData is passed through but the default mapper does not filter by it
-      const result = buildLinkFromAttributes(cell.attributes);
+      const result = mapAttributesToLink(cell.attributes);
       expect(result).toHaveProperty('data.known', 'value');
       expect(result).toHaveProperty('data.extra', 'also-included');
     });
@@ -278,7 +278,7 @@ describe('dataMapper', () => {
       labels[0].position = { distance: 0.6, offset: 15 };
       cell.labels(labels);
 
-      const result = buildLinkFromAttributes(cell.attributes);
+      const result = mapAttributesToLink(cell.attributes);
       expect(result.labelMap).toBeDefined();
       expect(result.labelMap!['lbl1']).toMatchObject({ text: 'Yes', position: 0.6, offset: 15 });
     });
@@ -300,22 +300,26 @@ describe('dataMapper', () => {
     it('should export all four mapper functions', () => {
       expect(buildAttributesFromElement).toBeInstanceOf(Function);
       expect(buildAttributesFromLink).toBeInstanceOf(Function);
-      expect(buildElementFromAttributes).toBeInstanceOf(Function);
-      expect(buildLinkFromAttributes).toBeInstanceOf(Function);
+      expect(mapAttributesToElement).toBeInstanceOf(Function);
+      expect(mapAttributesToLink).toBeInstanceOf(Function);
     });
   });
 
   describe('element attrs handling', () => {
     it('should not include attrs when undefined (PortalElement default)', () => {
-      const cellJson = buildAttributesFromElement({ data: undefined, position: { x: 0, y: 0 }, size: { width: 100, height: 50 } });
+      const cellJson = buildAttributesFromElement({
+        data: undefined,
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+      });
       expect(cellJson).not.toHaveProperty('attrs');
     });
 
     it('should pass attrs through when provided', () => {
       const cellJson = buildAttributesFromElement({
-          position: { x: 0, y: 0 },
-          size: { width: 100, height: 50 },
-          attrs: { body: { fill: 'red' }, label: { text: 'Hello', fill: 'white' } },
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+        attrs: { body: { fill: 'red' }, label: { text: 'Hello', fill: 'white' } },
       });
       expect(cellJson.attrs).toEqual({
         body: { fill: 'red' },
@@ -325,24 +329,24 @@ describe('dataMapper', () => {
 
     it('should pass custom type through', () => {
       const cellJson = buildAttributesFromElement({
-          position: { x: 0, y: 0 },
-          size: { width: 100, height: 50 },
-          type: 'standard.Rectangle',
+        position: { x: 0, y: 0 },
+        size: { width: 100, height: 50 },
+        type: 'standard.Rectangle',
       });
       expect(cellJson.type).toBe('standard.Rectangle');
     });
 
     it('should round-trip attrs and type', () => {
       const cellJson = buildAttributesFromElement({
-          position: { x: 10, y: 20 },
-          size: { width: 80, height: 40 },
-          type: 'standard.Rectangle',
-          attrs: { body: { fill: 'blue' }, label: { text: 'Test', fill: 'white' } },
+        position: { x: 10, y: 20 },
+        size: { width: 80, height: 40 },
+        type: 'standard.Rectangle',
+        attrs: { body: { fill: 'blue' }, label: { text: 'Test', fill: 'white' } },
       });
 
       graph.addCell({ ...cellJson, id: 'el-1' } as dia.Cell.JSON);
       const cell = graph.getCell('el-1') as dia.Element;
-      const result = buildElementFromAttributes(cell.attributes);
+      const result = mapAttributesToElement(cell.attributes);
 
       expect(result.type).toBe('standard.Rectangle');
       expect(result.attrs).toBeDefined();
@@ -352,10 +356,10 @@ describe('dataMapper', () => {
   describe('built-in shapes (native JointJS)', () => {
     it('standard.Rectangle should render with correct body size after addCell', () => {
       const cellJson = buildAttributesFromElement({
-          position: { x: 20, y: 20 },
-          size: { width: 100, height: 50 },
-          type: 'standard.Rectangle',
-          attrs: { body: { fill: 'red' }, label: { fill: 'white', text: 'Rectangle' } },
+        position: { x: 20, y: 20 },
+        size: { width: 100, height: 50 },
+        type: 'standard.Rectangle',
+        attrs: { body: { fill: 'red' }, label: { fill: 'white', text: 'Rectangle' } },
       });
 
       graph.addCell({ ...cellJson, id: 'rect-1' } as dia.Cell.JSON);
@@ -376,10 +380,10 @@ describe('dataMapper', () => {
 
     it('standard.Rectangle should work via syncCells (not just addCell)', () => {
       const cellJson = buildAttributesFromElement({
-          position: { x: 0, y: 0 },
-          size: { width: 120, height: 60 },
-          type: 'standard.Rectangle',
-          attrs: { body: { fill: 'green' }, label: { fill: 'white', text: 'Synced' } },
+        position: { x: 0, y: 0 },
+        size: { width: 120, height: 60 },
+        type: 'standard.Rectangle',
+        attrs: { body: { fill: 'green' }, label: { fill: 'white', text: 'Synced' } },
       });
 
       // syncCells is what GraphProvider actually uses
@@ -398,13 +402,13 @@ describe('dataMapper', () => {
 
     it('standard.Circle should preserve default body attrs', () => {
       const cellJson = buildAttributesFromElement({
-          position: { x: 0, y: 0 },
-          size: { width: 60, height: 60 },
-          type: 'standard.Circle',
-          attrs: {
-            body: { fill: 'blue', stroke: '#333' },
-            label: { fill: 'white', text: 'Circle' },
-          },
+        position: { x: 0, y: 0 },
+        size: { width: 60, height: 60 },
+        type: 'standard.Circle',
+        attrs: {
+          body: { fill: 'blue', stroke: '#333' },
+          label: { fill: 'white', text: 'Circle' },
+        },
       });
 
       graph.addCell({ ...cellJson, id: 'circle-1' } as dia.Cell.JSON);
