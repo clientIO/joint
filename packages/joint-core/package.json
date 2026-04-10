@@ -7,6 +7,107 @@
   "main": "./dist/joint.min.js",
   "module": "joint.mjs",
   "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./joint.mjs",
+      "require": "./dist/joint.min.js",
+      "default": "./dist/joint.min.js"
+    },
+    "./anchors": {
+      "types": "./types/namespaces/anchors.d.ts",
+      "import": "./src/anchors/index.mjs"
+    },
+    "./config": {
+      "types": "./types/namespaces/config.d.ts",
+      "import": "./src/config/index.mjs"
+    },
+    "./connectionPoints": {
+      "types": "./types/namespaces/connectionPoints.d.ts",
+      "import": "./src/connectionPoints/index.mjs"
+    },
+    "./connectionStrategies": {
+      "types": "./types/namespaces/connectionStrategies.d.ts",
+      "import": "./src/connectionStrategies/index.mjs"
+    },
+    "./connectors": {
+      "types": "./types/namespaces/connectors.d.ts",
+      "import": "./src/connectors/index.mjs"
+    },
+    "./dia": {
+      "types": "./types/namespaces/dia.d.ts",
+      "import": "./src/dia/index.mjs"
+    },
+    "./elementTools": {
+      "types": "./types/namespaces/elementTools.d.ts",
+      "import": "./src/elementTools/index.mjs"
+    },
+    "./env": {
+      "types": "./types/namespaces/env.d.ts",
+      "import": "./src/env/index.mjs"
+    },
+    "./g": {
+      "types": "./types/namespaces/g.d.ts",
+      "import": "./src/g/index.mjs"
+    },
+    "./highlighters": {
+      "types": "./types/namespaces/highlighters.d.ts",
+      "import": "./src/highlighters/index.mjs"
+    },
+    "./layout": {
+      "types": "./types/namespaces/layout.d.ts",
+      "import": "./src/layout/index.mjs"
+    },
+    "./linkAnchors": {
+      "types": "./types/namespaces/linkAnchors.d.ts",
+      "import": "./src/linkAnchors/index.mjs"
+    },
+    "./linkTools": {
+      "types": "./types/namespaces/linkTools.d.ts",
+      "import": "./src/linkTools/index.mjs"
+    },
+    "./mvc": {
+      "types": "./types/namespaces/mvc.d.ts",
+      "import": "./src/mvc/index.mjs"
+    },
+    "./routers": {
+      "types": "./types/namespaces/routers.d.ts",
+      "import": "./src/routers/index.mjs"
+    },
+    "./shapes": {
+      "types": "./types/namespaces/shapes.d.ts",
+      "import": "./src/shapes/index.mjs"
+    },
+    "./shapes/standard": {
+      "types": "./types/namespaces/shapes/standard.d.ts",
+      "import": "./src/shapes/standard.mjs"
+    },
+    "./setTheme": {
+      "types": "./types/namespaces/setTheme.d.ts",
+      "import": "./src/setTheme.mjs"
+    },
+    "./version": {
+      "types": "./types/namespaces/version.d.ts",
+      "import": "./dist/version.mjs"
+    },
+    "./util": {
+      "types": "./types/namespaces/util.d.ts",
+      "import": "./src/util/index.mjs"
+    },
+    "./V": {
+      "types": "./types/namespaces/V.d.ts",
+      "import": "./src/V/index.mjs"
+    },
+    "./Vectorizer": {
+      "types": "./types/namespaces/V.d.ts",
+      "import": "./src/V/index.mjs"
+    },
+    "./dist/*": "./dist/*",
+    "./src/*": "./src/*",
+    "./types/*": "./types/*",
+    "./joint.mjs": "./joint.mjs",
+    "./index.js": "./index.js"
+  },
   "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
@@ -58,7 +159,7 @@
   "files": [
     "dist/",
     "src/",
-    "types/*.d.ts",
+    "types/",
     "./index.js",
     "./joint.mjs",
     "./LICENSE",
