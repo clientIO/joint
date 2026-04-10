@@ -32,7 +32,7 @@ interface GraphViewState<
   readonly onIncrementalChange?: (
     changes: IncrementalContainerChanges<ElementData, LinkData>
   ) => void;
-  readonly onElementsSizeChange: (id: string, size: { width: number; height: number }) => void;
+  readonly onElementsSizeChange?: (id: string, size: { width: number; height: number }) => void;
 }
 
 export function graphView<
@@ -62,7 +62,7 @@ export function graphView<
     id: string;
   }) {
     if (!isSizeEqual(previous?.size, next.size)) {
-      onElementsSizeChange(id, { width: next.size?.width ?? 0, height: next.size?.height ?? 0 });
+      onElementsSizeChange?.(id, { width: next.size?.width ?? 0, height: next.size?.height ?? 0 });
     }
   }
 

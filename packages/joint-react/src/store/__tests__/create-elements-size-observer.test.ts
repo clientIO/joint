@@ -92,7 +92,6 @@ describe('createElementsSizeObserver', () => {
   let mockOnBatchUpdate: jest.Mock;
   let mockGetCellTransform: jest.Mock;
   let mockGetElements: jest.Mock;
-  let mockOnObserveElement: jest.Mock;
   let mockElements: Map<string, { size: { width: number; height: number }; position: { x: number; y: number } }>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let createElementsSizeObserver: any;
@@ -114,7 +113,6 @@ describe('createElementsSizeObserver', () => {
     ]);
 
     mockOnBatchUpdate = jest.fn();
-    mockOnObserveElement = jest.fn();
     mockGetCellTransform = jest.fn((id: CellId) => ({
       width: 1,
       height: 1,
@@ -129,7 +127,6 @@ describe('createElementsSizeObserver', () => {
       onBatchUpdate: mockOnBatchUpdate,
       getCellTransform: mockGetCellTransform,
       getElements: mockGetElements,
-      onObserveElement: mockOnObserveElement,
     });
   });
 
@@ -381,64 +378,6 @@ describe('createElementsSizeObserver', () => {
 
       cleanupA();
       expect(observer.has('element-1')).toBe(false);
-    });
-
-    it('should fire onObserveElement isRemoved:false only on first registration per cell ID', () => {
-      const nodeA = document.createElement('div');
-      const nodeB = document.createElement('div');
-
-      observer.add({ id: 'element-1', node: nodeA });
-      observer.add({ id: 'element-1', node: nodeB });
-
-      const addCalls = mockOnObserveElement.mock.calls.filter(
-        ([options]: [{ isRemoved: boolean; id: CellId }]) =>
-          options.id === 'element-1' && !options.isRemoved
-      );
-      expect(addCalls).toHaveLength(1);
-    });
-
-    it('should fire onObserveElement isRemoved:true only when stack is fully empty', () => {
-      const nodeA = document.createElement('div');
-      const nodeB = document.createElement('div');
-
-      const cleanupA = observer.add({ id: 'element-1', node: nodeA });
-      const cleanupB = observer.add({ id: 'element-1', node: nodeB });
-      mockOnObserveElement.mockClear();
-
-      // Remove B — stack still has A, should NOT fire isRemoved
-      cleanupB();
-      const removedAfterB = mockOnObserveElement.mock.calls.filter(
-        ([options]: [{ isRemoved: boolean }]) => options.isRemoved
-      );
-      expect(removedAfterB).toHaveLength(0);
-
-      // Remove A — stack is now empty, should fire isRemoved
-      cleanupA();
-      const removedAfterA = mockOnObserveElement.mock.calls.filter(
-        ([options]: [{ isRemoved: boolean }]) => options.isRemoved
-      );
-      expect(removedAfterA).toHaveLength(1);
-    });
-
-    it('should report observedElements as count of unique cell IDs, not total registrations', () => {
-      const nodeA = document.createElement('div');
-      const nodeB = document.createElement('div');
-      const nodeC = document.createElement('div');
-
-      observer.add({ id: 'element-1', node: nodeA });
-
-      // First registration for element-1 fires onObserveElement
-      const firstCall = mockOnObserveElement.mock.calls[0][0];
-      expect(firstCall.observedElements).toBe(1);
-
-      // Second registration for same ID should NOT fire onObserveElement again
-      observer.add({ id: 'element-1', node: nodeB });
-      expect(mockOnObserveElement).toHaveBeenCalledTimes(1);
-
-      // Different cell ID fires onObserveElement with count 2
-      observer.add({ id: 'element-2', node: nodeC });
-      const thirdCall = mockOnObserveElement.mock.calls[1][0];
-      expect(thirdCall.observedElements).toBe(2);
     });
 
     it('should use the active node transform function, not a previous one', () => {

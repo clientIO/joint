@@ -94,6 +94,11 @@ export function useNodesMeasuredEffect(
       }
       callbackRef.current({ isInitial: false, paper, graph });
     }
+    // Flush any measurement that happened before subscription (e.g. initial
+    // data sync ran before this paperStore was available).
+    if (measureState.get() > 0) {
+      handleChanges();
+    }
     const unsubscribeMeasureState = measureState.subscribe(handleChanges);
     return () => {
       unsubscribeMeasureState();

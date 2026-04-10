@@ -118,7 +118,6 @@ export class GraphStore<
     const elementsMeasured = new Set<string>();
     const onElementSizeChange = () => {
       if (elementsMeasured.size > 0) {
-        console.log('aha');
         this.measureState.set((previous) => previous + 1);
       }
     };
