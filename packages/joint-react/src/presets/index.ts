@@ -1,4 +1,4 @@
-export { type AnchorMode } from './anchors';
+export { type LinkMode } from './anchors';
 export {
   straightLinks,
   orthogonalLinks,

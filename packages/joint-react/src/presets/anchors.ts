@@ -30,7 +30,7 @@ export const perpendicularAnchor: anchors.Anchor = (
 };
 
 /** Mode for the `midSide` anchor used on root elements and custom magnets. */
-export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto' | 'top-bottom' | 'bottom-top' | 'left-right' | 'right-left';
+export type LinkMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto' | 'top-bottom' | 'bottom-top' | 'left-right' | 'right-left';
 
 /**
  * Creates an anchor function that chooses the anchor position based on the magnet type:
@@ -41,7 +41,7 @@ export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' 
  * @param sourceOffset - Padding for source end (px). Default: `0`.
  * @param targetOffset - Padding for target end (px). Default: `0`.
  */
-export function midSideAnchor(mode: AnchorMode = 'auto', sourceOffset = 0, targetOffset = 0): anchors.Anchor {
+export function midSideAnchor(mode: LinkMode = 'auto', sourceOffset = 0, targetOffset = 0): anchors.Anchor {
   return (elementView, magnet, ref, _, endType, linkView) => {
     const padding = endType === 'source' ? sourceOffset : targetOffset;
     if (magnet === elementView.el) {

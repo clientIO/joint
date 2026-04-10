@@ -6,7 +6,7 @@ import {
 import {
   straightLinks, orthogonalLinks, smoothLinks,
   type StraightLinksOptions, type OrthogonalLinksOptions, type SmoothLinksOptions,
-  type AnchorMode,
+  type LinkMode,
 } from '@joint/react/presets';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
@@ -139,7 +139,7 @@ type PresetName = 'straight' | 'orthogonal' | 'smooth';
 
 function buildPreset(
   name: PresetName,
-  mode: AnchorMode,
+  mode: LinkMode,
   sourceOffset: number,
   targetOffset: number,
   cornerType: OrthogonalLinksOptions['cornerType'],
@@ -157,12 +157,12 @@ function buildPreset(
 // ── Controls ────────────────────────────────────────────────────────────────
 
 const PRESET_NAMES: PresetName[] = ['straight', 'orthogonal', 'smooth'];
-const ANCHOR_MODES: AnchorMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical', 'top-bottom', 'bottom-top', 'left-right', 'right-left'];
+const ANCHOR_MODES: LinkMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical', 'top-bottom', 'bottom-top', 'left-right', 'right-left'];
 const CORNER_TYPES: NonNullable<OrthogonalLinksOptions['cornerType']>[] = ['cubic', 'line', 'point', 'gap'];
 
 function PresetPicker() {
   const [preset, setPreset] = useState<PresetName>('smooth');
-  const [anchorMode, setAnchorMode] = useState<AnchorMode>('horizontal');
+  const [anchorMode, setLinkMode] = useState<LinkMode>('horizontal');
   const [sourceOffset, setSourceOffset] = useState(0);
   const [targetOffset, setTargetOffset] = useState(0);
   const [cornerType, setCornerType] = useState<OrthogonalLinksOptions['cornerType']>('cubic');
@@ -227,7 +227,7 @@ function PresetPicker() {
               <select
                 className="px-1.5 py-0.5 text-xs rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                 value={anchorMode}
-                onChange={(event) => setAnchorMode(event.target.value as AnchorMode)}
+                onChange={(event) => setLinkMode(event.target.value as LinkMode)}
               >
                 {ANCHOR_MODES.map((m) => (
                   <option key={m} value={m}>{m}</option>

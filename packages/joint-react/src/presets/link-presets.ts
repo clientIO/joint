@@ -1,6 +1,6 @@
 import { connectionPoints } from '@joint/core';
 import type { PaperProps } from '../components/paper/paper.types';
-import type { AnchorMode } from './anchors';
+import type { LinkMode } from './anchors';
 import { centerAnchor, perpendicularAnchor, midSideAnchor } from './anchors';
 import { boundaryPoint, anchorPoint, withOffsets } from './connection-points';
 import { rightAngleRouter, outwardsCurveConnector } from './connectors';
@@ -32,7 +32,7 @@ export type LinkPreset = Pick<
 
 interface BaseLinkOptions {
   /** Anchor mode for root elements and custom magnets. Passed to `midSide`. */
-  readonly mode?: AnchorMode;
+  readonly mode?: LinkMode;
   /** Offset (in px) applied to the connection point at the source end. Default: `0`. */
   readonly sourceOffset?: number;
   /** Offset (in px) applied to the connection point at the target end. Default: `0`. */
