@@ -157,7 +157,7 @@ function buildPreset(
 // ── Controls ────────────────────────────────────────────────────────────────
 
 const PRESET_NAMES: PresetName[] = ['straight', 'orthogonal', 'smooth'];
-const ANCHOR_MODES: AnchorMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical'];
+const ANCHOR_MODES: AnchorMode[] = ['auto', 'horizontal', 'vertical', 'prefer-horizontal', 'prefer-vertical', 'top-bottom', 'bottom-top', 'left-right', 'right-left'];
 const CORNER_TYPES: NonNullable<OrthogonalLinksOptions['cornerType']>[] = ['cubic', 'line', 'point', 'gap'];
 
 function PresetPicker() {

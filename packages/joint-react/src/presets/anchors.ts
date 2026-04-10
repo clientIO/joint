@@ -30,7 +30,7 @@ export const perpendicularAnchor: anchors.Anchor = (
 };
 
 /** Mode for the `midSide` anchor used on root elements and custom magnets. */
-export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto';
+export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' | 'vertical' | 'auto' | 'top-bottom' | 'bottom-top' | 'left-right' | 'right-left';
 
 /**
  * Creates an anchor function that chooses the anchor position based on the magnet type:

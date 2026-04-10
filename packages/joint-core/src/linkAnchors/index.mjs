@@ -42,7 +42,7 @@ function _connectionClosest(view, _magnet, refPoint, _opt) {
 export function resolveRef(fn) {
     return function(view, magnet, ref, opt, endType, linkView) {
         if (ref instanceof Element) {
-            var refView = this.paper.findView(ref);
+            var refView = linkView.paper.findView(ref);
             var refPoint;
             if (refView) {
                 if (refView.isNodeConnection(ref)) {
@@ -55,9 +55,9 @@ export function resolveRef(fn) {
                 // Something went wrong
                 refPoint = new Point();
             }
-            return fn.call(this, view, magnet, refPoint, opt, endType, linkView);
+            return fn.call(linkView, view, magnet, refPoint, opt, endType, linkView);
         }
-        return fn.apply(this, arguments);
+        return fn.apply(linkView, arguments);
     };
 }
 
