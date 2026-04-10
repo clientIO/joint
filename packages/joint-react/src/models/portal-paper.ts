@@ -24,11 +24,6 @@ export class PortalPaper extends PresetPaper {
   private readonly portalSelector: PortalSelector | undefined;
   private pendingLinks: Set<CellId> = new Set();
 
-  protected _ensureElClassName() {
-    // Note: the `className` property is ignored here.
-    this.el.classList.add('jr-portal-paper', 'joint-paper');
-  }
-
   constructor(options: PortalPaperOptions) {
     const { onViewMountChange, portalSelector, id, ...paperOptions } = options;
     super(paperOptions);

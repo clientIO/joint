@@ -92,7 +92,7 @@
 
   /* ── Paper ─────────────────────────────────────────────────────────────── */
 
-  :where(.jr-portal-paper) {
+  :where(.jr-paper) {
     background-color: var(--jr-paper-bg, #EFF2F5);
   }
 

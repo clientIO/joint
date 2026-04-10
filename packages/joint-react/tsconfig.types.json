@@ -8,7 +8,7 @@
     "paths": {
       "@joint/react": ["./src/index.ts"],
       "@joint/react/internal": ["./src/internal.ts"],
-      "@joint/react/presets": ["./src/presets.ts"]
+      "@joint/react/presets": ["./src/presets/index.ts"]
     }
   },
   "include": [
