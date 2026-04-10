@@ -7,7 +7,7 @@ const USE_MODEL_GEOMETRY = { useModelGeometry: true } as const;
  * Anchor that uses `center` with model geometry for the root element and ports,
  * and plain `center` (DOM-measured) for custom magnets.
  */
-export const modelCenterAnchor: anchors.Anchor = (
+export const centerAnchor: anchors.Anchor = (
   elementView, magnet, ref, _, endType, linkView
 ) => {
   if (magnet === elementView.el || magnet.getAttribute('port')) {
@@ -22,13 +22,13 @@ export type AnchorMode = 'prefer-horizontal' | 'prefer-vertical' | 'horizontal' 
 /**
  * Creates an anchor function that chooses the anchor position based on the magnet type:
  * - Root element → `midSide` with model geometry and the given `mode`.
- * - Port magnet → `center` shifted to port edge + padding.
- * - Other magnets → `midSide` (DOM-based).
- * @param mode - The `midSide` mode. Default: `'auto'`.
+ * - Port magnet → a specific side of the port bbox, with optional padding.
+ * - Other magnets → `midSide` (DOM-based)
+* @param mode - The `midSide` mode. Default: `'auto'`.
  * @param sourceOffset - Padding for source end (px). Default: `0`.
  * @param targetOffset - Padding for target end (px). Default: `0`.
  */
-export function smartAnchor(mode: AnchorMode = 'auto', sourceOffset = 0, targetOffset = 0): anchors.Anchor {
+export function midSideAnchor(mode: AnchorMode = 'auto', sourceOffset = 0, targetOffset = 0): anchors.Anchor {
   return (elementView, magnet, ref, _, endType, linkView) => {
     const padding = endType === 'source' ? sourceOffset : targetOffset;
     if (magnet === elementView.el) {

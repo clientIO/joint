@@ -9,7 +9,7 @@ import { connectionPoints } from '@joint/core';
  *
  * Uses `boundary` for custom sub-elements registered via `selectorRef`.
  */
-export const connectionPoint: connectionPoints.ConnectionPoint = (
+export const boundaryPoint: connectionPoints.ConnectionPoint = (
   endPathSegmentLine,
   endView,
   endMagnet,
@@ -26,12 +26,12 @@ export const connectionPoint: connectionPoints.ConnectionPoint = (
 };
 
 /**
- * Connection point for elements using `smartAnchor`.
+ * Connection point for elements using `midSideAnchor`.
  * For ports: returns the anchor (already at port edge via smartAnchor).
  * For root element: returns the anchor (already on boundary via midSide).
  * For custom magnets: uses `rectangle` with model geometry.
  */
-export const smartConnectionPoint: connectionPoints.ConnectionPoint = (
+export const anchorPoint: connectionPoints.ConnectionPoint = (
   endPathSegmentLine,
   endView,
   endMagnet,

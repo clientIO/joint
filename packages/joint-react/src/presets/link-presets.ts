@@ -1,8 +1,8 @@
 import { connectionPoints } from '@joint/core';
 import type { PaperProps } from '../components/paper/paper.types';
 import type { AnchorMode } from './anchors';
-import { modelCenterAnchor, smartAnchor } from './anchors';
-import { connectionPoint, smartConnectionPoint, withOffsets } from './connection-points';
+import { centerAnchor, midSideAnchor } from './anchors';
+import { boundaryPoint, anchorPoint, withOffsets } from './connection-points';
 import { rightAngleRouter, outwardsCurveConnector } from './connectors';
 import {
   straightRouterUntilConnected,
@@ -52,8 +52,8 @@ export function straightLinks(options: StraightLinksOptions = {}): LinkPreset {
   return {
     defaultRouter: { name: 'normal' },
     defaultConnector: { name: 'straight' },
-    defaultAnchor: modelCenterAnchor,
-    defaultConnectionPoint: withOffsets(connectionPoint, sourceOffset, targetOffset),
+    defaultAnchor: centerAnchor,
+    defaultConnectionPoint: withOffsets(boundaryPoint, sourceOffset, targetOffset),
   };
 }
 
@@ -82,9 +82,9 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
     return {
       defaultRouter: straightRouterUntilConnected(rightAngleRouter),
       defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
-      defaultAnchor: anchorWhenConnected(smartAnchor(mode), modelCenterAnchor),
+      defaultAnchor: anchorWhenConnected(midSideAnchor(mode), centerAnchor),
       defaultConnectionPoint: withOffsets(
-        connectionPointWhenConnected(smartConnectionPoint, connectionPoint),
+        connectionPointWhenConnected(anchorPoint, boundaryPoint),
         sourceOffset,
         targetOffset
       ),
@@ -94,8 +94,8 @@ export function orthogonalLinks(options: OrthogonalLinksOptions = {}): LinkPrese
   return {
     defaultRouter: rightAngleRouter,
     defaultConnector: { name: 'straight', args: { cornerType, cornerRadius } },
-    defaultAnchor: smartAnchor(mode),
-    defaultConnectionPoint: withOffsets(smartConnectionPoint, sourceOffset, targetOffset),
+    defaultAnchor: midSideAnchor(mode),
+    defaultConnectionPoint: withOffsets(anchorPoint, sourceOffset, targetOffset),
   };
 }
 
@@ -112,10 +112,10 @@ export function curvedLinks(options: CurvedLinksOptions = {}): LinkPreset {
     return {
       defaultRouter: { name: 'normal' },
       defaultConnector: straightConnectorUntilConnected(outwardsCurveConnector),
-      defaultAnchor: anchorWhenConnected(smartAnchor(mode, sourceOffset, targetOffset), modelCenterAnchor),
+      defaultAnchor: anchorWhenConnected(midSideAnchor(mode, sourceOffset, targetOffset), centerAnchor),
       defaultConnectionPoint: connectionPointWhenConnected(
         connectionPoints.anchor as connectionPoints.ConnectionPoint,
-        withOffsets(connectionPoint, sourceOffset, targetOffset)
+        withOffsets(boundaryPoint, sourceOffset, targetOffset)
       ),
     };
   }
@@ -123,7 +123,7 @@ export function curvedLinks(options: CurvedLinksOptions = {}): LinkPreset {
   return {
     defaultRouter: { name: 'normal' },
     defaultConnector: outwardsCurveConnector,
-    defaultAnchor: smartAnchor(mode, sourceOffset, targetOffset),
+    defaultAnchor: midSideAnchor(mode, sourceOffset, targetOffset),
     defaultConnectionPoint: { name: 'anchor' },
   };
 }
