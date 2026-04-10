@@ -138,6 +138,7 @@ const shape1 = new BorderBadgeElement({
     },
     ports: {
         items: [{
+            size: { width: 32, height: 16 },
             position: {
                 name: 'absolute',
                 args: { x: 200, y: 0 }
@@ -187,7 +188,7 @@ const link = new shapes.standard.Link({
         id: shape1.id,
         port: shape1.getPorts()[0].id,
         //magnet: 'rightBadge',
-        connectionPoint: { name: 'rectangle' }
+        connectionPoint: { name: 'rectangle', args: { useModelGeometry: true } }
     },
     target: {
         id: shape2.id,

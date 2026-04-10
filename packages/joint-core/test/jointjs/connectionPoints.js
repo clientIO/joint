@@ -1,7 +1,5 @@
 QUnit.module('connectionPoints', function(hooks) {
 
-    const roundPrecision = 2;
-
     var paper, graph, r1, rv1, l1, lv1, sp, tp, fullNode, quarterNode, textNode;
 
     hooks.beforeEach(function() {
@@ -361,12 +359,12 @@ QUnit.module('connectionPoints', function(hooks) {
                     const r1BBoxWR = r1.getBBox({ rotate: true });
 
                     line = new g.Line(r1BBoxWR.bottomMiddle().offset(0, 1000), r1BBoxWR.bottomMiddle());
-                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true }).round(roundPrecision);
-                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).bottomMiddle().round(roundPrecision)));
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true }).round();
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).bottomMiddle().round()));
 
                     line = new g.Line(r1BBoxWR.bottomMiddle().offset(1000, 0), r1BBoxWR.bottomMiddle());
-                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true }).round(roundPrecision);
-                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).rightMiddle().round(roundPrecision)));
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true }).round();
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).rightMiddle().round()));
                 });
             });
         });

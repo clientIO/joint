@@ -102,7 +102,7 @@ function rectangleIntersection(line, view, magnet, opt) {
     if (opt.stroke) bboxWORotation.inflate(stroke(magnet) / 2);
 
     // Use model center because rotation is applied around the center of the model.
-    const center = view.model.getBBox().center();
+    const center = view.model.getCenter();
 
     const lineWORotation = line.clone().rotate(center, angle);
     const intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
@@ -117,7 +117,13 @@ function getNodeModelBBox(elementView, magnet, rotate) {
 
     const portId = elementView.findAttribute('port', magnet);
     if (element.hasPort(portId)) {
-        return element.getPortBBox(portId, { rotate });
+        if (rotate) {
+            return element.getPortBBox(portId, { rotate });
+        } else {
+            const portBBox = new g.Rect(element.getPortRelativeRect(portId));
+            portBBox.offset(element.position());
+            return portBBox;
+        }
     }
 
     return element.getBBox({ rotate });
@@ -158,9 +164,13 @@ function boundaryIntersection(line, view, magnet, opt) {
         node = findShapeNode(magnet);
     }
 
+    if (node instanceof HTMLElement) {
+        return rectangleIntersection(line, view, node, opt);
+    }
+
     if (!V.isSVGGraphicsElement(node)) {
         if (node === magnet || !V.isSVGGraphicsElement(magnet)) {
-            return rectangleIntersection(line, view, magnet, opt);
+            return anchor;
         }
         node = magnet;
     }
