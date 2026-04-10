@@ -25,7 +25,7 @@ export type { ResolvedLink } from './hooks/use-link';
 // Hooks — Measurement
 export { useMeasureNode } from './hooks/use-measure-node';
 export type { OnTransformElement, TransformOptions } from './store/create-elements-size-observer';
-export { useNodesMeasuredEffect } from './hooks/use-nodes-measured-effect';
+export { useNodesMeasuredEffect } from './hooks/use-node-measured-effect';
 
 // Hooks — Set
 export * from './hooks/use-cell-setters';

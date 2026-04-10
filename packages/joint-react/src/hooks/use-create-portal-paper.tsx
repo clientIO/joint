@@ -12,7 +12,7 @@ import {
   useState,
   type RefObject,
   type ReactNode,
-  useContext
+  useContext,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useGraphStore } from './use-graph-store';
@@ -27,7 +27,6 @@ import { HTMLBox } from '../components/html-box';
 
 import { mapLinkToAttributes } from '../state/data-mapping';
 import { assignOptions } from '../utils/object-utilities';
-import { PAPER_ELEMENTS_MEASURED, type ElementsMeasuredEvent } from '../types/event.types';
 import { PaperHTMLContainer } from '../components/paper/render-element/paper-html-container';
 import { CellIdContext, PaperFeaturesContext } from '../context';
 import {
@@ -35,7 +34,7 @@ import {
   HTMLElementItem,
   SVGElementItem,
 } from '../components/paper/render-element/paper-element-item';
-import { selectResetVersion, createSelectPaperVersion } from '../selectors';
+import { createSelectPaperVersion } from '../selectors';
 import { useAreElementsMeasured } from './use-are-elements-measured';
 
 type PortalLinkConstructor = new (attributes?: dia.Link.Attributes) => dia.Link;
@@ -113,11 +112,7 @@ function LinkItem({
  * @returns A JSX element rendering the label inside a DefaultHTMLHost with default styling.
  */
 const defaultRenderElement = (data: Record<string, unknown>) => {
-  return (
-    <HTMLBox>
-      {data?.label as string}
-    </HTMLBox>
-  );
+  return <HTMLBox>{data?.label as string}</HTMLBox>;
 };
 
 /**
@@ -151,8 +146,6 @@ export function useCreatePortalPaper(
 
   const graphStore = useGraphStore();
   const areElementsMeasured = useAreElementsMeasured();
-  const resetVersion = useInternalData(selectResetVersion);
-  const previousResetVersionRef = useRef(-1);
 
   // Subscribe to container size — only re-renders when elements/links are added or removed.
   // This replaces the expensive Object.keys(elementsState) which fired on every data change.
@@ -288,23 +281,6 @@ export function useCreatePortalPaper(
       paper.scale(scale);
     }
   }, [defaultLinkJointJS, paper, paperOptions, paperStore, scale]);
-
-  useEffect(() => {
-    if (!paper) return;
-    if (!areElementsMeasured) return;
-    let isInitial = false;
-    if (resetVersion !== previousResetVersionRef.current) {
-      isInitial = true;
-      previousResetVersionRef.current = resetVersion;
-    }
-    const event: ElementsMeasuredEvent = {
-      paper,
-      graph: paper.model,
-      isInitial,
-    };
-    paper.trigger(PAPER_ELEMENTS_MEASURED, event);
-    // we must have here sizes, as its called each time reference of size changes.
-  }, [areElementsMeasured, paper, resetVersion, graphStore]);
 
   const elements = useMemo(() => {
     if (!hasRenderElement) {

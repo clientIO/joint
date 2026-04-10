@@ -38,11 +38,6 @@ export interface TransformOptions extends Required<ElementLayout> {
  */
 export type OnTransformElement = (options: TransformOptions) => ElementLayoutOptionalXY;
 
-interface ObserveElementOptions {
-  readonly isRemoved: boolean;
-  readonly id: CellId;
-  readonly observedElements: number;
-}
 /**
  * Options for registering an element to be measured for size changes.
  */
@@ -89,7 +84,6 @@ interface Options {
   readonly getElements: () => Map<string, ElementRecord>;
   /** Callback function called when a batch of elements needs to be updated */
   readonly onBatchUpdate: (data: Record<CellId, ElementLayoutOptionalXY>) => void;
-  readonly onObserveElement: (options: ObserveElementOptions) => void;
 }
 
 /**
@@ -211,7 +205,6 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
     getCellTransform,
     onBatchUpdate,
     getElements,
-    onObserveElement,
   } = options;
 
   // Stack per cell ID: last entry is the active (observed) node.
@@ -306,7 +299,6 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
       };
 
       let stack = observedStacksByCellId.get(id);
-      const isFirstForCellId = !stack || stack.length === 0;
 
       if (!stack) {
         stack = [];
@@ -321,14 +313,6 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
 
       stack.push(observedElement);
       activateElement(observedElement);
-
-      if (isFirstForCellId) {
-        onObserveElement({
-          id,
-          isRemoved: false,
-          observedElements: observedStacksByCellId.size,
-        });
-      }
 
       return () => {
         const currentStack = observedStacksByCellId.get(id);
@@ -355,11 +339,6 @@ export function createElementsSizeObserver(options: Options): GraphStoreObserver
 
         if (currentStack.length === 0) {
           observedStacksByCellId.delete(id);
-          onObserveElement({
-            id,
-            isRemoved: true,
-            observedElements: observedStacksByCellId.size,
-          });
         }
       };
     },

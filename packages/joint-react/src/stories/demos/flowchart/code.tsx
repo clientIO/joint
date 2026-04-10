@@ -2,8 +2,21 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { ElementRecord, LinkRecord, LinkLabel, RenderElement, TransformOptions } from '@joint/react';
-import { GraphProvider, Paper, useMarkup, useMeasureNode, usePaperEvents } from '@joint/react';
+import type {
+  ElementRecord,
+  LinkRecord,
+  LinkLabel,
+  RenderElement,
+  TransformOptions,
+} from '@joint/react';
+import {
+  GraphProvider,
+  Paper,
+  useMarkup,
+  useMeasureNode,
+  useNodesMeasuredEffect,
+  usePaperEvents,
+} from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
 import { forwardRef, useId, useRef, useState } from 'react';
@@ -431,18 +444,19 @@ function Main() {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
       },
-      'elements:measured': ({ isInitial }) => {
-        if (!isInitial) return;
-        paper.transformToFitContent({
-          padding: 40,
-          useModelGeometry: true,
-          verticalAlign: 'middle',
-          horizontalAlign: 'middle',
-        });
-      },
     }),
     []
   );
+
+  useNodesMeasuredEffect(paperId, ({ isInitial, paper }) => {
+    if (!isInitial) return;
+    paper.transformToFitContent({
+      padding: 40,
+      useModelGeometry: true,
+      verticalAlign: 'middle',
+      horizontalAlign: 'middle',
+    });
+  });
 
   return (
     <Paper

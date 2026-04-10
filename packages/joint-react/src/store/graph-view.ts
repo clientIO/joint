@@ -1,12 +1,8 @@
-/* eslint-disable unicorn/explicit-length-check */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable jsdoc/require-jsdoc */
 import { type dia } from '@joint/core';
 import type { ElementRecord, ElementWithLayout, LinkRecord } from '../types/data-types';
-import {
-  mapAttributesToElement,
-  mapAttributesToLink,
-} from '../state/data-mapping';
+import { mapAttributesToElement, mapAttributesToLink } from '../state/data-mapping';
 import { graphChanges, type UpdateGraphOptions } from './graph-changes';
 import { asReadonlyContainer, createContainer } from './state-container';
 import { isShallowEqual, isPositionEqual, isSizeEqual } from '../utils/selector-utils';
@@ -36,13 +32,14 @@ interface GraphViewState<
   readonly onIncrementalChange?: (
     changes: IncrementalContainerChanges<ElementData, LinkData>
   ) => void;
+  readonly onElementsSizeChange: (id: string, size: { width: number; height: number }) => void;
 }
 
 export function graphView<
   ElementData extends object = Record<string, unknown>,
   LinkData extends object = Record<string, unknown>,
 >(options: GraphViewState<ElementData, LinkData>) {
-  const { graph, onIncrementalChange } = options;
+  const { graph, onIncrementalChange, onElementsSizeChange } = options;
 
   const elements = createContainer<ElementWithLayout<ElementData>>('Elements');
   const links = createContainer<LinkRecord<LinkData>>('Links');
@@ -54,6 +51,20 @@ export function graphView<
   const linkAdded = trackChanges ? new Map<string, LinkRecord<LinkData>>() : undefined;
   const linkChanged = trackChanges ? new Map<string, LinkRecord<LinkData>>() : undefined;
   const linkRemoved = trackChanges ? new Set<string>() : undefined;
+
+  function triggerSizeChange({
+    id,
+    next,
+    previous,
+  }: {
+    previous?: ElementRecord<ElementData>;
+    next: ElementRecord<ElementData>;
+    id: string;
+  }) {
+    if (!isSizeEqual(previous?.size, next.size)) {
+      onElementsSizeChange(id, { width: next.size?.width ?? 0, height: next.size?.height ?? 0 });
+    }
+  }
 
   const graphChangesController = graphChanges({
     graph,
@@ -93,7 +104,7 @@ export function graphView<
                   position: previousPosition,
                   size: previousSize,
                 } = previous;
-                return {
+                const newItem = {
                   ...previous,
                   ...rest,
                   data: isShallowEqual(previousUserData, userData) ? previousUserData : userData,
@@ -102,6 +113,8 @@ export function graphView<
                     : position,
                   size: isSizeEqual(previousSize, size) ? previousSize : size,
                 };
+                triggerSizeChange({ id, previous, next: newItem });
+                return newItem;
               });
               if (trackChanges) {
                 if (isAdd) {
@@ -199,7 +212,11 @@ export function graphView<
       const id = String(cell.id);
       if (cell.isElement()) {
         const data = mapAttributesToElement(cell.attributes);
-        elements.set(id, data as ElementWithLayout<ElementData>);
+        elements.set(id, (previous) => {
+          const newElement = data as ElementWithLayout<ElementData>;
+          triggerSizeChange({ id, previous, next: newElement });
+          return newElement;
+        });
       } else if (cell.isLink()) {
         const data = mapAttributesToLink<LinkData>(cell.attributes);
         links.set(id, data);
@@ -221,18 +238,23 @@ export function graphView<
       if (flag !== 'updateFromReact') {
         return;
       }
-      for (const [id, data] of Object.entries(userElements)) {
+
+      const useElementEntries = Object.entries(userElements);
+      const useLinkEntries = Object.entries(userLinks);
+      for (const [id, data] of useElementEntries) {
         const cell = graph.getCell(id);
         if (cell?.isElement()) {
-          elements.set(id, {
-            position: cell.position(),
-            size: cell.size(),
-            angle: cell.angle(),
-            ...data,
-          } as ElementWithLayout<ElementData>);
+          elements.set(id, (previous) => {
+            const newItem = {
+              ...previous,
+              ...data,
+            } as ElementWithLayout<ElementData>;
+            triggerSizeChange({ id, previous, next: newItem });
+            return newItem;
+          });
         }
       }
-      for (const [id, data] of Object.entries(userLinks)) {
+      for (const [id, data] of useLinkEntries) {
         links.set(id, data);
       }
       // Remove elements/links that are no longer in the user state
@@ -247,8 +269,8 @@ export function graphView<
         }
       }
 
-      if (elements.getSize() > 0 || Object.keys(userElements).length > 0) elements.commitChanges();
-      if (links.getSize() > 0 || Object.keys(userLinks).length > 0) links.commitChanges();
+      if (elements.getSize() > 0 || useElementEntries.length > 0) elements.commitChanges();
+      if (links.getSize() > 0 || useLinkEntries.length > 0) links.commitChanges();
     },
     destroy() {
       graphChangesController.destroy();

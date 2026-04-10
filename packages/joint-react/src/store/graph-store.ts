@@ -17,6 +17,7 @@ import type { IncrementalChange } from '../state/incremental.types';
 import type { Feature } from '../types/feature.types';
 import { graphView, type GraphView, type IncrementalContainerChanges } from './graph-view';
 import type { ElementRecord, LinkRecord } from '../types/data-types';
+import { simpleScheduler } from '../utils/scheduler';
 
 export const DEFAULT_CELL_NAMESPACE: Record<string, unknown> = {
   ...shapes,
@@ -40,12 +41,6 @@ export interface GraphStoreInternalSnapshot {
   readonly papers: Record<string, PaperStoreState>;
   readonly resetVersion: number;
   readonly graphFeaturesVersion: number;
-}
-
-export interface MeasureSnapshot {
-  readonly observedElements: number;
-  readonly measuredElements: number;
-  readonly needSomeElementBeMeasured: boolean;
 }
 
 /**
@@ -74,16 +69,13 @@ export class GraphStore<
   LinkData extends object = Record<string, unknown>,
 > {
   public readonly internalState: Atom<GraphStoreInternalSnapshot>;
-  public readonly measureState: Atom<MeasureSnapshot>;
+  public readonly measureState: Atom<number> = createAtom(0);
   public readonly graph: dia.Graph;
 
   public paperStores = new Map<string, PaperStore>();
   public features: Record<string, Feature> = {};
   private observer: GraphStoreObserver;
   public readonly graphView: GraphView<ElementData, LinkData>;
-
-  /** IDs of elements that have been measured by ResizeObserver. */
-  private readonly measuredElementIds = new Set<CellId>();
 
   public getGraphView<
     N extends object = Record<string, unknown>,
@@ -123,6 +115,13 @@ export class GraphStore<
       graphFeaturesVersion: 1,
     });
 
+    const elementsMeasured = new Set<string>();
+    const onElementSizeChange = () => {
+      if (elementsMeasured.size > 0) {
+        console.log('aha');
+        this.measureState.set((previous) => previous + 1);
+      }
+    };
     this.graphView = graphView<ElementData, LinkData>({
       graph: this.graph,
       onIncrementalChange: this.buildIncrementalChangeHandler(
@@ -130,31 +129,27 @@ export class GraphStore<
         onElementsChange,
         onLinksChange
       ),
+      onElementsSizeChange: (id, size) => {
+        // Trigger re-measure of elements on size change
+        if (size.width > 0 && size.height > 0) {
+          elementsMeasured.add(id);
+        } else {
+          elementsMeasured.delete(id);
+        }
+        // we schedule it, so basically we can to it as single operation, that means, we can confidentially could say that
+        // 1. measureState > 0 means that we have some measured elements (on-load)
+        // 2. measureState changes means changes triggered.
+        simpleScheduler(onElementSizeChange);
+      },
     });
 
-    this.measureState = createAtom<MeasureSnapshot>({
-      observedElements: 0,
-      measuredElements: 0,
-      needSomeElementBeMeasured: this.detectNeedSomeElementBeMeasured(initialElements),
-    });
     this.observer = createElementsSizeObserver({
-      onObserveElement: ({ id, isRemoved, observedElements }) => {
-        if (isRemoved) {
-          this.measuredElementIds.delete(id);
-        }
-        this.measureState.set((previous) => ({
-          ...previous,
-          observedElements,
-          measuredElements: this.measuredElementIds.size,
-        }));
-      },
       getElements: () => this.graphView.elements.getFull() as Map<CellId, ElementRecord>,
       onBatchUpdate: (updatedElements) => {
         this.graph.startBatch('resize');
         for (const [id, data] of Object.entries(updatedElements)) {
           const cell = this.graph.getCell(id);
           if (cell?.isElement()) {
-            this.measuredElementIds.add(id);
             cell.set('size', { width: data.width, height: data.height });
             if (data.x !== undefined && data.y !== undefined) {
               cell.set('position', { x: data.x, y: data.y });
@@ -162,10 +157,6 @@ export class GraphStore<
           }
         }
         this.graph.stopBatch('resize');
-        this.measureState.set((previous) => ({
-          ...previous,
-          measuredElements: this.measuredElementIds.size,
-        }));
       },
       getCellTransform: (id) => {
         const cell = this.graph.getCell(id);
@@ -200,15 +191,6 @@ export class GraphStore<
       // references to those views (e.g. stencil drag's cloneView).
       this.graphView.syncFromGraph();
     }
-  }
-
-  private detectNeedSomeElementBeMeasured(elements: Record<CellId, ElementRecord<ElementData>>) {
-    for (const element of Object.values(elements)) {
-      if (element.size?.width == undefined || element.size?.height == undefined) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private buildIncrementalChangeHandler(

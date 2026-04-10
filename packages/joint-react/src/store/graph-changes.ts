@@ -120,7 +120,7 @@ export function graphChanges(options: Options) {
     batchDepth += 1;
   });
 
-  controller.listenTo(graph, 'batch:stop', ({ isUpdateFromReact }: JointJSEventOptions) => {
+  controller.listenTo(graph, 'batch:stop', ({ isUpdateFromReact }: JointJSEventOptions = {}) => {
     batchDepth -= 1;
     if (batchDepth > 0) return;
     if (isUpdateFromReact) return;
