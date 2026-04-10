@@ -12,7 +12,10 @@ import {
   type LinkRecord,
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
+import { smoothLinks } from '@joint/react/presets';
 import { useCallback, useEffect, useRef } from 'react';
+
+const SMOOTH_LINKS = smoothLinks();
 
 // ----------------------------------------------------------------------------
 // Types
@@ -628,8 +631,7 @@ function Main() {
       height={800}
       className={PAPER_CLASSNAME}
       renderElement={RenderElement}
-      defaultConnector={{ name: 'curve' }}
-      defaultConnectionPoint={{ name: 'anchor' }}
+      {...SMOOTH_LINKS}
       style={{ backgroundColor: '#0f172a' }}
       interactive={{ stopDelegation: false }}
     />
