@@ -17,11 +17,13 @@ import {
 import { PAPER_CLASSNAME, PAPER_STYLE, PRIMARY, BG, TEXT, LIGHT } from 'storybook-config/theme';
 import '../index.css';
 import { dia, shapes } from '@joint/core';
+import { smoothLinks } from '@joint/react/presets';
 
 const ROW_HEIGHT = 30;
 const HEADER_HEIGHT = 32;
 const ELEMENT_WIDTH = 160;
 const HEADER_COLOR = '#f6c744';
+const SMOOTH_LINKS = smoothLinks({ mode: 'horizontal', straightWhenDisconnected: false });
 
 interface StackedElement {
   readonly name: string;
@@ -166,13 +168,7 @@ function Main() {
       renderElement={renderElement}
       magnetThreshold={'onleave'}
       linkPinning={false}
-      defaultConnectionPoint={{ name: 'rectangle', args: { padding: 6 } }}
-      defaultAnchor={{
-        name: 'midSide',
-        args: {
-          mode: 'horizontal',
-        },
-      }}
+      {...SMOOTH_LINKS}
       highlighting={{
         connecting: {
           name: 'stroke',

@@ -21,7 +21,10 @@ export const boundaryPoint: connectionPoints.ConnectionPoint = (
   if (endMagnet === endView.el || endMagnet.getAttribute('port')) {
     return connectionPoints.rectangle(endPathSegmentLine, endView, endMagnet, rectangleArgs, endType, linkView);
   }
-  const boundaryArgs = {} as connectionPoints.ConnectionPointArgumentsMap['boundary'];
+  const boundaryArgs = {
+  // use the endMagnet itself - don't search for a non-group child element
+    selector: false
+  } as connectionPoints.ConnectionPointArgumentsMap['boundary'];
   return connectionPoints.boundary(endPathSegmentLine, endView, endMagnet, boundaryArgs, endType, linkView);
 };
 
