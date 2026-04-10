@@ -102,6 +102,7 @@ function rectangleIntersection(line, view, magnet, opt) {
     if (opt.stroke) bboxWORotation.inflate(stroke(magnet) / 2);
 
     // Use model center because rotation is applied around the center of the model.
+    // Currently doesn't work with rotatable group
     const center = view.model.getCenter();
 
     const lineWORotation = line.clone().rotate(center, angle);
