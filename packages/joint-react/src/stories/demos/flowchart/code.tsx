@@ -19,12 +19,21 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import { dia, highlighters, linkTools } from '@joint/core';
+import { orthogonalLinks } from '@joint/react/presets';
 import { forwardRef, useId, useRef, useState } from 'react';
 
 const unit = 4;
 const bevel = 2 * unit;
 const nodeFontSize = 13;
 const labelFontSize = 15;
+
+const ORTHOGONAL_LINKS = orthogonalLinks({
+  cornerType: 'line',
+  cornerRadius: bevel,
+  margin: unit * 7,
+  sourceOffset: unit * 2,
+  targetOffset: unit * 2
+});
 
 type NodeElementData = {
   readonly label: string;
@@ -470,23 +479,7 @@ function Main() {
       renderElement={RenderFlowchartNode as RenderElement<NodeElementData>}
       interactive={{ linkMove: false }}
       drawGrid={false}
-      defaultConnectionPoint={{
-        name: 'boundary',
-        args: {
-          offset: unit * 2,
-          extrapolate: true,
-        },
-      }}
-      defaultRouter={{
-        name: 'rightAngle',
-        args: {
-          margin: unit * 7,
-        },
-      }}
-      defaultConnector={{
-        name: 'straight',
-        args: { cornerType: 'line', cornerPreserveAspectRatio: true },
-      }}
+      {...ORTHOGONAL_LINKS}
     />
   );
 }

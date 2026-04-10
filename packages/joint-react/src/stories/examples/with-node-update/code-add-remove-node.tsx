@@ -12,6 +12,9 @@ import {
 } from '@joint/react';
 import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { orthogonalLinks } from '@joint/react/presets';
+
+const ORTHOGONAL_LINKS = orthogonalLinks({ cornerType: 'line', margin: 40, sourceOffset: 10, targetOffset: 10 });
 
 interface NodeData {
   readonly [key: string]: unknown;
@@ -86,19 +89,7 @@ function Main() {
         className={PAPER_CLASSNAME}
         clickThreshold={10}
         interactive={{ linkMove: false }}
-        defaultAnchor={{ name: 'midSide' }}
-        defaultRouter={{ name: 'rightAngle', args: { margin: 40 } }}
-        defaultConnector={{
-          name: 'straight',
-          args: { cornerType: 'line', cornerPreserveAspectRatio: true },
-        }}
-        defaultConnectionPoint={{
-          name: 'boundary',
-          args: {
-            offset: 10,
-            extrapolate: true,
-          },
-        }}
+        {...ORTHOGONAL_LINKS}
         height={380}
         renderElement={RenderElement}
       />
