@@ -16,7 +16,9 @@ import {
   type PaperProps,
   type RenderElement,
   PORTAL_ELEMENT_TYPE,
+  useElement,
 } from '@joint/react';
+import { orthogonalLinks } from '@joint/react/presets';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { LIGHT, PAPER_STYLE } from 'storybook-config/theme';
 
@@ -34,47 +36,10 @@ interface ElementUserData {
   readonly type?: 'default' | 'error' | 'info';
   readonly title?: string;
   readonly color?: string;
-  readonly jjType?: string;
 }
 
-
 const PAPER_PROPS: PaperProps = {
-  defaultAnchor: {
-    name: 'midSide',
-    args: {
-      rotate: true,
-      useModelGeometry: true,
-    },
-  },
-  defaultConnectionPoint: {
-    name: 'anchor',
-    args: {
-      offset: 0,
-      useModelGeometry: true,
-    },
-  },
-  defaultConnector: {
-    name: 'straight',
-    args: {
-      cornerType: 'line',
-      cornerPreserveAspectRatio: true,
-      useModelGeometry: true,
-    },
-  },
-  defaultRouter: {
-    name: 'rightAngle',
-    args: {
-      direction: 'right',
-      useModelGeometry: true,
-    },
-  },
-  measureNode: (node, view) => {
-    if (node === view.el) {
-      const size = (view.model as dia.Element).size();
-      return new g.Rect(0, 0, size.width, size.height);
-    }
-    return V(node).getBBox();
-  },
+  ...orthogonalLinks(),
 };
 
 // ============================================================================
@@ -96,7 +61,8 @@ const elements: Record<string, ElementRecord<ElementUserData>> = {
     position: { x: 50, y: 370 },
   },
   '4': {
-    data: { jjType: 'standard.Cylinder', color: '#60a5fa' },
+    type: 'standard.Cylinder',
+    data: { color: '#60a5fa' },
     position: { x: 550, y: 370 },
     size: { width: 100, height: 150 },
   },
@@ -110,7 +76,6 @@ const links: Record<string, LinkRecord> = {
     style: {
       width: 4,
       color: 'orange',
-      // targetMarker: 'arrow' as LinkMarkerName,
       className: 'dashed-link',
     },
   },
@@ -118,14 +83,11 @@ const links: Record<string, LinkRecord> = {
     source: { id: '3' },
     target: { id: '4' },
     style: { color: 'green' },
-    // sourceMarker: 'circle' as LinkMarkerName,
-    // targetMarker: 'cross' as LinkMarkerName,
   },
   link3: {
-    data: { jjType: 'standard.ShadowLink' },
+    type: 'standard.ShadowLink',
     source: { id: '2' },
     target: { id: '4' },
-    style: { color: 'purple' },
   },
 };
 
@@ -282,14 +244,14 @@ function Badge({
 }
 
 function RenderElementWithBadge({
-  jjType,
   color = 'lightgray',
   title = 'No Title',
 }: Readonly<ElementUserData>) {
   const { width } = useElementSize();
+  const type = useElement(element => element.type);
   return (
     <>
-      {jjType ?? <Shape color={color} title={title} />}
+      {type ?? <Shape color={color} title={title} />}
       <Badge x={width + 10} y={-10} size={10} color={color} />
     </>
   );
