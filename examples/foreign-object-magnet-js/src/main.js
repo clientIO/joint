@@ -23,10 +23,10 @@ const BASE_BADGE_STYLE = {
 
 // CSS positions for each border edge (centered via transform)
 const BADGE_POSITIONS = {
-    top:    { top: '0',   left: '50%',  transform: 'translate(-50%, -50%)' },
-    right:  { top: '50%', right: '0',   transform: 'translate(50%, -50%)' },
+    top: { top: '0', left: '50%', transform: 'translate(-50%, -50%)' },
+    right: { top: '50%', right: '0', transform: 'translate(50%, -50%)' },
     bottom: { bottom: '0', left: '50%', transform: 'translate(-50%, 50%)' },
-    left:   { top: '50%', left: '0',    transform: 'translate(-50%, -50%)' }
+    left: { top: '50%', left: '0', transform: 'translate(-50%, -50%)' }
 };
 
 // Single foreignObject containing all 4 badge divs as direct children.
@@ -44,6 +44,10 @@ const borderBadgeMarkup = [
             { tagName: 'div', namespaceURI: 'http://www.w3.org/1999/xhtml', selector: 'bottomBadge' },
             { tagName: 'div', namespaceURI: 'http://www.w3.org/1999/xhtml', selector: 'leftBadge' }
         ]
+    },
+    {
+        tagName: 'rect',
+        selector: 'svgMagnet'
     }
 ];
 
@@ -76,10 +80,19 @@ const BASE_ATTRS = {
         height: 'calc(h)',
         overflow: 'visible'
     },
-    topBadge:    { style: { ...BASE_BADGE_STYLE, ...BADGE_POSITIONS.top } },
-    rightBadge:  { style: { ...BASE_BADGE_STYLE, ...BADGE_POSITIONS.right } },
+    svgMagnet: {
+        width: 60,
+        height: 20,
+        fill: '#7b8cde',
+        stroke: '#7b8cde',
+        strokeWidth: 1,
+        x: 170,
+        y: 120,
+    },
+    topBadge: { style: { ...BASE_BADGE_STYLE, ...BADGE_POSITIONS.top } },
+    rightBadge: { style: { ...BASE_BADGE_STYLE, ...BADGE_POSITIONS.right } },
     bottomBadge: { style: { ...BASE_BADGE_STYLE, ...BADGE_POSITIONS.bottom } },
-    leftBadge:   { style: { ...BASE_BADGE_STYLE, ...BADGE_POSITIONS.left } }
+    leftBadge: { style: { ...BASE_BADGE_STYLE, ...BADGE_POSITIONS.left } }
 };
 
 const BorderBadgeElement = dia.Element.define(
@@ -116,12 +129,34 @@ paper.translate(100, 0);
 const shape1 = new BorderBadgeElement({
     position: { x: 140, y: 160 },
     attrs: {
-        body:  { stroke: '#2980b9', fill: '#ebf5fb' },
+        body: { stroke: '#2980b9', fill: '#ebf5fb' },
         label: { text: 'Process Node', fill: '#1a5276' },
-        topBadge:    { html: 'In: 3',      style: { backgroundColor: '#2980b9' } },
-        rightBadge:  { html: 'Out: 2',     style: { backgroundColor: '#27ae60' } },
+        topBadge: { html: 'In: 3', style: { backgroundColor: '#2980b9' } },
+        rightBadge: { html: 'Out: 2', style: { backgroundColor: '#27ae60' } },
         bottomBadge: { html: 'Status: OK', style: { backgroundColor: '#16a085' } },
-        leftBadge:   { html: 'ID: A1',     style: { backgroundColor: '#8e44ad' } }
+        leftBadge: { html: 'ID: A1', style: { backgroundColor: '#8e44ad' } }
+    },
+    ports: {
+        items: [{
+            position: {
+                name: 'absolute',
+                args: { x: 200, y: 0 }
+            },
+            attrs: {
+                portBody: {
+                    magnet: true,
+                    width: 32,
+                    height: 16,
+                    x: -16,
+                    y: -8,
+                    fill: '#03071E'
+                },
+            },
+            markup: [{
+                tagName: 'rect',
+                selector: 'portBody'
+            }]
+        }]
     }
 });
 
@@ -134,12 +169,12 @@ shape1.rotate(30);
 const shape2 = new BorderBadgeElement({
     position: { x: 520, y: 160 },
     attrs: {
-        body:  { stroke: '#c0392b', fill: '#fdedec' },
+        body: { stroke: '#c0392b', fill: '#fdedec' },
         label: { text: 'Data Store', fill: '#78281f' },
-        topBadge:    { html: 'Read',  style: { backgroundColor: '#e74c3c' } },
-        rightBadge:  { html: 'Write', style: { backgroundColor: '#e67e22' } },
+        topBadge: { html: 'Read', style: { backgroundColor: '#e74c3c' } },
+        rightBadge: { html: 'Write', style: { backgroundColor: '#e67e22' } },
         bottomBadge: { html: 'Cache', style: { backgroundColor: '#d35400' } },
-        leftBadge:   { html: 'Index', style: { backgroundColor: '#c0392b' } }
+        leftBadge: { html: 'Index', style: { backgroundColor: '#c0392b' } }
     }
 });
 
@@ -150,13 +185,9 @@ shape2.addTo(graph);
 const link = new shapes.standard.Link({
     source: {
         id: shape1.id,
-        magnet: 'rightBadge',
-        anchor: {
-            name: 'midSide',
-            args: {
-                rotate: true
-            }
-        }
+        port: shape1.getPorts()[0].id,
+        //magnet: 'rightBadge',
+        connectionPoint: { name: 'rectangle' }
     },
     target: {
         id: shape2.id,
