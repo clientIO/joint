@@ -18,7 +18,7 @@ import type { CellAttributes } from '.';
  *
  * All fields are stored directly on the model (1:1 mapping, no `presentation` wrapper).
  */
-export function buildAttributesFromLink<LinkData extends object = Record<string, unknown>>(
+export function mapLinkToAttributes<LinkData extends object = Record<string, unknown>>(
   link: LinkRecord<LinkData>
 ): CellAttributes {
   if (!isRecord(link)) {
@@ -77,6 +77,7 @@ export function mapAttributesToLink<LinkData extends object = Record<string, unk
   attributes: dia.Link.Attributes
 ): LinkRecord<LinkData> {
   const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     id,
     type,
     // Labels
@@ -124,14 +125,5 @@ export function mapAttributesToLink<LinkData extends object = Record<string, unk
 export type MapAttributesToLink<LinkData extends object = Record<string, unknown>> =
   typeof mapAttributesToLink<LinkData>;
 
-export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> = (options: {
-  id: string;
-  link: LinkRecord<LinkData>;
-}) => CellAttributes;
-
-export function mapLinkToAttributes<LinkData extends object = Record<string, unknown>>(
-  options: { id: string } & LinkRecord<LinkData>
-): CellAttributes {
-  const { id, link } = options;
-  return { ...buildAttributesFromLink(link), id };
-}
+export type MapLinkToAttributes<LinkData extends object = Record<string, unknown>> =
+  typeof mapLinkToAttributes<LinkData>;

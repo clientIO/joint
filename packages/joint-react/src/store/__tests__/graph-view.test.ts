@@ -1,14 +1,6 @@
 import { dia } from '@joint/core';
 import { DEFAULT_CELL_NAMESPACE } from '../../store/graph-store';
 import { graphView } from '../graph-view';
-import { buildAttributesFromLink } from '../../state/data-mapping/link-mapper';
-import type { ElementRecord, LinkRecord } from '../../types/data-types';
-import type {
-  CellAttributes,
-  MapElementToAttributes,
-  MapLinkToAttributes,
-} from '../../state/data-mapping';
-import { buildAttributesFromElement } from '../../state/data-mapping';
 
 function createGraph() {
   return new dia.Graph({}, { cellNamespace: DEFAULT_CELL_NAMESPACE });
@@ -18,7 +10,6 @@ function setup() {
   const graph = createGraph();
   const view = graphView({
     graph,
-
   });
   return { graph, view };
 }
@@ -336,7 +327,6 @@ describe('graphView', () => {
 
       const view = graphView({
         graph,
-    
       });
 
       addElement(graph, 'el-1', 10, 20);
@@ -358,7 +348,6 @@ describe('graphView', () => {
 
       const view = graphView({
         graph,
-    
       });
 
       addElement(graph, 'el-1', 10, 20);
@@ -404,7 +393,6 @@ describe('graphView', () => {
 
       const view = graphView({
         graph,
-    
       });
 
       // updateGraph populates link data in the container
@@ -439,7 +427,6 @@ describe('graphView', () => {
       const view = graphView({
         graph,
 
-    
         onIncrementalChange: (changes) => {
           lastIncrementalChanges = changes;
         },
@@ -462,9 +449,9 @@ describe('graphView', () => {
       expect(view.links.getSize()).toBe(1);
 
       // Step 2: User drags element 'a' — JointJS fires change:position
-      const elA = graph.getCell('a') as dia.Element;
-      expect(elA).toBeDefined();
-      elA.position(100, 100);
+      const elementA = graph.getCell('a') as dia.Element;
+      expect(elementA).toBeDefined();
+      elementA.position(100, 100);
       await flush();
 
       // Verify incremental callback fired
@@ -509,7 +496,6 @@ describe('graphView', () => {
       const view = graphView({
         graph,
 
-    
         onIncrementalChange: (changes) => {
           lastChanges = changes as { elements: unknown; links: unknown };
         },

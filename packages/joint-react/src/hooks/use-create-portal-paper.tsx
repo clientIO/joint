@@ -183,10 +183,7 @@ export function useCreatePortalPaper(
       const PortalLinkModel = getPortalLinkConstructor(graph);
       if (!link) {
         const id = util.uuid();
-        const defaultAttributes = mapLinkToAttributes({
-          id,
-          link: { data: {} },
-        });
+        const defaultAttributes = mapLinkToAttributes({ id, data: {} } as LinkRecord);
         return new PortalLinkModel(defaultAttributes);
       }
       if (link instanceof dia.Link) {
@@ -196,10 +193,7 @@ export function useCreatePortalPaper(
         return link.clone();
       }
       const id = util.uuid();
-      const attributes = mapLinkToAttributes({
-        id,
-        link: { data: {}, ...link } as LinkRecord,
-      });
+      const attributes = mapLinkToAttributes({ id, data: {}, ...link } as LinkRecord);
       return new PortalLinkModel(attributes);
     },
 

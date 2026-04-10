@@ -54,10 +54,7 @@ export function useSetElement<NodeData extends object = Record<string, unknown>>
         ...attributes,
       } as ElementRecord<NodeData>;
 
-      const cellAttributes = mapElementToAttributes({
-        id: String(id),
-        ...mergedData,
-      });
+      const cellAttributes = mapElementToAttributes(mergedData);
       graphStore.graph.syncCells([{ ...cellAttributes, id } as dia.Cell.JSON], { remove: false });
     },
     [graphStore]
@@ -84,10 +81,7 @@ export function useSetLink<LinkData extends object = Record<string, unknown>>() 
         ...existing,
         ...attributes,
       } as LinkRecord<LinkData>;
-      const cellAttributes = mapLinkToAttributes({
-        id: String(id),
-        link: mergedData,
-      });
+      const cellAttributes = mapLinkToAttributes(mergedData);
       graphStore.graph.syncCells([{ ...cellAttributes, id } as dia.Cell.JSON], { remove: false });
     },
     [graphStore]
@@ -144,13 +138,13 @@ export function useSetElements<NodeData extends object = Record<string, unknown>
 
       const cells: dia.Cell.JSON[] = [];
       for (const [id, element] of Object.entries(nextElements)) {
-        const cellAttributes = mapElementToAttributes({ id, ...element });
+        const cellAttributes = mapElementToAttributes(element);
         cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
       }
 
       // Preserve existing links so syncCells(remove: true) doesn't wipe them
       for (const [id, link] of graphView.links.getFull()) {
-        const cellAttributes = mapLinkToAttributes({ id, link });
+        const cellAttributes = mapLinkToAttributes(link);
         cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
       }
 
@@ -180,13 +174,13 @@ export function useSetLinks<LinkData extends object = Record<string, unknown>>()
 
       const cells: dia.Cell.JSON[] = [];
       for (const [id, link] of Object.entries(nextLinks)) {
-        const cellAttributes = mapLinkToAttributes({ id, link });
+        const cellAttributes = mapLinkToAttributes(link);
         cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
       }
 
       // Preserve existing elements so syncCells(remove: true) doesn't wipe them
       for (const [id, element] of graphView.elements.getFull()) {
-        const cellAttributes = mapElementToAttributes({ id, ...element });
+        const cellAttributes = mapElementToAttributes(element);
         cells.push({ ...cellAttributes, id } as dia.Cell.JSON);
       }
 
