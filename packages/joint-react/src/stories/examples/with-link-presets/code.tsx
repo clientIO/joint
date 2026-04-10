@@ -7,10 +7,11 @@ import {
   straightLinks, orthogonalLinks, smoothLinks,
   type StraightLinksOptions, type OrthogonalLinksOptions, type SmoothLinksOptions,
   type AnchorMode,
-} from '../../../presets';
-import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
+} from '@joint/react/presets';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 import type { dia } from '@joint/core';
+
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
